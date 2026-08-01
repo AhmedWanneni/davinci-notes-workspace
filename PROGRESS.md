@@ -10,7 +10,11 @@ Design system: tokens + foundation setup (not yet started — this is the starti
 
 ## Done
 
-_(nothing built yet — populate as work lands)_
+- **Monorepo Scaffolding**: Configured pnpm workspace, Turborepo pipeline, tsconfig path aliases, and ESLint boundary rules.
+- **Local Hooks**: Configured Husky, `lint-staged`, and `commitlint` (Conventional Commits).
+- **CI Pipeline**: Configured GitHub Actions workflow running lint, typecheck, test, build, and Storybook build via Turbo affected filter. Verified both passing and failing PR flows.
+- **PR Template & Conventions**: Created `.github/PULL_REQUEST_TEMPLATE.md` and `CONTRIBUTING.md`.
+- **Changesets**: Configured `@changesets/cli` tracking `packages/*` and ignoring apps/services.
 
 ## In Progress
 
@@ -28,12 +32,10 @@ _(nothing yet)_
 
 ## Blocked / Open Questions
 
-_(log anything a session got stuck on here, so the next session doesn't rediscover it from scratch)_
+_(none)_
 
 ## Session Log
 
 | Date | Focus | Outcome |
 |---|---|---|
-| — | — | — |
-
-_(append one row per session: what was attempted, what landed, what's left)_
+| 2026-08-01 | Git Workflow, Hooks, CI & Changesets | Configured Husky, commitlint, lint-staged, GitHub Actions CI workflow, PR templates, CONTRIBUTING.md, and Changesets. All verified. |
