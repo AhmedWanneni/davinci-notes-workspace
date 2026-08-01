@@ -6,7 +6,8 @@
     "build": "mkdir -p dist && echo 'build @app/core-types'",
     "dev": "echo 'dev @app/core-types'",
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "echo 'test @app/core-types'"
-  },
-  "dependencies": {}
+    "test": "echo 'test @app/core-types'",
+    "typecheck": "echo 'typecheck'",
+    "build-storybook": "echo 'build-storybook'"
+  }
 }
