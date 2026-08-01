@@ -1,0 +1,5 @@
+
+> @app/sync-client@0.0.0 build /Users/ahmedwaanneni/Desktop/davinci-notes/packages/sync-client
+> mkdir -p dist && echo 'build @app/sync-client'
+
+build @app/sync-client

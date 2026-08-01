@@ -1,0 +1,4 @@
+
+> @app/sync-client@0.0.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/packages/sync-client
+> eslint . --ext .ts,.tsx
+

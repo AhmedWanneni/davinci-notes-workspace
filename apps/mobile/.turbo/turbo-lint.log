@@ -1,0 +1,4 @@
+
+> @app/mobile@0.0.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/apps/mobile
+> eslint . --ext .ts,.tsx
+

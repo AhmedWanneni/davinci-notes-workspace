@@ -1,0 +1,17 @@
+{
+  "name": "@app/mobile",
+  "version": "0.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "mkdir -p dist && echo 'build @app/mobile'",
+    "dev": "echo 'dev @app/mobile'",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "echo 'test @app/mobile'"
+  },
+  "dependencies": {
+    "@app/core-types": "workspace:*",
+    "@app/design-system": "workspace:*",
+    "@app/indexer": "workspace:*",
+    "@app/sync-client": "workspace:*"
+  }
+}

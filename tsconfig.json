@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "@app/core-types": ["packages/core-types/index.ts"],
+      "@app/design-system": ["packages/design-system/index.ts"],
+      "@app/indexer": ["packages/indexer/index.ts"],
+      "@app/sync-client": ["packages/sync-client/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}

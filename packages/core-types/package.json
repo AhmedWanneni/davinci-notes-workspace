@@ -1,0 +1,12 @@
+{
+  "name": "@app/core-types",
+  "version": "0.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "mkdir -p dist && echo 'build @app/core-types'",
+    "dev": "echo 'dev @app/core-types'",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "echo 'test @app/core-types'"
+  },
+  "dependencies": {}
+}

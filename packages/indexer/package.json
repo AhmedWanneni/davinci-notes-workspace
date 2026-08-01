@@ -1,0 +1,12 @@
+{
+  "name": "@app/indexer",
+  "version": "0.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "mkdir -p dist && echo 'build @app/indexer'",
+    "dev": "echo 'dev @app/indexer'",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "echo 'test @app/indexer'"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,5 @@
+
+> @service/sync-server@0.0.0 build /Users/ahmedwaanneni/Desktop/davinci-notes/services/sync-server
+> mkdir -p dist && echo 'build @service/sync-server'
+
+build @service/sync-server

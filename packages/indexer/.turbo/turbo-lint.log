@@ -1,0 +1,5 @@
+
+> @app/indexer@0.0.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/packages/indexer
+> eslint . --ext .ts,.tsx
+
+[boundaries]: Defining aliases in 'boundaries/alias' setting is deprecated. Please use 'import/resolver' setting

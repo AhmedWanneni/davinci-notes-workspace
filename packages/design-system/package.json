@@ -1,0 +1,12 @@
+{
+  "name": "@app/design-system",
+  "version": "0.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "mkdir -p dist && echo 'build @app/design-system'",
+    "dev": "echo 'dev @app/design-system'",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "echo 'test @app/design-system'"
+  },
+  "dependencies": {}
+}

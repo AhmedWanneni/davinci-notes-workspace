@@ -1,0 +1,5 @@
+
+> @app/core-types@0.0.0 build /Users/ahmedwaanneni/Desktop/davinci-notes/packages/core-types
+> mkdir -p dist && echo 'build @app/core-types'
+
+build @app/core-types

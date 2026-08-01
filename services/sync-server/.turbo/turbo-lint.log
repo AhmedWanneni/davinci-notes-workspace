@@ -1,0 +1,4 @@
+
+> @service/sync-server@0.0.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/services/sync-server
+> eslint . --ext .ts,.tsx
+

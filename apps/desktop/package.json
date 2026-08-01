@@ -1,0 +1,17 @@
+{
+  "name": "@app/desktop",
+  "version": "0.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "build": "mkdir -p dist && echo 'build @app/desktop'",
+    "dev": "echo 'dev @app/desktop'",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "echo 'test @app/desktop'"
+  },
+  "dependencies": {
+    "@app/core-types": "workspace:*",
+    "@app/design-system": "workspace:*",
+    "@app/indexer": "workspace:*",
+    "@app/sync-client": "workspace:*"
+  }
+}
