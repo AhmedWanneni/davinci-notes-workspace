@@ -1,0 +1,72 @@
+@import "../../styles/mixins";
+
+.text {
+  margin: 0;
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+
+  &--editor {
+    font-family: var(--font-editor);
+  }
+
+  &--xs {
+    font-size: var(--type-scale-xs);
+  }
+  &--sm {
+    font-size: var(--type-scale-sm);
+  }
+  &--base {
+    font-size: var(--type-scale-base);
+  }
+  &--lg {
+    font-size: var(--type-scale-lg);
+  }
+
+  &--muted {
+    color: var(--color-text-muted);
+  }
+  &--faint {
+    color: var(--color-text-faint);
+  }
+  &--accent {
+    color: var(--color-text-accent);
+  }
+  &--error {
+    color: var(--color-text-error);
+  }
+
+  &--regular {
+    font-weight: var(--type-weight-regular);
+  }
+  &--medium {
+    font-weight: var(--type-weight-medium);
+  }
+  &--semibold {
+    font-weight: var(--type-weight-semibold);
+  }
+  &--bold {
+    font-weight: var(--type-weight-bold);
+  }
+}
+
+.heading {
+  margin: 0;
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  font-weight: var(--type-weight-semibold);
+  line-height: var(--type-leading-tight);
+
+  &--h1 {
+    font-size: var(--type-scale-2xl);
+    font-weight: var(--type-weight-bold);
+  }
+  &--h2 {
+    font-size: var(--type-scale-xl);
+  }
+  &--h3 {
+    font-size: var(--type-scale-lg);
+  }
+  &--h4 {
+    font-size: var(--type-scale-base);
+  }
+}

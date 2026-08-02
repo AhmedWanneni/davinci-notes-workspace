@@ -1,0 +1,68 @@
+@import "../../styles/mixins";
+
+.checkboxRoot {
+  all: unset;
+  background-color: transparent;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-subtle);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &[data-state="checked"] {
+    background-color: var(--color-interactive-accent);
+    border-color: var(--color-interactive-accent);
+    color: var(--color-text-on-accent);
+
+    &:hover {
+      background-color: var(--color-interactive-accent-hover);
+      border-color: var(--color-interactive-accent-hover);
+    }
+  }
+
+  &[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: transparent;
+      border-color: var(--color-border-normal);
+    }
+  }
+}
+
+.checkboxIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+
+  &[data-state="checked"] {
+    animation: scaleIn 150ms var(--motion-ease-standard) forwards;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

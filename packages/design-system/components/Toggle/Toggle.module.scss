@@ -1,0 +1,58 @@
+@import "../../styles/mixins";
+
+.toggleRoot {
+  all: unset;
+  width: 36px;
+  height: 20px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 9999px; // Pill shape
+  position: relative;
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-subtle);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &[data-state="checked"] {
+    background-color: var(--color-interactive-accent);
+    border-color: var(--color-interactive-accent);
+
+    &:hover {
+      background-color: var(--color-interactive-accent-hover);
+      border-color: var(--color-interactive-accent-hover);
+    }
+  }
+
+  &[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: var(--color-bg-secondary);
+      border-color: var(--color-border-normal);
+    }
+  }
+}
+
+.toggleThumb {
+  display: block;
+  width: 14px;
+  height: 14px;
+  background-color: var(--color-text-normal);
+  border-radius: 50%;
+  transition: transform var(--motion-duration-fast) var(--motion-ease-standard);
+  transform: translateX(2px);
+  will-change: transform;
+
+  &[data-state="checked"] {
+    transform: translateX(18px);
+    background-color: var(--color-text-on-accent);
+  }
+}

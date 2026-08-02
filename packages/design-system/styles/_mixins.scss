@@ -1,0 +1,46 @@
+@import "../tokens/dist/variables.css";
+
+@mixin border-depth($level: "normal") {
+  box-shadow: none;
+  background-image: none;
+
+  @if $level == "subtle" {
+    border: var(--border-width-thin) solid var(--color-border-subtle);
+  } @else if $level == "normal" {
+    border: var(--border-width-thin) solid var(--color-border-normal);
+  } @else if $level == "thick" {
+    border: var(--border-width-thick) solid var(--color-border-normal);
+  } @else if $level == "active" {
+    border: var(--border-width-thin) solid var(--color-border-focus);
+  }
+}
+
+@mixin focus-visible {
+  outline: none;
+
+  &:focus-visible {
+    outline: var(--border-width-thick) solid var(--color-border-focus);
+    outline-offset: 1px;
+  }
+}
+
+@mixin focus-ring {
+  outline: var(--border-width-thick) solid var(--color-border-focus);
+  outline-offset: 1px;
+}
+
+@mixin media-breakpoint($point) {
+  @if $point == "mobile" {
+    @media (max-width: 767px) {
+      @content;
+    }
+  } @else if $point == "tablet" {
+    @media (min-width: 768px) and (max-width: 1023px) {
+      @content;
+    }
+  } @else if $point == "desktop" {
+    @media (min-width: 1024px) {
+      @content;
+    }
+  }
+}

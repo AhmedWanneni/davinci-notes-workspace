@@ -1,0 +1,68 @@
+@import "../../styles/mixins";
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
+  border-radius: var(--border-radius-sm);
+  white-space: nowrap;
+  border: var(--border-width-thin) solid transparent;
+
+  &--neutral {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-normal);
+    border-color: var(--color-border-normal);
+  }
+
+  &--accent {
+    background-color: rgb(
+      127 109 242 / 15%
+    ); // Accent color with opacity. Hardcoded rgba for now.
+    color: var(--color-text-accent);
+    border-color: rgb(127 109 242 / 30%);
+  }
+
+  &--success {
+    background-color: color-mix(
+      in srgb,
+      var(--color-text-success) 15%,
+      transparent
+    );
+    color: var(--color-text-success);
+    border-color: color-mix(
+      in srgb,
+      var(--color-text-success) 30%,
+      transparent
+    );
+  }
+
+  &--warning {
+    background-color: color-mix(
+      in srgb,
+      var(--color-text-warning) 15%,
+      transparent
+    );
+    color: var(--color-text-warning);
+    border-color: color-mix(
+      in srgb,
+      var(--color-text-warning) 30%,
+      transparent
+    );
+  }
+
+  &--error {
+    background-color: rgb(229 83 83 / 15%);
+    color: var(--color-text-error);
+    border-color: rgb(229 83 83 / 30%);
+  }
+}
+
+.iconWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

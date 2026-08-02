@@ -1,0 +1,136 @@
+@import "../../styles/mixins";
+
+.dropdownContent {
+  min-width: 8rem;
+  overflow: hidden;
+  border-radius: var(--border-radius-md);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary-alt);
+  padding: var(--space-1);
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 10%),
+    0 2px 4px -1px rgb(0 0 0 / 6%);
+  z-index: 50;
+  animation-duration: 200ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+
+  &[data-state="open"][data-side="top"] {
+    animation-name: slideDownAndFade;
+  }
+  &[data-state="open"][data-side="right"] {
+    animation-name: slideLeftAndFade;
+  }
+  &[data-state="open"][data-side="bottom"] {
+    animation-name: slideUpAndFade;
+  }
+  &[data-state="open"][data-side="left"] {
+    animation-name: slideRightAndFade;
+  }
+}
+
+.dropdownItem {
+  position: relative;
+  display: flex;
+  cursor: default;
+  user-select: none;
+  align-items: center;
+  border-radius: var(--border-radius-sm);
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--type-scale-sm);
+  outline: none;
+  transition: background-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
+
+  &--inset {
+    padding-left: var(--space-8);
+  }
+
+  &--checkbox {
+    padding-left: var(--space-8);
+  }
+
+  &[data-highlighted],
+  &:focus {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-normal);
+  }
+
+  &[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.dropdownLabel {
+  padding: var(--space-2) var(--space-2);
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-semibold);
+  color: var(--color-text-muted);
+
+  &--inset {
+    padding-left: var(--space-8);
+  }
+}
+
+.dropdownSeparator {
+  height: var(--border-width-thin);
+  background-color: var(--color-border-subtle);
+  margin: var(--space-1) calc(var(--space-1) * -1);
+}
+
+.itemIndicator {
+  position: absolute;
+  left: var(--space-2);
+  display: flex;
+  height: 16px;
+  width: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes slideUpAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideRightAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideDownAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeftAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

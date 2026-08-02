@@ -1,0 +1,64 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root {
+  --border-width-thin: 1px;
+  --border-width-thick: 2px;
+  --border-radius-none: 0px;
+  --border-radius-sm: 2px;
+  --border-radius-md: 4px;
+  --border-radius-lg: 6px;
+  --color-bg-primary: #1e1e1e;
+  --color-bg-primary-alt: #161616;
+  --color-bg-secondary: #262626;
+  --color-bg-secondary-alt: #202020;
+  --color-bg-hover: rgba(255, 255, 255, 0.05);
+  --color-bg-active: rgba(255, 255, 255, 0.08);
+  --color-text-normal: #dcddde;
+  --color-text-muted: #888888;
+  --color-text-faint: #555555;
+  --color-text-accent: #7f6df2;
+  --color-text-on-accent: #ffffff;
+  --color-text-error: #e55353;
+  --color-text-success: #2ecc71;
+  --color-text-warning: #f1c40f;
+  --color-border-subtle: #2e2e2e;
+  --color-border-normal: #363636;
+  --color-border-focus: #7f6df2;
+  --color-interactive-accent: #7f6df2;
+  --color-interactive-accent-hover: #8d7cf4;
+  --color-interactive-accent-active: #6c5ce7;
+  --icon-size-xs: 12px;
+  --icon-size-sm: 14px;
+  --icon-size-md: 16px;
+  --icon-size-lg: 20px;
+  --icon-size-xl: 24px;
+  --icon-weight-default: regular;
+  --icon-weight-active: fill;
+  --motion-duration-fast: 100ms;
+  --motion-duration-base: 180ms;
+  --motion-duration-slow: 300ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-editor: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+  --type-scale-xs: 0.75rem;
+  --type-scale-sm: 0.875rem;
+  --type-scale-base: 1rem;
+  --type-scale-lg: 1.25rem;
+  --type-scale-xl: 1.5rem;
+  --type-scale-2xl: 2rem;
+  --type-weight-regular: 400;
+  --type-weight-medium: 500;
+  --type-weight-semibold: 600;
+  --type-weight-bold: 700;
+  --type-leading-tight: 1.2;
+  --type-leading-normal: 1.5;
+  --type-leading-relaxed: 1.75;
+}

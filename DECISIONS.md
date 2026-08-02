@@ -28,6 +28,15 @@ The app's aesthetic (editorial, typography-driven, borders-as-depth, deliberatel
 ### Sync: manifest-diff file sync, not CRDT (Yjs)
 The actual problem is single-user, multi-device, rarely-simultaneous editing — not live multi-user collaboration. CRDTs solve a harder problem than the one that exists. Sync operates at the file layer (hash + mtime comparison, push/pull whole files) underneath the editor, not inside it. Conflicts (rare, same note edited on two devices since last sync) are resolved Dropbox-style: server version wins, losing version saved as a conflicted copy file, resolved manually. Revisit CRDTs only if true live cross-device sync or multi-user collaboration becomes an actual goal — treat that as a distinct, larger-scope feature, not a v1 requirement.
 
+### Design tokens: Obsidian dark theme as color baseline
+Color tokens in `packages/design-system/tokens/src/color.json` are sourced from Obsidian's published dark theme (`#1e1e1e` bg, `#dcddde` text, `#7f6df2` accent). These are starting values, not final brand-locked — validate against a running Obsidian instance before treating as canonical. Success/warning semantic colors for Badge are **not yet tokenized**; `Badge.module.scss` uses placeholder hex (`#2ecc71`, `#f1c40f`) until confirmed.
+
+### Storybook 10: essentials merged into core
+`@storybook/addon-essentials` removed from dependencies (empty/deprecated since SB 9). Controls, actions, and viewport ship in `storybook` core. Interaction test imports use `storybook/test`, not `@storybook/test`.
+
+### Changesets over semantic-release; trunk-based branching
+Changesets chosen for independent per-package versioning in the monorepo. Trunk-based branching (main + short-lived PRs) chosen over GitFlow for simplicity given small team size.
+
 ### Mobile storage: app-sandboxed, not arbitrary folder access
 iOS/Android don't allow desktop-style folder access. Vault lives in app-private storage; all external changes arrive through the sync client, not a filesystem watcher (which desktop uses instead, since sync clients like iCloud/Dropbox can write directly into a folder there).
 
@@ -36,3 +45,9 @@ Desktop's multi-pane/split-view model doesn't translate to a phone screen. Backl
 
 ### Mobile graph view: scoped down or deferred
 Weaker mobile GPUs + small screens make full force-directed graph rendering a real risk. Default to backlinks-only on mobile for v1; revisit full graph rendering only after validating it's actually needed once the app is in daily use on a phone.
+
+### `.gitignore`: Tauri mobile `gen/` ignored
+`apps/*/src-tauri/gen/` is gitignored — Tauri regenerates iOS/Android native project scaffolding via `tauri ios init` / `tauri android init`. Keeps the repo free of large, churn-heavy generated platform code. CI/mobile dev docs should document the regen step.
+
+### `.gitignore`: Style Dictionary output committed
+`packages/design-system/tokens/dist/` (SCSS vars, CSS custom properties, typed TS) is **committed**, not ignored. Output is small, human-readable, and useful to diff in PR review when token source JSON changes. CI still runs `build:tokens` to verify generated output matches source.

@@ -1,0 +1,64 @@
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+export const BorderWidthThin = "1px";
+export const BorderWidthThick = "2px";
+export const BorderRadiusNone = "0px";
+export const BorderRadiusSm = "2px";
+export const BorderRadiusMd = "4px";
+export const BorderRadiusLg = "6px";
+export const ColorBgPrimary = "#1e1e1e";
+export const ColorBgPrimaryAlt = "#161616";
+export const ColorBgSecondary = "#262626";
+export const ColorBgSecondaryAlt = "#202020";
+export const ColorBgHover = "rgba(255, 255, 255, 0.05)";
+export const ColorBgActive = "rgba(255, 255, 255, 0.08)";
+export const ColorTextNormal = "#dcddde";
+export const ColorTextMuted = "#888888";
+export const ColorTextFaint = "#555555";
+export const ColorTextAccent = "#7f6df2";
+export const ColorTextOnAccent = "#ffffff";
+export const ColorTextError = "#e55353";
+export const ColorTextSuccess = "#2ecc71";
+export const ColorTextWarning = "#f1c40f";
+export const ColorBorderSubtle = "#2e2e2e";
+export const ColorBorderNormal = "#363636";
+export const ColorBorderFocus = "#7f6df2";
+export const ColorInteractiveAccent = "#7f6df2";
+export const ColorInteractiveAccentHover = "#8d7cf4";
+export const ColorInteractiveAccentActive = "#6c5ce7";
+export const IconSizeXs = "12px";
+export const IconSizeSm = "14px";
+export const IconSizeMd = "16px";
+export const IconSizeLg = "20px";
+export const IconSizeXl = "24px";
+export const IconWeightDefault = "regular";
+export const IconWeightActive = "fill";
+export const MotionDurationFast = "100ms";
+export const MotionDurationBase = "180ms";
+export const MotionDurationSlow = "300ms";
+export const MotionEaseStandard = "cubic-bezier(0.2, 0, 0, 1)";
+export const Space1 = "4px";
+export const Space2 = "8px";
+export const Space3 = "12px";
+export const Space4 = "16px";
+export const Space6 = "24px";
+export const Space8 = "32px";
+export const FontUi =
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+export const FontEditor =
+  "'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace";
+export const TypeScaleXs = "0.75rem";
+export const TypeScaleSm = "0.875rem";
+export const TypeScaleBase = "1rem";
+export const TypeScaleLg = "1.25rem";
+export const TypeScaleXl = "1.5rem";
+export const TypeScale2xl = "2rem";
+export const TypeWeightRegular = "400";
+export const TypeWeightMedium = "500";
+export const TypeWeightSemibold = "600";
+export const TypeWeightBold = "700";
+export const TypeLeadingTight = "1.2";
+export const TypeLeadingNormal = "1.5";
+export const TypeLeadingRelaxed = "1.75";

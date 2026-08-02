@@ -1,9 +1,23 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "types": ["react", "react-dom"]
   },
   "include": [
-    "."
+    "index.ts",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "tokens/dist/tokens.ts",
+    "scss-modules.d.ts"
+  ],
+  "exclude": [
+    "**/*.stories.tsx",
+    "**/*.test.tsx",
+    ".storybook",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "dist"
   ]
 }

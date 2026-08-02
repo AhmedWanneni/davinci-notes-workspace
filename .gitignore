@@ -1,1 +1,138 @@
-node_modules
+# =============================================================================
+# davinci-notes — root .gitignore (pnpm + Turborepo monorepo)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. NODE / PNPM
+# -----------------------------------------------------------------------------
+node_modules/
+**/.pnpm-store/
+.pnpm-store/
+
+# Lockfile must stay committed for reproducible installs.
+!pnpm-lock.yaml
+
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# -----------------------------------------------------------------------------
+# 2. BUILD OUTPUT
+# -----------------------------------------------------------------------------
+dist/
+build/
+out/
+.turbo/
+*.tsbuildinfo
+
+# Style Dictionary token output is committed — see section 9.
+!packages/design-system/tokens/dist/
+!packages/design-system/tokens/dist/**
+
+# -----------------------------------------------------------------------------
+# 3. TAURI / RUST
+# -----------------------------------------------------------------------------
+# Binary app crates: Cargo.lock is committed (do not ignore).
+apps/*/src-tauri/target/
+
+# Tauri mobile generated native projects — regenerated via tauri ios/android init.
+apps/*/src-tauri/gen/
+
+# -----------------------------------------------------------------------------
+# 4. MOBILE NATIVE
+# -----------------------------------------------------------------------------
+*.ipa
+*.apk
+*.aab
+
+apps/mobile/ios/Pods/
+apps/mobile/android/.gradle/
+apps/mobile/android/build/
+apps/mobile/android/app/build/
+
+# Signing credentials — never commit.
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+*.provisionprofile
+
+# -----------------------------------------------------------------------------
+# 5. LOCAL DATA / VAULT
+# -----------------------------------------------------------------------------
+# Local dev vault folders (Obsidian-style markdown vaults used for testing).
+dev-vault/
+test-vault/
+.vault/
+**/local-vault/
+
+# Local SQLite index / dev databases (app runtime data).
+*.sqlite
+*.sqlite3
+*.db
+
+# Explicit exception: checked-in fixture databases only.
+!fixtures/**/*.sqlite
+!fixtures/**/*.sqlite3
+!fixtures/**/*.db
+
+# -----------------------------------------------------------------------------
+# 6. ENVIRONMENT / SECRETS
+# -----------------------------------------------------------------------------
+.env
+.env.local
+.env.*.local
+
+# Template env files stay committed.
+!.env.example
+!**/.env.example
+
+# Sync server credentials (also covered by .env patterns above).
+services/sync-server/.env
+
+# -----------------------------------------------------------------------------
+# 7. STORYBOOK
+# -----------------------------------------------------------------------------
+storybook-static/
+
+# Generated Storybook public assets (hand-authored static files in public/ are fine).
+**/.storybook/public/generated/
+
+# -----------------------------------------------------------------------------
+# 8. TESTING / COVERAGE
+# -----------------------------------------------------------------------------
+coverage/
+playwright-report/
+test-results/
+.vitest-cache/
+
+# Chromatic CLI artifacts (when visual regression is wired up).
+chromatic.log
+chromatic-build-*.xml
+
+# -----------------------------------------------------------------------------
+# 9. TOKENS BUILD OUTPUT
+# -----------------------------------------------------------------------------
+# Style Dictionary output under packages/design-system/tokens/dist/ is
+# intentionally COMMITTED (small, human-readable, useful in PR diffs).
+# CI still runs build:tokens to verify output matches source JSON.
+
+# -----------------------------------------------------------------------------
+# 10. OS / EDITOR
+# -----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+
+# -----------------------------------------------------------------------------
+# 11. CHANGESETS
+# -----------------------------------------------------------------------------
+# .changeset/ markdown files must be committed until consumed by version bump.
+# (intentionally not ignored)

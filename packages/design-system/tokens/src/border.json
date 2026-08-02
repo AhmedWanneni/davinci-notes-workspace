@@ -1,0 +1,14 @@
+{
+  "border": {
+    "width": {
+      "thin": { "value": "1px" },
+      "thick": { "value": "2px" }
+    },
+    "radius": {
+      "none": { "value": "0px" },
+      "sm": { "value": "2px" },
+      "md": { "value": "4px" },
+      "lg": { "value": "6px" }
+    }
+  }
+}

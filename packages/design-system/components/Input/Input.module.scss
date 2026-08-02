@@ -1,0 +1,92 @@
+@import "../../styles/mixins";
+
+.wrapper {
+  display: flex;
+  align-items: center;
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  border-radius: var(--border-radius-md);
+  background-color: transparent;
+  transition: border-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus-within {
+    border-color: var(--color-border-focus);
+
+    @include focus-ring;
+  }
+
+  &--error {
+    border-color: var(--color-text-error);
+
+    &:focus-within {
+      border-color: var(--color-text-error);
+      box-shadow: 0 0 0 2px rgb(229 83 83 / 20%); // Uses error color for ring, hardcoded opacity for now as it's complex to generate dynamic opacities from SCSS vars natively without a color function.
+    }
+  }
+
+  &--disabled {
+    opacity: 0.5;
+    background-color: var(--color-bg-secondary);
+    cursor: not-allowed;
+  }
+
+  // Sizes
+  &--sm {
+    height: 28px;
+    .input {
+      font-size: var(--type-scale-sm);
+    }
+  }
+
+  &--md {
+    height: 36px;
+    .input {
+      font-size: var(--type-scale-base);
+    }
+  }
+
+  &--lg {
+    height: 44px;
+    .input {
+      font-size: var(--type-scale-lg);
+    }
+  }
+}
+
+.input {
+  flex: 1;
+  min-width: 0; // Prevent flex item from overflowing
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  padding: 0 var(--space-3);
+  outline: none; // Handled by wrapper
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.prefix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.suffix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-right: var(--space-3);
+  color: var(--color-text-muted);
+}

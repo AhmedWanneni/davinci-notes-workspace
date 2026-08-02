@@ -1,0 +1,32 @@
+{
+  "color": {
+    "bg": {
+      "primary": { "value": "#1e1e1e" },
+      "primary-alt": { "value": "#161616" },
+      "secondary": { "value": "#262626" },
+      "secondary-alt": { "value": "#202020" },
+      "hover": { "value": "rgba(255, 255, 255, 0.05)" },
+      "active": { "value": "rgba(255, 255, 255, 0.08)" }
+    },
+    "text": {
+      "normal": { "value": "#dcddde" },
+      "muted": { "value": "#888888" },
+      "faint": { "value": "#555555" },
+      "accent": { "value": "#7f6df2" },
+      "on-accent": { "value": "#ffffff" },
+      "error": { "value": "#e55353" },
+      "success": { "value": "#2ecc71" },
+      "warning": { "value": "#f1c40f" }
+    },
+    "border": {
+      "subtle": { "value": "#2e2e2e" },
+      "normal": { "value": "#363636" },
+      "focus": { "value": "#7f6df2" }
+    },
+    "interactive": {
+      "accent": { "value": "#7f6df2" },
+      "accent-hover": { "value": "#8d7cf4" },
+      "accent-active": { "value": "#6c5ce7" }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+@import "../../styles/mixins";
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.radioItem {
+  all: unset;
+  background-color: transparent;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-subtle);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &[data-state="checked"] {
+    border-color: var(--color-interactive-accent);
+  }
+
+  &[data-disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: transparent;
+      border-color: var(--color-border-normal);
+    }
+  }
+}
+
+.radioIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-interactive-accent);
+  animation: scaleIn 150ms var(--motion-ease-standard) forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

@@ -10,6 +10,26 @@ A local-first, Obsidian-style note-taking app. Desktop (Tauri v2) + Mobile (Taur
 
 ---
 
+## Performance Principle (applies to every decision, every session)
+
+**This app must stay lightweight and fast — always weigh this before adding
+any dependency, pattern, or feature.** Concretely:
+
+- Before adding any new package, check its bundle weight (bundlephobia or
+  equivalent) — prefer smaller/tree-shakeable alternatives, avoid heavy
+  dependencies for small conveniences.
+- Prefer native platform APIs over JS libraries where reasonable (e.g. native
+  fs/crypto over polyfills).
+- Debounce/batch anything that runs per-keystroke (indexing, SQLite writes,
+  link parsing) — never do expensive work synchronously on every input event.
+- Lazy-load non-critical views (graph, settings, command palette) instead of
+  bundling everything into initial load — this applies to desktop too, not
+  just mobile.
+- When two approaches are otherwise equal, pick the one with less runtime
+  overhead, smaller bundle impact, or lower memory footprint.
+- Flag any tradeoff where a feature/library adds meaningful weight or startup
+  cost — don't add it silently, surface the cost so it's a deliberate choice.
+
 ## File Rules
 
 - **Soft cap 150-200 lines per file, hard cap 250.** Enforced via ESLint `max-lines`. Split before hitting the cap, don't wait.
@@ -21,6 +41,7 @@ A local-first, Obsidian-style note-taking app. Desktop (Tauri v2) + Mobile (Taur
 ## Folder Structure
 
 Feature-first, not type-first:
+
 ```
 src/
 ├── components/{Feature}/{Component}.tsx + .module.scss + .stories.tsx + .test.tsx + index.ts
@@ -28,6 +49,7 @@ src/
 ├── state/              # Zustand stores
 └── core/types.ts       # only truly shared types
 ```
+
 Every module folder gets a barrel `index.ts` re-exporting its public surface. Consumers import from the barrel, not internal files.
 
 ## Styling
