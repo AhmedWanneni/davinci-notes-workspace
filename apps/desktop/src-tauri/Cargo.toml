@@ -1,0 +1,23 @@
+[package]
+name = "davinci-notes-desktop"
+version = "0.1.0"
+description = "DaVinci Notes desktop shell"
+authors = ["DaVinci Notes"]
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "davinci_notes_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.6.3", features = [] }
+
+[dependencies]
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tauri = { version = "2.11.3", features = [] }
+tauri-plugin-fs = { version = "2.5.1", features = ["watch"] }
+tauri-plugin-log = "2"
+tauri-plugin-sql = { version = "2.4.0", features = ["sqlite"] }

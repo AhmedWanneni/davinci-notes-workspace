@@ -51,3 +51,12 @@ Weaker mobile GPUs + small screens make full force-directed graph rendering a re
 
 ### `.gitignore`: Style Dictionary output committed
 `packages/design-system/tokens/dist/` (SCSS vars, CSS custom properties, typed TS) is **committed**, not ignored. Output is small, human-readable, and useful to diff in PR review when token source JSON changes. CI still runs `build:tokens` to verify generated output matches source.
+
+### Desktop bundle identifier: `com.davinci.notes` (provisional)
+No bundle ID was documented in repo docs when scaffolding `apps/desktop`. Used `com.davinci.notes` derived from the workspace name — **confirm or replace before any App Store / notarization work**. Change in `apps/desktop/src-tauri/tauri.conf.json` → `identifier`.
+
+### Desktop shell: baseline Tauri plugins pre-installed
+`tauri-plugin-fs` (with `watch` feature for vault file watching), `tauri-plugin-sql` (SQLite feature for FTS index), and `tauri-plugin-log` (debug builds only) are registered in `src-tauri/src/lib.rs` with default capabilities — not wired to app features yet, so future sessions don't start from zero on plugin setup. File watching lives in the fs plugin's `watch` feature, not a separate crate (Tauri v2).
+
+### Desktop window defaults
+Initial window 1200×800, minimum 640×480 — sized for a future multi-pane note app shell, not a minimal dialog. Deliberately larger than Tauri's 800×600 default.

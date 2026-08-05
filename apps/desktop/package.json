@@ -1,19 +1,37 @@
 {
   "name": "@app/desktop",
   "version": "0.0.0",
-  "main": "index.ts",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "build": "mkdir -p dist && echo 'build @app/desktop'",
-    "dev": "echo 'dev @app/desktop'",
+    "dev:web": "vite",
+    "dev": "tauri dev",
+    "build:web": "vite build",
+    "build": "pnpm build:web && tauri build",
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "echo 'test @app/desktop'",
-    "typecheck": "echo 'typecheck'",
-    "build-storybook": "echo 'build-storybook'"
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit",
+    "build-storybook": "echo 'build-storybook not applicable for @app/desktop'"
   },
   "dependencies": {
     "@app/core-types": "workspace:*",
     "@app/design-system": "workspace:*",
-    "@app/indexer": "workspace:*",
-    "@app/sync-client": "workspace:*"
+    "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-fs": "^2.5.1",
+    "@tauri-apps/plugin-sql": "^2.4.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.10.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react-swc": "^4.2.3",
+    "postcss": "^8.5.25",
+    "postcss-preset-env": "^11.3.2",
+    "sass": "^1.102.0",
+    "typescript": "^5.4.0",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.10"
   }
 }

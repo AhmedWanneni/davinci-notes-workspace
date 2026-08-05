@@ -1,6 +1,6 @@
 # AGENTS.md — Read This First
 
-Conventions for any AI session working on this codebase. Read `PROGRESS.md` and `DECISIONS.md` alongside this file before starting work.
+Conventions for any AI session working on this codebase. Read `PROGRESS.md`, `DECISIONS.md`, and **`PERFORMANCE.md`** alongside this file before starting work. `PERFORMANCE.md` is not optional reading — this app's lightweight/fast requirement is a standing constraint on every decision, not a one-time pass.
 
 ---
 
@@ -14,7 +14,6 @@ A local-first, Obsidian-style note-taking app. Desktop (Tauri v2) + Mobile (Taur
 
 **This app must stay lightweight and fast — always weigh this before adding
 any dependency, pattern, or feature.** Concretely:
-
 - Before adding any new package, check its bundle weight (bundlephobia or
   equivalent) — prefer smaller/tree-shakeable alternatives, avoid heavy
   dependencies for small conveniences.
@@ -41,7 +40,6 @@ any dependency, pattern, or feature.** Concretely:
 ## Folder Structure
 
 Feature-first, not type-first:
-
 ```
 src/
 ├── components/{Feature}/{Component}.tsx + .module.scss + .stories.tsx + .test.tsx + index.ts
@@ -49,7 +47,6 @@ src/
 ├── state/              # Zustand stores
 └── core/types.ts       # only truly shared types
 ```
-
 Every module folder gets a barrel `index.ts` re-exporting its public surface. Consumers import from the barrel, not internal files.
 
 ## Styling

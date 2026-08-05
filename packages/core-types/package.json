@@ -1,13 +1,18 @@
 {
   "name": "@app/core-types",
   "version": "0.0.0",
+  "type": "module",
   "main": "index.ts",
   "scripts": {
-    "build": "mkdir -p dist && echo 'build @app/core-types'",
+    "build": "tsc",
     "dev": "echo 'dev @app/core-types'",
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "echo 'test @app/core-types'",
-    "typecheck": "echo 'typecheck'",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit",
     "build-storybook": "echo 'build-storybook'"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.10"
   }
 }
