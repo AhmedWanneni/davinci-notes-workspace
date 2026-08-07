@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "types": ["react", "react-dom"]
+  },
+  "include": [
+    "index.ts",
+    "Editor.tsx",
+    "livePreviewExtension.ts",
+    "wikilinkExtension.ts",
+    "autocompleteExtension.ts",
+    "scss-modules.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}

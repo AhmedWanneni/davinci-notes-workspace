@@ -1,31 +1,175 @@
-.shell {
+.layout {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: var(--space-8);
+  height: 100vh;
+  width: 100vw;
   background-color: var(--color-bg-primary);
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  overflow: hidden;
 }
 
-.content {
+.sidebar {
+  width: 260px;
+  border-right: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary-alt);
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
-  max-width: 40rem;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-2);
+}
+
+.sidebar-title {
+  margin: 0;
+  font-weight: var(--type-weight-semibold);
+  letter-spacing: -0.01em;
 }
 
 .actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.note-item {
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--type-scale-sm);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-normal);
+  }
+
+  &.active {
+    background-color: var(--color-bg-active);
+    color: var(--color-text-accent);
+    font-weight: var(--type-weight-semibold);
+  }
+}
+
+.note-item-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.dirty-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-text-accent);
+  border-radius: 50%;
+  margin-left: var(--space-2);
+}
+
+.main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-bg-primary);
+}
+
+.tabs-bar {
+  display: flex;
+  background-color: var(--color-bg-primary-alt);
+  border-bottom: 1px solid var(--color-border-subtle);
+  overflow-x: auto;
+  height: 40px;
+  align-items: center;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  border-right: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  font-size: var(--type-scale-sm);
+  color: var(--color-text-muted);
+  background-color: var(--color-bg-primary-alt);
+  user-select: none;
+  height: 100%;
+  transition: background-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-normal);
+  }
+
+  &.active {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-normal);
+    border-bottom: 2px solid var(--color-text-accent);
+  }
+}
+
+.close-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 10px;
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background-color: rgb(255 255 255 / 10%);
+    color: var(--color-text-error);
+  }
+}
+
+.editor-wrapper {
+  flex: 1;
+  overflow: hidden;
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  gap: var(--space-4);
+  padding: var(--space-8);
+  text-align: center;
 }
 
 .debug-log {
-  margin: 0;
+  margin: var(--space-2);
   padding: var(--space-3);
-  border: 1px solid var(--color-border-default);
-  font-family: var(--font-ui);
-  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
   white-space: pre-wrap;
+  max-height: 150px;
+  overflow-y: auto;
 }

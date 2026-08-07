@@ -6,7 +6,7 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Phase 5 (vault loading & file I/O) is complete. Next session: **Phase 6 — editor integration** (CodeMirror 6, debounced save/reindex).
+Phase 6 (editor integration) is complete. Next session: **Phase 7 — File Tree / Sidebar** (virtualized file tree navigation).
 
 ## Done
 
@@ -63,6 +63,15 @@ Phase 5 (vault loading & file I/O) is complete. Next session: **Phase 6 — edit
     - Parse + graph (`pnpm --filter @app/indexer benchmark:large-vault`): **41 ms**
     - Full open + index via Tauri (includes sequential IPC reads + SQLite writes): use **“Index large fixture (350 notes)”** debug button to measure locally — expect low hundreds of ms on desktop; track regressions against this.
   - **Verified**: Phase 4 tests still passing; `cargo check` clean; `@app/desktop` lint + typecheck clean.
+- **Phase 6 — Editor Integration (`packages/editor`, `apps/desktop`)**: CodeMirror 6 editor wrapper with live preview, custom syntax highlighting, wikilink parsing, autocomplete, state stores, and debounced saving.
+  - **Shared Editor Package** (`@app/editor`): Created a standalone React + CodeMirror package for easy reuse by mobile. Custom extensions for:
+    - Markdown live-preview decorators (class `cm-markdown-syntax` hides delimiter tokens on inactive lines).
+    - Wikilink styling and click follow handler.
+    - Autocomplete suggestions when typing `[[` querying active vault note stems.
+  - **State Store & Save Debounce**: Zustand store (`useWorkspaceStore.ts`) handles tab states, in-memory buffers, and debounced writes to disk (750ms typing pause / immediate flush on switch/close) utilizing watcher suppression.
+  - **Typing Latency Baseline** (1,000-line / 64KB document, 100 wikilinks, 350-note vault cache, Vitest JSDOM runner):
+    - Average latency per keystroke transaction: **3.96 ms** (performance bar: <16 ms).
+  - **Verified**: Fully compiling, all 19 unit and integration tests passing, linter and typecheck clean.
 
 ## In Progress
 
@@ -70,7 +79,7 @@ _(nothing)_
 
 ## Next Up (in order)
 
-1. **Phase 6 — Editor integration**: CodeMirror 6, live-preview decorations, wikilink autocomplete, debounced save-to-disk + reindex.
+1. **Phase 7 — File Tree / Sidebar**: virtualized tree view navigation, file tree list rows, folder structures, and active editor sync.
 2. **Confirm bundle identifier** — provisional `com.davinci.notes` in `tauri.conf.json`; replace if you have a preferred ID (see `DECISIONS.md`).
 3. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
 4. Fix design-system barrel tree-shaking (317 KB JS for 2 components is too heavy — add `package.json` exports / subpath imports before feature work adds more UI).
@@ -95,3 +104,4 @@ _(nothing)_
 | 2026-08-02 | Desktop app shell scaffolding | Replaced `apps/desktop` placeholder with Tauri v2 + React + Vite app. Wired design-system shell, monorepo build/lint/typecheck/test, Rust plugins baseline. Verified dev + release build on macOS. Documented bundle size baseline. |
 | 2026-08-05 | Phase 4 — core data layer | Implemented `@app/core-types` + `@app/indexer` (parsers, graph builder, schema.sql, Rust db migration wiring). 14 unit tests passing; lint/typecheck clean. No UI/Tauri indexer integration yet — Phase 5 next. |
 | 2026-08-06 | Phase 5 — vault loading & file I/O | Rust fs/watcher commands, JS `@app/indexer` bridge + SQLite persistence, debounced `vault-changed` events, debug verification UI. Indexing baseline: 350 notes / 41 ms parse+graph. Phase 6 (editor) next. |
+| 2026-08-07 | Phase 6 — Editor Integration | Standalone CodeMirror 6 package `@app/editor` with live preview, autocomplete, wikilink parsing, and Zustand tab store with 750ms debounced saving. Typing latency baseline: 3.96 ms. All tests passing. |

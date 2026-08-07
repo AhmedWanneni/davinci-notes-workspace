@@ -8,6 +8,8 @@ export { noteFromMarkdown } from "./noteFromMarkdown";
 export {
   countIndexedNotes,
   getVaultIndexDb,
+  persistNote,
+  removeNoteFromIndex,
   queryBacklinkSources,
   VAULT_INDEX_DB,
 } from "./sqliteIndex";

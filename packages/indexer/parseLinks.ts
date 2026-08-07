@@ -1,7 +1,7 @@
 import type { Link } from "@app/core-types";
 
-const WIKILINK_PATTERN = /\[\[([^\]|]+?)(?:\|([^\]|]+?))?\]\]/g;
-const MARKDOWN_LINK_PATTERN = /(?<!!)\[([^\]]*)\]\(([^)\s]+)\)/g;
+export const WIKILINK_PATTERN = /\[\[([^\]|]+?)(?:\|([^\]|]+?))?\]\]/g;
+export const MARKDOWN_LINK_PATTERN = /(?<!!)\[([^\]]*)\]\(([^)\s]+)\)/g;
 
 export interface ParseLinksOptions {
   /** Vault-relative paths of all notes (e.g. `daily/2026-08-01.md`). */
@@ -129,6 +129,8 @@ export function parseLinks(
     const displayText = match[2]?.trim() || undefined;
     const parts = parseWikilinkTarget(rawInner);
     const resolution = resolveWikilinkTarget(parts.noteTarget, nameIndex);
+    const start = match.index!;
+    const end = start + match[0].length;
 
     links.push({
       ...resolution,
@@ -137,6 +139,8 @@ export function parseLinks(
       heading: parts.heading,
       blockId: parts.blockId,
       type: "wikilink",
+      start,
+      end,
     });
   }
 
@@ -148,12 +152,16 @@ export function parseLinks(
       options.sourcePath,
       options.notePaths,
     );
+    const start = match.index!;
+    const end = start + match[0].length;
 
     links.push({
       ...resolution,
       targetRaw: href,
       displayText,
       type: "markdown",
+      start,
+      end,
     });
   }
 

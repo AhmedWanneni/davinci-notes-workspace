@@ -13,4 +13,7 @@ export interface Link {
   type: "wikilink" | "markdown";
   /** Whether `target` maps to an existing note in the vault. */
   resolved: boolean;
+  /** Character offsets in the source text (optional, used for editor/refactoring). */
+  start?: number;
+  end?: number;
 }

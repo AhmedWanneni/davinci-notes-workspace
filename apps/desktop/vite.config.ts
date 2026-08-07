@@ -35,6 +35,10 @@ export default defineConfig({
         replacement: path.join(repoRoot, "packages/core-types/index.ts"),
       },
       {
+        find: "@app/editor",
+        replacement: path.join(repoRoot, "packages/editor/index.ts"),
+      },
+      {
         find: "@app/indexer",
         replacement: path.join(repoRoot, "packages/indexer/index.ts"),
       },
