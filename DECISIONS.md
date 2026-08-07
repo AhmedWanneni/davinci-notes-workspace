@@ -60,3 +60,18 @@ No bundle ID was documented in repo docs when scaffolding `apps/desktop`. Used `
 
 ### Desktop window defaults
 Initial window 1200×800, minimum 640×480 — sized for a future multi-pane note app shell, not a minimal dialog. Deliberately larger than Tauri's 800×600 default.
+
+### Wikilink resolution: case-insensitive filename stem
+Wikilink targets resolve against the **filename stem** (path basename without `.md`), compared case-insensitively — not against frontmatter `title`. Matches Obsidian's default "link name = file name" convention and keeps resolution independent of parsed metadata. When two notes share the same stem in different folders, the **alphabetically first vault-relative path** wins (deterministic, testable); ambiguous links are a known v1 limitation until a disambiguation UI exists.
+
+### Link model fields for index + SQLite
+`Link` in `@app/core-types` adds `targetRaw`, `heading`, and `blockId` beyond the minimal shape in `stack-architecture.md`, so parsed links map 1:1 onto the `links` table columns (`target_raw`, `heading`, `block_id`) without ad hoc transforms at insert time.
+
+### Frontmatter parsing: `yaml` package in `@app/indexer`
+YAML frontmatter uses the `yaml` npm package (~25 KB min gzip per bundlephobia — acceptable for indexer-only use, not shipped in initial editor bundle until vault indexing runs). Malformed YAML returns `{ frontmatter: {}, error }` without throwing; missing frontmatter returns `{}`.
+
+### parseLinks: ignore links inside code
+Fenced code blocks and inline backtick spans are masked before link extraction so `[[wikilink]]` inside examples does not pollute the graph — aligns with how users expect code samples to behave.
+
+### SQLite index schema location + DB name
+Canonical DDL lives in `packages/indexer/schema.sql` (shared desktop/mobile). Rust applies it via `include_str!` in `apps/desktop/src-tauri/src/db.rs` as migration v1. Connection string: `sqlite:vault-index.db`, preloaded in `tauri.conf.json`. `links` includes a surrogate `id` column so multiple outbound links from the same note to the same target (different headings/block refs) can coexist; `idx_links_target` on `target_path` preserved per original backlink-query design.

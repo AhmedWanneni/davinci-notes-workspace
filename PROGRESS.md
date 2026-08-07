@@ -6,7 +6,7 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Desktop app shell is working and wired to the design system. Next session should begin the first real desktop feature (vault loading / file tree) or add Badge semantic color tokens — see Next Up.
+Phase 4 (core data layer) is complete and verified in isolation. Next session: **Phase 5 — vault loading & file I/O** (Rust fs commands, file watcher, bridge to index — no editor yet).
 
 ## Done
 
@@ -46,6 +46,12 @@ Desktop app shell is working and wired to the design system. Next session should
     - Native `.app`: **14 MB** on disk
     - DMG installer: **4.8 MB**
   - **Dev startup**: Vite ready ~145 ms; first `tauri dev` Rust compile ~76 s (subsequent runs use debug cache). `pnpm turbo run dev --filter=@app/desktop` verified launching window.
+- **Phase 4 — Core Data Layer (`packages/core-types`, `packages/indexer`)**: Platform-agnostic types + parsers + graph index + SQLite schema (not wired to UI or vault I/O yet).
+  - **`@app/core-types`**: `Note`, `Link`, `Vault`, `Frontmatter` interfaces (dependency-free, types only). One interface per file + barrel export.
+  - **`@app/indexer`**: `parseLinks` (wikilinks, aliases, `#heading`, `#^block-id`, markdown relative links, unresolved links, code-region masking), `parseFrontmatter` (YAML via `yaml`), `buildGraph` + `updateGraphForNote` (incremental edge/backlink updates), `schema.sql`.
+  - **Rust**: `apps/desktop/src-tauri/src/db.rs` registers migration v1 from `packages/indexer/schema.sql`; `tauri.conf.json` preloads `sqlite:vault-index.db`. `cargo check` verified.
+  - **Tests** (Vitest, Node): **14 tests** in `@app/indexer` — 9× `parseLinks`, 3× `parseFrontmatter`, 2× `buildGraph` (full vault fixture + incremental update). Realistic fixture vault under `packages/indexer/fixtures/`. `@app/core-types` has no logic tests (types only).
+  - **Verified**: `pnpm turbo run test lint typecheck --filter=@app/indexer --filter=@app/core-types` passing.
 
 ## In Progress
 
@@ -53,13 +59,13 @@ _(nothing)_
 
 ## Next Up (in order)
 
-1. **Confirm bundle identifier** — provisional `com.davinci.notes` in `tauri.conf.json`; replace if you have a preferred ID (see `DECISIONS.md`)
-2. Begin first desktop feature: vault folder picker + file tree shell (no editor yet)
-3. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`)
-4. Fix design-system barrel tree-shaking (317 KB JS for 2 components is too heavy — add `package.json` exports / subpath imports before feature work adds more UI)
-5. Set up Chromatic or Playwright screenshot regression for `components/`
-6. Composed patterns: file tree item, sidebar section, command palette row
-7. Migrate SCSS `@import` to `@use` (Dart Sass 3.0 deprecation warnings in build output)
+1. **Phase 5 — Vault loading & file I/O**: Rust `fs` read/write/list, file watcher (debounced), wire SQLite index on vault open, Tauri IPC bridge — checkpoint: open a real folder and confirm notes land in the index (debug output OK, no editor UI required).
+2. **Confirm bundle identifier** — provisional `com.davinci.notes` in `tauri.conf.json`; replace if you have a preferred ID (see `DECISIONS.md`).
+3. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
+4. Fix design-system barrel tree-shaking (317 KB JS for 2 components is too heavy — add `package.json` exports / subpath imports before feature work adds more UI).
+5. Set up Chromatic or Playwright screenshot regression for `components/`.
+6. Composed patterns: file tree item, sidebar section, command palette row.
+7. Migrate SCSS `@import` to `@use` (Dart Sass 3.0 deprecation warnings in build output).
 
 ## Blocked / Open Questions
 
@@ -76,3 +82,4 @@ _(nothing)_
 | 2026-08-02 | Design system primitives wrap-up | Added Storybook play functions for all primitives, fixed lint error, aligned Storybook 10 deps (removed addon-essentials), verified lint/test/build-storybook. All 12 primitives complete against checklist. |
 | 2026-08-02 | Root `.gitignore` | Added monorepo `.gitignore` with section headers. Tauri `gen/` ignored; Style Dictionary `tokens/dist/` committed. Flagged previously tracked `.turbo/` cache for manual untrack review. |
 | 2026-08-02 | Desktop app shell scaffolding | Replaced `apps/desktop` placeholder with Tauri v2 + React + Vite app. Wired design-system shell, monorepo build/lint/typecheck/test, Rust plugins baseline. Verified dev + release build on macOS. Documented bundle size baseline. |
+| 2026-08-05 | Phase 4 — core data layer | Implemented `@app/core-types` + `@app/indexer` (parsers, graph builder, schema.sql, Rust db migration wiring). 14 unit tests passing; lint/typecheck clean. No UI/Tauri indexer integration yet — Phase 5 next. |
