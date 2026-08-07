@@ -18,6 +18,8 @@
     "@app/design-system": "workspace:*",
     "@app/editor": "workspace:*",
     "@app/indexer": "workspace:*",
+    "@phosphor-icons/react": "^2.1.10",
+    "@tanstack/react-virtual": "^3.14.9",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-fs": "^2.5.1",

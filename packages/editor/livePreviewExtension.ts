@@ -3,6 +3,7 @@ import { Range } from "@codemirror/state";
 import {
   Decoration,
   DecorationSet,
+  EditorView,
   ViewPlugin,
   ViewUpdate,
 } from "@codemirror/view";

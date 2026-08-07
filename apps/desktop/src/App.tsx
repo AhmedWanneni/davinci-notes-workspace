@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Typography } from "@app/design-system";
 import { Editor } from "@app/editor";
+import { FileTree } from "./components/FileTree";
 import styles from "./App.module.scss";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import {
@@ -243,23 +244,12 @@ export function App() {
           </div>
         </div>
         <div className={"sidebar-content"}>
-          {allNotePaths.map((path) => {
-            const displayTitle = path.replace(/\.md$/i, "");
-            const isActive = activeNotePath === path;
-            const isDirty = dirtyNotes.has(path);
-            return (
-              <div
-                key={path}
-                className={`${styles["note-item"]} ${isActive ? styles.active : ""}`}
-                onClick={() => void openNote(path)}
-              >
-                <span className={styles["note-item-text"]} title={path}>
-                  {displayTitle}
-                </span>
-                {isDirty && <span className={"dirty-dot"} />}
-              </div>
-            );
-          })}
+          <FileTree
+            paths={allNotePaths}
+            activePath={activeNotePath}
+            dirtyPaths={dirtyNotes}
+            onNoteClick={(path) => void openNote(path)}
+          />
         </div>
         {log.length > 0 && (
           <pre className={styles["debug-log"]}>{log.join("\n")}</pre>

@@ -6,7 +6,7 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Phase 6 (editor integration) is complete. Next session: **Phase 7 — File Tree / Sidebar** (virtualized file tree navigation).
+Phase 7 (file tree sidebar) is complete. Next session: **Phase 8 — Backlinks Panel**.
 
 ## Done
 
@@ -79,7 +79,7 @@ _(nothing)_
 
 ## Next Up (in order)
 
-1. **Phase 7 — File Tree / Sidebar**: virtualized tree view navigation, file tree list rows, folder structures, and active editor sync.
+1. **Phase 8 — Backlinks Panel**: rendering backlinks from SQLite index, navigation to referencing notes.
 2. **Confirm bundle identifier** — provisional `com.davinci.notes` in `tauri.conf.json`; replace if you have a preferred ID (see `DECISIONS.md`).
 3. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
 4. Fix design-system barrel tree-shaking (317 KB JS for 2 components is too heavy — add `package.json` exports / subpath imports before feature work adds more UI).
@@ -105,3 +105,4 @@ _(nothing)_
 | 2026-08-05 | Phase 4 — core data layer | Implemented `@app/core-types` + `@app/indexer` (parsers, graph builder, schema.sql, Rust db migration wiring). 14 unit tests passing; lint/typecheck clean. No UI/Tauri indexer integration yet — Phase 5 next. |
 | 2026-08-06 | Phase 5 — vault loading & file I/O | Rust fs/watcher commands, JS `@app/indexer` bridge + SQLite persistence, debounced `vault-changed` events, debug verification UI. Indexing baseline: 350 notes / 41 ms parse+graph. Phase 6 (editor) next. |
 | 2026-08-07 | Phase 6 — Editor Integration | Standalone CodeMirror 6 package `@app/editor` with live preview, autocomplete, wikilink parsing, and Zustand tab store with 750ms debounced saving. Typing latency baseline: 3.96 ms. All tests passing. |
+| 2026-08-07 | Phase 7 — File Tree / Sidebar | Virtualized file tree navigation using `@tanstack/react-virtual`. Synchronous JS tree building from `allNotePaths` to avoid IPC overhead. Tree build time (350 notes): ~8 ms. Flatten time: ~0.4 ms. |
