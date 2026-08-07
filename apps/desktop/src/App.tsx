@@ -3,6 +3,7 @@ import { Button, Typography } from "@app/design-system";
 import { Editor } from "@app/editor";
 import { FileTree } from "./components/FileTree";
 import { BacklinksPanel } from "./components/BacklinksPanel";
+import { CommandPalette } from "./components/CommandPalette";
 import styles from "./App.module.scss";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import {
@@ -24,6 +25,7 @@ const LARGE_FIXTURE_VAULT = __LARGE_FIXTURE_VAULT_PATH__;
 export function App() {
   const [log, setLog] = useState<string[]>([]);
   const [vaultPath, setVaultPath] = useState<string | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const reconcileCount = useRef(0);
 
   // Zustand state select
@@ -160,6 +162,18 @@ export function App() {
       await createNewNote(targetRaw);
     }
   };
+
+  // Command Palette global shortcut
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
 
   // Watcher subscription
   useEffect(() => {
@@ -315,6 +329,12 @@ export function App() {
       <BacklinksPanel
         activePath={activeNotePath}
         onSelectNote={(path) => void openNote(path)}
+      />
+
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onOpenChange={setIsCommandPaletteOpen}
+        onSelectNote={(target) => void handleLinkClick(target)}
       />
     </div>
   );

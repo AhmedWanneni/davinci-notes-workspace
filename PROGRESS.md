@@ -6,7 +6,7 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Phase 8 (Backlinks Panel) is complete. Next session: **Phase 9 — Search / Quick Switcher**.
+Phase 9 (Command Palette / Quick Switcher) is complete. Next session: **Phase 10 — Graph View**.
 
 ## Done
 
@@ -74,6 +74,7 @@ Phase 8 (Backlinks Panel) is complete. Next session: **Phase 9 — Search / Quic
   - **Verified**: Fully compiling, all 19 unit and integration tests passing, linter and typecheck clean.
 - **Phase 7 — File Tree / Sidebar**: Virtualized file tree navigation using `@tanstack/react-virtual`. Synchronous JS tree building from `allNotePaths` to avoid IPC overhead. Tree build time (350 notes): ~8 ms. Flatten time: ~0.4 ms.
 - **Phase 8 — Backlinks Panel**: Fast indexed query over SQLite `links` table using `idx_links_target`, right sidebar UI panel with design-system typography and highlight `<mark>` tags, live updates synchronized with watcher reconciliation & Zustand save triggers, and navigation backlink clicking.
+- **Phase 9 — Search / Quick Switcher**: Keyboard-driven (Cmd/Ctrl+K) quick switcher utilizing `fuzzysort` for extremely fast, fuzzy title matching. Instant filtering, search highlights, and tiebreaker recency sorting based on open tabs. Built with Radix UI Dialog primitive for focus trapping.
 
 ## In Progress
 
@@ -81,7 +82,7 @@ _(nothing)_
 
 ## Next Up (in order)
 
-1. **Phase 9 — Search / Quick Switcher**: full-text search using SQLite FTS5 index and modal UI.
+1. **Phase 10 — Graph View**: Interactive node-link visualization of vault connections.
 2. **Confirm bundle identifier** — provisional `com.davinci.notes` in `tauri.conf.json`; replace if you have a preferred ID (see `DECISIONS.md`).
 3. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
 4. Fix design-system barrel tree-shaking (317 KB JS for 2 components is too heavy — add `package.json` exports / subpath imports before feature work adds more UI).
@@ -109,3 +110,4 @@ _(nothing)_
 | 2026-08-07 | Phase 6 — Editor Integration | Standalone CodeMirror 6 package `@app/editor` with live preview, autocomplete, wikilink parsing, and Zustand tab store with 750ms debounced saving. Typing latency baseline: 3.96 ms. All tests passing. |
 | 2026-08-07 | Phase 7 — File Tree / Sidebar | Virtualized file tree navigation using `@tanstack/react-virtual`. Synchronous JS tree building from `allNotePaths` to avoid IPC overhead. Tree build time (350 notes): ~8 ms. Flatten time: ~0.4 ms. |
 | 2026-08-07 | Phase 8 — Backlinks Panel | Implemented BacklinksPanel right sidebar querying SQLite target index, on-demand snippet extraction with link text highlighting, reactive live updates on watcher/save, and active note switching navigation. |
+| 2026-08-07 | Phase 9 — Search / Quick Switcher | Built `CommandPalette` modal (Cmd+K) using Radix Dialog and `fuzzysort` for fast fuzzy-matching by note title. Implemented arrow navigation, highlighted match characters, and seamless creation of new notes when no matches exist. |

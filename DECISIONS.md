@@ -90,3 +90,6 @@ Used `@tanstack/react-virtual` for virtualizing the file tree in the sidebar (Ph
 
 ### Backlinks Panel Layout & Context Snippet Strategy
 Phase 8 Backlinks Panel (`BacklinksPanel`) is placed as a dedicated right sidebar in `App.tsx` (`App.module.scss`). It queries the SQLite `links` table indexed on `target_path` via `queryBacklinkSources` to instantly find referencing notes without scanning the vault. To provide context snippets with the link highlighted without mutating the SQLite schema or adding a database migration, source note content is loaded (from memory or cached IPC read) and parsed with `parseLinks` on demand, rendering snippets in <5ms.
+
+### Command Palette / Quick Switcher Fuzzy Matcher: `fuzzysort`
+Phase 9 uses `fuzzysort` for keyboard-driven quick switching. It was chosen because it is exceptionally fast, lightweight (~6kb gzipped), and most importantly, it comes with built-in highlighting capabilities (`result.highlight(...)`) designed explicitly for Sublime/Obsidian-style match visualization. This aligns perfectly with `PERFORMANCE.md` rules to avoid heavy libraries and unnecessary main-thread overhead, allowing instant (<1ms) title matching across thousands of notes.
