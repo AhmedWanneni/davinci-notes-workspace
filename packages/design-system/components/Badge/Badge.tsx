@@ -24,7 +24,7 @@ export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
 
     return (
       <span ref={ref} className={classes} {...props}>
-        {icon && <span className={styles.iconWrapper}>{icon}</span>}
+        {icon && <span className={"icon-wrapper"}>{icon}</span>}
         {children}
       </span>
     );

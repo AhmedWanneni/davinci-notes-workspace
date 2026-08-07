@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button, Typography } from "@app/design-system";
 import { Editor } from "@app/editor";
 import { FileTree } from "./components/FileTree";
+import { BacklinksPanel } from "./components/BacklinksPanel";
 import styles from "./App.module.scss";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import {
@@ -34,6 +35,7 @@ export function App() {
     allNotePaths,
     initializeVault,
     updateAllPaths,
+    incrementVaultUpdateCounter,
     openNote,
     closeNote,
     setActiveNote,
@@ -178,6 +180,7 @@ export function App() {
       // Update paths list in store
       const paths = await listNotes();
       updateAllPaths(paths);
+      incrementVaultUpdateCounter();
 
       // Handle deleted notes
       for (const removed of batch.removed) {
@@ -308,6 +311,11 @@ export function App() {
           )}
         </div>
       </main>
+
+      <BacklinksPanel
+        activePath={activeNotePath}
+        onSelectNote={(path) => void openNote(path)}
+      />
     </div>
   );
 }

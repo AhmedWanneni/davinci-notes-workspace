@@ -17,10 +17,12 @@ interface WorkspaceState {
   dirtyNotes: Set<string>;
   allNotePaths: string[];
   graph: GraphIndex | null;
+  vaultUpdateCounter: number;
 
   // Actions
   initializeVault: (paths: string[]) => Promise<void>;
   updateAllPaths: (paths: string[]) => void;
+  incrementVaultUpdateCounter: () => void;
   openNote: (path: string) => Promise<void>;
   closeNote: (path: string) => Promise<void>;
   setActiveNote: (path: string) => Promise<void>;
@@ -39,6 +41,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   dirtyNotes: new Set(),
   allNotePaths: [],
   graph: null,
+  vaultUpdateCounter: 0,
 
   initializeVault: async (paths: string[]) => {
     // Build initial graph in memory based on current files
@@ -56,11 +59,16 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     set({
       allNotePaths: paths,
       graph,
+      vaultUpdateCounter: get().vaultUpdateCounter + 1,
     });
   },
 
   updateAllPaths: (paths: string[]) => {
     set({ allNotePaths: paths });
+  },
+
+  incrementVaultUpdateCounter: () => {
+    set((state) => ({ vaultUpdateCounter: state.vaultUpdateCounter + 1 }));
   },
 
   openNote: async (path: string) => {
@@ -188,7 +196,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       // 3. Incremental update in-memory graph
       if (graph) {
         const nextGraph = updateGraphForNote(graph, note);
-        set({ graph: nextGraph });
+        set({
+          graph: nextGraph,
+          vaultUpdateCounter: get().vaultUpdateCounter + 1,
+        });
       }
     } catch (e) {
       console.error(`Failed to reindex note: ${path}`, e);
