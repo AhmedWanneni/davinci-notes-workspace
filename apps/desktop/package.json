@@ -9,14 +9,16 @@
     "build:web": "vite build",
     "build": "pnpm build:web && tauri build",
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build-storybook": "echo 'build-storybook not applicable for @app/desktop'"
   },
   "dependencies": {
     "@app/core-types": "workspace:*",
     "@app/design-system": "workspace:*",
+    "@app/indexer": "workspace:*",
     "@tauri-apps/api": "^2.10.1",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-fs": "^2.5.1",
     "@tauri-apps/plugin-sql": "^2.4.0",
     "react": "^19.2.8",

@@ -6,7 +6,7 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Phase 4 (core data layer) is complete and verified in isolation. Next session: **Phase 5 — vault loading & file I/O** (Rust fs commands, file watcher, bridge to index — no editor yet).
+Phase 5 (vault loading & file I/O) is complete. Next session: **Phase 6 — editor integration** (CodeMirror 6, debounced save/reindex).
 
 ## Done
 
@@ -52,6 +52,17 @@ Phase 4 (core data layer) is complete and verified in isolation. Next session: *
   - **Rust**: `apps/desktop/src-tauri/src/db.rs` registers migration v1 from `packages/indexer/schema.sql`; `tauri.conf.json` preloads `sqlite:vault-index.db`. `cargo check` verified.
   - **Tests** (Vitest, Node): **14 tests** in `@app/indexer` — 9× `parseLinks`, 3× `parseFrontmatter`, 2× `buildGraph` (full vault fixture + incremental update). Realistic fixture vault under `packages/indexer/fixtures/`. `@app/core-types` has no logic tests (types only).
   - **Verified**: `pnpm turbo run test lint typecheck --filter=@app/indexer --filter=@app/core-types` passing.
+- **Phase 5 — Vault Loading & File I/O (`apps/desktop`)**: Rust fs commands + debounced watcher + JS indexer bridge + SQLite persistence. No file tree or editor UI yet — verified via debug buttons/console.
+  - **Rust I/O** (`fs.rs`): `open_vault` (folder picker via `tauri-plugin-dialog`), `list_notes`, `get_file_tree`, `read_note`, `write_note`. Vault-scoped path validation; no parsing in Rust.
+  - **File watcher** (`watcher.rs`): `notify-debouncer-full` with **400 ms** debounce; emits `vault-changed` Tauri event with batched `changed` / `removed` path lists.
+  - **SQLite**: Schema unchanged (`packages/indexer/schema.sql` via `db.rs` migration). Frontend `sqliteIndex.ts` upserts notes/links through `@tauri-apps/plugin-sql`.
+  - **Indexer bridge** (`apps/desktop/src/vault/`): `@app/indexer` runs in the webview — `noteFromMarkdown` → full index on vault open, incremental `reconcileVaultChanges` on watcher batches. Decision logged in `DECISIONS.md`.
+  - **IPC surface**: `openVault`, `getFileTree`, `readNote`, `writeNote`, `subscribeVaultChanges` (barrel `vault/index.ts`).
+  - **Debug verification** (`App.tsx`): buttons open fixture vault, 350-note large fixture, or folder picker; logs index timing + backlink spot-check (`projects/alpha.md` ← `projects/beta-overview.md`).
+  - **Indexing baseline** (350-note generated vault, macOS, 2026-08-06):
+    - Parse + graph (`pnpm --filter @app/indexer benchmark:large-vault`): **41 ms**
+    - Full open + index via Tauri (includes sequential IPC reads + SQLite writes): use **“Index large fixture (350 notes)”** debug button to measure locally — expect low hundreds of ms on desktop; track regressions against this.
+  - **Verified**: Phase 4 tests still passing; `cargo check` clean; `@app/desktop` lint + typecheck clean.
 
 ## In Progress
 
@@ -59,7 +70,7 @@ _(nothing)_
 
 ## Next Up (in order)
 
-1. **Phase 5 — Vault loading & file I/O**: Rust `fs` read/write/list, file watcher (debounced), wire SQLite index on vault open, Tauri IPC bridge — checkpoint: open a real folder and confirm notes land in the index (debug output OK, no editor UI required).
+1. **Phase 6 — Editor integration**: CodeMirror 6, live-preview decorations, wikilink autocomplete, debounced save-to-disk + reindex.
 2. **Confirm bundle identifier** — provisional `com.davinci.notes` in `tauri.conf.json`; replace if you have a preferred ID (see `DECISIONS.md`).
 3. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
 4. Fix design-system barrel tree-shaking (317 KB JS for 2 components is too heavy — add `package.json` exports / subpath imports before feature work adds more UI).
@@ -83,3 +94,4 @@ _(nothing)_
 | 2026-08-02 | Root `.gitignore` | Added monorepo `.gitignore` with section headers. Tauri `gen/` ignored; Style Dictionary `tokens/dist/` committed. Flagged previously tracked `.turbo/` cache for manual untrack review. |
 | 2026-08-02 | Desktop app shell scaffolding | Replaced `apps/desktop` placeholder with Tauri v2 + React + Vite app. Wired design-system shell, monorepo build/lint/typecheck/test, Rust plugins baseline. Verified dev + release build on macOS. Documented bundle size baseline. |
 | 2026-08-05 | Phase 4 — core data layer | Implemented `@app/core-types` + `@app/indexer` (parsers, graph builder, schema.sql, Rust db migration wiring). 14 unit tests passing; lint/typecheck clean. No UI/Tauri indexer integration yet — Phase 5 next. |
+| 2026-08-06 | Phase 5 — vault loading & file I/O | Rust fs/watcher commands, JS `@app/indexer` bridge + SQLite persistence, debounced `vault-changed` events, debug verification UI. Indexing baseline: 350 notes / 41 ms parse+graph. Phase 6 (editor) next. |

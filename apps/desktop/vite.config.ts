@@ -6,9 +6,19 @@ import { defineConfig } from "vite";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
 
+const fixtureVaultPath = path.join(repoRoot, "packages/indexer/fixtures/vault");
+const largeFixtureVaultPath = path.join(
+  repoRoot,
+  "packages/indexer/fixtures/large-vault",
+);
+
 export default defineConfig({
   clearScreen: false,
   envPrefix: ["VITE_", "TAURI_"],
+  define: {
+    __FIXTURE_VAULT_PATH__: JSON.stringify(fixtureVaultPath),
+    __LARGE_FIXTURE_VAULT_PATH__: JSON.stringify(largeFixtureVaultPath),
+  },
   plugins: [react()],
   resolve: {
     alias: [
@@ -23,6 +33,10 @@ export default defineConfig({
       {
         find: "@app/core-types",
         replacement: path.join(repoRoot, "packages/core-types/index.ts"),
+      },
+      {
+        find: "@app/indexer",
+        replacement: path.join(repoRoot, "packages/indexer/index.ts"),
       },
     ],
   },

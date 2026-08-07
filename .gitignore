@@ -64,6 +64,7 @@ apps/mobile/android/app/build/
 # Local dev vault folders (Obsidian-style markdown vaults used for testing).
 dev-vault/
 test-vault/
+packages/indexer/fixtures/large-vault/
 .vault/
 **/local-vault/
 

@@ -8,6 +8,7 @@
     "dev": "echo 'dev @app/indexer'",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "vitest run",
+    "benchmark:large-vault": "node --experimental-strip-types scripts/benchmark-large-vault.ts",
     "typecheck": "tsc --noEmit",
     "build-storybook": "echo 'build-storybook'"
   },
