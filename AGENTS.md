@@ -14,6 +14,7 @@ A local-first, Obsidian-style note-taking app. Desktop (Tauri v2) + Mobile (Taur
 
 **This app must stay lightweight and fast — always weigh this before adding
 any dependency, pattern, or feature.** Concretely:
+
 - Before adding any new package, check its bundle weight (bundlephobia or
   equivalent) — prefer smaller/tree-shakeable alternatives, avoid heavy
   dependencies for small conveniences.
@@ -40,6 +41,7 @@ any dependency, pattern, or feature.** Concretely:
 ## Folder Structure
 
 Feature-first, not type-first:
+
 ```
 src/
 ├── components/{Feature}/{Component}.tsx + .module.scss + .stories.tsx + .test.tsx + index.ts
@@ -47,6 +49,7 @@ src/
 ├── state/              # Zustand stores
 └── core/types.ts       # only truly shared types
 ```
+
 Every module folder gets a barrel `index.ts` re-exporting its public surface. Consumers import from the barrel, not internal files.
 
 ## Styling
@@ -54,6 +57,8 @@ Every module folder gets a barrel `index.ts` re-exporting its public surface. Co
 - **SCSS + PostCSS, no Tailwind.** Design tokens (`tokens/`) are the single source of truth — no raw hex/px values in component styles, Stylelint enforces this once tokens are stable.
 - Design principles (non-negotiable): no gradients, no box-shadows, no glassmorphism, no pill badges, no blob illustrations. Depth = borders, not shadows. Editorial/Swiss-influenced, typography-driven, asymmetric layout is fine.
 - Every component ships with its `.module.scss` colocated, plus a Storybook story and a test in the **same PR**. No story-less components merged.
+
+- **Class naming: kebab-case, not camelCase** — .card-header, .is-active, not .cardHeader, .isActive. Applies to all SCSS class names project-wide, including CSS Modules.
 
 ## Working With AI (this doc's actual purpose)
 
