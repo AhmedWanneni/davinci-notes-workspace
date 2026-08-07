@@ -11,6 +11,7 @@ export {
   persistNote,
   removeNoteFromIndex,
   queryBacklinkSources,
+  queryFullGraphIndex,
   VAULT_INDEX_DB,
 } from "./sqliteIndex";
 export {

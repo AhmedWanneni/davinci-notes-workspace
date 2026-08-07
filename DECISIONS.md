@@ -93,3 +93,12 @@ Phase 8 Backlinks Panel (`BacklinksPanel`) is placed as a dedicated right sideba
 
 ### Command Palette / Quick Switcher Fuzzy Matcher: `fuzzysort`
 Phase 9 uses `fuzzysort` for keyboard-driven quick switching. It was chosen because it is exceptionally fast, lightweight (~6kb gzipped), and most importantly, it comes with built-in highlighting capabilities (`result.highlight(...)`) designed explicitly for Sublime/Obsidian-style match visualization. This aligns perfectly with `PERFORMANCE.md` rules to avoid heavy libraries and unnecessary main-thread overhead, allowing instant (<1ms) title matching across thousands of notes.
+
+### Graph View Rendering Strategy: SVG + d3-force with Node Capping
+Phase 10 implements the Graph View using `d3-force` (~5.5KB gzip) for the physics simulation and standard **SVG** for rendering, rather than `react-force-graph` (Canvas/WebGL). 
+Rationale: SVG allows us to seamlessly style the graph elements (nodes/edges) using our existing SCSS design system tokens (`var(--color-bg-overlay)`) and primitives (Radix `Tooltip`), which would be difficult to replicate perfectly in Canvas. 
+Performance Capping: To ensure SVG rendering doesn't drop frames on large vaults (per `PERFORMANCE.md`), the Global Graph implements a strict capping strategy. Nodes are sorted by degree (number of connections), and only the top 200 most-connected nodes are rendered. This keeps the DOM tree small (<500 elements including edges) and guarantees a smooth 60fps pan/zoom experience (via `d3-zoom`) while avoiding the useless "hairball" visualization that happens when rendering thousands of nodes.
+
+### Graph View Node Labels: Scaling with Zoom
+Node title labels are rendered natively in SVG `<text>` elements below each node. These labels are inside the zoom-controlled `<g>` container, meaning **they scale visually as the user zooms in or out**. 
+Rationale: In dense graph clusters, fixed-size labels would overlap and create a completely unreadable block of text. Allowing them to scale naturally means users can zoom into a cluster to read the node titles, matching standard map/graph UX expectations. The font styling uses standard design-system tokens (`var(--font-ui)`, `var(--type-scale-xs)`).

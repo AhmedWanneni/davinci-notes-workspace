@@ -1,0 +1,77 @@
+.graph-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--color-bg-base);
+  overflow: hidden;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  outline: none;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.graph-edge {
+  stroke: var(--color-border);
+  stroke-width: 1.5px;
+  stroke-opacity: 0.6;
+}
+
+.graph-node-group {
+  cursor: pointer;
+}
+
+.graph-node {
+  fill: var(--color-bg-overlay);
+  stroke: var(--color-border);
+  stroke-width: 2px;
+  transition:
+    fill 0.2s,
+    stroke 0.2s;
+
+  .graph-node-group:hover & {
+    fill: var(--color-bg-hover);
+    stroke: var(--color-text-accent);
+  }
+
+  &.is-active {
+    fill: var(--color-text-accent);
+    stroke: var(--color-text-accent);
+  }
+}
+
+.node-label {
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+  fill: var(--color-text-muted);
+  pointer-events: none;
+  user-select: none;
+
+  /* Halo effect for contrast against edges */
+  text-shadow:
+    -1px -1px 0 var(--color-bg-base),
+    1px -1px 0 var(--color-bg-base),
+    -1px 1px 0 var(--color-bg-base),
+    1px 1px 0 var(--color-bg-base);
+  transition: fill 0.2s;
+
+  .graph-node-group:hover & {
+    fill: var(--color-text-normal);
+  }
+}
+
+.zoom-controls {
+  position: absolute;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 10;
+}

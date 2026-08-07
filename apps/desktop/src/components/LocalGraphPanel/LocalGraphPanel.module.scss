@@ -1,0 +1,38 @@
+.local-graph-panel {
+  display: flex;
+  flex-direction: column;
+  height: 50%; /* Take up half of the right sidebar */
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg-base);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-overlay);
+}
+
+.title {
+  margin: 0;
+  font-weight: 600;
+  color: var(--color-text-base);
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  height: 100%;
+}

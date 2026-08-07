@@ -3,6 +3,8 @@ import { Button, Typography } from "@app/design-system";
 import { Editor } from "@app/editor";
 import { FileTree } from "./components/FileTree";
 import { BacklinksPanel } from "./components/BacklinksPanel";
+import { LocalGraphPanel } from "./components/LocalGraphPanel";
+import { GlobalGraphDialog } from "./components/GlobalGraphDialog";
 import { CommandPalette } from "./components/CommandPalette";
 import styles from "./App.module.scss";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
@@ -17,7 +19,9 @@ import {
   writeNote,
   persistNote,
   noteFromMarkdown,
+  queryFullGraphIndex,
 } from "./vault";
+import type { GraphIndex } from "@app/indexer";
 
 const FIXTURE_VAULT = __FIXTURE_VAULT_PATH__;
 const LARGE_FIXTURE_VAULT = __LARGE_FIXTURE_VAULT_PATH__;
@@ -26,6 +30,8 @@ export function App() {
   const [log, setLog] = useState<string[]>([]);
   const [vaultPath, setVaultPath] = useState<string | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isGlobalGraphOpen, setIsGlobalGraphOpen] = useState(false);
+  const [graph, setGraph] = useState<GraphIndex | null>(null);
   const reconcileCount = useRef(0);
 
   // Zustand state select
@@ -59,6 +65,11 @@ export function App() {
     append(`indexed ${count} notes in ${elapsed} ms (${path})`);
     const paths = await listNotes();
     await initializeVault(paths);
+
+    // Load the full graph index
+    const db = await getVaultIndexDb();
+    const fullGraph = await queryFullGraphIndex(db);
+    setGraph(fullGraph);
   };
 
   const openFixture = async () => {
@@ -196,6 +207,11 @@ export function App() {
       updateAllPaths(paths);
       incrementVaultUpdateCounter();
 
+      // Update graph
+      const db = await getVaultIndexDb();
+      const fullGraph = await queryFullGraphIndex(db);
+      setGraph(fullGraph);
+
       // Handle deleted notes
       for (const removed of batch.removed) {
         if (openNotes.includes(removed)) {
@@ -254,6 +270,12 @@ export function App() {
           <div className={"actions"}>
             <Button variant="primary" onClick={handleCreateNotePrompt}>
               New Note
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setIsGlobalGraphOpen(true)}
+            >
+              Global Graph
             </Button>
             <Button variant="secondary" onClick={() => setVaultPath(null)}>
               Close Vault
@@ -326,9 +348,23 @@ export function App() {
         </div>
       </main>
 
-      <BacklinksPanel
-        activePath={activeNotePath}
-        onSelectNote={(path) => void openNote(path)}
+      <aside className={styles["right-sidebar"]}>
+        <LocalGraphPanel
+          graph={graph}
+          activePath={activeNotePath}
+          onSelectNote={(path) => void openNote(path)}
+        />
+        <BacklinksPanel
+          activePath={activeNotePath}
+          onSelectNote={(path) => void openNote(path)}
+        />
+      </aside>
+
+      <GlobalGraphDialog
+        isOpen={isGlobalGraphOpen}
+        onOpenChange={setIsGlobalGraphOpen}
+        graph={graph}
+        onNavigate={(path) => void openNote(path)}
       />
 
       <CommandPalette
