@@ -47,7 +47,7 @@ export const DialogContent = forwardRef<
         <DialogPrimitive.Overlay className={styles.dialogOverlay} />
         <DialogPrimitive.Content
           ref={ref}
-          className={`dialog-content ${className}`}
+          className={`${styles.dialogContent || styles["dialog-content"]} ${className}`}
           {...props}
         >
           {(title || description) && (

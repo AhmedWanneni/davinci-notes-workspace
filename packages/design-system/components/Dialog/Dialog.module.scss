@@ -11,6 +11,7 @@
   animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.dialogContent,
 .dialog-content {
   background-color: var(--color-bg-primary);
   border-radius: var(--border-radius-lg);
