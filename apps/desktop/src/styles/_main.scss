@@ -9,10 +9,14 @@
 @import "./layout/editor-area";
 
 // 3. Components (Blocks)
+@import "./components/icon-rail";
 @import "./components/vault-welcome";
 @import "./components/file-tree";
 @import "./components/empty-state";
+@import "./components/properties-block";
+@import "./components/note-outline";
 @import "./components/backlinks-panel";
+@import "./components/status-bar";
 @import "./components/command-palette";
 @import "./components/settings-dialog";
 @import "./components/graph-view";

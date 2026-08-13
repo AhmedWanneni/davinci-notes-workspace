@@ -1,5 +1,4 @@
 .backlinks-panel {
-  flex: 1;
   background-color: var(--color-bg-primary-alt);
   display: flex;
   flex-direction: column;
@@ -7,7 +6,7 @@
 }
 
 .backlinks-panel__header {
-  padding: var(--space-4);
+  padding: var(--space-2) var(--space-3);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   display: flex;
   align-items: center;
@@ -21,32 +20,31 @@
 }
 
 .backlinks-panel__count {
-  background-color: var(--color-bg-active);
+  background-color: var(--color-bg-hover);
   color: var(--color-text-muted);
   font-size: var(--type-scale-xs);
-  padding: var(--space-1) var(--space-2);
+  padding: 0 var(--space-2);
   border-radius: var(--border-radius-sm);
-  font-weight: var(--type-weight-semibold);
+  line-height: 1.4;
 }
 
 .backlinks-panel__content {
-  flex: 1;
   overflow-y: auto;
-  padding: var(--space-3);
+  padding: var(--space-2);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .backlinks-panel__card {
-  padding: var(--space-3);
+  padding: var(--space-2);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-md);
   background-color: var(--color-bg-primary);
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
   transition: border-color var(--motion-duration-fast)
     var(--motion-ease-standard);
 
@@ -56,7 +54,7 @@
 }
 
 .backlinks-panel__source-title {
-  font-size: var(--type-scale-sm);
+  font-size: var(--type-scale-xs);
   font-weight: var(--type-weight-semibold);
   color: var(--color-text-accent);
   margin: 0;
@@ -72,13 +70,13 @@
   line-height: var(--type-leading-normal);
   margin: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   word-break: anywhere;
 
   mark {
-    background-color: var(--color-bg-active);
+    background-color: var(--color-bg-hover);
     color: var(--color-text-normal);
     font-weight: var(--type-weight-semibold);
     border-radius: var(--border-radius-sm);

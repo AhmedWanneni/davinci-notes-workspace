@@ -1,10 +1,12 @@
 import React, { Suspense, useEffect, useState } from "react";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import { VaultWelcomeView } from "./components/VaultWelcomeView";
+import { IconRail } from "./components/IconRail";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTabs } from "./components/AppTabs";
 import { EditorArea } from "./components/EditorArea";
 import { RightSidebar } from "./components/RightSidebar";
+import { StatusBar } from "./components/StatusBar";
 import { openAndIndexVault, useVaultSession } from "./vault";
 
 const LazyGlobalGraphDialog = React.lazy(() =>
@@ -27,12 +29,15 @@ export function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isGlobalGraphOpen, setIsGlobalGraphOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
 
   const activeNotePath = useWorkspaceStore((state) => state.activeNotePath);
   const openNotes = useWorkspaceStore((state) => state.openNotes);
   const dirtyNotes = useWorkspaceStore((state) => state.dirtyNotes);
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const notesContent = useWorkspaceStore((state) => state.notesContent);
 
   const loadSettings = useWorkspaceStore((state) => state.loadSettings);
   const openNote = useWorkspaceStore((state) => state.openNote);
@@ -86,6 +91,24 @@ export function App() {
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
 
+  const handleDailyNotes = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const dailyPath = `${year}-${month}-${day}.md`;
+    if (allNotePaths.includes(dailyPath)) {
+      void openNote(dailyPath);
+    } else {
+      void createNewNote(`${year}-${month}-${day}`);
+    }
+  };
+
+  const handleCreateNotePrompt = () => {
+    const title = prompt("Enter note title:");
+    if (title) void createNewNote(title);
+  };
+
   if (!vaultPath) {
     return (
       <VaultWelcomeView
@@ -101,44 +124,72 @@ export function App() {
   }
 
   const vaultName = vaultPath.split(/[/\\]/).pop() || vaultPath;
+  const activeContent = activeNotePath
+    ? (notesContent[activeNotePath] ?? "")
+    : "";
 
   return (
-    <div className="app-shell">
-      <AppSidebar
-        vaultName={vaultName}
-        allNotePaths={allNotePaths}
-        activeNotePath={activeNotePath}
-        dirtyNotes={dirtyNotes}
-        log={log}
-        onCreateNote={() => {
-          const title = prompt("Enter note title:");
-          if (title) void createNewNote(title);
-        }}
-        onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onCloseVault={() => setVaultPath(null)}
-        onNoteClick={(path) => void openNote(path)}
-      />
-
-      <main className="app-shell__main">
+    <div
+      className="app-shell"
+      data-left-collapsed={!isLeftSidebarOpen || undefined}
+      data-right-collapsed={!isRightSidebarOpen || undefined}
+    >
+      <header className="app-shell__top-bar">
         <AppTabs
           openNotes={openNotes}
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
           onSelectNote={(path) => void setActiveNote(path)}
           onCloseNote={(path) => void closeNote(path)}
+          onNewTab={handleCreateNotePrompt}
+          isRightSidebarOpen={isRightSidebarOpen}
+          onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
         />
-        <EditorArea
-          activeNotePath={activeNotePath}
-          allNotePaths={allNotePaths}
-          onLinkClick={(t) => void handleLinkClick(t)}
-        />
-      </main>
+      </header>
 
-      <RightSidebar
+      <div className="app-shell__body">
+        <IconRail
+          isLeftSidebarOpen={isLeftSidebarOpen}
+          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onCloseVault={() => setVaultPath(null)}
+          onDailyNotes={handleDailyNotes}
+        />
+
+        <AppSidebar
+          vaultName={vaultName}
+          allNotePaths={allNotePaths}
+          activeNotePath={activeNotePath}
+          dirtyNotes={dirtyNotes}
+          log={log}
+          isCollapsed={!isLeftSidebarOpen}
+          onCreateNote={handleCreateNotePrompt}
+          onNoteClick={(path) => void openNote(path)}
+        />
+
+        <main className="app-shell__main">
+          <EditorArea
+            activeNotePath={activeNotePath}
+            allNotePaths={allNotePaths}
+            onLinkClick={(t) => void handleLinkClick(t)}
+          />
+        </main>
+
+        <RightSidebar
+          graph={graph}
+          activePath={activeNotePath}
+          isCollapsed={!isRightSidebarOpen}
+          onSelectNote={(path) => void openNote(path)}
+        />
+      </div>
+
+      <StatusBar
+        vaultName={vaultName}
+        activeNotePath={activeNotePath}
+        content={activeContent}
         graph={graph}
-        activePath={activeNotePath}
-        onSelectNote={(path) => void openNote(path)}
       />
 
       <Suspense fallback={null}>

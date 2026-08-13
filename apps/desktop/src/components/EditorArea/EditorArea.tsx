@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { Editor } from "@app/editor";
 import { FileText } from "@phosphor-icons/react";
+import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
+import { PropertiesBlock } from "../PropertiesBlock";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 export interface EditorAreaProps {
@@ -21,17 +24,40 @@ export function EditorArea({
     (state) => state.updateNoteContent,
   );
 
+  const { frontmatter } = useMemo(
+    () => (activeNotePath ? parseFrontmatter(content) : { frontmatter: {} }),
+    [activeNotePath, content],
+  );
+
+  const displayTitle = useMemo(() => {
+    if (!activeNotePath) return "";
+    return (
+      activeNotePath.replace(/\.md$/i, "").split("/").pop() ?? activeNotePath
+    );
+  }, [activeNotePath]);
+
   return (
     <div className="editor-area">
       {activeNotePath ? (
-        <Editor
-          key={activeNotePath}
-          value={content}
-          onChange={(newVal) => updateNoteContent(activeNotePath, newVal)}
-          notePaths={allNotePaths}
-          sourcePath={activeNotePath}
-          onLinkClick={onLinkClick}
-        />
+        <div className="editor-area__container">
+          <div className="editor-area__header">
+            <h1 className="editor-area__title">{displayTitle}</h1>
+            <PropertiesBlock
+              frontmatter={frontmatter}
+              onLinkClick={onLinkClick}
+            />
+          </div>
+          <div className="editor-area__body">
+            <Editor
+              key={activeNotePath}
+              value={content}
+              onChange={(newVal) => updateNoteContent(activeNotePath, newVal)}
+              notePaths={allNotePaths}
+              sourcePath={activeNotePath}
+              onLinkClick={onLinkClick}
+            />
+          </div>
+        </div>
       ) : (
         <EmptyState
           size="lg"

@@ -1,0 +1,60 @@
+.note-outline {
+  padding: var(--space-2) var(--space-1);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.note-outline--empty {
+  padding: var(--space-3) var(--space-4);
+}
+
+.note-outline__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.note-outline__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--type-scale-xs);
+  user-select: none;
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-normal);
+  }
+
+  &[data-level="1"] {
+    font-weight: var(--type-weight-semibold);
+    color: var(--color-text-normal);
+  }
+
+  &[data-level="2"] {
+    font-weight: var(--type-weight-medium);
+  }
+}
+
+.note-outline__icon {
+  display: flex;
+  align-items: center;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.note-outline__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}

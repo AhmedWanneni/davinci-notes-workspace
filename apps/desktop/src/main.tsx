@@ -1,5 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { TooltipProvider } from "@app/design-system";
 import "@app/design-system/styles/_global.scss";
 import "./styles/_main.scss";
 import { App } from "./App";
@@ -12,6 +13,8 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <TooltipProvider delayDuration={300}>
+      <App />
+    </TooltipProvider>
   </StrictMode>,
 );

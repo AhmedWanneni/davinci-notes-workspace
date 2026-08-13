@@ -70,6 +70,12 @@ export default defineConfig({
           ) {
             return "vendor-react";
           }
+          if (id.includes("/node_modules/@phosphor-icons/")) {
+            return "vendor-icons";
+          }
+          if (id.includes("/node_modules/@tauri-apps/")) {
+            return "vendor-tauri";
+          }
         },
       },
     },

@@ -1,5 +1,5 @@
-import { Button, Typography } from "@app/design-system";
-import { Gear } from "@phosphor-icons/react";
+import { FilePlus } from "@phosphor-icons/react";
+import { Tooltip, Typography } from "@app/design-system";
 import { FileTree } from "../FileTree";
 
 export interface AppSidebarProps {
@@ -8,10 +8,8 @@ export interface AppSidebarProps {
   activeNotePath: string | null;
   dirtyNotes: Set<string>;
   log: string[];
+  isCollapsed?: boolean;
   onCreateNote: () => void;
-  onOpenGlobalGraph: () => void;
-  onOpenSettings: () => void;
-  onCloseVault: () => void;
   onNoteClick: (path: string) => void;
 }
 
@@ -21,33 +19,41 @@ export function AppSidebar({
   activeNotePath,
   dirtyNotes,
   log,
+  isCollapsed,
   onCreateNote,
-  onOpenGlobalGraph,
-  onOpenSettings,
-  onCloseVault,
   onNoteClick,
 }: AppSidebarProps) {
   return (
-    <aside className="app-sidebar">
+    <aside
+      className="app-sidebar"
+      data-collapsed={isCollapsed || undefined}
+      aria-label="File Explorer"
+    >
       <div className="app-sidebar__header">
-        <Typography variant="h3" size="lg" className="app-sidebar__title">
-          {vaultName}
-        </Typography>
-        <div className="app-sidebar__actions">
-          <Button variant="primary" onClick={onCreateNote}>
-            New Note
-          </Button>
-          <Button variant="secondary" onClick={onOpenGlobalGraph}>
-            Global Graph
-          </Button>
-          <Button variant="secondary" onClick={onOpenSettings} title="Settings">
-            <Gear size={16} />
-          </Button>
-          <Button variant="secondary" onClick={onCloseVault}>
-            Close Vault
-          </Button>
+        <div className="app-sidebar__vault-title">
+          <Typography
+            variant="text"
+            size="sm"
+            weight="semibold"
+            className="app-sidebar__title"
+          >
+            {vaultName}
+          </Typography>
+        </div>
+        <div className="app-sidebar__header-actions">
+          <Tooltip content="New note" contentProps={{ side: "bottom" }}>
+            <button
+              type="button"
+              className="app-sidebar__action-btn"
+              onClick={onCreateNote}
+              aria-label="New note"
+            >
+              <FilePlus size={16} />
+            </button>
+          </Tooltip>
         </div>
       </div>
+
       <div className="app-sidebar__content">
         <FileTree
           paths={allNotePaths}
@@ -56,6 +62,7 @@ export function AppSidebar({
           onNoteClick={onNoteClick}
         />
       </div>
+
       {log.length > 0 && <pre className="debug-log">{log.join("\n")}</pre>}
     </aside>
   );

@@ -6,9 +6,20 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Phase 13 (Release Prep & Release Candidate 1) is complete. Next up: **Dogfooding `v0.1.0-rc.1` internal build** & Design System follow-ups.
+Restructuring `apps/desktop`'s app shell to match Obsidian's UI grid architecture per `apps/wireframe.md` is complete. Next up: **Dogfooding `v0.1.0-rc.1` internal build** & Design System follow-ups.
 
 ## Done
+
+- **Obsidian App Shell Layout Restructure**:
+  - **CSS Grid App Shell**: Migrated desktop shell to full CSS Grid (`grid-template-rows: auto 1fr auto;` and middle body `grid-template-columns: 40px auto 1fr auto;`), avoiding nested flexbox chains.
+  - **DOM State Preservation on Collapse**: Both left (File Explorer) and right sidebars toggle via `data-collapsed="true"` setting width to 0 with `overflow: hidden`, preserving scroll position, expanded tree state, and editor selections without unmounting.
+  - **Top Tab Bar (`AppTabs`)**: Added `+` new tab action, right-sidebar toggle icon, and view options action. Fully wired to multi-note state in `useWorkspaceStore`.
+  - **Icon Rail (`IconRail`)**: Vertical ~40px icon strip providing single navigation entry points for Files, Search (Cmd+K), Global Graph, Daily Notes (`YYYY-MM-DD.md`), Settings, and Close Vault with Radix Tooltips.
+  - **File Tree (`AppSidebar`)**: Refactored to act as a collapsible sidebar alongside the Icon Rail with vault header, new note affordance, and virtualized `FileTree`.
+  - **Properties Block (`PropertiesBlock`)**: Positioned above note body in `EditorArea`. Renders parsed YAML frontmatter (`tags` as `#tag` badges, `[[wikilinks]]`, dates, authors) with collapsible accordion and "+ Add property" placeholder affordance.
+  - **Stacked Right Sidebar (`RightSidebar`)**: Stacked Linked Mentions (`BacklinksPanel`), Unlinked Mentions section, Note Outline (`NoteOutline` scanning H1–H6), and Local Graph (`LocalGraphPanel`).
+  - **Status Bar (`StatusBar`)**: Full-width thin bottom bar with live note stats (backlink count, property count, word count, character count) and vault connection indicator.
+  - **Bundle & Test Verification**: All 12 test suites (33 unit tests) passing; initial entry bundle holds at <22 KB raw / <8 KB gzip (total JS <1.09 MB raw / <359 KB gzip); bundle size budget gates verified.
 
 - **Phase 13 — Staging Deploy & Release Candidate 1**:
   - **Staging Deploy Channel**: Configured GitHub Actions workflow `.github/workflows/staging-release.yml` with multi-platform matrix (`macos-latest`, `ubuntu-22.04`, `windows-latest`), secret wiring for Apple Developer ID / Windows Authenticode code signing & notarization, and automatic staging channel distribution artifacts on merge to `main`.
@@ -21,13 +32,16 @@ Phase 13 (Release Prep & Release Candidate 1) is complete. Next up: **Dogfooding
 
 _(nothing)_
 
-## Next Up (in order)
+## Next Up & Identified Gaps (in order)
 
 1. **Dogfooding `v0.1.0-rc.1`**: Dogfood the internal RC build for daily note-taking workflows to evaluate usability and catch edge cases prior to wider distribution.
-2. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
-3. Set up Chromatic or Playwright screenshot regression for `components/`.
-4. Composed patterns: file tree item, sidebar section, command palette row.
-5. Migrate SCSS `@import` to `@use` (Dart Sass 3.0 deprecation warnings in build output).
+2. **Unlinked Mentions Detection (Identified Gap)**: Implement vault-wide text scanner (or FTS query) to discover plain-text mentions of the active note's title without formal `[[wikilinks]]`.
+3. **Inline Property Editing (Identified Gap)**: Implement interactive property adding and value editing in `PropertiesBlock` with automatic frontmatter serialization to disk.
+4. **Outline Scroll Synchronization (Identified Gap)**: Connect `NoteOutline` heading clicks directly to CodeMirror 6 scroll/cursor dispatch.
+5. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
+6. Set up Chromatic or Playwright screenshot regression for `components/`.
+7. Composed patterns: file tree item, sidebar section, command palette row.
+8. Migrate SCSS `@import` to `@use` (Dart Sass 3.0 deprecation warnings in build output).
 
 ## Blocked / Open Questions
 
@@ -141,4 +155,6 @@ _(nothing)_
 | 2026-08-13 | CSS Modules → CUBE CSS Migration | Migrated apps/desktop from CSS Modules to CUBE CSS (composition/utility/block/exception layers, BEM block naming, data-attributes for exception states, cn() bracket grouping, Stylelint BEM rule enforcement). Gzipped CSS reduced from 8.05 KB to 6.60 KB (-18%). Typing latency 4.026 ms held. All 24 tests passing. |
 | 2026-08-14 | Dialog/Portal Styling Bug Fix | Diagnosed popup invisibility issue: DialogContent in packages/design-system had hardcoded literal string className="dialog-content" instead of using CSS module styles.dialogContent / styles["dialog-content"], leaving portal content unpositioned and rendered offscreen. Fixed className mapping in Dialog.tsx and Badge.tsx; removed redundant position:relative on [data-radix-portal]; verified all 12 design-system and 24 desktop test suites passing. |
 | 2026-08-14 | Phase 13 — Release Prep & RC 1 | Configured GitHub Actions staging deploy workflow (`.github/workflows/staging-release.yml`) with signing/notarization secret hooks and multi-platform matrix. Reconstructed changesets for Phases 1–12 and ran `pnpm changeset version` bumping all workspace packages and desktop app to `0.1.0`. Tagged `v0.1.0-rc.1`, built native macOS release artifacts (`DaVinci Notes.app` 15.6MB, `.dmg` 5.5MB), authored internal release notes (`docs/releases/v0.1.0-rc.1.md`), and verified packaged app execution. |
+| 2026-08-14 | Obsidian App Shell Restructure | Restructured apps/desktop shell into CSS Grid architecture matching wireframe.md (Top Tab Bar with new tab/sidebar toggle, Icon Rail navigation strip, collapsible File Tree, PropertiesBlock frontmatter accordion, stacked RightSidebar with Linked Mentions, Unlinked Mentions placeholder, NoteOutline H1-H6, and bottom StatusBar with live note stats). Added unit tests; all 33 tests and bundle size budgets passing. |
+
 

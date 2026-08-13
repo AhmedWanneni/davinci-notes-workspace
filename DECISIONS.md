@@ -138,3 +138,12 @@ Rationale:
 - **Auto-updater & Feed Endpoints**: Staging channel builds target `https://staging.updates.davincinotes.com/{{target}}/{{current_version}}` (distinct from future `stable.updates.davincinotes.com`), enabling independent dogfooding without affecting public production releases.
 - **Code Signing Approach**: Configured GitHub Actions secret bindings for macOS Apple Developer ID notarization (`APPLE_CERTIFICATE`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`) and Windows Authenticode with graceful fallback to ad-hoc local signing when secrets are absent. Documented macOS Gatekeeper bypass instructions for unsigned internal test builds.
 - **Build Promotion Rule**: Release candidates (e.g. `v0.1.0-rc.1`) produce binary artifacts (`DaVinci Notes.app`, `.dmg`) that are tested directly. When an RC passes testing, the exact same binary is promoted to stable rather than rebuilt from source.
+
+### App Shell: Obsidian UI Grid Architecture
+Restructured `apps/desktop`'s app shell to match the official Obsidian UI composition using CSS Grid:
+- **Grid Layout Mechanism**: Root `.app-shell` uses `grid-template-rows: auto 1fr auto` (Top Tab Bar / Shell Header, Main Body Grid, Bottom Status Bar). The middle body uses `grid-template-columns: 40px auto 1fr auto` (Icon Rail, Collapsible File Tree Sidebar, Main Editor Area, Collapsible Right Sidebar).
+- **DOM State Preservation on Collapse**: Both sidebars toggle visibility via CSS attributes (`data-collapsed="true"` setting width to 0) rather than conditional unmounting (`{isOpen && <Sidebar />}`). This preserves scroll positions, expanded file tree nodes, and active tab states across collapses.
+- **Consolidated Icon Navigation**: Created `IconRail` as the single navigation entry point (File Tree, Search Cmd+K, Global Graph, Daily Notes, Settings, Close Vault) removing ad-hoc sidebar buttons.
+- **Properties / Frontmatter Block**: Integrated `PropertiesBlock` directly above the note editor, rendering YAML metadata (tags as `#tag` badges, wikilinks, dates, authors) with collapsible accordion state.
+- **Stacked Right Sidebar**: Stacked Linked Mentions (`BacklinksPanel`), Unlinked Mentions placeholder, Note Outline (`NoteOutline` parsing H1–H6), and Local Graph (`LazyLocalGraphPanel`).
+- **Live Status Bar**: Thin footer displaying vault state, backlink count, property count, word count, and character count computed dynamically from note content.
