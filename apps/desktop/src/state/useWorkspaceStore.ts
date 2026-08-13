@@ -1,6 +1,5 @@
 import { create } from "zustand";
-import type { Note } from "@app/core-types";
-import { buildGraph, updateGraphForNote, type GraphIndex } from "@app/indexer";
+import { updateGraphForNote, type GraphIndex } from "@app/indexer";
 import { withDbLock } from "../vault/sqliteIndex";
 import {
   readNote,
@@ -21,9 +20,10 @@ interface WorkspaceState {
   allNotePaths: string[];
   graph: GraphIndex | null;
   vaultUpdateCounter: number;
-
-  // Actions
-  initializeVault: (paths: string[]) => Promise<void>;
+  initializeVault: (
+    paths: string[],
+    initialGraph?: GraphIndex | null,
+  ) => Promise<void>;
   updateAllPaths: (paths: string[]) => void;
   incrementVaultUpdateCounter: () => void;
   openNote: (path: string) => Promise<void>;
@@ -32,14 +32,11 @@ interface WorkspaceState {
   updateNoteContent: (path: string, content: string) => void;
   saveNoteNow: (path: string) => Promise<void>;
   saveAllDirty: () => Promise<void>;
-
-  // Settings
   editorFont: string;
   loadSettings: () => Promise<void>;
   setEditorFont: (font: string) => Promise<void>;
 }
 
-// Module-level cache for debounced save timeouts
 const saveTimers: Record<string, NodeJS.Timeout> = {};
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
@@ -56,9 +53,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     try {
       const db = await getVaultIndexDb();
       const font = await withDbLock(() => getSetting(db, "editorFont"));
-      if (font) {
-        set({ editorFont: font });
-      }
+      if (font) set({ editorFont: font });
     } catch (e) {
       console.error("Failed to load settings", e);
     }
@@ -74,29 +69,22 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     }
   },
 
-  initializeVault: async (paths: string[]) => {
-    // Build initial graph in memory based on current files
-    const notes: Note[] = [];
-    for (const path of paths) {
-      try {
-        const file = await readNote(path);
-        notes.push(noteFromMarkdown(path, file.content, file.mtime, paths));
-      } catch (e) {
-        console.error(`Failed to read note during init: ${path}`, e);
-      }
-    }
-    const graph = buildGraph(notes);
-
+  initializeVault: async (
+    paths: string[],
+    initialGraph: GraphIndex | null = null,
+  ) => {
     set({
       allNotePaths: paths,
-      graph,
+      openNotes: [],
+      notesContent: {},
+      dirtyNotes: new Set(),
+      activeNotePath: null,
+      graph: initialGraph,
       vaultUpdateCounter: get().vaultUpdateCounter + 1,
     });
   },
 
-  updateAllPaths: (paths: string[]) => {
-    set({ allNotePaths: paths });
-  },
+  updateAllPaths: (paths: string[]) => set({ allNotePaths: paths }),
 
   incrementVaultUpdateCounter: () => {
     set((state) => ({ vaultUpdateCounter: state.vaultUpdateCounter + 1 }));
@@ -104,37 +92,26 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   openNote: async (path: string) => {
     const { notesContent, openNotes } = get();
-
-    // If the note content is not in memory, load it from disk
     if (notesContent[path] === undefined) {
       try {
         const file = await readNote(path);
         set((state) => ({
-          notesContent: {
-            ...state.notesContent,
-            [path]: file.content,
-          },
+          notesContent: { ...state.notesContent, [path]: file.content },
         }));
       } catch (e) {
         console.error(`Failed to open note: ${path}`, e);
         return;
       }
     }
-
-    // Add note to open tabs if it's not already there
     const nextOpenNotes = openNotes.includes(path)
       ? openNotes
       : [...openNotes, path];
-
-    // Set as active
     await get().setActiveNote(path);
     set({ openNotes: nextOpenNotes });
   },
 
   closeNote: async (path: string) => {
-    const { openNotes, activeNotePath } = get();
-
-    // Clear timeout and save immediately if dirty
+    const { openNotes, activeNotePath, notesContent } = get();
     if (saveTimers[path]) {
       clearTimeout(saveTimers[path]);
       delete saveTimers[path];
@@ -143,7 +120,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
     const nextOpenNotes = openNotes.filter((p) => p !== path);
     let nextActivePath = activeNotePath;
-
     if (activeNotePath === path) {
       nextActivePath =
         nextOpenNotes.length > 0
@@ -151,16 +127,18 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
           : null;
     }
 
+    const nextNotesContent = { ...notesContent };
+    delete nextNotesContent[path];
+
     set({
       openNotes: nextOpenNotes,
       activeNotePath: nextActivePath,
+      notesContent: nextNotesContent,
     });
   },
 
   setActiveNote: async (path: string) => {
     const { activeNotePath, dirtyNotes } = get();
-
-    // If switching away from a dirty note, flush its save immediately
     if (
       activeNotePath &&
       activeNotePath !== path &&
@@ -172,7 +150,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       }
       await get().saveNoteNow(activeNotePath);
     }
-
     set({ activeNotePath: path });
   },
 
@@ -181,34 +158,23 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       const nextDirty = new Set(state.dirtyNotes);
       nextDirty.add(path);
       return {
-        notesContent: {
-          ...state.notesContent,
-          [path]: content,
-        },
+        notesContent: { ...state.notesContent, [path]: content },
         dirtyNotes: nextDirty,
       };
     });
 
-    // Reset debounced save timer
-    if (saveTimers[path]) {
-      clearTimeout(saveTimers[path]);
-    }
-
+    if (saveTimers[path]) clearTimeout(saveTimers[path]);
     saveTimers[path] = setTimeout(async () => {
       delete saveTimers[path];
       await get().saveNoteNow(path);
-    }, 750); // Debounce save: 750ms after typing stops
+    }, 750);
   },
 
   saveNoteNow: async (path: string) => {
     const { notesContent, dirtyNotes, allNotePaths, graph } = get();
-    if (!dirtyNotes.has(path) || notesContent[path] === undefined) {
-      return;
-    }
-
+    if (!dirtyNotes.has(path) || notesContent[path] === undefined) return;
     const content = notesContent[path];
 
-    // 1. Save to disk using watcher suppression
     try {
       await withVaultWatchSuppressed(async () => {
         await writeNote(path, content);
@@ -218,13 +184,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       return;
     }
 
-    // 2. Incremental reindex in SQLite DB
     try {
       const db = await getVaultIndexDb();
       const note = noteFromMarkdown(path, content, Date.now(), allNotePaths);
       await persistNote(db, note);
-
-      // 3. Incremental update in-memory graph
       if (graph) {
         const nextGraph = updateGraphForNote(graph, note);
         set({
@@ -236,7 +199,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       console.error(`Failed to reindex note: ${path}`, e);
     }
 
-    // 4. Clear dirty state
     set((state) => {
       const nextDirty = new Set(state.dirtyNotes);
       nextDirty.delete(path);

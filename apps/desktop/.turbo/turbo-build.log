@@ -46,57 +46,7 @@ More info and automated migrator: https://sass-lang.com/d/import
 1 │ @import "../../styles/mixins";
   │         ^^^^^^^^^^^^^^^^^^^^^
   ╵
-    ../../packages/design-system/components/Badge/Badge.module.scss 1:9  root stylesheet
-
-DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import "../../styles/mixins";
-  │         ^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    ../../packages/design-system/components/Typography/Typography.module.scss 1:9  root stylesheet
-
-DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import "../../styles/mixins";
-  │         ^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    ../../packages/design-system/components/Tooltip/Tooltip.module.scss 1:9  root stylesheet
-
-DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import "../../styles/mixins";
-  │         ^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    ../../packages/design-system/components/Input/Input.module.scss 1:9  root stylesheet
-
-DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import "../../styles/mixins";
-  │         ^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    ../../packages/design-system/components/Popover/Popover.module.scss 1:9  root stylesheet
-
-DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import "../../styles/mixins";
-  │         ^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    ../../packages/design-system/components/Dialog/Dialog.module.scss 1:9  root stylesheet
+    ../../packages/design-system/components/Button/Button.module.scss 1:9  root stylesheet
 
 DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
 
@@ -126,7 +76,7 @@ More info and automated migrator: https://sass-lang.com/d/import
 1 │ @import "../../styles/mixins";
   │         ^^^^^^^^^^^^^^^^^^^^^
   ╵
-    ../../packages/design-system/components/DropdownMenu/DropdownMenu.module.scss 1:9  root stylesheet
+    ../../packages/design-system/components/Badge/Badge.module.scss 1:9  root stylesheet
 
 DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
 
@@ -136,7 +86,7 @@ More info and automated migrator: https://sass-lang.com/d/import
 1 │ @import "../../styles/mixins";
   │         ^^^^^^^^^^^^^^^^^^^^^
   ╵
-    ../../packages/design-system/components/Button/Button.module.scss 1:9  root stylesheet
+    ../../packages/design-system/components/Input/Input.module.scss 1:9  root stylesheet
 
 DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
 
@@ -148,21 +98,86 @@ More info and automated migrator: https://sass-lang.com/d/import
   ╵
     ../../packages/design-system/components/Toggle/Toggle.module.scss 1:9  root stylesheet
 
-✓ 5002 modules transformed.
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import "../../styles/mixins";
+  │         ^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    ../../packages/design-system/components/Typography/Typography.module.scss 1:9  root stylesheet
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import "../../styles/mixins";
+  │         ^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    ../../packages/design-system/components/Popover/Popover.module.scss 1:9  root stylesheet
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import "../../styles/mixins";
+  │         ^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    ../../packages/design-system/components/Tooltip/Tooltip.module.scss 1:9  root stylesheet
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import "../../styles/mixins";
+  │         ^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    ../../packages/design-system/components/DropdownMenu/DropdownMenu.module.scss 1:9  root stylesheet
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import "../../styles/mixins";
+  │         ^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    ../../packages/design-system/components/Dialog/Dialog.module.scss 1:9  root stylesheet
+
+✓ 5018 modules transformed.
+rendering chunks...
 [plugin vite:reporter] 
 (!) /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/vaultCommands.ts is dynamically imported by /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/VaultIndexer.ts but also statically imported by /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/VaultIndexer.ts, /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/index.ts, /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/vaultWatchSession.ts, dynamic import will not move module into another chunk.
 
-rendering chunks...
 computing gzip size...
-dist/index.html                     0.40 kB │ gzip:   0.27 kB
-dist/assets/index-BCHhqDjV.css     35.74 kB │ gzip:   5.72 kB
-dist/assets/index-AmRX5yM-.js   1,085.85 kB │ gzip: 359.97 kB
+dist/index.html                          0.57 kB │ gzip:   0.32 kB
+dist/assets/index-BqgsNwjA.css           0.65 kB │ gzip:   0.31 kB
+dist/assets/index-D0B70Xji.css           1.13 kB │ gzip:   0.47 kB
+dist/assets/Dialog-BSY0dABn.css          4.02 kB │ gzip:   1.46 kB
+dist/assets/index-DC1VacHb.css           4.72 kB │ gzip:   1.53 kB
+dist/assets/GraphView-B0NGzvVd.css       4.83 kB │ gzip:   1.55 kB
+dist/assets/index-5K5FT-2T.css          13.88 kB │ gzip:   2.94 kB
+dist/assets/index-BmVBeeri.js            0.62 kB │ gzip:   0.37 kB
+dist/assets/index-zw02VCJf.js            0.89 kB │ gzip:   0.48 kB
+dist/assets/index-CGamoRSl.js            2.80 kB │ gzip:   1.17 kB
+dist/assets/Dialog-MgWBpIBz.js           2.87 kB │ gzip:   1.03 kB
+dist/assets/index-CJ6t-AJg.js           10.75 kB │ gzip:   4.73 kB
+dist/assets/index-CdPKjfXu.js           13.85 kB │ gzip:   4.86 kB
+dist/assets/index-Cn60s0yx.js           21.61 kB │ gzip:   7.91 kB
+dist/assets/GraphView-D88LwTDX.js      103.63 kB │ gzip:  36.25 kB
+dist/assets/index-BAzkvJeY.js          181.18 kB │ gzip:  57.16 kB
+dist/assets/vendor-react-BA_EuZnv.js   193.55 kB │ gzip:  60.78 kB
+dist/assets/vendor-editor-DNZ5hvrQ.js  536.48 kB │ gzip: 184.36 kB
 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 3.66s
+✓ built in 3.27s
         Info Looking up installed tauri packages to check mismatched versions...
      Running beforeBuildCommand `pnpm build:web`
 
@@ -209,7 +224,7 @@ More info and automated migrator: https://sass-lang.com/d/import
 1 │ @import "../../styles/mixins";
   │         ^^^^^^^^^^^^^^^^^^^^^
   ╵
-    ../../packages/design-system/components/Input/Input.module.scss 1:9  root stylesheet
+    ../../packages/design-system/components/Radio/Radio.module.scss 1:9  root stylesheet
 
 DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
 
@@ -229,27 +244,7 @@ More info and automated migrator: https://sass-lang.com/d/import
 1 │ @import "../../styles/mixins";
   │         ^^^^^^^^^^^^^^^^^^^^^
   ╵
-    ../../packages/design-system/components/Dialog/Dialog.module.scss 1:9  root stylesheet
-
-DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import "../../styles/mixins";
-  │         ^^^^^^^^^^^^^^^^^^^^^
-  ╵
     ../../packages/design-system/components/Checkbox/Checkbox.module.scss 1:9  root stylesheet
-
-DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import "../../styles/mixins";
-  │         ^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    ../../packages/design-system/components/Toggle/Toggle.module.scss 1:9  root stylesheet
 
 DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
 
@@ -269,7 +264,7 @@ More info and automated migrator: https://sass-lang.com/d/import
 1 │ @import "../../styles/mixins";
   │         ^^^^^^^^^^^^^^^^^^^^^
   ╵
-    ../../packages/design-system/components/Badge/Badge.module.scss 1:9  root stylesheet
+    ../../packages/design-system/components/Input/Input.module.scss 1:9  root stylesheet
 
 DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
 
@@ -279,17 +274,7 @@ More info and automated migrator: https://sass-lang.com/d/import
 1 │ @import "../../styles/mixins";
   │         ^^^^^^^^^^^^^^^^^^^^^
   ╵
-    ../../packages/design-system/components/Radio/Radio.module.scss 1:9  root stylesheet
-
-DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
-
-More info and automated migrator: https://sass-lang.com/d/import
-
-  ╷
-1 │ @import "../../styles/mixins";
-  │         ^^^^^^^^^^^^^^^^^^^^^
-  ╵
-    ../../packages/design-system/components/Popover/Popover.module.scss 1:9  root stylesheet
+    ../../packages/design-system/components/DropdownMenu/DropdownMenu.module.scss 1:9  root stylesheet
 
 DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
 
@@ -309,23 +294,68 @@ More info and automated migrator: https://sass-lang.com/d/import
 1 │ @import "../../styles/mixins";
   │         ^^^^^^^^^^^^^^^^^^^^^
   ╵
-    ../../packages/design-system/components/DropdownMenu/DropdownMenu.module.scss 1:9  root stylesheet
+    ../../packages/design-system/components/Badge/Badge.module.scss 1:9  root stylesheet
 
-✓ 5002 modules transformed.
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import "../../styles/mixins";
+  │         ^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    ../../packages/design-system/components/Toggle/Toggle.module.scss 1:9  root stylesheet
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import "../../styles/mixins";
+  │         ^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    ../../packages/design-system/components/Dialog/Dialog.module.scss 1:9  root stylesheet
+
+DEPRECATION WARNING [import]: Sass @import rules are deprecated and will be removed in Dart Sass 3.0.0.
+
+More info and automated migrator: https://sass-lang.com/d/import
+
+  ╷
+1 │ @import "../../styles/mixins";
+  │         ^^^^^^^^^^^^^^^^^^^^^
+  ╵
+    ../../packages/design-system/components/Popover/Popover.module.scss 1:9  root stylesheet
+
+✓ 5018 modules transformed.
+rendering chunks...
 [plugin vite:reporter] 
 (!) /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/vaultCommands.ts is dynamically imported by /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/VaultIndexer.ts but also statically imported by /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/VaultIndexer.ts, /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/index.ts, /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/vault/vaultWatchSession.ts, dynamic import will not move module into another chunk.
 
-rendering chunks...
 computing gzip size...
-dist/index.html                     0.40 kB │ gzip:   0.27 kB
-dist/assets/index-BCHhqDjV.css     35.74 kB │ gzip:   5.72 kB
-dist/assets/index-AmRX5yM-.js   1,085.85 kB │ gzip: 359.97 kB
+dist/index.html                          0.57 kB │ gzip:   0.32 kB
+dist/assets/index-BqgsNwjA.css           0.65 kB │ gzip:   0.31 kB
+dist/assets/index-D0B70Xji.css           1.13 kB │ gzip:   0.47 kB
+dist/assets/Dialog-BSY0dABn.css          4.02 kB │ gzip:   1.46 kB
+dist/assets/index-DC1VacHb.css           4.72 kB │ gzip:   1.53 kB
+dist/assets/GraphView-B0NGzvVd.css       4.83 kB │ gzip:   1.55 kB
+dist/assets/index-5K5FT-2T.css          13.88 kB │ gzip:   2.94 kB
+dist/assets/index-BmVBeeri.js            0.62 kB │ gzip:   0.37 kB
+dist/assets/index-zw02VCJf.js            0.89 kB │ gzip:   0.48 kB
+dist/assets/index-CGamoRSl.js            2.80 kB │ gzip:   1.17 kB
+dist/assets/Dialog-MgWBpIBz.js           2.87 kB │ gzip:   1.03 kB
+dist/assets/index-CJ6t-AJg.js           10.75 kB │ gzip:   4.73 kB
+dist/assets/index-CdPKjfXu.js           13.85 kB │ gzip:   4.86 kB
+dist/assets/index-Cn60s0yx.js           21.61 kB │ gzip:   7.91 kB
+dist/assets/GraphView-D88LwTDX.js      103.63 kB │ gzip:  36.25 kB
+dist/assets/index-BAzkvJeY.js          181.18 kB │ gzip:  57.16 kB
+dist/assets/vendor-react-BA_EuZnv.js   193.55 kB │ gzip:  60.78 kB
+dist/assets/vendor-editor-DNZ5hvrQ.js  536.48 kB │ gzip: 184.36 kB
 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 2.91s
+✓ built in 2.97s
    Compiling davinci-notes-desktop v0.1.0 (/Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src-tauri)
 warning: method `is_paused` is never used
   --> src/watcher.rs:46:10
@@ -339,7 +369,7 @@ warning: method `is_paused` is never used
    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
 
 warning: `davinci-notes-desktop` (lib) generated 1 warning
-    Finished `release` profile [optimized] target(s) in 32.69s
+    Finished `release` profile [optimized] target(s) in 31.87s
        Built application at: /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src-tauri/target/release/davinci-notes-desktop
     Bundling DaVinci Notes.app (/Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src-tauri/target/release/bundle/macos/DaVinci Notes.app)
     Bundling DaVinci Notes_0.1.0_aarch64.dmg (/Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src-tauri/target/release/bundle/dmg/DaVinci Notes_0.1.0_aarch64.dmg)

@@ -19,7 +19,8 @@ export function CommandPalette({
   onSelectNote,
   onOpenSettings,
 }: CommandPaletteProps) {
-  const { allNotePaths, openNotes } = useWorkspaceStore();
+  const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
+  const openNotes = useWorkspaceStore((state) => state.openNotes);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);

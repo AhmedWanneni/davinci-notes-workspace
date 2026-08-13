@@ -60,8 +60,10 @@ export function BacklinksPanel({
   const [backlinks, setBacklinks] = useState<BacklinkItem[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const { notesContent, allNotePaths, vaultUpdateCounter } =
-    useWorkspaceStore();
+  const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
+  const vaultUpdateCounter = useWorkspaceStore(
+    (state) => state.vaultUpdateCounter,
+  );
 
   useEffect(() => {
     if (!activePath) {
@@ -79,7 +81,7 @@ export function BacklinksPanel({
 
         const items: BacklinkItem[] = await Promise.all(
           sources.map(async (srcPath) => {
-            let content = notesContent[srcPath];
+            let content = useWorkspaceStore.getState().notesContent[srcPath];
             if (content === undefined) {
               try {
                 const res = await readNote(srcPath);
@@ -124,7 +126,7 @@ export function BacklinksPanel({
     return () => {
       isMounted = false;
     };
-  }, [activePath, vaultUpdateCounter, notesContent, allNotePaths]);
+  }, [activePath, vaultUpdateCounter, allNotePaths]);
 
   const renderSnippetWithHighlight = (snippet: string, matchText?: string) => {
     if (!matchText || !snippet.includes(matchText)) {

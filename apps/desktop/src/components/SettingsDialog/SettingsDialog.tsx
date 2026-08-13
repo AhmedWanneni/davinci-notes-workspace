@@ -22,7 +22,8 @@ export function SettingsDialog({
   vaultPath,
   onVaultSwitched,
 }: SettingsDialogProps) {
-  const { editorFont, setEditorFont } = useWorkspaceStore();
+  const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const setEditorFont = useWorkspaceStore((state) => state.setEditorFont);
 
   const handleSwitchVault = async () => {
     try {

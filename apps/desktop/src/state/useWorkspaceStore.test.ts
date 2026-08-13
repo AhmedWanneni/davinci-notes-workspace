@@ -48,14 +48,14 @@ describe("useWorkspaceStore", () => {
     getVaultIndexDbMock.mockResolvedValue({});
   });
 
-  it("loads vault paths and builds graph on initialize", async () => {
+  it("loads vault paths and optional graph on initialize", async () => {
     const store = useWorkspaceStore.getState();
     await store.initializeVault(["a.md", "b.md"]);
 
     const state = useWorkspaceStore.getState();
     expect(state.allNotePaths).toEqual(["a.md", "b.md"]);
-    expect(state.graph).not.toBeNull();
-    expect(state.graph?.nodes.has("a.md")).toBe(true);
+    expect(state.openNotes).toEqual([]);
+    expect(state.dirtyNotes.size).toBe(0);
   });
 
   it("opens note, reads from disk if needed, and sets active tab", async () => {

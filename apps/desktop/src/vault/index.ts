@@ -37,3 +37,4 @@ export {
   type FileTreeNode,
   type VaultChangeBatch,
 } from "./vaultCommands";
+export { useVaultSession } from "./useVaultSession";

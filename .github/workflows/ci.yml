@@ -12,5 +12,7 @@ jobs:
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm turbo run lint typecheck test build --filter=...[origin/main]
+      - name: Check Desktop Bundle Size
+        run: pnpm run check:bundle-size
       - name: Build Storybook
         run: pnpm turbo run build-storybook --filter=...[origin/main] --filter=@app/design-system

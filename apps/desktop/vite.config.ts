@@ -57,5 +57,21 @@ export default defineConfig({
     sourcemap: !!process.env.TAURI_DEBUG,
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("@codemirror") || id.includes("@lezer")) {
+            return "vendor-editor";
+          }
+          if (
+            id.includes("/node_modules/react/") ||
+            id.includes("/node_modules/react-dom/") ||
+            id.includes("/node_modules/zustand/")
+          ) {
+            return "vendor-react";
+          }
+        },
+      },
+    },
   },
 });

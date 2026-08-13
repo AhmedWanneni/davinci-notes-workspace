@@ -6,6 +6,7 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "check:bundle-size": "node scripts/check-bundle-size.mjs",
     "prepare": "husky"
   },
   "devDependencies": {
