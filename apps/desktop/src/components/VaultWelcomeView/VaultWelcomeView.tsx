@@ -2,7 +2,6 @@ import React from "react";
 import { FolderOpen, WarningCircle } from "@phosphor-icons/react";
 import { Button, Typography } from "@app/design-system";
 import { EmptyState } from "../EmptyState";
-import styles from "../../App.module.scss";
 
 export interface VaultWelcomeViewProps {
   isLoadingVault: boolean;
@@ -56,7 +55,7 @@ export function VaultWelcomeView({
         title="No Vault Open"
         description="Select a folder or a fixture vault to open the editor."
         action={
-          <div className={styles.actions}>
+          <div className="vault-welcome__actions">
             <Button variant="primary" onClick={onOpenFixture}>
               Open fixture
             </Button>
@@ -73,15 +72,13 @@ export function VaultWelcomeView({
   }
 
   return (
-    <main className={styles.shell}>
-      <section className={styles.content}>
+    <main className="vault-welcome">
+      <section className="vault-welcome__content">
         <Typography variant="h1" size="2xl">
           DaVinci Notes
         </Typography>
         {emptyStateContent}
-        {log.length > 0 && (
-          <pre className={styles["debug-log"]}>{log.join("\n")}</pre>
-        )}
+        {log.length > 0 && <pre className="debug-log">{log.join("\n")}</pre>}
       </section>
     </main>
   );

@@ -4,7 +4,6 @@ import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { GraphRenderer, SimNode, SimEdge } from "./GraphRenderer";
 import { EmptyState } from "../EmptyState";
 import { ShareNetwork } from "@phosphor-icons/react";
-import styles from "./GraphView.module.scss";
 import { Button } from "@app/design-system";
 
 export interface GraphViewProps {
@@ -59,7 +58,6 @@ export const GraphView: React.FC<GraphViewProps> = ({
     }
 
     // Build the final arrays for D3
-    // D3 mutates these objects, so we MUST create deep copies of the nodes/edges
     const simNodes: SimNode[] = [];
     const simEdges: SimEdge[] = [];
 
@@ -89,15 +87,14 @@ export const GraphView: React.FC<GraphViewProps> = ({
     if (onNavigate) {
       onNavigate(nodeId);
     } else {
-      // Default behavior: open the note in the workspace
       useWorkspaceStore.getState().openNote(nodeId);
     }
   };
 
   return (
-    <div className={styles.graphContainer}>
+    <div className="graph-view">
       {nodes.length <= 1 && mode === "local" ? (
-        <div className={"empty-state-container"}>
+        <div className="graph-view__empty">
           <EmptyState
             icon={<ShareNetwork size={32} weight="regular" />}
             title="No Connections"
@@ -112,7 +109,7 @@ export const GraphView: React.FC<GraphViewProps> = ({
           onNodeClick={handleNodeClick}
         />
       )}
-      <div className={styles.zoomControls}>
+      <div className="graph-view__controls">
         <Button
           variant="secondary"
           size="sm"

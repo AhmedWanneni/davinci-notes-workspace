@@ -120,5 +120,15 @@ SQLite WAL (Write-Ahead Logging) mode and synchronous level (`PRAGMA journal_mod
 Superseding note on Migration v3: Attempts to execute PRAGMAs (such as `PRAGMA synchronous`) inside `tauri-plugin-sql` migrations fail because `tauri-plugin-sql` wraps migration execution inside a SQL transaction, and SQLite forbids safety/journal level changes inside an active transaction (`Safety level may not be changed inside a transaction`). Thus, PRAGMAs are executed directly on the DB handle at connection creation. `journal_mode=WAL` persists in the DB file header once set, while `synchronous=NORMAL` is set on every connection initialization. `.gitignore` ignores `*.db-wal`, `*.db-shm`, and `*.db-journal` sidecars.
 
 ### Vault Indexing Bulk Transaction Batching & Links Conflict Handling
+### Vault Indexing Bulk Transaction Batching & Links Conflict Handling
 Bulk vault indexing (`indexVaultFull`) and watcher reconciliation (`reconcileVaultChanges`) use `persistNotesBatch` chunking notes and links into parameterized bulk SQL operations (50 items per query).
 Links Conflict Handling Rationale: The `links` table uses a surrogate `id` column and has **no unique constraint** on `(source_path, target_path)` because multiple outlinks from the same source note to the same target note (e.g. `[[Note#Heading1]]` and `[[Note#Heading2]]`) are valid and must both be preserved. Therefore, upserts (`ON CONFLICT`) are semantically invalid and unsupported on `links`. Instead, we execute `DELETE FROM links WHERE source_path IN (...)` for batch source paths prior to bulk `INSERT INTO links`. Verified 10/10 consecutive vault open/index cycles without lock errors.
+
+### Desktop Styling: CSS Modules → CUBE CSS Migration
+Migrated `apps/desktop` from CSS Modules (`Component.module.scss` + `styles.className`) to **CUBE CSS** (Composition, Utility, Block, Exception) with a structured global SCSS architecture (`src/styles/` containing `base/`, `layout/`, `components/`, `utilities/`, `lib/`, and a single `_main.scss` entry point).
+Rationale:
+- **Methodology Alignment**: Fits the app-layer / thin-block philosophy and design-system token inheritance far better than isolated per-component hashing.
+- **BEM + Kebab-Case Enforced**: All desktop-local blocks in `components/` use strict BEM selectors (`.file-tree`, `.file-tree__row`), validated by a Stylelint `selector-class-pattern` rule.
+- **Exception Layer via Radix State Attributes**: State variations leverage existing accessible data attributes (`data-state`, `data-active`, `data-size`, `data-selected`) rather than manually synchronizing dynamic React classes.
+- **Zero-Dep Class Grouping**: Implemented a lightweight zero-dep `cn()` utility (`src/styles/cn.ts`) supporting CUBE bracket grouping notation in TSX (`className={cn("[ composition ]", "[ utility ]", "[ block ]")}`).
+- **Performance & Bundle Gains**: Build-time static SCSS/PostCSS compilation only; gzipped total CSS reduced from 8.05 KB to 6.60 KB with zero runtime JS style recalculation.

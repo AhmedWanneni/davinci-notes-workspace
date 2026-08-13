@@ -4,7 +4,6 @@ import { parseLinks } from "@app/indexer";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { getVaultIndexDb, queryBacklinkSources, readNote } from "../../vault";
 import { EmptyState } from "../EmptyState";
-import styles from "./BacklinksPanel.module.scss";
 
 export interface BacklinkItem {
   sourcePath: string;
@@ -147,17 +146,17 @@ export function BacklinksPanel({
   };
 
   return (
-    <aside className={styles["backlinks-panel"]}>
-      <div className={styles.header}>
-        <Typography variant="h3" size="sm" className={styles.title}>
+    <aside className="backlinks-panel">
+      <div className="backlinks-panel__header">
+        <Typography variant="h3" size="sm" className="backlinks-panel__title">
           Backlinks
         </Typography>
         {backlinks.length > 0 && (
-          <span className={styles["count-badge"]}>{backlinks.length}</span>
+          <span className="backlinks-panel__count">{backlinks.length}</span>
         )}
       </div>
 
-      <div className={styles.content}>
+      <div className="backlinks-panel__content">
         {loading && backlinks.length === 0 ? (
           <EmptyState size="sm" description="Loading backlinks..." />
         ) : backlinks.length === 0 ? (
@@ -166,11 +165,13 @@ export function BacklinksPanel({
           backlinks.map((item) => (
             <div
               key={item.sourcePath}
-              className={styles["backlink-card"]}
+              className="backlinks-panel__card"
               onClick={() => onSelectNote(item.sourcePath)}
             >
-              <h4 className={styles["source-title"]}>{item.sourceTitle}</h4>
-              <p className={styles["context-snippet"]}>
+              <h4 className="backlinks-panel__source-title">
+                {item.sourceTitle}
+              </h4>
+              <p className="backlinks-panel__snippet">
                 {renderSnippetWithHighlight(
                   item.contextSnippet,
                   item.matchText,

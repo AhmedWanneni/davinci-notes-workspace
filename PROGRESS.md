@@ -68,6 +68,13 @@ Phase 12 (Performance Audit Checkpoint) is complete. Next session: **Phase 13 �
 | **File Tree Scroll** | Phase 7: Tree build ~8ms, flatten ~0.4ms | Tree build ~6ms, flatten ~0.3ms, virtualized with `@tanstack/react-virtual` | Maintained `@tanstack/react-virtual` with isolated `AppSidebar` | **Tree build ~6ms, flatten ~0.3ms, 60fps virtualized scroll** | **Held** |
 | **Graph View Render** | Phase 10: 200-node cap, D3 force + SVG, 60fps | Top 200 nodes capped by degree, D3 zoom & pan | Code-split GraphView and LocalGraphPanel from initial bundle | **Top 200 nodes capped, lazy-loaded on demand, 60fps pan/zoom** | **Held** |
 
+- **CSS Modules → CUBE CSS Migration (`apps/desktop`)**: Fully migrated desktop application from scoped CSS Modules to CUBE CSS architecture with structured layers (`base/`, `layout/`, `components/`, `utilities/`, `lib/`, and `_main.scss`).
+  - Added zero-dependency, type-safe `cn()` helper (`src/styles/cn.ts`).
+  - Strict BEM class naming with Stylelint `selector-class-pattern` automated enforcement for `components/` blocks.
+  - Radix exceptions converted to clean `data-*` attributes (`data-state`, `data-active`, `data-size`, `data-selected`).
+  - All token references unified directly to `@app/design-system` canonical CSS custom properties (`--color-bg-primary`, `--color-border-subtle`, `--space-*`, etc.).
+  - Gzipped total CSS reduced from **8.05 KB to 6.60 KB** (18% reduction); typing latency held at **4.026 ms**; all 24 tests and lint passing.
+
 ## In Progress
 
 _(nothing)_
@@ -106,3 +113,4 @@ _(nothing)_
 | 2026-08-08 | Dev Database Migration Fix | Diagnosed and fixed `tauri-plugin-sql` startup panic caused by modifying `packages/indexer/schema.sql` (migration 1) in Phase 11 after it was already applied. Deleted local dev SQLite db (`com.davinci.notes`) to allow a clean re-apply. Added strict "never edit an applied migration" rule to `AGENTS.md` and decided to stick with proper incremental migrations going forward now that foundational schema is stable. |
 | 2026-08-13 | SQLite Lock Fix & Connection PRAGMAs | Resolved `SQLITE_BUSY: database is locked` via WAL mode & `synchronous=NORMAL` executed at DB connection time in `getVaultIndexDb()` (removed Migration v3 since PRAGMAs fail inside migration transactions). Implemented `persistNotesBatch` chunking (50 items/query). Reset local dev DB cleanly. Passed `verifyJournalMode` ('wal'), 10/10 repeated open/close cycles, and watcher boundary stress test. |
 | 2026-08-13 | Phase 12 — Performance Audit Checkpoint | Complete audit against baselines and `PERFORMANCE.md` hard rules. Re-measured baselines; fixed whole-store Zustand subscriptions and BacklinksPanel typing leak; eliminated store init redundant full vault re-reading; implemented `React.lazy` code-splitting for non-critical dialogs and D3 graph views (cutting entry bundle from 1.11MB to 176.9KB raw / 55.8KB gzip); split `App.tsx` (501 lines -> subcomponents all < 200 lines); added `scripts/check-bundle-size.mjs` wired into CI and verified gating. All 24 tests and build passing. |
+| 2026-08-13 | CSS Modules → CUBE CSS Migration | Migrated apps/desktop from CSS Modules to CUBE CSS (composition/utility/block/exception layers, BEM block naming, data-attributes for exception states, cn() bracket grouping, Stylelint BEM rule enforcement). Gzipped CSS reduced from 8.05 KB to 6.60 KB (-18%). Typing latency 4.026 ms held. All 24 tests passing. |

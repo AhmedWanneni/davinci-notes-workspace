@@ -1,0 +1,29 @@
+.u-flex-1 {
+  flex: 1;
+}
+
+.u-flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.u-flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.u-overflow-hidden {
+  overflow: hidden;
+}
+
+.u-overflow-auto {
+  overflow: auto;
+}
+
+.u-full-height {
+  height: 100%;
+}
+
+.u-full-width {
+  width: 100%;
+}

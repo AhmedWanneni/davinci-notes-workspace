@@ -1,6 +1,5 @@
 import React from "react";
 import { Typography } from "@app/design-system";
-import styles from "./EmptyState.module.scss";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -18,9 +17,9 @@ export function EmptyState({
   size = "md",
 }: EmptyStateProps) {
   return (
-    <div className={`empty-state ${styles[size]}`}>
-      {icon && <div className={styles.icon}>{icon}</div>}
-      <div className={styles.content}>
+    <div className="empty-state" data-size={size}>
+      {icon && <div className="empty-state__icon">{icon}</div>}
+      <div className="empty-state__content">
         {title && (
           <Typography variant="h3" size={size === "lg" ? "lg" : "sm"}>
             {title}
@@ -34,7 +33,7 @@ export function EmptyState({
           {description}
         </Typography>
       </div>
-      {action && <div className={styles.action}>{action}</div>}
+      {action && <div className="empty-state__action">{action}</div>}
     </div>
   );
 }

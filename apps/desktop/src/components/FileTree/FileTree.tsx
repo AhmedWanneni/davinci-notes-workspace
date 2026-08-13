@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { CaretRight, CaretDown, FileText } from "@phosphor-icons/react";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
-import styles from "./FileTree.module.scss";
 
 interface FileTreeProps {
   paths: string[];
@@ -20,10 +19,7 @@ export function FileTree({
   // Memoize the full nested tree
   const tree = useMemo(() => buildTreeFromPaths(paths), [paths]);
 
-  // Keep track of expanded folders. Default to root level folders?
-  // Or just empty initially. Let's say we start with an empty set (all collapsed).
-  // But wait, if activePath is nested, we might want to expand to it.
-  // For now, let's just initialize it empty, but automatically expand parents of active note.
+  // Keep track of expanded folders
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     () => new Set(),
   );
@@ -36,7 +32,6 @@ export function FileTree({
         let changed = false;
         const parts = activePath.split("/");
         let currentPath = "";
-        // iterate all parts except the last one (which is the file)
         for (let i = 0; i < parts.length - 1; i++) {
           currentPath += (currentPath ? "/" : "") + parts[i];
           if (!next.has(currentPath)) {
@@ -77,9 +72,9 @@ export function FileTree({
   });
 
   return (
-    <div className={styles.container} ref={parentRef}>
+    <div className="file-tree" ref={parentRef}>
       <div
-        className={"virtual-inner"}
+        className="file-tree__virtual-inner"
         style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
       >
         {rowVirtualizer.getVirtualItems().map((virtualItem) => {
@@ -93,7 +88,8 @@ export function FileTree({
           return (
             <div
               key={virtualItem.key}
-              className={`${styles.row} ${isActive ? styles.active : ""}`}
+              className="file-tree__row"
+              data-active={isActive || undefined}
               style={{
                 position: "absolute",
                 top: 0,
@@ -111,21 +107,29 @@ export function FileTree({
                 }
               }}
             >
-              <span className={"icon-wrapper"}>
+              <span className="file-tree__icon">
                 {!isFile ? (
                   isExpanded ? (
-                    <CaretDown size={14} weight="bold" className={"caret"} />
+                    <CaretDown
+                      size={14}
+                      weight="bold"
+                      className="file-tree__caret"
+                    />
                   ) : (
-                    <CaretRight size={14} weight="bold" className={"caret"} />
+                    <CaretRight
+                      size={14}
+                      weight="bold"
+                      className="file-tree__caret"
+                    />
                   )
                 ) : (
-                  <FileText size={14} className={"file-icon"} />
+                  <FileText size={14} className="file-tree__file-icon" />
                 )}
               </span>
-              <span className={"title"} title={item.node.name}>
+              <span className="file-tree__title" title={item.node.name}>
                 {displayTitle}
               </span>
-              {isDirty && <span className={"dirty-dot"} />}
+              {isDirty && <span className="file-tree__dirty-dot" />}
             </div>
           );
         })}

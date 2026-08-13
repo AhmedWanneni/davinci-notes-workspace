@@ -1,5 +1,4 @@
 import React from "react";
-import styles from "../../App.module.scss";
 
 export interface AppTabsProps {
   openNotes: string[];
@@ -17,7 +16,7 @@ export function AppTabs({
   onCloseNote,
 }: AppTabsProps) {
   return (
-    <div className={styles["tabs-bar"]}>
+    <div className="app-tabs">
       {openNotes.map((path) => {
         const displayTitle =
           path.replace(/\.md$/i, "").split("/").pop() ?? path;
@@ -26,13 +25,14 @@ export function AppTabs({
         return (
           <div
             key={path}
-            className={`${styles.tab} ${isActive ? styles.active : ""}`}
+            className="app-tabs__tab"
+            data-active={isActive || undefined}
             onClick={() => onSelectNote(path)}
           >
             <span>{displayTitle}</span>
-            {isDirty && <span className={"dirty-dot"} />}
+            {isDirty && <span className="app-tabs__dirty-dot" />}
             <span
-              className={styles["close-tab"]}
+              className="app-tabs__close"
               onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
                 onCloseNote(path);

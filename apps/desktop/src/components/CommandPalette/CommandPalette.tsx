@@ -4,7 +4,6 @@ import fuzzysort from "fuzzysort";
 import { FileText, Gear } from "@phosphor-icons/react";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { EmptyState } from "../EmptyState";
-import styles from "./CommandPalette.module.scss";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -45,7 +44,6 @@ export function CommandPalette({
       id?: string;
     }[] = allNotePaths.map((path) => {
       const title = path.replace(/\.md$/i, "").split(/[/\\]/).pop() ?? path;
-      // Recency boost: +1 for open notes, +2 for active (handled differently, but openNotes gives basic recency proxy)
       const recencyScore = openNotes.includes(path) ? 1000 : 0;
       return { path, title, recencyScore };
     });
@@ -60,7 +58,6 @@ export function CommandPalette({
 
   const results = useMemo(() => {
     if (!query) {
-      // Return recent notes or all notes if empty
       const sorted = [...preparedTargets].sort(
         (a, b) => b.recencyScore - a.recencyScore,
       );
@@ -78,8 +75,10 @@ export function CommandPalette({
     return searchResults.map((result) => ({
       obj: result.obj,
       highlightedTitle:
-        result.highlight(`<mark class="${styles.highlight}">`, `</mark>`) ||
-        result.obj.title,
+        result.highlight(
+          '<mark class="command-palette__highlight">',
+          "</mark>",
+        ) || result.obj.title,
     }));
   }, [query, preparedTargets]);
 
@@ -134,12 +133,12 @@ export function CommandPalette({
   return (
     <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className={"dialog-overlay"} />
-        <DialogPrimitive.Content className={"dialog-content"}>
-          <div className={"input-wrapper"}>
+        <DialogPrimitive.Overlay className="command-palette__overlay" />
+        <DialogPrimitive.Content className="command-palette__dialog">
+          <div className="command-palette__input-wrapper">
             <input
               ref={inputRef}
-              className={"input"}
+              className="command-palette__input"
               placeholder="Type to search or create..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -147,7 +146,7 @@ export function CommandPalette({
             />
           </div>
           <ul
-            className={styles.resultsList}
+            className="command-palette__list"
             ref={listRef}
             role="listbox"
             aria-label="Quick switcher results"
@@ -161,9 +160,8 @@ export function CommandPalette({
                   key={key}
                   role="option"
                   aria-selected={isSelected}
-                  className={`${styles.resultItem} ${
-                    isSelected ? styles.isSelected : ""
-                  }`}
+                  data-selected={isSelected || undefined}
+                  className="command-palette__item"
                   onClick={() => {
                     if (isCommand) {
                       if (result.obj.id === "action:settings" && onOpenSettings)
@@ -176,9 +174,17 @@ export function CommandPalette({
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
                   {isCommand ? (
-                    <Gear size={18} className={"icon"} weight="regular" />
+                    <Gear
+                      size={18}
+                      className="command-palette__icon"
+                      weight="regular"
+                    />
                   ) : (
-                    <FileText size={18} className={"icon"} weight="regular" />
+                    <FileText
+                      size={18}
+                      className="command-palette__icon"
+                      weight="regular"
+                    />
                   )}
                   <span
                     dangerouslySetInnerHTML={{
@@ -189,7 +195,7 @@ export function CommandPalette({
               );
             })}
             {results.length === 0 && (
-              <li className={styles.emptyState}>
+              <li className="command-palette__empty">
                 <EmptyState
                   size="sm"
                   description={`No notes found. Press Enter to create "${query}".`}

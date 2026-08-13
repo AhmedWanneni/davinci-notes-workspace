@@ -1,7 +1,6 @@
 import { Button, Typography } from "@app/design-system";
 import { Gear } from "@phosphor-icons/react";
 import { FileTree } from "../FileTree";
-import styles from "../../App.module.scss";
 
 export interface AppSidebarProps {
   vaultName: string;
@@ -29,12 +28,12 @@ export function AppSidebar({
   onNoteClick,
 }: AppSidebarProps) {
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles["sidebar-header"]}>
-        <Typography variant="h3" size="lg" className={styles["sidebar-title"]}>
+    <aside className="app-sidebar">
+      <div className="app-sidebar__header">
+        <Typography variant="h3" size="lg" className="app-sidebar__title">
           {vaultName}
         </Typography>
-        <div className={styles.actions}>
+        <div className="app-sidebar__actions">
           <Button variant="primary" onClick={onCreateNote}>
             New Note
           </Button>
@@ -49,7 +48,7 @@ export function AppSidebar({
           </Button>
         </div>
       </div>
-      <div className={styles["sidebar-content"]}>
+      <div className="app-sidebar__content">
         <FileTree
           paths={allNotePaths}
           activePath={activeNotePath}
@@ -57,9 +56,7 @@ export function AppSidebar({
           onNoteClick={onNoteClick}
         />
       </div>
-      {log.length > 0 && (
-        <pre className={styles["debug-log"]}>{log.join("\n")}</pre>
-      )}
+      {log.length > 0 && <pre className="debug-log">{log.join("\n")}</pre>}
     </aside>
   );
 }

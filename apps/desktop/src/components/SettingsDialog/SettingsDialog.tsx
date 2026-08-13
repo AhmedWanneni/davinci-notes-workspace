@@ -7,7 +7,6 @@ import {
 } from "@app/design-system";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { openVaultFromPicker } from "../../vault";
-import styles from "./SettingsDialog.module.scss";
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -38,11 +37,11 @@ export function SettingsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="dialog-content" title="Settings">
-        <div className={styles.container}>
-          <section className={styles.section}>
-            <div className="setting-row">
-              <div className={"setting-info"}>
+      <DialogContent className="settings-dialog" title="Settings">
+        <div className="settings-dialog__container">
+          <section className="settings-dialog__section">
+            <div className="settings-dialog__row">
+              <div className="settings-dialog__info">
                 <Typography variant="h3" size="sm">
                   Editor Font
                 </Typography>
@@ -50,11 +49,11 @@ export function SettingsDialog({
                   Choose the font used for the markdown editor.
                 </Typography>
               </div>
-              <div className={"setting-control"}>
+              <div className="settings-dialog__control">
                 <select
                   value={editorFont}
                   onChange={(e) => setEditorFont(e.target.value)}
-                  className={styles.select}
+                  className="settings-dialog__select"
                 >
                   <option value="system">System UI</option>
                   <option value="monospace">Monospace</option>
@@ -67,9 +66,9 @@ export function SettingsDialog({
 
           <Divider />
 
-          <section className={styles.section}>
-            <div className="setting-row">
-              <div className={"setting-info"}>
+          <section className="settings-dialog__section">
+            <div className="settings-dialog__row">
+              <div className="settings-dialog__info">
                 <Typography variant="h3" size="sm">
                   Vault Location
                 </Typography>
@@ -77,7 +76,7 @@ export function SettingsDialog({
                   Current vault path: {vaultPath || "None"}
                 </Typography>
               </div>
-              <div className={"setting-control"}>
+              <div className="settings-dialog__control">
                 <Button variant="secondary" onClick={handleSwitchVault}>
                   Switch Vault
                 </Button>

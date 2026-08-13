@@ -20,11 +20,11 @@ export function GlobalGraphDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
-        className={"dialog-content"}
+        className="global-graph-dialog"
         showCloseButton={false}
         title="Global Graph View"
       >
-        <div className={"graph-wrapper"}>
+        <div className="global-graph-dialog__graph-wrapper">
           <GraphView
             graph={graph}
             defaultMode="global"

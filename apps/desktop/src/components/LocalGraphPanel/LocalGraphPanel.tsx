@@ -2,7 +2,6 @@ import React from "react";
 import { Typography } from "@app/design-system";
 import { GraphIndex } from "@app/indexer";
 import { GraphView } from "../GraphView";
-import styles from "./LocalGraphPanel.module.scss";
 
 interface LocalGraphPanelProps {
   graph: GraphIndex | null;
@@ -16,16 +15,16 @@ export function LocalGraphPanel({
   onSelectNote,
 }: LocalGraphPanelProps) {
   return (
-    <aside className={styles["local-graph-panel"]}>
-      <div className={styles.header}>
-        <Typography variant="h3" size="sm" className={styles.title}>
+    <aside className="local-graph-panel">
+      <div className="local-graph-panel__header">
+        <Typography variant="h3" size="sm" className="local-graph-panel__title">
           Local Graph
         </Typography>
       </div>
 
-      <div className={styles.content}>
+      <div className="local-graph-panel__content">
         {!graph || !activePath ? (
-          <div className={styles["empty-state"]}>
+          <div className="local-graph-panel__empty">
             <Typography variant="text" color="muted" size="xs">
               No graph data available
             </Typography>

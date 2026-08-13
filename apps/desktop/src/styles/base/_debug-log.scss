@@ -1,0 +1,12 @@
+.debug-log {
+  margin: var(--space-2);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+  white-space: pre-wrap;
+  max-height: 150px;
+  overflow-y: auto;
+}

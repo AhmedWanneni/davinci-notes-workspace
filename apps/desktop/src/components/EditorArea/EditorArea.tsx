@@ -2,7 +2,6 @@ import { Editor } from "@app/editor";
 import { FileText } from "@phosphor-icons/react";
 import { EmptyState } from "../EmptyState";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import styles from "../../App.module.scss";
 
 export interface EditorAreaProps {
   activeNotePath: string | null;
@@ -23,7 +22,7 @@ export function EditorArea({
   );
 
   return (
-    <div className={styles["editor-wrapper"]}>
+    <div className="editor-area">
       {activeNotePath ? (
         <Editor
           key={activeNotePath}

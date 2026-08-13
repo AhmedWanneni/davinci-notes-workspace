@@ -1,0 +1,38 @@
+.local-graph-panel {
+  display: flex;
+  flex-direction: column;
+  height: 50%;
+  border-top: var(--border-width-thin) solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary);
+}
+
+.local-graph-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary-alt);
+}
+
+.local-graph-panel__title {
+  margin: 0;
+  font-weight: var(--type-weight-semibold);
+  color: var(--color-text-normal);
+}
+
+.local-graph-panel__content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.local-graph-panel__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  height: 100%;
+}

@@ -1,15 +1,15 @@
-.container {
+.file-tree {
   flex: 1;
   overflow: hidden auto;
   width: 100%;
 }
 
-.virtual-inner {
+.file-tree__virtual-inner {
   position: relative;
   width: 100%;
 }
 
-.row {
+.file-tree__row {
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -25,14 +25,15 @@
     color: var(--color-text-normal);
   }
 
-  &.active {
+  &[data-active="true"],
+  &--active {
     background-color: var(--color-bg-active);
     color: var(--color-text-accent);
     font-weight: var(--type-weight-semibold);
   }
 }
 
-.icon-wrapper {
+.file-tree__icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,28 +43,29 @@
   margin-right: var(--space-1);
 }
 
-.caret {
+.file-tree__caret {
   color: var(--color-text-muted);
 }
 
-.file-icon {
+.file-tree__file-icon {
   color: var(--color-text-muted);
   opacity: 0.7;
+
+  .file-tree__row[data-active="true"] &,
+  .file-tree__row--active & {
+    color: var(--color-text-accent);
+    opacity: 1;
+  }
 }
 
-.active .file-icon {
-  color: var(--color-text-accent);
-  opacity: 1;
-}
-
-.title {
+.file-tree__title {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dirty-dot {
+.file-tree__dirty-dot {
   width: 6px;
   height: 6px;
   background-color: var(--color-text-accent);

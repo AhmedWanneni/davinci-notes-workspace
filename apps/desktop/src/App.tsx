@@ -1,5 +1,4 @@
 import React, { Suspense, useEffect, useState } from "react";
-import styles from "./App.module.scss";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import { VaultWelcomeView } from "./components/VaultWelcomeView";
 import { AppSidebar } from "./components/AppSidebar";
@@ -104,7 +103,7 @@ export function App() {
   const vaultName = vaultPath.split(/[/\\]/).pop() || vaultPath;
 
   return (
-    <div className={styles.layout}>
+    <div className="app-shell">
       <AppSidebar
         vaultName={vaultName}
         allNotePaths={allNotePaths}
@@ -121,7 +120,7 @@ export function App() {
         onNoteClick={(path) => void openNote(path)}
       />
 
-      <main className={styles["main-area"]}>
+      <main className="app-shell__main">
         <AppTabs
           openNotes={openNotes}
           activeNotePath={activeNotePath}

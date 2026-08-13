@@ -4,7 +4,6 @@ import { select } from "d3-selection";
 import { zoom, zoomIdentity } from "d3-zoom";
 import { drag } from "d3-drag";
 import { Tooltip, TooltipProvider } from "@app/design-system";
-import styles from "./GraphView.module.scss";
 
 export interface SimNode extends d3Force.SimulationNodeDatum {
   id: string;
@@ -128,22 +127,21 @@ export const GraphRenderer: React.FC<GraphRendererProps> = ({
 
   return (
     <TooltipProvider>
-      <svg ref={svgRef} className={styles.graphSvg}>
+      <svg ref={svgRef} className="graph-view__svg">
         <g ref={containerRef}>
           {edges.map((edge, i) => (
-            <line key={i} className={`${styles.graphEdge} graph-edge`} />
+            <line key={i} className="graph-view__edge graph-edge" />
           ))}
           {nodes.map((node) => (
             <Tooltip key={node.id} content={node.label}>
-              <g className={`${styles.graphNodeGroup} graph-node-group`}>
+              <g className="graph-view__node-group graph-node-group">
                 <circle
-                  className={`${styles.graphNode} ${
-                    node.id === activeNodeId ? styles.isActive : ""
-                  }`}
+                  className="graph-view__node"
+                  data-active={node.id === activeNodeId || undefined}
                   r={8}
                   onClick={() => onNodeClick(node.id)}
                 />
-                <text className={styles.nodeLabel} y={18} textAnchor="middle">
+                <text className="graph-view__label" y={18} textAnchor="middle">
                   {node.label}
                 </text>
               </g>

@@ -1,0 +1,28 @@
+// 1. Base
+@import "./base/root";
+@import "./base/debug-log";
+
+// 2. Layout
+@import "./layout/app-shell";
+@import "./layout/sidebar";
+@import "./layout/tabs";
+@import "./layout/editor-area";
+
+// 3. Components (Blocks)
+@import "./components/vault-welcome";
+@import "./components/file-tree";
+@import "./components/empty-state";
+@import "./components/backlinks-panel";
+@import "./components/command-palette";
+@import "./components/settings-dialog";
+@import "./components/graph-view";
+@import "./components/local-graph-panel";
+@import "./components/global-graph-dialog";
+
+// 4. Utilities
+@import "./utilities/layout";
+@import "./utilities/text";
+
+// 5. Lib overrides
+@import "./lib/codemirror";
+@import "./lib/radix";
