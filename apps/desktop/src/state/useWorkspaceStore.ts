@@ -29,6 +29,11 @@ interface WorkspaceState {
   updateNoteContent: (path: string, content: string) => void;
   saveNoteNow: (path: string) => Promise<void>;
   saveAllDirty: () => Promise<void>;
+
+  // Settings
+  editorFont: string;
+  loadSettings: () => Promise<void>;
+  setEditorFont: (font: string) => Promise<void>;
 }
 
 // Module-level cache for debounced save timeouts
@@ -42,6 +47,32 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   allNotePaths: [],
   graph: null,
   vaultUpdateCounter: 0,
+  editorFont: "system",
+
+  loadSettings: async () => {
+    try {
+      const db = await getVaultIndexDb();
+      // Need to import getSetting/setSetting, I'll add the imports in the next step
+      const font = await (
+        await import("../vault")
+      ).getSetting(db, "editorFont");
+      if (font) {
+        set({ editorFont: font });
+      }
+    } catch (e) {
+      console.error("Failed to load settings", e);
+    }
+  },
+
+  setEditorFont: async (font: string) => {
+    set({ editorFont: font });
+    try {
+      const db = await getVaultIndexDb();
+      await (await import("../vault")).setSetting(db, "editorFont", font);
+    } catch (e) {
+      console.error("Failed to save editorFont setting", e);
+    }
+  },
 
   initializeVault: async (paths: string[]) => {
     // Build initial graph in memory based on current files

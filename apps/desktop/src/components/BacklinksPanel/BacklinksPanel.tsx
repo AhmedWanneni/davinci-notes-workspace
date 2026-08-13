@@ -3,6 +3,7 @@ import { Typography } from "@app/design-system";
 import { parseLinks } from "@app/indexer";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { getVaultIndexDb, queryBacklinkSources, readNote } from "../../vault";
+import { EmptyState } from "../EmptyState";
 import styles from "./BacklinksPanel.module.scss";
 
 export interface BacklinkItem {
@@ -156,17 +157,9 @@ export function BacklinksPanel({
 
       <div className={styles.content}>
         {loading && backlinks.length === 0 ? (
-          <div className={styles["empty-state"]}>
-            <Typography variant="text" color="muted" size="xs">
-              Loading backlinks...
-            </Typography>
-          </div>
+          <EmptyState size="sm" description="Loading backlinks..." />
         ) : backlinks.length === 0 ? (
-          <div className={styles["empty-state"]}>
-            <Typography variant="text" color="muted" size="xs">
-              No backlinks yet
-            </Typography>
-          </div>
+          <EmptyState size="sm" description="No backlinks yet" />
         ) : (
           backlinks.map((item) => (
             <div

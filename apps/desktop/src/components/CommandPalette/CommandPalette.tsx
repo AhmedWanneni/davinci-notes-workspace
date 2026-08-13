@@ -1,20 +1,23 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import fuzzysort from "fuzzysort";
-import { FileText } from "@phosphor-icons/react";
+import { FileText, Gear } from "@phosphor-icons/react";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import { EmptyState } from "../EmptyState";
 import styles from "./CommandPalette.module.scss";
 
 interface CommandPaletteProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectNote: (path: string) => void;
+  onOpenSettings?: () => void;
 }
 
 export function CommandPalette({
   isOpen,
   onOpenChange,
   onSelectNote,
+  onOpenSettings,
 }: CommandPaletteProps) {
   const { allNotePaths, openNotes } = useWorkspaceStore();
   const [query, setQuery] = useState("");
@@ -33,12 +36,25 @@ export function CommandPalette({
   }, [isOpen]);
 
   const preparedTargets = useMemo(() => {
-    return allNotePaths.map((path) => {
+    const targets: {
+      path?: string;
+      title: string;
+      recencyScore: number;
+      isCommand?: boolean;
+      id?: string;
+    }[] = allNotePaths.map((path) => {
       const title = path.replace(/\.md$/i, "").split(/[/\\]/).pop() ?? path;
       // Recency boost: +1 for open notes, +2 for active (handled differently, but openNotes gives basic recency proxy)
       const recencyScore = openNotes.includes(path) ? 1000 : 0;
       return { path, title, recencyScore };
     });
+    targets.push({
+      isCommand: true,
+      id: "action:settings",
+      title: "Open Settings",
+      recencyScore: 500,
+    });
+    return targets;
   }, [allNotePaths, openNotes]);
 
   const results = useMemo(() => {
@@ -87,7 +103,13 @@ export function CommandPalette({
       if (results.length > 0) {
         const selected = results[selectedIndex];
         if (selected) {
-          onSelectNote(selected.obj.path);
+          if (selected.obj.isCommand) {
+            if (selected.obj.id === "action:settings" && onOpenSettings) {
+              onOpenSettings();
+            }
+          } else if (selected.obj.path) {
+            onSelectNote(selected.obj.path);
+          }
           onOpenChange(false);
         }
       } else if (query.trim() !== "") {
@@ -131,21 +153,32 @@ export function CommandPalette({
           >
             {results.map((result, index) => {
               const isSelected = index === selectedIndex;
+              const isCommand = result.obj.isCommand;
+              const key = isCommand ? result.obj.id : result.obj.path;
               return (
                 <li
-                  key={result.obj.path}
+                  key={key}
                   role="option"
                   aria-selected={isSelected}
                   className={`${styles.resultItem} ${
                     isSelected ? styles.isSelected : ""
                   }`}
                   onClick={() => {
-                    onSelectNote(result.obj.path);
+                    if (isCommand) {
+                      if (result.obj.id === "action:settings" && onOpenSettings)
+                        onOpenSettings();
+                    } else if (result.obj.path) {
+                      onSelectNote(result.obj.path);
+                    }
                     onOpenChange(false);
                   }}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
-                  <FileText size={18} className={"icon"} weight="regular" />
+                  {isCommand ? (
+                    <Gear size={18} className={"icon"} weight="regular" />
+                  ) : (
+                    <FileText size={18} className={"icon"} weight="regular" />
+                  )}
                   <span
                     dangerouslySetInnerHTML={{
                       __html: result.highlightedTitle,
@@ -156,7 +189,10 @@ export function CommandPalette({
             })}
             {results.length === 0 && (
               <li className={styles.emptyState}>
-                No notes found. Press Enter to create "{query}".
+                <EmptyState
+                  size="sm"
+                  description={`No notes found. Press Enter to create "${query}".`}
+                />
               </li>
             )}
           </ul>

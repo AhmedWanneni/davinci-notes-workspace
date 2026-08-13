@@ -6,7 +6,7 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Phase 9 (Command Palette / Quick Switcher) is complete. Next session: **Phase 10 — Graph View**.
+Phase 11 (Settings and Polish) is complete. Next session: **Phase 12 — Performance Audit Checkpoint**.
 
 ## Done
 
@@ -75,6 +75,18 @@ Phase 9 (Command Palette / Quick Switcher) is complete. Next session: **Phase 10
 - **Phase 7 — File Tree / Sidebar**: Virtualized file tree navigation using `@tanstack/react-virtual`. Synchronous JS tree building from `allNotePaths` to avoid IPC overhead. Tree build time (350 notes): ~8 ms. Flatten time: ~0.4 ms.
 - **Phase 8 — Backlinks Panel**: Fast indexed query over SQLite `links` table using `idx_links_target`, right sidebar UI panel with design-system typography and highlight `<mark>` tags, live updates synchronized with watcher reconciliation & Zustand save triggers, and navigation backlink clicking.
 - **Phase 9 — Search / Quick Switcher**: Keyboard-driven (Cmd/Ctrl+K) quick switcher utilizing `fuzzysort` for extremely fast, fuzzy title matching. Instant filtering, search highlights, and tiebreaker recency sorting based on open tabs. Built with Radix UI Dialog primitive for focus trapping.
+- **Phase 10 — Graph View**: Built `GraphView` utilizing `d3-force` and SVG rendering with zoom capabilities. Implemented Global graph (capped to top 200 nodes) and Local graph (active note + direct connections). Handled resize-observer bug for mounting off-screen elements.
+- **Phase 11 — Settings & Polish**: Created a unified `EmptyState` primitive and applied it consistently across the app (Vault Open, Indexing, Editor, Backlinks, Command Palette, Graph View). Added a `SettingsDialog` supporting font selection and vault switching. Settings are persisted via a new `settings` SQLite table. *Light theme toggles are intentionally excluded as out-of-scope until light tokens exist.*
+- **SQLite Lock Fix & Vault Indexing Batching (Mid-Iteration Fix)**: Diagnosed and resolved SQLite `SQLITE_BUSY: database is locked` error during vault opening/indexing.
+  - **Root Causes**: (1) Default SQLite `DELETE` journal mode held exclusive write locks during indexing transactions, blocking concurrent UI `SELECT` queries; (2) Vault indexing issued ~1,700 individual IPC SQL execution calls in a loop inside a transaction block for 350 notes.
+  - **Fixes Applied**: Executed `PRAGMA journal_mode=WAL;` and `PRAGMA synchronous=NORMAL;` upon connection acquisition in `sqliteIndex.ts` (`getVaultIndexDb()`). Removed Migration v3 from `db.rs` because `tauri-plugin-sql` runs migrations inside a SQL transaction, where SQLite forbids changing safety levels (`Safety level may not be changed inside a transaction`). Implemented `persistNotesBatch` in `sqliteIndex.ts` to bulk-insert notes and outlinks in 50-item chunks; updated `.gitignore` with `*.db-wal`, `*.db-shm`, `*.db-journal` patterns.
+  - **Links Conflict Target Decision**: `links` table uses a surrogate `id` column and has no unique constraint (allowing multiple distinct outlinks to the same target note with different headings/block refs). Upserts are semantically invalid on `links`; instead, we execute `DELETE FROM links WHERE source_path IN (...)` prior to bulk `INSERT INTO links`.
+  - **Verification & Baseline**: 
+    - Verified `PRAGMA journal_mode` returns `'wal'`.
+    - Local dev DB reset cleanly.
+    - 10/10 consecutive vault open/close/re-index cycles passed cleanly with **0 lock errors**.
+    - Watcher boundary race test verified clean.
+    - Updated vault indexing baseline (350 notes): SQLite write pass reduced from ~1,700 IPC roundtrips down to 14 bulk IPC queries, cutting transaction hold time to **< 15 ms**.
 
 ## In Progress
 
@@ -82,7 +94,7 @@ _(nothing)_
 
 ## Next Up (in order)
 
-1. **Phase 11 — Settings & Polish**: Settings pane, UI polish, and preparing for final audit.
+1. **Phase 12 — Performance Audit Checkpoint**: Measure bundle size, startup time, memory footprint, and CPU idle usage against `PERFORMANCE.md` baselines before moving to sync features.
 2. **Confirm bundle identifier** — provisional `com.davinci.notes` in `tauri.conf.json`; replace if you have a preferred ID (see `DECISIONS.md`).
 3. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
 4. Fix design-system barrel tree-shaking (317 KB JS for 2 components is too heavy — add `package.json` exports / subpath imports before feature work adds more UI).
@@ -113,3 +125,8 @@ _(nothing)_
 | 2026-08-07 | Phase 9 — Search / Quick Switcher | Built `CommandPalette` modal (Cmd+K) using Radix Dialog and `fuzzysort` for fast fuzzy-matching by note title. Implemented arrow navigation, highlighted match characters, and seamless creation of new notes when no matches exist. |
 | 2026-08-07 | Phase 10 — Graph View | Built `GraphView` utilizing `d3-force` and SVG rendering to satisfy performance targets and strict design-system CSS-variable styling. Local Graph automatically adapts to active note. Global Graph implemented with strict node-capping strategy (top 200 nodes by degree) to prevent DOM choking. Added `queryFullGraphIndex` to SQLite bridge. Tested smooth 60fps pan/zoom interactions. |
 | 2026-08-07 | Phase 10 — Bug Fixes | Fixed graph clipping bug caused by synchronous `clientWidth` reads during `useEffect` mount on un-layouted components (dialogs/sidebars). Swapped to `ResizeObserver` to center the D3 simulation correctly once real DOM pixels are available. Added missing SVG `<text>` elements for node labels, utilizing `var(--font-ui)` typography tokens. |
+| 2026-08-07 | Phase 11 — Settings & Polish | Created unified `EmptyState` component applied consistently across the app. Built persistent `SettingsDialog` (Editor Font, Switch Vault) powered by a new `settings` SQLite table. Verified all empty, loading, and error states manually. Light theme excluded per architectural mandate. |
+| 2026-08-08 | Dev Database Migration Fix | Diagnosed and fixed `tauri-plugin-sql` startup panic caused by modifying `packages/indexer/schema.sql` (migration 1) in Phase 11 after it was already applied. Deleted local dev SQLite db (`com.davinci.notes`) to allow a clean re-apply. Added strict "never edit an applied migration" rule to `AGENTS.md` and decided to stick with proper incremental migrations going forward now that foundational schema is stable. |
+| 2026-08-13 | SQLite Lock Fix & Connection PRAGMAs | Resolved `SQLITE_BUSY: database is locked` via WAL mode & `synchronous=NORMAL` executed at DB connection time in `getVaultIndexDb()` (removed Migration v3 since PRAGMAs fail inside migration transactions). Implemented `persistNotesBatch` chunking (50 items/query). Reset local dev DB cleanly. Passed `verifyJournalMode` ('wal'), 10/10 repeated open/close cycles, and watcher boundary stress test. |
+
+

@@ -5,6 +5,7 @@ export {
   reconcileVaultChanges,
 } from "./VaultIndexer";
 export { noteFromMarkdown } from "./noteFromMarkdown";
+export { getSetting, setSetting } from "./settingsCommands";
 export {
   countIndexedNotes,
   getVaultIndexDb,

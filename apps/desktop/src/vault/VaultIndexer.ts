@@ -5,7 +5,7 @@ import { noteFromMarkdown } from "./noteFromMarkdown";
 import {
   clearVaultIndex,
   getVaultIndexDb,
-  persistNote,
+  persistNotesBatch,
   removeNoteFromIndex,
 } from "./sqliteIndex";
 import {
@@ -41,12 +41,10 @@ export async function indexVaultFull(): Promise<{
     const notes = await loadNotesFromPaths(paths);
     const db = await getVaultIndexDb();
 
-    await db.execute("BEGIN");
+    await db.execute("BEGIN IMMEDIATE");
     try {
       await clearVaultIndex(db);
-      for (const note of notes) {
-        await persistNote(db, note);
-      }
+      await persistNotesBatch(db, notes);
       await db.execute("COMMIT");
     } catch (error) {
       await db.execute("ROLLBACK");
@@ -75,13 +73,14 @@ export async function reconcileVaultChanges(
     const db = await getVaultIndexDb();
     let updated = 0;
 
-    await db.execute("BEGIN");
+    await db.execute("BEGIN IMMEDIATE");
     try {
       for (const removed of batch.removed) {
         await removeNoteFromIndex(db, removed);
         updated += 1;
       }
 
+      const changedNotes: Note[] = [];
       for (const changedPath of batch.changed) {
         if (!pathSet.has(changedPath)) {
           await removeNoteFromIndex(db, changedPath);
@@ -96,12 +95,16 @@ export async function reconcileVaultChanges(
           file.mtime,
           allPaths,
         );
-        await persistNote(db, note);
+        changedNotes.push(note);
         updated += 1;
 
         if (graph) {
           updateGraphForNote(graph, note);
         }
+      }
+
+      if (changedNotes.length > 0) {
+        await persistNotesBatch(db, changedNotes);
       }
 
       await db.execute("COMMIT");

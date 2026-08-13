@@ -13,5 +13,11 @@ pub fn migrations() -> Vec<Migration> {
     description: "create_notes_and_links_tables",
     sql: SCHEMA_SQL,
     kind: MigrationKind::Up,
+  },
+  Migration {
+    version: 2,
+    description: "create_settings_table",
+    sql: "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL);",
+    kind: MigrationKind::Up,
   }]
 }

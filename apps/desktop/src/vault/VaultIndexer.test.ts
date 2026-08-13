@@ -6,7 +6,7 @@ const setVaultWatcherPaused = vi.fn();
 const startVaultWatcher = vi.fn();
 const getVaultIndexDb = vi.fn();
 const clearVaultIndex = vi.fn();
-const persistNote = vi.fn();
+const persistNotesBatch = vi.fn();
 
 vi.mock("./vaultCommands", () => ({
   listNotes,
@@ -19,7 +19,8 @@ vi.mock("./vaultCommands", () => ({
 vi.mock("./sqliteIndex", () => ({
   getVaultIndexDb,
   clearVaultIndex,
-  persistNote,
+  persistNote: vi.fn(),
+  persistNotesBatch,
   removeNoteFromIndex: vi.fn(),
 }));
 
@@ -42,7 +43,7 @@ describe("VaultIndexer", () => {
     };
     getVaultIndexDb.mockResolvedValue(db);
     clearVaultIndex.mockResolvedValue(undefined);
-    persistNote.mockResolvedValue(undefined);
+    persistNotesBatch.mockResolvedValue(undefined);
   });
 
   it("starts the watcher only after indexing finishes", async () => {
@@ -55,7 +56,7 @@ describe("VaultIndexer", () => {
     expect(result.noteCount).toBe(2);
     expect(clearVaultIndex).toHaveBeenCalledOnce();
     expect(startVaultWatcher).toHaveBeenCalledOnce();
-    expect(persistNote.mock.invocationCallOrder[0]).toBeLessThan(
+    expect(persistNotesBatch.mock.invocationCallOrder[0]).toBeLessThan(
       startVaultWatcher.mock.invocationCallOrder[0]!,
     );
   });

@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { GraphIndex } from "@app/indexer";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { GraphRenderer, SimNode, SimEdge } from "./GraphRenderer";
+import { EmptyState } from "../EmptyState";
+import { ShareNetwork } from "@phosphor-icons/react";
 import styles from "./GraphView.module.scss";
 import { Button } from "@app/design-system";
 
@@ -94,12 +96,22 @@ export const GraphView: React.FC<GraphViewProps> = ({
 
   return (
     <div className={styles.graphContainer}>
-      <GraphRenderer
-        nodes={nodes}
-        edges={edges}
-        activeNodeId={activeNotePath}
-        onNodeClick={handleNodeClick}
-      />
+      {nodes.length <= 1 && mode === "local" ? (
+        <div className={"empty-state-container"}>
+          <EmptyState
+            icon={<ShareNetwork size={32} weight="regular" />}
+            title="No Connections"
+            description="This note isn't linked to any others yet."
+          />
+        </div>
+      ) : (
+        <GraphRenderer
+          nodes={nodes}
+          edges={edges}
+          activeNodeId={activeNotePath}
+          onNodeClick={handleNodeClick}
+        />
+      )}
       <div className={styles.zoomControls}>
         <Button
           variant="secondary"

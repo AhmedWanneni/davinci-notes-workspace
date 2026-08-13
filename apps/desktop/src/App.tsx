@@ -6,6 +6,14 @@ import { BacklinksPanel } from "./components/BacklinksPanel";
 import { LocalGraphPanel } from "./components/LocalGraphPanel";
 import { GlobalGraphDialog } from "./components/GlobalGraphDialog";
 import { CommandPalette } from "./components/CommandPalette";
+import { SettingsDialog } from "./components/SettingsDialog";
+import { EmptyState } from "./components/EmptyState";
+import {
+  FolderOpen,
+  WarningCircle,
+  FileText,
+  Gear,
+} from "@phosphor-icons/react";
 import styles from "./App.module.scss";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import {
@@ -31,6 +39,9 @@ export function App() {
   const [vaultPath, setVaultPath] = useState<string | null>(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isGlobalGraphOpen, setIsGlobalGraphOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isLoadingVault, setIsLoadingVault] = useState(false);
+  const [vaultError, setVaultError] = useState<string | null>(null);
   const [graph, setGraph] = useState<GraphIndex | null>(null);
   const reconcileCount = useRef(0);
 
@@ -48,7 +59,30 @@ export function App() {
     closeNote,
     setActiveNote,
     updateNoteContent,
+    editorFont,
+    loadSettings,
   } = useWorkspaceStore();
+
+  // Load settings on mount
+  useEffect(() => {
+    void loadSettings();
+  }, [loadSettings]);
+
+  // Apply editor font globally
+  useEffect(() => {
+    if (editorFont === "system") {
+      document.body.style.setProperty("--font-editor", "var(--font-ui)");
+    } else if (editorFont === "monospace") {
+      document.body.style.setProperty(
+        "--font-editor",
+        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      );
+    } else if (editorFont === "inter") {
+      document.body.style.setProperty("--font-editor", "'Inter', sans-serif");
+    } else if (editorFont === "roboto") {
+      document.body.style.setProperty("--font-editor", "'Roboto', sans-serif");
+    }
+  }, [editorFont]);
 
   const append = (line: string) => {
     setLog((prev) => [...prev.slice(-12), line]);
@@ -73,6 +107,8 @@ export function App() {
   };
 
   const openFixture = async () => {
+    setIsLoadingVault(true);
+    setVaultError(null);
     try {
       const result = await openAndIndexVault(FIXTURE_VAULT);
       await handleVaultLoaded(
@@ -81,11 +117,17 @@ export function App() {
         result.elapsedMs,
       );
     } catch (error) {
-      append(error instanceof Error ? error.message : String(error));
+      const msg = error instanceof Error ? error.message : String(error);
+      append(msg);
+      setVaultError(msg);
+    } finally {
+      setIsLoadingVault(false);
     }
   };
 
   const openLargeFixture = async () => {
+    setIsLoadingVault(true);
+    setVaultError(null);
     try {
       const result = await openAndIndexVault(LARGE_FIXTURE_VAULT);
       await handleVaultLoaded(
@@ -94,11 +136,17 @@ export function App() {
         result.elapsedMs,
       );
     } catch (error) {
-      append(error instanceof Error ? error.message : String(error));
+      const msg = error instanceof Error ? error.message : String(error);
+      append(msg);
+      setVaultError(msg);
+    } finally {
+      setIsLoadingVault(false);
     }
   };
 
   const openPicker = async () => {
+    setIsLoadingVault(true);
+    setVaultError(null);
     try {
       const result = await openAndIndexVaultFromPicker();
       await handleVaultLoaded(
@@ -107,7 +155,11 @@ export function App() {
         result.elapsedMs,
       );
     } catch (error) {
-      append(error instanceof Error ? error.message : String(error));
+      const msg = error instanceof Error ? error.message : String(error);
+      append(msg);
+      setVaultError(msg);
+    } finally {
+      setIsLoadingVault(false);
     }
   };
 
@@ -229,26 +281,64 @@ export function App() {
 
   // Render vault picker if no vault loaded
   if (!vaultPath) {
+    let emptyStateContent;
+    if (isLoadingVault) {
+      emptyStateContent = (
+        <EmptyState
+          size="lg"
+          icon={<FolderOpen weight="regular" />}
+          title="Indexing Vault..."
+          description="Parsing markdown files and building the link graph. This may take a moment for large vaults."
+        />
+      );
+    } else if (vaultError) {
+      emptyStateContent = (
+        <EmptyState
+          size="lg"
+          icon={<WarningCircle weight="regular" />}
+          title="Failed to open vault"
+          description={vaultError}
+          action={
+            <Button variant="primary" onClick={() => setVaultError(null)}>
+              Try Again
+            </Button>
+          }
+        />
+      );
+    } else {
+      emptyStateContent = (
+        <EmptyState
+          size="lg"
+          icon={<FolderOpen weight="regular" />}
+          title="No Vault Open"
+          description="Select a folder or a fixture vault to open the editor."
+          action={
+            <div className={styles.actions}>
+              <Button variant="primary" onClick={() => void openFixture()}>
+                Open fixture
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => void openLargeFixture()}
+              >
+                Index large fixture (350 notes)
+              </Button>
+              <Button variant="secondary" onClick={() => void openPicker()}>
+                Pick folder &amp; index
+              </Button>
+            </div>
+          }
+        />
+      );
+    }
+
     return (
       <main className={styles.shell}>
         <section className={styles.content}>
           <Typography variant="h1" size="2xl">
             DaVinci Notes
           </Typography>
-          <Typography variant="text" color="muted">
-            Select a folder or fixture vault to open the editor.
-          </Typography>
-          <div className={styles.actions}>
-            <Button variant="primary" onClick={() => void openFixture()}>
-              Open fixture vault
-            </Button>
-            <Button variant="secondary" onClick={() => void openLargeFixture()}>
-              Index large fixture (350 notes)
-            </Button>
-            <Button variant="secondary" onClick={() => void openPicker()}>
-              Pick folder &amp; index
-            </Button>
-          </div>
+          {emptyStateContent}
           {log.length > 0 && (
             <pre className={styles["debug-log"]}>{log.join("\n")}</pre>
           )}
@@ -276,6 +366,13 @@ export function App() {
               onClick={() => setIsGlobalGraphOpen(true)}
             >
               Global Graph
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setIsSettingsOpen(true)}
+              title="Settings"
+            >
+              <Gear size={16} />
             </Button>
             <Button variant="secondary" onClick={() => setVaultPath(null)}>
               Close Vault
@@ -338,12 +435,12 @@ export function App() {
               onLinkClick={(t) => void handleLinkClick(t)}
             />
           ) : (
-            <div className={"empty-state"}>
-              <Typography variant="text" color="muted">
-                No note open. Select a note from the sidebar or click "New
-                Note".
-              </Typography>
-            </div>
+            <EmptyState
+              size="lg"
+              icon={<FileText weight="regular" />}
+              title="No Note Open"
+              description="Select a note from the sidebar, press Cmd+K to search, or click 'New Note' to start writing."
+            />
           )}
         </div>
       </main>
@@ -367,10 +464,36 @@ export function App() {
         onNavigate={(path) => void openNote(path)}
       />
 
+      <SettingsDialog
+        isOpen={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+        vaultPath={vaultPath}
+        onVaultSwitched={async (newPath) => {
+          setIsSettingsOpen(false);
+          setIsLoadingVault(true);
+          setVaultPath(null);
+          try {
+            const result = await openAndIndexVault(newPath);
+            await handleVaultLoaded(
+              result.vaultPath,
+              result.noteCount,
+              result.elapsedMs,
+            );
+          } catch (error) {
+            setVaultError(
+              error instanceof Error ? error.message : String(error),
+            );
+          } finally {
+            setIsLoadingVault(false);
+          }
+        }}
+      />
+
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onOpenChange={setIsCommandPaletteOpen}
         onSelectNote={(target) => void handleLinkClick(target)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
     </div>
   );

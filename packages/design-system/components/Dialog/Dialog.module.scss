@@ -4,19 +4,21 @@
   background-color: rgb(
     0 0 0 / 60%
   ); // Slightly darker overlay for Obsidian-like focus
+
   position: fixed;
   inset: 0;
   z-index: 100;
   animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dialogContent {
+.dialog-content {
   background-color: var(--color-bg-primary);
   border-radius: var(--border-radius-lg);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   box-shadow:
     0 10px 38px -10px rgb(0 0 0 / 35%),
     0 10px 20px -15px rgb(0 0 0 / 20%); // Only time we use deeper shadow is for modal elevation
+
   position: fixed;
   top: 50%;
   left: 50%;
@@ -90,6 +92,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }

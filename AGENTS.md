@@ -60,6 +60,11 @@ Every module folder gets a barrel `index.ts` re-exporting its public surface. Co
 
 - **Class naming: kebab-case, not camelCase** — .card-header, .is-active, not .cardHeader, .isActive. Applies to all SCSS class names project-wide, including CSS Modules.
 
+## Database Migrations
+
+- **Never edit an applied migration.** Once a migration file (e.g. `schema.sql` or `1_initial.sql`) has been committed and applied *even once* (including in your own local dev database), you must never edit it again. `tauri-plugin-sql` hashes migration strings; altering an applied migration will cause startup panics (`migration 1 was previously applied but has been modified`).
+- Any schema change after initial setup requires a **new** incremental migration file or entry (e.g., v2, v3) in the migration array.
+
 ## Working With AI (this doc's actual purpose)
 
 - **Scope every session to one task.** Read `PROGRESS.md`'s "Next up" list, pick one item, do that.

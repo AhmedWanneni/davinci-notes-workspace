@@ -102,3 +102,23 @@ Performance Capping: To ensure SVG rendering doesn't drop frames on large vaults
 ### Graph View Node Labels: Scaling with Zoom
 Node title labels are rendered natively in SVG `<text>` elements below each node. These labels are inside the zoom-controlled `<g>` container, meaning **they scale visually as the user zooms in or out**. 
 Rationale: In dense graph clusters, fixed-size labels would overlap and create a completely unreadable block of text. Allowing them to scale naturally means users can zoom into a cluster to read the node titles, matching standard map/graph UX expectations. The font styling uses standard design-system tokens (`var(--font-ui)`, `var(--type-scale-xs)`).
+
+### Settings Persistence: SQLite (Phase 11)
+App preferences (e.g., Editor Font, active Vault Path) are persisted locally across restarts. Instead of pulling in `tauri-plugin-store` or writing raw JSON files via fs APIs, we created a simple `settings` table in the existing `vault-index.db` SQLite database (`key`, `value`).
+Rationale: The SQLite DB is already wired perfectly and avoids introducing new dependencies or edge cases with concurrent filesystem writes. `schema.sql` was updated and a `v2` migration was registered in `db.rs` to transparently upgrade existing local databases.
+
+### Light Theme Defusal (Phase 11)
+The settings UI intentionally omits a "Light / Dark" theme toggle for v1. 
+Rationale: As stated earlier in this doc, the design tokens (`packages/design-system/tokens/src/color.json`) only reflect the baseline Obsidian dark theme values. Adding a broken or partially-functioning theme toggle before light theme design tokens actually exist would violate our standards for UI polish. The app remains dark-first.
+
+### SQLite Migration Strategy (Mid-Iteration Fix)
+In Phase 11, we appended the `settings` table directly to `packages/indexer/schema.sql` (which is used as migration v1), while also adding a v2 migration. Because `tauri-plugin-sql` hashes migration strings, changing v1 caused local dev databases to panic. We cleared the local dev database (`~/Library/Application Support/com.davinci.notes/vault-index.db`) to fix this and establish a firm rule: **Never edit an applied migration**. 
+Going forward, since the foundational schema (notes, links, settings) is now stable, any further schema modifications must be done exclusively through new, incremental migrations (v2, v3, etc.) rather than modifying v1.
+
+### SQLite Connection Mode: WAL Mode Enabled at Connection Time (Not via Migration)
+SQLite WAL (Write-Ahead Logging) mode and synchronous level (`PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;`) are executed immediately upon connection acquisition in `sqliteIndex.ts` (`getVaultIndexDb()`), outside of any transaction.
+Superseding note on Migration v3: Attempts to execute PRAGMAs (such as `PRAGMA synchronous`) inside `tauri-plugin-sql` migrations fail because `tauri-plugin-sql` wraps migration execution inside a SQL transaction, and SQLite forbids safety/journal level changes inside an active transaction (`Safety level may not be changed inside a transaction`). Thus, PRAGMAs are executed directly on the DB handle at connection creation. `journal_mode=WAL` persists in the DB file header once set, while `synchronous=NORMAL` is set on every connection initialization. `.gitignore` ignores `*.db-wal`, `*.db-shm`, and `*.db-journal` sidecars.
+
+### Vault Indexing Bulk Transaction Batching & Links Conflict Handling
+Bulk vault indexing (`indexVaultFull`) and watcher reconciliation (`reconcileVaultChanges`) use `persistNotesBatch` chunking notes and links into parameterized bulk SQL operations (50 items per query).
+Links Conflict Handling Rationale: The `links` table uses a surrogate `id` column and has **no unique constraint** on `(source_path, target_path)` because multiple outlinks from the same source note to the same target note (e.g. `[[Note#Heading1]]` and `[[Note#Heading2]]`) are valid and must both be preserved. Therefore, upserts (`ON CONFLICT`) are semantically invalid and unsupported on `links`. Instead, we execute `DELETE FROM links WHERE source_path IN (...)` for batch source paths prior to bulk `INSERT INTO links`. Verified 10/10 consecutive vault open/index cycles without lock errors.
