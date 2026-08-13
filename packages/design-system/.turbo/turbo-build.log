@@ -1,9 +1,9 @@
 
-> @app/design-system@0.0.0 build /Users/ahmedwaanneni/Desktop/davinci-notes/packages/design-system
+> @app/design-system@0.1.0 build /Users/ahmedwaanneni/Desktop/davinci-notes/packages/design-system
 > pnpm build:tokens && tsc
 
 
-> @app/design-system@0.0.0 build:tokens /Users/ahmedwaanneni/Desktop/davinci-notes/packages/design-system
+> @app/design-system@0.1.0 build:tokens /Users/ahmedwaanneni/Desktop/davinci-notes/packages/design-system
 > node tokens/build.js
 
 

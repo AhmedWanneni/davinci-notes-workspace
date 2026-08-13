@@ -1,4 +1,4 @@
 
-> @app/design-system@0.0.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/packages/design-system
+> @app/design-system@0.1.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/packages/design-system
 > eslint . --ext .ts,.tsx
 

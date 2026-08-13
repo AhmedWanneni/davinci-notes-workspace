@@ -1,6 +1,6 @@
 {
   "name": "@app/sync-client",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "main": "index.ts",
   "scripts": {
     "build": "mkdir -p dist && echo 'build @app/sync-client'",

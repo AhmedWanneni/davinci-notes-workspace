@@ -1,4 +1,4 @@
 
-> @app/indexer@0.0.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/packages/indexer
+> @app/indexer@0.1.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/packages/indexer
 > eslint . --ext .ts,.tsx
 

@@ -1,4 +1,4 @@
 
-> @app/desktop@0.0.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop
+> @app/desktop@0.1.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop
 > eslint . --ext .ts,.tsx
 
