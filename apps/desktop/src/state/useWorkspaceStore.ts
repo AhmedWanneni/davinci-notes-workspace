@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Note } from "@app/core-types";
 import { buildGraph, updateGraphForNote, type GraphIndex } from "@app/indexer";
+import { withDbLock } from "../vault/sqliteIndex";
 import {
   readNote,
   writeNote,
@@ -8,6 +9,8 @@ import {
   getVaultIndexDb,
   persistNote,
   withVaultWatchSuppressed,
+  getSetting,
+  setSetting,
 } from "../vault";
 
 interface WorkspaceState {
@@ -52,10 +55,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   loadSettings: async () => {
     try {
       const db = await getVaultIndexDb();
-      // Need to import getSetting/setSetting, I'll add the imports in the next step
-      const font = await (
-        await import("../vault")
-      ).getSetting(db, "editorFont");
+      const font = await withDbLock(() => getSetting(db, "editorFont"));
       if (font) {
         set({ editorFont: font });
       }
@@ -68,7 +68,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     set({ editorFont: font });
     try {
       const db = await getVaultIndexDb();
-      await (await import("../vault")).setSetting(db, "editorFont", font);
+      await setSetting(db, "editorFont", font);
     } catch (e) {
       console.error("Failed to save editorFont setting", e);
     }
