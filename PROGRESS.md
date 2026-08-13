@@ -6,9 +6,34 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Phase 12 (Performance Audit Checkpoint) is complete. Next session: **Phase 13 — Release Prep**.
+Phase 13 (Release Prep & Release Candidate 1) is complete. Next up: **Dogfooding `v0.1.0-rc.1` internal build** & Design System follow-ups.
 
 ## Done
+
+- **Phase 13 — Staging Deploy & Release Candidate 1**:
+  - **Staging Deploy Channel**: Configured GitHub Actions workflow `.github/workflows/staging-release.yml` with multi-platform matrix (`macos-latest`, `ubuntu-22.04`, `windows-latest`), secret wiring for Apple Developer ID / Windows Authenticode code signing & notarization, and automatic staging channel distribution artifacts on merge to `main`.
+  - **Changesets First Version Bump**: Reconstructed changesets for Phases 1–12 across `@app/design-system`, `@app/core-types`, `@app/indexer`, `@app/editor`, and `@app/sync-client`. Ran `pnpm changeset version` bumping all packages to `0.1.0` and generating comprehensive `CHANGELOG.md` files. Synchronized `@app/desktop` version to `0.1.0`.
+  - **Release Candidate Tag & Native Artifacts**: Cut git tag `v0.1.0-rc.1`. Built standalone macOS release bundle (`DaVinci Notes.app` 15.6 MB binary) and native installer (`DaVinci Notes_0.1.0_aarch64.dmg` 5.5 MB).
+  - **Release Notes**: Created internal release documentation in `docs/releases/v0.1.0-rc.1.md` outlining implemented capabilities (Vault I/O, CodeMirror 6 live-preview, wikilinks, backlinks, Cmd+K quick switcher, D3 force graph, SQLite settings, virtualized tree), out-of-scope items (mobile, sync, plugins, light theme), and operational notes (ad-hoc signing Gatekeeper notice, provisional bundle ID).
+  - **Packaged App Verification**: Verified full standalone release application startup, webview runtime initialization, bundle size gates (<177 KB entry JS, <29 KB total CSS), and 31/31 passing workspace tasks.
+
+## In Progress
+
+_(nothing)_
+
+## Next Up (in order)
+
+1. **Dogfooding `v0.1.0-rc.1`**: Dogfood the internal RC build for daily note-taking workflows to evaluate usability and catch edge cases prior to wider distribution.
+2. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
+3. Set up Chromatic or Playwright screenshot regression for `components/`.
+4. Composed patterns: file tree item, sidebar section, command palette row.
+5. Migrate SCSS `@import` to `@use` (Dart Sass 3.0 deprecation warnings in build output).
+
+## Blocked / Open Questions
+
+- **Bundle identifier**: Provisional `com.davinci.notes` in `tauri.conf.json` — confirm before public distribution.
+- **Badge success/warning colors**: Placeholder raw hex in `Badge.module.scss` — need confirmed Obsidian semantic palette values or new token entries.
+- **Visual regression**: Chromatic account or Playwright screenshot CI not yet configured.
 
 - **Monorepo Scaffolding**: Configured pnpm workspace, Turborepo pipeline, tsconfig path aliases, and ESLint boundary rules.
 - **Local Hooks**: Configured Husky, `lint-staged`, and `commitlint` (Conventional Commits).
@@ -115,3 +140,5 @@ _(nothing)_
 | 2026-08-13 | Phase 12 — Performance Audit Checkpoint | Complete audit against baselines and `PERFORMANCE.md` hard rules. Re-measured baselines; fixed whole-store Zustand subscriptions and BacklinksPanel typing leak; eliminated store init redundant full vault re-reading; implemented `React.lazy` code-splitting for non-critical dialogs and D3 graph views (cutting entry bundle from 1.11MB to 176.9KB raw / 55.8KB gzip); split `App.tsx` (501 lines -> subcomponents all < 200 lines); added `scripts/check-bundle-size.mjs` wired into CI and verified gating. All 24 tests and build passing. |
 | 2026-08-13 | CSS Modules → CUBE CSS Migration | Migrated apps/desktop from CSS Modules to CUBE CSS (composition/utility/block/exception layers, BEM block naming, data-attributes for exception states, cn() bracket grouping, Stylelint BEM rule enforcement). Gzipped CSS reduced from 8.05 KB to 6.60 KB (-18%). Typing latency 4.026 ms held. All 24 tests passing. |
 | 2026-08-14 | Dialog/Portal Styling Bug Fix | Diagnosed popup invisibility issue: DialogContent in packages/design-system had hardcoded literal string className="dialog-content" instead of using CSS module styles.dialogContent / styles["dialog-content"], leaving portal content unpositioned and rendered offscreen. Fixed className mapping in Dialog.tsx and Badge.tsx; removed redundant position:relative on [data-radix-portal]; verified all 12 design-system and 24 desktop test suites passing. |
+| 2026-08-14 | Phase 13 — Release Prep & RC 1 | Configured GitHub Actions staging deploy workflow (`.github/workflows/staging-release.yml`) with signing/notarization secret hooks and multi-platform matrix. Reconstructed changesets for Phases 1–12 and ran `pnpm changeset version` bumping all workspace packages and desktop app to `0.1.0`. Tagged `v0.1.0-rc.1`, built native macOS release artifacts (`DaVinci Notes.app` 15.6MB, `.dmg` 5.5MB), authored internal release notes (`docs/releases/v0.1.0-rc.1.md`), and verified packaged app execution. |
+

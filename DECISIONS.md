@@ -132,3 +132,9 @@ Rationale:
 - **Exception Layer via Radix State Attributes**: State variations leverage existing accessible data attributes (`data-state`, `data-active`, `data-size`, `data-selected`) rather than manually synchronizing dynamic React classes.
 - **Zero-Dep Class Grouping**: Implemented a lightweight zero-dep `cn()` utility (`src/styles/cn.ts`) supporting CUBE bracket grouping notation in TSX (`className={cn("[ composition ]", "[ utility ]", "[ block ]")}`).
 - **Performance & Bundle Gains**: Build-time static SCSS/PostCSS compilation only; gzipped total CSS reduced from 8.05 KB to 6.60 KB with zero runtime JS style recalculation.
+
+### Staging Deploy Channel & Release Candidate Strategy (Phase 13)
+- **Staging Channel Workflow**: Configured `.github/workflows/staging-release.yml` to trigger on `main` push and manual dispatch, building native desktop staging artifacts with Turborepo quality gates and size-budget enforcement.
+- **Auto-updater & Feed Endpoints**: Staging channel builds target `https://staging.updates.davincinotes.com/{{target}}/{{current_version}}` (distinct from future `stable.updates.davincinotes.com`), enabling independent dogfooding without affecting public production releases.
+- **Code Signing Approach**: Configured GitHub Actions secret bindings for macOS Apple Developer ID notarization (`APPLE_CERTIFICATE`, `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID`) and Windows Authenticode with graceful fallback to ad-hoc local signing when secrets are absent. Documented macOS Gatekeeper bypass instructions for unsigned internal test builds.
+- **Build Promotion Rule**: Release candidates (e.g. `v0.1.0-rc.1`) produce binary artifacts (`DaVinci Notes.app`, `.dmg`) that are tested directly. When an RC passes testing, the exact same binary is promoted to stable rather than rebuilt from source.
