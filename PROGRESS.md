@@ -6,19 +6,20 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-**Canvas Feature Phase 3 (Connections / Edges)** is complete. Next up: **Canvas Feature Phase 4 — Selection & Arrangement**.
+**Canvas Feature Phase 4 (Selection & Arrangement)** is complete. Next up: **Canvas Feature Phase 5 — Groups & Framing**.
 
 ## Done
 
-- **Canvas Feature: Phase 3 — Connections (Edges)**:
-  - **Data Model & Translation Fidelity**: Verified `CanvasEdge` covers `id`, `fromNode`, `fromSide`, `fromEnd`, `toNode`, `toSide`, `toEnd`, `label`, `color` adhering strictly to JSON Canvas 1.0. Extended `canvasTranslation.ts` with bidirectional mapping and dynamic SVG arrow markers (`MarkerType.ArrowClosed`).
-  - **Connection Handles**: Added 4 connection handles (`top`, `right`, `bottom`, `left`) to `TextCardNode.tsx` styled as subtle dots with CSS transitions, visible only on hover or selection, hiding during text-edit mode to prevent clutter.
-  - **Edge Interactions (Create, Reconnect, Delete)**: Drag from node handles to create edges (`onConnect`); retarget existing endpoints via React Flow reconnection (`onReconnect`); select + Delete/Backspace or right-click to delete.
-  - **Cascade Deletion on Node Removal**: Deleting any node cleanly cascade-deletes all incident edges (`edge.source === nodeId || edge.target === nodeId`) from both visual state and the underlying `CanvasData` structure.
-  - **Edge Labels & Midpoint Rendering**: Inline editable text tags rendered at midpoint via `EdgeLabelRenderer`; double-click to edit with Enter/Escape/blur commit handling; empty labels render no visual tag.
-  - **Token-Constrained Edge Color Palette**: Fixed palette mapping JSON Canvas preset colors `"1"` through `"6"` to design-system CSS tokens (`--color-text-error`, `--color-text-warning`, `--color-text-success`, `--color-interactive-accent`, etc.) selectable via right-click context menu swatches.
-  - **Persistence**: All edge operations automatically trigger debounced 750ms store saving (`useWorkspaceStore.saveNoteNow`) with full round-trip fidelity.
-  - **Test Suite**: 42 unit tests passing in `@app/canvas` across 11 test suites; all 14 monorepo tasks passing.
+- **Canvas Feature: Phase 4 — Selection & Arrangement**:
+  - **Selection Mechanics**: Fully verified and integrated single select, marquee drag-select (`selectionOnDrag={true}`, `SelectionMode.Partial`), Shift-click add/remove (`multiSelectionKeyCode="Shift"`), and Ctrl/Cmd+A select-all (with input field guard).
+  - **Group Drag**: Multi-card drag moving selection as a single unified gesture with 24px grid snap and alignment guides.
+  - **Duplicate Selection (`useCanvasSelectionOps.ts`)**: Duplicate single or multiple cards (via `⌘D` / `Ctrl+D` shortcut or context menu), generating unique IDs, offset by (+40px, +40px), cleanly preserving all internal edges connecting nodes inside the selection, and discarding crossing edges into/out of the selection.
+  - **Alignment & Distribution (`arrangeNodes.ts`)**: Pure utility functions for left, right, top, bottom, horizontal center, and vertical center alignment, as well as equal horizontal and vertical spacing distribution (anchoring outer boundaries).
+  - **Toolbar Controls & Tooltips**: Added alignment and distribution button groups to `CanvasControls.tsx` with dynamic count gating (2+ nodes for align, 3+ nodes for distribute) and descriptive tooltips explaining minimum selection requirements when disabled.
+  - **Axis-Constrained Movement**: Shift key drag locks movement to the dominant axis (horizontal or vertical) after a 5px threshold.
+  - **Modular Hook Architecture & Line Limits**: Refactored canvas interactions into modular hooks (`useCanvasContextMenu.ts`, `useCanvasSelectionOps.ts`, `useCanvasInteractions.ts`), keeping all source files strictly under the 250-line hard cap (all ≤ 238 lines).
+  - **Persistence & Performance**: All multi-card operations update underlying `CanvasData` and leverage the existing 750ms debounced disk saving (`useWorkspaceStore.saveNoteNow`) with zero per-keystroke or per-frame I/O overhead.
+  - **Test Suite**: 56 unit tests passing in `@app/canvas` across 12 test suites (added 14 pure unit tests in `arrangeNodes.test.ts`); all 32 workspace tasks passing.
 
 - **Canvas Feature: Phase 2 — Text Cards**:
   - **Data Model Verification**: Confirmed Phase 0 `CanvasTextNode` (`id`, `x`, `y`, `width`, `height`, `text`, optional `color`) matches JSON Canvas 1.0 spec with no extensions added.
@@ -194,7 +195,7 @@ _(nothing)_
 | 2026-08-14 | Phase 13 — Release Prep & RC 1 | Configured GitHub Actions staging deploy workflow (`.github/workflows/staging-release.yml`) with signing/notarization secret hooks and multi-platform matrix. Reconstructed changesets for Phases 1–12 and ran `pnpm changeset version` bumping all workspace packages and desktop app to `0.1.0`. Tagged `v0.1.0-rc.1`, built native macOS release artifacts (`DaVinci Notes.app` 15.6MB, `.dmg` 5.5MB), authored internal release notes (`docs/releases/v0.1.0-rc.1.md`), and verified packaged app execution. |
 | 2026-08-14 | Obsidian App Shell Restructure | Restructured apps/desktop shell into CSS Grid architecture matching wireframe.md (Top Tab Bar with new tab/sidebar toggle, Icon Rail navigation strip, collapsible File Tree, PropertiesBlock frontmatter accordion, stacked RightSidebar with Linked Mentions, Unlinked Mentions placeholder, NoteOutline H1-H6, and bottom StatusBar with live note stats). Added unit tests; all 33 tests and bundle size budgets passing. |
 | 2026-08-14 | Canvas Feature Phase 0 — Package & Data Model | Scaffolded `@app/canvas` with strict JSON Canvas 1.0 specification models, parser, serializer, validator, and pluggable file I/O with verified disk round-trip testing. Enforced architectural boundaries with ESLint and verified failure. Configured `@xyflow/react` and verified zero initial bundle impact via dynamic lazy-load route and bundle audit (initial entry JS holds at 21.08 KB raw / 7.71 KB gzip). All 18 unit tests passing. |
-| 2026-08-14 | Canvas Feature Phase 2 — Text Cards | Implemented text card lifecycle: create (double-click/toolbar/right-click), move, resize (NodeResizer), edit (native textarea), delete (keyboard + context menu), snap-to-grid + alignment guides, and debounced persistence via existing 750ms store mechanism. Fixed stale-closure persist bug from Phase 1. 30 canvas tests passing. |
+| 2026-08-14 | Canvas Feature Phase 3 — Connections | Implemented edge system: connection handles on 4 sides, drag-to-connect, endpoint reconnection, token-constrained color palette, inline midpoint label editing, cascade node deletion cleanup, and debounced 750ms persistence. 42 canvas tests passing. |
+| 2026-08-14 | Canvas Feature Phase 4 — Selection & Arrangement | Implemented multi-card selection (click, marquee drag, Shift-click, Cmd+A), unified group drag, axis-constrained drag (Shift lock), duplicate selection (Cmd+D / context menu) preserving internal edges, and alignment/distribution (left/right/top/bottom/center + spread). Refactored hooks into modular units to satisfy the 250-line hard cap. 56 canvas tests passing; 32/32 workspace tasks passing. |
+| 2026-08-14 | Canvas Feature Phase 2 — Text Cards | Implemented text card lifecycle: create (double-click/toolbar/right-click), move, resize (NodeResizer), edit (native textarea), delete (keyboard + context menu), snap-to-grid + alignment guides, and debounced 750ms store mechanism. Fixed stale-closure persist bug from Phase 1. 30 canvas tests passing. |
 | 2026-08-14 | Canvas Feature Phase 1 — Canvas Shell | Implemented lossless bidirectional translation layer (`canvasTranslation.ts`), real React Flow empty canvas shell (`CanvasView.tsx`) with space+drag & middle-click pan, ctrl/cmd+scroll & pinch zoom, fitView controls, empty state hint, and 750ms debounced disk saving. Updated Rust fs/watcher to support `.canvas` files and added new canvas creation affordance. Re-verified bundle isolation (initial entry JS 21.08 KB raw / 7.71 KB gzip, 0 KB canvas footprint in initial entry). All 22 canvas unit tests and 109 monorepo tests passing. |
-
-

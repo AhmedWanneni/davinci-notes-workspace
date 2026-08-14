@@ -5,6 +5,7 @@ import {
   ConnectionMode,
   ReactFlow,
   ReactFlowProvider,
+  SelectionMode,
   useEdgesState,
   useNodesState,
 } from "@xyflow/react";
@@ -63,9 +64,11 @@ function CanvasShell({
   }, [edges, edgesRef]);
 
   const {
+    alignSelection,
     contextMenu,
     closeContextMenu,
     createTextCardAtCenter,
+    distributeSelection,
     handleContextCreate,
     handleContextDelete,
     handleContextDeleteEdge,
@@ -73,6 +76,7 @@ function CanvasShell({
     handleContextSelectEdgeColor,
     handleEdgesChange,
     handleNodesChange,
+    onNodeDragStart,
     onNodeDrag,
     onNodeDragStop,
     onLayoutChange,
@@ -134,6 +138,7 @@ function CanvasShell({
             connectionMode={ConnectionMode.Loose}
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
+            onNodeDragStart={onNodeDragStart}
             onNodeDrag={onNodeDrag}
             onNodeDragStop={onNodeDragStop}
             onNodesDelete={onNodesDelete}
@@ -146,6 +151,9 @@ function CanvasShell({
             onPaneContextMenu={onPaneContextMenu}
             onNodeContextMenu={onNodeContextMenu}
             deleteKeyCode={["Backspace", "Delete"]}
+            selectionOnDrag={true}
+            selectionMode={SelectionMode.Partial}
+            multiSelectionKeyCode="Shift"
             panOnDrag={[1, 2]}
             panActivationKeyCode="Space"
             zoomOnScroll={true}
@@ -167,7 +175,11 @@ function CanvasShell({
 
           {nodes.length === 0 && <CanvasEmptyState />}
 
-          <CanvasControls onCreateTextCard={createTextCardAtCenter} />
+          <CanvasControls
+            onCreateTextCard={createTextCardAtCenter}
+            onAlign={alignSelection}
+            onDistribute={distributeSelection}
+          />
 
           {contextMenu && (
             <CanvasContextMenu

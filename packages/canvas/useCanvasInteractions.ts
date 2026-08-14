@@ -1,7 +1,6 @@
 import {
   useCallback,
   useRef,
-  useState,
   type Dispatch,
   type MouseEvent as ReactMouseEvent,
   type SetStateAction,
@@ -12,25 +11,20 @@ import {
   type Node,
   type OnNodeDrag,
 } from "@xyflow/react";
-import type { CanvasColor } from "./CanvasColor";
 import {
   CANVAS_SNAP_GRID,
-  createTextCardId,
   DEFAULT_TEXT_CARD_HEIGHT,
   DEFAULT_TEXT_CARD_WIDTH,
+  createTextCardId,
   snapToGrid,
 } from "./canvasConstants";
 import { snapNodeToAlignment } from "./snapNodeAlignment";
 import { useCanvasEdgeInteractions } from "./useCanvasEdgeInteractions";
 import { useCanvasNodeChanges } from "./useCanvasNodeChanges";
+import { useCanvasSelectionOps } from "./useCanvasSelectionOps";
+import { useCanvasContextMenu } from "./useCanvasContextMenu";
 
-export interface CanvasContextMenuState {
-  x: number;
-  y: number;
-  nodeId?: string;
-  edgeId?: string;
-  flowPosition?: { x: number; y: number };
-}
+export type { CanvasContextMenuState } from "./useCanvasContextMenu";
 
 export interface UseCanvasInteractionsOptions {
   setNodes: Dispatch<SetStateAction<Node[]>>;
@@ -47,9 +41,12 @@ export function useCanvasInteractions({
 }: UseCanvasInteractionsOptions) {
   const { screenToFlowPosition } = useReactFlow();
   const lastPaneClickRef = useRef(0);
-  const [contextMenu, setContextMenu] = useState<CanvasContextMenuState | null>(
-    null,
-  );
+  const dragStartPosRef = useRef<{
+    id: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const dragAxisLockRef = useRef<"x" | "y" | null>(null);
 
   const nodeChanges = useCanvasNodeChanges({
     setNodes,
@@ -58,12 +55,11 @@ export function useCanvasInteractions({
     persistCanvas,
   });
 
-  const edgeInteractions = useCanvasEdgeInteractions({
+  const selectionOps = useCanvasSelectionOps({
     setNodes,
     setEdges,
     edgesRef,
     persistCanvas,
-    setContextMenu,
   });
 
   const createTextCard = useCallback(
@@ -82,7 +78,6 @@ export function useCanvasInteractions({
         },
         data: { type: "text", text: "" },
       };
-
       setNodes((current) => {
         const next = [...current, newNode];
         persistCanvas(next, edgesRef.current);
@@ -92,30 +87,100 @@ export function useCanvasInteractions({
     [edgesRef, persistCanvas, setNodes],
   );
 
+  const contextMenuHooks = useCanvasContextMenu({
+    onCreateTextCard: createTextCard,
+    deleteNode: nodeChanges.deleteNode,
+    deleteEdge: (id: string) => edgeInteractionsRef.current?.deleteEdge(id),
+    setEditingEdgeId: (id: string) =>
+      edgeInteractionsRef.current?.setEditingEdgeId(id),
+    onEdgeColorChange: (id: string, color?) =>
+      edgeInteractionsRef.current?.onEdgeColorChange(id, color),
+  });
+
+  const edgeInteractionsRef = useRef<ReturnType<
+    typeof useCanvasEdgeInteractions
+  > | null>(null);
+
+  const edgeInteractions = useCanvasEdgeInteractions({
+    setNodes,
+    setEdges,
+    edgesRef,
+    persistCanvas,
+    setContextMenu: contextMenuHooks.setContextMenu,
+  });
+  edgeInteractionsRef.current = edgeInteractions;
+
+  const onNodeDragStart: OnNodeDrag = useCallback((_event, draggedNode) => {
+    dragStartPosRef.current = {
+      id: draggedNode.id,
+      x: draggedNode.position.x,
+      y: draggedNode.position.y,
+    };
+    dragAxisLockRef.current = null;
+  }, []);
+
   const onNodeDrag: OnNodeDrag = useCallback(
-    (_event, draggedNode) => {
+    (event, draggedNode, draggedNodes) => {
       setNodes((current) => {
-        const others = current.filter((node) => node.id !== draggedNode.id);
-        const aligned = snapNodeToAlignment(draggedNode, others);
-        return current.map((node) =>
-          node.id === draggedNode.id ? { ...node, position: aligned } : node,
+        const draggedIds = new Set(draggedNodes.map((n) => n.id));
+        const others = current.filter((node) => !draggedIds.has(node.id));
+        let targetX = draggedNode.position.x;
+        let targetY = draggedNode.position.y;
+        const e = event as MouseEvent;
+        if (e.shiftKey && dragStartPosRef.current?.id === draggedNode.id) {
+          const startX = dragStartPosRef.current.x;
+          const startY = dragStartPosRef.current.y;
+          if (!dragAxisLockRef.current) {
+            const dx = Math.abs(targetX - startX);
+            const dy = Math.abs(targetY - startY);
+            if (dx > 5 || dy > 5) {
+              dragAxisLockRef.current = dx > dy ? "x" : "y";
+            }
+          }
+          if (dragAxisLockRef.current === "x") targetY = startY;
+          else if (dragAxisLockRef.current === "y") targetX = startX;
+        } else {
+          dragAxisLockRef.current = null;
+        }
+        const aligned = snapNodeToAlignment(
+          { ...draggedNode, position: { x: targetX, y: targetY } },
+          others,
         );
+        const dx = aligned.x - draggedNode.position.x;
+        const dy = aligned.y - draggedNode.position.y;
+        return current.map((node) => {
+          if (!draggedIds.has(node.id)) return node;
+          return {
+            ...node,
+            position: {
+              x: node.position.x + dx,
+              y: node.position.y + dy,
+            },
+          };
+        });
       });
     },
     [setNodes],
   );
 
   const onNodeDragStop: OnNodeDrag = useCallback(
-    (_event, draggedNode) => {
+    (_event, draggedNode, draggedNodes) => {
+      dragStartPosRef.current = null;
+      dragAxisLockRef.current = null;
       const [gridX, gridY] = CANVAS_SNAP_GRID;
       setNodes((current) => {
+        const draggedIds = new Set(draggedNodes.map((n) => n.id));
+        const snappedX = snapToGrid(draggedNode.position.x, gridX);
+        const snappedY = snapToGrid(draggedNode.position.y, gridY);
+        const dx = snappedX - draggedNode.position.x;
+        const dy = snappedY - draggedNode.position.y;
         const next = current.map((node) => {
-          if (node.id !== draggedNode.id) return node;
+          if (!draggedIds.has(node.id)) return node;
           return {
             ...node,
             position: {
-              x: snapToGrid(node.position.x, gridX),
-              y: snapToGrid(node.position.y, gridY),
+              x: node.position.x + dx,
+              y: node.position.y + dy,
             },
           };
         });
@@ -128,7 +193,7 @@ export function useCanvasInteractions({
 
   const onPaneClick = useCallback(
     (event: ReactMouseEvent) => {
-      setContextMenu(null);
+      contextMenuHooks.closeContextMenu();
       const now = Date.now();
       if (now - lastPaneClickRef.current < 300) {
         lastPaneClickRef.current = 0;
@@ -139,68 +204,7 @@ export function useCanvasInteractions({
       }
       lastPaneClickRef.current = now;
     },
-    [createTextCard, screenToFlowPosition],
-  );
-
-  const onPaneContextMenu = useCallback(
-    (event: ReactMouseEvent | MouseEvent) => {
-      event.preventDefault();
-      setContextMenu({
-        x: event.clientX,
-        y: event.clientY,
-        flowPosition: screenToFlowPosition({
-          x: event.clientX,
-          y: event.clientY,
-        }),
-      });
-    },
-    [screenToFlowPosition],
-  );
-
-  const onNodeContextMenu = useCallback(
-    (event: ReactMouseEvent, node: Node) => {
-      event.preventDefault();
-      setContextMenu({
-        x: event.clientX,
-        y: event.clientY,
-        nodeId: node.id,
-      });
-    },
-    [],
-  );
-
-  const closeContextMenu = useCallback(() => setContextMenu(null), []);
-
-  const handleContextCreate = useCallback(() => {
-    if (contextMenu?.flowPosition) createTextCard(contextMenu.flowPosition);
-    setContextMenu(null);
-  }, [contextMenu, createTextCard]);
-
-  const handleContextDelete = useCallback(() => {
-    if (contextMenu?.nodeId) nodeChanges.deleteNode(contextMenu.nodeId);
-    setContextMenu(null);
-  }, [contextMenu, nodeChanges]);
-
-  const handleContextDeleteEdge = useCallback(() => {
-    if (contextMenu?.edgeId) edgeInteractions.deleteEdge(contextMenu.edgeId);
-    setContextMenu(null);
-  }, [contextMenu, edgeInteractions]);
-
-  const handleContextEditEdgeLabel = useCallback(() => {
-    if (contextMenu?.edgeId) {
-      edgeInteractions.setEditingEdgeId(contextMenu.edgeId);
-    }
-    setContextMenu(null);
-  }, [contextMenu, edgeInteractions]);
-
-  const handleContextSelectEdgeColor = useCallback(
-    (color?: CanvasColor) => {
-      if (contextMenu?.edgeId) {
-        edgeInteractions.onEdgeColorChange(contextMenu.edgeId, color);
-      }
-      setContextMenu(null);
-    },
-    [contextMenu, edgeInteractions],
+    [contextMenuHooks, createTextCard, screenToFlowPosition],
   );
 
   const createTextCardAtCenter = useCallback(() => {
@@ -213,19 +217,13 @@ export function useCanvasInteractions({
   }, [createTextCard, screenToFlowPosition]);
 
   return {
-    contextMenu,
-    closeContextMenu,
+    ...selectionOps,
+    ...contextMenuHooks,
     createTextCardAtCenter,
-    handleContextCreate,
-    handleContextDelete,
-    handleContextDeleteEdge,
-    handleContextEditEdgeLabel,
-    handleContextSelectEdgeColor,
+    onNodeDragStart,
     onNodeDrag,
     onNodeDragStop,
-    onNodeContextMenu,
     onPaneClick,
-    onPaneContextMenu,
     ...nodeChanges,
     ...edgeInteractions,
   };

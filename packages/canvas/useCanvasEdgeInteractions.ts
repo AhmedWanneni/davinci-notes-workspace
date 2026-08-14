@@ -18,7 +18,7 @@ import {
   createCanvasEdgeId,
   getCanvasEdgeColorCss,
 } from "./canvasEdgeConstants";
-import type { CanvasContextMenuState } from "./useCanvasInteractions";
+import type { CanvasContextMenuState } from "./useCanvasContextMenu";
 
 export interface UseCanvasEdgeInteractionsOptions {
   setNodes: Dispatch<SetStateAction<Node[]>>;
