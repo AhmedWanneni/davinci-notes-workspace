@@ -10,6 +10,12 @@
           "global"
         ]
       }
+    ],
+    "selector-class-pattern": [
+      "^[a-z]([a-z0-9-]+)?(__[a-z0-9-]+)?(--[a-z0-9-]+)?$",
+      {
+        "message": "Expected class selector in components/ to follow BEM pattern (e.g. .block, .block__element, .block__element--modifier)"
+      }
     ]
   }
 }

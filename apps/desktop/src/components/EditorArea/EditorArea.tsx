@@ -1,10 +1,16 @@
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { Editor } from "@app/editor";
 import { FileText } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
 import { PropertiesBlock } from "../PropertiesBlock";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+
+const LazyCanvasView = lazy(() =>
+  import("@app/canvas").then((m) => ({
+    default: m.CanvasView,
+  })),
+);
 
 export interface EditorAreaProps {
   activeNotePath: string | null;
@@ -32,32 +38,48 @@ export function EditorArea({
   const displayTitle = useMemo(() => {
     if (!activeNotePath) return "";
     return (
-      activeNotePath.replace(/\.md$/i, "").split("/").pop() ?? activeNotePath
+      activeNotePath
+        .replace(/\.(md|canvas)$/i, "")
+        .split("/")
+        .pop() ?? activeNotePath
     );
   }, [activeNotePath]);
+
+  const isCanvas = activeNotePath?.endsWith(".canvas") ?? false;
 
   return (
     <div className="editor-area">
       {activeNotePath ? (
-        <div className="editor-area__container">
-          <div className="editor-area__header">
-            <h1 className="editor-area__title">{displayTitle}</h1>
-            <PropertiesBlock
-              frontmatter={frontmatter}
-              onLinkClick={onLinkClick}
-            />
-          </div>
-          <div className="editor-area__body">
-            <Editor
+        isCanvas ? (
+          <Suspense fallback={null}>
+            <LazyCanvasView
               key={activeNotePath}
-              value={content}
-              onChange={(newVal) => updateNoteContent(activeNotePath, newVal)}
-              notePaths={allNotePaths}
-              sourcePath={activeNotePath}
-              onLinkClick={onLinkClick}
+              path={activeNotePath}
+              initialContent={content}
+              onContentChange={(p, c) => updateNoteContent(p, c)}
             />
+          </Suspense>
+        ) : (
+          <div className="editor-area__container">
+            <div className="editor-area__header">
+              <h1 className="editor-area__title">{displayTitle}</h1>
+              <PropertiesBlock
+                frontmatter={frontmatter}
+                onLinkClick={onLinkClick}
+              />
+            </div>
+            <div className="editor-area__body">
+              <Editor
+                key={activeNotePath}
+                value={content}
+                onChange={(newVal) => updateNoteContent(activeNotePath, newVal)}
+                notePaths={allNotePaths}
+                sourcePath={activeNotePath}
+                onLinkClick={onLinkClick}
+              />
+            </div>
           </div>
-        </div>
+        )
       ) : (
         <EmptyState
           size="lg"

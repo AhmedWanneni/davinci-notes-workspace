@@ -35,6 +35,10 @@ export default defineConfig({
         replacement: path.join(repoRoot, "packages/core-types/index.ts"),
       },
       {
+        find: "@app/canvas",
+        replacement: path.join(repoRoot, "packages/canvas/index.ts"),
+      },
+      {
         find: "@app/editor",
         replacement: path.join(repoRoot, "packages/editor/index.ts"),
       },
@@ -75,6 +79,9 @@ export default defineConfig({
           }
           if (id.includes("/node_modules/@tauri-apps/")) {
             return "vendor-tauri";
+          }
+          if (id.includes("@xyflow")) {
+            return "vendor-canvas";
           }
         },
       },

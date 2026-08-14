@@ -1,0 +1,65 @@
+.canvas-edge {
+  cursor: pointer;
+}
+
+.canvas-edge__path {
+  fill: none;
+  stroke: var(--edge-color, var(--color-border-normal, #363636));
+  stroke-width: 1.5px;
+  transition: stroke 150ms ease;
+}
+
+.canvas-edge.is-selected .canvas-edge__path {
+  stroke: var(--color-interactive-accent, #7f6df2);
+  stroke-width: 2px;
+}
+
+.canvas-edge:hover .canvas-edge__path {
+  stroke-width: 2px;
+}
+
+.canvas-edge__interaction-path {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16px;
+  cursor: pointer;
+}
+
+.canvas-edge__label-wrapper {
+  position: absolute;
+  pointer-events: all;
+  transform-origin: center center;
+}
+
+.canvas-edge__label-tag {
+  display: inline-block;
+  padding: 2px var(--space-2, 8px);
+  background-color: var(--color-bg-secondary, #262626);
+  border: 1px solid var(--edge-color, var(--color-border-subtle, #2e2e2e));
+  border-radius: var(--radius-sm, 2px);
+  color: var(--color-text-normal, #dcddde);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs, 12px);
+  line-height: 1.3;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+}
+
+.canvas-edge.is-selected .canvas-edge__label-tag {
+  border-color: var(--color-interactive-accent, #7f6df2);
+}
+
+.canvas-edge__input {
+  display: inline-block;
+  padding: 2px var(--space-2, 8px);
+  background-color: var(--color-bg-secondary, #262626);
+  border: 1px solid var(--color-interactive-accent, #7f6df2);
+  border-radius: var(--radius-sm, 2px);
+  color: var(--color-text-normal, #dcddde);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs, 12px);
+  line-height: 1.3;
+  outline: none;
+  width: 120px;
+}

@@ -1,4 +1,4 @@
-import { FilePlus } from "@phosphor-icons/react";
+import { FilePlus, FrameCorners } from "@phosphor-icons/react";
 import { Tooltip, Typography } from "@app/design-system";
 import { FileTree } from "../FileTree";
 
@@ -10,6 +10,7 @@ export interface AppSidebarProps {
   log: string[];
   isCollapsed?: boolean;
   onCreateNote: () => void;
+  onCreateCanvas?: () => void;
   onNoteClick: (path: string) => void;
 }
 
@@ -21,6 +22,7 @@ export function AppSidebar({
   log,
   isCollapsed,
   onCreateNote,
+  onCreateCanvas,
   onNoteClick,
 }: AppSidebarProps) {
   return (
@@ -51,6 +53,18 @@ export function AppSidebar({
               <FilePlus size={16} />
             </button>
           </Tooltip>
+          {onCreateCanvas && (
+            <Tooltip content="New canvas" contentProps={{ side: "bottom" }}>
+              <button
+                type="button"
+                className="app-sidebar__action-btn"
+                onClick={onCreateCanvas}
+                aria-label="New canvas"
+              >
+                <FrameCorners size={16} />
+              </button>
+            </Tooltip>
+          )}
         </div>
       </div>
 

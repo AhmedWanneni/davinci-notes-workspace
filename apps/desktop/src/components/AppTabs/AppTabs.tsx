@@ -28,7 +28,10 @@ export function AppTabs({
       <div className="app-tabs__strip">
         {openNotes.map((path) => {
           const displayTitle =
-            path.replace(/\.md$/i, "").split("/").pop() ?? path;
+            path
+              .replace(/\.(md|canvas)$/i, "")
+              .split("/")
+              .pop() ?? path;
           const isActive = activeNotePath === path;
           const isDirty = dirtyNotes.has(path);
           return (

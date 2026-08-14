@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { CaretRight, CaretDown, FileText } from "@phosphor-icons/react";
+import {
+  CaretRight,
+  CaretDown,
+  FileText,
+  FrameCorners,
+} from "@phosphor-icons/react";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
 
 interface FileTreeProps {
@@ -80,10 +85,11 @@ export function FileTree({
         {rowVirtualizer.getVirtualItems().map((virtualItem) => {
           const item = visibleNodes[virtualItem.index];
           const isFile = item.node.type === "file";
+          const isCanvas = isFile && item.node.name.endsWith(".canvas");
           const isActive = isFile && item.node.path === activePath;
           const isDirty = isFile && dirtyPaths.has(item.node.path);
           const isExpanded = !isFile && expandedFolders.has(item.node.path);
-          const displayTitle = item.node.name.replace(/\.md$/i, "");
+          const displayTitle = item.node.name.replace(/\.(md|canvas)$/i, "");
 
           return (
             <div
@@ -122,6 +128,8 @@ export function FileTree({
                       className="file-tree__caret"
                     />
                   )
+                ) : isCanvas ? (
+                  <FrameCorners size={14} className="file-tree__file-icon" />
                 ) : (
                   <FileText size={14} className="file-tree__file-icon" />
                 )}

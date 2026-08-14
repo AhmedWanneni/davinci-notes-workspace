@@ -118,11 +118,42 @@ export function useVaultSession() {
     [allNotePaths, append, openNote, updateAllPaths],
   );
 
+  const createNewCanvas = useCallback(
+    async (title?: string) => {
+      const cleanTitle = title?.trim() || "Untitled";
+      const newPath = cleanTitle.endsWith(".canvas")
+        ? cleanTitle
+        : `${cleanTitle}.canvas`;
+      if (allNotePaths.includes(newPath)) {
+        append(`Canvas already exists: ${newPath}`);
+        await openNote(newPath);
+        return;
+      }
+      const defaultContent = JSON.stringify({ nodes: [], edges: [] }, null, 2);
+      try {
+        await writeNote(newPath, defaultContent);
+        const updatedPaths = [...allNotePaths, newPath];
+        updateAllPaths(updatedPaths);
+        await openNote(newPath);
+        append(`Created new canvas: ${newPath}`);
+      } catch (e) {
+        append(
+          `Error creating canvas: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    },
+    [allNotePaths, append, openNote, updateAllPaths],
+  );
+
   const handleLinkClick = useCallback(
     async (targetRaw: string) => {
       const targetLower = targetRaw.toLowerCase();
       const foundPath = allNotePaths.find((path) => {
-        const stem = path.replace(/\.md$/i, "").split("/").pop() ?? path;
+        const stem =
+          path
+            .replace(/\.(md|canvas)$/i, "")
+            .split("/")
+            .pop() ?? path;
         return stem.toLowerCase() === targetLower;
       });
       if (foundPath) {
@@ -177,6 +208,7 @@ export function useVaultSession() {
     graph,
     loadVaultByMethod,
     createNewNote,
+    createNewCanvas,
     handleLinkClick,
     openFixture: () =>
       void loadVaultByMethod(() => openAndIndexVault(FIXTURE_VAULT)),

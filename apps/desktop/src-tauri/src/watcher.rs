@@ -82,7 +82,7 @@ impl VaultWatcher {
             let Some(rel) = vault_relative(&vault_for_events, &path) else {
               continue;
             };
-            if !rel.ends_with(".md") {
+            if !rel.ends_with(".md") && !rel.ends_with(".canvas") {
               continue;
             }
 

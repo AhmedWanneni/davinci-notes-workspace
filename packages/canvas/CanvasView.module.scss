@@ -1,0 +1,116 @@
+.canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-bg-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.canvas-container {
+  width: 100%;
+  height: 100%;
+  flex: 1;
+  position: relative;
+}
+
+.canvas-empty-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-6);
+  border: 1px dashed var(--color-border-subtle);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-md, 4px);
+  max-width: 420px;
+  z-index: 4;
+}
+
+.canvas-empty-state__title {
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-base, 14px);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.canvas-empty-state__description {
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs, 12px);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+}
+
+.canvas-empty-state__hints {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-3);
+}
+
+.canvas-empty-state__hint-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.canvas-empty-state__key {
+  font-family: var(--font-editor, monospace);
+  font-size: 10px;
+  padding: 2px 6px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 3px;
+  color: var(--color-text-primary);
+}
+
+.canvas-controls {
+  position: absolute;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  z-index: 5;
+  display: flex;
+  gap: 2px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm, 3px);
+  padding: 2px;
+}
+
+.canvas-controls__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition:
+    color 0.1s ease,
+    background-color 0.1s ease;
+
+  &:hover {
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+  }
+
+  &:active {
+    background-color: var(--color-border-subtle);
+  }
+}

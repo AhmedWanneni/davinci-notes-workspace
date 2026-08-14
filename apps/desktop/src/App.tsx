@@ -54,6 +54,7 @@ export function App() {
     graph,
     loadVaultByMethod,
     createNewNote,
+    createNewCanvas,
     handleLinkClick,
     openFixture,
     openLargeFixture,
@@ -107,6 +108,11 @@ export function App() {
   const handleCreateNotePrompt = () => {
     const title = prompt("Enter note title:");
     if (title) void createNewNote(title);
+  };
+
+  const handleCreateCanvasPrompt = () => {
+    const title = prompt("Enter canvas title:");
+    if (title) void createNewCanvas(title);
   };
 
   if (!vaultPath) {
@@ -166,6 +172,7 @@ export function App() {
           log={log}
           isCollapsed={!isLeftSidebarOpen}
           onCreateNote={handleCreateNotePrompt}
+          onCreateCanvas={handleCreateCanvasPrompt}
           onNoteClick={(path) => void openNote(path)}
         />
 

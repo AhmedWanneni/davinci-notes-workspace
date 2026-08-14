@@ -13,13 +13,17 @@ module.exports = {
         project: "./tsconfig.json"
       }
     },
+    "boundaries/root-path": __dirname,
+    "boundaries/ignore": ["**/*.scss", "**/*.css", "**/*.json", "**/*.sql"],
     "boundaries/elements": [
-      { type: "core-types", pattern: "packages/core-types/**/*" },
-      { type: "design-system", pattern: "packages/design-system/**/*" },
-      { type: "indexer", pattern: "packages/indexer/**/*" },
-      { type: "sync-client", pattern: "packages/sync-client/**/*" },
-      { type: "app", pattern: "apps/**/*" },
-      { type: "service", pattern: "services/**/*" }
+      { type: "core-types", pattern: "packages/core-types/**/*", mode: "full" },
+      { type: "design-system", pattern: "packages/design-system/**/*", mode: "full" },
+      { type: "canvas", pattern: "packages/canvas/**/*", mode: "full" },
+      { type: "editor", pattern: "packages/editor/**/*", mode: "full" },
+      { type: "indexer", pattern: "packages/indexer/**/*", mode: "full" },
+      { type: "sync-client", pattern: "packages/sync-client/**/*", mode: "full" },
+      { type: "app", pattern: "apps/**/*", mode: "full" },
+      { type: "service", pattern: "services/**/*", mode: "full" }
     ]
   },
   rules: {
@@ -28,12 +32,14 @@ module.exports = {
       {
         default: "disallow",
         rules: [
-          { from: "core-types", allow: [] },
-          { from: "indexer", allow: ["core-types"] },
-          { from: "sync-client", allow: ["core-types"] },
-          { from: "design-system", allow: ["core-types"] },
-          { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client"] },
-          { from: "service", allow: ["core-types", "indexer", "sync-client"] }
+          { from: "core-types", allow: ["core-types"] },
+          { from: "indexer", allow: ["core-types", "indexer"] },
+          { from: "sync-client", allow: ["core-types", "sync-client"] },
+          { from: "design-system", allow: ["core-types", "design-system"] },
+          { from: "canvas", allow: ["core-types", "design-system", "canvas"] },
+          { from: "editor", allow: ["core-types", "indexer", "editor"] },
+          { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "app"] },
+          { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }
         ]
       }
     ]

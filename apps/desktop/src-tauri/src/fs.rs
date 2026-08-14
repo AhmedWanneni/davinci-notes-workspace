@@ -9,12 +9,13 @@ use crate::state::VaultState;
 use crate::watcher::VaultWatcher;
 
 const MARKDOWN_EXT: &str = "md";
+const CANVAS_EXT: &str = "canvas";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileTreeNode {
   pub name: String,
-  /// Vault-relative path for markdown files; `None` for folders.
+  /// Vault-relative path for markdown or canvas files; `None` for folders.
   pub path: Option<String>,
   pub children: Vec<FileTreeNode>,
 }
@@ -32,20 +33,37 @@ fn resolve_in_vault(vault_root: &Path, relative: &str) -> Result<PathBuf, String
     return Err(format!("Invalid vault-relative path: {relative}"));
   }
 
-  let joined = vault_root.join(relative);
-  let canonical = joined
-    .canonicalize()
-    .map_err(|e| format!("Path not found: {relative} ({e})"))?;
-
   let vault_canonical = vault_root
     .canonicalize()
     .map_err(|e| format!("Vault root unreadable: {e}"))?;
 
-  if !canonical.starts_with(&vault_canonical) {
-    return Err(format!("Path escapes vault: {relative}"));
-  }
+  let joined = vault_root.join(relative);
+  if joined.exists() {
+    let canonical = joined
+      .canonicalize()
+      .map_err(|e| format!("Path not found: {relative} ({e})"))?;
 
-  Ok(canonical)
+    if !canonical.starts_with(&vault_canonical) {
+      return Err(format!("Path escapes vault: {relative}"));
+    }
+    Ok(canonical)
+  } else {
+    // For new files about to be created, verify existing parent directory doesn't escape
+    let mut cur = joined.as_path();
+    while let Some(parent) = cur.parent() {
+      if parent.exists() {
+        let parent_canonical = parent
+          .canonicalize()
+          .map_err(|e| format!("Parent unreadable: {e}"))?;
+        if !parent_canonical.starts_with(&vault_canonical) {
+          return Err(format!("Path escapes vault: {relative}"));
+        }
+        break;
+      }
+      cur = parent;
+    }
+    Ok(joined)
+  }
 }
 
 fn vault_relative(vault_root: &Path, absolute: &Path) -> Option<String> {
@@ -67,7 +85,8 @@ fn collect_markdown_paths(vault_root: &Path) -> Result<Vec<String>, String> {
       continue;
     }
     let path = entry.path();
-    if path.extension().and_then(|e| e.to_str()) != Some(MARKDOWN_EXT) {
+    let ext = path.extension().and_then(|e| e.to_str());
+    if ext != Some(MARKDOWN_EXT) && ext != Some(CANVAS_EXT) {
       continue;
     }
     if let Some(rel) = vault_relative(vault_root, path) {

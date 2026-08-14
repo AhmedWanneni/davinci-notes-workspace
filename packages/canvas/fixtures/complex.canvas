@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "id": "group-1",
+      "type": "group",
+      "label": "Research Group",
+      "background": "assets/bg.png",
+      "backgroundStyle": "cover",
+      "x": 50,
+      "y": 50,
+      "width": 800,
+      "height": 500,
+      "color": "6"
+    },
+    {
+      "id": "text-1",
+      "type": "text",
+      "text": "## Main Concept\nThis is a sample markdown card.",
+      "x": 100,
+      "y": 120,
+      "width": 300,
+      "height": 180,
+      "color": "2"
+    },
+    {
+      "id": "file-1",
+      "type": "file",
+      "file": "Notes/DeepMind.md",
+      "subpath": "#research",
+      "x": 480,
+      "y": 120,
+      "width": 320,
+      "height": 220,
+      "color": "3"
+    },
+    {
+      "id": "link-1",
+      "type": "link",
+      "url": "https://jsoncanvas.org/spec/1.0/",
+      "x": 100,
+      "y": 340,
+      "width": 300,
+      "height": 140,
+      "color": "5"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "fromNode": "text-1",
+      "fromSide": "right",
+      "fromEnd": "none",
+      "toNode": "file-1",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "cites",
+      "color": "2"
+    },
+    {
+      "id": "edge-2",
+      "fromNode": "text-1",
+      "fromSide": "bottom",
+      "fromEnd": "none",
+      "toNode": "link-1",
+      "toSide": "top",
+      "toEnd": "arrow",
+      "label": "spec link"
+    }
+  ]
+}

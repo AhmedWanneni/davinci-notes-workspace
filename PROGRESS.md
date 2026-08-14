@@ -6,9 +6,46 @@ Updated at the end of every session. Read this first, before touching code.
 
 ## Current Focus
 
-Restructuring `apps/desktop`'s app shell to match Obsidian's UI grid architecture per `apps/wireframe.md` is complete. Next up: **Dogfooding `v0.1.0-rc.1` internal build** & Design System follow-ups.
+**Canvas Feature Phase 3 (Connections / Edges)** is complete. Next up: **Canvas Feature Phase 4 — Selection & Arrangement**.
 
 ## Done
+
+- **Canvas Feature: Phase 3 — Connections (Edges)**:
+  - **Data Model & Translation Fidelity**: Verified `CanvasEdge` covers `id`, `fromNode`, `fromSide`, `fromEnd`, `toNode`, `toSide`, `toEnd`, `label`, `color` adhering strictly to JSON Canvas 1.0. Extended `canvasTranslation.ts` with bidirectional mapping and dynamic SVG arrow markers (`MarkerType.ArrowClosed`).
+  - **Connection Handles**: Added 4 connection handles (`top`, `right`, `bottom`, `left`) to `TextCardNode.tsx` styled as subtle dots with CSS transitions, visible only on hover or selection, hiding during text-edit mode to prevent clutter.
+  - **Edge Interactions (Create, Reconnect, Delete)**: Drag from node handles to create edges (`onConnect`); retarget existing endpoints via React Flow reconnection (`onReconnect`); select + Delete/Backspace or right-click to delete.
+  - **Cascade Deletion on Node Removal**: Deleting any node cleanly cascade-deletes all incident edges (`edge.source === nodeId || edge.target === nodeId`) from both visual state and the underlying `CanvasData` structure.
+  - **Edge Labels & Midpoint Rendering**: Inline editable text tags rendered at midpoint via `EdgeLabelRenderer`; double-click to edit with Enter/Escape/blur commit handling; empty labels render no visual tag.
+  - **Token-Constrained Edge Color Palette**: Fixed palette mapping JSON Canvas preset colors `"1"` through `"6"` to design-system CSS tokens (`--color-text-error`, `--color-text-warning`, `--color-text-success`, `--color-interactive-accent`, etc.) selectable via right-click context menu swatches.
+  - **Persistence**: All edge operations automatically trigger debounced 750ms store saving (`useWorkspaceStore.saveNoteNow`) with full round-trip fidelity.
+  - **Test Suite**: 42 unit tests passing in `@app/canvas` across 11 test suites; all 14 monorepo tasks passing.
+
+- **Canvas Feature: Phase 2 — Text Cards**:
+  - **Data Model Verification**: Confirmed Phase 0 `CanvasTextNode` (`id`, `x`, `y`, `width`, `height`, `text`, optional `color`) matches JSON Canvas 1.0 spec with no extensions added.
+  - **Text Card Component (`TextCardNode.tsx`)**: Custom React Flow node with `NodeResizer` for corner/edge resize, body drag via React Flow's built-in handling, and distinct edit mode (double-click to edit, drag disabled while editing).
+  - **Text Editing Approach**: Lightweight native `<textarea>` — not CodeMirror. Rationale: in-card fields are plain text only for this phase; pulling `@app/editor` (~CM6 bundle) into every text card would add meaningful weight and complexity for a small overlay field. CodeMirror remains the right choice for full note tabs (Phase 6).
+  - **Create / Move / Resize / Delete**: Double-click empty canvas to create; toolbar "+" and right-click pane "Add text card" as secondary entry points; drag body to move; resize handles via `NodeResizer`; select + Delete/Backspace and right-click "Delete card"; all mutations update underlying `CanvasData` via existing translation layer.
+  - **Snap-to-Grid & Alignment**: 24px grid snap on drag-stop and resize-end; custom alignment snap (`snapNodeAlignment.ts`) against other cards' edges/centers during drag (React Flow v12 has no built-in alignment guides).
+  - **Persistence Fix**: Replaced Phase 1 stale-closure `setTimeout` persist with `applyNodeChanges`-based handlers + `lastSerializedRef` guard preventing store feedback loops during drag; visual updates remain immediate, disk write stays on existing 750ms debounced `updateNoteContent`/`saveNoteNow` path.
+  - **Test Suite**: 30 tests in `@app/canvas` passing (added `TextCardNode`, `snapNodeAlignment`, `canvasConstants` tests; updated `CanvasView` tests for text card rendering).
+
+- **Canvas Feature: Phase 1 — Canvas Shell**:
+  - **Bidirectional Translation Layer (`packages/canvas/canvasTranslation.ts`)**: Built pure TypeScript translation functions (`jsonCanvasToReactFlow` and `reactFlowToJsonCanvas`) decoupling JSON Canvas schema from React Flow internal models. Validated 100% lossless round-trip fidelity via unit tests.
+  - **React Flow Canvas Component (`CanvasView.tsx`)**: Mounted real React Flow instance with smooth space+drag & middle-click pan, ctrl/cmd+scroll zoom, pinch zoom, and zoom-to-fit toolbar control. Added empty state editorial UI hint when `nodes.length === 0`.
+  - **Debounced Save / Load Integration**: Connected canvas state changes to `useWorkspaceStore` via `onContentChange`, automatically reusing the existing 750ms debounced disk saving workflow (`saveNoteNow`) for `.canvas` files.
+  - **Native Vault Support & New Canvas Creation**: Updated Rust `fs.rs` and `watcher.rs` to index and watch `.canvas` files. Added `createNewCanvas` to `useVaultSession` and "New canvas" action button in `AppSidebar` writing valid initial `{ "nodes": [], "edges": [] }` files immediately.
+  - **Bundle Audit & Lazy-Load Re-Verification**: Verified that `@app/canvas` and `@xyflow/react` remain in an asynchronous chunk (`vendor-canvas-*.js` 172 KB raw / 55.9 KB gzip) with **0 KB** footprint in initial entry JS. Initial entry JS remains well under budget at **21.08 KB raw / 7.71 KB gzip**.
+  - **Test Suite**: All 22 tests in `@app/canvas` passing; all 109 tests across 14 workspace tasks passing with zero errors.
+
+- **Canvas Feature: Phase 0 — Package Setup & Data Model**:
+  - **Package Scaffolding (`packages/canvas` -> `@app/canvas`)**: Created workspace package holding data model, file I/O, and future React Flow components together (mirroring `design-system` and `editor`).
+  - **JSON Canvas 1.0 Spec Compliance**: Defined strict TypeScript models matching `jsoncanvas.org/spec/1.0/` for `CanvasData`, `CanvasNode` (`text`, `file`, `link`, `group` variants), `CanvasEdge` (directional endpoints, sides, colors, labels), and `CanvasColor` (presets "1".."6" and `#...` hex strings).
+  - **Parsers, Serializers & Validators**: Pure functions `parseCanvas`, `serializeCanvas`, `validateCanvas` with comprehensive schema validation. Hand-crafted realistic spec-compliant fixtures (`basic.canvas`, `complex.canvas`).
+  - **File I/O Round-Trip**: Built `canvasIO.ts` (`readCanvasFile`, `writeCanvasFile`) with pluggable filesystem adapters (dynamic Node `fs/promises` for test/tools and Tauri IPC bridge for desktop). Tested disk round-trip writing `CanvasData` to temp file and verifying exact structural equality on read-back.
+  - **Boundary Enforcement**: Configured `eslint-plugin-boundaries` for `canvas` element (`packages/canvas/**/*`, `mode: "full"`). Restricted dependencies to `@app/core-types` and `@app/design-system` only. Tested and verified boundary violation failure using a throwaway import, then cleaned up.
+  - **Dependency Addition (`@xyflow/react`)**: Added `@xyflow/react` (^12.4.4) to `packages/canvas` (54.8 KB min+gzip).
+  - **Lazy-Load Verification & Bundle Audit**: Established `React.lazy` dynamic import boundary in `EditorArea.tsx` for `.canvas` files. Configured Vite vendor chunking. Verified via `scripts/check-bundle-size.mjs`: initial entry JS chunk holds at **21.08 KB raw / 7.71 KB gzip** with **0 KB** canvas code in the initial bundle; async canvas chunk is **4.39 KB raw / 1.46 KB gzip**.
+  - **Test Suite**: 4 test files (18 unit tests) in `@app/canvas` passing; all 105 tests across 14 workspace tasks passing.
 
 - **Obsidian App Shell Layout Restructure**:
   - **CSS Grid App Shell**: Migrated desktop shell to full CSS Grid (`grid-template-rows: auto 1fr auto;` and middle body `grid-template-columns: 40px auto 1fr auto;`), avoiding nested flexbox chains.
@@ -156,5 +193,8 @@ _(nothing)_
 | 2026-08-14 | Dialog/Portal Styling Bug Fix | Diagnosed popup invisibility issue: DialogContent in packages/design-system had hardcoded literal string className="dialog-content" instead of using CSS module styles.dialogContent / styles["dialog-content"], leaving portal content unpositioned and rendered offscreen. Fixed className mapping in Dialog.tsx and Badge.tsx; removed redundant position:relative on [data-radix-portal]; verified all 12 design-system and 24 desktop test suites passing. |
 | 2026-08-14 | Phase 13 — Release Prep & RC 1 | Configured GitHub Actions staging deploy workflow (`.github/workflows/staging-release.yml`) with signing/notarization secret hooks and multi-platform matrix. Reconstructed changesets for Phases 1–12 and ran `pnpm changeset version` bumping all workspace packages and desktop app to `0.1.0`. Tagged `v0.1.0-rc.1`, built native macOS release artifacts (`DaVinci Notes.app` 15.6MB, `.dmg` 5.5MB), authored internal release notes (`docs/releases/v0.1.0-rc.1.md`), and verified packaged app execution. |
 | 2026-08-14 | Obsidian App Shell Restructure | Restructured apps/desktop shell into CSS Grid architecture matching wireframe.md (Top Tab Bar with new tab/sidebar toggle, Icon Rail navigation strip, collapsible File Tree, PropertiesBlock frontmatter accordion, stacked RightSidebar with Linked Mentions, Unlinked Mentions placeholder, NoteOutline H1-H6, and bottom StatusBar with live note stats). Added unit tests; all 33 tests and bundle size budgets passing. |
+| 2026-08-14 | Canvas Feature Phase 0 — Package & Data Model | Scaffolded `@app/canvas` with strict JSON Canvas 1.0 specification models, parser, serializer, validator, and pluggable file I/O with verified disk round-trip testing. Enforced architectural boundaries with ESLint and verified failure. Configured `@xyflow/react` and verified zero initial bundle impact via dynamic lazy-load route and bundle audit (initial entry JS holds at 21.08 KB raw / 7.71 KB gzip). All 18 unit tests passing. |
+| 2026-08-14 | Canvas Feature Phase 2 — Text Cards | Implemented text card lifecycle: create (double-click/toolbar/right-click), move, resize (NodeResizer), edit (native textarea), delete (keyboard + context menu), snap-to-grid + alignment guides, and debounced persistence via existing 750ms store mechanism. Fixed stale-closure persist bug from Phase 1. 30 canvas tests passing. |
+| 2026-08-14 | Canvas Feature Phase 1 — Canvas Shell | Implemented lossless bidirectional translation layer (`canvasTranslation.ts`), real React Flow empty canvas shell (`CanvasView.tsx`) with space+drag & middle-click pan, ctrl/cmd+scroll & pinch zoom, fitView controls, empty state hint, and 750ms debounced disk saving. Updated Rust fs/watcher to support `.canvas` files and added new canvas creation affordance. Re-verified bundle isolation (initial entry JS 21.08 KB raw / 7.71 KB gzip, 0 KB canvas footprint in initial entry). All 22 canvas unit tests and 109 monorepo tests passing. |
 
 
