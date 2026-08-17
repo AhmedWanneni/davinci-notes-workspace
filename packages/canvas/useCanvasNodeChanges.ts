@@ -7,6 +7,7 @@ import {
   type Node,
   type NodeChange,
 } from "@xyflow/react";
+import { reparentNodesOnDrop } from "./groupContainment";
 
 export interface UseCanvasNodeChangesOptions {
   setNodes: Dispatch<SetStateAction<Node[]>>;
@@ -71,9 +72,19 @@ export function useCanvasNodeChanges({
       const removedIds = changes
         .filter((change) => change.type === "remove")
         .map((change) => change.id);
+      const dropIds = changes
+        .filter(
+          (change): change is Extract<NodeChange, { type: "position" }> =>
+            change.type === "position" &&
+            "dragging" in change &&
+            change.dragging === false,
+        )
+        .map((change) => change.id);
 
       setNodes((current) => {
-        const next = applyNodeChanges(changes, current);
+        const applied = applyNodeChanges(changes, current);
+        const next =
+          dropIds.length > 0 ? reparentNodesOnDrop(applied, dropIds) : applied;
         if (!shouldPersistNodeChanges(changes)) return next;
 
         if (removedIds.length > 0) {

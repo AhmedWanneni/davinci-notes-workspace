@@ -8,14 +8,19 @@ use walkdir::WalkDir;
 use crate::state::VaultState;
 use crate::watcher::VaultWatcher;
 
-const MARKDOWN_EXT: &str = "md";
-const CANVAS_EXT: &str = "canvas";
+const SUPPORTED_EXTENSIONS: &[&str] = &[
+  "md", "canvas",
+  // Images
+  "png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "ico", "avif",
+  // Videos
+  "mp4", "webm", "ogg", "ogv", "mov", "mkv", "m4v",
+];
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileTreeNode {
   pub name: String,
-  /// Vault-relative path for markdown or canvas files; `None` for folders.
+  /// Vault-relative path for supported vault files; `None` for folders.
   pub path: Option<String>,
   pub children: Vec<FileTreeNode>,
 }
@@ -73,7 +78,7 @@ fn vault_relative(vault_root: &Path, absolute: &Path) -> Option<String> {
     .map(|p| p.to_string_lossy().replace('\\', "/"))
 }
 
-fn collect_markdown_paths(vault_root: &Path) -> Result<Vec<String>, String> {
+fn collect_vault_paths(vault_root: &Path) -> Result<Vec<String>, String> {
   let mut paths = Vec::new();
 
   for entry in WalkDir::new(vault_root)
@@ -85,10 +90,19 @@ fn collect_markdown_paths(vault_root: &Path) -> Result<Vec<String>, String> {
       continue;
     }
     let path = entry.path();
-    let ext = path.extension().and_then(|e| e.to_str());
-    if ext != Some(MARKDOWN_EXT) && ext != Some(CANVAS_EXT) {
+    let ext = path
+      .extension()
+      .and_then(|e| e.to_str())
+      .map(|e| e.to_lowercase());
+
+    if let Some(ref ext_str) = ext {
+      if !SUPPORTED_EXTENSIONS.contains(&ext_str.as_str()) {
+        continue;
+      }
+    } else {
       continue;
     }
+
     if let Some(rel) = vault_relative(vault_root, path) {
       if !rel.is_empty() {
         paths.push(rel);
@@ -188,7 +202,7 @@ pub fn set_vault_watcher_paused(app: AppHandle, paused: bool) {
 #[tauri::command]
 pub fn list_notes(app: AppHandle) -> Result<Vec<String>, String> {
   let vault_root = app.state::<VaultState>().get_root()?;
-  collect_markdown_paths(&vault_root)
+  collect_vault_paths(&vault_root)
 }
 
 #[tauri::command]
@@ -237,5 +251,18 @@ pub fn write_note(app: AppHandle, path: String, content: String) -> Result<(), S
   }
 
   fs::write(&absolute, content.as_bytes()).map_err(|e| format!("Write failed: {e}"))?;
+  Ok(())
+}
+
+#[tauri::command]
+pub fn write_binary_file(app: AppHandle, path: String, data: Vec<u8>) -> Result<(), String> {
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let absolute = resolve_in_vault(&vault_root, &path)?;
+
+  if let Some(parent) = absolute.parent() {
+    fs::create_dir_all(parent).map_err(|e| format!("Create parent dirs failed: {e}"))?;
+  }
+
+  fs::write(&absolute, &data).map_err(|e| format!("Write binary failed: {e}"))?;
   Ok(())
 }

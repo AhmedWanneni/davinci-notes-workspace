@@ -1,6 +1,6 @@
 # AGENTS.md — Read This First
 
-Conventions for any AI session working on this codebase. Read `PROGRESS.md`, `DECISIONS.md`, and **`PERFORMANCE.md`** alongside this file before starting work. `PERFORMANCE.md` is not optional reading — this app's lightweight/fast requirement is a standing constraint on every decision, not a one-time pass.
+Conventions for any AI session working on this codebase. Read `PROGRESS.md`, `DECISIONS.md`, and **`PERFORMANCE.md`** alongside this file before starting work. `PERFORMANCE.md` is not optional reading — this app's lightweight/fast requirement is a standing constraint on every decision, not a one-time pass. `PROGRESS.md` is the short current-state file (last session + next up) — consult `docs/HISTORY.md` only for older context. `DECISIONS.md` is a one-line-per-decision index — open the linked file under `docs/adr/` for the full rationale before "fixing" something that looks odd.
 
 ---
 
@@ -69,8 +69,8 @@ Every module folder gets a barrel `index.ts` re-exporting its public surface. Co
 
 - **Scope every session to one task.** Read `PROGRESS.md`'s "Next up" list, pick one item, do that.
 - **One AI change = one commit**, single concern. Don't mix indexer changes with UI changes with schema changes.
-- **Before ending a session** (or if running low on context/tokens): update `PROGRESS.md` with what was done, what's left, and any blockers — don't let state live only in your own context.
-- **Non-obvious decisions** get logged in `DECISIONS.md`, not re-litigated by the next session. Check it before "fixing" something that looks odd — it may be deliberate.
+- **Before ending a session** (or if running low on context/tokens): update `PROGRESS.md` (Last Session + Next Up) and append full detail to `docs/HISTORY.md`, plus any blockers — don't let state live only in your own context.
+- **Non-obvious decisions** get logged as an ADR (new numbered file under `docs/adr/`, appended to the `DECISIONS.md` index), not re-litigated by the next session. Check `DECISIONS.md` before "fixing" something that looks odd — it may be deliberate.
 - **Diffs should be small enough to actually read.** If a generation is too big to review line-by-line, ask for it split up.
 
 ## Testing

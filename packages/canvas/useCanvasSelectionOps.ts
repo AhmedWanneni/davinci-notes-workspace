@@ -12,6 +12,7 @@ import {
   type AlignDirection,
   type DistributeDirection,
 } from "./arrangeNodes";
+import { expandSelectionToMembers } from "./groupContainment";
 
 export interface UseCanvasSelectionOpsOptions {
   setNodes: Dispatch<SetStateAction<Node[]>>;
@@ -28,7 +29,13 @@ export function useCanvasSelectionOps({
 }: UseCanvasSelectionOpsOptions) {
   const duplicateSelection = useCallback(() => {
     setNodes((currentNodes) => {
-      const selectedNodes = currentNodes.filter((n) => n.selected);
+      const initiallySelected = currentNodes
+        .filter((n) => n.selected)
+        .map((n) => n.id);
+      const expandedIds = new Set(
+        expandSelectionToMembers(currentNodes, initiallySelected),
+      );
+      const selectedNodes = currentNodes.filter((n) => expandedIds.has(n.id));
       if (selectedNodes.length === 0) return currentNodes;
 
       const idMap = new Map<string, string>();
@@ -39,6 +46,9 @@ export function useCanvasSelectionOps({
           ...node,
           id: newId,
           selected: true,
+          parentId: node.parentId
+            ? (idMap.get(node.parentId) ?? undefined)
+            : undefined,
           position: {
             x: node.position.x + 48,
             y: node.position.y + 48,
@@ -63,11 +73,9 @@ export function useCanvasSelectionOps({
             });
           }
         }
-
         const nextEdges = currentEdges
           .map((e) => (e.selected ? { ...e, selected: false } : e))
           .concat(newEdges);
-
         edgesRef.current = nextEdges;
         queueMicrotask(() => persistCanvas(nextNodes, nextEdges));
         return nextEdges;
@@ -80,9 +88,10 @@ export function useCanvasSelectionOps({
   const alignSelection = useCallback(
     (direction: AlignDirection) => {
       setNodes((current) => {
-        const selectedIds = current.filter((n) => n.selected).map((n) => n.id);
-        if (selectedIds.length < 2) return current;
-        const next = alignNodes(current, selectedIds, direction);
+        const base = current.filter((n) => n.selected).map((n) => n.id);
+        const ids = expandSelectionToMembers(current, base);
+        if (ids.length < 2) return current;
+        const next = alignNodes(current, ids, direction);
         persistCanvas(next, edgesRef.current);
         return next;
       });
@@ -93,9 +102,10 @@ export function useCanvasSelectionOps({
   const distributeSelection = useCallback(
     (direction: DistributeDirection) => {
       setNodes((current) => {
-        const selectedIds = current.filter((n) => n.selected).map((n) => n.id);
-        if (selectedIds.length < 3) return current;
-        const next = distributeNodes(current, selectedIds, direction);
+        const base = current.filter((n) => n.selected).map((n) => n.id);
+        const ids = expandSelectionToMembers(current, base);
+        if (ids.length < 3) return current;
+        const next = distributeNodes(current, ids, direction);
         persistCanvas(next, edgesRef.current);
         return next;
       });

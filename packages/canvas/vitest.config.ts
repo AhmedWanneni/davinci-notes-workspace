@@ -10,6 +10,15 @@ export default defineConfig({
       "@app/design-system": fileURLToPath(
         new URL("../design-system/index.ts", import.meta.url),
       ),
+      "@app/editor": fileURLToPath(
+        new URL("../editor/index.ts", import.meta.url),
+      ),
+      "@app/indexer": fileURLToPath(
+        new URL("../indexer/index.ts", import.meta.url),
+      ),
+      "pdfjs-dist": fileURLToPath(
+        new URL("./__mocks__/pdfjs-dist.ts", import.meta.url),
+      ),
     },
   },
   test: {

@@ -53,6 +53,15 @@
   }
 }
 
+.app-tabs__tab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: inherit;
+  opacity: 0.85;
+}
+
 .app-tabs__tab-title {
   overflow: hidden;
   text-overflow: ellipsis;

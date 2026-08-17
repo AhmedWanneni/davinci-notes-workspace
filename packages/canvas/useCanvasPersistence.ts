@@ -32,6 +32,7 @@ export function useCanvasPersistence({
       const serialized = serializeCanvas(
         reactFlowToJsonCanvas(nextNodes, nextEdges),
       );
+      if (serialized === lastSerializedRef.current) return;
       lastSerializedRef.current = serialized;
       onContentChange(path, serialized);
     },

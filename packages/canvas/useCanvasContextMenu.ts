@@ -10,26 +10,45 @@ export interface CanvasContextMenuState {
   x: number;
   y: number;
   nodeId?: string;
+  nodeType?: "text" | "file" | "group";
+  nodeFile?: string;
   edgeId?: string;
   flowPosition?: { x: number; y: number };
+  hasSelection?: boolean;
 }
 
 export interface UseCanvasContextMenuArgs {
   onCreateTextCard: (pos: { x: number; y: number }) => void;
+  onCreateFileCard?: (pos: { x: number; y: number }) => void;
+  onCreateEmptyGroup: (pos: { x: number; y: number }) => void;
+  onCreateGroupFromSelection: () => void;
   deleteNode: (id: string) => void;
+  deleteGroup: (id: string) => void;
   deleteEdge: (id: string) => void;
   setEditingEdgeId: (id: string) => void;
   onEdgeColorChange: (id: string, color?: CanvasColor) => void;
+  onNodeColorChange: (id: string, color?: CanvasColor) => void;
+  onConvertTextToFile?: (nodeId: string) => void;
+  onOpenFile?: (filePath: string) => void;
+  getSelectedCount: () => number;
 }
 
 export function useCanvasContextMenu({
   onCreateTextCard,
+  onCreateFileCard,
+  onCreateEmptyGroup,
+  onCreateGroupFromSelection,
   deleteNode,
+  deleteGroup,
   deleteEdge,
   setEditingEdgeId,
   onEdgeColorChange,
+  onNodeColorChange,
+  onConvertTextToFile,
+  onOpenFile,
+  getSelectedCount,
 }: UseCanvasContextMenuArgs) {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getNodes } = useReactFlow();
   const [contextMenu, setContextMenu] = useState<CanvasContextMenuState | null>(
     null,
   );
@@ -44,34 +63,86 @@ export function useCanvasContextMenu({
           x: event.clientX,
           y: event.clientY,
         }),
+        hasSelection: getSelectedCount() > 0,
       });
     },
-    [screenToFlowPosition],
+    [getSelectedCount, screenToFlowPosition],
   );
 
   const onNodeContextMenu = useCallback(
-    (event: ReactMouseEvent, node: Node) => {
+    (event: ReactMouseEvent | MouseEvent, node: Node) => {
       event.preventDefault();
+      const nodeType = (node.type ??
+        (node.data as { type?: string })?.type ??
+        "text") as "text" | "file" | "group";
+      const nodeFile = (node.data as { file?: string })?.file;
+
       setContextMenu({
         x: event.clientX,
         y: event.clientY,
         nodeId: node.id,
+        nodeType,
+        nodeFile,
+        hasSelection: getSelectedCount() > 0,
       });
     },
-    [],
+    [getSelectedCount, setContextMenu],
   );
 
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
 
-  const handleContextCreate = useCallback(() => {
+  const handleContextCreateCard = useCallback(() => {
     if (contextMenu?.flowPosition) onCreateTextCard(contextMenu.flowPosition);
     setContextMenu(null);
   }, [contextMenu, onCreateTextCard]);
 
-  const handleContextDelete = useCallback(() => {
-    if (contextMenu?.nodeId) deleteNode(contextMenu.nodeId);
+  const handleContextCreateFileCard = useCallback(() => {
+    if (contextMenu?.flowPosition && onCreateFileCard) {
+      onCreateFileCard(contextMenu.flowPosition);
+    }
     setContextMenu(null);
-  }, [contextMenu, deleteNode]);
+  }, [contextMenu, onCreateFileCard]);
+
+  const handleContextCreateEmptyGroup = useCallback(() => {
+    if (contextMenu?.flowPosition) onCreateEmptyGroup(contextMenu.flowPosition);
+    setContextMenu(null);
+  }, [contextMenu, onCreateEmptyGroup]);
+
+  const handleContextCreateGroupFromSelection = useCallback(() => {
+    onCreateGroupFromSelection();
+    setContextMenu(null);
+  }, [onCreateGroupFromSelection]);
+
+  const handleContextDeleteNode = useCallback(() => {
+    if (!contextMenu?.nodeId) {
+      setContextMenu(null);
+      return;
+    }
+    const node = getNodes().find((n) => n.id === contextMenu.nodeId);
+    const isGroup =
+      node?.type === "group" ||
+      (node?.data && (node.data as { type?: unknown }).type === "group");
+    if (isGroup) {
+      deleteGroup(contextMenu.nodeId);
+    } else {
+      deleteNode(contextMenu.nodeId);
+    }
+    setContextMenu(null);
+  }, [contextMenu, deleteGroup, deleteNode, getNodes]);
+
+  const handleContextConvertTextToFile = useCallback(() => {
+    if (contextMenu?.nodeId && onConvertTextToFile) {
+      onConvertTextToFile(contextMenu.nodeId);
+    }
+    setContextMenu(null);
+  }, [contextMenu, onConvertTextToFile]);
+
+  const handleContextOpenFile = useCallback(() => {
+    if (contextMenu?.nodeFile && onOpenFile) {
+      onOpenFile(contextMenu.nodeFile);
+    }
+    setContextMenu(null);
+  }, [contextMenu, onOpenFile]);
 
   const handleContextDeleteEdge = useCallback(() => {
     if (contextMenu?.edgeId) deleteEdge(contextMenu.edgeId);
@@ -91,16 +162,30 @@ export function useCanvasContextMenu({
     [contextMenu, onEdgeColorChange],
   );
 
+  const handleContextSelectNodeColor = useCallback(
+    (color?: CanvasColor) => {
+      if (contextMenu?.nodeId) onNodeColorChange(contextMenu.nodeId, color);
+      setContextMenu(null);
+    },
+    [contextMenu, onNodeColorChange],
+  );
+
   return {
     contextMenu,
     setContextMenu,
     onPaneContextMenu,
     onNodeContextMenu,
     closeContextMenu,
-    handleContextCreate,
-    handleContextDelete,
+    handleContextCreateCard,
+    handleContextCreateFileCard,
+    handleContextCreateEmptyGroup,
+    handleContextCreateGroupFromSelection,
+    handleContextDeleteNode,
+    handleContextConvertTextToFile,
+    handleContextOpenFile,
     handleContextDeleteEdge,
     handleContextEditEdgeLabel,
     handleContextSelectEdgeColor,
+    handleContextSelectNodeColor,
   };
 }

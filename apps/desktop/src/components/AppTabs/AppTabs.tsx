@@ -1,5 +1,11 @@
 import React from "react";
-import { Plus, SidebarSimple, SlidersHorizontal } from "@phosphor-icons/react";
+import {
+  Plus,
+  SidebarSimple,
+  SlidersHorizontal,
+  FileText,
+  FrameCorners,
+} from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
 
 export interface AppTabsProps {
@@ -27,6 +33,7 @@ export function AppTabs({
     <div className="app-tabs" role="tablist" aria-label="Open notes">
       <div className="app-tabs__strip">
         {openNotes.map((path) => {
+          const isCanvas = path.endsWith(".canvas");
           const displayTitle =
             path
               .replace(/\.(md|canvas)$/i, "")
@@ -44,6 +51,13 @@ export function AppTabs({
               onClick={() => onSelectNote(path)}
               title={path}
             >
+              <span className="app-tabs__tab-icon" aria-hidden="true">
+                {isCanvas ? (
+                  <FrameCorners size={13} weight="regular" />
+                ) : (
+                  <FileText size={13} weight="regular" />
+                )}
+              </span>
               <span className="app-tabs__tab-title">{displayTitle}</span>
               {isDirty && <span className="app-tabs__dirty-dot" />}
               <button

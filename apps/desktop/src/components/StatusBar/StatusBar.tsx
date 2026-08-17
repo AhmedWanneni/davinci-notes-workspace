@@ -36,12 +36,17 @@ export function StatusBar({
   content,
   graph,
 }: StatusBarProps) {
-  const stats = useMemo(() => computeNoteStats(content), [content]);
+  const isCanvas = activeNotePath?.endsWith(".canvas") ?? false;
+
+  const stats = useMemo(
+    () => (isCanvas ? null : computeNoteStats(content)),
+    [content, isCanvas],
+  );
 
   const backlinkCount = useMemo(() => {
-    if (!activeNotePath || !graph) return 0;
+    if (!activeNotePath || !graph || isCanvas) return 0;
     return graph.backlinks.get(activeNotePath)?.length ?? 0;
-  }, [activeNotePath, graph]);
+  }, [activeNotePath, graph, isCanvas]);
 
   return (
     <footer className="status-bar" role="status" aria-label="Status bar">
@@ -53,25 +58,31 @@ export function StatusBar({
       </div>
 
       {activeNotePath ? (
-        <div className="status-bar__right">
-          <span className="status-bar__stat">
-            {backlinkCount} {backlinkCount === 1 ? "backlink" : "backlinks"}
-          </span>
-          <span className="status-bar__divider">·</span>
-          <span className="status-bar__stat">
-            {stats.propertyCount}{" "}
-            {stats.propertyCount === 1 ? "property" : "properties"}
-          </span>
-          <span className="status-bar__divider">·</span>
-          <span className="status-bar__stat">
-            {stats.wordCount} {stats.wordCount === 1 ? "word" : "words"}
-          </span>
-          <span className="status-bar__divider">·</span>
-          <span className="status-bar__stat">
-            {stats.charCount.toLocaleString()}{" "}
-            {stats.charCount === 1 ? "character" : "characters"}
-          </span>
-        </div>
+        isCanvas ? (
+          <div className="status-bar__right">
+            <span className="status-bar__stat">Canvas file</span>
+          </div>
+        ) : (
+          <div className="status-bar__right">
+            <span className="status-bar__stat">
+              {backlinkCount} {backlinkCount === 1 ? "backlink" : "backlinks"}
+            </span>
+            <span className="status-bar__divider">·</span>
+            <span className="status-bar__stat">
+              {stats!.propertyCount}{" "}
+              {stats!.propertyCount === 1 ? "property" : "properties"}
+            </span>
+            <span className="status-bar__divider">·</span>
+            <span className="status-bar__stat">
+              {stats!.wordCount} {stats!.wordCount === 1 ? "word" : "words"}
+            </span>
+            <span className="status-bar__divider">·</span>
+            <span className="status-bar__stat">
+              {stats!.charCount.toLocaleString()}{" "}
+              {stats!.charCount === 1 ? "character" : "characters"}
+            </span>
+          </div>
+        )
       ) : (
         <div className="status-bar__right">
           <span className="status-bar__stat">No file open</span>

@@ -13,7 +13,19 @@ import {
   persistNote,
   noteFromMarkdown,
   queryFullGraphIndex,
+  withVaultWatchSuppressed,
 } from "./index";
+
+function resolveUniqueCanvasPath(existingPaths: readonly string[]): string {
+  const stem = "Untitled";
+  let candidate = `${stem}.canvas`;
+  if (!existingPaths.includes(candidate)) return candidate;
+  let counter = 1;
+  while (existingPaths.includes(`${stem} ${counter}.canvas`)) {
+    counter += 1;
+  }
+  return `${stem} ${counter}.canvas`;
+}
 
 const FIXTURE_VAULT = __FIXTURE_VAULT_PATH__;
 const LARGE_FIXTURE_VAULT = __LARGE_FIXTURE_VAULT_PATH__;
@@ -44,6 +56,7 @@ export function useVaultSession() {
   const handleVaultLoaded = useCallback(
     async (path: string, count: number, elapsed: number) => {
       setVaultPath(path);
+      useWorkspaceStore.getState().setVaultPath(path);
       append(`indexed ${count} notes in ${elapsed} ms (${path})`);
       const paths = await listNotes();
       const db = await getVaultIndexDb();
@@ -120,21 +133,30 @@ export function useVaultSession() {
 
   const createNewCanvas = useCallback(
     async (title?: string) => {
-      const cleanTitle = title?.trim() || "Untitled";
-      const newPath = cleanTitle.endsWith(".canvas")
-        ? cleanTitle
-        : `${cleanTitle}.canvas`;
-      if (allNotePaths.includes(newPath)) {
+      const currentPaths = useWorkspaceStore.getState().allNotePaths;
+      const cleanTitle = title?.trim();
+      const newPath = cleanTitle
+        ? cleanTitle.endsWith(".canvas")
+          ? cleanTitle
+          : `${cleanTitle}.canvas`
+        : resolveUniqueCanvasPath(currentPaths);
+
+      if (currentPaths.includes(newPath)) {
         append(`Canvas already exists: ${newPath}`);
         await openNote(newPath);
         return;
       }
+
       const defaultContent = JSON.stringify({ nodes: [], edges: [] }, null, 2);
       try {
-        await writeNote(newPath, defaultContent);
-        const updatedPaths = [...allNotePaths, newPath];
-        updateAllPaths(updatedPaths);
-        await openNote(newPath);
+        await withVaultWatchSuppressed(async () => {
+          await writeNote(newPath, defaultContent);
+          updateAllPaths([...currentPaths, newPath]);
+          useWorkspaceStore.setState((state) => ({
+            notesContent: { ...state.notesContent, [newPath]: defaultContent },
+          }));
+          await openNote(newPath);
+        });
         append(`Created new canvas: ${newPath}`);
       } catch (e) {
         append(
@@ -142,7 +164,7 @@ export function useVaultSession() {
         );
       }
     },
-    [allNotePaths, append, openNote, updateAllPaths],
+    [append, openNote, updateAllPaths],
   );
 
   const handleLinkClick = useCallback(

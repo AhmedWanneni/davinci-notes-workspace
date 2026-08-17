@@ -1,23 +1,22 @@
-import { useEffect, useMemo, type JSX } from "react";
+import { useEffect, useMemo, useCallback, type JSX } from "react";
 import {
-  Background,
-  BackgroundVariant,
-  ConnectionMode,
-  ReactFlow,
   ReactFlowProvider,
-  SelectionMode,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { parseCanvas } from "./parseCanvas";
 import { jsonCanvasToReactFlow } from "./canvasTranslation";
-import { canvasNodeTypes } from "./canvasNodeTypes";
-import { canvasEdgeTypes } from "./canvasEdgeTypes";
-import { CanvasContextMenu } from "./CanvasContextMenu";
+import { CanvasContextMenuOverlay } from "./CanvasContextMenuOverlay";
 import { CanvasControls } from "./CanvasControls";
 import { CanvasEditorContext } from "./CanvasEditorContext";
 import { CanvasEmptyState } from "./CanvasEmptyState";
+import { CanvasReactFlow } from "./CanvasReactFlow";
+import { normalizeCanvasPath } from "./nestedCanvasUtils";
+import { useCanvasDropPaste } from "./useCanvasDropPaste";
+import { useCanvasExport } from "./useCanvasExport";
+
 import { useCanvasInteractions } from "./useCanvasInteractions";
 import { useCanvasPersistence } from "./useCanvasPersistence";
 import styles from "./CanvasView.module.scss";
@@ -26,6 +25,14 @@ export interface CanvasViewProps {
   path?: string;
   initialContent?: string;
   onContentChange?: (path: string, content: string) => void;
+  allNotePaths?: readonly string[];
+  notesContent?: Record<string, string>;
+  readNoteContent?: (path: string) => Promise<string> | string;
+  onOpenFile?: (path: string) => void;
+  onCreateNote?: (title: string, content?: string) => Promise<string>;
+  resolveMediaUrl?: (path: string) => string | Promise<string>;
+  onSaveMediaFile?: (fileName: string, data: Uint8Array) => Promise<string>;
+  onExportImage?: (dataUrl: string) => Promise<void> | void;
   className?: string;
 }
 
@@ -33,8 +40,18 @@ function CanvasShell({
   path,
   initialContent,
   onContentChange,
+  allNotePaths = [],
+  notesContent = {},
+  readNoteContent,
+  onOpenFile,
+  onCreateNote,
+  resolveMediaUrl,
+  onSaveMediaFile,
+  onExportImage,
   className,
 }: CanvasViewProps): JSX.Element {
+  const { screenToFlowPosition } = useReactFlow();
+
   const parsedInitial = useMemo(() => {
     try {
       return parseCanvas(initialContent ?? "");
@@ -68,12 +85,23 @@ function CanvasShell({
     contextMenu,
     closeContextMenu,
     createTextCardAtCenter,
+    createFileCard,
+    createLinkCard,
+    swapNodeFile,
+    swapNodeUrl,
+    convertTextCardToFile,
+    deleteNode,
     distributeSelection,
-    handleContextCreate,
-    handleContextDelete,
+    handleContextCreateCard,
+    handleContextCreateFileCard,
+    handleContextCreateEmptyGroup,
+    handleContextCreateGroupFromSelection,
     handleContextDeleteEdge,
     handleContextEditEdgeLabel,
     handleContextSelectEdgeColor,
+    handleContextSelectNodeColor,
+    handleContextConvertTextToFile,
+    handleContextOpenFile,
     handleEdgesChange,
     handleNodesChange,
     onNodeDragStart,
@@ -100,6 +128,36 @@ function CanvasShell({
     setEdges: setEdgesWithRef,
     edgesRef,
     persistCanvas,
+    onCreateNote,
+    onOpenFile,
+    allNotePaths,
+  });
+
+  const { handleDragOver, handleDrop, handlePaste } = useCanvasDropPaste({
+    allNotePaths,
+    createFileCard,
+    createLinkCard,
+    screenToFlowPosition,
+    onSaveMediaFile,
+  });
+
+  const handleDefaultExport = useCallback(
+    (dataUrl: string) => {
+      if (onExportImage) {
+        onExportImage(dataUrl);
+        return;
+      }
+      // Default browser download fallback
+      const link = document.createElement("a");
+      link.download = `canvas-export-${new Date().getTime()}.png`;
+      link.href = dataUrl;
+      link.click();
+    },
+    [onExportImage],
+  );
+
+  const { isExporting, exportViewport, exportFullCanvas } = useCanvasExport({
+    onExport: handleDefaultExport,
   });
 
   const editorContextValue = useMemo(
@@ -111,15 +169,43 @@ function CanvasShell({
       deleteEdge,
       editingEdgeId,
       setEditingEdgeId,
+      allNotePaths,
+      notesContent,
+      readNoteContent,
+      onOpenFile,
+      onNodeFileChange: swapNodeFile,
+      onNodeUrlChange: swapNodeUrl,
+      onExportViewport: exportViewport,
+      onExportFullCanvas: exportFullCanvas,
+      isExporting,
+      onCreateNote,
+      onConvertTextCardToFile: convertTextCardToFile,
+      resolveMediaUrl,
+      onSaveMediaFile,
+      ancestorCanvasPaths: path ? [normalizeCanvasPath(path)] : [],
     }),
     [
+      allNotePaths,
+      convertTextCardToFile,
       deleteEdge,
       editingEdgeId,
+      exportFullCanvas,
+      exportViewport,
+      isExporting,
+      notesContent,
+      onCreateNote,
       onEdgeColorChange,
       onEdgeLabelChange,
       onLayoutChange,
       onNodeTextChange,
+      onOpenFile,
+      onSaveMediaFile,
+      path,
+      readNoteContent,
+      resolveMediaUrl,
       setEditingEdgeId,
+      swapNodeFile,
+      swapNodeUrl,
     ],
   );
 
@@ -128,14 +214,14 @@ function CanvasShell({
       <div
         className={`${styles["canvas-wrapper"]} ${className ?? ""}`.trim()}
         data-testid="canvas-shell"
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        onPaste={handlePaste}
       >
         <div className={styles["canvas-container"]}>
-          <ReactFlow
+          <CanvasReactFlow
             nodes={nodes}
             edges={edges}
-            nodeTypes={canvasNodeTypes}
-            edgeTypes={canvasEdgeTypes}
-            connectionMode={ConnectionMode.Loose}
             onNodesChange={handleNodesChange}
             onEdgesChange={handleEdgesChange}
             onNodeDragStart={onNodeDragStart}
@@ -150,57 +236,48 @@ function CanvasShell({
             onPaneClick={onPaneClick}
             onPaneContextMenu={onPaneContextMenu}
             onNodeContextMenu={onNodeContextMenu}
-            deleteKeyCode={["Backspace", "Delete"]}
-            selectionOnDrag={true}
-            selectionMode={SelectionMode.Partial}
-            multiSelectionKeyCode="Shift"
-            panOnDrag={[1, 2]}
-            panActivationKeyCode="Space"
-            zoomOnScroll={true}
-            zoomOnPinch={true}
-            zoomOnDoubleClick={false}
-            minZoom={0.1}
-            maxZoom={2}
-            fitView={true}
-            fitViewOptions={{ padding: 0.2 }}
-            proOptions={{ hideAttribution: true }}
-          >
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={24}
-              size={1}
-              color="var(--color-border-subtle, #333333)"
-            />
-          </ReactFlow>
+          />
 
           {nodes.length === 0 && <CanvasEmptyState />}
+
+          {isExporting && (
+            <div className={styles["canvas-export-overlay"]} data-testid="export-overlay">
+              <div className={styles["canvas-export-overlay__content"]}>
+                <span>Exporting Canvas...</span>
+              </div>
+            </div>
+          )}
 
           <CanvasControls
             onCreateTextCard={createTextCardAtCenter}
             onAlign={alignSelection}
             onDistribute={distributeSelection}
+            onExportViewport={exportViewport}
+            onExportFullCanvas={exportFullCanvas}
+            isExporting={isExporting}
           />
 
-          {contextMenu && (
-            <CanvasContextMenu
-              menu={contextMenu}
-              onCreateTextCard={handleContextCreate}
-              onDeleteNode={handleContextDelete}
-              onDeleteEdge={handleContextDeleteEdge}
-              onEditEdgeLabel={handleContextEditEdgeLabel}
-              onSelectEdgeColor={handleContextSelectEdgeColor}
-              onClose={closeContextMenu}
-            />
-          )}
+          <CanvasContextMenuOverlay
+            contextMenu={contextMenu}
+            onCreateTextCard={handleContextCreateCard}
+            onCreateFileCard={handleContextCreateFileCard}
+            onCreateEmptyGroup={handleContextCreateEmptyGroup}
+            onCreateGroupFromSelection={handleContextCreateGroupFromSelection}
+            onDeleteNode={deleteNode}
+            onConvertTextToFile={handleContextConvertTextToFile}
+            onOpenFile={handleContextOpenFile}
+            onDeleteEdge={handleContextDeleteEdge}
+            onEditEdgeLabel={handleContextEditEdgeLabel}
+            onSelectEdgeColor={handleContextSelectEdgeColor}
+            onSelectNodeColor={handleContextSelectNodeColor}
+            onClose={closeContextMenu}
+          />
         </div>
       </div>
     </CanvasEditorContext.Provider>
   );
 }
 
-/**
- * React Flow Canvas View Component with Provider.
- */
 export function CanvasView(props: CanvasViewProps): JSX.Element {
   return (
     <ReactFlowProvider>

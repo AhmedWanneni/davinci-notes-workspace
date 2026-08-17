@@ -62,6 +62,33 @@ describe("CanvasData & Models", () => {
     expect(fileNode.subpath).toBe("#summary");
   });
 
+  it("constructs image and video file nodes with relative paths (no base64)", () => {
+    const imageNode: CanvasFileNode = {
+      id: "img-node-1",
+      type: "file",
+      file: "attachments/architecture-diagram.png",
+      x: 100,
+      y: 150,
+      width: 480,
+      height: 360,
+    };
+    expect(imageNode.type).toBe("file");
+    expect(imageNode.file).toBe("attachments/architecture-diagram.png");
+    expect(imageNode.file.startsWith("data:")).toBe(false);
+
+    const videoNode: CanvasFileNode = {
+      id: "video-node-1",
+      type: "file",
+      file: "recordings/walkthrough.mp4",
+      x: 600,
+      y: 150,
+      width: 640,
+      height: 400,
+    };
+    expect(videoNode.type).toBe("file");
+    expect(videoNode.file).toBe("recordings/walkthrough.mp4");
+  });
+
   it("constructs link node correctly", () => {
     const linkNode: CanvasLinkNode = {
       id: "link-1",

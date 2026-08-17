@@ -3,6 +3,7 @@ import {
   MagnifyingGlass,
   ShareNetwork,
   CalendarBlank,
+  FrameCorners,
   Gear,
   SignOut,
 } from "@phosphor-icons/react";
@@ -16,6 +17,7 @@ export interface IconRailProps {
   onOpenSettings: () => void;
   onCloseVault: () => void;
   onDailyNotes?: () => void;
+  onCreateCanvas?: () => void;
 }
 
 export function IconRail({
@@ -26,6 +28,7 @@ export function IconRail({
   onOpenSettings,
   onCloseVault,
   onDailyNotes,
+  onCreateCanvas,
 }: IconRailProps) {
   return (
     <nav className="icon-rail" aria-label="Primary navigation">
@@ -80,6 +83,19 @@ export function IconRail({
             <CalendarBlank size={18} weight="regular" />
           </button>
         </Tooltip>
+
+        {onCreateCanvas && (
+          <Tooltip content="New canvas" contentProps={{ side: "right" }}>
+            <button
+              type="button"
+              className="icon-rail__btn"
+              onClick={onCreateCanvas}
+              aria-label="New canvas"
+            >
+              <FrameCorners size={18} weight="regular" />
+            </button>
+          </Tooltip>
+        )}
       </div>
 
       <div className="icon-rail__group icon-rail__group--bottom">

@@ -43,5 +43,79 @@ export {
   createCanvasEdgeId,
   getCanvasEdgeColorCss,
 } from "./canvasEdgeConstants";
+export { FileCardNode } from "./FileCardNode";
+export type { FileCardNodeData } from "./FileCardNode";
+export { FileCardHeader } from "./FileCardHeader";
+export type { FileCardHeaderProps } from "./FileCardHeader";
+export { LinkCardNode } from "./LinkCardNode";
+export type { LinkCardNodeData } from "./LinkCardNode";
+export { LinkCardHeader } from "./LinkCardHeader";
+export type { LinkCardHeaderProps } from "./LinkCardHeader";
+export { LinkCardUrlEditor } from "./LinkCardUrlEditor";
+export type { LinkCardUrlEditorProps } from "./LinkCardUrlEditor";
+export { MediaCardView } from "./MediaCardView";
+export type { MediaCardViewProps } from "./MediaCardView";
+export {
+  IMAGE_EXTENSIONS,
+  PDF_EXTENSIONS,
+  CANVAS_EXTENSIONS,
+  VIDEO_EXTENSIONS,
+  generatePastedMediaFilename,
+  getFileCardType,
+  getFileExtension,
+  isCanvasFile,
+  isMediaFile,
+  isPdfFile,
+} from "./mediaCardUtils";
+export type { FileCardType } from "./mediaCardUtils";
+export {
+  FORBIDDEN_SANDBOX_TOKENS,
+  SANDBOX_PERMISSIONS,
+  extractDomain,
+  getEmbedUrl,
+  getYouTubeEmbedUrl,
+  isSandboxSafe,
+  isValidWebUrl,
+  isYouTubeUrl,
+  sanitizeWebUrl,
+} from "./linkCardUtils";
+export {
+  MAX_CANVAS_NESTING_DEPTH,
+  checkNestingLimit,
+  detectCanvasCycle,
+  normalizeCanvasPath,
+  validateNestedCanvas,
+} from "./nestedCanvasUtils";
+export type {
+  CanvasCycleResult,
+  NestedCanvasValidationResult,
+} from "./nestedCanvasUtils";
+export { NestedCanvasCardView } from "./NestedCanvasCardView";
+export type { NestedCanvasCardViewProps } from "./NestedCanvasCardView";
+export { ReadOnlyCanvasFlow } from "./ReadOnlyCanvasFlow";
+export { useMediaUrl } from "./useMediaUrl";
+export { useCanvasDropPaste } from "./useCanvasDropPaste";
+export { useCanvasExport } from "./useCanvasExport";
+export type { UseCanvasExportOptions } from "./useCanvasExport";
+
+export {
+  CANVAS_SNAP_GRID,
+  DEFAULT_FILE_CARD_HEIGHT,
+  DEFAULT_FILE_CARD_WIDTH,
+  DEFAULT_LINK_CARD_HEIGHT,
+  DEFAULT_LINK_CARD_WIDTH,
+  MIN_FILE_CARD_HEIGHT,
+  MIN_FILE_CARD_WIDTH,
+  MIN_LINK_CARD_HEIGHT,
+  MIN_LINK_CARD_WIDTH,
+  createFileCardId,
+  createLinkCardId,
+} from "./canvasConstants";
+export {
+  extractHeadings,
+  extractSectionByHeading,
+  normalizeHeadingTarget,
+} from "./subpathUtils";
 export type { CanvasViewProps } from "./CanvasView";
 export { CanvasView } from "./CanvasView";
+

@@ -1,5 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
-import { createTextCardId, snapToGrid } from "./canvasConstants";
+import {
+  createFileCardId,
+  createTextCardId,
+  snapToGrid,
+} from "./canvasConstants";
 
 describe("canvasConstants", () => {
   it("snaps values to the nearest grid line", () => {
@@ -10,6 +13,7 @@ describe("canvasConstants", () => {
   it("creates unique text card ids", () => {
     vi.stubGlobal("crypto", { randomUUID: () => "uuid-123" });
     expect(createTextCardId()).toBe("text-uuid-123");
+    expect(createFileCardId()).toBe("file-uuid-123");
     vi.unstubAllGlobals();
   });
 });

@@ -14,8 +14,11 @@
   "dependencies": {
     "@app/core-types": "workspace:*",
     "@app/design-system": "workspace:*",
+    "@app/editor": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
-    "@xyflow/react": "^12.4.4"
+    "@xyflow/react": "^12.4.4",
+    "html-to-image": "^1.11.13",
+    "pdfjs-dist": "^4.10.38"
   },
   "peerDependencies": {
     "react": "^19.0.0",

@@ -5,12 +5,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type SetStateAction,
 } from "react";
-import {
-  useReactFlow,
-  type Edge,
-  type Node,
-  type OnNodeDrag,
-} from "@xyflow/react";
+import { useReactFlow, type Edge, type Node } from "@xyflow/react";
 import {
   CANVAS_SNAP_GRID,
   DEFAULT_TEXT_CARD_HEIGHT,
@@ -18,11 +13,14 @@ import {
   createTextCardId,
   snapToGrid,
 } from "./canvasConstants";
-import { snapNodeToAlignment } from "./snapNodeAlignment";
+import { useCanvasDrag } from "./useCanvasDrag";
 import { useCanvasEdgeInteractions } from "./useCanvasEdgeInteractions";
+import { useCanvasFileOps } from "./useCanvasFileOps";
 import { useCanvasNodeChanges } from "./useCanvasNodeChanges";
 import { useCanvasSelectionOps } from "./useCanvasSelectionOps";
 import { useCanvasContextMenu } from "./useCanvasContextMenu";
+import { useCanvasGroupOps } from "./useCanvasGroupOps";
+import { isGroupNode, getTransitiveChildIds } from "./groupContainment";
 
 export type { CanvasContextMenuState } from "./useCanvasContextMenu";
 
@@ -31,6 +29,9 @@ export interface UseCanvasInteractionsOptions {
   setEdges: Dispatch<SetStateAction<Edge[]>>;
   edgesRef: React.MutableRefObject<Edge[]>;
   persistCanvas: (nextNodes: Node[], nextEdges: Edge[]) => void;
+  onCreateNote?: (title: string, content?: string) => Promise<string>;
+  onOpenFile?: (path: string) => void;
+  allNotePaths?: readonly string[];
 }
 
 export function useCanvasInteractions({
@@ -38,15 +39,12 @@ export function useCanvasInteractions({
   setEdges,
   edgesRef,
   persistCanvas,
+  onCreateNote,
+  onOpenFile,
+  allNotePaths = [],
 }: UseCanvasInteractionsOptions) {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, getNodes } = useReactFlow();
   const lastPaneClickRef = useRef(0);
-  const dragStartPosRef = useRef<{
-    id: string;
-    x: number;
-    y: number;
-  } | null>(null);
-  const dragAxisLockRef = useRef<"x" | "y" | null>(null);
 
   const nodeChanges = useCanvasNodeChanges({
     setNodes,
@@ -62,15 +60,33 @@ export function useCanvasInteractions({
     persistCanvas,
   });
 
+  const groupOps = useCanvasGroupOps({
+    setNodes,
+    setEdges,
+    edgesRef,
+    persistCanvas,
+  });
+
+  const fileOps = useCanvasFileOps({
+    setNodes,
+    edgesRef,
+    persistCanvas,
+    onCreateNote,
+  });
+
+  const drag = useCanvasDrag({ setNodes, persistCanvas, edgesRef });
+
   const createTextCard = useCallback(
     (flowPosition: { x: number; y: number }) => {
       const [gridX, gridY] = CANVAS_SNAP_GRID;
+      const posX = Number.isFinite(flowPosition?.x) ? flowPosition.x : 0;
+      const posY = Number.isFinite(flowPosition?.y) ? flowPosition.y : 0;
       const newNode: Node = {
         id: createTextCardId(),
         type: "text",
         position: {
-          x: snapToGrid(flowPosition.x, gridX),
-          y: snapToGrid(flowPosition.y, gridY),
+          x: snapToGrid(posX, gridX),
+          y: snapToGrid(posY, gridY),
         },
         style: {
           width: DEFAULT_TEXT_CARD_WIDTH,
@@ -87,19 +103,35 @@ export function useCanvasInteractions({
     [edgesRef, persistCanvas, setNodes],
   );
 
+  const getSelectedCount = useCallback(
+    () => getNodes().filter((n) => n.selected).length,
+    [getNodes],
+  );
+
+  const edgeInteractionsRef = useRef<ReturnType<
+    typeof useCanvasEdgeInteractions
+  > | null>(null);
+
   const contextMenuHooks = useCanvasContextMenu({
     onCreateTextCard: createTextCard,
+    onCreateFileCard: (pos) => {
+      const firstPath = allNotePaths[0] ?? "Untitled.md";
+      fileOps.createFileCard(firstPath, pos);
+    },
+    onCreateEmptyGroup: groupOps.createEmptyGroup,
+    onCreateGroupFromSelection: groupOps.createGroupFromSelection,
     deleteNode: nodeChanges.deleteNode,
+    deleteGroup: groupOps.deleteGroupWithContents,
     deleteEdge: (id: string) => edgeInteractionsRef.current?.deleteEdge(id),
     setEditingEdgeId: (id: string) =>
       edgeInteractionsRef.current?.setEditingEdgeId(id),
     onEdgeColorChange: (id: string, color?) =>
       edgeInteractionsRef.current?.onEdgeColorChange(id, color),
+    onNodeColorChange: groupOps.setNodeColor,
+    onConvertTextToFile: fileOps.convertTextCardToFile,
+    onOpenFile,
+    getSelectedCount,
   });
-
-  const edgeInteractionsRef = useRef<ReturnType<
-    typeof useCanvasEdgeInteractions
-  > | null>(null);
 
   const edgeInteractions = useCanvasEdgeInteractions({
     setNodes,
@@ -110,89 +142,8 @@ export function useCanvasInteractions({
   });
   edgeInteractionsRef.current = edgeInteractions;
 
-  const onNodeDragStart: OnNodeDrag = useCallback((_event, draggedNode) => {
-    dragStartPosRef.current = {
-      id: draggedNode.id,
-      x: draggedNode.position.x,
-      y: draggedNode.position.y,
-    };
-    dragAxisLockRef.current = null;
-  }, []);
-
-  const onNodeDrag: OnNodeDrag = useCallback(
-    (event, draggedNode, draggedNodes) => {
-      setNodes((current) => {
-        const draggedIds = new Set(draggedNodes.map((n) => n.id));
-        const others = current.filter((node) => !draggedIds.has(node.id));
-        let targetX = draggedNode.position.x;
-        let targetY = draggedNode.position.y;
-        const e = event as MouseEvent;
-        if (e.shiftKey && dragStartPosRef.current?.id === draggedNode.id) {
-          const startX = dragStartPosRef.current.x;
-          const startY = dragStartPosRef.current.y;
-          if (!dragAxisLockRef.current) {
-            const dx = Math.abs(targetX - startX);
-            const dy = Math.abs(targetY - startY);
-            if (dx > 5 || dy > 5) {
-              dragAxisLockRef.current = dx > dy ? "x" : "y";
-            }
-          }
-          if (dragAxisLockRef.current === "x") targetY = startY;
-          else if (dragAxisLockRef.current === "y") targetX = startX;
-        } else {
-          dragAxisLockRef.current = null;
-        }
-        const aligned = snapNodeToAlignment(
-          { ...draggedNode, position: { x: targetX, y: targetY } },
-          others,
-        );
-        const dx = aligned.x - draggedNode.position.x;
-        const dy = aligned.y - draggedNode.position.y;
-        return current.map((node) => {
-          if (!draggedIds.has(node.id)) return node;
-          return {
-            ...node,
-            position: {
-              x: node.position.x + dx,
-              y: node.position.y + dy,
-            },
-          };
-        });
-      });
-    },
-    [setNodes],
-  );
-
-  const onNodeDragStop: OnNodeDrag = useCallback(
-    (_event, draggedNode, draggedNodes) => {
-      dragStartPosRef.current = null;
-      dragAxisLockRef.current = null;
-      const [gridX, gridY] = CANVAS_SNAP_GRID;
-      setNodes((current) => {
-        const draggedIds = new Set(draggedNodes.map((n) => n.id));
-        const snappedX = snapToGrid(draggedNode.position.x, gridX);
-        const snappedY = snapToGrid(draggedNode.position.y, gridY);
-        const dx = snappedX - draggedNode.position.x;
-        const dy = snappedY - draggedNode.position.y;
-        const next = current.map((node) => {
-          if (!draggedIds.has(node.id)) return node;
-          return {
-            ...node,
-            position: {
-              x: node.position.x + dx,
-              y: node.position.y + dy,
-            },
-          };
-        });
-        persistCanvas(next, edgesRef.current);
-        return next;
-      });
-    },
-    [edgesRef, persistCanvas, setNodes],
-  );
-
   const onPaneClick = useCallback(
-    (event: ReactMouseEvent) => {
+    (event: ReactMouseEvent | MouseEvent) => {
       contextMenuHooks.closeContextMenu();
       const now = Date.now();
       if (now - lastPaneClickRef.current < 300) {
@@ -216,15 +167,48 @@ export function useCanvasInteractions({
     );
   }, [createTextCard, screenToFlowPosition]);
 
+  const deleteGroupAware = useCallback(
+    (nodeId: string) => {
+      const node = getNodes().find((n) => n.id === nodeId);
+      if (node && isGroupNode(node)) {
+        groupOps.deleteGroupWithContents(nodeId);
+      } else {
+        nodeChanges.deleteNode(nodeId);
+      }
+    },
+    [getNodes, groupOps, nodeChanges],
+  );
+
+  const onNodesDeleteGroupAware = useCallback(
+    (deleted: Node[]) => {
+      const allIds = new Set<string>();
+      for (const d of deleted) {
+        allIds.add(d.id);
+        for (const c of getTransitiveChildIds(getNodes(), [d.id])) {
+          allIds.add(c);
+        }
+      }
+      setEdges((current) => {
+        const next = current.filter(
+          (edge) => !allIds.has(edge.source) && !allIds.has(edge.target),
+        );
+        edgesRef.current = next;
+        return next;
+      });
+    },
+    [edgesRef, getNodes, setEdges],
+  );
+
   return {
     ...selectionOps,
     ...contextMenuHooks,
     createTextCardAtCenter,
-    onNodeDragStart,
-    onNodeDrag,
-    onNodeDragStop,
+    ...drag,
     onPaneClick,
     ...nodeChanges,
+    deleteNode: deleteGroupAware,
+    onNodesDelete: onNodesDeleteGroupAware,
     ...edgeInteractions,
+    ...fileOps,
   };
 }

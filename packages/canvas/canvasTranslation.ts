@@ -3,111 +3,100 @@ import type { CanvasData } from "./CanvasData";
 import type { CanvasEdge } from "./CanvasEdge";
 import type { CanvasNode } from "./CanvasNode";
 import { getCanvasEdgeColorCss } from "./canvasEdgeConstants";
+import {
+  MAX_GROUP_NESTING_DEPTH,
+  assignParentsByBbox,
+  getNodeHeight,
+  getNodeWidth,
+} from "./groupContainment";
 
 export interface CanvasReactFlowState {
   nodes: Node[];
   edges: Edge[];
 }
 
-/**
- * Maps a single JSON Canvas node to a React Flow Node object.
- */
+function nodeToAbsolute(
+  node: Node,
+  nodesById: Map<string, Node>,
+): { x: number; y: number } {
+  let x = node.position.x;
+  let y = node.position.y;
+  let parentId = node.parentId;
+  let depth = 0;
+  while (parentId && depth < MAX_GROUP_NESTING_DEPTH) {
+    const parent = nodesById.get(parentId);
+    if (!parent) break;
+    x += parent.position.x;
+    y += parent.position.y;
+    parentId = parent.parentId;
+    depth++;
+  }
+  return { x, y };
+}
+
 export function jsonNodeToReactFlowNode(node: CanvasNode): Node {
   const { id, type, x, y, width, height, color, ...rest } = node;
-
   return {
     id,
     type,
     position: { x, y },
     style: { width, height },
-    data: {
-      ...rest,
-      color,
-      type,
-    },
+    data: { ...rest, color, type },
   };
 }
 
-/**
- * Maps a single React Flow Node object back to a JSON Canvas node.
- */
-export function reactFlowNodeToJsonNode(rfNode: Node): CanvasNode {
-  const width =
-    typeof rfNode.style?.width === "number"
-      ? rfNode.style.width
-      : typeof rfNode.width === "number"
-        ? rfNode.width
-        : 250;
-  const height =
-    typeof rfNode.style?.height === "number"
-      ? rfNode.style.height
-      : typeof rfNode.height === "number"
-        ? rfNode.height
-        : 150;
-
-  const nodeData = (rfNode.data ?? {}) as Record<string, unknown>;
+export function reactFlowNodeToJsonNode(
+  rfNode: Node,
+  nodesById: Map<string, Node> = new Map(),
+): CanvasNode {
+  const width = getNodeWidth(rfNode);
+  const height = getNodeHeight(rfNode);
+  const abs = nodeToAbsolute(rfNode, nodesById);
+  const d = (rfNode.data ?? {}) as Record<string, unknown>;
   const base = {
     id: rfNode.id,
-    x: Math.round(rfNode.position.x),
-    y: Math.round(rfNode.position.y),
+    x: Math.round(abs.x),
+    y: Math.round(abs.y),
     width: Math.round(width),
     height: Math.round(height),
-    ...(typeof nodeData.color === "string" ? { color: nodeData.color } : {}),
+    ...(typeof d.color === "string" ? { color: d.color } : {}),
   };
-
-  const nodeType = (rfNode.type ?? nodeData.type ?? "text") as string;
-
+  const nodeType = (rfNode.type ?? d.type ?? "text") as string;
   switch (nodeType) {
     case "file":
       return {
         ...base,
         type: "file",
-        file: (nodeData.file as string) ?? "",
-        ...(typeof nodeData.subpath === "string"
-          ? { subpath: nodeData.subpath }
-          : {}),
+        file: (d.file as string) ?? "",
+        ...(typeof d.subpath === "string" ? { subpath: d.subpath } : {}),
       };
     case "link":
-      return {
-        ...base,
-        type: "link",
-        url: (nodeData.url as string) ?? "",
-      };
+      return { ...base, type: "link", url: (d.url as string) ?? "" };
     case "group":
       return {
         ...base,
         type: "group",
-        ...(typeof nodeData.label === "string"
-          ? { label: nodeData.label }
+        ...(typeof d.label === "string" ? { label: d.label } : {}),
+        ...(typeof d.background === "string"
+          ? { background: d.background }
           : {}),
-        ...(typeof nodeData.background === "string"
-          ? { background: nodeData.background }
-          : {}),
-        ...(typeof nodeData.backgroundStyle === "string"
+        ...(typeof d.backgroundStyle === "string"
           ? {
-              backgroundStyle: nodeData.backgroundStyle as
+              backgroundStyle: d.backgroundStyle as
                 "cover" | "ratio" | "repeat",
             }
           : {}),
       };
     case "text":
     default:
-      return {
-        ...base,
-        type: "text",
-        text: (nodeData.text as string) ?? "",
-      };
+      return { ...base, type: "text", text: (d.text as string) ?? "" };
   }
 }
 
-/**
- * Maps a single JSON Canvas edge to a React Flow Edge object.
- */
 export function jsonEdgeToReactFlowEdge(edge: CanvasEdge): Edge {
   const edgeColor = getCanvasEdgeColorCss(edge.color);
   const showArrowEnd = edge.toEnd !== "none";
   const showArrowStart = edge.fromEnd === "arrow";
-
   return {
     id: edge.id,
     source: edge.fromNode,
@@ -142,62 +131,42 @@ export function jsonEdgeToReactFlowEdge(edge: CanvasEdge): Edge {
   };
 }
 
-/**
- * Maps a single React Flow Edge object back to a JSON Canvas edge.
- */
 export function reactFlowEdgeToJsonEdge(rfEdge: Edge): CanvasEdge {
-  const edgeData = (rfEdge.data ?? {}) as Record<string, unknown>;
-
+  const d = (rfEdge.data ?? {}) as Record<string, unknown>;
   const edge: CanvasEdge = {
     id: rfEdge.id,
     fromNode: rfEdge.source,
     toNode: rfEdge.target,
   };
-
-  const fromSide = (rfEdge.sourceHandle ?? edgeData.fromSide) as
+  const fromSide = (rfEdge.sourceHandle ?? d.fromSide) as
     "top" | "right" | "bottom" | "left" | undefined;
   if (fromSide) edge.fromSide = fromSide;
-
-  const toSide = (rfEdge.targetHandle ?? edgeData.toSide) as
+  const toSide = (rfEdge.targetHandle ?? d.toSide) as
     "top" | "right" | "bottom" | "left" | undefined;
   if (toSide) edge.toSide = toSide;
-
-  if (typeof edgeData.fromEnd === "string") {
-    edge.fromEnd = edgeData.fromEnd as "none" | "arrow";
-  }
-  if (typeof edgeData.toEnd === "string") {
-    edge.toEnd = edgeData.toEnd as "none" | "arrow";
-  }
-  if (typeof edgeData.color === "string") {
-    edge.color = edgeData.color;
-  }
-  if (typeof rfEdge.label === "string" && rfEdge.label.trim()) {
+  if (typeof d.fromEnd === "string")
+    edge.fromEnd = d.fromEnd as "none" | "arrow";
+  if (typeof d.toEnd === "string") edge.toEnd = d.toEnd as "none" | "arrow";
+  if (typeof d.color === "string") edge.color = d.color;
+  if (typeof rfEdge.label === "string" && rfEdge.label.trim())
     edge.label = rfEdge.label;
-  } else if (typeof edgeData.label === "string" && edgeData.label.trim()) {
-    edge.label = edgeData.label;
-  }
-
+  else if (typeof d.label === "string" && d.label.trim()) edge.label = d.label;
   return edge;
 }
 
-/**
- * Converts a JSON Canvas data document into React Flow nodes and edges.
- */
 export function jsonCanvasToReactFlow(data: CanvasData): CanvasReactFlowState {
-  const nodes = (data.nodes ?? []).map(jsonNodeToReactFlowNode);
-  const edges = (data.edges ?? []).map(jsonEdgeToReactFlowEdge);
-  return { nodes, edges };
+  const rawNodes = (data.nodes ?? []).map(jsonNodeToReactFlowNode);
+  return {
+    nodes: assignParentsByBbox(rawNodes),
+    edges: (data.edges ?? []).map(jsonEdgeToReactFlowEdge),
+  };
 }
 
-/**
- * Converts React Flow nodes and edges into a spec-compliant JSON Canvas document.
- */
 export function reactFlowToJsonCanvas(
   nodes: Node[],
   edges: Edge[],
 ): CanvasData {
-  return {
-    nodes: nodes.map(reactFlowNodeToJsonNode),
-    edges: edges.map(reactFlowEdgeToJsonEdge),
-  };
+  const nodesById = new Map(nodes.map((n) => [n.id, n]));
+  const jsonNodes = nodes.map((n) => reactFlowNodeToJsonNode(n, nodesById));
+  return { nodes: jsonNodes, edges: edges.map(reactFlowEdgeToJsonEdge) };
 }

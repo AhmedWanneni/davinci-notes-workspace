@@ -5,6 +5,8 @@ import {
   CaretDown,
   FileText,
   FrameCorners,
+  Image,
+  Video,
 } from "@phosphor-icons/react";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
 
@@ -86,6 +88,11 @@ export function FileTree({
           const item = visibleNodes[virtualItem.index];
           const isFile = item.node.type === "file";
           const isCanvas = isFile && item.node.name.endsWith(".canvas");
+          const isImage =
+            isFile &&
+            /\.(png|jpe?g|gif|svg|webp|bmp|ico|avif)$/i.test(item.node.name);
+          const isVideo =
+            isFile && /\.(mp4|webm|og[gv]|mov|mkv|m4v)$/i.test(item.node.name);
           const isActive = isFile && item.node.path === activePath;
           const isDirty = isFile && dirtyPaths.has(item.node.path);
           const isExpanded = !isFile && expandedFolders.has(item.node.path);
@@ -96,6 +103,17 @@ export function FileTree({
               key={virtualItem.key}
               className="file-tree__row"
               data-active={isActive || undefined}
+              draggable={isFile}
+              onDragStart={(e) => {
+                if (isFile) {
+                  e.dataTransfer.setData(
+                    "application/vnd.davinci.note",
+                    item.node.path,
+                  );
+                  e.dataTransfer.setData("text/plain", item.node.path);
+                  e.dataTransfer.effectAllowed = "copy";
+                }
+              }}
               style={{
                 position: "absolute",
                 top: 0,
@@ -130,6 +148,10 @@ export function FileTree({
                   )
                 ) : isCanvas ? (
                   <FrameCorners size={14} className="file-tree__file-icon" />
+                ) : isImage ? (
+                  <Image size={14} className="file-tree__file-icon" />
+                ) : isVideo ? (
+                  <Video size={14} className="file-tree__file-icon" />
                 ) : (
                   <FileText size={14} className="file-tree__file-icon" />
                 )}

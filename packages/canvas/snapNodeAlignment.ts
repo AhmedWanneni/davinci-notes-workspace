@@ -37,8 +37,31 @@ export function getNodeBounds(node: Node): NodeBounds {
   };
 }
 
+function checkGuideDelta(
+  d1: number,
+  d2: number,
+  d3: number,
+  t1: number,
+  t2: number,
+  t3: number,
+  threshold: number,
+): number | null {
+  const targets = [t1, t2, t3];
+  const dragged = [d1, d2, d3];
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      const delta = targets[j] - dragged[i];
+      if (Math.abs(delta) <= threshold) {
+        return delta;
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Snaps a dragged node's position to align with edges/centers of other nodes.
+ * Zero-allocation in inner loops with spatial proximity pre-filtering.
  */
 export function snapNodeToAlignment(
   draggedNode: Node,
@@ -48,49 +71,55 @@ export function snapNodeToAlignment(
   const dragged = getNodeBounds(draggedNode);
   let { x, y } = draggedNode.position;
 
+  let snappedX = false;
+  let snappedY = false;
+
   for (const other of otherNodes) {
     if (other.id === draggedNode.id) continue;
 
+    // Spatial pre-filter: skip nodes far away from drag target
+    if (
+      Math.abs(other.position.x - draggedNode.position.x) > 3000 &&
+      Math.abs(other.position.y - draggedNode.position.y) > 3000
+    ) {
+      continue;
+    }
+
     const target = getNodeBounds(other);
-    const xGuides = [
-      { dragged: dragged.left, target: target.left },
-      { dragged: dragged.left, target: target.right },
-      { dragged: dragged.left, target: target.centerX },
-      { dragged: dragged.right, target: target.left },
-      { dragged: dragged.right, target: target.right },
-      { dragged: dragged.right, target: target.centerX },
-      { dragged: dragged.centerX, target: target.left },
-      { dragged: dragged.centerX, target: target.right },
-      { dragged: dragged.centerX, target: target.centerX },
-    ];
 
-    for (const guide of xGuides) {
-      const delta = guide.target - guide.dragged;
-      if (Math.abs(delta) <= threshold) {
-        x += delta;
-        break;
+    if (!snappedX) {
+      const deltaX = checkGuideDelta(
+        dragged.left,
+        dragged.right,
+        dragged.centerX,
+        target.left,
+        target.right,
+        target.centerX,
+        threshold,
+      );
+      if (deltaX !== null) {
+        x += deltaX;
+        snappedX = true;
       }
     }
 
-    const yGuides = [
-      { dragged: dragged.top, target: target.top },
-      { dragged: dragged.top, target: target.bottom },
-      { dragged: dragged.top, target: target.centerY },
-      { dragged: dragged.bottom, target: target.top },
-      { dragged: dragged.bottom, target: target.bottom },
-      { dragged: dragged.bottom, target: target.centerY },
-      { dragged: dragged.centerY, target: target.top },
-      { dragged: dragged.centerY, target: target.bottom },
-      { dragged: dragged.centerY, target: target.centerY },
-    ];
-
-    for (const guide of yGuides) {
-      const delta = guide.target - guide.dragged;
-      if (Math.abs(delta) <= threshold) {
-        y += delta;
-        break;
+    if (!snappedY) {
+      const deltaY = checkGuideDelta(
+        dragged.top,
+        dragged.bottom,
+        dragged.centerY,
+        target.top,
+        target.bottom,
+        target.centerY,
+        threshold,
+      );
+      if (deltaY !== null) {
+        y += deltaY;
+        snappedY = true;
       }
     }
+
+    if (snappedX && snappedY) break;
   }
 
   return { x, y };

@@ -37,6 +37,8 @@ export function RightSidebar({
     (state) => (activePath ? state.notesContent[activePath] : "") || "",
   );
 
+  const isCanvasActive = activePath?.endsWith(".canvas") ?? false;
+
   return (
     <aside
       className="app-right-sidebar"
@@ -67,29 +69,39 @@ export function RightSidebar({
 
           {isMentionsOpen && (
             <div className="app-right-sidebar__section-body">
-              <BacklinksPanel
-                activePath={activePath}
-                onSelectNote={onSelectNote}
-              />
-
-              <div className="app-right-sidebar__subsection">
-                <div className="app-right-sidebar__subsection-header">
-                  <Typography
-                    variant="text"
-                    size="xs"
-                    color="muted"
-                    weight="medium"
-                  >
-                    Unlinked mentions
-                  </Typography>
-                  <span className="app-right-sidebar__count">0</span>
-                </div>
+              {isCanvasActive ? (
                 <div className="app-right-sidebar__subsection-empty">
                   <Typography variant="text" size="xs" color="muted">
-                    No unlinked mentions found
+                    Canvas files do not have linked mentions
                   </Typography>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <BacklinksPanel
+                    activePath={activePath}
+                    onSelectNote={onSelectNote}
+                  />
+
+                  <div className="app-right-sidebar__subsection">
+                    <div className="app-right-sidebar__subsection-header">
+                      <Typography
+                        variant="text"
+                        size="xs"
+                        color="muted"
+                        weight="medium"
+                      >
+                        Unlinked mentions
+                      </Typography>
+                      <span className="app-right-sidebar__count">0</span>
+                    </div>
+                    <div className="app-right-sidebar__subsection-empty">
+                      <Typography variant="text" size="xs" color="muted">
+                        No unlinked mentions found
+                      </Typography>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -117,7 +129,15 @@ export function RightSidebar({
 
           {isOutlineOpen && (
             <div className="app-right-sidebar__section-body">
-              <NoteOutline content={activeContent} />
+              {isCanvasActive ? (
+                <div className="app-right-sidebar__subsection-empty">
+                  <Typography variant="text" size="xs" color="muted">
+                    Canvas outline not available
+                  </Typography>
+                </div>
+              ) : (
+                <NoteOutline content={activeContent} />
+              )}
             </div>
           )}
         </div>
@@ -141,13 +161,21 @@ export function RightSidebar({
 
           {isGraphOpen && (
             <div className="app-right-sidebar__section-body">
-              <Suspense fallback={null}>
-                <LazyLocalGraphPanel
-                  graph={graph}
-                  activePath={activePath}
-                  onSelectNote={onSelectNote}
-                />
-              </Suspense>
+              {isCanvasActive ? (
+                <div className="app-right-sidebar__subsection-empty">
+                  <Typography variant="text" size="xs" color="muted">
+                    Local graph not available for canvas
+                  </Typography>
+                </div>
+              ) : (
+                <Suspense fallback={null}>
+                  <LazyLocalGraphPanel
+                    graph={graph}
+                    activePath={activePath}
+                    onSelectNote={onSelectNote}
+                  />
+                </Suspense>
+              )}
             </div>
           )}
         </div>

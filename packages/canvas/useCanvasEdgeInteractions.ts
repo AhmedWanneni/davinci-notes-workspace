@@ -129,7 +129,7 @@ export function useCanvasEdgeInteractions({
   );
 
   const onEdgeContextMenu = useCallback(
-    (event: ReactMouseEvent, edge: Edge) => {
+    (event: ReactMouseEvent | MouseEvent, edge: Edge) => {
       event.preventDefault();
       setContextMenu({
         x: event.clientX,

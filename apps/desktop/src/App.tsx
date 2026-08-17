@@ -110,9 +110,8 @@ export function App() {
     if (title) void createNewNote(title);
   };
 
-  const handleCreateCanvasPrompt = () => {
-    const title = prompt("Enter canvas title:");
-    if (title) void createNewCanvas(title);
+  const handleCreateCanvas = () => {
+    void createNewCanvas();
   };
 
   if (!vaultPath) {
@@ -162,6 +161,7 @@ export function App() {
           onOpenSettings={() => setIsSettingsOpen(true)}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
+          onCreateCanvas={handleCreateCanvas}
         />
 
         <AppSidebar
@@ -172,7 +172,7 @@ export function App() {
           log={log}
           isCollapsed={!isLeftSidebarOpen}
           onCreateNote={handleCreateNotePrompt}
-          onCreateCanvas={handleCreateCanvasPrompt}
+          onCreateCanvas={handleCreateCanvas}
           onNoteClick={(path) => void openNote(path)}
         />
 

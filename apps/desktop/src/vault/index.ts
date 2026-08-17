@@ -34,6 +34,7 @@ export {
   startVaultWatcher,
   subscribeVaultChanges,
   writeNote,
+  writeBinaryFile,
   type FileTreeNode,
   type VaultChangeBatch,
 } from "./vaultCommands";

@@ -36,7 +36,7 @@ module.exports = {
           { from: "indexer", allow: ["core-types", "indexer"] },
           { from: "sync-client", allow: ["core-types", "sync-client"] },
           { from: "design-system", allow: ["core-types", "design-system"] },
-          { from: "canvas", allow: ["core-types", "design-system", "canvas"] },
+          { from: "canvas", allow: ["core-types", "design-system", "editor", "canvas"] },
           { from: "editor", allow: ["core-types", "indexer", "editor"] },
           { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "app"] },
           { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }

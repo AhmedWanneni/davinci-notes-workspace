@@ -19,7 +19,9 @@ interface WorkspaceState {
   dirtyNotes: Set<string>;
   allNotePaths: string[];
   graph: GraphIndex | null;
+  vaultPath: string | null;
   vaultUpdateCounter: number;
+  setVaultPath: (path: string | null) => void;
   initializeVault: (
     paths: string[],
     initialGraph?: GraphIndex | null,
@@ -46,8 +48,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   dirtyNotes: new Set(),
   allNotePaths: [],
   graph: null,
+  vaultPath: null,
   vaultUpdateCounter: 0,
   editorFont: "system",
+  setVaultPath: (path: string | null) => set({ vaultPath: path }),
 
   loadSettings: async () => {
     try {

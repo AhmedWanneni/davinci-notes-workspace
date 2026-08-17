@@ -57,6 +57,13 @@ export async function writeNote(path: string, content: string): Promise<void> {
   return invoke("write_note", { path, content });
 }
 
+export async function writeBinaryFile(
+  path: string,
+  data: Uint8Array | number[],
+): Promise<void> {
+  return invoke("write_binary_file", { path, data: Array.from(data) });
+}
+
 export function subscribeVaultChanges(
   handler: (batch: VaultChangeBatch) => void,
 ): Promise<UnlistenFn> {

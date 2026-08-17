@@ -26,6 +26,7 @@ pub fn run() {
       fs::get_file_tree,
       fs::read_note,
       fs::write_note,
+      fs::write_binary_file,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

@@ -13,6 +13,8 @@ import {
   MagnifyingGlassMinus,
   MagnifyingGlassPlus,
   TextT,
+  Camera,
+  DownloadSimple,
 } from "@phosphor-icons/react";
 import type { AlignDirection, DistributeDirection } from "./arrangeNodes";
 import styles from "./CanvasView.module.scss";
@@ -21,6 +23,9 @@ export interface CanvasControlsProps {
   onCreateTextCard: () => void;
   onAlign?: (direction: AlignDirection) => void;
   onDistribute?: (direction: DistributeDirection) => void;
+  onExportViewport?: () => void;
+  onExportFullCanvas?: () => void;
+  isExporting?: boolean;
 }
 
 type IconComponent = (props: { size?: number }) => JSX.Element | null;
@@ -29,6 +34,9 @@ export function CanvasControls({
   onCreateTextCard,
   onAlign,
   onDistribute,
+  onExportViewport,
+  onExportFullCanvas,
+  isExporting,
 }: CanvasControlsProps): JSX.Element {
   const { fitView, zoomIn, zoomOut, getNodes } = useReactFlow();
   const selectedCount = getNodes().filter((n) => n.selected).length;
@@ -182,6 +190,33 @@ export function CanvasControls({
           title="Zoom to Fit"
         >
           <CornersOut size={15} />
+        </button>
+      </div>
+
+      <div
+        className={styles["canvas-controls__group"]}
+        role="group"
+        aria-label="Export"
+      >
+        <button
+          type="button"
+          className={styles["canvas-controls__btn"]}
+          onClick={onExportViewport}
+          disabled={isExporting}
+          aria-label="Export Viewport"
+          title="Export current viewport as image"
+        >
+          <Camera size={15} />
+        </button>
+        <button
+          type="button"
+          className={styles["canvas-controls__btn"]}
+          onClick={onExportFullCanvas}
+          disabled={isExporting}
+          aria-label="Export Full Canvas"
+          title="Export entire canvas as image"
+        >
+          <DownloadSimple size={15} />
         </button>
       </div>
     </div>
