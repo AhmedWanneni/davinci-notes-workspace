@@ -10,11 +10,11 @@ import {
   vaultWatchCoordinator,
   listNotes,
   writeNote,
-  persistNote,
-  noteFromMarkdown,
   queryFullGraphIndex,
   withVaultWatchSuppressed,
 } from "./index";
+import { createNoteInVault } from "./createNoteInVault";
+import { resolveUniqueNotePath } from "./resolveUniqueNotePath";
 
 function resolveUniqueCanvasPath(existingPaths: readonly string[]): string {
   const stem = "Untitled";
@@ -96,30 +96,30 @@ export function useVaultSession() {
   );
 
   const createNewNote = useCallback(
-    async (title: string) => {
-      const cleanTitle = title.trim();
-      if (!cleanTitle) return;
-      const newPath = cleanTitle.endsWith(".md")
-        ? cleanTitle
-        : `${cleanTitle}.md`;
-      if (allNotePaths.includes(newPath)) {
+    async (title?: string) => {
+      const currentPaths = useWorkspaceStore.getState().allNotePaths;
+      const cleanTitle = title?.trim();
+      const newPath = cleanTitle
+        ? cleanTitle.endsWith(".md")
+          ? cleanTitle
+          : `${cleanTitle}.md`
+        : resolveUniqueNotePath(currentPaths);
+
+      if (currentPaths.includes(newPath)) {
         append(`Note already exists: ${newPath}`);
         await openNote(newPath);
         return;
       }
-      const defaultContent = `# ${cleanTitle}\n\n`;
+
+      const displayTitle =
+        newPath.replace(/\.md$/i, "").split("/").pop() ?? newPath;
+      const defaultContent = `# ${displayTitle}\n\n`;
+
       try {
-        await writeNote(newPath, defaultContent);
-        const db = await getVaultIndexDb();
-        const updatedPaths = [...allNotePaths, newPath];
-        const note = noteFromMarkdown(
-          newPath,
-          defaultContent,
-          Date.now(),
-          updatedPaths,
-        );
-        await persistNote(db, note);
-        updateAllPaths(updatedPaths);
+        await createNoteInVault(newPath, defaultContent);
+        useWorkspaceStore.setState((state) => ({
+          notesContent: { ...state.notesContent, [newPath]: defaultContent },
+        }));
         await openNote(newPath);
         append(`Created new note: ${newPath}`);
       } catch (e) {
@@ -128,7 +128,7 @@ export function useVaultSession() {
         );
       }
     },
-    [allNotePaths, append, openNote, updateAllPaths],
+    [append, openNote],
   );
 
   const createNewCanvas = useCallback(

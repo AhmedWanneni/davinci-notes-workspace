@@ -36,6 +36,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0026](adr/0026-js-plugin-dialog-for-folder-picker.md) | Folder picker via JS dialog plugin, not Rust `blocking_pick_folder` | Accepted |
 | [0038](adr/0038-cube-css-desktop-styling.md) | Desktop styling: CUBE CSS, not CSS Modules | Accepted |
 | [0040](adr/0040-obsidian-grid-app-shell.md) | Obsidian-style CSS Grid app shell + DOM preservation on collapse | Accepted |
+| [0058](adr/0058-canonical-note-creation-path.md) | Note creation: canonical `createNoteInVault`; no `window.prompt()` | Accepted |
 
 ## Data Model, Indexer & SQLite
 

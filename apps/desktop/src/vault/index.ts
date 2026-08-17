@@ -4,7 +4,9 @@ export {
   indexVaultFull,
   reconcileVaultChanges,
 } from "./VaultIndexer";
+export { createNoteInVault } from "./createNoteInVault";
 export { noteFromMarkdown } from "./noteFromMarkdown";
+export { resolveUniqueNotePath } from "./resolveUniqueNotePath";
 export { getSetting, setSetting } from "./settingsCommands";
 export {
   countIndexedNotes,

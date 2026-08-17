@@ -8,11 +8,8 @@ import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   readNote,
-  writeNote,
   writeBinaryFile,
-  persistNote,
-  noteFromMarkdown,
-  getVaultIndexDb,
+  createNoteInVault,
 } from "../../vault";
 
 const LazyCanvasView = lazy(() =>
@@ -64,26 +61,15 @@ export function EditorArea({
   const handleCreateNote = useCallback(
     async (title: string, noteContent?: string) => {
       const cleanTitle = title.trim();
+      if (!cleanTitle) {
+        throw new Error("Note title is required");
+      }
       const newPath = cleanTitle.endsWith(".md")
         ? cleanTitle
         : `${cleanTitle}.md`;
       const defaultContent =
         noteContent !== undefined ? noteContent : `# ${cleanTitle}\n\n`;
-      await writeNote(newPath, defaultContent);
-      const db = await getVaultIndexDb();
-      const currentPaths = useWorkspaceStore.getState().allNotePaths;
-      const updatedPaths = currentPaths.includes(newPath)
-        ? currentPaths
-        : [...currentPaths, newPath];
-      const note = noteFromMarkdown(
-        newPath,
-        defaultContent,
-        Date.now(),
-        updatedPaths,
-      );
-      await persistNote(db, note);
-      useWorkspaceStore.getState().updateAllPaths(updatedPaths);
-      return newPath;
+      return createNoteInVault(newPath, defaultContent);
     },
     [],
   );

@@ -105,9 +105,8 @@ export function App() {
     }
   };
 
-  const handleCreateNotePrompt = () => {
-    const title = prompt("Enter note title:");
-    if (title) void createNewNote(title);
+  const handleCreateNote = () => {
+    void createNewNote();
   };
 
   const handleCreateCanvas = () => {
@@ -146,7 +145,7 @@ export function App() {
           dirtyNotes={dirtyNotes}
           onSelectNote={(path) => void setActiveNote(path)}
           onCloseNote={(path) => void closeNote(path)}
-          onNewTab={handleCreateNotePrompt}
+          onNewTab={handleCreateNote}
           isRightSidebarOpen={isRightSidebarOpen}
           onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
         />
@@ -171,7 +170,7 @@ export function App() {
           dirtyNotes={dirtyNotes}
           log={log}
           isCollapsed={!isLeftSidebarOpen}
-          onCreateNote={handleCreateNotePrompt}
+          onCreateNote={handleCreateNote}
           onCreateCanvas={handleCreateCanvas}
           onNoteClick={(path) => void openNote(path)}
         />
