@@ -8,6 +8,9 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-08-18 | Editor Markdown Formatting Phase 1 audit (ADR-0062) | Created ignored all-syntax fixture and recorded a source-verified gap table. Strict CommonMark is configured; basic formatting parses but several live-preview/interactions are partial. Missing: strikethrough, highlight, tasks, image rendering/dimensions, footnotes, and Obsidian comments. No editor implementation changed. |
+| 2026-08-18 | Bidirectional H1 ↔ filename sync (ADR-0060) | Built canonical `renameNoteInVault` (prerequisite — no rename existed). H1→file debounced 750ms; file-tree double-click rename syncs H1; wikilink propagation; collision = no-op; loop guard via stem compare. 43 desktop tests passing. |
+| 2026-08-18 | New-note H1 from filename (ADR-0059) | Centralized `initialNoteContent(path)` in canonical `createNoteInVault`; all entry points get `# <basename>\n\n`. Rename/H1: set once at creation, no auto-sync (rename UI not built yet). 29 desktop vault/state tests passing. |
 | 2026-08-17 | Fix: "New note" silently does nothing | Root cause: `window.prompt()` unsupported in Tauri webview — sidebar/tab handlers returned before `createNewNote`. Fixed via immediate `Untitled.md` creation (ADR-0058), canonical `createNoteInVault`, consolidated duplicate creation paths. Phase 9 verification gap documented. |
 | 2026-08-01 | Git Workflow, Hooks, CI & Changesets | Configured Husky, commitlint, lint-staged, GitHub Actions CI workflow, PR templates, CONTRIBUTING.md, and Changesets. All verified. |
 | 2026-08-02 | Design system primitives wrap-up | Added Storybook play functions for all primitives, fixed lint error, aligned Storybook 10 deps (removed addon-essentials), verified lint/test/build-storybook. All 12 primitives complete against checklist. |
@@ -43,6 +46,13 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-08-17 | Canvas Feature Phase 13 — App Integration (FINAL) | Wired canvas fully into Obsidian-grid app shell: Icon Rail New Canvas button (FrameCorners icon), File Tree canvas distinction + click open, Tab Bar canvas/note type icons + close-save flush, RightSidebar "not applicable for canvas" per-section empty states + StatusBar canvas chip (ADR-0057). Re-verified lazy-load boundary: entry JS 21.08 KB raw / 7.71 KB gzip — 0 KB canvas/ReactFlow/PDF in first paint (canvas vendor chunk 56 KB gzip loaded only on demand). All 13 canvas phases complete. 179 canvas tests / 25 suites; tsc clean. |
 
 ## Detailed Session Notes
+
+### 2026-08-18 — Editor Markdown Formatting Phase 1 Audit (ADR-0062)
+
+- Created `test-vault/editor-markdown-formatting-audit.md`, an ignored local fixture containing every requested Obsidian formatting variant, including interaction targets for Shift+Enter and list indentation.
+- Inspected the configured CodeMirror state, parser output, `livePreviewExtension`, `wikilinkExtension`, styles, keymaps, and editor settings. `markdown()` uses strict CommonMark; GFM extensions bundled by Lezer are not enabled.
+- Wrote and indexed ADR-0062 with a complete status table. It distinguishes parser support from live-preview decoration, rendering, and click behavior so a later implementation phase does not overstate support.
+- No file in `packages/editor/` was modified; no package was added and no bundle/runtime cost changed.
 
 
 ### 2026-08-01 → 2026-08-07 — Monorepo, Design System & Core Phases
@@ -361,7 +371,6 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
   - **Delivered** (13 phases, ADRs 0041-0057): Package/datamodel, shell (pan/zoom, save), text cards, edges, selection/arrangement, groups, file embeds, media, perf checkpoint, PDF, webpage, nested, export, app integration.
   - **Explicitly NOT included** v1: realtime collab, plugin API, mobile canvas, right-panel canvas outline/local-graph panels (placeholders per ADR-0057, slot in later).
   - Deferred perf: edge visibility culling refinement, alignment spatial indexing for 500+ nodes.
-
 
 
 

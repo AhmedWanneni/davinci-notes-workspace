@@ -67,9 +67,7 @@ export function EditorArea({
       const newPath = cleanTitle.endsWith(".md")
         ? cleanTitle
         : `${cleanTitle}.md`;
-      const defaultContent =
-        noteContent !== undefined ? noteContent : `# ${cleanTitle}\n\n`;
-      return createNoteInVault(newPath, defaultContent);
+      return createNoteInVault(newPath, noteContent);
     },
     [],
   );

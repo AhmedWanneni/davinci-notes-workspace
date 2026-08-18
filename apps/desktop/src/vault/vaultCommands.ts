@@ -45,6 +45,10 @@ export async function listNotes(): Promise<string[]> {
   return invoke<string[]>("list_notes");
 }
 
+export async function listFolders(): Promise<string[]> {
+  return invoke<string[]>("list_folders");
+}
+
 export async function getFileTree(): Promise<FileTreeNode[]> {
   return invoke<FileTreeNode[]>("get_file_tree");
 }
@@ -55,6 +59,24 @@ export async function readNote(path: string): Promise<NoteFilePayload> {
 
 export async function writeNote(path: string, content: string): Promise<void> {
   return invoke("write_note", { path, content });
+}
+
+export async function renameNote(
+  fromPath: string,
+  toPath: string,
+): Promise<void> {
+  return invoke("rename_note", { fromPath, toPath });
+}
+
+export async function createFolder(path: string): Promise<void> {
+  return invoke("create_folder", { path });
+}
+
+export async function renameFolder(
+  fromPath: string,
+  toPath: string,
+): Promise<void> {
+  return invoke("rename_folder", { fromPath, toPath });
 }
 
 export async function writeBinaryFile(

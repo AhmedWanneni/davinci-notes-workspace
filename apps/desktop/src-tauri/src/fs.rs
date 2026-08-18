@@ -114,6 +114,30 @@ fn collect_vault_paths(vault_root: &Path) -> Result<Vec<String>, String> {
   Ok(paths)
 }
 
+fn collect_vault_folders(vault_root: &Path) -> Result<Vec<String>, String> {
+  let mut folders = Vec::new();
+
+  for entry in WalkDir::new(vault_root)
+    .follow_links(false)
+    .min_depth(1)
+    .into_iter()
+    .filter_map(|e| e.ok())
+  {
+    if !entry.file_type().is_dir() {
+      continue;
+    }
+    if let Some(rel) = vault_relative(vault_root, entry.path()) {
+      if !rel.is_empty() {
+        folders.push(rel);
+      }
+    }
+  }
+
+  folders.sort();
+  folders.dedup();
+  Ok(folders)
+}
+
 fn insert_into_tree(nodes: &mut Vec<FileTreeNode>, rel_path: &str) {
   let parts: Vec<&str> = rel_path.split('/').collect();
   let mut level = nodes;
@@ -264,5 +288,84 @@ pub fn write_binary_file(app: AppHandle, path: String, data: Vec<u8>) -> Result<
   }
 
   fs::write(&absolute, &data).map_err(|e| format!("Write binary failed: {e}"))?;
+  Ok(())
+}
+
+#[tauri::command]
+pub fn list_folders(app: AppHandle) -> Result<Vec<String>, String> {
+  let vault_root = app.state::<VaultState>().get_root()?;
+  collect_vault_folders(&vault_root)
+}
+
+#[tauri::command]
+pub fn create_folder(app: AppHandle, path: String) -> Result<(), String> {
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let absolute = resolve_in_vault(&vault_root, &path)?;
+
+  if absolute.exists() {
+    return Err(format!("Folder already exists: {path}"));
+  }
+
+  fs::create_dir_all(&absolute).map_err(|e| format!("Create folder failed: {e}"))?;
+  Ok(())
+}
+
+#[tauri::command]
+pub fn rename_folder(
+  app: AppHandle,
+  from_path: String,
+  to_path: String,
+) -> Result<(), String> {
+  if from_path == to_path {
+    return Ok(());
+  }
+
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let from_absolute = resolve_in_vault(&vault_root, &from_path)?;
+  let to_absolute = resolve_in_vault(&vault_root, &to_path)?;
+
+  if !from_absolute.is_dir() {
+    return Err(format!("Source folder not found: {from_path}"));
+  }
+
+  if to_absolute.exists() {
+    return Err(format!("Destination already exists: {to_path}"));
+  }
+
+  if let Some(parent) = to_absolute.parent() {
+    fs::create_dir_all(parent).map_err(|e| format!("Create parent dirs failed: {e}"))?;
+  }
+
+  fs::rename(&from_absolute, &to_absolute).map_err(|e| format!("Rename folder failed: {e}"))?;
+  Ok(())
+}
+
+#[tauri::command]
+pub fn rename_note(
+  app: AppHandle,
+  from_path: String,
+  to_path: String,
+) -> Result<(), String> {
+  if from_path == to_path {
+    return Ok(());
+  }
+
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let from_absolute = resolve_in_vault(&vault_root, &from_path)?;
+  let to_absolute = resolve_in_vault(&vault_root, &to_path)?;
+
+  if !from_absolute.is_file() {
+    return Err(format!("Source file not found: {from_path}"));
+  }
+
+  if to_absolute.exists() {
+    return Err(format!("Destination already exists: {to_path}"));
+  }
+
+  if let Some(parent) = to_absolute.parent() {
+    fs::create_dir_all(parent).map_err(|e| format!("Create parent dirs failed: {e}"))?;
+  }
+
+  fs::rename(&from_absolute, &to_absolute).map_err(|e| format!("Rename failed: {e}"))?;
   Ok(())
 }

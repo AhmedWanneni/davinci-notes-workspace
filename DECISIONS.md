@@ -37,6 +37,10 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0038](adr/0038-cube-css-desktop-styling.md) | Desktop styling: CUBE CSS, not CSS Modules | Accepted |
 | [0040](adr/0040-obsidian-grid-app-shell.md) | Obsidian-style CSS Grid app shell + DOM preservation on collapse | Accepted |
 | [0058](adr/0058-canonical-note-creation-path.md) | Note creation: canonical `createNoteInVault`; no `window.prompt()` | Accepted |
+| [0059](adr/0059-new-note-h1-from-filename-no-rename-sync.md) | New-note H1 from filename stem at creation (rename sync superseded by 0060) | Superseded |
+| [0060](adr/0060-bidirectional-h1-filename-sync.md) | Bidirectional H1 ↔ filename sync via canonical `renameNoteInVault` | Accepted |
+| [0061](adr/0061-canonical-vault-folder-creation.md) | Canonical `createFolderInVault`; empty folders in `allFolderPaths` | Accepted |
+| [0062](adr/0062-editor-markdown-formatting-gap-audit.md) | Editor Markdown formatting audit baseline; retain one CodeMirror rendering path | Accepted |
 
 ## Data Model, Indexer & SQLite
 
@@ -109,6 +113,5 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0055](adr/0055-canvas-nested-canvas-cards-and-cycle-prevention.md) | Canvas nested canvas cards: runtime ancestor chain tracking (cycle detection) + max depth cap of 3, read-only preview flow | Accepted |
 | [0056](adr/0056-canvas-export-webpage-card-fallback.md) | Canvas export: webpage card fallback placeholder for iframe content | Accepted |
 | [0057](adr/0057-canvas-right-sidebar-panel-behavior.md) | Canvas right sidebar: explicit "not applicable" empty states per panel; StatusBar shows "Canvas file" chip instead of note stats | Accepted |
-
 
 

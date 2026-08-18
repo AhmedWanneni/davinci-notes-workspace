@@ -24,6 +24,12 @@ vi.mock("../vault", () => ({
   withVaultWatchSuppressed: async (work: () => Promise<unknown>) => {
     return work();
   },
+  renameNoteInVault: vi.fn(),
+}));
+
+vi.mock("../vault/h1DrivenRename", () => ({
+  scheduleH1DrivenRename: vi.fn(),
+  flushH1DrivenRename: vi.fn(async (path: string) => path),
 }));
 
 describe("useWorkspaceStore", () => {
@@ -38,6 +44,7 @@ describe("useWorkspaceStore", () => {
       notesContent: {},
       dirtyNotes: new Set(),
       allNotePaths: [],
+      allFolderPaths: [],
       graph: null,
     });
 
@@ -50,7 +57,7 @@ describe("useWorkspaceStore", () => {
 
   it("loads vault paths and optional graph on initialize", async () => {
     const store = useWorkspaceStore.getState();
-    await store.initializeVault(["a.md", "b.md"]);
+    await store.initializeVault(["a.md", "b.md"], []);
 
     const state = useWorkspaceStore.getState();
     expect(state.allNotePaths).toEqual(["a.md", "b.md"]);

@@ -36,6 +36,7 @@ export function App() {
   const openNotes = useWorkspaceStore((state) => state.openNotes);
   const dirtyNotes = useWorkspaceStore((state) => state.dirtyNotes);
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
+  const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
 
@@ -43,6 +44,15 @@ export function App() {
   const openNote = useWorkspaceStore((state) => state.openNote);
   const closeNote = useWorkspaceStore((state) => state.closeNote);
   const setActiveNote = useWorkspaceStore((state) => state.setActiveNote);
+  const renameNoteFromTree = useWorkspaceStore(
+    (state) => state.renameNoteFromTree,
+  );
+  const renameFolderFromTree = useWorkspaceStore(
+    (state) => state.renameFolderFromTree,
+  );
+  const [pendingRenameFolder, setPendingRenameFolder] = useState<string | null>(
+    null,
+  );
 
   const {
     log,
@@ -54,6 +64,7 @@ export function App() {
     graph,
     loadVaultByMethod,
     createNewNote,
+    createNewFolder,
     createNewCanvas,
     handleLinkClick,
     openFixture,
@@ -113,6 +124,14 @@ export function App() {
     void createNewCanvas();
   };
 
+  const handleCreateFolder = async (parentFolder = "") => {
+    const folderPath = await createNewFolder(parentFolder);
+    if (folderPath) {
+      setPendingRenameFolder(folderPath);
+    }
+    return folderPath;
+  };
+
   if (!vaultPath) {
     return (
       <VaultWelcomeView
@@ -166,13 +185,23 @@ export function App() {
         <AppSidebar
           vaultName={vaultName}
           allNotePaths={allNotePaths}
+          allFolderPaths={allFolderPaths}
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
           log={log}
           isCollapsed={!isLeftSidebarOpen}
           onCreateNote={handleCreateNote}
+          onCreateFolder={handleCreateFolder}
           onCreateCanvas={handleCreateCanvas}
           onNoteClick={(path) => void openNote(path)}
+          onRenameNote={(oldPath, newStem) =>
+            renameNoteFromTree(oldPath, newStem)
+          }
+          onRenameFolder={(oldPath, newName) =>
+            renameFolderFromTree(oldPath, newName)
+          }
+          pendingRenameFolder={pendingRenameFolder}
+          onPendingRenameFolderHandled={() => setPendingRenameFolder(null)}
         />
 
         <main className="app-shell__main">

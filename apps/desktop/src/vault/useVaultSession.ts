@@ -12,8 +12,11 @@ import {
   writeNote,
   queryFullGraphIndex,
   withVaultWatchSuppressed,
+  listFolders,
 } from "./index";
 import { createNoteInVault } from "./createNoteInVault";
+import { createFolderInVault } from "./createFolderInVault";
+import { initialNoteContent } from "./initialNoteContent";
 import { resolveUniqueNotePath } from "./resolveUniqueNotePath";
 
 function resolveUniqueCanvasPath(existingPaths: readonly string[]): string {
@@ -42,6 +45,9 @@ export function useVaultSession() {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const initializeVault = useWorkspaceStore((state) => state.initializeVault);
   const updateAllPaths = useWorkspaceStore((state) => state.updateAllPaths);
+  const updateAllFolderPaths = useWorkspaceStore(
+    (state) => state.updateAllFolderPaths,
+  );
   const incrementVaultUpdateCounter = useWorkspaceStore(
     (state) => state.incrementVaultUpdateCounter,
   );
@@ -59,10 +65,11 @@ export function useVaultSession() {
       useWorkspaceStore.getState().setVaultPath(path);
       append(`indexed ${count} notes in ${elapsed} ms (${path})`);
       const paths = await listNotes();
+      const folders = await listFolders();
       const db = await getVaultIndexDb();
       const fullGraph = await queryFullGraphIndex(db);
       setGraph(fullGraph);
-      await initializeVault(paths, fullGraph);
+      await initializeVault(paths, folders, fullGraph);
     },
     [append, initializeVault],
   );
@@ -111,9 +118,7 @@ export function useVaultSession() {
         return;
       }
 
-      const displayTitle =
-        newPath.replace(/\.md$/i, "").split("/").pop() ?? newPath;
-      const defaultContent = `# ${displayTitle}\n\n`;
+      const defaultContent = initialNoteContent(newPath);
 
       try {
         await createNoteInVault(newPath, defaultContent);
@@ -129,6 +134,22 @@ export function useVaultSession() {
       }
     },
     [append, openNote],
+  );
+
+  const createNewFolder = useCallback(
+    async (parentFolder = "") => {
+      try {
+        const folderPath = await createFolderInVault(parentFolder);
+        append(`Created folder: ${folderPath}`);
+        return folderPath;
+      } catch (e) {
+        append(
+          `Error creating folder: ${e instanceof Error ? e.message : String(e)}`,
+        );
+        return null;
+      }
+    },
+    [append],
   );
 
   const createNewCanvas = useCallback(
@@ -198,7 +219,9 @@ export function useVaultSession() {
       const { updated } = await reconcileVaultChanges(batch);
       append(`reconciled ${updated} path(s) in SQLite`);
       const paths = await listNotes();
+      const folders = await listFolders();
       updateAllPaths(paths);
+      updateAllFolderPaths(folders);
       incrementVaultUpdateCounter();
       const db = await getVaultIndexDb();
       const fullGraph = await queryFullGraphIndex(db);
@@ -218,6 +241,7 @@ export function useVaultSession() {
     updateAllPaths,
     incrementVaultUpdateCounter,
     append,
+    updateAllFolderPaths,
   ]);
 
   return {
@@ -230,6 +254,7 @@ export function useVaultSession() {
     graph,
     loadVaultByMethod,
     createNewNote,
+    createNewFolder,
     createNewCanvas,
     handleLinkClick,
     openFixture: () =>

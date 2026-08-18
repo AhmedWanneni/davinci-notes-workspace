@@ -1,4 +1,14 @@
 {
-  "nodes": [],
+  "nodes": [
+    {
+      "id": "text-127873af-9e00-4fce-88f0-6734ec6b88b5",
+      "x": 144,
+      "y": 456,
+      "width": 240,
+      "height": 120,
+      "type": "text",
+      "text": ""
+    }
+  ],
   "edges": []
 }

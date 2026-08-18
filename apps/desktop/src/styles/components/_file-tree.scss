@@ -65,6 +65,17 @@
   white-space: nowrap;
 }
 
+.file-tree__rename-input {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
 .file-tree__dirty-dot {
   width: 6px;
   height: 6px;
@@ -72,4 +83,31 @@
   border-radius: 50%;
   margin-left: var(--space-2);
   flex-shrink: 0;
+}
+
+.file-tree__context-menu {
+  position: fixed;
+  z-index: 100;
+  min-width: 140px;
+  padding: var(--space-1);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--border-radius-sm);
+}
+
+.file-tree__context-menu-item {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-normal);
+  font: inherit;
+  font-size: var(--type-scale-sm);
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-bg-hover);
+  }
 }

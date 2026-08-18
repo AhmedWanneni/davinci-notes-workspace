@@ -23,10 +23,14 @@ pub fn run() {
       fs::start_vault_watcher,
       fs::set_vault_watcher_paused,
       fs::list_notes,
+      fs::list_folders,
       fs::get_file_tree,
       fs::read_note,
       fs::write_note,
       fs::write_binary_file,
+      fs::create_folder,
+      fs::rename_note,
+      fs::rename_folder,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

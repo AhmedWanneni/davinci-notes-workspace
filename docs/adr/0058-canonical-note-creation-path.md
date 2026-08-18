@@ -9,7 +9,7 @@ Accepted
 Note creation logic was also duplicated between `useVaultSession.createNewNote` and `EditorArea.handleCreateNote` (canvas text-card → file conversion).
 
 ## Decision
-- One canonical `createNoteInVault(path, content)` in `apps/desktop/src/vault/` performs: `write_note` IPC → SQLite `persistNote` → `updateAllPaths`, wrapped in `withVaultWatchSuppressed` to avoid watcher double-index loops.
+- One canonical `createNoteInVault(path, content?)` in `apps/desktop/src/vault/` performs: `write_note` IPC → SQLite `persistNote` → `updateAllPaths`, wrapped in `withVaultWatchSuppressed` to avoid watcher double-index loops. Default body comes from `initialNoteContent(path)` (see ADR-0059).
 - Toolbar/sidebar/tab "new note" actions call `createNewNote()` with **no title prompt** — auto-generate `Untitled.md`, `Untitled 1.md`, … via `resolveUniqueNotePath` (same pattern as canvas).
 - Wikilink resolution, command-palette create-on-Enter, daily notes, and canvas `onCreateNote` all route through `createNoteInVault` or `createNewNote` (which delegates to it).
 

@@ -4,6 +4,7 @@ export { parseFrontmatter } from "./parseFrontmatter";
 export type { ParseFrontmatterResult } from "./parseFrontmatter";
 export {
   parseLinks,
+  parseWikilinkTarget,
   WIKILINK_PATTERN,
   MARKDOWN_LINK_PATTERN,
 } from "./parseLinks";

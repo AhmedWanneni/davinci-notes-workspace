@@ -6,89 +6,76 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Fix: "New note" does nothing** — resolved. Next up: Dogfooding `v0.1.0-rc.1` with canvas included.
+**Editor Markdown Formatting — Phase 1 audit** — complete (ADR-0062). Next up: review and sequence the documented formatting gaps; do not start implementation until a Phase 2 scope is chosen.
 
 ## Last Session
 
-**Fix: "New note" silently does nothing (pre-existing since Phase 7 / UI grid layout)**
+**Editor Markdown Formatting — Phase 1 audit (ADR-0062)**
 
-### Diagnosis (steps 1–5)
+### What was audited
 
-**1. Entry points wired**
-| Entry point | Handler | Notes |
-|---|---|---|
-| Sidebar `FilePlus` button (`AppSidebar`) | `onCreateNote` → `handleCreateNote` | Click handler attached ✓ |
-| Tab bar `+` (`AppTabs`) | `onNewTab` → `handleCreateNote` | Click handler attached ✓ |
-| Icon rail | *No new-note button* | Daily note + new canvas only |
-| Command palette (Enter, no matches) | `onSelectNote(query)` → `handleLinkClick` → `createNewNote(title)` | **Worked** — never used `prompt()` |
-| Wikilink click (unresolved) | `handleLinkClick` → `createNewNote(targetRaw)` | **Worked** |
-| Daily note (icon rail) | `handleDailyNotes` → `createNewNote(date)` | **Worked** |
+- Created ignored regression fixture: `test-vault/editor-markdown-formatting-audit.md`, covering every requested Obsidian syntax variant.
+- Verified the configured CodeMirror parser, decorations, keymaps, styles, link handling, and editor settings without changing `@app/editor`.
+- Recorded all results in [ADR-0062](docs/adr/0062-editor-markdown-formatting-gap-audit.md): CommonMark basics are present but several live-preview/interactions are partial; strikethrough, highlight, task lists, image dimensions/rendering, footnotes, and Obsidian comments are missing.
+- Confirmed `markdown()` uses strict CommonMark. Optional Lezer GFM support is installed but not configured. No Strict Line Breaks setting or distinct app reading mode exists.
 
-**2. Console behavior**
-Clicking sidebar/tab "new note" produced **zero console output** — handler ran but `window.prompt()` returns `null` immediately in the Tauri webview (same class of bug fixed for canvas in the prior session; note path was never updated).
+### Scope discipline
 
-**3. Creation call chain**
-`handleCreateNotePrompt` → `prompt()` → early return when `null` → **`createNewNote` never called**. Downstream IPC (`write_note`), Rust `fs::write_note`, and indexing were never reached. Command registration and `write_note` name match were already correct (used successfully by wikilink/daily-note paths).
+No implementation files under `packages/editor/` changed, and no dependency was added. The audit preserves the single CodeMirror renderer chosen in ADR-0003/0048 and introduces no runtime or bundle cost.
 
-**4. Rust write**
-Not exercised by broken entry points. Shared `write_note` command is the same path used by working flows.
+---
 
-**5. Post-creation**
-N/A for broken entry points (no file written). Working paths (palette, wikilink) already opened editor + updated tree + indexed.
+**Obsidian-style H1 ↔ filename sync (ADR-0060)**
 
-### Root cause
-`App.tsx` `handleCreateNotePrompt` used `window.prompt("Enter note title:")`. Native `prompt()` is unsupported in Tauri webviews — returns `null` with no UI, so `createNewNote` was never invoked. Silent failure, zero console output.
+### Prerequisite built first
+No canonical rename existed (stabilization Phase 1 not yet run). Added **`renameNoteInVault`** as the single rename path before wiring H1-driven triggers — avoids duplicating rename logic.
 
-### Fix (ADR-0058)
-- Removed `prompt()`; sidebar/tab actions now call `createNewNote()` with no title → auto `Untitled.md`, `Untitled 1.md`, … via `resolveUniqueNotePath` (mirrors canvas `Untitled.canvas` pattern).
-- Extracted canonical `createNoteInVault(path, content)` — single write + SQLite index + `updateAllPaths`, wrapped in `withVaultWatchSuppressed`.
-- `useVaultSession.createNewNote` and `EditorArea.handleCreateNote` (canvas text→file) both delegate to `createNoteInVault`.
-- `createNewNote(title?)` now accepts optional title (wikilink/palette/daily paths unchanged).
+### What was implemented
 
-### Verification gap (which phase should have caught this)
-- **Phase 9** (`plans/phase-9-quick-switcher.md` step 7): "Create a new note (via unresolved link **or 'New Note' button**)" — step listed the button but verification likely only exercised palette/wikilink paths.
-- **UI grid layout plan** (`plans/ui-grid-layout-plan.md`): specifies "New Note action" in sidebar header but manual verification focused on layout collapse, not creation.
-- **Phase 7** file-tree plan verification did not include new-note creation (tree navigation only).
+| Concern | Decision / behavior |
+|---|---|
+| **Debounce** | H1-driven rename scheduled at **750 ms** (matches save debounce); flushed on tab switch, close, `saveAllDirty` |
+| **Canonical rename** | `renameNoteInVault` → Rust `rename_note` → `updateWikilinksForRename` in all notes → SQLite → `applyNoteRenameState` |
+| **H1 → filename** | `scheduleH1DrivenRename` on `updateNoteContent`; sanitizes invalid chars; skips empty H1 |
+| **Filename → H1** | File-tree double-click inline rename → `renameNoteFromTree` → `renameNoteInVault({ syncH1FromFilename: true })` |
+| **Collision** | **No rename, no overwrite** — warns in console; H1/filename may diverge. Rust also rejects existing destination. |
+| **Loop guard** | Case-insensitive stem compare on both paths; skip when stems already match (prevents H1↔filename feedback loop) |
+| **ADR-0059** | Creation-time `initialNoteContent` unchanged; rename “no sync” superseded by ADR-0060 |
 
-**Tighten for future phases:** any step that names multiple entry points ("A or B") should require explicit checklist ticks per entry point, not one path proving the feature.
-
-### Files changed
-- `apps/desktop/src/App.tsx` — remove `prompt()`, wire `handleCreateNote`
-- `apps/desktop/src/vault/createNoteInVault.ts` — canonical creation
-- `apps/desktop/src/vault/resolveUniqueNotePath.ts` + test
-- `apps/desktop/src/vault/useVaultSession.ts` — use shared helpers
-- `apps/desktop/src/components/EditorArea/EditorArea.tsx` — delegate to `createNoteInVault`
-- `apps/desktop/src/vault/index.ts` — exports
-- `docs/adr/0058-canonical-note-creation-path.md` — new ADR
-- `DECISIONS.md` — ADR-0058 row
+### Files changed (key)
+- `apps/desktop/src-tauri/src/fs.rs` — `rename_note` command
+- `apps/desktop/src/vault/renameNoteInVault.ts` — canonical rename
+- `apps/desktop/src/vault/h1DrivenRename.ts` — debounced H1 trigger
+- `apps/desktop/src/vault/sanitizeFilenameStem.ts`, `extractH1Title.ts`, `syncH1ToFilename.ts`, `updateWikilinksForRename.ts`
+- `apps/desktop/src/state/useWorkspaceStore.ts` — schedule/flush integration, `renameNoteFromTree`
+- `apps/desktop/src/components/FileTree/` — double-click inline rename
+- `docs/adr/0060-bidirectional-h1-filename-sync.md`
 
 ### Automated verification
-- `resolveUniqueNotePath.test.ts`: 2/2 passing
-- `pnpm exec tsc --noEmit` in `apps/desktop`: clean
+- Vault unit tests (sanitize, H1 extract/sync, wikilink propagation, rename): passing
+- Desktop state tests: passing
+- `tsc --noEmit`: clean
 
 ---
 
 ## Next Up (in order)
 
 1. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-2. **Unlinked Mentions Detection**: vault-wide scanner / FTS for plain-text mentions of the active note's title.
-3. **Inline Property Editing**: interactive property add/edit in `PropertiesBlock` with frontmatter serialization to disk.
-4. **Outline Scroll Synchronization**: connect `NoteOutline` heading clicks to CodeMirror 6 scroll/cursor dispatch.
-5. Add success/warning semantic color tokens (Badge currently uses placeholder raw hex — see `DECISIONS.md`).
-6. Set up Chromatic or Playwright screenshot regression for `components/`.
-7. Fix pre-existing lint error: `CanvasBenchmark.test.ts` boundaries/no-private (import from fixtures subfolder)
-
-## Deferred Performance Items (canvas Phase 8 follow-ups)
-
-- **Edge visibility with culling**: If `onlyRenderVisibleElements` causes artefacts where edge source is visible but target is off-screen (edge not rendered), revisit with a custom edge visibility strategy. Not observed in testing but worth watching during dogfood.
-- **Alignment spatial indexing**: If canvas regularly exceeds 500+ nodes, replace the linear `otherNodes` scan in `snapNodeAlignment` with a spatial index (e.g. R-tree). Not warranted at 120 nodes.
+2. **Stabilization pass Phase 1** (`plans/stablize.md`): delete, move, duplicate — rename + H1 sync now covered.
+3. **Editor Markdown Formatting — Phase 2 scope/sequence** using ADR-0062; choose the smallest parser/decorator increments before implementation.
+4. **Unlinked Mentions Detection**
+5. **Inline Property Editing**
+6. **Outline Scroll Synchronization**
+7. Add success/warning semantic color tokens
+8. Chromatic / Playwright screenshot regression
+9. Fix `CanvasBenchmark.test.ts` lint
 
 ## Blocked / Open Questions
 
-- **Bundle identifier**: Provisional `com.davinci.notes` in `tauri.conf.json` — confirm before public distribution.
-- **Badge success/warning colors**: Placeholder raw hex in `Badge.module.scss` — need confirmed Obsidian semantic palette values or new token entries.
-- **Visual regression**: Chromatic account or Playwright screenshot CI not yet configured.
-- **Total JS/CSS size budgets**: configured in `check-bundle-size.mjs` count lazy-loaded chunks (editor vendor + canvas + PDF nested all sum to totals that exceed the original "total" budgets even though they never ship in first paint. Adjust to only-paint-budget-only or move lazy-chunk ceiling if/when configured.
+- **Bundle identifier**: Provisional `com.davinci.notes` — confirm before public distribution.
+- **Badge success/warning colors**: Placeholder raw hex — need token entries.
+- **Visual regression**: Not yet configured.
+- **Total JS/CSS size budgets**: lazy chunks counted toward totals — adjust if/when configured.
 
 ---
 
