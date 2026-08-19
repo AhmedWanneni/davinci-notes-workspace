@@ -31,6 +31,7 @@ pub fn run() {
       fs::create_folder,
       fs::rename_note,
       fs::rename_folder,
+      fs::delete_note,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

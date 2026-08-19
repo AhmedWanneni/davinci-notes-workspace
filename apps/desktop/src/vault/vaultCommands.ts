@@ -68,6 +68,10 @@ export async function renameNote(
   return invoke("rename_note", { fromPath, toPath });
 }
 
+export async function deleteNote(path: string): Promise<void> {
+  return invoke("delete_note", { path });
+}
+
 export async function createFolder(path: string): Promise<void> {
   return invoke("create_folder", { path });
 }

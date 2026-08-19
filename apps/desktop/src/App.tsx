@@ -50,6 +50,12 @@ export function App() {
   const renameFolderFromTree = useWorkspaceStore(
     (state) => state.renameFolderFromTree,
   );
+  const deleteNoteFromTree = useWorkspaceStore(
+    (state) => state.deleteNoteFromTree,
+  );
+  const duplicateNoteFromTree = useWorkspaceStore(
+    (state) => state.duplicateNoteFromTree,
+  );
   const [pendingRenameFolder, setPendingRenameFolder] = useState<string | null>(
     null,
   );
@@ -200,6 +206,8 @@ export function App() {
           onRenameFolder={(oldPath, newName) =>
             renameFolderFromTree(oldPath, newName)
           }
+          onDeleteNote={(path) => deleteNoteFromTree(path)}
+          onDuplicateNote={(path) => duplicateNoteFromTree(path)}
           pendingRenameFolder={pendingRenameFolder}
           onPendingRenameFolderHandled={() => setPendingRenameFolder(null)}
         />

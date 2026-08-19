@@ -7,7 +7,7 @@ export function resolveUniqueFolderPath(
   stem = DEFAULT_FOLDER_STEM,
 ): string {
   const prefix = parentFolder ? `${parentFolder}/` : "";
-  let candidate = `${prefix}${stem}`;
+  const candidate = `${prefix}${stem}`;
   if (!existingFolders.includes(candidate)) {
     return candidate;
   }

@@ -369,3 +369,16 @@ pub fn rename_note(
   fs::rename(&from_absolute, &to_absolute).map_err(|e| format!("Rename failed: {e}"))?;
   Ok(())
 }
+
+#[tauri::command]
+pub fn delete_note(app: AppHandle, path: String) -> Result<(), String> {
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let absolute = resolve_in_vault(&vault_root, &path)?;
+
+  if !absolute.is_file() {
+    return Err(format!("Source file not found: {path}"));
+  }
+
+  fs::remove_file(&absolute).map_err(|e| format!("Delete failed: {e}"))?;
+  Ok(())
+}

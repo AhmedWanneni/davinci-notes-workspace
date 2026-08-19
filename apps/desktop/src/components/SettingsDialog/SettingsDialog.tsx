@@ -3,8 +3,10 @@ import {
   DialogContent,
   Typography,
   Button,
+  Checkbox,
   Divider,
 } from "@app/design-system";
+import { editorFonts, isEditorFont } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { openVaultFromPicker } from "../../vault";
 
@@ -23,6 +25,10 @@ export function SettingsDialog({
 }: SettingsDialogProps) {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const setEditorFont = useWorkspaceStore((state) => state.setEditorFont);
+  const strictLineBreaks = useWorkspaceStore((state) => state.strictLineBreaks);
+  const setStrictLineBreaks = useWorkspaceStore(
+    (state) => state.setStrictLineBreaks,
+  );
 
   const handleSwitchVault = async () => {
     try {
@@ -52,14 +58,44 @@ export function SettingsDialog({
               <div className="settings-dialog__control">
                 <select
                   value={editorFont}
-                  onChange={(e) => setEditorFont(e.target.value)}
+                  onChange={(e) => {
+                    if (isEditorFont(e.target.value)) {
+                      void setEditorFont(e.target.value);
+                    }
+                  }}
                   className="settings-dialog__select"
                 >
-                  <option value="system">System UI</option>
-                  <option value="monospace">Monospace</option>
-                  <option value="inter">Inter</option>
-                  <option value="roboto">Roboto</option>
+                  {editorFonts.map((font) => (
+                    <option key={font} value={font}>
+                      {font === "system"
+                        ? "System UI"
+                        : font[0].toUpperCase() + font.slice(1)}
+                    </option>
+                  ))}
                 </select>
+              </div>
+            </div>
+          </section>
+
+          <section className="settings-dialog__section">
+            <div className="settings-dialog__row">
+              <div className="settings-dialog__info">
+                <Typography variant="h3" size="sm">
+                  Strict Line Breaks
+                </Typography>
+                <Typography variant="text" size="xs" color="muted">
+                  Merge soft paragraph lines; use two trailing spaces or
+                  Shift+Enter for a hard break.
+                </Typography>
+              </div>
+              <div className="settings-dialog__control">
+                <Checkbox
+                  checked={strictLineBreaks}
+                  onCheckedChange={(checked) =>
+                    void setStrictLineBreaks(checked === true)
+                  }
+                  aria-label="Strict Line Breaks"
+                />
               </div>
             </div>
           </section>

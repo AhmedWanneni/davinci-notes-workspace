@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
-import { describe, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
 import { livePreviewExtension } from "../../../../packages/editor/livePreviewExtension";
 import { wikilinkExtension } from "../../../../packages/editor/wikilinkExtension";
+import { softLineBreakExtension } from "../../../../packages/editor/lineBreakExtension";
 
 describe("Editor Performance Benchmark", () => {
   it("profiles document update with live preview and wikilink extensions", () => {
@@ -23,6 +24,7 @@ describe("Editor Performance Benchmark", () => {
       extensions: [
         markdown(),
         livePreviewExtension,
+        softLineBreakExtension,
         wikilinkExtension({
           notePaths: Array.from({ length: 350 }, (_, i) => `note-${i}.md`),
           sourcePath: "active-note.md",
@@ -59,6 +61,8 @@ describe("Editor Performance Benchmark", () => {
       `Average latency per keystroke transaction: ${latencyPerChar.toFixed(3)} ms`,
     );
     console.info(`=======================================\n`);
+
+    expect(latencyPerChar).toBeLessThan(5);
 
     view.destroy();
     document.body.removeChild(container);

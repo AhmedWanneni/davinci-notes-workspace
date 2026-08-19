@@ -34,6 +34,9 @@ vi.mock("../state/useWorkspaceStore", () => ({
     getState: () => getStateMock(),
     setState: (updater: unknown) => setStateMock(updater),
   },
+}));
+
+vi.mock("../state/saveTimers", () => ({
   migrateSaveTimer: vi.fn(),
 }));
 
@@ -88,9 +91,6 @@ describe("renameNoteInVault", () => {
     await renameNoteInVault("beta.md", "Renamed.md", {
       syncH1FromFilename: true,
     });
-    expect(writeNoteMock).toHaveBeenCalledWith(
-      "Renamed.md",
-      "# Renamed\n\n",
-    );
+    expect(writeNoteMock).toHaveBeenCalledWith("Renamed.md", "# Renamed\n\n");
   });
 });

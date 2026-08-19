@@ -8,6 +8,9 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-08-19 | Editor settings ownership correction (ADR-0065) | Moved editor settings schema/defaults/validation to `@app/editor`; desktop now supplies a SQLite storage adapter. Restored sequential unlocked load reads after lock-wrapped concurrent reads caused `SQLITE_BUSY`; added invalid-value fallback coverage and the missing desktop Vitest editor alias. |
+| 2026-08-19 | Stabilization Phase 1 — canonical note delete and duplicate (ADR-0064) | Added confirmed File Explorer delete and duplicate actions backed by canonical disk/index/graph/workspace helpers. 17 focused tests, full desktop lint/typecheck, and Rust check pass; note move plus real-app dogfooding remain. |
+| 2026-08-18 | Editor Markdown Formatting Phase 2 — line-break semantics (ADR-0063) | Added direct CodeMirror soft-line-break decorations, Shift+Enter hard-break command, and persisted Strict Line Breaks setting. Shared rendering path retained; no dependency added. 15 targeted tests pass; 1,000-line edit benchmark 4.227 ms/keystroke. |
 | 2026-08-18 | Editor Markdown Formatting Phase 1 audit (ADR-0062) | Created ignored all-syntax fixture and recorded a source-verified gap table. Strict CommonMark is configured; basic formatting parses but several live-preview/interactions are partial. Missing: strikethrough, highlight, tasks, image rendering/dimensions, footnotes, and Obsidian comments. No editor implementation changed. |
 | 2026-08-18 | Bidirectional H1 ↔ filename sync (ADR-0060) | Built canonical `renameNoteInVault` (prerequisite — no rename existed). H1→file debounced 750ms; file-tree double-click rename syncs H1; wikilink propagation; collision = no-op; loop guard via stem compare. 43 desktop tests passing. |
 | 2026-08-18 | New-note H1 from filename (ADR-0059) | Centralized `initialNoteContent(path)` in canonical `createNoteInVault`; all entry points get `# <basename>\n\n`. Rename/H1: set once at creation, no auto-sync (rename UI not built yet). 29 desktop vault/state tests passing. |
@@ -46,6 +49,30 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-08-17 | Canvas Feature Phase 13 — App Integration (FINAL) | Wired canvas fully into Obsidian-grid app shell: Icon Rail New Canvas button (FrameCorners icon), File Tree canvas distinction + click open, Tab Bar canvas/note type icons + close-save flush, RightSidebar "not applicable for canvas" per-section empty states + StatusBar canvas chip (ADR-0057). Re-verified lazy-load boundary: entry JS 21.08 KB raw / 7.71 KB gzip — 0 KB canvas/ReactFlow/PDF in first paint (canvas vendor chunk 56 KB gzip loaded only on demand). All 13 canvas phases complete. 179 canvas tests / 25 suites; tsc clean. |
 
 ## Detailed Session Notes
+
+### 2026-08-19 — Editor Settings Ownership Correction (ADR-0065)
+
+- Added `packages/editor/editorSettings.ts` as the portable editor-settings contract: supported font values, defaults, validation, storage interface, loading, and serialization. The package stays independent of SQLite, Tauri, and Zustand.
+- Reworked desktop `createEditorSettings` into a thin SQLite adapter using `EditorSettingsStorage`. The Settings dialog consumes the package's valid font list, eliminating its duplicate source of truth.
+- Added a desktop state test proving invalid persisted font data falls back to the package default. Added the missing `@app/editor` alias to the desktop Vitest config so package imports resolve from workspace source during focused tests.
+- Restored the known-good settings load pattern: each key uses sequential `withDbLock(() => getSetting(...))`, avoiding concurrent SQLite statements during app initialization. Explicit setting writes remain serialized.
+- Verification: `@app/editor` and desktop lint/typecheck pass; desktop settings test has 8 passing cases. No dependency or runtime/per-keystroke cost added. Strict Line Breaks behavior is intentionally unchanged under ADR-0063.
+
+### 2026-08-19 — Stabilization Phase 1: Canonical Note Delete and Duplicate (ADR-0064)
+
+- Added Rust `delete_note` plus `deleteNoteInVault(path)` as the canonical permanent-delete path. It suppresses watcher reconciliation during the operation, clears pending save/H1 timers, removes the note plus both source and target links from SQLite, removes the graph node/edges/backlinks, and closes/removes the note from workspace state.
+- Added `duplicateNoteInVault(path)`: source content comes from open-tab memory when available (otherwise one read), the copy receives a collision-safe `<stem> copy.md` name, its first H1 follows the filename convention, then it is written, indexed, inserted into the in-memory graph, and opened.
+- File Explorer markdown-note context menus now include Rename, Duplicate, and a browser-native confirmation before permanent Delete. Existing file-row HTML5 drag behavior remains `copy` for canvas embeds; move is intentionally deferred to avoid changing that contract.
+- Split `FileTreeRow` from the virtualized tree to keep `FileTree.tsx` at 226 lines. This extraction adds no new rendering work or dependency.
+- Verification: 17 focused Vitest tests pass; full desktop ESLint and TypeScript checks pass; `cargo check` passes with only the pre-existing unused `VaultWatcher::is_paused` warning. Browser-based desktop dogfooding could not run because the in-app browser control bridge was unavailable in this environment.
+
+### 2026-08-18 — Editor Markdown Formatting Phase 2: Line-Break Semantics (ADR-0063)
+
+- Implemented `softLineBreakExtension` as a direct CodeMirror state decoration because newline replacements are layout-changing and cannot use the existing viewport-only preview plugin. Soft newlines inside parsed paragraphs become an inline space widget; CommonMark two-space hard breaks and blank lines are left intact.
+- Bound `Shift+Enter` to insert `  \n`, retaining a plain-Markdown hard break in the saved note.
+- Added `strictLineBreaks` to the existing SQLite-backed editor-settings factory and exposed it as a checkbox in Settings. It loads through the normal startup `loadSettings` call and writes through `setSetting`; no new persistence mechanism or dependency was added.
+- The provided default and Strict Line Breaks acceptance mappings are identical, so the setting currently persists the preference without a separate visual mapping. No unrelated formatting syntax was changed.
+- Added focused tests for decoration ranges/rendering, hard-break insertion, and persistence. Optimized the initial full-document decoration update to process only the changed line neighborhood. Benchmark: 4.227 ms per transaction for 100 edits in a 1,000-line/100-wikilink document, below the 5 ms budget.
 
 ### 2026-08-18 — Editor Markdown Formatting Phase 1 Audit (ADR-0062)
 
@@ -371,6 +398,3 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
   - **Delivered** (13 phases, ADRs 0041-0057): Package/datamodel, shell (pan/zoom, save), text cards, edges, selection/arrangement, groups, file embeds, media, perf checkpoint, PDF, webpage, nested, export, app integration.
   - **Explicitly NOT included** v1: realtime collab, plugin API, mobile canvas, right-panel canvas outline/local-graph panels (placeholders per ADR-0057, slot in later).
   - Deferred perf: edge visibility culling refinement, alignment spatial indexing for 500+ nodes.
-
-
-

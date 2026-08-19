@@ -1,15 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import {
-  CaretRight,
-  CaretDown,
-  FileText,
-  FrameCorners,
-  Image,
-  Video,
-} from "@phosphor-icons/react";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
 import { FileTreeContextMenu } from "./FileTreeContextMenu";
+import { FileTreeRow } from "./FileTreeRow";
 import { useFileTreeInlineRename } from "./useFileTreeInlineRename";
 
 interface FileTreeProps {
@@ -23,6 +16,8 @@ interface FileTreeProps {
   onPendingRenameHandled?: () => void;
   onRenameNote?: (oldPath: string, newStem: string) => Promise<boolean>;
   onRenameFolder?: (oldPath: string, newName: string) => Promise<boolean>;
+  onDeleteNote?: (path: string) => Promise<boolean>;
+  onDuplicateNote?: (path: string) => Promise<boolean>;
   onSelectedFolderChange?: (folderPath: string | null) => void;
 }
 
@@ -37,6 +32,8 @@ export function FileTree({
   onPendingRenameHandled,
   onRenameNote,
   onRenameFolder,
+  onDeleteNote,
+  onDuplicateNote,
   onSelectedFolderChange,
 }: FileTreeProps) {
   const {
@@ -59,6 +56,7 @@ export function FileTree({
     x: number;
     y: number;
     parentFolder: string;
+    notePath?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -110,9 +108,18 @@ export function FileTree({
   const openContextMenu = (
     e: React.MouseEvent,
     parentFolder: string,
+    notePath?: string,
   ) => {
     e.preventDefault();
-    setContextMenu({ x: e.clientX, y: e.clientY, parentFolder });
+    setContextMenu({ x: e.clientX, y: e.clientY, parentFolder, notePath });
+  };
+
+  const confirmDeleteNote = async (path: string) => {
+    if (
+      window.confirm(`Delete "${path}" from the vault? This cannot be undone.`)
+    ) {
+      await onDeleteNote?.(path);
+    }
   };
 
   return (
@@ -130,48 +137,28 @@ export function FileTree({
             const item = visibleNodes[virtualItem.index];
             const isFile = item.node.type === "file";
             const isFolder = !isFile;
-            const isCanvas = isFile && item.node.name.endsWith(".canvas");
-            const isImage =
-              isFile &&
-              /\.(png|jpe?g|gif|svg|webp|bmp|ico|avif)$/i.test(item.node.name);
-            const isVideo =
-              isFile &&
-              /\.(mp4|webm|og[gv]|mov|mkv|m4v)$/i.test(item.node.name);
             const isActive = isFile && item.node.path === activePath;
             const isDirty = isFile && dirtyPaths.has(item.node.path);
             const isExpanded = isFolder && expandedFolders.has(item.node.path);
-            const displayTitle = item.node.name.replace(/\.(md|canvas)$/i, "");
             const isRenaming =
               renamingPath === item.node.path &&
               ((isFile && renamingKind === "note") ||
                 (isFolder && renamingKind === "folder"));
 
             return (
-              <div
+              <FileTreeRow
                 key={virtualItem.key}
-                className="file-tree__row"
-                data-active={isActive || undefined}
-                draggable={isFile}
-                onDragStart={(e) => {
-                  if (!isFile) {
-                    return;
-                  }
-                  e.dataTransfer.setData(
-                    "application/vnd.davinci.note",
-                    item.node.path,
-                  );
-                  e.dataTransfer.setData("text/plain", item.node.path);
-                  e.dataTransfer.effectAllowed = "copy";
-                }}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: `${virtualItem.size}px`,
-                  transform: `translateY(${virtualItem.start}px)`,
-                  paddingLeft: `calc(var(--space-2) + ${item.depth * 16}px)`,
-                }}
+                item={item}
+                top={virtualItem.start}
+                height={virtualItem.size}
+                isActive={isActive}
+                isDirty={isDirty}
+                isExpanded={isExpanded}
+                isRenaming={isRenaming}
+                draftStem={draftStem}
+                onDraftStemChange={setDraftStem}
+                onCommitRename={() => void commitRename()}
+                onCancelRename={cancelRename}
                 onClick={() => {
                   if (isFile) {
                     onNoteClick(item.node.path);
@@ -190,12 +177,23 @@ export function FileTree({
                   onSelectedFolderChange?.(item.node.path);
                 }}
                 onContextMenu={(e) => {
+                  if (isFile && item.node.path.endsWith(".md")) {
+                    const parentFolder = item.node.path.includes("/")
+                      ? item.node.path.slice(0, item.node.path.lastIndexOf("/"))
+                      : "";
+                    openContextMenu(e, parentFolder, item.node.path);
+                    return;
+                  }
                   if (isFolder) {
                     openContextMenu(e, item.node.path);
                   }
                 }}
                 onDoubleClick={(e) => {
-                  if (isFile && item.node.path.endsWith(".md") && onRenameNote) {
+                  if (
+                    isFile &&
+                    item.node.path.endsWith(".md") &&
+                    onRenameNote
+                  ) {
                     e.stopPropagation();
                     startRename(item.node.path, "note");
                     return;
@@ -205,57 +203,7 @@ export function FileTree({
                     startRename(item.node.path, "folder");
                   }
                 }}
-              >
-                <span className="file-tree__icon">
-                  {isFolder ? (
-                    isExpanded ? (
-                      <CaretDown
-                        size={14}
-                        weight="bold"
-                        className="file-tree__caret"
-                      />
-                    ) : (
-                      <CaretRight
-                        size={14}
-                        weight="bold"
-                        className="file-tree__caret"
-                      />
-                    )
-                  ) : isCanvas ? (
-                    <FrameCorners size={14} className="file-tree__file-icon" />
-                  ) : isImage ? (
-                    <Image size={14} className="file-tree__file-icon" />
-                  ) : isVideo ? (
-                    <Video size={14} className="file-tree__file-icon" />
-                  ) : (
-                    <FileText size={14} className="file-tree__file-icon" />
-                  )}
-                </span>
-                <span className="file-tree__title" title={item.node.name}>
-                  {isRenaming ? (
-                    <input
-                      className="file-tree__rename-input"
-                      value={draftStem}
-                      autoFocus
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) => setDraftStem(e.target.value)}
-                      onBlur={() => void commitRename()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          void commitRename();
-                        } else if (e.key === "Escape") {
-                          e.preventDefault();
-                          cancelRename();
-                        }
-                      }}
-                    />
-                  ) : (
-                    displayTitle
-                  )}
-                </span>
-                {isDirty && <span className="file-tree__dirty-dot" />}
-              </div>
+              />
             );
           })}
         </div>
@@ -265,7 +213,11 @@ export function FileTree({
           x={contextMenu.x}
           y={contextMenu.y}
           parentFolder={contextMenu.parentFolder}
-          onCreateFolder={(parent) => void onCreateFolder(parent)}
+          notePath={contextMenu.notePath}
+          onRenameNote={(path) => startRename(path, "note")}
+          onCreateFolder={onCreateFolder}
+          onDuplicateNote={onDuplicateNote}
+          onDeleteNote={confirmDeleteNote}
           onClose={() => setContextMenu(null)}
         />
       )}

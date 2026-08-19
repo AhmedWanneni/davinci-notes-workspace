@@ -6,6 +6,7 @@ import { syntaxHighlighting } from "@codemirror/language";
 import { editorHighlightStyle, readOnlyEditorTheme } from "./editorTheme";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { wikilinkExtension } from "./wikilinkExtension";
+import { softLineBreakExtension } from "./lineBreakExtension";
 
 export interface MarkdownViewProps {
   value: string;
@@ -42,6 +43,7 @@ export function MarkdownView({
         markdown(),
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
+        softLineBreakExtension,
         wikilinkCompartmentRef.current.of(
           wikilinkExtension({ notePaths, sourcePath, onLinkClick }),
         ),

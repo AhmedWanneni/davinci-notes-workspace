@@ -1,5 +1,6 @@
 import { updateGraphForNote } from "@app/indexer";
-import { useWorkspaceStore, migrateSaveTimer } from "../state/useWorkspaceStore";
+import { useWorkspaceStore } from "../state/useWorkspaceStore";
+import { migrateSaveTimer } from "../state/saveTimers";
 import { applyNoteRenameState } from "./applyNoteRenameState";
 import { clearH1RenameTimer } from "./h1DrivenRename";
 import { noteFromMarkdown } from "./noteFromMarkdown";

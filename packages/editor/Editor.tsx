@@ -19,6 +19,10 @@ import { editorHighlightStyle, editorTheme } from "./editorTheme";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { wikilinkExtension } from "./wikilinkExtension";
 import { autocompleteExtension } from "./autocompleteExtension";
+import {
+  insertHardLineBreak,
+  softLineBreakExtension,
+} from "./lineBreakExtension";
 
 export interface EditorProps {
   value: string;
@@ -57,10 +61,16 @@ export function Editor({
         history(),
         drawSelection(),
         highlightActiveLine(),
-        keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
+        keymap.of([
+          { key: "Shift-Enter", run: insertHardLineBreak },
+          ...defaultKeymap,
+          ...historyKeymap,
+          indentWithTab,
+        ]),
         markdown(),
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
+        softLineBreakExtension,
         // Dynamic compartments for options
         wikilinkCompartmentRef.current.of(
           wikilinkExtension({ notePaths, sourcePath, onLinkClick }),

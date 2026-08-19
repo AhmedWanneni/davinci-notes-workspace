@@ -24,10 +24,7 @@ function sortNodes(nodes: UITreeNode[]): void {
   }
 }
 
-function ensureFolderChain(
-  rootNodes: UITreeNode[],
-  folderPath: string,
-): void {
+function ensureFolderChain(rootNodes: UITreeNode[], folderPath: string): void {
   const parts = folderPath.split("/");
   let currentLevel = rootNodes;
   let currentFolderPath = "";
@@ -36,7 +33,7 @@ function ensureFolderChain(
     currentFolderPath = currentFolderPath
       ? `${currentFolderPath}/${part}`
       : part;
-    let existing = currentLevel.find((node) => node.name === part);
+    const existing = currentLevel.find((node) => node.name === part);
     if (existing) {
       if (existing.type === "folder") {
         if (!existing.children) {

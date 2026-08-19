@@ -11,4 +11,13 @@ describe("resolveUniqueNotePath", () => {
       resolveUniqueNotePath(["Untitled.md", "Untitled 1.md", "other.md"]),
     ).toBe("Untitled 2.md");
   });
+
+  it("uses a preferred path and preserves its folder and extension", () => {
+    expect(
+      resolveUniqueNotePath(
+        ["projects/Plan copy.md", "projects/Plan copy 1.md"],
+        "projects/Plan copy.md",
+      ),
+    ).toBe("projects/Plan copy 2.md");
+  });
 });

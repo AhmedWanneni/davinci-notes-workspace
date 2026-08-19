@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import { updateGraphForNote, type GraphIndex } from "@app/indexer";
-import { withDbLock } from "../vault/sqliteIndex";
+import {
+  createEditorSettings,
+  type EditorSettingsState,
+} from "./createEditorSettings";
+import {
+  createNoteCrudActions,
+  type NoteCrudActions,
+} from "./createNoteCrudActions";
+import { saveTimers } from "./saveTimers";
 import {
   readNote,
   writeNote,
@@ -8,18 +16,13 @@ import {
   getVaultIndexDb,
   persistNote,
   withVaultWatchSuppressed,
-  getSetting,
-  setSetting,
-  renameNoteInVault,
-  renameFolderInVault,
 } from "../vault";
 import {
   flushH1DrivenRename,
   scheduleH1DrivenRename,
 } from "../vault/h1DrivenRename";
-import { buildNotePathInFolder } from "../vault/sanitizeFilenameStem";
 
-interface WorkspaceState {
+interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   activeNotePath: string | null;
   openNotes: string[];
   notesContent: Record<string, string>;
@@ -44,24 +47,6 @@ interface WorkspaceState {
   updateNoteContent: (path: string, content: string) => void;
   saveNoteNow: (path: string) => Promise<void>;
   saveAllDirty: () => Promise<void>;
-  renameNoteFromTree: (oldPath: string, newStem: string) => Promise<boolean>;
-  renameFolderFromTree: (
-    oldPath: string,
-    newName: string,
-  ) => Promise<boolean>;
-  editorFont: string;
-  loadSettings: () => Promise<void>;
-  setEditorFont: (font: string) => Promise<void>;
-}
-
-const saveTimers: Record<string, NodeJS.Timeout> = {};
-
-export function migrateSaveTimer(oldPath: string, newPath: string): void {
-  if (!saveTimers[oldPath]) {
-    return;
-  }
-  saveTimers[newPath] = saveTimers[oldPath];
-  delete saveTimers[oldPath];
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
@@ -74,28 +59,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   graph: null,
   vaultPath: null,
   vaultUpdateCounter: 0,
-  editorFont: "system",
+  ...createEditorSettings(set),
   setVaultPath: (path: string | null) => set({ vaultPath: path }),
-
-  loadSettings: async () => {
-    try {
-      const db = await getVaultIndexDb();
-      const font = await withDbLock(() => getSetting(db, "editorFont"));
-      if (font) set({ editorFont: font });
-    } catch (e) {
-      console.error("Failed to load settings", e);
-    }
-  },
-
-  setEditorFont: async (font: string) => {
-    set({ editorFont: font });
-    try {
-      const db = await getVaultIndexDb();
-      await setSetting(db, "editorFont", font);
-    } catch (e) {
-      console.error("Failed to save editorFont setting", e);
-    }
-  },
 
   initializeVault: async (
     paths: string[],
@@ -254,26 +219,5 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     }
   },
 
-  renameNoteFromTree: async (oldPath: string, newStem: string) => {
-    const trimmed = newStem.trim();
-    if (!trimmed || !oldPath.endsWith(".md")) {
-      return false;
-    }
-    const newPath = buildNotePathInFolder(oldPath, trimmed);
-    if (newPath === oldPath) {
-      return true;
-    }
-    const result = await renameNoteInVault(oldPath, newPath, {
-      syncH1FromFilename: true,
-    });
-    return result.ok;
-  },
-
-  renameFolderFromTree: async (oldPath: string, newName: string) => {
-    const result = await renameFolderInVault(oldPath, newName);
-    if (!result.ok && result.reason === "collision") {
-      console.warn(`[vault] Folder rename skipped — name already exists`);
-    }
-    return result.ok;
-  },
+  ...createNoteCrudActions(),
 }));

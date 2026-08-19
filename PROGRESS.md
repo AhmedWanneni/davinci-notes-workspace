@@ -6,9 +6,69 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Editor Markdown Formatting — Phase 1 audit** — complete (ADR-0062). Next up: review and sequence the documented formatting gaps; do not start implementation until a Phase 2 scope is chosen.
+**Stabilization Phase 1 — note CRUD** — delete and duplicate complete (ADR-0064); move and real-app dogfooding remain. Note CRUD continues to use canonical vault operations for filesystem, SQLite, graph, and workspace state.
 
 ## Last Session
+
+**Editor Settings Ownership — package contract correction (ADR-0065)**
+
+### Completed
+
+- Moved editor font values, settings schema, defaults, validation, and storage-neutral load/save helpers into `packages/editor/editorSettings.ts`.
+- Kept SQLite and Zustand in desktop as a thin `EditorSettingsStorage` adapter; `@app/editor` has no desktop, Tauri, or persistence dependency.
+- Updated the desktop settings dialog to use the editor package's font list and validation instead of a duplicate option list.
+- Added invalid persisted-value fallback coverage and added the missing `@app/editor` source alias to desktop Vitest.
+- Restored the known-good sequential `withDbLock(() => getSetting(...))` pattern for each settings key after the combined loader caused `SQLITE_BUSY`; writes remain serialized by the existing write lock.
+
+### Verification
+
+- Desktop settings unit test: 8 tests passing.
+- `@app/editor` and desktop lint/typecheck pass.
+- No settings behavior, dependency, startup path, or per-keystroke work changed; Strict Line Breaks retains ADR-0063 semantics.
+
+**Stabilization Phase 1 — canonical note delete and duplicate (ADR-0064)**
+
+### Completed
+
+- Added a Rust `delete_note` IPC command and canonical `deleteNoteInVault`: removes the file, source/target SQLite links, graph node/edges/backlinks, pending timers, dirty content, and open-tab state.
+- Added canonical `duplicateNoteInVault`: creates collision-safe `<stem> copy.md` names, synchronizes the copied H1 to its filename, writes/indexes the copy, updates the graph, and opens it.
+- Added File Explorer note context actions for Rename, Duplicate, and confirmed permanent Delete. The virtualized row rendering is now isolated in `FileTreeRow`, keeping `FileTree` below the 250-line hard cap.
+- Extended unique-note resolution with an optional preferred vault-relative path; existing new-note behavior remains `Untitled.md`.
+- Cleared three pre-existing `prefer-const` lint findings in adjacent tree/vault helpers.
+
+### Verification
+
+- 17 focused desktop tests pass across deletion, duplication, collision naming, rename, and workspace state.
+- Full desktop lint and typecheck pass; Rust `cargo check` passes (existing unused `VaultWatcher::is_paused` warning only).
+- No dependency added and no per-keystroke/indexing hot path changed.
+- Automated desktop UI dogfooding remains unavailable in this environment because the in-app browser control bridge is not exposed; source wiring and focused tests cover the interaction path.
+
+### Remaining Phase 1 work
+
+- Implement note move without overloading the existing canvas-copy drag payload.
+- Dogfood create, rename, delete, duplicate, and move in the packaged desktop app against a disposable vault.
+
+**Editor Markdown Formatting — Phase 2 line-break semantics (ADR-0063)**
+
+### Completed
+
+- Added direct CodeMirror state decorations for soft newlines in paragraphs: they render as an inline space while preserving the Markdown source. Two trailing spaces remain a hard break; blank lines remain paragraph boundaries.
+- Added `Shift+Enter` handling that inserts the Markdown two-space hard-break sequence before the newline.
+- Added the persisted **Strict Line Breaks** checkbox to the existing Settings dialog, backed by the existing SQLite `settings` table (`strictLineBreaks`). Unit coverage simulates the app-restart load path.
+- Kept the shared `MarkdownView` on the same rendering path, so read-only canvas markdown embeds receive the same line-break semantics.
+
+### Deliberate scope boundary
+
+The requested default and Strict Line Breaks rules define the same rendered outcomes for soft lines, hard breaks, and paragraph boundaries. The setting is therefore persisted and available in the Editor settings now, without a divergent visual mode. No other Markdown syntax was changed.
+
+### Verification
+
+- 15 targeted desktop tests passing: soft/hard/paragraph boundaries, Shift+Enter insertion, direct inline rendering, persistence, existing store/rename behavior, and the editor benchmark.
+- `@app/editor` typecheck and lint pass; targeted desktop lint passes.
+- 1,000-line / 100-edit benchmark: **4.227 ms per keystroke**, under the 5 ms target. The direct decoration updates only the changed line neighborhood.
+- Full desktop typecheck remains blocked by a pre-existing `FileTree.tsx:268` return-type error; full desktop lint has pre-existing `prefer-const` errors in FileTree/vault files.
+
+---
 
 **Editor Markdown Formatting — Phase 1 audit (ADR-0062)**
 
@@ -60,9 +120,9 @@ No canonical rename existed (stabilization Phase 1 not yet run). Added **`rename
 
 ## Next Up (in order)
 
-1. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-2. **Stabilization pass Phase 1** (`plans/stablize.md`): delete, move, duplicate — rename + H1 sync now covered.
-3. **Editor Markdown Formatting — Phase 2 scope/sequence** using ADR-0062; choose the smallest parser/decorator increments before implementation.
+1. **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+2. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+3. **Editor Markdown Formatting — Phase 3 scope/sequence** using ADR-0062; choose the smallest parser/decorator increment.
 4. **Unlinked Mentions Detection**
 5. **Inline Property Editing**
 6. **Outline Scroll Synchronization**

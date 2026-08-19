@@ -6,6 +6,8 @@ export {
 } from "./VaultIndexer";
 export { createFolderInVault } from "./createFolderInVault";
 export { createNoteInVault } from "./createNoteInVault";
+export { deleteNoteInVault } from "./deleteNoteInVault";
+export { duplicateNoteInVault } from "./duplicateNoteInVault";
 export { extractH1Title } from "./extractH1Title";
 export { initialNoteContent, noteTitleFromPath } from "./initialNoteContent";
 export { noteFromMarkdown } from "./noteFromMarkdown";
@@ -43,6 +45,7 @@ export {
   subscribeVaultChanges,
   writeNote,
   renameNote,
+  deleteNote,
   createFolder,
   renameFolder,
   writeBinaryFile,

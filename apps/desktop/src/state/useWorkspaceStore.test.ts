@@ -7,6 +7,8 @@ const writeNoteMock = vi.fn();
 const listNotesMock = vi.fn();
 const persistNoteMock = vi.fn();
 const getVaultIndexDbMock = vi.fn();
+const getSettingMock = vi.fn();
+const setSettingMock = vi.fn();
 
 vi.mock("../vault", () => ({
   readNote: (path: string) => readNoteMock(path),
@@ -20,6 +22,9 @@ vi.mock("../vault", () => ({
     outlinks: [],
   }),
   getVaultIndexDb: () => getVaultIndexDbMock(),
+  getSetting: (db: unknown, key: string) => getSettingMock(db, key),
+  setSetting: (db: unknown, key: string, value: string) =>
+    setSettingMock(db, key, value),
   persistNote: (db: unknown, note: unknown) => persistNoteMock(db, note),
   withVaultWatchSuppressed: async (work: () => Promise<unknown>) => {
     return work();
@@ -46,6 +51,8 @@ describe("useWorkspaceStore", () => {
       allNotePaths: [],
       allFolderPaths: [],
       graph: null,
+      editorFont: "system",
+      strictLineBreaks: false,
     });
 
     readNoteMock.mockResolvedValue({ path: "a.md", content: "# A", mtime: 1 });
@@ -53,6 +60,8 @@ describe("useWorkspaceStore", () => {
     listNotesMock.mockResolvedValue(["a.md", "b.md"]);
     persistNoteMock.mockResolvedValue(undefined);
     getVaultIndexDbMock.mockResolvedValue({});
+    getSettingMock.mockResolvedValue(null);
+    setSettingMock.mockResolvedValue(undefined);
   });
 
   it("loads vault paths and optional graph on initialize", async () => {
@@ -63,6 +72,55 @@ describe("useWorkspaceStore", () => {
     expect(state.allNotePaths).toEqual(["a.md", "b.md"]);
     expect(state.openNotes).toEqual([]);
     expect(state.dirtyNotes.size).toBe(0);
+  });
+
+  it("persists and restores Strict Line Breaks through SQLite settings", async () => {
+    getSettingMock.mockImplementation(async (_db: unknown, key: string) => {
+      if (key === "strictLineBreaks") return "true";
+      return "monospace";
+    });
+
+    await useWorkspaceStore.getState().loadSettings();
+    expect(useWorkspaceStore.getState().strictLineBreaks).toBe(true);
+    expect(useWorkspaceStore.getState().editorFont).toBe("monospace");
+
+    await useWorkspaceStore.getState().setStrictLineBreaks(false);
+    expect(useWorkspaceStore.getState().strictLineBreaks).toBe(false);
+    expect(setSettingMock).toHaveBeenCalledWith(
+      {},
+      "strictLineBreaks",
+      "false",
+    );
+  });
+
+  it("uses editor-package defaults for invalid persisted settings", async () => {
+    getSettingMock.mockImplementation(async (_db: unknown, key: string) => {
+      if (key === "editorFont") return "unsupported-font";
+      return null;
+    });
+
+    await useWorkspaceStore.getState().loadSettings();
+
+    expect(useWorkspaceStore.getState().editorFont).toBe("system");
+    expect(useWorkspaceStore.getState().strictLineBreaks).toBe(false);
+  });
+
+  it("loads editor settings with sequential SQLite reads", async () => {
+    let readsInFlight = 0;
+    let maxReadsInFlight = 0;
+    getSettingMock.mockImplementation(async (_db: unknown, key: string) => {
+      readsInFlight += 1;
+      maxReadsInFlight = Math.max(maxReadsInFlight, readsInFlight);
+      await Promise.resolve();
+      readsInFlight -= 1;
+      return key === "editorFont" ? "monospace" : "true";
+    });
+
+    await useWorkspaceStore.getState().loadSettings();
+
+    expect(maxReadsInFlight).toBe(1);
+    expect(useWorkspaceStore.getState().editorFont).toBe("monospace");
+    expect(useWorkspaceStore.getState().strictLineBreaks).toBe(true);
   });
 
   it("opens note, reads from disk if needed, and sets active tab", async () => {

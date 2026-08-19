@@ -8,13 +8,13 @@
   "include": [
     "index.ts",
     "Editor.tsx",
+    "MarkdownView.tsx",
+    "editorSettings.ts",
     "livePreviewExtension.ts",
+    "lineBreakExtension.ts",
     "wikilinkExtension.ts",
     "autocompleteExtension.ts",
     "scss-modules.d.ts"
   ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "exclude": ["dist", "node_modules"]
 }
