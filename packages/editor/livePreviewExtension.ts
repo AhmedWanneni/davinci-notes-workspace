@@ -10,6 +10,7 @@ import {
 
 const syntaxDeco = Decoration.mark({ class: "cm-markdown-syntax" });
 const hrLineDeco = Decoration.line({ class: "cm-hr-line" });
+const codeLineDeco = Decoration.line({ class: "cm-code-block" });
 
 function getLivePreviewDecos(view: EditorView): DecorationSet {
   const builder: Range<Decoration>[] = [];
@@ -31,6 +32,17 @@ function getLivePreviewDecos(view: EditorView): DecorationSet {
           node.name === "QuoteMark"
         ) {
           builder.push(syntaxDeco.range(node.from, node.to));
+        } else if (node.name === "CodeMark" || node.name === "CodeInfo") {
+          builder.push(syntaxDeco.range(node.from, node.to));
+        } else if (node.name === "FencedCode" || node.name === "CodeBlock") {
+          for (
+            let line = state.doc.lineAt(node.from);
+            line.from < node.to;
+            line = state.doc.line(line.number + 1)
+          ) {
+            builder.push(codeLineDeco.range(line.from));
+            if (line.to >= node.to) break;
+          }
         } else if (node.name === "Escape") {
           // Hide backslash in live preview while leaving escaped character visible
           builder.push(syntaxDeco.range(node.from, node.from + 1));

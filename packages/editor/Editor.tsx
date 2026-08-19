@@ -18,6 +18,9 @@ import { linkExtension } from "./linkExtension";
 import { imageExtension } from "./imageExtension";
 import { listExtension, listIndentKeymap } from "./listExtension";
 import { autocompleteExtension } from "./autocompleteExtension";
+import { codeBlockLanguage } from "./codeBlockExtension";
+import { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
+import { markdownAnnotationTheme } from "./markdownAnnotationTheme";
 import {
   insertHardLineBreak,
   softLineBreakExtension,
@@ -59,6 +62,7 @@ export function Editor({
       doc: value,
       extensions: [
         editorTheme,
+        markdownAnnotationTheme,
         history(),
         drawSelection(),
         highlightActiveLine(),
@@ -68,9 +72,13 @@ export function Editor({
           ...historyKeymap,
           ...listIndentKeymap,
         ]),
-        markdown({ extensions: [Strikethrough, highlightExtension] }),
+        markdown({
+          extensions: [Strikethrough, highlightExtension],
+          codeLanguages: codeBlockLanguage,
+        }),
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
+        markdownAnnotationsExtension(),
         softLineBreakExtension,
         listExtension(),
         imageExtension(),

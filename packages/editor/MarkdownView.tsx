@@ -6,6 +6,9 @@ import { Strikethrough } from "@lezer/markdown";
 import { syntaxHighlighting } from "@codemirror/language";
 import { editorHighlightStyle, readOnlyEditorTheme } from "./editorTheme";
 import { highlightExtension } from "./highlightExtension";
+import { codeBlockLanguage } from "./codeBlockExtension";
+import { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
+import { readOnlyMarkdownAnnotationTheme } from "./markdownAnnotationTheme";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { linkExtension } from "./linkExtension";
 import { imageExtension } from "./imageExtension";
@@ -44,11 +47,16 @@ export function MarkdownView({
       doc: value,
       extensions: [
         readOnlyEditorTheme,
+        readOnlyMarkdownAnnotationTheme,
         EditorState.readOnly.of(true),
         EditorView.editable.of(false),
-        markdown({ extensions: [Strikethrough, highlightExtension] }),
+        markdown({
+          extensions: [Strikethrough, highlightExtension],
+          codeLanguages: codeBlockLanguage,
+        }),
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
+        markdownAnnotationsExtension({ isReadOnly: true }),
         softLineBreakExtension,
         listExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),

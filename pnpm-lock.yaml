@@ -341,6 +341,9 @@ importers:
       '@codemirror/commands':
         specifier: ^6.7.1
         version: 6.10.4
+      '@codemirror/lang-javascript':
+        specifier: ^6.2.5
+        version: 6.2.5
       '@codemirror/lang-markdown':
         specifier: ^6.3.1
         version: 6.5.2

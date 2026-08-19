@@ -8,13 +8,17 @@ import { wikilinkExtension } from "../../../../packages/editor/wikilinkExtension
 import { imageExtension } from "../../../../packages/editor/imageExtension";
 import { listExtension } from "../../../../packages/editor/listExtension";
 import { softLineBreakExtension } from "../../../../packages/editor/lineBreakExtension";
+import { codeBlockLanguage } from "../../../../packages/editor/codeBlockExtension";
+import { markdownAnnotationsExtension } from "../../../../packages/editor/markdownAnnotationsExtension";
 
 describe("Editor Performance Benchmark", () => {
   it("profiles document update with live preview and wikilink extensions", () => {
     // Construct a large document with 1000 lines, 100 wikilinks, 50 markdown links, and 50 images
     let docText = "# Large Document\n\n";
     for (let i = 0; i < 1000; i++) {
-      if (i % 20 === 0) {
+      if (i % 100 === 0) {
+        docText += "```js\nconst value = **literal code**;\n```\n";
+      } else if (i % 20 === 0) {
         docText += `This is line ${i} with a [[wikilink-${i}]] and some **bold text**.\n`;
       } else if (i % 20 === 10) {
         docText += `This is line ${i} with a [markdown link](note-${i}.md) and ![photo|300x200](https://example.com/pic-${i}.png).\n`;
@@ -28,11 +32,12 @@ describe("Editor Performance Benchmark", () => {
     const state = EditorState.create({
       doc: docText,
       extensions: [
-        markdown(),
+        markdown({ codeLanguages: codeBlockLanguage }),
         livePreviewExtension,
         softLineBreakExtension,
         listExtension(),
         imageExtension(),
+        markdownAnnotationsExtension(),
         wikilinkExtension({
           notePaths: Array.from({ length: 350 }, (_, i) => `note-${i}.md`),
           sourcePath: "active-note.md",

@@ -420,4 +420,29 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
 - **Canvas v1 scope summary (full 13 phases)**:
   - **Delivered** (13 phases, ADRs 0041-0057): Package/datamodel, shell (pan/zoom, save), text cards, edges, selection/arrangement, groups, file embeds, media, perf checkpoint, PDF, webpage, nested, export, app integration.
   - **Explicitly NOT included** v1: realtime collab, plugin API, mobile canvas, right-panel canvas outline/local-graph panels (placeholders per ADR-0057, slot in later).
-  - Deferred perf: edge visibility culling refinement, alignment spatial indexing for 500+ nodes.
+- Deferred perf: edge visibility culling refinement, alignment spatial indexing for 500+ nodes.
+
+## 2026-08-19 — Editor Markdown Formatting Phase 6: Code Blocks
+
+- Implemented inline-code delimiter hiding for single and double backticks while preserving literal backticks and code content.
+- Added fenced and indented code-block live-preview decorations using the existing CodeMirror/Lezer Markdown path. Three-or-more backtick/tilde fences and nested fence rules are covered, including code blocks inside list items.
+- Configured JavaScript/TypeScript-family embedded grammar resolution in `Editor` and `MarkdownView`; unsupported languages remain literal and are recorded in ADR-0070.
+- Added Phase 6 regressions and expanded the editor benchmark with fenced code. 35 focused Phase 2–6 tests pass; package typecheck, lint, and build pass; desktop focused lint passes; benchmark remains under 5 ms per keystroke.
+
+## 2026-08-19 — Inline Code Visual Styling Bug Fix
+
+- Reproduced the reported behavior in the existing CodeMirror harness: inline-code parsing and delimiter decorations were active, but `t.monospace` only selected the same editor font and supplied no visual distinction.
+- Extended the existing `t.monospace` highlight rule with the editor accent color, secondary background, subtle border, small radius, and padding. Single- and double-backtick content remains editable and delimiter hiding is unchanged.
+- Added regression coverage for single/multi-word spans, double-backtick literal backticks, cursor insertion, code-content highlighting, and the under-5 ms benchmark. The Phase 2–6 focused suite passes 37 tests.
+
+## 2026-08-19 — Editor Markdown Formatting Phase 7: Quotes, Footnotes & Comments
+
+- Added shared visible-range annotations for blockquote borders, numbered footnote references/definitions, and Obsidian comments.
+- Inline footnotes render only in read-only `MarkdownView`, while references and definitions render in both modes; ADR-0071 records the scope decision. Comments are dimmed in the editor and hidden in the existing read-only renderer.
+- Added mixed Phase 2–7 regressions, including horizontal rules and code/list/link combinations. 48 focused tests pass; package typecheck/lint/build, desktop focused lint, and the under-5 ms benchmark pass.
+
+## 2026-08-19 — Editor Markdown Formatting Phase 8: Escaping Edge Cases
+
+- Verified the complete escaped-character matrix, hidden backslashes, escaped `1\\.`, per-occurrence scope, and adjacent real formatting against the Phase 1 audit examples.
+- No production syntax change or dependency was needed; added final regression coverage and ADR-0072, which indexes the decisions from Phases 1–8 and closes the basic Markdown formatting build plan.
+- Final Phase 2–8 suite: 52 tests passing. Package typecheck/lint/build, desktop focused lint, and the under-5 ms benchmark pass.

@@ -48,6 +48,9 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0067](adr/0067-markdown-internal-links-and-image-embeds.md) | Markdown internal links resolve via indexer; images embed via async widget; unified `linkExtension` | Accepted |
 | [0068](adr/0068-editor-list-task-live-preview.md) | Viewport-bounded list/task widgets; canonical task `x`; no list-depth cap | Accepted |
 | [0069](adr/0069-active-ordered-list-marker-visibility.md) | Keep ordered numerals visible on the active line; preserve raw active bullets/tasks | Accepted |
+| [0070](adr/0070-editor-code-block-language-coverage.md) | Initial embedded code grammar: JavaScript/TypeScript-family tags only | Accepted |
+| [0071](adr/0071-editor-footnote-and-inline-footnote-scope.md) | Inline footnotes render only in read-only MarkdownView; references/definitions render in both modes | Accepted |
+| [0072](adr/0072-editor-markdown-formatting-plan-complete.md) | Phases 1–8 complete the basic Markdown formatting plan; future work is separately scoped | Accepted |
 
 ## Data Model, Indexer & SQLite
 

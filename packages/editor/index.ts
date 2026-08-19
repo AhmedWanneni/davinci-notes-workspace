@@ -24,6 +24,13 @@ export {
   readOnlyEditorTheme,
 } from "./editorTheme";
 export { livePreviewExtension } from "./livePreviewExtension";
+export { codeBlockLanguage } from "./codeBlockExtension";
+export { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
+export type { MarkdownAnnotationsOptions } from "./markdownAnnotationsExtension";
+export {
+  markdownAnnotationTheme,
+  readOnlyMarkdownAnnotationTheme,
+} from "./markdownAnnotationTheme";
 export {
   linkExtension,
   wikilinkExtension,

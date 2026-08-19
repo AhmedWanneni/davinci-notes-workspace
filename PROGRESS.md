@@ -6,9 +6,76 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Stabilization Phase 1 — note CRUD** — delete and duplicate complete (ADR-0064); move and real-app dogfooding remain. Note CRUD continues to use canonical vault operations for filesystem, SQLite, graph, and workspace state.
+**Stabilization Phase 1 — note CRUD** — delete and duplicate complete (ADR-0064); move and real-app dogfooding remain. Note CRUD continues to use canonical vault operations for filesystem, SQLite, graph, and workspace state. The Editor Markdown Formatting Phases 1–8 build plan is complete (ADR-0072).
 
 ## Last Session
+
+**Editor Markdown Formatting — Phase 8: Escaping Edge Cases (@app/editor) (ADR-0072)**
+
+### Completed
+- Verified the full escape matrix for `\\*`, `\\_`, `\\#`, `\\``, `\\|`, `\\~`, and `\\=`. Each backslash is hidden by the existing per-occurrence `Escape` decoration while its literal character remains visible.
+- Verified `1\\.` does not become an ordered list; the existing list marker logic requires the period/delimiter immediately after the number, so the escaped form is skipped.
+- Verified per-character scope beside real italic/bold/highlight/heading syntax, escaped pipes in table-like text, and the Phase 1 audit fixture's escaped examples.
+- Added final escape matrix regressions and the final ADR-0072 indexing the Phase 1–8 decisions. No production syntax or dependency change was required.
+
+### Verification
+- Final Phase 2–8 focused suite: 52 tests passing.
+- `@app/editor` typecheck, lint, and build pass; desktop focused lint passes.
+- Final editor benchmark remains under the `<5 ms` per-keystroke requirement.
+
+### Basic Markdown formatting plan closed
+- Phases 1–8 are complete: audit, line breaks, inline formatting, links/images, lists/tasks, code blocks, quotes/footnotes/comments, and escaping verification.
+- Future editor syntax work must begin as a separately scoped phase and preserve the single CodeMirror rendering path and performance budget.
+
+**Editor Markdown Formatting — Phase 7: Quotes, Footnotes & Comments (@app/editor) (ADR-0071)**
+
+### Completed
+- Added viewport-bounded blockquote line decorations with a continuous left-border indicator across consecutive quote lines.
+- Added numbered footnote reference and definition widgets for numeric and named definitions, including indented continuation content.
+- Matched Obsidian's inline-footnote scope: `^[text]` renders as a numbered marker only in read-only `MarkdownView`; editable `Editor` leaves it as normal Markdown text. Logged in ADR-0071.
+- Added visible, dimmed comment styling for `%%inline%%` and multiline comments in the editor. Existing `MarkdownView` hides comments rather than introducing a new reading-mode system.
+- Added mixed-syntax regressions for inline formatting, links, lists, code blocks, comments, and horizontal rules. The annotation pass skips code content.
+- Kept all work in the existing CodeMirror decoration path and visible ranges; no dependency added.
+
+### Verification
+- Phase 2–7 focused suite: 48 tests passing, including the Phase 6 inline-code styling fix and horizontal-rule regressions.
+- `@app/editor` typecheck, lint, and build pass; desktop focused lint passes.
+- Expanded editor benchmark passes the existing `<5 ms` per-keystroke assertion.
+
+### Deviation
+- Footnote click-to-definition navigation remains the documented stretch goal and was not added in this phase.
+
+**Bug Fix — Inline Code Visual Styling (@app/editor)**
+
+### Root cause and fix
+- Reproduced with the existing CodeMirror JSDOM harness; the Markdown parser emitted `InlineCode`/`CodeMark`, and `livePreviewExtension` hid the delimiters correctly for both single- and double-backtick spans.
+- The code content had only the generic `t.monospace` highlight rule, whose font family was the same editor font and had no visual background, border, or distinct color. Extended that existing rule with accent color, secondary background, subtle border, small radius, and padding; no parallel decoration system was added.
+- Added coverage for single-word and multi-word spans, distinct highlighted content, delimiter behavior, double-backtick literals, cursor editing, and the existing benchmark.
+
+### Verification
+- Phase 6 focused suite: 37 tests passing.
+- `@app/editor` typecheck, lint, and build pass; latency remains under the existing `<5 ms` benchmark assertion.
+- Added a patch changeset for `@app/editor`.
+
+**Editor Markdown Formatting — Phase 6: Code Blocks (@app/editor) (ADR-0070)**
+
+### Completed
+- Added live-preview decoration for single/double inline-code delimiters, fenced code delimiters/info tags, and indented code blocks while preserving literal code content.
+- Reused the existing Lezer Markdown parser for 3+ backtick/tilde fences, four-space/tab indentation, and nested fence rules; explicit 4-backtick-in-3-backtick and tilde-with-backtick cases are covered.
+- Configured CodeMirror's nested language support for JavaScript/TypeScript-family tags (`js`, `jsx`, `javascript`, `mjs`, `cjs`, `ts`, `tsx`, `typescript`) in both `Editor` and `MarkdownView`.
+- Verified code content is not parsed/decorated as Phase 3 inline formatting and code blocks nested in list items remain intact.
+- Added focused Phase 6 tests and expanded the 1,000-line benchmark to include fenced code and language resolution. No per-keystroke full-document scan or new parallel Markdown renderer was added.
+- Added ADR-0070, DECISIONS.md index entry, lockfile/package dependency, and an `@app/editor` minor changeset. Installed grammar footprint is approximately 88 KB in the workspace.
+
+### Verification
+- Phase 2–5 regression suite plus Phase 6: 35 tests passing.
+- `@app/editor` typecheck, lint, and build pass; desktop focused lint passes.
+- Expanded editor benchmark passes the existing `<5 ms` per-keystroke assertion.
+
+### Deviation
+- Syntax highlighting is intentionally limited to JavaScript/TypeScript-family fences. Python, Rust, Go, CSS, HTML, SQL, and other languages are documented as future coverage in ADR-0070 rather than added to the always-loaded editor bundle.
+
+**Bug Fix — Ordered List Numbers Not Rendering (@app/editor) (ADR-0069)**
 
 **Bug Fix — Ordered List Numbers Not Rendering (@app/editor) (ADR-0069)**
 
@@ -176,13 +243,12 @@ No canonical rename existed (stabilization Phase 1 not yet run). Added **`rename
 
 1. **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
 2. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-3. **Editor Markdown Formatting — Phase 6: Code Blocks** (using ADR-0062 gap audit).
-4. **Unlinked Mentions Detection**
-5. **Inline Property Editing**
-6. **Outline Scroll Synchronization**
-7. Add success/warning semantic color tokens
-8. Chromatic / Playwright screenshot regression
-9. Fix `CanvasBenchmark.test.ts` lint
+3. **Unlinked Mentions Detection**
+4. **Inline Property Editing**
+5. **Outline Scroll Synchronization**
+6. Add success/warning semantic color tokens
+7. Chromatic / Playwright screenshot regression
+8. Fix `CanvasBenchmark.test.ts` lint
 
 ## Blocked / Open Questions
 
