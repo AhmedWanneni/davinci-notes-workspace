@@ -45,6 +45,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0064](adr/0064-canonical-note-delete-and-duplicate.md) | Note delete/duplicate use canonical vault helpers; file-tree drag remains canvas-copy only | Accepted |
 | [0065](adr/0065-editor-settings-contract-ownership.md) | `@app/editor` owns editor settings schema/defaults; clients provide storage adapters | Accepted |
 | [0066](adr/0066-inline-markdown-formatting-and-highlight-extension.md) | Inline Markdown formatting completeness with GFM Strikethrough and custom Highlight | Accepted |
+| [0067](adr/0067-markdown-internal-links-and-image-embeds.md) | Markdown internal links resolve via indexer; images embed via async widget; unified `linkExtension` | Accepted |
 
 ## Data Model, Indexer & SQLite
 

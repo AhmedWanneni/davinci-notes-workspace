@@ -5,15 +5,18 @@ import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
 import { livePreviewExtension } from "../../../../packages/editor/livePreviewExtension";
 import { wikilinkExtension } from "../../../../packages/editor/wikilinkExtension";
+import { imageExtension } from "../../../../packages/editor/imageExtension";
 import { softLineBreakExtension } from "../../../../packages/editor/lineBreakExtension";
 
 describe("Editor Performance Benchmark", () => {
   it("profiles document update with live preview and wikilink extensions", () => {
-    // Construct a large document with 1000 lines and 100 wikilinks
+    // Construct a large document with 1000 lines, 100 wikilinks, 50 markdown links, and 50 images
     let docText = "# Large Document\n\n";
     for (let i = 0; i < 1000; i++) {
-      if (i % 10 === 0) {
+      if (i % 20 === 0) {
         docText += `This is line ${i} with a [[wikilink-${i}]] and some **bold text**.\n`;
+      } else if (i % 20 === 10) {
+        docText += `This is line ${i} with a [markdown link](note-${i}.md) and ![photo|300x200](https://example.com/pic-${i}.png).\n`;
       } else {
         docText += `This is normal line ${i} of text in our editor performance test.\n`;
       }
@@ -25,6 +28,7 @@ describe("Editor Performance Benchmark", () => {
         markdown(),
         livePreviewExtension,
         softLineBreakExtension,
+        imageExtension(),
         wikilinkExtension({
           notePaths: Array.from({ length: 350 }, (_, i) => `note-${i}.md`),
           sourcePath: "active-note.md",

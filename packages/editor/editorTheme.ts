@@ -88,6 +88,45 @@ export const editorTheme = EditorView.theme({
     textDecoration: "none",
     borderBottom: "1px dashed var(--color-text-accent)",
   },
+  ".cm-link": {
+    color: "var(--color-text-accent)",
+    textDecoration: "underline",
+    cursor: "pointer",
+  },
+  ".cm-link:hover": {
+    textDecoration: "underline",
+  },
+  ".cm-link-unresolved": {
+    textDecoration: "none",
+    borderBottom: "1px dashed var(--color-text-accent)",
+  },
+  ".cm-link-external": {
+    color: "var(--color-text-accent)",
+    textDecoration: "underline",
+    cursor: "pointer",
+  },
+  ".cm-image-embed": {
+    display: "inline-block",
+    maxWidth: "100%",
+    verticalAlign: "middle",
+    margin: "var(--space-1, 4px) 0",
+  },
+  ".cm-image-embed img": {
+    maxWidth: "100%",
+    height: "auto",
+    display: "block",
+    borderRadius: "var(--border-radius-sm, 2px)",
+  },
+  ".cm-image-error": {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "var(--space-2, 8px)",
+    border: "1px dashed var(--color-border-subtle)",
+    borderRadius: "var(--border-radius-sm, 2px)",
+    color: "var(--color-text-muted)",
+    fontSize: "var(--type-scale-xs, 12px)",
+  },
   ".cm-markdown-syntax": {
     display: "none !important",
   },
@@ -148,6 +187,45 @@ export const readOnlyEditorTheme = EditorView.theme({
   ".cm-wikilink-unresolved": {
     textDecoration: "none",
     borderBottom: "1px dashed var(--color-text-accent)",
+  },
+  ".cm-link": {
+    color: "var(--color-text-accent)",
+    textDecoration: "underline",
+    cursor: "pointer",
+  },
+  ".cm-link:hover": {
+    textDecoration: "underline",
+  },
+  ".cm-link-unresolved": {
+    textDecoration: "none",
+    borderBottom: "1px dashed var(--color-text-accent)",
+  },
+  ".cm-link-external": {
+    color: "var(--color-text-accent)",
+    textDecoration: "underline",
+    cursor: "pointer",
+  },
+  ".cm-image-embed": {
+    display: "inline-block",
+    maxWidth: "100%",
+    verticalAlign: "middle",
+    margin: "var(--space-1, 4px) 0",
+  },
+  ".cm-image-embed img": {
+    maxWidth: "100%",
+    height: "auto",
+    display: "block",
+    borderRadius: "var(--border-radius-sm, 2px)",
+  },
+  ".cm-image-error": {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "var(--space-2, 8px)",
+    border: "1px dashed var(--color-border-subtle)",
+    borderRadius: "var(--border-radius-sm, 2px)",
+    color: "var(--color-text-muted)",
+    fontSize: "var(--type-scale-xs, 12px)",
   },
   ".cm-markdown-syntax": {
     display: "none !important",

@@ -19,7 +19,8 @@ import { syntaxHighlighting } from "@codemirror/language";
 import { editorHighlightStyle, editorTheme } from "./editorTheme";
 import { highlightExtension } from "./highlightExtension";
 import { livePreviewExtension } from "./livePreviewExtension";
-import { wikilinkExtension } from "./wikilinkExtension";
+import { linkExtension } from "./linkExtension";
+import { imageExtension } from "./imageExtension";
 import { autocompleteExtension } from "./autocompleteExtension";
 import {
   insertHardLineBreak,
@@ -32,6 +33,7 @@ export interface EditorProps {
   notePaths: readonly string[];
   sourcePath: string;
   onLinkClick: (targetRaw: string) => void;
+  onExternalLinkClick?: (url: string) => void;
 }
 
 export function Editor({
@@ -40,6 +42,7 @@ export function Editor({
   notePaths,
   sourcePath,
   onLinkClick,
+  onExternalLinkClick,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -73,9 +76,15 @@ export function Editor({
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
         softLineBreakExtension,
+        imageExtension(),
         // Dynamic compartments for options
         wikilinkCompartmentRef.current.of(
-          wikilinkExtension({ notePaths, sourcePath, onLinkClick }),
+          linkExtension({
+            notePaths,
+            sourcePath,
+            onLinkClick,
+            onExternalLinkClick,
+          }),
         ),
         autocompleteCompartmentRef.current.of(
           autocompletion({ override: [autocompleteExtension({ notePaths })] }),
@@ -123,14 +132,19 @@ export function Editor({
     view.dispatch({
       effects: [
         wikilinkCompartmentRef.current.reconfigure(
-          wikilinkExtension({ notePaths, sourcePath, onLinkClick }),
+          linkExtension({
+            notePaths,
+            sourcePath,
+            onLinkClick,
+            onExternalLinkClick,
+          }),
         ),
         autocompleteCompartmentRef.current.reconfigure(
           autocompletion({ override: [autocompleteExtension({ notePaths })] }),
         ),
       ],
     });
-  }, [notePaths, sourcePath, onLinkClick]);
+  }, [notePaths, sourcePath, onLinkClick, onExternalLinkClick]);
 
   return <div ref={containerRef} className={"editor-container"} />;
 }

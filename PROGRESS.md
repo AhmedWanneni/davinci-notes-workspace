@@ -10,23 +10,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Last Session
 
-**Editor Markdown Formatting — Phase 3: Inline Formatting Completeness (@app/editor) (ADR-0066)**
+**Editor Markdown Formatting — Phase 4: Links & Images (@app/editor) (ADR-0067)**
 
 ### Completed
-- Enabled built-in GFM `Strikethrough` extension from `@lezer/markdown` in `@app/editor` (`Editor` and `MarkdownView`).
-- Implemented dedicated `@lezer/markdown` `highlightExtension` using delimiter parser matching `==highlight==` syntax with custom `highlightTag`.
-- Styled `t.strikethrough` (`textDecoration: "line-through"`) and `highlightTag` (`backgroundColor: "var(--color-bg-highlight, rgba(241, 196, 15, 0.3))"`, `borderRadius: "var(--border-radius-sm, 2px)"`, `padding: "0 2px"`) in `editorHighlightStyle`.
-- Updated `livePreviewExtension.ts` to match `EmphasisMark`, `StrikethroughMark`, and `HighlightMark` for hiding delimiters off-active-line, and decorated `Escape` node backslashes (`node.from` to `node.from + 1`) with `cm-markdown-syntax` so backslashes hide in rendered view while displaying literal characters without triggering formatting.
-- Verified nested and combined forms (`***bold+italic***`, `___under combined___`, `**bold with _nested italic_**`, `==highlight with **bold**==`, `~~strike with ==highlight==~~`).
-- Added comprehensive unit tests in `inlineFormattingExtension.test.tsx` (10 passing tests) covering core inline styles, combined/nested forms, character-scoped escaping, active line editing, wikilink co-occurrence, and read-only `MarkdownView` rendering.
-- Added `@app/editor` minor changeset and ADR-0066.
+- Implemented unified `linkExtension` replacing `wikilinkExtension` (backward-compat re-export kept). Handles wikilinks, `[text](path.md)` internal links, `[text](https://...)` external links, and `<autolink>` URLs in a single ViewPlugin.
+- Markdown internal links resolve through the same `parseLinks` indexer lookup as wikilinks — consistent broken-link indicator (dashed underline) and `onLinkClick` dispatch.
+- External links open via `onExternalLinkClick` callback or `window.open("_blank", "noopener,noreferrer")`; `%20`-encoded URLs and `<angle-bracket>`-wrapped URLs with literal spaces parsed and navigated correctly.
+- Implemented `imageExtension` with `ImageWidget` (WidgetType): `![alt](url)`, `![alt|640x480](url)`, `![alt|100](url)`, and `![800x600](url)` (dimension-only) forms all render inline with correct width/height applied to `<img>`. `loading=lazy`/`decoding=async` — never blocks typing.
+- Both extensions iterate `view.visibleRanges` (not full doc) per update — keystroke latency **4.627 ms** on 1,000-line/350-note/100-wikilink/50-image benchmark document (under 5 ms target).
+- Added link/image styling tokens to `editorTheme` and `readOnlyEditorTheme`: `.cm-link`, `.cm-link-unresolved`, `.cm-link-external`, `.cm-image-embed`, `.cm-image-error`.
+- Updated `Editor.tsx` (added `onExternalLinkClick` prop, `imageExtension()`) and `MarkdownView.tsx` (same).
+- Exported `linkExtension`, `imageExtension`, and helpers from `packages/editor/index.ts`.
+- 8 new Phase 4 tests in `linksAndImagesExtension.test.tsx`: wikilinks, internal links, external links (including space-escaping), image dimensions, active-line reveal, Phase 3 regression combinations, read-only `MarkdownView`.
+- Updated `EditorBenchmark.test.ts` to include `imageExtension` and mixed link/image load.
+- ADR-0067 logged; DECISIONS.md updated; minor changeset added.
 
 ### Verification
-- 10 inline formatting tests passing.
+- 8 Phase 4 links/images tests passing.
+- 10 Phase 3 inline formatting tests passing.
 - 5 horizontal rule tests passing.
 - 4 line break tests passing.
-- 25 canvas test suites (179 tests) passing (zero regressions in canvas embeds).
-- Editor benchmark typing latency: **4.319 ms per keystroke** (under 5 ms target).
+- Editor benchmark typing latency: **4.627 ms per keystroke** (under 5 ms target; includes wikilinks + markdown links + images in 1,000-line doc).
 - `@app/editor` typecheck, lint, build pass cleanly.
 
 **Editor Settings Ownership — package contract correction (ADR-0065)**
@@ -141,7 +145,7 @@ No canonical rename existed (stabilization Phase 1 not yet run). Added **`rename
 
 1. **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
 2. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-3. **Editor Markdown Formatting — Phase 4: Links & Images** (using ADR-0062 gap audit).
+3. **Editor Markdown Formatting — Phase 5: Lists** (using ADR-0062 gap audit).
 4. **Unlinked Mentions Detection**
 5. **Inline Property Editing**
 6. **Outline Scroll Synchronization**

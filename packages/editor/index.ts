@@ -24,7 +24,19 @@ export {
   readOnlyEditorTheme,
 } from "./editorTheme";
 export { livePreviewExtension } from "./livePreviewExtension";
-export { wikilinkExtension } from "./wikilinkExtension";
+export {
+  linkExtension,
+  wikilinkExtension,
+  isExternalUrl,
+  sanitizeLinkDestination,
+} from "./linkExtension";
+export type { LinkExtensionOptions } from "./linkExtension";
+export {
+  imageExtension,
+  parseImageDimensions,
+  sanitizeImageUrl,
+} from "./imageExtension";
+export type { ImageDimensions, ImageExtensionOptions } from "./imageExtension";
 export { highlightExtension, highlightTag } from "./highlightExtension";
 export { Strikethrough } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";

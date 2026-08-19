@@ -7,7 +7,8 @@ import { syntaxHighlighting } from "@codemirror/language";
 import { editorHighlightStyle, readOnlyEditorTheme } from "./editorTheme";
 import { highlightExtension } from "./highlightExtension";
 import { livePreviewExtension } from "./livePreviewExtension";
-import { wikilinkExtension } from "./wikilinkExtension";
+import { linkExtension } from "./linkExtension";
+import { imageExtension } from "./imageExtension";
 import { softLineBreakExtension } from "./lineBreakExtension";
 
 export interface MarkdownViewProps {
@@ -15,18 +16,20 @@ export interface MarkdownViewProps {
   notePaths?: readonly string[];
   sourcePath?: string;
   onLinkClick?: (targetRaw: string) => void;
+  onExternalLinkClick?: (url: string) => void;
   className?: string;
 }
 
 /**
  * Lightweight, read-only live-preview markdown renderer reusing
- * CodeMirror 6 syntax highlighting and wikilink parsing.
+ * CodeMirror 6 syntax highlighting, link handling, and image rendering.
  */
 export function MarkdownView({
   value,
   notePaths = [],
   sourcePath = "",
   onLinkClick = () => {},
+  onExternalLinkClick,
   className = "",
 }: MarkdownViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,8 +49,14 @@ export function MarkdownView({
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
         softLineBreakExtension,
+        imageExtension({ isReadOnly: true }),
         wikilinkCompartmentRef.current.of(
-          wikilinkExtension({ notePaths, sourcePath, onLinkClick }),
+          linkExtension({
+            notePaths,
+            sourcePath,
+            onLinkClick,
+            onExternalLinkClick,
+          }),
         ),
       ],
     });
@@ -86,11 +95,16 @@ export function MarkdownView({
     view.dispatch({
       effects: [
         wikilinkCompartmentRef.current.reconfigure(
-          wikilinkExtension({ notePaths, sourcePath, onLinkClick }),
+          linkExtension({
+            notePaths,
+            sourcePath,
+            onLinkClick,
+            onExternalLinkClick,
+          }),
         ),
       ],
     });
-  }, [notePaths, sourcePath, onLinkClick]);
+  }, [notePaths, sourcePath, onLinkClick, onExternalLinkClick]);
 
   return (
     <div
