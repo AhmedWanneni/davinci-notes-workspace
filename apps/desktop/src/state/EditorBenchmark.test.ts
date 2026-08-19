@@ -10,6 +10,8 @@ import { listExtension } from "../../../../packages/editor/listExtension";
 import { softLineBreakExtension } from "../../../../packages/editor/lineBreakExtension";
 import { codeBlockLanguage } from "../../../../packages/editor/codeBlockExtension";
 import { markdownAnnotationsExtension } from "../../../../packages/editor/markdownAnnotationsExtension";
+import { mermaidExtension } from "../../../../packages/editor/mermaidExtension";
+import { mathExtension } from "../../../../packages/editor/mathExtension";
 
 describe("Editor Performance Benchmark", () => {
   it("profiles document update with live preview and wikilink extensions", () => {
@@ -18,6 +20,10 @@ describe("Editor Performance Benchmark", () => {
     for (let i = 0; i < 1000; i++) {
       if (i % 100 === 0) {
         docText += "```js\nconst value = **literal code**;\n```\n";
+      } else if (i % 100 === 50) {
+        docText += "```mermaid\ngraph TD\nA --> B\n```\n";
+      } else if (i % 100 === 75) {
+        docText += "Inline $e^{2i\\pi}=1$ math.\n";
       } else if (i % 20 === 0) {
         docText += `This is line ${i} with a [[wikilink-${i}]] and some **bold text**.\n`;
       } else if (i % 20 === 10) {
@@ -38,6 +44,9 @@ describe("Editor Performance Benchmark", () => {
         listExtension(),
         imageExtension(),
         markdownAnnotationsExtension(),
+        mermaidExtension({ onLinkClick: () => {} }),
+        mathExtension(),
+        EditorView.lineWrapping,
         wikilinkExtension({
           notePaths: Array.from({ length: 350 }, (_, i) => `note-${i}.md`),
           sourcePath: "active-note.md",

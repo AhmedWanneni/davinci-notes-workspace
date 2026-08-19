@@ -8,6 +8,10 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-08-20 | Phase 11 — Math (ADR-0074) | Added lazy KaTeX inline/block math with cursor-gated editing, reused 150ms debounce, graceful errors, determinant/exponential coverage, and an editor patch changeset. |
+| 2026-08-20 | Phase 10 — Mermaid Diagrams (ADR-0073) | Added dynamically loaded Mermaid 11.16.1 rendering for fenced diagrams, cursor-gated editable source, debounced updates, graceful errors, and internal-link node clicks. Added flowchart/sequence/special-label coverage and an editor patch changeset. |
+| 2026-08-19 | Bug Fix / Feature — Live Editable Table Grid | Completed tables now render as bordered flex-grid rows through CodeMirror decorations; delimiters/separator are visually suppressed while cell ranges remain directly editable and markdown-backed. Added grid and source-sync regressions. |
+| 2026-08-19 | Bug Fix — Enter After Ambiguous Table Header | Reproduced with the full editor keymap; Enter already creates a normal newline because the table extension defines no Enter handler. Added regression coverage; no production change required. |
 | 2026-08-19 | Bug Fix — Ordered List Numbers Not Rendering (ADR-0069) | Reproduced the active-line-only failure in the existing CodeMirror harness: raw `1. ` remained, but `listExtension` skipped its decoration. Ordered numerals now render during typing while unordered/task active-line editing remains unchanged; added regression coverage and an `@app/editor` patch changeset. |
 | 2026-08-19 | Editor Markdown Formatting Phase 5 — Lists & Tasks (ADR-0068) | Added viewport-bounded list/task widgets to `@app/editor`, transactional portable-Markdown checkbox toggles, native Tab/Shift+Tab keymap reuse, ordered-list-safe Shift+Enter, deep mixed-list/Phase 2–4 regressions, and benchmark coverage. 28 focused tests pass; expanded 1,000-line benchmark 0.833 ms/keystroke. |
 | 2026-08-19 | Editor Markdown Formatting Phase 3 — Inline Formatting Completeness (ADR-0066) | Complete inline formatting support in `@app/editor`: enabled Lezer GFM `Strikethrough` and custom `highlightExtension` for `==highlight==`; styled `t.strikethrough` and `highlightTag`; updated `livePreviewExtension` for syntax mark hiding and `Escape` node backslash suppression; 10 unit tests pass, canvas tests pass, typing latency ~4.3ms/keystroke. |
@@ -52,6 +56,33 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-08-17 | Canvas Feature Phase 13 — App Integration (FINAL) | Wired canvas fully into Obsidian-grid app shell: Icon Rail New Canvas button (FrameCorners icon), File Tree canvas distinction + click open, Tab Bar canvas/note type icons + close-save flush, RightSidebar "not applicable for canvas" per-section empty states + StatusBar canvas chip (ADR-0057). Re-verified lazy-load boundary: entry JS 21.08 KB raw / 7.71 KB gzip — 0 KB canvas/ReactFlow/PDF in first paint (canvas vendor chunk 56 KB gzip loaded only on demand). All 13 canvas phases complete. 179 canvas tests / 25 suites; tsc clean. |
 
 ## Detailed Session Notes
+
+### 2026-08-20 — Phase 11: Math (ADR-0074)
+
+- Chose KaTeX 0.18.4 instead of MathJax. The installed package is approximately 4.3 MB and covers the required `vmatrix`, scripts, fractions, and inline expressions; no planned content currently requires MathJax-only extensions.
+- Added lazy KaTeX replacement widgets for `$$` blocks and `$` inline expressions. Active editable lines retain source; read-only rendering and cursor exit render the expression.
+- Reused Phase 10's 150 ms debounce for external changes and converted parser failures into visible error placeholders.
+- Added determinant, exponential, cursor-toggle, invalid-input, and latency regression coverage.
+
+### 2026-08-20 — Phase 10: Mermaid Diagrams (ADR-0073)
+
+- Reused the CodeMirror replacement-widget path for `mermaid` fenced blocks. Because ViewPlugins cannot replace line breaks, the block is composed of a rendering widget on the first fence line and continuation widgets on the remaining lines.
+- Mermaid 11.16.1 is dynamically imported. The installed dependency tree is approximately 83 MB, so the package cost is explicit and Mermaid does not enter the initial editor load path.
+- Chose cursor-gated rendering plus a 150 ms debounce for external document changes. Raw Mermaid remains editable inside the fence; leaving it renders the SVG, and invalid syntax becomes a visible error state.
+- Internal-link class declarations call the existing `onLinkClick` callback, including quoted labels with special characters. No separate vault lookup was added.
+
+### 2026-08-19 — Live Editable Table Grid
+
+- Phase 9 had table detection and cell marks but no visual grid renderer, so valid tables remained raw pipe-delimited text.
+- Added row flex layout, equal-width editable cell marks, visible cell borders, delimiter suppression, and separator hiding with active-line source reveal. The markdown document remains the sole source of truth; typing in a cell dispatches the normal CodeMirror document transaction.
+- Escaped pipes are excluded using the existing syntax-tree escape handling, preserving table-cell parsing and wikilink/image aliases. Existing row/column mutation actions continue to modify markdown ranges.
+- Added grid structure and cell-edit synchronization tests. No new widget system or dependency was introduced.
+
+### 2026-08-19 — Bug Fix — Enter After Ambiguous Table Header
+
+- Reproduced `| First name | Last name |` followed by Enter using the full CodeMirror default keymap and the Phase 9 table extension. The document correctly became two lines.
+- Checked the table extension for custom Enter/keymap handling. None exists: the extension only scans visible ranges for table decorations and handles `contextmenu`, so it cannot swallow the newline.
+- Added regression coverage for multi-column and single-column-looking pipe rows, plus ordinary text adjacent to them. No runtime change or dependency was needed.
 
 ### 2026-08-19 — Editor Markdown Formatting Phase 5: Lists & Tasks (ADR-0068)
 
@@ -446,3 +477,9 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
 - Verified the complete escaped-character matrix, hidden backslashes, escaped `1\\.`, per-occurrence scope, and adjacent real formatting against the Phase 1 audit examples.
 - No production syntax change or dependency was needed; added final regression coverage and ADR-0072, which indexes the decisions from Phases 1–8 and closes the basic Markdown formatting build plan.
 - Final Phase 2–8 suite: 52 tests passing. Package typecheck/lint/build, desktop focused lint, and the under-5 ms benchmark pass.
+
+## 2026-08-19 — Editor Line Wrapping Bug Fix
+
+- Root cause: `EditorView.lineWrapping` was absent from both editable and read-only editor configurations, so long prose lines could extend horizontally.
+- Enabled CodeMirror wrapping globally, removed table-cell shrink-to-fit styling, and preserved horizontal scrolling for fenced-code lines via a scoped code-line layout rule.
+- Added line-wrapping coverage and reverified table/context-menu behavior and editor performance.

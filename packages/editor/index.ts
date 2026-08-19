@@ -31,6 +31,16 @@ export {
   markdownAnnotationTheme,
   readOnlyMarkdownAnnotationTheme,
 } from "./markdownAnnotationTheme";
+export { insertTableCommand, tableExtension } from "./tableExtension";
+export type { TableExtensionOptions } from "./tableExtension";
+export { readOnlyTableTheme, tableTheme } from "./tableTheme";
+export { codeBlockLayoutTheme } from "./codeBlockLayoutTheme";
+export { mermaidExtension } from "./mermaidExtension";
+export type { MermaidExtensionOptions } from "./mermaidExtension";
+export { mermaidTheme } from "./mermaidTheme";
+export { mathExtension } from "./mathExtension";
+export type { MathExtensionOptions } from "./mathExtension";
+export { mathTheme } from "./mathTheme";
 export {
   linkExtension,
   wikilinkExtension,

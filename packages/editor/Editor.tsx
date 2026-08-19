@@ -21,6 +21,13 @@ import { autocompleteExtension } from "./autocompleteExtension";
 import { codeBlockLanguage } from "./codeBlockExtension";
 import { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
 import { markdownAnnotationTheme } from "./markdownAnnotationTheme";
+import { tableExtension } from "./tableExtension";
+import { tableTheme } from "./tableTheme";
+import { codeBlockLayoutTheme } from "./codeBlockLayoutTheme";
+import { mermaidExtension } from "./mermaidExtension";
+import { mermaidTheme } from "./mermaidTheme";
+import { mathExtension } from "./mathExtension";
+import { mathTheme } from "./mathTheme";
 import {
   insertHardLineBreak,
   softLineBreakExtension,
@@ -63,6 +70,11 @@ export function Editor({
       extensions: [
         editorTheme,
         markdownAnnotationTheme,
+        tableTheme,
+        codeBlockLayoutTheme,
+        mermaidTheme,
+        mathTheme,
+        EditorView.lineWrapping,
         history(),
         drawSelection(),
         highlightActiveLine(),
@@ -81,6 +93,9 @@ export function Editor({
         markdownAnnotationsExtension(),
         softLineBreakExtension,
         listExtension(),
+        tableExtension(),
+        mermaidExtension({ onLinkClick }),
+        mathExtension(),
         imageExtension(),
         // Dynamic compartments for options
         wikilinkCompartmentRef.current.of(

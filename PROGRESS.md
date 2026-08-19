@@ -10,6 +10,74 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Last Session
 
+**Phase 11 — Math (@app/editor) (ADR-0074)**
+
+### Completed
+- Chose KaTeX 0.18.4 over MathJax for the current LaTeX scope: the required determinant/matrix and exponential expressions are supported, with an approximately 4.3 MB installed package footprint. The JavaScript renderer is dynamically imported.
+- Added cursor-gated multi-line `$$ ... $$` block rendering and inline `$...$` rendering. Active editable lines retain raw math source; read-only views render inline math immediately.
+- Added graceful invalid-LaTeX placeholders and KaTeX stylesheet/theme integration.
+- Reused Phase 10's 150 ms external-update debounce and documented the MathJax-extension compatibility boundary in ADR-0074.
+
+### Verification
+- Determinant/matrix block, exponential inline math, cursor toggle, and invalid-LaTeX tests pass.
+- Existing Mermaid, table, formatting, and editor benchmark coverage remains passing; package typecheck/lint/build pass.
+- Added an `@app/editor` patch changeset.
+
+**Phase 10 — Mermaid Diagrams (@app/editor) (ADR-0073)**
+
+### Completed
+- Confirmed Phase 9 table rendering and source-backed editing remained stable before adding diagrams.
+- Added Mermaid 11.16.1 as a scoped dependency. Its approximately 83 MB installed dependency tree is dynamically imported, keeping the initial editor bundle path free of Mermaid.
+- Added generic Mermaid fenced-block detection for `mermaid` tags and cursor-gated replacement widgets. Flowcharts, sequence diagrams, quoted special-character labels, and future Mermaid diagram types use the same renderer.
+- Added `class NodeId internal-link;` click handling through the existing editor `onLinkClick`/vault resolution path.
+- Invalid or incomplete Mermaid source renders a graceful error placeholder instead of throwing.
+
+### Performance decision
+- Logged ADR-0073: raw source remains visible while the cursor is inside a diagram; leaving the block renders immediately, while external document changes use a 150 ms debounce. Mermaid is never re-rendered on every keystroke inside the block.
+- CodeMirror cannot replace line breaks from a ViewPlugin, so the visual block uses a first-line Mermaid widget plus continuation widgets, preserving the existing widget pattern without a separate renderer or editable DOM state.
+
+### Verification
+- Mermaid flowchart, sequence, internal-link, special-label, invalid-syntax, and cursor-toggle tests pass.
+- Existing table, editor, and performance tests remain passing; `@app/editor` typecheck/lint/build pass.
+- Added an `@app/editor` patch changeset.
+
+**Bug Fix / Feature — Live Editable Table Grid (@app/editor)**
+
+### Root cause and fix
+- Reproduced completed tables in Live Preview: Phase 9 detected valid blocks and marked cells, but rendered no grid; pipes and the separator remained ordinary text.
+- Added grid rendering to the existing CodeMirror table decoration path. Rows use flex layout, cells use editable marks with equal column sizing and borders, delimiters are visually suppressed, and the separator row is hidden except while active for source editing.
+- Cell content remains the CodeMirror document range, so direct typing updates the markdown source and existing context-menu mutations continue to operate on the same ranges. Escaped pipes are excluded from delimiter decoration and inline decorations remain inside cell ranges.
+
+### Verification
+- Added coverage for grid rows/cells/delimiters and editing a body cell while preserving pipe-delimited markdown.
+- Table parsing, alignment, escaped-pipe, context-menu, line-wrapping, and benchmark tests pass; editor latency remains under `<5 ms`.
+- No separate editable DOM state or dependency was added; no ADR was needed because this reuses the existing mark/decorations pattern rather than introducing a new widget architecture.
+
+**Bug Fix — Enter After Ambiguous Table Header (@app/editor)**
+
+### Reproduction and result
+- Reproduced the reported sequence with the full editor keymap: pressing Enter after `| First name | Last name |` creates a normal newline.
+- Confirmed the same behavior for `| text |`, multi-column pipe-like lines, and ordinary text following a pipe-like line.
+- Confirmed Phase 9's `tableExtension` has no Enter keybinding; it only provides viewport decorations and the context menu. CodeMirror's existing default Enter command therefore remains responsible for newline insertion and is not swallowed by table logic.
+
+### Verification
+- Added regressions covering the ambiguous header, single-column-looking row, and following-line cases.
+- Existing valid-table parsing and context-menu tests remain passing; no production change or changeset was required because the reported bug is not present in the current implementation.
+- Editor performance verification remains under the existing `<5 ms` target.
+
+**Bug Fix — Consistent Editor Line Wrapping (@app/editor)**
+
+### Root cause and fix
+- Confirmed the inconsistent behavior was deterministic by configuration: neither `Editor` nor read-only `MarkdownView` included CodeMirror's `EditorView.lineWrapping` extension, so long prose lines extended horizontally.
+- Enabled `EditorView.lineWrapping` in both shared editor configurations.
+- Removed table-cell shrink-to-fit styling (`display: inline-block` and minimum width) that could prevent cell content from wrapping once global wrapping was enabled.
+- Preserved the intended code distinction with a scoped `.cm-line.cm-code-block` layout rule: fenced-code lines remain horizontally scrollable instead of being forced to wrap.
+
+### Verification
+- Long-line coverage passes for plain prose, lists, tables, blockquotes, and code-adjacent content; `.cm-lineWrapping` is present in the editor content.
+- Table, line-wrapping, and benchmark tests pass; full editor regression verification remains under the existing `<5 ms` keystroke target.
+- Added a patch changeset for `@app/editor`.
+
 **Editor Markdown Formatting — Phase 8: Escaping Edge Cases (@app/editor) (ADR-0072)**
 
 ### Completed

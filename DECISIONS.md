@@ -51,6 +51,8 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0070](adr/0070-editor-code-block-language-coverage.md) | Initial embedded code grammar: JavaScript/TypeScript-family tags only | Accepted |
 | [0071](adr/0071-editor-footnote-and-inline-footnote-scope.md) | Inline footnotes render only in read-only MarkdownView; references/definitions render in both modes | Accepted |
 | [0072](adr/0072-editor-markdown-formatting-plan-complete.md) | Phases 1–8 complete the basic Markdown formatting plan; future work is separately scoped | Accepted |
+| [0073](adr/0073-editor-mermaid-rendering-and-performance.md) | Mermaid diagrams use dynamically loaded, cursor-gated widgets with 150ms external-update debounce | Accepted |
+| [0074](adr/0074-editor-katex-math-rendering.md) | Use dynamically loaded KaTeX for cursor-gated inline/block math; reuse the 150ms debounce policy | Accepted |
 
 ## Data Model, Indexer & SQLite
 

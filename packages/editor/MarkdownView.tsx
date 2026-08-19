@@ -9,11 +9,18 @@ import { highlightExtension } from "./highlightExtension";
 import { codeBlockLanguage } from "./codeBlockExtension";
 import { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
 import { readOnlyMarkdownAnnotationTheme } from "./markdownAnnotationTheme";
+import { tableExtension } from "./tableExtension";
+import { readOnlyTableTheme } from "./tableTheme";
+import { codeBlockLayoutTheme } from "./codeBlockLayoutTheme";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { linkExtension } from "./linkExtension";
 import { imageExtension } from "./imageExtension";
 import { listExtension } from "./listExtension";
 import { softLineBreakExtension } from "./lineBreakExtension";
+import { mermaidExtension } from "./mermaidExtension";
+import { mermaidTheme } from "./mermaidTheme";
+import { mathExtension } from "./mathExtension";
+import { mathTheme } from "./mathTheme";
 
 export interface MarkdownViewProps {
   value: string;
@@ -48,6 +55,11 @@ export function MarkdownView({
       extensions: [
         readOnlyEditorTheme,
         readOnlyMarkdownAnnotationTheme,
+        readOnlyTableTheme,
+        codeBlockLayoutTheme,
+        mermaidTheme,
+        mathTheme,
+        EditorView.lineWrapping,
         EditorState.readOnly.of(true),
         EditorView.editable.of(false),
         markdown({
@@ -59,6 +71,9 @@ export function MarkdownView({
         markdownAnnotationsExtension({ isReadOnly: true }),
         softLineBreakExtension,
         listExtension({ isReadOnly: true }),
+        tableExtension({ isReadOnly: true }),
+        mermaidExtension({ isReadOnly: true, onLinkClick }),
+        mathExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
         wikilinkCompartmentRef.current.of(
           linkExtension({
