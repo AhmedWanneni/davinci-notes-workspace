@@ -10,6 +10,25 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Last Session
 
+**Editor Markdown Formatting — Phase 3: Inline Formatting Completeness (@app/editor) (ADR-0066)**
+
+### Completed
+- Enabled built-in GFM `Strikethrough` extension from `@lezer/markdown` in `@app/editor` (`Editor` and `MarkdownView`).
+- Implemented dedicated `@lezer/markdown` `highlightExtension` using delimiter parser matching `==highlight==` syntax with custom `highlightTag`.
+- Styled `t.strikethrough` (`textDecoration: "line-through"`) and `highlightTag` (`backgroundColor: "var(--color-bg-highlight, rgba(241, 196, 15, 0.3))"`, `borderRadius: "var(--border-radius-sm, 2px)"`, `padding: "0 2px"`) in `editorHighlightStyle`.
+- Updated `livePreviewExtension.ts` to match `EmphasisMark`, `StrikethroughMark`, and `HighlightMark` for hiding delimiters off-active-line, and decorated `Escape` node backslashes (`node.from` to `node.from + 1`) with `cm-markdown-syntax` so backslashes hide in rendered view while displaying literal characters without triggering formatting.
+- Verified nested and combined forms (`***bold+italic***`, `___under combined___`, `**bold with _nested italic_**`, `==highlight with **bold**==`, `~~strike with ==highlight==~~`).
+- Added comprehensive unit tests in `inlineFormattingExtension.test.tsx` (10 passing tests) covering core inline styles, combined/nested forms, character-scoped escaping, active line editing, wikilink co-occurrence, and read-only `MarkdownView` rendering.
+- Added `@app/editor` minor changeset and ADR-0066.
+
+### Verification
+- 10 inline formatting tests passing.
+- 5 horizontal rule tests passing.
+- 4 line break tests passing.
+- 25 canvas test suites (179 tests) passing (zero regressions in canvas embeds).
+- Editor benchmark typing latency: **4.319 ms per keystroke** (under 5 ms target).
+- `@app/editor` typecheck, lint, build pass cleanly.
+
 **Editor Settings Ownership — package contract correction (ADR-0065)**
 
 ### Completed
@@ -122,7 +141,7 @@ No canonical rename existed (stabilization Phase 1 not yet run). Added **`rename
 
 1. **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
 2. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-3. **Editor Markdown Formatting — Phase 3 scope/sequence** using ADR-0062; choose the smallest parser/decorator increment.
+3. **Editor Markdown Formatting — Phase 4: Links & Images** (using ADR-0062 gap audit).
 4. **Unlinked Mentions Detection**
 5. **Inline Property Editing**
 6. **Outline Scroll Synchronization**

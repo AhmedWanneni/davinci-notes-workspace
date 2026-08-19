@@ -23,3 +23,8 @@ export {
   editorTheme,
   readOnlyEditorTheme,
 } from "./editorTheme";
+export { livePreviewExtension } from "./livePreviewExtension";
+export { wikilinkExtension } from "./wikilinkExtension";
+export { highlightExtension, highlightTag } from "./highlightExtension";
+export { Strikethrough } from "@lezer/markdown";
+export { syntaxHighlighting } from "@codemirror/language";

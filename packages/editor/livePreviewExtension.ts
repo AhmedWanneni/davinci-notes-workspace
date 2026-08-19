@@ -9,6 +9,7 @@ import {
 } from "@codemirror/view";
 
 const syntaxDeco = Decoration.mark({ class: "cm-markdown-syntax" });
+const hrLineDeco = Decoration.line({ class: "cm-hr-line" });
 
 function getLivePreviewDecos(view: EditorView): DecorationSet {
   const builder: Range<Decoration>[] = [];
@@ -21,11 +22,22 @@ function getLivePreviewDecos(view: EditorView): DecorationSet {
       enter(node) {
         // Highlight markdown syntax symbols/delimiters to allow hiding them
         if (
+          node.name === "EmphasisMark" ||
           node.name === "EmphasisSymbol" ||
+          node.name === "StrikethroughMark" ||
+          node.name === "HighlightMark" ||
           node.name === "HeaderMark" ||
           node.name === "ListMark" ||
-          node.name === "LinkMark"
+          node.name === "LinkMark" ||
+          node.name === "QuoteMark"
         ) {
+          builder.push(syntaxDeco.range(node.from, node.to));
+        } else if (node.name === "Escape") {
+          // Hide backslash in live preview while leaving escaped character visible
+          builder.push(syntaxDeco.range(node.from, node.from + 1));
+        } else if (node.name === "HorizontalRule") {
+          const line = state.doc.lineAt(node.from);
+          builder.push(hrLineDeco.range(line.from));
           builder.push(syntaxDeco.range(node.from, node.to));
         }
       },
@@ -34,7 +46,7 @@ function getLivePreviewDecos(view: EditorView): DecorationSet {
 
   // Sort ranges by start position (CodeMirror requirement)
   builder.sort((a, b) => a.from - b.from);
-  return Decoration.set(builder);
+  return Decoration.set(builder, true);
 }
 
 export const livePreviewExtension = ViewPlugin.fromClass(

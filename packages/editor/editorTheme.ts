@@ -2,6 +2,8 @@ import { HighlightStyle } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { tags as t } from "@lezer/highlight";
 
+import { highlightTag } from "./highlightExtension";
+
 export const editorHighlightStyle = HighlightStyle.define([
   {
     tag: t.heading1,
@@ -29,6 +31,13 @@ export const editorHighlightStyle = HighlightStyle.define([
   },
   { tag: t.strong, fontWeight: "var(--type-weight-bold)" },
   { tag: t.emphasis, fontStyle: "italic" },
+  { tag: t.strikethrough, textDecoration: "line-through" },
+  {
+    tag: highlightTag,
+    backgroundColor: "var(--color-bg-highlight, rgba(241, 196, 15, 0.3))",
+    borderRadius: "var(--border-radius-sm, 2px)",
+    padding: "0 2px",
+  },
   { tag: t.monospace, fontFamily: "var(--font-editor)" },
   { tag: t.keyword, color: "var(--color-text-accent)" },
   {
@@ -60,9 +69,10 @@ export const editorTheme = EditorView.theme({
     borderLeftColor: "var(--color-text-accent)",
     borderLeftWidth: "2px",
   },
-  "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection": {
-    backgroundColor: "var(--color-bg-active) !important",
-  },
+  "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection":
+    {
+      backgroundColor: "var(--color-bg-active) !important",
+    },
   ".cm-activeLine": {
     backgroundColor: "var(--color-bg-primary-alt)",
   },
@@ -84,6 +94,20 @@ export const editorTheme = EditorView.theme({
   ".cm-activeLine .cm-markdown-syntax": {
     display: "inline !important",
     opacity: 0.5,
+  },
+  ".cm-hr-line": {
+    position: "relative",
+    padding: "var(--space-3) 0",
+  },
+  ".cm-hr-line::after": {
+    content: '""',
+    position: "absolute",
+    left: "0",
+    right: "0",
+    top: "50%",
+    height: "var(--border-width-thin)",
+    backgroundColor: "var(--color-border-subtle)",
+    pointerEvents: "none",
   },
 });
 
@@ -109,9 +133,10 @@ export const readOnlyEditorTheme = EditorView.theme({
   ".cm-cursor": {
     display: "none",
   },
-  "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection": {
-    backgroundColor: "var(--color-bg-active) !important",
-  },
+  "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection":
+    {
+      backgroundColor: "var(--color-bg-active) !important",
+    },
   ".cm-wikilink": {
     color: "var(--color-text-accent)",
     textDecoration: "none",
@@ -126,5 +151,19 @@ export const readOnlyEditorTheme = EditorView.theme({
   },
   ".cm-markdown-syntax": {
     display: "none !important",
+  },
+  ".cm-hr-line": {
+    position: "relative",
+    padding: "var(--space-2) 0",
+  },
+  ".cm-hr-line::after": {
+    content: '""',
+    position: "absolute",
+    left: "0",
+    right: "0",
+    top: "50%",
+    height: "var(--border-width-thin)",
+    backgroundColor: "var(--color-border-subtle)",
+    pointerEvents: "none",
   },
 });

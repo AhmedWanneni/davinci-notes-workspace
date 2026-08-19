@@ -13,9 +13,11 @@ import {
   indentWithTab,
 } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
+import { Strikethrough } from "@lezer/markdown";
 import { autocompletion } from "@codemirror/autocomplete";
 import { syntaxHighlighting } from "@codemirror/language";
 import { editorHighlightStyle, editorTheme } from "./editorTheme";
+import { highlightExtension } from "./highlightExtension";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { wikilinkExtension } from "./wikilinkExtension";
 import { autocompleteExtension } from "./autocompleteExtension";
@@ -67,7 +69,7 @@ export function Editor({
           ...historyKeymap,
           indentWithTab,
         ]),
-        markdown(),
+        markdown({ extensions: [Strikethrough, highlightExtension] }),
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
         softLineBreakExtension,

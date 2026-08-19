@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-08-19 | Editor Markdown Formatting Phase 3 — Inline Formatting Completeness (ADR-0066) | Complete inline formatting support in `@app/editor`: enabled Lezer GFM `Strikethrough` and custom `highlightExtension` for `==highlight==`; styled `t.strikethrough` and `highlightTag`; updated `livePreviewExtension` for syntax mark hiding and `Escape` node backslash suppression; 10 unit tests pass, canvas tests pass, typing latency ~4.3ms/keystroke. |
 | 2026-08-19 | Editor settings ownership correction (ADR-0065) | Moved editor settings schema/defaults/validation to `@app/editor`; desktop now supplies a SQLite storage adapter. Restored sequential unlocked load reads after lock-wrapped concurrent reads caused `SQLITE_BUSY`; added invalid-value fallback coverage and the missing desktop Vitest editor alias. |
 | 2026-08-19 | Stabilization Phase 1 — canonical note delete and duplicate (ADR-0064) | Added confirmed File Explorer delete and duplicate actions backed by canonical disk/index/graph/workspace helpers. 17 focused tests, full desktop lint/typecheck, and Rust check pass; note move plus real-app dogfooding remain. |
 | 2026-08-18 | Editor Markdown Formatting Phase 2 — line-break semantics (ADR-0063) | Added direct CodeMirror soft-line-break decorations, Shift+Enter hard-break command, and persisted Strict Line Breaks setting. Shared rendering path retained; no dependency added. 15 targeted tests pass; 1,000-line edit benchmark 4.227 ms/keystroke. |
@@ -49,6 +50,17 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-08-17 | Canvas Feature Phase 13 — App Integration (FINAL) | Wired canvas fully into Obsidian-grid app shell: Icon Rail New Canvas button (FrameCorners icon), File Tree canvas distinction + click open, Tab Bar canvas/note type icons + close-save flush, RightSidebar "not applicable for canvas" per-section empty states + StatusBar canvas chip (ADR-0057). Re-verified lazy-load boundary: entry JS 21.08 KB raw / 7.71 KB gzip — 0 KB canvas/ReactFlow/PDF in first paint (canvas vendor chunk 56 KB gzip loaded only on demand). All 13 canvas phases complete. 179 canvas tests / 25 suites; tsc clean. |
 
 ## Detailed Session Notes
+
+### 2026-08-19 — Editor Markdown Formatting Phase 3: Inline Formatting Completeness (ADR-0066)
+
+- Enabled the built-in GFM `Strikethrough` extension from `@lezer/markdown` in `@app/editor` (`Editor` and `MarkdownView`).
+- Implemented a custom Lezer `highlightExtension` using `cx.addDelimiter(...)` to parse Obsidian-style `==highlight==` markdown delimiters and tag them with `highlightTag`.
+- Updated `editorHighlightStyle` in `editorTheme.ts` to style `t.strikethrough` (`textDecoration: "line-through"`) and `highlightTag` (`backgroundColor: "var(--color-bg-highlight, rgba(241, 196, 15, 0.3))"`, `borderRadius: "var(--border-radius-sm, 2px)"`, `padding: "0 2px"`).
+- Updated `livePreviewExtension.ts` to match `EmphasisMark`, `StrikethroughMark`, and `HighlightMark` for hiding raw delimiters when lines are inactive.
+- Handled `Escape` nodes by decorating the leading backslash character `node.from` to `node.from + 1` with `cm-markdown-syntax` so backslashes hide in rendered view while rendering literal formatting characters without formatting, scoping strictly per-character.
+- Re-exported `highlightExtension`, `highlightTag`, and `Strikethrough` from `@app/editor`'s index.
+- Added comprehensive unit test suite in `apps/desktop/src/state/inlineFormattingExtension.test.tsx` (10 tests) covering all syntax combinations, active line reveals, wikilinks co-occurrence, and read-only `MarkdownView` rendering.
+- Verification: 10/10 inline formatting tests passing, 25/25 canvas suites passing, 1,000-line typing latency benchmark at 4.319 ms/keystroke (below 5 ms budget), `@app/editor` builds and lints cleanly.
 
 ### 2026-08-19 — Editor Settings Ownership Correction (ADR-0065)
 

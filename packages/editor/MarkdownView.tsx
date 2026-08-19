@@ -2,8 +2,10 @@ import React, { useEffect, useRef } from "react";
 import { EditorState, Compartment } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
+import { Strikethrough } from "@lezer/markdown";
 import { syntaxHighlighting } from "@codemirror/language";
 import { editorHighlightStyle, readOnlyEditorTheme } from "./editorTheme";
+import { highlightExtension } from "./highlightExtension";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { wikilinkExtension } from "./wikilinkExtension";
 import { softLineBreakExtension } from "./lineBreakExtension";
@@ -40,7 +42,7 @@ export function MarkdownView({
         readOnlyEditorTheme,
         EditorState.readOnly.of(true),
         EditorView.editable.of(false),
-        markdown(),
+        markdown({ extensions: [Strikethrough, highlightExtension] }),
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
         softLineBreakExtension,
