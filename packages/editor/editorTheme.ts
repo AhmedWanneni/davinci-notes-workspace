@@ -127,6 +127,27 @@ export const editorTheme = EditorView.theme({
     color: "var(--color-text-muted)",
     fontSize: "var(--type-scale-xs, 12px)",
   },
+  ".cm-list-bullet, .cm-list-ordered": {
+    display: "inline-block",
+    minWidth: "var(--space-4)",
+    color: "var(--color-text-muted)",
+  },
+  ".cm-list-bullet": {
+    textAlign: "center",
+  },
+  ".cm-task-checkbox": {
+    accentColor: "var(--color-text-accent)",
+    cursor: "pointer",
+    margin: "0 var(--space-1) 0 0",
+    verticalAlign: "middle",
+  },
+  ".cm-task-checkbox:disabled": {
+    cursor: "default",
+  },
+  ".cm-task-completed": {
+    color: "var(--color-text-muted)",
+    textDecoration: "line-through",
+  },
   ".cm-markdown-syntax": {
     display: "none !important",
   },
@@ -226,6 +247,27 @@ export const readOnlyEditorTheme = EditorView.theme({
     borderRadius: "var(--border-radius-sm, 2px)",
     color: "var(--color-text-muted)",
     fontSize: "var(--type-scale-xs, 12px)",
+  },
+  ".cm-list-bullet, .cm-list-ordered": {
+    display: "inline-block",
+    minWidth: "var(--space-4)",
+    color: "var(--color-text-muted)",
+  },
+  ".cm-list-bullet": {
+    textAlign: "center",
+  },
+  ".cm-task-checkbox": {
+    accentColor: "var(--color-text-accent)",
+    cursor: "pointer",
+    margin: "0 var(--space-1) 0 0",
+    verticalAlign: "middle",
+  },
+  ".cm-task-checkbox:disabled": {
+    cursor: "default",
+  },
+  ".cm-task-completed": {
+    color: "var(--color-text-muted)",
+    textDecoration: "line-through",
   },
   ".cm-markdown-syntax": {
     display: "none !important",

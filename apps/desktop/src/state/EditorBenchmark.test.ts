@@ -6,6 +6,7 @@ import { markdown } from "@codemirror/lang-markdown";
 import { livePreviewExtension } from "../../../../packages/editor/livePreviewExtension";
 import { wikilinkExtension } from "../../../../packages/editor/wikilinkExtension";
 import { imageExtension } from "../../../../packages/editor/imageExtension";
+import { listExtension } from "../../../../packages/editor/listExtension";
 import { softLineBreakExtension } from "../../../../packages/editor/lineBreakExtension";
 
 describe("Editor Performance Benchmark", () => {
@@ -17,6 +18,8 @@ describe("Editor Performance Benchmark", () => {
         docText += `This is line ${i} with a [[wikilink-${i}]] and some **bold text**.\n`;
       } else if (i % 20 === 10) {
         docText += `This is line ${i} with a [markdown link](note-${i}.md) and ![photo|300x200](https://example.com/pic-${i}.png).\n`;
+      } else if (i % 20 === 5) {
+        docText += `  - [${i % 40 === 5 ? " " : "?"}] Task ${i} with **formatting**\n`;
       } else {
         docText += `This is normal line ${i} of text in our editor performance test.\n`;
       }
@@ -28,6 +31,7 @@ describe("Editor Performance Benchmark", () => {
         markdown(),
         livePreviewExtension,
         softLineBreakExtension,
+        listExtension(),
         imageExtension(),
         wikilinkExtension({
           notePaths: Array.from({ length: 350 }, (_, i) => `note-${i}.md`),

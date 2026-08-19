@@ -6,12 +6,7 @@ import {
   highlightActiveLine,
   drawSelection,
 } from "@codemirror/view";
-import {
-  defaultKeymap,
-  history,
-  historyKeymap,
-  indentWithTab,
-} from "@codemirror/commands";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
 import { Strikethrough } from "@lezer/markdown";
 import { autocompletion } from "@codemirror/autocomplete";
@@ -21,6 +16,7 @@ import { highlightExtension } from "./highlightExtension";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { linkExtension } from "./linkExtension";
 import { imageExtension } from "./imageExtension";
+import { listExtension, listIndentKeymap } from "./listExtension";
 import { autocompleteExtension } from "./autocompleteExtension";
 import {
   insertHardLineBreak,
@@ -70,12 +66,13 @@ export function Editor({
           { key: "Shift-Enter", run: insertHardLineBreak },
           ...defaultKeymap,
           ...historyKeymap,
-          indentWithTab,
+          ...listIndentKeymap,
         ]),
         markdown({ extensions: [Strikethrough, highlightExtension] }),
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
         softLineBreakExtension,
+        listExtension(),
         imageExtension(),
         // Dynamic compartments for options
         wikilinkCompartmentRef.current.of(

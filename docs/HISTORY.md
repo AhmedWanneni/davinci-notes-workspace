@@ -8,6 +8,8 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-08-19 | Bug Fix — Ordered List Numbers Not Rendering (ADR-0069) | Reproduced the active-line-only failure in the existing CodeMirror harness: raw `1. ` remained, but `listExtension` skipped its decoration. Ordered numerals now render during typing while unordered/task active-line editing remains unchanged; added regression coverage and an `@app/editor` patch changeset. |
+| 2026-08-19 | Editor Markdown Formatting Phase 5 — Lists & Tasks (ADR-0068) | Added viewport-bounded list/task widgets to `@app/editor`, transactional portable-Markdown checkbox toggles, native Tab/Shift+Tab keymap reuse, ordered-list-safe Shift+Enter, deep mixed-list/Phase 2–4 regressions, and benchmark coverage. 28 focused tests pass; expanded 1,000-line benchmark 0.833 ms/keystroke. |
 | 2026-08-19 | Editor Markdown Formatting Phase 3 — Inline Formatting Completeness (ADR-0066) | Complete inline formatting support in `@app/editor`: enabled Lezer GFM `Strikethrough` and custom `highlightExtension` for `==highlight==`; styled `t.strikethrough` and `highlightTag`; updated `livePreviewExtension` for syntax mark hiding and `Escape` node backslash suppression; 10 unit tests pass, canvas tests pass, typing latency ~4.3ms/keystroke. |
 | 2026-08-19 | Editor settings ownership correction (ADR-0065) | Moved editor settings schema/defaults/validation to `@app/editor`; desktop now supplies a SQLite storage adapter. Restored sequential unlocked load reads after lock-wrapped concurrent reads caused `SQLITE_BUSY`; added invalid-value fallback coverage and the missing desktop Vitest editor alias. |
 | 2026-08-19 | Stabilization Phase 1 — canonical note delete and duplicate (ADR-0064) | Added confirmed File Explorer delete and duplicate actions backed by canonical disk/index/graph/workspace helpers. 17 focused tests, full desktop lint/typecheck, and Rust check pass; note move plus real-app dogfooding remain. |
@@ -50,6 +52,15 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-08-17 | Canvas Feature Phase 13 — App Integration (FINAL) | Wired canvas fully into Obsidian-grid app shell: Icon Rail New Canvas button (FrameCorners icon), File Tree canvas distinction + click open, Tab Bar canvas/note type icons + close-save flush, RightSidebar "not applicable for canvas" per-section empty states + StatusBar canvas chip (ADR-0057). Re-verified lazy-load boundary: entry JS 21.08 KB raw / 7.71 KB gzip — 0 KB canvas/ReactFlow/PDF in first paint (canvas vendor chunk 56 KB gzip loaded only on demand). All 13 canvas phases complete. 179 canvas tests / 25 suites; tsc clean. |
 
 ## Detailed Session Notes
+
+### 2026-08-19 — Editor Markdown Formatting Phase 5: Lists & Tasks (ADR-0068)
+
+- Wrote the required pre-implementation plan in `plans/editor-formatter/phase-5-lists-tasks.md`; recorded canonical `x` task toggles and no artificial Markdown-list depth cap in ADR-0068 before implementation.
+- Added `listExtension` in `@app/editor`, retaining the single CodeMirror renderer and scanning only `visibleRanges`. It replaces off-active-line unordered syntax with a consistent bullet widget, preserves ordered `.` / `)` text, and supports mixed nesting from source indentation without a full-document traversal.
+- Task markers `[ ]`, `[x]`, `[?]`, `[-]`, and any other one-character non-space state use checkbox widgets. Click handling dispatches a CodeMirror document transaction (never a DOM mutation); completed task text is styled as muted and struck through. The read-only renderer displays disabled task controls.
+- Reused CodeMirror `indentWithTab` via exported `listIndentKeymap`; the Phase 5 tests verify its Tab and Shift+Tab handling over a multi-item selection. `insertHardLineBreak` now adds continuation indentation in ordered list items, preserving a single numbered item.
+- Added `listExtension` to the mixed 1,000-line benchmark fixture and inserted representative task content. The benchmark measured 0.833 ms per keystroke in JSDOM, below the 5 ms requirement; no dependency was added.
+- Verification: 29 focused editor tests passing (lists, line breaks, inline formatting, links/images, benchmark), plus clean `@app/editor` typecheck, lint, and build.
 
 ### 2026-08-19 — Editor Markdown Formatting Phase 3: Inline Formatting Completeness (ADR-0066)
 

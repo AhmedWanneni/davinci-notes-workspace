@@ -9,6 +9,7 @@ import { highlightExtension } from "./highlightExtension";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { linkExtension } from "./linkExtension";
 import { imageExtension } from "./imageExtension";
+import { listExtension } from "./listExtension";
 import { softLineBreakExtension } from "./lineBreakExtension";
 
 export interface MarkdownViewProps {
@@ -49,6 +50,7 @@ export function MarkdownView({
         syntaxHighlighting(editorHighlightStyle),
         livePreviewExtension,
         softLineBreakExtension,
+        listExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
         wikilinkCompartmentRef.current.of(
           linkExtension({

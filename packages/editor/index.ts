@@ -37,6 +37,8 @@ export {
   sanitizeImageUrl,
 } from "./imageExtension";
 export type { ImageDimensions, ImageExtensionOptions } from "./imageExtension";
+export { listExtension, listIndentKeymap } from "./listExtension";
+export type { ListExtensionOptions } from "./listExtension";
 export { highlightExtension, highlightTag } from "./highlightExtension";
 export { Strikethrough } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";

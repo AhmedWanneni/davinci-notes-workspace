@@ -114,7 +114,14 @@ export const softLineBreakExtension = StateField.define<DecorationSet>({
 /** Insert the Markdown two-space sequence required for a hard line break. */
 export const insertHardLineBreak: StateCommand = ({ state, dispatch }) => {
   const changes = state.changeByRange((range) => {
-    const insert = "  \n";
+    const line = state.doc.lineAt(range.from);
+    const orderedList = /^(\s*)(\d+[.)])([ \t]+)/.exec(line.text);
+    const continuationIndent = orderedList
+      ? " ".repeat(
+          orderedList[1].length + orderedList[2].length + orderedList[3].length,
+        )
+      : "";
+    const insert = `  \n${continuationIndent}`;
     return {
       range: EditorSelection.cursor(range.from + insert.length),
       changes: { from: range.from, to: range.to, insert },

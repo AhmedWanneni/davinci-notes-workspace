@@ -27,7 +27,6 @@ function getLivePreviewDecos(view: EditorView): DecorationSet {
           node.name === "StrikethroughMark" ||
           node.name === "HighlightMark" ||
           node.name === "HeaderMark" ||
-          node.name === "ListMark" ||
           node.name === "LinkMark" ||
           node.name === "QuoteMark"
         ) {

@@ -46,6 +46,8 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0065](adr/0065-editor-settings-contract-ownership.md) | `@app/editor` owns editor settings schema/defaults; clients provide storage adapters | Accepted |
 | [0066](adr/0066-inline-markdown-formatting-and-highlight-extension.md) | Inline Markdown formatting completeness with GFM Strikethrough and custom Highlight | Accepted |
 | [0067](adr/0067-markdown-internal-links-and-image-embeds.md) | Markdown internal links resolve via indexer; images embed via async widget; unified `linkExtension` | Accepted |
+| [0068](adr/0068-editor-list-task-live-preview.md) | Viewport-bounded list/task widgets; canonical task `x`; no list-depth cap | Accepted |
+| [0069](adr/0069-active-ordered-list-marker-visibility.md) | Keep ordered numerals visible on the active line; preserve raw active bullets/tasks | Accepted |
 
 ## Data Model, Indexer & SQLite
 

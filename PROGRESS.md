@@ -10,6 +10,37 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Last Session
 
+**Bug Fix — Ordered List Numbers Not Rendering (@app/editor) (ADR-0069)**
+
+### Root cause and fix
+- Reproduced through the existing CodeMirror JSDOM harness (the package has no dev/playground script). Static `1.` / `1)` lines and unordered markers rendered correctly; the failure occurred only during incremental entry because `listExtension` skipped every active-line marker. The raw `1. ` source remained, but no ordered decoration/widget existed.
+- Updated the existing list decoration path to render only the ordered numeral/delimiter on the active line. Unordered markers and task checkbox widgets retain their raw active-line editing behavior; item text remains a normal editable range.
+- Added ADR-0069 (superseding the active-line portion of ADR-0068) and a patch changeset for `@app/editor`.
+
+### Verification
+- Regression coverage now types `1. ` character-by-character and confirms the active `1.` widget, while existing coverage verifies `1.` / `1)` rendering, multiple numbered items, unordered bullets, cursor editing, and mixed list content.
+- `@app/editor` and desktop typecheck/lint pass; 30 focused list, line-break, inline, links/images, and benchmark tests pass. Expanded benchmark measured **1.043 ms/keystroke**, under 5 ms.
+
+**Editor Markdown Formatting — Phase 5: Lists & Tasks (@app/editor) (ADR-0068)**
+
+### Completed
+- Added viewport-bounded `listExtension` to the existing CodeMirror live-preview path. It renders `-`, `*`, and `+` with one bullet treatment, preserves `1.` and `1)` markers, supports mixed nested lists at any valid Markdown depth, and retains raw source on the active editable line.
+- Added task widgets for `[ ]`, `[x]`, and every other one-character marker. Any non-space marker receives completed styling. Clicking a writable checkbox dispatches a CodeMirror transaction which changes only the Markdown marker; off → on writes canonical `x`, on → off writes a space.
+- Moved `ListMark` ownership out of `livePreviewExtension` to avoid competing decorations. `MarkdownView` uses the same extension in read-only mode with disabled checkboxes.
+- Kept CodeMirror's native `indentWithTab` binding as exported `listIndentKeymap`; it supports both single and multi-item selections without a custom indentation implementation.
+- Made Phase 2's `Shift+Enter` command list-aware: in an ordered item it inserts the two-space Markdown hard break plus continuation indentation at the item's content column, so it remains one numbered item.
+- Added Phase 5 tests covering all marker variants, any-character task completion and transactional toggling, deep mixed nesting, Phase 2–4 content within list items, native Tab/Shift+Tab multi-item indentation, and ordered-list Shift+Enter. Expanded the 1,000-line benchmark with task-list content and `listExtension`.
+- Added required pre-implementation plan at `plans/editor-formatter/phase-5-lists-tasks.md`, ADR-0068, and an `@app/editor` minor changeset.
+
+### Deviation from Step 0 plan
+- None. The plan's ordered-list continuation is indentation-only rather than repeating the ordered marker; this deliberately keeps the hard break inside the same list item and is reflected in the plan and ADR before implementation.
+
+### Verification
+- 29 focused editor tests pass: Phase 5 lists + Phase 2 line breaks + Phase 3 inline formatting + Phase 4 links/images + benchmark.
+- `@app/editor` typecheck, lint, and build pass.
+- Expanded 1,000-line mixed-content benchmark: **0.833 ms per keystroke** (under 5 ms; JSDOM benchmark measurement).
+- No dependency added; all per-keystroke list work is limited to visible ranges.
+
 **Editor Markdown Formatting — Phase 4: Links & Images (@app/editor) (ADR-0067)**
 
 ### Completed
@@ -145,7 +176,7 @@ No canonical rename existed (stabilization Phase 1 not yet run). Added **`rename
 
 1. **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
 2. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-3. **Editor Markdown Formatting — Phase 5: Lists** (using ADR-0062 gap audit).
+3. **Editor Markdown Formatting — Phase 6: Code Blocks** (using ADR-0062 gap audit).
 4. **Unlinked Mentions Detection**
 5. **Inline Property Editing**
 6. **Outline Scroll Synchronization**
