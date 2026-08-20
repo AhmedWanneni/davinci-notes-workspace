@@ -6,6 +6,7 @@ import {
   Image,
   Video,
 } from "@phosphor-icons/react";
+import { useState } from "react";
 import type { FlatTreeNode } from "./tree-utils";
 
 interface FileTreeRowProps {
@@ -23,6 +24,8 @@ interface FileTreeRowProps {
   onClick: () => void;
   onContextMenu: (event: React.MouseEvent) => void;
   onDoubleClick: (event: React.MouseEvent) => void;
+  onDragOver?: (event: React.DragEvent) => void;
+  onDrop?: (event: React.DragEvent) => void;
 }
 
 function fileIcon(name: string) {
@@ -53,7 +56,10 @@ export function FileTreeRow({
   onClick,
   onContextMenu,
   onDoubleClick,
+  onDragOver,
+  onDrop,
 }: FileTreeRowProps) {
+  const [isDragOver, setIsDragOver] = useState(false);
   const isFile = item.node.type === "file";
   const displayTitle = item.node.name.replace(/\.(md|canvas)$/i, "");
 
@@ -61,6 +67,7 @@ export function FileTreeRow({
     <div
       className="file-tree__row"
       data-active={isActive || undefined}
+      data-drag-over={isDragOver || undefined}
       draggable={isFile}
       onDragStart={(event) => {
         if (!isFile) {
@@ -72,6 +79,24 @@ export function FileTreeRow({
         );
         event.dataTransfer.setData("text/plain", item.node.path);
         event.dataTransfer.effectAllowed = "copy";
+      }}
+      onDragOver={(event) => {
+        if (isFile) {
+          return;
+        }
+        event.preventDefault();
+        setIsDragOver(true);
+        onDragOver?.(event);
+      }}
+      onDragLeave={() => {
+        setIsDragOver(false);
+      }}
+      onDrop={(event) => {
+        setIsDragOver(false);
+        if (isFile) {
+          return;
+        }
+        onDrop?.(event);
       }}
       style={{
         position: "absolute",

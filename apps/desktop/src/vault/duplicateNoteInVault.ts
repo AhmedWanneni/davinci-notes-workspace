@@ -4,6 +4,7 @@ import { noteTitleFromPath } from "./initialNoteContent";
 import { noteFromMarkdown } from "./noteFromMarkdown";
 import { resolveUniqueNotePath } from "./resolveUniqueNotePath";
 import { getVaultIndexDb, persistNote, withDbLock } from "./sqliteIndex";
+import { updateTagIndexForNote } from "@app/indexer";
 import { syncH1ToFilename } from "./syncH1ToFilename";
 import { readNote, writeNote } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
@@ -47,6 +48,8 @@ export async function duplicateNoteInVault(
     const db = await getVaultIndexDb();
     await withDbLock(async () => {
       await persistNote(db, note);
+      const tagIndex = useWorkspaceStore.getState().tagIndex;
+      if (tagIndex) updateTagIndexForNote(tagIndex, note);
     });
 
     useWorkspaceStore.setState((current) => ({

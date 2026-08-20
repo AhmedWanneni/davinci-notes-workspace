@@ -1,4 +1,4 @@
-import type { Note } from "@app/core-types";
+import { emptyNoteTagSet, type Note } from "@app/core-types";
 import type Database from "@tauri-apps/plugin-sql";
 import { describe, expect, it, vi } from "vitest";
 
@@ -23,7 +23,7 @@ describe("sqliteIndex persistNotesBatch", () => {
         title: "Note 1",
         frontmatter: { tags: ["a"] },
         content: "# Note 1",
-        tags: ["a"],
+        tags: emptyNoteTagSet(),
         mtime: 100,
         outlinks: [
           {
@@ -40,7 +40,7 @@ describe("sqliteIndex persistNotesBatch", () => {
         title: "Note 2",
         frontmatter: {},
         content: "# Note 2",
-        tags: [],
+        tags: emptyNoteTagSet(),
         mtime: 200,
         outlinks: [
           {
@@ -115,6 +115,17 @@ describe("sqliteIndex persistNotesBatch", () => {
         null,
         1,
       ],
+    );
+
+    expect(execute).toHaveBeenNthCalledWith(
+      4,
+      expect.stringContaining("DELETE FROM notes_fts"),
+      ["note1.md", "note2.md"],
+    );
+    expect(execute).toHaveBeenNthCalledWith(
+      5,
+      expect.stringContaining("INSERT INTO notes_fts"),
+      ["note1.md", "# Note 1", "note2.md", "# Note 2"],
     );
   });
 

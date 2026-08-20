@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import type { GraphIndex } from "@app/indexer";
+import type { GraphIndex, TagIndex } from "@app/indexer";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import {
   getVaultIndexDb,
@@ -60,7 +60,7 @@ export function useVaultSession() {
   }, []);
 
   const handleVaultLoaded = useCallback(
-    async (path: string, count: number, elapsed: number) => {
+    async (path: string, count: number, elapsed: number, tagIndex: TagIndex) => {
       setVaultPath(path);
       useWorkspaceStore.getState().setVaultPath(path);
       append(`indexed ${count} notes in ${elapsed} ms (${path})`);
@@ -69,7 +69,7 @@ export function useVaultSession() {
       const db = await getVaultIndexDb();
       const fullGraph = await queryFullGraphIndex(db);
       setGraph(fullGraph);
-      await initializeVault(paths, folders, fullGraph);
+      await initializeVault(paths, folders, fullGraph, tagIndex);
     },
     [append, initializeVault],
   );
@@ -80,6 +80,7 @@ export function useVaultSession() {
         vaultPath: string;
         noteCount: number;
         elapsedMs: number;
+        tagIndex: TagIndex;
       }>,
     ) => {
       setIsLoadingVault(true);
@@ -90,6 +91,7 @@ export function useVaultSession() {
           result.vaultPath,
           result.noteCount,
           result.elapsedMs,
+          result.tagIndex,
         );
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
@@ -216,7 +218,12 @@ export function useVaultSession() {
       append(
         `watcher batch #${reconcileCount.current}: +${batch.changed.length} ~${batch.removed.length} removed`,
       );
-      const { updated } = await reconcileVaultChanges(batch);
+      const { tagIndex } = useWorkspaceStore.getState();
+      const { updated } = await reconcileVaultChanges(
+        batch,
+        undefined,
+        tagIndex ?? undefined,
+      );
       append(`reconciled ${updated} path(s) in SQLite`);
       const paths = await listNotes();
       const folders = await listFolders();

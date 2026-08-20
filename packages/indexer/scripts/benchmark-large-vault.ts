@@ -2,7 +2,7 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
-import type { Note } from "@app/core-types";
+import { emptyNoteTagSet, type Note } from "@app/core-types";
 import { buildGraph } from "../buildGraph.ts";
 import { parseFrontmatter } from "../parseFrontmatter.ts";
 import { parseLinks } from "../parseLinks.ts";
@@ -45,7 +45,7 @@ function buildNotes(paths: readonly string[]): Note[] {
       frontmatter,
       content: body,
       outlinks: parseLinks(body, { notePaths: paths, sourcePath: path }),
-      tags: [],
+      tags: emptyNoteTagSet(),
       mtime: 0,
     };
   });

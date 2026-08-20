@@ -28,6 +28,8 @@ import { mermaidExtension } from "./mermaidExtension";
 import { mermaidTheme } from "./mermaidTheme";
 import { mathExtension } from "./mathExtension";
 import { mathTheme } from "./mathTheme";
+import { tagExtension } from "./tagExtension";
+import { tagTheme } from "./tagTheme";
 import {
   insertHardLineBreak,
   softLineBreakExtension,
@@ -40,6 +42,7 @@ export interface EditorProps {
   sourcePath: string;
   onLinkClick: (targetRaw: string) => void;
   onExternalLinkClick?: (url: string) => void;
+  onTagClick?: (tagKey: string) => void;
 }
 
 export function Editor({
@@ -49,6 +52,7 @@ export function Editor({
   sourcePath,
   onLinkClick,
   onExternalLinkClick,
+  onTagClick,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -56,10 +60,12 @@ export function Editor({
   // Compartments for reactive updates of options
   const wikilinkCompartmentRef = useRef(new Compartment());
   const autocompleteCompartmentRef = useRef(new Compartment());
+  const onTagClickRef = useRef(onTagClick ?? (() => {}));
 
   // Track latest onChange to avoid re-binding CodeMirror listener
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  onTagClickRef.current = onTagClick ?? (() => {});
 
   // Initialize CodeMirror EditorView
   useEffect(() => {
@@ -74,6 +80,7 @@ export function Editor({
         codeBlockLayoutTheme,
         mermaidTheme,
         mathTheme,
+        tagTheme,
         EditorView.lineWrapping,
         history(),
         drawSelection(),
@@ -97,6 +104,7 @@ export function Editor({
         mermaidExtension({ onLinkClick }),
         mathExtension(),
         imageExtension(),
+        tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
         // Dynamic compartments for options
         wikilinkCompartmentRef.current.of(
           linkExtension({

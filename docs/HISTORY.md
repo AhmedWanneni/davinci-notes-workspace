@@ -8,6 +8,9 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-08-20 | Tags Feature Phase 3 — YAML Tags Property Support (ADR-0078) | Added shared body-level tag validation, merged per-note `frontmatter`/`inline`/`all` tag sets, and a thin indexer wrapper over existing frontmatter parsing. |
+| 2026-08-20 | Tags Feature Phase 2 — Inline Tag Detection & Rendering (ADR-0077) | Added inline tag badge widgets in `@app/editor` using the shared tag matcher/registry, with canonical first-seen casing, code-block exclusion, stub click handling, and latency coverage. |
+| 2026-08-20 | Tags Feature Phase 1 — Tag Parsing Rules & Data Model (ADR-0075/0076) | Added dependency-free shared tag parsing/model logic in `@app/core-types`: Unicode-aware matching, nested ancestor decomposition, first-seen canonical casing, Node-loadable `.js` runtime imports, and unit coverage. |
 | 2026-08-20 | Phase 11 — Math (ADR-0074) | Added lazy KaTeX inline/block math with cursor-gated editing, reused 150ms debounce, graceful errors, determinant/exponential coverage, and an editor patch changeset. |
 | 2026-08-20 | Phase 10 — Mermaid Diagrams (ADR-0073) | Added dynamically loaded Mermaid 11.16.1 rendering for fenced diagrams, cursor-gated editable source, debounced updates, graceful errors, and internal-link node clicks. Added flowchart/sequence/special-label coverage and an editor patch changeset. |
 | 2026-08-19 | Bug Fix / Feature — Live Editable Table Grid | Completed tables now render as bordered flex-grid rows through CodeMirror decorations; delimiters/separator are visually suppressed while cell ranges remain directly editable and markdown-backed. Added grid and source-sync regressions. |
@@ -56,6 +59,29 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-08-17 | Canvas Feature Phase 13 — App Integration (FINAL) | Wired canvas fully into Obsidian-grid app shell: Icon Rail New Canvas button (FrameCorners icon), File Tree canvas distinction + click open, Tab Bar canvas/note type icons + close-save flush, RightSidebar "not applicable for canvas" per-section empty states + StatusBar canvas chip (ADR-0057). Re-verified lazy-load boundary: entry JS 21.08 KB raw / 7.71 KB gzip — 0 KB canvas/ReactFlow/PDF in first paint (canvas vendor chunk 56 KB gzip loaded only on demand). All 13 canvas phases complete. 179 canvas tests / 25 suites; tsc clean. |
 
 ## Detailed Session Notes
+
+### 2026-08-20 — Tags Feature Phase 3: YAML Tags Property Support
+
+- Kept YAML/frontmatter parsing in `@app/indexer` and added a thin `parseNoteTags(frontmatter, body)` wrapper so the note hydration path can reuse the same shared tag model without a second parser.
+- Extended `@app/core-types` with body-only tag validation helpers and a merged `NoteTagSet` contract: `frontmatter`, `inline`, and `all`. The union set deduplicates via the canonical registry and preserves first-seen display casing.
+- Updated desktop note hydration to return the merged note-tag set directly. Phase 4 can consume that contract as-is; there is no separate frontmatter-indexing side effect yet.
+- Frontmatter rendering remains plain YAML source in this phase because the app does not currently have a frontmatter widget in Live Preview.
+- Verification: `@app/core-types` build passes, `@app/indexer` build passes, the tag/parser tests pass, and Phase 2 inline tag rendering is unchanged.
+
+### 2026-08-20 — Tags Feature Phase 2: Inline Tag Detection & Rendering
+
+- Reused the Phase 1 `matchTags`/`TagRegistry` implementation from `@app/core-types`; the editor extension only handles decoration, canonical display, and click wiring.
+- Rendered tags as replacement badge widgets with `cm-tag` styling from a dedicated theme file. The badge text uses first-seen canonical casing, while the underlying markdown source remains the editable truth.
+- Added a stub `onTagClick(tagKey)` callback path so the editor can hand off to future search/filter behavior without building search in this phase.
+- Excluded inline code and fenced code via the syntax-tree code-node check used elsewhere in the editor package.
+- Added focused JSDOM coverage for canonical casing, click forwarding, headings/lists/blockquotes/tables, inline formatting, link coexistence, code exclusion, and a 1,000-line benchmark asserting `<5 ms` per typed character.
+
+### 2026-08-20 — Tags Feature Phase 1: Tag Parsing Rules & Data Model
+
+- Reused `@app/core-types` because it is already dependency-free and shared by `@app/editor` and `@app/indexer`; no new UI or indexer coupling was introduced.
+- Defined the Unicode matching rule in ADR-0076: letters, numbers, marks, symbols, `_`, `-`, `/`, and ZWJ are allowed; punctuation and whitespace terminate matches; numeric-only bodies are rejected.
+- Added pure `isValidTag`, `matchTags`, `normalizeTag`, `decomposeTag`, and `TagRegistry` APIs with coverage for valid/invalid tags, nested decomposition, emoji/unicode examples, and case-insensitive canonical display.
+- Switched internal package imports to `.js` specifiers so the emitted `dist/index.js` can be imported directly by Node without React/CodeMirror in the graph.
 
 ### 2026-08-20 — Phase 11: Math (ADR-0074)
 
@@ -483,3 +509,83 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
 - Root cause: `EditorView.lineWrapping` was absent from both editable and read-only editor configurations, so long prose lines could extend horizontally.
 - Enabled CodeMirror wrapping globally, removed table-cell shrink-to-fit styling, and preserved horizontal scrolling for fenced-code lines via a scoped code-line layout rule.
 - Added line-wrapping coverage and reverified table/context-menu behavior and editor performance.
+## 2026-08-20 — General Search Phase 0: Scope & Architecture
+
+- Confirmed the current Command Palette is only a fuzzy note path/title Quick Switcher and has no content search, operator parser, or results UI.
+- Accepted ADR-0079: build a separate lazy Search surface.
+- Accepted ADR-0080: extend `@app/indexer` and SQLite with incremental FTS5 content indexing; add no parallel search dependency.
+- Accepted ADR-0081: v1 supports plain terms, quoted phrases, `tag:` with optional `#` normalization, and leading-minus exclusions; other operators are explicitly deferred.
+- Accepted ADR-0082: place search parsing and execution in `@app/indexer`.
+- Phase 5 Tag Search remains blocked until the general search dependency is implemented.
+## 2026-08-20 — General Search Phase 1: Full-Text Index
+
+- Added SQLite FTS5 migration v3 with a `notes_fts` table for note body content.
+- Reused the existing batched persistence and removal paths for full indexing, watcher reconciliation, create/edit/delete, and rename/move updates.
+- Added FTS maintenance tests and a 1,000-note batch benchmark. The focused suite passed; the benchmark test completed within its 1-second guard.
+- No new dependency or field-level deviation was introduced. Desktop typecheck remains blocked by the pre-existing `createNoteCrudActions.ts` `result` scope errors.
+## 2026-08-20 — General Search Phase 3: Query Execution & Ranking
+
+- Added indexer execution over SQLite FTS5 and direct Phase 4 tag-index
+  filtering, with implicit AND and exclusion semantics.
+- Added snippets and deterministic bm25/title/path ranking; tag-only ordering
+  is title then path, and combined queries rank text relevance within tag
+  matches. ADR-0084 records the policy.
+- Added combined, tag-only, exclusion, and ranking tests. The focused suite
+  passed 14 tests, including a 1,000-note combined-query benchmark.
+## 2026-08-20 — Bug Fix: Expose Live Vault Tag Index
+
+- Confirmed `@app/indexer` supplied only pure TagIndex mutation functions; the
+  desktop vault load discarded the constructed state.
+- Added one live TagIndex to workspace state, initialized from the existing
+  full-load notes and updated by watcher reconciliation, note saves, and
+  canonical deletes. No second scan path was introduced.
+- Kept SQLite FTS5 behind the existing `getVaultIndexDb()` singleton. Added
+  ADR-0085 and the desktop changeset.
+## 2026-08-20 — General Search Phase 4: Search UI
+
+- Added a separate lazy Search dialog with a 150 ms debounce, ranked snippets,
+  tag-only fallback display, arrow navigation, and Enter-to-open behavior.
+- Wired the icon rail and Cmd/Ctrl+Shift+F to Search while preserving Cmd/Ctrl+K
+  for the existing Quick Switcher.
+- Added the desktop Search UI changeset. Tag-click wiring remains Phase 5.
+## 2026-08-20 — General Search Phase 5: Tag Click Wiring
+
+- Replaced the editor tag-click placeholder with a real callback into the
+  desktop Search dialog. Clicks open Search with an executed `tag:` query.
+- Preserved Phase 3 nested-tag semantics by forwarding the canonical tag key
+  without adding search logic to the editor.
+- Tags Phase 5 is unblocked; Tags Phase 6 is ready as a separate task.
+## 2026-08-20 — General Search Phase 6: Regression & Performance Pass
+
+- Functional search, tag, editor, FTS, watcher, and CRUD regressions pass.
+- Confirmed the separate Command Palette remains unaffected.
+- The standalone large-vault benchmark is blocked by its missing runtime
+  `packages/core-types/NoteTags.js` import; ADR-0086 records the limitation and
+  prevents claiming unverified cold-start/per-note timings.
+## 2026-08-20 — Tags Feature Phase 5: Tag Search Closed
+
+- Re-verified optional-`#` tag queries, nested descendant/asymmetry semantics,
+  and the editor tag-click-to-Search callback path using the General Search
+  implementation.
+- Core tag, index/search, and editor rendering tests passed 11, 14, and 5
+  tests respectively.
+- Tags Phase 5 is closed; Tags Phase 6 (Tags view) is ready as a separate task.
+## 2026-08-20 — Tags Feature Phase 6: Tags View
+
+- Added a lazy nested Tags dialog from the Command Palette, backed directly by
+  the live workspace TagIndex.
+- Added canonical display casing, direct-use counts, parent synthesis for
+  nested tags, and tag selection wired to the existing Search callback.
+- Live updates use `vaultUpdateCounter`; no polling or vault rescan was added.
+- ADR-0087 records count semantics and the live-update hook. Tags Phase 7 is
+  ready to begin.
+## 2026-08-20 — Tags Feature Phase 7: Regression & Integration Closeout
+
+- Completed regression coverage across shared parsing, nested index/search,
+  editor block types and code exclusion, desktop vault updates, and Tags view
+  integration.
+- Added a 1,000-note nested index/query benchmark; it completed in 3 ms of
+  Vitest test time. The existing real SQLite benchmark tooling caveat remains
+  recorded in ADR-0086.
+- Confirmed tag rename/merge UI and Bases `hasTag` remain out of scope. Added
+  ADR-0088 as the final Tags plan decision index. Phases 1–7 are complete.

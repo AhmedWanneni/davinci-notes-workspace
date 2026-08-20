@@ -8,6 +8,8 @@ import { EditorArea } from "./components/EditorArea";
 import { RightSidebar } from "./components/RightSidebar";
 import { StatusBar } from "./components/StatusBar";
 import { openAndIndexVault, useVaultSession } from "./vault";
+import { executeSearchQuery, parseSearchQuery } from "@app/indexer";
+import { getVaultIndexDb } from "./vault";
 
 const LazyGlobalGraphDialog = React.lazy(() =>
   import("./components/GlobalGraphDialog").then((m) => ({
@@ -24,9 +26,20 @@ const LazyCommandPalette = React.lazy(() =>
     default: m.CommandPalette,
   })),
 );
+const LazySearchDialog = React.lazy(() =>
+  import("./components/SearchDialog").then((m) => ({
+    default: m.SearchDialog,
+  })),
+);
+const LazyTagsDialog = React.lazy(() =>
+  import("./components/TagsDialog").then((m) => ({ default: m.TagsDialog })),
+);
 
 export function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isTagsOpen, setIsTagsOpen] = useState(false);
+  const [searchInitialQuery, setSearchInitialQuery] = useState("");
   const [isGlobalGraphOpen, setIsGlobalGraphOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
@@ -39,6 +52,7 @@ export function App() {
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
+  const tagIndex = useWorkspaceStore((state) => state.tagIndex);
 
   const loadSettings = useWorkspaceStore((state) => state.loadSettings);
   const openNote = useWorkspaceStore((state) => state.openNote);
@@ -56,6 +70,7 @@ export function App() {
   const duplicateNoteFromTree = useWorkspaceStore(
     (state) => state.duplicateNoteFromTree,
   );
+  const moveNoteFromTree = useWorkspaceStore((state) => state.moveNoteFromTree);
   const [pendingRenameFolder, setPendingRenameFolder] = useState<string | null>(
     null,
   );
@@ -104,6 +119,11 @@ export function App() {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
       }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        setSearchInitialQuery("");
+        setIsSearchOpen((prev) => !prev);
+      }
     };
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
@@ -124,6 +144,16 @@ export function App() {
 
   const handleCreateNote = () => {
     void createNewNote();
+  };
+
+  const handleTagClick = (tagKey: string) => {
+    setSearchInitialQuery(`tag:${tagKey}`);
+    setIsSearchOpen(true);
+  };
+
+  const handleSelectTag = (tagKey: string) => {
+    setIsTagsOpen(false);
+    handleTagClick(tagKey);
   };
 
   const handleCreateCanvas = () => {
@@ -180,7 +210,10 @@ export function App() {
         <IconRail
           isLeftSidebarOpen={isLeftSidebarOpen}
           onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
-          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onOpenSearch={() => {
+            setSearchInitialQuery("");
+            setIsSearchOpen(true);
+          }}
           onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onCloseVault={() => setVaultPath(null)}
@@ -208,6 +241,9 @@ export function App() {
           }
           onDeleteNote={(path) => deleteNoteFromTree(path)}
           onDuplicateNote={(path) => duplicateNoteFromTree(path)}
+          onMoveNote={(path, newParentFolder) =>
+            moveNoteFromTree(path, newParentFolder)
+          }
           pendingRenameFolder={pendingRenameFolder}
           onPendingRenameFolderHandled={() => setPendingRenameFolder(null)}
         />
@@ -217,6 +253,7 @@ export function App() {
             activeNotePath={activeNotePath}
             allNotePaths={allNotePaths}
             onLinkClick={(t) => void handleLinkClick(t)}
+            onTagClick={handleTagClick}
           />
         </main>
 
@@ -236,6 +273,27 @@ export function App() {
       />
 
       <Suspense fallback={null}>
+        {isSearchOpen && tagIndex && (
+          <LazySearchDialog
+            isOpen={isSearchOpen}
+            onOpenChange={setIsSearchOpen}
+            initialQuery={searchInitialQuery}
+            onSearch={async (query) =>
+              executeSearchQuery(
+                await getVaultIndexDb(),
+                tagIndex,
+                parseSearchQuery(query),
+              )}
+            onSelectNote={(path) => void openNote(path)}
+          />
+        )}
+        {isTagsOpen && (
+          <LazyTagsDialog
+            isOpen={isTagsOpen}
+            onOpenChange={setIsTagsOpen}
+            onSelectTag={handleSelectTag}
+          />
+        )}
         {isGlobalGraphOpen && (
           <LazyGlobalGraphDialog
             isOpen={isGlobalGraphOpen}
@@ -261,6 +319,7 @@ export function App() {
             onOpenChange={setIsCommandPaletteOpen}
             onSelectNote={(target) => void handleLinkClick(target)}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenTags={() => setIsTagsOpen(true)}
           />
         )}
       </Suspense>

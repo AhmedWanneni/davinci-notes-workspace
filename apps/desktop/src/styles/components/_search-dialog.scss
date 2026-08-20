@@ -1,0 +1,77 @@
+.search-dialog__overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+}
+
+.search-dialog__dialog {
+  position: fixed;
+  top: 12vh;
+  left: 50%;
+  width: min(720px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.search-dialog__input-wrapper {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.search-dialog__input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: var(--type-body);
+}
+
+.search-dialog__list {
+  max-height: min(68vh, 640px);
+  margin: 0;
+  padding: var(--space-2);
+  overflow-y: auto;
+  list-style: none;
+}
+
+.search-dialog__item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  cursor: pointer;
+}
+
+.search-dialog__item[data-selected="true"],
+.search-dialog__item:hover {
+  background: var(--color-bg-secondary);
+}
+
+.search-dialog__result-copy {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.search-dialog__title {
+  font-weight: var(--type-weight-semibold);
+}
+
+.search-dialog__path,
+.search-dialog__snippet,
+.search-dialog__empty {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: var(--type-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-dialog__snippet mark {
+  color: var(--color-text-accent);
+}

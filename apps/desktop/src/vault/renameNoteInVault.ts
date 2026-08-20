@@ -1,4 +1,8 @@
-import { updateGraphForNote } from "@app/indexer";
+import {
+  removeNoteFromTagIndex,
+  updateGraphForNote,
+  updateTagIndexForNote,
+} from "@app/indexer";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import { migrateSaveTimer } from "../state/saveTimers";
 import { applyNoteRenameState } from "./applyNoteRenameState";
@@ -113,11 +117,15 @@ export async function renameNoteInVault(
     const db = await getVaultIndexDb();
     await withDbLock(async () => {
       await removeNoteFromIndex(db, oldPath);
+      const tagIndex = useWorkspaceStore.getState().tagIndex;
+      if (tagIndex) removeNoteFromTagIndex(tagIndex, oldPath);
       await db.execute("DELETE FROM links WHERE target_path = $1", [oldPath]);
 
       for (const [path, content] of contentUpdates) {
         const note = noteFromMarkdown(path, content, Date.now(), updatedPaths);
         await persistNote(db, note);
+        const tagIndex = useWorkspaceStore.getState().tagIndex;
+        if (tagIndex) updateTagIndexForNote(tagIndex, note);
       }
     });
 

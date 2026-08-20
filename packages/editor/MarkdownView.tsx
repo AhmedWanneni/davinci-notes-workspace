@@ -21,6 +21,8 @@ import { mermaidExtension } from "./mermaidExtension";
 import { mermaidTheme } from "./mermaidTheme";
 import { mathExtension } from "./mathExtension";
 import { mathTheme } from "./mathTheme";
+import { tagExtension } from "./tagExtension";
+import { tagTheme } from "./tagTheme";
 
 export interface MarkdownViewProps {
   value: string;
@@ -28,6 +30,7 @@ export interface MarkdownViewProps {
   sourcePath?: string;
   onLinkClick?: (targetRaw: string) => void;
   onExternalLinkClick?: (url: string) => void;
+  onTagClick?: (tagKey: string) => void;
   className?: string;
 }
 
@@ -41,11 +44,14 @@ export function MarkdownView({
   sourcePath = "",
   onLinkClick = () => {},
   onExternalLinkClick,
+  onTagClick = () => {},
   className = "",
 }: MarkdownViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const wikilinkCompartmentRef = useRef(new Compartment());
+  const onTagClickRef = useRef(onTagClick);
+  onTagClickRef.current = onTagClick;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -59,6 +65,7 @@ export function MarkdownView({
         codeBlockLayoutTheme,
         mermaidTheme,
         mathTheme,
+        tagTheme,
         EditorView.lineWrapping,
         EditorState.readOnly.of(true),
         EditorView.editable.of(false),
@@ -75,6 +82,7 @@ export function MarkdownView({
         mermaidExtension({ isReadOnly: true, onLinkClick }),
         mathExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
+        tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
         wikilinkCompartmentRef.current.of(
           linkExtension({
             notePaths,

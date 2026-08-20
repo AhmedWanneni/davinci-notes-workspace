@@ -22,12 +22,14 @@ export interface EditorAreaProps {
   activeNotePath: string | null;
   allNotePaths: string[];
   onLinkClick: (target: string) => void;
+  onTagClick: (tagKey: string) => void;
 }
 
 export function EditorArea({
   activeNotePath,
   allNotePaths,
   onLinkClick,
+  onTagClick,
 }: EditorAreaProps) {
   const content = useWorkspaceStore(
     (state) => (activeNotePath ? state.notesContent[activeNotePath] : "") || "",
@@ -147,6 +149,7 @@ export function EditorArea({
                 notePaths={allNotePaths}
                 sourcePath={activeNotePath}
                 onLinkClick={onLinkClick}
+                onTagClick={onTagClick}
               />
             </div>
           </div>

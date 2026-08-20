@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import type { Note } from "@app/core-types";
+import { emptyNoteTagSet, type Note } from "@app/core-types";
 import { buildGraph, updateGraphForNote } from "./buildGraph";
 import { parseLinks } from "./parseLinks";
 
@@ -14,7 +14,7 @@ const FIXTURES = join(
 const VAULT_PATHS = [
   "projects/alpha.md",
   "projects/beta-overview.md",
-  "specs/gamma.md",
+  "specs/Gamma Spec.md",
   "daily/standalone.md",
 ] as const;
 
@@ -30,7 +30,7 @@ function noteFromFixture(path: string, title: string): Note {
     frontmatter: {},
     content,
     outlinks: parseLinks(content, { notePaths: VAULT_PATHS, sourcePath: path }),
-    tags: [],
+    tags: emptyNoteTagSet(),
     mtime: 0,
   };
 }
@@ -44,7 +44,7 @@ describe("buildGraph", () => {
     const notes = [
       noteFromFixture("projects/alpha.md", "Project Alpha"),
       noteFromFixture("projects/beta-overview.md", "Beta Overview"),
-      noteFromFixture("specs/gamma.md", "Gamma Spec"),
+      noteFromFixture("specs/Gamma Spec.md", "Gamma Spec"),
       noteFromFixture("daily/standalone.md", "Daily Standalone"),
     ];
 
@@ -68,7 +68,7 @@ describe("buildGraph", () => {
   it("updates only affected edges on incremental note change", () => {
     const alpha = noteFromFixture("projects/alpha.md", "Project Alpha");
     const beta = noteFromFixture("projects/beta-overview.md", "Beta Overview");
-    const gamma = noteFromFixture("specs/gamma.md", "Gamma Spec");
+    const gamma = noteFromFixture("specs/Gamma Spec.md", "Gamma Spec");
 
     const graph = buildGraph([alpha, beta, gamma]);
     const edgesBefore = new Set(
@@ -87,6 +87,7 @@ describe("buildGraph", () => {
         notePaths: VAULT_PATHS,
         sourcePath: alpha.path,
       }),
+      tags: emptyNoteTagSet(),
     };
 
     updateGraphForNote(graph, updatedAlpha, previousAlpha);

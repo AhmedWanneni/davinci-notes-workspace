@@ -57,5 +57,8 @@ export type { ImageDimensions, ImageExtensionOptions } from "./imageExtension";
 export { listExtension, listIndentKeymap } from "./listExtension";
 export type { ListExtensionOptions } from "./listExtension";
 export { highlightExtension, highlightTag } from "./highlightExtension";
+export { tagExtension } from "./tagExtension";
+export type { TagExtensionOptions } from "./tagExtension";
+export { tagTheme } from "./tagTheme";
 export { Strikethrough } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";

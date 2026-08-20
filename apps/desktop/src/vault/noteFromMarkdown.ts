@@ -1,5 +1,5 @@
 import type { Note } from "@app/core-types";
-import { parseFrontmatter, parseLinks } from "@app/indexer";
+import { parseFrontmatter, parseLinks, parseNoteTags } from "@app/indexer";
 
 function titleFromPath(path: string): string {
   const base = path.split("/").pop() ?? path;
@@ -20,17 +20,13 @@ export function noteFromMarkdown(
       ? titleOverride
       : titleFromPath(path);
 
-  const tags = Array.isArray(frontmatter.tags)
-    ? frontmatter.tags.filter((tag): tag is string => typeof tag === "string")
-    : [];
-
   return {
     path,
     title,
     frontmatter,
     content,
     outlinks: parseLinks(content, { notePaths, sourcePath: path }),
-    tags,
+    tags: parseNoteTags(frontmatter, content),
     mtime,
   };
 }

@@ -1,5 +1,10 @@
 import { create } from "zustand";
-import { updateGraphForNote, type GraphIndex } from "@app/indexer";
+import {
+  updateGraphForNote,
+  updateTagIndexForNote,
+  type GraphIndex,
+  type TagIndex,
+} from "@app/indexer";
 import {
   createEditorSettings,
   type EditorSettingsState,
@@ -30,6 +35,7 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   allNotePaths: string[];
   allFolderPaths: string[];
   graph: GraphIndex | null;
+  tagIndex: TagIndex | null;
   vaultPath: string | null;
   vaultUpdateCounter: number;
   setVaultPath: (path: string | null) => void;
@@ -37,6 +43,7 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
     paths: string[],
     folderPaths: string[],
     initialGraph?: GraphIndex | null,
+    tagIndex?: TagIndex | null,
   ) => Promise<void>;
   updateAllPaths: (paths: string[]) => void;
   updateAllFolderPaths: (paths: string[]) => void;
@@ -57,6 +64,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   allNotePaths: [],
   allFolderPaths: [],
   graph: null,
+  tagIndex: null,
   vaultPath: null,
   vaultUpdateCounter: 0,
   ...createEditorSettings(set),
@@ -66,6 +74,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     paths: string[],
     folderPaths: string[],
     initialGraph: GraphIndex | null = null,
+    tagIndex: TagIndex | null = null,
   ) => {
     set({
       allNotePaths: paths,
@@ -75,6 +84,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       dirtyNotes: new Set(),
       activeNotePath: null,
       graph: initialGraph,
+      tagIndex,
       vaultUpdateCounter: get().vaultUpdateCounter + 1,
     });
   },
@@ -194,6 +204,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
           vaultUpdateCounter: get().vaultUpdateCounter + 1,
         });
       }
+      if (get().tagIndex) updateTagIndexForNote(get().tagIndex!, note);
     } catch (e) {
       console.error(`Failed to reindex note: ${path}`, e);
     }

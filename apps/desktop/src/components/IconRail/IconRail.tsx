@@ -12,7 +12,7 @@ import { Tooltip } from "@app/design-system";
 export interface IconRailProps {
   isLeftSidebarOpen: boolean;
   onToggleLeftSidebar: () => void;
-  onOpenCommandPalette: () => void;
+  onOpenSearch: () => void;
   onOpenGlobalGraph: () => void;
   onOpenSettings: () => void;
   onCloseVault: () => void;
@@ -23,7 +23,7 @@ export interface IconRailProps {
 export function IconRail({
   isLeftSidebarOpen,
   onToggleLeftSidebar,
-  onOpenCommandPalette,
+  onOpenSearch,
   onOpenGlobalGraph,
   onOpenSettings,
   onCloseVault,
@@ -49,13 +49,13 @@ export function IconRail({
         </Tooltip>
 
         <Tooltip
-          content="Search everywhere (Cmd+K)"
+          content="Search note content (Cmd+Shift+F)"
           contentProps={{ side: "right" }}
         >
           <button
             type="button"
             className="icon-rail__btn"
-            onClick={onOpenCommandPalette}
+            onClick={onOpenSearch}
             aria-label="Search"
           >
             <MagnifyingGlass size={18} weight="regular" />

@@ -9,6 +9,7 @@ import {
 import { deleteNote } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
 import { removeNoteFromGraph } from "./removeNoteFromGraph";
+import { removeNoteFromTagIndex } from "@app/indexer";
 
 export type DeleteNoteResult =
   | { ok: true; path: string }
@@ -46,6 +47,7 @@ export async function deleteNoteInVault(
     });
 
     useWorkspaceStore.setState((current) => {
+      if (current.tagIndex) removeNoteFromTagIndex(current.tagIndex, path);
       const openNotes = current.openNotes.filter(
         (openPath) => openPath !== path,
       );

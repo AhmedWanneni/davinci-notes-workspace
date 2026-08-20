@@ -1,6 +1,7 @@
 import {
   deleteNoteInVault,
   duplicateNoteInVault,
+  moveNoteInVault,
   renameFolderInVault,
   renameNoteInVault,
 } from "../vault";
@@ -8,6 +9,7 @@ import { buildNotePathInFolder } from "../vault/sanitizeFilenameStem";
 
 export interface NoteCrudActions {
   renameNoteFromTree: (oldPath: string, newStem: string) => Promise<boolean>;
+  moveNoteFromTree: (path: string, newParentFolder: string) => Promise<boolean>;
   renameFolderFromTree: (oldPath: string, newName: string) => Promise<boolean>;
   deleteNoteFromTree: (path: string) => Promise<boolean>;
   duplicateNoteFromTree: (path: string) => Promise<boolean>;
@@ -30,8 +32,17 @@ export function createNoteCrudActions(): NoteCrudActions {
       return result.ok;
     },
 
+    moveNoteFromTree: async (path: string, newParentFolder: string) => {
+      const result = await moveNoteInVault(path, newParentFolder);
+      if (!result.ok) {
+        console.warn(`[vault] Note move skipped - ${result.reason}`);
+      }
+      return result.ok;
+    },
+
     renameFolderFromTree: async (oldPath: string, newName: string) => {
-      const result = await renameFolderInVault(oldPath, newName);
+// ... rest of the file
+
       if (!result.ok && result.reason === "collision") {
         console.warn("[vault] Folder rename skipped - name already exists");
       }

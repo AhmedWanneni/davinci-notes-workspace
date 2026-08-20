@@ -18,6 +18,7 @@ interface FileTreeProps {
   onRenameFolder?: (oldPath: string, newName: string) => Promise<boolean>;
   onDeleteNote?: (path: string) => Promise<boolean>;
   onDuplicateNote?: (path: string) => Promise<boolean>;
+  onMoveNote?: (path: string, newParentFolder: string) => Promise<boolean>;
   onSelectedFolderChange?: (folderPath: string | null) => void;
 }
 
@@ -34,6 +35,7 @@ export function FileTree({
   onRenameFolder,
   onDeleteNote,
   onDuplicateNote,
+  onMoveNote,
   onSelectedFolderChange,
 }: FileTreeProps) {
   const {
@@ -122,12 +124,35 @@ export function FileTree({
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes("application/vnd.davinci.note")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetFolder: string) => {
+    e.preventDefault();
+    const notePath = e.dataTransfer.getData("application/vnd.davinci.note");
+    if (notePath && onMoveNote) {
+      // Don't move if target is the same folder
+      const currentFolder = notePath.includes("/")
+        ? notePath.slice(0, notePath.lastIndexOf("/"))
+        : "";
+      if (currentFolder !== targetFolder) {
+        await onMoveNote(notePath, targetFolder);
+      }
+    }
+  };
+
   return (
     <>
       <div
         className="file-tree"
         ref={parentRef}
         onContextMenu={(e) => openContextMenu(e, "")}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, "")}
       >
         <div
           className="file-tree__virtual-inner"
@@ -203,6 +228,8 @@ export function FileTree({
                     startRename(item.node.path, "folder");
                   }
                 }}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, item.node.path)}
               />
             );
           })}

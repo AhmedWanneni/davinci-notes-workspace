@@ -1,5 +1,13 @@
 import type { Note } from "@app/core-types";
-import { updateGraphForNote, type GraphIndex } from "@app/indexer";
+import {
+  buildTagIndex,
+  createEmptyTagIndex,
+  removeNoteFromTagIndex,
+  updateTagIndexForNote,
+  updateGraphForNote,
+  type GraphIndex,
+  type TagIndex,
+} from "@app/indexer";
 
 import { noteFromMarkdown } from "./noteFromMarkdown";
 import {
@@ -32,13 +40,18 @@ async function loadNotesFromPaths(paths: readonly string[]): Promise<Note[]> {
 export async function indexVaultFull(): Promise<{
   noteCount: number;
   elapsedMs: number;
+  tagIndex: TagIndex;
 }> {
   const started = performance.now();
   let noteCount = 0;
+  let indexedTagIndex: TagIndex | undefined;
 
   await withVaultWatchSuppressed(async () => {
     const paths = await listNotes();
     const notes = await loadNotesFromPaths(paths);
+    const tagIndex = notes.every((note) => note.tags)
+      ? buildTagIndex(notes)
+      : createEmptyTagIndex();
     const db = await getVaultIndexDb();
 
     await db.execute("BEGIN IMMEDIATE");
@@ -52,6 +65,7 @@ export async function indexVaultFull(): Promise<{
     }
 
     noteCount = notes.length;
+    indexedTagIndex = tagIndex;
   });
 
   await activateVaultWatcher();
@@ -59,6 +73,7 @@ export async function indexVaultFull(): Promise<{
   return {
     noteCount,
     elapsedMs: Math.round(performance.now() - started),
+    tagIndex: indexedTagIndex!,
   };
 }
 
@@ -66,6 +81,7 @@ export async function indexVaultFull(): Promise<{
 export async function reconcileVaultChanges(
   batch: VaultChangeBatch,
   graph?: GraphIndex,
+  tagIndex?: TagIndex,
 ): Promise<{ graph: GraphIndex | undefined; updated: number }> {
   return withVaultWatchSuppressed(async () => {
     const allPaths = await listNotes();
@@ -77,6 +93,7 @@ export async function reconcileVaultChanges(
     try {
       for (const removed of batch.removed) {
         await removeNoteFromIndex(db, removed);
+        if (tagIndex) removeNoteFromTagIndex(tagIndex, removed);
         updated += 1;
       }
 
@@ -84,6 +101,7 @@ export async function reconcileVaultChanges(
       for (const changedPath of batch.changed) {
         if (!pathSet.has(changedPath)) {
           await removeNoteFromIndex(db, changedPath);
+          if (tagIndex) removeNoteFromTagIndex(tagIndex, changedPath);
           updated += 1;
           continue;
         }
@@ -96,6 +114,7 @@ export async function reconcileVaultChanges(
           allPaths,
         );
         changedNotes.push(note);
+        if (tagIndex) updateTagIndexForNote(tagIndex, note);
         updated += 1;
 
         if (graph) {
@@ -121,10 +140,11 @@ export async function openAndIndexVault(path: string): Promise<{
   vaultPath: string;
   noteCount: number;
   elapsedMs: number;
+  tagIndex: TagIndex;
 }> {
   const vaultPath = await openVault(path);
-  const { noteCount, elapsedMs } = await indexVaultFull();
-  return { vaultPath, noteCount, elapsedMs };
+  const { noteCount, elapsedMs, tagIndex } = await indexVaultFull();
+  return { vaultPath, noteCount, elapsedMs, tagIndex };
 }
 
 /** Folder picker (non-blocking) + full index. */
@@ -132,9 +152,10 @@ export async function openAndIndexVaultFromPicker(): Promise<{
   vaultPath: string;
   noteCount: number;
   elapsedMs: number;
+  tagIndex: TagIndex;
 }> {
   const { openVaultFromPicker } = await import("./vaultCommands");
   const vaultPath = await openVaultFromPicker();
-  const { noteCount, elapsedMs } = await indexVaultFull();
-  return { vaultPath, noteCount, elapsedMs };
+  const { noteCount, elapsedMs, tagIndex } = await indexVaultFull();
+  return { vaultPath, noteCount, elapsedMs, tagIndex };
 }

@@ -10,6 +10,7 @@ interface CommandPaletteProps {
   onOpenChange: (open: boolean) => void;
   onSelectNote: (path: string) => void;
   onOpenSettings?: () => void;
+  onOpenTags?: () => void;
 }
 
 export function CommandPalette({
@@ -17,6 +18,7 @@ export function CommandPalette({
   onOpenChange,
   onSelectNote,
   onOpenSettings,
+  onOpenTags,
 }: CommandPaletteProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const openNotes = useWorkspaceStore((state) => state.openNotes);
@@ -52,6 +54,12 @@ export function CommandPalette({
       id: "action:settings",
       title: "Open Settings",
       recencyScore: 500,
+    });
+    targets.push({
+      isCommand: true,
+      id: "action:tags",
+      title: "Browse Tags",
+      recencyScore: 400,
     });
     return targets;
   }, [allNotePaths, openNotes]);
@@ -107,6 +115,7 @@ export function CommandPalette({
             if (selected.obj.id === "action:settings" && onOpenSettings) {
               onOpenSettings();
             }
+            if (selected.obj.id === "action:tags" && onOpenTags) onOpenTags();
           } else if (selected.obj.path) {
             onSelectNote(selected.obj.path);
           }
@@ -166,6 +175,7 @@ export function CommandPalette({
                     if (isCommand) {
                       if (result.obj.id === "action:settings" && onOpenSettings)
                         onOpenSettings();
+                      if (result.obj.id === "action:tags" && onOpenTags) onOpenTags();
                     } else if (result.obj.path) {
                       onSelectNote(result.obj.path);
                     }

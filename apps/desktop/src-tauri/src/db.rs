@@ -19,5 +19,11 @@ pub fn migrations() -> Vec<Migration> {
     description: "create_settings_table",
     sql: "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL);",
     kind: MigrationKind::Up,
+  },
+  Migration {
+    version: 3,
+    description: "create_notes_fts_table",
+    sql: "CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5(path UNINDEXED, content);",
+    kind: MigrationKind::Up,
   }]
 }

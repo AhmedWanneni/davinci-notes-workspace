@@ -53,6 +53,25 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0072](adr/0072-editor-markdown-formatting-plan-complete.md) | Phases 1–8 complete the basic Markdown formatting plan; future work is separately scoped | Accepted |
 | [0073](adr/0073-editor-mermaid-rendering-and-performance.md) | Mermaid diagrams use dynamically loaded, cursor-gated widgets with 150ms external-update debounce | Accepted |
 | [0074](adr/0074-editor-katex-math-rendering.md) | Use dynamically loaded KaTeX for cursor-gated inline/block math; reuse the 150ms debounce policy | Accepted |
+| [0075](adr/0075-shared-tag-model-package.md) | Place pure tag parsing, nesting, and canonical identity in dependency-free `@app/core-types` | Accepted |
+| [0076](adr/0076-tag-unicode-matching-rule.md) | Tags use Unicode letters/numbers/marks/symbols plus `_`, `-`, `/`, and ZWJ; punctuation and whitespace terminate matches | Accepted |
+| [0077](adr/0077-editor-tag-badge-rendering-and-click-stub.md) | Tag badges render with first-seen display casing and a stub click callback in `@app/editor` | Accepted |
+| [0078](adr/0078-frontmatter-note-tag-set-and-body-validation.md) | Frontmatter tag bodies share the tag rules via body validators; notes expose `frontmatter`/`inline`/`all` tag sets | Accepted |
+
+## General Search
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0079](adr/0079-general-search-surface.md) | Full-text/operator Search is separate from the fuzzy Command Palette | Accepted |
+| [0080](adr/0080-general-search-sqlite-fts5.md) | Extend `@app/indexer` and SQLite with FTS5; add no search dependency | Accepted |
+| [0081](adr/0081-general-search-v1-operators.md) | V1: terms, quoted phrases, `tag:` with optional `#`, and exclusions | Accepted |
+| [0082](adr/0082-general-search-package-placement.md) | Place search parsing and execution in `@app/indexer` | Accepted |
+| [0083](adr/0083-general-search-parser-edge-cases.md) | Empty `tag:` is a parse error; unknown operators remain plain terms | Accepted |
+| [0084](adr/0084-general-search-execution-ranking.md) | Implicit AND; exclusions remove; FTS bm25 ranks text and title/path order ties | Accepted |
+| [0085](adr/0085-desktop-live-index-exposure.md) | Workspace state holds the live TagIndex; SQLite singleton remains the FTS authority | Accepted |
+| [0086](adr/0086-general-search-plan-closeout.md) | General Search decision index and verification status; benchmark tooling remains an explicit blocker | Accepted |
+| [0087](adr/0087-tags-view-counts-and-live-updates.md) | Tags view uses live TagIndex, direct counts, Command Palette action, and vault update counter | Accepted |
+| [0088](adr/0088-tags-plan-closeout.md) | Tags plan decision index, explicit scope boundary, and regression closeout | Accepted |
 
 ## Data Model, Indexer & SQLite
 

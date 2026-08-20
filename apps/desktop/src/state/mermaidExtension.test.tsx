@@ -8,7 +8,7 @@ import { describe, expect, it } from "vitest";
 function createMermaidEditor(
   doc: string,
   readOnly = false,
-  onLinkClick = () => {},
+  onLinkClick: (targetRaw: string) => void = () => {},
 ) {
   const container = document.createElement("div");
   document.body.appendChild(container);
@@ -29,8 +29,12 @@ function createMermaidEditor(
 }
 
 describe("Mermaid diagram extension", () => {
-  if (!SVGElement.prototype.getBBox) {
-    SVGElement.prototype.getBBox = () =>
+  const svgPrototype = SVGElement.prototype as SVGElement & {
+    getBBox?: () => DOMRect;
+  };
+
+  if (!svgPrototype.getBBox) {
+    svgPrototype.getBBox = () =>
       ({ height: 20, width: 100, x: 0, y: 0 }) as DOMRect;
   }
 

@@ -1,5 +1,6 @@
 import type { Frontmatter } from "./Frontmatter";
 import type { Link } from "./Link";
+import type { NoteTagSet } from "./NoteTags";
 
 /** A markdown note loaded from the vault. */
 export interface Note {
@@ -12,8 +13,8 @@ export interface Note {
   content: string;
   /** Outbound links parsed from `content`. */
   outlinks: Link[];
-  /** Tags from frontmatter and inline `#tag` tokens. */
-  tags: string[];
+  /** Canonical merged tags from frontmatter and inline `#tag` tokens. */
+  tags: NoteTagSet;
   /** Last modified time (Unix ms). */
   mtime: number;
 }

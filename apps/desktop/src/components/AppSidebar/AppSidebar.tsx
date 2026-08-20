@@ -19,6 +19,7 @@ export interface AppSidebarProps {
   onRenameFolder?: (oldPath: string, newName: string) => Promise<boolean>;
   onDeleteNote?: (path: string) => Promise<boolean>;
   onDuplicateNote?: (path: string) => Promise<boolean>;
+  onMoveNote?: (path: string, newParentFolder: string) => Promise<boolean>;
   onSelectedFolderChange?: (folderPath: string | null) => void;
   pendingRenameFolder?: string | null;
   onPendingRenameFolderHandled?: () => void;
@@ -40,6 +41,7 @@ export function AppSidebar({
   onRenameFolder,
   onDeleteNote,
   onDuplicateNote,
+  onMoveNote,
   onSelectedFolderChange,
   pendingRenameFolder,
   onPendingRenameFolderHandled,
@@ -119,6 +121,7 @@ export function AppSidebar({
           onRenameFolder={onRenameFolder}
           onDeleteNote={onDeleteNote}
           onDuplicateNote={onDuplicateNote}
+          onMoveNote={onMoveNote}
           onSelectedFolderChange={handleSelectedFolderChange}
         />
       </div>

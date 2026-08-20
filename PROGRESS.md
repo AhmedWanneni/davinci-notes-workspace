@@ -6,9 +6,231 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Stabilization Phase 1 — note CRUD** — delete and duplicate complete (ADR-0064); move and real-app dogfooding remain. Note CRUD continues to use canonical vault operations for filesystem, SQLite, graph, and workspace state. The Editor Markdown Formatting Phases 1–8 build plan is complete (ADR-0072).
+**Stabilization Phase 1 — note CRUD** — delete, duplicate, and move functionality are implemented, unit tested, and UI wiring in `FileTree` confirmed correct. Note CRUD continues to use canonical vault operations for filesystem, SQLite, graph, and workspace state.
+
+## Phase 5 Checkpoint — Tag Search Blocked
+
+The Phase 5 prerequisite check failed. The app does not currently have a general note-content search feature or an operator query parser. The existing lazy Command Palette uses fuzzy matching only for note-path selection/creation; it has no operator syntax, note-content search, or search-results UI. Phase 5 implementation was intentionally not started, and no parallel tag-only search was added.
+
+General search must be scoped and implemented as a separate dependency before `tag:` search, tag-click search wiring, or Phase 6 can proceed.
+
+## General Search Phase 0 — Scope & Architecture Complete
+
+- [ADR-0079](docs/adr/0079-general-search-surface.md): full-text/operator Search will be a separate lazy UI and results surface; Command Palette stays a fuzzy path/title Quick Switcher.
+- [ADR-0080](docs/adr/0080-general-search-sqlite-fts5.md): extend the existing JS `@app/indexer` + SQLite architecture with an incremental FTS5 content index. No new search dependency or parallel in-memory engine.
+- [ADR-0081](docs/adr/0081-general-search-v1-operators.md): v1 supports plain terms, quoted phrases, `tag:` (optional `#`, normalized away), and leading `-` exclusions. `tag:` uses Phase 4's descendant-inclusive, ancestor-asymmetric query semantics. Other operators are explicitly deferred.
+- [ADR-0082](docs/adr/0082-general-search-package-placement.md): search parsing and index execution live in `@app/indexer`; UI wiring remains in `apps/desktop`.
+
+Phase 1 may now implement the FTS schema/index path. Phase 5 Tag Search remains blocked until the general search implementation and results UI exist.
+
+## General Search Phase 1 — Full-Text Index Complete
+
+- Added SQLite FTS5 migration v3 (`notes_fts`) indexing note body content only, as specified by ADR-0080. No new dependency or parallel in-memory index was added.
+- Reused the existing `persistNotesBatch` and `removeNoteFromIndex` paths, so full-vault indexing, watcher edits, creation, deletion, and canonical rename/move operations update FTS incrementally. Batch updates delete and replace only affected paths.
+- Added focused tests for FTS row replacement and the existing CRUD/reconcile integration boundaries. The 1,000-note batch benchmark completed within the `<1000 ms` guard (reported suite test time: 3 ms).
+- No field-level deviation: Phase 0 specified note body indexing at minimum and did not choose separate path/frontmatter/heading FTS columns; `path` is an unindexed identifier column for maintenance and future joins.
+- Focused desktop tests passed. Desktop typecheck remains blocked by the pre-existing `createNoteCrudActions.ts` `result` scope errors.
+
+Phase 2 may implement the query parser. Phase 5 Tag Search remains blocked until the general search implementation reaches its later execution/UI phases.
+
+## General Search Phase 2 — Query Parser Complete
+
+- Added an extensible operator registry in `@app/indexer` for v1 terms,
+  quoted phrases, `tag:` with optional `#`, and leading-minus exclusions.
+- `tag:` produces `{ kind: "tag", tagKey }` with the normalized key consumed
+  directly by Phase 4's `queryNotesByTag`; an integration test verifies nested
+  descendant matching.
+- Empty queries return no clauses. Empty `tag:` values produce a parse error
+  and no clause. Unknown `name:value` tokens remain plain terms. These choices
+  are recorded in [ADR-0083](docs/adr/0083-general-search-parser-edge-cases.md).
+- Parser tests cover mixed queries, both tag spellings, exclusions, malformed
+  input, Phase 4 integration, and a throwaway registered operator.
+
+Phase 3 may implement query execution. Tag Search remains blocked until the
+general search execution and UI phases are complete.
+
+## General Search Phase 3 — Query Execution & Ranking Complete
+
+- Added `executeSearchQuery` in `@app/indexer`, consuming Phase 2 parser output,
+  SQLite FTS5 rows, and Phase 4 `queryNotesByTag` directly.
+- Positive clauses use implicit AND; leading-minus clauses remove matches.
+  Parent tag queries retain descendant matching and nested queries retain the
+  Phase 4 ancestor asymmetry.
+- FTS results return path/title/mtime, SQLite `bm25` score, and snippets. Lower
+  bm25 scores rank first; title then path resolve ties. Tag-only results use
+  score zero with title/path ordering. Combined queries rank by FTS relevance
+  within the tag-filtered subset. These choices are recorded in
+  [ADR-0084](docs/adr/0084-general-search-execution-ranking.md).
+- Added combined, tag-only, exclusion, and deterministic-ranking tests. The
+  focused execution/parser/index suite passed 14 tests; the 1,000-note
+  combined benchmark completed in a 4 ms Vitest test phase and stayed under
+  the 1-second guard.
+
+Phase 4 may implement the Search UI. Tag Search remains blocked until the
+general search UI is available.
+
+## Bug Fix — Live Vault Index Exposure
+
+- Confirmed the gap: `@app/indexer` had only pure TagIndex builders/mutators;
+  desktop discarded the full-load result and held no long-lived tag index.
+- Added `useWorkspaceStore.tagIndex`, initialized from the notes already loaded
+  by `indexVaultFull`, then mutated in place by watcher reconciliation, note
+  saves, and canonical deletes. No component or query performs a vault scan.
+- The full-text index is already live in SQLite and remains exposed through
+  the singleton `getVaultIndexDb()` accessor; no duplicate JS full-text index
+  was introduced. The state pattern is documented in ADR-0085.
+- The existing focused desktop path typechecks except for the pre-existing
+  unrelated `createNoteCrudActions.ts` `result` scope errors.
+
+## Tags Feature Phase 5 — Tag Search Closed
+
+- Re-verified General Search's settled convention: `tag:#meeting` and
+  `tag:meeting` are equivalent; `#` is optional and normalized away.
+- Confirmed parent queries include descendants while nested queries do not
+  include ancestors through the stable Phase 4 `queryNotesByTag` path.
+- Confirmed the Tags editor path forwards rendered tag keys to desktop,
+  pre-fills Search with `tag:<key>`, and executes through the shared parser and
+  executor. No tag parsing, search, or index logic was duplicated here.
+- Verification passed: core tag rules 11/11, index/parser/execution 14/14,
+  and editor tag rendering/click forwarding 5/5. The Search UI callback path
+  is covered by the existing desktop wiring; rendered UI automation is not
+  configured in this repository.
+- The Tags plan's Phase 5 checkpoint is closed. Tags Phase 6 (Tags view) is
+  ready to resume as a separate task. General Search's existing benchmark
+  tooling caveat remains documented in ADR-0086.
+
+## Tags Feature Phase 6 — Tags View Complete
+
+- Added a lazy Tags dialog opened by a `Browse Tags` Command Palette action.
+  Reopening/focusing uses the existing dialog state path and does not affect
+  the Quick Switcher.
+- Rendered a nested tree from the live workspace `TagIndex`, using
+  `getCanonicalTag` for display casing and synthesizing parent rows for nested
+  tags. Counts are direct-use counts only; descendants are not included in
+  parent totals. This is documented in [ADR-0087](docs/adr/0087-tags-view-counts-and-live-updates.md).
+- Tag selection reuses the editor tag-click callback path, opening Search with
+  the same nested-aware `tag:` query.
+- The view subscribes to `vaultUpdateCounter`, so incremental note tag edits,
+  additions, removals, and renames refresh the open tree without polling or a
+  vault rescan.
+- Focused VaultIndexer tests pass. Desktop typecheck remains blocked by the
+  pre-existing `createNoteCrudActions.ts` `result` scope errors.
+
+Tags Phase 6 is closed. The Tags plan is ready to proceed to Phase 7.
+
+## Tags Feature Phase 7 — Regression & Integration Complete
+
+- Full regression sweep passed: shared tag rules 11/11, index/parser/search
+  14/14, editor tag rendering 5/5, and focused desktop vault update tests 4/4.
+- Editor coverage explicitly confirms tags in headings, list items, blockquotes,
+  table cells, and links, while inline/fenced code tag-looking text remains
+  excluded. No canvas tag parser drift exists; canvas does not claim markdown
+  tag semantics for its card content.
+- A 1,000-note vault with nested tags built and queried in 3 ms of Vitest test
+  time, under the 1-second guard. Existing General Search mocked query/update
+  benchmarks remain 3–4 ms. Real SQLite cold-start benchmarking remains the
+  tooling limitation documented in ADR-0086.
+- Canonical casing, nested descendant/asymmetry semantics, live update wiring,
+  direct-count Tags view behavior, and tag-click search all continue to share
+  the existing index/parser paths. Tag rename/merge UI and Bases `hasTag`
+  integration remain explicitly out of scope.
+- Final decision index: [ADR-0088](docs/adr/0088-tags-plan-closeout.md).
+
+Tags Feature Phases 1–7 are complete. No further Tags phase is planned unless
+a future regression or separately scoped feature requires one.
+
+## General Search Phase 4 — Search UI Complete
+
+- Added a separate lazy `SearchDialog`, preserving the Command Palette as the
+  fuzzy path/title Quick Switcher per ADR-0079.
+- Search opens from the icon rail and `Cmd/Ctrl+Shift+F`; `Cmd/Ctrl+K` remains
+  unchanged. Results consume Phase 3's `SearchResult` output directly,
+  including snippets, scores, titles, and paths.
+- Added 150 ms live-query debouncing. Phase 3's 1,000-note combined benchmark
+  completed in 4 ms, so 150 ms prevents per-keystroke database work while
+  keeping the UI responsive.
+- Added arrow-key navigation, Enter-to-open, ranked result display, snippet
+  highlighting, and a tag-only fallback label. The result list is bounded by
+  the dialog viewport and scrolls instead of rendering an unbounded surface.
+- Phase 5 tag-click wiring remains separate and has not been changed.
+
+## General Search Phase 5 — Tag Click Wiring Complete
+
+- Replaced the editor tag click no-op with the existing `onTagClick` callback
+  path. Desktop now constructs `tag:<canonical-key>`, opens Search, pre-fills
+  the query, and executes it through the same Phase 2 parser and Phase 3
+  executor used by direct Search input.
+- Nested tags require no special handling: clicking a parent or nested tag
+  preserves Phase 3's existing descendant-inclusive and ancestor-asymmetric
+  semantics.
+- Direct Search entry resets to an empty query; programmatic tag entry keeps
+  its initial query. Added the editor/desktop changeset and retained existing
+  tag rendering behavior.
+- The Tags plan's Phase 5 checkpoint is now unblocked and verified through the
+  real editor callback path; Phase 6 Tags view is ready to resume separately.
+
+## General Search Phase 6 — Regression & Performance Pass
+
+- Functional regression verification passed: indexer search/tag suite 14/14,
+  editor tag-rendering suite 5/5, and focused desktop vault/FTS/CRUD suite
+  13/13. `@app/indexer` and `@app/editor` typecheck successfully.
+- The separate Command Palette remains untouched and retains its original
+  Cmd/Ctrl+K fuzzy path/title behavior; Search uses its own Cmd/Ctrl+Shift+F
+  entry point.
+- Existing recorded benchmarks remain 3 ms for the Phase 1 1,000-note FTS
+  batch and 4 ms for the Phase 3 1,000-note combined execution test.
+- The repository large-vault benchmark could not execute: its Node entrypoint
+  imports missing `packages/core-types/NoteTags.js`. Cold-start SQLite,
+  per-note CRUD, and real-vault query timings therefore remain unverified;
+  this is recorded in [ADR-0086](docs/adr/0086-general-search-plan-closeout.md)
+  and the General Search plan is not marked fully complete until that tooling
+  blocker is resolved.
+- Tags Phase 6 (Tags view) is functionally unblocked and ready as a separate
+  task, subject to the benchmark/tooling caveat above.
 
 ## Last Session
+
+**Testing and Integration - Move Note Feature**
+
+### Completed
+- Fixed the failing `buildTags` test in `@app/indexer` by moving the dynamic `require` call to a top-level import.
+- Created `apps/desktop/src/vault/moveNoteInVault.test.ts` to verify the `moveNoteInVault` functionality.
+- Confirmed `moveNoteFromTree` action is properly implemented in `createNoteCrudActions`, integrated into the workspace store, and correctly wired in `FileTree.tsx` (D&D drop handler).
+
+### Verification
+- Full workspace test suite passes, including `@app/indexer` and the new `@app/desktop` tests.
+- UI wiring of `moveNoteInVault` through `FileTree` components manually audited and confirmed.
+
+
+
+**Tags Feature Phase 2 — Inline Tag Detection & Rendering (@app/editor) (ADR-0077)**
+
+### Completed
+- Added `tagExtension` to `@app/editor`, importing the shared `matchTags`/`TagRegistry` logic from `@app/core-types` instead of reimplementing any tag parsing locally.
+- Rendered valid inline tags as badge-style replacement widgets with existing design-token styling, hover affordance, and click forwarding through a stub `onTagClick(tagKey)` callback.
+- Chose first-seen canonical display casing for the badge text, preserving the markdown source as the underlying document of truth and documenting that policy in ADR-0077.
+- Excluded tags inside inline code and fenced code blocks using the existing syntax-tree/code-node check pattern.
+- Wired tag rendering into both `Editor` and `MarkdownView`, added package-local test tooling, and logged a new editor changeset.
+
+### Verification
+- `packages/editor/tagExtension.test.ts` passes with coverage for canonical casing, click forwarding, code exclusion, headings/lists/blockquotes/tables, inline formatting, links, and a typing-latency benchmark.
+- `@app/editor` typecheck, lint, and build pass.
+- The benchmark assertion holds under `<5 ms` per simulated keystroke on a large tagged document.
+
+**Tags Feature Phase 1 — Tag Parsing Rules & Data Model (@app/core-types) (ADR-0075, ADR-0076)**
+
+### Completed
+- Placed the shared tag model and parser in `@app/core-types`, the existing dependency-free package already shared by `@app/editor` and `@app/indexer`.
+- Implemented the exact Unicode-aware matching rule: letters, numbers, marks, symbols, `_`, `-`, `/`, and ZWJ are allowed; whitespace and punctuation terminate a tag; all-numeric bodies are rejected.
+- Added nested-tag decomposition for `#a/b/c` and a canonical-casing registry that preserves the first-seen display form while matching case-insensitively.
+- Updated the package’s internal runtime imports to `.js` specifiers so the built `dist` entrypoint can be loaded directly by Node.
+- Logged the shared-package placement decision and the Unicode matching rule as ADR-0075 and ADR-0076.
+
+### Verification
+- `@app/core-types` unit tests pass for valid/invalid tags, nested decomposition, and canonical registry behavior.
+- `@app/core-types` typecheck, lint, and build pass.
+- Confirmed the built module imports cleanly from a plain Node/test context without React or CodeMirror dependencies.
+- Added an `@app/core-types` patch changeset.
 
 **Phase 11 — Math (@app/editor) (ADR-0074)**
 

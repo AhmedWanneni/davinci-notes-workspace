@@ -8,6 +8,16 @@ CREATE TABLE IF NOT EXISTS notes (
   mtime INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS note_tags (
+  path TEXT NOT NULL,
+  tag_key TEXT NOT NULL,
+  tag_display TEXT NOT NULL,
+  PRIMARY KEY (path, tag_key),
+  FOREIGN KEY (path) REFERENCES notes(path) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_note_tags_tag ON note_tags(tag_key);
+
 CREATE TABLE IF NOT EXISTS links (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   source_path TEXT NOT NULL,

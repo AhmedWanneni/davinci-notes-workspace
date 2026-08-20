@@ -1,6 +1,7 @@
 import type { Note } from "@app/core-types";
 import type { GraphIndex } from "@app/indexer";
 import Database from "@tauri-apps/plugin-sql";
+import { clearFtsRows, removeFtsRow, replaceFtsRows } from "./sqliteFtsIndex";
 
 /** Must match `db::DB_URL` in src-tauri. */
 export const VAULT_INDEX_DB = "sqlite:vault-index.db";
@@ -36,6 +37,7 @@ export async function verifyJournalMode(db: Database): Promise<string> {
 export async function clearVaultIndex(db: Database): Promise<void> {
   await db.execute("DELETE FROM links");
   await db.execute("DELETE FROM notes");
+  await clearFtsRows(db);
 }
 
 export async function upsertNote(db: Database, note: Note): Promise<void> {
@@ -80,6 +82,7 @@ export async function removeNoteFromIndex(
   path: string,
 ): Promise<void> {
   await db.execute("DELETE FROM notes WHERE path = $1", [path]);
+  await removeFtsRow(db, path);
 }
 
 /** Batch persist notes and outlinks to SQLite using chunked bulk operations. */
@@ -172,6 +175,8 @@ export async function persistNotesBatch(
         );
       }
     }
+
+    await replaceFtsRows(db, chunk);
   }
 }
 
