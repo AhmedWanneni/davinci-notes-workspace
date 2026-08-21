@@ -54,6 +54,14 @@ export {
   sanitizeImageUrl,
 } from "./imageExtension";
 export type { ImageDimensions, ImageExtensionOptions } from "./imageExtension";
+export {
+  isYoutubeImage,
+  youtubeEmbedVideoId,
+  youtubeImageToIframe,
+  youtubeThumbnailUrl,
+  youtubeVideoId,
+} from "./youtubeEmbed";
+export { isTweetImage, tweetImageToStatusUrl, tweetStatusUrl } from "./tweetEmbed";
 export { listExtension, listIndentKeymap } from "./listExtension";
 export type { ListExtensionOptions } from "./listExtension";
 export { highlightExtension, highlightTag } from "./highlightExtension";

@@ -586,9 +586,54 @@ No canonical rename existed (stabilization Phase 1 not yet run). Added **`rename
 - Added named inline regressions for `<u>`, `<s>`, `<span>`, and same-line `<div>`, plus a side-by-side test proving Markdown outside an inline HTML range still parses as `StrongEmphasis`.
 - Focused editor verification passes: 12 tests across the block and inline HTML suites. No rendering implementation changes were needed in this phase.
 
+## Embed Web Pages Phase 1 — Trust Model & Sandboxing Policy Complete
+
+- Decision-only phase; no embed or rendering code was added.
+- [ADR-0098](docs/adr/0098-embed-iframe-sandbox-permissions.md) fixes the
+  iframe sandbox to `allow-scripts allow-presentation`, excludes
+  `allow-same-origin`, denies camera/microphone and unnecessary Permissions
+  Policy features, and uses `no-referrer`.
+- [ADR-0099](docs/adr/0099-embed-url-host-restrictions.md) allows only parsed
+  `http(s)` URLs, rejects Tauri/file/data/custom schemes, credentials,
+  localhost, private/link-local/multicast/loopback literals, and internal
+  hostnames, with a visible blocked-content message. DNS rebinding remains an
+  explicit follow-up constraint for Phase 2's Tauri integration.
+- [ADR-0100](docs/adr/0100-embed-click-to-load.md) makes loading explicit and
+  fixed in v1: validated embeds do not make network requests until activation.
+- Research used MDN iframe sandbox/Permissions Policy/referrer guidance and
+  Tauri's remote-iframe IPC security advisory. `<iframe>` remains rejected by
+  `@app/sanitize`; Phase 2 must apply this separate policy at the renderer.
+
 ## Next Up (in order)
 
-1. **HTML Support cursor-navigation fix complete**: HTML blocks now reveal raw source while the selection cursor is inside their range, remain plain editable text during source edits, and re-sanitize only when re-rendered after the cursor leaves. This reuses the existing Mermaid/math selection-driven pattern; see [ADR-0097](docs/adr/0097-html-block-cursor-gated-source.md). `<iframe>`/web-page embeds remain separately scoped.
+## YouTube Embed Thumbnail Facade — Complete
+
+- YouTube image syntax now renders a real `i.ytimg.com` `hqdefault.jpg`
+  thumbnail with a flat play overlay. The iframe remains unmounted until the
+  facade is activated, and thumbnail failures use a readable local fallback.
+- Activation mounts the same validated iframe and fixed sandbox/permissions
+  policy as raw embeds. The click handler suppresses CodeMirror mousedown
+  selection, synchronously swaps the facade, and adds `autoplay=1`; only this
+  explicit YouTube path receives `autoplay 'src'`. Generic iframes and tweet
+  cards retain their existing click-to-load behavior.
+- Added [ADR-0105](docs/adr/0105-youtube-thumbnail-facade.md) and corrective
+  [ADR-0106](docs/adr/0106-youtube-facade-click-activation.md). Editor and
+  sanitizer tests pass after the click-handling correction.
+
+## YouTube Embed WebView Sandbox Fix — Complete
+
+- Removed the unsupported `allow-presentation` token and added a recognized
+  sandbox-token regression test. Arbitrary validated iframe hosts now use the
+  strict `allow-scripts` policy.
+- Added a provider-scoped YouTube policy: only validated `www.youtube.com`
+  embeds receive `allow-scripts allow-same-origin`, which is required by the
+  player for Cache Storage/origin APIs. Source-provided sandbox values remain
+  ignored.
+- Added [ADR-0107](docs/adr/0107-provider-scoped-iframe-sandbox.md). Sanitizer
+  tests pass 17/17; editor tests pass 33/33; both package typechecks pass.
+
+1. **Embed Web Pages Phases 1–5 complete**: iframe trust policy, raw iframe blocks, YouTube syntax sugar, and script-free tweet cards passed the closing security/integration sweep. Canvas web-page cards remain separately scoped. See [ADR-0104](docs/adr/0104-embed-web-pages-closeout.md). No further embed phases are planned unless a regression requires one.
+2. **HTML Support cursor-navigation fix complete**: HTML blocks now reveal raw source while the selection cursor is inside their range, remain plain editable text during source edits, and re-sanitize only when re-rendered after the cursor leaves. This reuses the existing Mermaid/math selection-driven pattern; see [ADR-0097](docs/adr/0097-html-block-cursor-gated-source.md).
 
 2. **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
 2. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.

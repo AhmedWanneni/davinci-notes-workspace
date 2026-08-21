@@ -81,6 +81,16 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0095](adr/0095-html-table-default-styling.md) | Sanitized HTML tables use token-based collapsed borders, cell spacing, and hidden source continuation lines | Accepted |
 | [0096](adr/0096-html-block-statefield-widget.md) | HTML blocks use full-range structural decorations from a StateField, not inline ViewPlugin replacements | Accepted |
 | [0097](adr/0097-html-block-cursor-gated-source.md) | HTML block widgets reveal source while the selection cursor is inside, matching Mermaid/math live-preview toggles | Accepted |
+| [0098](adr/0098-embed-iframe-sandbox-permissions.md) | Embeds use fixed minimal sandbox, deny-by-default permissions, and no referrer | Accepted |
+| [0099](adr/0099-embed-url-host-restrictions.md) | Embeds allow only validated public HTTP(S) URLs and visibly block local/internal targets | Accepted |
+| [0100](adr/0100-embed-click-to-load.md) | Embeds use fixed click-to-load behavior to avoid unsolicited network/code execution | Accepted |
+| [0101](adr/0101-embed-placeholder-widget.md) | Iframe blocks reuse the structural HTML widget with a hostname placeholder and activation-only iframe creation | Accepted |
+| [0102](adr/0102-youtube-image-embed-forms.md) | Only canonical YouTube watch and youtu.be image URLs convert to the existing iframe path; Shorts and near misses are excluded | Accepted |
+| [0103](adr/0103-tweet-static-card.md) | Tweet image syntax uses a click-to-load script-free static oEmbed card, never widgets.js or a tweet iframe | Accepted |
+| [0104](adr/0104-embed-web-pages-closeout.md) | Embed Web Pages closeout: security decisions indexed; Canvas web-page cards remain separately scoped | Accepted |
+| [0105](adr/0105-youtube-thumbnail-facade.md) | YouTube uses an hqdefault thumbnail facade and click-to-play; generic and tweet embeds keep their existing placeholders | Accepted |
+| [0106](adr/0106-youtube-facade-click-activation.md) | YouTube activation suppresses CodeMirror mousedown selection, swaps synchronously on click, and permits autoplay only for explicit facade activation | Accepted |
+| [0107](adr/0107-provider-scoped-iframe-sandbox.md) | Remove invalid `allow-presentation`; only validated YouTube embeds receive `allow-same-origin`, arbitrary hosts retain strict `allow-scripts` | Accepted |
 
 ## Data Model, Indexer & SQLite
 

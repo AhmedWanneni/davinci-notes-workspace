@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-08-21 | YouTube Embed Thumbnail Facade (ADR-0105) | Replaced YouTube's generic embed placeholder/eager behavior with an `hqdefault.jpg` thumbnail facade and click-only iframe activation; generic and tweet embeds retain their existing click-to-load paths. Editor tests 33/33 and typecheck pass. |
 | 2026-08-20 | Tags Feature Phase 3 — YAML Tags Property Support (ADR-0078) | Added shared body-level tag validation, merged per-note `frontmatter`/`inline`/`all` tag sets, and a thin indexer wrapper over existing frontmatter parsing. |
 | 2026-08-20 | Tags Feature Phase 2 — Inline Tag Detection & Rendering (ADR-0077) | Added inline tag badge widgets in `@app/editor` using the shared tag matcher/registry, with canonical first-seen casing, code-block exclusion, stub click handling, and latency coverage. |
 | 2026-08-20 | Tags Feature Phase 1 — Tag Parsing Rules & Data Model (ADR-0075/0076) | Added dependency-free shared tag parsing/model logic in `@app/core-types`: Unicode-aware matching, nested ancestor decomposition, first-seen canonical casing, Node-loadable `.js` runtime imports, and unit coverage. |
@@ -713,3 +714,120 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
   text ranges lack browser `getClientRects`; the selection transition and
   structural DOM behavior are covered, while real-browser navigation remains
   the appropriate manual/UI verification.
+
+## 2026-08-21 — Embed Web Pages Phase 1: Trust Model and Sandboxing Policy
+
+- Completed the decision-only iframe security phase; no code or dependency was
+  added. Read the HTML sanitizer, structural block-widget, and cursor-source
+  toggle ADRs before making the decisions.
+- Added ADR-0098 for the fixed sandbox, deny-by-default Permissions Policy,
+  camera/microphone exclusion, and `no-referrer` policy. The dangerous
+  `allow-scripts` + `allow-same-origin` combination was explicitly rejected.
+- Added ADR-0099 for HTTP(S)-only URL validation, Tauri/internal scheme
+  rejection, localhost/private-network blocking, visible rejection messaging,
+  and the DNS-rebinding limitation that Phase 2 must address with Tauri
+  integration controls.
+- Added ADR-0100 for fixed click-to-load behavior, avoiding unsolicited
+  third-party network requests and remote code execution when opening notes.
+- Indexed all three decisions in `DECISIONS.md`; Phase 2 is next.
+
+## 2026-08-21 — Embed Web Pages Phase 4: Script-Free Tweet Cards
+
+- Investigated X's official oEmbed path before implementation. Its response
+  is blockquote markup transformed by `widgets.js`, so it was rejected rather
+  than loaded in the app page or a new iframe. ADR-0103 records the decision
+  for a click-to-load static card.
+- Added narrow `x.com`/`twitter.com` status URL detection through the same
+  external-image branch point. The card fetches `publish.x.com/oembed` only on
+  activation with `omit_script=1` and `dnt=true`, extracts text-safe metadata,
+  and never assigns returned HTML to the DOM.
+- Added near-miss, card text-safety, and editor integration coverage. Full
+  editor verification passes 29/29 and package typecheck passes. No
+  `widgets.js` or tweet iframe path was added.
+- Added the editor changeset and set Phase 5 as next.
+
+## 2026-08-21 — Embed Web Pages Phase 5: Regression and Integration Closeout
+
+- Re-ran the base sanitizer and integrated editor suites. Sanitizer attack
+  vectors pass 15/15; the full editor suite passes 31/31, including raw
+  iframe, YouTube shorthand, tweet static-card, ordinary-image, near-miss,
+  and source/render regressions.
+- Re-verified Phase 1 host restrictions for localhost, loopback, private
+  targets, and internal schemes. YouTube conversion produces only the fixed
+  `www.youtube.com/embed/<id>` host; tweet conversion produces no iframe and
+  therefore no alternate URL-validation path.
+- Added an integrated attack-vector regression proving scripts, handlers,
+  unsafe CSS, and `javascript:` content remain absent from rendered HTML.
+  A 25-embed placeholder benchmark stayed under the 1-second guard and made
+  zero fetch calls before activation.
+- Confirmed Canvas exists as a separate JSON/React Flow card model. Web-page
+  cards are explicitly deferred to a future Canvas-specific plan.
+- Added ADR-0104 as the final decision index and marked Embed Web Pages
+  Phases 1–5 complete. Browser network inspection remains a manual step
+  because no browser-network harness is configured.
+
+## 2026-08-21 — Embed Web Pages Phase 3: YouTube External-Image Syntax
+
+- Added a narrow named YouTube matcher for canonical `watch?v=` and
+  `youtu.be/<id>` URLs with 11-character IDs. It constructs the approved
+  `https://www.youtube.com/embed/<id>` URL and hands it to the existing HTML
+  iframe sanitizer/policy and click-to-load block widget.
+- Ordinary external images remain on the existing image extension path.
+  Near-miss YouTube URLs, arbitrary YouTube paths, and Shorts are explicitly
+  excluded; the supported forms are recorded in ADR-0102.
+- Added parser, near-miss, ordinary-image-branch, and editor placeholder
+  regressions. Full editor verification passes 26/26; sanitizer verification
+  passes 15/15; both package typechecks pass.
+
+## 2026-08-21 — Embed Web Pages Phase 2: Raw iframe Detection and Rendering
+
+- Added an explicit iframe policy layer in `@app/sanitize`. It rebuilds iframe
+  attributes from the fixed Phase 1 policy, validates HTTP(S) hosts, blocks
+  local/private/internal targets with a visible message, and leaves the prior
+  static HTML policy separate.
+- Extended the existing HTML block detector/state-field widget to recognize
+  iframe roots. Valid embeds render a hostname placeholder first; the actual
+  iframe is created only after activation, with no connected iframe during
+  initial rendering.
+- Added sanitizer coverage for policy override and localhost/loopback/
+  internal-scheme rejection, plus editor coverage for iframe block detection
+  and click-to-load placeholder behavior. Sanitizer tests pass 15/15 and the
+  focused HTML editor suite passes 8/8; both package typechecks pass.
+- Added ADR-0101 and changesets for `@app/sanitize` and `@app/editor`. Phase 3
+  (YouTube `![]()` syntax sugar) is next.
+
+## 2026-08-21 — YouTube Embed Thumbnail Facade (ADR-0105)
+
+- Replaced the YouTube generic placeholder/eager behavior with a thumbnail
+  facade using the stable `https://i.ytimg.com/vi/<id>/hqdefault.jpg` URL and
+  a flat play overlay. The iframe is still created only after activation.
+- Reused the existing HTML block widget, cursor/source toggle, iframe policy
+  attributes, and validated embed URL. Autoplay was intentionally not added:
+  the fixed Phase 1 permissions policy does not grant it.
+- Generic raw iframes keep their hostname click-to-load placeholder and tweet
+  embeds keep their script-free click-to-load card. Thumbnail failure removes
+  the broken image and shows a readable fallback while preserving play.
+- Added facade, activation, fallback, and policy-attribute regressions.
+  `@app/editor` tests pass 33/33 and typecheck passes.
+
+## 2026-08-21 — YouTube Facade Click Activation (ADR-0106)
+
+- Root cause: facade activation was bound to `mousedown`, allowing CodeMirror
+  selection handling to interfere with the widget before the click gesture
+  completed; the iframe also lacked the autoplay permission/parameter.
+- Facades now suppress mousedown selection and synchronously replace themselves
+  on click. The validated YouTube URL receives `autoplay=1`, and the fixed
+  Permissions Policy grants autoplay for this explicit activation path.
+- Added runtime attribute and click-to-swap regression coverage. Generic iframe
+  and tweet embed behavior remains unchanged.
+
+## 2026-08-21 — YouTube Embed WebView Sandbox Fix (ADR-0107)
+
+- Removed the runtime-invalid `allow-presentation` sandbox flag.
+- Added provider-scoped policy handling: validated YouTube embeds receive
+  `allow-scripts allow-same-origin` for player origin APIs, while arbitrary
+  iframe hosts retain strict `allow-scripts` without same-origin access.
+- Added sandbox-token validation and generic-host regression coverage. The
+  sanitizer suite passes 17/17 and the editor suite passes 33/33; package
+  typechecks pass. Actual WebView console/video confirmation remains a manual
+  device check because no Tauri browser harness is configured.

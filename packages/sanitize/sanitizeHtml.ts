@@ -1,8 +1,9 @@
 import createDOMPurify from "dompurify";
 import type { WindowLike } from "dompurify";
+import { applyIframePolicy } from "./iframePolicy";
 
-const ALLOWED_TAGS = ["u", "s", "span", "div", "table", "tr", "td"];
-const ALLOWED_ATTR = ["class", "style"];
+const ALLOWED_TAGS = ["u", "s", "span", "div", "table", "tr", "td", "iframe"];
+const ALLOWED_ATTR = ["class", "style", "src", "sandbox", "allow", "referrerpolicy"];
 const STYLE_PROPERTIES = new Set([
   "color",
   "background-color",
@@ -49,7 +50,8 @@ export function sanitizeHtml(html: string): string {
   const window = globalThis.window as WindowLike | undefined;
   if (!window) throw new Error("sanitizeHtml requires a DOM window");
   const comments: string[] = [];
-  const commentSafeHtml = html.replace(/<!--[\s\S]*?-->/g, (comment) => {
+  const iframeHtml = applyIframePolicy(html).html;
+  const commentSafeHtml = iframeHtml.replace(/<!--[\s\S]*?-->/g, (comment) => {
     const body = comment.slice(4, -3).replace(/--+/g, "-");
     comments.push(`<!--${body}-->`);
     return `__SANITIZED_COMMENT_${comments.length - 1}__`;
@@ -64,7 +66,7 @@ export function sanitizeHtml(html: string): string {
     ALLOWED_TAGS,
     ALLOWED_ATTR,
     KEEP_CONTENT: true,
-    FORBID_TAGS: ["script", "style", "iframe"],
+    FORBID_TAGS: ["script", "style"],
   }) as string;
   comments.forEach((comment, index) => {
     sanitized = sanitized.replace(`__SANITIZED_COMMENT_${index}__`, comment);

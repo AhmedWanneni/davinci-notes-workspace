@@ -7,6 +7,8 @@ import {
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view";
+import { isYoutubeImage } from "./youtubeEmbed";
+import { isTweetImage } from "./tweetEmbed";
 
 export interface ImageDimensions {
   alt: string;
@@ -129,6 +131,9 @@ export function imageExtension(options: ImageExtensionOptions = {}) {
         const end = lineStart + match.index! + match[0].length;
         const rawAlt = match[1] ?? "";
         const rawUrl = match[2] ?? "";
+        const source = match[0];
+
+        if (isYoutubeImage(source) || isTweetImage(source)) continue;
 
         const line = state.doc.lineAt(start);
         if (!isReadOnly && line.number === activeLineNumber) {
