@@ -8,11 +8,12 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 **Stabilization Phase 1 — note CRUD** — delete, duplicate, and move functionality are implemented, unit tested, and UI wiring in `FileTree` confirmed correct. Note CRUD continues to use canonical vault operations for filesystem, SQLite, graph, and workspace state.
 
-## Phase 5 Checkpoint — Tag Search Blocked
+## Phase 5 Checkpoint — Tag Search Closed
 
-The Phase 5 prerequisite check failed. The app does not currently have a general note-content search feature or an operator query parser. The existing lazy Command Palette uses fuzzy matching only for note-path selection/creation; it has no operator syntax, note-content search, or search-results UI. Phase 5 implementation was intentionally not started, and no parallel tag-only search was added.
-
-General search must be scoped and implemented as a separate dependency before `tag:` search, tag-click search wiring, or Phase 6 can proceed.
+The original prerequisite block is resolved by the completed General Search
+plan. The current checkpoint is documented below in “Tags Feature Phase 5 —
+Tag Search Closed”; the stale blocked status is retained only in older history
+records, not as current state.
 
 ## General Search Phase 0 — Scope & Architecture Complete
 
@@ -138,6 +139,55 @@ Tags Phase 6 is closed. The Tags plan is ready to proceed to Phase 7.
 
 Tags Feature Phases 1–7 are complete. No further Tags phase is planned unless
 a future regression or separately scoped feature requires one.
+
+## HTML Support Phase 1 — Sanitization Core Complete
+
+- Added standalone `@app/sanitize` using DOMPurify 3.4.14; no editor or
+  rendering integration was added.
+- Exact allowlist: `u`, `s`, `span`, `div`, `table`, `tr`, `td`, safe comments;
+  only `class` and constrained `style` attributes. Scripts, style blocks,
+  iframes, event handlers, URL-bearing attributes, and unsafe CSS are removed.
+- Added five happy-path and attack-vector tests, including the source
+  document's pasted `<script>` example, malformed markup, encoded payloads,
+  unsafe URLs, and CSS injection.
+- `@app/sanitize` tests (5/5), typecheck, and build pass. DOMPurify's bundle
+  cost and policy choice are recorded in ADR-0089; CSS/class policy is in
+  ADR-0090.
+
+Next up: HTML Support Phase 2 — block-level HTML detection and rendering routed
+through this sanitizer.
+
+## HTML Support Phase 2 — Block-Level HTML Detection & Rendering Complete
+
+- Added `htmlBlockExtension` and `htmlBlockTheme` to the existing CodeMirror
+  replacement-widget path used by the editor and read-only MarkdownView.
+- Block detection requires a contiguous, nonblank, matching-tag block rooted at
+  `table` or `div`; blank lines abort the block, so the documented broken table
+  example remains literal rather than allowing a later `<td>` fragment to
+  render independently. The boundary rule is recorded in ADR-0091.
+- Every rendered block is passed through `@app/sanitize` immediately before
+  widget DOM assignment. Document changes rebuild decorations, covering initial
+  load, typing, paste, undo, and redo through CodeMirror's normal update path.
+- HTML block tests pass 3/3: safe table rendering, named blank-line regression,
+  and re-sanitization after editing a safe block into a script payload.
+- No sanitizer policy or allowlist was changed, and no raw HTML path bypasses
+  the Phase 1 package.
+
+Next up: HTML Support Phase 3 — inline HTML elements and comments.
+
+## HTML Support Phase 3 — Inline HTML Elements Complete
+
+- Added a same-line inline HTML decoration pass for `<u>`, `<s>`, `<span>`,
+  same-line `<div>`, and HTML comments, routed through the Phase 1 sanitizer
+  before widget DOM assignment.
+- `<s>` reuses the existing Markdown strikethrough `line-through` treatment;
+  `<u>` uses the corresponding underline treatment. HTML comments are hidden,
+  consistent with native Markdown comments.
+- Added adjacent-Markdown boundary tests, the source cursive-span example, and
+  comment visibility coverage. The cursive `font-family` property is stripped
+  as required by ADR-0090; the sanitizer allowlist was not loosened.
+- HTML block and inline suites pass 6/6. No raw HTML path bypasses the Phase 1
+  sanitizer. Next up: Phase 4 no-Markdown-inside-HTML enforcement.
 
 ## General Search Phase 4 — Search UI Complete
 
@@ -529,9 +579,18 @@ No canonical rename existed (stabilization Phase 1 not yet run). Added **`rename
 
 ---
 
+## HTML Support Phase 4 — No-Markdown-Inside-HTML Enforcement Complete
+
+- Formalized the HTML/Markdown boundary in [ADR-0093](docs/adr/0093-html-markdown-boundary.md): content inside a captured, contiguous HTML range is rendered only through the sanitized HTML path, while Markdown outside that range remains handled by the normal Markdown parser.
+- Added named block-level regressions proving `**bold**` and `` `code` `` remain literal inside HTML.
+- Added named inline regressions for `<u>`, `<s>`, `<span>`, and same-line `<div>`, plus a side-by-side test proving Markdown outside an inline HTML range still parses as `StrongEmphasis`.
+- Focused editor verification passes: 12 tests across the block and inline HTML suites. No rendering implementation changes were needed in this phase.
+
 ## Next Up (in order)
 
-1. **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+1. **HTML Support cursor-navigation fix complete**: HTML blocks now reveal raw source while the selection cursor is inside their range, remain plain editable text during source edits, and re-sanitize only when re-rendered after the cursor leaves. This reuses the existing Mermaid/math selection-driven pattern; see [ADR-0097](docs/adr/0097-html-block-cursor-gated-source.md). `<iframe>`/web-page embeds remain separately scoped.
+
+2. **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
 2. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
 3. **Unlinked Mentions Detection**
 4. **Inline Property Editing**

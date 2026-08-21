@@ -72,6 +72,15 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0086](adr/0086-general-search-plan-closeout.md) | General Search decision index and verification status; benchmark tooling remains an explicit blocker | Accepted |
 | [0087](adr/0087-tags-view-counts-and-live-updates.md) | Tags view uses live TagIndex, direct counts, Command Palette action, and vault update counter | Accepted |
 | [0088](adr/0088-tags-plan-closeout.md) | Tags plan decision index, explicit scope boundary, and regression closeout | Accepted |
+| [0089](adr/0089-html-sanitizer-library.md) | Use DOMPurify in standalone `@app/sanitize`; lazy-load it later | Accepted |
+| [0090](adr/0090-html-sanitizer-allowlist-and-css-policy.md) | Exact HTML/class/style allowlist and constrained CSS values | Accepted |
+| [0091](adr/0091-html-block-boundaries.md) | HTML blocks require matching tags on contiguous nonblank lines | Accepted |
+| [0092](adr/0092-html-inline-rendering-policy.md) | Inline HTML uses the sanitizer; `<s>` shares Markdown styling and comments stay hidden | Accepted |
+| [0093](adr/0093-html-markdown-boundary.md) | Markdown inside captured HTML stays literal; Markdown outside the range remains active | Accepted |
+| [0094](adr/0094-html-support-plan-closeout.md) | HTML Support closeout: shared sanitizer, opaque HTML range, no canvas/iframe scope expansion | Accepted |
+| [0095](adr/0095-html-table-default-styling.md) | Sanitized HTML tables use token-based collapsed borders, cell spacing, and hidden source continuation lines | Accepted |
+| [0096](adr/0096-html-block-statefield-widget.md) | HTML blocks use full-range structural decorations from a StateField, not inline ViewPlugin replacements | Accepted |
+| [0097](adr/0097-html-block-cursor-gated-source.md) | HTML block widgets reveal source while the selection cursor is inside, matching Mermaid/math live-preview toggles | Accepted |
 
 ## Data Model, Indexer & SQLite
 

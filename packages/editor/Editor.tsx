@@ -30,6 +30,10 @@ import { mathExtension } from "./mathExtension";
 import { mathTheme } from "./mathTheme";
 import { tagExtension } from "./tagExtension";
 import { tagTheme } from "./tagTheme";
+import { htmlBlockExtension } from "./htmlBlockExtension";
+import { htmlBlockTheme } from "./htmlBlockTheme";
+import { htmlInlineExtension } from "./htmlInlineExtension";
+import { htmlInlineTheme } from "./htmlInlineTheme";
 import {
   insertHardLineBreak,
   softLineBreakExtension,
@@ -81,6 +85,8 @@ export function Editor({
         mermaidTheme,
         mathTheme,
         tagTheme,
+        htmlBlockTheme,
+        htmlInlineTheme,
         EditorView.lineWrapping,
         history(),
         drawSelection(),
@@ -105,6 +111,8 @@ export function Editor({
         mathExtension(),
         imageExtension(),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
+        htmlBlockExtension(),
+        htmlInlineExtension(),
         // Dynamic compartments for options
         wikilinkCompartmentRef.current.of(
           linkExtension({

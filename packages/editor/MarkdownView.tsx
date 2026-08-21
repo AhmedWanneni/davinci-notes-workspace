@@ -23,6 +23,10 @@ import { mathExtension } from "./mathExtension";
 import { mathTheme } from "./mathTheme";
 import { tagExtension } from "./tagExtension";
 import { tagTheme } from "./tagTheme";
+import { htmlBlockExtension } from "./htmlBlockExtension";
+import { htmlBlockTheme } from "./htmlBlockTheme";
+import { htmlInlineExtension } from "./htmlInlineExtension";
+import { htmlInlineTheme } from "./htmlInlineTheme";
 
 export interface MarkdownViewProps {
   value: string;
@@ -66,6 +70,8 @@ export function MarkdownView({
         mermaidTheme,
         mathTheme,
         tagTheme,
+        htmlBlockTheme,
+        htmlInlineTheme,
         EditorView.lineWrapping,
         EditorState.readOnly.of(true),
         EditorView.editable.of(false),
@@ -83,6 +89,8 @@ export function MarkdownView({
         mathExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
+        htmlBlockExtension(),
+        htmlInlineExtension(),
         wikilinkCompartmentRef.current.of(
           linkExtension({
             notePaths,

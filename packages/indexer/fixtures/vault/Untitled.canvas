@@ -1,4 +1,33 @@
 {
-  "nodes": [],
-  "edges": []
+  "nodes": [
+    {
+      "id": "text-419ffaaa-4b35-45ca-bbd6-e002eb66e3b1",
+      "x": 240,
+      "y": 144,
+      "width": 240,
+      "height": 120,
+      "type": "text",
+      "text": "Hiiiii"
+    },
+    {
+      "id": "text-f58026d1-634c-43b9-9558-b8499f1c7e5d",
+      "x": 336,
+      "y": 312,
+      "width": 250,
+      "height": 120,
+      "type": "text",
+      "text": ""
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-32ca4abb-6d25-4a43-894d-0611d99f440d",
+      "fromNode": "text-419ffaaa-4b35-45ca-bbd6-e002eb66e3b1",
+      "toNode": "text-f58026d1-634c-43b9-9558-b8499f1c7e5d",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "fromEnd": "none",
+      "toEnd": "arrow"
+    }
+  ]
 }

@@ -589,3 +589,127 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
   recorded in ADR-0086.
 - Confirmed tag rename/merge UI and Bases `hasTag` remain out of scope. Added
   ADR-0088 as the final Tags plan decision index. Phases 1–7 are complete.
+## 2026-08-20 — HTML Support Phase 1: Sanitization Core
+
+- Added standalone `@app/sanitize` with DOMPurify 3.4.14 and an exact HTML
+  allowlist for the future note-rendering path.
+- Constrained class/style handling and tested scripts, event handlers, unsafe
+  URLs, CSS injection, malformed markup, encoded payloads, and safe comments.
+- Five sanitizer tests pass; typecheck and build pass. Added ADR-0089,
+  ADR-0090, and the package changeset. No editor integration was made.
+## 2026-08-20 — HTML Support Phase 2: Block-Level HTML
+
+- Added contiguous block-level table/div detection and sanitized CodeMirror
+  rendering for editable and read-only editor paths.
+- Fixed CodeMirror's multi-line decoration constraint with continuation widgets
+  that preserve source line breaks. Added the documented blank-line regression
+  and edit-time re-sanitization tests; all 3 pass.
+- Added ADR-0091 for block boundaries. No raw HTML reaches the DOM outside the
+  Phase 1 sanitizer.
+## 2026-08-20 — HTML Support Phase 3: Inline HTML
+
+- Added sanitized inline rendering for underline, strikethrough, spans/divs,
+  and hidden HTML comments in editable and read-only editor paths.
+- Reused Markdown strikethrough styling and preserved the Phase 1 CSS policy;
+  the unsupported cursive font example is visibly sanitized rather than
+  accepted as a new CSS property.
+- Added adjacent-Markdown, comment, and sanitizer-path regressions. HTML block
+  and inline suites pass 6 tests.
+
+## 2026-08-20 — HTML Support Phase 4: No-Markdown-Inside-HTML Enforcement
+
+- Formalized the exact source-range boundary in ADR-0093: sanitized HTML
+  widgets own the captured HTML range, so Markdown syntax inside block and
+  inline HTML remains literal; Markdown outside the range remains active.
+- Added side-by-side named regressions for block HTML and each supported inline
+  element (`u`, `s`, `span`, and same-line `div`). The inline suite also
+  verifies an outer Markdown strong-emphasis node remains present around HTML.
+- Focused verification passed: 2 files and 12 tests. This phase added no new
+  rendering path and preserved the sanitizer-only DOM rule.
+
+## 2026-08-20 — Tags Feature Phase 5: Tag Search Resume and Closeout
+
+- Re-read the General Search ADRs and confirmed the settled `tag:` contract:
+  `#` is optional and normalized away; parent tags include descendants, while
+  nested queries do not include ancestor-only tags.
+- Re-verified the existing end-to-end wiring: editor tag widgets forward the
+  canonical key, desktop opens the dedicated Search surface with
+  `tag:<key>` prefilled, and the shared parser/executor resolves results using
+  the live Phase 4 TagIndex.
+- Verification passed: core tag rules 11/11, index/parser/search integration
+  15/15, and editor tag rendering/click forwarding 5/5. No Tags-side gap was
+  found, so no search or index implementation was changed.
+- Tags Phase 5 is formally closed. Tags Phase 6 (Tags view) is ready to
+  proceed as a separate task; the known real SQLite benchmark tooling caveat
+  remains documented in ADR-0086.
+
+## 2026-08-20 — HTML Support Phase 5: Regression and Integration Closeout
+
+- Re-ran the integrated sanitizer suite: 10/10 attack-vector and allowlist
+  tests passed. Block, inline, and tag editor suites passed 17/17 together.
+- Added a composed editor regression proving tag-looking text inside sanitized
+  `<div>` and `<span>` content is opaque to the Tags parser, while existing
+  code-block exclusions remain intact.
+- Confirmed canvas does not render note HTML: it is a separate JSON/React Flow
+  surface with no HTML note-rendering or unsanitized `innerHTML` path. The
+  `<iframe>`/web-page embed capability remains separately scoped.
+- Added ADR-0094 as the final HTML Support decision index. HTML Support
+  Phases 1–5 are complete; no new rendering path or sanitizer bypass was
+  introduced in this closeout.
+
+## 2026-08-20 — HTML Block Rendering Visual Fix
+
+- Diagnosed excess vertical space as CodeMirror continuation lines preserving
+  source line boxes around the replacement widget, compounded by block padding;
+  continuation widgets now use a dedicated hidden class and the block shell
+  has no padding. Sanitized source is trimmed before mounting without changing
+  the sanitizer policy.
+- Added token-based default styling for sanitized tables: collapsed outer and
+  cell borders, row dividers, full-width layout, and token-based cell spacing.
+  Surviving user inline styles retain CSS precedence within the existing
+  allowlist.
+- Added ADR-0095 and re-ran the Phase 2/3 suites: 13/13 tests passed,
+  including blank-line rejection, edit-time sanitization, multiline spacing,
+  table rendering, and the inline cursive-style regression.
+
+## 2026-08-20 — HTML Block CodeMirror Widget Fix
+
+- Confirmed the remaining line-growth cause: `Decoration.replace` ranges were
+  supplied by a `ViewPlugin` without structural block semantics, placing the
+  HTML root in the editor line flow. CodeMirror also rejects block
+  decorations from view plugins.
+- Moved HTML block decorations to a `StateField` and replaced the complete
+  source range with `block: true`. The DOM root is now outside `.cm-line`; the
+  existing inline HTML plugin was left unchanged.
+- Added ADR-0096 superseding the old mounting detail and retained regression
+  coverage for table rendering, blank-line rejection, edit-time sanitization,
+  multiline blocks, literal Markdown, and inline HTML. Focused suites pass
+  14/14.
+
+## 2026-08-20 — HTML Block Cursor Navigation Fix
+
+- Reproduced the navigation issue as a missing cursor-gated source/render
+  toggle on the structural HTML block replacement. A full-range block widget
+  was navigated as one unit, so hidden source lines could be skipped.
+- Extended the existing Mermaid/math selection pattern to the HTML StateField:
+  selection changes compare `selection.main.head` with each block range, omit
+  the active block decoration, and restore it when the cursor leaves.
+- Added ADR-0097 and an `@app/editor` patch changeset. HTML block and inline
+  suites pass 15/15; package typecheck passes. Inline HTML remains inline and
+  unaffected.
+
+## 2026-08-20 — HTML Block Source-Edit Mode Verification
+
+- Confirmed the source/render toggle is selection-based and shared with the
+  established Mermaid/math pattern: active HTML ranges omit their widget and
+  expose the original editable source; inactive ranges use the structural
+  sanitized widget.
+- Added a named regression for editing HTML while source mode is active, then
+  moving the cursor away and confirming sanitization occurs only on the
+  re-rendered widget path. This prevents sanitizer work from fighting active
+  typing.
+- Full `@app/editor` verification passes: 22/22 tests and typecheck. Direct
+  CodeMirror vertical-motion commands cannot be measured in jsdom because its
+  text ranges lack browser `getClientRects`; the selection transition and
+  structural DOM behavior are covered, while real-browser navigation remains
+  the appropriate manual/UI verification.

@@ -18,6 +18,7 @@
   "dependencies": {
     "@app/core-types": "workspace:*",
     "@app/indexer": "workspace:*",
+    "@app/sanitize": "workspace:*",
     "@codemirror/autocomplete": "^6.18.3",
     "@codemirror/commands": "^6.7.1",
     "@codemirror/lang-javascript": "^6.2.5",

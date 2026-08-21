@@ -15,6 +15,10 @@ import { listExtension } from "./listExtension";
 import { tableExtension } from "./tableExtension";
 import { tagExtension } from "./tagExtension";
 import { tagTheme } from "./tagTheme";
+import { htmlBlockExtension } from "./htmlBlockExtension";
+import { htmlBlockTheme } from "./htmlBlockTheme";
+import { htmlInlineExtension } from "./htmlInlineExtension";
+import { htmlInlineTheme } from "./htmlInlineTheme";
 
 let currentView: EditorView | null = null;
 let host: HTMLDivElement | null = null;
@@ -32,6 +36,8 @@ function createView(value: string, onTagClick = vi.fn()) {
     doc: value,
     extensions: [
       tagTheme,
+      htmlBlockTheme,
+      htmlInlineTheme,
       EditorView.lineWrapping,
       markdown({
         extensions: [Strikethrough, highlightExtension],
@@ -47,6 +53,8 @@ function createView(value: string, onTagClick = vi.fn()) {
         onLinkClick: () => {},
       }),
       tagExtension({ onTagClick }),
+      htmlBlockExtension(),
+      htmlInlineExtension(),
     ],
   });
 
@@ -80,6 +88,12 @@ describe("tagExtension", () => {
     expect(view.dom.querySelectorAll(".cm-tag")).toHaveLength(1);
     expect(view.dom.textContent).toContain("#code");
     expect(view.dom.textContent).toContain("#block");
+  });
+
+  it("treats tag-looking text inside sanitized HTML as opaque", () => {
+    const { view } = createView("<div>literal #not-a-tag</div> <span>#also-not-a-tag</span>");
+
+    expect(view.dom.querySelectorAll(".cm-tag")).toHaveLength(0);
   });
 
   it("renders tags in headings, lists, and blockquotes", () => {
