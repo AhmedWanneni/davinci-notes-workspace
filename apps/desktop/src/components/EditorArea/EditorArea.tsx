@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useMemo } from "react";
-import { Editor } from "@app/editor";
+import { Editor, pastedFileName } from "@app/editor";
+import { resolveAttachmentFolder } from "@app/attachments";
 import { FileText } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
@@ -9,6 +10,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   readNote,
   writeBinaryFile,
+  writeAttachmentToVault,
   createNoteInVault,
 } from "../../vault";
 
@@ -75,6 +77,26 @@ export function EditorArea({
   );
 
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
+  const attachmentSettings = useWorkspaceStore((state) => state.attachmentSettings);
+
+  const handlePasteAttachment = useCallback(async (file: File): Promise<string> => {
+    if (!vaultPath || !activeNotePath) {
+      throw new Error("Open a vault and note before pasting an attachment.");
+    }
+    const folder = resolveAttachmentFolder(activeNotePath, attachmentSettings);
+    const writtenPath = await writeAttachmentToVault(
+      vaultPath, folder, pastedFileName(file), file,
+    );
+    const vaultPrefix = `${vaultPath.replaceAll("\\", "/").replace(/\/+$/u, "")}/`;
+    const linkTarget = writtenPath.startsWith(vaultPrefix)
+      ? writtenPath.slice(vaultPrefix.length)
+      : writtenPath;
+    return `![[${linkTarget.replaceAll("\\", "/")}]]`;
+  }, [activeNotePath, attachmentSettings, vaultPath]);
+
+  const handleAttachmentError = useCallback((message: string) => {
+    window.alert(`Attachment paste failed: ${message}`);
+  }, []);
 
   const handleResolveMediaUrl = useCallback(
     (filePath: string) => {
@@ -150,6 +172,9 @@ export function EditorArea({
                 sourcePath={activeNotePath}
                 onLinkClick={onLinkClick}
                 onTagClick={onTagClick}
+                onPasteAttachment={handlePasteAttachment}
+                onAttachmentError={handleAttachmentError}
+                resolveMediaUrl={handleResolveMediaUrl}
               />
             </div>
           </div>

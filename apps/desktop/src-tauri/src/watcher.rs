@@ -82,7 +82,7 @@ impl VaultWatcher {
             let Some(rel) = vault_relative(&vault_for_events, &path) else {
               continue;
             };
-            if !rel.ends_with(".md") && !rel.ends_with(".canvas") {
+            if !is_supported_vault_file(&rel) {
               continue;
             }
 
@@ -126,6 +126,14 @@ impl VaultWatcher {
     *guard = Some(debouncer);
     Ok(())
   }
+}
+
+fn is_supported_vault_file(relative: &str) -> bool {
+  matches!(
+    Path::new(relative).extension().and_then(|ext| ext.to_str()).map(|ext| ext.to_ascii_lowercase()).as_deref(),
+    Some("md" | "canvas" | "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "bmp" | "ico" | "avif"
+      | "mp4" | "webm" | "ogg" | "ogv" | "mov" | "mkv" | "m4v" | "mp3" | "wav" | "m4a" | "pdf")
+  )
 }
 
 /// Ignore metadata/access noise — reads during indexing must not look like edits.
@@ -183,5 +191,13 @@ mod tests {
       classify_vault_event(&EventKind::Remove(RemoveKind::File)),
       Some(VaultPathChange::Removed)
     );
+  }
+
+  #[test]
+  fn watches_supported_attachments_but_ignores_unlisted_files() {
+    assert!(is_supported_vault_file("attachments/photo.PNG"));
+    assert!(is_supported_vault_file("attachments/manual.pdf"));
+    assert!(!is_supported_vault_file("attachments/archive.zip"));
+    assert!(!is_supported_vault_file("README"));
   }
 }

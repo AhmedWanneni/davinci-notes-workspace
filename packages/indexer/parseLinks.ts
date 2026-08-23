@@ -59,6 +59,23 @@ export function buildNoteNameIndex(
   return index;
 }
 
+export function findWikilinkCandidates(
+  noteTarget: string,
+  paths: readonly string[],
+): string[] {
+  const normalized = noteTarget.replace(/\\/g, "/").toLowerCase();
+  const exact = paths.filter((path) => path.toLowerCase() === normalized);
+  if (exact.length > 0) return [...exact].sort();
+
+  const stem = normalized.replace(/\.md$/i, "").split("/").pop() ?? normalized;
+  return paths
+    .filter((path) => {
+      const pathStem = path.replace(/\.md$/i, "").split("/").pop() ?? path;
+      return pathStem.toLowerCase() === stem;
+    })
+    .sort();
+}
+
 function resolveWikilinkTarget(
   noteTarget: string,
   nameIndex: Map<string, string>,

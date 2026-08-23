@@ -1,5 +1,20 @@
 export { Editor } from "./Editor";
 export type { EditorProps } from "./Editor";
+export {
+  resolveEmbedLink,
+} from "./embedLinkResolution";
+export type {
+  EmbedLinkResolutionOptions,
+  EmbedResolution,
+} from "./embedLinkResolution";
+export {
+  attachmentDropHandler,
+  attachmentPasteHandler,
+  handleAttachmentPaste,
+  handleIncomingFiles,
+  pastedFileName,
+} from "./pasteAttachment";
+export type { IncomingAttachmentHandler, PasteAttachmentHandler } from "./pasteAttachment";
 export { MarkdownView } from "./MarkdownView";
 export type { MarkdownViewProps } from "./MarkdownView";
 export {
@@ -54,6 +69,8 @@ export {
   sanitizeImageUrl,
 } from "./imageExtension";
 export type { ImageDimensions, ImageExtensionOptions } from "./imageExtension";
+export { embedImageExtension } from "./embedImageExtension";
+export type { EmbedImageExtensionOptions } from "./embedImageExtension";
 export {
   isYoutubeImage,
   youtubeEmbedVideoId,

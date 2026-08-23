@@ -59,6 +59,9 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@app/attachments':
+        specifier: workspace:*
+        version: link:../../packages/attachments
       '@app/canvas':
         specifier: workspace:*
         version: link:../../packages/canvas
@@ -129,9 +132,15 @@ importers:
       '@codemirror/view':
         specifier: ^6.34.1
         version: 6.43.8
+      '@storybook/react':
+        specifier: ^10.5.5
+        version: 10.5.5(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(storybook@10.5.5(@types/react@19.2.18)(prettier@3.9.6)(react@19.2.8))(typescript@5.9.3)
       '@tauri-apps/cli':
         specifier: ^2.10.1
         version: 2.11.4
+      '@testing-library/react':
+        specifier: ^16.3.2
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/d3-drag':
         specifier: ^3.0.7
         version: 3.0.7
@@ -186,6 +195,15 @@ importers:
       '@app/sync-client':
         specifier: workspace:*
         version: link:../../packages/sync-client
+
+  packages/attachments:
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
 
   packages/canvas:
     dependencies:
@@ -329,6 +347,9 @@ importers:
 
   packages/editor:
     dependencies:
+      '@app/attachments':
+        specifier: workspace:*
+        version: link:../attachments
       '@app/core-types':
         specifier: workspace:*
         version: link:../core-types

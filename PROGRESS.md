@@ -606,6 +606,154 @@ No canonical rename existed (stabilization Phase 1 not yet run). Added **`rename
 
 ## Next Up (in order)
 
+## Attachments Phase 1 — Accepted Formats & Location Model Complete
+
+- Added standalone `@app/attachments` with a centralized, case-insensitive
+  provisional allowlist for common images, audio, video, and PDF extensions.
+  The authoritative accepted-formats reference was unavailable, so ADR-0108
+  and the Next Up flags explicitly require a later revision.
+- Added serializable settings for vault root, specified folder, note folder,
+  and note subfolder modes. `resolveAttachmentFolder` is pure, preserves
+  absolute specified paths, handles nested notes, and falls back to vault-root
+  relative behavior for unsaved notes. Desktop settings state loads and saves
+  the serialized model through the existing SQLite settings key/value path.
+- Added ADR-0108, ADR-0109, changeset, and eight passing unit tests. Package
+  typecheck passes. No file I/O, editor integration, or settings UI was added.
+
+Attachments Phase 2 — Filesystem Write & Filename Handling Complete
+
+- Added async `writeAttachment` with injected native filesystem operations,
+  recursive folder creation, collision checks, path-traversal rejection, and
+  structured `AttachmentWriteError` codes. Desktop supplies Tauri's native
+  `exists`, recursive `mkdir`, and `writeFile` adapter.
+- The collision convention is `image.png`, `image 1.png`, `image 2.png`,
+  recorded in [ADR-0110](docs/adr/0110-attachments-filename-collisions.md).
+  Unsupported extensions are rejected before any folder creation or write.
+- Added 16 passing attachment tests covering all four resolved target-folder
+  outputs, multi-level creation, collisions, invalid names, and structured
+  format errors. Package typecheck passes. Desktop typecheck remains blocked
+  only by the pre-existing `createNoteCrudActions.ts` `result` errors.
+
+Next up: Attachments Phase 3 — paste attachment handling. The accepted-formats
+list remains provisional until the real reference document is available.
+
+Attachments Phase 3 — Paste Handling Complete
+
+- Added one CodeMirror paste handler that intercepts only clipboard file data;
+  ordinary text paste returns to CodeMirror unchanged. Files resolve their
+  destination through Phase 1 and write through the Phase 2 native adapter.
+- Successful writes insert `![[relative/path.ext]]` only after the async write
+  completes. Named files retain their names; nameless files use the MIME-based
+  timestamp convention in [ADR-0111](docs/adr/0111-pasted-attachment-names.md).
+- Structured write errors are surfaced with their error code and no dangling
+  reference is inserted. Editor tests pass 37/37; attachments tests pass
+  16/16. Desktop typecheck remains blocked only by the existing unrelated
+  `createNoteCrudActions.ts` errors.
+
+Next up: Attachments Phase 4 — drag-and-drop attachment handling, reusing the
+same resolution/write/insert path.
+
+Attachments Phase 4 — Drag & Drop Handling Complete
+
+- Reused the Phase 3 incoming-file pipeline for external file drops. Files are
+  processed in OS order, successful references are inserted one per line at
+  the drop position, and failures do not roll back other files.
+- Added a token-based dashed editor outline for file drag-over, cleared on
+  drag-leave and drop. Drops without files are not claimed, preserving normal
+  editor drag behavior.
+- Added [ADR-0112](docs/adr/0112-shared-attachment-drop-pipeline.md) and a
+  changeset. Editor tests pass 38/38 and typecheck passes; Phase 3 paste tests
+  remain covered in the same suite.
+
+Next up: Attachments Phase 5 — settings UI for the default attachment location.
+
+Attachments Phase 5 — Settings UI Complete
+
+- Added the Files & Links attachment-location panel to Settings using the
+  exact Phase 1 four-mode schema. It uses the existing radio-group and input
+  primitives plus the native folder picker for specified folders.
+- Conditional controls render only for specified-folder and note-subfolder
+  modes. Settings write directly through the existing Zustand/SQLite state,
+  so the next paste/drop observes changes without restart.
+- Specified paths are deferred to first-use creation; empty or slash-containing
+  subfolder edits remain draft-only with inline validation, per
+  [ADR-0113](docs/adr/0113-attachment-settings-validation.md).
+- Added token-only component styles, four-state Storybook stories, and
+  interaction coverage. Component tests pass 2/2; desktop typecheck still
+  reports only the pre-existing `createNoteCrudActions.ts` errors.
+
+## Attachments Phase 6 — External File Verification Complete
+
+- The recursive watcher originally emitted only `.md` and `.canvas` paths.
+  Its existing filter now covers accepted attachment formats, case-insensitively;
+  no parallel watcher was added.
+- The supported-file inventory still feeds file-tree/all-path state and
+  wikilink resolution, while full and incremental indexing parse only
+  `.md`/`.canvas`. Binary attachments are not read as Markdown or inserted in
+  SQLite, and external removals use the existing path-refresh flow.
+- Watcher filtering and indexer reconciliation are covered by focused tests.
+  A live OS-file/WebView round trip is unavailable because this workspace has
+  no configured Tauri browser harness or running vault session.
+
+Next up: Phase 7 — regression & integration pass.
+
+## Bug Investigation — Dropped Image Not Appearing in Note (Case B)
+
+- Reproduction/evidence: `pnpm --filter @app/editor test` passes all 7 test
+  files and 38 tests, including asynchronous attachment insertion and the
+  partial-drop failure path. `handleIncomingFiles` awaits the existing writer
+  callback, dispatches the returned `![[...]]` syntax, and reports individual
+  write/format failures without inserting dangling references.
+- `Editor.tsx` wires `attachmentDropHandler` whenever the existing attachment
+  callback is supplied, and desktop's callback writes through
+  `writeAttachmentToVault` before returning the vault-relative target. This
+  confirms the write → insert pipeline is implemented; no silent insertion
+  failure was found in the package reproduction.
+- The observed lack of an inline image preview is expected Case B behavior.
+  Phase 4 and [ADR-0112](docs/adr/0112-shared-attachment-drop-pipeline.md)
+  scope dropping to writing the file and inserting `![[filename]]`; they
+  explicitly add no attachment rendering. The existing parser/link extension
+  recognizes wikilinks for resolved-link styling, while the image widget path
+  handles Markdown `![](url)` syntax, not file wikilink embeds.
+- No code change or changeset was made. The next feature is a separately
+  scoped Embed Files plan covering image/audio/PDF/etc. widgets. A live Tauri
+  screenshot was unavailable because this workspace has no running vault or
+  configured browser harness; the package-level reproduction is deterministic.
+
+## Embed Files Phase 1 — Typed Embed Link Resolution Complete
+
+- Added pure `resolveEmbedLink` to `@app/editor`. It reuses
+  `@app/indexer`'s shared candidate lookup/target parsing and
+  `@app/attachments`' centralized allowlist; no write pipeline or rendering
+  was changed.
+- Results distinguish image, audio, video, PDF, whole-note, ambiguous,
+  unresolved, and missing-heading states. Duplicate basenames return sorted
+  candidates explicitly rather than silently selecting a file.
+- Added [ADR-0114](docs/adr/0114-embed-link-ambiguity-and-typed-resolution.md)
+  and exported the resolver/types from the editor barrel. Tests cover syntax
+  produced by paste/drop for every attachment kind, notes, headings,
+  duplicates, missing files, and missing headings.
+
+## Embed Files Phase 2 — Image Embed Rendering Complete
+
+- Added `embedImageExtension` using the established structural `StateField`
+  plus `Decoration.replace({ block: true })` widget pattern. It consumes
+  Phase 1's typed resolver and is wired into both `Editor` and read-only
+  `MarkdownView`; desktop supplies its existing `convertFileSrc` media URL
+  callback.
+- Valid image embeds render lazily through native `<img loading="lazy"
+  decoding="async">`. Width/height and width-only dimension syntax reuse
+  `parseImageDimensions` from the existing external-image implementation; no
+  duplicate dimension parser was added.
+- Selection-driven decoration rebuilding follows ADR-0097/ADR-0096: the raw
+  line is visible while the cursor is inside it and the block widget returns
+  after leaving. Missing image targets show a dashed placeholder; ambiguous
+  targets show a distinct multiple-match placeholder.
+- Added 4 focused rendering/cursor tests and an `@app/editor` changeset.
+  Verification passes: editor package 9 files/49 tests, editor typecheck,
+  and the existing desktop editor benchmark test. No audio/video/PDF/note
+  rendering was added.
+
 ## YouTube Embed Thumbnail Facade — Complete
 
 - YouTube image syntax now renders a real `i.ytimg.com` `hqdefault.jpg`

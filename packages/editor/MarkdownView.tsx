@@ -15,6 +15,7 @@ import { codeBlockLayoutTheme } from "./codeBlockLayoutTheme";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { linkExtension } from "./linkExtension";
 import { imageExtension } from "./imageExtension";
+import { embedImageExtension } from "./embedImageExtension";
 import { listExtension } from "./listExtension";
 import { softLineBreakExtension } from "./lineBreakExtension";
 import { mermaidExtension } from "./mermaidExtension";
@@ -36,6 +37,7 @@ export interface MarkdownViewProps {
   onExternalLinkClick?: (url: string) => void;
   onTagClick?: (tagKey: string) => void;
   className?: string;
+  resolveMediaUrl?: (path: string) => string;
 }
 
 /**
@@ -50,6 +52,7 @@ export function MarkdownView({
   onExternalLinkClick,
   onTagClick = () => {},
   className = "",
+  resolveMediaUrl,
 }: MarkdownViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -88,6 +91,7 @@ export function MarkdownView({
         mermaidExtension({ isReadOnly: true, onLinkClick }),
         mathExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
+        embedImageExtension({ notePaths, isReadOnly: true, resolveMediaUrl }),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
         htmlBlockExtension(),
         htmlInlineExtension(),

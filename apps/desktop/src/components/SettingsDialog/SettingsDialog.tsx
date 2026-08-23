@@ -9,6 +9,7 @@ import {
 import { editorFonts, isEditorFont } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { openVaultFromPicker } from "../../vault";
+import { AttachmentLocationSettings } from "../AttachmentLocationSettings";
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -29,6 +30,8 @@ export function SettingsDialog({
   const setStrictLineBreaks = useWorkspaceStore(
     (state) => state.setStrictLineBreaks,
   );
+  const attachmentSettings = useWorkspaceStore((state) => state.attachmentSettings);
+  const setAttachmentSettings = useWorkspaceStore((state) => state.setAttachmentSettings);
 
   const handleSwitchVault = async () => {
     try {
@@ -99,6 +102,11 @@ export function SettingsDialog({
               </div>
             </div>
           </section>
+
+          <AttachmentLocationSettings
+            settings={attachmentSettings}
+            onChange={setAttachmentSettings}
+          />
 
           <Divider />
 

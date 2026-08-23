@@ -16,6 +16,7 @@ export { renameFolderInVault } from "./renameFolderInVault";
 export { renameNoteInVault } from "./renameNoteInVault";
 export { resolveUniqueNotePath } from "./resolveUniqueNotePath";
 export { getSetting, setSetting } from "./settingsCommands";
+export { writeAttachmentToVault } from "./writeAttachment";
 export {
   countIndexedNotes,
   getVaultIndexDb,

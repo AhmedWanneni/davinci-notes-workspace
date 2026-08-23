@@ -39,6 +39,10 @@ export default defineConfig({
         replacement: path.join(repoRoot, "packages/canvas/index.ts"),
       },
       {
+        find: "@app/attachments",
+        replacement: path.join(repoRoot, "packages/attachments/index.ts"),
+      },
+      {
         find: "@app/editor",
         replacement: path.join(repoRoot, "packages/editor/index.ts"),
       },

@@ -27,6 +27,10 @@ import {
   withVaultWatchSuppressed,
 } from "./vaultWatchSession";
 
+function isIndexedNotePath(path: string): boolean {
+  return /\.(md|canvas)$/i.test(path);
+}
+
 async function loadNotesFromPaths(paths: readonly string[]): Promise<Note[]> {
   const notes: Note[] = [];
   for (const path of paths) {
@@ -48,7 +52,7 @@ export async function indexVaultFull(): Promise<{
 
   await withVaultWatchSuppressed(async () => {
     const paths = await listNotes();
-    const notes = await loadNotesFromPaths(paths);
+    const notes = await loadNotesFromPaths(paths.filter(isIndexedNotePath));
     const tagIndex = notes.every((note) => note.tags)
       ? buildTagIndex(notes)
       : createEmptyTagIndex();
@@ -99,6 +103,10 @@ export async function reconcileVaultChanges(
 
       const changedNotes: Note[] = [];
       for (const changedPath of batch.changed) {
+        if (!isIndexedNotePath(changedPath)) {
+          updated += 1;
+          continue;
+        }
         if (!pathSet.has(changedPath)) {
           await removeNoteFromIndex(db, changedPath);
           if (tagIndex) removeNoteFromTagIndex(tagIndex, changedPath);

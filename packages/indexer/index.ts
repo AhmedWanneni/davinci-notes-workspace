@@ -30,6 +30,7 @@ export type { ParseFrontmatterResult } from "./parseFrontmatter";
 export { parseNoteTags } from "./parseNoteTags";
 export {
   parseLinks,
+  findWikilinkCandidates,
   parseWikilinkTarget,
   WIKILINK_PATTERN,
   MARKDOWN_LINK_PATTERN,

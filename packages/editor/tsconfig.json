@@ -17,6 +17,8 @@
     "livePreviewExtension.ts",
     "lineBreakExtension.ts",
     "wikilinkExtension.ts",
+    "embedLinkResolution.ts",
+    "embedImageExtension.ts",
     "autocompleteExtension.ts",
     "mathExtension.ts",
     "mathTheme.ts",

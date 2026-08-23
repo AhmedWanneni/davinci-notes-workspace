@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@app/attachments": "workspace:*",
     "@app/core-types": "workspace:*",
     "@app/indexer": "workspace:*",
     "@app/sanitize": "workspace:*",

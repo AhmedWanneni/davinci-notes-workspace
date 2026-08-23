@@ -16,6 +16,7 @@ import { highlightExtension } from "./highlightExtension";
 import { livePreviewExtension } from "./livePreviewExtension";
 import { linkExtension } from "./linkExtension";
 import { imageExtension } from "./imageExtension";
+import { embedImageExtension } from "./embedImageExtension";
 import { listExtension, listIndentKeymap } from "./listExtension";
 import { autocompleteExtension } from "./autocompleteExtension";
 import { codeBlockLanguage } from "./codeBlockExtension";
@@ -38,6 +39,11 @@ import {
   insertHardLineBreak,
   softLineBreakExtension,
 } from "./lineBreakExtension";
+import {
+  attachmentDropHandler,
+  attachmentPasteHandler,
+  type PasteAttachmentHandler,
+} from "./pasteAttachment";
 
 export interface EditorProps {
   value: string;
@@ -47,6 +53,9 @@ export interface EditorProps {
   onLinkClick: (targetRaw: string) => void;
   onExternalLinkClick?: (url: string) => void;
   onTagClick?: (tagKey: string) => void;
+  onPasteAttachment?: PasteAttachmentHandler;
+  onAttachmentError?: (message: string) => void;
+  resolveMediaUrl?: (path: string) => string;
 }
 
 export function Editor({
@@ -57,6 +66,9 @@ export function Editor({
   onLinkClick,
   onExternalLinkClick,
   onTagClick,
+  onPasteAttachment,
+  onAttachmentError,
+  resolveMediaUrl,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -65,11 +77,15 @@ export function Editor({
   const wikilinkCompartmentRef = useRef(new Compartment());
   const autocompleteCompartmentRef = useRef(new Compartment());
   const onTagClickRef = useRef(onTagClick ?? (() => {}));
+  const onPasteAttachmentRef = useRef(onPasteAttachment);
+  const onAttachmentErrorRef = useRef(onAttachmentError ?? (() => {}));
 
   // Track latest onChange to avoid re-binding CodeMirror listener
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   onTagClickRef.current = onTagClick ?? (() => {});
+  onPasteAttachmentRef.current = onPasteAttachment;
+  onAttachmentErrorRef.current = onAttachmentError ?? (() => {});
 
   // Initialize CodeMirror EditorView
   useEffect(() => {
@@ -88,6 +104,18 @@ export function Editor({
         htmlBlockTheme,
         htmlInlineTheme,
         EditorView.lineWrapping,
+        ...(onPasteAttachment
+          ? [attachmentPasteHandler(
+            (file, position) => onPasteAttachmentRef.current!(file, position),
+            (message) => onAttachmentErrorRef.current(message),
+          )]
+          : []),
+        ...(onPasteAttachment
+          ? [attachmentDropHandler(
+            (file, position) => onPasteAttachmentRef.current!(file, position),
+            (message) => onAttachmentErrorRef.current(message),
+          )]
+          : []),
         history(),
         drawSelection(),
         highlightActiveLine(),
@@ -110,6 +138,7 @@ export function Editor({
         mermaidExtension({ onLinkClick }),
         mathExtension(),
         imageExtension(),
+        embedImageExtension({ notePaths, resolveMediaUrl }),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
         htmlBlockExtension(),
         htmlInlineExtension(),

@@ -91,6 +91,13 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0105](adr/0105-youtube-thumbnail-facade.md) | YouTube uses an hqdefault thumbnail facade and click-to-play; generic and tweet embeds keep their existing placeholders | Accepted |
 | [0106](adr/0106-youtube-facade-click-activation.md) | YouTube activation suppresses CodeMirror mousedown selection, swaps synchronously on click, and permits autoplay only for explicit facade activation | Accepted |
 | [0107](adr/0107-provider-scoped-iframe-sandbox.md) | Remove invalid `allow-presentation`; only validated YouTube embeds receive `allow-same-origin`, arbitrary hosts retain strict `allow-scripts` | Accepted |
+| [0108](adr/0108-attachments-provisional-formats.md) | Attachments begin with a centralized provisional common-media/PDF extension allowlist pending the authoritative reference | Provisional |
+| [0109](adr/0109-attachments-location-model.md) | Attachment locations use four serializable modes and a pure note-path resolver backed by the existing settings persistence path | Accepted |
+| [0110](adr/0110-attachments-filename-collisions.md) | Attachment collisions use numeric suffixes before extensions and writes use an injected native filesystem adapter | Accepted |
+| [0111](adr/0111-pasted-attachment-names.md) | Nameless pasted files use MIME-derived `pasted-<timestamp>.<extension>` names; unknown types fail Phase 2 validation | Accepted |
+| [0112](adr/0112-shared-attachment-drop-pipeline.md) | Paste and file-drop share ordered per-file processing, partial success, and a token-based drag-over indicator | Accepted |
+| [0114](adr/0114-embed-link-ambiguity-and-typed-resolution.md) | Embed links reuse wikilink candidates, classify accepted files, and return explicit ambiguity/broken-heading states | Accepted |
+| [0113](adr/0113-attachment-settings-validation.md) | Specified folders validate/create at first use; invalid subfolder drafts stay local with inline validation | Accepted |
 
 ## Data Model, Indexer & SQLite
 

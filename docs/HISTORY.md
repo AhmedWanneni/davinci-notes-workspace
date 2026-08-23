@@ -8,6 +8,10 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-08-21 | Attachments Phase 5 — Settings UI (ADR-0113) | Added four-mode attachment-location settings UI with native folder picker, conditional validation, Storybook states, and interaction tests. |
+| 2026-08-21 | Attachments Phase 4 — Drag & Drop Handling (ADR-0112) | Reused the paste pipeline for ordered multi-file drops, partial success, token-based drag-over feedback, and 38 passing editor tests. |
+| 2026-08-21 | Attachments Phase 2 — Filesystem Write & Filename Handling (ADR-0110) | Added async native-fs adapter writing, recursive folder creation, numeric collision suffixes, structured format errors, and 16 passing attachment tests. No paste/drop/UI wiring. |
+| 2026-08-21 | Attachments Phase 1 — Accepted Formats & Location Model (ADR-0108/0109) | Added standalone `@app/attachments` with a provisional centralized format allowlist, serializable four-mode settings schema, pure target-folder resolution, eight unit tests, and package typecheck. No I/O or UI. |
 | 2026-08-21 | YouTube Embed Thumbnail Facade (ADR-0105) | Replaced YouTube's generic embed placeholder/eager behavior with an `hqdefault.jpg` thumbnail facade and click-only iframe activation; generic and tweet embeds retain their existing click-to-load paths. Editor tests 33/33 and typecheck pass. |
 | 2026-08-20 | Tags Feature Phase 3 — YAML Tags Property Support (ADR-0078) | Added shared body-level tag validation, merged per-note `frontmatter`/`inline`/`all` tag sets, and a thin indexer wrapper over existing frontmatter parsing. |
 | 2026-08-20 | Tags Feature Phase 2 — Inline Tag Detection & Rendering (ADR-0077) | Added inline tag badge widgets in `@app/editor` using the shared tag matcher/registry, with canonical first-seen casing, code-block exclusion, stub click handling, and latency coverage. |
@@ -796,6 +800,79 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
 - Added ADR-0101 and changesets for `@app/sanitize` and `@app/editor`. Phase 3
   (YouTube `![]()` syntax sugar) is next.
 
+## 2026-08-21 — Attachments Phase 1: Accepted Formats & Location Model
+
+- Created `@app/attachments` as a dependency-free feature package. Its
+  centralized extension set covers PNG/JPG/JPEG/GIF/WebP/SVG, MP3/WAV/M4A,
+  MP4/WebM/MOV, and PDF, with case-insensitive matching. The list is
+  explicitly provisional because the referenced authoritative document was
+  unavailable.
+- Added `AttachmentSettings` with vault-root, specified-folder, note-folder,
+  and note-subfolder modes plus the mode-specific fields needed by future UI.
+  Resolution is pure and performs no filesystem checks or writes; nested note
+  folders, unsaved notes, separator normalization, and absent configured
+  folders are covered.
+- Reused the existing SQLite settings key/value persistence convention: the
+  desktop workspace settings state loads and saves the serialized model under
+  `attachmentSettings`. No editor or settings UI integration was included.
+- Verification: 8/8 package tests and package typecheck pass. Added ADR-0108,
+  ADR-0109, changeset, and lockfile workspace metadata.
+
+## 2026-08-21 — Attachments Phase 2: Filesystem Write & Filename Handling
+
+- Added the pure-core `writeAttachment` API with an injected async filesystem
+  adapter, so tests do not touch disk while desktop uses Tauri's native fs
+  plugin. The writer consumes the already-resolved target folder directly and
+  creates missing nested folders recursively.
+- Adopted numeric suffixes before the extension for collisions:
+  `image.png`, `image 1.png`, `image 2.png`. Filenames containing path
+  separators are rejected, as are extensions outside Phase 1's provisional
+  allowlist, with structured error codes.
+- Added `writeAttachmentToVault` as the desktop adapter entry point, ADR-0110,
+  and the existing package/desktop changeset. Verification: 16/16 attachment
+  tests and package typecheck pass; desktop typecheck still reports only the
+  unrelated pre-existing `createNoteCrudActions.ts` errors.
+
+## 2026-08-21 — Attachments Phase 3: Paste Handling
+
+- Added a single CodeMirror DOM paste handler. It checks clipboard file data
+  and returns false for ordinary text paste, leaving CodeMirror's native text
+  behavior intact.
+- Desktop paste callbacks call `resolveAttachmentFolder` and
+  `writeAttachmentToVault` directly. The editor captures the cursor position,
+  waits asynchronously for the write, and inserts `![[relative/path]]` only
+  on success. Failure messages include structured error codes.
+- Nameless files use MIME-derived timestamp names under ADR-0111. Added
+  editor/desktop changeset and regressions for text, async success, nameless
+  images, and write failures. Editor tests pass 37/37; attachment tests remain
+  16/16.
+
+## 2026-08-21 — Attachments Phase 4: Drag & Drop Handling
+
+- Factored the per-file paste work into `handleIncomingFiles`, then reused it
+  for external file drops. The drop path claims only events with files, so
+  ordinary editor drag interactions remain CodeMirror-owned.
+- Multiple files are processed in reported order and inserted one per line at
+  the drop position. A rejected file reports its structured error while valid
+  files still write and insert successfully.
+- Added a token-based dashed drag-over outline with drag-leave/drop cleanup,
+  ADR-0112, changeset, and regressions for partial success. Editor tests pass
+  38/38 and typecheck passes.
+
+## 2026-08-21 — Attachments Phase 5: Settings UI
+
+- Added `AttachmentLocationSettings` to the existing Settings dialog. The
+  radio selector maps directly to the Phase 1 schema; specified-folder mode
+  reuses the native folder picker, while note-subfolder mode uses the shared
+  design-system input.
+- The workspace's existing persisted `attachmentSettings` state is used
+  directly, so changes apply to the next paste/drop immediately. Specified
+  paths are deferred to first use; invalid subfolder drafts remain local and
+  show inline guidance under ADR-0113.
+- Added token-only colocated styles, four Storybook stories, interaction tests,
+  ADR-0113, and changesets. Component tests pass 2/2; desktop typecheck still
+  has only the unrelated pre-existing CRUD errors.
+
 ## 2026-08-21 — YouTube Embed Thumbnail Facade (ADR-0105)
 
 - Replaced the YouTube generic placeholder/eager behavior with a thumbnail
@@ -831,3 +908,46 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
   sanitizer suite passes 17/17 and the editor suite passes 33/33; package
   typechecks pass. Actual WebView console/video confirmation remains a manual
   device check because no Tauri browser harness is configured.
+## 2026-08-21 — Attachments Phase 6: External File Verification
+
+- Audited the actual recursive watcher: it discarded every event except
+  `.md`/`.canvas`, so externally-created attachments were a real gap.
+- Extended that existing debounced watcher filter to accepted attachment
+  extensions, with case-insensitive PNG/PDF acceptance and ZIP/extensionless
+  rejection tests. No attachment-specific watcher or polling was introduced.
+- Fixed the adjacent indexer boundary: supported files remain in the path
+  inventory for file-tree and wikilink resolution, but only Markdown/canvas
+  files enter note/tag/SQLite indexing. External attachment additions and
+  removals use the existing `vault-changed` reconciliation and path refresh.
+- `VaultIndexer.test.ts` passed 2/2. A live OS-file/WebView round trip could
+  not be run because no Tauri browser harness or running vault session is
+  configured in this workspace.
+
+## 2026-08-21 — Embed Files Phase 1: Typed Embed Link Resolution
+
+- Added pure `resolveEmbedLink` in `@app/editor`, reusing the indexer's shared
+  wikilink target parsing/candidate lookup and the attachments package's
+  centralized format allowlist.
+- Added typed image/audio/video/PDF/note results plus explicit ambiguous,
+  unresolved, and heading-not-found states. Duplicate basenames return sorted
+  candidates rather than inheriting the legacy first-match note-navigation
+  behavior; this is recorded in ADR-0114.
+- Added 7 focused resolver tests, including exact `![[...]]` syntax emitted by
+  the attachment paste/drop pipeline. Editor verification passes: 8 files,
+  45 tests, and package typecheck.
+
+## 2026-08-21 — Embed Files Phase 2: Image Embed Rendering
+
+- Added `embedImageExtension` using a structural CodeMirror `StateField` and
+  block replacement widgets, matching the existing HTML/Mermaid/math pattern.
+  An initial ViewPlugin attempt was rejected by CodeMirror for block
+  decorations and was corrected before completion.
+- Resolved image embeds use Phase 1's typed resolver, native lazy/async image
+  loading, existing `parseImageDimensions`, and desktop's `convertFileSrc`
+  callback. Missing and ambiguous targets render distinct placeholders.
+- Selection changes rebuild the StateField decorations, exposing raw source
+  while the cursor is inside the line per ADR-0097. Read-only MarkdownView is
+  wired to the same extension; other embed kinds remain out of scope.
+- Verification: `@app/editor` 9 files/49 tests, package typecheck, and the
+  existing desktop editor benchmark passed. Added an editor changeset with no
+  new dependency.

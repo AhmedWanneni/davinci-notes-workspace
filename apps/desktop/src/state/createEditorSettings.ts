@@ -7,13 +7,20 @@ import {
   type EditorSettingsStorage,
 } from "@app/editor";
 import type Database from "@tauri-apps/plugin-sql";
+import {
+  DEFAULT_ATTACHMENT_SETTINGS,
+  parseAttachmentSettings,
+  type AttachmentSettings,
+} from "@app/attachments";
 import { getSetting, getVaultIndexDb, setSetting } from "../vault";
 import { withDbLock } from "../vault/sqliteIndex";
 
 export interface EditorSettingsState extends EditorSettings {
+  attachmentSettings: AttachmentSettings;
   loadSettings: () => Promise<void>;
   setEditorFont: (font: EditorFont) => Promise<void>;
   setStrictLineBreaks: (enabled: boolean) => Promise<void>;
+  setAttachmentSettings: (settings: AttachmentSettings) => Promise<void>;
 }
 
 type SetEditorSettings = (state: Partial<EditorSettingsState>) => void;
@@ -31,6 +38,7 @@ export function createEditorSettings(
 ): EditorSettingsState {
   return {
     ...defaultEditorSettings,
+    attachmentSettings: DEFAULT_ATTACHMENT_SETTINGS,
 
     loadSettings: async () => {
       try {
@@ -39,11 +47,15 @@ export function createEditorSettings(
         const strictLineBreaks = await withDbLock(() =>
           getSetting(db, "strictLineBreaks"),
         );
+        const attachmentSettings = await withDbLock(() =>
+          getSetting(db, "attachmentSettings"),
+        );
         set({
           editorFont: isEditorFont(editorFont)
             ? editorFont
             : defaultEditorSettings.editorFont,
           strictLineBreaks: strictLineBreaks === "true",
+          attachmentSettings: parseAttachmentSettings(attachmentSettings),
         });
       } catch (error) {
         console.error("Failed to load editor settings", error);
@@ -75,6 +87,18 @@ export function createEditorSettings(
         );
       } catch (error) {
         console.error("Failed to save Strict Line Breaks", error);
+      }
+    },
+
+    setAttachmentSettings: async (settings: AttachmentSettings) => {
+      set({ attachmentSettings: settings });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          setSetting(db, "attachmentSettings", JSON.stringify(settings)),
+        );
+      } catch (error) {
+        console.error("Failed to save attachment settings", error);
       }
     },
   };

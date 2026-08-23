@@ -13,6 +13,10 @@ export const editorTheme = EditorView.theme({
   "&.cm-focused": {
     outline: "none",
   },
+  "&.cm-attachment-drag-over": {
+    outline: "var(--border-width-thin) dashed var(--color-text-accent)",
+    outlineOffset: "calc(-1 * var(--border-width-thin))",
+  },
   ".cm-scroller": {
     fontFamily: "inherit",
   },
@@ -80,6 +84,22 @@ export const editorTheme = EditorView.theme({
     borderRadius: "var(--border-radius-sm, 2px)",
     color: "var(--color-text-muted)",
     fontSize: "var(--type-scale-xs, 12px)",
+  },
+  ".cm-file-image-embed": {
+    display: "block",
+    maxWidth: "100%",
+    margin: "var(--space-2, 8px) 0",
+  },
+  ".cm-file-image-embed img": {
+    display: "block",
+    maxWidth: "100%",
+    height: "auto",
+  },
+  ".cm-file-image-placeholder": {
+    display: "block",
+    padding: "var(--space-3, 12px)",
+    border: "1px dashed var(--color-border-subtle)",
+    color: "var(--color-text-muted)",
   },
   ".cm-list-bullet, .cm-list-ordered": {
     display: "inline-block",
