@@ -1,15 +1,20 @@
+import { executeSearchQuery, parseSearchQuery } from "@app/indexer";
 import React, { Suspense, useEffect, useState } from "react";
-import { useWorkspaceStore } from "./state/useWorkspaceStore";
-import { VaultWelcomeView } from "./components/VaultWelcomeView";
-import { IconRail } from "./components/IconRail";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTabs } from "./components/AppTabs";
 import { EditorArea } from "./components/EditorArea";
+import { IconRail } from "./components/IconRail";
 import { RightSidebar } from "./components/RightSidebar";
 import { StatusBar } from "./components/StatusBar";
-import { openAndIndexVault, useVaultSession } from "./vault";
-import { executeSearchQuery, parseSearchQuery } from "@app/indexer";
-import { getVaultIndexDb } from "./vault";
+import { VaultWelcomeView } from "./components/VaultWelcomeView";
+import { useWorkspaceStore } from "./state/useWorkspaceStore";
+import {
+  getDriveAccessToken,
+  openDriveAuthorizationUrl,
+  signInToDrive,
+  signOutOfDrive,
+} from "./sync/desktopDriveAuth";
+import { getVaultIndexDb, openAndIndexVault, useVaultSession } from "./vault";
 
 const LazyGlobalGraphDialog = React.lazy(() =>
   import("./components/GlobalGraphDialog").then((m) => ({
@@ -71,6 +76,8 @@ export function App() {
     (state) => state.duplicateNoteFromTree,
   );
   const moveNoteFromTree = useWorkspaceStore((state) => state.moveNoteFromTree);
+  const syncMode = useWorkspaceStore((state) => state.syncMode);
+  const setSyncMode = useWorkspaceStore((state) => state.setSyncMode);
   const [pendingRenameFolder, setPendingRenameFolder] = useState<string | null>(
     null,
   );
@@ -119,7 +126,11 @@ export function App() {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
       }
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "f") {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey &&
+        e.key.toLowerCase() === "f"
+      ) {
         e.preventDefault();
         setSearchInitialQuery("");
         setIsSearchOpen((prev) => !prev);
@@ -166,6 +177,39 @@ export function App() {
       setPendingRenameFolder(folderPath);
     }
     return folderPath;
+  };
+
+  const handleDriveSignIn = async () => {
+    try {
+      await signInToDrive(openDriveAuthorizationUrl);
+      window.alert("Drive sign-in complete.");
+    } catch (error) {
+      window.alert(
+        `Drive sign-in failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  };
+
+  const handleDriveRefresh = async () => {
+    try {
+      await getDriveAccessToken();
+      window.alert("Drive session is valid.");
+    } catch (error) {
+      window.alert(
+        `Drive session check failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  };
+
+  const handleDriveDisconnect = async () => {
+    try {
+      await signOutOfDrive();
+      window.alert("Drive disconnected.");
+    } catch (error) {
+      window.alert(
+        `Drive disconnect failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
   };
 
   if (!vaultPath) {
@@ -283,7 +327,8 @@ export function App() {
                 await getVaultIndexDb(),
                 tagIndex,
                 parseSearchQuery(query),
-              )}
+              )
+            }
             onSelectNote={(path) => void openNote(path)}
           />
         )}
@@ -307,10 +352,15 @@ export function App() {
             isOpen={isSettingsOpen}
             onOpenChange={setIsSettingsOpen}
             vaultPath={vaultPath}
+            syncMode={syncMode}
+            onSelectSyncMode={setSyncMode}
             onVaultSwitched={(newPath) => {
               setIsSettingsOpen(false);
               void loadVaultByMethod(() => openAndIndexVault(newPath));
             }}
+            onDriveSignIn={() => void handleDriveSignIn()}
+            onDriveRefresh={() => void handleDriveRefresh()}
+            onDriveDisconnect={() => void handleDriveDisconnect()}
           />
         )}
         {isCommandPaletteOpen && (
@@ -320,6 +370,9 @@ export function App() {
             onSelectNote={(target) => void handleLinkClick(target)}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenTags={() => setIsTagsOpen(true)}
+            onDriveSignIn={() => void handleDriveSignIn()}
+            onDriveRefresh={() => void handleDriveRefresh()}
+            onDriveDisconnect={() => void handleDriveDisconnect()}
           />
         )}
       </Suspense>

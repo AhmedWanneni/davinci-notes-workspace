@@ -1,5 +1,7 @@
 mod db;
 mod fs;
+mod manifest;
+mod oauth;
 mod state;
 mod watcher;
 
@@ -18,11 +20,14 @@ pub fn run() {
     )
     .manage(VaultState::new())
     .manage(VaultWatcher::new())
+    .manage(oauth::OAuthListenerState::default())
     .invoke_handler(tauri::generate_handler![
       fs::open_vault,
       fs::start_vault_watcher,
       fs::set_vault_watcher_paused,
       fs::list_notes,
+      manifest::list_manifest_files,
+      manifest::hash_manifest_file,
       fs::list_folders,
       fs::get_file_tree,
       fs::read_note,
@@ -32,6 +37,12 @@ pub fn run() {
       fs::rename_note,
       fs::rename_folder,
       fs::delete_note,
+      oauth::start_oauth_listener,
+      oauth::wait_for_oauth_callback,
+      oauth::open_external_url,
+      oauth::save_drive_token,
+      oauth::load_drive_token,
+      oauth::clear_drive_token,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

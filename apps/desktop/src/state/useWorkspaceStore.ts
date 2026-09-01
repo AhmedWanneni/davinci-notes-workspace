@@ -37,7 +37,8 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   graph: GraphIndex | null;
   tagIndex: TagIndex | null;
   vaultPath: string | null;
-  vaultUpdateCounter: number;
+  syncMode: "off" | "drive" | "folder";
+  setSyncMode: (mode: "off" | "drive" | "folder") => void;
   setVaultPath: (path: string | null) => void;
   initializeVault: (
     paths: string[],
@@ -67,6 +68,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   tagIndex: null,
   vaultPath: null,
   vaultUpdateCounter: 0,
+  syncMode: "off",
+  setSyncMode: (mode) => set({ syncMode: mode }),
   ...createEditorSettings(set),
   setVaultPath: (path: string | null) => set({ vaultPath: path }),
 

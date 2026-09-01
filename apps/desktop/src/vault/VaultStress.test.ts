@@ -92,4 +92,17 @@ describe("Vault Stress & Repeated Cycle Verification", () => {
     expect(indexRes.noteCount).toBe(350);
     expect(reconcileRes.updated).toBe(2);
   });
+
+  it("handles a massive burst of 50 simultaneous file changes without locking or duplicates", async () => {
+    const burstChanged = Array.from({ length: 50 }, (_, i) => `note_${i}.md`);
+    const burstRemoved = ["old_note_1.md", "old_note_2.md"];
+
+    const result = await reconcileVaultChanges({
+      changed: burstChanged,
+      removed: burstRemoved,
+    });
+
+    expect(result.updated).toBe(52);
+    expect(readNote).toHaveBeenCalledTimes(50);
+  });
 });

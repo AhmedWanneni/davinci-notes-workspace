@@ -22,7 +22,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0004](adr/0004-store-notes-as-plain-markdown-files.md) | Notes are plain `.md` files, not a database | Accepted |
 | [0005](adr/0005-use-sqlite-with-fts5-for-index-and-search.md) | Index/search: SQLite + FTS5, not NoSQL, not Tantivy | Accepted |
 | [0007](adr/0007-use-scss-and-postcss-not-tailwind.md) | Styling: SCSS + PostCSS + tokens, not Tailwind | Accepted |
-| [0008](adr/0008-manifest-diff-sync-not-crdt.md) | Sync: manifest-diff file sync, not CRDT (Yjs) | Accepted |
+| [0008](adr/0008-manifest-diff-sync-not-crdt.md) | Sync: manifest-diff file sync, not CRDT (Yjs) | Superseded by [0116](adr/0116-sync-via-drive-syncthing-no-owned-backend.md) |
 | [0011](adr/0011-changesets-and-trunk-based-branching.md) | Changesets + trunk-based branching | Accepted |
 | [0017](adr/0017-provisional-bundle-identifier.md) | Bundle identifier `com.davinci.notes` (provisional) | Accepted |
 
@@ -97,7 +97,22 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0111](adr/0111-pasted-attachment-names.md) | Nameless pasted files use MIME-derived `pasted-<timestamp>.<extension>` names; unknown types fail Phase 2 validation | Accepted |
 | [0112](adr/0112-shared-attachment-drop-pipeline.md) | Paste and file-drop share ordered per-file processing, partial success, and a token-based drag-over indicator | Accepted |
 | [0114](adr/0114-embed-link-ambiguity-and-typed-resolution.md) | Embed links reuse wikilink candidates, classify accepted files, and return explicit ambiguity/broken-heading states | Accepted |
+| [0115](adr/0115-attachments-plan-closeout.md) | Attachments Phases 1–7 closeout; watcher/indexer boundary and deferred embed-kind scope recorded | Accepted |
+| [0116](adr/0116-sync-via-drive-syncthing-no-owned-backend.md) | Sync uses independent Drive and Syncthing/folder modes; no owned backend | Accepted |
+| [0117](adr/0117-manifest-hashing-boundary.md) | Manifest BLAKE3 hashing is supplied by the Rust/platform I/O adapter; shared JS owns manifest policy | Accepted |
+| [0118](adr/0118-drive-file-oauth-verification.md) | Drive `drive.file` is non-sensitive; testing and production OAuth rollout requirements | Accepted |
+| [0119](adr/0119-manifest-infrastructure-boundaries.md) | Shared manifest model/persistence in `@app/sync-client`; Rust streams BLAKE3 while JS owns manifest policy and fast-path rules | Accepted |
+| [0120](adr/0120-drive-oauth-authentication-and-verification.md) | Desktop PKCE Drive auth with `drive.file`, OS-keychain tokens, refresh/sign-out behavior, and verification rollout posture | Accepted |
+| [0121](adr/0121-drive-appdata-scope-correction.md) | Add non-sensitive `drive.appdata` alongside `drive.file` for hidden app-scoped manifest storage; explicit amendment to ADR-0120 | Accepted |
+| [0122](adr/0122-sync-conflict-resolution-and-safety.md) | Sync Phase 4 conflict resolution: diff3 for .md, atomic copy for .canvas, device-name copy for binaries, edit-wins for delete-vs-edit | Accepted |
+| [0123](adr/0123-syncthing-folder-sync-mode-and-watcher-burst-robustness.md) | Syncthing/folder sync mode: zero daemon IPC, parallel IPC pre-fetch for watcher bursts, conflict recognition & SyncConflictsPanel UI | Accepted |
+| [0124](adr/0124-sync-settings-asymmetric-framing-and-mode-isolation.md) | Sync settings UI: asymmetric framing for Drive vs Folder, opt-in default, isolated per-mode configuration panels | Accepted |
+| [0125](adr/0125-comprehensive-sync-architecture-closeout.md) | Comprehensive Sync Architecture Closeout across Phases 0–7: zero backend, appDataFolder Drive sync, node-diff3 text merge, atomic canvas/binary conflict copies, watcher burst pre-fetch, asymmetric UI | Accepted |
 | [0113](adr/0113-attachment-settings-validation.md) | Specified folders validate/create at first use; invalid subfolder drafts stay local with inline validation | Accepted |
+
+
+
+
 
 ## Data Model, Indexer & SQLite
 

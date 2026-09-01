@@ -13,7 +13,7 @@ Same core app as desktop (Tauri, shared React/TS frontend, CodeMirror editor, SQ
 | Editor | **CodeMirror 6** (shared) | Same core, mobile-tuned touch/scroll handling. |
 | Local storage | **App sandbox storage** (not arbitrary folder access) | iOS/Android don't allow desktop-style "pick any folder" — vault lives in app-private storage, synced in/out. |
 | Index | **SQLite** (shared schema with desktop) | Same tables (`notes`, `links`), same query patterns. |
-| Sync | **Manifest-diff sync client** (see sync doc) | Hash + mtime comparison against sync server, not continuous. |
+| Sync | **Manifest-diff sync client** (see sync doc) | Drive/folder-tool reconciliation, not continuous polling or an owned server. |
 | Background work | **Platform background task APIs** (iOS BGTaskScheduler / Android WorkManager, via Tauri plugin or native bridge) | For periodic sync — bounded, not continuous polling. |
 
 ---
@@ -49,8 +49,8 @@ Same core app as desktop (Tauri, shared React/TS frontend, CodeMirror editor, SQ
 └──────────────────────────────────────────┘
                      │
                      ▼
-            Sync server (shared with
-             desktop, see sync doc)
+          Drive or user-owned
+          folder sync (see sync doc)
 ```
 
 **Shared vs mobile-specific code:**
@@ -90,7 +90,7 @@ Vault Home (file list / recent notes)
 - **Triggers**: app foreground, app background (before suspension), explicit pull-to-refresh. No continuous polling.
 - **Background sync**: use the platform's bounded background task API (iOS `BGTaskScheduler`, Android `WorkManager`) for periodic catch-up sync when the app isn't open — these are OS-throttled by design, treat sync as best-effort in the background, guaranteed on foreground.
 - **Payload**: manifest (hash + mtime) first, content only for files that actually changed — critical on mobile data connections.
-- **Conflict handling**: identical to desktop — server-canonical + conflicted-copy file on divergence, no in-editor merge UI needed.
+- **Conflict handling**: Drive mode uses its device-side manifest policy; folder mode surfaces files produced by the external sync tool. No server-canonical authority is assumed.
 
 ---
 
@@ -107,7 +107,7 @@ Vault Home (file list / recent notes)
 
 ## Suggested Build Order
 
-1. Get desktop app + sync server working first (mobile reuses both the shared logic and the server).
+1. Finalize the client-side sync contract and Drive/folder mode boundaries first; no server is required.
 2. Stand up Tauri mobile target with the shared package — validate build/deploy pipeline before building mobile-specific UI.
 3. Build mobile navigation shell (stack nav) around existing shared components.
 4. Wire sync client into mobile app — foreground/background triggers first, background task scheduling after that's proven.

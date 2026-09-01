@@ -8,6 +8,10 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-01 | Sync Phase 4 — Conflict Resolution (ADR-0122) | Implemented diff3 three-way text merge (`node-diff3`), atomic copy resolution for `.canvas` files, device-name copy naming with numeric collision suffixes for binaries, and edit-wins delete-vs-edit resolution with 29 passing tests in `@app/sync-client`. |
+| 2026-09-01 | Sync Scope Correction (ADR-0121) & Sync Phase 3 | Added `drive.appdata` additively alongside `drive.file` for `appDataFolder` manifest storage; recorded ADR-0121; implemented Phase 3 Drive manifest storage, Changes API delta tracking, 3-way diff, and blob transfer with 19 passing tests in `@app/sync-client`. |
+
+
 | 2026-08-21 | Attachments Phase 5 — Settings UI (ADR-0113) | Added four-mode attachment-location settings UI with native folder picker, conditional validation, Storybook states, and interaction tests. |
 | 2026-08-21 | Attachments Phase 4 — Drag & Drop Handling (ADR-0112) | Reused the paste pipeline for ordered multi-file drops, partial success, token-based drag-over feedback, and 38 passing editor tests. |
 | 2026-08-21 | Attachments Phase 2 — Filesystem Write & Filename Handling (ADR-0110) | Added async native-fs adapter writing, recursive folder creation, numeric collision suffixes, structured format errors, and 16 passing attachment tests. No paste/drop/UI wiring. |
@@ -62,8 +66,62 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file embed cards using `pdfjs-dist@^4.10.38` (verified cost: ~121 KB gzip core+worker at first visible PDF card only). Double-gated nested lazy-load boundary: Gate 1 (existing — canvas package lazy-loads on tab open) + Gate 2 (new — `PdfCardView.tsx` dynamic import inside FileCardNode, gated by `fileType === "pdf"` AND viewport culling from Phase 8). Continuous vertical scroll with stacked canvas pages, DPR-aware rendering, debounced ResizeObserver reflow on card resize, in-flight render cancellation on unmount. Extended drag-and-drop from Phase 6/7 to recognize `.pdf` extension and `application/pdf` MIME. No new node type — PDFs reuse existing `file` variant per JSON Canvas 1.0. ADR-0053. 127 canvas tests / 19 suites; typecheck clean; all files under 250-line hard cap. |
 | 2026-08-17 | Canvas Feature Phase 12 — Export | Viewport and Full-Canvas PNG export using `html-to-image`. Webpage card fallback placeholder for iframe content (ADR-0056). Export controls UI and "Exporting..." overlay. Corrected event types for canvas interactions (`ReactMouseEvent | MouseEvent`). 179 tests / 25 suites. |
 | 2026-08-17 | Canvas Feature Phase 13 — App Integration (FINAL) | Wired canvas fully into Obsidian-grid app shell: Icon Rail New Canvas button (FrameCorners icon), File Tree canvas distinction + click open, Tab Bar canvas/note type icons + close-save flush, RightSidebar "not applicable for canvas" per-section empty states + StatusBar canvas chip (ADR-0057). Re-verified lazy-load boundary: entry JS 21.08 KB raw / 7.71 KB gzip — 0 KB canvas/ReactFlow/PDF in first paint (canvas vendor chunk 56 KB gzip loaded only on demand). All 13 canvas phases complete. 179 canvas tests / 25 suites; tsc clean. |
+| 2026-09-01 | Drive OAuth UI Freeze Fix | Moved the blocking loopback callback accept onto Tauri's blocking task pool so waiting for the Google redirect no longer blocks the desktop UI. Rust checks/tests and the desktop web build pass. |
+| 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-09-01 — Drive OAuth UI Freeze Fix
+
+- Diagnosed the post-click freeze: the native `wait_for_oauth_callback`
+  command called `TcpListener::accept()` synchronously while waiting for the
+  browser redirect.
+- Kept the command asynchronous and moved socket acceptance, request parsing,
+  and callback response writing into `tauri::async_runtime::spawn_blocking`.
+- Verification: Cargo check and Rust tests pass; the desktop web build passes
+  with only existing Sass, externalized-module, and chunk-size warnings.
+
+- Replaced `window.open` with a native Tauri command that validates the Google
+  authorization host and launches the system browser using the platform-native
+  launcher. Browser-launch failures are now surfaced as sign-in errors.
+- Corrected the generated Desktop loopback redirect from a custom path to
+  Google's documented `http://127.0.0.1:<port>` root form. Added native tests
+  for root acceptance and custom-path rejection; Rust tests now pass 6/6.
+- Fixed the Tauri response naming mismatch that sent Google
+  `redirect_uri=undefined`: the Rust endpoint returns `redirect_uri`, and the
+  TypeScript auth flow now reads that exact native field.
+- Confirmed the OAuth client ID remains local ignored configuration; no client
+  secret was stored in the repository.
+
+## 2026-09-01 — Sync Phase 2 Auth Re-audit
+
+- Rechecked current Google Desktop OAuth, PKCE, loopback, `drive.file`, and
+  testing/verification guidance before touching auth code.
+- Confirmed the existing implementation already covers the Phase 2 design:
+  external browser launch, random loopback port, PKCE/state validation,
+  keyring-backed tokens, refresh, and disconnect. No duplicate auth or Drive
+  transfer implementation was added.
+- Verification: sync-client tests 11/11, native Rust tests 6/6, sync-client
+  typecheck, and desktop web build passed. Real consent, OS-keychain
+  inspection, restart persistence, and sign-out deletion remain pending.
+
+## 2026-09-01 — Sync Phase 2 Acceptance Confirmation
+
+- User confirmed the real Drive sign-in, OS-keychain token inspection,
+  restart/refresh persistence, and sign-out deletion checks.
+- Updated `PROGRESS.md` to close Phase 2 and make Phase 3 the current focus.
+  Phase 3 remains scoped to Drive manifests, Changes API deltas, diffing, and
+  content-hash-keyed transfer; conflict resolution remains Phase 4.
+
+## 2026-09-01 — Sync Phase 2 Scope Correction
+
+- Confirmed from current Google Drive documentation that hidden `appDataFolder`
+  access requires `drive.appdata`; added it alongside the existing
+  `drive.file` scope without changing `drive.file` behavior.
+- Recorded ADR-0121, amending ADR-0120 and preserving the original decision as
+  historical context. The expanded consent/keychain/restart/sign-out manual
+  re-test remains outstanding and is explicitly required before Phase 3 is
+  considered fully unblocked.
 
 ### 2026-08-20 — Tags Feature Phase 3: YAML Tags Property Support
 
@@ -951,3 +1009,1137 @@ Fully migrated desktop application from scoped CSS Modules to CUBE CSS architect
 - Verification: `@app/editor` 9 files/49 tests, package typecheck, and the
   existing desktop editor benchmark passed. Added an editor changeset with no
   new dependency.
+
+## 2026-08-23 — Attachments Phases 1–7 Regression & Closeout
+
+- Ran the closing integration sweep across the attachment package (16 tests),
+  indexer (31), editor (49), desktop block/indexer integration (29), and
+  paste/drop placement plus note-rename embed coverage (8 and 4 respectively).
+- Added regression coverage for insertion inside list items, blockquotes, and
+  table cells. The shared async pipeline preserves the surrounding source and
+  reports partial failures without blocking editor work.
+- Confirmed the existing watcher/path inventory/reconcile flow covers both
+  app-created and externally-created attachment files. Confirmed canonical
+  note rename preserves `![[...]]` targets, while Tags and HTML parsing do not
+  misclassify or strip attachment syntax.
+- Confirmed settings and location resolution do not perform synchronous
+  filesystem checks during typing or ordinary renders. Added final ADR-0115
+  indexing the seven phases, provisional allowlist caveat, watcher boundary,
+  and deferred embed-kind scope.
+- The Attachments plan is closed. Embed Files remains a separate feature area:
+  resolution and image rendering are already implemented in its independent
+  phases, while audio/video/PDF/note rendering remains deferred.
+
+## 2026-08-23 — Sync Phase 0: Formal Supersession & Scope Lock
+
+- Read and formally superseded ADR-0008 (`Manifest-diff file sync, not CRDT
+  (Yjs)`) with ADR-0116 (`Sync via Drive/Syncthing, no owned backend`). ADR-0008
+  remains content-unchanged apart from its status field; the index now marks it
+  superseded.
+- Confirmed the newer sync plan's two independent modes: client-side Google
+  Drive sync and external folder synchronization such as Syncthing. No
+  project-operated backend, relay, server database, or forced unified transport
+  abstraction is in scope.
+- Audited `services/sync-server`: it was only an echo scaffold with no
+  implementation or runtime consumer. Removed the service, setup generator and
+  workspace lockfile entries, plus stale mobile, release, desktop-plan,
+  workflow, and ownership references. The separate `@app/sync-client`
+  placeholder remains for future client-side work and has no server dependency.
+- Updated `PROGRESS.md` with the locked boundary. No implementation dependency
+  or network package was added.
+
+## 2026-08-23 — Sync Phase 1: Manifest Infrastructure
+
+- Added shared offline manifest generation in `@app/sync-client` with the
+  exact `ManifestEntry` fields from the sync plan, separate size/mtime metadata
+  for fast-path reuse, deterministic ordering, Lamport clocks, and tombstones.
+- Bootstrap manifests hash every listed file. Incremental manifests skip
+  unchanged size+mtime pairs, re-hash either changed metadata, and retain
+  deleted files as tombstones while excluding them from current entries.
+- Logged ADR-0117: Rust/platform adapters provide BLAKE3 and filesystem I/O;
+  shared TypeScript owns manifest policy. No network, Tauri, Drive, or
+  Syncthing-specific code was added.
+- Verification: sync-client tests passed 5/5, including bootstrap,
+  skip/re-hash, tombstones, and a 350-file large-vault-scale benchmark. The
+  benchmark suite phase completed in 12 ms under the 1,000 ms guard; package
+  typecheck passed. Added the sync-client changeset.
+## 2026-08-23 — Sync Phase 2 Drive Auth
+
+- Researched current Google OAuth requirements and recorded ADR-0118.
+  `drive.file` is currently non-sensitive; testing caps and seven-day test
+  authorizations were documented, along with production consent/policy
+  requirements and the sensitive-scope timeline for future scope expansion.
+- Added tested PKCE URL construction and refresh-token management to the shared
+  sync client. The implementation requests no client secret and exposes a
+  clear re-authentication path after refresh failure.
+- Native Tauri loopback and OS-keychain adapters remain the next step before
+  the Phase 3 sync logic can consume Drive auth.
+
+## 2026-08-23 — Sync Phase 2 Native Auth Completion Attempt
+
+- Added a one-shot 127.0.0.1 OAuth callback listener. It accepts one
+  callback, returns a completion response, removes the listener from state,
+  and forwards the code/state to the caller.
+- Added OS-keychain storage using the Rust keyring crate. Read/write/delete
+  errors are returned to the caller; there is no plaintext fallback.
+- Added production configuration plumbing through the ignored
+  VITE_GOOGLE_DRIVE_CLIENT_ID environment variable and an example file.
+- cargo check passes. End-to-end Google sign-in and real keychain inspection
+  could not be completed because this checkout has no configured client ID or
+  interactive OAuth account/session. Phase 2 remains open and Phase 3 remains
+  blocked.
+
+## 2026-08-24 — Drive OAuth Client Configuration
+
+- Added the supplied Google OAuth client ID to the ignored
+  apps/desktop/.env; no client secret was stored or added to source.
+- Production web build completed and native cargo check --offline passed.
+- The build cannot be called end-to-end verified because the desktop shell
+  currently has no sign-in UI wiring and no interactive OAuth session was
+  available. Phase 2 remains open.
+
+## 2026-09-01 — Sync Phase 0 Scope Audit
+
+- Read the full `DECISIONS.md` index. The only old-sync ADR candidate is
+  ADR-0008; no separate indexed ADR covers an owned sync server, object
+  storage, or sync auth/accounts. ADR-0008 remains the historical decision
+  being superseded because its conflict rule assumes server authority; its
+  manifest-diff/non-CRDT scope is retained in ADR-0116.
+- Verified ADR-0116 is indexed and independently documents the goals,
+  independent Drive and folder modes, and deliberately excluded backend,
+  relay, object-storage, unified-transport, and migration scope.
+- Audited the baseline `services/sync-server`: it contains only an echo
+  `index.ts`, package scripts, TypeScript config, and ESLint config. No
+  `.github` workflow references it. Its files are already marked deleted in
+  the worktree, but cleanup is flagged for explicit confirmation because the
+  package exists in the baseline.
+- Flagged stale historical sync-server wording in the desktop build,
+  performance audit, and staging-release planning documents. Mobile and git
+  workflow architecture references are already corrected in the worktree.
+
+## 2026-09-01 — Sync Phase 1 Manifest Infrastructure
+
+- Verified the Phase 0 ADR gate, then completed shared manifest infrastructure
+  in `@app/sync-client`: the plan's `ManifestEntry` fields, deterministic
+  generation, Lamport clocks, retained tombstones, JSON snapshot persistence,
+  and an explicit full-rehash escape hatch for the size+mtime optimization.
+- Added the desktop adapter and Rust commands for vault file metadata and
+  bounded streaming BLAKE3 hashing using the maintained `blake3` 1.8.7 crate.
+  No Drive or Syncthing integration was added.
+- Recorded and indexed ADR-0119 for package placement, platform persistence,
+  hashing boundary, and fast-path policy. Focused tests (10/10), typecheck,
+  lint, and Cargo check passed; Cargo emitted only the existing unused watcher
+  method warning.
+- Finalized deletion of the baseline echo-only `services/sync-server` package,
+  including generated artifacts. Stale planning documents remain unchanged as
+  requested.
+
+## 2026-09-01 — Sync Phase 2 Drive OAuth
+
+- Re-verified Phase 0/1 ADR gates and researched Google’s current
+  `drive.file` posture from official documentation. Recorded the 100-test-user,
+  seven-day testing limit, non-sensitive scope classification, production
+  readiness requirements, and the absence of a guaranteed verification
+  turnaround in ADR-0120.
+- Completed the concrete desktop PKCE flow: ephemeral loopback callback,
+  state/path/encoding validation, direct Google token exchange and refresh,
+  no client secret, and the `drive.file` scope only.
+- Reused the existing Rust `keyring` pattern for OS-backed token storage and
+  added desktop load/save/clear adapters. Transient refresh failures preserve
+  credentials; invalid grants clear them and request re-authentication.
+- Eleven sync-client tests, focused lint/typecheck, Cargo check, and Rust tests
+  pass. Interactive consent, direct credential-store inspection, restart
+  persistence, and sign-out deletion remain environment-dependent acceptance
+  checks because no interactive Google session is available here. No manifest
+  sync or file transfer logic was added.
+
+## 2026-09-01 — Drive Auth Desktop Actions
+
+- Added minimal Settings and lazy Command Palette actions for Drive sign-in,
+  session refresh/check, and disconnect. Actions reuse the existing PKCE,
+  refresh, and OS-keychain adapters and report success or failure without
+  duplicating credential logic.
+
+## 2026-09-01 — Desktop Sync Client Alias Fix
+
+- Added the missing `@app/sync-client` aliases to the desktop Vite and Vitest
+  configurations. The desktop web build and all 142 desktop tests now resolve
+  the Drive auth module successfully.
+
+## 2026-09-01 — Session Snapshot (PROGRESS.md archive; session close)
+
+The following is the full `PROGRESS.md` state archived at session close.
+
+# PROGRESS.md — Current State
+
+Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
+
+---
+
+## Current Focus
+
+**Stabilization Phase 1 — note CRUD** — delete, duplicate, and move functionality are implemented, unit tested, and UI wiring in `FileTree` confirmed correct. Note CRUD continues to use canonical vault operations for filesystem, SQLite, graph, and workspace state.
+
+## Sync Phase 0 — Formal Supersession & Scope Lock Complete
+
+- Superseded [ADR-0008](docs/adr/0008-manifest-diff-sync-not-crdt.md), whose
+  server-canonical conflict model no longer describes the intended architecture,
+  with [ADR-0116](docs/adr/0116-sync-via-drive-syncthing-no-owned-backend.md).
+- The accurate boundary is now two independent modes: client-side Drive
+  manifest/file sync and user-owned folder synchronization such as Syncthing.
+  There is no backend, relay, server database, hosting cost, or forced shared
+  transport abstraction to own or operate.
+- Confirmed `services/sync-server` was only an echo/scaffold package, with no
+  implementation or CI runtime dependency. Its tracked source/package files
+  and generated artifacts are now removed. The lightweight `@app/sync-client`
+  package remains as the future client-side implementation and has no server
+  dependency.
+- No `.github` CI workflow references `services/sync-server`. Stale historical
+  planning prose remains in `plans/desktop-app-build.md`,
+  `plans/phase-12-performance-audit.md`, and `plans/phase-13-staging-release-1.md`
+  and is flagged for a separate planning-doc cleanup; the updated
+  `mobile-app-stack-architecture.md` and `git-workflow.md` no longer describe
+  an owned sync server.
+
+Sync Phase 1 is unblocked and may proceed against this locked scope.
+
+## Sync Phase 2 — Drive Auth Implementation Complete; E2E Acceptance Pending
+
+- Recorded [ADR-0120](docs/adr/0120-drive-oauth-authentication-and-verification.md),
+  incorporating the current Google `drive.file` research: it is non-sensitive
+  and per-file; testing supports 100 listed users with seven-day authorizations;
+  production still requires policy, brand, domain, and rollout readiness.
+- `@app/sync-client` now provides PKCE URL construction, token exchange
+  contracts, silent refresh with refresh-token preservation, explicit
+  re-authentication on provider invalid-grant errors, retryable transient
+  failures, and sign-out through its storage boundary.
+- Desktop now provides Google token HTTP exchange/refresh, Web Crypto PKCE,
+  loopback callback/state validation, Tauri keyring-backed token storage, and
+  a working disconnect command. The requested scope is only `drive.file`; no
+  client secret is embedded or requested.
+- Settings and the lazy Command Palette now expose Sign in to Drive,
+  Refresh Drive Session, and Disconnect Drive actions with clear success/error
+  feedback.
+- Fixed the OAuth callback wait so the blocking loopback socket accept runs on
+  Tauri's blocking task pool; waiting for the browser redirect no longer
+  freezes the app UI.
+- Replaced the Tauri-webview `window.open` call with a native default-browser
+  launcher. Authorization URL validation and launch errors now return to the
+  UI instead of failing silently; no additional runtime dependency was added.
+- Corrected the Desktop OAuth loopback redirect to Google's required root form
+  (`http://127.0.0.1:<port>`, without `/oauth/callback`) and added callback
+  parser regression tests.
+- Fixed the native endpoint response mapping: Tauri serializes `redirect_uri`
+  in snake_case, so the desktop client now reads that field before building the
+  authorization URL. This removes the Google `redirect_uri=undefined` failure.
+- Corrected the ignored local desktop environment to use the supplied OAuth
+  Desktop client ID; the previously loaded value belonged to a different
+  client ID.
+- Eleven sync-client tests, focused lint/typecheck, Cargo check, and Rust tests
+  pass. Full interactive sign-in, direct OS-keychain inspection, restart
+  persistence, and sign-out deletion remain unverified because this checkout
+  lacks an available interactive consent session; no Drive file transfer was
+  added. Desktop-wide typecheck remains blocked by the pre-existing
+  `createNoteCrudActions.ts` scope errors.
+
+## Sync Phase 1 — Manifest Infrastructure Complete
+
+- Added shared `ManifestEntry` and offline `generateManifest` infrastructure
+  to `@app/sync-client`, including `{ path, hash, size, deviceClock, deleted }`
+  entries, metadata for the size+mtime fast path, deterministic ordering, and
+  a current-entry filter that excludes tombstones.
+- Bootstrap generation hashes every listed file. Incremental generation reuses
+  unchanged non-deleted entries when size and mtime match, re-hashes when either
+  changes, and preserves deleted entries as Lamport-clocked tombstones.
+- Closed the package/persistence and hashing boundary in [ADR-0119](docs/adr/0119-manifest-infrastructure-boundaries.md), following [ADR-0025](docs/adr/0025-js-side-indexer-rust-io-only.md): Rust/platform adapters provide bounded filesystem walking, metadata, and streaming BLAKE3; shared JS owns manifest policy. No network, Tauri, Drive, or Syncthing integration was added.
+- JSON snapshots persist through a small platform storage adapter. Missing files become retained Lamport-clocked tombstones; unchanged files use the size+mtime fast path. An explicit `forceRehash` option handles the rare mtime-preserving content edit edge case.
+- Verification: 10 sync-client tests passed, including bootstrap, skip/re-hash, tombstones, full rehash, JSON persistence, and a 350-file fixture-scale benchmark. Package typecheck and focused lint passed; Cargo check passed with BLAKE3 1.8.7. Full native fixture execution remains deferred to the desktop runtime adapter.
+
+## Phase 5 Checkpoint — Tag Search Closed
+
+The original prerequisite block is resolved by the completed General Search
+plan. The current checkpoint is documented below in “Tags Feature Phase 5 —
+Tag Search Closed”; the stale blocked status is retained only in older history
+records, not as current state.
+
+## General Search Phase 0 — Scope & Architecture Complete
+
+- [ADR-0079](docs/adr/0079-general-search-surface.md): full-text/operator Search will be a separate lazy UI and results surface; Command Palette stays a fuzzy path/title Quick Switcher.
+- [ADR-0080](docs/adr/0080-general-search-sqlite-fts5.md): extend the existing JS `@app/indexer` + SQLite architecture with an incremental FTS5 content index. No new search dependency or parallel in-memory engine.
+- [ADR-0081](docs/adr/0081-general-search-v1-operators.md): v1 supports plain terms, quoted phrases, `tag:` (optional `#`, normalized away), and leading `-` exclusions. `tag:` uses Phase 4's descendant-inclusive, ancestor-asymmetric query semantics. Other operators are explicitly deferred.
+- [ADR-0082](docs/adr/0082-general-search-package-placement.md): search parsing and index execution live in `@app/indexer`; UI wiring remains in `apps/desktop`.
+
+Phase 1 may now implement the FTS schema/index path. Phase 5 Tag Search remains blocked until the general search implementation and results UI exist.
+
+## General Search Phase 1 — Full-Text Index Complete
+
+- Added SQLite FTS5 migration v3 (`notes_fts`) indexing note body content only, as specified by ADR-0080. No new dependency or parallel in-memory index was added.
+- Reused the existing `persistNotesBatch` and `removeNoteFromIndex` paths, so full-vault indexing, watcher edits, creation, deletion, and canonical rename/move operations update FTS incrementally. Batch updates delete and replace only affected paths.
+- Added focused tests for FTS row replacement and the existing CRUD/reconcile integration boundaries. The 1,000-note batch benchmark completed within the `<1000 ms` guard (reported suite test time: 3 ms).
+- No field-level deviation: Phase 0 specified note body indexing at minimum and did not choose separate path/frontmatter/heading FTS columns; `path` is an unindexed identifier column for maintenance and future joins.
+- Focused desktop tests passed. Desktop typecheck remains blocked by the pre-existing `createNoteCrudActions.ts` `result` scope errors.
+
+Phase 2 may implement the query parser. Phase 5 Tag Search remains blocked until the general search implementation reaches its later execution/UI phases.
+
+## General Search Phase 2 — Query Parser Complete
+
+- Added an extensible operator registry in `@app/indexer` for v1 terms,
+  quoted phrases, `tag:` with optional `#`, and leading-minus exclusions.
+- `tag:` produces `{ kind: "tag", tagKey }` with the normalized key consumed
+  directly by Phase 4's `queryNotesByTag`; an integration test verifies nested
+  descendant matching.
+- Empty queries return no clauses. Empty `tag:` values produce a parse error
+  and no clause. Unknown `name:value` tokens remain plain terms. These choices
+  are recorded in [ADR-0083](docs/adr/0083-general-search-parser-edge-cases.md).
+- Parser tests cover mixed queries, both tag spellings, exclusions, malformed
+  input, Phase 4 integration, and a throwaway registered operator.
+
+Phase 3 may implement query execution. Tag Search remains blocked until the
+general search execution and UI phases are complete.
+
+## General Search Phase 3 — Query Execution & Ranking Complete
+
+- Added `executeSearchQuery` in `@app/indexer`, consuming Phase 2 parser output,
+  SQLite FTS5 rows, and Phase 4 `queryNotesByTag` directly.
+- Positive clauses use implicit AND; leading-minus clauses remove matches.
+  Parent tag queries retain descendant matching and nested queries retain the
+  Phase 4 ancestor asymmetry.
+- FTS results return path/title/mtime, SQLite `bm25` score, and snippets. Lower
+  bm25 scores rank first; title then path resolve ties. Tag-only results use
+  score zero with title/path ordering. Combined queries rank by FTS relevance
+  within the tag-filtered subset. These choices are recorded in
+  [ADR-0084](docs/adr/0084-general-search-execution-ranking.md).
+- Added combined, tag-only, exclusion, and deterministic-ranking tests. The
+  focused execution/parser/index suite passed 14 tests; the 1,000-note
+  combined benchmark completed in a 4 ms Vitest test phase and stayed under
+  the 1-second guard.
+
+Phase 4 may implement the Search UI. Tag Search remains blocked until the
+general search UI is available.
+
+## Bug Fix — Live Vault Index Exposure
+
+- Confirmed the gap: `@app/indexer` had only pure TagIndex builders/mutators;
+  desktop discarded the full-load result and held no long-lived tag index.
+- Added `useWorkspaceStore.tagIndex`, initialized from the notes already loaded
+  by `indexVaultFull`, then mutated in place by watcher reconciliation, note
+  saves, and canonical deletes. No component or query performs a vault scan.
+- The full-text index is already live in SQLite and remains exposed through
+  the singleton `getVaultIndexDb()` accessor; no duplicate JS full-text index
+  was introduced. The state pattern is documented in ADR-0085.
+- The existing focused desktop path typechecks except for the pre-existing
+  unrelated `createNoteCrudActions.ts` `result` scope errors.
+
+## Tags Feature Phase 5 — Tag Search Closed
+
+- Re-verified General Search's settled convention: `tag:#meeting` and
+  `tag:meeting` are equivalent; `#` is optional and normalized away.
+- Confirmed parent queries include descendants while nested queries do not
+  include ancestors through the stable Phase 4 `queryNotesByTag` path.
+- Confirmed the Tags editor path forwards rendered tag keys to desktop,
+  pre-fills Search with `tag:<key>`, and executes through the shared parser and
+  executor. No tag parsing, search, or index logic was duplicated here.
+- Verification passed: core tag rules 11/11, index/parser/execution 14/14,
+  and editor tag rendering/click forwarding 5/5. The Search UI callback path
+  is covered by the existing desktop wiring; rendered UI automation is not
+  configured in this repository.
+- The Tags plan's Phase 5 checkpoint is closed. Tags Phase 6 (Tags view) is
+  ready to resume as a separate task. General Search's existing benchmark
+  tooling caveat remains documented in ADR-0086.
+
+## Tags Feature Phase 6 — Tags View Complete
+
+- Added a lazy Tags dialog opened by a `Browse Tags` Command Palette action.
+  Reopening/focusing uses the existing dialog state path and does not affect
+  the Quick Switcher.
+- Rendered a nested tree from the live workspace `TagIndex`, using
+  `getCanonicalTag` for display casing and synthesizing parent rows for nested
+  tags. Counts are direct-use counts only; descendants are not included in
+  parent totals. This is documented in [ADR-0087](docs/adr/0087-tags-view-counts-and-live-updates.md).
+- Tag selection reuses the editor tag-click callback path, opening Search with
+  the same nested-aware `tag:` query.
+- The view subscribes to `vaultUpdateCounter`, so incremental note tag edits,
+  additions, removals, and renames refresh the open tree without polling or a
+  vault rescan.
+- Focused VaultIndexer tests pass. Desktop typecheck remains blocked by the
+  pre-existing `createNoteCrudActions.ts` `result` scope errors.
+
+Tags Phase 6 is closed. The Tags plan is ready to proceed to Phase 7.
+
+## Tags Feature Phase 7 — Regression & Integration Complete
+
+- Full regression sweep passed: shared tag rules 11/11, index/parser/search
+  14/14, editor tag rendering 5/5, and focused desktop vault update tests 4/4.
+- Editor coverage explicitly confirms tags in headings, list items, blockquotes,
+  table cells, and links, while inline/fenced code tag-looking text remains
+  excluded. No canvas tag parser drift exists; canvas does not claim markdown
+  tag semantics for its card content.
+- A 1,000-note vault with nested tags built and queried in 3 ms of Vitest test
+  time, under the 1-second guard. Existing General Search mocked query/update
+  benchmarks remain 3–4 ms. Real SQLite cold-start benchmarking remains the
+  tooling limitation documented in ADR-0086.
+- Canonical casing, nested descendant/asymmetry semantics, live update wiring,
+  direct-count Tags view behavior, and tag-click search all continue to share
+  the existing index/parser paths. Tag rename/merge UI and Bases `hasTag`
+  integration remain explicitly out of scope.
+- Final decision index: [ADR-0088](docs/adr/0088-tags-plan-closeout.md).
+
+Tags Feature Phases 1–7 are complete. No further Tags phase is planned unless
+a future regression or separately scoped feature requires one.
+
+## HTML Support Phase 1 — Sanitization Core Complete
+
+- Added standalone `@app/sanitize` using DOMPurify 3.4.14; no editor or
+  rendering integration was added.
+- Exact allowlist: `u`, `s`, `span`, `div`, `table`, `tr`, `td`, safe comments;
+  only `class` and constrained `style` attributes. Scripts, style blocks,
+  iframes, event handlers, URL-bearing attributes, and unsafe CSS are removed.
+- Added five happy-path and attack-vector tests, including the source
+  document's pasted `<script>` example, malformed markup, encoded payloads,
+  unsafe URLs, and CSS injection.
+- `@app/sanitize` tests (5/5), typecheck, and build pass. DOMPurify's bundle
+  cost and policy choice are recorded in ADR-0089; CSS/class policy is in
+  ADR-0090.
+
+Next up: HTML Support Phase 2 — block-level HTML detection and rendering routed
+through this sanitizer.
+
+## HTML Support Phase 2 — Block-Level HTML Detection & Rendering Complete
+
+- Added `htmlBlockExtension` and `htmlBlockTheme` to the existing CodeMirror
+  replacement-widget path used by the editor and read-only MarkdownView.
+- Block detection requires a contiguous, nonblank, matching-tag block rooted at
+  `table` or `div`; blank lines abort the block, so the documented broken table
+  example remains literal rather than allowing a later `<td>` fragment to
+  render independently. The boundary rule is recorded in ADR-0091.
+- Every rendered block is passed through `@app/sanitize` immediately before
+  widget DOM assignment. Document changes rebuild decorations, covering initial
+  load, typing, paste, undo, and redo through CodeMirror's normal update path.
+- HTML block tests pass 3/3: safe table rendering, named blank-line regression,
+  and re-sanitization after editing a safe block into a script payload.
+- No sanitizer policy or allowlist was changed, and no raw HTML path bypasses
+  the Phase 1 package.
+
+Next up: HTML Support Phase 3 — inline HTML elements and comments.
+
+## HTML Support Phase 3 — Inline HTML Elements Complete
+
+- Added a same-line inline HTML decoration pass for `<u>`, `<s>`, `<span>`,
+  same-line `<div>`, and HTML comments, routed through the Phase 1 sanitizer
+  before widget DOM assignment.
+- `<s>` reuses the existing Markdown strikethrough `line-through` treatment;
+  `<u>` uses the corresponding underline treatment. HTML comments are hidden,
+  consistent with native Markdown comments.
+- Added adjacent-Markdown boundary tests, the source cursive-span example, and
+  comment visibility coverage. The cursive `font-family` property is stripped
+  as required by ADR-0090; the sanitizer allowlist was not loosened.
+- HTML block and inline suites pass 6/6. No raw HTML path bypasses the Phase 1
+  sanitizer. Next up: Phase 4 no-Markdown-inside-HTML enforcement.
+
+## General Search Phase 4 — Search UI Complete
+
+- Added a separate lazy `SearchDialog`, preserving the Command Palette as the
+  fuzzy path/title Quick Switcher per ADR-0079.
+- Search opens from the icon rail and `Cmd/Ctrl+Shift+F`; `Cmd/Ctrl+K` remains
+  unchanged. Results consume Phase 3's `SearchResult` output directly,
+  including snippets, scores, titles, and paths.
+- Added 150 ms live-query debouncing. Phase 3's 1,000-note combined benchmark
+  completed in 4 ms, so 150 ms prevents per-keystroke database work while
+  keeping the UI responsive.
+- Added arrow-key navigation, Enter-to-open, ranked result display, snippet
+  highlighting, and a tag-only fallback label. The result list is bounded by
+  the dialog viewport and scrolls instead of rendering an unbounded surface.
+- Phase 5 tag-click wiring remains separate and has not been changed.
+
+## General Search Phase 5 — Tag Click Wiring Complete
+
+- Replaced the editor tag click no-op with the existing `onTagClick` callback
+  path. Desktop now constructs `tag:<canonical-key>`, opens Search, pre-fills
+  the query, and executes it through the same Phase 2 parser and Phase 3
+  executor used by direct Search input.
+- Nested tags require no special handling: clicking a parent or nested tag
+  preserves Phase 3's existing descendant-inclusive and ancestor-asymmetric
+  semantics.
+- Direct Search entry resets to an empty query; programmatic tag entry keeps
+  its initial query. Added the editor/desktop changeset and retained existing
+  tag rendering behavior.
+- The Tags plan's Phase 5 checkpoint is now unblocked and verified through the
+  real editor callback path; Phase 6 Tags view is ready to resume separately.
+
+## General Search Phase 6 — Regression & Performance Pass
+
+- Functional regression verification passed: indexer search/tag suite 14/14,
+  editor tag-rendering suite 5/5, and focused desktop vault/FTS/CRUD suite
+  13/13. `@app/indexer` and `@app/editor` typecheck successfully.
+- The separate Command Palette remains untouched and retains its original
+  Cmd/Ctrl+K fuzzy path/title behavior; Search uses its own Cmd/Ctrl+Shift+F
+  entry point.
+- Existing recorded benchmarks remain 3 ms for the Phase 1 1,000-note FTS
+  batch and 4 ms for the Phase 3 1,000-note combined execution test.
+- The repository large-vault benchmark could not execute: its Node entrypoint
+  imports missing `packages/core-types/NoteTags.js`. Cold-start SQLite,
+  per-note CRUD, and real-vault query timings therefore remain unverified;
+  this is recorded in [ADR-0086](docs/adr/0086-general-search-plan-closeout.md)
+  and the General Search plan is not marked fully complete until that tooling
+  blocker is resolved.
+- Tags Phase 6 (Tags view) is functionally unblocked and ready as a separate
+  task, subject to the benchmark/tooling caveat above.
+
+## Tags Feature Phase 2 — Inline Tag Detection & Rendering (@app/editor) (ADR-0077)
+
+### Completed
+- Added `tagExtension` to `@app/editor`, importing the shared `matchTags`/`TagRegistry` logic from `@app/core-types` instead of reimplementing any tag parsing locally.
+- Rendered valid inline tags as badge-style replacement widgets with existing design-token styling, hover affordance, and click forwarding through a stub `onTagClick(tagKey)` callback.
+- Chose first-seen canonical display casing for the badge text, preserving the markdown source as the underlying document of truth and documenting that policy in ADR-0077.
+- Excluded tags inside inline code and fenced code blocks using the existing syntax-tree/code-node check pattern.
+- Wired tag rendering into both `Editor` and `MarkdownView`, added package-local test tooling, and logged a new editor changeset.
+
+### Verification
+- `packages/editor/tagExtension.test.ts` passes with coverage for canonical casing, click forwarding, code exclusion, headings/lists/blockquotes/tables, inline formatting, links, and a typing-latency benchmark.
+- `@app/editor` typecheck, lint, and build pass.
+- The benchmark assertion holds under `<5 ms` per simulated keystroke on a large tagged document.
+
+## Tags Feature Phase 1 — Tag Parsing Rules & Data Model (@app/core-types) (ADR-0075, ADR-0076)
+
+### Completed
+- Placed the shared tag model and parser in `@app/core-types`, the existing dependency-free package already shared by `@app/editor` and `@app/indexer`.
+- Implemented the exact Unicode-aware matching rule: letters, numbers, marks, symbols, `_`, `-`, `/`, and ZWJ are allowed; whitespace and punctuation terminate a tag; all-numeric bodies are rejected.
+- Added nested-tag decomposition for `#a/b/c` and a canonical-casing registry that preserves the first-seen display form while matching case-insensitively.
+- Updated the package's internal runtime imports to `.js` specifiers so the built `dist` entrypoint can be loaded directly by Node.
+- Logged the shared-package placement decision and the Unicode matching rule as ADR-0075 and ADR-0076.
+
+### Verification
+- `@app/core-types` unit tests pass for valid/invalid tags, nested decomposition, and canonical registry behavior.
+- `@app/core-types` typecheck, lint, and build pass.
+- Confirmed the built module imports cleanly from a plain Node/test context without React or CodeMirror dependencies.
+- Added an `@app/core-types` patch changeset.
+
+## Phase 11 — Math (@app/editor) (ADR-0074)
+
+### Completed
+- Chose KaTeX 0.18.4 over MathJax for the current LaTeX scope: the required determinant/matrix and exponential expressions are supported, with an approximately 4.3 MB installed package footprint. The JavaScript renderer is dynamically imported.
+- Added cursor-gated multi-line `$$ ... $$` block rendering and inline `$...$` rendering. Active editable lines retain raw math source; read-only views render inline math immediately.
+- Added graceful invalid-LaTeX placeholders and KaTeX stylesheet/theme integration.
+- Reused Phase 10's 150 ms external-update debounce and documented the MathJax-extension compatibility boundary in ADR-0074.
+
+### Verification
+- Determinant/matrix block, exponential inline math, cursor toggle, and invalid-LaTeX tests pass.
+- Existing Mermaid, table, formatting, and editor benchmark coverage remains passing; package typecheck/lint/build pass.
+- Added an `@app/editor` patch changeset.
+
+## Phase 10 — Mermaid Diagrams (@app/editor) (ADR-0073)
+
+### Completed
+- Confirmed Phase 9 table rendering and source-backed editing remained stable before adding diagrams.
+- Added Mermaid 11.16.1 as a scoped dependency. Its approximately 83 MB installed dependency tree is dynamically imported, keeping the initial editor bundle path free of Mermaid.
+- Added generic Mermaid fenced-block detection for `mermaid` tags and cursor-gated replacement widgets. Flowcharts, sequence diagrams, quoted special-character labels, and future Mermaid diagram types use the same renderer.
+- Added `class NodeId internal-link;` click handling through the existing editor `onLinkClick`/vault resolution path.
+- Invalid or incomplete Mermaid source renders a graceful error placeholder instead of throwing.
+
+### Performance decision
+- Logged ADR-0073: raw source remains visible while the cursor is inside a diagram; leaving the block renders immediately, while external document changes use a 150 ms debounce. Mermaid is never re-rendered on every keystroke inside the block.
+- CodeMirror cannot replace line breaks from a ViewPlugin, so the visual block uses a first-line Mermaid widget plus continuation widgets, preserving the existing widget pattern without a separate renderer or editable DOM state.
+
+### Verification
+- Mermaid flowchart, sequence, internal-link, special-label, invalid-syntax, and cursor-toggle tests pass.
+- Existing table, editor, and performance tests remain passing; `@app/editor` typecheck/lint/build pass.
+- Added an `@app/editor` patch changeset.
+
+## Bug Fix / Feature — Live Editable Table Grid (@app/editor)
+
+### Root cause and fix
+- Reproduced completed tables in Live Preview: Phase 9 detected valid blocks and marked cells, but rendered no grid; pipes and the separator remained ordinary text.
+- Added grid rendering to the existing CodeMirror table decoration path. Rows use flex layout, cells use editable marks with equal column sizing and borders, delimiters are visually suppressed, and the separator row is hidden except while active for source editing.
+- Cell content remains the CodeMirror document range, so direct typing updates the markdown source and existing context-menu mutations continue to operate on the same ranges. Escaped pipes are excluded from delimiter decoration and inline decorations remain inside cell ranges.
+
+### Verification
+- Added coverage for grid rows/cells/delimiters and editing a body cell while preserving pipe-delimited markdown.
+- Table parsing, alignment, escaped-pipe, context-menu, line-wrapping, and benchmark tests pass; editor latency remains under `<5 ms`.
+- No separate editable DOM state or dependency was added; no ADR was needed because this reuses the existing mark/decorations pattern rather than introducing a new widget architecture.
+
+## Bug Fix — Enter After Ambiguous Table Header (@app/editor)
+
+### Reproduction and result
+- Reproduced the reported sequence with the full editor keymap: pressing Enter after `| First name | Last name |` creates a normal newline.
+- Confirmed the same behavior for `| text |`, multi-column pipe-like lines, and ordinary text following a pipe-like line.
+- Confirmed Phase 9's `tableExtension` has no Enter keybinding; it only provides viewport decorations and the context menu. CodeMirror's existing default Enter command therefore remains responsible for newline insertion and is not swallowed by table logic.
+
+### Verification
+- Added regressions covering the ambiguous header, single-column-looking row, and following-line cases.
+- Existing valid-table parsing and context-menu tests remain passing; no production change or changeset was required because the reported bug is not present in the current implementation.
+- Editor performance verification remains under the existing `<5 ms` target.
+
+## Bug Fix — Consistent Editor Line Wrapping (@app/editor)
+
+### Root cause and fix
+- Confirmed the inconsistent behavior was deterministic by configuration: neither `Editor` nor read-only `MarkdownView` included CodeMirror's `EditorView.lineWrapping` extension, so long prose lines extended horizontally.
+- Enabled `EditorView.lineWrapping` in both shared editor configurations.
+- Removed table-cell shrink-to-fit styling (`display: inline-block` and minimum width) that could prevent cell content from wrapping once global wrapping was enabled.
+- Preserved the intended code distinction with a scoped `.cm-line.cm-code-block` layout rule: fenced-code lines remain horizontally scrollable instead of being forced to wrap.
+
+### Verification
+- Long-line coverage passes for plain prose, lists, tables, blockquotes, and code-adjacent content; `.cm-lineWrapping` is present in the editor content.
+- Table, line-wrapping, and benchmark tests pass; full editor regression verification remains under the existing `<5 ms` keystroke target.
+- Added a patch changeset for `@app/editor`.
+
+## Editor Markdown Formatting — Phase 8: Escaping Edge Cases (@app/editor) (ADR-0072)
+
+### Completed
+- Verified the full escape matrix for `\\*`, `\\_`, `\\#`, `\\``, `\\|`, `\\~`, and `\\=`. Each backslash is hidden by the existing per-occurrence `Escape` decoration while its literal character remains visible.
+- Verified `1\\.` does not become an ordered list; the existing list marker logic requires the period/delimiter immediately after the number, so the escaped form is skipped.
+- Verified per-character scope beside real italic/bold/highlight/heading syntax, escaped pipes in table-like text, and the Phase 1 audit fixture's escaped examples.
+- Added final escape matrix regressions and the final ADR-0072 indexing the Phase 1–8 decisions. No production syntax or dependency change was required.
+
+### Verification
+- Final Phase 2–8 focused suite: 52 tests passing.
+- `@app/editor` typecheck, lint, and build pass; desktop focused lint passes.
+- Final editor benchmark remains under the `<5 ms` per-keystroke requirement.
+
+### Basic Markdown formatting plan closed
+- Phases 1–8 are complete: audit, line breaks, inline formatting, links/images, lists/tasks, code blocks, quotes/footnotes/comments, and escaping verification.
+- Future editor syntax work must begin as a separately scoped phase and preserve the single CodeMirror rendering path and performance budget.
+
+## Editor Markdown Formatting — Phase 7: Quotes, Footnotes & Comments (@app/editor) (ADR-0071)
+
+### Completed
+- Added viewport-bounded blockquote line decorations with a continuous left-border indicator across consecutive quote lines.
+- Added numbered footnote reference and definition widgets for numeric and named definitions, including indented continuation content.
+- Matched Obsidian's inline-footnote scope: `^[text]` renders as a numbered marker only in read-only `MarkdownView`; editable `Editor` leaves it as normal Markdown text. Logged in ADR-0071.
+- Added visible, dimmed comment styling for `%%inline%%` and multiline comments in the editor. Existing `MarkdownView` hides comments rather than introducing a new reading-mode system.
+- Added mixed-syntax regressions for inline formatting, links, lists, code blocks, comments, and horizontal rules. The annotation pass skips code content.
+- Kept all work in the existing CodeMirror decoration path and visible ranges; no dependency added.
+
+### Verification
+- Phase 2–7 focused suite: 48 tests passing, including the Phase 6 inline-code styling fix and horizontal-rule regressions.
+- `@app/editor` typecheck, lint, and build pass; desktop focused lint passes.
+- Expanded editor benchmark passes the existing `<5 ms` per-keystroke assertion.
+
+### Deviation
+- Footnote click-to-definition navigation remains the documented stretch goal and was not added in this phase.
+
+## Bug Fix — Inline Code Visual Styling (@app/editor)
+
+### Root cause and fix
+- Reproduced with the existing CodeMirror JSDOM harness; the Markdown parser emitted `InlineCode`/`CodeMark`, and `livePreviewExtension` hid the delimiters correctly for both single- and double-backtick spans.
+- The code content had only the generic `t.monospace` highlight rule, whose font family was the same editor font and had no visual background, border, or distinct color. Extended that existing rule with accent color, secondary background, subtle border, small radius, and padding; no parallel decoration system was added.
+- Added coverage for single-word and multi-word spans, distinct highlighted content, delimiter behavior, double-backtick literals, cursor editing, and the existing benchmark.
+
+### Verification
+- Phase 6 focused suite: 37 tests passing.
+- `@app/editor` typecheck, lint, and build pass; latency remains under the existing `<5 ms` benchmark assertion.
+- Added a patch changeset for `@app/editor`.
+
+## Editor Markdown Formatting — Phase 6: Code Blocks (@app/editor) (ADR-0070)
+
+### Completed
+- Added live-preview decoration for single/double inline-code delimiters, fenced code delimiters/info tags, and indented code blocks while preserving literal code content.
+- Reused the existing Lezer Markdown parser for 3+ backtick/tilde fences, four-space/tab indentation, and nested fence rules; explicit 4-backtick-in-3-backtick and tilde-with-backtick cases are covered.
+- Configured CodeMirror's nested language support for JavaScript/TypeScript-family tags (`js`, `jsx`, `javascript`, `mjs`, `cjs`, `ts`, `tsx`, `typescript`) in both `Editor` and `MarkdownView`.
+- Verified code content is not parsed/decorated as Phase 3 inline formatting and code blocks nested in list items remain intact.
+- Added focused Phase 6 tests and expanded the 1,000-line benchmark to include fenced code and language resolution. No per-keystroke full-document scan or new parallel Markdown renderer was added.
+- Added ADR-0070, DECISIONS.md index entry, lockfile/package dependency, and an `@app/editor` minor changeset. Installed grammar footprint is approximately 88 KB in the workspace.
+
+### Verification
+- Phase 2–5 regression suite plus Phase 6: 35 tests passing.
+- `@app/editor` typecheck, lint, and build pass; desktop focused lint passes.
+- Expanded editor benchmark passes the existing `<5 ms` per-keystroke assertion.
+
+### Deviation
+- Syntax highlighting is intentionally limited to JavaScript/TypeScript-family fences. Python, Rust, Go, CSS, HTML, SQL, and other languages are documented as future coverage in ADR-0070 rather than added to the always-loaded editor bundle.
+
+## Bug Fix — Ordered List Numbers Not Rendering (@app/editor) (ADR-0069)
+
+### Root cause and fix
+- Reproduced through the existing CodeMirror JSDOM harness (the package has no dev/playground script). Static `1.` / `1)` lines and unordered markers rendered correctly; the failure occurred only during incremental entry because `listExtension` skipped every active-line marker. The raw `1. ` source remained, but no ordered decoration/widget existed.
+- Updated the existing list decoration path to render only the ordered numeral/delimiter on the active line. Unordered markers and task checkbox widgets retain their raw active-line editing behavior; item text remains a normal editable range.
+- Added ADR-0069 (superseding the active-line portion of ADR-0068) and a patch changeset for `@app/editor`.
+
+### Verification
+- Regression coverage now types `1. ` character-by-character and confirms the active `1.` widget, while existing coverage verifies `1.` / `1)` rendering, multiple numbered items, unordered bullets, cursor editing, and mixed list content.
+- `@app/editor` and desktop typecheck/lint pass; 30 focused list, line-break, inline, links/images, and benchmark tests pass. Expanded benchmark measured **1.043 ms/keystroke**, under 5 ms.
+
+## Editor Markdown Formatting — Phase 5: Lists & Tasks (@app/editor) (ADR-0068)
+
+### Completed
+- Added viewport-bounded `listExtension` to the existing CodeMirror live-preview path. It renders `-`, `*`, and `+` with one bullet treatment, preserves `1.` and `1)` markers, supports mixed nested lists at any valid Markdown depth, and retains raw source on the active editable line.
+- Added task widgets for `[ ]`, `[x]`, and every other one-character marker. Any non-space marker receives completed styling. Clicking a writable checkbox dispatches a CodeMirror transaction which changes only the Markdown marker; off → on writes canonical `x`, on → off writes a space.
+- Moved `ListMark` ownership out of `livePreviewExtension` to avoid competing decorations. `MarkdownView` uses the same extension in read-only mode with disabled checkboxes.
+- Kept CodeMirror's native `indentWithTab` binding as exported `listIndentKeymap`; it supports both single and multi-item selections without a custom indentation implementation.
+- Made Phase 2's `Shift+Enter` command list-aware: in an ordered item it inserts the two-space Markdown hard break plus continuation indentation at the item's content column, so it remains one numbered item.
+- Added Phase 5 tests covering all marker variants, any-character task completion and transactional toggling, deep mixed nesting, Phase 2–4 content within list items, native Tab/Shift+Tab multi-item indentation, and ordered-list Shift+Enter. Expanded the 1,000-line benchmark with task-list content and `listExtension`.
+- Added required pre-implementation plan at `plans/editor-formatter/phase-5-lists-tasks.md`, ADR-0068, and an `@app/editor` minor changeset.
+
+### Deviation from Step 0 plan
+- None. The plan's ordered-list continuation is indentation-only rather than repeating the ordered marker; this deliberately keeps the hard break inside the same list item and is reflected in the plan and ADR before implementation.
+
+### Verification
+- 29 focused editor tests pass: Phase 5 lists + Phase 2 line breaks + Phase 3 inline formatting + Phase 4 links/images + benchmark.
+- `@app/editor` typecheck, lint, and build pass.
+- Expanded 1,000-line mixed-content benchmark: **0.833 ms per keystroke** (under 5 ms; JSDOM benchmark measurement).
+- No dependency added; all per-keystroke list work is limited to visible ranges.
+
+## Editor Markdown Formatting — Phase 4: Links & Images (@app/editor) (ADR-0067)
+
+### Completed
+- Implemented unified `linkExtension` replacing `wikilinkExtension` (backward-compat re-export kept). Handles wikilinks, `[text](path.md)` internal links, `[text](https://...)` external links, and `<autolink>` URLs in a single ViewPlugin.
+- Markdown internal links resolve through the same `parseLinks` indexer lookup as wikilinks — consistent broken-link indicator (dashed underline) and `onLinkClick` dispatch.
+- External links open via `onExternalLinkClick` callback or `window.open("_blank", "noopener,noreferrer")`; `%20`-encoded URLs and `<angle-bracket>`-wrapped URLs with literal spaces parsed and navigated correctly.
+- Implemented `imageExtension` with `ImageWidget` (WidgetType): `![alt](url)`, `![alt|640x480](url)`, `![alt|100](url)`, and `![800x600](url)` (dimension-only) forms all render inline with correct width/height applied to `<img>`. `loading=lazy`/`decoding=async` — never blocks typing.
+- Both extensions iterate `view.visibleRanges` (not full doc) per update — keystroke latency **4.627 ms** on 1,000-line/350-note/100-wikilink/50-image benchmark document (under 5 ms target).
+- Added link/image styling tokens to `editorTheme` and `readOnlyEditorTheme`: `.cm-link`, `.cm-link-unresolved`, `.cm-link-external`, `.cm-image-embed`, `.cm-image-error`.
+- Updated `Editor.tsx` (added `onExternalLinkClick` prop, `imageExtension()`) and `MarkdownView.tsx` (same).
+- Exported `linkExtension`, `imageExtension`, and helpers from `packages/editor/index.ts`.
+- 8 new Phase 4 tests in `linksAndImagesExtension.test.tsx`: wikilinks, internal links, external links (including space-escaping), image dimensions, active-line reveal, Phase 3 regression combinations, read-only `MarkdownView`.
+- Updated `EditorBenchmark.test.ts` to include `imageExtension` and mixed link/image load.
+- ADR-0067 logged; DECISIONS.md updated; minor changeset added.
+
+### Verification
+- 8 Phase 4 links/images tests passing.
+- 10 Phase 3 inline formatting tests passing.
+- 5 horizontal rule tests passing.
+- 4 line break tests passing.
+- Editor benchmark typing latency: **4.627 ms per keystroke** (under 5 ms target; includes wikilinks + markdown links + images in 1,000-line doc).
+- `@app/editor` typecheck, lint, build pass cleanly.
+
+## Editor Settings Ownership — package contract correction (ADR-0065)
+
+### Completed
+
+- Moved editor font values, settings schema, defaults, validation, and storage-neutral load/save helpers into `packages/editor/editorSettings.ts`.
+- Kept SQLite and Zustand in desktop as a thin `EditorSettingsStorage` adapter; `@app/editor` has no desktop, Tauri, or persistence dependency.
+- Updated the desktop settings dialog to use the editor package's font list and validation instead of a duplicate option list.
+- Added invalid persisted-value fallback coverage and added the missing `@app/editor` source alias to desktop Vitest.
+- Restored the known-good sequential `withDbLock(() => getSetting(...))` pattern for each settings key after the combined loader caused `SQLITE_BUSY`; writes remain serialized by the existing write lock.
+
+### Verification
+
+- Desktop settings unit test: 8 tests passing.
+- `@app/editor` and desktop lint/typecheck pass.
+- No settings behavior, dependency, startup path, or per-keystroke work changed; Strict Line Breaks retains ADR-0063 semantics.
+
+## Stabilization Phase 1 — canonical note delete and duplicate (ADR-0064)
+
+### Completed
+
+- Added a Rust `delete_note` IPC command and canonical `deleteNoteInVault`: removes the file, source/target SQLite links, graph node/edges/backlinks, pending timers, dirty content, and open-tab state.
+- Added canonical `duplicateNoteInVault`: creates collision-safe `<stem> copy.md` names, synchronizes the copied H1 to its filename, writes/indexes the copy, updates the graph, and opens it.
+- Added File Explorer note context actions for Rename, Duplicate, and confirmed permanent Delete. The virtualized row rendering is now isolated in `FileTreeRow`, keeping `FileTree` below the 250-line hard cap.
+- Extended unique-note resolution with an optional preferred vault-relative path; existing new-note behavior remains `Untitled.md`.
+- Cleared three pre-existing `prefer-const` lint findings in adjacent tree/vault helpers.
+
+### Verification
+
+- 17 focused desktop tests pass across deletion, duplication, collision naming, rename, and workspace state.
+- Full desktop lint and typecheck pass; Rust `cargo check` passes (existing unused `VaultWatcher::is_paused` warning only).
+- No dependency added and no per-keystroke/indexing hot path changed.
+- Automated desktop UI dogfooding remains unavailable in this environment because the in-app browser control bridge is not exposed; source wiring and focused tests cover the interaction path.
+
+### Remaining Phase 1 work
+
+- Implement note move without overloading the existing canvas-copy drag payload.
+- Dogfood create, rename, delete, duplicate, and move in the packaged desktop app against a disposable vault.
+
+## Editor Markdown Formatting — Phase 2 line-break semantics (ADR-0063)
+
+### Completed
+
+- Added direct CodeMirror state decorations for soft newlines in paragraphs: they render as an inline space while preserving the Markdown source. Two trailing spaces remain a hard break; blank lines remain paragraph boundaries.
+- Added `Shift+Enter` handling that inserts the Markdown two-space hard-break sequence before the newline.
+- Added the persisted **Strict Line Breaks** checkbox to the existing Settings dialog, backed by the existing SQLite `settings` table (`strictLineBreaks`). Unit coverage simulates the app-restart load path.
+- Kept the shared `MarkdownView` on the same rendering path, so read-only canvas markdown embeds receive the same line-break semantics.
+
+### Deliberate scope boundary
+
+The requested default and Strict Line Breaks rules define the same rendered outcomes for soft lines, hard breaks, and paragraph boundaries. The setting is therefore persisted and available in the Editor settings now, without a divergent visual mode. No other Markdown syntax was changed.
+
+### Verification
+
+- 15 targeted desktop tests passing: soft/hard/paragraph boundaries, Shift+Enter insertion, direct inline rendering, persistence, existing store/rename behavior, and the editor benchmark.
+- `@app/editor` typecheck and lint pass; targeted desktop lint passes.
+- 1,000-line / 100-edit benchmark: **4.227 ms per keystroke**, under the 5 ms target. The direct decoration updates only the changed line neighborhood.
+- Full desktop typecheck remains blocked by a pre-existing `FileTree.tsx:268` return-type error; full desktop lint has pre-existing `prefer-const` errors in FileTree/vault files.
+
+---
+
+## Editor Markdown Formatting — Phase 1 audit (ADR-0062)
+
+### What was audited
+
+- Created ignored regression fixture: `test-vault/editor-markdown-formatting-audit.md`, covering every requested Obsidian syntax variant.
+- Verified the configured CodeMirror parser, decorations, keymaps, styles, link handling, and editor settings without changing `@app/editor`.
+- Recorded all results in [ADR-0062](docs/adr/0062-editor-markdown-formatting-gap-audit.md): CommonMark basics are present but several live-preview/interactions are partial; strikethrough, highlight, task lists, image dimensions/rendering, footnotes, and Obsidian comments are missing.
+- Confirmed `markdown()` uses strict CommonMark. Optional Lezer GFM support is installed but not configured. No Strict Line Breaks setting or distinct app reading mode exists.
+
+### Scope discipline
+
+No implementation files under `packages/editor/` changed, and no dependency was added. The audit preserves the single CodeMirror renderer chosen in ADR-0003/0048 and introduces no runtime or bundle cost.
+
+---
+
+## Obsidian-style H1 ↔ filename sync (ADR-0060)
+
+### Prerequisite built first
+No canonical rename existed (stabilization Phase 1 not yet run). Added **`renameNoteInVault`** as the single rename path before wiring H1-driven triggers — avoids duplicating rename logic.
+
+### What was implemented
+
+| Concern | Decision / behavior |
+|---|---|
+| **Debounce** | H1-driven rename scheduled at **750 ms** (matches save debounce); flushed on tab switch, close, `saveAllDirty` |
+| **Canonical rename** | `renameNoteInVault` → Rust `rename_note` → `updateWikilinksForRename` in all notes → SQLite → `applyNoteRenameState` |
+| **H1 → filename** | `scheduleH1DrivenRename` on `updateNoteContent`; sanitizes invalid chars; skips empty H1 |
+| **Filename → H1** | File-tree double-click inline rename → `renameNoteFromTree` → `renameNoteInVault({ syncH1FromFilename: true })` |
+| **Collision** | **No rename, no overwrite** — warns in console; H1/filename may diverge. Rust also rejects existing destination. |
+| **Loop guard** | Case-insensitive stem compare on both paths; skip when stems already match (prevents H1↔filename feedback loop) |
+| **ADR-0059** | Creation-time `initialNoteContent` unchanged; rename "no sync" superseded by ADR-0060 |
+
+### Files changed (key)
+- `apps/desktop/src-tauri/src/fs.rs` — `rename_note` command
+- `apps/desktop/src/vault/renameNoteInVault.ts` — canonical rename
+- `apps/desktop/src/vault/h1DrivenRename.ts` — debounced H1 trigger
+- `apps/desktop/src/vault/sanitizeFilenameStem.ts`, `extractH1Title.ts`, `syncH1ToFilename.ts`, `updateWikilinksForRename.ts`
+- `apps/desktop/src/state/useWorkspaceStore.ts` — schedule/flush integration, `renameNoteFromTree`
+- `apps/desktop/src/components/FileTree/` — double-click inline rename
+- `docs/adr/0060-bidirectional-h1-filename-sync.md`
+
+### Automated verification
+- Vault unit tests (sanitize, H1 extract/sync, wikilink propagation, rename): passing
+- Desktop state tests: passing
+- `tsc --noEmit`: clean
+
+---
+
+## HTML Support Phase 4 — No-Markdown-Inside-HTML Enforcement Complete
+
+- Formalized the HTML/Markdown boundary in [ADR-0093](docs/adr/0093-html-markdown-boundary.md): content inside a captured, contiguous HTML range is rendered only through the sanitized HTML path, while Markdown outside that range remains handled by the normal Markdown parser.
+- Added named block-level regressions proving `**bold**` and `` `code` `` remain literal inside HTML.
+- Added named inline regressions for `<u>`, `<s>`, `<span>`, and same-line `<div>`, plus a side-by-side test proving Markdown outside an inline HTML range still parses as `StrongEmphasis`.
+- Focused editor verification passes: 12 tests across the block and inline HTML suites. No rendering implementation changes were needed in this phase.
+
+## Embed Web Pages Phase 1 — Trust Model & Sandboxing Policy Complete
+
+- Decision-only phase; no embed or rendering code was added.
+- [ADR-0098](docs/adr/0098-embed-iframe-sandbox-permissions.md) fixes the
+  iframe sandbox to `allow-scripts allow-presentation`, excludes
+  `allow-same-origin`, denies camera/microphone and unnecessary Permissions
+  Policy features, and uses `no-referrer`.
+- [ADR-0099](docs/adr/0099-embed-url-host-restrictions.md) allows only parsed
+  `http(s)` URLs, rejects Tauri/file/data/custom schemes, credentials,
+  localhost, private/link-local/multicast/loopback literals, and internal
+  hostnames, with a visible blocked-content message. DNS rebinding remains an
+  explicit follow-up constraint for Phase 2's Tauri integration.
+- [ADR-0100](docs/adr/0100-embed-click-to-load.md) makes loading explicit and
+  fixed in v1: validated embeds do not make network requests until activation.
+- Research used MDN iframe sandbox/Permissions Policy/referrer guidance and
+  Tauri's remote-iframe IPC security advisory. `<iframe>` remains rejected by
+  `@app/sanitize`; Phase 2 must apply this separate policy at the renderer.
+
+## Attachments Phase 1 — Accepted Formats & Location Model Complete
+
+- Added standalone `@app/attachments` with a centralized, case-insensitive
+  provisional allowlist for common images, audio, video, and PDF extensions.
+  The authoritative accepted-formats reference was unavailable, so ADR-0108
+  and the Next Up flags explicitly require a later revision.
+- Added serializable settings for vault root, specified folder, note folder,
+  and note subfolder modes. `resolveAttachmentFolder` is pure, preserves
+  absolute specified paths, handles nested notes, and falls back to vault-root
+  relative behavior for unsaved notes. Desktop settings state loads and saves
+  the serialized model through the existing SQLite settings key/value path.
+- Added ADR-0108, ADR-0109, changeset, and eight passing unit tests. Package
+  typecheck passes. No file I/O, editor integration, or settings UI was added.
+
+Attachments Phase 2 — Filesystem Write & Filename Handling Complete
+
+- Added async `writeAttachment` with injected native filesystem operations,
+  recursive folder creation, collision checks, path-traversal rejection, and
+  structured `AttachmentWriteError` codes. Desktop supplies Tauri's native
+  `exists`, recursive `mkdir`, and `writeFile` adapter.
+- The collision convention is `image.png`, `image 1.png`, `image 2.png`,
+  recorded in [ADR-0110](docs/adr/0110-attachments-filename-collisions.md).
+  Unsupported extensions are rejected before any folder creation or write.
+- Added 16 passing attachment tests covering all four resolved target-folder
+  outputs, multi-level creation, collisions, invalid names, and structured
+  format errors. Package typecheck passes. Desktop typecheck remains blocked
+  only by the pre-existing `createNoteCrudActions.ts` `result` errors.
+
+Next up: Attachments Phase 3 — paste attachment handling. The accepted-formats
+list remains provisional until the real reference document is available.
+
+Attachments Phase 3 — Paste Handling Complete
+
+- Added one CodeMirror paste handler that intercepts only clipboard file data;
+  ordinary text paste returns to CodeMirror unchanged. Files resolve their
+  destination through Phase 1 and write through the Phase 2 native adapter.
+- Successful writes insert `![[relative/path.ext]]` only after the async write
+  completes. Named files retain their names; nameless files use the MIME-based
+  timestamp convention in [ADR-0111](docs/adr/0111-pasted-attachment-names.md).
+- Structured write errors are surfaced with their error code and no dangling
+  reference is inserted. Editor tests pass 37/37; attachments tests pass
+  16/16. Desktop typecheck remains blocked only by the existing unrelated
+  `createNoteCrudActions.ts` errors.
+
+Next up: Attachments Phase 4 — drag-and-drop attachment handling, reusing the
+same resolution/write/insert path.
+
+Attachments Phase 4 — Drag & Drop Handling Complete
+
+- Reused the Phase 3 incoming-file pipeline for external file drops. Files are
+  processed in OS order, successful references are inserted one per line at
+  the drop position, and failures do not roll back other files.
+- Added a token-based dashed editor outline for file drag-over, cleared on
+  drag-leave and drop. Drops without files are not claimed, preserving normal
+  editor drag behavior.
+- Added [ADR-0112](docs/adr/0112-shared-attachment-drop-pipeline.md) and a
+  changeset. Editor tests pass 38/38 and typecheck passes; Phase 3 paste tests
+  remain covered in the same suite.
+
+Next up: Attachments Phase 5 — settings UI for the default attachment location.
+
+Attachments Phase 5 — Settings UI Complete
+
+- Added the Files & Links attachment-location panel to Settings using the
+  exact Phase 1 four-mode schema. It uses the existing radio-group and input
+  primitives plus the native folder picker for specified folders.
+- Conditional controls render only for specified-folder and note-subfolder
+  modes. Settings write directly through the existing Zustand/SQLite state,
+  so the next paste/drop observes changes without restart.
+- Specified paths are deferred to first-use creation; empty or slash-containing
+  subfolder edits remain draft-only with inline validation, per
+  [ADR-0113](docs/adr/0113-attachment-settings-validation.md).
+- Added token-only component styles, four-state Storybook stories, and
+  interaction coverage. Component tests pass 2/2; desktop typecheck still
+  reports only the pre-existing `createNoteCrudActions.ts` errors.
+
+## Attachments Phase 6 — External File Verification Complete
+
+- The recursive watcher originally emitted only `.md` and `.canvas` paths.
+  Its existing filter now covers accepted attachment formats, case-insensitively;
+  no parallel watcher was added.
+- The supported-file inventory still feeds file-tree/all-path state and
+  wikilink resolution, while full and incremental indexing parse only
+  `.md`/`.canvas`. Binary attachments are not read as Markdown or inserted in
+  SQLite, and external removals use the existing path-refresh flow.
+- Watcher filtering and indexer reconciliation are covered by focused tests.
+  A live OS-file/WebView round trip is unavailable because this workspace has
+  no configured Tauri browser harness or running vault session.
+
+Next up: Phase 7 — regression & integration pass.
+
+## Bug Investigation — Dropped Image Not Appearing in Note (Case B)
+
+- Reproduction/evidence: `pnpm --filter @app/editor test` passes all 7 test
+  files and 38 tests, including asynchronous attachment insertion and the
+  partial-drop failure path. `handleIncomingFiles` awaits the existing writer
+  callback, dispatches the returned `![[...]]` syntax, and reports individual
+  write/format failures without inserting dangling references.
+- `Editor.tsx` wires `attachmentDropHandler` whenever the existing attachment
+  callback is supplied, and desktop's callback writes through
+  `writeAttachmentToVault` before returning the vault-relative target. This
+  confirms the write → insert pipeline is implemented; no silent insertion
+  failure was found in the package reproduction.
+- The observed lack of an inline image preview is expected Case B behavior.
+  Phase 4 and [ADR-0112](docs/adr/0112-shared-attachment-drop-pipeline.md)
+  scope dropping to writing the file and inserting `![[filename]]`; they
+  explicitly add no attachment rendering. The existing parser/link extension
+  recognizes wikilinks for resolved-link styling, while the image widget path
+  handles Markdown `![](url)` syntax, not file wikilink embeds.
+- No code change or changeset was made. The next feature is a separately
+  scoped Embed Files plan covering image/audio/PDF/etc. widgets. A live Tauri
+  screenshot was unavailable because this workspace has no running vault or
+  configured browser harness; the package-level reproduction is deterministic.
+
+## Embed Files Phase 1 — Typed Embed Link Resolution Complete
+
+- Added pure `resolveEmbedLink` to `@app/editor`. It reuses
+  `@app/indexer`'s shared candidate lookup/target parsing and
+  `@app/attachments`' centralized allowlist; no write pipeline or rendering
+  was changed.
+- Results distinguish image, audio, video, PDF, whole-note, ambiguous,
+  unresolved, and missing-heading states. Duplicate basenames return sorted
+  candidates explicitly rather than silently selecting a file.
+- Added [ADR-0114](docs/adr/0114-embed-link-ambiguity-and-typed-resolution.md)
+  and exported the resolver/types from the editor barrel. Tests cover syntax
+  produced by paste/drop for every attachment kind, notes, headings,
+  duplicates, missing files, and missing headings.
+
+## Embed Files Phase 2 — Image Embed Rendering Complete
+
+- Added `embedImageExtension` using the established structural `StateField`
+  plus `Decoration.replace({ block: true })` widget pattern. It consumes
+  Phase 1's typed resolver and is wired into both `Editor` and read-only
+  `MarkdownView`; desktop supplies its existing `convertFileSrc` media URL
+  callback.
+- Valid image embeds render lazily through native `<img loading="lazy"
+  decoding="async">`. Width/height and width-only dimension syntax reuse
+  `parseImageDimensions` from the existing external-image implementation; no
+  duplicate dimension parser was added.
+- Selection-driven decoration rebuilding follows ADR-0097/ADR-0096: the raw
+  line is visible while the cursor is inside it and the block widget returns
+  after leaving. Missing image targets show a dashed placeholder; ambiguous
+  targets show a distinct multiple-match placeholder.
+- Added 4 focused rendering/cursor tests and an `@app/editor` changeset.
+  Verification passes: editor package 9 files/49 tests, editor typecheck,
+  and the existing desktop editor benchmark test. No audio/video/PDF/note
+  rendering was added.
+
+## Attachments Phases 1–7 — Plan Closed
+
+- Regression coverage passes for attachment insertion in list, blockquote, and
+  table-cell contexts; the existing pipeline inserts exact `![[...]]` syntax
+  without rewriting surrounding Markdown structure.
+- Vault integration passes: attachment paths use the existing watcher,
+  inventory, and incremental reconciliation path; note rename preserves the
+  embed prefix/target fragments, and deletion follows the existing canonical
+  note operation. Tags do not classify embed syntax, and HTML sanitization
+  preserves it as text inside supported HTML content.
+- Performance review confirms attachment location resolution is pure and the
+  settings UI performs no filesystem work during ordinary renders/keystrokes.
+  Paste/drop writes remain asynchronous and batched into one editor dispatch;
+  multi-file partial-success coverage passes. Existing editor benchmark and
+  focused package suites remain green.
+- Final closeout is recorded in [ADR-0115](docs/adr/0115-attachments-plan-closeout.md).
+  The accepted-format list remains provisional per ADR-0108. The Attachments
+  plan does not include later audio/video/PDF/note rendering; Embed Files is a
+  separate feature. Its resolution and image-rendering phases are already
+  tracked independently, while later embed kinds remain deferred.
+
+Attachments Phases 1–7 are complete. No further Attachments phase follows
+unless a regression appears or a separately scoped Embed Files phase resumes.
+
+## YouTube Embed Thumbnail Facade — Complete
+
+- YouTube image syntax now renders a real `i.ytimg.com` `hqdefault.jpg`
+  thumbnail with a flat play overlay. The iframe remains unmounted until the
+  facade is activated, and thumbnail failures use a readable local fallback.
+- Activation mounts the same validated iframe and fixed sandbox/permissions
+  policy as raw embeds. The click handler suppresses CodeMirror mousedown
+  selection, synchronously swaps the facade, and adds `autoplay=1`; only this
+  explicit YouTube path receives `autoplay 'src'`. Generic iframes and tweet
+  cards retain their existing click-to-load behavior.
+- Added [ADR-0105](docs/adr/0105-youtube-thumbnail-facade.md) and corrective
+  [ADR-0106](docs/adr/0106-youtube-facade-click-activation.md). Editor and
+  sanitizer tests pass after the click-handling correction.
+
+## YouTube Embed WebView Sandbox Fix — Complete
+
+- Removed the unsupported `allow-presentation` token and added a recognized
+  sandbox-token regression test. Arbitrary validated iframe hosts now use the
+  strict `allow-scripts` policy.
+- Added a provider-scoped YouTube policy: only validated `www.youtube.com`
+  embeds receive `allow-scripts allow-same-origin`, which is required by the
+  player for Cache Storage/origin APIs. Source-provided sandbox values remain
+  ignored.
+- Added [ADR-0107](docs/adr/0107-provider-scoped-iframe-sandbox.md). Sanitizer
+  tests pass 17/17; editor tests pass 33/33; both package typechecks pass.
+
+## Blocked / Open Questions (archived from PROGRESS.md)
+
+- **Bundle identifier**: Provisional `com.davinci.notes` — confirm before public distribution.
+- **Badge success/warning colors**: Placeholder raw hex — need token entries.
+- **Visual regression**: Not yet configured.
+- **Total JS/CSS size budgets**: lazy chunks counted toward totals — adjust if/when configured.
+
+## Next Up (archived from PROGRESS.md, in order)
+
+- Embed Web Pages Phase 1 trust model/sandboxing policy complete (see above); Phase 2 next.
+- HTML Support cursor-navigation fix complete; phase plan tracked separately.
+- **Stabilization pass Phase 1** (`plans/stablize.md`): implement note move and dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+- **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+- **Unlinked Mentions Detection**
+- **Inline Property Editing**
+- **Outline Scroll Synchronization**
+- Add success/warning semantic color tokens
+- Chromatic / Playwright screenshot regression
+- Fix `CanvasBenchmark.test.ts` lint
+
+## 2026-09-01 — Sync Phase 2 Scope Correction & Phase 3 Implementation
+
+- **Scope Correction (Part A)**:
+  - Added `https://www.googleapis.com/auth/drive.appdata` additively alongside `https://www.googleapis.com/auth/drive.file` in `packages/sync-client/driveAuth.ts`.
+  - Confirmed `appDataFolder` access requirement: updated Drive API calls in `packages/sync-client/driveApi.ts` to use `spaces=appDataFolder` and `parents: ["appDataFolder"]`. Manifests are stored in hidden, app-scoped storage (`manifests/<deviceId>.json`) to prevent user direct file editing/deletion in Drive UI.
+  - Recorded and indexed [ADR-0121](docs/adr/0121-drive-appdata-scope-correction.md), explicitly amending [ADR-0118](docs/adr/0118-drive-file-oauth-verification.md) and [ADR-0120](docs/adr/0120-drive-oauth-authentication-and-verification.md). Cited Google Drive API auth documentation (`https://developers.google.com/workspace/drive/api/guides/about-auth`) confirming both scopes are "Recommended / Non-sensitive", keeping the app in the basic verification tier.
+- **Manual Re-Test Flagged (Part B)**:
+  - Flagged human manual re-verification of the expanded consent screen (requesting both `drive.file` and `drive.appdata` permissions) as an outstanding manual step before Phase 3 is considered fully unblocked for production.
+- **Phase 3 Implementation (Part C)**:
+  - Implemented per-device manifest storage in Drive (`DriveManifestStore`).
+  - Implemented Changes API delta tracking (`listChanges`) using `startPageToken` and `spaces=appDataFolder`.
+  - Implemented three-way diff (`classifySyncDiff`) supporting push, pull, conflict, and no-op.
+  - Implemented deduplicated content-hash-keyed transfer (`uploadContent` / `uploadContentBatch`) and safe change application (`applyPulledChanges`).
+- **Verification**:
+  - All 19 vitest tests in `@app/sync-client` pass cleanly.
+
+## 2026-09-01 — Sync Phase 4 Conflict Resolution & Data Loss Prevention
+
+- **Text File Three-Way Merge**:
+  - Selected `node-diff3` (unpacked ~151 KB, gzipped ~3.5 KB, zero dependencies) for line-based diff3 merge in `packages/sync-client/conflictResolver.ts`.
+  - Non-overlapping text edits merge automatically into clean text (`hasConflict: false`, `kind: "text-merge-clean"`).
+  - Overlapping text edits insert inline markers (`<<<<<<< local`, `=======`, `>>>>>>> remote`) and return `hasConflict: true` with `kind: "text-merge-conflict"` for UI surfacing.
+- **Wikilink Safety Verification (Adversarial Test)**:
+  - Tested conflict-marked content containing `[[Project Alpha|Local Alias]]` and `[[Project Alpha|Remote Alias]]` against the real `@app/indexer` `parseLinks` parser.
+  - Confirmed indexer parses conflict markers cleanly without panicking, throwing errors, or corrupting link definitions.
+- **Canvas JSON Safety Verification (Adversarial Test)**:
+  - Evaluated simultaneous edits on `.canvas` files.
+  - Decision: `.canvas` files return `false` for `isTextMergeable` (atomic/binary conflict resolution). Line-based diff3 merge on JSON files introduces `<<<<<<<` conflict markers or invalid JSON syntax, causing `JSON.parse` to throw `SyntaxError` and corrupting canvas files.
+  - Atomic resolution generates `diagram (iPad copy).canvas`. Both local and remote versions were parsed with `JSON.parse` in adversarial tests — confirmed 100% valid, openable JSON Canvas 1.0 files without syntax errors.
+- **Binary File Conflicts**:
+  - Binary files (`.png`, `.jpg`, `.pdf`) and `.canvas` files generate `<name> (<device-name> copy).<ext>`.
+  - Filename collisions chain to the space-separated numeric suffix convention from ADR-0110 (`<name> (<device-name> copy) 1.<ext>`).
+- **Delete vs Edit**:
+  - Edited version wins over deletion (deletion treated as a no-op).
+  - Surfaced to user via `surfacedMessage` / event (`delete-vs-edit-local-wins` or `delete-vs-edit-remote-wins`).
+- **ADR & Indexing**:
+  - Recorded and indexed [ADR-0122](docs/adr/0122-sync-conflict-resolution-and-safety.md).
+- **Verification**:
+  - All 29 vitest tests in `@app/sync-client` pass cleanly.
+
+## 2026-09-01 — Sync Phase 5 Syncthing / Folder Sync Mode
+
+- **Watcher Burst Audit & Optimization**:
+  - Audited `reconcileVaultChanges` in `VaultIndexer.ts`: refactored `readNote` file I/O calls to run asynchronously in parallel before opening the SQLite `BEGIN IMMEDIATE` transaction lock.
+  - Reduced SQLite transaction lock duration to ~1–2 ms.
+  - Benchmark: Verified a burst of 50 updated files + 2 deleted files reconciled in 452 ms without `SQLITE_BUSY` errors, UI freezes, or duplicate index entries.
+- **Syncthing Conflict Recognition & Indexing Policy**:
+  - Implemented `isSyncthingConflictPath` matching `.sync-conflict-*` filename patterns.
+  - File tree displays conflict files with `data-is-conflict="true"` and a visual `[Conflict]` badge.
+  - Conflict files remain fully indexed in SQLite/FTS5 and graph view to prevent hiding offline text from search.
+- **SyncConflictsPanel**:
+  - Created `SyncConflictsPanel` component (`SyncConflictsPanel.tsx` + `SyncConflictsPanel.test.tsx`) for managing, opening, and deleting Syncthing conflict files.
+- **ADR & Indexing**:
+  - Recorded and indexed [ADR-0123](docs/adr/0123-syncthing-folder-sync-mode-and-watcher-burst-robustness.md).
+
+## 2026-09-01 — Sync Phase 6 Sync Setup & Mode Configuration UI
+
+- **Asymmetric Framing**:
+  - Created `SyncSettingsPanel` with explicit asymmetric visual hierarchy.
+  - Google Drive is highlighted as the primary recommended built-in path (`<Badge variant="primary">Recommended</Badge>`), while Syncthing/folder sync is presented as secondary (`<Badge variant="secondary">External</Badge>`).
+- **Opt-in Default & Mode Isolation**:
+  - Vault sync defaults to `"off"`.
+  - Configured vaults display mode-specific status and management controls without exposing an in-place mode-switch button. Disconnecting Drive returns vault state to `"off"`.
+- **Component & Integration**:
+  - Shipped `SyncSettingsPanel.tsx`, `SyncSettingsPanel.module.scss`, `SyncSettingsPanel.stories.tsx`, `SyncSettingsPanel.test.tsx`, and `index.ts`.
+  - Integrated into `SettingsDialog.tsx` and workspace store (`useWorkspaceStore.ts`).
+- **ADR & Indexing**:
+  - Recorded and indexed [ADR-0124](docs/adr/0124-sync-settings-asymmetric-framing-and-mode-isolation.md).
+- **Verification**:
+  - All 151 tests in `@app/desktop` and 29 tests in `@app/sync-client` pass cleanly.
+
+## 2026-09-01 — Sync Phase 7 Regression, Performance Pass & Sync Plan Closeout
+
+- **Fast-Path Skip & Large Vault Performance**:
+  - Built `packages/sync-client/syncRegressionAndPerformance.test.ts`.
+  - Confirmed 350-file manifest incremental generation skips re-hashing when `size` and `mtimeMs` match metadata (0 re-hashes, < 1.5 ms execution time).
+  - Confirmed 350-item three-way diff classification completes in < 2 ms.
+- **Multi-Format Asset Handling**:
+  - Confirmed `.canvas` files use atomic copy resolution to prevent JSON syntax corruption.
+  - Confirmed binary files (`.png`, `.jpg`, `.pdf`) use device-named copies with numeric collision chaining.
+  - Confirmed text notes (`.md`) use line-based `diff3` three-way merge.
+- **Editor Latency Integrity**:
+  - Confirmed background reconciliation operations do not degrade editor responsiveness (`EditorBenchmark.test.ts` maintained at < 1.0 ms transaction latency).
+- **Final Sync Closeout ADR**:
+  - Authored and indexed [ADR-0125](docs/adr/0125-comprehensive-sync-architecture-closeout.md) summarizing the complete sync architecture across Phases 0–7.
+- **Total Test Suite**:
+  - All 183 tests pass cleanly (32/32 in `@app/sync-client`, 151/151 in `@app/desktop`).
+
+
+
+

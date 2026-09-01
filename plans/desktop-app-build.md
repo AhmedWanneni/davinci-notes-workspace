@@ -195,7 +195,7 @@ Build order (one fully "done" per session, per `design-system-build-prompt.md`'s
 ## What's Deliberately Out of Scope for This Plan
 
 - **Mobile app** — separate roadmap, reuses `packages/indexer`, `packages/sync-client`, `packages/design-system` once desktop proves the pattern out (per `mobile-stack-architecture.md`)
-- **Sync server** — desktop works fully offline through this entire plan; sync is a distinct feature added after desktop v1 is stable, not a dependency of it
+- **Sync** — desktop works fully offline through this entire plan; Drive/folder sync is a distinct feature added after desktop v1 is stable, not a dependency of it
 - **Plugin system** — explicitly deferred per earlier decisions, revisit only once core app is solid
 
 ---

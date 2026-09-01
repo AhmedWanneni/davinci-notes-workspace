@@ -16,6 +16,12 @@ describe("updateWikilinksForRename", () => {
     );
   });
 
+  it("preserves embed prefixes while renaming embedded note targets", () => {
+    expect(updateWikilinksForRename("![[Old#Overview]]", "Old", "New")).toBe(
+      "![[New#Overview]]",
+    );
+  });
+
   it("leaves unrelated links unchanged", () => {
     const content = "[[Other Note]]";
     expect(updateWikilinksForRename(content, "Old", "New")).toBe(content);

@@ -62,12 +62,16 @@ export function FileTreeRow({
   const [isDragOver, setIsDragOver] = useState(false);
   const isFile = item.node.type === "file";
   const displayTitle = item.node.name.replace(/\.(md|canvas)$/i, "");
+  const isConflict = Boolean(
+    isFile && item.node.path && /\.sync-conflict-[^/]+$/i.test(item.node.path),
+  );
 
   return (
     <div
       className="file-tree__row"
       data-active={isActive || undefined}
       data-drag-over={isDragOver || undefined}
+      data-is-conflict={isConflict || undefined}
       draggable={isFile}
       onDragStart={(event) => {
         if (!isFile) {
@@ -143,6 +147,7 @@ export function FileTreeRow({
           displayTitle
         )}
       </span>
+      {isConflict && <span className="file-tree__conflict-chip">Conflict</span>}
       {isDirty && <span className="file-tree__dirty-dot" />}
     </div>
   );

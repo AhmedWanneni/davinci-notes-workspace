@@ -90,44 +90,55 @@ export async function reconcileVaultChanges(
   return withVaultWatchSuppressed(async () => {
     const allPaths = await listNotes();
     const pathSet = new Set(allPaths);
-    const db = await getVaultIndexDb();
     let updated = 0;
+
+    const changedNotes: Note[] = [];
+    const extraRemovedPaths: string[] = [];
+
+    // Read all changed notes in parallel before starting the SQLite transaction
+    await Promise.all(
+      batch.changed.map(async (changedPath) => {
+        if (!isIndexedNotePath(changedPath)) {
+          return;
+        }
+        if (!pathSet.has(changedPath)) {
+          extraRemovedPaths.push(changedPath);
+          return;
+        }
+
+        try {
+          const file = await readNote(changedPath);
+          const note = noteFromMarkdown(
+            changedPath,
+            file.content,
+            file.mtime,
+            allPaths,
+          );
+          changedNotes.push(note);
+        } catch {
+          // File was deleted/unreadable during sync burst; treat as removed
+          extraRemovedPaths.push(changedPath);
+        }
+      }),
+    );
+
+    const allRemoved = Array.from(
+      new Set([...batch.removed, ...extraRemovedPaths]),
+    );
+    const db = await getVaultIndexDb();
 
     await db.execute("BEGIN IMMEDIATE");
     try {
-      for (const removed of batch.removed) {
+      for (const removed of allRemoved) {
         await removeNoteFromIndex(db, removed);
         if (tagIndex) removeNoteFromTagIndex(tagIndex, removed);
         updated += 1;
       }
 
-      const changedNotes: Note[] = [];
-      for (const changedPath of batch.changed) {
-        if (!isIndexedNotePath(changedPath)) {
-          updated += 1;
-          continue;
-        }
-        if (!pathSet.has(changedPath)) {
-          await removeNoteFromIndex(db, changedPath);
-          if (tagIndex) removeNoteFromTagIndex(tagIndex, changedPath);
-          updated += 1;
-          continue;
-        }
-
-        const file = await readNote(changedPath);
-        const note = noteFromMarkdown(
-          changedPath,
-          file.content,
-          file.mtime,
-          allPaths,
-        );
-        changedNotes.push(note);
+      for (const note of changedNotes) {
         if (tagIndex) updateTagIndexForNote(tagIndex, note);
+        if (graph) updateGraphForNote(graph, note);
         updated += 1;
-
-        if (graph) {
-          updateGraphForNote(graph, note);
-        }
       }
 
       if (changedNotes.length > 0) {

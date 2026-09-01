@@ -33,7 +33,7 @@ fn is_safe_relative_path(relative: &str) -> bool {
       .all(|c| matches!(c, Component::Normal(_)))
 }
 
-fn resolve_in_vault(vault_root: &Path, relative: &str) -> Result<PathBuf, String> {
+pub(crate) fn resolve_in_vault(vault_root: &Path, relative: &str) -> Result<PathBuf, String> {
   if !is_safe_relative_path(relative) {
     return Err(format!("Invalid vault-relative path: {relative}"));
   }
@@ -78,7 +78,7 @@ fn vault_relative(vault_root: &Path, absolute: &Path) -> Option<String> {
     .map(|p| p.to_string_lossy().replace('\\', "/"))
 }
 
-fn collect_vault_paths(vault_root: &Path) -> Result<Vec<String>, String> {
+pub(crate) fn collect_vault_paths(vault_root: &Path) -> Result<Vec<String>, String> {
   let mut paths = Vec::new();
 
   for entry in WalkDir::new(vault_root)

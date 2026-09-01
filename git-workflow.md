@@ -118,7 +118,7 @@ Local dev → Staging → Pre-release (RC) → Production
 
 **Mobile**: staging = internal dev builds (TestFlight internal / Play internal track), RC = TestFlight external / Play closed testing, prod = App Store / Play production track. This maps directly onto what Apple/Google already provide — don't invent a parallel system.
 
-**Sync server**: staging and prod as genuinely separate deployments with separate databases — never point a staging client at the prod sync server, and vice versa. Environment-scoped API keys/config per app build.
+**Sync**: Drive credentials and any folder-tool configuration are client/user scoped; there is no project-operated sync deployment or server database to separate by environment.
 
 ## 6. Versioning & Release
 
@@ -174,7 +174,6 @@ On `main`:
 ```
 /packages/design-system/  @design-lead
 /packages/sync-client/     @backend-lead
-/services/sync-server/      @backend-lead
 /apps/desktop/                @desktop-lead
 /apps/mobile/                   @mobile-lead
 ```

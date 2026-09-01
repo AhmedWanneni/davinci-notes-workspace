@@ -11,11 +11,23 @@ import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { openVaultFromPicker } from "../../vault";
 import { AttachmentLocationSettings } from "../AttachmentLocationSettings";
 
+import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
+
 interface SettingsDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   vaultPath: string | null;
   onVaultSwitched: (newPath: string) => void;
+  syncMode?: SyncMode;
+  onSelectSyncMode?: (mode: SyncMode) => void;
+  driveAccountEmail?: string | null;
+  isDriveSignedIn?: boolean;
+  isDriveSyncing?: boolean;
+  onDriveSignIn?: () => void;
+  onDriveDisconnect?: () => void;
+  onDriveRefresh?: () => void;
+  onDriveSyncNow?: () => void;
+  onOpenConflictsPanel?: () => void;
 }
 
 export function SettingsDialog({
@@ -23,6 +35,16 @@ export function SettingsDialog({
   onOpenChange,
   vaultPath,
   onVaultSwitched,
+  syncMode = "off",
+  onSelectSyncMode,
+  driveAccountEmail,
+  isDriveSignedIn = false,
+  isDriveSyncing = false,
+  onDriveSignIn,
+  onDriveDisconnect,
+  onDriveRefresh,
+  onDriveSyncNow,
+  onOpenConflictsPanel,
 }: SettingsDialogProps) {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const setEditorFont = useWorkspaceStore((state) => state.setEditorFont);
@@ -30,8 +52,12 @@ export function SettingsDialog({
   const setStrictLineBreaks = useWorkspaceStore(
     (state) => state.setStrictLineBreaks,
   );
-  const attachmentSettings = useWorkspaceStore((state) => state.attachmentSettings);
-  const setAttachmentSettings = useWorkspaceStore((state) => state.setAttachmentSettings);
+  const attachmentSettings = useWorkspaceStore(
+    (state) => state.attachmentSettings,
+  );
+  const setAttachmentSettings = useWorkspaceStore(
+    (state) => state.setAttachmentSettings,
+  );
 
   const handleSwitchVault = async () => {
     try {
@@ -107,6 +133,24 @@ export function SettingsDialog({
             settings={attachmentSettings}
             onChange={setAttachmentSettings}
           />
+
+          <Divider />
+
+          <section className="settings-dialog__section">
+            <SyncSettingsPanel
+              mode={syncMode}
+              onSelectMode={(mode) => onSelectSyncMode?.(mode)}
+              driveAccountEmail={driveAccountEmail}
+              isDriveSignedIn={isDriveSignedIn}
+              isDriveSyncing={isDriveSyncing}
+              onDriveSignIn={onDriveSignIn}
+              onDriveSignOut={onDriveDisconnect}
+              onDriveRefresh={onDriveRefresh}
+              onDriveSyncNow={onDriveSyncNow}
+              vaultPath={vaultPath}
+              onOpenConflictsPanel={onOpenConflictsPanel}
+            />
+          </section>
 
           <Divider />
 

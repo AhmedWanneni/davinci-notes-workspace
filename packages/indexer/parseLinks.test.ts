@@ -163,4 +163,31 @@ describe("parseLinks", () => {
     );
     expect(links.some((link) => link.targetRaw === "ghost-note")).toBe(false);
   });
+
+  it("parses wikilinks inside 3-way-merge conflict markers safely", () => {
+    const mergedContent =
+      "intro\n<<<<<<< Laptop\n[[Project Alpha|Local Alias]]\n=======\n[[Project Alpha|Remote Alias]]\n>>>>>>> Desktop\noutro";
+    const links = parseLinks(mergedContent, {
+      notePaths: ["Project Alpha.md", "notes/project.md"],
+      sourcePath: "notes/project.md",
+    });
+
+    expect(links).toHaveLength(2);
+    expect(links[0].targetRaw).toBe("Project Alpha");
+    expect(links[0].displayText).toBe("Local Alias");
+    expect(links[1].targetRaw).toBe("Project Alpha");
+    expect(links[1].displayText).toBe("Remote Alias");
+  });
+
+  it("handles conflict markers that split wikilink syntax gracefully", () => {
+    const malformedText =
+      "Prefix\n<<<<<<< local\n[[Note A]]\n=======\n[[Note B]]\n>>>>>>> remote\nSuffix";
+    const links = parseLinks(malformedText, {
+      notePaths: ["Note A.md", "Note B.md"],
+      sourcePath: "main.md",
+    });
+
+    expect(links).toHaveLength(2);
+    expect(links.map((link) => link.targetRaw)).toEqual(["Note A", "Note B"]);
+  });
 });

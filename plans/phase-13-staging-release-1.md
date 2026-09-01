@@ -56,7 +56,7 @@ Set up the staging release infrastructure, reconstruct changesets for Phase 1–
 
 #### [NEW] [docs/releases/v0.1.0-rc.1.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/docs/releases/v0.1.0-rc.1.md)
 - Detail all implemented features (Vault loading, CodeMirror 6 live-preview editor, Wikilinks, Backlinks panel, Cmd+K Quick Switcher, D3 Force Graph, Persistent Settings, Virtualized File Tree).
-- Clearly document deliberately out-of-scope items (Mobile app, Sync server/client live sync, Plugin system, Light theme).
+- Clearly document deliberately out-of-scope items (Mobile app, live Drive/folder sync, Plugin system, Light theme).
 - List known issues and deferred items (provisional bundle ID, local unsigned binary Gatekeeper note, badge success/warning token placeholders).
 
 ---

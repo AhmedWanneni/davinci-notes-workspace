@@ -50,6 +50,10 @@ export default defineConfig({
         find: "@app/indexer",
         replacement: path.join(repoRoot, "packages/indexer/index.ts"),
       },
+      {
+        find: "@app/sync-client",
+        replacement: path.join(repoRoot, "packages/sync-client/index.ts"),
+      },
     ],
   },
   server: {

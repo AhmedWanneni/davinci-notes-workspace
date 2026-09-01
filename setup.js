@@ -7,8 +7,7 @@ const packages = [
   'packages/indexer',
   'packages/sync-client',
   'apps/desktop',
-  'apps/mobile',
-  'services/sync-server'
+  'apps/mobile'
 ];
 
 for (const pkg of packages) {

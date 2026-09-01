@@ -1,7 +1,7 @@
 # ADR-0008: Manifest-diff file sync, not CRDT (Yjs)
 
 ## Status
-Accepted
+Superseded by [ADR-0116](0116-sync-via-drive-syncthing-no-owned-backend.md)
 
 ## Context
 The actual problem is single-user, multi-device, rarely-simultaneous editing — not live multi-user collaboration. CRDTs solve a harder problem than the one that exists.

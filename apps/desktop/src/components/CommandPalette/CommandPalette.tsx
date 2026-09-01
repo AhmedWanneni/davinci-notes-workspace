@@ -11,6 +11,9 @@ interface CommandPaletteProps {
   onSelectNote: (path: string) => void;
   onOpenSettings?: () => void;
   onOpenTags?: () => void;
+  onDriveSignIn?: () => void;
+  onDriveDisconnect?: () => void;
+  onDriveRefresh?: () => void;
 }
 
 export function CommandPalette({
@@ -19,6 +22,9 @@ export function CommandPalette({
   onSelectNote,
   onOpenSettings,
   onOpenTags,
+  onDriveSignIn,
+  onDriveDisconnect,
+  onDriveRefresh,
 }: CommandPaletteProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const openNotes = useWorkspaceStore((state) => state.openNotes);
@@ -61,6 +67,24 @@ export function CommandPalette({
       title: "Browse Tags",
       recencyScore: 400,
     });
+    targets.push({
+      isCommand: true,
+      id: "action:drive-sign-in",
+      title: "Sign in to Drive",
+      recencyScore: 300,
+    });
+    targets.push({
+      isCommand: true,
+      id: "action:drive-disconnect",
+      title: "Disconnect Drive",
+      recencyScore: 290,
+    });
+    targets.push({
+      isCommand: true,
+      id: "action:drive-refresh",
+      title: "Refresh Drive Session",
+      recencyScore: 280,
+    });
     return targets;
   }, [allNotePaths, openNotes]);
 
@@ -90,6 +114,14 @@ export function CommandPalette({
     }));
   }, [query, preparedTargets]);
 
+  const runCommand = (id?: string) => {
+    if (id === "action:settings") onOpenSettings?.();
+    if (id === "action:tags") onOpenTags?.();
+    if (id === "action:drive-sign-in") onDriveSignIn?.();
+    if (id === "action:drive-disconnect") onDriveDisconnect?.();
+    if (id === "action:drive-refresh") onDriveRefresh?.();
+  };
+
   // Reset selection when results change
   useEffect(() => {
     setSelectedIndex(0);
@@ -112,10 +144,7 @@ export function CommandPalette({
         const selected = results[selectedIndex];
         if (selected) {
           if (selected.obj.isCommand) {
-            if (selected.obj.id === "action:settings" && onOpenSettings) {
-              onOpenSettings();
-            }
-            if (selected.obj.id === "action:tags" && onOpenTags) onOpenTags();
+            runCommand(selected.obj.id);
           } else if (selected.obj.path) {
             onSelectNote(selected.obj.path);
           }
@@ -173,9 +202,7 @@ export function CommandPalette({
                   className="command-palette__item"
                   onClick={() => {
                     if (isCommand) {
-                      if (result.obj.id === "action:settings" && onOpenSettings)
-                        onOpenSettings();
-                      if (result.obj.id === "action:tags" && onOpenTags) onOpenTags();
+                      runCommand(result.obj.id);
                     } else if (result.obj.path) {
                       onSelectNote(result.obj.path);
                     }
