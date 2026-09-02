@@ -1,0 +1,12 @@
+{
+  "id": "sample-vault-command",
+  "name": "Sample Vault Command",
+  "version": "1.0.0",
+  "minAppVersion": "0.1.0",
+  "description": "A small command that writes and reads a vault file.",
+  "author": "Your Name",
+  "main": "main.js",
+  "permissions": ["vault:read", "vault:write", "commands"],
+  "license": "MIT",
+  "keywords": ["example", "vault", "command"]
+}

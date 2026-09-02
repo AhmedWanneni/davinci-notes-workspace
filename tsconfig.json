@@ -14,6 +14,8 @@
       "@app/design-system": ["packages/design-system/index.ts"],
       "@app/editor": ["packages/editor/index.ts"],
       "@app/indexer": ["packages/indexer/index.ts"],
+      "@app/plugin-api": ["packages/plugin-api/index.ts"],
+      "@app/plugin-runtime": ["packages/plugin-runtime/index.ts"],
       "@app/sync-client": ["packages/sync-client/index.ts"]
     }
   },

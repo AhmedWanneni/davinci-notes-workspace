@@ -1,0 +1,11 @@
+{
+  "name": "sample-vault-command",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

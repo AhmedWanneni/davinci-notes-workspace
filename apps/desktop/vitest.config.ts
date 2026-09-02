@@ -24,6 +24,11 @@ export default defineConfig({
       "@app/editor": path.join(repoRoot, "packages/editor/index.ts"),
       "@app/indexer": path.join(repoRoot, "packages/indexer/index.ts"),
       "@app/sync-client": path.join(repoRoot, "packages/sync-client/index.ts"),
+      "@app/plugin-api": path.join(repoRoot, "packages/plugin-api/index.ts"),
+      "@app/plugin-runtime": path.join(
+        repoRoot,
+        "packages/plugin-runtime/index.ts",
+      ),
     },
   },
   test: {

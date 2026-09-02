@@ -54,6 +54,14 @@ export default defineConfig({
         find: "@app/sync-client",
         replacement: path.join(repoRoot, "packages/sync-client/index.ts"),
       },
+      {
+        find: "@app/plugin-api",
+        replacement: path.join(repoRoot, "packages/plugin-api/index.ts"),
+      },
+      {
+        find: "@app/plugin-runtime",
+        replacement: path.join(repoRoot, "packages/plugin-runtime/index.ts"),
+      },
     ],
   },
   server: {

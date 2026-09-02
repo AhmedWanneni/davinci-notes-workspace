@@ -4,6 +4,7 @@ import fuzzysort from "fuzzysort";
 import { FileText, Gear } from "@phosphor-icons/react";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { EmptyState } from "../EmptyState";
+import type { RegisteredPluginCommand } from "@app/plugin-runtime";
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface CommandPaletteProps {
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
+  pluginCommands?: RegisteredPluginCommand[];
 }
 
 export function CommandPalette({
@@ -25,6 +27,7 @@ export function CommandPalette({
   onDriveSignIn,
   onDriveDisconnect,
   onDriveRefresh,
+  pluginCommands = [],
 }: CommandPaletteProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const openNotes = useWorkspaceStore((state) => state.openNotes);
@@ -95,8 +98,16 @@ export function CommandPalette({
       title: "Refresh Drive Session",
       recencyScore: 280,
     });
+    for (const command of pluginCommands) {
+      targets.push({
+        isCommand: true,
+        id: `plugin:${command.id}`,
+        title: command.name,
+        recencyScore: 200,
+      });
+    }
     return targets;
-  }, [allNotePaths, openNotes, useVimMode]);
+  }, [allNotePaths, openNotes, useVimMode, pluginCommands]);
 
   const results = useMemo(() => {
     if (!query) {
@@ -131,6 +142,9 @@ export function CommandPalette({
     if (id === "action:drive-sign-in") onDriveSignIn?.();
     if (id === "action:drive-disconnect") onDriveDisconnect?.();
     if (id === "action:drive-refresh") onDriveRefresh?.();
+    const pluginId = id?.startsWith("plugin:") ? id.slice(7) : undefined;
+    const command = pluginCommands.find((item) => item.id === pluginId);
+    if (command) void command.callback();
   };
 
   // Reset selection when results change

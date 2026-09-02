@@ -20,6 +20,8 @@
     "@app/design-system": "workspace:*",
     "@app/editor": "workspace:*",
     "@app/indexer": "workspace:*",
+    "@app/plugin-api": "workspace:*",
+    "@app/plugin-runtime": "workspace:*",
     "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-dialog": "^1.1.23",
     "@tanstack/react-virtual": "^3.14.9",

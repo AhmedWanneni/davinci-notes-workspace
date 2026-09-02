@@ -5,9 +5,11 @@ import { AppTabs } from "./components/AppTabs";
 import { EditorArea } from "./components/EditorArea";
 import { IconRail } from "./components/IconRail";
 import { RightSidebar } from "./components/RightSidebar";
+import { PluginViewLeaf } from "./components/PluginViewLeaf";
 import { StatusBar } from "./components/StatusBar";
 import { VaultWelcomeView } from "./components/VaultWelcomeView";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
+import { usePluginStore } from "./state/usePluginStore";
 import {
   getDriveAccessToken,
   openDriveAuthorizationUrl,
@@ -100,9 +102,18 @@ export function App() {
     openPicker,
   } = useVaultSession();
 
+  const initPlugins = usePluginStore((state) => state.initPlugins);
+  const pluginCommands = usePluginStore((state) => state.commands);
+  const pluginManager = usePluginStore((state) => state.pluginManager);
+  const openViewId = usePluginStore((state) => state.openViewId);
+
   useEffect(() => {
     void loadSettings();
   }, [loadSettings]);
+
+  useEffect(() => {
+    void initPlugins(vaultPath);
+  }, [vaultPath, initPlugins]);
 
   useEffect(() => {
     const root = document.body.style;
@@ -293,12 +304,17 @@ export function App() {
         />
 
         <main className="app-shell__main">
-          <EditorArea
-            activeNotePath={activeNotePath}
-            allNotePaths={allNotePaths}
-            onLinkClick={(t) => void handleLinkClick(t)}
-            onTagClick={handleTagClick}
-          />
+          {openViewId && pluginManager ? (
+            <PluginViewLeaf manager={pluginManager} viewId={openViewId} />
+          ) : (
+            <EditorArea
+              activeNotePath={activeNotePath}
+              allNotePaths={allNotePaths}
+              onLinkClick={(t) => void handleLinkClick(t)}
+              onTagClick={handleTagClick}
+              pluginManager={pluginManager}
+            />
+          )}
         </main>
 
         <RightSidebar
@@ -373,6 +389,7 @@ export function App() {
             onDriveSignIn={() => void handleDriveSignIn()}
             onDriveRefresh={() => void handleDriveRefresh()}
             onDriveDisconnect={() => void handleDriveDisconnect()}
+            pluginCommands={pluginCommands}
           />
         )}
       </Suspense>

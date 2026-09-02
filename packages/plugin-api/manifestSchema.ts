@@ -1,0 +1,103 @@
+import { PLUGIN_PERMISSIONS } from "./manifestTypes.js";
+
+/**
+ * Standard JSON Schema definition for DaVinci Notes plugin manifests.
+ * Conforms to JSON Schema Draft-07.
+ */
+export const PLUGIN_MANIFEST_JSON_SCHEMA = {
+  $schema: "http://json-schema.org/draft-07/schema#",
+  title: "DaVinci Notes Plugin Manifest",
+  description: "Schema for DaVinci Notes plugin manifest.json files",
+  type: "object",
+  required: [
+    "id",
+    "name",
+    "version",
+    "minAppVersion",
+    "description",
+    "author",
+    "main",
+  ],
+  additionalProperties: false,
+  properties: {
+    id: {
+      type: "string",
+      pattern: "^[a-zA-Z0-9_-]+$",
+      minLength: 1,
+      maxLength: 100,
+      description:
+        "Unique plugin identifier (alphanumeric, dashes, underscores).",
+    },
+    name: {
+      type: "string",
+      minLength: 1,
+      maxLength: 100,
+      description: "Human-readable plugin name.",
+    },
+    version: {
+      type: "string",
+      description: "Plugin release version adhering to SemVer 2.0.0.",
+    },
+    minAppVersion: {
+      type: "string",
+      description: "Minimum required DaVinci Notes version (SemVer 2.0.0).",
+    },
+    description: {
+      type: "string",
+      maxLength: 500,
+      description: "Short description of the plugin's capabilities.",
+    },
+    author: {
+      type: "string",
+      minLength: 1,
+      maxLength: 100,
+      description: "Plugin author name or organization.",
+    },
+    main: {
+      type: "string",
+      minLength: 1,
+      description:
+        "Relative path to entry JavaScript file inside the plugin folder.",
+    },
+    isDesktopOnly: {
+      type: "boolean",
+      default: false,
+      description: "Whether the plugin requires desktop-specific capabilities.",
+    },
+    permissions: {
+      type: "array",
+      items: {
+        type: "string",
+        enum: PLUGIN_PERMISSIONS,
+      },
+      uniqueItems: true,
+      default: [],
+      description: "Capability-scoped permissions requested by the plugin.",
+    },
+    authorUrl: {
+      type: "string",
+      description: "Optional author homepage, repository, or profile URL.",
+    },
+    fundingUrl: {
+      type: "string",
+      description: "Optional donation or sponsorship URL.",
+    },
+    license: {
+      type: "string",
+      description: "Optional SPDX license identifier (e.g. MIT, Apache-2.0).",
+    },
+    styles: {
+      type: "string",
+      description:
+        "Optional relative path to CSS stylesheet within the plugin directory.",
+    },
+    keywords: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+      uniqueItems: true,
+      description: "Optional keywords for discovery in the plugin registry.",
+    },
+  },
+} as const;

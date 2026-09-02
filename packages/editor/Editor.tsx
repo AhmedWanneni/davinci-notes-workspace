@@ -49,6 +49,10 @@ import {
   attachmentPasteHandler,
   type PasteAttachmentHandler,
 } from "./pasteAttachment";
+import {
+  createEditorPluginAdapter,
+  type EditorPluginAdapter,
+} from "./pluginEditorAdapter";
 
 export interface EditorProps {
   value: string;
@@ -66,6 +70,7 @@ export interface EditorProps {
   onSaveNoteNow?: (path: string) => Promise<void>;
   onCloseNote?: (path: string) => Promise<void>;
   onCloseAllNotes?: () => Promise<void>;
+  onEditorReady?: (editor: EditorPluginAdapter | null) => void;
 }
 
 export function Editor({
@@ -84,9 +89,11 @@ export function Editor({
   onSaveNoteNow,
   onCloseNote,
   onCloseAllNotes,
+  onEditorReady,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const pluginEditorRef = useRef<EditorPluginAdapter | null>(null);
 
   // Compartments for reactive updates of options
   const wikilinkCompartmentRef = useRef(new Compartment());
@@ -181,6 +188,9 @@ export function Editor({
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChangeRef.current(update.state.doc.toString());
+            pluginEditorRef.current?.emitContentChange(
+              update.state.doc.toString(),
+            );
           }
         }),
       ],
@@ -192,8 +202,13 @@ export function Editor({
     });
 
     viewRef.current = view;
+    pluginEditorRef.current = createEditorPluginAdapter(view);
+    onEditorReady?.(pluginEditorRef.current);
 
     return () => {
+      pluginEditorRef.current?.destroy();
+      pluginEditorRef.current = null;
+      onEditorReady?.(null);
       view.destroy();
       viewRef.current = null;
     };

@@ -10,6 +10,9 @@ import { editorFonts, isEditorFont } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { openVaultFromPicker } from "../../vault";
 import { AttachmentLocationSettings } from "../AttachmentLocationSettings";
+import { PluginSettingsList } from "../PluginSettingsList";
+import { usePluginStore } from "../../state/usePluginStore";
+import { PluginBrowser } from "../PluginBrowser";
 
 import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
 
@@ -60,6 +63,11 @@ export function SettingsDialog({
   const setAttachmentSettings = useWorkspaceStore(
     (state) => state.setAttachmentSettings,
   );
+  const plugins = usePluginStore((state) => state.plugins);
+  const settingsTabs = usePluginStore((state) => state.settingsTabs);
+  const togglePlugin = usePluginStore((state) => state.togglePlugin);
+  const pluginManager = usePluginStore((state) => state.pluginManager);
+  const initPlugins = usePluginStore((state) => state.initPlugins);
 
   const handleSwitchVault = async () => {
     try {
@@ -175,6 +183,22 @@ export function SettingsDialog({
               onOpenConflictsPanel={onOpenConflictsPanel}
             />
           </section>
+
+          <Divider />
+
+          <PluginSettingsList
+            plugins={plugins}
+            settingsTabs={settingsTabs}
+            onTogglePlugin={togglePlugin}
+          />
+
+          {pluginManager && vaultPath && (
+            <PluginBrowser
+              vaultPath={vaultPath}
+              manager={pluginManager}
+              onReload={() => initPlugins(vaultPath)}
+            />
+          )}
 
           <Divider />
 

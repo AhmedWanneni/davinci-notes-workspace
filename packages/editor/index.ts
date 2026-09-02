@@ -1,5 +1,10 @@
 export { Editor } from "./Editor";
 export type { EditorProps } from "./Editor";
+export { createEditorPluginAdapter } from "./pluginEditorAdapter";
+export type {
+  EditorPluginAdapter,
+  EditorSelection,
+} from "./pluginEditorAdapter";
 export { resolveEmbedLink } from "./embedLinkResolution";
 export type {
   EmbedLinkResolutionOptions,

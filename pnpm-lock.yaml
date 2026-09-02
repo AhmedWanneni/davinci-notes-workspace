@@ -440,6 +440,28 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
 
+  packages/plugin-api:
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
+
+  packages/plugin-runtime:
+    dependencies:
+      '@app/plugin-api':
+        specifier: workspace:*
+        version: link:../plugin-api
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
+
   packages/sanitize:
     dependencies:
       dompurify:

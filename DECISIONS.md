@@ -190,3 +190,9 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0055](adr/0055-canvas-nested-canvas-cards-and-cycle-prevention.md) | Canvas nested canvas cards: runtime ancestor chain tracking (cycle detection) + max depth cap of 3, read-only preview flow | Accepted |
 | [0056](adr/0056-canvas-export-webpage-card-fallback.md) | Canvas export: webpage card fallback placeholder for iframe content | Accepted |
 | [0057](adr/0057-canvas-right-sidebar-panel-behavior.md) | Canvas right sidebar: explicit "not applicable" empty states per panel; StatusBar shows "Canvas file" chip instead of note stats | Accepted |
+
+## Plugins & Extensibility
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0131](adr/0131-plugin-execution-model.md) | Plugin execution: capability-scoped permissions per plugin, not trusted JS, not worker sandboxing | Accepted |

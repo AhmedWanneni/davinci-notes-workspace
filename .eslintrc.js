@@ -22,6 +22,8 @@ module.exports = {
       { type: "editor", pattern: "packages/editor/**/*", mode: "full" },
       { type: "indexer", pattern: "packages/indexer/**/*", mode: "full" },
       { type: "sync-client", pattern: "packages/sync-client/**/*", mode: "full" },
+      { type: "plugin-api", pattern: "packages/plugin-api/**/*", mode: "full" },
+      { type: "plugin-runtime", pattern: "packages/plugin-runtime/**/*", mode: "full" },
       { type: "app", pattern: "apps/**/*", mode: "full" },
       { type: "service", pattern: "services/**/*", mode: "full" }
     ]
@@ -38,7 +40,9 @@ module.exports = {
           { from: "design-system", allow: ["core-types", "design-system"] },
           { from: "canvas", allow: ["core-types", "design-system", "editor", "canvas"] },
           { from: "editor", allow: ["core-types", "indexer", "editor"] },
-          { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "app"] },
+          { from: "plugin-api", allow: ["core-types", "plugin-api"] },
+          { from: "plugin-runtime", allow: ["core-types", "plugin-api", "plugin-runtime"] },
+          { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "plugin-api", "plugin-runtime", "app"] },
           { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }
         ]
       }

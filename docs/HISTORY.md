@@ -8,6 +8,9 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-02 | Plugin Ecosystem Phase 2 — Plugin Loader & Lifecycle Manager | Defined `DavinciPlugin` base class in `packages/plugin-api`. Stood up `packages/plugin-runtime` with `discoverPlugins` (manifest validation, ID-collision rejection), `evaluatePluginModule` (safe `new Function(…)` evaluator), and `PluginLifecycleManager` (enable/disable lifecycle, `onload`/`onunload` hooks, error isolation, enabled-IDs persistence). 6 adversarial fixture tests cover: crashing `onload`, malformed manifest, ID collision, mid-session disable, re-enable cycle, restart persistence — all pass. Desktop: `PluginSettingsList` component wired into `SettingsDialog`, `usePluginStore` initialises on vault open, `desktopPluginAdapter.ts` bridges Tauri fs + SQLite to runtime adapters. Full workspace: 44 test files, 161 tests all green. |
+| 2026-09-02 | Plugin Ecosystem Phase 1 — Manifest Specification & `@app/plugin-api` | Stood up `@app/plugin-api` package containing TypeScript types (`PluginManifest`, `PluginPermission`), JSON Schema Draft-07 specification (`manifest.schema.json`), runtime validator `validatePluginManifest` (strict mode default), `semverUtils`, `checkAppCompatibility` (decoupling schema parsing from host compatibility checks), and `versions.json` compatibility resolver. Configured boundaries in `.eslintrc.js` and `tsconfig.json`. Added 20 Vitest fixture tests; all pass. |
+| 2026-09-02 | Plugin Ecosystem Phase 0 — Execution Model Architecture (ADR-0131) | Evaluated three plugin execution models (Fully Trusted JS, Capability-Scoped Permissions per Plugin, and Sandboxed Execution via Workers/iframes) against threat models, developer experience, CodeMirror 6 live-preview constraints, and PERFORMANCE.md budgets. Adopted Option 2 (Capability-Scoped Permissions) with manifest declarations, install-time consent, DaVinci API call boundary enforcement, Tauri IPC shielding, and vault-root path confinement. Recorded ADR-0131. |
 | 2026-09-02 | Vim Keybindings Phase 6 — Comprehensive Regression Pass & Plan Closeout (ADR-0130) | Verified wikilink click navigation & autocomplete (`[[`), live preview decoration boundaries, Canvas `<textarea>` isolation, sub-millisecond typing latency overhead (~1.8ms delta), clean settings lifecycle re-initialization, and explicit restatement of deferred items (.vimrc, mobile touch, window splits). Recorded closeout ADR-0130. All 266 unit tests pass. Feature complete and ready for production use. |
 | 2026-09-02 | Vim Keybindings Phase 5 — Ex Commands & Multi-Tab Flush Architecture (ADR-0129) | Mapped `:w` to immediate debounced save flush (`saveNoteNow`), `:q`/`:wq` to active tab close (`closeNote`), and `:qa`/`:wqa` to atomic multi-tab save flush and tab closure (`closeAllNotes`). Verified 0 data loss under active concurrent edits across open tabs. Caught unsupported commands with notifications. Recorded ADR-0129. All 263 unit tests pass. |
 | 2026-09-02 | Vim Keybindings Phase 4 — Mode Indicator & Escape Hatch (ADR-0128) | Subscribed to `vim-mode-change` events in `@app/editor`, rendered glanceable mode indicator (`NORMAL`, `INSERT`, `VISUAL`, `VISUAL LINE`, `VISUAL BLOCK`, `REPLACE`) in `StatusBar.tsx` (completely unmounted when Vim mode is OFF), and added "Disable Vim keybindings" escape hatch command in `CommandPalette.tsx`. Recorded ADR-0128. All 156 tests pass across workspace. |
@@ -76,6 +79,29 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-09-02 — Plugin Ecosystem Phase 1: Manifest Specification & @app/plugin-api
+
+- Established `packages/plugin-api` as the central feature package for plugin manifests, capability types, and package format validation.
+- Defined `PluginManifest` and `PluginPermission` types conforming to ADR-0131's capability-scoped model, formalizing the 8 permission tokens: `vault:read`, `vault:write`, `network`, `shell`, `editor:read`, `editor:write`, `commands`, `ui:view`.
+- Built standard JSON Schema Draft-07 specification (`manifestSchema.ts` and `manifest.schema.json`) for IDE auto-completion and external tooling validation.
+- Implemented lightweight, dependency-free runtime validator `validatePluginManifest` enforcing strict validation by default (`additionalProperties: false`) to catch author typos and configuration omissions.
+- Implemented `checkAppCompatibility` and `semverUtils`, establishing the architecture policy that separates manifest schema validity (syntactic SemVer check) from runtime host application compatibility gating.
+- Defined `versions.json` format and resolution logic (`resolveCompatiblePluginVersion`) for multi-version registry serving.
+- Documented on-disk package layout (`<vault>/.davinci/plugins/<id>/`) in `packages/plugin-api/README.md` and `docs/plugin-package-spec.md`.
+- Added boundaries configuration to `.eslintrc.js` and path mapping to `tsconfig.json`. Added 20 Vitest fixture test cases; all pass.
+
+### 2026-09-02 — Plugin Ecosystem Phase 0: Plugin Execution Model Architecture (ADR-0131)
+
+- Evaluated the core architectural execution model for the DaVinci Notes plugin ecosystem across three options:
+  1. Fully Trusted JavaScript (Obsidian-style trust model)
+  2. Capability-Scoped Permissions per Plugin (declarative manifest + install-time consent + API call boundary)
+  3. Sandboxed Execution (Web Workers or isolated iframes with postMessage RPC)
+- Formulated threat models for all three options covering arbitrary Tauri IPC invocation, OAuth credential theft, stealth network exfiltration, prototype pollution, keystroke interception, and UI event-loop starvation.
+- Highlighted key Tauri v2 architecture reality: compile-time capabilities (`capabilities/*.json`) bind to Webview windows, not to individual JS closures or functions within a shared webview. Documented that capability scoping must be enforced at the TypeScript/JavaScript application layer, with the desktop shell actively shielding raw Tauri IPC internals (`window.__TAURI_INTERNALS__`).
+- Analyzed performance implications under `PERFORMANCE.md`: sandboxing with Web Workers/iframes would consume 250–750 MB additional memory for 25 plugins (10–30 MB per isolate) and introduce serialization latency on note edits, destroying Tauri's lightweight advantage; capability checks in JS have negligible memory footprint and sub-microsecond overhead.
+- Analyzed developer experience: synchronous CodeMirror 6 StateFields/ViewPlugins/decorations and native React UI panels require direct main-thread access; sandboxing forecloses these essential Obsidian-like plugin authoring capabilities.
+- Documented decision in `docs/adr/0131-plugin-execution-model.md` and indexed in `DECISIONS.md`.
 
 ### 2026-09-01 — Drive OAuth UI Freeze Fix
 
@@ -2237,13 +2263,56 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - **Plan Closeout Architecture (ADR-0130)**:
   - Authored and indexed [ADR-0130](docs/adr/0130-vim-keybindings-integration-architecture-closeout.md) in `DECISIONS.md`.
 - **Final Test Suite Status**:
-  - All **266 unit tests** (108 in packages, 158 in desktop app) pass cleanly. Plan is closed out, complete, and ready for production use.
+- All **266 unit tests** (108 in packages, 158 in desktop app) pass cleanly. Plan is closed out, complete, and ready for production use.
 
+## 2026-09-02 - Plugin Ecosystem Phase 3
 
+- Added asynchronous `vault.read`, `vault.write`, `vault.list`, and `vault.delete` APIs. Runtime lexical validation rejects absolute paths, dot segments, and traversal; desktop calls delegate to the existing Rust `resolve_in_vault` boundary, including symlink protection.
+- Added command registration with optional hotkeys and live command-palette exposure. Lifecycle unload removes all commands and settings tabs for the plugin, so disabled plugins disappear rather than merely becoming hidden.
+- Added declarative settings tabs and retained per-plugin `loadData`/`saveData` persistence. Storage uses the plugin ID/directory key and the fixture confirms two plugins cannot overwrite each other.
+- Fixture results: command write/read matched, `../../outside-vault.md` was rejected, restart returned the saved value, disabling removed the command and re-enabling restored it, isolated data matched each plugin ID, and one plugin write produced one adapter write with no feedback loop.
+- API calls are asynchronous to match Tauri IPC and avoid blocking the UI. Vault, command, settings, and data methods are explicit facade call boundaries where Phase 5 capability checks can be inserted without changing plugin-facing signatures. Permission enforcement remains intentionally deferred.
+- Verification: `@app/plugin-api` 20 tests pass; `@app/plugin-runtime` 8 tests pass and lint passes; focused desktop palette/settings tests 5 pass. Full desktop typecheck still reports unrelated pre-existing workspace update-counter and design-system color typing failures.
 
+## 2026-09-02 - Plugin Ecosystem Phase 4
 
+- Added stable Workspace APIs for registering custom view factories, opening/closing/focusing the active plugin leaf, and querying open view state. The host mounts plugin DOM into a dedicated leaf and calls factory cleanup during close, unregister, disable, and re-enable cycles.
+- Added `createEl`/`createText` DOM helpers. Plugin views receive only `HTMLElement` containers and helper methods; React, hooks, internal components, `EditorView`, and `EditorState` are never passed to plugin code.
+- Added a narrow Editor wrapper for content, selection, cursor insertion, and content-change subscriptions. The existing editor update listener forwards real document changes to the wrapper; plugin-owned subscriptions are tracked and removed on unload.
+- Deliberately excluded CM6 extensions, transactions, commands/keymaps, syntax trees, decorations, history, view plugins, and direct view/state access. These are implementation details or high-churn surfaces and are not required for the first stable plugin workflow.
+- Fixture results: the plugin rendered a view using only DOM helpers, read and modified editor content through the wrapper, observed a real edit event, lost its DOM and listener on disable, and remounted cleanly after re-enable. The real CM6 adapter test passed.
+- Phase 5 insertion points are the Workspace registration/open calls and every Editor method/subscription; capability checks can be added at those facade boundaries without changing plugin signatures. Permission enforcement remains deferred.
+- Verification: plugin-api 20 tests pass; plugin-runtime 9 tests pass and lint/typecheck pass; editor typecheck and the real adapter test pass. Full desktop typecheck remains blocked by unrelated pre-existing workspace update-counter and design-system color typing errors.
 
+## 2026-09-02 - Plugin Ecosystem Phase 5
 
+- Confirmed ADR-0131 Option 2: capability-scoped permissions per plugin with application call-boundary enforcement.
+- Added the explicit mapping in `docs/plugin-permissions.md`: `vault:read` gates read/list, `vault:write` gates write/delete, `commands` gates command registration, `ui:view` gates settings/workspace, and `editor:read`/`editor:write` gate corresponding editor methods.
+- Enforced the mapping in every Phase 3/4 facade method. Permission sets are copied when plugin context is created, preventing manifest mutation after load from escalating access. Vault path validation remains independent and still runs for permitted writes.
+- Desktop Settings displays requested permissions before enablement. No Tauri-level per-plugin mapping was added because ADR-0131 states Tauri capabilities bind to webview windows; enforcement is application-layer only in this phase.
+- Adversarial results: no-permission vault write rejected; undeclared command, workspace, settings, and editor calls rejected; declared vault write succeeded; `../../outside.md` remained rejected; mutating the loaded manifest did not enable a read; disabling removed the registered command.
+- Verification: plugin-runtime 11 tests pass with lint/typecheck; plugin-api 20 tests pass; focused desktop settings tests pass. Full desktop typecheck remains blocked by unrelated pre-existing workspace update-counter and design-system color typing errors. No earlier phase signature redesign was required.
 
+## 2026-09-02 - Plugin Ecosystem Phase 6
 
+- Added a static registry seed at `registry/plugins.json` with submission and validation rules in `registry/README.md`. The intended registry is a GitHub-hosted repository containing approved metadata only; plugin code remains in author-owned repositories and releases.
+- Added the browser registry client and GitHub release resolver. It reads `versions.json`, selects the newest release compatible with the current app version, downloads the declared artifact, validates the Phase 1 manifest, and rejects ID/version mismatches and unsafe archive paths.
+- Added Settings UI for registry loading/offline state, install consent, Phase 5 declared-permission display, update detection, and uninstall. Install/update/uninstall use `PluginLifecycleManager.unloadAll`, existing plugin-directory conventions, and `initPlugins` rediscovery rather than a parallel loader.
+- Uninstall disables the plugin before deleting its folder, allowing Phase 2 `onunload()` cleanup to run. Updates unload the current generation before installing and rediscovering the new generation.
+- Verification: plugin-api 20 tests, plugin-runtime 11 tests, and registry resolver 2 tests pass; desktop lint passes. Full desktop typecheck remains blocked by pre-existing `vaultUpdateCounter` and design-system color typing errors.
+- External end-to-end verification against a real published plugin/repository could not be performed: this workspace has no published test repository, registry entry, release artifact, or credentials. The empty registry seed avoids inventing an unverified plugin.
+
+## 2026-09-02 - Plugin Ecosystem Phase 6 Registry Follow-up
+
+- Populated and pushed `https://github.com/AhmedWanneni/davinci-notes-plugins` at commit `c2ebdca` with the Phase 6 `plugins.json` format, JSON schema, submission README, dependency-free validator, and GitHub Actions workflow.
+- Updated the browser's existing fetch path to use the real raw catalog URL: `https://raw.githubusercontent.com/AhmedWanneni/davinci-notes-plugins/main/plugins.json`. No second fetch mechanism or format reconciliation was needed.
+- Real network verification confirmed the pushed catalog is reachable and parses as an empty registry. A real install/update/uninstall test remains blocked because no plugin repository, release artifact, or registry entry was supplied.
+
+## 2026-09-02 - Plugin Ecosystem Phase 7
+
+- Added `templates/davinci-plugin-starter`, a minimal TypeScript plugin that registers `Sample: write and read a vault file`, writes and reads a vault file, and requests only `vault:read`, `vault:write`, and `commands`.
+- Added a no-runtime-dependency build path: TypeScript emits CommonJS compatible with the Phase 2 `DavinciPlugin` injection, and a native Node packaging script copies `manifest.json`, `main.js`, and `versions.json` into `dist/`.
+- README documents the exact Phase 2 manual install path and Phase 6 registry process: version both manifests, build, attach a root-file ZIP to a `v<version>` GitHub Release, then submit the metadata entry by PR to `AhmedWanneni/davinci-notes-plugins`.
+- Verification: fresh dependency install and README build passed after making the template's ambient type configuration independent of parent workspace types. The compiled command registered and completed the vault round-trip; a temporary integration test loaded the built package through `PluginLifecycleManager` and invoked its command; the generated ZIP contained the three expected root files; and the package was copied into a manual-install plugin directory.
+- No CLI was added. The template revealed that plugin authors currently need local ambient declarations because the runtime global `DavinciPlugin` and `@app/plugin-api` types are not published as a standalone SDK. No earlier runtime/API package was modified.
 
