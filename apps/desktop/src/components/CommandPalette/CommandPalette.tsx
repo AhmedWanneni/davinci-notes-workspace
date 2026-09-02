@@ -28,6 +28,8 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const openNotes = useWorkspaceStore((state) => state.openNotes);
+  const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const setUseVimMode = useWorkspaceStore((state) => state.setUseVimMode);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,6 +57,14 @@ export function CommandPalette({
       const recencyScore = openNotes.includes(path) ? 1000 : 0;
       return { path, title, recencyScore };
     });
+    if (useVimMode) {
+      targets.push({
+        isCommand: true,
+        id: "action:disable-vim",
+        title: "Disable Vim keybindings",
+        recencyScore: 600,
+      });
+    }
     targets.push({
       isCommand: true,
       id: "action:settings",
@@ -86,7 +96,7 @@ export function CommandPalette({
       recencyScore: 280,
     });
     return targets;
-  }, [allNotePaths, openNotes]);
+  }, [allNotePaths, openNotes, useVimMode]);
 
   const results = useMemo(() => {
     if (!query) {
@@ -115,6 +125,7 @@ export function CommandPalette({
   }, [query, preparedTargets]);
 
   const runCommand = (id?: string) => {
+    if (id === "action:disable-vim") void setUseVimMode(false);
     if (id === "action:settings") onOpenSettings?.();
     if (id === "action:tags") onOpenTags?.();
     if (id === "action:drive-sign-in") onDriveSignIn?.();

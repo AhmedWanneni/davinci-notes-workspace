@@ -52,6 +52,8 @@ export function SettingsDialog({
   const setStrictLineBreaks = useWorkspaceStore(
     (state) => state.setStrictLineBreaks,
   );
+  const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const setUseVimMode = useWorkspaceStore((state) => state.setUseVimMode);
   const attachmentSettings = useWorkspaceStore(
     (state) => state.attachmentSettings,
   );
@@ -124,6 +126,28 @@ export function SettingsDialog({
                     void setStrictLineBreaks(checked === true)
                   }
                   aria-label="Strict Line Breaks"
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="settings-dialog__section">
+            <div className="settings-dialog__row">
+              <div className="settings-dialog__info">
+                <Typography variant="h3" size="sm">
+                  Vim Keybindings
+                </Typography>
+                <Typography variant="text" size="xs" color="muted">
+                  Enable modal Vim keybindings for navigation and editing.
+                </Typography>
+              </div>
+              <div className="settings-dialog__control">
+                <Checkbox
+                  checked={useVimMode}
+                  onCheckedChange={(checked) =>
+                    void setUseVimMode(checked === true)
+                  }
+                  aria-label="Vim Keybindings"
                 />
               </div>
             </div>

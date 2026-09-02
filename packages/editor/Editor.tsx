@@ -40,6 +40,11 @@ import {
   softLineBreakExtension,
 } from "./lineBreakExtension";
 import {
+  attachVimModeListener,
+  loadVimExtension,
+  registerVimExCommands,
+} from "./vimExtension";
+import {
   attachmentDropHandler,
   attachmentPasteHandler,
   type PasteAttachmentHandler,
@@ -56,6 +61,11 @@ export interface EditorProps {
   onPasteAttachment?: PasteAttachmentHandler;
   onAttachmentError?: (message: string) => void;
   resolveMediaUrl?: (path: string) => string;
+  useVimMode?: boolean;
+  onVimModeChange?: (mode: string | null) => void;
+  onSaveNoteNow?: (path: string) => Promise<void>;
+  onCloseNote?: (path: string) => Promise<void>;
+  onCloseAllNotes?: () => Promise<void>;
 }
 
 export function Editor({
@@ -69,6 +79,11 @@ export function Editor({
   onPasteAttachment,
   onAttachmentError,
   resolveMediaUrl,
+  useVimMode = false,
+  onVimModeChange,
+  onSaveNoteNow,
+  onCloseNote,
+  onCloseAllNotes,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -76,6 +91,7 @@ export function Editor({
   // Compartments for reactive updates of options
   const wikilinkCompartmentRef = useRef(new Compartment());
   const autocompleteCompartmentRef = useRef(new Compartment());
+  const vimCompartmentRef = useRef(new Compartment());
   const onTagClickRef = useRef(onTagClick ?? (() => {}));
   const onPasteAttachmentRef = useRef(onPasteAttachment);
   const onAttachmentErrorRef = useRef(onAttachmentError ?? (() => {}));
@@ -105,16 +121,22 @@ export function Editor({
         htmlInlineTheme,
         EditorView.lineWrapping,
         ...(onPasteAttachment
-          ? [attachmentPasteHandler(
-            (file, position) => onPasteAttachmentRef.current!(file, position),
-            (message) => onAttachmentErrorRef.current(message),
-          )]
+          ? [
+              attachmentPasteHandler(
+                (file, position) =>
+                  onPasteAttachmentRef.current!(file, position),
+                (message) => onAttachmentErrorRef.current(message),
+              ),
+            ]
           : []),
         ...(onPasteAttachment
-          ? [attachmentDropHandler(
-            (file, position) => onPasteAttachmentRef.current!(file, position),
-            (message) => onAttachmentErrorRef.current(message),
-          )]
+          ? [
+              attachmentDropHandler(
+                (file, position) =>
+                  onPasteAttachmentRef.current!(file, position),
+                (message) => onAttachmentErrorRef.current(message),
+              ),
+            ]
           : []),
         history(),
         drawSelection(),
@@ -154,6 +176,7 @@ export function Editor({
         autocompleteCompartmentRef.current.of(
           autocompletion({ override: [autocompleteExtension({ notePaths })] }),
         ),
+        vimCompartmentRef.current.of([]),
         // Document changes updater
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
@@ -188,6 +211,54 @@ export function Editor({
       });
     }
   }, [value]);
+
+  const onVimModeChangeRef = useRef(onVimModeChange);
+  onVimModeChangeRef.current = onVimModeChange;
+
+  const exHandlersRef = useRef({
+    sourcePath,
+    handlers: { onSaveNoteNow, onCloseNote, onCloseAllNotes },
+  });
+  exHandlersRef.current = {
+    sourcePath,
+    handlers: { onSaveNoteNow, onCloseNote, onCloseAllNotes },
+  };
+
+  // Synchronize dynamic Vim keybinding extension when enabled/disabled
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    let cancelled = false;
+    let cleanupListener: (() => void) | undefined;
+
+    if (useVimMode) {
+      registerVimExCommands(() => exHandlersRef.current);
+      void loadVimExtension().then((extension) => {
+        if (!cancelled && viewRef.current === view) {
+          view.dispatch({
+            effects: vimCompartmentRef.current.reconfigure(extension),
+          });
+          if (onVimModeChangeRef.current) {
+            cleanupListener = attachVimModeListener(view, (mode) => {
+              onVimModeChangeRef.current?.(mode);
+            });
+          }
+        }
+      });
+    } else {
+      view.dispatch({
+        effects: vimCompartmentRef.current.reconfigure([]),
+      });
+      onVimModeChangeRef.current?.(null);
+    }
+
+    return () => {
+      cancelled = true;
+      cleanupListener?.();
+      onVimModeChangeRef.current?.(null);
+    };
+  }, [useVimMode]);
 
   // Synchronize compartment configs when paths or parameters change
   useEffect(() => {

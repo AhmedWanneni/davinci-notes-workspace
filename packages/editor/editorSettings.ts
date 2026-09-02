@@ -5,6 +5,7 @@ export type EditorFont = (typeof editorFonts)[number];
 export interface EditorSettings {
   editorFont: EditorFont;
   strictLineBreaks: boolean;
+  useVimMode: boolean;
 }
 
 export interface EditorSettingsStorage {
@@ -15,6 +16,7 @@ export interface EditorSettingsStorage {
 export const defaultEditorSettings: EditorSettings = {
   editorFont: "system",
   strictLineBreaks: false,
+  useVimMode: false,
 };
 
 export function isEditorFont(value: string | null): value is EditorFont {
@@ -26,12 +28,14 @@ export async function loadEditorSettings(
 ): Promise<EditorSettings> {
   const editorFont = await storage.get("editorFont");
   const strictLineBreaks = await storage.get("strictLineBreaks");
+  const useVimMode = await storage.get("useVimMode");
 
   return {
     editorFont: isEditorFont(editorFont)
       ? editorFont
       : defaultEditorSettings.editorFont,
     strictLineBreaks: strictLineBreaks === "true",
+    useVimMode: useVimMode === "true",
   };
 }
 

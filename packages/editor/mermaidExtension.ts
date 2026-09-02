@@ -114,20 +114,36 @@ class MermaidWidget extends WidgetType {
     void loadMermaid()
       .then(async (mermaid) => {
         if (!mermaidInitialized) {
-          mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
+          mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: "strict",
+            suppressErrorRendering: true,
+          });
           mermaidInitialized = true;
         }
         const result = await mermaid.render(id, this.source);
         if (!container.isConnected) return;
+        if (
+          typeof result?.svg === "string" &&
+          (result.svg.includes("Syntax error in text") ||
+            result.svg.includes("mermaid version"))
+        ) {
+          console.error("Mermaid syntax error:", result.svg);
+          container.className = "cm-mermaid-diagram cm-mermaid-error";
+          container.textContent = "";
+          return;
+        }
         container.innerHTML = result.svg;
         bindInternalLinks(container, this.source, this.onLinkClick);
       })
       .catch((error: unknown) => {
+        console.error(
+          "Mermaid syntax error:",
+          error instanceof Error ? error.message : String(error),
+        );
         if (!container.isConnected) return;
         container.className = "cm-mermaid-diagram cm-mermaid-error";
-        container.textContent = `Mermaid diagram error: ${
-          error instanceof Error ? error.message : "invalid syntax"
-        }`;
+        container.textContent = "";
       });
     return container;
   }

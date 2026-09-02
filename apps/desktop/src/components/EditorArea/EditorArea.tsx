@@ -77,22 +77,38 @@ export function EditorArea({
   );
 
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
-  const attachmentSettings = useWorkspaceStore((state) => state.attachmentSettings);
+  const attachmentSettings = useWorkspaceStore(
+    (state) => state.attachmentSettings,
+  );
+  const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const setVimModeState = useWorkspaceStore((state) => state.setVimModeState);
+  const saveNoteNow = useWorkspaceStore((state) => state.saveNoteNow);
+  const closeNote = useWorkspaceStore((state) => state.closeNote);
+  const closeAllNotes = useWorkspaceStore((state) => state.closeAllNotes);
 
-  const handlePasteAttachment = useCallback(async (file: File): Promise<string> => {
-    if (!vaultPath || !activeNotePath) {
-      throw new Error("Open a vault and note before pasting an attachment.");
-    }
-    const folder = resolveAttachmentFolder(activeNotePath, attachmentSettings);
-    const writtenPath = await writeAttachmentToVault(
-      vaultPath, folder, pastedFileName(file), file,
-    );
-    const vaultPrefix = `${vaultPath.replaceAll("\\", "/").replace(/\/+$/u, "")}/`;
-    const linkTarget = writtenPath.startsWith(vaultPrefix)
-      ? writtenPath.slice(vaultPrefix.length)
-      : writtenPath;
-    return `![[${linkTarget.replaceAll("\\", "/")}]]`;
-  }, [activeNotePath, attachmentSettings, vaultPath]);
+  const handlePasteAttachment = useCallback(
+    async (file: File): Promise<string> => {
+      if (!vaultPath || !activeNotePath) {
+        throw new Error("Open a vault and note before pasting an attachment.");
+      }
+      const folder = resolveAttachmentFolder(
+        activeNotePath,
+        attachmentSettings,
+      );
+      const writtenPath = await writeAttachmentToVault(
+        vaultPath,
+        folder,
+        pastedFileName(file),
+        file,
+      );
+      const vaultPrefix = `${vaultPath.replaceAll("\\", "/").replace(/\/+$/u, "")}/`;
+      const linkTarget = writtenPath.startsWith(vaultPrefix)
+        ? writtenPath.slice(vaultPrefix.length)
+        : writtenPath;
+      return `![[${linkTarget.replaceAll("\\", "/")}]]`;
+    },
+    [activeNotePath, attachmentSettings, vaultPath],
+  );
 
   const handleAttachmentError = useCallback((message: string) => {
     window.alert(`Attachment paste failed: ${message}`);
@@ -126,7 +142,9 @@ export function EditorArea({
       await writeBinaryFile(fileName, data);
       const currentPaths = useWorkspaceStore.getState().allNotePaths;
       if (!currentPaths.includes(fileName)) {
-        useWorkspaceStore.getState().updateAllPaths([...currentPaths, fileName]);
+        useWorkspaceStore
+          .getState()
+          .updateAllPaths([...currentPaths, fileName]);
       }
       return fileName;
     },
@@ -175,6 +193,11 @@ export function EditorArea({
                 onPasteAttachment={handlePasteAttachment}
                 onAttachmentError={handleAttachmentError}
                 resolveMediaUrl={handleResolveMediaUrl}
+                useVimMode={useVimMode}
+                onVimModeChange={setVimModeState}
+                onSaveNoteNow={saveNoteNow}
+                onCloseNote={closeNote}
+                onCloseAllNotes={closeAllNotes}
               />
             </div>
           </div>

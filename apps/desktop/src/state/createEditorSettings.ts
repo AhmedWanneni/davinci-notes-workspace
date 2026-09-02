@@ -20,6 +20,7 @@ export interface EditorSettingsState extends EditorSettings {
   loadSettings: () => Promise<void>;
   setEditorFont: (font: EditorFont) => Promise<void>;
   setStrictLineBreaks: (enabled: boolean) => Promise<void>;
+  setUseVimMode: (enabled: boolean) => Promise<void>;
   setAttachmentSettings: (settings: AttachmentSettings) => Promise<void>;
 }
 
@@ -47,6 +48,7 @@ export function createEditorSettings(
         const strictLineBreaks = await withDbLock(() =>
           getSetting(db, "strictLineBreaks"),
         );
+        const useVimMode = await withDbLock(() => getSetting(db, "useVimMode"));
         const attachmentSettings = await withDbLock(() =>
           getSetting(db, "attachmentSettings"),
         );
@@ -55,6 +57,7 @@ export function createEditorSettings(
             ? editorFont
             : defaultEditorSettings.editorFont,
           strictLineBreaks: strictLineBreaks === "true",
+          useVimMode: useVimMode === "true",
           attachmentSettings: parseAttachmentSettings(attachmentSettings),
         });
       } catch (error) {
@@ -87,6 +90,22 @@ export function createEditorSettings(
         );
       } catch (error) {
         console.error("Failed to save Strict Line Breaks", error);
+      }
+    },
+
+    setUseVimMode: async (enabled: boolean) => {
+      set({ useVimMode: enabled });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(
+            vaultEditorSettingsStorage(db),
+            "useVimMode",
+            enabled,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to save Vim Keybindings setting", error);
       }
     },
 

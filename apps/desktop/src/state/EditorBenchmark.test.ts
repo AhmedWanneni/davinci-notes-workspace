@@ -89,4 +89,97 @@ describe("Editor Performance Benchmark", () => {
     view.destroy();
     document.body.removeChild(container);
   });
+
+  it("compares typing latency with Vim mode OFF vs Vim mode ON", async () => {
+    let docText = "# Performance Comparison\n\n";
+    for (let i = 0; i < 1000; i++) {
+      docText += `Line ${i} with [[wikilink-${i % 50}]] and **bold text**.\n`;
+    }
+
+    const { loadVimExtension, attachVimModeListener } =
+      await import("../../../../packages/editor/vimExtension");
+    const vimExt = await loadVimExtension();
+
+    // 1. Measure Vim Mode OFF
+    const containerOff = document.createElement("div");
+    document.body.appendChild(containerOff);
+    const viewOff = new EditorView({
+      state: EditorState.create({
+        doc: docText,
+        extensions: [
+          markdown({ codeLanguages: codeBlockLanguage }),
+          livePreviewExtension,
+          wikilinkExtension({
+            notePaths: Array.from({ length: 350 }, (_, i) => `note-${i}.md`),
+            sourcePath: "active-note.md",
+            onLinkClick: () => {},
+          }),
+        ],
+      }),
+      parent: containerOff,
+    });
+
+    const startOff = performance.now();
+    for (let i = 0; i < 100; i++) {
+      viewOff.dispatch({
+        changes: { from: viewOff.state.doc.length, insert: "x" },
+      });
+    }
+    const latencyOff = (performance.now() - startOff) / 100;
+    viewOff.destroy();
+    containerOff.remove();
+
+    // 2. Measure Vim Mode ON
+    const containerOn = document.createElement("div");
+    document.body.appendChild(containerOn);
+    const viewOn = new EditorView({
+      state: EditorState.create({
+        doc: docText,
+        extensions: [
+          markdown({ codeLanguages: codeBlockLanguage }),
+          livePreviewExtension,
+          wikilinkExtension({
+            notePaths: Array.from({ length: 350 }, (_, i) => `note-${i}.md`),
+            sourcePath: "active-note.md",
+            onLinkClick: () => {},
+          }),
+          vimExt,
+        ],
+      }),
+      parent: containerOn,
+    });
+
+    let currentMode: string | null = null;
+    const cleanup = attachVimModeListener(viewOn, (mode) => {
+      currentMode = mode;
+    });
+
+    const startOn = performance.now();
+    for (let i = 0; i < 100; i++) {
+      viewOn.dispatch({
+        changes: { from: viewOn.state.doc.length, insert: "y" },
+      });
+    }
+    const latencyOn = (performance.now() - startOn) / 100;
+
+    console.info(`\n=== VIM MODE TYPING LATENCY COMPARISON ===`);
+    console.info(
+      `Vim Mode OFF average keystroke latency: ${latencyOff.toFixed(3)} ms`,
+    );
+    console.info(
+      `Vim Mode ON average keystroke latency:  ${latencyOn.toFixed(3)} ms`,
+    );
+    console.info(
+      `Delta latency:                         ${(latencyOn - latencyOff).toFixed(3)} ms`,
+    );
+    console.info(`==========================================\n`);
+
+    cleanup?.();
+    viewOn.destroy();
+    containerOn.remove();
+
+    expect(latencyOff).toBeLessThan(50);
+    expect(latencyOn).toBeLessThan(50);
+    expect(currentMode).toBeDefined();
+  }, 15000);
 });

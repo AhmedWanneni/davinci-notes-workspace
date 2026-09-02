@@ -1,8 +1,6 @@
 export { Editor } from "./Editor";
 export type { EditorProps } from "./Editor";
-export {
-  resolveEmbedLink,
-} from "./embedLinkResolution";
+export { resolveEmbedLink } from "./embedLinkResolution";
 export type {
   EmbedLinkResolutionOptions,
   EmbedResolution,
@@ -14,7 +12,10 @@ export {
   handleIncomingFiles,
   pastedFileName,
 } from "./pasteAttachment";
-export type { IncomingAttachmentHandler, PasteAttachmentHandler } from "./pasteAttachment";
+export type {
+  IncomingAttachmentHandler,
+  PasteAttachmentHandler,
+} from "./pasteAttachment";
 export { MarkdownView } from "./MarkdownView";
 export type { MarkdownViewProps } from "./MarkdownView";
 export {
@@ -78,7 +79,11 @@ export {
   youtubeThumbnailUrl,
   youtubeVideoId,
 } from "./youtubeEmbed";
-export { isTweetImage, tweetImageToStatusUrl, tweetStatusUrl } from "./tweetEmbed";
+export {
+  isTweetImage,
+  tweetImageToStatusUrl,
+  tweetStatusUrl,
+} from "./tweetEmbed";
 export { listExtension, listIndentKeymap } from "./listExtension";
 export type { ListExtensionOptions } from "./listExtension";
 export { highlightExtension, highlightTag } from "./highlightExtension";
@@ -89,5 +94,6 @@ export { htmlBlockExtension } from "./htmlBlockExtension";
 export { htmlBlockTheme } from "./htmlBlockTheme";
 export { htmlInlineExtension } from "./htmlInlineExtension";
 export { htmlInlineTheme } from "./htmlInlineTheme";
+export { loadVimExtension } from "./vimExtension";
 export { Strikethrough } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";

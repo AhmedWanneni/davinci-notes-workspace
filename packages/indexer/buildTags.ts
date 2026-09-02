@@ -1,5 +1,4 @@
 import type { Note, Tag } from "@app/core-types";
-import { normalizeTag } from "@app/core-types";
 
 export interface TagIndex {
   /** Tag key -> Map of note path -> { display, mtime }. */
@@ -16,7 +15,10 @@ export function createEmptyTagIndex(): TagIndex {
 }
 
 /** Get the canonical display casing for a tag based on the oldest note containing it. */
-export function getCanonicalDisplay(index: TagIndex, tagKey: string): string | undefined {
+export function getCanonicalDisplay(
+  index: TagIndex,
+  tagKey: string,
+): string | undefined {
   const usages = index.tagToNotes.get(tagKey);
   if (!usages || usages.size === 0) return undefined;
 
@@ -54,10 +56,7 @@ export function removeNoteFromTagIndex(index: TagIndex, path: string): void {
 }
 
 /** Add or update a note's tags in the index. */
-export function updateTagIndexForNote(
-  index: TagIndex,
-  note: Note,
-): void {
+export function updateTagIndexForNote(index: TagIndex, note: Note): void {
   // 1. Remove previous entries for this note
   removeNoteFromTagIndex(index, note.path);
 
@@ -93,10 +92,7 @@ export function buildTagIndex(notes: readonly Note[]): TagIndex {
  * @param tagKey The canonical key of the tag (without #).
  * @returns Set of note paths.
  */
-export function queryNotesByTag(
-  index: TagIndex,
-  tagKey: string,
-): Set<string> {
+export function queryNotesByTag(index: TagIndex, tagKey: string): Set<string> {
   const results = new Set<string>();
   const normalizedQuery = tagKey.toLowerCase();
 
@@ -118,7 +114,10 @@ export function getAllTagKeys(index: TagIndex): string[] {
 }
 
 /** Returns a Tag object with the vault-wide canonical casing. */
-export function getCanonicalTag(index: TagIndex, tagKey: string): Tag | undefined {
+export function getCanonicalTag(
+  index: TagIndex,
+  tagKey: string,
+): Tag | undefined {
   const display = getCanonicalDisplay(index, tagKey);
   if (!display) return undefined;
 

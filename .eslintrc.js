@@ -42,6 +42,22 @@ module.exports = {
           { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }
         ]
       }
+    ],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
     ]
-  }
+  },
+  overrides: [
+    {
+      files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      rules: {
+        "boundaries/no-private": "off"
+      }
+    }
+  ]
 };

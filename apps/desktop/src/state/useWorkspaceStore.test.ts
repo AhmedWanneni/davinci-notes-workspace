@@ -53,6 +53,7 @@ describe("useWorkspaceStore", () => {
       graph: null,
       editorFont: "system",
       strictLineBreaks: false,
+      useVimMode: false,
     });
 
     readNoteMock.mockResolvedValue({ path: "a.md", content: "# A", mtime: 1 });
@@ -62,6 +63,29 @@ describe("useWorkspaceStore", () => {
     getVaultIndexDbMock.mockResolvedValue({});
     getSettingMock.mockResolvedValue(null);
     setSettingMock.mockResolvedValue(undefined);
+  });
+
+  it("defaults Vim keybindings to OFF (opt-in)", () => {
+    expect(useWorkspaceStore.getState().useVimMode).toBe(false);
+  });
+
+  it("persists and restores Vim Keybindings setting through SQLite settings", async () => {
+    getSettingMock.mockImplementation(async (_db: unknown, key: string) => {
+      if (key === "useVimMode") return "true";
+      if (key === "strictLineBreaks") return "true";
+      return "monospace";
+    });
+
+    await useWorkspaceStore.getState().loadSettings();
+    expect(useWorkspaceStore.getState().useVimMode).toBe(true);
+
+    await useWorkspaceStore.getState().setUseVimMode(false);
+    expect(useWorkspaceStore.getState().useVimMode).toBe(false);
+    expect(setSettingMock).toHaveBeenCalledWith({}, "useVimMode", "false");
+
+    await useWorkspaceStore.getState().setUseVimMode(true);
+    expect(useWorkspaceStore.getState().useVimMode).toBe(true);
+    expect(setSettingMock).toHaveBeenCalledWith({}, "useVimMode", "true");
   });
 
   it("loads vault paths and optional graph on initialize", async () => {
@@ -195,5 +219,29 @@ describe("useWorkspaceStore", () => {
     const state = useWorkspaceStore.getState();
     expect(state.openNotes).toEqual(["a.md"]);
     expect(state.activeNotePath).toBe("a.md");
+  });
+
+  it("closeAllNotes flushes all pending dirty saves across every open tab before closing all tabs", async () => {
+    const store = useWorkspaceStore.getState();
+    await store.openNote("a.md");
+    await store.openNote("b.md");
+
+    // Make both a.md and b.md dirty with pending debounced saves
+    store.updateNoteContent("a.md", "# A - dirty edit");
+    store.updateNoteContent("b.md", "# B - dirty edit");
+
+    expect(writeNoteMock).not.toHaveBeenCalled();
+
+    // Invoke closeAllNotes (:qa / :wqa)
+    await store.closeAllNotes();
+
+    // Verify both dirty notes were flushed and written to disk
+    expect(writeNoteMock).toHaveBeenCalledWith("a.md", "# A - dirty edit");
+    expect(writeNoteMock).toHaveBeenCalledWith("b.md", "# B - dirty edit");
+
+    const state = useWorkspaceStore.getState();
+    expect(state.openNotes).toEqual([]);
+    expect(state.activeNotePath).toBeNull();
+    expect(state.dirtyNotes.size).toBe(0);
   });
 });

@@ -140,6 +140,11 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0031](adr/0031-svg-and-d3-force-with-node-capping.md) | Graph view: SVG + d3-force, top-200 node capping | Accepted |
 | [0032](adr/0032-graph-node-labels-scale-with-zoom.md) | Graph labels scale with zoom | Accepted |
 | [0034](adr/0034-light-theme-defused.md) | Light theme defused for v1 (dark-first) | Accepted |
+| [0126](adr/0126-codemirror-vim-package-choice-and-lazy-load-boundary.md) | Vim keybindings: `@replit/codemirror-vim` in `@app/editor` with dynamic `import()` lazy-load boundary | Accepted |
+| [0127](adr/0127-vim-keybinding-conflict-resolution-policy.md) | Vim keybindings: precedence policy for normal/insert modes, Mod shortcuts, and autocompletion | Accepted |
+| [0128](adr/0128-vim-mode-indicator-and-escape-hatch-command.md) | Vim mode indicator: CodeMirror event subscription, status bar scoping, and stuck-user escape hatch command | Accepted |
+| [0129](adr/0129-vim-ex-command-save-and-tab-close-mapping.md) | Vim Ex command save and tab-close mapping: :w flushes debounced save immediately, :q/:wq close tab via canonical path, :qa/:wqa flush all dirty notes before closing tabs | Accepted |
+| [0130](adr/0130-vim-keybindings-integration-architecture-closeout.md) | Vim keybindings integration architecture closeout: complete index across phases 1-6, canvas textarea isolation, performance latency validation, and deferred items summary | Accepted |
 
 ## Mobile
 

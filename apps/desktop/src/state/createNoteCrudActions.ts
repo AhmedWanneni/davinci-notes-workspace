@@ -41,8 +41,9 @@ export function createNoteCrudActions(): NoteCrudActions {
     },
 
     renameFolderFromTree: async (oldPath: string, newName: string) => {
-// ... rest of the file
-
+      const trimmed = newName.trim();
+      if (!trimmed) return false;
+      const result = await renameFolderInVault(oldPath, trimmed);
       if (!result.ok && result.reason === "collision") {
         console.warn("[vault] Folder rename skipped - name already exists");
       }

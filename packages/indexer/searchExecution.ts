@@ -28,7 +28,7 @@ function isTagClause(
   return clause.operator?.kind === "tag";
 }
 
-function quoteFtsValue(value: string, phrase: boolean): string {
+function quoteFtsValue(value: string): string {
   const escaped = value.replaceAll('"', '""');
   return `"${escaped}"`;
 }
@@ -37,7 +37,7 @@ async function executeTextClause(
   db: SearchDatabase,
   clause: SearchQueryClause,
 ): Promise<TextRow[]> {
-  const expression = quoteFtsValue(clause.value, clause.phrase);
+  const expression = quoteFtsValue(clause.value);
   return db.select<TextRow>(
     `SELECT notes.path, notes.title, notes.mtime,
             bm25(notes_fts) AS score,
@@ -92,7 +92,10 @@ export async function executeSearchQuery(
   for (const clause of positive) {
     if (isTagClause(clause)) {
       candidatePaths = candidatePaths
-        ? intersect(candidatePaths, queryNotesByTag(tagIndex, clause.operator.tagKey))
+        ? intersect(
+            candidatePaths,
+            queryNotesByTag(tagIndex, clause.operator.tagKey),
+          )
         : queryNotesByTag(tagIndex, clause.operator.tagKey);
       continue;
     }
@@ -109,7 +112,11 @@ export async function executeSearchQuery(
   }
 
   if (!candidatePaths) {
-    candidatePaths = new Set((await db.select<{ path: string }>("SELECT path FROM notes")).map((row) => row.path));
+    candidatePaths = new Set(
+      (await db.select<{ path: string }>("SELECT path FROM notes")).map(
+        (row) => row.path,
+      ),
+    );
   }
 
   for (const clause of excluded) {

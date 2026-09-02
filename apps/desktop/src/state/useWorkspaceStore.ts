@@ -37,6 +37,8 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   graph: GraphIndex | null;
   tagIndex: TagIndex | null;
   vaultPath: string | null;
+  vimModeState: string | null;
+  setVimModeState: (mode: string | null) => void;
   syncMode: "off" | "drive" | "folder";
   setSyncMode: (mode: "off" | "drive" | "folder") => void;
   setVaultPath: (path: string | null) => void;
@@ -55,6 +57,7 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   updateNoteContent: (path: string, content: string) => void;
   saveNoteNow: (path: string) => Promise<void>;
   saveAllDirty: () => Promise<void>;
+  closeAllNotes: () => Promise<void>;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
@@ -67,6 +70,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   graph: null,
   tagIndex: null,
   vaultPath: null,
+  vimModeState: null,
+  setVimModeState: (mode) => set({ vimModeState: mode }),
   vaultUpdateCounter: 0,
   syncMode: "off",
   setSyncMode: (mode) => set({ syncMode: mode }),
@@ -93,12 +98,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   },
 
   updateAllPaths: (paths: string[]) => set({ allNotePaths: paths }),
-
   updateAllFolderPaths: (paths: string[]) => set({ allFolderPaths: paths }),
-
-  incrementVaultUpdateCounter: () => {
-    set((state) => ({ vaultUpdateCounter: state.vaultUpdateCounter + 1 }));
-  },
+  incrementVaultUpdateCounter: () =>
+    set((state) => ({ vaultUpdateCounter: state.vaultUpdateCounter + 1 })),
 
   openNote: async (path: string) => {
     const { notesContent, openNotes } = get();
@@ -231,6 +233,16 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       }
       await get().saveNoteNow(path);
     }
+  },
+
+  closeAllNotes: async () => {
+    await get().saveAllDirty();
+    set({
+      openNotes: [],
+      activeNotePath: null,
+      notesContent: {},
+      dirtyNotes: new Set(),
+    });
   },
 
   ...createNoteCrudActions(),

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Circle } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import type { GraphIndex } from "@app/indexer";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 export interface StatusBarProps {
   vaultName: string;
@@ -36,6 +37,8 @@ export function StatusBar({
   content,
   graph,
 }: StatusBarProps) {
+  const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const vimModeState = useWorkspaceStore((state) => state.vimModeState);
   const isCanvas = activeNotePath?.endsWith(".canvas") ?? false;
 
   const stats = useMemo(
@@ -64,6 +67,17 @@ export function StatusBar({
           </div>
         ) : (
           <div className="status-bar__right">
+            {useVimMode && vimModeState && (
+              <>
+                <span
+                  className="status-bar__stat status-bar__vim-mode"
+                  data-testid="status-bar-vim-mode"
+                >
+                  {vimModeState}
+                </span>
+                <span className="status-bar__divider">·</span>
+              </>
+            )}
             <span className="status-bar__stat">
               {backlinkCount} {backlinkCount === 1 ? "backlink" : "backlinks"}
             </span>

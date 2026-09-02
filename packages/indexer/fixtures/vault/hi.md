@@ -6,18 +6,9 @@
 <https://www.youtube.com/watch?v=dYGKxxTXqSs>
 
 
-
-- k
-- lklk
-- kjlk
-
-
-1. ddsdsffd
-2. alsdkjsdl
-   <div style="color: green">
+<div style="color: red">
       hello world
 </div>
-
 <table border="1">
   <tr>
     <th>Name</th>
@@ -36,10 +27,6 @@
   </tr>
 </table>
 
-
-
-
-<u>hi</u> 
 
 
 
