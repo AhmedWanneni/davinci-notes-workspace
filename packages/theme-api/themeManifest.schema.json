@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DaVinci Notes Theme Manifest",
+  "description": "Metadata for a CSS-only DaVinci Notes theme package.",
+  "type": "object",
+  "required": ["id", "name", "version", "minAppVersion", "author", "description", "styles"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]+$", "minLength": 1, "maxLength": 100 },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "version": { "type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$", "description": "SemVer 2.0.0 theme version." },
+    "minAppVersion": { "type": "string", "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$", "description": "SemVer 2.0.0 minimum compatible app version." },
+    "author": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "styles": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+\\.css$" },
+    "authorUrl": { "type": "string", "format": "uri" },
+    "license": { "type": "string" },
+    "keywords": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+  }
+}

@@ -6,10 +6,44 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Plugin Ecosystem — Phase 7 Complete (publishing template)**
-Added a minimal TypeScript starter plugin under `templates/davinci-plugin-starter`. It builds a self-contained `main.js`, has a valid manifest and `versions.json`, demonstrates narrowly scoped permissions, and documents the manual install and real registry publication path.
+**Theme Ecosystem — Phase 4 In Progress (registry/browser integration)**
+The shared registry model now supports a `themes` list locally, and the desktop browser reuses registry fetch, GitHub release resolution, compatibility checks, HTTP downloads, ZIP extraction, and reload lifecycle for themes. Theme-specific archive validation/install and activation are implemented. Updating the external registry repo and real end-to-end network verification are blocked by unavailable network access.
 
 ## Last Session
+
+**Theme Ecosystem Phase 2 — Local Loader and Settings**
+
+### Completed
+- Added theme discovery and malformed-manifest isolation in [discoverThemes.ts](apps/desktop/src/themes/discoverThemes.ts), using the Phase 1 `@app/theme-api` schema validator.
+- Added [ThemeLifecycleManager.ts](apps/desktop/src/themes/ThemeLifecycleManager.ts) with one active theme, persisted active ID, append-before-remove stylesheet replacement, stale-switch generation guards, and cleanup on unload.
+- Added the Tauri adapter for `<vault>/.davinci/themes` and SQLite active-theme persistence, then initialized it with the same vault lifecycle used by plugins.
+- Added [ThemeSettingsList](apps/desktop/src/components/ThemeSettingsList/ThemeSettingsList.tsx), a separate settings component following the existing `PluginSettingsList` pattern. It lists name/ID/version, selects a theme, restores default styling, and reports skipped folders.
+- Phase 1's single-stylesheet light/dark decision is honored. The current app has no independent light/dark setting; its base stylesheet remains dark, so no separate mode-switch integration was possible in this phase.
+- Verification: theme manager tests pass for malformed discovery isolation, computed-style A/B switching, return to base styling, and rapid repeated switching with exactly one injected style node. Settings component tests pass for activation and error display. `@app/theme-api` tests (6) and desktop lint pass. Full desktop typecheck remains blocked by the pre-existing `vaultUpdateCounter` and design-system color typing errors.
+- No CSS content restriction was added; that remains Phase 3. The ambiguous/inconsistent token aliases documented by Phase 1 were not silently refactored.
+
+**Theme Ecosystem Phase 3 — CSS Safety Review**
+
+### Completed
+- Reviewed the actual Phase 2 injection boundary and documented decisions for external `url()`, external `@import`, and CSS-only DOM-state exfiltration in [theme-css-safety.md](docs/theme-css-safety.md).
+- Chose documentation plus Phase 4 registry review rather than a load-time sanitizer. This preserves legitimate fonts/images, avoids a parser dependency and foreground switch cost, and avoids a brittle regex filter that could be bypassed.
+- Registry review is stricter for external imports: reject them by default because imported CSS can change after approval. Review all external URLs and reject tracking identifiers or state-encoding beacons.
+- Added a fixture test proving the Phase 2 loader preserves an external font/image URL and external import unchanged, making the documented behavior executable. No runtime enforcement was added.
+- CSS-only exfiltration is considered lower risk than plugin code but non-zero because app metadata exists in DOM attributes; selectors and beacon-like URLs must be reviewed manually.
+- Verification: theme API tests (6), theme loader/settings tests (6), desktop lint, and `git diff --check` pass. Full desktop typecheck remains blocked by unrelated existing workspace errors.
+
+**Theme Ecosystem Phase 4 — Registry and Browser Integration**
+
+### Completed
+- Extended the local registry seed format with `themes` alongside `plugins`, and extended the submission README with theme release and CSS review requirements.
+- Generalized the existing GitHub release-resolution boundary so plugin and theme entries share repository parsing, `versions.json` compatibility resolution, HTTP client, and archive extraction.
+- Added theme archive inspection/validation against `@app/theme-api`, `minAppVersion` and release ID/version checks, stylesheet presence checks, safe staged installation under `.davinci/themes`, and uninstall.
+- Added the Theme Registry browser section. Installing confirms and auto-activates the theme; updates reuse the same path; uninstall deactivates an active theme first and reloads discovery so default styling returns.
+- Existing plugin browser code continues using the same registry client and plugin install path; registry parser and plugin release tests remain passing.
+- Verification: theme API tests (6), registry tests (3), theme lifecycle tests (4), settings tests (2), desktop lint, and `git diff --check` pass. Full desktop typecheck remains blocked by unrelated workspace `vaultUpdateCounter` and design-system color typing errors.
+- The dedicated GitHub registry could not be cloned or updated in this session because DNS/network access was unavailable. The remote catalog was previously an empty plugin-only catalog; real theme entry, release, install, update, and uninstall verification remain open until that repository is updated with a test theme.
+
+## Previous Session
 
 **Plugin Ecosystem Phase 7 — Publishing Template**
 
@@ -57,15 +91,16 @@ Added a minimal TypeScript starter plugin under `templates/davinci-plugin-starte
 
 ## Next Up (in order)
 
-1. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
-2. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
-3. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
-4. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-5. **Unlinked Mentions Detection**
-6. **Inline Property Editing**
-7. **Outline Scroll Synchronization**
-8. Add success/warning semantic color tokens
-9. Chromatic / Playwright screenshot regression
+1. **Theme Ecosystem Phase 4 follow-up**: Push the shared registry schema/CI and verify a real theme release end to end.
+2. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+3. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+4. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+5. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+6. **Unlinked Mentions Detection**
+7. **Inline Property Editing**
+8. **Outline Scroll Synchronization**
+9. Add success/warning semantic color tokens
+10. Chromatic / Playwright screenshot regression
 
 ## Blocked / Open Questions
 

@@ -58,4 +58,20 @@ describe("plugin registry resolution", () => {
       }),
     ).toThrow();
   });
+
+  it("accepts the shared themes catalog alongside plugins", () => {
+    const theme = {
+      id: "paper-dark",
+      name: "Paper Dark",
+      author: "Author",
+      description: "Theme",
+      repo: "https://github.com/author/paper-dark",
+    };
+    const document = parseRegistryDocument({
+      schemaVersion: 1,
+      plugins: [],
+      themes: [theme],
+    });
+    expect(document.themes).toEqual([theme]);
+  });
 });

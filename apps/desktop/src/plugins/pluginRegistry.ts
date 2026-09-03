@@ -7,9 +7,21 @@ export interface PluginRegistryEntry {
   artifact?: string;
 }
 
+export interface ThemeRegistryEntry {
+  id: string;
+  name: string;
+  author: string;
+  description: string;
+  repo: string;
+  artifact?: string;
+}
+
+export type RegistryEntry = PluginRegistryEntry | ThemeRegistryEntry;
+
 export interface PluginRegistryDocument {
   schemaVersion: 1;
   plugins: PluginRegistryEntry[];
+  themes: ThemeRegistryEntry[];
 }
 
 export interface GithubRelease {
@@ -36,7 +48,8 @@ export function parseRegistryDocument(raw: unknown): PluginRegistryDocument {
   const document = raw as Partial<PluginRegistryDocument>;
   if (document.schemaVersion !== 1 || !Array.isArray(document.plugins))
     throw new Error("Unsupported plugin registry format");
-  for (const entry of document.plugins) {
+  const themes = Array.isArray(document.themes) ? document.themes : [];
+  for (const entry of [...document.plugins, ...themes]) {
     if (
       !entry ||
       typeof entry !== "object" ||
@@ -46,7 +59,7 @@ export function parseRegistryDocument(raw: unknown): PluginRegistryDocument {
       throw new Error("Registry entry has invalid id or repository URL");
     }
   }
-  return document as PluginRegistryDocument;
+  return { ...document, themes } as PluginRegistryDocument;
 }
 
 export function parseGithubReleases(

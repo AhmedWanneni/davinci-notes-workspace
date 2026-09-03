@@ -2316,3 +2316,35 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Verification: fresh dependency install and README build passed after making the template's ambient type configuration independent of parent workspace types. The compiled command registered and completed the vault round-trip; a temporary integration test loaded the built package through `PluginLifecycleManager` and invoked its command; the generated ZIP contained the three expected root files; and the package was copied into a manual-install plugin directory.
 - No CLI was added. The template revealed that plugin authors currently need local ambient declarations because the runtime global `DavinciPlugin` and `@app/plugin-api` types are not published as a standalone SDK. No earlier runtime/API package was modified.
 
+## 2026-09-02 - Theme Ecosystem Phase 1
+
+- Audited every generated CSS custom property from `packages/design-system/tokens/src/*.json` and `tokens/dist/variables.css`: 52 public/theme-overridable tokens and 6 internal tokens. Icon weight values remain internal because they are coupled to the current icon library; motion timing/easing remains internal because it affects interaction behavior and performance.
+- Added `packages/theme-api` with strict `ThemeManifest` types, JSON Schema, dependency-free validation, and fixture manifests/stylesheets. The schema and validator both enforce SemVer and relative CSS stylesheet paths.
+- Documented the full public token contract and defaults in `packages/theme-api/PUBLIC_TOKENS.md`, including undeclared aliases and inconsistent naming/fallbacks found in application and canvas styles. No existing design-system source was modified.
+- Decided a single theme package owns both light and dark variants in one stylesheet, using selectors and media queries. This keeps theme identity and compatibility metadata unified for later loader/registry work and avoids duplicating submissions.
+- Verification: `@app/theme-api` typecheck/lint passed and all 6 fixture tests passed. The internal-token fixture is intentionally accepted as CSS today and documented as a future lint/warning case for Phase 2.
+
+## 2026-09-03 - Theme Ecosystem Phase 2
+
+- Added local theme discovery under `<vault>/.davinci/themes`, strict Phase 1 manifest validation, per-folder error isolation, and duplicate-ID rejection.
+- Added a lifecycle manager that persists the active theme ID, injects one unrestricted manifest stylesheet, appends a replacement before removing the previous stylesheet, ignores stale asynchronous activations, and removes the active stylesheet on unload.
+- Wired theme initialization to the existing vault session and added a Themes settings list beside the existing plugin settings list. The list supports activation, default styling, version/ID display, and malformed-folder errors.
+- Honored Phase 1's one-package light/dark variant decision. The current app has no independent light/dark setting beyond its dark base `color-scheme`, so there was no mode toggle to integrate.
+- Verification: theme lifecycle tests passed for computed-style switching A -> B -> default, malformed discovery isolation, and rapid repeated switching with one stylesheet node. Theme settings tests passed for activation and error rendering. Theme API tests (6) and desktop lint passed. Full desktop typecheck remains blocked by unrelated existing `vaultUpdateCounter` and design-system color typing errors.
+- CSS safety/content policy remains intentionally deferred to Theme Ecosystem Phase 3.
+
+## 2026-09-03 - Theme Ecosystem Phase 3
+
+- Reviewed the actual Phase 2 `<style>` injection boundary and documented [the theme CSS safety policy](theme-css-safety.md).
+- Chose documentation and registry review for external `url()` resources, with a stricter default rejection of external `@import`. No load-time sanitizer was added: a parser/filter would add foreground cost, could be bypassed by CSS syntax, and would incorrectly remove legitimate fonts or images without a theme-asset URL base.
+- Assessed CSS-only exfiltration as lower risk than plugin code but non-zero because DOM metadata such as paths and ARIA attributes exists. Registry review must reject state-encoding selectors/beacons and unexplained external resources.
+- Added a loader fixture test using an external import and background URL; the injected stylesheet remains unchanged, confirming the documentation-only policy. Theme API tests (6), theme loader/settings tests (6), desktop lint, and `git diff --check` pass. Full desktop typecheck remains blocked by unrelated existing workspace errors.
+
+## 2026-09-03 - Theme Ecosystem Phase 4
+
+- Confirmed the existing plugin registry infrastructure is partially generalizable: catalog parsing, GitHub repository/release resolution, compatibility lookup, HTTP downloads, ZIP extraction, and reload lifecycle are shared; manifest validation, archive layout, installation directory, activation, and uninstall remain theme-specific.
+- Extended the local registry seed to include `themes` and added theme release/CSS review requirements to the existing submission README.
+- Added theme archive validation against `@app/theme-api`, release ID/version and `minAppVersion` checks, stylesheet presence validation, staged safe installation under `.davinci/themes`, and uninstall.
+- Added the Theme Registry browser section. Install confirms and auto-activates, updates use the same install path, and uninstall deactivates first before discovery reload.
+- Verification: theme API tests (6), registry tests (3), theme lifecycle tests (4), settings tests (2), desktop lint, and `git diff --check` pass. Full desktop typecheck remains blocked by unrelated existing workspace errors.
+- The real GitHub registry could not be cloned or updated because network/DNS access was unavailable. Real theme entry and browser install/update/uninstall verification remain blocked pending a published test theme and reachable registry.

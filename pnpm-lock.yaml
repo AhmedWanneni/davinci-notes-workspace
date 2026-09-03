@@ -77,6 +77,12 @@ importers:
       '@app/indexer':
         specifier: workspace:*
         version: link:../../packages/indexer
+      '@app/plugin-api':
+        specifier: workspace:*
+        version: link:../../packages/plugin-api
+      '@app/plugin-runtime':
+        specifier: workspace:*
+        version: link:../../packages/plugin-runtime
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -486,6 +492,15 @@ importers:
       node-diff3:
         specifier: ^3.2.1
         version: 3.2.1
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
+
+  packages/theme-api:
     devDependencies:
       typescript:
         specifier: ^5.4.0

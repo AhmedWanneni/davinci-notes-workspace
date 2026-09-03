@@ -62,6 +62,10 @@ export default defineConfig({
         find: "@app/plugin-runtime",
         replacement: path.join(repoRoot, "packages/plugin-runtime/index.ts"),
       },
+      {
+        find: "@app/theme-api",
+        replacement: path.join(repoRoot, "packages/theme-api/index.ts"),
+      },
     ],
   },
   server: {

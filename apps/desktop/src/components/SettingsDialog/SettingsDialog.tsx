@@ -13,6 +13,10 @@ import { AttachmentLocationSettings } from "../AttachmentLocationSettings";
 import { PluginSettingsList } from "../PluginSettingsList";
 import { usePluginStore } from "../../state/usePluginStore";
 import { PluginBrowser } from "../PluginBrowser";
+import { ThemeSettingsList } from "../ThemeSettingsList";
+import { ThemeBrowser } from "../ThemeBrowser";
+import type { ThemeLifecycleManager } from "../../themes";
+import type { ThemeDiscoveryError, ThemeRecord } from "../../themes";
 
 import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
 
@@ -31,6 +35,13 @@ interface SettingsDialogProps {
   onDriveRefresh?: () => void;
   onDriveSyncNow?: () => void;
   onOpenConflictsPanel?: () => void;
+  themes: ThemeRecord[];
+  activeThemeId: string | null;
+  themeDiscoveryErrors: ThemeDiscoveryError[];
+  onActivateTheme: (themeId: string | null) => void | Promise<void>;
+  themeManager: ThemeLifecycleManager | null;
+  onReloadThemes: () => Promise<void>;
+  onActivateThemeFromBrowser: (themeId: string) => Promise<void>;
 }
 
 export function SettingsDialog({
@@ -48,6 +59,13 @@ export function SettingsDialog({
   onDriveRefresh,
   onDriveSyncNow,
   onOpenConflictsPanel,
+  themes,
+  activeThemeId,
+  themeDiscoveryErrors,
+  onActivateTheme,
+  themeManager,
+  onReloadThemes,
+  onActivateThemeFromBrowser,
 }: SettingsDialogProps) {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const setEditorFont = useWorkspaceStore((state) => state.setEditorFont);
@@ -191,6 +209,22 @@ export function SettingsDialog({
             settingsTabs={settingsTabs}
             onTogglePlugin={togglePlugin}
           />
+
+          <ThemeSettingsList
+            themes={themes}
+            activeThemeId={activeThemeId}
+            discoveryErrors={themeDiscoveryErrors}
+            onActivate={onActivateTheme}
+          />
+
+          {themeManager && vaultPath && (
+            <ThemeBrowser
+              vaultPath={vaultPath}
+              manager={themeManager}
+              onReload={onReloadThemes}
+              onActivate={onActivateThemeFromBrowser}
+            />
+          )}
 
           {pluginManager && vaultPath && (
             <PluginBrowser

@@ -29,6 +29,7 @@ export default defineConfig({
         repoRoot,
         "packages/plugin-runtime/index.ts",
       ),
+      "@app/theme-api": path.join(repoRoot, "packages/theme-api/index.ts"),
     },
   },
   test: {

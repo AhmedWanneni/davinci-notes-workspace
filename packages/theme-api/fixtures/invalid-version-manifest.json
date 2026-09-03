@@ -1,0 +1,9 @@
+{
+  "id": "invalid-version",
+  "name": "Invalid Version",
+  "version": "1.0",
+  "minAppVersion": "0.1.0",
+  "author": "Theme Author",
+  "description": "Has a non-SemVer version.",
+  "styles": "styles.css"
+}

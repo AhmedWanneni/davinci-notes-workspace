@@ -4,6 +4,7 @@ import type { PluginLifecycleManager } from "@app/plugin-runtime";
 import { checkAppCompatibility } from "@app/plugin-api";
 import {
   fetchPluginRegistry,
+  httpClient,
   resolveLatestPluginRelease,
 } from "../../plugins/fetchPluginRegistry";
 import {
@@ -14,29 +15,11 @@ import {
 import { isUpdateAvailable } from "../../plugins/resolvePluginRelease";
 import type {
   PluginRegistryEntry,
-  RegistryHttpClient,
   ResolvedPluginRelease,
 } from "../../plugins/pluginRegistry";
 import styles from "./PluginBrowser.module.scss";
 
 const CURRENT_APP_VERSION = "0.1.0";
-const httpClient: RegistryHttpClient = {
-  async getJson<T>(url: string) {
-    const response = await fetch(url, {
-      headers: { Accept: "application/json" },
-    });
-    if (!response.ok)
-      throw new Error(`Registry request failed (${response.status})`);
-    return response.json() as Promise<T>;
-  },
-  async getBytes(url) {
-    const response = await fetch(url);
-    if (!response.ok)
-      throw new Error(`Plugin download failed (${response.status})`);
-    return new Uint8Array(await response.arrayBuffer());
-  },
-};
-
 interface PluginBrowserProps {
   vaultPath: string;
   manager: PluginLifecycleManager;

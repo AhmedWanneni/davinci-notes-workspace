@@ -10,6 +10,7 @@ import { StatusBar } from "./components/StatusBar";
 import { VaultWelcomeView } from "./components/VaultWelcomeView";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import { usePluginStore } from "./state/usePluginStore";
+import { useThemeStore } from "./state/useThemeStore";
 import {
   getDriveAccessToken,
   openDriveAuthorizationUrl,
@@ -106,6 +107,12 @@ export function App() {
   const pluginCommands = usePluginStore((state) => state.commands);
   const pluginManager = usePluginStore((state) => state.pluginManager);
   const openViewId = usePluginStore((state) => state.openViewId);
+  const initThemes = useThemeStore((state) => state.initThemes);
+  const themes = useThemeStore((state) => state.themes);
+  const activeThemeId = useThemeStore((state) => state.activeThemeId);
+  const themeManager = useThemeStore((state) => state.themeManager);
+  const themeDiscoveryErrors = useThemeStore((state) => state.discoveryErrors);
+  const activateTheme = useThemeStore((state) => state.activateTheme);
 
   useEffect(() => {
     void loadSettings();
@@ -114,6 +121,10 @@ export function App() {
   useEffect(() => {
     void initPlugins(vaultPath);
   }, [vaultPath, initPlugins]);
+
+  useEffect(() => {
+    void initThemes(vaultPath);
+  }, [vaultPath, initThemes]);
 
   useEffect(() => {
     const root = document.body.style;
@@ -377,6 +388,13 @@ export function App() {
             onDriveSignIn={() => void handleDriveSignIn()}
             onDriveRefresh={() => void handleDriveRefresh()}
             onDriveDisconnect={() => void handleDriveDisconnect()}
+            themes={themes}
+            activeThemeId={activeThemeId}
+            themeDiscoveryErrors={themeDiscoveryErrors}
+            onActivateTheme={activateTheme}
+            themeManager={themeManager}
+            onReloadThemes={() => initThemes(vaultPath)}
+            onActivateThemeFromBrowser={activateTheme}
           />
         )}
         {isCommandPaletteOpen && (

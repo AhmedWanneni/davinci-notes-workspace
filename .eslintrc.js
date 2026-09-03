@@ -24,6 +24,7 @@ module.exports = {
       { type: "sync-client", pattern: "packages/sync-client/**/*", mode: "full" },
       { type: "plugin-api", pattern: "packages/plugin-api/**/*", mode: "full" },
       { type: "plugin-runtime", pattern: "packages/plugin-runtime/**/*", mode: "full" },
+      { type: "theme-api", pattern: "packages/theme-api/**/*", mode: "full" },
       { type: "app", pattern: "apps/**/*", mode: "full" },
       { type: "service", pattern: "services/**/*", mode: "full" }
     ]
@@ -42,7 +43,8 @@ module.exports = {
           { from: "editor", allow: ["core-types", "indexer", "editor"] },
           { from: "plugin-api", allow: ["core-types", "plugin-api"] },
           { from: "plugin-runtime", allow: ["core-types", "plugin-api", "plugin-runtime"] },
-          { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "plugin-api", "plugin-runtime", "app"] },
+          { from: "theme-api", allow: ["theme-api"] },
+          { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "plugin-api", "plugin-runtime", "theme-api", "app"] },
           { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }
         ]
       }

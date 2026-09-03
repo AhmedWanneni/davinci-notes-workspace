@@ -7,12 +7,12 @@ import {
 } from "@app/plugin-api";
 import type {
   GithubRelease,
-  PluginRegistryEntry,
+  RegistryEntry,
   ResolvedPluginRelease,
 } from "./pluginRegistry";
 
 export function resolvePluginRelease(
-  entry: PluginRegistryEntry,
+  entry: RegistryEntry,
   releases: GithubRelease[],
   versions: VersionCompatibilityMap,
   currentAppVersion: string,

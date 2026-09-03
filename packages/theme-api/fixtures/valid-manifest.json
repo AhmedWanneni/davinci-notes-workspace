@@ -1,0 +1,9 @@
+{
+  "id": "paper-light",
+  "name": "Paper Light",
+  "version": "1.0.0",
+  "minAppVersion": "0.1.0",
+  "author": "Theme Author",
+  "description": "A fixture theme.",
+  "styles": "styles.css"
+}
