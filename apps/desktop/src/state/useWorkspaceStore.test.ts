@@ -26,6 +26,7 @@ vi.mock("../vault", () => ({
   setSetting: (db: unknown, key: string, value: string) =>
     setSettingMock(db, key, value),
   persistNote: (db: unknown, note: unknown) => persistNoteMock(db, note),
+  withDbLock: async (work: () => Promise<unknown>) => work(),
   withVaultWatchSuppressed: async (work: () => Promise<unknown>) => {
     return work();
   },

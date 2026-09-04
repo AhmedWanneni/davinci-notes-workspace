@@ -1,7 +1,7 @@
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import { initialNoteContent } from "./initialNoteContent";
 import { noteFromMarkdown } from "./noteFromMarkdown";
-import { getVaultIndexDb, persistNote } from "./sqliteIndex";
+import { getVaultIndexDb, persistNote, withDbLock } from "./sqliteIndex";
 import { writeNote } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
 import { updateTagIndexForNote } from "@app/indexer";
@@ -20,7 +20,7 @@ export async function createNoteInVault(
       ? currentPaths
       : [...currentPaths, path];
     const note = noteFromMarkdown(path, noteContent, Date.now(), updatedPaths);
-    await persistNote(db, note);
+    await withDbLock(() => persistNote(db, note));
     const tagIndex = useWorkspaceStore.getState().tagIndex;
     if (tagIndex) updateTagIndexForNote(tagIndex, note);
     useWorkspaceStore.getState().updateAllPaths(updatedPaths);

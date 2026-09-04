@@ -1,14 +1,19 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { Circle } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import type { GraphIndex } from "@app/indexer";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+
+const LazyAIStatusIndicator = React.lazy(() => import("../../ai/AIStatusIndicator").then((module) => ({ default: module.AIStatusIndicator })));
 
 export interface StatusBarProps {
   vaultName: string;
   activeNotePath: string | null;
   content: string;
   graph: GraphIndex | null;
+  aiCloudEnabled?: boolean;
+  aiProviderName?: string;
+  aiTransmitting?: boolean;
 }
 
 export function computeNoteStats(content: string) {
@@ -36,6 +41,9 @@ export function StatusBar({
   activeNotePath,
   content,
   graph,
+  aiCloudEnabled = false,
+  aiProviderName = "AI",
+  aiTransmitting = false,
 }: StatusBarProps) {
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
   const vimModeState = useWorkspaceStore((state) => state.vimModeState);
@@ -58,6 +66,7 @@ export function StatusBar({
           <Circle size={6} weight="fill" />
         </span>
         <span className="status-bar__vault-name">{vaultName}</span>
+        {aiCloudEnabled && <React.Suspense fallback={null}><LazyAIStatusIndicator providerName={aiProviderName} transmitting={aiTransmitting} /></React.Suspense>}
       </div>
 
       {activeNotePath ? (

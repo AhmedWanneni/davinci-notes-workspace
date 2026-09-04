@@ -1,0 +1,20 @@
+.suggest-links-panel {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.suggest-links-panel__item {
+  display: grid;
+  width: 100%;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggest-links-panel__item span:last-child {
+  color: var(--color-text-secondary);
+  font-size: var(--type-size-sm);
+}

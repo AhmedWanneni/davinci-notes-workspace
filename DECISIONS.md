@@ -196,3 +196,26 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | ADR | Decision | Status |
 |---|---|---|
 | [0131](adr/0131-plugin-execution-model.md) | Plugin execution: capability-scoped permissions per plugin, not trusted JS, not worker sandboxing | Accepted |
+
+## AI
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0132](adr/0132-ai-provider-abstraction-and-lazy-load-boundary.md) | AI uses modality-neutral local/cloud providers and a dynamic-import subsystem boundary | Accepted |
+| [0133](adr/0133-local-ai-model-feasibility-gate.md) | Local inference is not a viable full parallel path at launch; defer until measured | Accepted |
+| [0134](adr/0134-ai-cloud-consent-flow.md) | Cloud AI requires explicit provider-named, reversible consent before enablement | Accepted |
+| [0135](adr/0135-ai-feature-granular-consent.md) | Semantic search, suggest-links, and ask-vault require independent feature consent | Accepted |
+| [0136](adr/0136-ai-embedding-chunking-and-model.md) | Heading/paragraph embedding chunks with incremental hashes and a dedicated embedding model | Accepted |
+| [0137](adr/0137-ai-vector-storage-fallback.md) | Store embedding Float32 BLOBs in the existing index DB and rank with application-side cosine scan | Accepted |
+| [0138](adr/0138-ai-semantic-search-mode.md) | Semantic search is an opt-in, 3-character-minimum mode in the existing content Search dialog | Accepted |
+| [0139](adr/0139-ai-suggested-links-policy.md) | Suggested links use top-5/0.78 defaults, embedding-aligned debounce, right-sidebar placement, and canonical editor insertion | Accepted |
+| [0140](adr/0140-ai-ask-your-vault-contract-and-blockers.md) | Ask-your-vault requires distinct consent, starts with 8 retrieved chunks, and cites only context actually sent; implementation blocked on prior transport/storage gaps | Proposed - blocked |
+| [0141](adr/0141-ai-cloud-transport-and-key-failure-handling.md) | Cloud provider uses native OpenAI-compatible HTTP transport with explicit stable failure mapping and fixed-probe key validation | Accepted with provider-selection assumption |
+| [0142](adr/0142-ai-phase5-gap1-closure.md) | Closes ADR-0140 gap 1 with real transport, keychain storage, and persisted granular consent; gaps 2-3 remain | Accepted |
+| [0143](adr/0143-ai-cloud-active-indicator.md) | Existing status bar shows persisted `Cloud AI ready` and request-scoped `Cloud AI transmitting` states | Accepted |
+| [0144](adr/0144-ai-remediation-a-durable-chunk-text.md) | Remediation A adds durable chunk text in migration v5 and rejects empty-text context for grounded Q&A | Accepted |
+| [0145](adr/0145-ai-remediation-c-citation-opener-status.md) | Remediation C citation callback is defined but production source navigation remains blocked pending host wiring | Proposed - blocked |
+| [0146](adr/0146-ai-phase7-lazy-boundary-audit.md) | Phase 7 requires zero AI implementation in the initial entry; settings and indicator use conditional dynamic boundaries | Accepted |
+| [0147](adr/0147-ai-remediation-c-citation-opener-closed.md) | Citation click-through reuses canonical `openNote` plus the stable editor wrapper's selection boundary; no parallel navigation mechanism | Accepted |
+| [0148](adr/0148-sqlite-index-transaction-ownership.md) | Serialize all vault-index writes with `withDbLock`; centralize transaction ownership in `withDbTransaction` and suppress only already-ended rollback failures | Accepted |
+| [0149](adr/0149-ai-provider-classification-and-provider-specific-consent.md) | Gemini/OpenRouter are cloud; Ollama is local-networked with localhost-only local consent, remote warning, and explicit OpenRouter downstream-routing copy | Accepted |

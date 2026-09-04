@@ -15,12 +15,38 @@ export function withDbLock<T>(fn: () => Promise<T>): Promise<T> {
   return run;
 }
 
+/** The sole transaction owner for the vault-index connection. */
+export async function withDbTransaction<T>(
+  db: Database,
+  fn: () => Promise<T>,
+): Promise<T> {
+  await db.execute("BEGIN IMMEDIATE");
+  try {
+    const result = await fn();
+    await db.execute("COMMIT");
+    return result;
+  } catch (error) {
+    try {
+      await db.execute("ROLLBACK");
+    } catch (rollbackError) {
+      if (
+        !(rollbackError instanceof Error) ||
+        !/no transaction is active/i.test(rollbackError.message)
+      ) {
+        console.warn("SQLite rollback was unavailable after a failed transaction", rollbackError);
+      }
+    }
+    throw error;
+  }
+}
+
 export async function getVaultIndexDb(): Promise<Database> {
   if (!dbPromise) {
     dbPromise = Database.load(VAULT_INDEX_DB).then(async (db) => {
+      // Set the wait window before WAL mode, which itself needs a write lock.
+      await db.execute("PRAGMA busy_timeout=10000;");
       await db.execute("PRAGMA journal_mode=WAL;");
       await db.execute("PRAGMA synchronous=NORMAL;");
-      await db.execute("PRAGMA busy_timeout=10000;");
       return db;
     });
   }

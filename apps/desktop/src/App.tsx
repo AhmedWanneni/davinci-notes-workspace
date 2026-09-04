@@ -1,5 +1,6 @@
 import { executeSearchQuery, parseSearchQuery } from "@app/indexer";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import type { PluginEditor } from "@app/plugin-api";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTabs } from "./components/AppTabs";
 import { EditorArea } from "./components/EditorArea";
@@ -18,6 +19,8 @@ import {
   signOutOfDrive,
 } from "./sync/desktopDriveAuth";
 import { getVaultIndexDb, openAndIndexVault, useVaultSession } from "./vault";
+import { revealCitationLine, type CitationNavigationTarget } from "./ai/citationNavigation";
+import { loadAISubsystem } from "./ai/loadAISubsystem";
 
 const LazyGlobalGraphDialog = React.lazy(() =>
   import("./components/GlobalGraphDialog").then((m) => ({
@@ -52,8 +55,15 @@ export function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
+  const [aiProviderName, setAiProviderName] = useState("AI");
+  const [aiTransmitting, setAiTransmitting] = useState(false);
+  const editorRef = useRef<PluginEditor | null>(null);
+  const activeNoteRef = useRef<string | null>(null);
+  const pendingCitationRef = useRef<CitationNavigationTarget | null>(null);
 
   const activeNotePath = useWorkspaceStore((state) => state.activeNotePath);
+  activeNoteRef.current = activeNotePath;
   const openNotes = useWorkspaceStore((state) => state.openNotes);
   const dirtyNotes = useWorkspaceStore((state) => state.dirtyNotes);
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
@@ -117,6 +127,28 @@ export function App() {
   useEffect(() => {
     void loadSettings();
   }, [loadSettings]);
+
+  useEffect(() => {
+    const loadAIState = async () => {
+      const ai = await loadAISubsystem();
+      const provider = await ai.loadSelectedProvider();
+      const status = await ai.loadAIProviderStatus(provider);
+      setAiProviderName(ai.AI_PROVIDER_NAMES[provider]);
+      setAiCloudEnabled(status === "ready" || (provider === "openai-compatible" && await ai.loadAIConsent("cloud")));
+    };
+    const refresh = () => void loadAIState();
+    const startTransmission = () => setAiTransmitting(true);
+    const endTransmission = () => setAiTransmitting(false);
+    window.addEventListener("davinci-ai-state-changed", refresh);
+    window.addEventListener("davinci-ai-transmission-start", startTransmission);
+    window.addEventListener("davinci-ai-transmission-end", endTransmission);
+    void loadAIState();
+    return () => {
+      window.removeEventListener("davinci-ai-state-changed", refresh);
+      window.removeEventListener("davinci-ai-transmission-start", startTransmission);
+      window.removeEventListener("davinci-ai-transmission-end", endTransmission);
+    };
+  }, [vaultPath]);
 
   useEffect(() => {
     void initPlugins(vaultPath);
@@ -192,6 +224,38 @@ export function App() {
   const handleCreateCanvas = () => {
     void createNewCanvas();
   };
+
+  const handleEditorReady = useCallback((editor: PluginEditor | null) => {
+    editorRef.current = editor;
+    const target = pendingCitationRef.current;
+    if (editor && target && activeNoteRef.current === target.notePath) {
+      revealCitationLine(editor, target);
+      pendingCitationRef.current = null;
+    }
+  }, []);
+
+  const handleOpenCitation = useCallback(
+    async (notePath: string, startLine: number) => {
+      const target = { notePath, startLine };
+      pendingCitationRef.current = target;
+      await openNote(notePath);
+      if (editorRef.current && activeNoteRef.current === notePath) {
+        revealCitationLine(editorRef.current, target);
+        pendingCitationRef.current = null;
+      }
+    },
+    [openNote],
+  );
+
+  useEffect(() => {
+    const handleCitation = (event: Event) => {
+      const detail = (event as CustomEvent<CitationNavigationTarget>).detail;
+      if (!detail?.notePath || !Number.isFinite(detail.startLine)) return;
+      void handleOpenCitation(detail.notePath, detail.startLine);
+    };
+    window.addEventListener("davinci-ai-open-citation", handleCitation);
+    return () => window.removeEventListener("davinci-ai-open-citation", handleCitation);
+  }, [handleOpenCitation]);
 
   const handleCreateFolder = async (parentFolder = "") => {
     const folderPath = await createNewFolder(parentFolder);
@@ -324,6 +388,7 @@ export function App() {
               onLinkClick={(t) => void handleLinkClick(t)}
               onTagClick={handleTagClick}
               pluginManager={pluginManager}
+              onEditorReady={handleEditorReady}
             />
           )}
         </main>
@@ -341,6 +406,9 @@ export function App() {
         activeNotePath={activeNotePath}
         content={activeContent}
         graph={graph}
+        aiCloudEnabled={aiCloudEnabled}
+        aiTransmitting={aiTransmitting}
+        aiProviderName={aiProviderName}
       />
 
       <Suspense fallback={null}>

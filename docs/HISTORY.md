@@ -8,6 +8,8 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-04 | Phase 6 SQLite_BUSY regression follow-up | Found that `AISettingsPanel.reload()` reintroduced concurrent reads against the singleton `tauri-plugin-sql` connection with `Promise.all` after the writer audit. Changed consent loading to sequential reads and routed the App cloud-state refresh through the existing queue boundary. Focused SQLite/indexer tests passed 10/10; full workspace passed 24/24 tasks and desktop passed 181/181 tests. |
+| 2026-09-04 | Complete vault-index shared-writer serialization | Audited every shared `vault-index.db` mutation and transaction owner. Added the existing `withDbLock` boundary to AI consent/status writes and made `SqliteEmbeddingStore` require an injected shared lock for upsert/remove. Plugin, theme, CRUD, workspace, and editor-settings writes were confirmed already serialized; no nested lock path was found. The adversarial index + embedding + settings writer test observed one active writer and no dropped statements. Full workspace tests passed: 24 tasks, including desktop 181/181 and embeddings 7/7; lint passed. Desktop typecheck retains pre-existing errors. |
 | 2026-09-02 | Plugin Ecosystem Phase 2 — Plugin Loader & Lifecycle Manager | Defined `DavinciPlugin` base class in `packages/plugin-api`. Stood up `packages/plugin-runtime` with `discoverPlugins` (manifest validation, ID-collision rejection), `evaluatePluginModule` (safe `new Function(…)` evaluator), and `PluginLifecycleManager` (enable/disable lifecycle, `onload`/`onunload` hooks, error isolation, enabled-IDs persistence). 6 adversarial fixture tests cover: crashing `onload`, malformed manifest, ID collision, mid-session disable, re-enable cycle, restart persistence — all pass. Desktop: `PluginSettingsList` component wired into `SettingsDialog`, `usePluginStore` initialises on vault open, `desktopPluginAdapter.ts` bridges Tauri fs + SQLite to runtime adapters. Full workspace: 44 test files, 161 tests all green. |
 | 2026-09-02 | Plugin Ecosystem Phase 1 — Manifest Specification & `@app/plugin-api` | Stood up `@app/plugin-api` package containing TypeScript types (`PluginManifest`, `PluginPermission`), JSON Schema Draft-07 specification (`manifest.schema.json`), runtime validator `validatePluginManifest` (strict mode default), `semverUtils`, `checkAppCompatibility` (decoupling schema parsing from host compatibility checks), and `versions.json` compatibility resolver. Configured boundaries in `.eslintrc.js` and `tsconfig.json`. Added 20 Vitest fixture tests; all pass. |
 | 2026-09-02 | Plugin Ecosystem Phase 0 — Execution Model Architecture (ADR-0131) | Evaluated three plugin execution models (Fully Trusted JS, Capability-Scoped Permissions per Plugin, and Sandboxed Execution via Workers/iframes) against threat models, developer experience, CodeMirror 6 live-preview constraints, and PERFORMANCE.md budgets. Adopted Option 2 (Capability-Scoped Permissions) with manifest declarations, install-time consent, DaVinci API call boundary enforcement, Tauri IPC shielding, and vault-root path confinement. Recorded ADR-0131. |
@@ -79,6 +81,73 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-09-04 - Vault-index transaction overlap fix
+
+- Audited every `BEGIN`/`COMMIT`/`ROLLBACK` call: all are now centralized in
+  `sqliteIndex.ts`'s `withDbTransaction`; the embedding store and Remediation A
+  chunk-text writes use ordinary SQL statements only.
+- Root cause was `VaultIndexer` transactions bypassing `withDbLock`, overlapping
+  with watcher reconciliation and ordinary note writes on the singleton
+  connection. Added serialized top-level write participation and guarded the
+  rollback path so SQLite's auto-ended transaction does not emit a second
+  error or hide the original failure.
+- Focused vault/indexing suite passed 28 tests across 7 files, including
+  concurrent index/reconcile stress, 350-note cycles, CRUD paths, and the
+  auto-rollback regression. Added ADR-0148.
+
+### 2026-09-04 - Complete shared vault-index writer audit
+
+- Searched the full codebase for direct transaction keywords and database
+  mutations. `withDbTransaction` is the only `BEGIN`/`COMMIT`/`ROLLBACK` owner.
+  The shared database writer list is the vault indexer, CRUD/workspace saves,
+  editor settings, plugin settings, theme settings, AI consent/status, and
+  embedding-store upsert/remove.
+- Confirmed plugin and theme settings use the same `sqlite:vault-index.db`
+  singleton, not separate connections or databases; both already participate
+  in `withDbLock`. Editor settings writes were also already wrapped (the
+  storage callback runs entirely inside the outer lock).
+- Wrapped AI consent and provider-status writes in `withDbLock`. The generic
+  `@app/ai-embeddings` package cannot import the desktop queue, so its SQLite
+  store now requires the caller to inject that exact queue for mutations;
+  read-only similarity queries remain unlocked under WAL.
+- Checked re-entry/deadlock paths: `disableAllAIConsent` awaits separate lock
+  operations sequentially; status persistence happens outside those callbacks;
+  editor/plugin/theme callbacks call plain SQL settings helpers; and each
+  embedding mutation acquires the queue once. No lock is acquired recursively.
+- Added an adversarial concurrent test launching an index transaction,
+  embedding upsert, and settings save together. All statements completed, no
+  error was dropped, and the fake database observed one active writer. Focused
+  desktop SQLite/indexer tests passed 10/10; embeddings passed 7/7. The full
+  workspace test run passed all 24 Turbo tasks (desktop 181/181). Desktop lint
+  and embeddings lint/typecheck passed; desktop typecheck remains blocked by
+  existing unrelated workspace errors.
+
+### 2026-09-04 — AI Features Phase 7: Performance and Regression Audit
+
+- Audited the combined AI bundle boundary. Initial entry: 363,212 raw / 114,995 gzip with no AI implementation symbols. Deferred chunks: 8,139-byte subsystem, 3,092-byte shared support, and 276-byte indicator.
+- The real 350-file fixture embedding batch measured 2.83ms input/event-loop latency and passed. AI Q&A/runtime/embedding and desktop UI checks passed.
+- Closeout remains blocked: no live Tauri/cloud acceptance environment and no production citation opener. Added Remediation A/C status ADRs 0144/0145 and lazy-boundary audit ADR-0146; ADR-0140 was not edited.
+
+### 2026-09-03 — AI Features Phase 6: Settings and Cloud Indicator
+
+- Added the existing-settings-dialog AI management panel with provider state, key failure visibility, independent feature toggles, and disable/revoke behavior. Local remains unavailable per ADR-0133.
+- Added the existing status-bar indicator: `Cloud AI ready` at rest and `Cloud AI transmitting` around Q&A requests, with persisted SQLite state loaded on launch and settings-change events.
+- Added ADR-0143. Focused AI, desktop UI, lint, Rust check, and web build verification passed. Human wording review and live Tauri restart/keychain acceptance remain open for Phase 7.
+
+### 2026-09-03 — AI Features Phase 5: Ask-Your-Vault Q&A
+
+- Added `@app/ai-qa` with independent ask-vault consent gating, eight-chunk retrieval through the existing vector store, chat completion through `AIProvider.complete`, and citations derived from the exact retrieved objects sent as context.
+- Added migration v5 for durable chunk text; v4 remains unchanged. Added lazy Q&A panel with cloud-active status, answer/error states, and clickable source callbacks.
+- Automated verification passed: Q&A `2/2`, panel/consent `3/3`, embeddings `6/6`, Rust `cargo check`, and desktop web build. Live provider quality/network and Tauri restart/source-navigation acceptance remain environment-dependent and are recorded as open rather than claimed.
+
+### 2026-09-03 — AI Features Phase 5 Gap 1: Cloud Transport and Consent State
+
+- Added native `fetch` OpenAI-compatible transport to `@app/ai-runtime` behind the existing `AIProvider` contract. HTTP authentication, rate-limit, 4xx request, 5xx unavailable, malformed response, and network failures map to the stable `AIProviderError` states.
+- Added Tauri Rust `keyring` commands for AI provider keys, following ADR-0120's OS credential pattern. Added a lazy consent-first/key-entry flow with fixed-probe validation and SQLite-persisted granular consent state.
+- `@app/ai-runtime` tests passed 5/5, runtime typecheck passed, Rust `cargo check` passed, and desktop web build passed. Production assets totaled 8,283,088 bytes; the base entry contained no AI provider/transport/key/consent symbols, while the deferred `AISubsystem` chunk was 6,331 bytes.
+- Valid cloud success and restart persistence require a running configured Tauri app and a valid provider credential; those environment-dependent checks remain open. The supplied credential was deliberately not logged or used.
+- Recorded ADR-0141 and ADR-0142. ADR-0140 remains unchanged; its vector-text and source-opener blockers remain.
 
 ### 2026-09-02 — Plugin Ecosystem Phase 1: Manifest Specification & @app/plugin-api
 
@@ -2340,6 +2409,15 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Assessed CSS-only exfiltration as lower risk than plugin code but non-zero because DOM metadata such as paths and ARIA attributes exists. Registry review must reject state-encoding selectors/beacons and unexplained external resources.
 - Added a loader fixture test using an external import and background URL; the injected stylesheet remains unchanged, confirming the documentation-only policy. Theme API tests (6), theme loader/settings tests (6), desktop lint, and `git diff --check` pass. Full desktop typecheck remains blocked by unrelated existing workspace errors.
 
+## 2026-09-03 - AI Features Phase 0
+
+- The expected `plans/ai-integration-plan/ai-features-build-plan.md` was absent, so the task specification was used as scope authority and the missing artifact was recorded as a blocker.
+- Added `@app/ai-api` with modality-neutral `embed`/`complete` provider contracts, capability metadata, stable authentication/network/rate-limit/unavailable/invalid-request errors, and an OS-secure-store adapter boundary. Added `@app/ai-runtime` delegating cloud/local implementations without inference code.
+- Added an unreferenced `loadAISubsystem()` dynamic-import boundary; the consent screen lives inside that lazy subsystem. The default Vite build measured 1,376,898 raw bytes / 435,482 gzip across the entry and modulepreloads, with zero AI-specific symbols or model/provider strings in `dist`.
+- Local feasibility resolved to no full local path at launch: published GGUF evidence puts nomic embeddings at 84.1 MB, Qwen2.5 3B chat at 1.93 GB, and Qwen2.5 7B chat at 4.68 GB before runtime memory/context overhead. A later local embedding path remains possible, but cloud is the only initial execution path.
+- Added separate ADRs 0132-0135 for provider/lazy loading, local feasibility, consent copy/flow, and granular per-feature consent. Consent is blocking, provider-named, honest about note data leaving the device, reversible, and independent for semantic search, suggest-links, and ask-vault.
+- API-key storage follows ADR-0120's Tauri Rust `keyring` pattern; no localStorage, SQLite, or file fallback was introduced. AI API tests, runtime typecheck/lint, consent tests, desktop lint, and production build passed. Full desktop typecheck remains blocked by unrelated existing workspace errors.
+
 ## 2026-09-03 - Theme Ecosystem Phase 4
 
 - Confirmed the existing plugin registry infrastructure is partially generalizable: catalog parsing, GitHub repository/release resolution, compatibility lookup, HTTP downloads, ZIP extraction, and reload lifecycle are shared; manifest validation, archive layout, installation directory, activation, and uninstall remain theme-specific.
@@ -2348,3 +2426,74 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Added the Theme Registry browser section. Install confirms and auto-activates, updates use the same install path, and uninstall deactivates first before discovery reload.
 - Verification: theme API tests (6), registry tests (3), theme lifecycle tests (4), settings tests (2), desktop lint, and `git diff --check` pass. Full desktop typecheck remains blocked by unrelated existing workspace errors.
 - The real GitHub registry could not be cloned or updated because network/DNS access was unavailable. Real theme entry and browser install/update/uninstall verification remain blocked pending a published test theme and reachable registry.
+## 2026-09-03 - AI Features Phase 1
+
+- Added `@app/ai-embeddings` with heading/paragraph chunking, 2,000-character bounded windows, source locations for future citations, incremental content hashes, provider model metadata, and stale-chunk removal.
+- Reused the Phase 0 `AIProvider.embed` boundary and aligned scheduling with the vault watcher's 450ms settle period and indexing's 50-item batches. The scheduler coalesces note updates and yields after each async provider batch.
+- Added `createEmbeddingIndex()` behind the existing AI dynamic-import boundary. No app-startup static import was added.
+- Added ADR-0136 and indexed it in `DECISIONS.md`.
+- Verification: package typecheck, lint, and 3 focused tests pass; the large fixture contains 350 notes. The missing `ai-features-build-plan.md` remains an earlier-artifact blocker. Next is Phase 2 vector storage and indexing via sqlite-vec evaluation.
+## 2026-09-03 - AI Features Phase 2
+
+- Evaluated sqlite-vec against current maintenance, Rust/extension loading, WAL, ABI, and packaging risks. Rejected it for launch because `tauri-plugin-sql` does not expose a raw connection or extension-loading path and the extension remains pre-v1.
+- Added migration v4 to the existing `vault-index.db` for `embedding_chunks`, using packed Float32 BLOBs and ordinary citation/hash/model metadata. Added application-side cosine ranking and retained the existing WAL/PRAGMA/DB-lock boundaries.
+- Added ADR-0137 and indexed it in `DECISIONS.md`.
+- Verification covered schema application with WAL/PRAGMA values, the 350-note fixture scale, and a `0.67ms` cosine query; Phase 3 remains semantic search UI. The existing Tauri live-connection concurrency path was not reproducible in the package runner, so no new connection path was introduced.
+## 2026-09-03 - AI Features Phase 3
+
+- Extended the existing lazy content Search dialog with an opt-in Semantic mode. The Cmd+K fuzzysort quick switcher remains unchanged.
+- Reused the 150ms debounce and added a three-character minimum. Semantic results display a distinct label plus heading/source-line location.
+- Added `searchEmbeddings()` through `AIProvider.embed` and the Phase 2 SQLite vector store, plus ADR-0138.
+- Verification: embedding package 6/6 tests and SearchDialog jsdom 3/3 tests pass. Real relevance queries against vault content remain blocked because Phase 0 has no actual embedding transport and the vector table is not populated by a production pipeline yet.
+## 2026-09-03 - AI Features Phase 4
+
+- Added independent-consent suggested links using Phase 0 `AIProvider`, Phase 2 vectors, 450ms scheduling, top-5 candidates, and a 0.78 starting threshold.
+- Added a Related notes subsection below backlinks in the existing right sidebar. Link actions use the existing editor adapter's canonical text insertion path.
+- Added ADR-0139 and indexed it. Verification: embedding package 6/6, SearchDialog 3/3, Cmd+K 2/2, and insertion 1/1 tests pass. Real threshold tuning/relevance validation remains blocked until provider transport and production vector population exist.
+## 2026-09-04 - AI Remediation C Citation Opener
+
+- Wired the desktop host citation opener to canonical `openNote` and the
+  existing `PluginEditor.setSelection` wrapper, with exact long-note line
+  offset coverage.
+- Added the Q&A panel host-event fallback and ADR-0147, closing ADR-0145 at
+  the host boundary. Focused tests and lint pass; live Tauri click-through
+  remains blocked because `App` does not yet mount the Q&A panel.
+
+## 2026-09-03 - AI Features Phase 5 Assessment
+
+- Audited ask-your-vault prerequisites and stopped before implementation because Phase 0 still has injected provider delegates/no persisted feature-consent state, while Phase 2's vector rows omit chunk text and return `text: ""`.
+- Added proposed ADR-0140: ask-your-vault has distinct consent, an 8-chunk bounded retrieval context, exact question-plus-retrieved-text transmission, same-object citation sourcing, and explicit provider-error handling.
+- No unsafe partial Q&A runtime or UI was added. Resolve the Phase 0 transport/consent and Phase 2 chunk-text gaps before Phase 6 settings/provider management.
+
+## 2026-09-04 - AI Provider Extension: Gemini, OpenRouter, and Ollama
+
+- Extended the existing `AIProvider` abstraction with real Gemini embedding/
+  chat transport, OpenRouter OpenAI-compatible transport, and Ollama local HTTP
+  transport. No new dependency was added.
+- Classified Ollama as local-networked rather than a third provider mode:
+  localhost skips cloud consent, while non-local URLs receive a visible
+  remote-data warning. Added a distinct `local-server-unavailable` error.
+- Added provider-specific secure-key validation/status, editable OpenRouter
+  embedding/chat model slugs, Ollama server/model settings, and provider-aware
+  status-bar naming. Provider switching uses separate status/config state.
+- Updated consent copy to name Gemini/OpenRouter and explain OpenRouter's
+  downstream routing. Added ADR-0149; accepted ADRs were not edited.
+- Focused transport tests pass 10/10 and consent tests pass 2/2. Live probes
+  could not complete: external DNS was unavailable for Gemini/OpenRouter and
+  Ollama was not running on localhost. Desktop typecheck remains blocked by
+  pre-existing workspace-store and design-system typing errors.
+
+## 2026-09-04 - Provider Startup SQLite Contention Fix
+
+- Found that the provider extension introduced direct settings reads during
+  application startup and AI settings reload while indexing can begin a
+  `BEGIN IMMEDIATE` transaction on the same native SQLite connection.
+- Routed AI consent, provider selection/status, model configuration, and
+  Ollama configuration reads through the established `withDbLock` queue.
+  Multi-setting reads acquire the queue once for their whole operation.
+- Set SQLite `busy_timeout` before `journal_mode=WAL`, so connection setup
+  waits for an existing writer rather than attempting WAL activation first.
+- Expanded the contention regression to include a queued provider-style read
+  with indexing, embedding, and settings operations. Focused vault tests pass
+  10/10; desktop lint passes. Desktop typecheck remains blocked by existing
+  workspace-store and Button color typing errors.

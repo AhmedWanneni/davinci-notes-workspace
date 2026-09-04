@@ -17,6 +17,10 @@
       "@app/plugin-api": ["packages/plugin-api/index.ts"],
       "@app/plugin-runtime": ["packages/plugin-runtime/index.ts"],
       "@app/theme-api": ["packages/theme-api/index.ts"],
+      "@app/ai-api": ["packages/ai-api/index.ts"],
+      "@app/ai-runtime": ["packages/ai-runtime/index.ts"],
+      "@app/ai-embeddings": ["packages/ai-embeddings/index.ts"],
+      "@app/ai-qa": ["packages/ai-qa/index.ts"],
       "@app/sync-client": ["packages/sync-client/index.ts"]
     }
   },

@@ -202,6 +202,60 @@ importers:
         specifier: workspace:*
         version: link:../../packages/sync-client
 
+  packages/ai-api:
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
+
+  packages/ai-embeddings:
+    dependencies:
+      '@app/ai-api':
+        specifier: workspace:*
+        version: link:../ai-api
+      '@app/core-types':
+        specifier: workspace:*
+        version: link:../core-types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
+
+  packages/ai-qa:
+    dependencies:
+      '@app/ai-api':
+        specifier: workspace:*
+        version: link:../ai-api
+      '@app/ai-embeddings':
+        specifier: workspace:*
+        version: link:../ai-embeddings
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
+
+  packages/ai-runtime:
+    dependencies:
+      '@app/ai-api':
+        specifier: workspace:*
+        version: link:../ai-api
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@26.1.2)(jsdom@30.0.1)(vite@8.2.0(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.6.1)(sass@1.102.0)(yaml@2.9.0))
+
   packages/attachments:
     devDependencies:
       typescript:

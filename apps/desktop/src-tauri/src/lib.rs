@@ -1,4 +1,5 @@
 mod db;
+mod ai_auth;
 mod fs;
 mod manifest;
 mod oauth;
@@ -43,6 +44,9 @@ pub fn run() {
       oauth::save_drive_token,
       oauth::load_drive_token,
       oauth::clear_drive_token,
+      ai_auth::save_ai_key,
+      ai_auth::load_ai_key,
+      ai_auth::clear_ai_key,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

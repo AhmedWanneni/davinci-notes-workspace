@@ -30,6 +30,8 @@ export default defineConfig({
         "packages/plugin-runtime/index.ts",
       ),
       "@app/theme-api": path.join(repoRoot, "packages/theme-api/index.ts"),
+      "@app/ai-api": path.join(repoRoot, "packages/ai-api/index.ts"),
+      "@app/ai-runtime": path.join(repoRoot, "packages/ai-runtime/index.ts"),
     },
   },
   test: {

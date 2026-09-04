@@ -2,7 +2,9 @@ import { emptyNoteTagSet, type Note } from "@app/core-types";
 import type Database from "@tauri-apps/plugin-sql";
 import { describe, expect, it, vi } from "vitest";
 
-import { persistNotesBatch } from "./sqliteIndex";
+import { setSetting } from "./settingsCommands";
+import { SqliteEmbeddingStore } from "../../../../packages/ai-embeddings/EmbeddingStore";
+import { persistNotesBatch, withDbLock, withDbTransaction } from "./sqliteIndex";
 
 describe("sqliteIndex persistNotesBatch", () => {
   it("does nothing when notes array is empty", async () => {
@@ -137,5 +139,77 @@ describe("sqliteIndex persistNotesBatch", () => {
     const mode = await verifyJournalMode(db);
     expect(select).toHaveBeenCalledWith("PRAGMA journal_mode;");
     expect(mode).toBe("wal");
+  });
+
+  it("preserves the original failure when SQLite already ended the transaction", async () => {
+    const execute = vi.fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("constraint failed"))
+      .mockRejectedValueOnce(new Error("cannot rollback - no transaction is active"));
+    const db = { execute } as unknown as Database;
+
+    await expect(withDbTransaction(db, async () => {
+      await db.execute("INSERT INTO embedding_chunks VALUES (...) ");
+    })).rejects.toThrow("constraint failed");
+    expect(execute).toHaveBeenNthCalledWith(1, "BEGIN IMMEDIATE");
+    expect(execute).toHaveBeenNthCalledWith(3, "ROLLBACK");
+  });
+
+  it("serializes indexing, reads, embedding, and settings operations", async () => {
+    let activeWriters = 0;
+    let maximumActiveWriters = 0;
+    const statements: string[] = [];
+    const execute = vi.fn(async (sql: string) => {
+      activeWriters += 1;
+      maximumActiveWriters = Math.max(maximumActiveWriters, activeWriters);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      statements.push(sql);
+      activeWriters -= 1;
+    });
+    const db = {
+      execute,
+      select: vi.fn(async () => {
+        activeWriters += 1;
+        maximumActiveWriters = Math.max(maximumActiveWriters, activeWriters);
+        await new Promise((resolve) => setTimeout(resolve, 1));
+        activeWriters -= 1;
+        return [];
+      }),
+    } as unknown as Database;
+    const embeddingStore = new SqliteEmbeddingStore(db, withDbLock);
+
+    await Promise.all([
+      withDbLock(() =>
+        withDbTransaction(db, async () => {
+          await db.execute("DELETE FROM notes");
+          await db.execute("DELETE FROM links");
+        }),
+      ),
+      embeddingStore.upsert({
+        chunk: {
+          id: "chunk-1",
+          notePath: "note.md",
+          heading: null,
+          startLine: 1,
+          endLine: 1,
+          text: "indexed text",
+        },
+        contentHash: "hash",
+        model: "test-model",
+        vector: [1, 0],
+      }),
+      withDbLock(() => setSetting(db, "editorFont", "inter")),
+      withDbLock(() => db.select("SELECT value FROM settings WHERE key = $1", ["ai.provider.id"])),
+    ]);
+
+    expect(maximumActiveWriters).toBe(1);
+    expect(statements).toEqual(expect.arrayContaining([
+      "BEGIN IMMEDIATE",
+      "COMMIT",
+      "DELETE FROM notes",
+      "DELETE FROM links",
+      expect.stringContaining("INSERT INTO embedding_chunks"),
+      expect.stringContaining("INSERT INTO settings"),
+    ]));
   });
 });

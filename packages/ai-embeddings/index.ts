@@ -1,0 +1,12 @@
+export { chunkNote } from "./chunkNote";
+export type { NoteChunk } from "./chunkNote";
+export { EmbeddingIndex, hashText } from "./EmbeddingIndex";
+export type { EmbeddingHash, EmbeddingUpdate } from "./EmbeddingIndex";
+export { SqliteEmbeddingStore, cosine } from "./EmbeddingStore";
+export type { EmbeddingStore, SqliteLike, StoredEmbedding } from "./EmbeddingStore";
+export { EmbeddingScheduler } from "./EmbeddingScheduler";
+export type { EmbeddingSchedulerOptions } from "./EmbeddingScheduler";
+export { searchEmbeddings } from "./semanticSearch";
+export type { SemanticSearchResult } from "./semanticSearch";
+export { suggestLinks } from "./suggestLinks";
+export type { LinkSuggestion } from "./suggestLinks";

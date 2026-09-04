@@ -22,6 +22,8 @@ export {
   getVaultIndexDb,
   persistNote,
   removeNoteFromIndex,
+  withDbLock,
+  withDbTransaction,
   queryBacklinkSources,
   queryFullGraphIndex,
   VAULT_INDEX_DB,

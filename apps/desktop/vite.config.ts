@@ -66,6 +66,22 @@ export default defineConfig({
         find: "@app/theme-api",
         replacement: path.join(repoRoot, "packages/theme-api/index.ts"),
       },
+      {
+        find: "@app/ai-api",
+        replacement: path.join(repoRoot, "packages/ai-api/index.ts"),
+      },
+      {
+        find: "@app/ai-runtime",
+        replacement: path.join(repoRoot, "packages/ai-runtime/index.ts"),
+      },
+      {
+        find: "@app/ai-embeddings",
+        replacement: path.join(repoRoot, "packages/ai-embeddings/index.ts"),
+      },
+      {
+        find: "@app/ai-qa",
+        replacement: path.join(repoRoot, "packages/ai-qa/index.ts"),
+      },
     ],
   },
   server: {

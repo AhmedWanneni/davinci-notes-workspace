@@ -7,6 +7,8 @@ const startVaultWatcher = vi.fn();
 const getVaultIndexDb = vi.fn();
 const clearVaultIndex = vi.fn();
 const persistNotesBatch = vi.fn();
+const withDbLock = vi.fn(async (work: () => Promise<unknown>) => work());
+const withDbTransaction = vi.fn(async (_db: unknown, work: () => Promise<unknown>) => work());
 
 vi.mock("./vaultCommands", () => ({
   listNotes,
@@ -22,6 +24,8 @@ vi.mock("./sqliteIndex", () => ({
   persistNote: vi.fn(),
   persistNotesBatch,
   removeNoteFromIndex: vi.fn(),
+  withDbLock,
+  withDbTransaction,
 }));
 
 vi.mock("./noteFromMarkdown", () => ({

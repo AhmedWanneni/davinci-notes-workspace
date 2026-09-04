@@ -2,7 +2,7 @@ import { noteFromMarkdown } from "./noteFromMarkdown";
 import { replaceVaultPathPrefix } from "./replaceVaultPathPrefix";
 import { folderNameFromPath } from "./resolveUniqueFolderPath";
 import { sanitizeFilenameStem } from "./sanitizeFilenameStem";
-import { getVaultIndexDb, persistNote } from "./sqliteIndex";
+import { getVaultIndexDb, persistNote, withDbLock } from "./sqliteIndex";
 import { renameFolder } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
@@ -78,10 +78,12 @@ export async function renameFolderInVault(
       }
     }
 
-    for (const [path, content] of noteUpdates) {
-      const note = noteFromMarkdown(path, content, Date.now(), updatedNotes);
-      await persistNote(db, note);
-    }
+    await withDbLock(async () => {
+      for (const [path, content] of noteUpdates) {
+        const note = noteFromMarkdown(path, content, Date.now(), updatedNotes);
+        await persistNote(db, note);
+      }
+    });
 
     useWorkspaceStore.setState((prev) => ({
       allFolderPaths: updatedFolders,

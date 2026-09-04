@@ -21,6 +21,7 @@ import {
   getVaultIndexDb,
   persistNote,
   withVaultWatchSuppressed,
+  withDbLock,
 } from "../vault";
 import {
   flushH1DrivenRename,
@@ -201,7 +202,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     try {
       const db = await getVaultIndexDb();
       const note = noteFromMarkdown(path, content, Date.now(), allNotePaths);
-      await persistNote(db, note);
+      await withDbLock(() => persistNote(db, note));
       if (graph) {
         const nextGraph = updateGraphForNote(graph, note);
         set({

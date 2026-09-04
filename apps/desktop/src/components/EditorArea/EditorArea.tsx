@@ -14,6 +14,7 @@ import {
   createNoteInVault,
 } from "../../vault";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
+import type { PluginEditor } from "@app/plugin-api";
 
 const LazyCanvasView = lazy(() =>
   import("@app/canvas").then((m) => ({
@@ -27,6 +28,7 @@ export interface EditorAreaProps {
   onLinkClick: (target: string) => void;
   onTagClick: (tagKey: string) => void;
   pluginManager?: PluginLifecycleManager | null;
+  onEditorReady?: (editor: PluginEditor | null) => void;
 }
 
 export function EditorArea({
@@ -35,6 +37,7 @@ export function EditorArea({
   onLinkClick,
   onTagClick,
   pluginManager,
+  onEditorReady,
 }: EditorAreaProps) {
   const content = useWorkspaceStore(
     (state) => (activeNotePath ? state.notesContent[activeNotePath] : "") || "",
@@ -201,7 +204,10 @@ export function EditorArea({
                 onSaveNoteNow={saveNoteNow}
                 onCloseNote={closeNote}
                 onCloseAllNotes={closeAllNotes}
-                onEditorReady={(editor) => pluginManager?.setEditor(editor)}
+                onEditorReady={(editor) => {
+                  pluginManager?.setEditor(editor);
+                  onEditorReady?.(editor);
+                }}
               />
             </div>
           </div>

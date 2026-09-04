@@ -19,6 +19,11 @@ import type { ThemeLifecycleManager } from "../../themes";
 import type { ThemeDiscoveryError, ThemeRecord } from "../../themes";
 
 import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
+import React from "react";
+
+const LazyAISettingsPanel = React.lazy(() =>
+  import("../AISettingsPanel").then((module) => ({ default: module.AISettingsPanel })),
+);
 
 interface SettingsDialogProps {
   isOpen: boolean;
@@ -201,6 +206,10 @@ export function SettingsDialog({
               onOpenConflictsPanel={onOpenConflictsPanel}
             />
           </section>
+
+          <Divider />
+
+          <React.Suspense fallback={null}><LazyAISettingsPanel /></React.Suspense>
 
           <Divider />
 

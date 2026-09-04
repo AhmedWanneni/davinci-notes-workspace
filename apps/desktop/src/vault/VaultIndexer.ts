@@ -15,6 +15,8 @@ import {
   getVaultIndexDb,
   persistNotesBatch,
   removeNoteFromIndex,
+  withDbLock,
+  withDbTransaction,
 } from "./sqliteIndex";
 import {
   listNotes,
@@ -58,15 +60,12 @@ export async function indexVaultFull(): Promise<{
       : createEmptyTagIndex();
     const db = await getVaultIndexDb();
 
-    await db.execute("BEGIN IMMEDIATE");
-    try {
-      await clearVaultIndex(db);
-      await persistNotesBatch(db, notes);
-      await db.execute("COMMIT");
-    } catch (error) {
-      await db.execute("ROLLBACK");
-      throw error;
-    }
+    await withDbLock(() =>
+      withDbTransaction(db, async () => {
+        await clearVaultIndex(db);
+        await persistNotesBatch(db, notes);
+      }),
+    );
 
     noteCount = notes.length;
     indexedTagIndex = tagIndex;
@@ -127,29 +126,25 @@ export async function reconcileVaultChanges(
     );
     const db = await getVaultIndexDb();
 
-    await db.execute("BEGIN IMMEDIATE");
-    try {
-      for (const removed of allRemoved) {
-        await removeNoteFromIndex(db, removed);
-        if (tagIndex) removeNoteFromTagIndex(tagIndex, removed);
-        updated += 1;
-      }
+    await withDbLock(() =>
+      withDbTransaction(db, async () => {
+        for (const removed of allRemoved) {
+          await removeNoteFromIndex(db, removed);
+          if (tagIndex) removeNoteFromTagIndex(tagIndex, removed);
+          updated += 1;
+        }
 
-      for (const note of changedNotes) {
-        if (tagIndex) updateTagIndexForNote(tagIndex, note);
-        if (graph) updateGraphForNote(graph, note);
-        updated += 1;
-      }
+        for (const note of changedNotes) {
+          if (tagIndex) updateTagIndexForNote(tagIndex, note);
+          if (graph) updateGraphForNote(graph, note);
+          updated += 1;
+        }
 
-      if (changedNotes.length > 0) {
-        await persistNotesBatch(db, changedNotes);
-      }
-
-      await db.execute("COMMIT");
-    } catch (error) {
-      await db.execute("ROLLBACK");
-      throw error;
-    }
+        if (changedNotes.length > 0) {
+          await persistNotesBatch(db, changedNotes);
+        }
+      }),
+    );
 
     return { graph, updated };
   });

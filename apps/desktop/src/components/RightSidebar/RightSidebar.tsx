@@ -11,6 +11,7 @@ import { Typography } from "@app/design-system";
 import { BacklinksPanel } from "../BacklinksPanel";
 import { NoteOutline } from "../NoteOutline";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import { SuggestLinksPanel, type LinkSuggestion } from "../SuggestLinksPanel";
 
 const LazyLocalGraphPanel = React.lazy(() =>
   import("../LocalGraphPanel").then((m) => ({ default: m.LocalGraphPanel })),
@@ -21,6 +22,9 @@ export interface RightSidebarProps {
   activePath: string | null;
   isCollapsed?: boolean;
   onSelectNote: (path: string) => void;
+  suggestLinksEnabled?: boolean;
+  suggestions?: LinkSuggestion[];
+  onInsertSuggestedLink?: (path: string) => void;
 }
 
 export function RightSidebar({
@@ -28,6 +32,9 @@ export function RightSidebar({
   activePath,
   isCollapsed,
   onSelectNote,
+  suggestLinksEnabled = false,
+  suggestions = [],
+  onInsertSuggestedLink,
 }: RightSidebarProps) {
   const [isMentionsOpen, setIsMentionsOpen] = useState(true);
   const [isOutlineOpen, setIsOutlineOpen] = useState(true);
@@ -81,6 +88,9 @@ export function RightSidebar({
                     activePath={activePath}
                     onSelectNote={onSelectNote}
                   />
+                  {suggestLinksEnabled && onInsertSuggestedLink && (
+                    <SuggestLinksPanel suggestions={suggestions} onInsertLink={onInsertSuggestedLink} />
+                  )}
 
                   <div className="app-right-sidebar__subsection">
                     <div className="app-right-sidebar__subsection-header">

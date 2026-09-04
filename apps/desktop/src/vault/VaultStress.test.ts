@@ -8,12 +8,16 @@ const {
   setVaultWatcherPaused,
   startVaultWatcher,
   getVaultIndexDb,
+  withDbLock,
+  withDbTransaction,
 } = vi.hoisted(() => ({
   listNotes: vi.fn(),
   readNote: vi.fn(),
   setVaultWatcherPaused: vi.fn(),
   startVaultWatcher: vi.fn(),
   getVaultIndexDb: vi.fn(),
+  withDbLock: vi.fn(async (work: () => Promise<unknown>) => work()),
+  withDbTransaction: vi.fn(async (_db: unknown, work: () => Promise<unknown>) => work()),
 }));
 
 vi.mock("./vaultCommands", () => ({
@@ -29,6 +33,8 @@ vi.mock("./sqliteIndex", () => ({
   clearVaultIndex: vi.fn(),
   persistNotesBatch: vi.fn(),
   removeNoteFromIndex: vi.fn(),
+  withDbLock,
+  withDbTransaction,
 }));
 
 vi.mock("./noteFromMarkdown", () => ({
