@@ -5,6 +5,7 @@ import {
   Link as LinkIcon,
   TreeStructure,
   ShareNetwork,
+  ClockCounterClockwise,
 } from "@phosphor-icons/react";
 import type { GraphIndex } from "@app/indexer";
 import type { AskYourVaultResult } from "@app/ai-qa";
@@ -18,7 +19,14 @@ const LazyLocalGraphPanel = React.lazy(() =>
   import("../LocalGraphPanel").then((m) => ({ default: m.LocalGraphPanel })),
 );
 const LazyAskYourVaultPanel = React.lazy(() =>
-  import("../../ai/AskYourVaultPanel").then((m) => ({ default: m.AskYourVaultPanel })),
+  import("../../ai/AskYourVaultPanel").then((m) => ({
+    default: m.AskYourVaultPanel,
+  })),
+);
+const LazyVersionHistoryPanel = React.lazy(() =>
+  import("../VersionHistoryPanel").then((m) => ({
+    default: m.VersionHistoryPanel,
+  })),
 );
 
 export interface RightSidebarProps {
@@ -47,9 +55,13 @@ export function RightSidebar({
   const [isMentionsOpen, setIsMentionsOpen] = useState(true);
   const [isOutlineOpen, setIsOutlineOpen] = useState(true);
   const [isGraphOpen, setIsGraphOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(true);
 
   const activeContent = useWorkspaceStore(
     (state) => (activePath ? state.notesContent[activePath] : "") || "",
+  );
+  const replaceLoadedNoteContent = useWorkspaceStore(
+    (state) => state.replaceLoadedNoteContent,
   );
 
   const isCanvasActive = activePath?.endsWith(".canvas") ?? false;
@@ -97,7 +109,10 @@ export function RightSidebar({
                     onSelectNote={onSelectNote}
                   />
                   {suggestLinksEnabled && onInsertSuggestedLink && (
-                    <SuggestLinksPanel suggestions={suggestions} onInsertLink={onInsertSuggestedLink} />
+                    <SuggestLinksPanel
+                      suggestions={suggestions}
+                      onInsertLink={onInsertSuggestedLink}
+                    />
                   )}
 
                   <div className="app-right-sidebar__subsection">
@@ -131,6 +146,43 @@ export function RightSidebar({
             </Suspense>
           </div>
         )}
+
+        <div className="app-right-sidebar__section">
+          <button
+            type="button"
+            className="app-right-sidebar__section-header"
+            onClick={() => setIsHistoryOpen((prev) => !prev)}
+            aria-expanded={isHistoryOpen}
+          >
+            <span className="app-right-sidebar__chevron" aria-hidden="true">
+              {isHistoryOpen ? (
+                <CaretDown size={14} />
+              ) : (
+                <CaretRight size={14} />
+              )}
+            </span>
+            <ClockCounterClockwise
+              size={14}
+              className="app-right-sidebar__icon"
+            />
+            <Typography variant="text" size="xs" weight="semibold">
+              Version history
+            </Typography>
+          </button>
+          {isHistoryOpen && (
+            <div className="app-right-sidebar__section-body">
+              <Suspense fallback={null}>
+                <LazyVersionHistoryPanel
+                  activePath={activePath}
+                  onRestored={(content) => {
+                    if (activePath)
+                      replaceLoadedNoteContent(activePath, content);
+                  }}
+                />
+              </Suspense>
+            </div>
+          )}
+        </div>
 
         {/* Section 2: Outline */}
         <div className="app-right-sidebar__section">

@@ -1,0 +1,31 @@
+.version-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.version-history__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.version-history__item {
+  background: transparent;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  color: inherit;
+  cursor: pointer;
+  padding: var(--space-2);
+  text-align: left;
+}
+.version-history__diff {
+  margin: 0;
+  max-height: var(--space-32);
+  overflow: auto;
+  white-space: pre-wrap;
+}
+.version-history__diff [data-kind="added"] {
+  color: var(--color-text-accent);
+}
+.version-history__diff [data-kind="removed"] {
+  color: var(--color-text-muted);
+  text-decoration: line-through;
+}

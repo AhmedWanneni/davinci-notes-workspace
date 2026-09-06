@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-06 | Git Versioning Phase 2 | Added right-sidebar local history, readable in-project line diff, and append-only restore commits; directly verified real Git log/diff/disk-content comparisons; added ADR-0154. |
 | 2026-09-06 | Git Versioning Phase 1 | Added automatic 2-second post-save local Git batches, manual Command Palette version save, real Git-log tests, and 1.00 ms large-edit input-loop measurement; added ADR-0153. |
 | 2026-09-06 | Git Versioning Phase 0 | Accepted system Git behind a default-off dynamic boundary; measured/rejected git2-rs native cost; verified fresh local-only repository, ignore policy, and offline staging; added ADR-0152. |
 | 2026-09-04 | AI Features Phase 7 re-audit | Blocked closeout with evidence: AI subsystem is fetched at startup despite being code-split; semantic search, suggest-links, and embedding generation have no production wiring; therefore no real corpus, end-to-end consent payload, real Q&A citation, or citation-open acceptance exists. Local build and mocked-provider performance checks pass with recorded current measurements. |
@@ -84,6 +85,25 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-09-06 — Git Versioning Phase 2
+
+- Added the `VersionHistoryPanel` as a lazy-loaded, collapsible right-sidebar
+  section, following the Backlinks/Outline placement precedent. It lists the
+  active Markdown note's actual local Git revisions and generated messages.
+- Added a dependency-free LCS line diff and a safe restore path. Restore writes
+  the selected committed content and appends a named restore commit; it cannot
+  rewrite or remove prior history. The Git mutex now covers restoration from
+  the disk write through commit.
+- Direct verification used a real temporary vault with three auto-save commits:
+  native history exactly matched `git log` hash/message/timestamp records in
+  newest-first order. A real Git diff's `-first`/`+second` changes exactly
+  matched the rendered diff changes. Two sequential restores preserved the
+  original three log entries, appended two restore commits, and produced disk
+  content exactly equal to each selected `git show` content.
+- Checks passed: focused Rust history test, 4 focused desktop tests, desktop
+  lint, and production web build. The deferred history chunk is 2,689 raw /
+  1,188 gzip bytes; no dependency or `vault-index.db` metadata was added.
 
 ### 2026-09-04 — AI Features Phase 7 re-audit (blocked)
 

@@ -6,16 +6,15 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Git Versioning Phase 1 — automatic local version history complete**
+**Git Versioning Phase 2 — local history and diff UI complete**
 `git2-rs@0.21.0` was evaluated in the real desktop Tauri release build and
 rejected despite active maintenance: a real libgit2 call added 645,392 bytes
 (630 KiB), so a user who never enables Version History would still pay native
 binary cost. The selected system-Git adapter adds no package or Git-engine
 binary payload. ADR-0152 records the decision.
 
-Version History will be one explicit, default-off setting toggle in Phase 2.
-That future toggle calls `loadGitVersioning()` which contains a real dynamic
-`import()`; there is no static import merely hidden behind a runtime check.
+`loadGitVersioning()` contains a real dynamic `import()`; there is no static
+import merely hidden behind a runtime check.
 Phase 0's no-caller build contained no Git-versioning symbols and its main
 entry was 368,090 raw / 116,570 gzip bytes. The Phase 1 dynamic bootstrap adds
 only 620 raw / 170 gzip bytes to the entry (368,710 / 116,740); scheduler and
@@ -44,8 +43,27 @@ the 50 ms threshold. No version metadata is persisted to `vault-index.db`; the
 existing single `withDbLock` queue remains unchanged. ADR-0153 records the
 trigger, messages, and granularity decision.
 
-Next: **Git Versioning Phase 2 — history and diff UI**, entirely local with no
-remote concept.
+Phase 2 adds a discoverable Version History section to the existing right
+sidebar. It shows the active Markdown note's real Git log (newest first), a
+readable in-project line diff, and safe append-only restore. Restore writes the
+chosen content and creates `Restore: <path> to <short-revision>` rather than
+rewriting history; its Git mutex covers the disk write through commit and the
+editor receives the restored content without a new dirty save.
+
+Observed verification: a three-commit real vault's history result exactly
+equaled `git log --format=%H%x1f%s%x1f%ct -- note.md`, field-for-field and in
+order. A separate real Git diff reported `-first` / `+second`, exactly matching
+the rendered changed lines. Two sequential restores left the original three
+commits intact, added two restore commits on top, and after each restore the
+actual disk bytes matched `git show <revision>:note.md`. No version metadata is
+persisted to `vault-index.db`. ADR-0154 records these decisions and results.
+
+The web entry is 369,700 raw / 116,940 gzip bytes; the deferred history chunk
+is 2,689 raw / 1,188 gzip bytes, with no new dependency. Focused native,
+component, diff, lint, and production-build checks pass.
+
+Next: **Git Versioning Phase 3 — generic remote credential model**, while
+preserving fully usable local-only history.
 
 **AI Features Phase 7 closeout — blocked by production wiring gaps**
 The requested end-to-end closeout was re-audited against the current build.

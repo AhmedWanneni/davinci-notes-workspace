@@ -56,6 +56,7 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   closeNote: (path: string) => Promise<void>;
   setActiveNote: (path: string) => Promise<void>;
   updateNoteContent: (path: string, content: string) => void;
+  replaceLoadedNoteContent: (path: string, content: string) => void;
   saveNoteNow: (path: string) => Promise<void>;
   saveVersionNow: (path: string) => Promise<void>;
   saveAllDirty: () => Promise<void>;
@@ -185,6 +186,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
     scheduleH1DrivenRename(path);
   },
+
+  replaceLoadedNoteContent: (path: string, content: string) =>
+    set((state) => ({
+      notesContent: { ...state.notesContent, [path]: content },
+    })),
 
   saveNoteNow: async (path: string) => {
     const { notesContent, dirtyNotes, allNotePaths, graph } = get();
