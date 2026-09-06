@@ -1,6 +1,7 @@
 mod db;
 mod ai_auth;
 mod fs;
+mod git;
 mod manifest;
 mod oauth;
 mod state;
@@ -38,6 +39,7 @@ pub fn run() {
       fs::rename_note,
       fs::rename_folder,
       fs::delete_note,
+      git::initialize_local_git_repository,
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,

@@ -100,6 +100,9 @@ jobs:
       - name: Build frontend packages & web app
         run: pnpm turbo run build --filter=@app/desktop...
 
+      - name: Verify offline local Git initialization
+        run: cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml git::tests::initializes_an_offline_repository_that_stages_only_markdown
+
       - name: Build Tauri Desktop (Staging Channel)
         uses: tauri-apps/tauri-action@v0
         env:

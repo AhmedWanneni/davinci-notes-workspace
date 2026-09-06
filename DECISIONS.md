@@ -25,6 +25,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0008](adr/0008-manifest-diff-sync-not-crdt.md) | Sync: manifest-diff file sync, not CRDT (Yjs) | Superseded by [0116](adr/0116-sync-via-drive-syncthing-no-owned-backend.md) |
 | [0011](adr/0011-changesets-and-trunk-based-branching.md) | Changesets + trunk-based branching | Accepted |
 | [0017](adr/0017-provisional-bundle-identifier.md) | Bundle identifier `com.davinci.notes` (provisional) | Accepted |
+| [0152](adr/0152-local-git-engine-and-lazy-load-boundary.md) | Local version history uses opt-in system Git; no git2-rs/libgit2 binary cost and a real dynamic-import boundary | Accepted |
 
 ## Desktop Shell
 

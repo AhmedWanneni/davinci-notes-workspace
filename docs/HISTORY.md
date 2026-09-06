@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-06 | Git Versioning Phase 0 | Accepted system Git behind a default-off dynamic boundary; measured/rejected git2-rs native cost; verified fresh local-only repository, ignore policy, and offline staging; added ADR-0152. |
 | 2026-09-04 | AI Features Phase 7 re-audit | Blocked closeout with evidence: AI subsystem is fetched at startup despite being code-split; semantic search, suggest-links, and embedding generation have no production wiring; therefore no real corpus, end-to-end consent payload, real Q&A citation, or citation-open acceptance exists. Local build and mocked-provider performance checks pass with recorded current measurements. |
 | 2026-09-04 | Phase 6 SQLite_BUSY regression follow-up | Found that `AISettingsPanel.reload()` reintroduced concurrent reads against the singleton `tauri-plugin-sql` connection with `Promise.all` after the writer audit. Changed consent loading to sequential reads and routed the App cloud-state refresh through the existing queue boundary. Focused SQLite/indexer tests passed 10/10; full workspace passed 24/24 tasks and desktop passed 181/181 tests. |
 | 2026-09-04 | Complete vault-index shared-writer serialization | Audited every shared `vault-index.db` mutation and transaction owner. Added the existing `withDbLock` boundary to AI consent/status writes and made `SqliteEmbeddingStore` require an injected shared lock for upsert/remove. Plugin, theme, CRUD, workspace, and editor-settings writes were confirmed already serialized; no nested lock path was found. The adversarial index + embedding + settings writer test observed one active writer and no dropped statements. Full workspace tests passed: 24 tasks, including desktop 181/181 and embeddings 7/7; lint passed. Desktop typecheck retains pre-existing errors. |
@@ -1302,6 +1303,47 @@ The following is the full `PROGRESS.md` state archived at session close.
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
 ---
+
+## 2026-09-06 — Git Versioning Phase 0: Engine and Local-Only Architecture
+
+### Decision
+
+ADR-0152 selects the installed system `git` executable, not `git2-rs`.
+`git2-rs@0.21.0` remains actively maintained, but forcing a real libgit2 call
+in this app's desktop release build increased the executable from 15,686,544
+to 16,331,936 bytes (+645,392 bytes / 630 KiB). This violates the required
+zero Git-engine cost for users who never enable history; runtime JavaScript
+gating cannot remove native code compiled into Tauri.
+
+The fallback has no new dependency and no built-in Git engine. It relies on
+the system Git executable and returns a clear installation error only when the
+user explicitly enables Version History on a machine that lacks Git.
+
+### Implementation and Verification
+
+- Added `src-tauri/src/git.rs` with `initialize_local_git_repository` and a
+  Phase 2-facing TypeScript loader. The loader's `import()` is genuine; Phase
+  0 has no UI caller and therefore no version-history code is emitted into the
+  no-action web build.
+- The initializer runs `git init --quiet`, creates `.gitignore` only if absent,
+  and configures no remote. The ignore policy permits only recursive `.md`
+  files, so `vault-index.db`, embedding/cache files, attachments, and the
+  policy file itself do not enter normal `git add --all` staging.
+- Focused Rust test passed: fresh temp vault, `.git/HEAD` present, empty remote
+  list, and cached staged paths exactly `note.md`. It uses no network command
+  or remote. The desktop staging workflow now runs this test on all release
+  platforms.
+- Verified `cargo test` (focused), `cargo check`, desktop web build, and
+  release build. The no-action release executable is 15,686,544 bytes and the
+  main web entry is 368,090 raw / 116,570 gzip bytes; asset-symbol scan found
+  no Version History code.
+
+### Scope Boundary
+
+No automatic commits, history UI, remotes, credentials, or version-state
+database persistence were introduced. No `vault-index.db` operation was added,
+so the existing single `withDbLock` queue was not touched. Phase 1 owns
+debounced automatic commits and input-latency verification.
 
 ## Current Focus
 

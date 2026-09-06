@@ -6,6 +6,30 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Git Versioning Phase 0 — local-only foundation complete**
+`git2-rs@0.21.0` was evaluated in the real desktop Tauri release build and
+rejected despite active maintenance: a real libgit2 call added 645,392 bytes
+(630 KiB), so a user who never enables Version History would still pay native
+binary cost. The selected system-Git adapter adds no package or Git-engine
+binary payload. ADR-0152 records the decision.
+
+Version History will be one explicit, default-off setting toggle in Phase 2.
+That future toggle calls `loadGitVersioning()` which contains a real dynamic
+`import()`; there is no static import merely hidden behind a runtime check.
+With no caller in Phase 0, the production web build contains no Git-versioning
+symbols and its main entry is 368,090 raw / 116,570 gzip bytes. The no-action
+release binary is 15,686,544 bytes.
+
+The new native initializer creates a valid local `.git` directory with no
+remote and writes an ignore policy that stages only `.md` files, excluding
+`vault-index.db` and local cache data. The focused Rust test passed directly
+against a fresh temporary vault and the desktop staging matrix now runs it on
+macOS, Linux, and Windows. Phase 0 persists no version state to
+`vault-index.db`, so no additional SQLite queue operation was introduced.
+
+Next: **Git Versioning Phase 1 — automatic local version history**, using a
+debounced non-blocking commit boundary with direct latency verification.
+
 **AI Features Phase 7 closeout — blocked by production wiring gaps**
 The requested end-to-end closeout was re-audited against the current build.
 It cannot be marked complete. `App.tsx` imports and invokes
@@ -131,6 +155,28 @@ live Tauri/provider acceptance environment is available.
 The subsystem has provider transport, embeddings, vector storage, semantic search, suggested links, ask-your-vault, persisted consent/provider settings, and differentiated cloud indicators. Automated performance and UI checks pass, but the full closeout cannot be marked complete: no configured running Tauri/cloud environment is available for network-level consent, real answer-quality, keychain restart, or citation-opener verification, and Remediation C has no production host opener. The requested `ai-features-build-plan.md` remains absent.
 
 ## Last Session
+
+**Git Versioning Phase 0 — Git engine and local-only architecture**
+
+### Completed
+- Evaluated `git2-rs@0.21.0`: active release/issue activity and an actual
+  Tauri release build, but a real `Repository::open` call measured +645,392
+  bytes (+630 KiB). Rejected because dynamic JavaScript loading cannot remove
+  statically linked libgit2 from the desktop binary.
+- Added the dependency-free system-Git initializer and a deferred TypeScript
+  loader. A fresh vault becomes a valid, remote-free repository with no manual
+  Git command; the test confirms staged content is only Markdown and generated
+  index/cache files are excluded.
+- Confirmed offline operation directly (init, remote inspection, staging, and
+  cached diff with zero remotes) and added that test to every desktop staging
+  platform job.
+- Verified desktop web build, focused Rust test, `cargo check`, and release
+  build. Existing Rust dead-code and Sass deprecation warnings remain
+  unrelated. Added ADR-0152 and indexed it.
+
+### Next
+- Git Versioning Phase 1: implement debounced automatic local commits without
+  blocking typing; verify the real local log and input latency.
 
 **AI Features Phase 7 — Performance and Regression Closeout**
 
@@ -308,16 +354,17 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
-2. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
-3. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
-4. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
-5. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-6. **Unlinked Mentions Detection**
-7. **Inline Property Editing**
-8. **Outline Scroll Synchronization**
-9. Add success/warning semantic color tokens
-10. Chromatic / Playwright screenshot regression
+1. **Git Versioning Phase 1**: add debounced, non-blocking automatic local commits and verify actual local history/input latency.
+2. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
+3. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+4. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+5. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+6. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+7. **Unlinked Mentions Detection**
+8. **Inline Property Editing**
+9. **Outline Scroll Synchronization**
+10. Add success/warning semantic color tokens
+11. Chromatic / Playwright screenshot regression
 
 ## Blocked / Open Questions
 

@@ -1,0 +1,1 @@
+export { loadGitVersioning } from "./loadGitVersioning";
