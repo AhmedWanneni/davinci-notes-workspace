@@ -26,6 +26,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0011](adr/0011-changesets-and-trunk-based-branching.md) | Changesets + trunk-based branching | Accepted |
 | [0017](adr/0017-provisional-bundle-identifier.md) | Bundle identifier `com.davinci.notes` (provisional) | Accepted |
 | [0152](adr/0152-local-git-engine-and-lazy-load-boundary.md) | Local version history uses opt-in system Git; no git2-rs/libgit2 binary cost and a real dynamic-import boundary | Accepted |
+| [0153](adr/0153-automatic-local-version-commit-batching.md) | Local version history auto-commits 2-second post-save Markdown batches; Command Palette can flush a manual version | Accepted |
 
 ## Desktop Shell
 

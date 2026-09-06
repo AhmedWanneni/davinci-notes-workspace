@@ -70,6 +70,7 @@ export function App() {
   activeNoteRef.current = activeNotePath;
   const openNotes = useWorkspaceStore((state) => state.openNotes);
   const dirtyNotes = useWorkspaceStore((state) => state.dirtyNotes);
+  const saveVersionNow = useWorkspaceStore((state) => state.saveVersionNow);
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
@@ -544,6 +545,9 @@ export function App() {
             onSelectNote={(target) => void handleLinkClick(target)}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenTags={() => setIsTagsOpen(true)}
+            onSaveVersionNow={() => {
+              if (activeNotePath) void saveVersionNow(activeNotePath);
+            }}
             onDriveSignIn={() => void handleDriveSignIn()}
             onDriveRefresh={() => void handleDriveRefresh()}
             onDriveDisconnect={() => void handleDriveDisconnect()}

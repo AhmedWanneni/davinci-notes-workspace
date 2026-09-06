@@ -6,7 +6,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Git Versioning Phase 0 — local-only foundation complete**
+**Git Versioning Phase 1 — automatic local version history complete**
 `git2-rs@0.21.0` was evaluated in the real desktop Tauri release build and
 rejected despite active maintenance: a real libgit2 call added 645,392 bytes
 (630 KiB), so a user who never enables Version History would still pay native
@@ -16,9 +16,11 @@ binary payload. ADR-0152 records the decision.
 Version History will be one explicit, default-off setting toggle in Phase 2.
 That future toggle calls `loadGitVersioning()` which contains a real dynamic
 `import()`; there is no static import merely hidden behind a runtime check.
-With no caller in Phase 0, the production web build contains no Git-versioning
-symbols and its main entry is 368,090 raw / 116,570 gzip bytes. The no-action
-release binary is 15,686,544 bytes.
+Phase 0's no-caller build contained no Git-versioning symbols and its main
+entry was 368,090 raw / 116,570 gzip bytes. The Phase 1 dynamic bootstrap adds
+only 620 raw / 170 gzip bytes to the entry (368,710 / 116,740); scheduler and
+invoke code stay deferred until a save. The release binary remains 15,686,544
+bytes because the Git engine is external.
 
 The new native initializer creates a valid local `.git` directory with no
 remote and writes an ignore policy that stages only `.md` files, excluding
@@ -27,8 +29,23 @@ against a fresh temporary vault and the desktop staging matrix now runs it on
 macOS, Linux, and Windows. Phase 0 persists no version state to
 `vault-index.db`, so no additional SQLite queue operation was introduced.
 
-Next: **Git Versioning Phase 1 — automatic local version history**, using a
-debounced non-blocking commit boundary with direct latency verification.
+Automatic local history now follows the existing 750 ms save debounce with a
+2-second trailing batch window (ADR-0037 precedent). Notes saved near each
+other become one real local Git commit, rather than one commit per file.
+Messages are `Auto-save: <path>` or `Auto-save: <count> notes: …`; the Command
+Palette exposes **Save version now** for an immediate `Saved version: <path>`
+commit. The Git work is an async background command guarded by its own Git
+operation mutex, never a typing-path operation.
+
+Direct Git tests confirm a two-file batch and a manual version in `git log`.
+The adversarial 2.1 MB Markdown edit measured **1.00 ms** maximum JavaScript
+input-loop latency during a real `git add` + `git commit` (111 ms total), below
+the 50 ms threshold. No version metadata is persisted to `vault-index.db`; the
+existing single `withDbLock` queue remains unchanged. ADR-0153 records the
+trigger, messages, and granularity decision.
+
+Next: **Git Versioning Phase 2 — history and diff UI**, entirely local with no
+remote concept.
 
 **AI Features Phase 7 closeout — blocked by production wiring gaps**
 The requested end-to-end closeout was re-audited against the current build.
@@ -155,6 +172,25 @@ live Tauri/provider acceptance environment is available.
 The subsystem has provider transport, embeddings, vector storage, semantic search, suggested links, ask-your-vault, persisted consent/provider settings, and differentiated cloud indicators. Automated performance and UI checks pass, but the full closeout cannot be marked complete: no configured running Tauri/cloud environment is available for network-level consent, real answer-quality, keychain restart, or citation-opener verification, and Remediation C has no production host opener. The requested `ai-features-build-plan.md` remains absent.
 
 ## Last Session
+
+**Git Versioning Phase 1 — automatic local version history**
+
+### Completed
+- Added automatic 2-second post-save batching after the existing 750 ms editor
+  save debounce. A batch stages only its saved Markdown paths and creates one
+  readable local Git commit; no commit runs per keystroke.
+- Added useful automatic messages and the Command Palette **Save version now**
+  action for an immediate manual commit.
+- Moved native Git work into an async `spawn_blocking` command and serialized
+  the complete init/stage/check/commit operation with a Git mutex. No SQLite
+  state or second database queue was introduced.
+- Verified actual fresh-vault Git logs for multi-note auto and manual commits;
+  scheduler/desktop/Rust tests pass. A 2.1 MB real Git commit held maximum JS
+  input-loop latency to 1.00 ms (111 ms total), below 50 ms. Added ADR-0153.
+
+### Next
+- Git Versioning Phase 2: local history list, readable diffs, and safe restore;
+  do not add remotes or credentials.
 
 **Git Versioning Phase 0 — Git engine and local-only architecture**
 
@@ -354,7 +390,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Git Versioning Phase 1**: add debounced, non-blocking automatic local commits and verify actual local history/input latency.
+1. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
 2. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
 3. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
 4. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.

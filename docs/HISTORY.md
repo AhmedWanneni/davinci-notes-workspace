@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-06 | Git Versioning Phase 1 | Added automatic 2-second post-save local Git batches, manual Command Palette version save, real Git-log tests, and 1.00 ms large-edit input-loop measurement; added ADR-0153. |
 | 2026-09-06 | Git Versioning Phase 0 | Accepted system Git behind a default-off dynamic boundary; measured/rejected git2-rs native cost; verified fresh local-only repository, ignore policy, and offline staging; added ADR-0152. |
 | 2026-09-04 | AI Features Phase 7 re-audit | Blocked closeout with evidence: AI subsystem is fetched at startup despite being code-split; semantic search, suggest-links, and embedding generation have no production wiring; therefore no real corpus, end-to-end consent payload, real Q&A citation, or citation-open acceptance exists. Local build and mocked-provider performance checks pass with recorded current measurements. |
 | 2026-09-04 | Phase 6 SQLite_BUSY regression follow-up | Found that `AISettingsPanel.reload()` reintroduced concurrent reads against the singleton `tauri-plugin-sql` connection with `Promise.all` after the writer audit. Changed consent loading to sequential reads and routed the App cloud-state refresh through the existing queue boundary. Focused SQLite/indexer tests passed 10/10; full workspace passed 24/24 tasks and desktop passed 181/181 tests. |
@@ -1303,6 +1304,35 @@ The following is the full `PROGRESS.md` state archived at session close.
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
 ---
+
+## 2026-09-06 — Git Versioning Phase 1: Automatic Local Versions
+
+### Decision
+
+ADR-0153 selects a 2-second trailing-edge Git batch after the existing 750 ms
+note-save debounce. The first saved note activates local history, superseding
+only Phase 0's deferred-toggle assumption. One commit groups Markdown notes
+saved close together, with path-aware `Auto-save` messages. The Command
+Palette's **Save version now** action flushes an immediate, distinct manual
+message.
+
+### Verification
+
+- Rust tests inspect actual local Git logs for an automatic two-note batch and
+  an explicit manual version; both run in fresh repositories with no remote.
+- Scheduler and Command Palette tests pass alongside the existing workspace
+  save tests.
+- The adversarial 2.1 MB Markdown edit ran real `git add` and `git commit` in
+  111 ms while the JavaScript input loop's largest measured delay was 1.00 ms,
+  under the 50 ms target.
+
+### Scope Boundary
+
+The Git command runs off the UI path in `spawn_blocking` and holds one mutex
+from repository initialization through commit. Version metadata remains inside
+`.git`; no `vault-index.db` state, database connection, migration, or
+`withDbLock` call was added. Phase 2 owns only local history, diff, and safe
+restore UI; remotes remain Phase 3+.
 
 ## 2026-09-06 — Git Versioning Phase 0: Engine and Local-Only Architecture
 

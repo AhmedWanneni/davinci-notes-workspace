@@ -40,6 +40,7 @@ pub fn run() {
       fs::rename_folder,
       fs::delete_note,
       git::initialize_local_git_repository,
+      git::create_local_git_version,
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,

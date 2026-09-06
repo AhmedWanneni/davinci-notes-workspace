@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { CommandPalette } from "./CommandPalette";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
@@ -42,5 +42,21 @@ describe("CommandPalette escape hatch for Vim keybindings", () => {
     fireEvent.click(disableItem);
 
     expect(useWorkspaceStore.getState().useVimMode).toBe(false);
+  });
+
+  it("runs the explicit save-version action", () => {
+    const saveVersionNow = vi.fn();
+    render(
+      <CommandPalette
+        isOpen={true}
+        onOpenChange={() => {}}
+        onSelectNote={() => {}}
+        onSaveVersionNow={saveVersionNow}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Save version now"));
+
+    expect(saveVersionNow).toHaveBeenCalledOnce();
   });
 });

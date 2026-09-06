@@ -57,6 +57,7 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   setActiveNote: (path: string) => Promise<void>;
   updateNoteContent: (path: string, content: string) => void;
   saveNoteNow: (path: string) => Promise<void>;
+  saveVersionNow: (path: string) => Promise<void>;
   saveAllDirty: () => Promise<void>;
   closeAllNotes: () => Promise<void>;
 }
@@ -220,6 +221,21 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       nextDirty.delete(path);
       return { dirtyNotes: nextDirty };
     });
+    void import("../git/loadGitVersioning")
+      .then(({ loadGitVersioning }) => loadGitVersioning())
+      .then(({ versionHistoryScheduler }) =>
+        versionHistoryScheduler.recordAutoSave(path),
+      )
+      .catch((error) =>
+        console.error("Failed to schedule local version", error),
+      );
+  },
+
+  saveVersionNow: async (path: string) => {
+    await get().saveNoteNow(path);
+    const { loadGitVersioning } = await import("../git/loadGitVersioning");
+    const { versionHistoryScheduler } = await loadGitVersioning();
+    await versionHistoryScheduler.saveVersionNow(path);
   },
 
   saveAllDirty: async () => {

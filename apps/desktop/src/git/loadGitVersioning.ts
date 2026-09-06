@@ -1,3 +1,3 @@
 export function loadGitVersioning() {
-  return import("./initializeLocalGitRepository");
+  return import("./VersionHistoryScheduler");
 }

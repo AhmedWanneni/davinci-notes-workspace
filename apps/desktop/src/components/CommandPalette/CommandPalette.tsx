@@ -15,6 +15,7 @@ interface CommandPaletteProps {
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
+  onSaveVersionNow?: () => void;
   pluginCommands?: RegisteredPluginCommand[];
 }
 
@@ -27,6 +28,7 @@ export function CommandPalette({
   onDriveSignIn,
   onDriveDisconnect,
   onDriveRefresh,
+  onSaveVersionNow,
   pluginCommands = [],
 }: CommandPaletteProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
@@ -79,6 +81,12 @@ export function CommandPalette({
       id: "action:tags",
       title: "Browse Tags",
       recencyScore: 400,
+    });
+    targets.push({
+      isCommand: true,
+      id: "action:save-version",
+      title: "Save version now",
+      recencyScore: 350,
     });
     targets.push({
       isCommand: true,
@@ -139,6 +147,7 @@ export function CommandPalette({
     if (id === "action:disable-vim") void setUseVimMode(false);
     if (id === "action:settings") onOpenSettings?.();
     if (id === "action:tags") onOpenTags?.();
+    if (id === "action:save-version") onSaveVersionNow?.();
     if (id === "action:drive-sign-in") onDriveSignIn?.();
     if (id === "action:drive-disconnect") onDriveDisconnect?.();
     if (id === "action:drive-refresh") onDriveRefresh?.();
