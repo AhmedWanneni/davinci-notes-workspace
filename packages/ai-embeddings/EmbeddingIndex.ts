@@ -25,6 +25,7 @@ export class EmbeddingIndex {
     notes: readonly Note[],
     provider: AIProvider,
     batchSize = 50,
+    removeMissing = true,
   ): Promise<EmbeddingUpdate> {
     const next = new Map<string, NoteChunk>();
     for (const note of notes) {
@@ -52,7 +53,7 @@ export class EmbeddingIndex {
       }
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
     }
-    const removed = [...this.entries.keys()].filter((id) => !next.has(id));
+    const removed = removeMissing ? [...this.entries.keys()].filter((id) => !next.has(id)) : [];
     await Promise.all(removed.map(async (id) => {
       this.entries.delete(id);
       await this.store?.remove(id);

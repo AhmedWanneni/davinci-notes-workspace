@@ -29,6 +29,7 @@ export interface ChatResponse {
 
 export type AIProviderErrorCode =
   | "authentication"
+  | "insufficient-credits"
   | "rate-limited"
   | "network"
   | "unavailable"
@@ -48,7 +49,7 @@ export class AIProviderError extends Error {
     super(message);
     this.name = "AIProviderError";
     this.code = code;
-    this.retryable = options.retryable ?? (code === "network" || code === "rate-limited");
+    this.retryable = options.retryable ?? (code === "network" || code === "rate-limited" || code === "insufficient-credits");
     this.requiresReauthentication = options.requiresReauthentication ?? code === "authentication";
   }
 }

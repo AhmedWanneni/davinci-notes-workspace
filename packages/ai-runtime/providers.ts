@@ -8,7 +8,6 @@ import type {
   EmbeddingRequest,
   EmbeddingResponse,
 } from "@app/ai-api";
-import { OpenAICompatibleTransport, type CloudTransportOptions } from "./cloudTransport.js";
 
 abstract class DelegatingAIProvider implements AIProvider {
   abstract readonly id: string;
@@ -24,11 +23,6 @@ abstract class DelegatingAIProvider implements AIProvider {
 export class CloudAIProvider extends DelegatingAIProvider {
   readonly id = "cloud";
   readonly mode = "cloud" as const;
-  constructor(options: CloudTransportOptions);
-  constructor(operations: AIProviderOperations);
-  constructor(value: CloudTransportOptions | AIProviderOperations) {
-    super("apiKey" in value ? new OpenAICompatibleTransport(value) : value);
-  }
 }
 
 export class LocalAIProvider extends DelegatingAIProvider {

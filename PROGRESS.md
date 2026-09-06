@@ -6,6 +6,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**AI Features Phase 7 closeout — blocked by production wiring gaps**
+The requested end-to-end closeout was re-audited against the current build.
+It cannot be marked complete. `App.tsx` imports and invokes
+`loadAISubsystem()` during every startup state refresh, so the AI subsystem is
+fetched even when AI is never enabled. This violates ADR-0132 and ADR-0146's
+runtime lazy-load boundary, despite the implementation remaining outside the
+initial entry chunk.
+
+Semantic search, suggested links, and embedding generation are not connected
+to production call sites: `App` supplies no semantic callback to
+`SearchDialog`, no suggestion props to `RightSidebar`, and
+`createEmbeddingIndex()` has no caller. The helpers and component tests exist,
+but a real vault cannot populate embeddings or use the first two features.
+Ask-your-vault is mounted when ready, but it has no real indexed chunks to
+retrieve. This leaves ADR-0140's end-to-end retrieval, consent payload, and
+real citation acceptance unverified and blocked independently of the missing
+live Tauri/provider environment.
+
+Current local measurements: production entry `365,550` raw / `115,890` gzip
+bytes; deferred `AISubsystem` `11,590` / `3,980`, Gemini `2,060` / `980`,
+Ollama `1,630` / `780`, embedding store `1,810` / `860`, and Q&A panel
+`1,740` / `850` bytes. The real 350-file fixture kept event-loop latency at
+`5.27ms`; synthetic 350-note embedding was `2.00ms`; 350-chunk cosine ranking
+was `1.24ms`. These are local mocked-provider measurements only, not real
+cloud feature latency. Focused packages and desktop tests passed 205 total
+(7 embeddings, 2 Q&A, 11 runtime, 185 desktop); desktop web build and lint
+pass. Full TypeScript checking remains blocked by unrelated workspace-store
+and design-system errors.
+
 **AI providers extended: Gemini, OpenRouter, and Ollama**
 The existing provider interface now has real Gemini and OpenRouter cloud
 transports plus a local-networked Ollama transport. OpenRouter model slugs are
@@ -28,6 +57,22 @@ the shared native connection. AI consent/provider reads now use the same
 `busy_timeout` before requesting WAL mode. The contention regression test now
 includes a queued provider-style settings read alongside indexing, embeddings,
 and settings writes; focused vault tests pass 10/10.
+
+**Ask-your-vault reachability fixed**
+The panel was not hidden by consent: the real database has
+`ai.consent.ask-vault=enabled`, but Phase 5 never mounted its exported panel
+in the app. It is now a lazy right-sidebar section when the selected provider
+is ready and the feature is enabled. The Q&A package/provider are loaded only
+when a question is submitted; its SQLite retrieval read uses `withDbLock`.
+Settings changes now emit the existing AI-state event so the section updates
+without a restart. Focused panel/host tests pass 3/3.
+
+**Gemini Q&A stale-ready state fixed**
+The real database marked Gemini `ready`, but Q&A could not load a matching
+`gemini` Keychain credential. Cloud-provider readiness now requires both the
+persisted status and a readable provider-specific Keychain key; an unavailable
+credential is recorded as `failed`, the Q&A panel stays hidden, and the user
+is directed to reconnect in Settings. No secret fallback was added.
 
 **Vault-index transaction overlap fixed**
 

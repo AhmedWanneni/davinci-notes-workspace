@@ -1,8 +1,9 @@
-import { CloudAIProvider, LocalAIProvider, createGeminiProvider, createOllamaProvider, createOpenRouterProvider } from "@app/ai-runtime";
+import { CloudAIProvider, LocalAIProvider, createGeminiProvider, createOllamaProvider, createOpenAICompatibleProvider, createOpenRouterProvider } from "@app/ai-runtime";
 import type { AIProvider, AIProviderOperations } from "@app/ai-api";
 import { createDesktopAISecretStore } from "./desktopAISecretStore";
 import { getSetting, getVaultIndexDb, setSetting, withDbLock } from "../vault";
 import { disableAllAIConsent } from "./aiConsentState";
+import { providerValidationFailure, type ProviderValidationFailure } from "./providerValidationFailure";
 export { AIConsentScreen } from "./AIConsentScreen";
 export type { AIConsentScreenProps } from "./AIConsentScreen";
 export { AIKeyEntryScreen } from "./AIKeyEntryScreen";
@@ -21,6 +22,7 @@ export const AI_PROVIDER_NAMES: Record<AIProviderId, string> = {
   ollama: "Ollama (local server)",
 };
 const PROVIDER_SETTING = "ai.provider.id";
+const PROVIDER_FAILURE_SETTING = "ai.provider.failure";
 const PROVIDER_MODELS: Record<AIProviderId, { embeddingModel: string; chatModel: string }> = {
   "openai-compatible": { embeddingModel: "text-embedding-3-small", chatModel: "gpt-4o-mini" },
   gemini: { embeddingModel: "gemini-embedding-001", chatModel: "gemini-2.0-flash" },
@@ -83,13 +85,13 @@ export function createCloudProvider(operations: AIProviderOperations) {
 export async function createStoredCloudProvider(): Promise<AIProvider> {
   const apiKey = await createDesktopAISecretStore().load("openai-compatible");
   if (!apiKey) throw new Error("cloud AI provider key is not configured");
-  return new CloudAIProvider({ apiKey });
+  return createOpenAICompatibleProvider({ apiKey });
 }
 
 /** Validate only a fixed probe; vault text is never sent during key entry. */
 export async function validateAndSaveCloudKey(apiKey: string): Promise<void> {
   if (!apiKey) throw new Error("provider API key is required");
-  const provider = new CloudAIProvider({ apiKey });
+  const provider = await createOpenAICompatibleProvider({ apiKey });
   try {
     await provider.embed({ inputs: ["DaVinci Notes connection test"] });
     await createDesktopAISecretStore().save("openai-compatible", apiKey);
@@ -107,13 +109,13 @@ export async function validateAndSaveProviderKey(providerId: Exclude<AIProviderI
     ? await createGeminiProvider({ apiKey, ...models })
     : providerId === "openrouter"
       ? await createOpenRouterProvider({ apiKey, ...models })
-      : new CloudAIProvider({ apiKey });
+      : await createOpenAICompatibleProvider({ apiKey });
   try {
     await provider.embed({ inputs: ["DaVinci Notes connection test"] });
     await createDesktopAISecretStore().save(providerId, apiKey);
-    await saveAIProviderStatus("ready", providerId);
+    await saveAIProviderValidationStatus("ready", providerId);
   } catch (error) {
-    await saveAIProviderStatus("failed", providerId);
+    await saveAIProviderValidationStatus("failed", providerId, providerValidationFailure(error));
     throw error;
   } finally { await provider.dispose(); }
 }
@@ -127,6 +129,29 @@ export async function saveAIProviderStatus(status: AIProviderStatus, providerId:
   const db = await getVaultIndexDb();
   await withDbLock(() => setSetting(db, providerId === "openai-compatible" ? "ai.provider.status" : `ai.provider.status.${providerId}`, status));
 }
+
+export async function loadAIProviderFailure(providerId: AIProviderId): Promise<ProviderValidationFailure | null> {
+  const value = await loadProviderSetting(`${PROVIDER_FAILURE_SETTING}.${providerId}`);
+  return value === "authentication" || value === "insufficient-credits" || value === "rate-limited" || value === "network" || value === "unavailable" || value === "invalid-request" || value === "unknown" ? value : null;
+}
+
+async function saveAIProviderValidationStatus(status: AIProviderStatus, providerId: AIProviderId, failure: ProviderValidationFailure | null = null): Promise<void> {
+  const db = await getVaultIndexDb();
+  await withDbLock(async () => {
+    await setSetting(db, providerId === "openai-compatible" ? "ai.provider.status" : `ai.provider.status.${providerId}`, status);
+    await setSetting(db, `${PROVIDER_FAILURE_SETTING}.${providerId}`, failure ?? "");
+  });
+}
+
+export async function hasStoredProviderCredential(providerId: AIProviderId): Promise<boolean> {
+  if (providerId === "ollama") return true;
+  try {
+    return Boolean(await createDesktopAISecretStore().load(providerId));
+  } catch {
+    return false;
+  }
+}
+
 export async function revokeCloudAI(): Promise<void> {
   await disableAllAIConsent();
   await createDesktopAISecretStore().clear("openai-compatible");
@@ -148,11 +173,14 @@ export async function createConfiguredProvider(providerId: AIProviderId): Promis
     return createOllamaProvider({ baseUrl: baseUrl ?? undefined, embeddingModel: embeddingModel ?? undefined, chatModel: chatModel ?? undefined });
   }
   const apiKey = await createDesktopAISecretStore().load(providerId);
-  if (!apiKey) throw new Error(`${AI_PROVIDER_NAMES[providerId]} key is not configured`);
+  if (!apiKey) {
+    await saveAIProviderStatus("failed", providerId);
+    throw new Error(`${AI_PROVIDER_NAMES[providerId]} key is not configured. Reconnect it in Settings.`);
+  }
   const models = await loadProviderModels(providerId);
   if (providerId === "gemini") return createGeminiProvider({ apiKey, ...models });
   if (providerId === "openrouter") return createOpenRouterProvider({ apiKey, ...models });
-  return new CloudAIProvider({ apiKey });
+  return createOpenAICompatibleProvider({ apiKey });
 }
 
 export async function loadEmbeddingInfrastructure() {
@@ -160,6 +188,7 @@ export async function loadEmbeddingInfrastructure() {
 }
 
 export async function createEmbeddingIndex() {
-  const { EmbeddingIndex, hashText } = await loadEmbeddingInfrastructure();
-  return new EmbeddingIndex(hashText);
+  const { EmbeddingIndex, hashText, SqliteEmbeddingStore } = await loadEmbeddingInfrastructure();
+  const db = await getVaultIndexDb();
+  return new EmbeddingIndex(hashText, new SqliteEmbeddingStore(db, withDbLock));
 }

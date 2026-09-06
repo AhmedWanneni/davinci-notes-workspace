@@ -30,7 +30,7 @@ describe("OpenAICompatibleTransport", () => {
     }
   });
 
-  it.each([[401, "authentication"], [429, "rate-limited"], [500, "unavailable"]] as const)("maps %s to %s", async (status, code) => {
+  it.each([[401, "authentication"], [402, "insufficient-credits"], [429, "rate-limited"], [500, "unavailable"]] as const)("maps %s to %s", async (status, code) => {
     const fetchImpl = vi.fn().mockResolvedValue(response(status, { error: { message: "provider failure" } }));
     await expect(new OpenAICompatibleTransport({ apiKey: "x", fetchImpl }).embed({ inputs: ["x"] })).rejects.toMatchObject({ code });
   });

@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-04 | AI Features Phase 7 re-audit | Blocked closeout with evidence: AI subsystem is fetched at startup despite being code-split; semantic search, suggest-links, and embedding generation have no production wiring; therefore no real corpus, end-to-end consent payload, real Q&A citation, or citation-open acceptance exists. Local build and mocked-provider performance checks pass with recorded current measurements. |
 | 2026-09-04 | Phase 6 SQLite_BUSY regression follow-up | Found that `AISettingsPanel.reload()` reintroduced concurrent reads against the singleton `tauri-plugin-sql` connection with `Promise.all` after the writer audit. Changed consent loading to sequential reads and routed the App cloud-state refresh through the existing queue boundary. Focused SQLite/indexer tests passed 10/10; full workspace passed 24/24 tasks and desktop passed 181/181 tests. |
 | 2026-09-04 | Complete vault-index shared-writer serialization | Audited every shared `vault-index.db` mutation and transaction owner. Added the existing `withDbLock` boundary to AI consent/status writes and made `SqliteEmbeddingStore` require an injected shared lock for upsert/remove. Plugin, theme, CRUD, workspace, and editor-settings writes were confirmed already serialized; no nested lock path was found. The adversarial index + embedding + settings writer test observed one active writer and no dropped statements. Full workspace tests passed: 24 tasks, including desktop 181/181 and embeddings 7/7; lint passed. Desktop typecheck retains pre-existing errors. |
 | 2026-09-02 | Plugin Ecosystem Phase 2 — Plugin Loader & Lifecycle Manager | Defined `DavinciPlugin` base class in `packages/plugin-api`. Stood up `packages/plugin-runtime` with `discoverPlugins` (manifest validation, ID-collision rejection), `evaluatePluginModule` (safe `new Function(…)` evaluator), and `PluginLifecycleManager` (enable/disable lifecycle, `onload`/`onunload` hooks, error isolation, enabled-IDs persistence). 6 adversarial fixture tests cover: crashing `onload`, malformed manifest, ID collision, mid-session disable, re-enable cycle, restart persistence — all pass. Desktop: `PluginSettingsList` component wired into `SettingsDialog`, `usePluginStore` initialises on vault open, `desktopPluginAdapter.ts` bridges Tauri fs + SQLite to runtime adapters. Full workspace: 44 test files, 161 tests all green. |
@@ -81,6 +82,31 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-09-04 — AI Features Phase 7 re-audit (blocked)
+
+- Re-read the AI ADR chain (0132–0151), ADR-0140 and remediation follow-ups,
+  plus the PDF.js and Vim lazy-load precedents. The decision index contains the
+  individual Phase 0–6 and remediation ADRs; no new architectural decision was
+  made in this audit.
+- The current production build is `365,550` raw / `115,890` gzip bytes for the
+  entry. AI implementation remains split into deferred chunks, but the app
+  eagerly invokes `loadAISubsystem()` from its startup refresh. This fetches
+  the `11,590` raw / `3,980` gzip subsystem for AI-disabled users and violates
+  ADR-0132/0146's end-to-end lazy-load contract.
+- `App` has no production call to `createEmbeddingIndex`, `searchEmbeddings`,
+  or `suggestLinks`, and passes neither semantic-search nor suggested-link
+  props to their UI hosts. Those features cannot work end to end or populate
+  a real corpus. Ask-your-vault remains unable to provide real retrieval until
+  that corpus exists.
+- Local checks passed: 350-file fixture event-loop latency `5.27ms`, synthetic
+  350-note batch `2.00ms`, and 350-chunk cosine rank `1.24ms`; package/desktop
+  tests passed 205 total, lint and web build pass. They use fixtures/mocked
+  providers and do not satisfy real cloud/network/citation acceptance.
+- No valid instrumented Tauri provider environment is available. Do not claim
+  cloud-consent network payload, revoke, real answer grounding, or citation
+  click-through results until the production wiring gaps are fixed and a safe
+  test credential is configured.
 
 ### 2026-09-04 - Vault-index transaction overlap fix
 
@@ -2497,3 +2523,30 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   with indexing, embedding, and settings operations. Focused vault tests pass
   10/10; desktop lint passes. Desktop typecheck remains blocked by existing
   workspace-store and Button color typing errors.
+
+## 2026-09-04 - Ask-Your-Vault Host Mount
+
+- Diagnosed the missing Q&A panel as a host-mount omission, not consent state:
+  the real application database contained `ai.consent.ask-vault=enabled`, and
+  source/history showed the Phase 5 component was exported but never rendered
+  by `App`, the right sidebar, or the icon rail.
+- Added the consent- and provider-ready-gated panel to the right sidebar with
+  a nested lazy import. Q&A/provider code loads only after a question is
+  submitted, preserving the initial-bundle boundary.
+- Routed Q&A retrieval reads through the shared SQLite queue and restored the
+  AI-state event after settings changes so the host gate refreshes immediately.
+- Added ADR-0150 and right-sidebar tests for enabled/disabled visibility and
+  question dispatch. Focused host/panel tests pass 3/3; desktop typecheck is
+  still blocked only by existing workspace-store/Button typing errors.
+
+## 2026-09-04 - Gemini Provider Readiness Reconciliation
+
+- Investigated Q&A's `Google Gemini key is not configured` error. The
+  application database selected Gemini and marked it ready, while the
+  provider-specific Keychain credential could not be loaded.
+- Made readiness require both the SQLite status and the Keychain credential.
+  A missing cloud credential downgrades its stale status to `failed`, hides
+  Q&A, and supplies a reconnect-in-Settings error. Ollama remains exempt
+  because it has no API key.
+- Added ADR-0151. Focused Q&A host tests pass 3/3 and desktop lint passes;
+  desktop typecheck remains blocked by existing workspace-store/Button errors.

@@ -76,6 +76,7 @@ export class OpenAICompatibleTransport {
     if (response.ok) return body;
     const message = errorMessage(body) ?? `cloud request failed (${response.status})`;
     if (response.status === 401 || response.status === 403) throw new AIProviderError("authentication", message);
+    if (response.status === 402) throw new AIProviderError("insufficient-credits", message);
     if (response.status === 429) throw new AIProviderError("rate-limited", message);
     if (response.status >= 400 && response.status < 500) throw new AIProviderError("invalid-request", message, { retryable: false });
     throw new AIProviderError("unavailable", message);

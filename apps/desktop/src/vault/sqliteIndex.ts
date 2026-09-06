@@ -9,6 +9,7 @@ export const VAULT_INDEX_DB = "sqlite:vault-index.db";
 let dbPromise: Promise<Database> | undefined;
 
 let dbWriteLock: Promise<unknown> = Promise.resolve();
+
 export function withDbLock<T>(fn: () => Promise<T>): Promise<T> {
   const run = dbWriteLock.then(fn, fn);
   dbWriteLock = run.catch(() => {});

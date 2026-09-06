@@ -3,12 +3,14 @@ import type { ReactNode } from "react";
 import { Button, Checkbox, Input, Typography } from "@app/design-system";
 import { loadAISubsystem } from "../../ai/loadAISubsystem";
 import type { AIProviderId } from "../../ai/AISubsystem";
+import { providerValidationFailureMessage, type ProviderValidationFailure } from "../../ai/providerValidationFailure";
 
 type Feature = "semantic-search" | "suggest-links" | "ask-vault";
-interface AIState { provider: AIProviderId; status: "unknown" | "ready" | "failed"; features: Record<Feature, boolean>; }
-const initialState: AIState = { provider: "openai-compatible", status: "unknown", features: { "semantic-search": false, "suggest-links": false, "ask-vault": false } };
+interface AIState { provider: AIProviderId; status: "unknown" | "ready" | "failed"; failure: ProviderValidationFailure | null; features: Record<Feature, boolean>; }
+const initialState: AIState = { provider: "openai-compatible", status: "unknown", failure: null, features: { "semantic-search": false, "suggest-links": false, "ask-vault": false } };
 const providerNames: Record<AIProviderId, string> = { "openai-compatible": "OpenAI-compatible cloud", gemini: "Google Gemini", openrouter: "OpenRouter", ollama: "Ollama (local server)" };
 const defaultModels = { embeddingModel: "openai/text-embedding-3-small", chatModel: "openai/gpt-4o-mini" };
+const notifyAIStateChanged = () => window.dispatchEvent(new Event("davinci-ai-state-changed"));
 
 export function AISettingsPanel() {
   const [state, setState] = useState(initialState);
@@ -26,14 +28,14 @@ export function AISettingsPanel() {
     setOllama({ baseUrl: ollamaBaseUrl, ...ollamaModels });
     const features = { ...initialState.features };
     for (const feature of Object.keys(features) as Feature[]) features[feature] = await ai.loadAIConsent(feature);
-    setState({ provider, status: await ai.loadAIProviderStatus(provider), features });
+    setState({ provider, status: await ai.loadAIProviderStatus(provider), failure: await ai.loadAIProviderFailure(provider), features });
     setLoading(false);
   };
   useEffect(() => { void reload(); }, []);
-  const selectProvider = async (provider: AIProviderId) => { const ai = await loadAISubsystem(); await ai.saveSelectedProvider(provider); setState((current) => ({ ...current, provider, status: "unknown" })); };
-  const toggleFeature = async (feature: Feature, enabled: boolean) => { const ai = await loadAISubsystem(); await ai.saveAIConsent(feature, enabled); setState((current) => ({ ...current, features: { ...current.features, [feature]: enabled } })); };
-  const connect = async () => { const ai = await loadAISubsystem(); if (state.provider === "openrouter") await ai.saveProviderModels("openrouter", openrouter.embeddingModel, openrouter.chatModel); const providerId = state.provider === "ollama" ? undefined : state.provider; setSetup(<ai.AISetupFlow providerId={providerId} providerName={providerNames[state.provider]} onComplete={() => { setSetup(null); void reload(); }} onCancel={() => setSetup(null)} />); };
-  const saveOllama = async () => { const ai = await loadAISubsystem(); await ai.saveOllamaConfig(ollama.baseUrl, ollama.embeddingModel, ollama.chatModel); await ai.saveSelectedProvider("ollama"); const provider = await ai.createConfiguredProvider("ollama"); try { await provider.embed({ inputs: ["DaVinci Notes connection test"] }); await ai.saveAIProviderStatus("ready", "ollama"); await reload(); } catch { await ai.saveAIProviderStatus("failed", "ollama"); setState((current) => ({ ...current, status: "failed" })); } finally { await provider.dispose(); } };
+  const selectProvider = async (provider: AIProviderId) => { const ai = await loadAISubsystem(); await ai.saveSelectedProvider(provider); setState((current) => ({ ...current, provider, status: "unknown", failure: null })); notifyAIStateChanged(); };
+  const toggleFeature = async (feature: Feature, enabled: boolean) => { const ai = await loadAISubsystem(); await ai.saveAIConsent(feature, enabled); setState((current) => ({ ...current, features: { ...current.features, [feature]: enabled } })); notifyAIStateChanged(); };
+  const connect = async () => { const ai = await loadAISubsystem(); if (state.provider === "openrouter") await ai.saveProviderModels("openrouter", openrouter.embeddingModel, openrouter.chatModel); const providerId = state.provider === "ollama" ? undefined : state.provider; setSetup(<ai.AISetupFlow providerId={providerId} providerName={providerNames[state.provider]} onComplete={() => { notifyAIStateChanged(); setSetup(null); void reload(); }} onCancel={() => setSetup(null)} />); };
+  const saveOllama = async () => { const ai = await loadAISubsystem(); await ai.saveOllamaConfig(ollama.baseUrl, ollama.embeddingModel, ollama.chatModel); await ai.saveSelectedProvider("ollama"); const provider = await ai.createConfiguredProvider("ollama"); try { await provider.embed({ inputs: ["DaVinci Notes connection test"] }); await ai.saveAIProviderStatus("ready", "ollama"); notifyAIStateChanged(); await reload(); } catch { await ai.saveAIProviderStatus("failed", "ollama"); notifyAIStateChanged(); setState((current) => ({ ...current, status: "failed" })); } finally { await provider.dispose(); } };
   if (loading) return <section className="settings-dialog__section"><Typography variant="text" size="xs" color="muted">Loading AI settings...</Typography></section>;
   if (setup) return <section className="settings-dialog__section">{setup}</section>;
   return <section className="settings-dialog__section" aria-labelledby="ai-settings-title">
@@ -56,7 +58,7 @@ export function AISettingsPanel() {
       </>}
       <Button onClick={() => void connect()}>{state.status === "ready" ? `Reconnect ${providerNames[state.provider]}` : `Connect ${providerNames[state.provider]}`}</Button>
     </>}
-    {state.status === "failed" && state.provider !== "ollama" && <Typography variant="text" size="xs" color="error">Provider key failed validation. Reconnect the provider.</Typography>}
+    {state.status === "failed" && state.provider !== "ollama" && <Typography variant="text" size="xs" color="error">{providerValidationFailureMessage(providerNames[state.provider], state.failure)}</Typography>}
     {(state.provider === "ollama" || state.status === "ready") && (Object.keys(state.features) as Feature[]).map((feature) => <label key={feature} className="settings-dialog__row"><Typography variant="text" size="xs">{feature === "ask-vault" ? "Ask your vault" : feature === "suggest-links" ? "Suggested links" : "Semantic search"}</Typography><Checkbox checked={state.features[feature]} onCheckedChange={(checked) => void toggleFeature(feature, checked === true)} aria-label={feature} /></label>)}
   </section>;
 }

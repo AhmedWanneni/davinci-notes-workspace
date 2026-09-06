@@ -18,9 +18,9 @@ import {
   signInToDrive,
   signOutOfDrive,
 } from "./sync/desktopDriveAuth";
-import { getVaultIndexDb, openAndIndexVault, useVaultSession } from "./vault";
+import { getVaultIndexDb, openAndIndexVault, useVaultSession, withDbLock } from "./vault";
 import { revealCitationLine, type CitationNavigationTarget } from "./ai/citationNavigation";
-import { loadAISubsystem } from "./ai/loadAISubsystem";
+import { loadAIStartupGate } from "./ai/loadAIStartupGate";
 
 const LazyGlobalGraphDialog = React.lazy(() =>
   import("./components/GlobalGraphDialog").then((m) => ({
@@ -56,6 +56,10 @@ export function App() {
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
   const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
+  const [askVaultEnabled, setAskVaultEnabled] = useState(false);
+  const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
+  const [suggestLinksEnabled, setSuggestLinksEnabled] = useState(false);
+  const [suggestions, setSuggestions] = useState<import("./components/SuggestLinksPanel").LinkSuggestion[]>([]);
   const [aiProviderName, setAiProviderName] = useState("AI");
   const [aiTransmitting, setAiTransmitting] = useState(false);
   const editorRef = useRef<PluginEditor | null>(null);
@@ -71,6 +75,7 @@ export function App() {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
   const tagIndex = useWorkspaceStore((state) => state.tagIndex);
+  const activeContent = activeNotePath ? (notesContent[activeNotePath] ?? "") : "";
 
   const loadSettings = useWorkspaceStore((state) => state.loadSettings);
   const openNote = useWorkspaceStore((state) => state.openNote);
@@ -130,11 +135,29 @@ export function App() {
 
   useEffect(() => {
     const loadAIState = async () => {
+      const gate = await loadAIStartupGate();
+      if (!gate.cloudEnabled && !gate.providerReady) {
+        setAiCloudEnabled(false);
+        setAskVaultEnabled(false);
+        setSemanticSearchEnabled(false);
+        setSuggestLinksEnabled(false);
+        setAiProviderName("AI");
+        return;
+      }
+      const { loadAISubsystem } = await import("./ai/loadAISubsystem");
       const ai = await loadAISubsystem();
       const provider = await ai.loadSelectedProvider();
       const status = await ai.loadAIProviderStatus(provider);
+      const credentialPresent = await ai.hasStoredProviderCredential(provider);
+      const providerReady = status === "ready" && credentialPresent;
+      if (status === "ready" && !credentialPresent) {
+        await ai.saveAIProviderStatus("failed", provider);
+      }
       setAiProviderName(ai.AI_PROVIDER_NAMES[provider]);
-      setAiCloudEnabled(status === "ready" || (provider === "openai-compatible" && await ai.loadAIConsent("cloud")));
+      setAiCloudEnabled(providerReady || (provider === "openai-compatible" && credentialPresent && await ai.loadAIConsent("cloud")));
+      setAskVaultEnabled(providerReady && await ai.loadAIConsent("ask-vault"));
+      setSemanticSearchEnabled(providerReady && await ai.loadAIConsent("semantic-search"));
+      setSuggestLinksEnabled(providerReady && await ai.loadAIConsent("suggest-links"));
     };
     const refresh = () => void loadAIState();
     const startTransmission = () => setAiTransmitting(true);
@@ -149,6 +172,47 @@ export function App() {
       window.removeEventListener("davinci-ai-transmission-end", endTransmission);
     };
   }, [vaultPath]);
+
+  useEffect(() => {
+    if (!vaultPath || !aiCloudEnabled) return;
+    let cancelled = false;
+    void (async () => {
+      const { loadAISubsystem } = await import("./ai/loadAISubsystem");
+      const ai = await loadAISubsystem();
+      const provider = await ai.createConfiguredProvider(await ai.loadSelectedProvider());
+      try {
+        const index = await ai.createEmbeddingIndex();
+        if (!cancelled) await (await import("./ai/reconcileVaultEmbeddings")).reconcileVaultEmbeddings(index, provider);
+      } finally { await provider.dispose(); }
+    })().catch(() => {});
+    return () => { cancelled = true; };
+  }, [aiCloudEnabled, vaultPath]);
+
+  const withConfiguredProvider = useCallback(async <T,>(work: (provider: import("@app/ai-api").AIProvider, db: import("@app/ai-embeddings").SqliteLike) => Promise<T>) => {
+    const { loadAISubsystem } = await import("./ai/loadAISubsystem");
+    const ai = await loadAISubsystem();
+    const provider = await ai.createConfiguredProvider(await ai.loadSelectedProvider());
+    const database = await getVaultIndexDb();
+    const db = { execute: (sql: string, values?: unknown[]) => withDbLock(() => database.execute(sql, values)), select: <R,>(sql: string, values?: unknown[]) => withDbLock(() => database.select<R>(sql, values)) };
+    try { return await work(provider, db); } finally { await provider.dispose(); }
+  }, []);
+
+  const handleSemanticSearch = useCallback(async (query: string) => {
+    if (!semanticSearchEnabled) return [];
+    return withConfiguredProvider(async (provider, db) => {
+      const { searchEmbeddings } = await import("@app/ai-embeddings");
+      return searchEmbeddings(query, provider, db);
+    });
+  }, [semanticSearchEnabled, withConfiguredProvider]);
+
+  useEffect(() => {
+    if (!suggestLinksEnabled || !activeNotePath || !activeContent) { setSuggestions([]); return; }
+    const timer = window.setTimeout(() => { void withConfiguredProvider(async (provider, db) => {
+      const { suggestLinks } = await import("@app/ai-embeddings");
+      setSuggestions(await suggestLinks(activeNotePath, activeContent, provider, db));
+    }).catch(() => setSuggestions([])); }, 450);
+    return () => window.clearTimeout(timer);
+  }, [activeContent, activeNotePath, suggestLinksEnabled, withConfiguredProvider]);
 
   useEffect(() => {
     void initPlugins(vaultPath);
@@ -247,6 +311,11 @@ export function App() {
     [openNote],
   );
 
+  const handleAskVault = useCallback(async (question: string) => {
+    const { askConfiguredVault } = await import("./ai/askConfiguredVault");
+    return askConfiguredVault(question);
+  }, []);
+
   useEffect(() => {
     const handleCitation = (event: Event) => {
       const detail = (event as CustomEvent<CitationNavigationTarget>).detail;
@@ -313,9 +382,6 @@ export function App() {
   }
 
   const vaultName = vaultPath.split(/[/\\]/).pop() || vaultPath;
-  const activeContent = activeNotePath
-    ? (notesContent[activeNotePath] ?? "")
-    : "";
 
   return (
     <div
@@ -398,6 +464,11 @@ export function App() {
           activePath={activeNotePath}
           isCollapsed={!isRightSidebarOpen}
           onSelectNote={(path) => void openNote(path)}
+          suggestLinksEnabled={suggestLinksEnabled}
+          suggestions={suggestions}
+          onInsertSuggestedLink={(path) => editorRef.current?.insertText(`[[${path}]]`)}
+          askVaultEnabled={askVaultEnabled}
+          onAskVault={handleAskVault}
         />
       </div>
 
@@ -425,6 +496,7 @@ export function App() {
               )
             }
             onSelectNote={(path) => void openNote(path)}
+            semanticSearch={semanticSearchEnabled ? handleSemanticSearch : undefined}
           />
         )}
         {isTagsOpen && (

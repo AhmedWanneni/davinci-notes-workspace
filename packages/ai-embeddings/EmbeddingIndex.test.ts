@@ -49,6 +49,14 @@ describe("embedding infrastructure", () => {
     expect(second.removed).toHaveLength(0);
   });
 
+  it("retains earlier bounded reconciliation batches", async () => {
+    const index = new EmbeddingIndex(hashText);
+    const ai = provider();
+    await index.updateNotes([note("a.md", "first")], ai, 50, false);
+    await index.updateNotes([note("b.md", "second")], ai, 50, false);
+    expect(index.snapshot().map((entry) => entry.chunk.notePath)).toEqual(["a.md", "b.md"]);
+  });
+
   it("keeps the event loop available during a 350-note batch", async () => {
     const ai = provider();
     const index = new EmbeddingIndex(hashText);

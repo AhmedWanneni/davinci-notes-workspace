@@ -27,6 +27,11 @@ export async function createOpenRouterProvider(options: CloudTransportOptions): 
   return new TransportProvider("openrouter", "cloud", transport);
 }
 
+export async function createOpenAICompatibleProvider(options: CloudTransportOptions): Promise<AIProvider> {
+  const { OpenAICompatibleTransport } = await import("./cloudTransport.js");
+  return new TransportProvider("openai-compatible", "cloud", new OpenAICompatibleTransport(options));
+}
+
 export async function createOllamaProvider(options: OllamaTransportOptions = {}): Promise<AIProvider> {
   const { OllamaTransport } = await import("./ollamaTransport.js");
   const transport = new OllamaTransport(options);

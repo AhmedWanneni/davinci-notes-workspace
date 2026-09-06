@@ -7,6 +7,7 @@ import {
   ShareNetwork,
 } from "@phosphor-icons/react";
 import type { GraphIndex } from "@app/indexer";
+import type { AskYourVaultResult } from "@app/ai-qa";
 import { Typography } from "@app/design-system";
 import { BacklinksPanel } from "../BacklinksPanel";
 import { NoteOutline } from "../NoteOutline";
@@ -15,6 +16,9 @@ import { SuggestLinksPanel, type LinkSuggestion } from "../SuggestLinksPanel";
 
 const LazyLocalGraphPanel = React.lazy(() =>
   import("../LocalGraphPanel").then((m) => ({ default: m.LocalGraphPanel })),
+);
+const LazyAskYourVaultPanel = React.lazy(() =>
+  import("../../ai/AskYourVaultPanel").then((m) => ({ default: m.AskYourVaultPanel })),
 );
 
 export interface RightSidebarProps {
@@ -25,6 +29,8 @@ export interface RightSidebarProps {
   suggestLinksEnabled?: boolean;
   suggestions?: LinkSuggestion[];
   onInsertSuggestedLink?: (path: string) => void;
+  askVaultEnabled?: boolean;
+  onAskVault?: (question: string) => Promise<AskYourVaultResult>;
 }
 
 export function RightSidebar({
@@ -35,6 +41,8 @@ export function RightSidebar({
   suggestLinksEnabled = false,
   suggestions = [],
   onInsertSuggestedLink,
+  askVaultEnabled = false,
+  onAskVault,
 }: RightSidebarProps) {
   const [isMentionsOpen, setIsMentionsOpen] = useState(true);
   const [isOutlineOpen, setIsOutlineOpen] = useState(true);
@@ -115,6 +123,14 @@ export function RightSidebar({
             </div>
           )}
         </div>
+
+        {askVaultEnabled && onAskVault && (
+          <div className="app-right-sidebar__section">
+            <Suspense fallback={null}>
+              <LazyAskYourVaultPanel cloudActive onAsk={onAskVault} />
+            </Suspense>
+          </div>
+        )}
 
         {/* Section 2: Outline */}
         <div className="app-right-sidebar__section">
