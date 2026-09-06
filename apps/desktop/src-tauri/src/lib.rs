@@ -2,6 +2,7 @@ mod db;
 mod ai_auth;
 mod fs;
 mod git;
+mod git_auth;
 mod git_history;
 mod manifest;
 mod oauth;
@@ -42,6 +43,9 @@ pub fn run() {
       fs::delete_note,
       git::initialize_local_git_repository,
       git::create_local_git_version,
+      git_auth::save_git_pat,
+      git_auth::load_git_pat,
+      git_auth::clear_git_pat,
       git_history::list_local_git_versions,
       git_history::read_local_git_version,
       git_history::restore_local_git_version,

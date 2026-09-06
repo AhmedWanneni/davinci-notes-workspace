@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-06 | Git Versioning Phase 3 | Added a provider-agnostic HTTPS/PAT model using the existing OS keyring, queued non-sensitive remote config, cosmetic-only provider detection, and deferred SSH; added ADR-0155. |
 | 2026-09-06 | Git Versioning Phase 2 | Added right-sidebar local history, readable in-project line diff, and append-only restore commits; directly verified real Git log/diff/disk-content comparisons; added ADR-0154. |
 | 2026-09-06 | Git Versioning Phase 1 | Added automatic 2-second post-save local Git batches, manual Command Palette version save, real Git-log tests, and 1.00 ms large-edit input-loop measurement; added ADR-0153. |
 | 2026-09-06 | Git Versioning Phase 0 | Accepted system Git behind a default-off dynamic boundary; measured/rejected git2-rs native cost; verified fresh local-only repository, ignore policy, and offline staging; added ADR-0152. |
@@ -85,6 +86,20 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-09-06 — Git Versioning Phase 3
+
+- Reused Drive OAuth's `keyring::Entry` boundary for Git PATs, with a distinct
+  service name and an account scoped to vault plus remote URL. No token is
+  stored in `vault-index.db`, browser storage, or Git config.
+- Added a queued, transaction-wrapped non-sensitive remote configuration store
+  for URL and optional username only. The shared SQLite regression now includes
+  it beside indexing, embeddings, settings, and reads.
+- Added pure provider detection for help metadata only. It has no functional
+  Git or credential branch. SSH is explicitly deferred to Phase 4 because a
+  public key must still be manually registered with the Git host.
+- Focused provider/config/SQLite tests (10), native key-scope/askpass tests, and desktop
+  lint passed. No package, remote setup UI, fetch, push, or pull was added.
 
 ### 2026-09-06 — Git Versioning Phase 2
 

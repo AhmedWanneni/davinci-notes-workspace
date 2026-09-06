@@ -3,8 +3,13 @@ import type Database from "@tauri-apps/plugin-sql";
 import { describe, expect, it, vi } from "vitest";
 
 import { setSetting } from "./settingsCommands";
+import { saveGitRemoteConfig } from "../git/GitRemoteConfig";
 import { SqliteEmbeddingStore } from "../../../../packages/ai-embeddings/EmbeddingStore";
-import { persistNotesBatch, withDbLock, withDbTransaction } from "./sqliteIndex";
+import {
+  persistNotesBatch,
+  withDbLock,
+  withDbTransaction,
+} from "./sqliteIndex";
 
 describe("sqliteIndex persistNotesBatch", () => {
   it("does nothing when notes array is empty", async () => {
@@ -142,15 +147,20 @@ describe("sqliteIndex persistNotesBatch", () => {
   });
 
   it("preserves the original failure when SQLite already ended the transaction", async () => {
-    const execute = vi.fn()
+    const execute = vi
+      .fn()
       .mockResolvedValueOnce(undefined)
       .mockRejectedValueOnce(new Error("constraint failed"))
-      .mockRejectedValueOnce(new Error("cannot rollback - no transaction is active"));
+      .mockRejectedValueOnce(
+        new Error("cannot rollback - no transaction is active"),
+      );
     const db = { execute } as unknown as Database;
 
-    await expect(withDbTransaction(db, async () => {
-      await db.execute("INSERT INTO embedding_chunks VALUES (...) ");
-    })).rejects.toThrow("constraint failed");
+    await expect(
+      withDbTransaction(db, async () => {
+        await db.execute("INSERT INTO embedding_chunks VALUES (...) ");
+      }),
+    ).rejects.toThrow("constraint failed");
     expect(execute).toHaveBeenNthCalledWith(1, "BEGIN IMMEDIATE");
     expect(execute).toHaveBeenNthCalledWith(3, "ROLLBACK");
   });
@@ -199,17 +209,27 @@ describe("sqliteIndex persistNotesBatch", () => {
         vector: [1, 0],
       }),
       withDbLock(() => setSetting(db, "editorFont", "inter")),
-      withDbLock(() => db.select("SELECT value FROM settings WHERE key = $1", ["ai.provider.id"])),
+      saveGitRemoteConfig(db, {
+        remoteUrl: "https://gitlab.com/example/notes.git",
+        username: null,
+      }),
+      withDbLock(() =>
+        db.select("SELECT value FROM settings WHERE key = $1", [
+          "ai.provider.id",
+        ]),
+      ),
     ]);
 
     expect(maximumActiveWriters).toBe(1);
-    expect(statements).toEqual(expect.arrayContaining([
-      "BEGIN IMMEDIATE",
-      "COMMIT",
-      "DELETE FROM notes",
-      "DELETE FROM links",
-      expect.stringContaining("INSERT INTO embedding_chunks"),
-      expect.stringContaining("INSERT INTO settings"),
-    ]));
+    expect(statements).toEqual(
+      expect.arrayContaining([
+        "BEGIN IMMEDIATE",
+        "COMMIT",
+        "DELETE FROM notes",
+        "DELETE FROM links",
+        expect.stringContaining("INSERT INTO embedding_chunks"),
+        expect.stringContaining("INSERT INTO settings"),
+      ]),
+    );
   });
 });

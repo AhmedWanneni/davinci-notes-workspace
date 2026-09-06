@@ -28,6 +28,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0152](adr/0152-local-git-engine-and-lazy-load-boundary.md) | Local version history uses opt-in system Git; no git2-rs/libgit2 binary cost and a real dynamic-import boundary | Accepted |
 | [0153](adr/0153-automatic-local-version-commit-batching.md) | Local version history auto-commits 2-second post-save Markdown batches; Command Palette can flush a manual version | Accepted |
 | [0154](adr/0154-local-history-panel-diff-and-safe-restore.md) | Local history lives in the right sidebar with an in-project line diff and append-only restore commits | Accepted |
+| [0155](adr/0155-generic-git-remote-credentials.md) | Generic Git remotes use HTTPS PATs stored in the OS keyring; SSH is deferred and provider detection is cosmetic only | Accepted |
 
 ## Desktop Shell
 

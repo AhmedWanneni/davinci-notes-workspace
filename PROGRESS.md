@@ -6,7 +6,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Git Versioning Phase 2 — local history and diff UI complete**
+**Git Versioning Phase 3 — generic remote credential model complete**
 `git2-rs@0.21.0` was evaluated in the real desktop Tauri release build and
 rejected despite active maintenance: a real libgit2 call added 645,392 bytes
 (630 KiB), so a user who never enables Version History would still pay native
@@ -62,8 +62,22 @@ The web entry is 369,700 raw / 116,940 gzip bytes; the deferred history chunk
 is 2,689 raw / 1,188 gzip bytes, with no new dependency. Focused native,
 component, diff, lint, and production-build checks pass.
 
-Next: **Git Versioning Phase 3 — generic remote credential model**, while
-preserving fully usable local-only history.
+Phase 3 implements one provider-agnostic HTTPS/PAT credential model. The PAT
+uses the exact OS-keyring `keyring::Entry` pattern from Drive OAuth
+(ADR-0120), under a separate Git service and vault+remote-specific account;
+tokens never enter SQLite, web storage, files, command arguments, or Git
+config. SQLite stores only remote URL plus optional username via the existing
+`withDbLock` + transaction boundary. Its concurrency regression now covers
+remote-config persistence alongside indexing, embeddings, settings, and reads
+with one active database operation.
+
+GitHub, GitLab, Bitbucket, and self-hosted URL detection returns cosmetic token
+help only. The detector has no production consumer in credential or Git code;
+all URLs use the same secure-store commands. SSH is deferred because the
+unavoidable provider-side public-key registration belongs in the Phase 4 setup
+experience. No dependency, UI, remote, fetch, push, or pull was added.
+
+Next: **Git Versioning Phase 4 — easy remote setup UX**.
 
 **AI Features Phase 7 closeout — blocked by production wiring gaps**
 The requested end-to-end closeout was re-audited against the current build.
