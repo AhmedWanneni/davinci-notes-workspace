@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+
 interface FileTreeContextMenuProps {
   x: number;
   y: number;
@@ -23,6 +25,60 @@ export function FileTreeContextMenu({
   onDeleteNote,
   onClose,
 }: FileTreeContextMenuProps) {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    previousActiveElementRef.current =
+      document.activeElement as HTMLElement | null;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        onClose();
+      }
+    };
+
+    const handleBlur = () => {
+      onClose();
+    };
+
+    const handleScroll = (event: Event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    // Capture phase ensures we intercept clicks on drag-regions before Tauri swallows them
+    document.addEventListener("pointerdown", handlePointerDown, {
+      capture: true,
+    });
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("scroll", handleScroll, {
+      capture: true,
+      passive: true,
+    });
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown, {
+        capture: true,
+      });
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("scroll", handleScroll, {
+        capture: true,
+      });
+      previousActiveElementRef.current?.focus?.();
+    };
+  }, [onClose]);
+
   const handleNoteAction = (
     action: (path: string) => void | Promise<unknown>,
   ) => {
@@ -35,6 +91,7 @@ export function FileTreeContextMenu({
 
   return (
     <div
+      ref={menuRef}
       className="file-tree__context-menu"
       style={{ top: y, left: x }}
       role="menu"
