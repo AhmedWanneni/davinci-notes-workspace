@@ -70,17 +70,13 @@ export function FileTree({
   useEffect(() => {
     if (!pendingRenameFolder) return;
     const parent = getParentFolder(pendingRenameFolder);
-    if (parent) {
-      setExpandedFolders((prev) => new Set(prev).add(parent));
-    }
+    if (parent) setExpandedFolders((prev) => new Set(prev).add(parent));
     startRename(pendingRenameFolder, "folder");
     onPendingRenameHandled?.();
   }, [pendingRenameFolder, onPendingRenameHandled, startRename]);
 
   useEffect(() => {
-    if (!activePath) {
-      return;
-    }
+    if (!activePath) return;
     setExpandedFolders((prev) => {
       const next = new Set(prev);
       let changed = false;
@@ -110,14 +106,19 @@ export function FileTree({
   });
   const {
     draggedPath,
+    dropTargetFolder,
     handleDragStart,
     handleDragEnter,
     handleDragOver,
+    handleDragLeave,
     handleDrop,
   } = useFileTreeDrop({
     onMoveNote,
     onMoveFile,
     onDropFiles,
+    onExpandFolder: (folderPath) => {
+      setExpandedFolders((prev) => new Set(prev).add(folderPath));
+    },
   });
 
   const openContextMenu = (
@@ -153,10 +154,12 @@ export function FileTree({
       <div
         className="file-tree"
         ref={parentRef}
+        data-drop-root={dropTargetFolder === "" || undefined}
         onContextMenu={(e) => openContextMenu(e, "")}
-        onDragEnter={(e) => handleDragEnter(e, "", true)}
-        onDragOver={(e) => handleDragOver(e, "", true)}
-        onDrop={(e) => handleDrop(e, "", true)}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <div
           className="file-tree__virtual-inner"
@@ -180,6 +183,7 @@ export function FileTree({
                 isActive={isFile && item.node.path === activePath}
                 isDirty={isFile && dirtyPaths.has(item.node.path)}
                 isDragging={item.node.path === draggedPath}
+                isDropTarget={isFolder && item.node.path === dropTargetFolder}
                 isExpanded={isFolder && expandedFolders.has(item.node.path)}
                 isRenaming={isRenaming}
                 draftStem={draftStem}
@@ -219,11 +223,6 @@ export function FileTree({
                     startRename(item.node.path, "folder");
                   }
                 }}
-                onDragEnter={(e) =>
-                  handleDragEnter(e, item.node.path, isFolder)
-                }
-                onDragOver={(e) => handleDragOver(e, item.node.path, isFolder)}
-                onDrop={(e) => handleDrop(e, item.node.path, isFolder)}
               />
             );
           })}

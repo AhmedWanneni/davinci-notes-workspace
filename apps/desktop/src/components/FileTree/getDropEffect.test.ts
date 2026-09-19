@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
   getDropEffect,
@@ -135,13 +135,14 @@ describe("fake dataTransfer tests", () => {
 
   it("sets dropEffect = 'move' on valid target for both dragenter and dragover", () => {
     const { result } = renderHook(() => useFileTreeDrop({}));
-    const { handleDragEnter, handleDragOver } = result.current;
     setActiveDraggedNode({ path: "notes/doc.md", isFolder: false });
 
     // 1. dragenter on valid folder
     const dtEnter = createFakeDataTransfer();
     const eventEnter = createFakeDragEvent(dtEnter);
-    handleDragEnter(eventEnter, "archive", true);
+    act(() => {
+      result.current.handleDragEnter(eventEnter);
+    });
 
     expect(eventEnter.preventDefault).toHaveBeenCalled();
     expect(dtEnter.dropEffect).toBe("move");
@@ -149,7 +150,9 @@ describe("fake dataTransfer tests", () => {
     // 2. dragover on valid folder
     const dtOver = createFakeDataTransfer();
     const eventOver = createFakeDragEvent(dtOver);
-    handleDragOver(eventOver, "archive", true);
+    act(() => {
+      result.current.handleDragOver(eventOver);
+    });
 
     expect(eventOver.preventDefault).toHaveBeenCalled();
     expect(dtOver.dropEffect).toBe("move");
@@ -159,21 +162,37 @@ describe("fake dataTransfer tests", () => {
 
   it("sets dropEffect = 'none' on invalid target for both dragenter and dragover", () => {
     const { result } = renderHook(() => useFileTreeDrop({}));
-    const { handleDragEnter, handleDragOver } = result.current;
     // Dragging folder "projects"
     setActiveDraggedNode({ path: "projects", isFolder: true });
 
     // Invalid target: its own descendant
+    const rowEl = document.createElement("div");
+    rowEl.className = "file-tree__row";
+    rowEl.setAttribute("data-path", "projects/sub");
+    rowEl.setAttribute("data-type", "folder");
+
     const dtEnter = createFakeDataTransfer();
-    const eventEnter = createFakeDragEvent(dtEnter);
-    handleDragEnter(eventEnter, "projects/sub", true);
+    const eventEnter = {
+      ...createFakeDragEvent(dtEnter),
+      target: rowEl,
+    } as unknown as React.DragEvent;
+
+    act(() => {
+      result.current.handleDragEnter(eventEnter);
+    });
 
     expect(eventEnter.preventDefault).toHaveBeenCalled();
     expect(dtEnter.dropEffect).toBe("none");
 
     const dtOver = createFakeDataTransfer();
-    const eventOver = createFakeDragEvent(dtOver);
-    handleDragOver(eventOver, "projects/sub", true);
+    const eventOver = {
+      ...createFakeDragEvent(dtOver),
+      target: rowEl,
+    } as unknown as React.DragEvent;
+
+    act(() => {
+      result.current.handleDragOver(eventOver);
+    });
 
     expect(eventOver.preventDefault).toHaveBeenCalled();
     expect(dtOver.dropEffect).toBe("none");
@@ -183,13 +202,14 @@ describe("fake dataTransfer tests", () => {
 
   it("does not allow copy/copyMove/all for internal moves", () => {
     const { result } = renderHook(() => useFileTreeDrop({}));
-    const { handleDragOver } = result.current;
     setActiveDraggedNode({ path: "notes/doc.md", isFolder: false });
 
     const dt = createFakeDataTransfer();
     dt.effectAllowed = "move"; // dragstart sets effectAllowed = 'move'
     const event = createFakeDragEvent(dt);
-    handleDragOver(event, "archive", true);
+    act(() => {
+      result.current.handleDragOver(event);
+    });
 
     expect(dt.effectAllowed).toBe("move");
     expect(dt.dropEffect).toBe("move");

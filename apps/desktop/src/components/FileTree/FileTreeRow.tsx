@@ -6,7 +6,6 @@ import {
   Image,
   Video,
 } from "@phosphor-icons/react";
-import { useState } from "react";
 import { updateDragPreview } from "./fileTreeDragPreview";
 import { setActiveDraggedNode } from "./getDropEffect";
 import type { FlatTreeNode } from "./tree-utils";
@@ -18,6 +17,7 @@ interface FileTreeRowProps {
   isActive: boolean;
   isDirty: boolean;
   isDragging?: boolean;
+  isDropTarget?: boolean;
   isExpanded: boolean;
   isRenaming: boolean;
   draftStem: string;
@@ -53,6 +53,7 @@ export function FileTreeRow({
   isActive,
   isDirty,
   isDragging,
+  isDropTarget,
   isExpanded,
   isRenaming,
   draftStem,
@@ -67,7 +68,6 @@ export function FileTreeRow({
   onDragOver,
   onDrop,
 }: FileTreeRowProps) {
-  const [isDragOver, setIsDragOver] = useState(false);
   const isFile = item.node.type === "file";
   const displayTitle = item.node.name.replace(/\.(md|canvas)$/i, "");
   const isConflict = Boolean(
@@ -82,7 +82,7 @@ export function FileTreeRow({
       data-name={item.node.name}
       data-active={isActive || undefined}
       data-is-dragging={isDragging || undefined}
-      data-drag-over={isDragOver || undefined}
+      data-drop-target={isDropTarget || undefined}
       data-is-conflict={isConflict || undefined}
       draggable={!isRenaming}
       onDragStart={(event) => {
@@ -120,20 +120,9 @@ export function FileTreeRow({
       onDragEnd={() => {
         setActiveDraggedNode(null);
       }}
-      onDragEnter={(event) => {
-        onDragEnter?.(event);
-      }}
-      onDragOver={(event) => {
-        setIsDragOver(true);
-        onDragOver?.(event);
-      }}
-      onDragLeave={() => {
-        setIsDragOver(false);
-      }}
-      onDrop={(event) => {
-        setIsDragOver(false);
-        onDrop?.(event);
-      }}
+      onDragEnter={onDragEnter}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
       style={{
         position: "absolute",
         top: 0,

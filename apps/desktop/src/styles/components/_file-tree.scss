@@ -2,6 +2,11 @@
   flex: 1;
   overflow: hidden auto;
   width: 100%;
+
+  &[data-drop-root="true"] {
+    outline: var(--border-width-thin) solid var(--color-border-focus);
+    outline-offset: -1px;
+  }
 }
 
 .file-tree__virtual-inner {
@@ -33,6 +38,13 @@
 
   &[data-is-dragging="true"] {
     opacity: 0.5;
+  }
+
+  &[data-drop-target="true"],
+  &[data-drag-over="true"] {
+    background-color: var(--color-bg-hover);
+    outline: var(--border-width-thin) solid var(--color-border-focus);
+    outline-offset: -1px;
   }
 
   &[data-active="true"],
@@ -180,4 +192,12 @@
   font-size: var(--type-scale-xs);
   font-weight: var(--type-weight-semibold);
   flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .file-tree,
+  .file-tree__row,
+  .file-tree-drag-preview {
+    transition: none !important;
+  }
 }
