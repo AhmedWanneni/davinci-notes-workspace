@@ -1,0 +1,28 @@
+.window-controls {
+  display: flex;
+  align-self: stretch;
+  align-items: stretch;
+  margin-left: calc(var(--space-3) * -1);
+}
+
+.window-controls__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  border: none;
+  border-right: var(--border-width-thin) solid var(--color-border-subtle);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-normal);
+  }
+}
+
+.window-controls__button--close:hover {
+  background-color: var(--color-text-error);
+  color: var(--color-text-on-accent);
+}

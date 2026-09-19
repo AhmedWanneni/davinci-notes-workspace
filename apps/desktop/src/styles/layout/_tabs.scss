@@ -24,6 +24,17 @@
   }
 }
 
+.app-tabs__drag-region {
+  align-self: stretch;
+  flex: 1 0 var(--space-4);
+}
+
+.app-tabs__traffic-light-spacer {
+  width: 68px;
+  min-width: 68px;
+  height: 100%;
+}
+
 .app-tabs__tab {
   display: flex;
   align-items: center;

@@ -6,6 +6,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  grid-column: 2;
+  grid-row: 1 / -1;
   transition: width var(--motion-duration-fast) var(--motion-ease-standard);
 
   &[data-collapsed="true"] {
@@ -18,12 +20,31 @@
 }
 
 .app-sidebar__header {
-  padding: var(--space-3) var(--space-4);
+  min-height: 38px;
+  padding: 0 var(--space-3);
+  box-sizing: border-box;
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
+}
+
+.app-sidebar__traffic-light-spacer {
+  width: 68px;
+  min-width: 68px;
+  height: 100%;
+}
+
+:root[data-fullscreen] .app-sidebar__traffic-light-spacer,
+:root[data-fullscreen] .app-tabs__traffic-light-spacer {
+  display: none;
+}
+
+.app-sidebar__drag-region {
+  align-self: stretch;
+  flex: 1;
+  min-width: var(--space-2);
 }
 
 .app-sidebar__vault-title {

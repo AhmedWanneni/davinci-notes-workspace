@@ -7,6 +7,8 @@ import {
   FrameCorners,
 } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { WindowControls } from "../WindowControls";
 
 export interface AppTabsProps {
   openNotes: string[];
@@ -17,6 +19,8 @@ export interface AppTabsProps {
   onNewTab?: () => void;
   isRightSidebarOpen?: boolean;
   onToggleRightSidebar?: () => void;
+  isMac: boolean;
+  showWindowControls?: boolean;
 }
 
 export function AppTabs({
@@ -28,6 +32,8 @@ export function AppTabs({
   onNewTab,
   isRightSidebarOpen,
   onToggleRightSidebar,
+  isMac,
+  showWindowControls,
 }: AppTabsProps) {
   return (
     <div className="app-tabs" role="tablist" aria-label="Open notes">
@@ -87,9 +93,17 @@ export function AppTabs({
             </button>
           </Tooltip>
         )}
+        <div
+          className="app-tabs__drag-region"
+          data-tauri-drag-region
+          onDoubleClick={() => void getCurrentWindow().toggleMaximize()}
+        />
       </div>
 
       <div className="app-tabs__actions">
+        {isMac && showWindowControls && (
+          <div className="app-tabs__traffic-light-spacer" />
+        )}
         <Tooltip content="View options" contentProps={{ side: "bottom" }}>
           <button
             type="button"
@@ -116,6 +130,7 @@ export function AppTabs({
             </button>
           </Tooltip>
         )}
+        {showWindowControls && !isMac && <WindowControls />}
       </div>
     </div>
   );

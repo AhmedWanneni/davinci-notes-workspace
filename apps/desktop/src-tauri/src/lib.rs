@@ -11,6 +11,9 @@ mod state;
 mod watcher;
 
 use state::VaultState;
+#[cfg(target_os = "macos")]
+use tauri::{LogicalPosition, TitleBarStyle};
+use tauri::{WebviewUrl, WebviewWindowBuilder};
 use watcher::VaultWatcher;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -62,6 +65,27 @@ pub fn run() {
       ai_auth::clear_ai_key,
     ])
     .setup(|app| {
+      let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
+        .title("DaVinci Notes")
+        .inner_size(1200.0, 800.0)
+        .min_inner_size(640.0, 480.0)
+        .resizable(true)
+        .fullscreen(false);
+
+      #[cfg(target_os = "macos")]
+      let window = window
+        .title_bar_style(TitleBarStyle::Overlay)
+        .hidden_title(true)
+        .traffic_light_position(LogicalPosition::new(52.0, 12.0));
+
+      #[cfg(target_os = "windows")]
+      let window = window.decorations(false).shadow(true);
+
+      #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
+      let window = window.decorations(false);
+
+      window.build()?;
+
       if cfg!(debug_assertions) {
         app.handle().plugin(
           tauri_plugin_log::Builder::default()

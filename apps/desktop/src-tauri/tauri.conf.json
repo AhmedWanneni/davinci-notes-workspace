@@ -10,17 +10,7 @@
     "beforeBuildCommand": "pnpm build:web"
   },
   "app": {
-    "windows": [
-      {
-        "title": "DaVinci Notes",
-        "width": 1200,
-        "height": 800,
-        "minWidth": 640,
-        "minHeight": 480,
-        "resizable": true,
-        "fullscreen": false
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     }

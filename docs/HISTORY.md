@@ -2657,3 +2657,17 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   because it has no API key.
 - Added ADR-0151. Focused Q&A host tests pass 3/3 and desktop lint passes;
   desktop typecheck remains blocked by existing workspace-store/Button errors.
+# Custom Window Chrome
+
+- Moved desktop window creation to Rust and preserved the established title,
+  1200×800 initial size, and 640×480 minimum size. macOS uses overlay native
+  traffic lights; Windows/Linux use custom close/minimize/maximize controls.
+- Reworked the app shell so the file-sidebar header and tab strip occupy the
+  first content row, with dedicated, non-interactive drag targets and native
+  double-click maximize. Added fullscreen spacer tracking without polling.
+- Added ADR-0156 and narrow core window capabilities. No dependency was added.
+- Automated checks: focused component test, lint, web build, Rust check,
+  Storybook script, and diff check pass. Desktop typecheck is still blocked by
+  pre-existing `vaultUpdateCounter` and Badge color errors. Native macOS and
+  Windows/Linux visual acceptance remains manual because the local GUI surface
+  did not expose the launched Tauri window.

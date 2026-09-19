@@ -21,6 +21,7 @@ import {
 import { getVaultIndexDb, openAndIndexVault, useVaultSession, withDbLock } from "./vault";
 import { revealCitationLine, type CitationNavigationTarget } from "./ai/citationNavigation";
 import { loadAIStartupGate } from "./ai/loadAIStartupGate";
+import { useWindowFullscreen } from "./window";
 
 const LazyGlobalGraphDialog = React.lazy(() =>
   import("./components/GlobalGraphDialog").then((m) => ({
@@ -47,6 +48,8 @@ const LazyTagsDialog = React.lazy(() =>
 );
 
 export function App() {
+  useWindowFullscreen();
+  const isMac = navigator.userAgent.includes("Mac");
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
@@ -54,7 +57,7 @@ export function App() {
   const [isGlobalGraphOpen, setIsGlobalGraphOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
   const [askVaultEnabled, setAskVaultEnabled] = useState(false);
   const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
@@ -391,7 +394,7 @@ export function App() {
       data-right-collapsed={!isRightSidebarOpen || undefined}
     >
       <header className="app-shell__top-bar">
-        <AppTabs
+        {/* <AppTabs
           openNotes={openNotes}
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
@@ -400,7 +403,9 @@ export function App() {
           onNewTab={handleCreateNote}
           isRightSidebarOpen={isRightSidebarOpen}
           onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
-        />
+          isMac={isMac}
+          showWindowControls={!isLeftSidebarOpen}
+        /> */}
       </header>
 
       <div className="app-shell__body">
@@ -426,6 +431,7 @@ export function App() {
           dirtyNotes={dirtyNotes}
           log={log}
           isCollapsed={!isLeftSidebarOpen}
+          isMac={isMac}
           onCreateNote={handleCreateNote}
           onCreateFolder={handleCreateFolder}
           onCreateCanvas={handleCreateCanvas}
@@ -446,6 +452,18 @@ export function App() {
         />
 
         <main className="app-shell__main">
+             <AppTabs
+          openNotes={openNotes}
+          activeNotePath={activeNotePath}
+          dirtyNotes={dirtyNotes}
+          onSelectNote={(path) => void setActiveNote(path)}
+          onCloseNote={(path) => void closeNote(path)}
+          onNewTab={handleCreateNote}
+          isRightSidebarOpen={isRightSidebarOpen}
+          onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
+          isMac={isMac}
+          showWindowControls={!isLeftSidebarOpen}
+        />
           {openViewId && pluginManager ? (
             <PluginViewLeaf manager={pluginManager} viewId={openViewId} />
           ) : (

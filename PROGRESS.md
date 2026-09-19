@@ -6,6 +6,37 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Custom Window Chrome — implementation complete; native visual acceptance pending**
+The desktop shell now creates `main` in Rust using the existing 1200×800 and
+640×480 dimensions. macOS uses `TitleBarStyle::Overlay`, `hidden_title(true)`,
+and native traffic lights at the sidebar-header inset; Windows/Linux use
+undecorated custom controls. Sidebar and tab-strip blank-space drag regions
+toggle maximize on double-click. The macOS fullscreen hook updates a document
+attribute from resize events only, with cleanup and no polling. No dependency
+was added.
+
+Focused WindowControls test, desktop lint, web build, Rust check, diff check,
+and the desktop Storybook script pass. Desktop TypeScript still fails only on
+the known `vaultUpdateCounter` and design-system Badge-color errors. This
+macOS session could start the native process but its GUI window was unavailable
+to the automated visual surface; manually verify traffic lights, their green
+hover menu, dragging, fullscreen spacer collapse, modal click-through, and
+collapsed-sidebar behavior. Windows/Linux require native visual testing; only
+the platform-independent code was compiled here because no cross targets are
+installed.
+
+**Editor scrolling regression fixed**
+The window-chrome worktree edit removed `.app-shell`'s grid display and its
+bounded `1fr auto` rows. The editor body consequently lost its constrained
+height, while its overflow-hidden ancestors clipped a growing CodeMirror
+scroller. Restoring the grid makes the existing `.cm-scroller` the sole editor
+scroll owner again; no dependency or runtime work was added. Desktop lint and
+`git diff --check` pass. Desktop typecheck remains blocked by the known
+`vaultUpdateCounter` and Badge-color errors. Native mouse-wheel/trackpad
+acceptance could not be automated in this session because the existing dev
+server was not reachable from the sandboxed GUI surface; re-run the full
+manual scroll matrix in the native desktop app before merge.
+
 **Git Versioning Phase 3 — generic remote credential model complete**
 `git2-rs@0.21.0` was evaluated in the real desktop Tauri release build and
 rejected despite active maintenance: a real libgit2 call added 645,392 bytes

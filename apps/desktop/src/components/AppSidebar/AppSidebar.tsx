@@ -1,6 +1,8 @@
 import { FilePlus, FolderPlus, FrameCorners } from "@phosphor-icons/react";
 import { useState } from "react";
 import { Tooltip, Typography } from "@app/design-system";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { WindowControls } from "../WindowControls";
 import { FileTree } from "../FileTree";
 
 export interface AppSidebarProps {
@@ -11,6 +13,7 @@ export interface AppSidebarProps {
   dirtyNotes: Set<string>;
   log: string[];
   isCollapsed?: boolean;
+  isMac: boolean;
   onCreateNote: () => void;
   onCreateFolder: (parentFolder?: string) => Promise<string | null>;
   onCreateCanvas?: () => void;
@@ -33,6 +36,7 @@ export function AppSidebar({
   dirtyNotes,
   log,
   isCollapsed,
+  isMac,
   onCreateNote,
   onCreateFolder,
   onCreateCanvas,
@@ -61,6 +65,16 @@ export function AppSidebar({
       aria-label="File Explorer"
     >
       <div className="app-sidebar__header">
+        {isMac ? (
+          <div className="app-sidebar__traffic-light-spacer" />
+        ) : (
+          <WindowControls />
+        )}
+        <div
+          className="app-sidebar__drag-region"
+          data-tauri-drag-region
+          onDoubleClick={() => void getCurrentWindow().toggleMaximize()}
+        />
         <div className="app-sidebar__vault-title">
           <Typography
             variant="text"
