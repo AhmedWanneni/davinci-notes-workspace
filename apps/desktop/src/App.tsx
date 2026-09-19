@@ -1,5 +1,11 @@
 import { executeSearchQuery, parseSearchQuery } from "@app/indexer";
-import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { PluginEditor } from "@app/plugin-api";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTabs } from "./components/AppTabs";
@@ -26,7 +32,10 @@ import {
   withDbLock,
   writeAttachmentToVault,
 } from "./vault";
-import { revealCitationLine, type CitationNavigationTarget } from "./ai/citationNavigation";
+import {
+  revealCitationLine,
+  type CitationNavigationTarget,
+} from "./ai/citationNavigation";
 import { loadAIStartupGate } from "./ai/loadAIStartupGate";
 import { useWindowFullscreen } from "./window";
 
@@ -69,7 +78,9 @@ export function App() {
   const [askVaultEnabled, setAskVaultEnabled] = useState(false);
   const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
   const [suggestLinksEnabled, setSuggestLinksEnabled] = useState(false);
-  const [suggestions, setSuggestions] = useState<import("./components/SuggestLinksPanel").LinkSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<
+    import("./components/SuggestLinksPanel").LinkSuggestion[]
+  >([]);
   const [aiProviderName, setAiProviderName] = useState("AI");
   const [aiTransmitting, setAiTransmitting] = useState(false);
   const editorRef = useRef<PluginEditor | null>(null);
@@ -86,7 +97,9 @@ export function App() {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
   const tagIndex = useWorkspaceStore((state) => state.tagIndex);
-  const activeContent = activeNotePath ? (notesContent[activeNotePath] ?? "") : "";
+  const activeContent = activeNotePath
+    ? (notesContent[activeNotePath] ?? "")
+    : "";
 
   const loadSettings = useWorkspaceStore((state) => state.loadSettings);
   const openNote = useWorkspaceStore((state) => state.openNote);
@@ -165,10 +178,21 @@ export function App() {
         await ai.saveAIProviderStatus("failed", provider);
       }
       setAiProviderName(ai.AI_PROVIDER_NAMES[provider]);
-      setAiCloudEnabled(providerReady || (provider === "openai-compatible" && credentialPresent && await ai.loadAIConsent("cloud")));
-      setAskVaultEnabled(providerReady && await ai.loadAIConsent("ask-vault"));
-      setSemanticSearchEnabled(providerReady && await ai.loadAIConsent("semantic-search"));
-      setSuggestLinksEnabled(providerReady && await ai.loadAIConsent("suggest-links"));
+      setAiCloudEnabled(
+        providerReady ||
+          (provider === "openai-compatible" &&
+            credentialPresent &&
+            (await ai.loadAIConsent("cloud"))),
+      );
+      setAskVaultEnabled(
+        providerReady && (await ai.loadAIConsent("ask-vault")),
+      );
+      setSemanticSearchEnabled(
+        providerReady && (await ai.loadAIConsent("semantic-search")),
+      );
+      setSuggestLinksEnabled(
+        providerReady && (await ai.loadAIConsent("suggest-links")),
+      );
     };
     const refresh = () => void loadAIState();
     const startTransmission = () => setAiTransmitting(true);
@@ -179,8 +203,14 @@ export function App() {
     void loadAIState();
     return () => {
       window.removeEventListener("davinci-ai-state-changed", refresh);
-      window.removeEventListener("davinci-ai-transmission-start", startTransmission);
-      window.removeEventListener("davinci-ai-transmission-end", endTransmission);
+      window.removeEventListener(
+        "davinci-ai-transmission-start",
+        startTransmission,
+      );
+      window.removeEventListener(
+        "davinci-ai-transmission-end",
+        endTransmission,
+      );
     };
   }, [vaultPath]);
 
@@ -190,40 +220,83 @@ export function App() {
     void (async () => {
       const { loadAISubsystem } = await import("./ai/loadAISubsystem");
       const ai = await loadAISubsystem();
-      const provider = await ai.createConfiguredProvider(await ai.loadSelectedProvider());
+      const provider = await ai.createConfiguredProvider(
+        await ai.loadSelectedProvider(),
+      );
       try {
         const index = await ai.createEmbeddingIndex();
-        if (!cancelled) await (await import("./ai/reconcileVaultEmbeddings")).reconcileVaultEmbeddings(index, provider);
-      } finally { await provider.dispose(); }
+        if (!cancelled)
+          await (
+            await import("./ai/reconcileVaultEmbeddings")
+          ).reconcileVaultEmbeddings(index, provider);
+      } finally {
+        await provider.dispose();
+      }
     })().catch(() => {});
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [aiCloudEnabled, vaultPath]);
 
-  const withConfiguredProvider = useCallback(async <T,>(work: (provider: import("@app/ai-api").AIProvider, db: import("@app/ai-embeddings").SqliteLike) => Promise<T>) => {
-    const { loadAISubsystem } = await import("./ai/loadAISubsystem");
-    const ai = await loadAISubsystem();
-    const provider = await ai.createConfiguredProvider(await ai.loadSelectedProvider());
-    const database = await getVaultIndexDb();
-    const db = { execute: (sql: string, values?: unknown[]) => withDbLock(() => database.execute(sql, values)), select: <R,>(sql: string, values?: unknown[]) => withDbLock(() => database.select<R>(sql, values)) };
-    try { return await work(provider, db); } finally { await provider.dispose(); }
-  }, []);
+  const withConfiguredProvider = useCallback(
+    async <T,>(
+      work: (
+        provider: import("@app/ai-api").AIProvider,
+        db: import("@app/ai-embeddings").SqliteLike,
+      ) => Promise<T>,
+    ) => {
+      const { loadAISubsystem } = await import("./ai/loadAISubsystem");
+      const ai = await loadAISubsystem();
+      const provider = await ai.createConfiguredProvider(
+        await ai.loadSelectedProvider(),
+      );
+      const database = await getVaultIndexDb();
+      const db = {
+        execute: (sql: string, values?: unknown[]) =>
+          withDbLock(() => database.execute(sql, values)),
+        select: <R,>(sql: string, values?: unknown[]) =>
+          withDbLock(() => database.select<R>(sql, values)),
+      };
+      try {
+        return await work(provider, db);
+      } finally {
+        await provider.dispose();
+      }
+    },
+    [],
+  );
 
-  const handleSemanticSearch = useCallback(async (query: string) => {
-    if (!semanticSearchEnabled) return [];
-    return withConfiguredProvider(async (provider, db) => {
-      const { searchEmbeddings } = await import("@app/ai-embeddings");
-      return searchEmbeddings(query, provider, db);
-    });
-  }, [semanticSearchEnabled, withConfiguredProvider]);
+  const handleSemanticSearch = useCallback(
+    async (query: string) => {
+      if (!semanticSearchEnabled) return [];
+      return withConfiguredProvider(async (provider, db) => {
+        const { searchEmbeddings } = await import("@app/ai-embeddings");
+        return searchEmbeddings(query, provider, db);
+      });
+    },
+    [semanticSearchEnabled, withConfiguredProvider],
+  );
 
   useEffect(() => {
-    if (!suggestLinksEnabled || !activeNotePath || !activeContent) { setSuggestions([]); return; }
-    const timer = window.setTimeout(() => { void withConfiguredProvider(async (provider, db) => {
-      const { suggestLinks } = await import("@app/ai-embeddings");
-      setSuggestions(await suggestLinks(activeNotePath, activeContent, provider, db));
-    }).catch(() => setSuggestions([])); }, 450);
+    if (!suggestLinksEnabled || !activeNotePath || !activeContent) {
+      setSuggestions([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      void withConfiguredProvider(async (provider, db) => {
+        const { suggestLinks } = await import("@app/ai-embeddings");
+        setSuggestions(
+          await suggestLinks(activeNotePath, activeContent, provider, db),
+        );
+      }).catch(() => setSuggestions([]));
+    }, 450);
     return () => window.clearTimeout(timer);
-  }, [activeContent, activeNotePath, suggestLinksEnabled, withConfiguredProvider]);
+  }, [
+    activeContent,
+    activeNotePath,
+    suggestLinksEnabled,
+    withConfiguredProvider,
+  ]);
 
   useEffect(() => {
     void initPlugins(vaultPath);
@@ -334,7 +407,8 @@ export function App() {
       void handleOpenCitation(detail.notePath, detail.startLine);
     };
     window.addEventListener("davinci-ai-open-citation", handleCitation);
-    return () => window.removeEventListener("davinci-ai-open-citation", handleCitation);
+    return () =>
+      window.removeEventListener("davinci-ai-open-citation", handleCitation);
   }, [handleOpenCitation]);
 
   const handleCreateFolder = async (parentFolder = "") => {
@@ -427,21 +501,6 @@ export function App() {
       data-left-collapsed={!isLeftSidebarOpen || undefined}
       data-right-collapsed={!isRightSidebarOpen || undefined}
     >
-      <header className="app-shell__top-bar">
-        {/* <AppTabs
-          openNotes={openNotes}
-          activeNotePath={activeNotePath}
-          dirtyNotes={dirtyNotes}
-          onSelectNote={(path) => void setActiveNote(path)}
-          onCloseNote={(path) => void closeNote(path)}
-          onNewTab={handleCreateNote}
-          isRightSidebarOpen={isRightSidebarOpen}
-          onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
-          isMac={isMac}
-          showWindowControls={!isLeftSidebarOpen}
-        /> */}
-      </header>
-
       <div className="app-shell__body">
         <AppSidebar
           vaultName={vaultName}
@@ -453,9 +512,7 @@ export function App() {
           navigation={
             <IconRail
               isLeftSidebarOpen={isLeftSidebarOpen}
-              onToggleLeftSidebar={() =>
-                setIsLeftSidebarOpen((prev) => !prev)
-              }
+              onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
               onOpenSearch={() => {
                 setSearchInitialQuery("");
                 setIsSearchOpen(true);
@@ -491,18 +548,18 @@ export function App() {
         />
 
         <main className="app-shell__main">
-             <AppTabs
-          openNotes={openNotes}
-          activeNotePath={activeNotePath}
-          dirtyNotes={dirtyNotes}
-          onSelectNote={(path) => void setActiveNote(path)}
-          onCloseNote={(path) => void closeNote(path)}
-          onNewTab={handleCreateNote}
-          isRightSidebarOpen={isRightSidebarOpen}
-          onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
-          isMac={isMac}
-          showWindowControls={!isLeftSidebarOpen}
-        />
+          <AppTabs
+            openNotes={openNotes}
+            activeNotePath={activeNotePath}
+            dirtyNotes={dirtyNotes}
+            onSelectNote={(path) => void setActiveNote(path)}
+            onCloseNote={(path) => void closeNote(path)}
+            onNewTab={handleCreateNote}
+            isRightSidebarOpen={isRightSidebarOpen}
+            onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
+            isMac={isMac}
+            showWindowControls={!isLeftSidebarOpen}
+          />
           {openViewId && pluginManager ? (
             <PluginViewLeaf manager={pluginManager} viewId={openViewId} />
           ) : (
@@ -524,7 +581,9 @@ export function App() {
           onSelectNote={(path) => void openNote(path)}
           suggestLinksEnabled={suggestLinksEnabled}
           suggestions={suggestions}
-          onInsertSuggestedLink={(path) => editorRef.current?.insertText(`[[${path}]]`)}
+          onInsertSuggestedLink={(path) =>
+            editorRef.current?.insertText(`[[${path}]]`)
+          }
           askVaultEnabled={askVaultEnabled}
           onAskVault={handleAskVault}
         />
@@ -554,7 +613,9 @@ export function App() {
               )
             }
             onSelectNote={(path) => void openNote(path)}
-            semanticSearch={semanticSearchEnabled ? handleSemanticSearch : undefined}
+            semanticSearch={
+              semanticSearchEnabled ? handleSemanticSearch : undefined
+            }
           />
         )}
         {isTagsOpen && (

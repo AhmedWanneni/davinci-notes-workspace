@@ -6,7 +6,7 @@
   grid-template-columns: 40px minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
-  grid-column: 2;
+  grid-column: 1;
   grid-row: 1 /-1;
   transition: width var(--motion-duration-fast) var(--motion-ease-standard);
 
