@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-19 | File Tree Drag UI & Drop Feedback | Completed 4-task file tree drag overhaul: synchronous flat drag preview pill, pure getDropEffect validation, deferred source dimming, flat folder/root drop feedback, and 600ms hover-to-expand with cancellation; added ADR-0157. |
 | 2026-09-06 | Git Versioning Phase 3 | Added a provider-agnostic HTTPS/PAT model using the existing OS keyring, queued non-sensitive remote config, cosmetic-only provider detection, and deferred SSH; added ADR-0155. |
 | 2026-09-06 | Git Versioning Phase 2 | Added right-sidebar local history, readable in-project line diff, and append-only restore commits; directly verified real Git log/diff/disk-content comparisons; added ADR-0154. |
 | 2026-09-06 | Git Versioning Phase 1 | Added automatic 2-second post-save local Git batches, manual Command Palette version save, real Git-log tests, and 1.00 ms large-edit input-loop measurement; added ADR-0153. |
@@ -2671,3 +2672,25 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   pre-existing `vaultUpdateCounter` and Badge color errors. Native macOS and
   Windows/Linux visual acceptance remains manual because the local GUI surface
   did not expose the launched Tauri window.
+
+# File Tree Drag UI, Pure Validation, and Drop Feedback
+
+- Replaced default WebKit drag snapshotting with a synchronous, lightweight flat
+  preview pill (`fileTreeDragPreview.ts`) containing the Phosphor SVG file/folder icon,
+  truncated filename, and multi-selection badge, rendered offscreen and assigned via
+  `setDragImage`.
+- Added pure drop validation (`getDropEffect.ts`) attached to both `dragenter` and
+  `dragover` events. Validates self, descendant, current parent, hidden entries (`.git`),
+  vault root, valid folders, and file-row parent resolution.
+- Added deferred source row dimming (`opacity: 0.5`, `data-is-dragging="true"`) via
+  `requestAnimationFrame` (to avoid capturing dimming into the drag snapshot) and global
+  window-level `dragend` / `Escape` listeners for reliable cleanup.
+- Added flat drop target styling (`data-drop-target="true"` on folder rows,
+  `data-drop-root="true"` for root container inset outline) and container-level event
+  delegation for tracking targets.
+- Added 600ms hover-to-expand for collapsed folders with immediate timer cancellation
+  on target change or drag leave, and disabled transitions when `prefers-reduced-motion: reduce`.
+- Added ADR-0157. Automated unit/DOM tests pass (25 FileTree tests, 222 total desktop tests)
+  and desktop lint passes with 0 errors. Native macOS visual cursor and drag appearance
+  remain UNVERIFIED due to headless execution environment.
+

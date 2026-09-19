@@ -6,6 +6,14 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**File Tree Drag UI & Drop Feedback — implementation complete; native visual acceptance pending**
+Completed the 4-task file tree drag overhaul:
+1. Replaced default WebKit drag snapshotting with a synchronous, lightweight flat preview pill (`fileTreeDragPreview.ts`) with Phosphor SVG icon + truncated name + multi-select badge, rendered offscreen and set via `setDragImage`.
+2. Pure drop validation (`getDropEffect.ts`) attached to both `dragenter` and `dragover` events to guarantee correct cursor drop effects (`move`/`copy`/`none`) on self, descendants, current parent, hidden entries, root, and file-row parent resolution.
+3. Added deferred source row dimming (`opacity: 0.5`, `data-is-dragging="true"`) via `requestAnimationFrame` and window-level `dragend`/`Escape` listeners for reliable cleanup.
+4. Added flat drop target styling (`data-drop-target="true"` on folder rows, `data-drop-root="true"` on tree root), container event delegation, 600ms hover-to-expand with cancellation, and reduced motion disabling.
+All 25 FileTree tests and 222 total desktop tests pass; ESLint passes with 0 errors. Native macOS visual cursor changes and drag ghost rendering remain UNVERIFIED due to headless execution environment.
+
 **Custom Window Chrome — implementation complete; native visual acceptance pending**
 The desktop shell now creates `main` in Rust using the existing 1200×800 and
 640×480 dimensions. macOS uses `TitleBarStyle::Overlay`, `hidden_title(true)`,
@@ -235,6 +243,19 @@ live Tauri/provider acceptance environment is available.
 The subsystem has provider transport, embeddings, vector storage, semantic search, suggested links, ask-your-vault, persisted consent/provider settings, and differentiated cloud indicators. Automated performance and UI checks pass, but the full closeout cannot be marked complete: no configured running Tauri/cloud environment is available for network-level consent, real answer-quality, keychain restart, or citation-opener verification, and Remediation C has no production host opener. The requested `ai-features-build-plan.md` remains absent.
 
 ## Last Session
+
+**File Tree Drag UI, Pure Validation, and Drop Feedback**
+
+### Completed
+- **Task 1 (Commit `4933593`)**: Fixed stale drag preview by building a synchronous, lightweight flat preview pill (`fileTreeDragPreview.ts`) with Phosphor SVG icon, truncated filename, and multi-selection badge, rendered offscreen and set via `event.dataTransfer.setDragImage()`. Added `fileTreeDragPreview.test.ts` (3 tests).
+- **Task 2 (Commit `30a65a1`)**: Implemented pure drop validation (`getDropEffect.ts`) attached to both `dragenter` and `dragover` events. Purely validates self, descendants, current parent folder, hidden directories (`.git`), valid folders, vault root, and file-row parent resolution. Added `getDropEffect.test.ts` (12 tests).
+- **Task 3 (Commit `6e37318`)**: Added deferred source row dimming (`opacity: 0.5`, `data-is-dragging="true"`) via `requestAnimationFrame` (preventing dimming from being captured into the drag image snapshot), `:active { cursor: grabbing; }` (with OS cursor ownership documentation), and global window-level `dragend` / `Escape` listeners for reliable cleanup. Added `useFileTreeDrop.test.ts` (8 tests).
+- **Task 4 (Commit `88c51a9`)**: Added flat drop target feedback (`data-drop-target="true"` 1px focus border and background token on folder rows, `data-drop-root="true"` inset outline on tree root), container event delegation, 600ms hover-to-expand delay for collapsed folders with immediate timer cancellation on target change or drag leave, and `prefers-reduced-motion: reduce` transition disabling.
+- Added ADR-0157.
+- **Verification**: All 25 FileTree tests and 222 total desktop unit tests pass; ESLint passes with 0 errors. Native macOS visual cursor changes and drag ghost rendering remain UNVERIFIED due to headless execution environment.
+
+### Next
+- Manual visual acceptance of drag preview pill, grabbing cursor, folder drop outlines, and hover-to-expand in a running macOS Tauri GUI session.
 
 **Git Versioning Phase 1 — automatic local version history**
 
