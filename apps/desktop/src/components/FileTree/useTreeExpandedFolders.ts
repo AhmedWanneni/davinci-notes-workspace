@@ -4,17 +4,21 @@ import { getParentFolder } from "./getDropEffect";
 interface UseTreeExpandedFoldersOptions {
   activePath: string | null;
   pendingRenameFolder?: string | null;
+  pendingRenameNote?: string | null;
   onSelectedFolderChange?: (folderPath: string | null) => void;
   onStartRename?: (path: string, kind: "note" | "folder") => void;
   onPendingRenameHandled?: () => void;
+  onPendingRenameNoteHandled?: () => void;
 }
 
 export function useTreeExpandedFolders({
   activePath,
   pendingRenameFolder,
+  pendingRenameNote,
   onSelectedFolderChange,
   onStartRename,
   onPendingRenameHandled,
+  onPendingRenameNoteHandled,
 }: UseTreeExpandedFoldersOptions) {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     () => new Set(),
@@ -27,6 +31,14 @@ export function useTreeExpandedFolders({
     onStartRename?.(pendingRenameFolder, "folder");
     onPendingRenameHandled?.();
   }, [pendingRenameFolder, onPendingRenameHandled, onStartRename]);
+
+  useEffect(() => {
+    if (!pendingRenameNote) return;
+    const parent = getParentFolder(pendingRenameNote);
+    if (parent) setExpandedFolders((prev) => new Set(prev).add(parent));
+    onStartRename?.(pendingRenameNote, "note");
+    onPendingRenameNoteHandled?.();
+  }, [pendingRenameNote, onPendingRenameNoteHandled, onStartRename]);
 
   useEffect(() => {
     if (!activePath) return;

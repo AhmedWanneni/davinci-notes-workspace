@@ -60,7 +60,12 @@ export function useVaultSession() {
   }, []);
 
   const handleVaultLoaded = useCallback(
-    async (path: string, count: number, elapsed: number, tagIndex: TagIndex) => {
+    async (
+      path: string,
+      count: number,
+      elapsed: number,
+      tagIndex: TagIndex,
+    ) => {
       setVaultPath(path);
       useWorkspaceStore.getState().setVaultPath(path);
       append(`indexed ${count} notes in ${elapsed} ms (${path})`);
@@ -105,19 +110,21 @@ export function useVaultSession() {
   );
 
   const createNewNote = useCallback(
-    async (title?: string) => {
+    async (title?: string, parentFolder = "") => {
       const currentPaths = useWorkspaceStore.getState().allNotePaths;
       const cleanTitle = title?.trim();
-      const newPath = cleanTitle
+      const prefix = parentFolder ? `${parentFolder.replace(/\/+$/, "")}/` : "";
+      const preferredPath = cleanTitle
         ? cleanTitle.endsWith(".md")
-          ? cleanTitle
-          : `${cleanTitle}.md`
-        : resolveUniqueNotePath(currentPaths);
+          ? `${prefix}${cleanTitle}`
+          : `${prefix}${cleanTitle}.md`
+        : `${prefix}Untitled.md`;
+      const newPath = resolveUniqueNotePath(currentPaths, preferredPath);
 
       if (currentPaths.includes(newPath)) {
         append(`Note already exists: ${newPath}`);
         await openNote(newPath);
-        return;
+        return newPath;
       }
 
       const defaultContent = initialNoteContent(newPath);
@@ -129,10 +136,12 @@ export function useVaultSession() {
         }));
         await openNote(newPath);
         append(`Created new note: ${newPath}`);
+        return newPath;
       } catch (e) {
         append(
           `Error creating note: ${e instanceof Error ? e.message : String(e)}`,
         );
+        return null;
       }
     },
     [append, openNote],

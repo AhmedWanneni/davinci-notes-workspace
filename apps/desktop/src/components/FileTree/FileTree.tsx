@@ -17,10 +17,12 @@ interface FileTreeProps {
   activePath: string | null;
   dirtyPaths: Set<string>;
   pendingRenameFolder?: string | null;
+  pendingRenameNote?: string | null;
   onNoteClick: (path: string) => void;
-  onCreateNote?: (parentFolder?: string) => void | Promise<void>;
+  onCreateNote?: (parentFolder?: string) => void | Promise<unknown>;
   onCreateFolder: (parentFolder: string) => Promise<string | null>;
   onPendingRenameHandled?: () => void;
+  onPendingRenameNoteHandled?: () => void;
   onRenameNote?: (oldPath: string, newStem: string) => Promise<boolean>;
   onRenameFolder?: (oldPath: string, newName: string) => Promise<boolean>;
   onDeleteNote?: (path: string) => Promise<boolean>;
@@ -38,10 +40,12 @@ export function FileTree({
   activePath,
   dirtyPaths,
   pendingRenameFolder,
+  pendingRenameNote,
   onNoteClick,
   onCreateNote,
   onCreateFolder,
   onPendingRenameHandled,
+  onPendingRenameNoteHandled,
   onRenameNote,
   onRenameFolder,
   onDeleteNote,
@@ -66,9 +70,11 @@ export function FileTree({
     useTreeExpandedFolders({
       activePath,
       pendingRenameFolder,
+      pendingRenameNote,
       onSelectedFolderChange,
       onStartRename: startRename,
       onPendingRenameHandled,
+      onPendingRenameNoteHandled,
     });
 
   const tree = useMemo(
@@ -122,19 +128,13 @@ export function FileTree({
     setContextMenu({ x: e.clientX, y: e.clientY, targetType, targetPath });
   };
 
-  const confirmDeleteNote = async (path: string) => {
-    if (window.confirm(`Delete "${path}" from vault? This cannot be undone.`)) {
-      await onDeleteNote?.(path);
-    }
-  };
-
-  const confirmDeleteFolder = async (path: string) => {
-    if (
-      window.confirm(
-        `Delete folder "${path}" and all its contents? This cannot be undone.`,
-      )
-    ) {
-      await onDeleteFolder?.(path);
+  const confirmDelete = async (path: string, isFolder: boolean) => {
+    const msg = isFolder
+      ? `Delete folder "${path}" and all its contents? This cannot be undone.`
+      : `Delete "${path}" from vault? This cannot be undone.`;
+    if (window.confirm(msg)) {
+      if (isFolder) await onDeleteFolder?.(path);
+      else await onDeleteNote?.(path);
     }
   };
 
@@ -216,8 +216,7 @@ export function FileTree({
                     (e.key === "Backspace" && (e.metaKey || e.ctrlKey))
                   ) {
                     e.preventDefault();
-                    if (isFile) void confirmDeleteNote(item.node.path);
-                    else if (isFolder) void confirmDeleteFolder(item.node.path);
+                    void confirmDelete(item.node.path, isFolder);
                   }
                 }}
               />
@@ -237,8 +236,8 @@ export function FileTree({
           onRenameNote={(path) => startRename(path, "note")}
           onRenameFolder={(path) => startRename(path, "folder")}
           onDuplicateNote={onDuplicateNote}
-          onDeleteNote={confirmDeleteNote}
-          onDeleteFolder={confirmDeleteFolder}
+          onDeleteNote={(path) => void confirmDelete(path, false)}
+          onDeleteFolder={(path) => void confirmDelete(path, true)}
           onClose={() => setContextMenu(null)}
         />
       )}

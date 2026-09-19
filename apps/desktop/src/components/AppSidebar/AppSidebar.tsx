@@ -15,20 +15,23 @@ export interface AppSidebarProps {
   navigation?: ReactNode;
   isCollapsed?: boolean;
   isMac: boolean;
-  onCreateNote: () => void;
+  onCreateNote: (parentFolder?: string) => void | Promise<unknown>;
   onCreateFolder: (parentFolder?: string) => Promise<string | null>;
   onCreateCanvas?: () => void;
   onNoteClick: (path: string) => void;
   onRenameNote?: (oldPath: string, newStem: string) => Promise<boolean>;
   onRenameFolder?: (oldPath: string, newName: string) => Promise<boolean>;
   onDeleteNote?: (path: string) => Promise<boolean>;
+  onDeleteFolder?: (path: string) => Promise<boolean>;
   onDuplicateNote?: (path: string) => Promise<boolean>;
   onMoveNote?: (path: string, newParentFolder: string) => Promise<boolean>;
   onMoveFile?: (path: string, newParentFolder: string) => Promise<boolean>;
   onDropFiles?: (targetFolder: string, files: readonly File[]) => Promise<void>;
   onSelectedFolderChange?: (folderPath: string | null) => void;
   pendingRenameFolder?: string | null;
+  pendingRenameNote?: string | null;
   onPendingRenameFolderHandled?: () => void;
+  onPendingRenameNoteHandled?: () => void;
 }
 
 export function AppSidebar({
@@ -48,13 +51,16 @@ export function AppSidebar({
   onRenameNote,
   onRenameFolder,
   onDeleteNote,
+  onDeleteFolder,
   onDuplicateNote,
   onMoveNote,
   onMoveFile,
   onDropFiles,
   onSelectedFolderChange,
   pendingRenameFolder,
+  pendingRenameNote,
   onPendingRenameFolderHandled,
+  onPendingRenameNoteHandled,
 }: AppSidebarProps) {
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(
     null,
@@ -64,6 +70,7 @@ export function AppSidebar({
     setSelectedFolderPath(folderPath);
     onSelectedFolderChange?.(folderPath);
   };
+
   return (
     <aside
       className="app-sidebar"
@@ -96,7 +103,7 @@ export function AppSidebar({
             <button
               type="button"
               className="app-sidebar__action-btn"
-              onClick={onCreateNote}
+              onClick={() => void onCreateNote(selectedFolderPath ?? "")}
               aria-label="New note"
             >
               <FilePlus size={16} />
@@ -128,20 +135,23 @@ export function AppSidebar({
       </div>
 
       <div className="app-sidebar__content">
-
-      {navigation}
+        {navigation}
         <FileTree
           filePaths={allNotePaths}
           folderPaths={allFolderPaths}
           activePath={activeNotePath}
           dirtyPaths={dirtyNotes}
           pendingRenameFolder={pendingRenameFolder}
+          pendingRenameNote={pendingRenameNote}
           onNoteClick={onNoteClick}
+          onCreateNote={onCreateNote}
           onCreateFolder={onCreateFolder}
           onPendingRenameHandled={onPendingRenameFolderHandled}
+          onPendingRenameNoteHandled={onPendingRenameNoteHandled}
           onRenameNote={onRenameNote}
           onRenameFolder={onRenameFolder}
           onDeleteNote={onDeleteNote}
+          onDeleteFolder={onDeleteFolder}
           onDuplicateNote={onDuplicateNote}
           onMoveNote={onMoveNote}
           onMoveFile={onMoveFile}

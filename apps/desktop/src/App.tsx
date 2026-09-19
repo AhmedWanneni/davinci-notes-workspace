@@ -123,6 +123,9 @@ export function App() {
   const [pendingRenameFolder, setPendingRenameFolder] = useState<string | null>(
     null,
   );
+  const [pendingRenameNote, setPendingRenameNote] = useState<string | null>(
+    null,
+  );
 
   const {
     log,
@@ -355,9 +358,27 @@ export function App() {
     }
   };
 
-  const handleCreateNote = () => {
-    void createNewNote();
-  };
+  const handleCreateNote = useCallback(
+    async (parentFolder?: string) => {
+      const newPath = await createNewNote(undefined, parentFolder ?? "");
+      if (newPath) {
+        setPendingRenameNote(newPath);
+      }
+      return newPath;
+    },
+    [createNewNote],
+  );
+
+  const handleCreateFolder = useCallback(
+    async (parentFolder = "") => {
+      const folderPath = await createNewFolder(parentFolder);
+      if (folderPath) {
+        setPendingRenameFolder(folderPath);
+      }
+      return folderPath;
+    },
+    [createNewFolder],
+  );
 
   const handleTagClick = (tagKey: string) => {
     setSearchInitialQuery(`tag:${tagKey}`);
@@ -544,7 +565,9 @@ export function App() {
           onMoveFile={handleMoveFile}
           onDropFiles={handleDropFiles}
           pendingRenameFolder={pendingRenameFolder}
+          pendingRenameNote={pendingRenameNote}
           onPendingRenameFolderHandled={() => setPendingRenameFolder(null)}
+          onPendingRenameNoteHandled={() => setPendingRenameNote(null)}
         />
 
         <main className="app-shell__main">
