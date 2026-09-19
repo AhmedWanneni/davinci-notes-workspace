@@ -6,6 +6,15 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**File Tree Context Menu & Folder CRUD Overhaul — implementation complete; native visual acceptance pending**
+Completed the 5-task context menu dismissal and folder CRUD overhaul:
+1. Fixed menu not closing on click-away (`useContextMenuDismiss.ts` with capture-phase document `pointerdown` to bypass `data-tauri-drag-region`, `Escape`, `window.blur`, and scroll listeners). Added `FileTreeContextMenu.test.tsx` (5 tests).
+2. Tailored menu structures for files, folders, and empty space with arrow-key keyboard navigation, shortcut hints (`F2`, `⌫`), danger styling, and suppression on hidden/system files. Extracted `useTreeExpandedFolders.ts` to keep `FileTree.tsx` within line limits (246 lines).
+3. Folder-scoped note and folder creation with parent-folder routing, auto-expanding parent trees, and immediate inline rename focus (`pendingRenameNote`/`pendingRenameFolder`). Added `useTreeExpandedFolders.test.ts` (4 tests).
+4. Batched folder rename (`renameFolderInVault.ts`) with filename stem validation, collision checks, and descendant note re-indexing in SQLite within a single `withDbLock` + `withDbTransaction` batch. Added `renameFolderInVault.test.ts` (4 tests).
+5. Safe folder deletion with native Rust command `delete_folder`, root/system path guards, recursive confirmation dialog, and full descendant note SQLite cleanup (`notes`, `fts_notes`, `links`), tab closure, and graph pruning (`deleteFolderInVault.ts`). Added `deleteFolderInVault.test.ts` (4 tests).
+All 71 desktop test files and 239 total unit tests pass; ESLint passes with 0 errors. Native macOS visual click-away on window chrome regions and native prompt dialogs remain UNVERIFIED due to headless execution environment.
+
 **File Tree Drag UI & Drop Feedback — implementation complete; native visual acceptance pending**
 Completed the 4-task file tree drag overhaul:
 1. Replaced default WebKit drag snapshotting with a synchronous, lightweight flat preview pill (`fileTreeDragPreview.ts`) with Phosphor SVG icon + truncated name + multi-select badge, rendered offscreen and set via `setDragImage`.
@@ -243,6 +252,20 @@ live Tauri/provider acceptance environment is available.
 The subsystem has provider transport, embeddings, vector storage, semantic search, suggested links, ask-your-vault, persisted consent/provider settings, and differentiated cloud indicators. Automated performance and UI checks pass, but the full closeout cannot be marked complete: no configured running Tauri/cloud environment is available for network-level consent, real answer-quality, keychain restart, or citation-opener verification, and Remediation C has no production host opener. The requested `ai-features-build-plan.md` remains absent.
 
 ## Last Session
+
+**File Tree Context Menu, Click-Away Dismissal, and Folder Actions (CRUD)**
+
+### Completed
+- **Task 1 (Commit `1946c6a`)**: Identified root cause of unclosable context menu (hand-built `div` with absolute positioning lacking outside click/blur/escape listeners). Implemented `useContextMenuDismiss.ts` with capture-phase document `pointerdown` (so `data-tauri-drag-region` does not swallow dismissal events), Escape key, window blur, and scroll listeners. Added `FileTreeContextMenu.test.tsx` (5 tests).
+- **Task 2 (Commit `854cbe6`)**: Added structured menu options for files (`Open`, `Rename`, `Duplicate`, `Delete`), folders (`New note`, `New folder`, `Rename`, `Delete`), and root empty space (`New note`, `New folder`). Added arrow-key navigation (`ArrowUp`/`ArrowDown`/`Home`/`End`), shortcut hints (`F2`, `⌫`), danger styling, and suppression on hidden/system entries (`.git`, `.obsidian`). Extracted `useTreeExpandedFolders.ts` to keep `FileTree.tsx` ≤ 250 lines (246 lines).
+- **Task 3 (Commit `b1135ed`)**: Implemented folder-scoped note and folder creation. Updated `createNewNote` and `createNewFolder` to accept parent folder paths, auto-expand parent tree branches, and immediately trigger inline rename focus via `pendingRenameNote` and `pendingRenameFolder`. Added `useTreeExpandedFolders.test.ts` (4 tests).
+- **Task 4 (Commit `8fd4891`)**: Implemented batched folder rename in `renameFolderInVault.ts` with filename stem validation, illegal character replacement, collision detection, and atomic descendant note re-indexing in SQLite within a single `withDbLock` + `withDbTransaction` batch. Migrated save timers, dirty note buffers, and open tabs. Added `renameFolderInVault.test.ts` (4 tests).
+- **Task 5 (Commit `e3a89ee`)**: Added native Rust command `delete_folder` in `fs.rs` and `lib.rs` with canonical root safety and `resolve_in_vault`. Implemented `deleteFolderInVault.ts` with recursive descendant note removal from SQLite (`notes`, `fts_notes`, `links`), graph cleanup, tab closure, and prompt confirmation dialog in `FileTree`. Added `deleteFolderInVault.test.ts` (4 tests).
+- Added ADR-0158.
+- **Verification**: All 71 desktop test files and 239 total tests pass; ESLint passes with 0 errors. Native macOS visual click-away on window chrome regions and native prompt dialogs remain UNVERIFIED due to headless execution environment.
+
+### Next
+- Manual visual acceptance of file tree context menu dismissal, keyboard navigation, and folder CRUD actions in a running macOS Tauri GUI session.
 
 **File Tree Drag UI, Pure Validation, and Drop Feedback**
 

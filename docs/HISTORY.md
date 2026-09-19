@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-19 | File Tree Context Menu, Click-Away Dismissal, and Folder Actions (CRUD) | Completed 5-task context menu dismissal and folder CRUD overhaul: capture-phase click-away dismissal via `useContextMenuDismiss`, tailored file/folder/empty-space menu options, arrow-key navigation, parent-folder-scoped creation with auto-expansion and immediate inline rename, batched SQLite transaction folder rename, and safe folder deletion with native Rust `delete_folder`, root protection, confirmation prompt, and index/tab cleanup; added ADR-0158. |
 | 2026-09-19 | File Tree Drag UI & Drop Feedback | Completed 4-task file tree drag overhaul: synchronous flat drag preview pill, pure getDropEffect validation, deferred source dimming, flat folder/root drop feedback, and 600ms hover-to-expand with cancellation; added ADR-0157. |
 | 2026-09-06 | Git Versioning Phase 3 | Added a provider-agnostic HTTPS/PAT model using the existing OS keyring, queued non-sensitive remote config, cosmetic-only provider detection, and deferred SSH; added ADR-0155. |
 | 2026-09-06 | Git Versioning Phase 2 | Added right-sidebar local history, readable in-project line diff, and append-only restore commits; directly verified real Git log/diff/disk-content comparisons; added ADR-0154. |
@@ -2693,4 +2694,40 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Added ADR-0157. Automated unit/DOM tests pass (25 FileTree tests, 222 total desktop tests)
   and desktop lint passes with 0 errors. Native macOS visual cursor and drag appearance
   remain UNVERIFIED due to headless execution environment.
+
+# File Tree Context Menu, Click-Away Dismissal, and Folder Actions (CRUD)
+
+- **Task 1: Context Menu Dismissal**:
+  - Identified root cause of unclosable context menu: `FileTreeContextMenu` was a hand-built floating `div` positioned absolutely without outside click, window blur, scroll, or Escape listeners.
+  - Built `useContextMenuDismiss.ts` registering a capture-phase `pointerdown` listener on `document` (ensuring `data-tauri-drag-region` header/window areas cannot intercept or block dismissal events), plus Escape keydown, `window.blur`, and scroll listeners.
+  - Constrained context menu coordinates so it never renders clipped outside viewport edges.
+  - Added `FileTreeContextMenu.test.tsx` (5 tests passing).
+
+- **Task 2: Context Menu Structure & Keyboard Navigation**:
+  - Implemented differentiated context menu actions:
+    - Files: `Open`, `Rename` (`F2`), `Duplicate`, `Delete` (`⌫` / `Delete`).
+    - Folders: `New note`, `New folder`, `Rename` (`F2`), `Delete` (`⌫` / `Delete`).
+    - Root empty space: `New note`, `New folder`.
+  - Added arrow-key navigation (`ArrowUp`, `ArrowDown`, `Home`, `End`) cycling focus through menu buttons.
+  - Suppressed context menu opening on hidden/system files and directories (`.git`, `.obsidian`).
+  - Extracted `useTreeExpandedFolders.ts` to keep `FileTree.tsx` within line limits (246 lines ≤ 250).
+
+- **Task 3: Folder-Scoped Note & Folder Creation**:
+  - Updated `createNewNote` in `useVaultSession.ts` to accept optional `parentFolder`.
+  - Updated header buttons and context menu actions to create notes/folders inside the currently selected folder (or vault root if none selected).
+  - Automatically expanded parent folders on creation and triggered immediate inline rename focus via `pendingRenameNote` and `pendingRenameFolder`.
+  - Added `useTreeExpandedFolders.test.ts` (4 tests passing).
+
+- **Task 4: Batched Folder Rename**:
+  - Implemented `renameFolderInVault.ts` validating names against illegal filesystem characters (`/ \ : * ? " < > |`) and collision with existing folders.
+  - Re-indexed all descendant notes in SQLite within a single `withDbLock` + `withDbTransaction` batch, updating `fts_notes`, `links`, `tagIndex`, `graph`, save timers, dirty note buffers, and open tabs.
+  - Added `renameFolderInVault.test.ts` (4 tests passing).
+
+- **Task 5: Safe Folder Deletion**:
+  - Added native Rust command `delete_folder` in `fs.rs` and registered it in `lib.rs` with canonical root safety check and `resolve_in_vault`.
+  - Implemented `deleteFolderInVault.ts` purging descendant notes from SQLite (`notes`, `fts_notes`, `links`), clearing cached markdown content, dirty notes, save timers, removing nodes from graph index, and closing open tabs for deleted notes.
+  - Added confirmation dialog in `FileTree.tsx` before invoking folder deletion.
+  - Added `deleteFolderInVault.test.ts` (4 tests passing).
+  - Added ADR-0158. All 71 desktop test files and 239 total unit tests pass; ESLint passes with 0 errors. Native macOS visual checks remain UNVERIFIED due to headless execution environment.
+
 

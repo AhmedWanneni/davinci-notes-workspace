@@ -38,6 +38,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0019](adr/0019-desktop-window-defaults.md) | Window defaults 1200×800, min 640×480 | Accepted |
 | [0156](adr/0156-window-chrome.md) | Platform-native custom window chrome: macOS overlay traffic lights, undecorated Windows/Linux controls, shared drag regions | Accepted |
 | [0157](adr/0157-file-tree-drag-ui-and-feedback.md) | File tree drag UI: synchronous flat drag preview pill, pure drop effect validation, deferred source dimming, and hover-to-expand | Accepted |
+| [0158](adr/0158-file-tree-context-menu-and-folder-crud.md) | File tree context menu: capture-phase click-away dismissal, keyboard navigation, folder-scoped creation, and transactional folder rename/delete | Accepted |
 | [0025](adr/0025-js-side-indexer-rust-io-only.md) | Vault indexing: JS-side `@app/indexer`, Rust for I/O only | Accepted |
 | [0026](adr/0026-js-plugin-dialog-for-folder-picker.md) | Folder picker via JS dialog plugin, not Rust `blocking_pick_folder` | Accepted |
 | [0038](adr/0038-cube-css-desktop-styling.md) | Desktop styling: CUBE CSS, not CSS Modules | Accepted |
