@@ -25,6 +25,16 @@
     color: var(--color-text-normal);
   }
 
+  &:active {
+    // macOS owns the cursor once the native drag begins, so this is the only place a hand can appear.
+    // Releasing without dragging must still click/select normally.
+    cursor: grabbing;
+  }
+
+  &[data-is-dragging="true"] {
+    opacity: 0.5;
+  }
+
   &[data-active="true"],
   &--active {
     background-color: var(--color-bg-active);

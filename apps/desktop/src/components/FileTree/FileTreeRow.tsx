@@ -17,6 +17,7 @@ interface FileTreeRowProps {
   height: number;
   isActive: boolean;
   isDirty: boolean;
+  isDragging?: boolean;
   isExpanded: boolean;
   isRenaming: boolean;
   draftStem: string;
@@ -26,6 +27,7 @@ interface FileTreeRowProps {
   onClick: () => void;
   onContextMenu: (event: React.MouseEvent) => void;
   onDoubleClick: (event: React.MouseEvent) => void;
+  onDragStart?: (path: string) => void;
   onDragEnter?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
   onDrop?: (event: React.DragEvent) => void;
@@ -50,6 +52,7 @@ export function FileTreeRow({
   height,
   isActive,
   isDirty,
+  isDragging,
   isExpanded,
   isRenaming,
   draftStem,
@@ -59,6 +62,7 @@ export function FileTreeRow({
   onClick,
   onContextMenu,
   onDoubleClick,
+  onDragStart,
   onDragEnter,
   onDragOver,
   onDrop,
@@ -77,6 +81,7 @@ export function FileTreeRow({
       data-type={item.node.type}
       data-name={item.node.name}
       data-active={isActive || undefined}
+      data-is-dragging={isDragging || undefined}
       data-drag-over={isDragOver || undefined}
       data-is-conflict={isConflict || undefined}
       draggable={!isRenaming}
@@ -101,6 +106,15 @@ export function FileTreeRow({
         const previewEl = updateDragPreview({ name, type, path });
         if (typeof event.dataTransfer.setDragImage === "function") {
           event.dataTransfer.setDragImage(previewEl, 12, 14);
+        }
+
+        // Dim source row in next frame so the dim is not captured in the drag preview snapshot
+        if (typeof requestAnimationFrame === "function") {
+          requestAnimationFrame(() => {
+            onDragStart?.(path);
+          });
+        } else {
+          onDragStart?.(path);
         }
       }}
       onDragEnd={() => {

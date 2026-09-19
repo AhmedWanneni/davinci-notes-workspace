@@ -108,7 +108,13 @@ export function FileTree({
     estimateSize: () => 28,
     overscan: 10,
   });
-  const { handleDragEnter, handleDragOver, handleDrop } = useFileTreeDrop({
+  const {
+    draggedPath,
+    handleDragStart,
+    handleDragEnter,
+    handleDragOver,
+    handleDrop,
+  } = useFileTreeDrop({
     onMoveNote,
     onMoveFile,
     onDropFiles,
@@ -160,9 +166,6 @@ export function FileTree({
             const item = visibleNodes[virtualItem.index];
             const isFile = item.node.type === "file";
             const isFolder = !isFile;
-            const isActive = isFile && item.node.path === activePath;
-            const isDirty = isFile && dirtyPaths.has(item.node.path);
-            const isExpanded = isFolder && expandedFolders.has(item.node.path);
             const isRenaming =
               renamingPath === item.node.path &&
               ((isFile && renamingKind === "note") ||
@@ -174,14 +177,16 @@ export function FileTree({
                 item={item}
                 top={virtualItem.start}
                 height={virtualItem.size}
-                isActive={isActive}
-                isDirty={isDirty}
-                isExpanded={isExpanded}
+                isActive={isFile && item.node.path === activePath}
+                isDirty={isFile && dirtyPaths.has(item.node.path)}
+                isDragging={item.node.path === draggedPath}
+                isExpanded={isFolder && expandedFolders.has(item.node.path)}
                 isRenaming={isRenaming}
                 draftStem={draftStem}
                 onDraftStemChange={setDraftStem}
                 onCommitRename={() => void commitRename()}
                 onCancelRename={cancelRename}
+                onDragStart={handleDragStart}
                 onClick={() => {
                   if (isFile) {
                     onNoteClick(item.node.path);
@@ -209,9 +214,7 @@ export function FileTree({
                   ) {
                     e.stopPropagation();
                     startRename(item.node.path, "note");
-                    return;
-                  }
-                  if (isFolder && onRenameFolder) {
+                  } else if (isFolder && onRenameFolder) {
                     e.stopPropagation();
                     startRename(item.node.path, "folder");
                   }

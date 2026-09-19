@@ -1,4 +1,4 @@
-import { type DragEvent, useCallback } from "react";
+import { type DragEvent, useCallback, useEffect, useState } from "react";
 import {
   getActiveDraggedNode,
   getDropEffect,
@@ -18,6 +18,35 @@ export function useFileTreeDrop({
   onMoveFile,
   onDropFiles,
 }: UseFileTreeDropOptions) {
+  const [draggedPath, setDraggedPath] = useState<string | null>(null);
+
+  const handleDragStart = useCallback((path: string) => {
+    setDraggedPath(path);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedPath(null);
+    setActiveDraggedNode(null);
+  }, []);
+
+  useEffect(() => {
+    const handleWindowDragEnd = () => {
+      setDraggedPath(null);
+      setActiveDraggedNode(null);
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setDraggedPath(null);
+        setActiveDraggedNode(null);
+      }
+    };
+    window.addEventListener("dragend", handleWindowDragEnd);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("dragend", handleWindowDragEnd);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
   const evaluateDropEffect = useCallback(
     (event: DragEvent, targetPath: string = "", isFolder: boolean = true) => {
       const hasInternalNote = event.dataTransfer.types.includes(
@@ -73,6 +102,7 @@ export function useFileTreeDrop({
       const targetFolder = isFolder ? targetPath : getParentFolder(targetPath);
 
       setActiveDraggedNode(null);
+      setDraggedPath(null);
 
       const notePath =
         dragged?.path ||
@@ -101,5 +131,12 @@ export function useFileTreeDrop({
     [onDropFiles, onMoveFile, onMoveNote],
   );
 
-  return { handleDragEnter, handleDragOver, handleDrop };
+  return {
+    draggedPath,
+    handleDragStart,
+    handleDragEnd,
+    handleDragEnter,
+    handleDragOver,
+    handleDrop,
+  };
 }
