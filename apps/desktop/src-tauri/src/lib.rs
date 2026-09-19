@@ -45,6 +45,7 @@ pub fn run() {
       fs::rename_note,
       fs::rename_folder,
       fs::delete_note,
+      fs::delete_folder,
       git::initialize_local_git_repository,
       git::create_local_git_version,
       git_auth::save_git_pat,

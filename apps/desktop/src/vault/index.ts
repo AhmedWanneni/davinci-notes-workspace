@@ -7,6 +7,7 @@ export {
 export { createFolderInVault } from "./createFolderInVault";
 export { createNoteInVault } from "./createNoteInVault";
 export { deleteNoteInVault } from "./deleteNoteInVault";
+export { deleteFolderInVault } from "./deleteFolderInVault";
 export { duplicateNoteInVault } from "./duplicateNoteInVault";
 export { moveNoteInVault } from "./moveNoteInVault";
 export { extractH1Title } from "./extractH1Title";
@@ -52,6 +53,7 @@ export {
   deleteNote,
   createFolder,
   renameFolder,
+  deleteFolder,
   writeBinaryFile,
   type FileTreeNode,
   type VaultChangeBatch,

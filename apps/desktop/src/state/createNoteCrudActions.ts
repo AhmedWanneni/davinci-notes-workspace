@@ -1,4 +1,5 @@
 import {
+  deleteFolderInVault,
   deleteNoteInVault,
   duplicateNoteInVault,
   moveNoteInVault,
@@ -12,6 +13,7 @@ export interface NoteCrudActions {
   moveNoteFromTree: (path: string, newParentFolder: string) => Promise<boolean>;
   renameFolderFromTree: (oldPath: string, newName: string) => Promise<boolean>;
   deleteNoteFromTree: (path: string) => Promise<boolean>;
+  deleteFolderFromTree: (path: string) => Promise<boolean>;
   duplicateNoteFromTree: (path: string) => Promise<boolean>;
 }
 
@@ -54,6 +56,14 @@ export function createNoteCrudActions(): NoteCrudActions {
       const result = await deleteNoteInVault(path);
       if (!result.ok) {
         console.warn(`[vault] Note delete skipped - ${result.reason}`);
+      }
+      return result.ok;
+    },
+
+    deleteFolderFromTree: async (path: string) => {
+      const result = await deleteFolderInVault(path);
+      if (!result.ok) {
+        console.warn(`[vault] Folder delete skipped - ${result.reason}`);
       }
       return result.ok;
     },

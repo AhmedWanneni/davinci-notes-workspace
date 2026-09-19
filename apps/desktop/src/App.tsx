@@ -114,6 +114,9 @@ export function App() {
   const deleteNoteFromTree = useWorkspaceStore(
     (state) => state.deleteNoteFromTree,
   );
+  const deleteFolderFromTree = useWorkspaceStore(
+    (state) => state.deleteFolderFromTree,
+  );
   const duplicateNoteFromTree = useWorkspaceStore(
     (state) => state.duplicateNoteFromTree,
   );
@@ -432,14 +435,6 @@ export function App() {
       window.removeEventListener("davinci-ai-open-citation", handleCitation);
   }, [handleOpenCitation]);
 
-  const handleCreateFolder = async (parentFolder = "") => {
-    const folderPath = await createNewFolder(parentFolder);
-    if (folderPath) {
-      setPendingRenameFolder(folderPath);
-    }
-    return folderPath;
-  };
-
   const handleDropFiles = async (
     targetFolder: string,
     files: readonly File[],
@@ -558,6 +553,7 @@ export function App() {
             renameFolderFromTree(oldPath, newName)
           }
           onDeleteNote={(path) => deleteNoteFromTree(path)}
+          onDeleteFolder={(path) => deleteFolderFromTree(path)}
           onDuplicateNote={(path) => duplicateNoteFromTree(path)}
           onMoveNote={(path, newParentFolder) =>
             moveNoteFromTree(path, newParentFolder)

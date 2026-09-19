@@ -72,6 +72,10 @@ export async function deleteNote(path: string): Promise<void> {
   return invoke("delete_note", { path });
 }
 
+export async function deleteFolder(path: string): Promise<void> {
+  return invoke("delete_folder", { path });
+}
+
 export async function createFolder(path: string): Promise<void> {
   return invoke("create_folder", { path });
 }

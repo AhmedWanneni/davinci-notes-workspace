@@ -382,3 +382,24 @@ pub fn delete_note(app: AppHandle, path: String) -> Result<(), String> {
   fs::remove_file(&absolute).map_err(|e| format!("Delete failed: {e}"))?;
   Ok(())
 }
+
+#[tauri::command]
+pub fn delete_folder(app: AppHandle, path: String) -> Result<(), String> {
+  if path.is_empty() || path == "." || path == "/" {
+    return Err("Cannot delete vault root".to_string());
+  }
+
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let absolute = resolve_in_vault(&vault_root, &path)?;
+
+  if absolute == vault_root {
+    return Err("Cannot delete vault root".to_string());
+  }
+
+  if !absolute.is_dir() {
+    return Err(format!("Source folder not found: {path}"));
+  }
+
+  fs::remove_dir_all(&absolute).map_err(|e| format!("Delete folder failed: {e}"))?;
+  Ok(())
+}
