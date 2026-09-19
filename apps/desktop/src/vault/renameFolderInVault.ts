@@ -42,6 +42,9 @@ export async function renameFolderInVault(
   oldPath: string,
   newName: string,
 ): Promise<RenameFolderResult> {
+  if (/[\\/:*?"<>|]/.test(newName)) {
+    return { ok: false, reason: "invalid" };
+  }
   const stem = sanitizeFilenameStem(newName);
   if (!stem) return { ok: false, reason: "invalid" };
 
@@ -64,9 +67,20 @@ export async function renameFolderInVault(
     p.startsWith(`${oldPath}/`),
   );
 
+  const noteContents = new Map<string, string>();
+  for (const oldChildPath of oldChildNotePaths) {
+    const newChildPath = remapPath(oldChildPath, oldPath, newPath)!;
+    const cached = state.notesContent[oldChildPath];
+    if (cached !== undefined) {
+      noteContents.set(newChildPath, cached);
+      continue;
+    }
+    const file = await readNote(oldChildPath);
+    noteContents.set(newChildPath, file.content);
+  }
+
   return withVaultWatchSuppressed(async () => {
     await renameFolder(oldPath, newPath);
-
     const updatedFolders = replaceVaultPathPrefix(
       state.allFolderPaths,
       oldPath,
@@ -77,22 +91,6 @@ export async function renameFolderInVault(
       oldPath,
       newPath,
     ).sort();
-
-    const noteContents = new Map<string, string>();
-    for (const oldChildPath of oldChildNotePaths) {
-      const newChildPath = remapPath(oldChildPath, oldPath, newPath)!;
-      const cached = state.notesContent[oldChildPath];
-      if (cached !== undefined) {
-        noteContents.set(newChildPath, cached);
-      } else {
-        try {
-          const file = await readNote(newChildPath);
-          noteContents.set(newChildPath, file.content);
-        } catch {
-          // ignore unreadable note
-        }
-      }
-    }
 
     const db = await getVaultIndexDb();
     const tagIndex = useWorkspaceStore.getState().tagIndex;

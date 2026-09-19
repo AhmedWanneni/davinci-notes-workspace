@@ -1,5 +1,6 @@
 mod db;
 mod ai_auth;
+mod folder_commands;
 mod fs;
 mod git;
 mod git_auth;

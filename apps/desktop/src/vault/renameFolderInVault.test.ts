@@ -84,6 +84,10 @@ describe("renameFolderInVault", () => {
     const result = await renameFolderInVault("projects", "  / \\ : * ?  ");
     expect(result).toEqual({ ok: false, reason: "invalid" });
     expect(renameFolderMock).not.toHaveBeenCalled();
+
+    const slashResult = await renameFolderInVault("projects", "next/name");
+    expect(slashResult).toEqual({ ok: false, reason: "invalid" });
+    expect(renameFolderMock).not.toHaveBeenCalled();
   });
 
   it("returns collision when destination folder exists", async () => {

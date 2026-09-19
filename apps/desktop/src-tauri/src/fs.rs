@@ -316,28 +316,8 @@ pub fn rename_folder(
   from_path: String,
   to_path: String,
 ) -> Result<(), String> {
-  if from_path == to_path {
-    return Ok(());
-  }
-
   let vault_root = app.state::<VaultState>().get_root()?;
-  let from_absolute = resolve_in_vault(&vault_root, &from_path)?;
-  let to_absolute = resolve_in_vault(&vault_root, &to_path)?;
-
-  if !from_absolute.is_dir() {
-    return Err(format!("Source folder not found: {from_path}"));
-  }
-
-  if to_absolute.exists() {
-    return Err(format!("Destination already exists: {to_path}"));
-  }
-
-  if let Some(parent) = to_absolute.parent() {
-    fs::create_dir_all(parent).map_err(|e| format!("Create parent dirs failed: {e}"))?;
-  }
-
-  fs::rename(&from_absolute, &to_absolute).map_err(|e| format!("Rename folder failed: {e}"))?;
-  Ok(())
+  crate::folder_commands::rename_folder_in_vault(&vault_root, &from_path, &to_path)
 }
 
 #[tauri::command]
@@ -385,21 +365,6 @@ pub fn delete_note(app: AppHandle, path: String) -> Result<(), String> {
 
 #[tauri::command]
 pub fn delete_folder(app: AppHandle, path: String) -> Result<(), String> {
-  if path.is_empty() || path == "." || path == "/" {
-    return Err("Cannot delete vault root".to_string());
-  }
-
   let vault_root = app.state::<VaultState>().get_root()?;
-  let absolute = resolve_in_vault(&vault_root, &path)?;
-
-  if absolute == vault_root {
-    return Err("Cannot delete vault root".to_string());
-  }
-
-  if !absolute.is_dir() {
-    return Err(format!("Source folder not found: {path}"));
-  }
-
-  fs::remove_dir_all(&absolute).map_err(|e| format!("Delete folder failed: {e}"))?;
-  Ok(())
+  crate::folder_commands::delete_folder_in_vault(&vault_root, &path)
 }

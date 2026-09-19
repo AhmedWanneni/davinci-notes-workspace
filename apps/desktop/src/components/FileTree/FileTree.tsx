@@ -6,7 +6,9 @@ import {
   type FileTreeMenuTargetType,
 } from "./FileTreeContextMenu";
 import { FileTreeRow } from "./FileTreeRow";
+import { confirmTreeDelete } from "./confirmTreeDelete";
 import { isHiddenOrSystemPath } from "./getDropEffect";
+import { runTreeRename } from "./runTreeRename";
 import { useFileTreeDrop } from "./useFileTreeDrop";
 import { useFileTreeInlineRename } from "./useFileTreeInlineRename";
 import { useTreeExpandedFolders } from "./useTreeExpandedFolders";
@@ -64,7 +66,12 @@ export function FileTree({
     startRename,
     cancelRename,
     commitRename,
-  } = useFileTreeInlineRename({ onRenameNote, onRenameFolder });
+  } = useFileTreeInlineRename({
+    onRenameNote: (path, name) =>
+      runTreeRename("note", () => onRenameNote?.(path, name)),
+    onRenameFolder: (path, name) =>
+      runTreeRename("folder", () => onRenameFolder?.(path, name)),
+  });
 
   const { expandedFolders, toggleFolder, expandFolder } =
     useTreeExpandedFolders({
@@ -128,15 +135,10 @@ export function FileTree({
     setContextMenu({ x: e.clientX, y: e.clientY, targetType, targetPath });
   };
 
-  const confirmDelete = async (path: string, isFolder: boolean) => {
-    const msg = isFolder
-      ? `Delete folder "${path}" and all its contents? This cannot be undone.`
-      : `Delete "${path}" from vault? This cannot be undone.`;
-    if (window.confirm(msg)) {
-      if (isFolder) await onDeleteFolder?.(path);
-      else await onDeleteNote?.(path);
-    }
-  };
+  const confirmDelete = (path: string, isFolder: boolean) =>
+    confirmTreeDelete(path, isFolder, () =>
+      isFolder ? onDeleteFolder?.(path) : onDeleteNote?.(path),
+    );
 
   return (
     <>
