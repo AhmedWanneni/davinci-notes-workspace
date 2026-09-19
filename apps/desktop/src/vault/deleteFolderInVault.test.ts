@@ -119,7 +119,11 @@ describe("deleteFolderInVault", () => {
       ["projects/sub/note2.md"],
     );
 
-    expect(setStateMock).toHaveBeenCalledWith(
+    expect(setStateMock).toHaveBeenCalledWith(expect.any(Function));
+    const immediateUpdate = setStateMock.mock.calls[0]?.[0] as (
+      state: ReturnType<typeof getStateMock>,
+    ) => Record<string, unknown>;
+    expect(immediateUpdate(getStateMock())).toEqual(
       expect.objectContaining({
         allFolderPaths: ["archive"],
         allNotePaths: ["archive/old.md"],

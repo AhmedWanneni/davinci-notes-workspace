@@ -54,6 +54,31 @@ export async function deleteFolderInVault(
     const updatedNotes = state.allNotePaths.filter(
       (p) => !p.startsWith(prefix),
     );
+    const remainingOpenNotes = state.openNotes.filter(
+      (p) => !p.startsWith(prefix),
+    );
+    const nextActiveNote =
+      state.activeNotePath && state.activeNotePath.startsWith(prefix)
+        ? (remainingOpenNotes[0] ?? null)
+        : state.activeNotePath;
+    const nextNotesContent = { ...state.notesContent };
+    const nextDirtyNotes = new Set(state.dirtyNotes);
+    for (const notePath of deletedNotePaths) {
+      delete nextNotesContent[notePath];
+      nextDirtyNotes.delete(notePath);
+    }
+
+    // The disk operation has succeeded, so remove it from the rendered tree
+    // before the potentially large serialized SQLite cleanup completes.
+    useWorkspaceStore.setState((current) => ({
+      allFolderPaths: updatedFolders,
+      allNotePaths: updatedNotes,
+      openNotes: remainingOpenNotes,
+      activeNotePath: nextActiveNote,
+      notesContent: nextNotesContent,
+      dirtyNotes: nextDirtyNotes,
+      vaultUpdateCounter: current.vaultUpdateCounter + 1,
+    }));
 
     const db = await getVaultIndexDb();
     const tagIndex = useWorkspaceStore.getState().tagIndex;
@@ -83,30 +108,8 @@ export async function deleteFolderInVault(
       clearH1RenameTimer(notePath);
     }
 
-    const remainingOpenNotes = state.openNotes.filter(
-      (p) => !p.startsWith(prefix),
-    );
-    const nextActiveNote =
-      state.activeNotePath && state.activeNotePath.startsWith(prefix)
-        ? (remainingOpenNotes[0] ?? null)
-        : state.activeNotePath;
-
-    const nextNotesContent = { ...state.notesContent };
-    const nextDirtyNotes = new Set(state.dirtyNotes);
-    for (const notePath of deletedNotePaths) {
-      delete nextNotesContent[notePath];
-      nextDirtyNotes.delete(notePath);
-    }
-
     useWorkspaceStore.setState({
-      allFolderPaths: updatedFolders,
-      allNotePaths: updatedNotes,
-      openNotes: remainingOpenNotes,
-      activeNotePath: nextActiveNote,
-      notesContent: nextNotesContent,
-      dirtyNotes: nextDirtyNotes,
       graph: currentGraph,
-      vaultUpdateCounter: state.vaultUpdateCounter + 1,
     });
 
     return { ok: true };

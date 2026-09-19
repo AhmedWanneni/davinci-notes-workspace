@@ -2739,3 +2739,9 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - `folder_commands.rs` is the command core used by the registered Rust commands. It rejects vault-root, hidden/system, traversal, and symlink-component paths; its real temp-filesystem tests rename a nested note into a Unicode/spaced folder and recursively delete a nested folder. `renameFolderInVault` now rejects slash names and loads all descendants before renaming, removing the previous silent read failure.
 - Actual checks: focused TS tests 11/11; full desktop Vitest 73 files / 242 tests; ESLint; Rust command-core tests; Rust check. Typecheck remains blocked only by pre-existing `vaultUpdateCounter` and design-system Button-color errors. `cargo fmt --check` reports broad pre-existing formatting drift across the Rust crate, and `git diff --check` reports the pre-existing blank-line change in `saveTimers.ts`.
 - UNVERIFIED in this headless session: native macOS dialog/callback behavior and logs; every manual entry point; full-index/settings/embedding concurrency; large-folder timing; unsaved child tab persistence; UI backlink/tag/graph/switcher/H1-sync and file-operation regressions.
+
+### 2026-09-19 — Follow-up: Immediate folder-delete tree update
+
+- The delete helper had correct state pruning but performed it only after the complete descendant SQLite cleanup, so the filesystem could already be correct while a large folder still appeared in the tree.
+- State pruning now runs immediately after successful `delete_folder`: folder/note paths, affected tabs, active note, cached content, and dirty buffers update before the queued index transaction. The index cleanup remains serialized by `withDbLock` and is unchanged.
+- Focused delete-folder regression (4/4) and desktop ESLint pass. Native visual timing remains UNVERIFIED.
