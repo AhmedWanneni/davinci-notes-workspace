@@ -4,6 +4,7 @@ mod fs;
 mod git;
 mod git_auth;
 mod git_history;
+mod git_remote;
 mod manifest;
 mod oauth;
 mod state;
@@ -46,6 +47,7 @@ pub fn run() {
       git_auth::save_git_pat,
       git_auth::load_git_pat,
       git_auth::clear_git_pat,
+      git_remote::validate_git_remote,
       git_history::list_local_git_versions,
       git_history::read_local_git_version,
       git_history::restore_local_git_version,

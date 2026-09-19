@@ -19,6 +19,7 @@ import type { ThemeLifecycleManager } from "../../themes";
 import type { ThemeDiscoveryError, ThemeRecord } from "../../themes";
 
 import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
+import { GitRemoteSetupPanel } from "../GitRemoteSetupPanel";
 import React from "react";
 
 const LazyAISettingsPanel = React.lazy(() =>
@@ -206,6 +207,10 @@ export function SettingsDialog({
               onOpenConflictsPanel={onOpenConflictsPanel}
             />
           </section>
+
+          <Divider />
+
+          <GitRemoteSetupPanel />
 
           <Divider />
 
