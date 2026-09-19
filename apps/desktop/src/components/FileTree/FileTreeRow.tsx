@@ -82,7 +82,7 @@ export function FileTreeRow({
           item.node.path,
         );
         event.dataTransfer.setData("text/plain", item.node.path);
-        event.dataTransfer.effectAllowed = "copy";
+        event.dataTransfer.effectAllowed = "move";
       }}
       onDragOver={(event) => {
         if (isFile) {
