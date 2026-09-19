@@ -1,10 +1,23 @@
+import {
+  removeNoteFromTagIndex,
+  updateGraphForNote,
+  updateTagIndexForNote,
+} from "@app/indexer";
 import { noteFromMarkdown } from "./noteFromMarkdown";
 import { replaceVaultPathPrefix } from "./replaceVaultPathPrefix";
 import { folderNameFromPath } from "./resolveUniqueFolderPath";
 import { sanitizeFilenameStem } from "./sanitizeFilenameStem";
-import { getVaultIndexDb, persistNote, withDbLock } from "./sqliteIndex";
-import { renameFolder } from "./vaultCommands";
+import {
+  getVaultIndexDb,
+  persistNote,
+  removeNoteFromIndex,
+  withDbLock,
+  withDbTransaction,
+} from "./sqliteIndex";
+import { readNote, renameFolder } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
+import { migrateSaveTimer } from "../state/saveTimers";
+import { clearH1RenameTimer } from "./h1DrivenRename";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 
 function remapPath(
@@ -12,12 +25,8 @@ function remapPath(
   oldPrefix: string,
   newPrefix: string,
 ): string | null {
-  if (!path) {
-    return null;
-  }
-  if (path === oldPrefix) {
-    return newPrefix;
-  }
+  if (!path) return null;
+  if (path === oldPrefix) return newPrefix;
   if (path.startsWith(`${oldPrefix}/`)) {
     return `${newPrefix}${path.slice(oldPrefix.length)}`;
   }
@@ -28,24 +37,20 @@ export type RenameFolderResult =
   | { ok: true; newPath: string }
   | { ok: false; reason: "collision" | "invalid" | "missing" };
 
-/** Canonical folder rename: disk, child path prefix updates, note re-index. */
+/** Canonical folder rename: disk, child path prefix updates, note re-index in batched transaction. */
 export async function renameFolderInVault(
   oldPath: string,
   newName: string,
 ): Promise<RenameFolderResult> {
   const stem = sanitizeFilenameStem(newName);
-  if (!stem) {
-    return { ok: false, reason: "invalid" };
-  }
+  if (!stem) return { ok: false, reason: "invalid" };
 
   const parent = oldPath.includes("/")
     ? oldPath.slice(0, oldPath.lastIndexOf("/"))
     : "";
   const newPath = parent ? `${parent}/${stem}` : stem;
 
-  if (oldPath === newPath) {
-    return { ok: true, newPath };
-  }
+  if (oldPath === newPath) return { ok: true, newPath };
 
   const state = useWorkspaceStore.getState();
   if (!state.allFolderPaths.includes(oldPath)) {
@@ -54,6 +59,10 @@ export async function renameFolderInVault(
   if (state.allFolderPaths.includes(newPath)) {
     return { ok: false, reason: "collision" };
   }
+
+  const oldChildNotePaths = state.allNotePaths.filter((p) =>
+    p.startsWith(`${oldPath}/`),
+  );
 
   return withVaultWatchSuppressed(async () => {
     await renameFolder(oldPath, newPath);
@@ -69,21 +78,67 @@ export async function renameFolderInVault(
       newPath,
     ).sort();
 
-    const db = await getVaultIndexDb();
-    const noteUpdates = new Map<string, string>();
-    for (const path of updatedNotes) {
-      const content = state.notesContent[path];
-      if (content !== undefined) {
-        noteUpdates.set(path, content);
+    const noteContents = new Map<string, string>();
+    for (const oldChildPath of oldChildNotePaths) {
+      const newChildPath = remapPath(oldChildPath, oldPath, newPath)!;
+      const cached = state.notesContent[oldChildPath];
+      if (cached !== undefined) {
+        noteContents.set(newChildPath, cached);
+      } else {
+        try {
+          const file = await readNote(newChildPath);
+          noteContents.set(newChildPath, file.content);
+        } catch {
+          // ignore unreadable note
+        }
       }
     }
 
+    const db = await getVaultIndexDb();
+    const tagIndex = useWorkspaceStore.getState().tagIndex;
+
     await withDbLock(async () => {
-      for (const [path, content] of noteUpdates) {
-        const note = noteFromMarkdown(path, content, Date.now(), updatedNotes);
-        await persistNote(db, note);
-      }
+      await withDbTransaction(db, async () => {
+        for (const oldChildPath of oldChildNotePaths) {
+          await removeNoteFromIndex(db, oldChildPath);
+          if (tagIndex) removeNoteFromTagIndex(tagIndex, oldChildPath);
+          await db.execute(
+            "DELETE FROM links WHERE target_path = $1 OR source_path = $1",
+            [oldChildPath],
+          );
+        }
+
+        for (const [childPath, content] of noteContents) {
+          const note = noteFromMarkdown(
+            childPath,
+            content,
+            Date.now(),
+            updatedNotes,
+          );
+          await persistNote(db, note);
+          if (tagIndex) updateTagIndexForNote(tagIndex, note);
+        }
+      });
     });
+
+    let currentGraph = state.graph;
+    if (currentGraph) {
+      for (const [childPath, content] of noteContents) {
+        const note = noteFromMarkdown(
+          childPath,
+          content,
+          Date.now(),
+          updatedNotes,
+        );
+        currentGraph = updateGraphForNote(currentGraph, note);
+      }
+    }
+
+    for (const oldChildPath of oldChildNotePaths) {
+      const newChildPath = remapPath(oldChildPath, oldPath, newPath)!;
+      migrateSaveTimer(oldChildPath, newChildPath);
+      clearH1RenameTimer(oldChildPath);
+    }
 
     useWorkspaceStore.setState((prev) => ({
       allFolderPaths: updatedFolders,
@@ -99,6 +154,7 @@ export async function renameFolderInVault(
       dirtyNotes: new Set(
         replaceVaultPathPrefix(Array.from(prev.dirtyNotes), oldPath, newPath),
       ),
+      graph: currentGraph,
       vaultUpdateCounter: prev.vaultUpdateCounter + 1,
     }));
 
