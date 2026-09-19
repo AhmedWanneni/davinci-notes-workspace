@@ -18,7 +18,14 @@ import {
   signInToDrive,
   signOutOfDrive,
 } from "./sync/desktopDriveAuth";
-import { getVaultIndexDb, openAndIndexVault, useVaultSession, withDbLock } from "./vault";
+import {
+  getVaultIndexDb,
+  openAndIndexVault,
+  renameNote,
+  useVaultSession,
+  withDbLock,
+  writeAttachmentToVault,
+} from "./vault";
 import { revealCitationLine, type CitationNavigationTarget } from "./ai/citationNavigation";
 import { loadAIStartupGate } from "./ai/loadAIStartupGate";
 import { useWindowFullscreen } from "./window";
@@ -338,6 +345,33 @@ export function App() {
     return folderPath;
   };
 
+  const handleDropFiles = async (
+    targetFolder: string,
+    files: readonly File[],
+  ) => {
+    if (!vaultPath) return;
+    for (const file of files) {
+      try {
+        await writeAttachmentToVault(vaultPath, targetFolder, file.name, file);
+      } catch (error) {
+        console.error(`Failed to add ${file.name}`, error);
+      }
+    }
+  };
+
+  const handleMoveFile = async (path: string, targetFolder: string) => {
+    const fileName = path.split("/").pop();
+    if (!fileName) return false;
+    const targetPath = targetFolder ? `${targetFolder}/${fileName}` : fileName;
+    try {
+      await renameNote(path, targetPath);
+      return true;
+    } catch (error) {
+      console.error(`Failed to move ${path}`, error);
+      return false;
+    }
+  };
+
   const handleDriveSignIn = async () => {
     try {
       await signInToDrive(openDriveAuthorizationUrl);
@@ -409,20 +443,6 @@ export function App() {
       </header>
 
       <div className="app-shell__body">
-        <IconRail
-          isLeftSidebarOpen={isLeftSidebarOpen}
-          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
-          onOpenSearch={() => {
-            setSearchInitialQuery("");
-            setIsSearchOpen(true);
-          }}
-          onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onCloseVault={() => setVaultPath(null)}
-          onDailyNotes={handleDailyNotes}
-          onCreateCanvas={handleCreateCanvas}
-        />
-
         <AppSidebar
           vaultName={vaultName}
           allNotePaths={allNotePaths}
@@ -430,6 +450,23 @@ export function App() {
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
           log={log}
+          navigation={
+            <IconRail
+              isLeftSidebarOpen={isLeftSidebarOpen}
+              onToggleLeftSidebar={() =>
+                setIsLeftSidebarOpen((prev) => !prev)
+              }
+              onOpenSearch={() => {
+                setSearchInitialQuery("");
+                setIsSearchOpen(true);
+              }}
+              onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onCloseVault={() => setVaultPath(null)}
+              onDailyNotes={handleDailyNotes}
+              onCreateCanvas={handleCreateCanvas}
+            />
+          }
           isCollapsed={!isLeftSidebarOpen}
           isMac={isMac}
           onCreateNote={handleCreateNote}
@@ -447,6 +484,8 @@ export function App() {
           onMoveNote={(path, newParentFolder) =>
             moveNoteFromTree(path, newParentFolder)
           }
+          onMoveFile={handleMoveFile}
+          onDropFiles={handleDropFiles}
           pendingRenameFolder={pendingRenameFolder}
           onPendingRenameFolderHandled={() => setPendingRenameFolder(null)}
         />

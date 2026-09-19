@@ -1,5 +1,5 @@
 import { FilePlus, FolderPlus, FrameCorners } from "@phosphor-icons/react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Tooltip, Typography } from "@app/design-system";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WindowControls } from "../WindowControls";
@@ -12,6 +12,7 @@ export interface AppSidebarProps {
   activeNotePath: string | null;
   dirtyNotes: Set<string>;
   log: string[];
+  navigation?: ReactNode;
   isCollapsed?: boolean;
   isMac: boolean;
   onCreateNote: () => void;
@@ -23,6 +24,8 @@ export interface AppSidebarProps {
   onDeleteNote?: (path: string) => Promise<boolean>;
   onDuplicateNote?: (path: string) => Promise<boolean>;
   onMoveNote?: (path: string, newParentFolder: string) => Promise<boolean>;
+  onMoveFile?: (path: string, newParentFolder: string) => Promise<boolean>;
+  onDropFiles?: (targetFolder: string, files: readonly File[]) => Promise<void>;
   onSelectedFolderChange?: (folderPath: string | null) => void;
   pendingRenameFolder?: string | null;
   onPendingRenameFolderHandled?: () => void;
@@ -35,6 +38,7 @@ export function AppSidebar({
   activeNotePath,
   dirtyNotes,
   log,
+  navigation,
   isCollapsed,
   isMac,
   onCreateNote,
@@ -46,6 +50,8 @@ export function AppSidebar({
   onDeleteNote,
   onDuplicateNote,
   onMoveNote,
+  onMoveFile,
+  onDropFiles,
   onSelectedFolderChange,
   pendingRenameFolder,
   onPendingRenameFolderHandled,
@@ -122,6 +128,8 @@ export function AppSidebar({
       </div>
 
       <div className="app-sidebar__content">
+
+      {navigation}
         <FileTree
           filePaths={allNotePaths}
           folderPaths={allFolderPaths}
@@ -136,6 +144,8 @@ export function AppSidebar({
           onDeleteNote={onDeleteNote}
           onDuplicateNote={onDuplicateNote}
           onMoveNote={onMoveNote}
+          onMoveFile={onMoveFile}
+          onDropFiles={onDropFiles}
           onSelectedFolderChange={handleSelectedFolderChange}
         />
       </div>

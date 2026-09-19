@@ -3,6 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
 import { FileTreeContextMenu } from "./FileTreeContextMenu";
 import { FileTreeRow } from "./FileTreeRow";
+import { useFileTreeDrop } from "./useFileTreeDrop";
 import { useFileTreeInlineRename } from "./useFileTreeInlineRename";
 
 interface FileTreeProps {
@@ -19,6 +20,8 @@ interface FileTreeProps {
   onDeleteNote?: (path: string) => Promise<boolean>;
   onDuplicateNote?: (path: string) => Promise<boolean>;
   onMoveNote?: (path: string, newParentFolder: string) => Promise<boolean>;
+  onMoveFile?: (path: string, newParentFolder: string) => Promise<boolean>;
+  onDropFiles?: (targetFolder: string, files: readonly File[]) => Promise<void>;
   onSelectedFolderChange?: (folderPath: string | null) => void;
 }
 
@@ -36,6 +39,8 @@ export function FileTree({
   onDeleteNote,
   onDuplicateNote,
   onMoveNote,
+  onMoveFile,
+  onDropFiles,
   onSelectedFolderChange,
 }: FileTreeProps) {
   const {
@@ -106,6 +111,11 @@ export function FileTree({
     estimateSize: () => 28,
     overscan: 10,
   });
+  const { handleDragOver, handleDrop } = useFileTreeDrop({
+    onMoveNote,
+    onMoveFile,
+    onDropFiles,
+  });
 
   const openContextMenu = (
     e: React.MouseEvent,
@@ -113,6 +123,7 @@ export function FileTree({
     notePath?: string,
   ) => {
     e.preventDefault();
+    e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY, parentFolder, notePath });
   };
 
@@ -121,27 +132,6 @@ export function FileTree({
       window.confirm(`Delete "${path}" from the vault? This cannot be undone.`)
     ) {
       await onDeleteNote?.(path);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes("application/vnd.davinci.note")) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-    }
-  };
-
-  const handleDrop = async (e: React.DragEvent, targetFolder: string) => {
-    e.preventDefault();
-    const notePath = e.dataTransfer.getData("application/vnd.davinci.note");
-    if (notePath && onMoveNote) {
-      // Don't move if target is the same folder
-      const currentFolder = notePath.includes("/")
-        ? notePath.slice(0, notePath.lastIndexOf("/"))
-        : "";
-      if (currentFolder !== targetFolder) {
-        await onMoveNote(notePath, targetFolder);
-      }
     }
   };
 
@@ -241,6 +231,7 @@ export function FileTree({
           y={contextMenu.y}
           parentFolder={contextMenu.parentFolder}
           notePath={contextMenu.notePath}
+          onOpenNote={onNoteClick}
           onRenameNote={(path) => startRename(path, "note")}
           onCreateFolder={onCreateFolder}
           onDuplicateNote={onDuplicateNote}

@@ -3,6 +3,7 @@ interface FileTreeContextMenuProps {
   y: number;
   parentFolder: string;
   notePath?: string;
+  onOpenNote?: (path: string) => void;
   onRenameNote?: (path: string) => void;
   onCreateFolder: (parentFolder: string) => Promise<string | null>;
   onDuplicateNote?: (path: string) => void | Promise<unknown>;
@@ -15,6 +16,7 @@ export function FileTreeContextMenu({
   y,
   parentFolder,
   notePath,
+  onOpenNote,
   onRenameNote,
   onCreateFolder,
   onDuplicateNote,
@@ -37,6 +39,16 @@ export function FileTreeContextMenu({
       style={{ top: y, left: x }}
       role="menu"
     >
+      {notePath && onOpenNote && (
+        <button
+          type="button"
+          className="file-tree__context-menu-item"
+          role="menuitem"
+          onClick={() => handleNoteAction(onOpenNote)}
+        >
+          Open
+        </button>
+      )}
       {notePath && onRenameNote && (
         <button
           type="button"
@@ -64,7 +76,7 @@ export function FileTreeContextMenu({
           role="menuitem"
           onClick={() => handleNoteAction(onDeleteNote)}
         >
-          Delete
+          Remove
         </button>
       )}
       <button
