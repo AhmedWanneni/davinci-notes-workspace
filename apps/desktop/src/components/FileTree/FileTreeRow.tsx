@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { useState } from "react";
 import { updateDragPreview } from "./fileTreeDragPreview";
+import { setActiveDraggedNode } from "./getDropEffect";
 import type { FlatTreeNode } from "./tree-utils";
 
 interface FileTreeRowProps {
@@ -25,6 +26,7 @@ interface FileTreeRowProps {
   onClick: () => void;
   onContextMenu: (event: React.MouseEvent) => void;
   onDoubleClick: (event: React.MouseEvent) => void;
+  onDragEnter?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
   onDrop?: (event: React.DragEvent) => void;
 }
@@ -57,6 +59,7 @@ export function FileTreeRow({
   onClick,
   onContextMenu,
   onDoubleClick,
+  onDragEnter,
   onDragOver,
   onDrop,
 }: FileTreeRowProps) {
@@ -89,6 +92,8 @@ export function FileTreeRow({
           (target.getAttribute("data-type") as "file" | "folder") ||
           item.node.type;
 
+        setActiveDraggedNode({ path, isFolder: type === "folder" });
+
         event.dataTransfer.setData("application/vnd.davinci.note", path);
         event.dataTransfer.setData("text/plain", path);
         event.dataTransfer.effectAllowed = "move";
@@ -98,11 +103,13 @@ export function FileTreeRow({
           event.dataTransfer.setDragImage(previewEl, 12, 14);
         }
       }}
+      onDragEnd={() => {
+        setActiveDraggedNode(null);
+      }}
+      onDragEnter={(event) => {
+        onDragEnter?.(event);
+      }}
       onDragOver={(event) => {
-        if (isFile) {
-          return;
-        }
-        event.preventDefault();
         setIsDragOver(true);
         onDragOver?.(event);
       }}
@@ -111,9 +118,6 @@ export function FileTreeRow({
       }}
       onDrop={(event) => {
         setIsDragOver(false);
-        if (isFile) {
-          return;
-        }
         onDrop?.(event);
       }}
       style={{

@@ -1,4 +1,11 @@
 import { type DragEvent, useCallback } from "react";
+import {
+  getActiveDraggedNode,
+  getDropEffect,
+  getParentFolder,
+  isHiddenOrSystemPath,
+  setActiveDraggedNode,
+} from "./getDropEffect";
 
 interface UseFileTreeDropOptions {
   onMoveNote?: (path: string, targetFolder: string) => Promise<boolean>;
@@ -11,26 +18,71 @@ export function useFileTreeDrop({
   onMoveFile,
   onDropFiles,
 }: UseFileTreeDropOptions) {
-  const handleDragOver = useCallback((event: DragEvent) => {
-    const hasInternalNote = event.dataTransfer.types.includes(
-      "application/vnd.davinci.note",
-    );
-    const hasFiles = event.dataTransfer.types.includes("Files");
-    if (!hasInternalNote && !hasFiles) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = hasInternalNote ? "move" : "copy";
-  }, []);
-
-  const handleDrop = useCallback(
-    async (event: DragEvent, targetFolder: string) => {
-      event.preventDefault();
-      const notePath = event.dataTransfer.getData(
+  const evaluateDropEffect = useCallback(
+    (event: DragEvent, targetPath: string = "", isFolder: boolean = true) => {
+      const hasInternalNote = event.dataTransfer.types.includes(
         "application/vnd.davinci.note",
       );
+      const hasFiles = event.dataTransfer.types.includes("Files");
+
+      if (!hasInternalNote && !hasFiles) {
+        return;
+      }
+
+      event.preventDefault();
+
+      if (hasInternalNote) {
+        const dragged = getActiveDraggedNode();
+        const effect = getDropEffect(dragged, { path: targetPath, isFolder });
+        event.dataTransfer.dropEffect = effect;
+      } else if (hasFiles) {
+        const resolvedFolder = isFolder
+          ? targetPath
+          : getParentFolder(targetPath);
+        event.dataTransfer.dropEffect = isHiddenOrSystemPath(resolvedFolder)
+          ? "none"
+          : "copy";
+      }
+    },
+    [],
+  );
+
+  const handleDragEnter = useCallback(
+    (event: DragEvent, targetPath: string = "", isFolder: boolean = true) => {
+      evaluateDropEffect(event, targetPath, isFolder);
+    },
+    [evaluateDropEffect],
+  );
+
+  const handleDragOver = useCallback(
+    (event: DragEvent, targetPath: string = "", isFolder: boolean = true) => {
+      evaluateDropEffect(event, targetPath, isFolder);
+    },
+    [evaluateDropEffect],
+  );
+
+  const handleDrop = useCallback(
+    async (
+      event: DragEvent,
+      targetPath: string = "",
+      isFolder: boolean = true,
+    ) => {
+      event.preventDefault();
+      const dragged = getActiveDraggedNode();
+      const effect = getDropEffect(dragged, { path: targetPath, isFolder });
+      const targetFolder = isFolder ? targetPath : getParentFolder(targetPath);
+
+      setActiveDraggedNode(null);
+
+      const notePath =
+        dragged?.path ||
+        event.dataTransfer.getData("application/vnd.davinci.note");
+
       if (notePath) {
-        const currentFolder = notePath.includes("/")
-          ? notePath.slice(0, notePath.lastIndexOf("/"))
-          : "";
+        if (effect === "none") {
+          return;
+        }
+        const currentFolder = getParentFolder(notePath);
         if (currentFolder !== targetFolder) {
           const move = notePath.endsWith(".md") ? onMoveNote : onMoveFile;
           await move?.(notePath, targetFolder);
@@ -40,11 +92,14 @@ export function useFileTreeDrop({
 
       const files = Array.from(event.dataTransfer.files);
       if (files.length > 0 && onDropFiles) {
+        if (isHiddenOrSystemPath(targetFolder)) {
+          return;
+        }
         await onDropFiles(targetFolder, files);
       }
     },
     [onDropFiles, onMoveFile, onMoveNote],
   );
 
-  return { handleDragOver, handleDrop };
+  return { handleDragEnter, handleDragOver, handleDrop };
 }

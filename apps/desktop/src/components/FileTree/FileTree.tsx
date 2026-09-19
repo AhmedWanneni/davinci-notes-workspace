@@ -3,6 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
 import { FileTreeContextMenu } from "./FileTreeContextMenu";
 import { FileTreeRow } from "./FileTreeRow";
+import { getParentFolder } from "./getDropEffect";
 import { useFileTreeDrop } from "./useFileTreeDrop";
 import { useFileTreeInlineRename } from "./useFileTreeInlineRename";
 
@@ -67,12 +68,8 @@ export function FileTree({
   } | null>(null);
 
   useEffect(() => {
-    if (!pendingRenameFolder) {
-      return;
-    }
-    const parent = pendingRenameFolder.includes("/")
-      ? pendingRenameFolder.slice(0, pendingRenameFolder.lastIndexOf("/"))
-      : "";
+    if (!pendingRenameFolder) return;
+    const parent = getParentFolder(pendingRenameFolder);
     if (parent) {
       setExpandedFolders((prev) => new Set(prev).add(parent));
     }
@@ -111,7 +108,7 @@ export function FileTree({
     estimateSize: () => 28,
     overscan: 10,
   });
-  const { handleDragOver, handleDrop } = useFileTreeDrop({
+  const { handleDragEnter, handleDragOver, handleDrop } = useFileTreeDrop({
     onMoveNote,
     onMoveFile,
     onDropFiles,
@@ -125,6 +122,16 @@ export function FileTree({
     e.preventDefault();
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY, parentFolder, notePath });
+  };
+
+  const toggleFolder = (folderPath: string) => {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(folderPath)) next.delete(folderPath);
+      else next.add(folderPath);
+      return next;
+    });
+    onSelectedFolderChange?.(folderPath);
   };
 
   const confirmDeleteNote = async (path: string) => {
@@ -141,8 +148,9 @@ export function FileTree({
         className="file-tree"
         ref={parentRef}
         onContextMenu={(e) => openContextMenu(e, "")}
-        onDragOver={handleDragOver}
-        onDrop={(e) => handleDrop(e, "")}
+        onDragEnter={(e) => handleDragEnter(e, "", true)}
+        onDragOver={(e) => handleDragOver(e, "", true)}
+        onDrop={(e) => handleDrop(e, "", true)}
       >
         <div
           className="file-tree__virtual-inner"
@@ -178,28 +186,18 @@ export function FileTree({
                   if (isFile) {
                     onNoteClick(item.node.path);
                     onSelectedFolderChange?.(null);
-                    return;
+                  } else {
+                    toggleFolder(item.node.path);
                   }
-                  setExpandedFolders((prev) => {
-                    const next = new Set(prev);
-                    if (next.has(item.node.path)) {
-                      next.delete(item.node.path);
-                    } else {
-                      next.add(item.node.path);
-                    }
-                    return next;
-                  });
-                  onSelectedFolderChange?.(item.node.path);
                 }}
                 onContextMenu={(e) => {
                   if (isFile && item.node.path.endsWith(".md")) {
-                    const parentFolder = item.node.path.includes("/")
-                      ? item.node.path.slice(0, item.node.path.lastIndexOf("/"))
-                      : "";
-                    openContextMenu(e, parentFolder, item.node.path);
-                    return;
-                  }
-                  if (isFolder) {
+                    openContextMenu(
+                      e,
+                      getParentFolder(item.node.path),
+                      item.node.path,
+                    );
+                  } else if (isFolder) {
                     openContextMenu(e, item.node.path);
                   }
                 }}
@@ -218,8 +216,11 @@ export function FileTree({
                     startRename(item.node.path, "folder");
                   }
                 }}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, item.node.path)}
+                onDragEnter={(e) =>
+                  handleDragEnter(e, item.node.path, isFolder)
+                }
+                onDragOver={(e) => handleDragOver(e, item.node.path, isFolder)}
+                onDrop={(e) => handleDrop(e, item.node.path, isFolder)}
               />
             );
           })}
