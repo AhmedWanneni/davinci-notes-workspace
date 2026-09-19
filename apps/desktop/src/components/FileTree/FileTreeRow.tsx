@@ -7,6 +7,7 @@ import {
   Video,
 } from "@phosphor-icons/react";
 import { useState } from "react";
+import { updateDragPreview } from "./fileTreeDragPreview";
 import type { FlatTreeNode } from "./tree-utils";
 
 interface FileTreeRowProps {
@@ -69,20 +70,33 @@ export function FileTreeRow({
   return (
     <div
       className="file-tree__row"
+      data-path={item.node.path}
+      data-type={item.node.type}
+      data-name={item.node.name}
       data-active={isActive || undefined}
       data-drag-over={isDragOver || undefined}
       data-is-conflict={isConflict || undefined}
-      draggable={isFile}
+      draggable={!isRenaming}
       onDragStart={(event) => {
-        if (!isFile) {
+        if (isRenaming) {
+          event.preventDefault();
           return;
         }
-        event.dataTransfer.setData(
-          "application/vnd.davinci.note",
-          item.node.path,
-        );
-        event.dataTransfer.setData("text/plain", item.node.path);
+        const target = event.currentTarget;
+        const path = target.getAttribute("data-path") || item.node.path;
+        const name = target.getAttribute("data-name") || item.node.name;
+        const type =
+          (target.getAttribute("data-type") as "file" | "folder") ||
+          item.node.type;
+
+        event.dataTransfer.setData("application/vnd.davinci.note", path);
+        event.dataTransfer.setData("text/plain", path);
         event.dataTransfer.effectAllowed = "move";
+
+        const previewEl = updateDragPreview({ name, type, path });
+        if (typeof event.dataTransfer.setDragImage === "function") {
+          event.dataTransfer.setDragImage(previewEl, 12, 14);
+        }
       }}
       onDragOver={(event) => {
         if (isFile) {
