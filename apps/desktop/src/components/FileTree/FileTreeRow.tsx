@@ -27,6 +27,7 @@ interface FileTreeRowProps {
   onClick: () => void;
   onContextMenu: (event: React.MouseEvent) => void;
   onDoubleClick: (event: React.MouseEvent) => void;
+  onKeyDown?: (event: React.KeyboardEvent) => void;
   onDragStart?: (path: string) => void;
   onDragEnter?: (event: React.DragEvent) => void;
   onDragOver?: (event: React.DragEvent) => void;
@@ -63,6 +64,7 @@ export function FileTreeRow({
   onClick,
   onContextMenu,
   onDoubleClick,
+  onKeyDown,
   onDragStart,
   onDragEnter,
   onDragOver,
@@ -85,6 +87,12 @@ export function FileTreeRow({
       data-drop-target={isDropTarget || undefined}
       data-is-conflict={isConflict || undefined}
       draggable={!isRenaming}
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (!isRenaming) {
+          onKeyDown?.(event);
+        }
+      }}
       onDragStart={(event) => {
         if (isRenaming) {
           event.preventDefault();

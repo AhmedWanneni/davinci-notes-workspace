@@ -1,11 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
-import { FileTreeContextMenu } from "./FileTreeContextMenu";
+import {
+  FileTreeContextMenu,
+  type FileTreeMenuTargetType,
+} from "./FileTreeContextMenu";
 import { FileTreeRow } from "./FileTreeRow";
-import { getParentFolder } from "./getDropEffect";
+import { isHiddenOrSystemPath } from "./getDropEffect";
 import { useFileTreeDrop } from "./useFileTreeDrop";
 import { useFileTreeInlineRename } from "./useFileTreeInlineRename";
+import { useTreeExpandedFolders } from "./useTreeExpandedFolders";
 
 interface FileTreeProps {
   filePaths: string[];
@@ -14,11 +18,13 @@ interface FileTreeProps {
   dirtyPaths: Set<string>;
   pendingRenameFolder?: string | null;
   onNoteClick: (path: string) => void;
+  onCreateNote?: (parentFolder?: string) => void | Promise<void>;
   onCreateFolder: (parentFolder: string) => Promise<string | null>;
   onPendingRenameHandled?: () => void;
   onRenameNote?: (oldPath: string, newStem: string) => Promise<boolean>;
   onRenameFolder?: (oldPath: string, newName: string) => Promise<boolean>;
   onDeleteNote?: (path: string) => Promise<boolean>;
+  onDeleteFolder?: (path: string) => Promise<boolean>;
   onDuplicateNote?: (path: string) => Promise<boolean>;
   onMoveNote?: (path: string, newParentFolder: string) => Promise<boolean>;
   onMoveFile?: (path: string, newParentFolder: string) => Promise<boolean>;
@@ -33,11 +39,13 @@ export function FileTree({
   dirtyPaths,
   pendingRenameFolder,
   onNoteClick,
+  onCreateNote,
   onCreateFolder,
   onPendingRenameHandled,
   onRenameNote,
   onRenameFolder,
   onDeleteNote,
+  onDeleteFolder,
   onDuplicateNote,
   onMoveNote,
   onMoveFile,
@@ -53,44 +61,27 @@ export function FileTree({
     cancelRename,
     commitRename,
   } = useFileTreeInlineRename({ onRenameNote, onRenameFolder });
+
+  const { expandedFolders, toggleFolder, expandFolder } =
+    useTreeExpandedFolders({
+      activePath,
+      pendingRenameFolder,
+      onSelectedFolderChange,
+      onStartRename: startRename,
+      onPendingRenameHandled,
+    });
+
   const tree = useMemo(
     () => buildTreeFromPaths(filePaths, folderPaths),
     [filePaths, folderPaths],
   );
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    () => new Set(),
-  );
+
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
-    parentFolder: string;
-    notePath?: string;
+    targetType: FileTreeMenuTargetType;
+    targetPath: string;
   } | null>(null);
-
-  useEffect(() => {
-    if (!pendingRenameFolder) return;
-    const parent = getParentFolder(pendingRenameFolder);
-    if (parent) setExpandedFolders((prev) => new Set(prev).add(parent));
-    startRename(pendingRenameFolder, "folder");
-    onPendingRenameHandled?.();
-  }, [pendingRenameFolder, onPendingRenameHandled, startRename]);
-
-  useEffect(() => {
-    if (!activePath) return;
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      let changed = false;
-      let currentPath = "";
-      for (const part of activePath.split("/").slice(0, -1)) {
-        currentPath = currentPath ? `${currentPath}/${part}` : part;
-        if (!next.has(currentPath)) {
-          next.add(currentPath);
-          changed = true;
-        }
-      }
-      return changed ? next : prev;
-    });
-  }, [activePath]);
 
   const visibleNodes = useMemo(
     () => flattenVisibleTree(tree, expandedFolders),
@@ -104,6 +95,7 @@ export function FileTree({
     estimateSize: () => 28,
     overscan: 10,
   });
+
   const {
     draggedPath,
     dropTargetFolder,
@@ -116,36 +108,33 @@ export function FileTree({
     onMoveNote,
     onMoveFile,
     onDropFiles,
-    onExpandFolder: (folderPath) => {
-      setExpandedFolders((prev) => new Set(prev).add(folderPath));
-    },
+    onExpandFolder: expandFolder,
   });
 
   const openContextMenu = (
     e: React.MouseEvent,
-    parentFolder: string,
-    notePath?: string,
+    targetType: FileTreeMenuTargetType,
+    targetPath: string,
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY, parentFolder, notePath });
-  };
-
-  const toggleFolder = (folderPath: string) => {
-    setExpandedFolders((prev) => {
-      const next = new Set(prev);
-      if (next.has(folderPath)) next.delete(folderPath);
-      else next.add(folderPath);
-      return next;
-    });
-    onSelectedFolderChange?.(folderPath);
+    if (targetPath && isHiddenOrSystemPath(targetPath)) return;
+    setContextMenu({ x: e.clientX, y: e.clientY, targetType, targetPath });
   };
 
   const confirmDeleteNote = async (path: string) => {
-    if (
-      window.confirm(`Delete "${path}" from the vault? This cannot be undone.`)
-    ) {
+    if (window.confirm(`Delete "${path}" from vault? This cannot be undone.`)) {
       await onDeleteNote?.(path);
+    }
+  };
+
+  const confirmDeleteFolder = async (path: string) => {
+    if (
+      window.confirm(
+        `Delete folder "${path}" and all its contents? This cannot be undone.`,
+      )
+    ) {
+      await onDeleteFolder?.(path);
     }
   };
 
@@ -155,7 +144,7 @@ export function FileTree({
         className="file-tree"
         ref={parentRef}
         data-drop-root={dropTargetFolder === "" || undefined}
-        onContextMenu={(e) => openContextMenu(e, "")}
+        onContextMenu={(e) => openContextMenu(e, "root", "")}
         onDragEnter={handleDragEnter}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -199,17 +188,9 @@ export function FileTree({
                     toggleFolder(item.node.path);
                   }
                 }}
-                onContextMenu={(e) => {
-                  if (isFile && item.node.path.endsWith(".md")) {
-                    openContextMenu(
-                      e,
-                      getParentFolder(item.node.path),
-                      item.node.path,
-                    );
-                  } else if (isFolder) {
-                    openContextMenu(e, item.node.path);
-                  }
-                }}
+                onContextMenu={(e) =>
+                  openContextMenu(e, isFile ? "file" : "folder", item.node.path)
+                }
                 onDoubleClick={(e) => {
                   if (
                     isFile &&
@@ -223,6 +204,22 @@ export function FileTree({
                     startRename(item.node.path, "folder");
                   }
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "F2") {
+                    e.preventDefault();
+                    if (isFile && onRenameNote)
+                      startRename(item.node.path, "note");
+                    else if (isFolder && onRenameFolder)
+                      startRename(item.node.path, "folder");
+                  } else if (
+                    e.key === "Delete" ||
+                    (e.key === "Backspace" && (e.metaKey || e.ctrlKey))
+                  ) {
+                    e.preventDefault();
+                    if (isFile) void confirmDeleteNote(item.node.path);
+                    else if (isFolder) void confirmDeleteFolder(item.node.path);
+                  }
+                }}
               />
             );
           })}
@@ -232,13 +229,16 @@ export function FileTree({
         <FileTreeContextMenu
           x={contextMenu.x}
           y={contextMenu.y}
-          parentFolder={contextMenu.parentFolder}
-          notePath={contextMenu.notePath}
+          targetType={contextMenu.targetType}
+          targetPath={contextMenu.targetPath}
           onOpenNote={onNoteClick}
+          onNewNote={(parentFolder) => void onCreateNote?.(parentFolder)}
+          onNewFolder={onCreateFolder}
           onRenameNote={(path) => startRename(path, "note")}
-          onCreateFolder={onCreateFolder}
+          onRenameFolder={(path) => startRename(path, "folder")}
           onDuplicateNote={onDuplicateNote}
           onDeleteNote={confirmDeleteNote}
+          onDeleteFolder={confirmDeleteFolder}
           onClose={() => setContextMenu(null)}
         />
       )}

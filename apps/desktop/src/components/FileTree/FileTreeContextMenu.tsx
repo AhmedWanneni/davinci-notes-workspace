@@ -1,152 +1,211 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { useContextMenuDismiss } from "./useContextMenuDismiss";
 
-interface FileTreeContextMenuProps {
+export type FileTreeMenuTargetType = "file" | "folder" | "root";
+
+export interface FileTreeContextMenuProps {
   x: number;
   y: number;
-  parentFolder: string;
-  notePath?: string;
+  targetType: FileTreeMenuTargetType;
+  targetPath: string;
   onOpenNote?: (path: string) => void;
+  onNewNote: (parentFolder: string) => void;
+  onNewFolder: (parentFolder: string) => void;
   onRenameNote?: (path: string) => void;
-  onCreateFolder: (parentFolder: string) => Promise<string | null>;
-  onDuplicateNote?: (path: string) => void | Promise<unknown>;
-  onDeleteNote?: (path: string) => void | Promise<unknown>;
+  onRenameFolder?: (path: string) => void;
+  onDuplicateNote?: (path: string) => void;
+  onDeleteNote?: (path: string) => void;
+  onDeleteFolder?: (path: string) => void;
   onClose: () => void;
 }
 
 export function FileTreeContextMenu({
   x,
   y,
-  parentFolder,
-  notePath,
+  targetType,
+  targetPath,
   onOpenNote,
+  onNewNote,
+  onNewFolder,
   onRenameNote,
-  onCreateFolder,
+  onRenameFolder,
   onDuplicateNote,
   onDeleteNote,
+  onDeleteFolder,
   onClose,
 }: FileTreeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
-  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+  useContextMenuDismiss({ menuRef, onClose });
 
-  useEffect(() => {
-    previousActiveElementRef.current =
-      document.activeElement as HTMLElement | null;
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.stopPropagation();
-        onClose();
-      }
-    };
-
-    const handleBlur = () => {
-      onClose();
-    };
-
-    const handleScroll = (event: Event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    // Capture phase ensures we intercept clicks on drag-regions before Tauri swallows them
-    document.addEventListener("pointerdown", handlePointerDown, {
-      capture: true,
-    });
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("blur", handleBlur);
-    window.addEventListener("scroll", handleScroll, {
-      capture: true,
-      passive: true,
-    });
-
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown, {
-        capture: true,
-      });
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("blur", handleBlur);
-      window.removeEventListener("scroll", handleScroll, {
-        capture: true,
-      });
-      previousActiveElementRef.current?.focus?.();
-    };
-  }, [onClose]);
-
-  const handleNoteAction = (
-    action: (path: string) => void | Promise<unknown>,
-  ) => {
-    if (!notePath) {
-      return;
-    }
-    void action(notePath);
-    onClose();
-  };
+  const clampedX =
+    typeof window !== "undefined"
+      ? Math.max(8, Math.min(x, window.innerWidth - 180))
+      : x;
+  const clampedY =
+    typeof window !== "undefined"
+      ? Math.max(8, Math.min(y, window.innerHeight - 220))
+      : y;
 
   return (
     <div
       ref={menuRef}
       className="file-tree__context-menu"
-      style={{ top: y, left: x }}
+      style={{ top: clampedY, left: clampedX }}
       role="menu"
+      aria-label="File actions"
     >
-      {notePath && onOpenNote && (
-        <button
-          type="button"
-          className="file-tree__context-menu-item"
-          role="menuitem"
-          onClick={() => handleNoteAction(onOpenNote)}
-        >
-          Open
-        </button>
+      {targetType === "file" && (
+        <>
+          {onOpenNote && (
+            <button
+              type="button"
+              className="file-tree__context-menu-item"
+              role="menuitem"
+              onClick={() => {
+                onOpenNote(targetPath);
+                onClose();
+              }}
+            >
+              <span>Open</span>
+            </button>
+          )}
+          {onRenameNote && (
+            <button
+              type="button"
+              className="file-tree__context-menu-item"
+              role="menuitem"
+              onClick={() => {
+                onRenameNote(targetPath);
+                onClose();
+              }}
+            >
+              <span>Rename</span>
+              <span className="file-tree__context-menu-shortcut">F2</span>
+            </button>
+          )}
+          {onDuplicateNote && (
+            <button
+              type="button"
+              className="file-tree__context-menu-item"
+              role="menuitem"
+              onClick={() => {
+                onDuplicateNote(targetPath);
+                onClose();
+              }}
+            >
+              <span>Duplicate</span>
+            </button>
+          )}
+          {onDeleteNote && (
+            <>
+              <div
+                className="file-tree__context-menu-separator"
+                role="separator"
+              />
+              <button
+                type="button"
+                className="file-tree__context-menu-item file-tree__context-menu-item--danger"
+                role="menuitem"
+                onClick={() => {
+                  onDeleteNote(targetPath);
+                  onClose();
+                }}
+              >
+                <span>Delete</span>
+                <span className="file-tree__context-menu-shortcut">⌫</span>
+              </button>
+            </>
+          )}
+        </>
       )}
-      {notePath && onRenameNote && (
-        <button
-          type="button"
-          className="file-tree__context-menu-item"
-          role="menuitem"
-          onClick={() => handleNoteAction(onRenameNote)}
-        >
-          Rename
-        </button>
+
+      {targetType === "folder" && (
+        <>
+          <button
+            type="button"
+            className="file-tree__context-menu-item"
+            role="menuitem"
+            onClick={() => {
+              onNewNote(targetPath);
+              onClose();
+            }}
+          >
+            <span>New note</span>
+          </button>
+          <button
+            type="button"
+            className="file-tree__context-menu-item"
+            role="menuitem"
+            onClick={() => {
+              onNewFolder(targetPath);
+              onClose();
+            }}
+          >
+            <span>New folder</span>
+          </button>
+          {(onRenameFolder || onDeleteFolder) && (
+            <div
+              className="file-tree__context-menu-separator"
+              role="separator"
+            />
+          )}
+          {onRenameFolder && (
+            <button
+              type="button"
+              className="file-tree__context-menu-item"
+              role="menuitem"
+              onClick={() => {
+                onRenameFolder(targetPath);
+                onClose();
+              }}
+            >
+              <span>Rename</span>
+              <span className="file-tree__context-menu-shortcut">F2</span>
+            </button>
+          )}
+          {onDeleteFolder && (
+            <button
+              type="button"
+              className="file-tree__context-menu-item file-tree__context-menu-item--danger"
+              role="menuitem"
+              onClick={() => {
+                onDeleteFolder(targetPath);
+                onClose();
+              }}
+            >
+              <span>Delete</span>
+              <span className="file-tree__context-menu-shortcut">⌫</span>
+            </button>
+          )}
+        </>
       )}
-      {notePath && onDuplicateNote && (
-        <button
-          type="button"
-          className="file-tree__context-menu-item"
-          role="menuitem"
-          onClick={() => handleNoteAction(onDuplicateNote)}
-        >
-          Duplicate
-        </button>
+
+      {targetType === "root" && (
+        <>
+          <button
+            type="button"
+            className="file-tree__context-menu-item"
+            role="menuitem"
+            onClick={() => {
+              onNewNote("");
+              onClose();
+            }}
+          >
+            <span>New note</span>
+          </button>
+          <button
+            type="button"
+            className="file-tree__context-menu-item"
+            role="menuitem"
+            onClick={() => {
+              onNewFolder("");
+              onClose();
+            }}
+          >
+            <span>New folder</span>
+          </button>
+        </>
       )}
-      {notePath && onDeleteNote && (
-        <button
-          type="button"
-          className="file-tree__context-menu-item"
-          role="menuitem"
-          onClick={() => handleNoteAction(onDeleteNote)}
-        >
-          Remove
-        </button>
-      )}
-      <button
-        type="button"
-        className="file-tree__context-menu-item"
-        role="menuitem"
-        onClick={() => {
-          void onCreateFolder(parentFolder);
-          onClose();
-        }}
-      >
-        New folder
-      </button>
     </div>
   );
 }
