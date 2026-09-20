@@ -47,6 +47,9 @@ export function EditorArea({
     (state) => state.updateNoteContent,
   );
   const openNote = useWorkspaceStore((state) => state.openNote);
+  const noteHistory = useWorkspaceStore((state) => state.noteHistory);
+  const goBack = useWorkspaceStore((state) => state.goBack);
+  const goForward = useWorkspaceStore((state) => state.goForward);
 
   const { frontmatter } = useMemo(
     () => (activeNotePath ? parseFrontmatter(content) : { frontmatter: {} }),
@@ -187,7 +190,8 @@ export function EditorArea({
                     type="button"
                     className="editor-area__note-header-button"
                     aria-label="Go back"
-                    disabled
+                    disabled={noteHistory.index <= 0}
+                    onClick={() => void goBack()}
                   >
                     <CaretLeft size={16} weight="regular" />
                   </button>
@@ -195,7 +199,8 @@ export function EditorArea({
                     type="button"
                     className="editor-area__note-header-button"
                     aria-label="Go forward"
-                    disabled
+                    disabled={noteHistory.index >= noteHistory.paths.length - 1}
+                    onClick={() => void goForward()}
                   >
                     <CaretRight size={16} weight="regular" />
                   </button>

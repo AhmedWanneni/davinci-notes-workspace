@@ -15,6 +15,12 @@ import {
 } from "./createNoteCrudActions";
 import { saveTimers } from "./saveTimers";
 import {
+  emptyNoteHistory,
+  moveNoteHistory,
+  pushNoteHistory,
+  type NoteHistory,
+} from "./noteHistory";
+import {
   readNote,
   writeNote,
   noteFromMarkdown,
@@ -41,6 +47,9 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   vimModeState: string | null;
   setVimModeState: (mode: string | null) => void;
   syncMode: "off" | "drive" | "folder";
+  noteHistory: NoteHistory;
+  goBack: () => Promise<void>;
+  goForward: () => Promise<void>;
   setSyncMode: (mode: "off" | "drive" | "folder") => void;
   setVaultPath: (path: string | null) => void;
   initializeVault: (
@@ -77,6 +86,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   setVimModeState: (mode) => set({ vimModeState: mode }),
   vaultUpdateCounter: 0,
   syncMode: "off",
+  noteHistory: emptyNoteHistory,
   setSyncMode: (mode) => set({ syncMode: mode }),
   ...createEditorSettings(set),
   setVaultPath: (path: string | null) => set({ vaultPath: path }),
@@ -122,7 +132,27 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       ? openNotes
       : [...openNotes, path];
     await get().setActiveNote(path);
-    set({ openNotes: nextOpenNotes });
+    set((state) => ({
+      openNotes: nextOpenNotes,
+      noteHistory: pushNoteHistory(state.noteHistory, path),
+    }));
+  },
+
+  goBack: async () => {
+    const next = moveNoteHistory(get().noteHistory, -1);
+    const path = next.paths[next.index];
+    if (!path || !get().allNotePaths.includes(path)) return;
+    set({ noteHistory: next });
+    await get().openNote(path);
+    set({ noteHistory: next });
+  },
+  goForward: async () => {
+    const next = moveNoteHistory(get().noteHistory, 1);
+    const path = next.paths[next.index];
+    if (!path || !get().allNotePaths.includes(path)) return;
+    set({ noteHistory: next });
+    await get().openNote(path);
+    set({ noteHistory: next });
   },
 
   closeNote: async (path: string) => {
