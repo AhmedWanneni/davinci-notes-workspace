@@ -11,5 +11,6 @@ describe("editor font registry", () => {
       "Montserrat Variable",
     );
     expect(getEditorFont("raleway").cssFamily).toContain("Raleway Variable");
+    expect(getEditorFont("roboto").cssFamily).toContain("Roboto Variable");
   });
 });

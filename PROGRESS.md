@@ -13,8 +13,8 @@ Editor font size is a 12–28px vault-scoped setting in the existing SQLite
 `EditorView.requestMeasure()` whenever the active size or document changes.
 The settings panel provides a range input, numeric stepper, and reset.
 
-Editor families are an allowlisted registry: System default, Montserrat, and
-Raleway. Font IDs—not arbitrary CSS—are persisted. Montserrat and Raleway use
+Editor families are an allowlisted registry: System default, Montserrat,
+Raleway, and Roboto. Font IDs—not arbitrary CSS—are persisted. The fonts use
 the self-hosted, pinned `@fontsource-variable` 5.2.8 packages, each OFL-1.1
 with normal/italic variable Latin faces. Dynamic local CSS imports emit
 separate chunks; no Google CDN request, `<link>`, or CSP change exists. The

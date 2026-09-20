@@ -89,6 +89,9 @@ importers:
       '@fontsource-variable/raleway':
         specifier: 5.2.8
         version: 5.2.8
+      '@fontsource-variable/roboto':
+        specifier: 5.2.8
+        version: 5.2.8
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -1428,6 +1431,9 @@ packages:
 
   '@fontsource-variable/raleway@5.2.8':
     resolution: {integrity: sha512-PahqGI7bkz4a80m91Jt65DRsuFQmRip5vGDbI9sChVSKjLrdDfXbeGIwnTPi/ZVCOoQrbLnqzBOLQpLohnz+WA==}
+
+  '@fontsource-variable/roboto@5.2.8':
+    resolution: {integrity: sha512-UBhCzUXpkZZqBhTnkIhkM3USlSuu2Da6k4mjiRaEnZtvMOMWcQVOV6oV2cY00plUuJZrsnTRtt3ZRRJF09gV5w==}
 
   '@humanwhocodes/config-array@0.13.0':
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -7364,6 +7370,8 @@ snapshots:
   '@fontsource-variable/montserrat@5.2.8': {}
 
   '@fontsource-variable/raleway@5.2.8': {}
+
+  '@fontsource-variable/roboto@5.2.8': {}
 
   '@humanwhocodes/config-array@0.13.0':
     dependencies:

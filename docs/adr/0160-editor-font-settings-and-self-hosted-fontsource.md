@@ -11,7 +11,7 @@ is the vault's `vault-index.db`. Reads and writes use the existing
 `withDbLock` queue. The setting stores a validated font registry ID and an
 integer size from 12 through 28, never a CSS family supplied by a user.
 
-The default is the system UI font at 16px. Montserrat and Raleway are provided
+The default is the system UI font at 16px. Montserrat, Raleway, and Roboto are provided
 as self-hosted `@fontsource-variable` packages, pinned at 5.2.8. Only the
 Latin normal and italic WOFF2 assets are referenced. The families are loaded
 through dynamic CSS imports only after selection; no Google Fonts CDN, link,

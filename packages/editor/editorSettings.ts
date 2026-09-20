@@ -1,4 +1,9 @@
-export const editorFonts = ["system", "montserrat", "raleway"] as const;
+export const editorFonts = [
+  "system",
+  "montserrat",
+  "raleway",
+  "roboto",
+] as const;
 
 export type EditorFont = (typeof editorFonts)[number];
 

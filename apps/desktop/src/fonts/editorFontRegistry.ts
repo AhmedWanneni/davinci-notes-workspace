@@ -30,6 +30,13 @@ export const editorFontRegistry: readonly EditorFontDefinition[] = [
     cssFamily: '"Raleway Variable", var(--font-ui)',
     load: () => import("./raleway.css"),
   },
+  {
+    id: "roboto",
+    label: "Roboto",
+    category: "sans",
+    cssFamily: '"Roboto Variable", var(--font-ui)',
+    load: () => import("./roboto.css"),
+  },
 ];
 
 export function getEditorFont(font: string): EditorFontDefinition {
