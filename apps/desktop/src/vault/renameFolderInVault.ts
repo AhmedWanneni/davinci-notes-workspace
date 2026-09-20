@@ -66,6 +66,16 @@ export async function renameFolderInVault(
   const oldChildNotePaths = state.allNotePaths.filter((p) =>
     p.startsWith(`${oldPath}/`),
   );
+  const updatedFolders = replaceVaultPathPrefix(
+    state.allFolderPaths,
+    oldPath,
+    newPath,
+  ).sort();
+  const updatedNotes = replaceVaultPathPrefix(
+    state.allNotePaths,
+    oldPath,
+    newPath,
+  ).sort();
 
   const noteContents = new Map<string, string>();
   for (const oldChildPath of oldChildNotePaths) {
@@ -81,16 +91,31 @@ export async function renameFolderInVault(
 
   return withVaultWatchSuppressed(async () => {
     await renameFolder(oldPath, newPath);
-    const updatedFolders = replaceVaultPathPrefix(
-      state.allFolderPaths,
-      oldPath,
-      newPath,
-    ).sort();
-    const updatedNotes = replaceVaultPathPrefix(
-      state.allNotePaths,
-      oldPath,
-      newPath,
-    ).sort();
+
+    for (const oldChildPath of oldChildNotePaths) {
+      const newChildPath = remapPath(oldChildPath, oldPath, newPath)!;
+      migrateSaveTimer(oldChildPath, newChildPath);
+      clearH1RenameTimer(oldChildPath);
+    }
+
+    // Keep rendered paths aligned with the completed filesystem rename while
+    // potentially large descendant indexing continues in the queued batch.
+    useWorkspaceStore.setState((prev) => ({
+      allFolderPaths: updatedFolders,
+      allNotePaths: updatedNotes,
+      openNotes: replaceVaultPathPrefix(prev.openNotes, oldPath, newPath),
+      activeNotePath: remapPath(prev.activeNotePath, oldPath, newPath),
+      notesContent: Object.fromEntries(
+        Object.entries(prev.notesContent).map(([path, content]) => [
+          replaceVaultPathPrefix([path], oldPath, newPath)[0],
+          content,
+        ]),
+      ),
+      dirtyNotes: new Set(
+        replaceVaultPathPrefix(Array.from(prev.dirtyNotes), oldPath, newPath),
+      ),
+      vaultUpdateCounter: prev.vaultUpdateCounter + 1,
+    }));
 
     const db = await getVaultIndexDb();
     const tagIndex = useWorkspaceStore.getState().tagIndex;
@@ -132,29 +157,7 @@ export async function renameFolderInVault(
       }
     }
 
-    for (const oldChildPath of oldChildNotePaths) {
-      const newChildPath = remapPath(oldChildPath, oldPath, newPath)!;
-      migrateSaveTimer(oldChildPath, newChildPath);
-      clearH1RenameTimer(oldChildPath);
-    }
-
-    useWorkspaceStore.setState((prev) => ({
-      allFolderPaths: updatedFolders,
-      allNotePaths: updatedNotes,
-      openNotes: replaceVaultPathPrefix(prev.openNotes, oldPath, newPath),
-      activeNotePath: remapPath(prev.activeNotePath, oldPath, newPath),
-      notesContent: Object.fromEntries(
-        Object.entries(prev.notesContent).map(([path, content]) => [
-          replaceVaultPathPrefix([path], oldPath, newPath)[0],
-          content,
-        ]),
-      ),
-      dirtyNotes: new Set(
-        replaceVaultPathPrefix(Array.from(prev.dirtyNotes), oldPath, newPath),
-      ),
-      graph: currentGraph,
-      vaultUpdateCounter: prev.vaultUpdateCounter + 1,
-    }));
+    useWorkspaceStore.setState({ graph: currentGraph });
 
     return { ok: true, newPath };
   });

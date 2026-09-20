@@ -100,6 +100,18 @@ describe("renameFolderInVault", () => {
     const result = await renameFolderInVault("projects", "work");
     expect(result).toEqual({ ok: true, newPath: "work" });
     expect(renameFolderMock).toHaveBeenCalledWith("projects", "work");
+    expect(setStateMock).toHaveBeenCalledWith(expect.any(Function));
+    const immediateUpdate = setStateMock.mock.calls[0]?.[0] as (
+      state: ReturnType<typeof getStateMock>,
+    ) => Record<string, unknown>;
+    expect(immediateUpdate(getStateMock())).toEqual(
+      expect.objectContaining({
+        allFolderPaths: ["archive", "work"],
+        allNotePaths: ["archive/old.md", "work/note1.md", "work/sub/note2.md"],
+        openNotes: ["work/note1.md"],
+        activeNotePath: "work/note1.md",
+      }),
+    );
 
     expect(removeNoteFromIndexMock).toHaveBeenCalledWith(
       expect.anything(),

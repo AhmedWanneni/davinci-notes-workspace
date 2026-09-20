@@ -2745,3 +2745,9 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - The delete helper had correct state pruning but performed it only after the complete descendant SQLite cleanup, so the filesystem could already be correct while a large folder still appeared in the tree.
 - State pruning now runs immediately after successful `delete_folder`: folder/note paths, affected tabs, active note, cached content, and dirty buffers update before the queued index transaction. The index cleanup remains serialized by `withDbLock` and is unchanged.
 - Focused delete-folder regression (4/4) and desktop ESLint pass. Native visual timing remains UNVERIFIED.
+
+### 2026-09-20 — Follow-up: Immediate folder-rename tree update
+
+- A real stale-path failure showed the filesystem had `New Folder/New Folderjkhk` while the tree still tried to delete `New Folder/New Folder`. The native `Source folder not found` result was therefore correct and retained as a safety guard.
+- `renameFolderInVault` now updates the folder/note paths, open tabs, active child, cached content, dirty buffers, and save timers immediately after native rename succeeds. The queued descendant index transaction and graph calculation then complete without keeping stale tree paths visible.
+- Focused rename/delete tests (8/8) and desktop ESLint pass. Native visual behavior remains UNVERIFIED.
