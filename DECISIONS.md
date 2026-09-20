@@ -231,3 +231,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0159](adr/0159-emoji-icons-and-offline-picker.md) | Emoji icon storage and offline picker boundary | Accepted |
 | [0160](adr/0160-editor-font-settings-and-self-hosted-fontsource.md) | Vault-scoped editor font settings with self-hosted lazy Fontsource assets | Accepted |
 | [0161](adr/0161-external-vault-change-reconciliation.md) | Debounced external vault change reconciliation and dirty-editor conflict policy | Accepted |
+| [0162](adr/0162-unified-custom-window-controls.md) | Custom window controls across macOS, Windows, and Linux | Accepted |

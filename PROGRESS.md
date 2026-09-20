@@ -6,6 +6,16 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Unified window controls — implementation complete; visual verification pending**
+macOS now uses the same undecorated Tauri window and sidebar-integrated custom
+minimize, maximize, and close controls as Windows/Linux. The native traffic
+lights and their spacer are removed; controls use the existing compact,
+token-based flat styling and move to the tab row when the sidebar collapses.
+No dependency or background work was added. Desktop lint and Rust check pass.
+UNVERIFIED: macOS visual placement, drag regions, minimize/maximize/close,
+fullscreen, and collapsed-sidebar behavior. ADR-0162 supersedes the native
+traffic-light portion of ADR-0156.
+
 **External vault change detection — partial implementation; filesystem integration verification pending**
 The existing 400 ms debounced Rust watcher now emits paired Markdown/canvas
 renames alongside changed/removed paths. Reconciliation no longer suppresses

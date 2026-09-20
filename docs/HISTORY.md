@@ -2772,3 +2772,9 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Reconciliation reads external files before entering `withDbLock`, then compares filesystem paths with SQLite paths under that lock to clear stale entries. It no longer suppresses the watcher during reconciliation.
 - External deletes clear save timers and tabs without writing the deleted path. Renames remap open paths; clean open files reload. Dirty files keep local content and report a vault error.
 - Checks: Rust watcher tests, focused indexer/stress tests, and desktop lint passed. Required real temporary-vault watcher operations and the full indexing/settings/embedding concurrency test remain UNVERIFIED.
+
+### 2026-09-20 — Unified custom window controls
+
+- Replaced macOS overlay traffic lights with the existing Tauri-backed custom window controls so titleless chrome has one coherent sidebar treatment across platforms.
+- Removed the native-light spacers and styled the compact controls with existing flat, border/token-based states. The tab row receives the same controls when the sidebar is collapsed.
+- Desktop lint and Rust check pass. Native macOS interaction and visual placement remain UNVERIFIED.
