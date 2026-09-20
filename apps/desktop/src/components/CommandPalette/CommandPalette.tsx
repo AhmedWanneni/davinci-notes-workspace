@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Dialog, DialogContent } from "@app/design-system";
 import fuzzysort from "fuzzysort";
 import { FileText, Gear } from "@phosphor-icons/react";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
@@ -203,79 +203,79 @@ export function CommandPalette({
   };
 
   return (
-    <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="command-palette__overlay" />
-        <DialogPrimitive.Content className="command-palette__dialog">
-          <div className="command-palette__input-wrapper">
-            <input
-              ref={inputRef}
-              className="command-palette__input"
-              placeholder="Type to search or create..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-          </div>
-          <ul
-            className="command-palette__list"
-            ref={listRef}
-            role="listbox"
-            aria-label="Quick switcher results"
-          >
-            {results.map((result, index) => {
-              const isSelected = index === selectedIndex;
-              const isCommand = result.obj.isCommand;
-              const key = isCommand ? result.obj.id : result.obj.path;
-              return (
-                <li
-                  key={key}
-                  role="option"
-                  aria-selected={isSelected}
-                  data-selected={isSelected || undefined}
-                  className="command-palette__item"
-                  onClick={() => {
-                    if (isCommand) {
-                      runCommand(result.obj.id);
-                    } else if (result.obj.path) {
-                      onSelectNote(result.obj.path);
-                    }
-                    onOpenChange(false);
-                  }}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                >
-                  {isCommand ? (
-                    <Gear
-                      size={18}
-                      className="command-palette__icon"
-                      weight="regular"
-                    />
-                  ) : (
-                    <FileText
-                      size={18}
-                      className="command-palette__icon"
-                      weight="regular"
-                    />
-                  )}
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html: result.highlightedTitle,
-                    }}
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="command-palette__dialog"
+        showCloseButton={false}
+      >
+        <div className="command-palette__input-wrapper">
+          <input
+            ref={inputRef}
+            className="command-palette__input"
+            placeholder="Type to search or create..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={handleKeyDown}
+          />
+        </div>
+        <ul
+          className="command-palette__list"
+          ref={listRef}
+          role="listbox"
+          aria-label="Quick switcher results"
+        >
+          {results.map((result, index) => {
+            const isSelected = index === selectedIndex;
+            const isCommand = result.obj.isCommand;
+            const key = isCommand ? result.obj.id : result.obj.path;
+            return (
+              <li
+                key={key}
+                role="option"
+                aria-selected={isSelected}
+                data-selected={isSelected || undefined}
+                className="command-palette__item"
+                onClick={() => {
+                  if (isCommand) {
+                    runCommand(result.obj.id);
+                  } else if (result.obj.path) {
+                    onSelectNote(result.obj.path);
+                  }
+                  onOpenChange(false);
+                }}
+                onMouseEnter={() => setSelectedIndex(index)}
+              >
+                {isCommand ? (
+                  <Gear
+                    size={18}
+                    className="command-palette__icon"
+                    weight="regular"
                   />
-                </li>
-              );
-            })}
-            {results.length === 0 && (
-              <li className="command-palette__empty">
-                <EmptyState
-                  size="sm"
-                  description={`No notes found. Press Enter to create "${query}".`}
+                ) : (
+                  <FileText
+                    size={18}
+                    className="command-palette__icon"
+                    weight="regular"
+                  />
+                )}
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: result.highlightedTitle,
+                  }}
                 />
               </li>
-            )}
-          </ul>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+            );
+          })}
+          {results.length === 0 && (
+            <li className="command-palette__empty">
+              <EmptyState
+                size="sm"
+                description={`No notes found. Press Enter to create "${query}".`}
+              />
+            </li>
+          )}
+        </ul>
+      </DialogContent>
+    </Dialog>
   );
 }

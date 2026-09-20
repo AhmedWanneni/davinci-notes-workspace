@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Dialog, DialogContent } from "@app/design-system";
 import { CaretDown, CaretRight, Hash } from "@phosphor-icons/react";
 import type { TagIndex } from "@app/indexer";
 import { getCanonicalTag } from "@app/indexer";
@@ -63,16 +63,31 @@ function TagTreeNode({
   const hasChildren = node.children.length > 0;
   return (
     <li>
-      <div className="tags-dialog__row" style={{ paddingLeft: `${12 + depth * 20}px` }}>
+      <div
+        className="tags-dialog__row"
+        style={{ paddingLeft: `${12 + depth * 20}px` }}
+      >
         <button
           type="button"
           className="tags-dialog__expand"
-          aria-label={expanded ? `Collapse ${node.display}` : `Expand ${node.display}`}
+          aria-label={
+            expanded ? `Collapse ${node.display}` : `Expand ${node.display}`
+          }
           onClick={() => hasChildren && setExpanded((value) => !value)}
         >
-          {hasChildren ? (expanded ? <CaretDown size={14} /> : <CaretRight size={14} />) : null}
+          {hasChildren ? (
+            expanded ? (
+              <CaretDown size={14} />
+            ) : (
+              <CaretRight size={14} />
+            )
+          ) : null}
         </button>
-        <button type="button" className="tags-dialog__tag" onClick={() => onSelect(node.key)}>
+        <button
+          type="button"
+          className="tags-dialog__tag"
+          onClick={() => onSelect(node.key)}
+        >
           <Hash size={15} />
           <span>{node.display.slice(1)}</span>
         </button>
@@ -81,7 +96,12 @@ function TagTreeNode({
       {expanded && hasChildren && (
         <ul className="tags-dialog__children">
           {node.children.map((child) => (
-            <TagTreeNode key={child.key} node={child} depth={depth + 1} onSelect={onSelect} />
+            <TagTreeNode
+              key={child.key}
+              node={child}
+              depth={depth + 1}
+              onSelect={onSelect}
+            />
           ))}
         </ul>
       )}
@@ -89,22 +109,42 @@ function TagTreeNode({
   );
 }
 
-export function TagsDialog({ isOpen, onOpenChange, onSelectTag }: TagsDialogProps) {
+export function TagsDialog({
+  isOpen,
+  onOpenChange,
+  onSelectTag,
+}: TagsDialogProps) {
   const tagIndex = useWorkspaceStore((state) => state.tagIndex);
-  const vaultUpdateCounter = useWorkspaceStore((state) => state.vaultUpdateCounter);
-  const tree = useMemo(() => buildTagTree(tagIndex), [tagIndex, vaultUpdateCounter]);
+  const vaultUpdateCounter = useWorkspaceStore(
+    (state) => state.vaultUpdateCounter,
+  );
+  const tree = useMemo(
+    () => buildTagTree(tagIndex),
+    [tagIndex, vaultUpdateCounter],
+  );
 
   return (
-    <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="tags-dialog__overlay" />
-        <DialogPrimitive.Content className="tags-dialog__dialog">
-          <DialogPrimitive.Title className="tags-dialog__title">Tags</DialogPrimitive.Title>
-          {tree.length ? (
-            <ul className="tags-dialog__tree">{tree.map((node) => <TagTreeNode key={node.key} node={node} depth={0} onSelect={onSelectTag} />)}</ul>
-          ) : <p className="tags-dialog__empty">No tags in this vault.</p>}
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="tags-dialog__dialog"
+        title="Tags"
+        showCloseButton={false}
+      >
+        {tree.length ? (
+          <ul className="tags-dialog__tree">
+            {tree.map((node) => (
+              <TagTreeNode
+                key={node.key}
+                node={node}
+                depth={0}
+                onSelect={onSelectTag}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p className="tags-dialog__empty">No tags in this vault.</p>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

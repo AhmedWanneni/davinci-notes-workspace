@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Dialog, DialogContent } from "@app/design-system";
 import { FileText, MagnifyingGlass } from "@phosphor-icons/react";
 import type { SearchResult } from "@app/indexer";
 
@@ -33,7 +33,9 @@ export function SearchDialog({
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"exact" | "semantic">("exact");
   const [results, setResults] = useState<SearchResult[]>([]);
-  const [semanticResults, setSemanticResults] = useState<SemanticSearchResult[]>([]);
+  const [semanticResults, setSemanticResults] = useState<
+    SemanticSearchResult[]
+  >([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -101,77 +103,104 @@ export function SearchDialog({
   };
 
   return (
-    <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="search-dialog__overlay" />
-        <DialogPrimitive.Content className="search-dialog__dialog">
-          <div className="search-dialog__input-wrapper">
-            <MagnifyingGlass size={18} aria-hidden="true" />
-            <input
-              ref={inputRef}
-              className="search-dialog__input"
-              value={query}
-              placeholder="Search notes, or use tag:..."
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={handleKeyDown}
-              aria-label="Search notes"
-            />
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="search-dialog__dialog" showCloseButton={false}>
+        <div className="search-dialog__input-wrapper">
+          <MagnifyingGlass size={18} aria-hidden="true" />
+          <input
+            ref={inputRef}
+            className="search-dialog__input"
+            value={query}
+            placeholder="Search notes, or use tag:..."
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={handleKeyDown}
+            aria-label="Search notes"
+          />
+        </div>
+        {semanticSearchEnabled && semanticSearch && (
+          <div
+            className="search-dialog__mode-switch"
+            role="group"
+            aria-label="Search mode"
+          >
+            <button
+              type="button"
+              aria-pressed={mode === "exact"}
+              onClick={() => setMode("exact")}
+            >
+              Exact
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === "semantic"}
+              onClick={() => setMode("semantic")}
+            >
+              Semantic
+            </button>
           </div>
-          {semanticSearchEnabled && semanticSearch && (
-            <div className="search-dialog__mode-switch" role="group" aria-label="Search mode">
-              <button type="button" aria-pressed={mode === "exact"} onClick={() => setMode("exact")}>
-                Exact
-              </button>
-              <button type="button" aria-pressed={mode === "semantic"} onClick={() => setMode("semantic")}>
-                Semantic
-              </button>
-            </div>
-          )}
-          <ul className="search-dialog__list" role="listbox" aria-label="Search results">
-            {results.map((result, index) => (
-              <li
-                key={result.path}
-                className="search-dialog__item"
-                data-selected={index === selectedIndex || undefined}
-                role="option"
-                aria-selected={index === selectedIndex}
-                onMouseEnter={() => setSelectedIndex(index)}
-                onClick={() => {
-                  onSelectNote(result.path);
-                  onOpenChange(false);
-                }}
-              >
-                <FileText size={18} aria-hidden="true" />
-                <span className="search-dialog__result-copy">
-                  <span className="search-dialog__title">{result.title}</span>
-                  <span className="search-dialog__path">{result.path}</span>
-                  {result.snippet ? (
-                    <span
-                      className="search-dialog__snippet"
-                      dangerouslySetInnerHTML={{ __html: result.snippet }}
-                    />
-                  ) : (
-                    <span className="search-dialog__snippet">Tag match</span>
-                  )}
+        )}
+        <ul
+          className="search-dialog__list"
+          role="listbox"
+          aria-label="Search results"
+        >
+          {results.map((result, index) => (
+            <li
+              key={result.path}
+              className="search-dialog__item"
+              data-selected={index === selectedIndex || undefined}
+              role="option"
+              aria-selected={index === selectedIndex}
+              onMouseEnter={() => setSelectedIndex(index)}
+              onClick={() => {
+                onSelectNote(result.path);
+                onOpenChange(false);
+              }}
+            >
+              <FileText size={18} aria-hidden="true" />
+              <span className="search-dialog__result-copy">
+                <span className="search-dialog__title">{result.title}</span>
+                <span className="search-dialog__path">{result.path}</span>
+                {result.snippet ? (
+                  <span
+                    className="search-dialog__snippet"
+                    dangerouslySetInnerHTML={{ __html: result.snippet }}
+                  />
+                ) : (
+                  <span className="search-dialog__snippet">Tag match</span>
+                )}
+              </span>
+            </li>
+          ))}
+          {semanticResults.map((result, index) => (
+            <li
+              key={`${result.path}:${result.startLine}`}
+              className="search-dialog__item"
+              data-selected={index === selectedIndex || undefined}
+              role="option"
+              aria-selected={index === selectedIndex}
+              onMouseEnter={() => setSelectedIndex(index)}
+              onClick={openSelected}
+            >
+              <FileText size={18} aria-hidden="true" />
+              <span className="search-dialog__result-copy">
+                <span className="search-dialog__title">{result.path}</span>
+                <span className="search-dialog__path">
+                  Semantic match{result.heading ? ` - ${result.heading}` : ""}
                 </span>
-              </li>
-            ))}
-            {semanticResults.map((result, index) => (
-              <li key={`${result.path}:${result.startLine}`} className="search-dialog__item" data-selected={index === selectedIndex || undefined} role="option" aria-selected={index === selectedIndex} onMouseEnter={() => setSelectedIndex(index)} onClick={openSelected}>
-                <FileText size={18} aria-hidden="true" />
-                <span className="search-dialog__result-copy">
-                  <span className="search-dialog__title">{result.path}</span>
-                  <span className="search-dialog__path">Semantic match{result.heading ? ` - ${result.heading}` : ""}</span>
-                  <span className="search-dialog__snippet">Lines {result.startLine}-{result.endLine}</span>
+                <span className="search-dialog__snippet">
+                  Lines {result.startLine}-{result.endLine}
                 </span>
-              </li>
-            ))}
-            {query.trim() && results.length === 0 && semanticResults.length === 0 && (
+              </span>
+            </li>
+          ))}
+          {query.trim() &&
+            results.length === 0 &&
+            semanticResults.length === 0 && (
               <li className="search-dialog__empty">No matching notes.</li>
             )}
-          </ul>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+        </ul>
+      </DialogContent>
+    </Dialog>
   );
 }
