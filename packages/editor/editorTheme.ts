@@ -8,7 +8,7 @@ export const editorTheme = EditorView.theme({
     color: "var(--color-text-normal)",
     fontFamily: "var(--font-editor)",
     fontSize: "var(--type-scale-base)",
-    lineHeight: "var(--type-leading-relaxed)",
+    lineHeight: "var(--editor-line-height)",
   },
   "&.cm-focused": {
     outline: "none",
@@ -21,7 +21,8 @@ export const editorTheme = EditorView.theme({
     fontFamily: "inherit",
   },
   ".cm-content": {
-    padding: "var(--space-6) var(--space-8)",
+    padding:
+      "var(--editor-content-padding-y) var(--editor-content-padding-x) var(--editor-content-padding-bottom)",
   },
   ".cm-cursor": {
     borderLeftColor: "var(--color-text-accent)",
@@ -32,7 +33,7 @@ export const editorTheme = EditorView.theme({
       backgroundColor: "var(--color-bg-active) !important",
     },
   ".cm-activeLine": {
-    backgroundColor: "var(--color-bg-primary-alt)",
+    backgroundColor: "transparent",
   },
   ".cm-wikilink": {
     color: "var(--color-text-accent)",

@@ -50,6 +50,10 @@ class FootnoteDefinitionWidget extends WidgetType {
 }
 
 const blockquoteLineDeco = Decoration.line({ class: "cm-blockquote-line" });
+const headingLineDecos = Array.from({ length: 6 }, (_, index) =>
+  Decoration.line({ class: `cm-heading-line cm-heading-${index + 1}` }),
+);
+const codeBlockLineDeco = Decoration.line({ class: "cm-code-block-line" });
 const commentDeco = Decoration.mark({ class: "cm-markdown-comment" });
 const hiddenCommentDeco = Decoration.replace({});
 
@@ -137,6 +141,14 @@ function getAnnotations(
     }
 
     for (let line = state.doc.lineAt(from); line.from < to;) {
+      const heading = line.text.match(/^ {0,3}(#{1,6})\s/);
+      if (heading) {
+        const level = heading[1].length;
+        ranges.push(headingLineDecos[level - 1].range(line.from));
+      }
+      if (isCodePosition(state, line.from)) {
+        ranges.push(codeBlockLineDeco.range(line.from));
+      }
       const definition = line.text.match(footnoteDefinition);
       if (definition && !isCodePosition(state, line.from)) {
         const key = definition[1];
