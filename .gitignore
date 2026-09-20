@@ -108,6 +108,7 @@ storybook-static/
 
 # Generated Storybook public assets (hand-authored static files in public/ are fine).
 **/.storybook/public/generated/
+apps/desktop/public/emoji-data/
 
 # -----------------------------------------------------------------------------
 # 8. TESTING / COVERAGE

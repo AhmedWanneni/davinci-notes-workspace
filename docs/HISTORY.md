@@ -2757,3 +2757,11 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - `AppSidebar` retained `selectedFolderPath` after deleting a folder. Its header New Note/New Folder actions then passed that stale path to commands that intentionally create missing parents, recreating `New Folder` and nesting new content beneath it.
 - A successful folder delete now clears selected-folder state. The sidebar also treats any selection not in current `allFolderPaths` as vault root before an action can run, with an effect to clear stale UI state.
 - Canvas creation is already root-scoped and does not consume `selectedFolderPath`. Focused folder tests (10/10) and desktop ESLint pass.
+
+### 2026-09-20 — Emoji icons Task 1: offline picker dependency boundary
+
+- Rejected emoji-mart after the approved audit; installed `frimousse@0.3.0` (MIT, peer `react: ^18 || ^19`) and pinned `emojibase-data@17.0.0` (MIT).
+- Added an ignored, generated static-data preparation script. It copies only Frimousse's required English `data.json` and `messages.json` locally; it does not use a CDN. The build succeeds with the generated assets.
+- Frimousse uses canvas-based native-emoji support detection and supplies search, categories, skin tones, keyboard navigation, and virtualization. It does not need a sprite sheet or shadow DOM.
+- Tauri CSP remains `null`; no remote `connect-src` exception was made. The dynamic picker UI and its final chunk measurement are deferred to the required Task 4 implementation.
+- Added ADR-0159. The sync audit found the current Rust manifest only lists supported note/media extensions, so it currently omits `.davinci/icons.json`; Task 3 must make this explicit and merge map keys safely across devices.

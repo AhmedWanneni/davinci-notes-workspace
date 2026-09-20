@@ -228,3 +228,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0149](adr/0149-ai-provider-classification-and-provider-specific-consent.md) | Gemini/OpenRouter are cloud; Ollama is local-networked with localhost-only local consent, remote warning, and explicit OpenRouter downstream-routing copy | Accepted |
 | [0150](adr/0150-ai-ask-your-vault-host-mount.md) | Mount ask-your-vault as a consent-gated lazy right-sidebar section; load Q&A/provider only when a question is submitted | Accepted |
 | [0151](adr/0151-ai-provider-readiness-requires-keychain.md) | A cloud provider is ready only when its persisted status and provider-specific Keychain credential are both present | Accepted |
+| [0159](adr/0159-emoji-icons-and-offline-picker.md) | Emoji icon storage and offline picker boundary | Accepted |
