@@ -40,9 +40,9 @@ import {
 import { loadAIStartupGate } from "./ai/loadAIStartupGate";
 import { useWindowFullscreen } from "./window";
 
-const LazyGlobalGraphDialog = React.lazy(() =>
-  import("./components/GlobalGraphDialog").then((m) => ({
-    default: m.GlobalGraphDialog,
+const LazyGlobalGraphLeaf = React.lazy(() =>
+  import("./components/GlobalGraphLeaf").then((m) => ({
+    default: m.GlobalGraphLeaf,
   })),
 );
 const LazySettingsDialog = React.lazy(() =>
@@ -595,7 +595,15 @@ export function App() {
             isMac={isMac}
             showWindowControls={!isLeftSidebarOpen}
           />
-          {openViewId && pluginManager ? (
+          {isGlobalGraphOpen ? (
+            <Suspense fallback={null}>
+              <LazyGlobalGraphLeaf
+                graph={graph}
+                onClose={() => setIsGlobalGraphOpen(false)}
+                onNavigate={(path) => void openNote(path)}
+              />
+            </Suspense>
+          ) : openViewId && pluginManager ? (
             <PluginViewLeaf manager={pluginManager} viewId={openViewId} />
           ) : (
             <EditorArea
@@ -658,14 +666,6 @@ export function App() {
             isOpen={isTagsOpen}
             onOpenChange={setIsTagsOpen}
             onSelectTag={handleSelectTag}
-          />
-        )}
-        {isGlobalGraphOpen && (
-          <LazyGlobalGraphDialog
-            isOpen={isGlobalGraphOpen}
-            onOpenChange={setIsGlobalGraphOpen}
-            graph={graph}
-            onNavigate={(path) => void openNote(path)}
           />
         )}
         {isSettingsOpen && (
