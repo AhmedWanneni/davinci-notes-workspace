@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useMemo } from "react";
 import { Editor, pastedFileName } from "@app/editor";
 import { resolveAttachmentFolder } from "@app/attachments";
-import { FileText } from "@phosphor-icons/react";
+import { CaretLeft, CaretRight, FileText } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
 import { PropertiesBlock } from "../PropertiesBlock";
@@ -181,7 +181,34 @@ export function EditorArea({
         ) : (
           <div className="editor-area__container">
             <div className="editor-area__header">
-              <h1 className="editor-area__title">{displayTitle}</h1>
+              <div className="editor-area__note-header" data-tauri-drag-region>
+                <div className="editor-area__note-header-actions">
+                  <button
+                    type="button"
+                    className="editor-area__note-header-button"
+                    aria-label="Go back"
+                    disabled
+                  >
+                    <CaretLeft size={16} weight="regular" />
+                  </button>
+                  <button
+                    type="button"
+                    className="editor-area__note-header-button"
+                    aria-label="Go forward"
+                    disabled
+                  >
+                    <CaretRight size={16} weight="regular" />
+                  </button>
+                </div>
+                <span
+                  className="editor-area__note-header-title"
+                  data-tauri-drag-region
+                  title={displayTitle}
+                >
+                  {displayTitle}
+                </span>
+                <div className="editor-area__note-header-actions" />
+              </div>
               <PropertiesBlock
                 frontmatter={frontmatter}
                 onLinkClick={onLinkClick}
