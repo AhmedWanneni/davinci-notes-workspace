@@ -172,7 +172,7 @@ pub fn classify_vault_event(kind: &EventKind) -> Option<VaultPathChange> {
   match kind {
     EventKind::Remove(RemoveKind::Any | RemoveKind::File) => Some(VaultPathChange::Removed),
     EventKind::Create(CreateKind::Any | CreateKind::File) => Some(VaultPathChange::Changed),
-    EventKind::Modify(ModifyKind::Data(_)) => Some(VaultPathChange::Changed),
+    EventKind::Modify(ModifyKind::Any | ModifyKind::Data(_)) => Some(VaultPathChange::Changed),
     _ => None,
   }
 }
@@ -208,6 +208,10 @@ mod tests {
   fn treats_data_modify_and_create_as_changed() {
     assert_eq!(
       classify_vault_event(&EventKind::Modify(ModifyKind::Data(DataChange::Any))),
+      Some(VaultPathChange::Changed)
+    );
+    assert_eq!(
+      classify_vault_event(&EventKind::Modify(ModifyKind::Any)),
       Some(VaultPathChange::Changed)
     );
     assert_eq!(

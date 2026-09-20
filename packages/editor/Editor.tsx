@@ -53,6 +53,11 @@ import {
   createEditorPluginAdapter,
   type EditorPluginAdapter,
 } from "./pluginEditorAdapter";
+import {
+  externalChangeAnnotations,
+  externalDocumentChange,
+  minimalDocumentChange,
+} from "./externalDocumentChange";
 
 export interface EditorProps {
   value: string;
@@ -188,7 +193,12 @@ export function Editor({
         vimCompartmentRef.current.of([]),
         // Document changes updater
         EditorView.updateListener.of((update) => {
-          if (update.docChanged) {
+          if (
+            update.docChanged &&
+            !update.transactions.some((transaction) =>
+              transaction.annotation(externalDocumentChange),
+            )
+          ) {
             onChangeRef.current(update.state.doc.toString());
             pluginEditorRef.current?.emitContentChange(
               update.state.doc.toString(),
@@ -226,7 +236,8 @@ export function Editor({
     const currentValue = view.state.doc.toString();
     if (value !== currentValue) {
       view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: value },
+        changes: minimalDocumentChange(currentValue, value),
+        annotations: externalChangeAnnotations,
       });
     }
   }, [value]);
