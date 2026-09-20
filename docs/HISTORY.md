@@ -2765,3 +2765,10 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Frimousse uses canvas-based native-emoji support detection and supplies search, categories, skin tones, keyboard navigation, and virtualization. It does not need a sprite sheet or shadow DOM.
 - Tauri CSP remains `null`; no remote `connect-src` exception was made. The dynamic picker UI and its final chunk measurement are deferred to the required Task 4 implementation.
 - Added ADR-0159. The sync audit found the current Rust manifest only lists supported note/media extensions, so it currently omits `.davinci/icons.json`; Task 3 must make this explicit and merge map keys safely across devices.
+
+### 2026-09-20 — External vault changes: watcher and reconcile hardening
+
+- Extended the existing 400 ms `notify-debouncer-full` watcher with paired supported-file rename paths; no second watcher or dependency was introduced.
+- Reconciliation reads external files before entering `withDbLock`, then compares filesystem paths with SQLite paths under that lock to clear stale entries. It no longer suppresses the watcher during reconciliation.
+- External deletes clear save timers and tabs without writing the deleted path. Renames remap open paths; clean open files reload. Dirty files keep local content and report a vault error.
+- Checks: Rust watcher tests, focused indexer/stress tests, and desktop lint passed. Required real temporary-vault watcher operations and the full indexing/settings/embedding concurrency test remain UNVERIFIED.

@@ -6,6 +6,20 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**External vault change detection — partial implementation; filesystem integration verification pending**
+The existing 400 ms debounced Rust watcher now emits paired Markdown/canvas
+renames alongside changed/removed paths. Reconciliation no longer suppresses
+the watcher while it reads a batch, and it compares the current filesystem
+listing with the SQLite `notes` paths under `withDbLock` to repair stale rows
+after missed directory events. Workspace tabs are removed/remapped directly so
+an external delete cannot trigger a stale save; clean open notes reload from
+disk while dirty notes retain local content and set the existing vault error.
+No dependency was added. Focused watcher Rust tests, indexer stress tests, and
+desktop lint passed. UNVERIFIED: real `mv`, `rm`, `cp`, and append batches in a
+live temp vault; folder rename/delete event behavior; native UI conflict/error
+visibility; and the required external-batch/full-index/settings/embedding
+concurrency regression. Finish these before calling this feature complete.
+
 **Editor font settings — implementation complete; visual acceptance pending**
 Editor font size is a 12–28px vault-scoped setting in the existing SQLite
 `settings` table. `createEditorSettings` reads and writes it only through
