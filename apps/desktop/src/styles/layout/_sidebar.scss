@@ -20,10 +20,10 @@
 }
 
 .app-sidebar__header {
-  grid-column: 2;
+  grid-column: 1 / -1;
   grid-row: 1;
-  min-height: 38px;
-  padding: 0 var(--space-3);
+  min-height: 40px;
+  padding: 0 var(--space-2);
   box-sizing: border-box;
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   display: flex;
@@ -32,9 +32,43 @@
   gap: var(--space-2);
 }
 
+.app-sidebar__header-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.app-sidebar__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border-radius: var(--border-radius-md, 6px);
+  border: var(--border-width-thin) solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-normal);
+  }
+
+  &.is-active,
+  &[data-active="true"] {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-normal);
+    border-color: var(--color-border-subtle);
+  }
+}
+
 .app-sidebar__traffic-light-spacer {
-  width: 68px;
-  min-width: 68px;
+  width: 82px;
+  min-width: 82px;
+  flex-shrink: 0;
   height: 100%;
 }
 

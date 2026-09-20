@@ -17,6 +17,8 @@ export interface AppTabsProps {
   onSelectNote: (path: string) => void;
   onCloseNote: (path: string) => void;
   onNewTab?: () => void;
+  isLeftSidebarOpen?: boolean;
+  onToggleLeftSidebar?: () => void;
   isRightSidebarOpen?: boolean;
   onToggleRightSidebar?: () => void;
   isMac: boolean;
@@ -30,6 +32,8 @@ export function AppTabs({
   onSelectNote,
   onCloseNote,
   onNewTab,
+  isLeftSidebarOpen,
+  onToggleLeftSidebar,
   isRightSidebarOpen,
   onToggleRightSidebar,
   isMac,
@@ -37,6 +41,25 @@ export function AppTabs({
 }: AppTabsProps) {
   return (
     <div className="app-tabs" role="tablist" aria-label="Open notes">
+      <div className="app-tabs__left-controls">
+        {isMac && showWindowControls && (
+          <div className="app-tabs__traffic-light-spacer" />
+        )}
+        {!isMac && showWindowControls && <WindowControls />}
+        {onToggleLeftSidebar && !isLeftSidebarOpen && (
+          <Tooltip content="Expand sidebar" contentProps={{ side: "bottom" }}>
+            <button
+              type="button"
+              className="app-tabs__action-btn app-tabs__sidebar-toggle-btn"
+              onClick={onToggleLeftSidebar}
+              aria-label="Expand sidebar"
+            >
+              <SidebarSimple size={15} />
+            </button>
+          </Tooltip>
+        )}
+      </div>
+
       <div className="app-tabs__strip">
         {openNotes.map((path) => {
           const isCanvas = path.endsWith(".canvas");
@@ -101,9 +124,6 @@ export function AppTabs({
       </div>
 
       <div className="app-tabs__actions">
-        {isMac && showWindowControls && (
-          <div className="app-tabs__traffic-light-spacer" />
-        )}
         <Tooltip content="View options" contentProps={{ side: "bottom" }}>
           <button
             type="button"
@@ -130,7 +150,6 @@ export function AppTabs({
             </button>
           </Tooltip>
         )}
-        {showWindowControls && !isMac && <WindowControls />}
       </div>
     </div>
   );

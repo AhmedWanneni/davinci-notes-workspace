@@ -29,10 +29,23 @@
   flex: 1 0 var(--space-4);
 }
 
-.app-tabs__traffic-light-spacer {
-  width: 68px;
-  min-width: 68px;
+.app-tabs__left-controls {
+  display: flex;
+  align-items: center;
   height: 100%;
+  flex-shrink: 0;
+  border-right: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.app-tabs__traffic-light-spacer {
+  width: 82px;
+  min-width: 82px;
+  flex-shrink: 0;
+  height: 100%;
+}
+
+.app-tabs__sidebar-toggle-btn {
+  margin: 0 var(--space-1);
 }
 
 .app-tabs__tab {

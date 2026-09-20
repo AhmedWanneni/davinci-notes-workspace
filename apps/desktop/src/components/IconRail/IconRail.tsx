@@ -49,7 +49,7 @@ export function IconRail({
         </Tooltip>
 
         <Tooltip
-          content="Search note content (Cmd+Shift+F)"
+          content="Search note content (Cmd+P / Cmd+Shift+F)"
           contentProps={{ side: "right" }}
         >
           <button

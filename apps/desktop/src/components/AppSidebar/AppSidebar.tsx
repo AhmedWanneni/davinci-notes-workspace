@@ -1,6 +1,11 @@
-import { FilePlus, FolderPlus, FrameCorners } from "@phosphor-icons/react";
+import {
+  BookmarkSimple,
+  FolderSimple,
+  MagnifyingGlass,
+  SidebarSimple,
+} from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useState } from "react";
-import { Tooltip, Typography } from "@app/design-system";
+import { Tooltip } from "@app/design-system";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WindowControls } from "../WindowControls";
 import { FileTree } from "../FileTree";
@@ -15,6 +20,11 @@ export interface AppSidebarProps {
   navigation?: ReactNode;
   isCollapsed?: boolean;
   isMac: boolean;
+  activeTab?: "files" | "search" | "bookmarks";
+  onTabChange?: (tab: "files" | "search" | "bookmarks") => void;
+  onToggleLeftSidebar?: () => void;
+  onOpenSearch?: () => void;
+  onOpenTags?: () => void;
   onCreateNote: (parentFolder?: string) => void | Promise<unknown>;
   onCreateFolder: (parentFolder?: string) => Promise<string | null>;
   onCreateCanvas?: () => void;
@@ -35,7 +45,6 @@ export interface AppSidebarProps {
 }
 
 export function AppSidebar({
-  vaultName,
   allNotePaths,
   allFolderPaths,
   activeNotePath,
@@ -44,9 +53,13 @@ export function AppSidebar({
   navigation,
   isCollapsed,
   isMac,
+  activeTab = "files",
+  onTabChange,
+  onToggleLeftSidebar,
+  onOpenSearch,
+  onOpenTags,
   onCreateNote,
   onCreateFolder,
-  onCreateCanvas,
   onNoteClick,
   onRenameNote,
   onRenameFolder,
@@ -65,15 +78,14 @@ export function AppSidebar({
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(
     null,
   );
+  const [currentTab, setCurrentTab] = useState<
+    "files" | "search" | "bookmarks"
+  >(activeTab);
 
   const handleSelectedFolderChange = (folderPath: string | null) => {
     setSelectedFolderPath(folderPath);
     onSelectedFolderChange?.(folderPath);
   };
-  const selectedParentFolder =
-    selectedFolderPath && allFolderPaths.includes(selectedFolderPath)
-      ? selectedFolderPath
-      : "";
 
   useEffect(() => {
     if (selectedFolderPath && !allFolderPaths.includes(selectedFolderPath)) {
@@ -94,51 +106,64 @@ export function AppSidebar({
         ) : (
           <WindowControls />
         )}
+        <div className="app-sidebar__header-nav">
+          <Tooltip content="Files" contentProps={{ side: "bottom" }}>
+            <button
+              type="button"
+              className={`app-sidebar__nav-btn ${currentTab === "files" ? "is-active" : ""}`}
+              onClick={() => {
+                setCurrentTab("files");
+                onTabChange?.("files");
+              }}
+              aria-label="Files"
+            >
+              <FolderSimple size={18} weight="regular" />
+            </button>
+          </Tooltip>
+          <Tooltip content="Search (Cmd+P)" contentProps={{ side: "bottom" }}>
+            <button
+              type="button"
+              className={`app-sidebar__nav-btn ${currentTab === "search" ? "is-active" : ""}`}
+              onClick={() => {
+                setCurrentTab("search");
+                onTabChange?.("search");
+                onOpenSearch?.();
+              }}
+              aria-label="Search"
+            >
+              <MagnifyingGlass size={18} weight="regular" />
+            </button>
+          </Tooltip>
+          <Tooltip content="Bookmarks" contentProps={{ side: "bottom" }}>
+            <button
+              type="button"
+              className={`app-sidebar__nav-btn ${currentTab === "bookmarks" ? "is-active" : ""}`}
+              onClick={() => {
+                setCurrentTab("bookmarks");
+                onTabChange?.("bookmarks");
+                onOpenTags?.();
+              }}
+              aria-label="Bookmarks"
+            >
+              <BookmarkSimple size={18} weight="regular" />
+            </button>
+          </Tooltip>
+        </div>
         <div
           className="app-sidebar__drag-region"
           data-tauri-drag-region
           onDoubleClick={() => void getCurrentWindow().toggleMaximize()}
         />
-        <div className="app-sidebar__vault-title">
-          <Typography
-            variant="text"
-            size="sm"
-            weight="semibold"
-            className="app-sidebar__title"
-          >
-            {vaultName}
-          </Typography>
-        </div>
         <div className="app-sidebar__header-actions">
-          <Tooltip content="New note" contentProps={{ side: "bottom" }}>
-            <button
-              type="button"
-              className="app-sidebar__action-btn"
-              onClick={() => void onCreateNote(selectedParentFolder)}
-              aria-label="New note"
-            >
-              <FilePlus size={16} />
-            </button>
-          </Tooltip>
-          <Tooltip content="New folder" contentProps={{ side: "bottom" }}>
-            <button
-              type="button"
-              className="app-sidebar__action-btn"
-              onClick={() => void onCreateFolder(selectedParentFolder)}
-              aria-label="New folder"
-            >
-              <FolderPlus size={16} />
-            </button>
-          </Tooltip>
-          {onCreateCanvas && (
-            <Tooltip content="New canvas" contentProps={{ side: "bottom" }}>
+          {onToggleLeftSidebar && (
+            <Tooltip content="Toggle sidebar" contentProps={{ side: "bottom" }}>
               <button
                 type="button"
                 className="app-sidebar__action-btn"
-                onClick={onCreateCanvas}
-                aria-label="New canvas"
+                onClick={onToggleLeftSidebar}
+                aria-label="Toggle sidebar"
               >
-                <FrameCorners size={16} />
+                <SidebarSimple size={18} weight="regular" />
               </button>
             </Tooltip>
           )}

@@ -336,15 +336,17 @@ export function App() {
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      const isMod = e.metaKey || e.ctrlKey;
+      if (isMod && (e.key === "k" || e.key === "K")) {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
       }
-      if (
-        (e.metaKey || e.ctrlKey) &&
-        e.shiftKey &&
-        e.key.toLowerCase() === "f"
-      ) {
+      if (isMod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        setSearchInitialQuery("");
+        setIsSearchOpen((prev) => !prev);
+      }
+      if (isMod && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
         setSearchInitialQuery("");
         setIsSearchOpen((prev) => !prev);
@@ -548,6 +550,12 @@ export function App() {
           }
           isCollapsed={!isLeftSidebarOpen}
           isMac={isMac}
+          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
+          onOpenSearch={() => {
+            setSearchInitialQuery("");
+            setIsSearchOpen(true);
+          }}
+          onOpenTags={() => setIsTagsOpen(true)}
           onCreateNote={handleCreateNote}
           onCreateFolder={handleCreateFolder}
           onCreateCanvas={handleCreateCanvas}
@@ -580,6 +588,8 @@ export function App() {
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
             onNewTab={handleCreateNote}
+            isLeftSidebarOpen={isLeftSidebarOpen}
+            onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
             isRightSidebarOpen={isRightSidebarOpen}
             onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
             isMac={isMac}
