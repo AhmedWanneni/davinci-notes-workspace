@@ -2751,3 +2751,9 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - A real stale-path failure showed the filesystem had `New Folder/New Folderjkhk` while the tree still tried to delete `New Folder/New Folder`. The native `Source folder not found` result was therefore correct and retained as a safety guard.
 - `renameFolderInVault` now updates the folder/note paths, open tabs, active child, cached content, dirty buffers, and save timers immediately after native rename succeeds. The queued descendant index transaction and graph calculation then complete without keeping stale tree paths visible.
 - Focused rename/delete tests (8/8) and desktop ESLint pass. Native visual behavior remains UNVERIFIED.
+
+### 2026-09-20 — Follow-up: Clear deleted folder selection
+
+- `AppSidebar` retained `selectedFolderPath` after deleting a folder. Its header New Note/New Folder actions then passed that stale path to commands that intentionally create missing parents, recreating `New Folder` and nesting new content beneath it.
+- A successful folder delete now clears selected-folder state. The sidebar also treats any selection not in current `allFolderPaths` as vault root before an action can run, with an effect to clear stale UI state.
+- Canvas creation is already root-scoped and does not consume `selectedFolderPath`. Focused folder tests (10/10) and desktop ESLint pass.

@@ -136,9 +136,13 @@ export function FileTree({
   };
 
   const confirmDelete = (path: string, isFolder: boolean) =>
-    confirmTreeDelete(path, isFolder, () =>
-      isFolder ? onDeleteFolder?.(path) : onDeleteNote?.(path),
-    );
+    confirmTreeDelete(path, isFolder, async () => {
+      const deleted = await (isFolder
+        ? onDeleteFolder?.(path)
+        : onDeleteNote?.(path));
+      if (deleted && isFolder) onSelectedFolderChange?.(null);
+      return deleted;
+    });
 
   return (
     <>

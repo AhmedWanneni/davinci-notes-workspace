@@ -1,5 +1,5 @@
 import { FilePlus, FolderPlus, FrameCorners } from "@phosphor-icons/react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Tooltip, Typography } from "@app/design-system";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WindowControls } from "../WindowControls";
@@ -70,6 +70,17 @@ export function AppSidebar({
     setSelectedFolderPath(folderPath);
     onSelectedFolderChange?.(folderPath);
   };
+  const selectedParentFolder =
+    selectedFolderPath && allFolderPaths.includes(selectedFolderPath)
+      ? selectedFolderPath
+      : "";
+
+  useEffect(() => {
+    if (selectedFolderPath && !allFolderPaths.includes(selectedFolderPath)) {
+      setSelectedFolderPath(null);
+      onSelectedFolderChange?.(null);
+    }
+  }, [allFolderPaths, onSelectedFolderChange, selectedFolderPath]);
 
   return (
     <aside
@@ -103,7 +114,7 @@ export function AppSidebar({
             <button
               type="button"
               className="app-sidebar__action-btn"
-              onClick={() => void onCreateNote(selectedFolderPath ?? "")}
+              onClick={() => void onCreateNote(selectedParentFolder)}
               aria-label="New note"
             >
               <FilePlus size={16} />
@@ -113,7 +124,7 @@ export function AppSidebar({
             <button
               type="button"
               className="app-sidebar__action-btn"
-              onClick={() => void onCreateFolder(selectedFolderPath ?? "")}
+              onClick={() => void onCreateFolder(selectedParentFolder)}
               aria-label="New folder"
             >
               <FolderPlus size={16} />
