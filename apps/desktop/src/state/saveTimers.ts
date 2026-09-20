@@ -8,3 +8,16 @@ export function migrateSaveTimer(oldPath: string, newPath: string): void {
   saveTimers[newPath] = saveTimers[oldPath];
   delete saveTimers[oldPath];
 }
+
+export function clearSaveTimer(path: string): void {
+  const timer = saveTimers[path];
+  if (timer) {
+    clearTimeout(timer);
+    delete saveTimers[path];
+  }
+}
+
+export function clearAllSaveTimers(): void {
+  Object.values(saveTimers).forEach(clearTimeout);
+  Object.keys(saveTimers).forEach((key) => delete saveTimers[key]);
+}

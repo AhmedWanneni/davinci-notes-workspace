@@ -91,12 +91,11 @@
 }
 
 .app-sidebar__content {
-  grid-column: 2;
-  grid-row: 2;
   flex: 1;
   display: flex;
   overflow-y: auto;
   padding: var(--space-2);
+  height: 100%;
 }
 
 .app-sidebar > .debug-log {
