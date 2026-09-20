@@ -6,6 +6,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Editor font settings — implementation complete; visual acceptance pending**
+Editor font size is a 12–28px vault-scoped setting in the existing SQLite
+`settings` table. `createEditorSettings` reads and writes it only through
+`withDbLock`; the editor uses one `--editor-font-size` variable and calls
+`EditorView.requestMeasure()` whenever the active size or document changes.
+The settings panel provides a range input, numeric stepper, and reset.
+
+Editor families are an allowlisted registry: System default, Montserrat, and
+Raleway. Font IDs—not arbitrary CSS—are persisted. Montserrat and Raleway use
+the self-hosted, pinned `@fontsource-variable` 5.2.8 packages, each OFL-1.1
+with normal/italic variable Latin faces. Dynamic local CSS imports emit
+separate chunks; no Google CDN request, `<link>`, or CSP change exists. The
+production build emitted Montserrat 37,956 + 39,632 bytes and Raleway 48,264 +
+50,244 bytes (raw WOFF2); their CSS chunks are 0.32/0.31 KB (0.17 KB gzip).
+The main entry was 390.87 KB / 123.14 KB gzip in the post-change build.
+
+Verified: full desktop test suite (78 files / 269 tests), lint-staged ESLint
+and Stylelint, and production web build. The desktop typecheck remains blocked
+by pre-existing `vaultUpdateCounter`, FileTree delete return, and design-system
+Button color errors. UNVERIFIED on macOS: slider/stepper visual layout, font
+switch loading/fallback timing, persistence after restart, no-scroll-jump or
+caret loss in a large note, and offline visual network inspection. Deferred:
+code-font selector, static settings preview, broader font list, and adding OFL
+notices to a future third-party-notices surface.
+
 **Emoji icons — Task 1 library boundary complete; Tasks 2–5 next**
 Frimousse `0.3.0` (MIT, React peer `^18 || ^19`) and pinned
 `emojibase-data@17.0.0` (MIT) replace the rejected emoji-mart option. The

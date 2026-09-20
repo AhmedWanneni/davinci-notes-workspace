@@ -229,3 +229,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0150](adr/0150-ai-ask-your-vault-host-mount.md) | Mount ask-your-vault as a consent-gated lazy right-sidebar section; load Q&A/provider only when a question is submitted | Accepted |
 | [0151](adr/0151-ai-provider-readiness-requires-keychain.md) | A cloud provider is ready only when its persisted status and provider-specific Keychain credential are both present | Accepted |
 | [0159](adr/0159-emoji-icons-and-offline-picker.md) | Emoji icon storage and offline picker boundary | Accepted |
+| [0160](adr/0160-editor-font-settings-and-self-hosted-fontsource.md) | Vault-scoped editor font settings with self-hosted lazy Fontsource assets | Accepted |
