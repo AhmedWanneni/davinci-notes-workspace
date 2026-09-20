@@ -8,7 +8,8 @@
       "none": { "value": "0px" },
       "sm": { "value": "2px" },
       "md": { "value": "4px" },
-      "lg": { "value": "6px" }
+      "lg": { "value": "6px" },
+      "xl": { "value": "1rem" }
     }
   }
 }

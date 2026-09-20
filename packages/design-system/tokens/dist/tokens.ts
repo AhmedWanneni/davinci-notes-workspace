@@ -8,6 +8,7 @@ export const BorderRadiusNone = "0px";
 export const BorderRadiusSm = "2px";
 export const BorderRadiusMd = "4px";
 export const BorderRadiusLg = "6px";
+export const BorderRadiusXl = "1rem";
 export const ColorBgPrimary = "#1e1e1e";
 export const ColorBgPrimaryAlt = "#161616";
 export const ColorBgSecondary = "#262626";

@@ -74,7 +74,7 @@ pub fn run() {
         .fullscreen(false);
 
       #[cfg(target_os = "macos")]
-      let window = window.decorations(false);
+      let window = window.decorations(false).transparent(true);
 
       #[cfg(target_os = "windows")]
       let window = window.decorations(false).shadow(true);
