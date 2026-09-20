@@ -34,7 +34,10 @@ export async function withDbTransaction<T>(
         !(rollbackError instanceof Error) ||
         !/no transaction is active/i.test(rollbackError.message)
       ) {
-        console.warn("SQLite rollback was unavailable after a failed transaction", rollbackError);
+        console.warn(
+          "SQLite rollback was unavailable after a failed transaction",
+          rollbackError,
+        );
       }
     }
     throw error;
@@ -229,6 +232,14 @@ export async function countIndexedNotes(db: Database): Promise<number> {
     "SELECT COUNT(*) as count FROM notes",
   );
   return rows[0]?.count ?? 0;
+}
+
+/** Returns the existing note paths so a watcher batch can repair missed directory events. */
+export async function listIndexedNotePaths(db: Database): Promise<string[]> {
+  const rows = await db.select<{ path: string }[]>(
+    "SELECT path FROM notes ORDER BY path",
+  );
+  return rows.map((row) => row.path);
 }
 
 export async function queryFullGraphIndex(db: Database): Promise<GraphIndex> {

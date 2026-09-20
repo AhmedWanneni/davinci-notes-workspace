@@ -10,6 +10,7 @@ const {
   getVaultIndexDb,
   withDbLock,
   withDbTransaction,
+  listIndexedNotePaths,
 } = vi.hoisted(() => ({
   listNotes: vi.fn(),
   readNote: vi.fn(),
@@ -20,6 +21,7 @@ const {
   withDbTransaction: vi.fn(async (_db: unknown, work: () => Promise<unknown>) =>
     work(),
   ),
+  listIndexedNotePaths: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("./vaultCommands", () => ({
@@ -37,6 +39,7 @@ vi.mock("./sqliteIndex", () => ({
   removeNoteFromIndex: vi.fn(),
   withDbLock,
   withDbTransaction,
+  listIndexedNotePaths,
 }));
 
 vi.mock("./noteFromMarkdown", () => ({

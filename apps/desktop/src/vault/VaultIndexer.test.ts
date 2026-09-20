@@ -7,6 +7,7 @@ const startVaultWatcher = vi.fn();
 const getVaultIndexDb = vi.fn();
 const clearVaultIndex = vi.fn();
 const persistNotesBatch = vi.fn();
+const listIndexedNotePaths = vi.fn();
 const withDbLock = vi.fn(async (work: () => Promise<unknown>) => work());
 const withDbTransaction = vi.fn(
   async (_db: unknown, work: () => Promise<unknown>) => work(),
@@ -25,6 +26,7 @@ vi.mock("./sqliteIndex", () => ({
   clearVaultIndex,
   persistNote: vi.fn(),
   persistNotesBatch,
+  listIndexedNotePaths,
   removeNoteFromIndex: vi.fn(),
   withDbLock,
   withDbTransaction,
@@ -50,6 +52,7 @@ describe("VaultIndexer", () => {
     getVaultIndexDb.mockResolvedValue(db);
     clearVaultIndex.mockResolvedValue(undefined);
     persistNotesBatch.mockResolvedValue(undefined);
+    listIndexedNotePaths.mockResolvedValue([]);
   });
 
   it("starts the watcher only after indexing finishes", async () => {
@@ -67,7 +70,7 @@ describe("VaultIndexer", () => {
     );
   });
 
-  it("pauses the watcher while reconciling incremental changes", async () => {
+  it("keeps the watcher live while reconciling incremental changes", async () => {
     const { reconcileVaultChanges } = await import("./VaultIndexer");
 
     const reconcilePromise = reconcileVaultChanges({
@@ -76,11 +79,9 @@ describe("VaultIndexer", () => {
       renamed: [],
     });
 
-    await vi.runAllTimersAsync();
     await reconcilePromise;
 
-    expect(setVaultWatcherPaused).toHaveBeenCalledWith(true);
-    expect(setVaultWatcherPaused).toHaveBeenLastCalledWith(false);
+    expect(setVaultWatcherPaused).not.toHaveBeenCalled();
     expect(startVaultWatcher).not.toHaveBeenCalled();
   });
 });

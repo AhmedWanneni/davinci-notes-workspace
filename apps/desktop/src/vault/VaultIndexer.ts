@@ -13,6 +13,7 @@ import { noteFromMarkdown } from "./noteFromMarkdown";
 import {
   clearVaultIndex,
   getVaultIndexDb,
+  listIndexedNotePaths,
   persistNotesBatch,
   removeNoteFromIndex,
   withDbLock,
@@ -86,68 +87,72 @@ export async function reconcileVaultChanges(
   graph?: GraphIndex,
   tagIndex?: TagIndex,
 ): Promise<{ graph: GraphIndex | undefined; updated: number }> {
-  return withVaultWatchSuppressed(async () => {
-    const allPaths = await listNotes();
-    const pathSet = new Set(allPaths);
-    let updated = 0;
+  const allPaths = await listNotes();
+  const pathSet = new Set(allPaths);
+  let updated = 0;
 
-    const changedNotes: Note[] = [];
-    const extraRemovedPaths: string[] = [];
+  const changedNotes: Note[] = [];
+  const extraRemovedPaths: string[] = [];
 
-    // Read all changed notes in parallel before starting the SQLite transaction
-    await Promise.all(
-      batch.changed.map(async (changedPath) => {
-        if (!isIndexedNotePath(changedPath)) {
-          return;
-        }
-        if (!pathSet.has(changedPath)) {
-          extraRemovedPaths.push(changedPath);
-          return;
-        }
+  // Read all changed notes in parallel before starting the SQLite transaction.
+  // Keeping the watcher live here prevents a second external burst being dropped.
+  await Promise.all(
+    batch.changed.map(async (changedPath) => {
+      if (!isIndexedNotePath(changedPath)) {
+        return;
+      }
+      if (!pathSet.has(changedPath)) {
+        extraRemovedPaths.push(changedPath);
+        return;
+      }
 
-        try {
-          const file = await readNote(changedPath);
-          const note = noteFromMarkdown(
-            changedPath,
-            file.content,
-            file.mtime,
-            allPaths,
-          );
-          changedNotes.push(note);
-        } catch {
-          // File was deleted/unreadable during sync burst; treat as removed
-          extraRemovedPaths.push(changedPath);
-        }
-      }),
-    );
+      try {
+        const file = await readNote(changedPath);
+        const note = noteFromMarkdown(
+          changedPath,
+          file.content,
+          file.mtime,
+          allPaths,
+        );
+        changedNotes.push(note);
+      } catch {
+        // File was deleted/unreadable during sync burst; treat as removed
+        extraRemovedPaths.push(changedPath);
+      }
+    }),
+  );
 
+  const db = await getVaultIndexDb();
+
+  await withDbLock(async () => {
+    const indexedPaths = await listIndexedNotePaths(db);
     const allRemoved = Array.from(
-      new Set([...batch.removed, ...extraRemovedPaths]),
+      new Set([
+        ...batch.removed,
+        ...extraRemovedPaths,
+        ...indexedPaths.filter((path) => !pathSet.has(path)),
+      ]),
     );
-    const db = await getVaultIndexDb();
+    await withDbTransaction(db, async () => {
+      for (const removed of allRemoved) {
+        await removeNoteFromIndex(db, removed);
+        if (tagIndex) removeNoteFromTagIndex(tagIndex, removed);
+        updated += 1;
+      }
 
-    await withDbLock(() =>
-      withDbTransaction(db, async () => {
-        for (const removed of allRemoved) {
-          await removeNoteFromIndex(db, removed);
-          if (tagIndex) removeNoteFromTagIndex(tagIndex, removed);
-          updated += 1;
-        }
+      for (const note of changedNotes) {
+        if (tagIndex) updateTagIndexForNote(tagIndex, note);
+        if (graph) updateGraphForNote(graph, note);
+        updated += 1;
+      }
 
-        for (const note of changedNotes) {
-          if (tagIndex) updateTagIndexForNote(tagIndex, note);
-          if (graph) updateGraphForNote(graph, note);
-          updated += 1;
-        }
-
-        if (changedNotes.length > 0) {
-          await persistNotesBatch(db, changedNotes);
-        }
-      }),
-    );
-
-    return { graph, updated };
+      if (changedNotes.length > 0) {
+        await persistNotesBatch(db, changedNotes);
+      }
+    });
   });
+
+  return { graph, updated };
 }
 
 export async function openAndIndexVault(path: string): Promise<{
