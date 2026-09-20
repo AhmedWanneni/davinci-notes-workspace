@@ -1,4 +1,13 @@
-import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import type { EditorView } from "@codemirror/view";
 import { Editor, pastedFileName } from "@app/editor";
 import { resolveAttachmentFolder } from "@app/attachments";
@@ -98,6 +107,7 @@ export function EditorArea({
     (state) => state.attachmentSettings,
   );
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setVimModeState = useWorkspaceStore((state) => state.setVimModeState);
   const saveNoteNow = useWorkspaceStore((state) => state.saveNoteNow);
   const closeNote = useWorkspaceStore((state) => state.closeNote);
@@ -170,8 +180,15 @@ export function EditorArea({
 
   const isCanvas = activeNotePath?.endsWith(".canvas") ?? false;
 
+  useEffect(() => {
+    editorViewRef.current?.requestMeasure();
+  }, [editorFontSize, activeNotePath]);
+
   return (
-    <div className="editor-area">
+    <div
+      className="editor-area"
+      style={{ "--editor-font-size": `${editorFontSize}px` } as CSSProperties}
+    >
       {activeNotePath ? (
         isCanvas ? (
           <Suspense fallback={null}>

@@ -6,7 +6,12 @@ import {
   Checkbox,
   Divider,
 } from "@app/design-system";
-import { editorFonts, isEditorFont } from "@app/editor";
+import {
+  editorFonts,
+  isEditorFont,
+  MAX_EDITOR_FONT_SIZE,
+  MIN_EDITOR_FONT_SIZE,
+} from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { openVaultFromPicker } from "../../vault";
 import { AttachmentLocationSettings } from "../AttachmentLocationSettings";
@@ -23,7 +28,9 @@ import { GitRemoteSetupPanel } from "../GitRemoteSetupPanel";
 import React from "react";
 
 const LazyAISettingsPanel = React.lazy(() =>
-  import("../AISettingsPanel").then((module) => ({ default: module.AISettingsPanel })),
+  import("../AISettingsPanel").then((module) => ({
+    default: module.AISettingsPanel,
+  })),
 );
 
 interface SettingsDialogProps {
@@ -74,7 +81,14 @@ export function SettingsDialog({
   onActivateThemeFromBrowser,
 }: SettingsDialogProps) {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setEditorFont = useWorkspaceStore((state) => state.setEditorFont);
+  const previewEditorFontSize = useWorkspaceStore(
+    (state) => state.previewEditorFontSize,
+  );
+  const setEditorFontSize = useWorkspaceStore(
+    (state) => state.setEditorFontSize,
+  );
   const strictLineBreaks = useWorkspaceStore((state) => state.strictLineBreaks);
   const setStrictLineBreaks = useWorkspaceStore(
     (state) => state.setStrictLineBreaks,
@@ -136,6 +150,53 @@ export function SettingsDialog({
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+          </section>
+
+          <section className="settings-dialog__section">
+            <div className="settings-dialog__row">
+              <div className="settings-dialog__info">
+                <Typography variant="h3" size="sm">
+                  Editor Font Size
+                </Typography>
+                <Typography variant="text" size="xs" color="muted">
+                  Scale the editor text from {MIN_EDITOR_FONT_SIZE} to{" "}
+                  {MAX_EDITOR_FONT_SIZE} px.
+                </Typography>
+              </div>
+              <div className="settings-dialog__control">
+                <input
+                  type="range"
+                  min={MIN_EDITOR_FONT_SIZE}
+                  max={MAX_EDITOR_FONT_SIZE}
+                  step="1"
+                  value={editorFontSize}
+                  aria-label="Editor font size"
+                  onChange={(event) =>
+                    previewEditorFontSize(Number(event.target.value))
+                  }
+                  onPointerUp={() => void setEditorFontSize(editorFontSize)}
+                  onKeyUp={() => void setEditorFontSize(editorFontSize)}
+                />
+                <input
+                  type="number"
+                  min={MIN_EDITOR_FONT_SIZE}
+                  max={MAX_EDITOR_FONT_SIZE}
+                  step="1"
+                  value={editorFontSize}
+                  aria-label="Editor font size in pixels"
+                  onChange={(event) =>
+                    previewEditorFontSize(Number(event.target.value))
+                  }
+                  onBlur={() => void setEditorFontSize(editorFontSize)}
+                />
+                <Button
+                  variant="secondary"
+                  onClick={() => void setEditorFontSize(16)}
+                >
+                  Reset
+                </Button>
               </div>
             </div>
           </section>
@@ -214,7 +275,9 @@ export function SettingsDialog({
 
           <Divider />
 
-          <React.Suspense fallback={null}><LazyAISettingsPanel /></React.Suspense>
+          <React.Suspense fallback={null}>
+            <LazyAISettingsPanel />
+          </React.Suspense>
 
           <Divider />
 

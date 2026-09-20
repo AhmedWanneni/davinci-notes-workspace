@@ -6,8 +6,8 @@ export const editorTheme = EditorView.theme({
     height: "100%",
     backgroundColor: "var(--color-bg-primary)",
     color: "var(--color-text-normal)",
-    fontFamily: "var(--font-editor)",
-    fontSize: "var(--type-scale-base)",
+    fontFamily: "var(--font-editor-text, var(--font-editor))",
+    fontSize: "var(--editor-font-size, 1rem)",
     lineHeight: "var(--editor-line-height)",
   },
   "&.cm-focused": {

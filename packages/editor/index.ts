@@ -25,9 +25,12 @@ export { MarkdownView } from "./MarkdownView";
 export type { MarkdownViewProps } from "./MarkdownView";
 export {
   defaultEditorSettings,
+  clampEditorFontSize,
   editorFonts,
   isEditorFont,
   loadEditorSettings,
+  MAX_EDITOR_FONT_SIZE,
+  MIN_EDITOR_FONT_SIZE,
   saveEditorSetting,
 } from "./editorSettings";
 export type {

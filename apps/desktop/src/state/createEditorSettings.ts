@@ -1,5 +1,6 @@
 import {
   defaultEditorSettings,
+  clampEditorFontSize,
   isEditorFont,
   saveEditorSetting,
   type EditorFont,
@@ -18,7 +19,9 @@ import { withDbLock } from "../vault/sqliteIndex";
 export interface EditorSettingsState extends EditorSettings {
   attachmentSettings: AttachmentSettings;
   loadSettings: () => Promise<void>;
+  previewEditorFontSize: (size: number) => void;
   setEditorFont: (font: EditorFont) => Promise<void>;
+  setEditorFontSize: (size: number) => Promise<void>;
   setStrictLineBreaks: (enabled: boolean) => Promise<void>;
   setUseVimMode: (enabled: boolean) => Promise<void>;
   setAttachmentSettings: (settings: AttachmentSettings) => Promise<void>;
@@ -45,6 +48,9 @@ export function createEditorSettings(
       try {
         const db = await getVaultIndexDb();
         const editorFont = await withDbLock(() => getSetting(db, "editorFont"));
+        const editorFontSize = await withDbLock(() =>
+          getSetting(db, "editorFontSize"),
+        );
         const strictLineBreaks = await withDbLock(() =>
           getSetting(db, "strictLineBreaks"),
         );
@@ -56,6 +62,7 @@ export function createEditorSettings(
           editorFont: isEditorFont(editorFont)
             ? editorFont
             : defaultEditorSettings.editorFont,
+          editorFontSize: clampEditorFontSize(editorFontSize),
           strictLineBreaks: strictLineBreaks === "true",
           useVimMode: useVimMode === "true",
           attachmentSettings: parseAttachmentSettings(attachmentSettings),
@@ -74,6 +81,27 @@ export function createEditorSettings(
         );
       } catch (error) {
         console.error("Failed to save editor font", error);
+      }
+    },
+
+    previewEditorFontSize: (size: number) => {
+      set({ editorFontSize: clampEditorFontSize(size) });
+    },
+
+    setEditorFontSize: async (size: number) => {
+      const editorFontSize = clampEditorFontSize(size);
+      set({ editorFontSize });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(
+            vaultEditorSettingsStorage(db),
+            "editorFontSize",
+            editorFontSize,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to save editor font size", error);
       }
     },
 

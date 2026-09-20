@@ -53,6 +53,7 @@ describe("useWorkspaceStore", () => {
       allFolderPaths: [],
       graph: null,
       editorFont: "system",
+      editorFontSize: 16,
       strictLineBreaks: false,
       useVimMode: false,
     });
@@ -68,6 +69,16 @@ describe("useWorkspaceStore", () => {
 
   it("defaults Vim keybindings to OFF (opt-in)", () => {
     expect(useWorkspaceStore.getState().useVimMode).toBe(false);
+  });
+
+  it("clamps and persists the editor font size through the database lock", async () => {
+    useWorkspaceStore.getState().previewEditorFontSize(99);
+    expect(useWorkspaceStore.getState().editorFontSize).toBe(28);
+
+    await useWorkspaceStore.getState().setEditorFontSize(10);
+
+    expect(useWorkspaceStore.getState().editorFontSize).toBe(12);
+    expect(setSettingMock).toHaveBeenCalledWith({}, "editorFontSize", "12");
   });
 
   it("persists and restores Vim Keybindings setting through SQLite settings", async () => {
