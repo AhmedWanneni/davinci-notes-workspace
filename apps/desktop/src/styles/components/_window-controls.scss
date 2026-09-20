@@ -39,3 +39,53 @@
   background-color: var(--color-text-error);
   color: var(--color-text-on-accent);
 }
+
+.window-controls--mac {
+  gap: var(--space-2);
+  padding-right: var(--space-3);
+
+  .window-controls__button {
+    width: 13px;
+    height: 13px;
+    border: none;
+    border-radius: 50%;
+    color: var(--color-bg-primary-alt);
+    transition: filter var(--motion-duration-fast) var(--motion-ease-standard);
+
+    svg {
+      width: 9px;
+      height: 9px;
+      opacity: 0;
+    }
+
+    &:hover,
+    &:focus-visible {
+      border: none;
+      filter: brightness(0.88);
+
+      svg {
+        opacity: 1;
+      }
+    }
+
+    &:focus-visible {
+      outline-color: var(--color-text-normal);
+    }
+
+    &:nth-child(1) {
+      background-color: var(--color-text-warning);
+    }
+
+    &:nth-child(2) {
+      background-color: var(--color-text-success);
+    }
+
+    &:nth-child(3) {
+      background-color: var(--color-text-error);
+    }
+  }
+
+  .window-controls__button--close:hover {
+    color: var(--color-bg-primary-alt);
+  }
+}

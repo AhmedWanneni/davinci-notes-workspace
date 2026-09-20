@@ -21,6 +21,7 @@ export interface AppTabsProps {
   onToggleLeftSidebar?: () => void;
   isRightSidebarOpen?: boolean;
   onToggleRightSidebar?: () => void;
+  isMac: boolean;
   showWindowControls?: boolean;
 }
 
@@ -35,12 +36,15 @@ export function AppTabs({
   onToggleLeftSidebar,
   isRightSidebarOpen,
   onToggleRightSidebar,
+  isMac,
   showWindowControls,
 }: AppTabsProps) {
   return (
     <div className="app-tabs" role="tablist" aria-label="Open notes">
       <div className="app-tabs__left-controls">
-        {showWindowControls && <WindowControls />}
+        {showWindowControls && (
+          <WindowControls variant={isMac ? "mac" : "default"} />
+        )}
         {onToggleLeftSidebar && !isLeftSidebarOpen && (
           <Tooltip content="Expand sidebar" contentProps={{ side: "bottom" }}>
             <button

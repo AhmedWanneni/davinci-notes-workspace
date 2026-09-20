@@ -66,6 +66,7 @@ const LazyTagsDialog = React.lazy(() =>
 
 export function App() {
   useWindowFullscreen();
+  const isMac = navigator.userAgent.includes("Mac");
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
@@ -548,6 +549,7 @@ export function App() {
             />
           }
           isCollapsed={!isLeftSidebarOpen}
+          isMac={isMac}
           onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
           onOpenSearch={() => {
             setSearchInitialQuery("");
@@ -590,6 +592,7 @@ export function App() {
             onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
             isRightSidebarOpen={isRightSidebarOpen}
             onToggleRightSidebar={() => setIsRightSidebarOpen((prev) => !prev)}
+            isMac={isMac}
             showWindowControls={!isLeftSidebarOpen}
           />
           {openViewId && pluginManager ? (

@@ -1,9 +1,16 @@
 import { Minus, Square, X } from "@phosphor-icons/react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
-export function WindowControls() {
+interface WindowControlsProps {
+  variant?: "default" | "mac";
+}
+
+export function WindowControls({ variant = "default" }: WindowControlsProps) {
   return (
-    <div className="window-controls" aria-label="Window controls">
+    <div
+      className={`window-controls window-controls--${variant}`}
+      aria-label="Window controls"
+    >
       <button
         type="button"
         className="window-controls__button"

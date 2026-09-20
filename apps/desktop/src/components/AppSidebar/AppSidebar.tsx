@@ -19,6 +19,7 @@ export interface AppSidebarProps {
   log: string[];
   navigation?: ReactNode;
   isCollapsed?: boolean;
+  isMac: boolean;
   activeTab?: "files" | "search" | "bookmarks";
   onTabChange?: (tab: "files" | "search" | "bookmarks") => void;
   onToggleLeftSidebar?: () => void;
@@ -51,6 +52,7 @@ export function AppSidebar({
   log,
   navigation,
   isCollapsed,
+  isMac,
   activeTab = "files",
   onTabChange,
   onToggleLeftSidebar,
@@ -99,7 +101,7 @@ export function AppSidebar({
       aria-label="File Explorer"
     >
       <div className="app-sidebar__header">
-        <WindowControls />
+        <WindowControls variant={isMac ? "mac" : "default"} />
         <div className="app-sidebar__header-nav">
           <Tooltip content="Files" contentProps={{ side: "bottom" }}>
             <button
