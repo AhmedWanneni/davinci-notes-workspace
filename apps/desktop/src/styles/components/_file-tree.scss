@@ -83,15 +83,20 @@
 
 .file-tree__emoji-popover {
   position: fixed;
-  z-index: 20;
+  z-index: 110;
 }
 
 .file-tree__emoji-picker {
-  width: 20rem;
-  padding: var(--space-2);
+  width: calc(var(--space-8) * 10);
+  padding: var(--space-3);
   border: var(--border-width-thin) solid var(--color-border-default);
   background: var(--color-bg-primary);
   box-sizing: border-box;
+
+  [frimousse-root] {
+    display: flex;
+    flex-direction: column;
+  }
 
   [frimousse-category-header] {
     padding: var(--space-1) 0;
@@ -119,6 +124,16 @@
   }
 }
 
+.file-tree__emoji-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-normal);
+  font-size: var(--type-scale-sm);
+  font-weight: var(--type-weight-semibold);
+}
+
 .file-tree__emoji-search {
   width: 100%;
   margin-bottom: var(--space-2);
@@ -126,7 +141,7 @@
 }
 
 .file-tree__emoji-viewport {
-  height: 16rem;
+  height: calc(var(--space-8) * 8 + var(--space-2));
 }
 
 .file-tree__caret {

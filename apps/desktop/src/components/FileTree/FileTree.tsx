@@ -12,6 +12,7 @@ import { runTreeRename } from "./runTreeRename";
 import { useFileTreeDrop } from "./useFileTreeDrop";
 import { useFileTreeInlineRename } from "./useFileTreeInlineRename";
 import { useTreeExpandedFolders } from "./useTreeExpandedFolders";
+import { getEmojiPopoverPosition } from "./getEmojiPopoverPosition";
 
 const LazyEmojiPicker = lazy(() =>
   import("./FileTreeEmojiPicker").then((module) => ({
@@ -270,10 +271,11 @@ export function FileTree({
       {iconTarget && (
         <div
           className="file-tree__emoji-popover"
-          style={{ left: iconTarget.x, top: iconTarget.y }}
+          style={getEmojiPopoverPosition(iconTarget.x, iconTarget.y)}
         >
           <Suspense fallback={<span>Loading emoji…</span>}>
             <LazyEmojiPicker
+              onClose={() => setIconTarget(null)}
               onSelect={(emoji) => {
                 setIcons((current) => ({
                   ...current,
