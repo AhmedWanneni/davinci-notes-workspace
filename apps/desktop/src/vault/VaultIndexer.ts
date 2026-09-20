@@ -86,10 +86,15 @@ export async function reconcileVaultChanges(
   batch: VaultChangeBatch,
   graph?: GraphIndex,
   tagIndex?: TagIndex,
-): Promise<{ graph: GraphIndex | undefined; updated: number }> {
+): Promise<{
+  graph: GraphIndex | undefined;
+  updated: number;
+  removed: string[];
+}> {
   const allPaths = await listNotes();
   const pathSet = new Set(allPaths);
   let updated = 0;
+  let reconciledRemoved: string[] = [];
 
   const changedNotes: Note[] = [];
   const extraRemovedPaths: string[] = [];
@@ -133,6 +138,7 @@ export async function reconcileVaultChanges(
         ...indexedPaths.filter((path) => !pathSet.has(path)),
       ]),
     );
+    reconciledRemoved = allRemoved;
     await withDbTransaction(db, async () => {
       for (const removed of allRemoved) {
         await removeNoteFromIndex(db, removed);
@@ -152,7 +158,7 @@ export async function reconcileVaultChanges(
     });
   });
 
-  return { graph, updated };
+  return { graph, updated, removed: reconciledRemoved };
 }
 
 export async function openAndIndexVault(path: string): Promise<{

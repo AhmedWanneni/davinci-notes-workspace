@@ -13,7 +13,10 @@ import {
   queryFullGraphIndex,
   withVaultWatchSuppressed,
   listFolders,
+  readNote,
+  withDbLock,
 } from "./index";
+import { clearSaveTimer } from "../state/saveTimers";
 import { createNoteInVault } from "./createNoteInVault";
 import { createFolderInVault } from "./createFolderInVault";
 import { initialNoteContent } from "./initialNoteContent";
@@ -41,7 +44,6 @@ export function useVaultSession() {
   const [graph, setGraph] = useState<GraphIndex | null>(null);
   const reconcileCount = useRef(0);
 
-  const openNotes = useWorkspaceStore((state) => state.openNotes);
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const initializeVault = useWorkspaceStore((state) => state.initializeVault);
   const updateAllPaths = useWorkspaceStore((state) => state.updateAllPaths);
@@ -52,7 +54,6 @@ export function useVaultSession() {
     (state) => state.incrementVaultUpdateCounter,
   );
   const openNote = useWorkspaceStore((state) => state.openNote);
-  const closeNote = useWorkspaceStore((state) => state.closeNote);
 
   const append = useCallback((line: string) => {
     setLog((prev) => [...prev.slice(-12), line]);
@@ -72,7 +73,7 @@ export function useVaultSession() {
       const paths = await listNotes();
       const folders = await listFolders();
       const db = await getVaultIndexDb();
-      const fullGraph = await queryFullGraphIndex(db);
+      const fullGraph = await withDbLock(() => queryFullGraphIndex(db));
       setGraph(fullGraph);
       await initializeVault(paths, folders, fullGraph, tagIndex);
     },
@@ -228,7 +229,7 @@ export function useVaultSession() {
         `watcher batch #${reconcileCount.current}: +${batch.changed.length} ~${batch.removed.length} removed`,
       );
       const { tagIndex } = useWorkspaceStore.getState();
-      const { updated } = await reconcileVaultChanges(
+      const { updated, removed } = await reconcileVaultChanges(
         batch,
         undefined,
         tagIndex ?? undefined,
@@ -236,14 +237,72 @@ export function useVaultSession() {
       append(`reconciled ${updated} path(s) in SQLite`);
       const paths = await listNotes();
       const folders = await listFolders();
+      const state = useWorkspaceStore.getState();
+      const removedPaths = new Set(removed);
+      const renamed = batch.renamed.filter(
+        ({ from, to }) => paths.includes(to) && removedPaths.has(from),
+      );
+      const renamedFrom = new Set(renamed.map(({ from }) => from));
+      const renamedTo = new Map(renamed.map(({ from, to }) => [from, to]));
+      const conflictPaths: string[] = [];
+
+      for (const path of batch.changed) {
+        if (!state.openNotes.includes(path) || state.dirtyNotes.has(path)) {
+          if (state.dirtyNotes.has(path)) conflictPaths.push(path);
+          continue;
+        }
+        try {
+          const file = await readNote(path);
+          useWorkspaceStore
+            .getState()
+            .replaceLoadedNoteContent(path, file.content);
+        } catch {
+          // Reconciliation already treats a disappearing file as removed.
+        }
+      }
+
+      useWorkspaceStore.setState((current) => {
+        const nextContent = { ...current.notesContent };
+        const nextDirty = new Set(current.dirtyNotes);
+        const nextOpen = current.openNotes
+          .filter((path) => !removedPaths.has(path) || renamedFrom.has(path))
+          .map((path) => renamedTo.get(path) ?? path);
+        for (const path of removedPaths) {
+          clearSaveTimer(path);
+          if (!renamedFrom.has(path)) {
+            delete nextContent[path];
+            nextDirty.delete(path);
+          }
+        }
+        for (const { from, to } of renamed) {
+          if (nextContent[from] !== undefined) {
+            nextContent[to] = nextContent[from];
+            delete nextContent[from];
+          }
+          if (nextDirty.delete(from)) nextDirty.add(to);
+        }
+        return {
+          openNotes: nextOpen,
+          activeNotePath: current.activeNotePath
+            ? (renamedTo.get(current.activeNotePath) ??
+              (removedPaths.has(current.activeNotePath)
+                ? (nextOpen.at(-1) ?? null)
+                : current.activeNotePath))
+            : null,
+          notesContent: nextContent,
+          dirtyNotes: nextDirty,
+        };
+      });
       updateAllPaths(paths);
       updateAllFolderPaths(folders);
       incrementVaultUpdateCounter();
       const db = await getVaultIndexDb();
-      const fullGraph = await queryFullGraphIndex(db);
+      const fullGraph = await withDbLock(() => queryFullGraphIndex(db));
       setGraph(fullGraph);
-      for (const removed of batch.removed) {
-        if (openNotes.includes(removed)) await closeNote(removed);
+      if (conflictPaths.length > 0) {
+        setVaultError(
+          `External changes were detected while editing: ${conflictPaths.join(", ")}. Your unsaved editor content was kept.`,
+        );
       }
     }).then((fn) => {
       unlisten = fn;
@@ -252,12 +311,11 @@ export function useVaultSession() {
       unlisten?.();
     };
   }, [
-    openNotes,
-    closeNote,
     updateAllPaths,
     incrementVaultUpdateCounter,
     append,
     updateAllFolderPaths,
+    setVaultError,
   ]);
 
   return {
