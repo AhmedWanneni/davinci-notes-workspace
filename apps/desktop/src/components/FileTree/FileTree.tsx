@@ -1,47 +1,19 @@
-import { lazy, Suspense, useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { getMappedIcon } from "../../icons/iconMap";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
-import {
-  FileTreeContextMenu,
-  type FileTreeMenuTargetType,
-} from "./FileTreeContextMenu";
+import { FileTreeContextMenu } from "./FileTreeContextMenu";
+import { FileTreeEmojiPopover } from "./FileTreeEmojiPopover";
 import { FileTreeRow } from "./FileTreeRow";
-import { confirmTreeDelete } from "./confirmTreeDelete";
-import { isHiddenOrSystemPath } from "./getDropEffect";
 import { runTreeRename } from "./runTreeRename";
 import { useFileTreeDrop } from "./useFileTreeDrop";
+import { useFileTreeIcons } from "./useFileTreeIcons";
 import { useFileTreeInlineRename } from "./useFileTreeInlineRename";
+import { useFileTreeMenus } from "./useFileTreeMenus";
 import { useTreeExpandedFolders } from "./useTreeExpandedFolders";
-import { getEmojiPopoverPosition } from "./getEmojiPopoverPosition";
+import type { FileTreeProps } from "./FileTreeProps";
 
-const LazyEmojiPicker = lazy(() =>
-  import("./FileTreeEmojiPicker").then((module) => ({
-    default: module.FileTreeEmojiPicker,
-  })),
-);
-
-interface FileTreeProps {
-  filePaths: string[];
-  folderPaths: string[];
-  activePath: string | null;
-  dirtyPaths: Set<string>;
-  pendingRenameFolder?: string | null;
-  pendingRenameNote?: string | null;
-  onNoteClick: (path: string) => void;
-  onCreateNote?: (parentFolder?: string) => void | Promise<unknown>;
-  onCreateFolder: (parentFolder: string) => Promise<string | null>;
-  onPendingRenameHandled?: () => void;
-  onPendingRenameNoteHandled?: () => void;
-  onRenameNote?: (oldPath: string, newStem: string) => Promise<boolean>;
-  onRenameFolder?: (oldPath: string, newName: string) => Promise<boolean>;
-  onDeleteNote?: (path: string) => Promise<boolean>;
-  onDeleteFolder?: (path: string) => Promise<boolean>;
-  onDuplicateNote?: (path: string) => Promise<boolean>;
-  onMoveNote?: (path: string, newParentFolder: string) => Promise<boolean>;
-  onMoveFile?: (path: string, newParentFolder: string) => Promise<boolean>;
-  onDropFiles?: (targetFolder: string, files: readonly File[]) => Promise<void>;
-  onSelectedFolderChange?: (folderPath: string | null) => void;
-}
+export type { FileTreeProps };
 
 export function FileTree({
   filePaths,
@@ -96,18 +68,20 @@ export function FileTree({
     [filePaths, folderPaths],
   );
 
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-    targetType: FileTreeMenuTargetType;
-    targetPath: string;
-  } | null>(null);
-  const [iconTarget, setIconTarget] = useState<{
-    path: string;
-    x: number;
-    y: number;
-  } | null>(null);
-  const [icons, setIcons] = useState<Record<string, string>>({});
+  const { icons, setIcon } = useFileTreeIcons();
+  const {
+    contextMenu,
+    iconTarget,
+    openContextMenu,
+    confirmDelete,
+    closeContextMenu,
+    closeIconPicker,
+    openIconPicker,
+  } = useFileTreeMenus({
+    onDeleteNote,
+    onDeleteFolder,
+    onSelectedFolderChange,
+  });
 
   const visibleNodes = useMemo(
     () => flattenVisibleTree(tree, expandedFolders),
@@ -136,26 +110,6 @@ export function FileTree({
     onDropFiles,
     onExpandFolder: expandFolder,
   });
-
-  const openContextMenu = (
-    e: React.MouseEvent,
-    targetType: FileTreeMenuTargetType,
-    targetPath: string,
-  ) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (targetPath && isHiddenOrSystemPath(targetPath)) return;
-    setContextMenu({ x: e.clientX, y: e.clientY, targetType, targetPath });
-  };
-
-  const confirmDelete = (path: string, isFolder: boolean) =>
-    confirmTreeDelete(path, isFolder, async () => {
-      const deleted = await (isFolder
-        ? onDeleteFolder?.(path)
-        : onDeleteNote?.(path));
-      if (deleted && isFolder) onSelectedFolderChange?.(null);
-      return deleted;
-    });
 
   return (
     <>
@@ -190,7 +144,7 @@ export function FileTree({
                 height={virtualItem.size}
                 isActive={isFile && item.node.path === activePath}
                 isDirty={isFile && dirtyPaths.has(item.node.path)}
-                icon={icons[item.node.path]}
+                icon={getMappedIcon(icons, item.node.path) ?? undefined}
                 isDragging={item.node.path === draggedPath}
                 isDropTarget={isFolder && item.node.path === dropTargetFolder}
                 isExpanded={isFolder && expandedFolders.has(item.node.path)}
@@ -209,11 +163,7 @@ export function FileTree({
                   }
                 }}
                 onIconClick={(event) =>
-                  setIconTarget({
-                    path: item.node.path,
-                    x: event.clientX,
-                    y: event.clientY,
-                  })
+                  openIconPicker(item.node.path, event)
                 }
                 onContextMenu={(e) =>
                   openContextMenu(e, isFile ? "file" : "folder", item.node.path)
@@ -265,27 +215,19 @@ export function FileTree({
           onDuplicateNote={onDuplicateNote}
           onDeleteNote={(path) => void confirmDelete(path, false)}
           onDeleteFolder={(path) => void confirmDelete(path, true)}
-          onClose={() => setContextMenu(null)}
+          onClose={closeContextMenu}
         />
       )}
       {iconTarget && (
-        <div
-          className="file-tree__emoji-popover"
-          style={getEmojiPopoverPosition(iconTarget.x, iconTarget.y)}
-        >
-          <Suspense fallback={<span>Loading emoji…</span>}>
-            <LazyEmojiPicker
-              onClose={() => setIconTarget(null)}
-              onSelect={(emoji) => {
-                setIcons((current) => ({
-                  ...current,
-                  [iconTarget.path]: emoji,
-                }));
-                setIconTarget(null);
-              }}
-            />
-          </Suspense>
-        </div>
+        <FileTreeEmojiPopover
+          x={iconTarget.x}
+          y={iconTarget.y}
+          onClose={closeIconPicker}
+          onSelect={(emoji) => {
+            setIcon(iconTarget.path, emoji);
+            closeIconPicker();
+          }}
+        />
       )}
     </>
   );

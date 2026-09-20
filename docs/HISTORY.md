@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-20 | File tree emoji picker layout and persistence | Portaled and contained the Frimousse picker so it no longer stretches the sidebar; persist markdown `icon` frontmatter and `.davinci/icons.json`, then reload them on vault open. Focused tests pass; native restart still UNVERIFIED. |
 | 2026-09-19 | Fix: Folder rename and delete no-op | Replaced unsupported browser delete confirmation with the existing Tauri dialog plugin; surfaced async folder rename/delete errors; rejected slash folder names; moved recursive native folder command safety into tested core with root/hidden/traversal/symlink guards. Real temp-filesystem tests verify nested rename/delete; native visual acceptance remains pending. |
 | 2026-09-19 | File Tree Context Menu, Click-Away Dismissal, and Folder Actions (CRUD) | Completed 5-task context menu dismissal and folder CRUD overhaul: capture-phase click-away dismissal via `useContextMenuDismiss`, tailored file/folder/empty-space menu options, arrow-key navigation, parent-folder-scoped creation with auto-expansion and immediate inline rename, batched SQLite transaction folder rename, and safe folder deletion with native Rust `delete_folder`, root protection, confirmation prompt, and index/tab cleanup; added ADR-0158. |
 | 2026-09-19 | File Tree Drag UI & Drop Feedback | Completed 4-task file tree drag overhaul: synchronous flat drag preview pill, pure getDropEffect validation, deferred source dimming, flat folder/root drop feedback, and 600ms hover-to-expand with cancellation; added ADR-0157. |
@@ -2772,6 +2773,12 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Reconciliation reads external files before entering `withDbLock`, then compares filesystem paths with SQLite paths under that lock to clear stale entries. It no longer suppresses the watcher during reconciliation.
 - External deletes clear save timers and tabs without writing the deleted path. Renames remap open paths; clean open files reload. Dirty files keep local content and report a vault error.
 - Checks: Rust watcher tests, focused indexer/stress tests, and desktop lint passed. Required real temporary-vault watcher operations and the full indexing/settings/embedding concurrency test remain UNVERIFIED.
+
+### 2026-09-20 — File tree emoji picker layout and persistence
+
+- Selection previously only updated in-memory React state, so icons vanished after restart. Markdown notes now write `icon` frontmatter; folders and other files write `.davinci/icons.json`. Load merges both sources when a vault opens.
+- The unstyled Frimousse grid sat in the sidebar flex flow and overflowed row layout. The picker is now portaled to `document.body`, width/height constrained, 8 flex columns, overflow hidden; tree-row emojis are capped to `--icon-size-sm`.
+- Focused icon/picker tests passed (23). Native picker interaction and restart-with-real-vault remain UNVERIFIED. Rename/delete remapping of map keys and sync inclusion of `.davinci/icons.json` are still open.
 
 ### 2026-09-20 — Unified custom window controls
 

@@ -1,31 +1,18 @@
-import {
-  Dialog,
-  DialogContent,
-  Typography,
-  Button,
-  Checkbox,
-  Divider,
-} from "@app/design-system";
-import {
-  editorFonts,
-  isEditorFont,
-  MAX_EDITOR_FONT_SIZE,
-  MIN_EDITOR_FONT_SIZE,
-} from "@app/editor";
-import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import React, { useState } from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { openVaultFromPicker } from "../../vault";
-import { AttachmentLocationSettings } from "../AttachmentLocationSettings";
-import { PluginSettingsList } from "../PluginSettingsList";
-import { usePluginStore } from "../../state/usePluginStore";
-import { PluginBrowser } from "../PluginBrowser";
-import { ThemeSettingsList } from "../ThemeSettingsList";
-import { ThemeBrowser } from "../ThemeBrowser";
-import type { ThemeLifecycleManager } from "../../themes";
-import type { ThemeDiscoveryError, ThemeRecord } from "../../themes";
-
-import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
-import { GitRemoteSetupPanel } from "../GitRemoteSetupPanel";
-import React from "react";
+import type { ThemeDiscoveryError, ThemeLifecycleManager, ThemeRecord } from "../../themes";
+import type { SyncMode } from "../SyncSettingsPanel";
+import { SettingsSidebar, type SettingsTabId } from "./SettingsSidebar";
+import { GeneralSettingsTab } from "./GeneralSettingsTab";
+import { EditorSettingsTab } from "./EditorSettingsTab";
+import { AppearanceSettingsTab } from "./AppearanceSettingsTab";
+import { FilesLinksSettingsTab } from "./FilesLinksSettingsTab";
+import { SyncSettingsTab } from "./SyncSettingsTab";
+import { PluginsSettingsTab } from "./PluginsSettingsTab";
+import { SettingsCard } from "./SettingsCard";
+import { SettingsRow } from "./SettingsRow";
+import styles from "./SettingsDialog.module.scss";
 
 const LazyAISettingsPanel = React.lazy(() =>
   import("../AISettingsPanel").then((module) => ({
@@ -33,7 +20,7 @@ const LazyAISettingsPanel = React.lazy(() =>
   })),
 );
 
-interface SettingsDialogProps {
+export interface SettingsDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   vaultPath: string | null;
@@ -80,32 +67,8 @@ export function SettingsDialog({
   onReloadThemes,
   onActivateThemeFromBrowser,
 }: SettingsDialogProps) {
-  const editorFont = useWorkspaceStore((state) => state.editorFont);
-  const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
-  const setEditorFont = useWorkspaceStore((state) => state.setEditorFont);
-  const previewEditorFontSize = useWorkspaceStore(
-    (state) => state.previewEditorFontSize,
-  );
-  const setEditorFontSize = useWorkspaceStore(
-    (state) => state.setEditorFontSize,
-  );
-  const strictLineBreaks = useWorkspaceStore((state) => state.strictLineBreaks);
-  const setStrictLineBreaks = useWorkspaceStore(
-    (state) => state.setStrictLineBreaks,
-  );
-  const useVimMode = useWorkspaceStore((state) => state.useVimMode);
-  const setUseVimMode = useWorkspaceStore((state) => state.setUseVimMode);
-  const attachmentSettings = useWorkspaceStore(
-    (state) => state.attachmentSettings,
-  );
-  const setAttachmentSettings = useWorkspaceStore(
-    (state) => state.setAttachmentSettings,
-  );
-  const plugins = usePluginStore((state) => state.plugins);
-  const settingsTabs = usePluginStore((state) => state.settingsTabs);
-  const togglePlugin = usePluginStore((state) => state.togglePlugin);
-  const pluginManager = usePluginStore((state) => state.pluginManager);
-  const initPlugins = usePluginStore((state) => state.initPlugins);
+  const [activeTab, setActiveTab] = useState<SettingsTabId>("general");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSwitchVault = async () => {
     try {
@@ -118,220 +81,123 @@ export function SettingsDialog({
     }
   };
 
+  const vaultName = vaultPath ? vaultPath.split(/[/\\]/).filter(Boolean).pop() || "Vault" : "Vault";
+  const windowTitle = `Settings - ${vaultName} - Davinci Notes 0.1.0`;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="settings-dialog" title="Settings">
-        <div className="settings-dialog__container">
-          <section className="settings-dialog__section">
-            <div className="settings-dialog__row">
-              <div className="settings-dialog__info">
-                <Typography variant="h3" size="sm">
-                  Editor Font
-                </Typography>
-                <Typography variant="text" size="xs" color="muted">
-                  Choose the font used for the markdown editor.
-                </Typography>
-              </div>
-              <div className="settings-dialog__control">
-                <select
-                  value={editorFont}
-                  onChange={(e) => {
-                    if (isEditorFont(e.target.value)) {
-                      void setEditorFont(e.target.value);
-                    }
-                  }}
-                  className="settings-dialog__select"
-                >
-                  {editorFonts.map((font) => (
-                    <option key={font} value={font}>
-                      {font === "system"
-                        ? "System UI"
-                        : font[0].toUpperCase() + font.slice(1)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+    <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className={styles["settings-dialog-overlay"]} />
+        <DialogPrimitive.Content
+          className={styles["settings-dialog-root"]}
+          aria-label="Settings"
+        >
+          <div className={styles["settings-window-header"]}>
+            <div className={styles["settings-traffic-lights"]}>
+              <button
+                type="button"
+                className={`${styles["traffic-dot"]} ${styles["traffic-dot--close"]}`}
+                onClick={() => onOpenChange(false)}
+                aria-label="Close settings"
+              />
+              <span className={`${styles["traffic-dot"]} ${styles["traffic-dot--minimize"]}`} />
+              <span className={`${styles["traffic-dot"]} ${styles["traffic-dot--maximize"]}`} />
             </div>
-          </section>
+            <div className={styles["settings-window-title"]}>{windowTitle}</div>
+            <div className={styles["settings-header-spacer"]} />
+          </div>
 
-          <section className="settings-dialog__section">
-            <div className="settings-dialog__row">
-              <div className="settings-dialog__info">
-                <Typography variant="h3" size="sm">
-                  Editor Font Size
-                </Typography>
-                <Typography variant="text" size="xs" color="muted">
-                  Scale the editor text from {MIN_EDITOR_FONT_SIZE} to{" "}
-                  {MAX_EDITOR_FONT_SIZE} px.
-                </Typography>
-              </div>
-              <div className="settings-dialog__control">
-                <input
-                  type="range"
-                  min={MIN_EDITOR_FONT_SIZE}
-                  max={MAX_EDITOR_FONT_SIZE}
-                  step="1"
-                  value={editorFontSize}
-                  aria-label="Editor font size"
-                  onChange={(event) =>
-                    previewEditorFontSize(Number(event.target.value))
-                  }
-                  onPointerUp={() => void setEditorFontSize(editorFontSize)}
-                  onKeyUp={() => void setEditorFontSize(editorFontSize)}
-                />
-                <input
-                  type="number"
-                  min={MIN_EDITOR_FONT_SIZE}
-                  max={MAX_EDITOR_FONT_SIZE}
-                  step="1"
-                  value={editorFontSize}
-                  aria-label="Editor font size in pixels"
-                  onChange={(event) =>
-                    previewEditorFontSize(Number(event.target.value))
-                  }
-                  onBlur={() => void setEditorFontSize(editorFontSize)}
-                />
-                <Button
-                  variant="secondary"
-                  onClick={() => void setEditorFontSize(16)}
-                >
-                  Reset
-                </Button>
-              </div>
-            </div>
-          </section>
-
-          <section className="settings-dialog__section">
-            <div className="settings-dialog__row">
-              <div className="settings-dialog__info">
-                <Typography variant="h3" size="sm">
-                  Strict Line Breaks
-                </Typography>
-                <Typography variant="text" size="xs" color="muted">
-                  Merge soft paragraph lines; use two trailing spaces or
-                  Shift+Enter for a hard break.
-                </Typography>
-              </div>
-              <div className="settings-dialog__control">
-                <Checkbox
-                  checked={strictLineBreaks}
-                  onCheckedChange={(checked) =>
-                    void setStrictLineBreaks(checked === true)
-                  }
-                  aria-label="Strict Line Breaks"
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="settings-dialog__section">
-            <div className="settings-dialog__row">
-              <div className="settings-dialog__info">
-                <Typography variant="h3" size="sm">
-                  Vim Keybindings
-                </Typography>
-                <Typography variant="text" size="xs" color="muted">
-                  Enable modal Vim keybindings for navigation and editing.
-                </Typography>
-              </div>
-              <div className="settings-dialog__control">
-                <Checkbox
-                  checked={useVimMode}
-                  onCheckedChange={(checked) =>
-                    void setUseVimMode(checked === true)
-                  }
-                  aria-label="Vim Keybindings"
-                />
-              </div>
-            </div>
-          </section>
-
-          <AttachmentLocationSettings
-            settings={attachmentSettings}
-            onChange={setAttachmentSettings}
-          />
-
-          <Divider />
-
-          <section className="settings-dialog__section">
-            <SyncSettingsPanel
-              mode={syncMode}
-              onSelectMode={(mode) => onSelectSyncMode?.(mode)}
-              driveAccountEmail={driveAccountEmail}
-              isDriveSignedIn={isDriveSignedIn}
-              isDriveSyncing={isDriveSyncing}
-              onDriveSignIn={onDriveSignIn}
-              onDriveSignOut={onDriveDisconnect}
-              onDriveRefresh={onDriveRefresh}
-              onDriveSyncNow={onDriveSyncNow}
-              vaultPath={vaultPath}
-              onOpenConflictsPanel={onOpenConflictsPanel}
+          <div className={styles["settings-body"]}>
+            <SettingsSidebar
+              activeTab={activeTab}
+              onSelectTab={setActiveTab}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
             />
-          </section>
 
-          <Divider />
+            <main className={styles["settings-main"]} tabIndex={-1}>
+              {activeTab === "general" && (
+                <GeneralSettingsTab
+                  vaultPath={vaultPath}
+                  onSwitchVault={() => void handleSwitchVault()}
+                />
+              )}
 
-          <GitRemoteSetupPanel />
+              {activeTab === "appearance" && (
+                <AppearanceSettingsTab
+                  themes={themes}
+                  activeThemeId={activeThemeId}
+                  discoveryErrors={themeDiscoveryErrors}
+                  onActivateTheme={onActivateTheme}
+                  vaultPath={vaultPath}
+                  themeManager={themeManager}
+                  onReloadThemes={onReloadThemes}
+                  onActivateThemeFromBrowser={onActivateThemeFromBrowser}
+                />
+              )}
 
-          <Divider />
+              {activeTab === "editor" && <EditorSettingsTab />}
 
-          <React.Suspense fallback={null}>
-            <LazyAISettingsPanel />
-          </React.Suspense>
+              {activeTab === "files" && <FilesLinksSettingsTab />}
 
-          <Divider />
+              {activeTab === "sync" && (
+                <SyncSettingsTab
+                  syncMode={syncMode}
+                  onSelectSyncMode={onSelectSyncMode}
+                  driveAccountEmail={driveAccountEmail}
+                  isDriveSignedIn={isDriveSignedIn}
+                  isDriveSyncing={isDriveSyncing}
+                  onDriveSignIn={onDriveSignIn}
+                  onDriveDisconnect={onDriveDisconnect}
+                  onDriveRefresh={onDriveRefresh}
+                  onDriveSyncNow={onDriveSyncNow}
+                  vaultPath={vaultPath}
+                  onOpenConflictsPanel={onOpenConflictsPanel}
+                />
+              )}
 
-          <PluginSettingsList
-            plugins={plugins}
-            settingsTabs={settingsTabs}
-            onTogglePlugin={togglePlugin}
-          />
+              {activeTab === "ai" && (
+                <div className={styles["settings-tab-content"]}>
+                  <React.Suspense fallback={<div>Loading AI Settings...</div>}>
+                    <LazyAISettingsPanel />
+                  </React.Suspense>
+                </div>
+              )}
 
-          <ThemeSettingsList
-            themes={themes}
-            activeThemeId={activeThemeId}
-            discoveryErrors={themeDiscoveryErrors}
-            onActivate={onActivateTheme}
-          />
+              {activeTab === "plugins" && (
+                <PluginsSettingsTab vaultPath={vaultPath} />
+              )}
 
-          {themeManager && vaultPath && (
-            <ThemeBrowser
-              vaultPath={vaultPath}
-              manager={themeManager}
-              onReload={onReloadThemes}
-              onActivate={onActivateThemeFromBrowser}
-            />
-          )}
-
-          {pluginManager && vaultPath && (
-            <PluginBrowser
-              vaultPath={vaultPath}
-              manager={pluginManager}
-              onReload={() => initPlugins(vaultPath)}
-            />
-          )}
-
-          <Divider />
-
-          <section className="settings-dialog__section">
-            <div className="settings-dialog__row">
-              <div className="settings-dialog__info">
-                <Typography variant="h3" size="sm">
-                  Vault Location
-                </Typography>
-                <Typography variant="text" size="xs" color="muted">
-                  Current vault path: {vaultPath || "None"}
-                </Typography>
-              </div>
-              <div className="settings-dialog__control">
-                <Button variant="secondary" onClick={handleSwitchVault}>
-                  Switch Vault
-                </Button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </DialogContent>
-    </Dialog>
+              {![
+                "general",
+                "appearance",
+                "editor",
+                "files",
+                "sync",
+                "ai",
+                "plugins",
+              ].includes(activeTab) && (
+                <div className={styles["settings-tab-content"]}>
+                  <SettingsCard title={activeTab.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}>
+                    <SettingsRow
+                      title="Plugin Options"
+                      description={`Configure settings for the ${activeTab} feature.`}
+                    >
+                      <button
+                        type="button"
+                        className={styles["settings-select"]}
+                        disabled
+                      >
+                        Active
+                      </button>
+                    </SettingsRow>
+                  </SettingsCard>
+                </div>
+              )}
+            </main>
+          </div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 }

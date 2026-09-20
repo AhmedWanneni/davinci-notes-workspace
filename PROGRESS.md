@@ -55,21 +55,15 @@ caret loss in a large note, and offline visual network inspection. Deferred:
 code-font selector, static settings preview, broader font list, and adding OFL
 notices to a future third-party-notices surface.
 
-**Emoji icons — Task 1 library boundary complete; Tasks 2–5 next**
-Frimousse `0.3.0` (MIT, React peer `^18 || ^19`) and pinned
-`emojibase-data@17.0.0` (MIT) replace the rejected emoji-mart option. The
-desktop build/dev preparation script copies only English `data.json` (775,157
-raw / 98,003 gzip bytes) and `messages.json` (6,499 raw / 1,595 gzip bytes)
-from the installed package to ignored local static assets. Frimousse fetches
-those two files after its root mounts; it provides search, categories, skin
-tones, keyboard navigation, virtualization, local cache, and native-support
-filtering. The picker component remains to be wired lazily in Task 4, so its
-final emitted-chunk measurement and offline picker interaction remain
-UNVERIFIED. The existing Tauri CSP is `null` before and after; no remote origin
-was permitted. ADR-0159 records this decision. The current sync manifest does
-not include `.davinci/icons.json` because its Rust manifest walker only includes
-known note/media extensions; Task 3 must add an explicit sync-safe path and a
-per-key conflict merge rather than whole-file last-writer-wins.
+**Emoji icons — picker layout and persistence wired; sync/rename remap still open**
+Selecting an emoji no longer lives only in React state. Markdown notes write `icon`
+into YAML frontmatter; folders and non-Markdown files write
+`.davinci/icons.json`. Icons reload from those sources when a vault opens.
+The Frimousse picker is portaled to `document.body`, constrained in height/width,
+and laid out as 8 flex columns so it cannot stretch the sidebar. Tree-row emojis
+are capped to `--icon-size-sm`. Focused icon/picker tests pass (23). UNVERIFIED:
+native picker in the Tauri window, restart with a real vault, and rename/delete
+remap of `.davinci/icons.json` keys. The sync walker still omits that map file.
 
 **Folder rename/delete no-op fix — implementation complete; native visual acceptance pending**
 Root causes: folder delete used `window.confirm()`, a browser modal API unsupported by the Tauri webview (the same class of failure recorded in ADR-0058), so cancellation/no dialog prevented any `delete_folder` invoke. Folder rename reached the correct folder wrapper/native command, but failed IPC/index outcomes were silently reduced to `false`/`console.warn`; its descendant-content read also swallowed errors. The fix uses the existing Tauri dialog plugin for native deletion confirmation and visible failure messages, surfaces failed inline folder/note renames, rejects slash-bearing folder names before IPC, and reads descendants before native rename so an unreadable child aborts before the filesystem mutation.

@@ -29,6 +29,7 @@ export function FileTreeEmojiPicker({
         </Button>
       </div>
       <EmojiPicker.Root
+        columns={8}
         emojibaseUrl="/emoji-data"
         onEmojiSelect={({ emoji }) => onSelect(emoji)}
       >
@@ -41,9 +42,18 @@ export function FileTreeEmojiPicker({
               CategoryHeader: ({ category, ...props }) => (
                 <div {...props}>{category.label}</div>
               ),
-              Row: (props) => <div {...props} />,
+              Row: ({ className, ...props }) => (
+                <div
+                  className={["file-tree__emoji-row", className]
+                    .filter(Boolean)
+                    .join(" ")}
+                  {...props}
+                />
+              ),
               Emoji: ({ emoji, ...props }) => (
-                <button {...props}>{emoji.emoji}</button>
+                <button type="button" {...props}>
+                  {emoji.emoji}
+                </button>
               ),
             }}
           />

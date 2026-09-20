@@ -1,7 +1,7 @@
 .app-shell {
   height: 100vh;
   width: 100vw;
-  border-radius: var(--border-radius-xl);
+  border-radius: .7rem;
   overflow: hidden;
   background-color: var(--color-bg-primary);
   color: var(--color-text-normal);
@@ -20,12 +20,12 @@
   position: relative;
 }
 
-.app-shell__body > .icon-rail {
+.app-shell__body>.icon-rail {
   grid-column: 1;
   grid-row: 1 / -1;
 }
 
-.app-shell__body > .app-right-sidebar {
+.app-shell__body>.app-right-sidebar {
   grid-column: 4;
   grid-row: 1 / -1;
 }

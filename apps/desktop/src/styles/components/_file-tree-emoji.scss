@@ -1,0 +1,92 @@
+.file-tree__emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  overflow: hidden;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+  font-size: var(--icon-size-sm);
+  line-height: 1;
+}
+
+.file-tree__emoji-popover {
+  position: fixed;
+  z-index: 110;
+  width: calc(var(--space-8) * 10);
+  max-width: calc(100vw - var(--space-6));
+}
+
+.file-tree__emoji-picker {
+  width: 100%;
+  max-height: calc(var(--space-8) * 12);
+  padding: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  background: var(--color-bg-primary);
+  box-sizing: border-box;
+  overflow: hidden;
+
+  [frimousse-root] {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  [frimousse-list] {
+    overflow: hidden;
+  }
+
+  [frimousse-category-header] {
+    padding: var(--space-1) 0;
+    color: var(--color-text-muted);
+    font-size: var(--type-scale-xs);
+  }
+
+  [frimousse-emoji] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-size-xl);
+    height: var(--icon-size-xl);
+    flex-shrink: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text-normal);
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+    font-size: var(--type-scale-base);
+    line-height: 1;
+    overflow: hidden;
+    cursor: pointer;
+
+    &:hover,
+    &[data-active] {
+      background: var(--color-bg-hover);
+    }
+  }
+}
+
+.file-tree__emoji-row {
+  display: flex;
+}
+
+.file-tree__emoji-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-normal);
+  font-size: var(--type-scale-sm);
+  font-weight: var(--type-weight-semibold);
+}
+
+.file-tree__emoji-search {
+  width: 100%;
+  margin-bottom: var(--space-2);
+  box-sizing: border-box;
+}
+
+.file-tree__emoji-viewport {
+  height: calc(var(--space-8) * 8 + var(--space-2));
+  overflow: hidden;
+}
