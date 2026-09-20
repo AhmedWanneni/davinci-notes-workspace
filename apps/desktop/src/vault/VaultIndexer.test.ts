@@ -8,7 +8,9 @@ const getVaultIndexDb = vi.fn();
 const clearVaultIndex = vi.fn();
 const persistNotesBatch = vi.fn();
 const withDbLock = vi.fn(async (work: () => Promise<unknown>) => work());
-const withDbTransaction = vi.fn(async (_db: unknown, work: () => Promise<unknown>) => work());
+const withDbTransaction = vi.fn(
+  async (_db: unknown, work: () => Promise<unknown>) => work(),
+);
 
 vi.mock("./vaultCommands", () => ({
   listNotes,
@@ -71,6 +73,7 @@ describe("VaultIndexer", () => {
     const reconcilePromise = reconcileVaultChanges({
       changed: ["a.md"],
       removed: [],
+      renamed: [],
     });
 
     await vi.runAllTimersAsync();

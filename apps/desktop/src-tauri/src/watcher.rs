@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use notify::event::{CreateKind, EventKind, ModifyKind, RemoveKind};
+use notify::event::{CreateKind, EventKind, ModifyKind, RemoveKind, RenameMode};
 use notify_debouncer_full::{new_debouncer, DebounceEventResult, Debouncer, RecommendedCache};
 use notify::{RecommendedWatcher, RecursiveMode};
 use serde::Serialize;
@@ -18,6 +18,14 @@ pub const DEBOUNCE_MS: u64 = 400;
 pub struct VaultChangeBatch {
   pub changed: Vec<String>,
   pub removed: Vec<String>,
+  pub renamed: Vec<VaultPathRename>,
+}
+
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VaultPathRename {
+  pub from: String,
+  pub to: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -72,9 +80,16 @@ impl VaultWatcher {
 
         let mut changed = HashSet::new();
         let mut removed = HashSet::new();
+        let mut renamed = Vec::new();
 
         for debounced in events {
           let event = debounced.event;
+          if let Some((from, to)) = rename_paths(&vault_for_events, &event) {
+            removed.insert(from.clone());
+            changed.insert(to.clone());
+            renamed.push(VaultPathRename { from, to });
+            continue;
+          }
           for path in event.paths {
             if !path.starts_with(&vault_for_events) {
               continue;
@@ -108,6 +123,7 @@ impl VaultWatcher {
         let payload = VaultChangeBatch {
           changed: changed.into_iter().collect(),
           removed: removed.into_iter().collect(),
+          renamed,
         };
 
         let _ = app.emit("vault-changed", payload);
@@ -126,6 +142,21 @@ impl VaultWatcher {
     *guard = Some(debouncer);
     Ok(())
   }
+}
+
+fn rename_paths(vault_root: &Path, event: &notify::Event) -> Option<(String, String)> {
+  if !matches!(event.kind, EventKind::Modify(ModifyKind::Name(RenameMode::Both | RenameMode::Any))) {
+    return None;
+  }
+  let [from, to] = event.paths.as_slice() else {
+    return None;
+  };
+  let from = vault_relative(vault_root, from)?;
+  let to = vault_relative(vault_root, to)?;
+  if !is_supported_vault_file(&from) || !is_supported_vault_file(&to) {
+    return None;
+  }
+  Some((from, to))
 }
 
 fn is_supported_vault_file(relative: &str) -> bool {
@@ -191,6 +222,15 @@ mod tests {
       classify_vault_event(&EventKind::Remove(RemoveKind::File)),
       Some(VaultPathChange::Removed)
     );
+  }
+
+  #[test]
+  fn recognizes_supported_file_renames() {
+    let root = Path::new("/vault");
+    let event = notify::Event::new(EventKind::Modify(ModifyKind::Name(RenameMode::Both)))
+      .add_path("/vault/old.md".into())
+      .add_path("/vault/new.md".into());
+    assert_eq!(rename_paths(root, &event), Some(("old.md".into(), "new.md".into())));
   }
 
   #[test]

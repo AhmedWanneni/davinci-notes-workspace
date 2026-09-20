@@ -17,7 +17,9 @@ const {
   startVaultWatcher: vi.fn(),
   getVaultIndexDb: vi.fn(),
   withDbLock: vi.fn(async (work: () => Promise<unknown>) => work()),
-  withDbTransaction: vi.fn(async (_db: unknown, work: () => Promise<unknown>) => work()),
+  withDbTransaction: vi.fn(async (_db: unknown, work: () => Promise<unknown>) =>
+    work(),
+  ),
 }));
 
 vi.mock("./vaultCommands", () => ({
@@ -88,6 +90,7 @@ describe("Vault Stress & Repeated Cycle Verification", () => {
     const reconcilePromise = reconcileVaultChanges({
       changed: ["note_0.md", "note_1.md"],
       removed: [],
+      renamed: [],
     });
 
     const [indexRes, reconcileRes] = await Promise.all([
@@ -106,6 +109,7 @@ describe("Vault Stress & Repeated Cycle Verification", () => {
     const result = await reconcileVaultChanges({
       changed: burstChanged,
       removed: burstRemoved,
+      renamed: [],
     });
 
     expect(result.updated).toBe(52);

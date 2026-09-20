@@ -18,6 +18,7 @@ export interface FileTreeNode {
 export interface VaultChangeBatch {
   changed: string[];
   removed: string[];
+  renamed: Array<{ from: string; to: string }>;
 }
 
 export async function startVaultWatcher(): Promise<void> {
