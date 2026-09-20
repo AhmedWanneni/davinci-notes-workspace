@@ -74,8 +74,12 @@ impl VaultWatcher {
           return;
         }
 
-        let Ok(events) = result else {
-          return;
+        let events = match result {
+          Ok(events) => events,
+          Err(errors) => {
+            log::warn!("Vault watcher reported {} event error(s): {:?}", errors.len(), errors);
+            return;
+          }
         };
 
         let mut changed = HashSet::new();
@@ -126,7 +130,13 @@ impl VaultWatcher {
           renamed,
         };
 
-        let _ = app.emit("vault-changed", payload);
+        log::info!(
+          "Vault watcher emitting {} changed, {} removed, {} renamed path(s)",
+          payload.changed.len(), payload.removed.len(), payload.renamed.len()
+        );
+        if let Err(error) = app.emit("vault-changed", payload) {
+          log::warn!("Vault watcher could not emit vault-changed: {error}");
+        }
       },
     )
     .map_err(|e| format!("Watcher init failed: {e}"))?;
@@ -140,6 +150,7 @@ impl VaultWatcher {
       .lock()
       .map_err(|_| "Watcher lock poisoned".to_string())?;
     *guard = Some(debouncer);
+    log::info!("Vault watcher started for {}", vault_root.display());
     Ok(())
   }
 }
@@ -172,7 +183,9 @@ pub fn classify_vault_event(kind: &EventKind) -> Option<VaultPathChange> {
   match kind {
     EventKind::Remove(RemoveKind::Any | RemoveKind::File) => Some(VaultPathChange::Removed),
     EventKind::Create(CreateKind::Any | CreateKind::File) => Some(VaultPathChange::Changed),
-    EventKind::Modify(ModifyKind::Any | ModifyKind::Data(_)) => Some(VaultPathChange::Changed),
+    // macOS FSEvents commonly reports an external editor write as WriteTime
+    // metadata only. Access events are still ignored, so index reads do not loop.
+    EventKind::Modify(ModifyKind::Any | ModifyKind::Data(_) | ModifyKind::Metadata(_)) => Some(VaultPathChange::Changed),
     _ => None,
   }
 }
@@ -191,12 +204,12 @@ mod tests {
   use notify::event::{AccessKind, DataChange, ModifyKind};
 
   #[test]
-  fn ignores_metadata_and_access_events() {
+  fn ignores_access_events_but_treats_write_metadata_as_changed() {
     assert_eq!(
       classify_vault_event(&EventKind::Modify(ModifyKind::Metadata(
         notify::event::MetadataKind::WriteTime
       ))),
-      None
+      Some(VaultPathChange::Changed)
     );
     assert_eq!(
       classify_vault_event(&EventKind::Access(AccessKind::Read)),
