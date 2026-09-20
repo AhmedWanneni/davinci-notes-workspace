@@ -65,18 +65,6 @@
   }
 }
 
-.app-sidebar__traffic-light-spacer {
-  width: 82px;
-  min-width: 82px;
-  flex-shrink: 0;
-  height: 100%;
-}
-
-:root[data-fullscreen] .app-sidebar__traffic-light-spacer,
-:root[data-fullscreen] .app-tabs__traffic-light-spacer {
-  display: none;
-}
-
 .app-sidebar__drag-region {
   align-self: stretch;
   flex: 1;

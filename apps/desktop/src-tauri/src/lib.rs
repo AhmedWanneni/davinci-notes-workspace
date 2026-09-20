@@ -12,8 +12,6 @@ mod state;
 mod watcher;
 
 use state::VaultState;
-#[cfg(target_os = "macos")]
-use tauri::{LogicalPosition, TitleBarStyle};
 use tauri::{WebviewUrl, WebviewWindowBuilder};
 use watcher::VaultWatcher;
 
@@ -76,10 +74,7 @@ pub fn run() {
         .fullscreen(false);
 
       #[cfg(target_os = "macos")]
-      let window = window
-        .title_bar_style(TitleBarStyle::Overlay)
-        .hidden_title(true)
-        .traffic_light_position(LogicalPosition::new(52.0, 12.0));
+      let window = window.decorations(false);
 
       #[cfg(target_os = "windows")]
       let window = window.decorations(false).shadow(true);
