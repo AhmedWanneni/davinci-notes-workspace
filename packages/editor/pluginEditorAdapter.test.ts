@@ -9,6 +9,22 @@ describe("plugin editor adapter", () => {
 
   afterEach(() => view?.destroy());
 
+  it("keeps the plugin-facing surface limited to its documented methods", () => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    view = new EditorView({ state: EditorState.create(), parent: host });
+    expect(Object.keys(createEditorPluginAdapter(view)).sort()).toEqual([
+      "destroy",
+      "emitContentChange",
+      "getContent",
+      "getSelection",
+      "insertText",
+      "onContentChange",
+      "setContent",
+      "setSelection",
+    ]);
+  });
+
   it("changes the real editor and emits real document changes", () => {
     const host = document.createElement("div");
     document.body.append(host);

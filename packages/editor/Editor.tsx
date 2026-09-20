@@ -71,6 +71,7 @@ export interface EditorProps {
   onCloseNote?: (path: string) => Promise<void>;
   onCloseAllNotes?: () => Promise<void>;
   onEditorReady?: (editor: EditorPluginAdapter | null) => void;
+  onViewReady?: (view: EditorView | null) => void;
 }
 
 export function Editor({
@@ -90,6 +91,7 @@ export function Editor({
   onCloseNote,
   onCloseAllNotes,
   onEditorReady,
+  onViewReady,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -202,6 +204,7 @@ export function Editor({
     });
 
     viewRef.current = view;
+    onViewReady?.(view);
     pluginEditorRef.current = createEditorPluginAdapter(view);
     onEditorReady?.(pluginEditorRef.current);
 
@@ -209,6 +212,7 @@ export function Editor({
       pluginEditorRef.current?.destroy();
       pluginEditorRef.current = null;
       onEditorReady?.(null);
+      onViewReady?.(null);
       view.destroy();
       viewRef.current = null;
     };

@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useMemo } from "react";
+import { lazy, Suspense, useCallback, useMemo, useRef } from "react";
+import type { EditorView } from "@codemirror/view";
 import { Editor, pastedFileName } from "@app/editor";
 import { resolveAttachmentFolder } from "@app/attachments";
 import { CaretLeft, CaretRight, FileText } from "@phosphor-icons/react";
@@ -50,6 +51,7 @@ export function EditorArea({
   const noteHistory = useWorkspaceStore((state) => state.noteHistory);
   const goBack = useWorkspaceStore((state) => state.goBack);
   const goForward = useWorkspaceStore((state) => state.goForward);
+  const editorViewRef = useRef<EditorView | null>(null);
 
   const { frontmatter } = useMemo(
     () => (activeNotePath ? parseFrontmatter(content) : { frontmatter: {} }),
@@ -239,6 +241,9 @@ export function EditorArea({
                 onEditorReady={(editor) => {
                   pluginManager?.setEditor(editor);
                   onEditorReady?.(editor);
+                }}
+                onViewReady={(view) => {
+                  editorViewRef.current = view;
                 }}
               />
             </div>
