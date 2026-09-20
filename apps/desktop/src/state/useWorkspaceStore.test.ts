@@ -85,7 +85,7 @@ describe("useWorkspaceStore", () => {
     getSettingMock.mockImplementation(async (_db: unknown, key: string) => {
       if (key === "useVimMode") return "true";
       if (key === "strictLineBreaks") return "true";
-      return "monospace";
+      return "montserrat";
     });
 
     await useWorkspaceStore.getState().loadSettings();
@@ -113,12 +113,12 @@ describe("useWorkspaceStore", () => {
   it("persists and restores Strict Line Breaks through SQLite settings", async () => {
     getSettingMock.mockImplementation(async (_db: unknown, key: string) => {
       if (key === "strictLineBreaks") return "true";
-      return "monospace";
+      return "montserrat";
     });
 
     await useWorkspaceStore.getState().loadSettings();
     expect(useWorkspaceStore.getState().strictLineBreaks).toBe(true);
-    expect(useWorkspaceStore.getState().editorFont).toBe("monospace");
+    expect(useWorkspaceStore.getState().editorFont).toBe("montserrat");
 
     await useWorkspaceStore.getState().setStrictLineBreaks(false);
     expect(useWorkspaceStore.getState().strictLineBreaks).toBe(false);
@@ -149,13 +149,13 @@ describe("useWorkspaceStore", () => {
       maxReadsInFlight = Math.max(maxReadsInFlight, readsInFlight);
       await Promise.resolve();
       readsInFlight -= 1;
-      return key === "editorFont" ? "monospace" : "true";
+      return key === "editorFont" ? "montserrat" : "true";
     });
 
     await useWorkspaceStore.getState().loadSettings();
 
     expect(maxReadsInFlight).toBe(1);
-    expect(useWorkspaceStore.getState().editorFont).toBe("monospace");
+    expect(useWorkspaceStore.getState().editorFont).toBe("montserrat");
     expect(useWorkspaceStore.getState().strictLineBreaks).toBe(true);
   });
 

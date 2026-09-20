@@ -7,6 +7,7 @@ import React, {
   useState,
 } from "react";
 import type { PluginEditor } from "@app/plugin-api";
+import { loadEditorFont } from "./fonts/editorFontRegistry";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTabs } from "./components/AppTabs";
 import { EditorArea } from "./components/EditorArea";
@@ -313,19 +314,24 @@ export function App() {
   }, [vaultPath, initThemes]);
 
   useEffect(() => {
-    const root = document.body.style;
-    if (editorFont === "system") {
-      root.setProperty("--font-editor", "var(--font-ui)");
-    } else if (editorFont === "monospace") {
-      root.setProperty(
-        "--font-editor",
-        "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-      );
-    } else if (editorFont === "inter") {
-      root.setProperty("--font-editor", "'Inter', sans-serif");
-    } else if (editorFont === "roboto") {
-      root.setProperty("--font-editor", "'Roboto', sans-serif");
-    }
+    let cancelled = false;
+    void loadEditorFont(editorFont)
+      .then((font) => {
+        if (!cancelled) {
+          document.body.style.setProperty("--font-editor-text", font.cssFamily);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          document.body.style.setProperty(
+            "--font-editor-text",
+            "var(--font-ui)",
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [editorFont]);
 
   useEffect(() => {

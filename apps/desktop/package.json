@@ -23,6 +23,8 @@
     "@app/indexer": "workspace:*",
     "@app/plugin-api": "workspace:*",
     "@app/plugin-runtime": "workspace:*",
+    "@fontsource-variable/montserrat": "5.2.8",
+    "@fontsource-variable/raleway": "5.2.8",
     "@phosphor-icons/react": "^2.1.10",
     "@radix-ui/react-dialog": "^1.1.23",
     "@tanstack/react-virtual": "^3.14.9",
