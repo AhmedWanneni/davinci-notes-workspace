@@ -16,6 +16,7 @@ interface FileTreeRowProps {
   height: number;
   isActive: boolean;
   isDirty: boolean;
+  icon?: string;
   isDragging?: boolean;
   isDropTarget?: boolean;
   isExpanded: boolean;
@@ -25,6 +26,7 @@ interface FileTreeRowProps {
   onCommitRename: () => void;
   onCancelRename: () => void;
   onClick: () => void;
+  onIconClick?: (event: React.MouseEvent) => void;
   onContextMenu: (event: React.MouseEvent) => void;
   onDoubleClick: (event: React.MouseEvent) => void;
   onKeyDown?: (event: React.KeyboardEvent) => void;
@@ -53,6 +55,7 @@ export function FileTreeRow({
   height,
   isActive,
   isDirty,
+  icon,
   isDragging,
   isDropTarget,
   isExpanded,
@@ -62,6 +65,7 @@ export function FileTreeRow({
   onCommitRename,
   onCancelRename,
   onClick,
+  onIconClick,
   onContextMenu,
   onDoubleClick,
   onKeyDown,
@@ -144,15 +148,27 @@ export function FileTreeRow({
       onContextMenu={onContextMenu}
       onDoubleClick={onDoubleClick}
     >
-      <span className="file-tree__icon">
-        {isFile ? (
+      <button
+        type="button"
+        className="file-tree__icon"
+        aria-label={`Change icon for ${item.node.name}`}
+        onClick={(event) => {
+          event.stopPropagation();
+          onIconClick?.(event);
+        }}
+      >
+        {icon ? (
+          <span className="file-tree__emoji" aria-hidden="true">
+            {icon}
+          </span>
+        ) : isFile ? (
           fileIcon(item.node.name)
         ) : isExpanded ? (
           <CaretDown size={14} weight="bold" className="file-tree__caret" />
         ) : (
           <CaretRight size={14} weight="bold" className="file-tree__caret" />
         )}
-      </span>
+      </button>
       <span className="file-tree__title" title={item.node.name}>
         {isRenaming ? (
           <input

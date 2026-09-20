@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
 import {
@@ -12,6 +12,12 @@ import { runTreeRename } from "./runTreeRename";
 import { useFileTreeDrop } from "./useFileTreeDrop";
 import { useFileTreeInlineRename } from "./useFileTreeInlineRename";
 import { useTreeExpandedFolders } from "./useTreeExpandedFolders";
+
+const LazyEmojiPicker = lazy(() =>
+  import("./FileTreeEmojiPicker").then((module) => ({
+    default: module.FileTreeEmojiPicker,
+  })),
+);
 
 interface FileTreeProps {
   filePaths: string[];
@@ -95,6 +101,12 @@ export function FileTree({
     targetType: FileTreeMenuTargetType;
     targetPath: string;
   } | null>(null);
+  const [iconTarget, setIconTarget] = useState<{
+    path: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [icons, setIcons] = useState<Record<string, string>>({});
 
   const visibleNodes = useMemo(
     () => flattenVisibleTree(tree, expandedFolders),
@@ -177,6 +189,7 @@ export function FileTree({
                 height={virtualItem.size}
                 isActive={isFile && item.node.path === activePath}
                 isDirty={isFile && dirtyPaths.has(item.node.path)}
+                icon={icons[item.node.path]}
                 isDragging={item.node.path === draggedPath}
                 isDropTarget={isFolder && item.node.path === dropTargetFolder}
                 isExpanded={isFolder && expandedFolders.has(item.node.path)}
@@ -194,6 +207,13 @@ export function FileTree({
                     toggleFolder(item.node.path);
                   }
                 }}
+                onIconClick={(event) =>
+                  setIconTarget({
+                    path: item.node.path,
+                    x: event.clientX,
+                    y: event.clientY,
+                  })
+                }
                 onContextMenu={(e) =>
                   openContextMenu(e, isFile ? "file" : "folder", item.node.path)
                 }
@@ -246,6 +266,24 @@ export function FileTree({
           onDeleteFolder={(path) => void confirmDelete(path, true)}
           onClose={() => setContextMenu(null)}
         />
+      )}
+      {iconTarget && (
+        <div
+          className="file-tree__emoji-popover"
+          style={{ left: iconTarget.x, top: iconTarget.y }}
+        >
+          <Suspense fallback={<span>Loading emoji…</span>}>
+            <LazyEmojiPicker
+              onSelect={(emoji) => {
+                setIcons((current) => ({
+                  ...current,
+                  [iconTarget.path]: emoji,
+                }));
+                setIconTarget(null);
+              }}
+            />
+          </Suspense>
+        </div>
       )}
     </>
   );

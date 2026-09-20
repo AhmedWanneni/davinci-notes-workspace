@@ -33,7 +33,7 @@ export function parseIconMap(raw: string): IconMap {
           typeof icon === "string" &&
           isEmojiIcon(icon),
       ),
-    );
+    ) as IconMap;
   } catch {
     return {};
   }
