@@ -1,0 +1,18 @@
+{
+  "editor": {
+    "line-height": { "value": "1.65" },
+    "content-padding-x": { "value": "clamp(1rem, 4vw, 3rem)" },
+    "content-padding-y": { "value": "1.5rem" },
+    "content-padding-bottom": { "value": "30vh" },
+    "heading": {
+      "h1": { "size": { "value": "1.6em" }, "weight": { "value": "700" }, "line-height": { "value": "1.25" }, "space-above": { "value": "1.2em" }, "space-below": { "value": "0.3em" } },
+      "h2": { "size": { "value": "1.35em" }, "weight": { "value": "650" }, "line-height": { "value": "1.3" }, "space-above": { "value": "1em" }, "space-below": { "value": "0.25em" } },
+      "h3": { "size": { "value": "1.15em" }, "weight": { "value": "600" }, "line-height": { "value": "1.35" }, "space-above": { "value": "0.9em" }, "space-below": { "value": "0.2em" } },
+      "h4": { "size": { "value": "1.05em" }, "weight": { "value": "600" }, "line-height": { "value": "1.4" }, "space-above": { "value": "0.8em" }, "space-below": { "value": "0.15em" } },
+      "h5": { "size": { "value": "1em" }, "weight": { "value": "600" }, "line-height": { "value": "1.5" }, "space-above": { "value": "0.7em" }, "space-below": { "value": "0.1em" } },
+      "h6": { "size": { "value": "1em" }, "weight": { "value": "600" }, "line-height": { "value": "1.5" }, "space-above": { "value": "0.7em" }, "space-below": { "value": "0.1em" } }
+    },
+    "code": { "padding-x": { "value": "0.2em" }, "radius": { "value": "0.2em" }, "block-padding-y": { "value": "0.15em" } },
+    "list-indent": { "value": "1.5em" }
+  }
+}
