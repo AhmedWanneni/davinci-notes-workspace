@@ -1,8 +1,13 @@
-import { lazy, Suspense, useCallback, useMemo, useRef } from "react";
+import { lazy, Suspense, useCallback, useMemo, useRef, useState } from "react";
 import type { EditorView } from "@codemirror/view";
 import { Editor, pastedFileName } from "@app/editor";
 import { resolveAttachmentFolder } from "@app/attachments";
-import { CaretLeft, CaretRight, FileText } from "@phosphor-icons/react";
+import {
+  CaretLeft,
+  CaretRight,
+  DotsThree,
+  FileText,
+} from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
 import { PropertiesBlock } from "../PropertiesBlock";
@@ -52,6 +57,7 @@ export function EditorArea({
   const goBack = useWorkspaceStore((state) => state.goBack);
   const goForward = useWorkspaceStore((state) => state.goForward);
   const editorViewRef = useRef<EditorView | null>(null);
+  const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
 
   const { frontmatter } = useMemo(
     () => (activeNotePath ? parseFrontmatter(content) : { frontmatter: {} }),
@@ -214,7 +220,17 @@ export function EditorArea({
                 >
                   {displayTitle}
                 </span>
-                <div className="editor-area__note-header-actions" />
+                <div className="editor-area__note-header-actions">
+                  <button
+                    type="button"
+                    className="editor-area__note-header-button"
+                    aria-label="Insert"
+                    aria-expanded={isInsertMenuOpen}
+                    onClick={() => setIsInsertMenuOpen((open) => !open)}
+                  >
+                    <DotsThree size={16} weight="regular" />
+                  </button>
+                </div>
               </div>
               <PropertiesBlock
                 frontmatter={frontmatter}
