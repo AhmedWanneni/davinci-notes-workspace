@@ -9,6 +9,7 @@ mod git_remote;
 mod manifest;
 mod oauth;
 mod state;
+mod theme_files;
 mod watcher;
 
 use state::VaultState;
@@ -36,8 +37,10 @@ pub fn run() {
       manifest::list_manifest_files,
       manifest::hash_manifest_file,
       fs::list_folders,
+      theme_files::list_theme_directories,
       fs::get_file_tree,
       fs::read_note,
+      theme_files::read_theme_file,
       fs::write_note,
       fs::write_binary_file,
       fs::create_folder,

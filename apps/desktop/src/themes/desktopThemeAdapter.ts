@@ -1,25 +1,17 @@
-import { exists, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 import { getSetting, setSetting } from "../vault/settingsCommands";
 import { getVaultIndexDb, withDbLock } from "../vault/sqliteIndex";
+import { listThemeDirectories, readThemeFile } from "../vault/vaultCommands";
 import type { ThemeFileSystemAdapter, ThemeStateStorage } from "./themeTypes";
 
 export function createDesktopThemeFsAdapter(
-  vaultPath: string | null,
+  _vaultPath: string | null,
 ): ThemeFileSystemAdapter {
   return {
     async listThemeDirectories() {
-      if (!vaultPath) return [];
-      const themesPath = `${vaultPath}/.davinci/themes`;
-      if (!(await exists(themesPath))) return [];
-      return (await readDir(themesPath))
-        .filter((entry) => entry.isDirectory)
-        .map((entry) => entry.name);
+      return listThemeDirectories();
     },
     async readThemeFile(dirName, relativePath) {
-      if (!vaultPath) throw new Error("No vault open");
-      return readTextFile(
-        `${vaultPath}/.davinci/themes/${dirName}/${relativePath}`,
-      );
+      return readThemeFile(dirName, relativePath);
     },
   };
 }

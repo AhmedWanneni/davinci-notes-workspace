@@ -35,3 +35,23 @@ describe("openVaultFromPicker", () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 });
+
+describe("theme vault commands", () => {
+  it("uses the Rust vault-scoped theme commands", async () => {
+    invoke
+      .mockResolvedValueOnce(["fixture-theme"])
+      .mockResolvedValueOnce("body { color: red; }");
+    const { listThemeDirectories, readThemeFile } =
+      await import("./vaultCommands");
+
+    await expect(listThemeDirectories()).resolves.toEqual(["fixture-theme"]);
+    await expect(readThemeFile("fixture-theme", "theme.css")).resolves.toBe(
+      "body { color: red; }",
+    );
+    expect(invoke).toHaveBeenNthCalledWith(1, "list_theme_directories");
+    expect(invoke).toHaveBeenNthCalledWith(2, "read_theme_file", {
+      dirName: "fixture-theme",
+      relativePath: "theme.css",
+    });
+  });
+});

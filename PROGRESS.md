@@ -6,6 +6,22 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Theme discovery — vault-scoped Rust I/O fixed**
+Theme discovery no longer calls the Tauri fs plugin for the user-selected
+`<vault>/.davinci/themes` dot-directory, which static `allow-exists` scope
+rightly rejects. It now uses the existing Rust `VaultState` boundary: native
+commands list theme directories and read files only beneath the active vault,
+using `resolve_in_vault` to reject traversal and escapes. A missing directory
+returns an empty list; any other directory/read I/O error reaches the existing
+theme-discovery error UI. No capability JSON was changed and no dependency was
+added. Themes deliberately remain vault-scoped at `.davinci/themes`, matching
+the existing installer and theme state rather than silently moving packages to
+app data. Focused desktop tests (9), Rust filesystem tests (2), desktop lint,
+and Rust check pass; the adapter test uses command doubles while the Rust tests
+use a real temporary vault. The pre-existing watcher `is_paused` dead-code
+warning remains. Native Settings and external-drive acceptance testing remain
+open in this environment.
+
 **Bundled themes — blocked by the public-token contract**
 The requested four-theme authoring task stopped before adding any theme files.
 `packages/theme-api/PUBLIC_TOKENS.md` explicitly records that canvas and app

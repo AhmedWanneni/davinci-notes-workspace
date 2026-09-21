@@ -72,6 +72,26 @@ describe("ThemeLifecycleManager", () => {
     );
   });
 
+  it("surfaces a theme-directory I/O failure", async () => {
+    const adapter: ThemeFileSystemAdapter = {
+      listThemeDirectories: async () => {
+        throw new Error("Permission denied");
+      },
+      readThemeFile: async () => "",
+    };
+    const manager = new ThemeLifecycleManager(adapter, createStorage());
+
+    await manager.initialize();
+
+    expect(manager.getThemes()).toHaveLength(0);
+    expect(manager.getDiscoveryErrors()).toEqual([
+      {
+        dirName: "<themes>",
+        error: "Could not list themes: Error: Permission denied",
+      },
+    ]);
+  });
+
   it("switches computed styles and removes the previous stylesheet", async () => {
     const manager = new ThemeLifecycleManager(createAdapter(), createStorage());
     await manager.initialize();

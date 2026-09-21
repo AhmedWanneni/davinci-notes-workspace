@@ -50,6 +50,17 @@ export async function listFolders(): Promise<string[]> {
   return invoke<string[]>("list_folders");
 }
 
+export async function listThemeDirectories(): Promise<string[]> {
+  return invoke<string[]>("list_theme_directories");
+}
+
+export async function readThemeFile(
+  dirName: string,
+  relativePath: string,
+): Promise<string> {
+  return invoke<string>("read_theme_file", { dirName, relativePath });
+}
+
 export async function getFileTree(): Promise<FileTreeNode[]> {
   return invoke<FileTreeNode[]>("get_file_tree");
 }
