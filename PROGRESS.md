@@ -6,6 +6,15 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Stylelint baseline — Dialog selector rename deferred**
+The design-system Dialog retains seven CSS-module-style selector names
+(`dialogOverlay`, `dialogContent`, and related names) that conflict with the
+project's CUBE/plain-class naming rule. They have a narrow documented
+Stylelint baseline so current commits remain checkable; renaming the exported
+CSS-module contract is a separate candidate task. Settings traffic-light hex
+values are similarly documented OS-window-control exceptions, and must become
+explicit justified entries in the forthcoming token-guard allowlist.
+
 **Theme discovery — vault-scoped Rust I/O fixed**
 Theme discovery no longer calls the Tauri fs plugin for the user-selected
 `<vault>/.davinci/themes` dot-directory, which static `allow-exists` scope

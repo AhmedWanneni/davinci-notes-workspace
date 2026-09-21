@@ -77,15 +77,15 @@
   outline: none;
 
   &--close {
-    background-color: #ff5f56;
+    background-color: #ff5f56; // stylelint-disable-line color-no-hex -- Native-style window-control affordance, intentionally not theme content.
   }
 
   &--minimize {
-    background-color: #ffbd2e;
+    background-color: #ffbd2e; // stylelint-disable-line color-no-hex -- Native-style window-control affordance, intentionally not theme content.
   }
 
   &--maximize {
-    background-color: #27c93f;
+    background-color: #27c93f; // stylelint-disable-line color-no-hex -- Native-style window-control affordance, intentionally not theme content.
   }
 }
 

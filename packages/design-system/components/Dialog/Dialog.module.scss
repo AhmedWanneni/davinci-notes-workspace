@@ -1,8 +1,9 @@
 @import "../../styles/mixins";
 
+/* stylelint-disable selector-class-pattern -- Existing CSS-module exports are consumed as dialogOverlay/dialogContent; rename separately. */
+
 .dialogOverlay {
   background-color: var(--color-bg-scrim);
-
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -86,6 +87,8 @@
     @include focus-ring;
   }
 }
+
+/* stylelint-enable selector-class-pattern */
 
 @keyframes overlayShow {
   from {
