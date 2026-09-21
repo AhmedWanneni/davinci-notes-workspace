@@ -169,6 +169,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0010](adr/0010-storybook-10-essentials-in-core.md) | Storybook 10: essentials in core, `storybook/test` imports | Accepted |
 | [0015](adr/0015-ignore-tauri-mobile-gen.md) | `.gitignore`: Tauri mobile `gen/` ignored | Accepted |
 | [0016](adr/0016-commit-style-dictionary-output.md) | `.gitignore`: Style Dictionary `tokens/dist/` committed | Accepted |
+| [0163](adr/0163-public-theme-scrim-token.md) | Public `--color-bg-scrim` token for modal/dialog backdrops; no strong-border token | Accepted |
 
 ## Release & Delivery
 

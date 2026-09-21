@@ -5,6 +5,7 @@
       "primary-alt": { "value": "#161616" },
       "secondary": { "value": "#262626" },
       "secondary-alt": { "value": "#202020" },
+      "scrim": { "value": "rgb(0 0 0 / 60%)" },
       "hover": { "value": "rgba(255, 255, 255, 0.05)" },
       "active": { "value": "rgba(255, 255, 255, 0.08)" }
     },

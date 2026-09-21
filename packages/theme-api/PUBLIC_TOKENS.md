@@ -16,6 +16,7 @@ The defaults are the current generated values from
 | `--color-bg-primary-alt` | Alternate primary surface | `#161616` |
 | `--color-bg-secondary` | Panels, cards, and controls | `#262626` |
 | `--color-bg-secondary-alt` | Alternate panel surface | `#202020` |
+| `--color-bg-scrim` | Viewport-covering modal and dialog backdrops | `rgb(0 0 0 / 60%)` |
 | `--color-bg-hover` | Hover background state | `rgba(255, 255, 255, 0.05)` |
 | `--color-bg-active` | Active/pressed background state | `rgba(255, 255, 255, 0.08)` |
 | `--color-interactive-accent` | Primary interactive color | `#7f6df2` |

@@ -14,6 +14,7 @@
   --color-bg-primary-alt: #161616;
   --color-bg-secondary: #262626;
   --color-bg-secondary-alt: #202020;
+  --color-bg-scrim: rgb(0 0 0 / 60%);
   --color-bg-hover: rgba(255, 255, 255, 0.05);
   --color-bg-active: rgba(255, 255, 255, 0.08);
   --color-text-normal: #dcddde;

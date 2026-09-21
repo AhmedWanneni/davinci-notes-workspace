@@ -46,6 +46,7 @@ describe("validateThemeManifest", () => {
     expect(
       [...styles.matchAll(/--[a-z0-9-]+(?=\s*:)/gu)].map(([token]) => token),
     ).toEqual([
+      "--color-bg-scrim",
       "--color-bg-primary",
       "--color-text-normal",
       "--color-interactive-accent",

@@ -1,4 +1,5 @@
 :root {
+  --color-bg-scrim: rgb(255 0 255 / 60%);
   --color-bg-primary: #f8f6f0;
   --color-text-normal: #242424;
   --color-interactive-accent: #245b9e;

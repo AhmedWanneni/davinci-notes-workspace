@@ -13,6 +13,7 @@ export const ColorBgPrimary = "#1e1e1e";
 export const ColorBgPrimaryAlt = "#161616";
 export const ColorBgSecondary = "#262626";
 export const ColorBgSecondaryAlt = "#202020";
+export const ColorBgScrim = "rgb(0 0 0 / 60%)";
 export const ColorBgHover = "rgba(255, 255, 255, 0.05)";
 export const ColorBgActive = "rgba(255, 255, 255, 0.08)";
 export const ColorTextNormal = "#dcddde";
