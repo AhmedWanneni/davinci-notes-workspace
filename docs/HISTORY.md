@@ -2563,6 +2563,12 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Added the Theme Registry browser section. Install confirms and auto-activates, updates use the same install path, and uninstall deactivates first before discovery reload.
 - Verification: theme API tests (6), registry tests (3), theme lifecycle tests (4), settings tests (2), desktop lint, and `git diff --check` pass. Full desktop typecheck remains blocked by unrelated existing workspace errors.
 - The real GitHub registry could not be cloned or updated because network/DNS access was unavailable. Real theme entry and browser install/update/uninstall verification remain blocked pending a published test theme and reachable registry.
+
+## 2026-09-21 - Bundled theme authoring audit
+
+- Stopped before creating the requested Light A, Catppuccin Latte, Catppuccin Frappé, and OLED themes. The task requires third-party authors to override only `packages/theme-api/PUBLIC_TOKENS.md`, while that document's existing audit states that canvas and application styles still depend on undeclared internal aliases and inconsistent fallbacks.
+- A repository-wide variable-use audit confirmed broader affected aliases, including `--color-accent`, `--color-border`, `--color-border-default`, `--color-border-strong`, `--color-overlay`, `--color-text-primary`, `--color-text-secondary`, `--edge-color`, `--font-mono`, `--radius-*`, `--type-body`, and `--type-heading-3`. This prevents full requested coverage of canvas, graph, settings/modal, and other listed surfaces without violating the CSS contract.
+- No CSS, manifests, loader wiring, dependencies, or ADRs were added. The precondition is to reconcile these consumers to existing public variables, or deliberately extend the public contract with a new ADR before authoring and publishing the fixture themes.
 ## 2026-09-03 - AI Features Phase 1
 
 - Added `@app/ai-embeddings` with heading/paragraph chunking, 2,000-character bounded windows, source locations for future citations, incremental content hashes, provider model metadata, and stale-chunk removal.

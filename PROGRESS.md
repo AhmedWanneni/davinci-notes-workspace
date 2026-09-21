@@ -6,6 +6,23 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Bundled themes — blocked by the public-token contract**
+The requested four-theme authoring task stopped before adding any theme files.
+`packages/theme-api/PUBLIC_TOKENS.md` explicitly records that canvas and app
+surfaces still use internal aliases and hard-coded fallbacks outside the public
+theme API. A repository-wide use audit also found additional non-public
+variables used by those surfaces (`--color-accent`, `--color-border`,
+`--color-border-default`, `--color-border-strong`, `--color-overlay`,
+`--color-text-primary`, `--color-text-secondary`, `--edge-color`,
+`--font-mono`, `--radius-*`, `--type-body`, and `--type-heading-3`, among
+others). Shipping CSS that overrides those names would violate the stated
+third-party-author boundary and conceal the incomplete coverage.
+
+No theme files, loader changes, dependencies, or ADRs were added. The next
+theme task must first reconcile the app to the established public tokens or
+extend that API with a new ADR; then the four themes can be packaged as real
+registry fixtures and verified through the existing archive/install path.
+
 **Unified window controls — implementation complete; visual verification pending**
 macOS now uses the same undecorated Tauri window and sidebar-integrated custom
 minimize, maximize, and close controls as Windows/Linux. The native traffic
