@@ -22,7 +22,7 @@
 
     &:focus-within {
       border-color: var(--color-text-error);
-      box-shadow: 0 0 0 2px rgb(229 83 83 / 20%); // Uses error color for ring, hardcoded opacity for now as it's complex to generate dynamic opacities from SCSS vars natively without a color function.
+      box-shadow: 0 0 0 2px var(--color-border-status-error);
     }
   }
 
@@ -35,6 +35,7 @@
   // Sizes
   &--sm {
     height: 28px;
+
     .input {
       font-size: var(--type-scale-sm);
     }
@@ -42,6 +43,7 @@
 
   &--md {
     height: 36px;
+
     .input {
       font-size: var(--type-scale-base);
     }
@@ -49,6 +51,7 @@
 
   &--lg {
     height: 44px;
+
     .input {
       font-size: var(--type-scale-lg);
     }

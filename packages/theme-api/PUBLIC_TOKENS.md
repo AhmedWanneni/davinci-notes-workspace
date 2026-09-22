@@ -17,6 +17,10 @@ The defaults are the current generated values from
 | `--color-bg-secondary` | Panels, cards, and controls | `#262626` |
 | `--color-bg-secondary-alt` | Alternate panel surface | `#202020` |
 | `--color-bg-scrim` | Viewport-covering modal and dialog backdrops | `rgb(0 0 0 / 60%)` |
+| `--color-bg-status-accent` | Accent status tint background | `rgb(127 109 242 / 15%)` |
+| `--color-bg-status-success` | Success status tint background | `rgb(46 204 113 / 15%)` |
+| `--color-bg-status-warning` | Warning status tint background | `rgb(241 196 15 / 15%)` |
+| `--color-bg-status-error` | Error status tint background | `rgb(229 83 83 / 15%)` |
 | `--color-bg-hover` | Hover background state | `rgba(255, 255, 255, 0.05)` |
 | `--color-bg-active` | Active/pressed background state | `rgba(255, 255, 255, 0.08)` |
 | `--color-interactive-accent` | Primary interactive color | `#7f6df2` |
@@ -43,6 +47,11 @@ The defaults are the current generated values from
 | `--color-border-subtle` | Low-emphasis separators and outlines | `#2e2e2e` |
 | `--color-border-normal` | Standard component borders | `#363636` |
 | `--color-border-focus` | Keyboard focus and active focus ring | `#7f6df2` |
+| `--color-border-status-accent` | Accent status tint border | `rgb(127 109 242 / 30%)` |
+| `--color-border-status-success` | Success status tint border | `rgb(46 204 113 / 30%)` |
+| `--color-border-status-warning` | Warning status tint border | `rgb(241 196 15 / 30%)` |
+| `--color-border-status-error` | Error status tint border | `rgb(229 83 83 / 30%)` |
+| `--color-shadow` | Base color for elevated-surface shadow layers | `rgb(0 0 0)` |
 | `--border-width-thin` | Standard border width | `1px` |
 | `--border-width-thick` | Emphasized border and focus width | `2px` |
 | `--border-radius-none` | Square corners | `0px` |

@@ -17,7 +17,13 @@
   border: var(--border-width-thin) solid var(--color-border-subtle);
   box-shadow:
     0 10px 38px -10px rgb(0 0 0 / 35%),
-    0 10px 20px -15px rgb(0 0 0 / 20%); // Only time we use deeper shadow is for modal elevation
+    0 10px 20px -15px rgb(0 0 0 / 20%);
+
+  @supports (color: color-mix(in srgb, black, transparent)) {
+    box-shadow:
+      0 10px 38px -10px color-mix(in srgb, var(--color-shadow) 35%, transparent),
+      0 10px 20px -15px color-mix(in srgb, var(--color-shadow) 20%, transparent);
+  }
 
   position: fixed;
   top: 50%;

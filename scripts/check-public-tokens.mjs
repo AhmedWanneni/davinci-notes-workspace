@@ -27,6 +27,36 @@ export const ALLOWLIST = [
     pattern: "#27c93f",
     justification: "Native-style window-control affordance, intentionally not theme content.",
   },
+  {
+    file: "packages/design-system/components/Dialog/Dialog.module.scss",
+    pattern: "rgb(0 0 0 / 35%)",
+    justification: "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
+  },
+  {
+    file: "packages/design-system/components/Dialog/Dialog.module.scss",
+    pattern: "rgb(0 0 0 / 20%)",
+    justification: "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
+  },
+  {
+    file: "packages/design-system/components/DropdownMenu/DropdownMenu.module.scss",
+    pattern: "rgb(0 0 0 / 10%)",
+    justification: "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
+  },
+  {
+    file: "packages/design-system/components/DropdownMenu/DropdownMenu.module.scss",
+    pattern: "rgb(0 0 0 / 6%)",
+    justification: "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
+  },
+  {
+    file: "packages/design-system/components/Tooltip/Tooltip.module.scss",
+    pattern: "rgb(0 0 0 / 10%)",
+    justification: "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
+  },
+  {
+    file: "packages/design-system/components/Tooltip/Tooltip.module.scss",
+    pattern: "rgb(0 0 0 / 6%)",
+    justification: "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
+  },
 ];
 
 const ROOTS = ["apps/desktop/src", "packages/canvas", "packages/editor", "packages/design-system/components"];

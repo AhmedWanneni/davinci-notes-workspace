@@ -6,6 +6,10 @@
       "secondary": { "value": "#262626" },
       "secondary-alt": { "value": "#202020" },
       "scrim": { "value": "rgb(0 0 0 / 60%)" },
+      "status-accent": { "value": "rgb(127 109 242 / 15%)" },
+      "status-success": { "value": "rgb(46 204 113 / 15%)" },
+      "status-warning": { "value": "rgb(241 196 15 / 15%)" },
+      "status-error": { "value": "rgb(229 83 83 / 15%)" },
       "hover": { "value": "rgba(255, 255, 255, 0.05)" },
       "active": { "value": "rgba(255, 255, 255, 0.08)" }
     },
@@ -23,11 +27,16 @@
       "subtle": { "value": "#2e2e2e" },
       "normal": { "value": "#363636" },
       "focus": { "value": "#7f6df2" }
+      ,"status-accent": { "value": "rgb(127 109 242 / 30%)" }
+      ,"status-success": { "value": "rgb(46 204 113 / 30%)" }
+      ,"status-warning": { "value": "rgb(241 196 15 / 30%)" }
+      ,"status-error": { "value": "rgb(229 83 83 / 30%)" }
     },
     "interactive": {
       "accent": { "value": "#7f6df2" },
       "accent-hover": { "value": "#8d7cf4" },
       "accent-active": { "value": "#6c5ce7" }
     }
+    ,"shadow": { "value": "rgb(0 0 0)" }
   }
 }

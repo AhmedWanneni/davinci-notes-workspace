@@ -1,5 +1,7 @@
 @import "../../styles/mixins";
 
+/* stylelint-disable selector-class-pattern -- Existing CSS-module exports are consumed as camelCase names; rename separately. */
+
 .dropdownContent {
   min-width: 8rem;
   overflow: hidden;
@@ -12,6 +14,13 @@
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 10%),
     0 2px 4px -1px rgb(0 0 0 / 6%);
+
+  @supports (color: color-mix(in srgb, black, transparent)) {
+    box-shadow:
+      0 4px 6px -1px color-mix(in srgb, var(--color-shadow) 10%, transparent),
+      0 2px 4px -1px color-mix(in srgb, var(--color-shadow) 6%, transparent);
+  }
+
   z-index: 50;
   animation-duration: 200ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
@@ -20,12 +29,15 @@
   &[data-state="open"][data-side="top"] {
     animation-name: slideDownAndFade;
   }
+
   &[data-state="open"][data-side="right"] {
     animation-name: slideLeftAndFade;
   }
+
   &[data-state="open"][data-side="bottom"] {
     animation-name: slideUpAndFade;
   }
+
   &[data-state="open"][data-side="left"] {
     animation-name: slideRightAndFade;
   }
@@ -96,6 +108,7 @@
     opacity: 0;
     transform: translateY(2px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -107,6 +120,7 @@
     opacity: 0;
     transform: translateX(-2px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -118,6 +132,7 @@
     opacity: 0;
     transform: translateY(-2px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -129,8 +144,11 @@
     opacity: 0;
     transform: translateX(2px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
+
+/* stylelint-enable selector-class-pattern */

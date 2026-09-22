@@ -1,4 +1,3 @@
-
 // Do not edit directly, this file was auto-generated.
 
 $border-width-thin: 1px;
@@ -13,6 +12,10 @@ $color-bg-primary-alt: #161616;
 $color-bg-secondary: #262626;
 $color-bg-secondary-alt: #202020;
 $color-bg-scrim: rgb(0 0 0 / 60%);
+$color-bg-status-accent: rgb(127 109 242 / 15%);
+$color-bg-status-success: rgb(46 204 113 / 15%);
+$color-bg-status-warning: rgb(241 196 15 / 15%);
+$color-bg-status-error: rgb(229 83 83 / 15%);
 $color-bg-hover: rgba(255, 255, 255, 0.05);
 $color-bg-active: rgba(255, 255, 255, 0.08);
 $color-text-normal: #dcddde;
@@ -26,9 +29,14 @@ $color-text-warning: #f1c40f;
 $color-border-subtle: #2e2e2e;
 $color-border-normal: #363636;
 $color-border-focus: #7f6df2;
+$color-border-status-accent: rgb(127 109 242 / 30%);
+$color-border-status-success: rgb(46 204 113 / 30%);
+$color-border-status-warning: rgb(241 196 15 / 30%);
+$color-border-status-error: rgb(229 83 83 / 30%);
 $color-interactive-accent: #7f6df2;
 $color-interactive-accent-hover: #8d7cf4;
 $color-interactive-accent-active: #6c5ce7;
+$color-shadow: rgb(0 0 0);
 $editor-line-height: 1.65;
 $editor-content-padding-x: clamp(1rem, 4vw, 3rem);
 $editor-content-padding-y: 1.5rem;
@@ -84,8 +92,12 @@ $space-3: 12px;
 $space-4: 16px;
 $space-6: 24px;
 $space-8: 32px;
-$font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-$font-editor: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+$font-ui:
+  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+  sans-serif;
+$font-editor:
+  "Fira Code", "Cascadia Code", "JetBrains Mono", Consolas, "Courier New",
+  monospace;
 $type-scale-xs: 0.75rem;
 $type-scale-sm: 0.875rem;
 $type-scale-base: 1rem;

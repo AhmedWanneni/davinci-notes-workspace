@@ -19,45 +19,27 @@
   }
 
   &--accent {
-    background-color: rgb(
-      127 109 242 / 15%
-    ); // Accent color with opacity. Hardcoded rgba for now.
+    background-color: var(--color-bg-status-accent);
     color: var(--color-text-accent);
-    border-color: rgb(127 109 242 / 30%);
+    border-color: var(--color-border-status-accent);
   }
 
   &--success {
-    background-color: color-mix(
-      in srgb,
-      var(--color-text-success) 15%,
-      transparent
-    );
+    background-color: var(--color-bg-status-success);
     color: var(--color-text-success);
-    border-color: color-mix(
-      in srgb,
-      var(--color-text-success) 30%,
-      transparent
-    );
+    border-color: var(--color-border-status-success);
   }
 
   &--warning {
-    background-color: color-mix(
-      in srgb,
-      var(--color-text-warning) 15%,
-      transparent
-    );
+    background-color: var(--color-bg-status-warning);
     color: var(--color-text-warning);
-    border-color: color-mix(
-      in srgb,
-      var(--color-text-warning) 30%,
-      transparent
-    );
+    border-color: var(--color-border-status-warning);
   }
 
   &--error {
-    background-color: rgb(229 83 83 / 15%);
+    background-color: var(--color-bg-status-error);
     color: var(--color-text-error);
-    border-color: rgb(229 83 83 / 30%);
+    border-color: var(--color-border-status-error);
   }
 }
 
