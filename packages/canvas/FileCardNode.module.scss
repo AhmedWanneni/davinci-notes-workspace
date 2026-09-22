@@ -9,14 +9,14 @@
   height: 100%;
   border: 1px solid var(--color-border-subtle);
   background-color: var(--color-bg-secondary);
-  border-radius: var(--radius-sm, 3px);
+  border-radius: var(--border-radius-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .file-card.is-selected {
-  border-color: var(--color-accent, #7f6df2);
+  border-color: var(--color-interactive-accent);
 }
 
 .file-card__header {
@@ -48,8 +48,8 @@
 
 .file-card__title {
   font-family: var(--font-ui);
-  font-size: var(--type-scale-xs, 12px);
-  font-weight: var(--type-weight-medium, 500);
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
   color: var(--color-text-normal);
   white-space: nowrap;
   overflow: hidden;
@@ -57,12 +57,12 @@
 }
 
 .file-card__subpath-badge {
-  font-family: var(--font-editor, monospace);
-  font-size: var(--type-scale-xs, 11px);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-accent);
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-xs, 2px);
+  border-radius: var(--border-radius-sm);
   padding: 0 var(--space-1);
   white-space: nowrap;
   overflow: hidden;
@@ -85,11 +85,13 @@
   height: 20px;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: var(--radius-xs, 2px);
+  border-radius: var(--border-radius-sm);
   background: transparent;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: color 120ms ease, background-color 120ms ease;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease;
 
   &:hover {
     color: var(--color-text-normal);
@@ -115,7 +117,7 @@
   padding: var(--space-4);
   color: var(--color-text-muted);
   font-family: var(--font-ui);
-  font-size: var(--type-scale-xs, 12px);
+  font-size: var(--type-scale-xs);
   text-align: center;
   gap: var(--space-1);
 }
@@ -126,8 +128,8 @@
   min-width: 8px !important;
   min-height: 8px !important;
   border-radius: 50% !important;
-  background-color: var(--color-interactive-accent, #7f6df2) !important;
-  border: 1px solid var(--color-bg-primary, #1e1e1e) !important;
+  background-color: var(--color-interactive-accent) !important;
+  border: 1px solid var(--color-bg-primary) !important;
   opacity: 0;
   transition: opacity 120ms ease;
   z-index: 10;
@@ -146,7 +148,7 @@
   max-height: 200px;
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-sm, 3px);
+  border-radius: var(--border-radius-sm);
   z-index: 30;
   display: flex;
   flex-direction: column;
@@ -160,7 +162,7 @@
   background: transparent;
   color: var(--color-text-normal);
   font-family: var(--font-ui);
-  font-size: var(--type-scale-xs, 12px);
+  font-size: var(--type-scale-xs);
   outline: none;
 }
 
@@ -180,7 +182,7 @@
   background: transparent;
   color: var(--color-text-normal);
   font-family: var(--font-ui);
-  font-size: var(--type-scale-xs, 12px);
+  font-size: var(--type-scale-xs);
   text-align: left;
   cursor: pointer;
 
@@ -226,19 +228,19 @@
 }
 
 .media-error-icon {
-  color: var(--color-text-error, #e06c75);
+  color: var(--color-text-error);
 }
 
 .media-error-title {
   font-family: var(--font-ui);
-  font-size: var(--type-scale-xs, 12px);
-  font-weight: var(--type-weight-medium, 500);
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
   color: var(--color-text-normal);
 }
 
 .media-error-path {
-  font-family: var(--font-editor, monospace);
-  font-size: var(--type-scale-xs, 11px);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
   max-width: 90%;
   overflow: hidden;
@@ -256,15 +258,14 @@
 
 .media-loading-text {
   font-family: var(--font-ui);
-  font-size: var(--type-scale-xs, 12px);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
 }
 
 .pdf-scroll-container {
   width: 100%;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden auto;
   background-color: var(--color-bg-primary);
   scroll-behavior: smooth;
 
@@ -298,7 +299,7 @@
 .pdf-page-wrapper {
   flex-shrink: 0;
   border: 1px solid var(--color-border-subtle);
-  background-color: #ffffff;
+  background-color: var(--color-bg-primary);
 }
 
 .pdf-page-canvas {
@@ -335,14 +336,14 @@
 }
 
 .nested-canvas-blocked-icon {
-  color: var(--color-text-warning, #f2a655);
+  color: var(--color-text-warning);
   opacity: 0.9;
 }
 
 .nested-canvas-blocked-title {
   font-family: var(--font-ui);
-  font-size: var(--type-scale-xs, 12px);
-  font-weight: var(--type-weight-medium, 500);
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
   color: var(--color-text-normal);
 }
 
@@ -353,7 +354,7 @@
 }
 
 .nested-canvas-cycle-chain {
-  font-family: var(--font-editor, monospace);
+  font-family: var(--font-editor);
   font-size: 11px;
   color: var(--color-text-muted);
   max-width: 90%;
@@ -362,7 +363,6 @@
   white-space: nowrap;
   background-color: var(--color-bg-secondary);
   padding: 2px 6px;
-  border-radius: var(--radius-sm, 3px);
+  border-radius: var(--border-radius-sm);
   border: 1px solid var(--color-border-subtle);
 }
-

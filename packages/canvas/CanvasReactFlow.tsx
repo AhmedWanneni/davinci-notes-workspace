@@ -28,8 +28,16 @@ export interface CanvasReactFlowProps {
   onNodesDelete?: OnNodesDelete;
   onConnect?: OnConnect;
   onReconnect?: OnReconnect;
-  onReconnectStart?: (event: ReactMouseEvent | MouseEvent, edge: Edge, handleType: "source" | "target") => void;
-  onReconnectEnd?: (event: MouseEvent | TouchEvent, edge: Edge, handleType: "source" | "target") => void;
+  onReconnectStart?: (
+    event: ReactMouseEvent | MouseEvent,
+    edge: Edge,
+    handleType: "source" | "target",
+  ) => void;
+  onReconnectEnd?: (
+    event: MouseEvent | TouchEvent,
+    edge: Edge,
+    handleType: "source" | "target",
+  ) => void;
   onEdgeContextMenu?: (event: ReactMouseEvent | MouseEvent, edge: Edge) => void;
   onPaneClick?: (event: ReactMouseEvent | MouseEvent) => void;
   onPaneContextMenu?: (event: ReactMouseEvent | MouseEvent) => void;
@@ -95,7 +103,7 @@ export function CanvasReactFlow({
         variant={BackgroundVariant.Dots}
         gap={24}
         size={1}
-        color="var(--color-border-subtle, #333333)"
+        color="var(--color-border-subtle)"
       />
     </ReactFlow>
   );

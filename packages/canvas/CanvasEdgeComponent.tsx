@@ -109,10 +109,7 @@ function CanvasEdgeRenderer({
   );
 
   const edgeColor = getCanvasEdgeColorCss(edgeData.color);
-  const edgeStyle: CSSProperties = {
-    ...style,
-    ["--edge-color" as string]: edgeColor,
-  };
+  const edgeStyle: CSSProperties = { ...style };
 
   const edgeClassName = [
     styles["canvas-edge"],
@@ -162,7 +159,7 @@ function CanvasEdgeRenderer({
           ) : currentLabel ? (
             <div
               className={styles["canvas-edge__label-tag"]}
-              style={{ ["--edge-color" as string]: edgeColor }}
+              style={{ borderColor: edgeColor }}
               onDoubleClick={handleLabelDoubleClick}
               data-testid={`edge-label-${id}`}
             >

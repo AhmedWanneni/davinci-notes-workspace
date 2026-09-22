@@ -120,9 +120,7 @@ describe("useCanvasEdgeInteractions & cascade deletion", () => {
     });
 
     expect((edgesState[0].data as Record<string, unknown>).color).toBe("4");
-    expect(edgesState[0].markerEnd?.color).toBe(
-      "var(--color-text-success, #2ecc71)",
-    );
+    expect(edgesState[0].markerEnd?.color).toBe("var(--color-text-success)");
   });
 
   it("deletes edge and removes from state", () => {

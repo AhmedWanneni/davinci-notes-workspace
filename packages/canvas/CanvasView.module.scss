@@ -28,22 +28,22 @@
   padding: var(--space-6);
   border: 1px dashed var(--color-border-subtle);
   background-color: var(--color-bg-secondary);
-  border-radius: var(--radius-md, 4px);
+  border-radius: var(--border-radius-md);
   max-width: 420px;
   z-index: 4;
 }
 
 .canvas-empty-state__title {
   font-family: var(--font-ui);
-  font-size: var(--type-scale-base, 14px);
+  font-size: var(--type-scale-base);
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--color-text-normal);
   margin-bottom: var(--space-2);
 }
 
 .canvas-empty-state__description {
   font-family: var(--font-ui);
-  font-size: var(--type-scale-xs, 12px);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
   line-height: 1.5;
   margin-bottom: var(--space-4);
@@ -68,13 +68,13 @@
 }
 
 .canvas-empty-state__key {
-  font-family: var(--font-editor, monospace);
+  font-family: var(--font-editor);
   font-size: 10px;
   padding: 2px 6px;
   background-color: var(--color-bg-primary);
   border: 1px solid var(--color-border-subtle);
   border-radius: 3px;
-  color: var(--color-text-primary);
+  color: var(--color-text-normal);
 }
 
 .canvas-controls {
@@ -86,7 +86,7 @@
   gap: 2px;
   background-color: var(--color-bg-secondary);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-sm, 3px);
+  border-radius: var(--border-radius-sm);
   padding: 2px;
   align-items: stretch;
 }
@@ -120,7 +120,7 @@
     background-color 0.1s ease;
 
   &:hover:not(:disabled) {
-    color: var(--color-text-primary);
+    color: var(--color-text-normal);
     background-color: var(--color-bg-primary);
   }
 
@@ -136,10 +136,7 @@
 
 .canvas-export-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: var(--color-bg-scrim);
   display: flex;
   align-items: center;
@@ -151,10 +148,10 @@
 .canvas-export-overlay__content {
   background-color: var(--color-bg-secondary);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md, 4px);
+  border-radius: var(--border-radius-md);
   padding: var(--space-4) var(--space-6);
-  color: var(--color-text-primary);
+  color: var(--color-text-normal);
   font-family: var(--font-ui);
-  font-size: var(--type-scale-base, 14px);
+  font-size: var(--type-scale-base);
   font-weight: 500;
 }

@@ -9,23 +9,23 @@
   height: 100%;
   border: 1px solid var(--color-border-subtle);
   background-color: var(--color-bg-secondary);
-  border-radius: var(--radius-sm, 3px);
+  border-radius: var(--border-radius-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .text-card.is-selected {
-  border-color: var(--color-accent, #7f6df2);
+  border-color: var(--color-interactive-accent);
 }
 
 .text-card__body {
   flex: 1;
   padding: var(--space-2) var(--space-3);
-  font-family: var(--font-editor, var(--font-ui));
-  font-size: var(--type-scale-sm, 13px);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-sm);
   line-height: 1.5;
-  color: var(--color-text-primary);
+  color: var(--color-text-normal);
   white-space: pre-wrap;
   word-break: anywhere;
   overflow: auto;
@@ -51,10 +51,10 @@
   outline: none;
   resize: none;
   background: transparent;
-  font-family: var(--font-editor, var(--font-ui));
-  font-size: var(--type-scale-sm, 13px);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-sm);
   line-height: 1.5;
-  color: var(--color-text-primary);
+  color: var(--color-text-normal);
 }
 
 .text-card__handle {
@@ -63,8 +63,8 @@
   min-width: 8px !important;
   min-height: 8px !important;
   border-radius: 50% !important;
-  background-color: var(--color-interactive-accent, #7f6df2) !important;
-  border: 1px solid var(--color-bg-primary, #1e1e1e) !important;
+  background-color: var(--color-interactive-accent) !important;
+  border: 1px solid var(--color-bg-primary) !important;
   opacity: 0;
   transition: opacity 120ms ease;
   z-index: 10;

@@ -49,7 +49,7 @@ function ReadOnlyCanvasFlowComponent({
             variant={BackgroundVariant.Dots}
             gap={24}
             size={1}
-            color="var(--color-border-subtle, #333333)"
+            color="var(--color-border-subtle)"
           />
         </ReactFlow>
       </ReactFlowProvider>

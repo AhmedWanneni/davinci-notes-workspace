@@ -89,10 +89,7 @@ function LinkCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
     [url],
   );
 
-  const cardClass = [
-    styles["link-card"],
-    selected ? styles["is-selected"] : "",
-  ]
+  const cardClass = [styles["link-card"], selected ? styles["is-selected"] : ""]
     .filter(Boolean)
     .join(" ");
 
@@ -147,10 +144,32 @@ function LinkCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
 
         <div className={`${styles["link-card__body"]} nopan`}>
           {isExporting ? (
-            <div className={styles["link-card__empty-state"]} data-testid="link-card-export-placeholder">
-              <Globe size={32} style={{ marginBottom: "var(--space-2)", color: "var(--color-accent, #7f6df2)" }} />
-              <span style={{ fontWeight: 600, color: "var(--color-text-normal)" }}>Webpage Preview</span>
-              <span style={{ fontSize: "11px", wordBreak: "break-all", opacity: 0.8 }} title={url}>{url}</span>
+            <div
+              className={styles["link-card__empty-state"]}
+              data-testid="link-card-export-placeholder"
+            >
+              <Globe
+                size={32}
+                style={{
+                  marginBottom: "var(--space-2)",
+                  color: "var(--color-interactive-accent)",
+                }}
+              />
+              <span
+                style={{ fontWeight: 600, color: "var(--color-text-normal)" }}
+              >
+                Webpage Preview
+              </span>
+              <span
+                style={{
+                  fontSize: "11px",
+                  wordBreak: "break-all",
+                  opacity: 0.8,
+                }}
+                title={url}
+              >
+                {url}
+              </span>
             </div>
           ) : embedUrl ? (
             <iframe

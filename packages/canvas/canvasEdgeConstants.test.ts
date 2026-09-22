@@ -15,14 +15,10 @@ describe("canvasEdgeConstants", () => {
   });
 
   it("resolves preset colors and custom hex colors correctly", () => {
-    expect(getCanvasEdgeColorCss()).toBe("var(--color-border-normal, #363636)");
-    expect(getCanvasEdgeColorCss("1")).toBe("var(--color-text-error, #e55353)");
-    expect(getCanvasEdgeColorCss("4")).toBe(
-      "var(--color-text-success, #2ecc71)",
-    );
-    expect(getCanvasEdgeColorCss("6")).toBe(
-      "var(--color-interactive-accent, #7f6df2)",
-    );
+    expect(getCanvasEdgeColorCss()).toBe("var(--color-border-normal)");
+    expect(getCanvasEdgeColorCss("1")).toBe("var(--color-text-error)");
+    expect(getCanvasEdgeColorCss("4")).toBe("var(--color-text-success)");
+    expect(getCanvasEdgeColorCss("6")).toBe("var(--color-interactive-accent)");
     expect(getCanvasEdgeColorCss("#123456")).toBe("#123456");
   });
 
