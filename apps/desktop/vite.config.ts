@@ -1,4 +1,5 @@
 import path from "node:path";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
@@ -11,6 +12,36 @@ const largeFixtureVaultPath = path.join(
   repoRoot,
   "packages/indexer/fixtures/large-vault",
 );
+const magentaThemePath = path.join(
+  repoRoot,
+  "scripts/theme-verification/magenta-public-tokens.css",
+);
+
+const themeVerificationPlugin = {
+  name: "theme-verification-stylesheet",
+  configureServer(server: {
+    middlewares: {
+      use: (
+        path: string,
+        handler: (
+          request: unknown,
+          response: {
+            setHeader: (name: string, value: string) => void;
+            end: (body: string) => void;
+          },
+        ) => void,
+      ) => void;
+    };
+  }) {
+    server.middlewares.use(
+      "/_dev/theme-verification/magenta-public-tokens.css",
+      (_request, response) => {
+        response.setHeader("Content-Type", "text/css; charset=utf-8");
+        response.end(fs.readFileSync(magentaThemePath, "utf8"));
+      },
+    );
+  },
+};
 
 export default defineConfig({
   clearScreen: false,
@@ -19,7 +50,7 @@ export default defineConfig({
     __FIXTURE_VAULT_PATH__: JSON.stringify(fixtureVaultPath),
     __LARGE_FIXTURE_VAULT_PATH__: JSON.stringify(largeFixtureVaultPath),
   },
-  plugins: [react()],
+  plugins: [react(), themeVerificationPlugin],
   resolve: {
     alias: [
       {
