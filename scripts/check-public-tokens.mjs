@@ -57,6 +57,24 @@ export const ALLOWLIST = [
     pattern: "rgb(0 0 0 / 6%)",
     justification: "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
   },
+  {
+    file: "*",
+    pattern: "--motion-duration-fast",
+    detector: "non-public-token",
+    justification: "Motion timing is an internal performance/interaction contract, not a theme override surface.",
+  },
+  {
+    file: "*",
+    pattern: "--motion-duration-base",
+    detector: "non-public-token",
+    justification: "Motion timing is an internal performance/interaction contract, not a theme override surface.",
+  },
+  {
+    file: "*",
+    pattern: "--motion-ease-standard",
+    detector: "non-public-token",
+    justification: "Motion easing is an internal interaction contract, not a theme override surface.",
+  },
 ];
 
 const ROOTS = ["apps/desktop/src", "packages/canvas", "packages/editor", "packages/design-system/components"];
@@ -83,19 +101,21 @@ function locations(source, expression) {
 export function auditSource({ source, file, publicTokens, allowlist = [] }) {
   const clean = sourceWithoutCommentsOrUrls(source);
   const violations = [];
-  const permitted = (value) => allowlist.some((entry) => entry.file === file && entry.pattern === value);
+  const permitted = (value, detector) => allowlist.some((entry) =>
+    (entry.file === file || entry.file === "*") && entry.pattern === value && (!entry.detector || entry.detector === detector),
+  );
   const report = (detector, value) => violations.push({ detector, file, value });
 
   for (const match of clean.matchAll(TOKEN_REFERENCE)) {
     const token = match[1] ?? match[2];
-    if (!publicTokens.has(token)) report("non-public-token", token);
+    if (!publicTokens.has(token) && !permitted(token, "non-public-token")) report("non-public-token", token);
   }
   for (const match of clean.matchAll(TOKEN_DECLARATION)) {
     if (!publicTokens.has(match[1])) report("non-public-token-declaration", match[1]);
   }
   for (const fallback of locations(clean, FALLBACK)) report("var-fallback", fallback);
   for (const color of [...locations(clean, HEX_COLOR), ...locations(clean, COLOR_FUNCTION)]) {
-    if (!permitted(color)) report("raw-color", color);
+    if (!permitted(color, "raw-color")) report("raw-color", color);
   }
   for (const named of locations(clean, NAMED_COLOR)) report("named-color", named);
   return violations;
@@ -123,7 +143,10 @@ export function auditRepository({ root, allowlist = ALLOWLIST } = {}) {
   }
   for (const entry of allowlist) {
     if (!entry.justification?.trim()) violations.push({ detector: "allowlist", file: entry.file, value: `missing justification for ${entry.pattern}` });
-    else {
+    else if (entry.file === "*") {
+      const found = files.some((full) => fs.readFileSync(full, "utf8").includes(entry.pattern));
+      if (!found) violations.push({ detector: "allowlist", file: entry.file, value: `stale entry for ${entry.pattern}` });
+    } else {
       const full = path.join(root, entry.file);
       if (!fs.existsSync(full) || !fs.readFileSync(full, "utf8").includes(entry.pattern)) {
         violations.push({ detector: "allowlist", file: entry.file, value: `stale entry for ${entry.pattern}` });
