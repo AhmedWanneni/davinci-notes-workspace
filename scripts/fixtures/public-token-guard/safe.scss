@@ -1,0 +1,12 @@
+.foo--active .foo__bar--close {
+  color: transparent;
+  border-color: currentcolor;
+}
+
+/* var(--legacy-alias) and #fff are documentation, not code. */
+.asset {
+  background-image: url("https://example.test/icon.svg#fff");
+}
+.copy::before {
+  content: "--legacy-alias is unrelated text";
+}
