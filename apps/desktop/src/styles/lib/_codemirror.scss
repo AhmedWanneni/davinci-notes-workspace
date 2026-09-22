@@ -1,14 +1,14 @@
 .cm-editor {
   height: 100%;
-  font-family: var(--font-editor-text, var(--font-editor));
-  font-size: var(--editor-font-size, 1rem);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-base);
   background-color: var(--color-bg-primary);
   color: var(--color-text-normal);
 }
 
 .cm-scroller {
   font-family: inherit;
-  line-height: var(--editor-line-height);
+  line-height: var(--type-leading-relaxed);
   overflow-y: auto;
   overscroll-behavior-y: contain;
 }

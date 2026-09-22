@@ -1,6 +1,32 @@
-.ask-your-vault { display: grid; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--color-border-default); }
-.ask-your-vault__header { display: flex; justify-content: space-between; gap: var(--space-3); align-items: baseline; }
-.ask-your-vault__cloud-status { color: var(--color-text-muted); font-size: var(--font-size-xs); }
-.ask-your-vault textarea { min-height: 5rem; resize: vertical; }
-.ask-your-vault__answer { border-top: 1px solid var(--color-border-default); padding-top: var(--space-3); }
-.ask-your-vault__answer button { background: none; border: 0; color: var(--color-accent); cursor: pointer; padding: 0; text-align: left; }
+.ask-your-vault {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-normal);
+}
+.ask-your-vault__header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+.ask-your-vault__cloud-status {
+  color: var(--color-text-muted);
+  font-size: var(--type-scale-xs);
+}
+.ask-your-vault textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+.ask-your-vault__answer {
+  border-top: 1px solid var(--color-border-normal);
+  padding-top: var(--space-3);
+}
+.ask-your-vault__answer button {
+  background: none;
+  border: 0;
+  color: var(--color-interactive-accent);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}

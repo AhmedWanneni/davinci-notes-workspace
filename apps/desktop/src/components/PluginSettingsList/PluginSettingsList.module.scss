@@ -48,15 +48,15 @@
 }
 
 .version-badge {
-  font-size: var(--font-size-2xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   padding: 0 var(--space-1);
 }
 
 .plugin-id {
-  font-family: var(--font-mono);
-  font-size: var(--font-size-2xs);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
 }
 
 .error-box {

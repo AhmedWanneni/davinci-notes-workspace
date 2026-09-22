@@ -318,15 +318,12 @@ export function App() {
     void loadEditorFont(editorFont)
       .then((font) => {
         if (!cancelled) {
-          document.body.style.setProperty("--font-editor-text", font.cssFamily);
+          document.body.style.setProperty("--font-editor", font.cssFamily);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          document.body.style.setProperty(
-            "--font-editor-text",
-            "var(--font-ui)",
-          );
+          document.body.style.setProperty("--font-editor", "var(--font-ui)");
         }
       });
     return () => {

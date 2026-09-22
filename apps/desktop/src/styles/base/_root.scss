@@ -4,19 +4,19 @@
 
 html,
 body {
-  border-radius: var(--border-radius-xl);
+  border-radius: var(--border-radius-lg);
   background-color: transparent;
   overflow: hidden;
 }
 
 body {
-  clip-path: inset(0 round var(--border-radius-xl));
+  clip-path: inset(0 round var(--border-radius-lg));
 }
 
 #root {
   height: 100vh;
   width: 100vw;
-  border-radius: var(--border-radius-xl);
+  border-radius: var(--border-radius-lg);
   background-color: var(--color-bg-primary);
   overflow: hidden;
   display: flex;

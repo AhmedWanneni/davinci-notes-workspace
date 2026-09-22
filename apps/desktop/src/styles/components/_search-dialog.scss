@@ -4,9 +4,9 @@
   left: 50%;
   width: min(720px, calc(100vw - 32px));
   transform: translateX(-50%);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-normal);
   background: var(--color-bg-primary);
-  color: var(--color-text-primary);
+  color: var(--color-text-normal);
 }
 
 .search-dialog__input-wrapper {
@@ -23,7 +23,8 @@
   outline: 0;
   background: transparent;
   color: inherit;
-  font: var(--type-body);
+  font: var(--type-weight-regular) var(--type-scale-base) /
+    var(--type-leading-normal) var(--font-ui);
 }
 
 .search-dialog__mode-switch {
@@ -71,8 +72,8 @@
 .search-dialog__snippet,
 .search-dialog__empty {
   overflow: hidden;
-  color: var(--color-text-secondary);
-  font-size: var(--type-size-sm);
+  color: var(--color-text-muted);
+  font-size: var(--type-scale-sm);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
