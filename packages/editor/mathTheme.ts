@@ -11,7 +11,7 @@ export const mathTheme = EditorView.theme({
     verticalAlign: "middle",
   },
   ".cm-math-error": {
-    color: "var(--color-text-danger)",
+    color: "var(--color-text-error)",
     border: "var(--border-width-thin) dashed var(--color-border-subtle)",
   },
 });

@@ -7,7 +7,7 @@ export const tagTheme = EditorView.theme({
     gap: "var(--space-1)",
     padding: "0 var(--space-1)",
     border: "var(--border-width-thin) solid var(--color-border-subtle)",
-    borderRadius: "var(--border-radius-sm, 2px)",
+    borderRadius: "var(--border-radius-sm)",
     backgroundColor: "var(--color-bg-secondary)",
     color: "var(--color-text-accent)",
     cursor: "pointer",

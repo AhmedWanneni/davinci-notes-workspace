@@ -15,7 +15,7 @@ const sharedMermaidTheme = {
     cursor: "pointer",
   },
   ".cm-mermaid-error": {
-    color: "var(--color-text-danger)",
+    color: "var(--color-text-error)",
     border: "var(--border-width-thin) dashed var(--color-border-subtle)",
     textAlign: "left",
   },
