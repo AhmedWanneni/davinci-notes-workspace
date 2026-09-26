@@ -4,6 +4,8 @@
   justify-content: center;
   width: var(--icon-size-sm);
   height: var(--icon-size-sm);
+  max-width: 100%;
+  max-height: 100%;
   overflow: hidden;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
   font-size: var(--icon-size-sm);
@@ -20,9 +22,12 @@
 .file-tree__emoji-picker {
   width: 100%;
   max-height: calc(var(--space-8) * 12);
-  padding: var(--space-3);
-  border: var(--border-width-thin) solid var(--color-border-normal);
-  background: var(--color-bg-primary);
+  padding: var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
   box-sizing: border-box;
   overflow: hidden;
 
@@ -37,44 +42,68 @@
   }
 
   [frimousse-category-header] {
-    padding: var(--space-1) 0;
+    padding: var(--space-2) 0 var(--space-1);
     color: var(--color-text-muted);
+    font-family: var(--font-ui);
     font-size: var(--type-scale-xs);
+    font-weight: var(--type-weight-medium);
   }
 
   [frimousse-emoji] {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: var(--icon-size-xl);
-    height: var(--icon-size-xl);
-    flex-shrink: 0;
+    aspect-ratio: 1;
+    width: 100%;
+    min-width: 0;
     padding: 0;
     border: 0;
+    border-radius: var(--border-radius-sm);
     background: transparent;
     color: var(--color-text-normal);
     font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
-    font-size: var(--type-scale-base);
+    font-size: var(--icon-size-md);
     line-height: 1;
     overflow: hidden;
     cursor: pointer;
+    transition: background-color var(--motion-duration-fast)
+      var(--motion-ease-standard);
 
     &:hover,
     &[data-active] {
-      background: var(--color-bg-hover);
+      background-color: var(--color-bg-hover);
     }
+
+    &:focus-visible {
+      outline: var(--border-width-thin) solid var(--color-border-focus);
+      outline-offset: -1px;
+    }
+  }
+
+  [frimousse-loading],
+  [frimousse-empty] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4) 0;
+    color: var(--color-text-muted);
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-sm);
   }
 }
 
 .file-tree__emoji-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
 }
 
 .file-tree__emoji-picker-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
   color: var(--color-text-normal);
   font-size: var(--type-scale-sm);
   font-weight: var(--type-weight-semibold);
@@ -82,11 +111,33 @@
 
 .file-tree__emoji-search {
   width: 100%;
-  margin-bottom: var(--space-2);
+  height: 28px;
+  padding: 0 var(--space-3);
+  margin-bottom: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  border-radius: var(--border-radius-md);
+  background-color: transparent;
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-sm);
+  outline: none;
   box-sizing: border-box;
+  transition: border-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:focus {
+    border-color: var(--color-border-focus);
+    outline: var(--border-width-thin) solid var(--color-border-focus);
+    outline-offset: -1px;
+  }
 }
 
 .file-tree__emoji-viewport {
-  height: calc(var(--space-8) * 8 + var(--space-2));
-  overflow: hidden;
+  height: calc(var(--space-8) * 8);
+  max-height: 256px;
+  overflow: hidden auto;
 }
