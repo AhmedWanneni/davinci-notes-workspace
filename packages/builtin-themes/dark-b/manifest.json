@@ -1,0 +1,11 @@
+{
+  "id": "dark-b",
+  "name": "Dark B",
+  "version": "1.0.0",
+  "minAppVersion": "0.1.0",
+  "author": "DaVinci Notes",
+  "description": "A true-black, high-contrast dark theme with bright cyan interaction states.",
+  "styles": "theme.css",
+  "license": "MIT",
+  "keywords": ["dark", "high-contrast", "built-in"]
+}
