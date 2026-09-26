@@ -1,0 +1,11 @@
+{
+  "id": "catppuccin-latte",
+  "name": "Catppuccin Latte",
+  "version": "1.0.0",
+  "minAppVersion": "0.1.0",
+  "author": "DaVinci Notes",
+  "description": "Official Catppuccin Latte palette adaptation. Catppuccin palette is MIT licensed.",
+  "styles": "theme.css",
+  "license": "MIT",
+  "keywords": ["light", "catppuccin", "built-in"]
+}
