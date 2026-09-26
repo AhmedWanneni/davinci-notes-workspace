@@ -1,0 +1,11 @@
+{
+  "id": "light-a",
+  "name": "Light A",
+  "version": "1.0.0",
+  "minAppVersion": "0.1.0",
+  "author": "DaVinci Notes",
+  "description": "A neutral, paper-like light theme with crisp borders and quiet blue focus states.",
+  "styles": "theme.css",
+  "license": "MIT",
+  "keywords": ["light", "neutral", "built-in"]
+}
