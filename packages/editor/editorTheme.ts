@@ -7,7 +7,8 @@ export const editorTheme = EditorView.theme({
     backgroundColor: "var(--color-bg-primary)",
     color: "var(--color-text-normal)",
     fontFamily: "var(--font-editor)",
-    fontSize: "var(--type-scale-base)",
+    // This is a vault-scoped runtime setting, rather than a theme token.
+    fontSize: "var(--editor-font-size)",
     lineHeight: "var(--type-leading-relaxed)",
   },
   "&.cm-focused": {
