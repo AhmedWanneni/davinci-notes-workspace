@@ -6,15 +6,17 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Public-token consumer reconciliation — complete**
-All public-token-driven consumer surfaces now use the complete documented
-theme contract. The before/after default-style diff found one regression—the
-vault-scoped editor font-size variable—and it is fixed. The blocking guard is
-at zero findings, runs in the pre-commit hook and CI, and has only documented
-allowlist entries. ADR-0163 added the scrim role; ADR-0164 added status-tint
-and shared-shadow roles. The magenta override remains a permanent dev-only
-verification utility. Built-in themes may now be authored against this
-guarded public surface.
+**Built-in themes — complete**
+Added Light A, Catppuccin Latte, Catppuccin Frappé, and Dark B against the
+complete guarded public-token contract. Built-ins are available without a
+vault, their CSS lazy-loads only when selected, and the selected built-in is
+restored from an app-level cache before React paints. Built-ins win vault ID
+collisions and are visibly immutable in Settings/registry UI (ADR-0165).
+
+The preceding public-token consumer reconciliation is complete: ADR-0163
+added the scrim role and ADR-0164 added status-tint/shared-shadow roles. The
+blocking guard remains at zero findings; the magenta override remains a
+permanent dev-only verification utility.
 
 Deferred: Dialog BEM selector rename; Settings/shared-Dialog overlay
 consolidation; and evaluating the fixture-vault gitignore candidate.
@@ -613,8 +615,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Built-in themes**: author Light A, Catppuccin Latte, Catppuccin Frappé, and a second dark theme against the complete guarded public-token surface.
-2. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+1. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
 2. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
 3. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
 4. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.

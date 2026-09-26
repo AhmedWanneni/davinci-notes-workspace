@@ -4,6 +4,8 @@ export interface ThemeRecord {
   id: string;
   manifest: ThemeManifest;
   dirName: string;
+  source?: "builtin" | "vault";
+  loadStyles?: () => Promise<string>;
 }
 
 export interface ThemeDiscoveryError {
@@ -18,5 +20,9 @@ export interface ThemeFileSystemAdapter {
 
 export interface ThemeStateStorage {
   loadActiveThemeId: () => Promise<string | null>;
-  saveActiveThemeId: (themeId: string | null) => Promise<void>;
+  saveActiveTheme: (
+    themeId: string | null,
+    css: string | null,
+    source: ThemeRecord["source"] | null,
+  ) => Promise<void>;
 }

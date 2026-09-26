@@ -42,8 +42,9 @@ describe("createDesktopThemeFsAdapter", () => {
       createDesktopThemeFsAdapter("/Volumes/External Notes"),
       {
         loadActiveThemeId: async () => null,
-        saveActiveThemeId: async () => {},
+        saveActiveTheme: async () => {},
       },
+      [],
     );
 
     await manager.initialize();

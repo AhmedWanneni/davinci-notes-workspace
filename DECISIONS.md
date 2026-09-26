@@ -170,6 +170,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0015](adr/0015-ignore-tauri-mobile-gen.md) | `.gitignore`: Tauri mobile `gen/` ignored | Accepted |
 | [0016](adr/0016-commit-style-dictionary-output.md) | `.gitignore`: Style Dictionary `tokens/dist/` committed | Accepted |
 | [0163](adr/0163-public-theme-scrim-token.md) | Public `--color-bg-scrim` token for modal/dialog backdrops; no strong-border token | Accepted |
+| [0165](adr/0165-built-in-theme-loading-and-precedence.md) | Lazy built-in theme CSS, app-level restore cache, and built-in-wins ID policy | Accepted |
 
 ## Release & Delivery
 

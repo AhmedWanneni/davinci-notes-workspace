@@ -92,6 +92,23 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 
 ## Detailed Session Notes
 
+### 2026-09-26 — Built-in themes
+
+- Added four standalone CSS-only built-in packages: Light A, Catppuccin Latte,
+  Catppuccin Frappé, and Dark B. Every public token is declared, including the
+  scrim, four status background/border pairs, and shadow ink. Catppuccin uses
+  the official MIT palette with package-local attribution and license notes.
+- Built-in manifests are frontend metadata; their CSS uses Vite dynamic raw
+  imports so only the active stylesheet is loaded. App-level local storage
+  persists selection; cached built-in CSS is inserted before React starts to
+  avoid a wrong-theme flash. No dependency or Tauri capability was added.
+- Discovery now lists built-ins with no vault, merges vault themes when one is
+  open, and keeps a built-in on ID collision while reporting the skipped vault
+  directory. Settings and the registry distinguish immutable built-ins.
+- Focused desktop tests and lint pass; desktop web build passes. The complete
+  desktop typecheck remains blocked by unrelated existing workspace, sync,
+  Storybook, and vault-update-counter errors.
+
 ### 2026-09-06 — Git Versioning Phase 3
 
 - Reused Drive OAuth's `keyring::Entry` boundary for Git PATs, with a distinct

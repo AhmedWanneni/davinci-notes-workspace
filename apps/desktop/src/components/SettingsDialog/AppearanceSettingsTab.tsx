@@ -30,6 +30,8 @@ export function AppearanceSettingsTab({
   onReloadThemes,
   onActivateThemeFromBrowser,
 }: AppearanceSettingsTabProps) {
+  const builtins = themes.filter((theme) => theme.source === "builtin");
+  const vaultThemes = themes.filter((theme) => theme.source !== "builtin");
   return (
     <div className={styles["settings-tab-content"]}>
       <SettingsCard title="Themes">
@@ -46,11 +48,24 @@ export function AppearanceSettingsTab({
             aria-label="Current Theme"
           >
             <option value="">Default styling</option>
-            {themes.map((theme) => (
-              <option value={theme.id} key={theme.id}>
-                {theme.manifest.name}
-              </option>
-            ))}
+            {builtins.length > 0 && (
+              <optgroup label="Built-in themes">
+                {builtins.map((theme) => (
+                  <option value={theme.id} key={theme.id}>
+                    {theme.manifest.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
+            {vaultThemes.length > 0 && (
+              <optgroup label="Vault themes">
+                {vaultThemes.map((theme) => (
+                  <option value={theme.id} key={theme.id}>
+                    {theme.manifest.name}
+                  </option>
+                ))}
+              </optgroup>
+            )}
           </select>
         </SettingsRow>
       </SettingsCard>

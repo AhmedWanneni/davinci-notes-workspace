@@ -47,7 +47,7 @@ function createStorage(): ThemeStateStorage {
   let active: string | null = null;
   return {
     loadActiveThemeId: async () => active,
-    saveActiveThemeId: async (themeId) => {
+    saveActiveTheme: async (themeId) => {
       active = themeId;
     },
   };
@@ -61,7 +61,11 @@ describe("ThemeLifecycleManager", () => {
   });
 
   it("discovers valid themes while isolating malformed manifests", async () => {
-    const manager = new ThemeLifecycleManager(createAdapter(), createStorage());
+    const manager = new ThemeLifecycleManager(
+      createAdapter(),
+      createStorage(),
+      [],
+    );
     await manager.initialize();
     expect(manager.getThemes().map(({ id }) => id)).toEqual([
       "theme-a",
@@ -79,7 +83,7 @@ describe("ThemeLifecycleManager", () => {
       },
       readThemeFile: async () => "",
     };
-    const manager = new ThemeLifecycleManager(adapter, createStorage());
+    const manager = new ThemeLifecycleManager(adapter, createStorage(), []);
 
     await manager.initialize();
 
@@ -93,7 +97,11 @@ describe("ThemeLifecycleManager", () => {
   });
 
   it("switches computed styles and removes the previous stylesheet", async () => {
-    const manager = new ThemeLifecycleManager(createAdapter(), createStorage());
+    const manager = new ThemeLifecycleManager(
+      createAdapter(),
+      createStorage(),
+      [],
+    );
     await manager.initialize();
     const target = document.querySelector<HTMLElement>(".fixture-target")!;
     await manager.activateTheme("theme-a");
@@ -112,7 +120,11 @@ describe("ThemeLifecycleManager", () => {
   });
 
   it("keeps one style node during rapid repeated switching", async () => {
-    const manager = new ThemeLifecycleManager(createAdapter(), createStorage());
+    const manager = new ThemeLifecycleManager(
+      createAdapter(),
+      createStorage(),
+      [],
+    );
     await manager.initialize();
     for (let index = 0; index < 6; index += 1) {
       await manager.activateTheme(index % 2 === 0 ? "theme-a" : "theme-b");
@@ -132,7 +144,7 @@ describe("ThemeLifecycleManager", () => {
           ? JSON.stringify({ ...manifests.themeA, id: "external" })
           : externalCss,
     };
-    const manager = new ThemeLifecycleManager(adapter, createStorage());
+    const manager = new ThemeLifecycleManager(adapter, createStorage(), []);
     await manager.initialize();
     await manager.activateTheme("external");
 
@@ -140,5 +152,39 @@ describe("ThemeLifecycleManager", () => {
       document.querySelector<HTMLStyleElement>("style[data-davinci-theme]")
         ?.textContent,
     ).toBe(externalCss);
+  });
+
+  it("lists built-ins without a vault adapter", async () => {
+    const manager = new ThemeLifecycleManager(null, createStorage());
+
+    await manager.initialize();
+
+    expect(manager.getThemes().map((theme) => theme.id)).toEqual([
+      "light-a",
+      "catppuccin-latte",
+      "catppuccin-frappe",
+      "dark-b",
+    ]);
+  });
+
+  it("keeps a built-in when a vault theme uses its ID", async () => {
+    const adapter: ThemeFileSystemAdapter = {
+      listThemeDirectories: async () => ["duplicate"],
+      readThemeFile: async (_dirName, relativePath) =>
+        relativePath === "manifest.json"
+          ? JSON.stringify({ ...manifests.themeA, id: "light-a" })
+          : ".fixture-target { color: red; }",
+    };
+    const manager = new ThemeLifecycleManager(adapter, createStorage());
+
+    await manager.initialize();
+
+    expect(
+      manager.getThemes().find((theme) => theme.id === "light-a")?.source,
+    ).toBe("builtin");
+    expect(manager.getDiscoveryErrors()).toContainEqual({
+      dirName: "duplicate",
+      error: "Theme ID collision: light-a; built-in theme takes precedence.",
+    });
   });
 });

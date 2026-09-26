@@ -33,6 +33,7 @@ export function ThemeSettingsList({
           {themes.map((theme) => (
             <option value={theme.id} key={theme.id}>
               {theme.manifest.name}
+              {theme.source === "builtin" ? " (Built-in)" : ""}
             </option>
           ))}
         </select>
@@ -44,6 +45,7 @@ export function ThemeSettingsList({
           </Typography>
           <Typography variant="text" size="xs" color="muted">
             {theme.id} - v{theme.manifest.version}
+            {theme.source === "builtin" ? " - Built-in" : ""}
             {activeThemeId === theme.id ? " - Active" : ""}
           </Typography>
         </div>

@@ -41,7 +41,23 @@ export function ThemeBrowser({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const installed = useMemo(
-    () => new Map(manager.getThemes().map((theme) => [theme.id, theme])),
+    () =>
+      new Map(
+        manager
+          .getThemes()
+          .filter((theme) => theme.source !== "builtin")
+          .map((theme) => [theme.id, theme]),
+      ),
+    [manager],
+  );
+  const builtinIds = useMemo(
+    () =>
+      new Set(
+        manager
+          .getThemes()
+          .filter((theme) => theme.source === "builtin")
+          .map((theme) => theme.id),
+      ),
     [manager],
   );
 
@@ -158,6 +174,7 @@ export function ThemeBrowser({
       ) : (
         entries.map((entry) => {
           const theme = installed.get(entry.id);
+          const isBuiltin = builtinIds.has(entry.id);
           const release = releases[entry.id];
           const update =
             theme &&
@@ -172,6 +189,11 @@ export function ThemeBrowser({
                 <Typography variant="text" size="xs" color="muted">
                   {entry.description} by {entry.author}
                 </Typography>
+                {isBuiltin && (
+                  <Typography variant="text" size="xs" color="muted">
+                    Built-in theme
+                  </Typography>
+                )}
                 {theme && (
                   <Typography variant="text" size="xs" color="muted">
                     Installed {theme.manifest.version}
@@ -180,12 +202,14 @@ export function ThemeBrowser({
                 )}
               </div>
               <div className={styles.actions}>
-                <Button
-                  variant="secondary"
-                  onClick={() => void install(entry).catch(reportActionError)}
-                >
-                  {theme ? "Update" : "Install"}
-                </Button>
+                {!isBuiltin && (
+                  <Button
+                    variant="secondary"
+                    onClick={() => void install(entry).catch(reportActionError)}
+                  >
+                    {theme ? "Update" : "Install"}
+                  </Button>
+                )}
                 {theme && (
                   <Button
                     variant="secondary"

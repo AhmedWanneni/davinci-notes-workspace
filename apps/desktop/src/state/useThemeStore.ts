@@ -3,6 +3,7 @@ import {
   ThemeLifecycleManager,
   createDesktopThemeFsAdapter,
   createDesktopThemeStorage,
+  restoreCachedBuiltinTheme,
   type ThemeDiscoveryError,
   type ThemeRecord,
 } from "../themes";
@@ -22,18 +23,8 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   activeThemeId: null,
   themeManager: null,
   initThemes: async (vaultPath) => {
-    await get().themeManager?.unload();
-    if (!vaultPath) {
-      set({
-        themes: [],
-        discoveryErrors: [],
-        activeThemeId: null,
-        themeManager: null,
-      });
-      return;
-    }
     const manager = new ThemeLifecycleManager(
-      createDesktopThemeFsAdapter(vaultPath),
+      vaultPath ? createDesktopThemeFsAdapter(vaultPath) : null,
       createDesktopThemeStorage(),
     );
     manager.onStateChange(() =>
@@ -55,3 +46,5 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     await get().themeManager?.activateTheme(themeId);
   },
 }));
+
+restoreCachedBuiltinTheme();

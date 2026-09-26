@@ -11,10 +11,12 @@ export interface ThemeDiscoveryResult {
 }
 
 export async function discoverThemes(
-  adapter: ThemeFileSystemAdapter,
+  adapter: ThemeFileSystemAdapter | null,
+  initialThemes: ThemeRecord[] = [],
 ): Promise<ThemeDiscoveryResult> {
-  const themes = new Map<string, ThemeRecord>();
+  const themes = new Map(initialThemes.map((theme) => [theme.id, theme]));
   const errors: ThemeDiscoveryError[] = [];
+  if (!adapter) return { themes, errors };
   let directories: string[] = [];
   try {
     directories = await adapter.listThemeDirectories();
@@ -36,8 +38,13 @@ export async function discoverThemes(
             .map(({ field, message }) => `${field}: ${message}`)
             .join("; "),
         );
-      if (themes.has(result.data.id))
-        throw new Error(`Theme ID collision: ${result.data.id}`);
+      const existing = themes.get(result.data.id);
+      if (existing)
+        throw new Error(
+          existing.source === "builtin"
+            ? `Theme ID collision: ${result.data.id}; built-in theme takes precedence.`
+            : `Theme ID collision: ${result.data.id}`,
+        );
       themes.set(result.data.id, createThemeRecord(dirName, result.data));
     } catch (error) {
       errors.push({
@@ -53,5 +60,5 @@ function createThemeRecord(
   dirName: string,
   manifest: ThemeManifest,
 ): ThemeRecord {
-  return { id: manifest.id, manifest, dirName };
+  return { id: manifest.id, manifest, dirName, source: "vault" };
 }
