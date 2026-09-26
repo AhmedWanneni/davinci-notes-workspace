@@ -6,20 +6,46 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Built-in themes — complete**
-Added Light A, Catppuccin Latte, Catppuccin Frappé, and Dark B against the
-complete guarded public-token contract. Built-ins are available without a
-vault, their CSS lazy-loads only when selected, and the selected built-in is
-restored from an app-level cache before React paints. Built-ins win vault ID
-collisions and are visibly immutable in Settings/registry UI (ADR-0165).
+**Theme ecosystem — complete**
+The public contract, consumer reconciliation, blocking token guard, permanent
+magenta verification utility, four built-in themes, and merged vault discovery
+are complete. Light A, Catppuccin Latte, Catppuccin Frappé, and Dark B use
+only public tokens; built-ins are available without a vault and their CSS
+lazy-loads only when selected. Built-ins are immutable in Settings/registry
+UI and win vault-theme ID collisions.
 
-The preceding public-token consumer reconciliation is complete: ADR-0163
-added the scrim role and ADR-0164 added status-tint/shared-shadow roles. The
-blocking guard remains at zero findings; the magenta override remains a
-permanent dev-only verification utility.
+Theme selection is deliberately stored in app-level `localStorage`. This is a
+new, scoped app-wide persistence mechanism—the only `localStorage` use in the
+app—not an established shared settings backend. It is synchronous and avoids a
+dependency, vault I/O, and a wrong-theme flash before React renders. Reconcile
+it with a future app-level settings foundation if one is introduced; do not
+move it into vault SQLite because selection must restore with no vault open.
 
-Deferred: Dialog BEM selector rename; Settings/shared-Dialog overlay
-consolidation; and evaluating the fixture-vault gitignore candidate.
+When a vault theme collides with a built-in ID, the user sees it in Settings →
+Appearance's existing error banner as: `Skipped theme <directory>: Theme ID
+collision: <id>; built-in theme takes precedence.` It is not console-only.
+
+ADRs produced by this effort:
+
+- ADR-0163: public `--color-bg-scrim` token for modal and dialog backdrops.
+- ADR-0164: public status-tint background/border tokens and `--color-shadow`.
+- ADR-0165: lazy built-in CSS loading, app-level restoration, and built-in-wins
+  collision precedence.
+
+Theme ecosystem deferred items:
+
+- Rename seven Dialog CSS-module-style selectors currently covered by the
+  Stylelint baseline.
+- Evaluate consolidating the Settings dialog overlay with the shared
+  design-system Dialog overlay.
+- Evaluate ignoring `packages/indexer/fixtures/vault/2026-09-20.md`, which is
+  app-generated during testing.
+- Restore the pre-existing missing indexer fixtures
+  `fixtures/vault/projects/alpha.md` and `fixtures/vault/daily/standalone.md`.
+  Their test failures predate token reconciliation and are unrelated to theme
+  work.
+- Reconcile the new app-level `localStorage` selection record only when a
+  broader app-level settings persistence foundation exists.
 
 **Stylelint baseline — Dialog selector rename deferred**
 The design-system Dialog retains seven CSS-module-style selector names
@@ -45,12 +71,6 @@ and Rust check pass; the adapter test uses command doubles while the Rust tests
 use a real temporary vault. The pre-existing watcher `is_paused` dead-code
 warning remains. Native Settings and external-drive acceptance testing remain
 open in this environment.
-
-**Bundled themes — ready to author**
-The public-token contract is now complete and blocking-guarded. The next task
-may author Light A, Catppuccin Latte, Catppuccin Frappé, and a second dark
-theme against `packages/theme-api/PUBLIC_TOKENS.md`, then verify them through
-the existing archive/install path.
 
 **Unified window controls — implementation complete; visual verification pending**
 macOS now uses the same undecorated Tauri window and sidebar-integrated custom

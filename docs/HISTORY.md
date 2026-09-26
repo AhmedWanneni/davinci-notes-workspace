@@ -92,6 +92,18 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 
 ## Detailed Session Notes
 
+### 2026-09-26 — Theme ecosystem closeout
+
+- Confirmed theme selection uses a deliberately scoped, new app-level
+  `localStorage` record rather than an existing shared settings backend. It is
+  necessary for no-vault, pre-React restoration; reconcile it only with a
+  future app-level settings foundation.
+- Confirmed built-in/vault ID collisions are visible to users in Settings →
+  Appearance's discovery error banner, which identifies the skipped directory
+  and says the built-in takes precedence.
+- Consolidated the complete theme ecosystem state, ADR-0163/0164/0165 summary,
+  and its deferred follow-ups in `PROGRESS.md`.
+
 ### 2026-09-26 — Built-in themes
 
 - Added four standalone CSS-only built-in packages: Light A, Catppuccin Latte,
