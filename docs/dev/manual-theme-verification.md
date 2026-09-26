@@ -31,3 +31,4 @@ switch if theme packages are available:
 
 For every surface, record whether it turns magenta/oversized, returns exactly
 to baseline when disabled, and has no second backdrop or residual style.
+   document.head.insertAdjacentHTML("beforeend", '<link id="public-token-test" rel="stylesheet" href="http://localhost:1420/_dev/theme-verification/magenta-public-tokens.css">');
