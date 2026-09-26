@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-09-26 | Public-token consumer reconciliation | Completed default-style classification and restored the editor font-size runtime setting; made the zero-finding public-token guard blocking in hooks and CI; ADR-0163/0164 now cover the complete documented surface. |
 | 2026-09-20 | File tree emoji picker layout and persistence | Portaled and contained the Frimousse picker so it no longer stretches the sidebar; persist markdown `icon` frontmatter and `.davinci/icons.json`, then reload them on vault open. Focused tests pass; native restart still UNVERIFIED. |
 | 2026-09-19 | Fix: Folder rename and delete no-op | Replaced unsupported browser delete confirmation with the existing Tauri dialog plugin; surfaced async folder rename/delete errors; rejected slash folder names; moved recursive native folder command safety into tested core with root/hidden/traversal/symlink guards. Real temp-filesystem tests verify nested rename/delete; native visual acceptance remains pending. |
 | 2026-09-19 | File Tree Context Menu, Click-Away Dismissal, and Folder Actions (CRUD) | Completed 5-task context menu dismissal and folder CRUD overhaul: capture-phase click-away dismissal via `useContextMenuDismiss`, tailored file/folder/empty-space menu options, arrow-key navigation, parent-folder-scoped creation with auto-expansion and immediate inline rename, batched SQLite transaction folder rename, and safe folder deletion with native Rust `delete_folder`, root protection, confirmation prompt, and index/tab cleanup; added ADR-0158. |
@@ -2798,3 +2799,9 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Replaced macOS overlay traffic lights with the existing Tauri-backed custom window controls so titleless chrome has one coherent sidebar treatment across platforms.
 - Removed the native-light spacers and styled the compact controls with existing flat, border/token-based states. The tab row receives the same controls when the sidebar is collapsed.
 - Desktop lint and Rust check pass. Native macOS interaction and visual placement remain UNVERIFIED.
+## 2026-09-26 — Public-token consumer reconciliation closeout
+
+- Completed the default-theme representative-surface diff against pre-reconciliation baseline `1ad9064`. Alias/fallback changes are classified in `docs/dev/public-token-default-style-diff.md`; the only regression was the editor font-size runtime setting, now restored.
+- Finalized the public contract for all application, canvas, editor, and design-system consumers. ADR-0163 provides the modal scrim role; ADR-0164 provides status tints and shared shadow ink. The former alias/fallback audit is closed.
+- Made `check:public-tokens` blocking, wired it to Husky pre-commit and CI, and confirmed zero findings with a fully justified allowlist. A temporary staged raw `#f0c` file was rejected by the hook, removed, and the normal guarded commits passed.
+- Retained the magenta stylesheet and Vite route as a permanent development-only verification utility. Deferred: Dialog BEM selector rename, Settings/shared-Dialog overlay consolidation, and fixture-vault gitignore evaluation.

@@ -1,6 +1,6 @@
 # DaVinci Notes Theme Token Contract
 
-This document is the Phase 1 public CSS contract for themes. A theme may
+This document is the complete public CSS contract for themes. A theme may
 override the public variables below from its stylesheet. Names not listed here
 are internal or accidental implementation details and are not supported.
 The defaults are the current generated values from
@@ -118,28 +118,27 @@ Themes should use `prefers-reduced-motion` in their own stylesheet if they
 need additional accessibility behavior. A future motion contract can be
 considered separately without making current component timing a stable API.
 
-## Audit findings before Phase 2
+## Consumer reconciliation
 
-The generated token set is not the complete set of variables used by the
-application. These aliases occur in app/canvas styles but have no declaration
-in the design-system token source: `--color-accent`, `--color-border`,
-`--color-border-default`, `--color-border-strong`, `--color-overlay`,
-`--color-text-primary`, `--color-text-secondary`, `--edge-color`,
-`--font-mono`, `--font-size-2xs`, `--radius-xs`, `--radius-sm`,
-`--radius-md`, `--space-12`, `--type-body`, `--type-heading-3`, and
-`--type-size-sm`.
+The consumer audit is complete. Application, canvas, editor, and design-system
+surfaces use the public roles above rather than the former accidental aliases
+(`--color-accent`, `--color-border*`, `--color-overlay`,
+`--color-text-primary`/`secondary`, `--edge-color`, `--font-mono`,
+`--radius-*`, `--type-body`, and `--type-heading-3`) or raw/fallback colors.
 
-Several represent the same visual concepts with competing names:
+ADR-0163 added `--color-bg-scrim` for every modal and viewport-covering
+backdrop. ADR-0164 added the eight status-tint roles and `--color-shadow` for
+elevated components, with compatibility fallbacks retained only through the
+guard's documented allowlist.
 
-- `color-text-primary`/`secondary` overlap `color-text-normal`/`muted`.
-- `color-border`/`default`/`strong` overlap `color-border-subtle`/`normal`.
-- `color-accent` overlaps the interactive and text accent tokens.
-- `radius-*` overlaps `border-radius-*`.
-- `font-mono` overlaps `font-editor`.
+`--editor-font-size` is deliberately not public: it is a vault-scoped runtime
+setting set by the editor preferences UI. Motion and icon-weight variables
+remain internal for the reasons documented above.
 
-Fallback values in canvas styles also disagree for the same concepts. These
-are flagged rather than exposed as public aliases. Phase 2 should reconcile
-or remove them before promising theme behavior across the whole application.
-The fixture `fixtures/internal-token-theme/styles.css` deliberately targets
-`--motion-duration-fast`; it is valid CSS but outside this contract and is a
-concrete candidate for a future warning/lint rule.
+## Permanent development verification utility
+
+`scripts/theme-verification/magenta-public-tokens.css` and the Vite-only
+`/_dev/theme-verification/magenta-public-tokens.css` route are permanent
+development utilities. They have no production import or build output. Use
+`docs/dev/manual-theme-verification.md` when adding a public token to confirm
+that every public-token-driven surface changes and restores cleanly.

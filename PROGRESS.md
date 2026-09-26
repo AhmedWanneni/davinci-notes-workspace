@@ -6,14 +6,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Public-token consumer reconciliation — complete**
+All public-token-driven consumer surfaces now use the complete documented
+theme contract. The before/after default-style diff found one regression—the
+vault-scoped editor font-size variable—and it is fixed. The blocking guard is
+at zero findings, runs in the pre-commit hook and CI, and has only documented
+allowlist entries. ADR-0163 added the scrim role; ADR-0164 added status-tint
+and shared-shadow roles. The magenta override remains a permanent dev-only
+verification utility. Built-in themes may now be authored against this
+guarded public surface.
+
+Deferred: Dialog BEM selector rename; Settings/shared-Dialog overlay
+consolidation; and evaluating the fixture-vault gitignore candidate.
+
 **Stylelint baseline — Dialog selector rename deferred**
 The design-system Dialog retains seven CSS-module-style selector names
 (`dialogOverlay`, `dialogContent`, and related names) that conflict with the
 project's CUBE/plain-class naming rule. They have a narrow documented
 Stylelint baseline so current commits remain checkable; renaming the exported
 CSS-module contract is a separate candidate task. Settings traffic-light hex
-values are similarly documented OS-window-control exceptions, and must become
-explicit justified entries in the forthcoming token-guard allowlist.
+values are documented OS-window-control exceptions in the blocking
+public-token guard allowlist.
 
 **Theme discovery — vault-scoped Rust I/O fixed**
 Theme discovery no longer calls the Tauri fs plugin for the user-selected
@@ -31,22 +44,11 @@ use a real temporary vault. The pre-existing watcher `is_paused` dead-code
 warning remains. Native Settings and external-drive acceptance testing remain
 open in this environment.
 
-**Bundled themes — blocked by the public-token contract**
-The requested four-theme authoring task stopped before adding any theme files.
-`packages/theme-api/PUBLIC_TOKENS.md` explicitly records that canvas and app
-surfaces still use internal aliases and hard-coded fallbacks outside the public
-theme API. A repository-wide use audit also found additional non-public
-variables used by those surfaces (`--color-accent`, `--color-border`,
-`--color-border-default`, `--color-border-strong`, `--color-overlay`,
-`--color-text-primary`, `--color-text-secondary`, `--edge-color`,
-`--font-mono`, `--radius-*`, `--type-body`, and `--type-heading-3`, among
-others). Shipping CSS that overrides those names would violate the stated
-third-party-author boundary and conceal the incomplete coverage.
-
-No theme files, loader changes, dependencies, or ADRs were added. The next
-theme task must first reconcile the app to the established public tokens or
-extend that API with a new ADR; then the four themes can be packaged as real
-registry fixtures and verified through the existing archive/install path.
+**Bundled themes — ready to author**
+The public-token contract is now complete and blocking-guarded. The next task
+may author Light A, Catppuccin Latte, Catppuccin Frappé, and a second dark
+theme against `packages/theme-api/PUBLIC_TOKENS.md`, then verify them through
+the existing archive/install path.
 
 **Unified window controls — implementation complete; visual verification pending**
 macOS now uses the same undecorated Tauri window and sidebar-integrated custom
@@ -611,7 +613,8 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+1. **Built-in themes**: author Light A, Catppuccin Latte, Catppuccin Frappé, and a second dark theme against the complete guarded public-token surface.
+2. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
 2. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
 3. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
 4. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
