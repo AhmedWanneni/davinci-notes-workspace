@@ -11,6 +11,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - name: Check Public Theme Tokens
+        run: pnpm run check:public-tokens
       - run: pnpm turbo run lint typecheck test build --filter=...[origin/main]
       - name: Check Desktop Bundle Size
         run: pnpm run check:bundle-size

@@ -37,3 +37,14 @@ test("allowlist entries require a justification and must match", () => {
   assert.ok(missing.some(({ detector, value }) => detector === "allowlist" && value.startsWith("missing justification")));
   assert.ok(stale.some(({ detector, value }) => detector === "allowlist" && value.startsWith("stale entry")));
 });
+
+test("allows the documented runtime editor setting", () => {
+  const source = 'fontSize: "var(--editor-font-size)"';
+  const violations = auditSource({
+    source,
+    file: "packages/editor/editorTheme.ts",
+    publicTokens,
+    allowlist: ALLOWLIST,
+  });
+  assert.deepEqual(violations, []);
+});

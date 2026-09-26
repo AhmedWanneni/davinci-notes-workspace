@@ -13,6 +13,12 @@ const TOKEN_DECLARATION = /(?:^|[;{\s])(--[a-z0-9-]+)\s*:/gmu;
 
 export const ALLOWLIST = [
   {
+    file: "packages/editor/editorTheme.ts",
+    pattern: "--editor-font-size",
+    detector: "non-public-token",
+    justification: "Vault-scoped editor setting applied at runtime; it is not a theme contract token.",
+  },
+  {
     file: "apps/desktop/src/components/SettingsDialog/SettingsDialog.module.scss",
     pattern: "#ff5f56",
     justification: "Native-style window-control affordance, intentionally not theme content.",
@@ -171,7 +177,8 @@ function format({ detector, file, value }) {
 function main() {
   const result = auditRepository({ root: process.cwd() });
   for (const violation of result.violations) console.log(format(violation));
-  console.log(`Public-token audit: ${result.violations.length} violation(s) (report-only).`);
+  console.log(`Public-token audit: ${result.violations.length} violation(s).`);
+  if (result.violations.length > 0) process.exitCode = 1;
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();
