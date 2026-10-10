@@ -10,16 +10,22 @@ export interface FlatTreeNode {
   depth: number;
 }
 
-function sortNodes(nodes: UITreeNode[]): void {
+export type TreeSortOrder = "name-asc" | "name-desc";
+
+function sortNodes(
+  nodes: UITreeNode[],
+  sortOrder: TreeSortOrder = "name-asc",
+): void {
   nodes.sort((a, b) => {
     if (a.type !== b.type) {
       return a.type === "folder" ? -1 : 1;
     }
-    return a.name.localeCompare(b.name);
+    const cmp = a.name.localeCompare(b.name);
+    return sortOrder === "name-asc" ? cmp : -cmp;
   });
   for (const node of nodes) {
     if (node.children) {
-      sortNodes(node.children);
+      sortNodes(node.children, sortOrder);
     }
   }
 }
@@ -62,6 +68,7 @@ function ensureFolderChain(rootNodes: UITreeNode[], folderPath: string): void {
 export function buildTreeFromPaths(
   filePaths: string[],
   folderPaths: string[] = [],
+  sortOrder: TreeSortOrder = "name-asc",
 ): UITreeNode[] {
   const rootNodes: UITreeNode[] = [];
 
@@ -109,7 +116,7 @@ export function buildTreeFromPaths(
     }
   }
 
-  sortNodes(rootNodes);
+  sortNodes(rootNodes, sortOrder);
   return rootNodes;
 }
 
@@ -135,4 +142,19 @@ export function flattenVisibleTree(
   }
 
   return result;
+}
+
+/** Extracts all unique folder paths recursively from tree. */
+export function getAllFolderPaths(tree: UITreeNode[]): string[] {
+  const paths: string[] = [];
+  function collect(nodes: UITreeNode[]) {
+    for (const node of nodes) {
+      if (node.type === "folder") {
+        paths.push(node.path);
+        if (node.children) collect(node.children);
+      }
+    }
+  }
+  collect(tree);
+  return paths;
 }

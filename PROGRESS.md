@@ -6,6 +6,15 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**File tree toolbar — new note, new folder, sort order, collapse all, expand all**
+Added Obsidian-style action toolbar at the top of the file tree explorer:
+1. `NotePencil` ("New note"): creates note in selected folder or vault root.
+2. `FolderPlus` ("New folder"): creates folder in selected folder or vault root.
+3. `SortAscending` / `SortDescending` ("Change sort order"): toggles between A-Z and Z-A file and folder sorting.
+4. Custom SVG matching Obsidian/Lucide Fold icon ("Collapse all"): collapses all folders in the file tree.
+5. `CaretUpDown` ("Expand all"): expands all folders in the file tree.
+Extracted `FileTreeToolbar`, `FileTreeList`, and `FileTreeOverlays` to stay cleanly within the 150-200 line soft cap (all files < 190 lines). Full Storybook story and unit tests added; all 92 test files (320 tests) passing.
+
 **Plugin lifecycle deduplication, native mediated fetch, and probe visibility — awaiting Ahmed-local verification**
 `PluginLifecycleManager` now coalesces overlapping enable requests by plugin ID,
 and `usePluginStore` coalesces overlapping initialization/runtime-load operations

@@ -1,3 +1,12 @@
+.file-tree-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
 .file-tree {
   flex: 1;
   overflow: hidden auto;

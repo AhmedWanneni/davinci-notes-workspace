@@ -46,6 +46,24 @@ describe("useTreeExpandedFolders", () => {
     expect(result.current.expandedFolders.has("notes")).toBe(false);
   });
 
+  it("handles collapseAll and expandAll", () => {
+    const { result } = renderHook(() =>
+      useTreeExpandedFolders({ activePath: null }),
+    );
+
+    act(() => {
+      result.current.expandAll(["folder1", "folder2/nested"]);
+    });
+    expect(result.current.expandedFolders.has("folder1")).toBe(true);
+    expect(result.current.expandedFolders.has("folder2/nested")).toBe(true);
+    expect(result.current.expandedFolders.size).toBe(2);
+
+    act(() => {
+      result.current.collapseAll();
+    });
+    expect(result.current.expandedFolders.size).toBe(0);
+  });
+
   it("triggers startRename and expands parent when pendingRenameFolder is provided", () => {
     const onStartRename = vi.fn();
     const onPendingRenameHandled = vi.fn();

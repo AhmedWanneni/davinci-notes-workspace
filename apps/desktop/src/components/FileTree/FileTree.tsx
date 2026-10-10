@@ -1,10 +1,14 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { getMappedIcon } from "../../icons/iconMap";
-import { buildTreeFromPaths, flattenVisibleTree } from "./tree-utils";
-import { FileTreeContextMenu } from "./FileTreeContextMenu";
-import { FileTreeEmojiPopover } from "./FileTreeEmojiPopover";
-import { FileTreeRow } from "./FileTreeRow";
+import {
+  buildTreeFromPaths,
+  flattenVisibleTree,
+  getAllFolderPaths,
+  type TreeSortOrder,
+} from "./tree-utils";
+import { FileTreeList } from "./FileTreeList";
+import { FileTreeOverlays } from "./FileTreeOverlays";
+import { FileTreeToolbar } from "./FileTreeToolbar";
 import { runTreeRename } from "./runTreeRename";
 import { useFileTreeDrop } from "./useFileTreeDrop";
 import { useFileTreeIcons } from "./useFileTreeIcons";
@@ -37,6 +41,9 @@ export function FileTree({
   onDropFiles,
   onSelectedFolderChange,
 }: FileTreeProps) {
+  const [sortOrder, setSortOrder] = useState<TreeSortOrder>("name-asc");
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+
   const {
     renamingPath,
     renamingKind,
@@ -52,20 +59,28 @@ export function FileTree({
       runTreeRename("folder", () => onRenameFolder?.(path, name)),
   });
 
-  const { expandedFolders, toggleFolder, expandFolder } =
-    useTreeExpandedFolders({
-      activePath,
-      pendingRenameFolder,
-      pendingRenameNote,
-      onSelectedFolderChange,
-      onStartRename: startRename,
-      onPendingRenameHandled,
-      onPendingRenameNoteHandled,
-    });
+  const {
+    expandedFolders,
+    toggleFolder,
+    expandFolder,
+    collapseAll,
+    expandAll,
+  } = useTreeExpandedFolders({
+    activePath,
+    pendingRenameFolder,
+    pendingRenameNote,
+    onSelectedFolderChange: (folder) => {
+      setSelectedFolder(folder);
+      onSelectedFolderChange?.(folder);
+    },
+    onStartRename: startRename,
+    onPendingRenameHandled,
+    onPendingRenameNoteHandled,
+  });
 
   const tree = useMemo(
-    () => buildTreeFromPaths(filePaths, folderPaths),
-    [filePaths, folderPaths],
+    () => buildTreeFromPaths(filePaths, folderPaths, sortOrder),
+    [filePaths, folderPaths, sortOrder],
   );
 
   const { icons, setIcon } = useFileTreeIcons();
@@ -113,122 +128,67 @@ export function FileTree({
 
   return (
     <>
-      <div
-        className="file-tree"
-        ref={parentRef}
-        data-drop-root={dropTargetFolder === "" || undefined}
-        onContextMenu={(e) => openContextMenu(e, "root", "")}
-        onDragEnter={handleDragEnter}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <div
-          className="file-tree__virtual-inner"
-          style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
-        >
-          {rowVirtualizer.getVirtualItems().map((virtualItem) => {
-            const item = visibleNodes[virtualItem.index];
-            const isFile = item.node.type === "file";
-            const isFolder = !isFile;
-            const isRenaming =
-              renamingPath === item.node.path &&
-              ((isFile && renamingKind === "note") ||
-                (isFolder && renamingKind === "folder"));
-
-            return (
-              <FileTreeRow
-                key={virtualItem.key}
-                item={item}
-                top={virtualItem.start}
-                height={virtualItem.size}
-                isActive={isFile && item.node.path === activePath}
-                isDirty={isFile && dirtyPaths.has(item.node.path)}
-                icon={getMappedIcon(icons, item.node.path) ?? undefined}
-                isDragging={item.node.path === draggedPath}
-                isDropTarget={isFolder && item.node.path === dropTargetFolder}
-                isExpanded={isFolder && expandedFolders.has(item.node.path)}
-                isRenaming={isRenaming}
-                draftStem={draftStem}
-                onDraftStemChange={setDraftStem}
-                onCommitRename={() => void commitRename()}
-                onCancelRename={cancelRename}
-                onDragStart={handleDragStart}
-                onClick={() => {
-                  if (isFile) {
-                    onNoteClick(item.node.path);
-                    onSelectedFolderChange?.(null);
-                  } else {
-                    toggleFolder(item.node.path);
-                  }
-                }}
-                onIconClick={(event) =>
-                  openIconPicker(item.node.path, event)
-                }
-                onContextMenu={(e) =>
-                  openContextMenu(e, isFile ? "file" : "folder", item.node.path)
-                }
-                onDoubleClick={(e) => {
-                  if (
-                    isFile &&
-                    item.node.path.endsWith(".md") &&
-                    onRenameNote
-                  ) {
-                    e.stopPropagation();
-                    startRename(item.node.path, "note");
-                  } else if (isFolder && onRenameFolder) {
-                    e.stopPropagation();
-                    startRename(item.node.path, "folder");
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "F2") {
-                    e.preventDefault();
-                    if (isFile && onRenameNote)
-                      startRename(item.node.path, "note");
-                    else if (isFolder && onRenameFolder)
-                      startRename(item.node.path, "folder");
-                  } else if (
-                    e.key === "Delete" ||
-                    (e.key === "Backspace" && (e.metaKey || e.ctrlKey))
-                  ) {
-                    e.preventDefault();
-                    void confirmDelete(item.node.path, isFolder);
-                  }
-                }}
-              />
-            );
-          })}
-        </div>
-      </div>
-      {contextMenu && (
-        <FileTreeContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          targetType={contextMenu.targetType}
-          targetPath={contextMenu.targetPath}
-          onOpenNote={onNoteClick}
-          onNewNote={(parentFolder) => void onCreateNote?.(parentFolder)}
-          onNewFolder={onCreateFolder}
-          onRenameNote={(path) => startRename(path, "note")}
-          onRenameFolder={(path) => startRename(path, "folder")}
-          onDuplicateNote={onDuplicateNote}
-          onDeleteNote={(path) => void confirmDelete(path, false)}
-          onDeleteFolder={(path) => void confirmDelete(path, true)}
-          onClose={closeContextMenu}
+      <div className="file-tree-container">
+        <FileTreeToolbar
+          onCreateNote={() => void onCreateNote?.(selectedFolder ?? undefined)}
+          onCreateFolder={() => void onCreateFolder(selectedFolder ?? "")}
+          sortOrder={sortOrder}
+          onToggleSort={() =>
+            setSortOrder((prev) =>
+              prev === "name-asc" ? "name-desc" : "name-asc",
+            )
+          }
+          onCollapseAll={collapseAll}
+          onExpandAll={() => expandAll(getAllFolderPaths(tree))}
         />
-      )}
-      {iconTarget && (
-        <FileTreeEmojiPopover
-          x={iconTarget.x}
-          y={iconTarget.y}
-          onClose={closeIconPicker}
-          onSelect={(emoji) => {
-            setIcon(iconTarget.path, emoji);
-            closeIconPicker();
+        <FileTreeList
+          parentRef={parentRef}
+          dropTargetFolder={dropTargetFolder}
+          openContextMenu={openContextMenu}
+          handleDragEnter={handleDragEnter}
+          handleDragOver={handleDragOver}
+          handleDragLeave={handleDragLeave}
+          handleDrop={handleDrop}
+          handleDragStart={handleDragStart}
+          rowVirtualizer={rowVirtualizer}
+          visibleNodes={visibleNodes}
+          activePath={activePath}
+          dirtyPaths={dirtyPaths}
+          icons={icons}
+          draggedPath={draggedPath}
+          expandedFolders={expandedFolders}
+          renamingPath={renamingPath}
+          renamingKind={renamingKind}
+          draftStem={draftStem}
+          setDraftStem={setDraftStem}
+          commitRename={commitRename}
+          cancelRename={cancelRename}
+          onNoteClick={(path) => {
+            onNoteClick(path);
+            setSelectedFolder(null);
+            onSelectedFolderChange?.(null);
           }}
+          onFolderClick={toggleFolder}
+          openIconPicker={openIconPicker}
+          startRename={startRename}
+          confirmDelete={confirmDelete}
+          hasRenameNote={!!onRenameNote}
+          hasRenameFolder={!!onRenameFolder}
         />
-      )}
+      </div>
+      <FileTreeOverlays
+        contextMenu={contextMenu}
+        iconTarget={iconTarget}
+        onNoteClick={onNoteClick}
+        onCreateNote={onCreateNote}
+        onCreateFolder={onCreateFolder}
+        onStartRename={startRename}
+        onDuplicateNote={onDuplicateNote}
+        onConfirmDelete={confirmDelete}
+        onCloseContextMenu={closeContextMenu}
+        onCloseIconPicker={closeIconPicker}
+        onSetIcon={setIcon}
+      />
     </>
   );
 }

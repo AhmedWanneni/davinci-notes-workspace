@@ -1,6 +1,6 @@
 import { confirm, message } from "@tauri-apps/plugin-dialog";
 
-type DeleteTreeEntry = () => Promise<boolean> | undefined;
+type DeleteTreeEntry = () => Promise<boolean | undefined> | undefined;
 
 /** Use Tauri's native dialog because browser modal APIs are unavailable in the webview. */
 export async function confirmTreeDelete(

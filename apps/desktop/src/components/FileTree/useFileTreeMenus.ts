@@ -9,22 +9,27 @@ interface UseFileTreeMenusOptions {
   onSelectedFolderChange?: (folderPath: string | null) => void;
 }
 
+export interface FileTreeContextMenuState {
+  x: number;
+  y: number;
+  targetType: FileTreeMenuTargetType;
+  targetPath: string;
+}
+
+export interface FileTreeIconTarget {
+  path: string;
+  x: number;
+  y: number;
+}
+
 export function useFileTreeMenus({
   onDeleteNote,
   onDeleteFolder,
   onSelectedFolderChange,
 }: UseFileTreeMenusOptions) {
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-    targetType: FileTreeMenuTargetType;
-    targetPath: string;
-  } | null>(null);
-  const [iconTarget, setIconTarget] = useState<{
-    path: string;
-    x: number;
-    y: number;
-  } | null>(null);
+  const [contextMenu, setContextMenu] =
+    useState<FileTreeContextMenuState | null>(null);
+  const [iconTarget, setIconTarget] = useState<FileTreeIconTarget | null>(null);
 
   const openContextMenu = (
     event: React.MouseEvent,

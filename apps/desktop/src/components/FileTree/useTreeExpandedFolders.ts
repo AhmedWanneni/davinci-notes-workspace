@@ -71,9 +71,19 @@ export function useTreeExpandedFolders({
     setExpandedFolders((prev) => new Set(prev).add(folderPath));
   };
 
+  const collapseAll = () => {
+    setExpandedFolders(new Set());
+  };
+
+  const expandAll = (folderPaths: string[]) => {
+    setExpandedFolders(new Set(folderPaths));
+  };
+
   return {
     expandedFolders,
     toggleFolder,
     expandFolder,
+    collapseAll,
+    expandAll,
   };
 }

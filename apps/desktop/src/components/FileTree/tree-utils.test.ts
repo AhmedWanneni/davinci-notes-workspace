@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildTreeFromPaths } from "./tree-utils";
+import { buildTreeFromPaths, getAllFolderPaths } from "./tree-utils";
 
 describe("buildTreeFromPaths", () => {
   it("shows empty folders from folderPaths", () => {
@@ -15,5 +15,35 @@ describe("buildTreeFromPaths", () => {
       "empty",
       "note.md",
     ]);
+  });
+
+  it("sorts nodes alphabetically ascending and descending", () => {
+    const files = ["banana.md", "apple.md", "cherry.md"];
+    const asc = buildTreeFromPaths(files, [], "name-asc");
+    expect(asc.map((n) => n.name)).toEqual([
+      "apple.md",
+      "banana.md",
+      "cherry.md",
+    ]);
+
+    const desc = buildTreeFromPaths(files, [], "name-desc");
+    expect(desc.map((n) => n.name)).toEqual([
+      "cherry.md",
+      "banana.md",
+      "apple.md",
+    ]);
+  });
+
+  it("extracts all folder paths with getAllFolderPaths", () => {
+    const tree = buildTreeFromPaths(
+      ["a/b/c.md", "docs/guide.md"],
+      ["empty", "a/other"],
+    );
+    const paths = getAllFolderPaths(tree);
+    expect(paths).toContain("a");
+    expect(paths).toContain("a/b");
+    expect(paths).toContain("a/other");
+    expect(paths).toContain("docs");
+    expect(paths).toContain("empty");
   });
 });
