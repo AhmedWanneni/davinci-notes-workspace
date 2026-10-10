@@ -15,6 +15,7 @@ import {
   listFolders,
   readNote,
   withDbLock,
+  retryOnSqliteBusy,
 } from "./index";
 import { clearSaveTimer } from "../state/saveTimers";
 import { createNoteInVault } from "./createNoteInVault";
@@ -73,9 +74,14 @@ export function useVaultSession() {
       append(`indexed ${count} notes in ${elapsed} ms (${path})`);
       const paths = await listNotes();
       const folders = await listFolders();
-      const db = await getVaultIndexDb();
-      const fullGraph = await withDbLock(() => queryFullGraphIndex(db));
-      setGraph(fullGraph);
+      let fullGraph = { nodes: [], edges: [] } as GraphIndex;
+      try {
+        const db = await getVaultIndexDb();
+        fullGraph = await withDbLock(() => queryFullGraphIndex(db));
+        setGraph(fullGraph);
+      } catch (graphError) {
+        console.warn("[vault] Failed to load full graph index:", graphError);
+      }
       await initializeVault(paths, folders, fullGraph, tagIndex);
     },
     [append, initializeVault],
@@ -241,90 +247,102 @@ export function useVaultSession() {
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     subscribeVaultChanges(async (batch) => {
-      if (!vaultWatchCoordinator.shouldProcessBatch()) return;
-      reconcileCount.current += 1;
-      append(
-        `watcher batch #${reconcileCount.current}: +${batch.changed.length} ~${batch.removed.length} removed`,
-      );
-      const { tagIndex } = useWorkspaceStore.getState();
-      const { updated, removed } = await reconcileVaultChanges(
-        batch,
-        undefined,
-        tagIndex ?? undefined,
-      );
-      append(`reconciled ${updated} path(s) in SQLite`);
-      const paths = await listNotes();
-      const folders = await listFolders();
-      const state = useWorkspaceStore.getState();
-      const removedPaths = new Set(removed);
-      const renamed = batch.renamed.filter(
-        ({ from, to }) => paths.includes(to) && removedPaths.has(from),
-      );
-      const renamedFrom = new Set(renamed.map(({ from }) => from));
-      const renamedTo = new Map(renamed.map(({ from, to }) => [from, to]));
-      const conflictPaths: string[] = [];
-
-      for (const path of batch.changed) {
-        if (!state.openNotes.includes(path) || state.dirtyNotes.has(path)) {
-          if (state.dirtyNotes.has(path)) conflictPaths.push(path);
-          continue;
-        }
-        try {
-          const file = await readNote(path);
-          useWorkspaceStore
-            .getState()
-            .replaceLoadedNoteContent(path, file.content);
-        } catch {
-          // Reconciliation already treats a disappearing file as removed.
-        }
-      }
-
-      useWorkspaceStore.setState((current) => {
-        const nextContent = { ...current.notesContent };
-        const nextDirty = new Set(current.dirtyNotes);
-        const nextOpen = current.openNotes
-          .filter((path) => !removedPaths.has(path) || renamedFrom.has(path))
-          .map((path) => renamedTo.get(path) ?? path);
-        for (const path of removedPaths) {
-          clearSaveTimer(path);
-          if (!renamedFrom.has(path)) {
-            delete nextContent[path];
-            nextDirty.delete(path);
-          }
-        }
-        for (const { from, to } of renamed) {
-          if (nextContent[from] !== undefined) {
-            nextContent[to] = nextContent[from];
-            delete nextContent[from];
-          }
-          if (nextDirty.delete(from)) nextDirty.add(to);
-        }
-        return {
-          openNotes: nextOpen,
-          activeNotePath: current.activeNotePath
-            ? (renamedTo.get(current.activeNotePath) ??
-              (removedPaths.has(current.activeNotePath)
-                ? (nextOpen.at(-1) ?? null)
-                : current.activeNotePath))
-            : null,
-          notesContent: nextContent,
-          dirtyNotes: nextDirty,
-        };
-      });
-      updateAllPaths(paths);
-      updateAllFolderPaths(folders);
-      incrementVaultUpdateCounter();
-      const db = await getVaultIndexDb();
-      const fullGraph = await withDbLock(() => queryFullGraphIndex(db));
-      setGraph(fullGraph);
-      if (conflictPaths.length > 0) {
-        setVaultError(
-          `External changes were detected while editing: ${conflictPaths.join(", ")}. Your unsaved editor content was kept.`,
+      try {
+        if (!vaultWatchCoordinator.shouldProcessBatch()) return;
+        reconcileCount.current += 1;
+        append(
+          `watcher batch #${reconcileCount.current}: +${batch.changed.length} ~${batch.removed.length} removed`,
         );
+        const { tagIndex } = useWorkspaceStore.getState();
+        const { updated, removed } = await retryOnSqliteBusy(() =>
+          reconcileVaultChanges(batch, undefined, tagIndex ?? undefined),
+        );
+        append(`reconciled ${updated} path(s) in SQLite`);
+        const paths = await listNotes();
+        const folders = await listFolders();
+        const state = useWorkspaceStore.getState();
+        const removedPaths = new Set(removed);
+        const renamed = batch.renamed.filter(
+          ({ from, to }) => paths.includes(to) && removedPaths.has(from),
+        );
+        const renamedFrom = new Set(renamed.map(({ from }) => from));
+        const renamedTo = new Map(renamed.map(({ from, to }) => [from, to]));
+        const conflictPaths: string[] = [];
+
+        for (const path of batch.changed) {
+          if (!state.openNotes.includes(path) || state.dirtyNotes.has(path)) {
+            if (state.dirtyNotes.has(path)) conflictPaths.push(path);
+            continue;
+          }
+          try {
+            const file = await readNote(path);
+            useWorkspaceStore
+              .getState()
+              .replaceLoadedNoteContent(path, file.content);
+          } catch {
+            // Reconciliation already treats a disappearing file as removed.
+          }
+        }
+
+        useWorkspaceStore.setState((current) => {
+          const nextContent = { ...current.notesContent };
+          const nextDirty = new Set(current.dirtyNotes);
+          const nextOpen = current.openNotes
+            .filter((path) => !removedPaths.has(path) || renamedFrom.has(path))
+            .map((path) => renamedTo.get(path) ?? path);
+          for (const path of removedPaths) {
+            clearSaveTimer(path);
+            if (!renamedFrom.has(path)) {
+              delete nextContent[path];
+              nextDirty.delete(path);
+            }
+          }
+          for (const { from, to } of renamed) {
+            if (nextContent[from] !== undefined) {
+              nextContent[to] = nextContent[from];
+              delete nextContent[from];
+            }
+            if (nextDirty.delete(from)) nextDirty.add(to);
+          }
+          return {
+            openNotes: nextOpen,
+            activeNotePath: current.activeNotePath
+              ? (renamedTo.get(current.activeNotePath) ??
+                (removedPaths.has(current.activeNotePath)
+                  ? (nextOpen.at(-1) ?? null)
+                  : current.activeNotePath))
+              : null,
+            notesContent: nextContent,
+            dirtyNotes: nextDirty,
+          };
+        });
+        updateAllPaths(paths);
+        updateAllFolderPaths(folders);
+        incrementVaultUpdateCounter();
+        try {
+          const db = await getVaultIndexDb();
+          const fullGraph = await withDbLock(() => queryFullGraphIndex(db));
+          setGraph(fullGraph);
+        } catch (graphError) {
+          console.warn("[vault] Failed to refresh graph index:", graphError);
+        }
+        if (conflictPaths.length > 0) {
+          setVaultError(
+            `External changes were detected while editing: ${conflictPaths.join(", ")}. Your unsaved editor content was kept.`,
+          );
+        }
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        append(`watcher batch error: ${msg}`);
+        console.error("[vault] Watcher reconciliation error:", error);
       }
-    }).then((fn) => {
-      unlisten = fn;
-    });
+    })
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch((err) => {
+        console.error("[vault] Failed to subscribe to vault changes:", err);
+      });
     return () => {
       unlisten?.();
     };

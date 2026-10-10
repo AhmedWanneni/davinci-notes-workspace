@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-10 | Fix database locked unhandled rejection & tab + button | Decoupled UI note creation from SQLite indexing so notes write to disk and open tabs immediately; added `retryOnSqliteBusy` with exponential backoff for idempotent operations; wrapped all DB calls in `useVaultSession.ts` in `try/catch` eliminating unhandled promise rejections; wired tab "+" to `handleCreateNoteFromTabs` focusing editor without file tree rename interference. Added ADR-0169; all 91 test files and 314 unit tests pass with 0 lint errors. |
 | 2026-10-10 | Fix SQLite write-lock contention in vault-index.db | Diagnosed ~5.2s write stalls to unqueued concurrent reads (`queryBacklinkSources`, `loadNoteIcons`, `executeSearchQuery`) colliding with `withDbTransaction` writes in `tauri-plugin-sql`'s connection pool, and unbatched per-note deletions. Enforced universal `withDbLock` queue serialization for all DB reads and writes, added 50-item parameterized batch deletions (`removeNotesBatch`, `removeFtsRows`), unified transaction boundaries, and extracted `sqliteGraphIndex.ts` keeping `sqliteIndex.ts` ≤ 250 lines (236 lines). Recorded ADR-0168; all 89 desktop test files and 302 unit tests pass with 0 lint errors. |
 | 2026-09-26 | Standing native GUI verification constraint | Confirmed this agent context exposes `CODEX_CI=1`, `CODEX_SANDBOX=seatbelt`, and a workspace permission profile. macOS has an Aqua session and running WindowServer, but the agent process lacks usable GUI/session access. Native webview/interactive-window verification must be performed manually from Ahmed's own desktop session. Future prompts should separate agent implementation/runbook work from Ahmed's local observation and reporting. |
 | 2026-09-26 | Plugin isolation scaffold | Added an explicitly triggered hidden `plugin-runner` webview, restrictive per-webview capability, and ADR-0167-shaped ping/pong scaffold. Rust build/check passed, but the real native run logged creation only—no bootstrap/pong—so the channel remains unverified and no security claim is made. |
@@ -3051,4 +3052,34 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   0 errors and 0 warnings.
 - Flagged out-of-scope issues: plugin runner bootstrap readonly property error and
   Vite Fast Refresh warning on `computeNoteStats`.
+
+### 2026-10-10 — Fix "database is locked" unhandled rejection and tab "+" button
+
+- Diagnosed root causes:
+  1. `Unhandled Promise Rejection: error returned from database: (code: 5) database is locked`
+     thrown from `useVaultSession.ts`: `subscribeVaultChanges` passed an unhandled async
+     callback to the Tauri event listener without surrounding `try/catch`. When `reconcileVaultChanges`
+     or `queryFullGraphIndex` failed with code 5, the returned promise rejected unhandled.
+  2. Tab bar "+" button doing nothing and leaving orphan files: `createNoteInVault` wrote
+     to disk, then synchronously awaited SQLite indexing (`persistNote`) before updating
+     workspace state or opening the tab. When the DB was locked, it threw, leaving an
+     orphan file on disk with no index row and no tab opened. Furthermore, `AppTabs` was
+     wired to `handleCreateNote` which invoked `setPendingRenameNote`, routing focus into the
+     sidebar file tree's inline rename input rather than focusing the editor.
+- Decoupled UI tab opening from SQLite indexing: `createNoteInVault` writes the file to disk
+  via `writeNote`, immediately updates `useWorkspaceStore` (`allNotePaths` and `notesContent`),
+  and dispatches background indexing. Tab opens immediately in milliseconds; UI never blocks
+  or fails due to SQLite lock contention.
+- Implemented `retryOnSqliteBusy` with capped exponential backoff (up to 3 retries) specifically
+  targeting `SQLITE_BUSY` / `(code: 5) database is locked` on idempotent operations.
+- Wrapped all DB operations in `useVaultSession.ts` (`handleVaultLoaded`, `subscribeVaultChanges`,
+  `queryFullGraphIndex`) in `try/catch` with logging/reporting and attached `.catch()` to
+  the listener registration promise, eliminating all unhandled rejections.
+- Wired `AppTabs` "+" to `handleCreateNoteFromTabs` which creates an untitled note and focuses
+  the editor without triggering file tree inline rename.
+- Recorded ADR-0169; added `retryOnSqliteBusy.test.ts` (8 tests) and `newNoteCreation.test.ts`
+  (4 concurrency and lock robustness tests).
+- Verified: all 91 test files and 314 unit tests pass in `@app/desktop`; ESLint passed with
+  0 errors and 0 warnings.
+
 

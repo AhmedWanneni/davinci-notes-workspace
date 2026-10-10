@@ -605,18 +605,29 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Last Session
 
-**Fix SQLite write-lock contention in vault-index.db (5s stalls on writes)**
+**Fix "database is locked" unhandled rejection and broken "+" (new file) button in tabs**
 
 ### Completed
-- **Root-Cause Analysis**: Diagnosed the ~5.2s stalls during watcher-driven indexing on `INSERT INTO notes ... ON CONFLICT`, `DELETE FROM notes`, `DELETE FROM notes_fts`, `DELETE FROM links`, and `BEGIN IMMEDIATE`. Stalls precisely matched SQLite's 5000 ms `busy_timeout` plus IPC latency. Traced to `tauri-plugin-sql`'s connection pool (`sqlx::SqlitePool`) checking out multiple connections concurrently when unqueued reads (`BacklinksPanel.tsx` `queryBacklinkSources`, `treeIconStorage.ts` `loadNoteIcons`, `App.tsx` `executeSearchQuery`) competed with `withDbTransaction` writes holding exclusive locks, alongside unbatched per-note deletions in watcher reconciliation.
-- **Universal `withDbLock` Serialization**: Enforced that all database operations (both reads and writes) against `vault-index.db` serialize through the single `withDbLock` async queue. Wrapped `queryBacklinkSources`, `loadNoteIcons`, and `executeSearchQuery` in `withDbLock`.
-- **Bulk Batch Deletion**: Implemented parameterized batch deletion `removeNotesBatch(db, paths, 50)` in `sqliteIndex.ts` and `removeFtsRows(db, paths)` in `sqliteFtsIndex.ts` using SQL `WHERE path IN (...)` and `WHERE source_path IN (...)`, eliminating per-note query roundtrips.
-- **Single Transaction Boundary**: Standardized watcher reconciliation (`VaultIndexer.ts`) and all vault CRUD operations (`deleteNoteInVault.ts`, `deleteFolderInVault.ts`, `renameFolderInVault.ts`, `renameNoteInVault.ts`, `createNoteInVault.ts`, `duplicateNoteInVault.ts`) to execute batched removals and writes within a single `withDbTransaction` block under `withDbLock`.
-- **Connection PRAGMA Serialization**: Wrapped initialization PRAGMAs (`busy_timeout=5000;`, `journal_mode=WAL;`, `synchronous=NORMAL;`, `foreign_keys=ON;`) in `withDbLock`.
-- **File Length Hard-Cap Compliance**: Extracted `queryFullGraphIndex` to `sqliteGraphIndex.ts` to keep `sqliteIndex.ts` strictly within line caps (now 236 lines).
-- **ADR-0168**: Authored `docs/adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md` and marked ADR-0148 superseded in `DECISIONS.md`.
-- **Verification**: All 89 desktop test files and 302 unit tests pass (`pnpm --filter @app/desktop test`); ESLint passes with 0 errors and 0 warnings.
-- **Flagged Out-of-Scope**: Plugin runner bootstrap readonly property error and Vite Fast Refresh warning on `computeNoteStats`.
+- **Root-Cause Analysis**:
+  - Unhandled promise rejection: `subscribeVaultChanges` passed an unhandled `async (batch) => { ... }` function to Tauri's `listen` event listener with no try/catch. When `reconcileVaultChanges` or `queryFullGraphIndex` encountered `(code: 5) database is locked`, the returned promise rejected unhandled.
+  - "+" button doing nothing: `createNoteInVault` wrote to disk, then synchronously awaited SQLite indexing (`persistNote`) before updating workspace state or opening the tab. When the DB was locked, `createNoteInVault` threw, leaving an orphan file on disk with no index row and no tab opened. Furthermore, `AppTabs` was wired to `handleCreateNote`, which invoked `setPendingRenameNote` and stole focus to the sidebar file tree's inline rename input rather than focusing the editor.
+- **UI Decoupled from Indexer**:
+  - `createNoteInVault` now writes the file to disk via `writeNote`, immediately updates `useWorkspaceStore` (`allNotePaths` and `notesContent`), and dispatches background indexing.
+  - Tab opens immediately in milliseconds; UI never blocks or fails due to SQLite lock contention or indexing delays.
+  - No orphan files remain unrepresented in workspace state.
+- **Retry with Exponential Backoff (`retryOnSqliteBusy`)**:
+  - Implemented `retryOnSqliteBusy` in `apps/desktop/src/vault/retryOnSqliteBusy.ts` for idempotent operations, with exponential backoff (up to 3 retries) specifically targeting `SQLITE_BUSY` / `(code: 5) database is locked`.
+- **Full Error Handling in `useVaultSession.ts`**:
+  - Wrapped `subscribeVaultChanges` handler completely in `try/catch`, added `retryOnSqliteBusy` around `reconcileVaultChanges`, wrapped graph index refresh in `try/catch`, and attached `.catch()` to the listener registration promise. Zero unhandled promise rejections.
+- **Tab Bar "+" Wiring & Editor Focus**:
+  - Added `handleCreateNoteFromTabs` in `App.tsx` passing to `AppTabs`: creates an untitled note (`Untitled.md`, `Untitled 1.md`, etc.), opens it in a new tab, and focuses the editor without triggering sidebar file tree rename.
+  - Added editor focus via `view?.focus()` in `EditorArea.tsx` upon view mounting and active note change.
+- **ADR-0169**:
+  - Authored `docs/adr/0169-ui-decoupling-from-sqlite-index-and-unhandled-rejection-resilience.md` and registered it in `DECISIONS.md`.
+- **Verification**:
+  - Added unit test suite `retryOnSqliteBusy.test.ts` (8 tests).
+  - Added concurrency & lock robustness suite `newNoteCreation.test.ts` (4 tests) proving: DB held locked note creation, 10 rapid concurrent clicks generating unique files and tabs with no overwrites, note creation while full vault index is running, and independent entry-point verification.
+  - All 91 test files and 314 unit tests pass in `@app/desktop`; ESLint passed with 0 errors and 0 warnings.
 
 **File Tree Drag UI, Pure Validation, and Drop Feedback**
 

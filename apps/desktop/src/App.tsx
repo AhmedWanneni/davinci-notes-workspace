@@ -388,6 +388,10 @@ export function App() {
     [createNewNote],
   );
 
+  const handleCreateNoteFromTabs = useCallback(async () => {
+    return createNewNote();
+  }, [createNewNote]);
+
   const handleCreateFolder = useCallback(
     async (parentFolder = "") => {
       const folderPath = await createNewFolder(parentFolder);
@@ -598,7 +602,7 @@ export function App() {
             dirtyNotes={dirtyNotes}
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
-            onCreateNote={handleCreateNote}
+            onCreateNote={handleCreateNoteFromTabs}
             isLeftSidebarOpen={isLeftSidebarOpen}
             onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
             isRightSidebarOpen={isRightSidebarOpen}

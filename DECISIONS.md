@@ -238,3 +238,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0162](adr/0162-unified-custom-window-controls.md) | Custom window controls across macOS, Windows, and Linux | Accepted |
 | [0164](adr/0164-public-theme-status-and-shadow-tokens.md) | Public semantic status-tint and shared shadow-ink tokens | Accepted |
 | [0168](adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md) | Universal `withDbLock` serialization for index reads and writes, batch removals, and unified transaction boundaries | Accepted |
+| [0169](adr/0169-ui-decoupling-from-sqlite-index-and-unhandled-rejection-resilience.md) | Decouple UI tab opening from SQLite indexing, capped exponential backoff for SQLITE_BUSY, and error boundaries | Accepted |

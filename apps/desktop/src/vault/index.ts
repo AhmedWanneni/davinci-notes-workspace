@@ -60,3 +60,4 @@ export {
   type VaultChangeBatch,
 } from "./vaultCommands";
 export { useVaultSession } from "./useVaultSession";
+export { retryOnSqliteBusy, isSqliteBusyError } from "./retryOnSqliteBusy";

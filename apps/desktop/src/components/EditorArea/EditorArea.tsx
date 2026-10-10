@@ -181,6 +181,7 @@ export function EditorArea({
 
   useEffect(() => {
     editorViewRef.current?.requestMeasure();
+    editorViewRef.current?.focus();
   }, [editorFontSize, activeNotePath]);
 
   return (
@@ -276,6 +277,7 @@ export function EditorArea({
                 }}
                 onViewReady={(view) => {
                   editorViewRef.current = view;
+                  view?.focus();
                 }}
               />
             </div>
