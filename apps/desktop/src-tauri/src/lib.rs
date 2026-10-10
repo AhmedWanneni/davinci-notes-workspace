@@ -15,7 +15,9 @@ mod plugin_network;
 mod state;
 mod theme_files;
 mod tray;
+mod tray_commands;
 mod tray_config;
+mod tray_menu;
 #[cfg(test)]
 mod tray_tests;
 mod watcher;
@@ -90,9 +92,10 @@ pub fn run() {
       plugin_webview::plugin_webview_send,
       plugin_webview::plugin_webview_request,
       plugin_webview::plugin_webview_response,
-      tray::get_keep_in_tray,
-      tray::set_keep_in_tray,
-      tray::request_app_exit,
+      tray_commands::get_keep_in_tray,
+      tray_commands::set_keep_in_tray,
+      tray_commands::update_tray_recent_notes,
+      tray_commands::request_app_exit,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {

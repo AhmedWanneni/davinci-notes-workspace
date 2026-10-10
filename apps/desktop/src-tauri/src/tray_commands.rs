@@ -1,0 +1,73 @@
+use std::sync::atomic::Ordering;
+use tauri::{AppHandle, Manager, WebviewWindow};
+
+use crate::command_auth::reject_plugin_runner;
+use crate::tray::{TrayDynamicState, TraySettingsState};
+use crate::tray_config::save_keep_in_tray_to_disk;
+use crate::tray_menu::RecentNoteItem;
+#[cfg(target_os = "macos")]
+use crate::tray_menu::build_tray_menu;
+use crate::watcher::VaultWatcher;
+
+#[tauri::command]
+pub fn get_keep_in_tray(window: WebviewWindow, app: AppHandle) -> Result<bool, String> {
+  reject_plugin_runner(&window)?;
+  let state = app
+    .try_state::<TraySettingsState>()
+    .ok_or_else(|| "Tray settings state not found".to_string())?;
+  Ok(state.keep_in_tray.load(Ordering::SeqCst))
+}
+
+#[tauri::command]
+pub fn set_keep_in_tray(window: WebviewWindow, app: AppHandle, enabled: bool) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+  let state = app
+    .try_state::<TraySettingsState>()
+    .ok_or_else(|| "Tray settings state not found".to_string())?;
+  state.keep_in_tray.store(enabled, Ordering::SeqCst);
+  save_keep_in_tray_to_disk(&app, enabled);
+  Ok(())
+}
+
+#[tauri::command]
+pub fn update_tray_recent_notes(
+  window: WebviewWindow,
+  app: AppHandle,
+  recent_notes: Vec<RecentNoteItem>,
+  has_vault: bool,
+) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+
+  if let Some(dynamic_state) = app.try_state::<TrayDynamicState>() {
+    if let Ok(mut guard) = dynamic_state.recent_notes.lock() {
+      *guard = recent_notes.clone();
+    }
+  }
+
+  #[cfg(target_os = "macos")]
+  {
+    if let Some(tray) = app.tray_by_id("davinci-tray") {
+      if let Ok(menu) = build_tray_menu(&app, has_vault, &recent_notes) {
+        let _ = tray.set_menu(Some(menu));
+      }
+    }
+  }
+
+  #[cfg(not(target_os = "macos"))]
+  let _ = (has_vault, &recent_notes);
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn request_app_exit(window: WebviewWindow, app: AppHandle) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+  if let Some(tray_state) = app.try_state::<TraySettingsState>() {
+    tray_state.is_quitting.store(true, Ordering::SeqCst);
+  }
+  if let Some(watcher) = app.try_state::<VaultWatcher>() {
+    watcher.stop();
+  }
+  app.exit(0);
+  Ok(())
+}

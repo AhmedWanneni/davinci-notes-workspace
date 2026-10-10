@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-10 | Tray Phase 3 — dynamic tray menu with recent notes, daily note, open vault | Added dynamic menu in macOS tray with last 5 recent notes (derived from workspace navigation history and open tabs in reverse-chronological order, disambiguated by parent folder on collisions, validated in Rust against path traversal and vault root escapes), "Open today's daily note", and "Open vault...". Debounced updates at 200ms trailing debounce with 0 polling at rest. All files kept strictly under line limits; 26 Rust tests and 329 frontend tests pass. |
 | 2026-10-10 | Tray Phase 2 — close-to-tray setting and unified clean quit | Implemented "Keep running in menu bar" toggle in General Settings with config file persistence and zero-race atomic state in Rust; intercepted window close to hide window and switch macOS Dock activation policy (Accessory when hidden, Regular when shown) with single-instance reopen restore; unified all quit routes (Tray Quit, Cmd+Q, App Menu Quit, Close when setting OFF, OS shutdown) to flush dirty editors via `saveAllDirty()`, stop the file watcher debouncer, and exit cleanly. Added Rust tests in `tray_tests.rs` (4 tests) and TypeScript tests in `useTrayMenuActions.test.ts` (5 tests); all 23 Rust tests and 93 desktop test files (325 tests) pass. |
 | 2026-10-10 | Tray Phase 1 — macOS menu bar icon with a static native menu | Added template monochrome menu bar icon in `tray.rs` with Show/Hide, New note, and Quit menu items without linking the heavy `image` crate. Left-click opens menu; New note emits `davinci-tray-new-note`. |
 | 2026-10-10 | Fix database locked unhandled rejection & tab + button | Decoupled UI note creation from SQLite indexing so notes write to disk and open tabs immediately; added `retryOnSqliteBusy` with exponential backoff for idempotent operations; wrapped all DB calls in `useVaultSession.ts` in `try/catch` eliminating unhandled promise rejections; wired tab "+" to `handleCreateNoteFromTabs` focusing editor without file tree rename interference. Added ADR-0169; all 91 test files and 314 unit tests pass with 0 lint errors. |
@@ -105,7 +106,17 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 
 ## Detailed Session Notes
 
-### 2026-09-26 — Theme ecosystem closeout
+### 2026-10-10 — Tray Phase 3 — dynamic menu with recent notes, daily note, open vault
+
+- Implemented dynamic menu rebuilds on macOS menu bar tray:
+  - "Recent notes": Derives up to 5 unique recent notes in reverse-chronological order from workspace navigation history and open tabs. Sanitizes titles (replaces newlines with space, truncates at 40 chars with ellipsis, handles emoji/unicode without code-point splitting), and disambiguates collisions across folders with parent folder suffixes (`Title (folder)` or `Title (root)`).
+  - "Open today's daily note": Reuses existing `handleDailyNotes` handler in `App.tsx` (`YYYY-MM-DD.md` in vault root).
+  - "Open vault...": Reuses existing native dialog picker `openPicker` from `useVaultSession`.
+  - Empty states: Shows disabled "No recent notes" when vault is open with no history, or "No vault open" when no vault is open.
+  - Path safety: Validates note paths strictly in Rust (`validate_recent_note_path`) to reject empty paths, absolute paths, and path traversals (`..`) escaping vault root.
+  - Zero polling & debounced rebuilds: Subscribed to workspace store transitions with a 200 ms trailing debounce; zero polling or timers running at rest while hidden.
+  - Architecture & code limits: Extracted IPC commands into `tray_commands.rs` (73 lines) and menu building into `tray_menu.rs` (133 lines), keeping `tray.rs` (198 lines) strictly within the 150-200 line soft cap. All Rust files under 200 lines.
+  - Automated tests: Added 7 Rust tests in `tray_tests.rs` (26/26 Rust tests pass); added 5 unit tests in `useTrayMenuActions.test.ts` and 4 unit tests in `recentNotes.test.ts` (all 94 test files / 329 frontend tests pass).
 
 - Confirmed theme selection uses a deliberately scoped, new app-level
   `localStorage` record rather than an existing shared settings backend. It is

@@ -149,9 +149,24 @@ export function App() {
     openPicker,
   } = useVaultSession();
 
+  const handleDailyNotes = useCallback(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const dailyPath = `${year}-${month}-${day}.md`;
+    if (allNotePaths.includes(dailyPath)) {
+      void openNote(dailyPath);
+    } else {
+      void createNewNote(`${year}-${month}-${day}`);
+    }
+  }, [allNotePaths, createNewNote, openNote]);
+
   useTrayMenuActions({
     vaultPath,
     createNewNote: () => createNewNote(),
+    onDailyNotes: handleDailyNotes,
+    onOpenVault: openPicker,
   });
 
   const initPlugins = usePluginStore((state) => state.initPlugins);
@@ -368,19 +383,6 @@ export function App() {
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
   }, []);
-
-  const handleDailyNotes = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const dailyPath = `${year}-${month}-${day}.md`;
-    if (allNotePaths.includes(dailyPath)) {
-      void openNote(dailyPath);
-    } else {
-      void createNewNote(`${year}-${month}-${day}`);
-    }
-  };
 
   const handleCreateNote = useCallback(
     async (parentFolder?: string) => {

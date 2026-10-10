@@ -6,8 +6,15 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Tray Phase 2 — close-to-tray setting and unified clean quit (implementation and automated test complete; native GUI unverified)**
-Added "Keep running in menu bar" setting in General Settings with atomic sync to Rust state and config file persistence. Unified all quit routes (Tray Quit, Cmd+Q, App-menu Quit, red close button when setting is off, and OS terminate) to flush dirty notes via `saveAllDirty()`, stop the file watcher debouncer, and exit cleanly. Intercepted window close on macOS to hide the window and transition Dock activation policy (`Accessory` when hidden, `Regular` when shown) with single-instance `Reopen` restore. Dynamic menus (Phase 3) and global shortcuts (Phase 4) are next.
+**Tray Phase 3 — dynamic tray menu with recent notes, daily note, and open vault (implementation and automated tests complete)**
+Added dynamic menu support to macOS tray:
+1. "Recent notes": Last 5 opened notes derived in reverse-chronological order from workspace navigation history and open tabs. Duplicate titles across folders are automatically disambiguated (e.g. `Title (folder)` or `Title (root)`). Paths are strictly validated in Rust to ensure no path traversal (`..`), empty, or absolute paths escape the vault root.
+2. "Open today's daily note": Reuses existing `handleDailyNotes` handler in `App.tsx` (opens or creates `YYYY-MM-DD.md` in vault root).
+3. "Open vault...": Reuses existing `openPicker` dialog handler from `useVaultSession`.
+4. Debounced sync: Subscribed to workspace note transitions with a 200 ms trailing debounce; zero polling or timers running at rest while hidden.
+5. Code limits: Soft cap ≤ 200 lines strictly respected across all files (`tray.rs` 198 lines, `tray_commands.rs` 73 lines, `tray_menu.rs` 133 lines, `tray_tests.rs` 97 lines).
+6. Tests: All 26 Rust tests and 329 frontend tests passing.
+Global shortcuts (Phase 4) is next.
 
 **File tree toolbar — new note, new folder, sort order, collapse all, expand all**
 Added Obsidian-style action toolbar at the top of the file tree explorer:
