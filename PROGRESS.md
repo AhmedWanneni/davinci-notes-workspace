@@ -6,8 +6,8 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Tray Phase 1 — macOS menu bar icon with a static native menu (implementation complete; native GUI unverified)**
-Rust `tray.rs` builds a template menu-bar icon and a static menu (Show/Hide window, New note, Quit) at startup. New note emits `davinci-tray-new-note` into the existing `createNewNote` path. Quit flushes `saveAllDirty` then `AppHandle::exit`. Windows/Linux are cfg no-ops. Close-to-tray, dynamic menus, and the global shortcut are not in this phase.
+**Tray Phase 2 — close-to-tray setting and unified clean quit (implementation and automated test complete; native GUI unverified)**
+Added "Keep running in menu bar" setting in General Settings with atomic sync to Rust state and config file persistence. Unified all quit routes (Tray Quit, Cmd+Q, App-menu Quit, red close button when setting is off, and OS terminate) to flush dirty notes via `saveAllDirty()`, stop the file watcher debouncer, and exit cleanly. Intercepted window close on macOS to hide the window and transition Dock activation policy (`Accessory` when hidden, `Regular` when shown) with single-instance `Reopen` restore. Dynamic menus (Phase 3) and global shortcuts (Phase 4) are next.
 
 **File tree toolbar — new note, new folder, sort order, collapse all, expand all**
 Added Obsidian-style action toolbar at the top of the file tree explorer:
@@ -617,6 +617,24 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Last Session
 
+**Tray Phase 2 — close-to-tray setting and unified clean quit**
+
+### Completed
+- Added "Keep running in menu bar" setting toggle in General Settings (`GeneralSettingsTab.tsx`).
+- Managed `TraySettingsState` with atomic `keep_in_tray` and `is_quitting` flags in Rust (`tray.rs`).
+- Disk persistence in `tray_config.rs` (`davinci-tray-settings.json` in `app_config_dir`) with default `true` on macOS.
+- Intercepted `WindowEvent::CloseRequested` on the main window in `lib.rs`:
+  - If `keep_in_tray` is ON: prevents close, emits `davinci-window-hidden` to flush dirty notes, hides window, and sets macOS activation policy to `Accessory` (hides Dock icon).
+  - If `keep_in_tray` is OFF: prevents raw destroy, triggers unified clean quit (`davinci-clean-quit` -> `saveAllDirty()` -> `request_app_exit()` -> stops `VaultWatcher` -> `app.exit(0)`).
+- Intercepted `RunEvent::ExitRequested` in `lib.rs`: prevents sudden termination when `code` is `None` (Cmd+Q, app menu Quit, OS shutdown), triggers unified clean quit with 2-second fallback timeout.
+- Handled `RunEvent::Reopen` in `lib.rs` on macOS to restore the hidden main window with `Regular` activation policy (Dock icon restored) when clicked or relaunched.
+- Unified Tray "Quit" menu item to call `trigger_clean_quit(app)` instead of diverging.
+- Added Rust tests `tray_tests.rs` (4 tests) and TypeScript tests in `useTrayMenuActions.test.ts` (5 tests) and `SettingsDialog.test.tsx`.
+- Verification: 23 Rust tests pass; all 93 desktop test files (325 tests) pass; ESLint 0 errors; production web build passes.
+
+### Next
+- **Tray Phase 3**: Dynamic menu items (recent notes, vault status, active note indicator).
+
 **Tray Phase 1 — menu bar icon with static native menu**
 
 ### Completed
@@ -894,7 +912,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Tray Phase 2**: close-to-hide (keep running in the menu bar) as a user setting; intercept custom close.
+1. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 2. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
 3. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
 4. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.

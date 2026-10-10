@@ -35,7 +35,9 @@ describe("SettingsDialog", () => {
   it("renders the dialog with header and sidebar", () => {
     render(<SettingsDialog {...defaultProps} />);
 
-    expect(screen.getByText(/Settings - Obsidian Vault - Davinci Notes 0.1.0/i)).toBeDefined();
+    expect(
+      screen.getByText(/Settings - Obsidian Vault - Davinci Notes 0.1.0/i),
+    ).toBeDefined();
     expect(screen.getByPlaceholderText(/Search settings/i)).toBeDefined();
     expect(screen.getByRole("button", { name: "General" })).toBeDefined();
     expect(screen.getByRole("button", { name: "Appearance" })).toBeDefined();
@@ -46,6 +48,7 @@ describe("SettingsDialog", () => {
     render(<SettingsDialog {...defaultProps} />);
 
     expect(screen.getByText(/Version 0.1.0/i)).toBeDefined();
+    expect(screen.getByText(/Keep running in menu bar/i)).toBeDefined();
     expect(screen.getByText(/Automatic updates/i)).toBeDefined();
     expect(screen.getByText(/Receive early access versions/i)).toBeDefined();
     expect(screen.getByText(/Your account/i)).toBeDefined();

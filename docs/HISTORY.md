@@ -8,6 +8,8 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-10 | Tray Phase 2 — close-to-tray setting and unified clean quit | Implemented "Keep running in menu bar" toggle in General Settings with config file persistence and zero-race atomic state in Rust; intercepted window close to hide window and switch macOS Dock activation policy (Accessory when hidden, Regular when shown) with single-instance reopen restore; unified all quit routes (Tray Quit, Cmd+Q, App Menu Quit, Close when setting OFF, OS shutdown) to flush dirty editors via `saveAllDirty()`, stop the file watcher debouncer, and exit cleanly. Added Rust tests in `tray_tests.rs` (4 tests) and TypeScript tests in `useTrayMenuActions.test.ts` (5 tests); all 23 Rust tests and 93 desktop test files (325 tests) pass. |
+| 2026-10-10 | Tray Phase 1 — macOS menu bar icon with a static native menu | Added template monochrome menu bar icon in `tray.rs` with Show/Hide, New note, and Quit menu items without linking the heavy `image` crate. Left-click opens menu; New note emits `davinci-tray-new-note`. |
 | 2026-10-10 | Fix database locked unhandled rejection & tab + button | Decoupled UI note creation from SQLite indexing so notes write to disk and open tabs immediately; added `retryOnSqliteBusy` with exponential backoff for idempotent operations; wrapped all DB calls in `useVaultSession.ts` in `try/catch` eliminating unhandled promise rejections; wired tab "+" to `handleCreateNoteFromTabs` focusing editor without file tree rename interference. Added ADR-0169; all 91 test files and 314 unit tests pass with 0 lint errors. |
 | 2026-10-10 | Fix SQLite write-lock contention in vault-index.db | Diagnosed ~5.2s write stalls to unqueued concurrent reads (`queryBacklinkSources`, `loadNoteIcons`, `executeSearchQuery`) colliding with `withDbTransaction` writes in `tauri-plugin-sql`'s connection pool, and unbatched per-note deletions. Enforced universal `withDbLock` queue serialization for all DB reads and writes, added 50-item parameterized batch deletions (`removeNotesBatch`, `removeFtsRows`), unified transaction boundaries, and extracted `sqliteGraphIndex.ts` keeping `sqliteIndex.ts` ≤ 250 lines (236 lines). Recorded ADR-0168; all 89 desktop test files and 302 unit tests pass with 0 lint errors. |
 | 2026-09-26 | Standing native GUI verification constraint | Confirmed this agent context exposes `CODEX_CI=1`, `CODEX_SANDBOX=seatbelt`, and a workspace permission profile. macOS has an Aqua session and running WindowServer, but the agent process lacks usable GUI/session access. Native webview/interactive-window verification must be performed manually from Ahmed's own desktop session. Future prompts should separate agent implementation/runbook work from Ahmed's local observation and reporting. |
@@ -3081,5 +3083,24 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   (4 concurrency and lock robustness tests).
 - Verified: all 91 test files and 314 unit tests pass in `@app/desktop`; ESLint passed with
   0 errors and 0 warnings.
+
+---
+
+### 2026-10-10: Tray Phase 2 — Close-to-Tray Setting and Unified Clean Quit
+
+- Added "Keep running in menu bar" setting toggle in `GeneralSettingsTab.tsx` with instant IPC updates and asynchronous disk persistence in `davinci-tray-settings.json`.
+- Maintained `TraySettingsState` in Rust with atomic `keep_in_tray` and `is_quitting` flags to eliminate frontend-to-backend race conditions on window close.
+- Intercepted `WindowEvent::CloseRequested` in `lib.rs`:
+  - When `keep_in_tray` is ON: prevents window destruction, flushes dirty notes via `davinci-window-hidden`, hides the window, and sets macOS activation policy to `Accessory` (hiding Dock icon).
+  - When `keep_in_tray` is OFF: prevents raw destroy, triggers unified clean quit (`davinci-clean-quit` -> `saveAllDirty()` -> `request_app_exit()` -> stops `VaultWatcher` debouncer -> `app.exit(0)`).
+- Intercepted `RunEvent::ExitRequested` in `lib.rs`: prevents premature process abort on Cmd+Q, App Menu -> Quit, or OS terminate (`code: None`), triggering unified clean quit with a 2-second fallback timeout.
+- Handled `RunEvent::Reopen` on macOS: unhides and focuses the window and switches activation policy back to `Regular` (restoring Dock icon) upon Dock click or application relaunch.
+- Unified Tray menu "Quit" to route through `trigger_clean_quit(app)` for identical clean teardown.
+- Added unit tests:
+  - `tray_tests.rs`: 4 tests for atomic state initialization, toggle, quitting flag, and event constant stability.
+  - `useTrayMenuActions.test.ts`: 5 tests covering clean quit, tray quit, window hidden flush, and note creation.
+  - `SettingsDialog.test.tsx`: verified "Keep running in menu bar" setting row rendering.
+- Verification: 23 Rust tests pass; all 93 desktop test files (325 tests) pass; ESLint 0 errors; production web build passes.
+
 
 

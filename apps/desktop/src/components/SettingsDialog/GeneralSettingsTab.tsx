@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { Button, Toggle } from "@app/design-system";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
@@ -16,6 +17,30 @@ export function GeneralSettingsTab({
   const [autoUpdates, setAutoUpdates] = useState(true);
   const [earlyAccess, setEarlyAccess] = useState(false);
   const [language, setLanguage] = useState("en");
+  const [keepInTray, setKeepInTray] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    void invoke<boolean>("get_keep_in_tray")
+      .then((val) => {
+        if (mounted && typeof val === "boolean") {
+          setKeepInTray(val);
+        }
+      })
+      .catch(() => {
+        // Fallback default
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleToggleKeepInTray = (enabled: boolean) => {
+    setKeepInTray(enabled);
+    void invoke("set_keep_in_tray", { enabled }).catch((err) => {
+      console.error("Failed to update keep in tray setting", err);
+    });
+  };
 
   return (
     <div className={styles["settings-tab-content"]}>
@@ -39,6 +64,17 @@ export function GeneralSettingsTab({
           <Button variant="secondary" size="sm">
             Check for updates
           </Button>
+        </SettingsRow>
+
+        <SettingsRow
+          title="Keep running in menu bar"
+          description="When closed, DaVinci Notes will stay open in the menu bar tray."
+        >
+          <Toggle
+            checked={keepInTray}
+            onCheckedChange={handleToggleKeepInTray}
+            aria-label="Keep running in menu bar"
+          />
         </SettingsRow>
 
         <SettingsRow

@@ -15,10 +15,13 @@ mod plugin_network;
 mod state;
 mod theme_files;
 mod tray;
+mod tray_config;
+#[cfg(test)]
+mod tray_tests;
 mod watcher;
 
 use state::VaultState;
-use tauri::{WebviewUrl, WebviewWindowBuilder};
+use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 use watcher::VaultWatcher;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -87,8 +90,19 @@ pub fn run() {
       plugin_webview::plugin_webview_send,
       plugin_webview::plugin_webview_request,
       plugin_webview::plugin_webview_response,
+      tray::get_keep_in_tray,
+      tray::set_keep_in_tray,
       tray::request_app_exit,
     ])
+    .on_window_event(|window, event| {
+      if window.label() == tray::MAIN_WINDOW {
+        if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+          if tray::handle_window_close_requested(window) {
+            api.prevent_close();
+          }
+        }
+      }
+    })
     .setup(|app| {
       let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
         .title("DaVinci Notes")
@@ -125,6 +139,33 @@ pub fn run() {
       }
       Ok(())
     })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    .build(tauri::generate_context!())
+    .expect("error while building tauri application")
+    .run(|app_handle, event| match event {
+      tauri::RunEvent::ExitRequested { code, api, .. } => {
+        if code.is_none() {
+          let tray_state = app_handle.try_state::<tray::TraySettingsState>();
+          let is_quitting = tray_state
+            .as_ref()
+            .map(|s| s.is_quitting.load(std::sync::atomic::Ordering::SeqCst))
+            .unwrap_or(false);
+          if !is_quitting {
+            api.prevent_exit();
+            tray::trigger_clean_quit(app_handle);
+          }
+        }
+      }
+      #[cfg(target_os = "macos")]
+      tauri::RunEvent::Reopen {
+        has_visible_windows,
+        ..
+      } => {
+        if !has_visible_windows {
+          if let Some(window) = app_handle.get_webview_window(tray::MAIN_WINDOW) {
+            tray::show_main_window(&window);
+          }
+        }
+      }
+      _ => {}
+    });
 }

@@ -23,8 +23,10 @@ vi.mock("../state/useWorkspaceStore", () => ({
 }));
 
 import {
+  CLEAN_QUIT_EVENT,
   TRAY_NEW_NOTE_EVENT,
   TRAY_QUIT_EVENT,
+  WINDOW_HIDDEN_EVENT,
   useTrayMenuActions,
 } from "./useTrayMenuActions";
 
@@ -76,7 +78,35 @@ describe("useTrayMenuActions", () => {
     expect(createNewNote).not.toHaveBeenCalled();
   });
 
-  it("flushes dirty notes then requests a clean app exit", async () => {
+  it("flushes dirty notes then requests a clean app exit on clean quit", async () => {
+    const listeners = new Map<string, () => void>();
+    listenMock.mockImplementation(
+      async (event: string, handler: () => void) => {
+        listeners.set(event, handler);
+        return () => undefined;
+      },
+    );
+
+    renderHook(() =>
+      useTrayMenuActions({
+        vaultPath: "/vault",
+        createNewNote: vi.fn(),
+      }),
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      listeners.get(CLEAN_QUIT_EVENT)?.();
+      await Promise.resolve();
+    });
+
+    expect(saveAllDirtyMock).toHaveBeenCalledOnce();
+    expect(invokeMock).toHaveBeenCalledWith("request_app_exit");
+  });
+
+  it("flushes dirty notes then requests a clean app exit on tray quit", async () => {
     const listeners = new Map<string, () => void>();
     listenMock.mockImplementation(
       async (event: string, handler: () => void) => {
@@ -102,5 +132,33 @@ describe("useTrayMenuActions", () => {
 
     expect(saveAllDirtyMock).toHaveBeenCalledOnce();
     expect(invokeMock).toHaveBeenCalledWith("request_app_exit");
+  });
+
+  it("flushes dirty notes on window hide without requesting exit", async () => {
+    const listeners = new Map<string, () => void>();
+    listenMock.mockImplementation(
+      async (event: string, handler: () => void) => {
+        listeners.set(event, handler);
+        return () => undefined;
+      },
+    );
+
+    renderHook(() =>
+      useTrayMenuActions({
+        vaultPath: "/vault",
+        createNewNote: vi.fn(),
+      }),
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      listeners.get(WINDOW_HIDDEN_EVENT)?.();
+      await Promise.resolve();
+    });
+
+    expect(saveAllDirtyMock).toHaveBeenCalledOnce();
+    expect(invokeMock).not.toHaveBeenCalled();
   });
 });
