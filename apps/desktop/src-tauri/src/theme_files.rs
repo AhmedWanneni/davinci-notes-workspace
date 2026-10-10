@@ -1,10 +1,9 @@
 use std::fs;
 use std::path::Path;
 
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 
-use crate::fs::resolve_in_vault;
-use crate::state::VaultState;
+use crate::{command_auth::reject_plugin_runner, fs::resolve_in_vault, state::VaultState};
 
 const THEMES_ROOT: &str = ".davinci/themes";
 
@@ -48,17 +47,20 @@ pub(crate) fn read_theme_file_in_vault(
 }
 
 #[tauri::command]
-pub fn list_theme_directories(app: AppHandle) -> Result<Vec<String>, String> {
+pub fn list_theme_directories(window: WebviewWindow, app: AppHandle) -> Result<Vec<String>, String> {
+    reject_plugin_runner(&window)?;
     let vault_root = app.state::<VaultState>().get_root()?;
     list_theme_directories_in_vault(&vault_root)
 }
 
 #[tauri::command]
 pub fn read_theme_file(
+    window: WebviewWindow,
     app: AppHandle,
     dir_name: String,
     relative_path: String,
 ) -> Result<String, String> {
+    reject_plugin_runner(&window)?;
     let vault_root = app.state::<VaultState>().get_root()?;
     read_theme_file_in_vault(&vault_root, &dir_name, &relative_path)
 }

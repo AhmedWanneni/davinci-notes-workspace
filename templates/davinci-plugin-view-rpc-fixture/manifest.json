@@ -1,0 +1,10 @@
+{
+  "id": "rpc-counter-view",
+  "name": "RPC Counter View Fixture",
+  "version": "0.0.1",
+  "minAppVersion": "0.1.0",
+  "description": "Manual fixture for the declarative plugin-view RPC path.",
+  "author": "DaVinci Notes",
+  "main": "main.js",
+  "permissions": ["ui:view"]
+}

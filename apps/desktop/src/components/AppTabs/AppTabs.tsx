@@ -16,7 +16,7 @@ export interface AppTabsProps {
   dirtyNotes: Set<string>;
   onSelectNote: (path: string) => void;
   onCloseNote: (path: string) => void;
-  onNewTab?: () => void;
+  onCreateNote?: () => void;
   isLeftSidebarOpen?: boolean;
   onToggleLeftSidebar?: () => void;
   isRightSidebarOpen?: boolean;
@@ -31,7 +31,7 @@ export function AppTabs({
   dirtyNotes,
   onSelectNote,
   onCloseNote,
-  onNewTab,
+  onCreateNote,
   isLeftSidebarOpen,
   onToggleLeftSidebar,
   isRightSidebarOpen,
@@ -103,13 +103,13 @@ export function AppTabs({
           );
         })}
 
-        {onNewTab && (
-          <Tooltip content="New tab" contentProps={{ side: "bottom" }}>
+        {onCreateNote && (
+          <Tooltip content="Create new note" contentProps={{ side: "bottom" }}>
             <button
               type="button"
               className="app-tabs__new-btn"
-              onClick={onNewTab}
-              aria-label="New tab"
+              onClick={() => void onCreateNote()}
+              aria-label="Create new note"
             >
               <Plus size={14} />
             </button>

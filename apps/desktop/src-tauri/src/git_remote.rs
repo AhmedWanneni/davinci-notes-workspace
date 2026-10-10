@@ -5,9 +5,9 @@ use std::{
 };
 
 use serde::Serialize;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 
-use crate::{git::initialize_local_repository, state::VaultState};
+use crate::{command_auth::reject_plugin_runner, git::initialize_local_repository, state::VaultState};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -75,11 +75,13 @@ fn git_with_pat(
 
 #[tauri::command]
 pub async fn validate_git_remote(
+    window: WebviewWindow,
     app: AppHandle,
     remote_url: String,
     token: String,
     username: Option<String>,
 ) -> Result<GitRemoteValidation, String> {
+    reject_plugin_runner(&window)?;
     if malformed_url(&remote_url) {
         return Err("malformed-url".to_string());
     }

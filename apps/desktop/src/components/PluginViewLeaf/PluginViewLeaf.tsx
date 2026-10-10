@@ -1,24 +1,17 @@
-import { useEffect, useRef } from "react";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
+import { PluginViewModelRenderer } from "./PluginViewModelRenderer";
 
 interface PluginViewLeafProps {
   manager: PluginLifecycleManager;
   viewId: string;
+  revision: number;
 }
 
-export function PluginViewLeaf({ manager, viewId }: PluginViewLeafProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+export function PluginViewLeaf({ manager, viewId, revision: _revision }: PluginViewLeafProps) {
+  const view = manager.getPluginView(viewId);
+  if (!view) return null;
 
-  useEffect(() => {
-    if (!containerRef.current || manager.getOpenPluginViewId() !== viewId)
-      return;
-    containerRef.current.dataset.pluginLeaf = viewId;
-    manager.mountPluginView(containerRef.current);
-    return () => {
-      manager.closePluginView();
-      delete containerRef.current?.dataset.pluginLeaf;
-    };
-  }, [manager, viewId]);
-
-  return <div ref={containerRef} tabIndex={-1} aria-label={viewId} />;
+  return <section data-plugin-view-host={viewId} tabIndex={-1} aria-label={view.name}>
+    <PluginViewModelRenderer model={view.model} onEvent={(event) => void manager.dispatchPluginViewEvent(viewId, event)} />
+  </section>;
 }

@@ -204,6 +204,7 @@ export function Editor({
               update.state.doc.toString(),
             );
           }
+          if (update.docChanged || update.selectionSet) pluginEditorRef.current?.emitChange();
         }),
       ],
     });

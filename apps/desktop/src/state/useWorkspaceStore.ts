@@ -211,7 +211,8 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     if (saveTimers[path]) clearTimeout(saveTimers[path]);
     saveTimers[path] = setTimeout(async () => {
       delete saveTimers[path];
-      await get().saveNoteNow(path);
+      const effectivePath = await flushH1DrivenRename(path);
+      await get().saveNoteNow(effectivePath);
     }, 750);
 
     scheduleH1DrivenRename(path);
@@ -230,26 +231,22 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     try {
       await withVaultWatchSuppressed(async () => {
         await writeNote(path, content);
+
+        const db = await getVaultIndexDb();
+        const note = noteFromMarkdown(path, content, Date.now(), allNotePaths);
+        await withDbLock(() => persistNote(db, note));
+        if (graph) {
+          const nextGraph = updateGraphForNote(graph, note);
+          set({
+            graph: nextGraph,
+            vaultUpdateCounter: get().vaultUpdateCounter + 1,
+          });
+        }
+        if (get().tagIndex) updateTagIndexForNote(get().tagIndex!, note);
       });
     } catch (e) {
-      console.error(`Failed to write note: ${path}`, e);
+      console.error(`Failed to save and reindex note: ${path}`, e);
       return;
-    }
-
-    try {
-      const db = await getVaultIndexDb();
-      const note = noteFromMarkdown(path, content, Date.now(), allNotePaths);
-      await withDbLock(() => persistNote(db, note));
-      if (graph) {
-        const nextGraph = updateGraphForNote(graph, note);
-        set({
-          graph: nextGraph,
-          vaultUpdateCounter: get().vaultUpdateCounter + 1,
-        });
-      }
-      if (get().tagIndex) updateTagIndexForNote(get().tagIndex!, note);
-    } catch (e) {
-      console.error(`Failed to reindex note: ${path}`, e);
     }
 
     set((state) => {

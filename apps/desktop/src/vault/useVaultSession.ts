@@ -43,6 +43,7 @@ export function useVaultSession() {
   const [vaultError, setVaultError] = useState<string | null>(null);
   const [graph, setGraph] = useState<GraphIndex | null>(null);
   const reconcileCount = useRef(0);
+  const noteCreationQueue = useRef<Promise<void>>(Promise.resolve());
 
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const initializeVault = useWorkspaceStore((state) => state.initializeVault);
@@ -111,39 +112,56 @@ export function useVaultSession() {
   );
 
   const createNewNote = useCallback(
-    async (title?: string, parentFolder = "") => {
-      const currentPaths = useWorkspaceStore.getState().allNotePaths;
-      const cleanTitle = title?.trim();
-      const prefix = parentFolder ? `${parentFolder.replace(/\/+$/, "")}/` : "";
-      const preferredPath = cleanTitle
-        ? cleanTitle.endsWith(".md")
-          ? `${prefix}${cleanTitle}`
-          : `${prefix}${cleanTitle}.md`
-        : `${prefix}Untitled.md`;
-      const newPath = resolveUniqueNotePath(currentPaths, preferredPath);
-
-      if (currentPaths.includes(newPath)) {
-        append(`Note already exists: ${newPath}`);
-        await openNote(newPath);
-        return newPath;
-      }
-
-      const defaultContent = initialNoteContent(newPath);
-
-      try {
-        await createNoteInVault(newPath, defaultContent);
-        useWorkspaceStore.setState((state) => ({
-          notesContent: { ...state.notesContent, [newPath]: defaultContent },
-        }));
-        await openNote(newPath);
-        append(`Created new note: ${newPath}`);
-        return newPath;
-      } catch (e) {
-        append(
-          `Error creating note: ${e instanceof Error ? e.message : String(e)}`,
+    (title?: string, parentFolder = "") => {
+      const create = async () => {
+        const workspace = useWorkspaceStore.getState();
+        const currentPaths = Array.from(
+          new Set([...workspace.allNotePaths, ...workspace.openNotes]),
         );
-        return null;
-      }
+        const cleanTitle = title?.trim();
+        const prefix = parentFolder
+          ? `${parentFolder.replace(/\/+$/, "")}/`
+          : "";
+        const preferredPath = cleanTitle
+          ? cleanTitle.endsWith(".md")
+            ? `${prefix}${cleanTitle}`
+            : `${prefix}${cleanTitle}.md`
+          : `${prefix}Untitled.md`;
+        const newPath = resolveUniqueNotePath(currentPaths, preferredPath);
+
+        if (currentPaths.includes(newPath)) {
+          append(`Note already exists: ${newPath}`);
+          await openNote(newPath);
+          return newPath;
+        }
+
+        const defaultContent = initialNoteContent(newPath);
+
+        try {
+          await createNoteInVault(newPath, defaultContent);
+          useWorkspaceStore.setState((state) => ({
+            allNotePaths: Array.from(
+              new Set([...state.allNotePaths, ...currentPaths, newPath]),
+            ),
+            notesContent: { ...state.notesContent, [newPath]: defaultContent },
+          }));
+          await openNote(newPath);
+          append(`Created new note: ${newPath}`);
+          return newPath;
+        } catch (e) {
+          append(
+            `Error creating note: ${e instanceof Error ? e.message : String(e)}`,
+          );
+          return null;
+        }
+      };
+
+      const result = noteCreationQueue.current.then(create);
+      noteCreationQueue.current = result.then(
+        () => undefined,
+        () => undefined,
+      );
+      return result;
     },
     [append, openNote],
   );

@@ -1,4 +1,4 @@
-import type { PluginEditor } from "@app/plugin-api";
+import type { EditorPluginAdapter } from "@app/editor";
 
 export interface CitationNavigationTarget {
   notePath: string;
@@ -7,7 +7,7 @@ export interface CitationNavigationTarget {
 
 /** Selects the start of a 1-based source line through the stable editor API. */
 export function revealCitationLine(
-  editor: Pick<PluginEditor, "getContent" | "setSelection">,
+  editor: Pick<EditorPluginAdapter, "getContent" | "setSelection">,
   target: CitationNavigationTarget,
 ): void {
   const lines = editor.getContent().split("\n");

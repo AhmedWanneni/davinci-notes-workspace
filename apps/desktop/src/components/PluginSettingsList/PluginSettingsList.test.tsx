@@ -19,7 +19,6 @@ describe("PluginSettingsList", () => {
       },
       dirName: "calendar-view",
       status: "enabled",
-      instance: null,
     },
     {
       id: "broken-plugin",
@@ -35,7 +34,6 @@ describe("PluginSettingsList", () => {
       dirName: "broken-plugin",
       status: "error",
       error: "onload() failed: Network timeout",
-      instance: null,
     },
     {
       id: "disabled-plugin",
@@ -50,13 +48,26 @@ describe("PluginSettingsList", () => {
       },
       dirName: "disabled-plugin",
       status: "disabled",
-      instance: null,
     },
   ];
 
   it("renders empty state message when plugin list is empty", () => {
     render(<PluginSettingsList plugins={[]} onTogglePlugin={vi.fn()} />);
     expect(screen.getByText(/No plugins found in/i)).toBeDefined();
+  });
+
+  it("surfaces discovery errors beside the installed-plugin state", () => {
+    render(
+      <PluginSettingsList
+        plugins={[]}
+        discoveryErrors={[{ dirName: "broken", error: "manifest is invalid" }]}
+        onTogglePlugin={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("alert").textContent).toContain(
+      "Discovery error in broken: manifest is invalid",
+    );
   });
 
   it("renders installed plugins with metadata", () => {

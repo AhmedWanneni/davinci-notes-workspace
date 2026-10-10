@@ -1,0 +1,10 @@
+{
+  "id": "network-probe",
+  "name": "Network Probe Fixture",
+  "version": "0.0.1",
+  "minAppVersion": "0.1.0",
+  "description": "Manual network-permission verification fixture; never distribute.",
+  "author": "DaVinci Notes",
+  "main": "main.js",
+  "permissions": ["network"]
+}

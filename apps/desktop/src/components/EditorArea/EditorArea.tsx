@@ -9,7 +9,7 @@ import {
   type CSSProperties,
 } from "react";
 import type { EditorView } from "@codemirror/view";
-import { Editor, pastedFileName } from "@app/editor";
+import { Editor, pastedFileName, type EditorPluginAdapter } from "@app/editor";
 import { resolveAttachmentFolder } from "@app/attachments";
 import {
   CaretLeft,
@@ -29,7 +29,6 @@ import {
   createNoteInVault,
 } from "../../vault";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
-import type { PluginEditor } from "@app/plugin-api";
 
 const LazyCanvasView = lazy(() =>
   import("@app/canvas").then((m) => ({
@@ -43,7 +42,7 @@ export interface EditorAreaProps {
   onLinkClick: (target: string) => void;
   onTagClick: (tagKey: string) => void;
   pluginManager?: PluginLifecycleManager | null;
-  onEditorReady?: (editor: PluginEditor | null) => void;
+  onEditorReady?: (editor: EditorPluginAdapter | null) => void;
 }
 
 export function EditorArea({

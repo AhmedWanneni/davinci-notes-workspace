@@ -6,6 +6,220 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Plugin lifecycle deduplication, native mediated fetch, and probe visibility — awaiting Ahmed-local verification**
+`PluginLifecycleManager` now coalesces overlapping enable requests by plugin ID,
+and `usePluginStore` coalesces overlapping initialization/runtime-load operations
+for the same vault. This fixes the concrete asynchronous race where two callers
+could both observe a disabled record before either `plugins.load`/`plugins.onload`
+RPC completed. A focused regression test confirms two concurrent `enablePlugin`
+calls emit exactly one load and one onload request.
+
+`network.request` no longer executes browser `fetch` in the main webview.
+`PluginNetworkRpcHost` keeps its token/manifest permission gate and then invokes
+the Rust `plugin_network_request` bridge, which rejects direct plugin-runner
+callers, accepts only HTTP(S), limits redirects to five, and caps returned bodies
+at 1 MiB. The main-webview CSP is explicitly `null`, so it was not the observed
+blocker; WebKit/browser networking (including CORS) was the unreliable path
+behind the generic `Load failed`. This adds a native HTTP dependency using the
+system TLS backend; no JavaScript initial-bundle cost is added, but binary size
+must be measured during Ahmed's native build.
+
+The `security-probe` fixture now sends all seven outcomes over `probe.result`
+RPC. Rust prints each one with `[plugin-security-probe]`, so arbitrary-code,
+ambient-fetch, mediated network, traversal, OAuth, AI-key, and raw-SQL outcomes
+are visible in the same terminal log. Native app verification remains Ahmed-local.
+Focused lifecycle and network tests pass. A later Rust build attempt exhausted
+this agent environment's shared disk (180 MiB free, `os error 28`), so the final
+native rebuild/run was not attempted here.
+
+**Standing environment constraint — native GUI verification requires Ahmed's desktop session**
+This agent runs with `CODEX_CI=1`, `CODEX_SANDBOX=seatbelt`, and a workspace
+permission profile. Although macOS reports an Aqua login session and a running
+WindowServer, the agent process has no GUI session variables and cannot access
+normal process/window inspection. Native webview and interactive-window
+verification must therefore be run manually from Ahmed's own interactive
+terminal/desktop session, not delegated to an AI agent session. Agent sessions
+may implement and reason about native code, but must not claim this class of
+verification. Future phase prompts requiring native GUI/security verification
+must separate “agent implements and explains the runbook” from “Ahmed runs it
+locally and reports the observed output.”
+
+**Plugin isolation scaffold — native round-trip still unverified**
+A hidden `plugin-runner` webview can now be explicitly created by the
+`DAVINCI_PLUGIN_RPC_PROBE` test hook and has its own no-fs/no-SQL capability
+file. It carries the ADR-0167 envelope and a ping/pong bootstrap, while the
+old main-webview evaluator remains untouched. `cargo check` and a web build
+pass. In the available native launch environment Rust logs confirm only
+`plugin-runner` creation; the hidden webview never emitted its bootstrap or
+pong log before the process exited. Do not treat the RPC channel as verified
+or this as a security boundary. Diagnose native hidden-webview startup before
+starting Phase 2b-2.
+Source diagnosis: `run(tauri::generate_context!())` follows setup, so the
+probe path does not return immediately after `WebviewWindowBuilder::build()`.
+The runner URL is the real `plugin-runner.html`, and the bootstrap is attached
+with `initialization_script`; Tauri documents that hook as document-start
+injection. A native run still logs only probe request/creation (not even the
+probe-only JS error report), so the remaining failure is native webview
+document startup in this headless launch environment, not an observed
+event-name mismatch or a missing Rust event loop.
+Environment confirmation: this runner is macOS Darwin 24.6.0 ARM64 with no
+`DISPLAY`, `WAYLAND_DISPLAY`, or `XDG_SESSION_TYPE`; `xvfb-run` is not
+applicable. The asset exists at `apps/desktop/dist/plugin-runner.html`, which
+matches `tauri.conf.json`'s `frontendDist: "../dist"`. A one-run visible=true
+probe with trivial body text showed no native app window/content in a
+screen capture; it was reverted. Native webview RPC verification therefore
+requires a real interactive desktop session.
+
+**Plugin isolation Phase 2a — protocol/API redesign complete**
+ADR-0167 records the required breaking migration before ADR-0166 can be
+implemented: the host keeps session descriptors only; plugin lifecycle and
+command callbacks stay in a runner and use serializable RPC messages; views
+are declarative host-rendered models rather than live DOM; and editor access
+is asynchronous with coalesced change notifications. Phase 2b is still the
+native shared-plugin-webview/RPC implementation and must not be faked with an
+in-main evaluator. Per-view arbitrary HTML/JS surfaces are deferred because
+they require additional child webviews and conflict with ADR-0166's one shared
+webview cost boundary.
+
+**Plugin RPC plumbing — dispatcher and synthetic host probe active**
+`plugin_webview.rs` now forwards arbitrary protocol-1 requests in both
+directions, correlates responses by `requestId`, and emits runner requests to
+the main webview. `plugin_webview_bootstrap.js` has a concurrent pending map
+and generic request/response handling. `pluginRpcHost.ts` implements the
+vault/storage host handlers by delegating to `desktopPluginAdapter.ts`.
+PluginLifecycleManager and plugin code are intentionally untouched. The host
+listener is activated only after a runner and open vault exist; real lifecycle
+RPC activation is recorded in the following section.
+
+**Plugin lifecycle RPC migration — implementation pending Ahmed-local verification**
+`PluginLifecycleManager` now holds only plugin records and command descriptors;
+it requires a `PluginRpcTransport` and sends `plugins.load`, `plugins.onload`,
+`plugins.onunload`, and `commands.invoke` through the plugin-runner. Main-side
+responses are correlated by `requestId` in `pluginRpcHost.ts`; command-palette
+selection calls `manager.invokeCommand(id)`, never a plugin callback. The
+runner currently returns stub lifecycle responses and a stub descriptor, not
+real plugin execution. `evaluatePluginModule.ts`, views, editor APIs, and the
+starter template are untouched. This means old execution-dependent runtime
+tests are intentionally skipped until 2b-2d moves code execution into the
+runner; the new lifecycle RPC test passes. Ahmed must verify native logs.
+
+**Plugin runner execution — implementation pending Ahmed-local verification**
+`plugin_webview_bootstrap.js` now evaluates `plugins.load` source with its
+own runner-context `new Function`, constructs and retains the plugin instance
+there, and runs real `onload`, `onunload`, and command callbacks. Plugin vault
+and storage calls are runner-to-host RPC calls only. The main evaluator now
+always throws and has no `new Function`; the manager does not import it. The
+runner normalizes the starter's current `name` command field to a descriptor
+title. This is not an IPC security boundary yet: Phase 2b-6 still must block
+direct custom native invokes from plugin code. Native execution/error behavior
+must be checked by Ahmed locally.
+
+**Plugin declarative views — implementation pending Ahmed-local verification**
+`PluginView` now returns the structured `PluginViewModel` union (stack, text,
+button, and input) and may receive a serializable `PluginViewEvent`; the old
+`HTMLElement`/`PluginDom` render contract and host workspace renderer were
+removed. The runner retains view callbacks and snapshots models in lifecycle
+and command RPC responses. `PluginLifecycleManager` retains only validated
+model descriptors, and `PluginViewLeaf` recursively renders them with trusted
+React elements. Button/input interactions send `views.event` RPC requests back
+to the runner; the returned model replaces the host snapshot. Unknown model
+shapes fail closed and are not rendered. A manual
+`templates/davinci-plugin-view-rpc-fixture` counter fixture exercises that
+path. This phase deliberately does not migrate editor APIs or the starter
+template, and does not add IPC authorization. Agent-level typechecks, focused
+tests, lint, and production web build pass; Ahmed must verify the real native
+round-trip and inspect the rendered DOM locally. A vault with no plugin
+directories does not create a runner or host listener, including after a
+plugin-bearing vault was previously open.
+
+**Plugin editor RPC — implementation pending Ahmed-local verification**
+The plugin-facing `PluginEditor` now exposes only promise-returning snapshot
+reads/mutations and `subscribe`; the synchronous CodeMirror adapter is an
+internal host-only `PluginEditorHostAdapter`. `PluginEditorRpcHost` routes
+`editor.getContent`, `getSelection`, `setContent`, `setSelection`,
+`insertText`, `subscribe`, and `unsubscribe` through the existing RPC host.
+Snapshots carry content, selection, and a host version; mutations can reject a
+stale `expectedVersion`. Host editor document and selection changes use a
+100 ms trailing debounce and send one latest `editor.changed` snapshot per
+subscription, avoiding a full document RPC per keystroke. The runner owns
+plugin callbacks and subscriptions. A manual `rpc-editor-fixture` registers
+an async command that reads/appends content and logs notifications. No starter
+template migration or command/capability authorization was attempted. Native
+round-trip behavior remains Ahmed-local only.
+
+**Plugin starter migration and plugin-runner native-command guard — implementation pending Ahmed-local verification**
+`templates/davinci-plugin-starter` now uses the current async RPC surface: its
+command writes/reads a vault file, persists/loads plugin data, reads an editor
+snapshot, and its status view is a `PluginViewModel` with an RPC-backed button.
+Its ignored installable `dist/` was rebuilt.
+
+Every non-RPC application command registered in `lib.rs` now receives the
+calling `WebviewWindow` and rejects label `plugin-runner` through
+`command_auth::reject_plugin_runner`. This covers vault/filesystem, manifest,
+theme-file, Git, Git-PAT keychain, OAuth/Drive-token keychain, and AI-key
+commands. There is no custom raw-SQL command in `invoke_handler`; the runner
+capability file omits `sql:allow-execute`, while the main-only default capability
+contains it. The only unguarded custom commands are the plugin-runner RPC
+control plane, which already verifies its sender/target label. Rust checks,
+the isolated guard test, serialized Rust tests, and the starter build pass.
+Ahmed must run the native adversarial and functionality runbook before this
+is considered verified.
+
+**Plugin mediated network API — implementation pending Ahmed-local verification**
+`context.net.fetch(url, request?)` is now a serializable RPC API. Enabling a
+plugin registers its immutable permission snapshot in the host and returns an
+opaque per-plugin capability token; `network.request` requires both that token
+and the `network` manifest permission before the main webview fetches with
+`credentials: "omit"`. Responses are serializable and capped at 1 MiB.
+
+The runner page has a host-owned deny-all egress CSP (`connect-src 'none'` and
+no image/media/frame/worker/object/form/navigation destinations). After the
+bootstrap listener is installed, it replaces `fetch`, `XMLHttpRequest`,
+`WebSocket`, `EventSource`, worker transports, and `__TAURI_INTERNALS__` with
+non-writable `undefined` values; failure to do so reports a bootstrap error
+rather than continuing. Plugin evaluator parameters also shadow DOM/network
+globals. This does not turn the shared runner into a JavaScript isolate:
+plugins can still execute arbitrary code in that runner and may interfere with
+one another, which ADR-0166 deliberately leaves out of scope. Shell is already
+closed by absence: the manifest has `shell`, but no plugin API/RPC or runner
+capability can spawn a process, and host Git/OAuth process commands remain
+blocked by the caller-label guard.
+
+Added `security-probe` (no `network`) and `network-probe` (`network`) manual
+fixtures. Focused network-host tests, lifecycle test, plugin API/runtime
+typechecks, syntax checks, starter build, and production web build pass.
+Native behavior must be checked locally, including CSP compatibility with the
+Tauri initialization script and actual permitted/denied fetch results.
+
+**Mediated network fetch receiver fix — implementation pending Ahmed-local verification**
+`PluginNetworkRpcHost` had captured bare `fetch` as its constructor default,
+then called that detached function. WebKit requires `Window` as the receiver,
+causing `Can only call Window.fetch on instances of Window` for permitted
+network requests. The default is now `window.fetch.bind(window)`; injected
+test fetches remain supported. The runner security script never captured or
+invoked fetch, so it was not involved. Focused tests (including an owner-bound
+fetch) and production web build pass; desktop-wide typecheck is still blocked
+by unrelated pre-existing errors. Ahmed must confirm permitted and denied
+native fixture behavior locally.
+
+**Plugin discovery — implementation pending Ahmed-local verification**
+Discovery previously used `@tauri-apps/plugin-fs` to list
+`<vault>/.davinci/plugins` and caught every scope/I/O error as an empty array.
+That hid the known dot-directory capability failure and produced the misleading
+"No plugins found" UI even when Rust's file tree showed the folders. Discovery
+and plugin-data reads/writes now use three caller-guarded Rust commands rooted
+at the active `VaultState`, matching theme discovery. `discoverPlugins` logs
+the directory list, every manifest read, and each validation outcome.
+
+The Settings store now retains discovery errors and shows them beside installed
+plugins rather than converting a bad root or one bad manifest into an empty
+list. Four manual fixture manifests were missing mandatory `author` fields;
+their templates are corrected, but existing copied vault fixtures must refresh
+their manifests once. Focused Rust and desktop/plugin-runtime tests pass.
+Desktop-wide typecheck remains blocked only by pre-existing workspace, tree,
+Storybook, design-system, and icon errors. Native Settings verification remains
+Ahmed-local.
+
 **Theme ecosystem — complete**
 The public contract, consumer reconciliation, blocking token guard, permanent
 magenta verification utility, four built-in themes, and merged vault discovery
@@ -606,6 +820,14 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 - No scaffolding CLI was added; the template is the single source of truth. The template surfaced a publishing/API gap: `@app/plugin-api` is not currently distributed as an external SDK, and the loader injects `DavinciPlugin` as a runtime global, so the starter carries a small ambient declaration for the demonstrated surface.
 
 ## Previous Session
+
+**Plugin RPC Phase 2b-2a follow-up — synthetic host plumbing activation**
+
+### Completed
+- Wired the main-side `listenForPluginHostRequests` subscription from `usePluginStore.initPlugins`, but only when the explicitly probed `plugin-runner` webview exists. The host listener is dynamically imported and cleaned up when the vault changes.
+- Added the `DAVINCI_PLUGIN_RPC_SYNTHETIC=1` probe trigger. After the listener is registered it asks the runner to issue one `vault.read` and three overlapping `vault.read` calls through `window.__davinciPluginRpc.request`; responses remain correlated by request ID.
+- Added notification logging for the single and concurrent results and kept the zero-plugin path free of runner/listener creation.
+- Rust check, desktop ESLint for the touched TypeScript modules, and the production web build pass. Native GUI execution remains unverified in this agent environment; Ahmed must run the supplied local runbook.
 
 **Plugin Ecosystem Phase 5 — Permission Enforcement**
 

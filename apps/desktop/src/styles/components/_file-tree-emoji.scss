@@ -2,13 +2,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--icon-size-sm);
-  height: var(--icon-size-sm);
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
   max-width: 100%;
   max-height: 100%;
-  overflow: hidden;
   font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
-  font-size: var(--icon-size-sm);
+  font-size: var(--icon-size-xs);
   line-height: 1;
 }
 

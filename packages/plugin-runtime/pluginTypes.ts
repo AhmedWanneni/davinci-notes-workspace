@@ -6,6 +6,7 @@ import type {
   ValidationError,
 } from "@app/plugin-api";
 import type { PluginVaultAdapter } from "./pluginSurface.js";
+import type { PluginRpcTransport } from "./pluginRpc.js";
 
 export type PluginStatus = "disabled" | "enabled" | "error";
 
@@ -14,7 +15,6 @@ export interface PluginRecord {
   manifest: PluginManifest;
   dirName: string;
   status: PluginStatus;
-  instance: DavinciPlugin | null;
   error?: string;
 }
 
@@ -62,6 +62,11 @@ export interface PluginStateStorage {
   saveEnabledPluginIds: (enabledIds: string[]) => Promise<void>;
 }
 
+export interface PluginManagerRpcOptions {
+  rpc: PluginRpcTransport;
+}
+
+/** Retained for the evaluator export; the lifecycle manager no longer uses it. */
 export type PluginConstructor = new (
   manifest: PluginManifest,
   context: PluginContext,

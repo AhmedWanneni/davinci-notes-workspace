@@ -1,5 +1,6 @@
 mod db;
 mod ai_auth;
+mod command_auth;
 mod folder_commands;
 mod fs;
 mod git;
@@ -8,6 +9,9 @@ mod git_history;
 mod git_remote;
 mod manifest;
 mod oauth;
+mod plugin_webview;
+mod plugin_files;
+mod plugin_network;
 mod state;
 mod theme_files;
 mod watcher;
@@ -29,6 +33,8 @@ pub fn run() {
     .manage(VaultState::new())
     .manage(VaultWatcher::new())
     .manage(oauth::OAuthListenerState::default())
+    .manage(plugin_webview::PluginProbeState::default())
+    .manage(plugin_network::PluginNetworkClient::new().expect("plugin network client must initialize"))
     .invoke_handler(tauri::generate_handler![
       fs::open_vault,
       fs::start_vault_watcher,
@@ -37,6 +43,9 @@ pub fn run() {
       manifest::list_manifest_files,
       manifest::hash_manifest_file,
       fs::list_folders,
+      plugin_files::list_plugin_directories,
+      plugin_files::read_plugin_file,
+      plugin_files::write_plugin_file,
       theme_files::list_theme_directories,
       fs::get_file_tree,
       fs::read_note,
@@ -66,6 +75,17 @@ pub fn run() {
       ai_auth::save_ai_key,
       ai_auth::load_ai_key,
       ai_auth::clear_ai_key,
+      plugin_network::plugin_network_request,
+      plugin_webview::start_plugin_webview_probe,
+      plugin_webview::ensure_plugin_webview,
+      plugin_webview::plugin_webview_exists,
+      plugin_webview::start_plugin_webview_synthetic_probe,
+      plugin_webview::plugin_webview_booted,
+      plugin_webview::plugin_webview_script_error,
+      plugin_webview::plugin_webview_listening,
+      plugin_webview::plugin_webview_send,
+      plugin_webview::plugin_webview_request,
+      plugin_webview::plugin_webview_response,
     ])
     .setup(|app| {
       let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
@@ -86,6 +106,11 @@ pub fn run() {
       let window = window.decorations(false);
 
       window.build()?;
+
+      if std::env::var_os("DAVINCI_PLUGIN_RPC_PROBE").is_some() {
+        println!("[plugin-rpc] probe requested");
+        plugin_webview::create_plugin_webview(&app.handle())?;
+      }
 
       if cfg!(debug_assertions) {
         app.handle().plugin(

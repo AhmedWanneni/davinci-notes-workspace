@@ -1,9 +1,10 @@
 use std::path::Path;
 
 use serde::Serialize;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 
 use crate::{
+    command_auth::reject_plugin_runner,
     git::{require_success, restore_local_version},
     state::VaultState,
 };
@@ -54,25 +55,30 @@ pub(crate) fn version_content(vault: &Path, path: &str, revision: &str) -> Resul
 }
 
 #[tauri::command]
-pub fn list_local_git_versions(app: AppHandle, path: String) -> Result<Vec<GitVersion>, String> {
+pub fn list_local_git_versions(window: WebviewWindow, app: AppHandle, path: String) -> Result<Vec<GitVersion>, String> {
+    reject_plugin_runner(&window)?;
     list_versions(&app.state::<VaultState>().get_root()?, &path)
 }
 
 #[tauri::command]
 pub fn read_local_git_version(
+    window: WebviewWindow,
     app: AppHandle,
     path: String,
     revision: String,
 ) -> Result<String, String> {
+    reject_plugin_runner(&window)?;
     version_content(&app.state::<VaultState>().get_root()?, &path, &revision)
 }
 
 #[tauri::command]
 pub fn restore_local_git_version(
+    window: WebviewWindow,
     app: AppHandle,
     path: String,
     revision: String,
 ) -> Result<String, String> {
+    reject_plugin_runner(&window)?;
     let vault = app.state::<VaultState>().get_root()?;
     let content = version_content(&vault, &path, &revision)?;
     restore_local_version(&vault, path, &revision, &content)?

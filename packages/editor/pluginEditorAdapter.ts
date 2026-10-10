@@ -12,7 +12,9 @@ export interface EditorPluginAdapter {
   setSelection(selection: EditorSelection): void;
   insertText(text: string): void;
   onContentChange(listener: (content: string) => void): () => void;
+  onChange(listener: () => void): () => void;
   emitContentChange(content: string): void;
+  emitChange(): void;
   destroy(): void;
 }
 
@@ -20,6 +22,7 @@ export function createEditorPluginAdapter(
   view: EditorView,
 ): EditorPluginAdapter {
   const listeners = new Set<(content: string) => void>();
+  const changeListeners = new Set<() => void>();
   return {
     getContent: () => view.state.doc.toString(),
     setContent: (content) =>
@@ -45,8 +48,13 @@ export function createEditorPluginAdapter(
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
+    onChange: (listener) => {
+      changeListeners.add(listener);
+      return () => changeListeners.delete(listener);
+    },
     emitContentChange: (content) =>
       listeners.forEach((listener) => listener(content)),
-    destroy: () => listeners.clear(),
+    emitChange: () => changeListeners.forEach((listener) => listener()),
+    destroy: () => { listeners.clear(); changeListeners.clear(); },
   };
 }

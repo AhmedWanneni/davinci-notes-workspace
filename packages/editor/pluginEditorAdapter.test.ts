@@ -15,10 +15,12 @@ describe("plugin editor adapter", () => {
     view = new EditorView({ state: EditorState.create(), parent: host });
     expect(Object.keys(createEditorPluginAdapter(view)).sort()).toEqual([
       "destroy",
+      "emitChange",
       "emitContentChange",
       "getContent",
       "getSelection",
       "insertText",
+      "onChange",
       "onContentChange",
       "setContent",
       "setSelection",

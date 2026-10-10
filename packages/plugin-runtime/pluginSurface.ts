@@ -61,6 +61,17 @@ export function createPluginVault(
 export class PluginCommandRegistry {
   private readonly commands = new Map<string, RegisteredPluginCommand>();
 
+  registerDescriptor(command: RegisteredPluginCommand): void {
+    if (this.commands.has(command.id))
+      throw new Error(`Command already registered: ${command.id}`);
+    this.commands.set(command.id, {
+      id: command.id,
+      title: command.title,
+      ...(command.hotkey ? { hotkey: command.hotkey } : {}),
+      pluginId: command.pluginId,
+    });
+  }
+
   createApi(
     pluginId: string,
     permissions: readonly PluginPermission[],
@@ -70,7 +81,7 @@ export class PluginCommandRegistry {
         requirePluginPermission(pluginId, permissions, "commands.register");
         if (this.commands.has(command.id))
           throw new Error(`Command already registered: ${command.id}`);
-        this.commands.set(command.id, { ...command, pluginId });
+        this.registerDescriptor({ ...command, pluginId });
         return () => {
           if (this.commands.get(command.id)?.pluginId === pluginId)
             this.commands.delete(command.id);

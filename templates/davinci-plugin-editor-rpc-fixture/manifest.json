@@ -1,0 +1,10 @@
+{
+  "id": "rpc-editor-fixture",
+  "name": "RPC Editor Fixture",
+  "version": "0.0.1",
+  "minAppVersion": "0.1.0",
+  "description": "Manual fixture for async editor RPC and coalesced notifications.",
+  "author": "DaVinci Notes",
+  "main": "main.js",
+  "permissions": ["commands", "editor:read", "editor:write"]
+}

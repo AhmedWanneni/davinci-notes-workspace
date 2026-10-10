@@ -54,6 +54,25 @@ export async function listThemeDirectories(): Promise<string[]> {
   return invoke<string[]>("list_theme_directories");
 }
 
+export async function listPluginDirectories(): Promise<string[]> {
+  return invoke<string[]>("list_plugin_directories");
+}
+
+export async function readPluginFile(
+  dirName: string,
+  relativePath: string,
+): Promise<string> {
+  return invoke<string>("read_plugin_file", { dirName, relativePath });
+}
+
+export async function writePluginFile(
+  dirName: string,
+  relativePath: string,
+  contents: string,
+): Promise<void> {
+  return invoke("write_plugin_file", { dirName, relativePath, contents });
+}
+
 export async function readThemeFile(
   dirName: string,
   relativePath: string,

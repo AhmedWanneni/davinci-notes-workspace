@@ -1,0 +1,10 @@
+{
+  "id": "security-probe",
+  "name": "Security Probe Fixture",
+  "version": "0.0.1",
+  "minAppVersion": "0.1.0",
+  "description": "Manual audit fixture; never distribute or enable in a real vault.",
+  "author": "DaVinci Notes",
+  "main": "main.js",
+  "permissions": ["vault:read"]
+}

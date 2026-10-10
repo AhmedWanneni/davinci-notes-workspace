@@ -3,10 +3,10 @@
   "name": "Sample Vault Command",
   "version": "1.0.0",
   "minAppVersion": "0.1.0",
-  "description": "A small command that writes and reads a vault file.",
+  "description": "An async RPC example with a declarative view, vault, and editor round-trip.",
   "author": "Your Name",
   "main": "main.js",
-  "permissions": ["vault:read", "vault:write", "commands"],
+  "permissions": ["vault:read", "vault:write", "editor:read", "editor:write", "commands", "ui:view"],
   "license": "MIT",
   "keywords": ["example", "vault", "command"]
 }

@@ -6,6 +6,8 @@ import {
   MemoryPluginStorage,
 } from "./pluginTestFixtures.js";
 
+const rpc = { request: async () => ({ commands: [] }) };
+
 describe("plugin discovery", () => {
   it("skips malformed manifests without blocking valid plugins", async () => {
     const fs = new MemoryPluginFs();
@@ -30,7 +32,7 @@ describe("plugin discovery", () => {
     );
     addPluginFixture(fs, "valid-plugin");
 
-    const manager = new PluginLifecycleManager({ fsAdapter: fs, storage });
+    const manager = new PluginLifecycleManager({ fsAdapter: fs, storage, rpc });
     await manager.initialize();
 
     const errors = manager.getDiscoveryErrors();
@@ -74,7 +76,7 @@ describe("plugin discovery", () => {
       }),
     );
 
-    const manager = new PluginLifecycleManager({ fsAdapter: fs, storage });
+    const manager = new PluginLifecycleManager({ fsAdapter: fs, storage, rpc });
     await manager.initialize();
 
     const collision = manager

@@ -9,6 +9,7 @@ const persistNoteMock = vi.fn();
 const getVaultIndexDbMock = vi.fn();
 const getSettingMock = vi.fn();
 const setSettingMock = vi.fn();
+const flushH1DrivenRenameMock = vi.fn(async (path: string) => path);
 
 vi.mock("../vault", () => ({
   readNote: (path: string) => readNoteMock(path),
@@ -35,7 +36,7 @@ vi.mock("../vault", () => ({
 
 vi.mock("../vault/h1DrivenRename", () => ({
   scheduleH1DrivenRename: vi.fn(),
-  flushH1DrivenRename: vi.fn(async (path: string) => path),
+  flushH1DrivenRename: (path: string) => flushH1DrivenRenameMock(path),
 }));
 
 describe("useWorkspaceStore", () => {
@@ -65,6 +66,8 @@ describe("useWorkspaceStore", () => {
     getVaultIndexDbMock.mockResolvedValue({});
     getSettingMock.mockResolvedValue(null);
     setSettingMock.mockResolvedValue(undefined);
+    flushH1DrivenRenameMock.mockClear();
+    flushH1DrivenRenameMock.mockImplementation(async (path: string) => path);
   });
 
   it("defaults Vim keybindings to OFF (opt-in)", () => {
@@ -189,6 +192,7 @@ describe("useWorkspaceStore", () => {
     // Advance timer past debounce (750ms)
     await vi.advanceTimersByTimeAsync(400);
     expect(writeNoteMock).toHaveBeenCalledWith("a.md", "# A - modified");
+    expect(flushH1DrivenRenameMock).toHaveBeenCalledWith("a.md");
 
     state = useWorkspaceStore.getState();
     expect(state.dirtyNotes.has("a.md")).toBe(false);

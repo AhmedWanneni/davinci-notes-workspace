@@ -17,6 +17,7 @@ interface CommandPaletteProps {
   onDriveRefresh?: () => void;
   onSaveVersionNow?: () => void;
   pluginCommands?: RegisteredPluginCommand[];
+  onInvokePluginCommand?: (id: string) => void;
 }
 
 export function CommandPalette({
@@ -30,6 +31,7 @@ export function CommandPalette({
   onDriveRefresh,
   onSaveVersionNow,
   pluginCommands = [],
+  onInvokePluginCommand,
 }: CommandPaletteProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const openNotes = useWorkspaceStore((state) => state.openNotes);
@@ -110,7 +112,7 @@ export function CommandPalette({
       targets.push({
         isCommand: true,
         id: `plugin:${command.id}`,
-        title: command.name,
+        title: command.title,
         recencyScore: 200,
       });
     }
@@ -153,7 +155,7 @@ export function CommandPalette({
     if (id === "action:drive-refresh") onDriveRefresh?.();
     const pluginId = id?.startsWith("plugin:") ? id.slice(7) : undefined;
     const command = pluginCommands.find((item) => item.id === pluginId);
-    if (command) void command.callback();
+    if (command) onInvokePluginCommand?.(command.id);
   };
 
   // Reset selection when results change

@@ -77,6 +77,14 @@ describe("renameNoteInVault", () => {
     expect(renameNoteMock).not.toHaveBeenCalled();
   });
 
+  it("returns collision when the filesystem rejects a stale destination", async () => {
+    renameNoteMock.mockRejectedValue(new Error("Destination already exists: Gamma.md"));
+
+    const result = await renameNoteInVault("beta.md", "Gamma.md");
+
+    expect(result).toEqual({ ok: false, reason: "collision" });
+  });
+
   it("renames on disk and propagates wikilinks", async () => {
     const result = await renameNoteInVault("beta.md", "Gamma.md");
     expect(result).toEqual({ ok: true, newPath: "Gamma.md" });

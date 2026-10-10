@@ -104,7 +104,17 @@ export async function renameNoteInVault(
   }
 
   return withVaultWatchSuppressed(async () => {
-    await renameNote(oldPath, newPath);
+    try {
+      await renameNote(oldPath, newPath);
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        /destination already exists/i.test(error.message)
+      ) {
+        return { ok: false, reason: "collision" };
+      }
+      throw error;
+    }
 
     for (const [path, content] of contentUpdates) {
       await writeNote(path, content);

@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { PluginEditor } from "@app/plugin-api";
+import type { EditorPluginAdapter } from "@app/editor";
 import { loadEditorFont } from "./fonts/editorFontRegistry";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTabs } from "./components/AppTabs";
@@ -84,7 +84,7 @@ export function App() {
   >([]);
   const [aiProviderName, setAiProviderName] = useState("AI");
   const [aiTransmitting, setAiTransmitting] = useState(false);
-  const editorRef = useRef<PluginEditor | null>(null);
+  const editorRef = useRef<EditorPluginAdapter | null>(null);
   const activeNoteRef = useRef<string | null>(null);
   const pendingCitationRef = useRef<CitationNavigationTarget | null>(null);
 
@@ -151,11 +151,18 @@ export function App() {
 
   const initPlugins = usePluginStore((state) => state.initPlugins);
   const pluginCommands = usePluginStore((state) => state.commands);
+  const invokePluginCommand = usePluginStore((state) => state.invokePluginCommand);
   const pluginManager = usePluginStore((state) => state.pluginManager);
   const openViewId = usePluginStore((state) => state.openViewId);
+  const pluginViewRevision = usePluginStore((state) => state.pluginViewRevision);
   const initThemes = useThemeStore((state) => state.initThemes);
   const themes = useThemeStore((state) => state.themes);
   const activeThemeId = useThemeStore((state) => state.activeThemeId);
+
+  useEffect(() => {
+    pluginManager?.setEditor(editorRef.current);
+    return () => pluginManager?.setEditor(null);
+  }, [pluginManager]);
   const themeManager = useThemeStore((state) => state.themeManager);
   const themeDiscoveryErrors = useThemeStore((state) => state.discoveryErrors);
   const activateTheme = useThemeStore((state) => state.activateTheme);
@@ -402,7 +409,7 @@ export function App() {
     void createNewCanvas();
   };
 
-  const handleEditorReady = useCallback((editor: PluginEditor | null) => {
+  const handleEditorReady = useCallback((editor: EditorPluginAdapter | null) => {
     editorRef.current = editor;
     const target = pendingCitationRef.current;
     if (editor && target && activeNoteRef.current === target.notePath) {
@@ -584,7 +591,7 @@ export function App() {
             dirtyNotes={dirtyNotes}
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
-            onNewTab={handleCreateNote}
+            onCreateNote={handleCreateNote}
             isLeftSidebarOpen={isLeftSidebarOpen}
             onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
             isRightSidebarOpen={isRightSidebarOpen}
@@ -601,7 +608,7 @@ export function App() {
               />
             </Suspense>
           ) : openViewId && pluginManager ? (
-            <PluginViewLeaf manager={pluginManager} viewId={openViewId} />
+            <PluginViewLeaf manager={pluginManager} viewId={openViewId} revision={pluginViewRevision} />
           ) : (
             <EditorArea
               activeNotePath={activeNotePath}
@@ -702,6 +709,7 @@ export function App() {
             onDriveRefresh={() => void handleDriveRefresh()}
             onDriveDisconnect={() => void handleDriveDisconnect()}
             pluginCommands={pluginCommands}
+            onInvokePluginCommand={(id) => void invokePluginCommand(id)}
           />
         )}
       </Suspense>

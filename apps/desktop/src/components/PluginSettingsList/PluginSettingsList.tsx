@@ -1,16 +1,18 @@
-import type { PluginRecord } from "@app/plugin-runtime";
+import type { PluginDiscoveryError, PluginRecord } from "@app/plugin-runtime";
 import type { PluginSettingTab } from "@app/plugin-api";
 import { Checkbox, Typography } from "@app/design-system";
 import styles from "./PluginSettingsList.module.scss";
 
 export interface PluginSettingsListProps {
   plugins: PluginRecord[];
+  discoveryErrors?: PluginDiscoveryError[];
   onTogglePlugin: (id: string, enable: boolean) => void | Promise<void>;
   settingsTabs?: PluginSettingTab[];
 }
 
 export function PluginSettingsList({
   plugins,
+  discoveryErrors = [],
   onTogglePlugin,
   settingsTabs = [],
 }: PluginSettingsListProps) {
@@ -96,6 +98,17 @@ export function PluginSettingsList({
           ))}
         </div>
       )}
+      {discoveryErrors.map((error) => (
+        <div
+          key={`${error.dirName}:${error.error}`}
+          className={styles["error-box"]}
+          role="alert"
+        >
+          <Typography variant="text" size="xs" color="muted">
+            Discovery error in {error.dirName}: {error.error}
+          </Typography>
+        </div>
+      ))}
       {settingsTabs.map((tab) => (
         <section key={tab.id} aria-labelledby={`plugin-tab-${tab.id}`}>
           <Typography variant="h3" size="xs" id={`plugin-tab-${tab.id}`}>

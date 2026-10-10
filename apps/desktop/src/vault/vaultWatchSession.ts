@@ -5,8 +5,9 @@ import {
   vaultWatchCoordinator,
 } from "./vaultWatchCoordinator";
 
-/** Pause FS events, run work, flush debouncer, then resume watching. */
-export async function withVaultWatchSuppressed<T>(
+let vaultMutationLock: Promise<void> = Promise.resolve();
+
+async function runWithVaultWatchSuppressed<T>(
   work: () => Promise<T>,
 ): Promise<T> {
   vaultWatchCoordinator.beginSuppression();
@@ -18,6 +19,21 @@ export async function withVaultWatchSuppressed<T>(
     await setVaultWatcherPaused(false);
     vaultWatchCoordinator.endSuppression();
   }
+}
+
+/** Serialize vault mutations while the watcher is paused for each mutation. */
+export function withVaultWatchSuppressed<T>(
+  work: () => Promise<T>,
+): Promise<T> {
+  const run = vaultMutationLock.then(
+    () => runWithVaultWatchSuppressed(work),
+    () => runWithVaultWatchSuppressed(work),
+  );
+  vaultMutationLock = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 /** Start watcher after initial index — never during the read pass. */

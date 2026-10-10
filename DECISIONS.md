@@ -205,6 +205,8 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | ADR | Decision | Status |
 |---|---|---|
 | [0131](adr/0131-plugin-execution-model.md) | Plugin execution: capability-scoped permissions per plugin, not trusted JS, not worker sandboxing | Accepted |
+| [0166](adr/0166-plugin-isolation-and-webview-capability-boundary.md) | Plugins execute in a lazy shared plugin-only webview with mediated network/shell RPC and caller-gated sensitive commands | Accepted; supersedes ADR-0131 execution model |
+| [0167](adr/0167-plugin-message-protocol-and-declarative-views.md) | Plugin host/runner contract is a serializable RPC protocol with declarative host-rendered views and async editor operations | Accepted |
 
 ## AI
 

@@ -23,6 +23,7 @@ export async function discoverPlugins(
   let directories: string[] = [];
   try {
     directories = await fsAdapter.listPluginDirectories();
+    console.info("[plugin-discovery] scanned .davinci/plugins", { directories });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     discoveryErrors.push({
@@ -35,12 +36,14 @@ export async function discoverPlugins(
   for (const dirName of directories) {
     let rawManifestText = "";
     try {
+      console.info("[plugin-discovery] reading manifest", { dirName });
       rawManifestText = await fsAdapter.readPluginFile(
         dirName,
         "manifest.json",
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
+      console.warn("[plugin-discovery] manifest read failed", { dirName, message });
       discoveryErrors.push({
         dirName,
         error: `Could not read manifest.json: ${message}`,
@@ -53,6 +56,7 @@ export async function discoverPlugins(
       parsedJson = JSON.parse(rawManifestText);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
+      console.warn("[plugin-discovery] manifest JSON rejected", { dirName, message });
       discoveryErrors.push({
         dirName,
         error: `Invalid JSON syntax in manifest.json: ${message}`,
@@ -70,6 +74,7 @@ export async function discoverPlugins(
         error: `Manifest validation failed: ${errSummary}`,
         validationErrors: validationResult.errors,
       });
+      console.warn("[plugin-discovery] manifest rejected", { dirName, errors: validationResult.errors });
       continue;
     }
 
@@ -90,8 +95,8 @@ export async function discoverPlugins(
       manifest,
       dirName,
       status: "disabled",
-      instance: null,
     });
+    console.info("[plugin-discovery] manifest accepted", { dirName, id: manifest.id });
   }
 
   return { plugins, discoveryErrors };

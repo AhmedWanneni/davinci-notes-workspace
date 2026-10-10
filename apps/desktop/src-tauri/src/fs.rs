@@ -2,10 +2,10 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 
 use serde::Serialize;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 use walkdir::WalkDir;
 
-use crate::state::VaultState;
+use crate::{command_auth::reject_plugin_runner, state::VaultState};
 use crate::watcher::VaultWatcher;
 
 const SUPPORTED_EXTENSIONS: &[&str] = &[
@@ -185,7 +185,8 @@ fn build_file_tree(paths: &[String]) -> Vec<FileTreeNode> {
 }
 
 #[tauri::command]
-pub fn open_vault(app: AppHandle, path: String) -> Result<String, String> {
+pub fn open_vault(window: WebviewWindow, app: AppHandle, path: String) -> Result<String, String> {
+  reject_plugin_runner(&window)?;
   if path.is_empty() {
     return Err("Vault path is required".to_string());
   }
@@ -213,30 +214,36 @@ pub fn open_vault(app: AppHandle, path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn start_vault_watcher(app: AppHandle) -> Result<(), String> {
+pub fn start_vault_watcher(window: WebviewWindow, app: AppHandle) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   app.state::<VaultWatcher>().start(app.clone(), vault_root)
 }
 
 #[tauri::command]
-pub fn set_vault_watcher_paused(app: AppHandle, paused: bool) {
+pub fn set_vault_watcher_paused(window: WebviewWindow, app: AppHandle, paused: bool) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   app.state::<VaultWatcher>().set_paused(paused);
+  Ok(())
 }
 
 #[tauri::command]
-pub fn list_notes(app: AppHandle) -> Result<Vec<String>, String> {
+pub fn list_notes(window: WebviewWindow, app: AppHandle) -> Result<Vec<String>, String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   collect_vault_paths(&vault_root)
 }
 
 #[tauri::command]
-pub fn get_file_tree(app: AppHandle) -> Result<Vec<FileTreeNode>, String> {
-  let paths = list_notes(app)?;
+pub fn get_file_tree(window: WebviewWindow, app: AppHandle) -> Result<Vec<FileTreeNode>, String> {
+  reject_plugin_runner(&window)?;
+  let paths = collect_vault_paths(&app.state::<VaultState>().get_root()?)?;
   Ok(build_file_tree(&paths))
 }
 
 #[tauri::command]
-pub fn read_note(app: AppHandle, path: String) -> Result<NotePayload, String> {
+pub fn read_note(window: WebviewWindow, app: AppHandle, path: String) -> Result<NotePayload, String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   let absolute = resolve_in_vault(&vault_root, &path)?;
 
@@ -266,7 +273,8 @@ pub struct NotePayload {
 }
 
 #[tauri::command]
-pub fn write_note(app: AppHandle, path: String, content: String) -> Result<(), String> {
+pub fn write_note(window: WebviewWindow, app: AppHandle, path: String, content: String) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   let absolute = resolve_in_vault(&vault_root, &path)?;
 
@@ -279,7 +287,8 @@ pub fn write_note(app: AppHandle, path: String, content: String) -> Result<(), S
 }
 
 #[tauri::command]
-pub fn write_binary_file(app: AppHandle, path: String, data: Vec<u8>) -> Result<(), String> {
+pub fn write_binary_file(window: WebviewWindow, app: AppHandle, path: String, data: Vec<u8>) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   let absolute = resolve_in_vault(&vault_root, &path)?;
 
@@ -292,13 +301,15 @@ pub fn write_binary_file(app: AppHandle, path: String, data: Vec<u8>) -> Result<
 }
 
 #[tauri::command]
-pub fn list_folders(app: AppHandle) -> Result<Vec<String>, String> {
+pub fn list_folders(window: WebviewWindow, app: AppHandle) -> Result<Vec<String>, String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   collect_vault_folders(&vault_root)
 }
 
 #[tauri::command]
-pub fn create_folder(app: AppHandle, path: String) -> Result<(), String> {
+pub fn create_folder(window: WebviewWindow, app: AppHandle, path: String) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   let absolute = resolve_in_vault(&vault_root, &path)?;
 
@@ -312,20 +323,24 @@ pub fn create_folder(app: AppHandle, path: String) -> Result<(), String> {
 
 #[tauri::command]
 pub fn rename_folder(
+  window: WebviewWindow,
   app: AppHandle,
   from_path: String,
   to_path: String,
 ) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   crate::folder_commands::rename_folder_in_vault(&vault_root, &from_path, &to_path)
 }
 
 #[tauri::command]
 pub fn rename_note(
+  window: WebviewWindow,
   app: AppHandle,
   from_path: String,
   to_path: String,
 ) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   if from_path == to_path {
     return Ok(());
   }
@@ -351,7 +366,8 @@ pub fn rename_note(
 }
 
 #[tauri::command]
-pub fn delete_note(app: AppHandle, path: String) -> Result<(), String> {
+pub fn delete_note(window: WebviewWindow, app: AppHandle, path: String) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   let absolute = resolve_in_vault(&vault_root, &path)?;
 
@@ -364,7 +380,8 @@ pub fn delete_note(app: AppHandle, path: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn delete_folder(app: AppHandle, path: String) -> Result<(), String> {
+pub fn delete_folder(window: WebviewWindow, app: AppHandle, path: String) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   crate::folder_commands::delete_folder_in_vault(&vault_root, &path)
 }

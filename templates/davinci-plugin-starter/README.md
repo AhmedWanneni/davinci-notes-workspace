@@ -1,9 +1,10 @@
 # DaVinci Notes Plugin Starter
 
-This is a minimal working TypeScript plugin. It registers one command that
-writes a file in the active vault, reads it back, and throws if the content
-does not match. The example requests only `vault:read`, `vault:write`, and
-`commands`.
+This is a minimal working TypeScript plugin using the current async RPC API.
+It registers a declarative status view and a command that writes/reads a vault
+file, persists a small plugin-data record, then reads the active editor
+snapshot asynchronously. It requests only the capabilities used by that
+example.
 
 ## Local development
 
@@ -24,10 +25,10 @@ the plugin loader available.
 3. Open or restart DaVinci Notes. In Settings > Plugins, enable **Sample
    Vault Command** and approve its three declared permissions.
 
-4. Open the command palette and run **Sample: write and read a vault file**.
-   The command creates `Sample Vault Command.md` in the vault and logs a
-   successful round-trip. Disable and re-enable the plugin to exercise the
-   lifecycle cleanup path.
+4. Open a Markdown note, enable **Sample Vault Command**, then run
+   **Sample: write and read a vault file** from the Command Palette or use the
+host-rendered view button. The command creates `Sample Vault Command.md`,
+verifies the vault/storage round-trip, and logs the async editor snapshot.
 
 The generated `dist/` directory is the installable package directory. The
 registry later expects the same files in a ZIP release asset.

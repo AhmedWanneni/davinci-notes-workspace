@@ -5,9 +5,9 @@ use std::{
     sync::Mutex,
 };
 
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 
-use crate::state::VaultState;
+use crate::{command_auth::reject_plugin_runner, state::VaultState};
 
 const VAULT_GITIGNORE: &str = "# Managed by DaVinci Notes local version history.\n# Only Markdown notes are source of truth for local history.\n*\n!**/\n!**/*.md\n";
 static GIT_OPERATION_LOCK: Mutex<()> = Mutex::new(());
@@ -179,17 +179,20 @@ pub(crate) fn restore_local_version(
 
 /// Phase 0 command. Phase 2's single Version History toggle invokes this lazily.
 #[tauri::command]
-pub fn initialize_local_git_repository(app: AppHandle) -> Result<(), String> {
+pub fn initialize_local_git_repository(window: WebviewWindow, app: AppHandle) -> Result<(), String> {
+    reject_plugin_runner(&window)?;
     let vault_root = app.state::<VaultState>().get_root()?;
     initialize_local_repository(&vault_root)
 }
 
 #[tauri::command]
 pub async fn create_local_git_version(
+    window: WebviewWindow,
     app: AppHandle,
     paths: Vec<String>,
     manual: bool,
 ) -> Result<Option<String>, String> {
+    reject_plugin_runner(&window)?;
     let vault_root = app.state::<VaultState>().get_root()?;
     tauri::async_runtime::spawn_blocking(move || create_local_version(&vault_root, paths, manual))
         .await

@@ -1,10 +1,12 @@
 import {
-  exists,
-  readDir,
-  readTextFile,
-  writeTextFile,
-} from "@tauri-apps/plugin-fs";
-import { deleteNote, listNotes, readNote, writeNote } from "./vaultCommands";
+  deleteNote,
+  listNotes,
+  listPluginDirectories,
+  readNote,
+  readPluginFile,
+  writeNote,
+  writePluginFile,
+} from "./vaultCommands";
 import type { PluginData } from "@app/plugin-api";
 import type {
   PluginFileSystemAdapter,
@@ -36,18 +38,7 @@ export function createDesktopPluginFsAdapter(
     },
     async listPluginDirectories(): Promise<string[]> {
       if (!vaultPath) return [];
-      const pluginsPath = `${vaultPath}/.davinci/plugins`;
-      try {
-        const isPresent = await exists(pluginsPath);
-        if (!isPresent) return [];
-        const entries = await readDir(pluginsPath);
-        return entries
-          .filter((entry) => entry.isDirectory)
-          .map((entry) => entry.name);
-      } catch (err) {
-        console.warn("Could not list plugins directory:", err);
-        return [];
-      }
+      return listPluginDirectories();
     },
 
     async readPluginFile(
@@ -55,15 +46,13 @@ export function createDesktopPluginFsAdapter(
       relativePath: string,
     ): Promise<string> {
       if (!vaultPath) throw new Error("No vault open");
-      const filePath = `${vaultPath}/.davinci/plugins/${dirName}/${relativePath}`;
-      return readTextFile(filePath);
+      return readPluginFile(dirName, relativePath);
     },
 
     async loadPluginData(dirName: string): Promise<PluginData> {
       if (!vaultPath) throw new Error("No vault open");
-      const dataPath = `${vaultPath}/.davinci/plugins/${dirName}/data.json`;
       try {
-        const raw = await readTextFile(dataPath);
+        const raw = await readPluginFile(dirName, "data.json");
         const parsed = JSON.parse(raw);
         return parsed && typeof parsed === "object" && !Array.isArray(parsed)
           ? (parsed as PluginData)
@@ -75,8 +64,7 @@ export function createDesktopPluginFsAdapter(
 
     async savePluginData(dirName: string, data: PluginData): Promise<void> {
       if (!vaultPath) throw new Error("No vault open");
-      const dataPath = `${vaultPath}/.davinci/plugins/${dirName}/data.json`;
-      await writeTextFile(dataPath, `${JSON.stringify(data, null, 2)}\n`);
+      await writePluginFile(dirName, "data.json", `${JSON.stringify(data, null, 2)}\n`);
     },
   };
 }

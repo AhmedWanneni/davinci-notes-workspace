@@ -21,7 +21,9 @@ export function scheduleH1DrivenRename(path: string): void {
   }
   h1RenameTimers[path] = setTimeout(() => {
     delete h1RenameTimers[path];
-    void attemptH1DrivenRename(path);
+    void attemptH1DrivenRename(path).catch((error) => {
+      console.error(`[vault] H1 rename failed for ${path}`, error);
+    });
   }, H1_RENAME_DEBOUNCE_MS);
 }
 

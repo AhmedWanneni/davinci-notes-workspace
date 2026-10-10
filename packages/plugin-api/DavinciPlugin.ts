@@ -2,6 +2,7 @@ import type { PluginManifest } from "./manifestTypes.js";
 import type {
   PluginCommands,
   PluginData,
+  PluginNetwork,
   PluginSettings,
   PluginVault,
 } from "./pluginSurfaceTypes.js";
@@ -10,22 +11,27 @@ export type {
   PluginCommand,
   PluginCommands,
   PluginData,
+  PluginNetwork,
+  PluginNetworkRequest,
+  PluginNetworkResponse,
   PluginSettingField,
   PluginSettingTab,
   PluginSettings,
   PluginVault,
 } from "./pluginSurfaceTypes.js";
 export type {
-  PluginDom,
   PluginEditor,
+  PluginEditorSnapshot,
   PluginSelection,
   PluginView,
-  PluginViewContext,
+  PluginViewEvent,
+  PluginViewModel,
   PluginWorkspace,
 } from "./pluginWorkspaceTypes.js";
 
 export interface PluginContext {
   vault: PluginVault;
+  net: PluginNetwork;
   commands: PluginCommands;
   settings: PluginSettings;
   workspace: PluginWorkspace;
@@ -49,6 +55,11 @@ const emptyPluginContext: PluginContext = {
       throw new Error("Vault API unavailable");
     },
   },
+  net: {
+    async fetch(): Promise<never> {
+      throw new Error("Network API unavailable");
+    },
+  },
   commands: { register: () => () => {} },
   settings: { addTab: () => () => {}, getTabs: () => [] },
   workspace: {
@@ -59,22 +70,22 @@ const emptyPluginContext: PluginContext = {
     isViewOpen: () => false,
   },
   editor: {
-    getContent: () => {
+    async getContent() {
       throw new Error("Editor API unavailable");
     },
-    setContent: () => {
+    async setContent() {
       throw new Error("Editor API unavailable");
     },
-    getSelection: () => {
+    async getSelection() {
       throw new Error("Editor API unavailable");
     },
-    setSelection: () => {
+    async setSelection() {
       throw new Error("Editor API unavailable");
     },
-    insertText: () => {
+    async insertText() {
       throw new Error("Editor API unavailable");
     },
-    onContentChange: () => () => {},
+    async subscribe() { return () => {}; },
   },
   async loadData<T extends PluginData = PluginData>(): Promise<T> {
     return {} as T;
@@ -90,6 +101,7 @@ export abstract class DavinciPlugin {
   readonly manifest: PluginManifest;
   protected readonly context: PluginContext;
   readonly vault: PluginVault;
+  readonly net: PluginNetwork;
   readonly commands: PluginCommands;
   readonly settings: PluginSettings;
   readonly workspace: PluginWorkspace;
@@ -102,6 +114,7 @@ export abstract class DavinciPlugin {
     this.manifest = manifest;
     this.context = context;
     this.vault = context.vault;
+    this.net = context.net;
     this.commands = context.commands;
     this.settings = context.settings;
     this.workspace = context.workspace;

@@ -1,0 +1,10 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "plugin-runner",
+  "description": "Scaffold capability for the isolated plugin-runner webview",
+  "windows": ["plugin-runner"],
+  "permissions": [
+    "core:default",
+    "core:event:allow-listen"
+  ]
+}

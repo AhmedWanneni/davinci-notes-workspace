@@ -1,7 +1,7 @@
 use keyring::Entry;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 
-use crate::state::VaultState;
+use crate::{command_auth::reject_plugin_runner, state::VaultState};
 
 const SERVICE: &str = "com.davinci.notes.git-remote";
 
@@ -19,7 +19,8 @@ fn entry(vault_root: &std::path::Path, remote_url: &str) -> Result<Entry, String
 }
 
 #[tauri::command]
-pub fn save_git_pat(app: AppHandle, remote_url: String, token: String) -> Result<(), String> {
+pub fn save_git_pat(window: WebviewWindow, app: AppHandle, remote_url: String, token: String) -> Result<(), String> {
+    reject_plugin_runner(&window)?;
     let vault_root = app.state::<VaultState>().get_root()?;
     entry(&vault_root, &remote_url)?
         .set_password(&token)
@@ -27,7 +28,8 @@ pub fn save_git_pat(app: AppHandle, remote_url: String, token: String) -> Result
 }
 
 #[tauri::command]
-pub fn load_git_pat(app: AppHandle, remote_url: String) -> Result<Option<String>, String> {
+pub fn load_git_pat(window: WebviewWindow, app: AppHandle, remote_url: String) -> Result<Option<String>, String> {
+    reject_plugin_runner(&window)?;
     let vault_root = app.state::<VaultState>().get_root()?;
     match entry(&vault_root, &remote_url)?.get_password() {
         Ok(token) => Ok(Some(token)),
@@ -37,7 +39,8 @@ pub fn load_git_pat(app: AppHandle, remote_url: String) -> Result<Option<String>
 }
 
 #[tauri::command]
-pub fn clear_git_pat(app: AppHandle, remote_url: String) -> Result<(), String> {
+pub fn clear_git_pat(window: WebviewWindow, app: AppHandle, remote_url: String) -> Result<(), String> {
+    reject_plugin_runner(&window)?;
     let vault_root = app.state::<VaultState>().get_root()?;
     match entry(&vault_root, &remote_url)?.delete_credential() {
         Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
