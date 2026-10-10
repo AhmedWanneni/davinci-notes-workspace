@@ -14,6 +14,7 @@ export interface AppTabsProps {
   openNotes: string[];
   activeNotePath: string | null;
   dirtyNotes: Set<string>;
+  conflictNotes?: Map<string, string>;
   onSelectNote: (path: string) => void;
   onCloseNote: (path: string) => void;
   onCreateNote?: () => void;
@@ -29,6 +30,7 @@ export function AppTabs({
   openNotes,
   activeNotePath,
   dirtyNotes,
+  conflictNotes,
   onSelectNote,
   onCloseNote,
   onCreateNote,
@@ -69,6 +71,7 @@ export function AppTabs({
               .pop() ?? path;
           const isActive = activeNotePath === path;
           const isDirty = dirtyNotes.has(path);
+          const hasConflict = conflictNotes?.has(path) ?? false;
           return (
             <div
               key={path}
@@ -87,7 +90,15 @@ export function AppTabs({
                 )}
               </span>
               <span className="app-tabs__tab-title">{displayTitle}</span>
-              {isDirty && <span className="app-tabs__dirty-dot" />}
+              {hasConflict ? (
+                <span
+                  className="app-tabs__conflict-dot"
+                  title="Disk conflict"
+                  aria-label="Disk conflict"
+                />
+              ) : (
+                isDirty && <span className="app-tabs__dirty-dot" />
+              )}
               <button
                 type="button"
                 className="app-tabs__close"

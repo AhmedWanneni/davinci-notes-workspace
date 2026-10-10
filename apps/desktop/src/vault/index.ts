@@ -46,6 +46,7 @@ export {
   openVault,
   openVaultFromPicker,
   readNote,
+  statNote,
   setVaultWatcherPaused,
   startVaultWatcher,
   subscribeVaultChanges,
@@ -58,6 +59,21 @@ export {
   writeBinaryFile,
   type FileTreeNode,
   type VaultChangeBatch,
+  type NoteStatPayload,
 } from "./vaultCommands";
 export { useVaultSession } from "./useVaultSession";
 export { retryOnSqliteBusy, isSqliteBusyError } from "./retryOnSqliteBusy";
+export { diskStateTracker } from "./diskStateTracker";
+export { classifyDiskChange } from "./classifyDiskChange";
+export { performSaveNote } from "./performSaveNote";
+export {
+  resolveConflictKeepMine,
+  resolveConflictUseDisk,
+  resolveConflictSaveCopy,
+} from "./resolveConflictActions";
+export type {
+  NoteConflictState,
+  ConflictResolutionChoice,
+  WorkspaceSaveContext,
+  WorkspaceSaveUpdater,
+} from "./noteConflictTypes";

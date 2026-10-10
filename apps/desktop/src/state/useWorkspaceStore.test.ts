@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useWorkspaceStore } from "./useWorkspaceStore";
 
+import { diskStateTracker } from "../vault/diskStateTracker";
+
 // Mock the vault I/O layer
 const readNoteMock = vi.fn();
+const statNoteMock = vi.fn();
 const writeNoteMock = vi.fn();
 const listNotesMock = vi.fn();
 const persistNoteMock = vi.fn();
@@ -11,27 +14,61 @@ const getSettingMock = vi.fn();
 const setSettingMock = vi.fn();
 const flushH1DrivenRenameMock = vi.fn(async (path: string) => path);
 
-vi.mock("../vault", () => ({
-  readNote: (path: string) => readNoteMock(path),
-  writeNote: (path: string, content: string) => writeNoteMock(path, content),
-  listNotes: () => listNotesMock(),
-  noteFromMarkdown: (path: string, content: string, mtime: number) => ({
-    path,
-    title: path.replace(".md", ""),
-    content,
-    mtime,
-    outlinks: [],
-  }),
+vi.mock("../vault", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    readNote: (path: string) => readNoteMock(path),
+    statNote: (path: string) => statNoteMock(path),
+    writeNote: (path: string, content: string) => writeNoteMock(path, content),
+    listNotes: () => listNotesMock(),
+    noteFromMarkdown: (path: string, content: string, mtime: number) => ({
+      path,
+      title: path.replace(".md", ""),
+      content,
+      mtime,
+      outlinks: [],
+    }),
+    getVaultIndexDb: () => getVaultIndexDbMock(),
+    getSetting: (db: unknown, key: string) => getSettingMock(db, key),
+    setSetting: (db: unknown, key: string, value: string) =>
+      setSettingMock(db, key, value),
+    persistNote: (db: unknown, note: unknown) => persistNoteMock(db, note),
+    withDbLock: async (work: () => Promise<unknown>) => work(),
+    withVaultWatchSuppressed: async (work: () => Promise<unknown>) => {
+      return work();
+    },
+    renameNoteInVault: vi.fn(),
+  };
+});
+
+vi.mock("../vault/vaultCommands", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  return {
+    ...actual,
+    readNote: (path: string) => readNoteMock(path),
+    statNote: (path: string) => statNoteMock(path),
+    writeNote: (path: string, content: string) => writeNoteMock(path, content),
+    listNotes: () => listNotesMock(),
+    setVaultWatcherPaused: vi.fn(),
+  };
+});
+
+vi.mock("../vault/vaultWatchSession", () => ({
+  withVaultWatchSuppressed: async (work: () => Promise<unknown>) => work(),
+  activateVaultWatcher: vi.fn(),
+}));
+
+vi.mock("../vault/sqliteIndex", () => ({
   getVaultIndexDb: () => getVaultIndexDbMock(),
+  persistNote: (db: unknown, note: unknown) => persistNoteMock(db, note),
+  withDbLock: async (work: () => Promise<unknown>) => work(),
+}));
+
+vi.mock("../vault/settingsCommands", () => ({
   getSetting: (db: unknown, key: string) => getSettingMock(db, key),
   setSetting: (db: unknown, key: string, value: string) =>
     setSettingMock(db, key, value),
-  persistNote: (db: unknown, note: unknown) => persistNoteMock(db, note),
-  withDbLock: async (work: () => Promise<unknown>) => work(),
-  withVaultWatchSuppressed: async (work: () => Promise<unknown>) => {
-    return work();
-  },
-  renameNoteInVault: vi.fn(),
 }));
 
 vi.mock("../vault/h1DrivenRename", () => ({
@@ -42,6 +79,7 @@ vi.mock("../vault/h1DrivenRename", () => ({
 describe("useWorkspaceStore", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    diskStateTracker.clear();
     vi.useFakeTimers();
 
     // Reset store state
@@ -50,6 +88,7 @@ describe("useWorkspaceStore", () => {
       openNotes: [],
       notesContent: {},
       dirtyNotes: new Set(),
+      conflictNotes: new Map(),
       allNotePaths: [],
       allFolderPaths: [],
       graph: null,
@@ -59,8 +98,14 @@ describe("useWorkspaceStore", () => {
       useVimMode: false,
     });
 
-    readNoteMock.mockResolvedValue({ path: "a.md", content: "# A", mtime: 1 });
-    writeNoteMock.mockResolvedValue(undefined);
+    statNoteMock.mockResolvedValue({ exists: true, mtime: 1, size: 4 });
+    readNoteMock.mockResolvedValue({
+      path: "a.md",
+      content: "# A",
+      mtime: 1,
+      size: 4,
+    });
+    writeNoteMock.mockResolvedValue({ exists: true, mtime: 1, size: 4 });
     listNotesMock.mockResolvedValue(["a.md", "b.md"]);
     persistNoteMock.mockResolvedValue(undefined);
     getVaultIndexDbMock.mockResolvedValue({});

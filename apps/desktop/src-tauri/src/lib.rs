@@ -19,6 +19,8 @@ mod tray_commands;
 mod tray_config;
 mod tray_menu;
 #[cfg(test)]
+mod fs_tests;
+#[cfg(test)]
 mod tray_tests;
 mod watcher;
 
@@ -55,6 +57,7 @@ pub fn run() {
       theme_files::list_theme_directories,
       fs::get_file_tree,
       fs::read_note,
+      fs::stat_note,
       theme_files::read_theme_file,
       fs::write_note,
       fs::write_binary_file,

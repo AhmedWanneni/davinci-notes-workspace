@@ -9,8 +9,7 @@ import {
   type CSSProperties,
 } from "react";
 import type { EditorView } from "@codemirror/view";
-import { Editor, pastedFileName, type EditorPluginAdapter } from "@app/editor";
-import { resolveAttachmentFolder } from "@app/attachments";
+import { Editor, type EditorPluginAdapter } from "@app/editor";
 import {
   CaretLeft,
   CaretRight,
@@ -21,14 +20,10 @@ import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
 import { PropertiesBlock } from "../PropertiesBlock";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import { convertFileSrc } from "@tauri-apps/api/core";
-import {
-  readNote,
-  writeBinaryFile,
-  writeAttachmentToVault,
-  createNoteInVault,
-} from "../../vault";
+import { readNote, createNoteInVault } from "../../vault";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
+import { EditorConflictBanner } from "./EditorConflictBanner";
+import { useEditorMediaHandlers } from "./useEditorMediaHandlers";
 
 const LazyCanvasView = lazy(() =>
   import("@app/canvas").then((m) => ({
@@ -64,8 +59,17 @@ export function EditorArea({
   const noteHistory = useWorkspaceStore((state) => state.noteHistory);
   const goBack = useWorkspaceStore((state) => state.goBack);
   const goForward = useWorkspaceStore((state) => state.goForward);
+  const conflictNotes = useWorkspaceStore((state) => state.conflictNotes);
+  const resolveConflict = useWorkspaceStore((state) => state.resolveConflict);
   const editorViewRef = useRef<EditorView | null>(null);
   const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
+
+  const {
+    handlePasteAttachment,
+    handleAttachmentError,
+    handleResolveMediaUrl,
+    handleSaveMediaFile,
+  } = useEditorMediaHandlers(activeNotePath);
 
   const { frontmatter } = useMemo(
     () => (activeNotePath ? parseFrontmatter(content) : { frontmatter: {} }),
@@ -101,10 +105,6 @@ export function EditorArea({
     [],
   );
 
-  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
-  const attachmentSettings = useWorkspaceStore(
-    (state) => state.attachmentSettings,
-  );
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
   const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setVimModeState = useWorkspaceStore((state) => state.setVimModeState);
@@ -112,72 +112,10 @@ export function EditorArea({
   const closeNote = useWorkspaceStore((state) => state.closeNote);
   const closeAllNotes = useWorkspaceStore((state) => state.closeAllNotes);
 
-  const handlePasteAttachment = useCallback(
-    async (file: File): Promise<string> => {
-      if (!vaultPath || !activeNotePath) {
-        throw new Error("Open a vault and note before pasting an attachment.");
-      }
-      const folder = resolveAttachmentFolder(
-        activeNotePath,
-        attachmentSettings,
-      );
-      const writtenPath = await writeAttachmentToVault(
-        vaultPath,
-        folder,
-        pastedFileName(file),
-        file,
-      );
-      const vaultPrefix = `${vaultPath.replaceAll("\\", "/").replace(/\/+$/u, "")}/`;
-      const linkTarget = writtenPath.startsWith(vaultPrefix)
-        ? writtenPath.slice(vaultPrefix.length)
-        : writtenPath;
-      return `![[${linkTarget.replaceAll("\\", "/")}]]`;
-    },
-    [activeNotePath, attachmentSettings, vaultPath],
-  );
-
-  const handleAttachmentError = useCallback((message: string) => {
-    window.alert(`Attachment paste failed: ${message}`);
-  }, []);
-
-  const handleResolveMediaUrl = useCallback(
-    (filePath: string) => {
-      if (
-        !filePath ||
-        filePath.startsWith("data:") ||
-        filePath.startsWith("blob:") ||
-        filePath.startsWith("http://") ||
-        filePath.startsWith("https://")
-      ) {
-        return filePath;
-      }
-      const absolutePath = vaultPath
-        ? `${vaultPath.replace(/\/+$/, "")}/${filePath.replace(/^\/+/, "")}`
-        : filePath;
-      try {
-        return convertFileSrc(absolutePath);
-      } catch {
-        return filePath;
-      }
-    },
-    [vaultPath],
-  );
-
-  const handleSaveMediaFile = useCallback(
-    async (fileName: string, data: Uint8Array): Promise<string> => {
-      await writeBinaryFile(fileName, data);
-      const currentPaths = useWorkspaceStore.getState().allNotePaths;
-      if (!currentPaths.includes(fileName)) {
-        useWorkspaceStore
-          .getState()
-          .updateAllPaths([...currentPaths, fileName]);
-      }
-      return fileName;
-    },
-    [],
-  );
-
   const isCanvas = activeNotePath?.endsWith(".canvas") ?? false;
+  const hasConflict = activeNotePath
+    ? conflictNotes.has(activeNotePath)
+    : false;
 
   useEffect(() => {
     editorViewRef.current?.requestMeasure();
@@ -191,12 +129,13 @@ export function EditorArea({
     >
       {activeNotePath ? (
         isCanvas ? (
-          <Suspense fallback={null}>
+          <Suspense
+            fallback={
+              <div className="canvas-view-loading">Loading canvas...</div>
+            }
+          >
             <LazyCanvasView
-              key={activeNotePath}
-              path={activeNotePath}
-              initialContent={content}
-              onContentChange={(p, c) => updateNoteContent(p, c)}
+              canvasPath={activeNotePath}
               allNotePaths={allNotePaths}
               notesContent={notesContent}
               readNoteContent={handleReadNote}
@@ -254,6 +193,19 @@ export function EditorArea({
                 onLinkClick={onLinkClick}
               />
             </div>
+            {hasConflict && activeNotePath && (
+              <EditorConflictBanner
+                onKeepMine={() =>
+                  void resolveConflict(activeNotePath, "keep_mine")
+                }
+                onUseDisk={() =>
+                  void resolveConflict(activeNotePath, "use_disk")
+                }
+                onSaveCopy={() =>
+                  void resolveConflict(activeNotePath, "save_copy")
+                }
+              />
+            )}
             <div className="editor-area__body">
               <Editor
                 key={activeNotePath}

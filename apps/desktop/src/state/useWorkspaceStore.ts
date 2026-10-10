@@ -1,10 +1,5 @@
 import { create } from "zustand";
-import {
-  updateGraphForNote,
-  updateTagIndexForNote,
-  type GraphIndex,
-  type TagIndex,
-} from "@app/indexer";
+import type { GraphIndex, TagIndex } from "@app/indexer";
 import {
   createEditorSettings,
   type EditorSettingsState,
@@ -13,6 +8,10 @@ import {
   createNoteCrudActions,
   type NoteCrudActions,
 } from "./createNoteCrudActions";
+import {
+  createNoteSaveActions,
+  type NoteSaveActions,
+} from "./createNoteSaveActions";
 import { saveTimers } from "./saveTimers";
 import {
   emptyNoteHistory,
@@ -20,25 +19,19 @@ import {
   pushNoteHistory,
   type NoteHistory,
 } from "./noteHistory";
-import {
-  readNote,
-  writeNote,
-  noteFromMarkdown,
-  getVaultIndexDb,
-  persistNote,
-  withVaultWatchSuppressed,
-  withDbLock,
-} from "../vault";
+import { readNote, diskStateTracker } from "../vault";
 import {
   flushH1DrivenRename,
   scheduleH1DrivenRename,
 } from "../vault/h1DrivenRename";
 
-interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
+export interface WorkspaceState
+  extends EditorSettingsState, NoteCrudActions, NoteSaveActions {
   activeNotePath: string | null;
   openNotes: string[];
   notesContent: Record<string, string>;
   dirtyNotes: Set<string>;
+  conflictNotes: Map<string, string>;
   allNotePaths: string[];
   allFolderPaths: string[];
   graph: GraphIndex | null;
@@ -66,9 +59,6 @@ interface WorkspaceState extends EditorSettingsState, NoteCrudActions {
   setActiveNote: (path: string) => Promise<void>;
   updateNoteContent: (path: string, content: string) => void;
   replaceLoadedNoteContent: (path: string, content: string) => void;
-  saveNoteNow: (path: string) => Promise<void>;
-  saveVersionNow: (path: string) => Promise<void>;
-  saveAllDirty: () => Promise<void>;
   closeAllNotes: () => Promise<void>;
 }
 
@@ -77,6 +67,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   openNotes: [],
   notesContent: {},
   dirtyNotes: new Set(),
+  conflictNotes: new Map(),
   allNotePaths: [],
   allFolderPaths: [],
   graph: null,
@@ -97,12 +88,14 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     initialGraph: GraphIndex | null = null,
     tagIndex: TagIndex | null = null,
   ) => {
+    diskStateTracker.clear();
     set({
       allNotePaths: paths,
       allFolderPaths: folderPaths,
       openNotes: [],
       notesContent: {},
       dirtyNotes: new Set(),
+      conflictNotes: new Map(),
       activeNotePath: null,
       graph: initialGraph,
       tagIndex,
@@ -120,6 +113,11 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     if (notesContent[path] === undefined) {
       try {
         const file = await readNote(path);
+        diskStateTracker.set(path, {
+          mtime: file.mtime,
+          size: file.size,
+          content: file.content,
+        });
         set((state) => ({
           notesContent: { ...state.notesContent, [path]: file.content },
         }));
@@ -163,7 +161,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     const effectivePath = await flushH1DrivenRename(path);
     await get().saveNoteNow(effectivePath);
 
-    const { openNotes, activeNotePath, notesContent } = get();
+    const { openNotes, activeNotePath, notesContent, conflictNotes } = get();
     const nextOpenNotes = openNotes.filter((p) => p !== effectivePath);
     let nextActivePath = activeNotePath;
     if (activeNotePath === effectivePath) {
@@ -175,11 +173,15 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
     const nextNotesContent = { ...notesContent };
     delete nextNotesContent[effectivePath];
+    const nextConflict = new Map(conflictNotes);
+    nextConflict.delete(effectivePath);
+    diskStateTracker.remove(effectivePath);
 
     set({
       openNotes: nextOpenNotes,
       activeNotePath: nextActivePath,
       notesContent: nextNotesContent,
+      conflictNotes: nextConflict,
     });
   },
 
@@ -223,77 +225,18 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       notesContent: { ...state.notesContent, [path]: content },
     })),
 
-  saveNoteNow: async (path: string) => {
-    const { notesContent, dirtyNotes, allNotePaths, graph } = get();
-    if (!dirtyNotes.has(path) || notesContent[path] === undefined) return;
-    const content = notesContent[path];
-
-    try {
-      await withVaultWatchSuppressed(async () => {
-        await writeNote(path, content);
-
-        const db = await getVaultIndexDb();
-        const note = noteFromMarkdown(path, content, Date.now(), allNotePaths);
-        await withDbLock(() => persistNote(db, note));
-        if (graph) {
-          const nextGraph = updateGraphForNote(graph, note);
-          set({
-            graph: nextGraph,
-            vaultUpdateCounter: get().vaultUpdateCounter + 1,
-          });
-        }
-        if (get().tagIndex) updateTagIndexForNote(get().tagIndex!, note);
-      });
-    } catch (e) {
-      console.error(`Failed to save and reindex note: ${path}`, e);
-      return;
-    }
-
-    set((state) => {
-      const nextDirty = new Set(state.dirtyNotes);
-      nextDirty.delete(path);
-      return { dirtyNotes: nextDirty };
-    });
-    void import("../git/loadGitVersioning")
-      .then(({ loadGitVersioning }) => loadGitVersioning())
-      .then(({ versionHistoryScheduler }) =>
-        versionHistoryScheduler.recordAutoSave(path),
-      )
-      .catch((error) =>
-        console.error("Failed to schedule local version", error),
-      );
-  },
-
-  saveVersionNow: async (path: string) => {
-    await get().saveNoteNow(path);
-    const { loadGitVersioning } = await import("../git/loadGitVersioning");
-    const { versionHistoryScheduler } = await loadGitVersioning();
-    await versionHistoryScheduler.saveVersionNow(path);
-  },
-
-  saveAllDirty: async () => {
-    const { dirtyNotes, openNotes } = get();
-    for (const path of openNotes) {
-      await flushH1DrivenRename(path);
-    }
-    for (const path of Array.from(dirtyNotes)) {
-      if (saveTimers[path]) {
-        clearTimeout(saveTimers[path]);
-        delete saveTimers[path];
-      }
-      await get().saveNoteNow(path);
-    }
-  },
-
   closeAllNotes: async () => {
     await get().saveAllDirty();
+    diskStateTracker.clear();
     set({
       openNotes: [],
       activeNotePath: null,
       notesContent: {},
       dirtyNotes: new Set(),
+      conflictNotes: new Map(),
     });
   },
 
   ...createNoteCrudActions(),
+  ...createNoteSaveActions(get, set),
 }));

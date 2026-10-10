@@ -124,6 +124,7 @@ export function App() {
   const moveNoteFromTree = useWorkspaceStore((state) => state.moveNoteFromTree);
   const syncMode = useWorkspaceStore((state) => state.syncMode);
   const setSyncMode = useWorkspaceStore((state) => state.setSyncMode);
+  const conflictNotes = useWorkspaceStore((state) => state.conflictNotes);
   const [pendingRenameFolder, setPendingRenameFolder] = useState<string | null>(
     null,
   );
@@ -607,6 +608,7 @@ export function App() {
             openNotes={openNotes}
             activeNotePath={activeNotePath}
             dirtyNotes={dirtyNotes}
+            conflictNotes={conflictNotes}
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
             onCreateNote={handleCreateNoteFromTabs}

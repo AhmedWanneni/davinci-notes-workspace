@@ -234,8 +234,9 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0151](adr/0151-ai-provider-readiness-requires-keychain.md) | A cloud provider is ready only when its persisted status and provider-specific Keychain credential are both present | Accepted |
 | [0159](adr/0159-emoji-icons-and-offline-picker.md) | Emoji icon storage and offline picker boundary | Accepted |
 | [0160](adr/0160-editor-font-settings-and-self-hosted-fontsource.md) | Vault-scoped editor font settings with self-hosted lazy Fontsource assets | Accepted |
-| [0161](adr/0161-external-vault-change-reconciliation.md) | Debounced external vault change reconciliation and dirty-editor conflict policy | Accepted |
+| [0161](adr/0161-external-vault-change-reconciliation.md) | Debounced external vault change reconciliation and dirty-editor conflict policy | Superseded by [0170](adr/0170-save-time-external-change-guard-and-append-merge.md) |
 | [0162](adr/0162-unified-custom-window-controls.md) | Custom window controls across macOS, Windows, and Linux | Accepted |
 | [0164](adr/0164-public-theme-status-and-shadow-tokens.md) | Public semantic status-tint and shared shadow-ink tokens | Accepted |
 | [0168](adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md) | Universal `withDbLock` serialization for index reads and writes, batch removals, and unified transaction boundaries | Accepted |
 | [0169](adr/0169-ui-decoupling-from-sqlite-index-and-unhandled-rejection-resilience.md) | Decouple UI tab opening from SQLite indexing, capped exponential backoff for SQLITE_BUSY, and error boundaries | Accepted |
+| [0170](adr/0170-save-time-external-change-guard-and-append-merge.md) | Save-time external change guard with append-aware merge and conflict copy on exit (supersedes 0161) | Accepted |

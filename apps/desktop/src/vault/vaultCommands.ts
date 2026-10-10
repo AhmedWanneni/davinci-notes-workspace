@@ -7,6 +7,13 @@ export interface NoteFilePayload {
   path: string;
   content: string;
   mtime: number;
+  size: number;
+}
+
+export interface NoteStatPayload {
+  exists: boolean;
+  mtime: number;
+  size: number;
 }
 
 export interface FileTreeNode {
@@ -88,8 +95,15 @@ export async function readNote(path: string): Promise<NoteFilePayload> {
   return invoke<NoteFilePayload>("read_note", { path });
 }
 
-export async function writeNote(path: string, content: string): Promise<void> {
-  return invoke("write_note", { path, content });
+export async function statNote(path: string): Promise<NoteStatPayload> {
+  return invoke<NoteStatPayload>("stat_note", { path });
+}
+
+export async function writeNote(
+  path: string,
+  content: string,
+): Promise<NoteStatPayload> {
+  return invoke<NoteStatPayload>("write_note", { path, content });
 }
 
 export async function renameNote(

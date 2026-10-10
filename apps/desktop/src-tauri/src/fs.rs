@@ -241,6 +241,23 @@ pub fn get_file_tree(window: WebviewWindow, app: AppHandle) -> Result<Vec<FileTr
   Ok(build_file_tree(&paths))
 }
 
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NotePayload {
+  pub path: String,
+  pub content: String,
+  pub mtime: i64,
+  pub size: u64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NoteStatPayload {
+  pub exists: bool,
+  pub mtime: i64,
+  pub size: u64,
+}
+
 #[tauri::command]
 pub fn read_note(window: WebviewWindow, app: AppHandle, path: String) -> Result<NotePayload, String> {
   reject_plugin_runner(&window)?;
@@ -248,32 +265,47 @@ pub fn read_note(window: WebviewWindow, app: AppHandle, path: String) -> Result<
   let absolute = resolve_in_vault(&vault_root, &path)?;
 
   let content = fs::read_to_string(&absolute).map_err(|e| format!("Read failed: {e}"))?;
-  let mtime = absolute
-    .metadata()
-    .map_err(|e| format!("Metadata failed: {e}"))?
+  let meta = absolute.metadata().map_err(|e| format!("Metadata failed: {e}"))?;
+  let mtime = meta
     .modified()
     .map_err(|e| format!("mtime unavailable: {e}"))?
     .duration_since(std::time::UNIX_EPOCH)
     .map_err(|e| format!("mtime invalid: {e}"))?
     .as_millis() as i64;
+  let size = meta.len();
 
   Ok(NotePayload {
     path,
     content,
     mtime,
+    size,
   })
 }
 
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct NotePayload {
-  pub path: String,
-  pub content: String,
-  pub mtime: i64,
+#[tauri::command]
+pub fn stat_note(window: WebviewWindow, app: AppHandle, path: String) -> Result<NoteStatPayload, String> {
+  reject_plugin_runner(&window)?;
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let absolute = match resolve_in_vault(&vault_root, &path) {
+    Ok(p) => p,
+    Err(_) => return Ok(NoteStatPayload { exists: false, mtime: 0, size: 0 }),
+  };
+  if !absolute.exists() {
+    return Ok(NoteStatPayload { exists: false, mtime: 0, size: 0 });
+  }
+  let meta = absolute.metadata().map_err(|e| format!("Stat failed: {e}"))?;
+  let mtime = meta
+    .modified()
+    .map_err(|e| format!("mtime unavailable: {e}"))?
+    .duration_since(std::time::UNIX_EPOCH)
+    .map_err(|e| format!("mtime invalid: {e}"))?
+    .as_millis() as i64;
+  let size = meta.len();
+  Ok(NoteStatPayload { exists: true, mtime, size })
 }
 
 #[tauri::command]
-pub fn write_note(window: WebviewWindow, app: AppHandle, path: String, content: String) -> Result<(), String> {
+pub fn write_note(window: WebviewWindow, app: AppHandle, path: String, content: String) -> Result<NoteStatPayload, String> {
   reject_plugin_runner(&window)?;
   let vault_root = app.state::<VaultState>().get_root()?;
   let absolute = resolve_in_vault(&vault_root, &path)?;
@@ -282,8 +314,19 @@ pub fn write_note(window: WebviewWindow, app: AppHandle, path: String, content: 
     fs::create_dir_all(parent).map_err(|e| format!("Create parent dirs failed: {e}"))?;
   }
 
-  fs::write(&absolute, content.as_bytes()).map_err(|e| format!("Write failed: {e}"))?;
-  Ok(())
+  let tmp_path = absolute.with_extension(format!("tmp.{}", std::process::id()));
+  fs::write(&tmp_path, content.as_bytes()).map_err(|e| format!("Write tmp failed: {e}"))?;
+  fs::rename(&tmp_path, &absolute).map_err(|e| format!("Atomic rename failed: {e}"))?;
+
+  let meta = absolute.metadata().map_err(|e| format!("Metadata failed: {e}"))?;
+  let mtime = meta
+    .modified()
+    .map_err(|e| format!("mtime unavailable: {e}"))?
+    .duration_since(std::time::UNIX_EPOCH)
+    .map_err(|e| format!("mtime invalid: {e}"))?
+    .as_millis() as i64;
+  let size = meta.len();
+  Ok(NoteStatPayload { exists: true, mtime, size })
 }
 
 #[tauri::command]

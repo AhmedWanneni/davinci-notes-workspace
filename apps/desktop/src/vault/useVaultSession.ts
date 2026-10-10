@@ -16,6 +16,8 @@ import {
   readNote,
   withDbLock,
   retryOnSqliteBusy,
+  diskStateTracker,
+  classifyDiskChange,
 } from "./index";
 import { clearSaveTimer } from "../state/saveTimers";
 import { createNoteInVault } from "./createNoteInVault";
@@ -270,17 +272,65 @@ export function useVaultSession() {
         const conflictPaths: string[] = [];
 
         for (const path of batch.changed) {
-          if (!state.openNotes.includes(path) || state.dirtyNotes.has(path)) {
-            if (state.dirtyNotes.has(path)) conflictPaths.push(path);
+          if (!state.openNotes.includes(path)) {
             continue;
           }
+          if (!state.dirtyNotes.has(path)) {
+            try {
+              const file = await readNote(path);
+              diskStateTracker.set(path, {
+                mtime: file.mtime,
+                size: file.size,
+                content: file.content,
+              });
+              useWorkspaceStore
+                .getState()
+                .replaceLoadedNoteContent(path, file.content);
+            } catch {
+              // Reconciliation already treats a disappearing file as removed.
+            }
+            continue;
+          }
+
+          // Note is dirty: classify disk change
           try {
             const file = await readNote(path);
-            useWorkspaceStore
-              .getState()
-              .replaceLoadedNoteContent(path, file.content);
+            const lastKnown = diskStateTracker.get(path);
+            const classification = classifyDiskChange(
+              lastKnown ? lastKnown.content : "",
+              file.content,
+            );
+
+            if (classification.type === "pure_append") {
+              const currentContent =
+                useWorkspaceStore.getState().notesContent[path] ?? "";
+              const merged = currentContent + classification.tail;
+              diskStateTracker.set(path, {
+                mtime: file.mtime,
+                size: file.size,
+                content: file.content,
+              });
+              useWorkspaceStore
+                .getState()
+                .replaceLoadedNoteContent(path, merged);
+            } else if (classification.type === "touched_only") {
+              diskStateTracker.set(path, {
+                mtime: file.mtime,
+                size: file.size,
+                content: file.content,
+              });
+            } else {
+              // Conflict! Pause autosave and flag conflict
+              clearSaveTimer(path);
+              useWorkspaceStore.setState((current) => {
+                const next = new Map(current.conflictNotes);
+                next.set(path, file.content);
+                return { conflictNotes: next };
+              });
+              conflictPaths.push(path);
+            }
           } catch {
-            // Reconciliation already treats a disappearing file as removed.
+            // Error reading file
           }
         }
 
@@ -292,12 +342,18 @@ export function useVaultSession() {
             .map((path) => renamedTo.get(path) ?? path);
           for (const path of removedPaths) {
             clearSaveTimer(path);
+            diskStateTracker.remove(path);
             if (!renamedFrom.has(path)) {
               delete nextContent[path];
               nextDirty.delete(path);
             }
           }
           for (const { from, to } of renamed) {
+            const lastKnown = diskStateTracker.get(from);
+            if (lastKnown) {
+              diskStateTracker.remove(from);
+              diskStateTracker.set(to, lastKnown);
+            }
             if (nextContent[from] !== undefined) {
               nextContent[to] = nextContent[from];
               delete nextContent[from];
@@ -328,7 +384,7 @@ export function useVaultSession() {
         }
         if (conflictPaths.length > 0) {
           setVaultError(
-            `External changes were detected while editing: ${conflictPaths.join(", ")}. Your unsaved editor content was kept.`,
+            `External changes were detected while editing: ${conflictPaths.join(", ")}. Please resolve the conflict in the editor.`,
           );
         }
       } catch (error) {

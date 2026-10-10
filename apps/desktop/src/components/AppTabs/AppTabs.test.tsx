@@ -33,4 +33,23 @@ describe("AppTabs", () => {
     expect(onCreateNote).toHaveBeenCalledOnce();
     expect(onCreateNote).toHaveBeenCalledWith();
   });
+
+  it("renders conflict dot indicator when note has a conflict", () => {
+    const conflictNotes = new Map([["notes/a.md", "# External change"]]);
+
+    const { container } = render(
+      <AppTabs
+        openNotes={["notes/a.md"]}
+        activeNotePath="notes/a.md"
+        dirtyNotes={new Set(["notes/a.md"])}
+        conflictNotes={conflictNotes}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    expect(container.querySelector(".app-tabs__conflict-dot")).toBeTruthy();
+    expect(container.querySelector(".app-tabs__dirty-dot")).toBeFalsy();
+  });
 });

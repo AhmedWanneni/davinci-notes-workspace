@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [0170](0170-save-time-external-change-guard-and-append-merge.md)
 
 ## Decision
 

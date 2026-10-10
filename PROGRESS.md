@@ -6,6 +6,17 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Phase 4a — Save-time external-change guard with append-aware merge (ADR-0170 supersedes ADR-0161) — complete**
+Fixed silent data loss vulnerability where autosave (750 ms) or manual save unconditionally overwrote external disk modifications when notes were dirty in memory:
+1. `stat_note` & atomic `write_note` in Rust: returns `{ exists, mtime, size }`; writes to atomic sibling `.tmp.<pid>` then executes `fs::rename`.
+2. `diskStateTracker`: in-memory tracking of `{ mtime, size, content }` on load, reload, and save.
+3. Save-time stat guard: `performSaveNote` stats the file first; unchanged notes skip file reads (0 extra disk reads).
+4. `classifyDiskChange`: classifies external modifications into `touched_only`, `pure_append`, or `conflict`. Pure appends seamlessly merge tail into the editor buffer without moving cursor or undo stack. Conflicts pause autosave, flag the tab, and display a 3-action conflict banner in `EditorArea` ("Keep my version", "Use the disk version", "Save mine as a copy").
+5. `saveQueue`: per-path promise serialization preventing race conditions across debounced saves, Cmd+S, and quit flushes.
+6. Clean quit protection: notes remaining in conflict during exit are saved as `<stem> (conflict <timestamp>).md` by `saveAllDirty()` so neither external edits nor user draft buffers are lost.
+7. Verification: 98/98 frontend test suites (348 tests) and 28/28 Cargo unit tests passing. Code caps strictly enforced (< 250 lines).
+Global shortcuts and Quick Capture window (Phase 4) is next.
+
 **Tray Phase 3 — dynamic tray menu with recent notes, daily note, and open vault (implementation and automated tests complete)**
 Added dynamic menu support to macOS tray:
 1. "Recent notes": Last 5 opened notes derived in reverse-chronological order from workspace navigation history and open tabs. Duplicate titles across folders are automatically disambiguated (e.g. `Title (folder)` or `Title (root)`). Paths are strictly validated in Rust to ensure no path traversal (`..`), empty, or absolute paths escape the vault root.
