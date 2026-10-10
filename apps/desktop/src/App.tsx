@@ -38,7 +38,7 @@ import {
   type CitationNavigationTarget,
 } from "./ai/citationNavigation";
 import { loadAIStartupGate } from "./ai/loadAIStartupGate";
-import { useWindowFullscreen } from "./window";
+import { useTrayMenuActions, useWindowFullscreen } from "./window";
 
 const LazyGlobalGraphLeaf = React.lazy(() =>
   import("./components/GlobalGraphLeaf").then((m) => ({
@@ -148,6 +148,11 @@ export function App() {
     openLargeFixture,
     openPicker,
   } = useVaultSession();
+
+  useTrayMenuActions({
+    vaultPath,
+    createNewNote: () => createNewNote(),
+  });
 
   const initPlugins = usePluginStore((state) => state.initPlugins);
   const pluginCommands = usePluginStore((state) => state.commands);

@@ -6,6 +6,9 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Tray Phase 1 — macOS menu bar icon with a static native menu (implementation complete; native GUI unverified)**
+Rust `tray.rs` builds a template menu-bar icon and a static menu (Show/Hide window, New note, Quit) at startup. New note emits `davinci-tray-new-note` into the existing `createNewNote` path. Quit flushes `saveAllDirty` then `AppHandle::exit`. Windows/Linux are cfg no-ops. Close-to-tray, dynamic menus, and the global shortcut are not in this phase.
+
 **File tree toolbar — new note, new folder, sort order, collapse all, expand all**
 Added Obsidian-style action toolbar at the top of the file tree explorer:
 1. `NotePencil` ("New note"): creates note in selected folder or vault root.
@@ -614,6 +617,21 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Last Session
 
+**Tray Phase 1 — menu bar icon with static native menu**
+
+### Completed
+- Enabled Tauri `tray-icon` (not `image-png`). Icon is a **placeholder** monochrome note outline (`tray-icon.png` / `@2x.png`); runtime embeds `@2x` RGBA so the `image` crate is not linked.
+- `apps/desktop/src-tauri/src/tray.rs` registered from `setup`. Menu: Show/Hide window, New note, Quit. Left click opens the menu (`show_menu_on_left_click(true)`).
+- Show/Hide label is static: a live Show vs Hide label would rebuild the menu (Phase 3) and `is_visible` is unreliable with undecorated chrome / Spaces.
+- New note: show/focus the window, then the frontend `createNewNote()` path. Quit: `saveAllDirty` then `request_app_exit` → `AppHandle::exit` (not `process::exit`). There was no prior dedicated quit command.
+- Dock policy unchanged. Custom close still destroys the window (Phase 2).
+- Measurements (debug, same machine): old `target/debug` binary **55,138,280** bytes (3 Oct); after tray-icon **56,398,424** (**+1,260,144**, ~1.20 MiB). First `cargo check` with the feature **35.66s** wall. `image-png` was tried and dropped (~966 KB extra debug). Cold startup / idle memory of a running app were **not** measured (no interactive GUI in this agent session).
+- Lint: desktop ESLint 0 errors. Tests: **93 files / 323 passed**. Typecheck: same pre-existing `vaultUpdateCounter` / design-system errors. Only rustup target: `aarch64-apple-darwin` (Windows/Linux `cargo check` not run).
+- Phase 0 tray ADR is still missing; this phase did not add close-to-tray or Accessory Dock policy.
+
+### Next
+- **Tray Phase 2**: close-to-hide setting. Then Phase 3 dynamic menu.
+
 **Fix "database is locked" unhandled rejection and broken "+" (new file) button in tabs**
 
 ### Completed
@@ -876,17 +894,18 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
-2. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
-3. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
-4. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
-5. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
-6. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-7. **Unlinked Mentions Detection**
-8. **Inline Property Editing**
-9. **Outline Scroll Synchronization**
-10. Add success/warning semantic color tokens
-11. Chromatic / Playwright screenshot regression
+1. **Tray Phase 2**: close-to-hide (keep running in the menu bar) as a user setting; intercept custom close.
+2. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+3. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
+4. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+5. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+6. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+7. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+8. **Unlinked Mentions Detection**
+9. **Inline Property Editing**
+10. **Outline Scroll Synchronization**
+11. Add success/warning semantic color tokens
+12. Chromatic / Playwright screenshot regression
 
 ## Blocked / Open Questions
 

@@ -14,6 +14,7 @@ mod plugin_files;
 mod plugin_network;
 mod state;
 mod theme_files;
+mod tray;
 mod watcher;
 
 use state::VaultState;
@@ -86,6 +87,7 @@ pub fn run() {
       plugin_webview::plugin_webview_send,
       plugin_webview::plugin_webview_request,
       plugin_webview::plugin_webview_response,
+      tray::request_app_exit,
     ])
     .setup(|app| {
       let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
@@ -106,6 +108,8 @@ pub fn run() {
       let window = window.decorations(false);
 
       window.build()?;
+
+      tray::setup(app.handle())?;
 
       if std::env::var_os("DAVINCI_PLUGIN_RPC_PROBE").is_some() {
         println!("[plugin-rpc] probe requested");

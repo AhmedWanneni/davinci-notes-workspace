@@ -21,7 +21,7 @@ notify-debouncer-full = "0.6.0"
 reqwest = { version = "0.13.4", default-features = false, features = ["native-tls"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tauri = { version = "2.11.3", features = ["macos-private-api"] }
+tauri = { version = "2.11.3", features = ["macos-private-api", "tray-icon"] }
 tauri-plugin-dialog = "2.6.0"
 tauri-plugin-fs = { version = "2.5.1", features = ["watch"] }
 tauri-plugin-log = "2"
