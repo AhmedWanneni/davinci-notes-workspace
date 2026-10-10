@@ -228,7 +228,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0145](adr/0145-ai-remediation-c-citation-opener-status.md) | Remediation C citation callback is defined but production source navigation remains blocked pending host wiring | Proposed - blocked |
 | [0146](adr/0146-ai-phase7-lazy-boundary-audit.md) | Phase 7 requires zero AI implementation in the initial entry; settings and indicator use conditional dynamic boundaries | Accepted |
 | [0147](adr/0147-ai-remediation-c-citation-opener-closed.md) | Citation click-through reuses canonical `openNote` plus the stable editor wrapper's selection boundary; no parallel navigation mechanism | Accepted |
-| [0148](adr/0148-sqlite-index-transaction-ownership.md) | Serialize all vault-index writes with `withDbLock`; centralize transaction ownership in `withDbTransaction` and suppress only already-ended rollback failures | Accepted |
+| [0148](adr/0148-sqlite-index-transaction-ownership.md) | Serialize all vault-index writes with `withDbLock`; centralize transaction ownership in `withDbTransaction` and suppress only already-ended rollback failures | Superseded by [0168](adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md) |
 | [0149](adr/0149-ai-provider-classification-and-provider-specific-consent.md) | Gemini/OpenRouter are cloud; Ollama is local-networked with localhost-only local consent, remote warning, and explicit OpenRouter downstream-routing copy | Accepted |
 | [0150](adr/0150-ai-ask-your-vault-host-mount.md) | Mount ask-your-vault as a consent-gated lazy right-sidebar section; load Q&A/provider only when a question is submitted | Accepted |
 | [0151](adr/0151-ai-provider-readiness-requires-keychain.md) | A cloud provider is ready only when its persisted status and provider-specific Keychain credential are both present | Accepted |
@@ -237,3 +237,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0161](adr/0161-external-vault-change-reconciliation.md) | Debounced external vault change reconciliation and dirty-editor conflict policy | Accepted |
 | [0162](adr/0162-unified-custom-window-controls.md) | Custom window controls across macOS, Windows, and Linux | Accepted |
 | [0164](adr/0164-public-theme-status-and-shadow-tokens.md) | Public semantic status-tint and shared shadow-ink tokens | Accepted |
+| [0168](adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md) | Universal `withDbLock` serialization for index reads and writes, batch removals, and unified transaction boundaries | Accepted |

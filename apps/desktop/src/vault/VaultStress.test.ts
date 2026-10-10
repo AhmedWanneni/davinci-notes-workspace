@@ -37,6 +37,7 @@ vi.mock("./sqliteIndex", () => ({
   clearVaultIndex: vi.fn(),
   persistNotesBatch: vi.fn(),
   removeNoteFromIndex: vi.fn(),
+  removeNotesBatch: vi.fn().mockResolvedValue(undefined),
   withDbLock,
   withDbTransaction,
   listIndexedNotePaths,

@@ -10,9 +10,10 @@ import { clearH1RenameTimer } from "./h1DrivenRename";
 import { noteFromMarkdown } from "./noteFromMarkdown";
 import {
   getVaultIndexDb,
-  persistNote,
-  removeNoteFromIndex,
+  persistNotesBatch,
+  removeNotesBatch,
   withDbLock,
+  withDbTransaction,
 } from "./sqliteIndex";
 import { noteTitleFromPath } from "./initialNoteContent";
 import { readNote, renameNote, writeNote } from "./vaultCommands";
@@ -126,17 +127,26 @@ export async function renameNoteInVault(
 
     const db = await getVaultIndexDb();
     await withDbLock(async () => {
-      await removeNoteFromIndex(db, oldPath);
-      const tagIndex = useWorkspaceStore.getState().tagIndex;
-      if (tagIndex) removeNoteFromTagIndex(tagIndex, oldPath);
-      await db.execute("DELETE FROM links WHERE target_path = $1", [oldPath]);
-
-      for (const [path, content] of contentUpdates) {
-        const note = noteFromMarkdown(path, content, Date.now(), updatedPaths);
-        await persistNote(db, note);
+      await withDbTransaction(db, async () => {
+        await removeNotesBatch(db, [oldPath]);
         const tagIndex = useWorkspaceStore.getState().tagIndex;
-        if (tagIndex) updateTagIndexForNote(tagIndex, note);
-      }
+        if (tagIndex) removeNoteFromTagIndex(tagIndex, oldPath);
+
+        const notesToPersist: import("@app/core-types").Note[] = [];
+        for (const [path, content] of contentUpdates) {
+          const note = noteFromMarkdown(
+            path,
+            content,
+            Date.now(),
+            updatedPaths,
+          );
+          notesToPersist.push(note);
+          if (tagIndex) updateTagIndexForNote(tagIndex, note);
+        }
+        if (notesToPersist.length > 0) {
+          await persistNotesBatch(db, notesToPersist);
+        }
+      });
     });
 
     const graph = state.graph;

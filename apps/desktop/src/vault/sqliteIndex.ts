@@ -1,7 +1,6 @@
 import type { Note } from "@app/core-types";
-import type { GraphIndex } from "@app/indexer";
 import Database from "@tauri-apps/plugin-sql";
-import { clearFtsRows, removeFtsRow, replaceFtsRows } from "./sqliteFtsIndex";
+import { clearFtsRows, removeFtsRows, replaceFtsRows } from "./sqliteFtsIndex";
 
 /** Must match `db::DB_URL` in src-tauri. */
 export const VAULT_INDEX_DB = "sqlite:vault-index.db";
@@ -47,10 +46,12 @@ export async function withDbTransaction<T>(
 export async function getVaultIndexDb(): Promise<Database> {
   if (!dbPromise) {
     dbPromise = Database.load(VAULT_INDEX_DB).then(async (db) => {
-      // Set the wait window before WAL mode, which itself needs a write lock.
-      await db.execute("PRAGMA busy_timeout=10000;");
-      await db.execute("PRAGMA journal_mode=WAL;");
-      await db.execute("PRAGMA synchronous=NORMAL;");
+      await withDbLock(async () => {
+        await db.execute("PRAGMA busy_timeout=5000;");
+        await db.execute("PRAGMA journal_mode=WAL;");
+        await db.execute("PRAGMA synchronous=NORMAL;");
+        await db.execute("PRAGMA foreign_keys=ON;");
+      });
       return db;
     });
   }
@@ -70,40 +71,28 @@ export async function clearVaultIndex(db: Database): Promise<void> {
   await clearFtsRows(db);
 }
 
-export async function upsertNote(db: Database, note: Note): Promise<void> {
-  await db.execute(
-    `INSERT INTO notes (path, title, frontmatter, mtime)
-     VALUES ($1, $2, $3, $4)
-     ON CONFLICT(path) DO UPDATE SET
-       title = excluded.title,
-       frontmatter = excluded.frontmatter,
-       mtime = excluded.mtime`,
-    [note.path, note.title, JSON.stringify(note.frontmatter), note.mtime],
-  );
-}
-
-export async function replaceLinksForNote(
+/** Batch remove notes, links, and FTS rows in chunked operations. */
+export async function removeNotesBatch(
   db: Database,
-  note: Note,
+  paths: readonly string[],
+  batchSize = 50,
 ): Promise<void> {
-  await db.execute("DELETE FROM links WHERE source_path = $1", [note.path]);
+  if (paths.length === 0) {
+    return;
+  }
 
-  for (const link of note.outlinks) {
+  for (let i = 0; i < paths.length; i += batchSize) {
+    const chunk = paths.slice(i, i + batchSize);
+    const placeholders = chunk.map((_, idx) => `$${idx + 1}`).join(", ");
     await db.execute(
-      `INSERT INTO links (
-         source_path, target_path, target_raw, display_text,
-         heading, block_id, resolved
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [
-        note.path,
-        link.target,
-        link.targetRaw,
-        link.displayText ?? null,
-        link.heading ?? null,
-        link.blockId ?? null,
-        link.resolved ? 1 : 0,
-      ],
+      `DELETE FROM notes WHERE path IN (${placeholders})`,
+      chunk,
     );
+    await db.execute(
+      `DELETE FROM links WHERE source_path IN (${placeholders}) OR target_path IN (${placeholders})`,
+      chunk,
+    );
+    await removeFtsRows(db, chunk);
   }
 }
 
@@ -111,8 +100,7 @@ export async function removeNoteFromIndex(
   db: Database,
   path: string,
 ): Promise<void> {
-  await db.execute("DELETE FROM notes WHERE path = $1", [path]);
-  await removeFtsRow(db, path);
+  await removeNotesBatch(db, [path]);
 }
 
 /** Batch persist notes and outlinks to SQLite using chunked bulk operations. */
@@ -242,37 +230,4 @@ export async function listIndexedNotePaths(db: Database): Promise<string[]> {
   return rows.map((row) => row.path);
 }
 
-export async function queryFullGraphIndex(db: Database): Promise<GraphIndex> {
-  const nodes = await db.select<{ path: string; title: string }[]>(
-    "SELECT path, title FROM notes",
-  );
-
-  const links = await db.select<{ source_path: string; target_path: string }[]>(
-    "SELECT source_path, target_path FROM links WHERE resolved = 1",
-  );
-
-  const graph: GraphIndex = {
-    nodes: new Map(),
-    edges: [],
-    backlinks: new Map(),
-  };
-
-  for (const n of nodes) {
-    graph.nodes.set(n.path, { id: n.path, label: n.title });
-  }
-
-  for (const l of links) {
-    graph.edges.push({ source: l.source_path, target: l.target_path });
-
-    // Ensure target nodes exist in the graph (handles unresolved or missing nodes)
-    if (!graph.nodes.has(l.target_path)) {
-      graph.nodes.set(l.target_path, {
-        id: l.target_path,
-        label:
-          l.target_path.replace(/\.md$/i, "").split("/").pop() ?? l.target_path,
-      });
-    }
-  }
-
-  return graph;
-}
+export { queryFullGraphIndex } from "./sqliteGraphIndex";

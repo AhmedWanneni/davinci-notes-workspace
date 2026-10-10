@@ -23,6 +23,7 @@ export {
   getVaultIndexDb,
   persistNote,
   removeNoteFromIndex,
+  removeNotesBatch,
   withDbLock,
   withDbTransaction,
   queryBacklinkSources,

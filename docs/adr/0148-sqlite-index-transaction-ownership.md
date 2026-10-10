@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-0168](0168-vault-index-write-lock-contention-and-universal-lock-discipline.md)
 
 ## Context
 

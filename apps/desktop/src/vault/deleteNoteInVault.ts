@@ -3,8 +3,9 @@ import { saveTimers } from "../state/saveTimers";
 import { clearH1RenameTimer } from "./h1DrivenRename";
 import {
   getVaultIndexDb,
-  removeNoteFromIndex,
+  removeNotesBatch,
   withDbLock,
+  withDbTransaction,
 } from "./sqliteIndex";
 import { deleteNote } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
@@ -39,11 +40,9 @@ export async function deleteNoteInVault(
 
     const db = await getVaultIndexDb();
     await withDbLock(async () => {
-      await removeNoteFromIndex(db, path);
-      await db.execute(
-        "DELETE FROM links WHERE source_path = $1 OR target_path = $1",
-        [path],
-      );
+      await withDbTransaction(db, async () => {
+        await removeNotesBatch(db, [path]);
+      });
     });
 
     useWorkspaceStore.setState((current) => {

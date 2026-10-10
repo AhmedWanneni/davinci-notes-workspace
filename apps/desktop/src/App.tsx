@@ -151,10 +151,14 @@ export function App() {
 
   const initPlugins = usePluginStore((state) => state.initPlugins);
   const pluginCommands = usePluginStore((state) => state.commands);
-  const invokePluginCommand = usePluginStore((state) => state.invokePluginCommand);
+  const invokePluginCommand = usePluginStore(
+    (state) => state.invokePluginCommand,
+  );
   const pluginManager = usePluginStore((state) => state.pluginManager);
   const openViewId = usePluginStore((state) => state.openViewId);
-  const pluginViewRevision = usePluginStore((state) => state.pluginViewRevision);
+  const pluginViewRevision = usePluginStore(
+    (state) => state.pluginViewRevision,
+  );
   const initThemes = useThemeStore((state) => state.initThemes);
   const themes = useThemeStore((state) => state.themes);
   const activeThemeId = useThemeStore((state) => state.activeThemeId);
@@ -409,14 +413,17 @@ export function App() {
     void createNewCanvas();
   };
 
-  const handleEditorReady = useCallback((editor: EditorPluginAdapter | null) => {
-    editorRef.current = editor;
-    const target = pendingCitationRef.current;
-    if (editor && target && activeNoteRef.current === target.notePath) {
-      revealCitationLine(editor, target);
-      pendingCitationRef.current = null;
-    }
-  }, []);
+  const handleEditorReady = useCallback(
+    (editor: EditorPluginAdapter | null) => {
+      editorRef.current = editor;
+      const target = pendingCitationRef.current;
+      if (editor && target && activeNoteRef.current === target.notePath) {
+        revealCitationLine(editor, target);
+        pendingCitationRef.current = null;
+      }
+    },
+    [],
+  );
 
   const handleOpenCitation = useCallback(
     async (notePath: string, startLine: number) => {
@@ -608,7 +615,11 @@ export function App() {
               />
             </Suspense>
           ) : openViewId && pluginManager ? (
-            <PluginViewLeaf manager={pluginManager} viewId={openViewId} revision={pluginViewRevision} />
+            <PluginViewLeaf
+              manager={pluginManager}
+              viewId={openViewId}
+              revision={pluginViewRevision}
+            />
           ) : (
             <EditorArea
               activeNotePath={activeNotePath}
@@ -652,13 +663,12 @@ export function App() {
             isOpen={isSearchOpen}
             onOpenChange={setIsSearchOpen}
             initialQuery={searchInitialQuery}
-            onSearch={async (query) =>
-              executeSearchQuery(
-                await getVaultIndexDb(),
-                tagIndex,
-                parseSearchQuery(query),
-              )
-            }
+            onSearch={async (query) => {
+              const db = await getVaultIndexDb();
+              return withDbLock(() =>
+                executeSearchQuery(db, tagIndex, parseSearchQuery(query)),
+              );
+            }}
             onSelectNote={(path) => void openNote(path)}
             semanticSearch={
               semanticSearchEnabled ? handleSemanticSearch : undefined

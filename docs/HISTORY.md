@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-10 | Fix SQLite write-lock contention in vault-index.db | Diagnosed ~5.2s write stalls to unqueued concurrent reads (`queryBacklinkSources`, `loadNoteIcons`, `executeSearchQuery`) colliding with `withDbTransaction` writes in `tauri-plugin-sql`'s connection pool, and unbatched per-note deletions. Enforced universal `withDbLock` queue serialization for all DB reads and writes, added 50-item parameterized batch deletions (`removeNotesBatch`, `removeFtsRows`), unified transaction boundaries, and extracted `sqliteGraphIndex.ts` keeping `sqliteIndex.ts` ≤ 250 lines (236 lines). Recorded ADR-0168; all 89 desktop test files and 302 unit tests pass with 0 lint errors. |
 | 2026-09-26 | Standing native GUI verification constraint | Confirmed this agent context exposes `CODEX_CI=1`, `CODEX_SANDBOX=seatbelt`, and a workspace permission profile. macOS has an Aqua session and running WindowServer, but the agent process lacks usable GUI/session access. Native webview/interactive-window verification must be performed manually from Ahmed's own desktop session. Future prompts should separate agent implementation/runbook work from Ahmed's local observation and reporting. |
 | 2026-09-26 | Plugin isolation scaffold | Added an explicitly triggered hidden `plugin-runner` webview, restrictive per-webview capability, and ADR-0167-shaped ping/pong scaffold. Rust build/check passed, but the real native run logged creation only—no bootstrap/pong—so the channel remains unverified and no security claim is made. |
 | 2026-09-26 | Plugin runner diagnosis | Confirmed `run()` owns the event loop after setup; the runner uses a real `plugin-runner.html` URL and Tauri document-start initialization script. A native probe still produced no bootstrap or probe-error callback, so no event mismatch was observed and document startup remains unverified in the headless launch environment. |
@@ -3014,3 +3015,40 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   later production/native build filled the agent session's shared filesystem
   (180 MiB free) and failed linking with `os error 28`; final native verification
   remains Ahmed-local and must start from a machine with sufficient free space.
+
+### 2026-10-10 — SQLite write-lock contention in vault-index.db (5.2s write stalls)
+
+- Diagnosed 5.2s stalls on `INSERT INTO notes ... ON CONFLICT`, `DELETE FROM notes`,
+  `DELETE FROM notes_fts`, `DELETE FROM links`, and `BEGIN IMMEDIATE`. The ~5.2s
+  duration matched SQLite's default 5000 ms `busy_timeout` plus slight IPC latency.
+- Identified root cause in `tauri-plugin-sql`: it manages an underlying `sqlx::SqlitePool`.
+  When a write transaction (`BEGIN IMMEDIATE` inside `withDbTransaction`) checked out
+  a connection, unqueued concurrent queries (`queryBacklinkSources` in BacklinksPanel,
+  `loadNoteIcons` in treeIconStorage, `executeSearchQuery` in App) checked out other pool
+  connections. In SQLite WAL mode, readers do not block writers and writers do not block
+  readers *only if* connections do not contend on locks or transactions; but when pooled
+  connections overlap with unbatched mutations and uncoordinated statements, connection
+  checkout and write contention triggered SQLite's 5000 ms busy timeout.
+- Additionally, watcher removal executed unbatched per-path deletions (2 SQL queries
+  per removed note) rather than bulk parameterized statements, unnecessarily extending
+  transaction hold times.
+- Implemented universal serialization: all SQLite operations (`db.select`, `db.execute`)
+  must acquire the JS `withDbLock` queue. Wrapped `queryBacklinkSources`, `loadNoteIcons`,
+  and `executeSearchQuery` in `withDbLock`.
+- Added parameterized bulk deletion helpers `removeNotesBatch` (chunked at 50) in
+  `sqliteIndex.ts` and `removeFtsRows` in `sqliteFtsIndex.ts` using `WHERE path IN (...)`
+  and `WHERE source_path IN (...)`.
+- Extracted `queryFullGraphIndex` into `sqliteGraphIndex.ts` to strictly observe the
+  250-line hard cap (now 236 lines in `sqliteIndex.ts`).
+- Wrapped initial PRAGMA connection setup (`busy_timeout=5000;`, `journal_mode=WAL;`,
+  `synchronous=NORMAL;`, `foreign_keys=ON;`) in `withDbLock`.
+- Standardized all vault CRUD operations (`deleteNoteInVault`, `deleteFolderInVault`,
+  `renameFolderInVault`, `renameNoteInVault`, `createNoteInVault`, `duplicateNoteInVault`,
+  and `VaultIndexer`) to execute batch removals and writes under `withDbTransaction`
+  inside `withDbLock`.
+- Recorded ADR-0168; marked ADR-0148 superseded.
+- Verified: all 89 test files and 302 unit tests in `@app/desktop` pass; ESLint passes with
+  0 errors and 0 warnings.
+- Flagged out-of-scope issues: plugin runner bootstrap readonly property error and
+  Vite Fast Refresh warning on `computeNoteStats`.
+

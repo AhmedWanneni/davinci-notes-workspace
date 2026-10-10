@@ -605,19 +605,18 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Last Session
 
-**File Tree Context Menu, Click-Away Dismissal, and Folder Actions (CRUD)**
+**Fix SQLite write-lock contention in vault-index.db (5s stalls on writes)**
 
 ### Completed
-- **Task 1 (Commit `1946c6a`)**: Identified root cause of unclosable context menu (hand-built `div` with absolute positioning lacking outside click/blur/escape listeners). Implemented `useContextMenuDismiss.ts` with capture-phase document `pointerdown` (so `data-tauri-drag-region` does not swallow dismissal events), Escape key, window blur, and scroll listeners. Added `FileTreeContextMenu.test.tsx` (5 tests).
-- **Task 2 (Commit `854cbe6`)**: Added structured menu options for files (`Open`, `Rename`, `Duplicate`, `Delete`), folders (`New note`, `New folder`, `Rename`, `Delete`), and root empty space (`New note`, `New folder`). Added arrow-key navigation (`ArrowUp`/`ArrowDown`/`Home`/`End`), shortcut hints (`F2`, `⌫`), danger styling, and suppression on hidden/system entries (`.git`, `.obsidian`). Extracted `useTreeExpandedFolders.ts` to keep `FileTree.tsx` ≤ 250 lines (246 lines).
-- **Task 3 (Commit `b1135ed`)**: Implemented folder-scoped note and folder creation. Updated `createNewNote` and `createNewFolder` to accept parent folder paths, auto-expand parent tree branches, and immediately trigger inline rename focus via `pendingRenameNote` and `pendingRenameFolder`. Added `useTreeExpandedFolders.test.ts` (4 tests).
-- **Task 4 (Commit `8fd4891`)**: Implemented batched folder rename in `renameFolderInVault.ts` with filename stem validation, illegal character replacement, collision detection, and atomic descendant note re-indexing in SQLite within a single `withDbLock` + `withDbTransaction` batch. Migrated save timers, dirty note buffers, and open tabs. Added `renameFolderInVault.test.ts` (4 tests).
-- **Task 5 (Commit `e3a89ee`)**: Added native Rust command `delete_folder` in `fs.rs` and `lib.rs` with canonical root safety and `resolve_in_vault`. Implemented `deleteFolderInVault.ts` with recursive descendant note removal from SQLite (`notes`, `fts_notes`, `links`), graph cleanup, tab closure, and prompt confirmation dialog in `FileTree`. Added `deleteFolderInVault.test.ts` (4 tests).
-- Added ADR-0158.
-- **Verification**: All 71 desktop test files and 239 total tests pass; ESLint passes with 0 errors. Native macOS visual click-away on window chrome regions and native prompt dialogs remain UNVERIFIED due to headless execution environment.
-
-### Next
-- Manual visual acceptance of file tree context menu dismissal, keyboard navigation, and folder CRUD actions in a running macOS Tauri GUI session.
+- **Root-Cause Analysis**: Diagnosed the ~5.2s stalls during watcher-driven indexing on `INSERT INTO notes ... ON CONFLICT`, `DELETE FROM notes`, `DELETE FROM notes_fts`, `DELETE FROM links`, and `BEGIN IMMEDIATE`. Stalls precisely matched SQLite's 5000 ms `busy_timeout` plus IPC latency. Traced to `tauri-plugin-sql`'s connection pool (`sqlx::SqlitePool`) checking out multiple connections concurrently when unqueued reads (`BacklinksPanel.tsx` `queryBacklinkSources`, `treeIconStorage.ts` `loadNoteIcons`, `App.tsx` `executeSearchQuery`) competed with `withDbTransaction` writes holding exclusive locks, alongside unbatched per-note deletions in watcher reconciliation.
+- **Universal `withDbLock` Serialization**: Enforced that all database operations (both reads and writes) against `vault-index.db` serialize through the single `withDbLock` async queue. Wrapped `queryBacklinkSources`, `loadNoteIcons`, and `executeSearchQuery` in `withDbLock`.
+- **Bulk Batch Deletion**: Implemented parameterized batch deletion `removeNotesBatch(db, paths, 50)` in `sqliteIndex.ts` and `removeFtsRows(db, paths)` in `sqliteFtsIndex.ts` using SQL `WHERE path IN (...)` and `WHERE source_path IN (...)`, eliminating per-note query roundtrips.
+- **Single Transaction Boundary**: Standardized watcher reconciliation (`VaultIndexer.ts`) and all vault CRUD operations (`deleteNoteInVault.ts`, `deleteFolderInVault.ts`, `renameFolderInVault.ts`, `renameNoteInVault.ts`, `createNoteInVault.ts`, `duplicateNoteInVault.ts`) to execute batched removals and writes within a single `withDbTransaction` block under `withDbLock`.
+- **Connection PRAGMA Serialization**: Wrapped initialization PRAGMAs (`busy_timeout=5000;`, `journal_mode=WAL;`, `synchronous=NORMAL;`, `foreign_keys=ON;`) in `withDbLock`.
+- **File Length Hard-Cap Compliance**: Extracted `queryFullGraphIndex` to `sqliteGraphIndex.ts` to keep `sqliteIndex.ts` strictly within line caps (now 236 lines).
+- **ADR-0168**: Authored `docs/adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md` and marked ADR-0148 superseded in `DECISIONS.md`.
+- **Verification**: All 89 desktop test files and 302 unit tests pass (`pnpm --filter @app/desktop test`); ESLint passes with 0 errors and 0 warnings.
+- **Flagged Out-of-Scope**: Plugin runner bootstrap readonly property error and Vite Fast Refresh warning on `computeNoteStats`.
 
 **File Tree Drag UI, Pure Validation, and Drop Feedback**
 

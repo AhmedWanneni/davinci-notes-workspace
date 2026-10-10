@@ -19,6 +19,8 @@ vi.mock("./sqliteIndex", () => ({
   getVaultIndexDb: vi.fn().mockResolvedValue({}),
   persistNote: (...args: unknown[]) => persistNoteMock(...args),
   withDbLock: async (work: () => Promise<unknown>) => work(),
+  withDbTransaction: async (_db: unknown, work: () => Promise<unknown>) =>
+    work(),
 }));
 
 vi.mock("../state/useWorkspaceStore", () => ({

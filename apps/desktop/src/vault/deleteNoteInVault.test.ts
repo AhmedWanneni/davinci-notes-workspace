@@ -6,12 +6,14 @@ const {
   setStateMock,
   executeMock,
   removeNoteFromIndexMock,
+  removeNotesBatchMock,
 } = vi.hoisted(() => ({
   deleteNoteMock: vi.fn(),
   getStateMock: vi.fn(),
   setStateMock: vi.fn(),
   executeMock: vi.fn(),
   removeNoteFromIndexMock: vi.fn(),
+  removeNotesBatchMock: vi.fn(),
 }));
 
 vi.mock("./vaultCommands", () => ({
@@ -25,7 +27,10 @@ vi.mock("./vaultWatchSession", () => ({
 vi.mock("./sqliteIndex", () => ({
   getVaultIndexDb: vi.fn().mockResolvedValue({ execute: executeMock }),
   removeNoteFromIndex: (...args: unknown[]) => removeNoteFromIndexMock(...args),
+  removeNotesBatch: (...args: unknown[]) => removeNotesBatchMock(...args),
   withDbLock: async (work: () => Promise<unknown>) => work(),
+  withDbTransaction: async (_db: unknown, work: () => Promise<unknown>) =>
+    work(),
 }));
 
 vi.mock("./h1DrivenRename", () => ({
@@ -83,12 +88,8 @@ describe("deleteNoteInVault", () => {
     const result = await deleteNoteInVault("beta.md");
     expect(result).toEqual({ ok: true, path: "beta.md" });
     expect(deleteNoteMock).toHaveBeenCalledWith("beta.md");
-    expect(removeNoteFromIndexMock).toHaveBeenCalledWith(
+    expect(removeNotesBatchMock).toHaveBeenCalledWith(
       { execute: executeMock },
-      "beta.md",
-    );
-    expect(executeMock).toHaveBeenCalledWith(
-      "DELETE FROM links WHERE source_path = $1 OR target_path = $1",
       ["beta.md"],
     );
 

@@ -9,8 +9,8 @@ import { folderNameFromPath } from "./resolveUniqueFolderPath";
 import { sanitizeFilenameStem } from "./sanitizeFilenameStem";
 import {
   getVaultIndexDb,
-  persistNote,
-  removeNoteFromIndex,
+  persistNotesBatch,
+  removeNotesBatch,
   withDbLock,
   withDbTransaction,
 } from "./sqliteIndex";
@@ -122,15 +122,14 @@ export async function renameFolderInVault(
 
     await withDbLock(async () => {
       await withDbTransaction(db, async () => {
-        for (const oldChildPath of oldChildNotePaths) {
-          await removeNoteFromIndex(db, oldChildPath);
-          if (tagIndex) removeNoteFromTagIndex(tagIndex, oldChildPath);
-          await db.execute(
-            "DELETE FROM links WHERE target_path = $1 OR source_path = $1",
-            [oldChildPath],
-          );
+        if (oldChildNotePaths.length > 0) {
+          await removeNotesBatch(db, oldChildNotePaths);
+          for (const oldChildPath of oldChildNotePaths) {
+            if (tagIndex) removeNoteFromTagIndex(tagIndex, oldChildPath);
+          }
         }
 
+        const notesToPersist: import("@app/core-types").Note[] = [];
         for (const [childPath, content] of noteContents) {
           const note = noteFromMarkdown(
             childPath,
@@ -138,8 +137,11 @@ export async function renameFolderInVault(
             Date.now(),
             updatedNotes,
           );
-          await persistNote(db, note);
+          notesToPersist.push(note);
           if (tagIndex) updateTagIndexForNote(tagIndex, note);
+        }
+        if (notesToPersist.length > 0) {
+          await persistNotesBatch(db, notesToPersist);
         }
       });
     });

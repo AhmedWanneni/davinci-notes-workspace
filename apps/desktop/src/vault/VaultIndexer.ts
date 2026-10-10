@@ -15,7 +15,7 @@ import {
   getVaultIndexDb,
   listIndexedNotePaths,
   persistNotesBatch,
-  removeNoteFromIndex,
+  removeNotesBatch,
   withDbLock,
   withDbTransaction,
 } from "./sqliteIndex";
@@ -140,10 +140,12 @@ export async function reconcileVaultChanges(
     );
     reconciledRemoved = allRemoved;
     await withDbTransaction(db, async () => {
-      for (const removed of allRemoved) {
-        await removeNoteFromIndex(db, removed);
-        if (tagIndex) removeNoteFromTagIndex(tagIndex, removed);
-        updated += 1;
+      if (allRemoved.length > 0) {
+        await removeNotesBatch(db, allRemoved);
+        for (const removed of allRemoved) {
+          if (tagIndex) removeNoteFromTagIndex(tagIndex, removed);
+          updated += 1;
+        }
       }
 
       for (const note of changedNotes) {

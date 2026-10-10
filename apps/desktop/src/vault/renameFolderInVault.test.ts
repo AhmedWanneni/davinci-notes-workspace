@@ -5,7 +5,9 @@ const readNoteMock = vi.fn();
 const getStateMock = vi.fn();
 const setStateMock = vi.fn();
 const removeNoteFromIndexMock = vi.fn();
+const removeNotesBatchMock = vi.fn();
 const persistNoteMock = vi.fn();
+const persistNotesBatchMock = vi.fn();
 const executeDbMock = vi.fn();
 
 vi.mock("./vaultCommands", () => ({
@@ -22,7 +24,9 @@ vi.mock("./sqliteIndex", () => ({
     execute: (...args: unknown[]) => executeDbMock(...args),
   }),
   persistNote: (...args: unknown[]) => persistNoteMock(...args),
+  persistNotesBatch: (...args: unknown[]) => persistNotesBatchMock(...args),
   removeNoteFromIndex: (...args: unknown[]) => removeNoteFromIndexMock(...args),
+  removeNotesBatch: (...args: unknown[]) => removeNotesBatchMock(...args),
   withDbLock: async (work: () => Promise<unknown>) => work(),
   withDbTransaction: async (_db: unknown, work: () => Promise<unknown>) =>
     work(),
@@ -113,22 +117,17 @@ describe("renameFolderInVault", () => {
       }),
     );
 
-    expect(removeNoteFromIndexMock).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(removeNotesBatchMock).toHaveBeenCalledWith(expect.anything(), [
       "projects/note1.md",
-    );
-    expect(removeNoteFromIndexMock).toHaveBeenCalledWith(
-      expect.anything(),
       "projects/sub/note2.md",
-    );
+    ]);
 
-    expect(persistNoteMock).toHaveBeenCalledWith(
+    expect(persistNotesBatchMock).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ path: "work/note1.md" }),
-    );
-    expect(persistNoteMock).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ path: "work/sub/note2.md" }),
+      expect.arrayContaining([
+        expect.objectContaining({ path: "work/note1.md" }),
+        expect.objectContaining({ path: "work/sub/note2.md" }),
+      ]),
     );
   });
 });

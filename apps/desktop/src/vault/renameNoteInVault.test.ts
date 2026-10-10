@@ -21,8 +21,12 @@ vi.mock("./sqliteIndex", () => ({
     execute: vi.fn(),
   }),
   persistNote: vi.fn(),
+  persistNotesBatch: vi.fn().mockResolvedValue(undefined),
   removeNoteFromIndex: vi.fn(),
+  removeNotesBatch: vi.fn().mockResolvedValue(undefined),
   withDbLock: async (work: () => Promise<unknown>) => work(),
+  withDbTransaction: async (_db: unknown, work: () => Promise<unknown>) =>
+    work(),
 }));
 
 vi.mock("./h1DrivenRename", () => ({
@@ -78,7 +82,9 @@ describe("renameNoteInVault", () => {
   });
 
   it("returns collision when the filesystem rejects a stale destination", async () => {
-    renameNoteMock.mockRejectedValue(new Error("Destination already exists: Gamma.md"));
+    renameNoteMock.mockRejectedValue(
+      new Error("Destination already exists: Gamma.md"),
+    );
 
     const result = await renameNoteInVault("beta.md", "Gamma.md");
 

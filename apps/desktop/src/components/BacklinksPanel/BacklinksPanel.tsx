@@ -2,7 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Typography } from "@app/design-system";
 import { parseLinks } from "@app/indexer";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import { getVaultIndexDb, queryBacklinkSources, readNote } from "../../vault";
+import {
+  getVaultIndexDb,
+  queryBacklinkSources,
+  readNote,
+  withDbLock,
+} from "../../vault";
 import { EmptyState } from "../EmptyState";
 
 export interface BacklinkItem {
@@ -76,7 +81,9 @@ export function BacklinksPanel({
     async function fetchBacklinks() {
       try {
         const db = await getVaultIndexDb();
-        const sources = await queryBacklinkSources(db, activePath!);
+        const sources = await withDbLock(() =>
+          queryBacklinkSources(db, activePath!),
+        );
 
         const items: BacklinkItem[] = await Promise.all(
           sources.map(async (srcPath) => {

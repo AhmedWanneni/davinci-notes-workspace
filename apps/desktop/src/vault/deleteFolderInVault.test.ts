@@ -5,6 +5,7 @@ const getStateMock = vi.fn();
 const setStateMock = vi.fn();
 const executeDbMock = vi.fn();
 const removeNoteFromIndexMock = vi.fn();
+const removeNotesBatchMock = vi.fn();
 
 vi.mock("./vaultCommands", () => ({
   deleteFolder: (...args: unknown[]) => deleteFolderMock(...args),
@@ -19,6 +20,7 @@ vi.mock("./sqliteIndex", () => ({
     execute: (...args: unknown[]) => executeDbMock(...args),
   }),
   removeNoteFromIndex: (...args: unknown[]) => removeNoteFromIndexMock(...args),
+  removeNotesBatch: (...args: unknown[]) => removeNotesBatchMock(...args),
   withDbLock: async (work: () => Promise<unknown>) => work(),
   withDbTransaction: async (_db: unknown, work: () => Promise<unknown>) =>
     work(),
@@ -102,22 +104,10 @@ describe("deleteFolderInVault", () => {
     expect(result).toEqual({ ok: true });
     expect(deleteFolderMock).toHaveBeenCalledWith("projects");
 
-    expect(removeNoteFromIndexMock).toHaveBeenCalledWith(
-      expect.anything(),
+    expect(removeNotesBatchMock).toHaveBeenCalledWith(expect.anything(), [
       "projects/note1.md",
-    );
-    expect(removeNoteFromIndexMock).toHaveBeenCalledWith(
-      expect.anything(),
       "projects/sub/note2.md",
-    );
-    expect(executeDbMock).toHaveBeenCalledWith(
-      "DELETE FROM links WHERE target_path = $1 OR source_path = $1",
-      ["projects/note1.md"],
-    );
-    expect(executeDbMock).toHaveBeenCalledWith(
-      "DELETE FROM links WHERE target_path = $1 OR source_path = $1",
-      ["projects/sub/note2.md"],
-    );
+    ]);
 
     expect(setStateMock).toHaveBeenCalledWith(expect.any(Function));
     const immediateUpdate = setStateMock.mock.calls[0]?.[0] as (

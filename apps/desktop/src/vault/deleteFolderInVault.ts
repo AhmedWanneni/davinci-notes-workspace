@@ -6,7 +6,7 @@ import { clearH1RenameTimer } from "./h1DrivenRename";
 import { removeNoteFromGraph } from "./removeNoteFromGraph";
 import {
   getVaultIndexDb,
-  removeNoteFromIndex,
+  removeNotesBatch,
   withDbLock,
   withDbTransaction,
 } from "./sqliteIndex";
@@ -85,13 +85,11 @@ export async function deleteFolderInVault(
 
     await withDbLock(async () => {
       await withDbTransaction(db, async () => {
-        for (const notePath of deletedNotePaths) {
-          await removeNoteFromIndex(db, notePath);
-          if (tagIndex) removeNoteFromTagIndex(tagIndex, notePath);
-          await db.execute(
-            "DELETE FROM links WHERE target_path = $1 OR source_path = $1",
-            [notePath],
-          );
+        if (deletedNotePaths.length > 0) {
+          await removeNotesBatch(db, deletedNotePaths);
+          for (const notePath of deletedNotePaths) {
+            if (tagIndex) removeNoteFromTagIndex(tagIndex, notePath);
+          }
         }
       });
     });

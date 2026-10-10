@@ -58,8 +58,10 @@ async function loadMappedIcons(): Promise<Record<string, string>> {
 
 async function loadNoteIcons(): Promise<Record<string, string>> {
   const db = await getVaultIndexDb();
-  const rows = await db.select<{ path: string; frontmatter: string }[]>(
-    `SELECT path, frontmatter FROM notes WHERE instr(frontmatter, '"icon"') > 0`,
+  const rows = await withDbLock(() =>
+    db.select<{ path: string; frontmatter: string }[]>(
+      `SELECT path, frontmatter FROM notes WHERE instr(frontmatter, '"icon"') > 0`,
+    ),
   );
   return iconsFromNoteFrontmatter(rows);
 }
@@ -80,10 +82,7 @@ async function persistMappedIcons(
   );
 }
 
-async function persistMarkdownIcon(
-  path: string,
-  icon: string,
-): Promise<void> {
+async function persistMarkdownIcon(path: string, icon: string): Promise<void> {
   const state = useWorkspaceStore.getState();
   const loaded = state.notesContent[path];
   const raw = loaded ?? (await readNote(path)).content;

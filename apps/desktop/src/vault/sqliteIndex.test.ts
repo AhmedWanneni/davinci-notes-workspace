@@ -232,4 +232,28 @@ describe("sqliteIndex persistNotesBatch", () => {
       ]),
     );
   });
+
+  it("removes notes, links, and FTS rows in batched chunks", async () => {
+    const { removeNotesBatch } = await import("./sqliteIndex");
+    const execute = vi.fn().mockResolvedValue(undefined);
+    const db = { execute } as unknown as Database;
+
+    await removeNotesBatch(db, ["note1.md", "note2.md"]);
+
+    expect(execute).toHaveBeenNthCalledWith(
+      1,
+      "DELETE FROM notes WHERE path IN ($1, $2)",
+      ["note1.md", "note2.md"],
+    );
+    expect(execute).toHaveBeenNthCalledWith(
+      2,
+      "DELETE FROM links WHERE source_path IN ($1, $2) OR target_path IN ($1, $2)",
+      ["note1.md", "note2.md"],
+    );
+    expect(execute).toHaveBeenNthCalledWith(
+      3,
+      "DELETE FROM notes_fts WHERE path IN ($1, $2)",
+      ["note1.md", "note2.md"],
+    );
+  });
 });

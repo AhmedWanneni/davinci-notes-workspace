@@ -30,11 +30,20 @@ export async function replaceFtsRows(
   );
 }
 
-export async function removeFtsRow(
+export async function removeFtsRows(
   db: Database,
-  path: string,
+  paths: readonly string[],
 ): Promise<void> {
-  await db.execute("DELETE FROM notes_fts WHERE path = $1", [path]);
+  if (paths.length === 0) return;
+  const placeholders = paths.map((_, index) => `$${index + 1}`).join(", ");
+  await db.execute(
+    `DELETE FROM notes_fts WHERE path IN (${placeholders})`,
+    paths,
+  );
+}
+
+export async function removeFtsRow(db: Database, path: string): Promise<void> {
+  await removeFtsRows(db, [path]);
 }
 
 export async function clearFtsRows(db: Database): Promise<void> {
