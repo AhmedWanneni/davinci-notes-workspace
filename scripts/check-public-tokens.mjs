@@ -54,6 +54,15 @@ export const ALLOWLIST = [
     detector: "non-public-token",
     justification: "Phase 2 editor Obsidian-parity body/content token consumed in Phase 3.",
   })),
+  ...[
+    "--editor-list-indent",
+    "--editor-obsidian-spacing-list",
+  ].map((pattern) => ({
+    file: "packages/editor/listExtension.ts",
+    pattern,
+    detector: "non-public-token",
+    justification: "Phase 2 editor list tokens consumed in Phase 4.",
+  })),
   {
     file: "apps/desktop/src/components/SettingsDialog/SettingsDialog.module.scss",
     pattern: "#ff5f56",

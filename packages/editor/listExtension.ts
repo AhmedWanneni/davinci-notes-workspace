@@ -1,4 +1,4 @@
-import { Range } from "@codemirror/state";
+import { Extension, Range } from "@codemirror/state";
 import { indentWithTab } from "@codemirror/commands";
 import {
   Decoration,
@@ -12,6 +12,11 @@ import {
 const LIST_ITEM_PATTERN =
   /^(\s*)([-*+]|\d+[.)])([ \t]+)(?:\[([^\]\n])\][ \t]*)?/gm;
 const completedTaskDeco = Decoration.mark({ class: "cm-task-completed" });
+const indentSpaceDeco = Decoration.mark({ class: "cm-list-indent-space" });
+
+const listLineDecos: Decoration[] = Array.from({ length: 7 }, (_, i) =>
+  Decoration.line({ class: `cm-list-line cm-list-level-${i}` }),
+);
 
 class ListMarkerWidget extends WidgetType {
   constructor(
@@ -102,9 +107,21 @@ function getListDecorations(
       const taskMarker = match[4];
       const activeLine = isActiveLine(view, lineNumber, readOnly);
       const ordered = /^\d/.test(marker);
-      if (activeLine && !ordered) continue;
+
+      const spaces = match[1].replace(/\t/g, "  ").length;
+      const level = Math.min(6, Math.floor(spaces / 2));
+      decorations.push(listLineDecos[level]!.range(line.from));
+
       const markerFrom = line.from + indentation;
-      const markerTo = markerFrom + marker.length;
+      if (!activeLine && indentation > 0) {
+        decorations.push(indentSpaceDeco.range(line.from, markerFrom));
+      }
+
+      if (activeLine && !ordered) continue;
+      const markerTo =
+        markerFrom +
+        marker.length +
+        (taskMarker === undefined ? match[3].length : 0);
       decorations.push(
         Decoration.replace({
           widget: new ListMarkerWidget(ordered, marker),
@@ -154,29 +171,77 @@ function toggleTask(event: MouseEvent, view: EditorView): boolean {
   return true;
 }
 
-/** Renders Markdown list markers and task checkboxes in the existing live preview. */
-export function listExtension(options: ListExtensionOptions = {}) {
-  return ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
+const listTheme = EditorView.theme({
+  ".cm-line.cm-list-line": {
+    paddingTop: "var(--editor-obsidian-spacing-list)",
+    paddingBottom: "var(--editor-obsidian-spacing-list)",
+    textIndent: "calc(-1 * var(--editor-list-indent))",
+  },
+  ".cm-line.cm-list-level-0": { paddingLeft: "var(--editor-list-indent)" },
+  ".cm-line.cm-list-level-1": {
+    paddingLeft: "calc(2 * var(--editor-list-indent))",
+  },
+  ".cm-line.cm-list-level-2": {
+    paddingLeft: "calc(3 * var(--editor-list-indent))",
+  },
+  ".cm-line.cm-list-level-3": {
+    paddingLeft: "calc(4 * var(--editor-list-indent))",
+  },
+  ".cm-line.cm-list-level-4": {
+    paddingLeft: "calc(5 * var(--editor-list-indent))",
+  },
+  ".cm-line.cm-list-level-5": {
+    paddingLeft: "calc(6 * var(--editor-list-indent))",
+  },
+  ".cm-line.cm-list-level-6": {
+    paddingLeft: "calc(7 * var(--editor-list-indent))",
+  },
+  ".cm-list-indent-space": {
+    display: "none !important",
+  },
+  ".cm-list-bullet, .cm-list-ordered": {
+    display: "inline-block",
+    width: "var(--editor-list-indent)",
+    minWidth: "var(--editor-list-indent)",
+    textAlign: "left",
+    textIndent: "0",
+    boxSizing: "border-box",
+  },
+  ".cm-list-ordered": {
+    fontVariantNumeric: "tabular-nums",
+  },
+  ".cm-task-checkbox": {
+    margin: "0 var(--space-2) 0 0",
+    verticalAlign: "middle",
+  },
+});
 
-      constructor(view: EditorView) {
-        this.decorations = getListDecorations(view, options);
-      }
+/** Renders Markdown list markers and task checkboxes with hanging indents in live preview. */
+export function listExtension(options: ListExtensionOptions = {}): Extension {
+  return [
+    ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet;
 
-      update(update: ViewUpdate) {
-        if (
-          update.docChanged ||
-          update.viewportChanged ||
-          update.selectionSet
-        ) {
-          this.decorations = getListDecorations(update.view, options);
+        constructor(view: EditorView) {
+          this.decorations = getListDecorations(view, options);
         }
-      }
-    },
-    {
-      decorations: (value) => value.decorations,
-      eventHandlers: { click: toggleTask },
-    },
-  );
+
+        update(update: ViewUpdate) {
+          if (
+            update.docChanged ||
+            update.viewportChanged ||
+            update.selectionSet
+          ) {
+            this.decorations = getListDecorations(update.view, options);
+          }
+        }
+      },
+      {
+        decorations: (value) => value.decorations,
+        eventHandlers: { click: toggleTask },
+      },
+    ),
+    listTheme,
+  ];
 }

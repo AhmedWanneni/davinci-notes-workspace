@@ -6,19 +6,24 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Editor styling tokens — Phase 3 complete (CM6 theme token consumption)**
-Applied Phase 2 Obsidian-parity tokens to CodeMirror 6 theme and highlight styles:
-1. `editorHighlightStyle.ts`: Mapped H1-H6 font-size, font-weight, and line-height directly to Phase 2 tokens (`--editor-obsidian-heading-h{1-6}-*`), setting H6 color to `var(--color-text-normal)` matching Obsidian heading hierarchy.
-2. `editorTheme.ts`:
-   - Updated `editorTheme` and `readOnlyEditorTheme` body line height to `var(--editor-obsidian-body-line-height)` on both `&` and `.cm-scroller` (overriding CodeMirror default 1.4).
-   - Read-only editor font size uses `var(--editor-obsidian-body-font-size)`, while editable editor preserves user-configured `var(--editor-font-size)`.
-   - Content bottom padding routes through `var(--editor-content-padding-bottom)`, replacing hardcoded `30vh`.
-   - Line padding routes through `var(--editor-obsidian-content-line-padding-inline)` (0).
-   - Content width retains full available editor width with no max-width cap, matching established full-width behavior.
-3. Allowlisted the consumed internal editor tokens in `scripts/check-public-tokens.mjs` with documented justifications.
-4. Typecheck, lint, public token guard (0 violations), and all 14 editor test suites (73 tests) and 103 desktop test suites (377 tests) pass.
+**Editor styling tokens — Phase 4 complete (Live Preview Markers & Lists)**
+Implemented element-cursor-gated reveal/hide for Markdown markers and hanging indent / nested styling for lists using Phase 2 tokens:
+1. `livePreviewExtension.ts`:
+   - Cursor/selection gating: Markdown syntax markers (`#`, `**`, `_`, `` ` ``, `[[ ]]`, `[ ]`, `>`, escapes, horizontal rules) are hidden away from selection and revealed dimmed (`opacity: 0.5`, `color: var(--color-text-muted)`) when selection intersects that specific element.
+   - Bounded computation: decorates only visible ranges with a 1,000-character margin; rebuilds on doc, selection, or viewport changes.
+   - Non-destructive mark decorations preserve exact Markdown syntax during copy/paste, undo/redo, and IME composition with zero line-height shifts.
+2. `listExtension.ts`:
+   - Hanging indent: line decoration sets `padding-left: calc((level + 1) * var(--editor-list-indent))` and `text-indent: calc(-1 * var(--editor-list-indent))`. Wrapped lines align with text (0px diff from first word), not the bullet.
+   - Nested steps: indent steps scale by `--editor-list-indent: 1.5em` across all nesting levels (0..6).
+   - Off-active-line indentation spaces collapsed via `cm-list-indent-space` mark decorations without altering underlying document slice text.
+   - List spacing routes through `--editor-obsidian-spacing-list: 0.075em` and task checkbox spacing uses `var(--space-2)`.
+   - Active editable line preserves raw Markdown syntax for unordered bullets and tasks per ADR-0068 / ADR-0069.
+3. Tests & Verification:
+   - Added unit test suites `livePreviewExtension.test.ts` (5 tests) and `listExtension.test.ts` (5 tests). All 16 editor test suites (83 tests) pass cleanly.
+   - Verified in real Chromium: 0px line-height difference on cursor entry/exit, 0px hanging indent alignment difference on 4-level nested lists, 100% fidelity on copy/paste across hidden markers, undo/redo and IME safety, and 4.17ms average typing latency on 5,000-line note.
+   - Staged in two commits with git hooks and public-token audit passing cleanly.
 
-**Next:** Phase 4 — code blocks, tables, math, and syntax markers.
+**Next:** Phase 5 — code blocks, tables, math, and callouts/mermaid styling.
 
 **Theme Parity — Obsidian Default Light Theme Alignment (complete)**
 Aligned base design tokens and desktop CUBE CSS styles to visually match Obsidian's default light theme baseline:
