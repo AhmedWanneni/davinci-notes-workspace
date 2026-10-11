@@ -1,6 +1,12 @@
 import { syntaxTree } from "@codemirror/language";
 import type { SyntaxNode } from "@lezer/common";
-import { EditorState, Range, StateEffect } from "@codemirror/state";
+import {
+  EditorState,
+  Range,
+  StateEffect,
+  StateField,
+  type Extension,
+} from "@codemirror/state";
 import {
   Decoration,
   DecorationSet,
@@ -15,11 +21,20 @@ export interface MathExtensionOptions {
   isReadOnly?: boolean;
 }
 
-interface MathBlock {
+export interface MathBlock {
   fromLine: number;
   toLine: number;
   source: string;
 }
+
+export const mathBlocksField = StateField.define<MathBlock[]>({
+  create(state) {
+    return findBlocks(state);
+  },
+  update(blocks, tr) {
+    return tr.docChanged ? findBlocks(tr.state) : blocks;
+  },
+});
 
 const refreshMath = StateEffect.define<void>();
 let katexLoader: Promise<typeof import("katex").default> | null = null;
@@ -172,40 +187,43 @@ function decorationsFor(view: EditorView, options: MathExtensionOptions) {
   return Decoration.set(decorations, true);
 }
 
-export function mathExtension(options: MathExtensionOptions = {}) {
-  return ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
-      timer: ReturnType<typeof setTimeout> | undefined;
+export function mathExtension(options: MathExtensionOptions = {}): Extension {
+  return [
+    mathBlocksField,
+    ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet;
+        timer: ReturnType<typeof setTimeout> | undefined;
 
-      constructor(readonly view: EditorView) {
-        this.decorations = decorationsFor(view, options);
-      }
-
-      update(update: ViewUpdate) {
-        if (update.selectionSet) {
-          this.decorations = decorationsFor(update.view, options);
-          return;
+        constructor(readonly view: EditorView) {
+          this.decorations = decorationsFor(view, options);
         }
-        if (update.docChanged) {
+
+        update(update: ViewUpdate) {
+          if (update.selectionSet) {
+            this.decorations = decorationsFor(update.view, options);
+            return;
+          }
+          if (update.docChanged) {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => {
+              this.view.dispatch({ effects: refreshMath.of() });
+            }, 150);
+          }
+          if (
+            update.transactions.some((transaction) =>
+              transaction.effects.some((effect) => effect.is(refreshMath)),
+            )
+          ) {
+            this.decorations = decorationsFor(update.view, options);
+          }
+        }
+
+        destroy() {
           clearTimeout(this.timer);
-          this.timer = setTimeout(() => {
-            this.view.dispatch({ effects: refreshMath.of() });
-          }, 150);
         }
-        if (
-          update.transactions.some((transaction) =>
-            transaction.effects.some((effect) => effect.is(refreshMath)),
-          )
-        ) {
-          this.decorations = decorationsFor(update.view, options);
-        }
-      }
-
-      destroy() {
-        clearTimeout(this.timer);
-      }
-    },
-    { decorations: (value) => value.decorations },
-  );
+      },
+      { decorations: (value) => value.decorations },
+    ),
+  ];
 }
