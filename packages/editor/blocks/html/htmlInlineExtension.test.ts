@@ -6,10 +6,10 @@ import { Strikethrough } from "@lezer/markdown";
 import { syntaxHighlighting } from "@codemirror/language";
 import { syntaxTree } from "@codemirror/language";
 import { afterEach, describe, expect, it } from "vitest";
-import { editorHighlightStyle } from "./editorHighlightStyle";
+import { editorHighlightStyle } from "../../theme/editorHighlightStyle";
 import { htmlInlineExtension } from "./htmlInlineExtension";
 import { htmlInlineTheme } from "./htmlInlineTheme";
-import { livePreviewExtension } from "./livePreviewExtension";
+import { livePreviewExtension } from "../../live-preview/livePreviewExtension";
 
 let view: EditorView | undefined;
 let host: HTMLDivElement | undefined;
