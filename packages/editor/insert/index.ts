@@ -7,3 +7,4 @@ export type {
 } from "./InsertItem";
 export { loadInsertRegistry } from "./loadInsertRegistry";
 export { insertItem } from "./InsertAction";
+export { slashMenuSource, isSlashMenuTrigger } from "./SlashMenu";

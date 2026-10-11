@@ -109,11 +109,13 @@ export function EditorArea({
   );
 
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const slashMenuEnabled = useWorkspaceStore((state) => state.slashMenuEnabled);
   const vimMonospaceMode = useWorkspaceStore((state) => state.vimMonospaceMode);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
   const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setVimModeState = useWorkspaceStore((state) => state.setVimModeState);
+  const vimMode = useWorkspaceStore((state) => state.vimMode);
   const saveNoteNow = useWorkspaceStore((state) => state.saveNoteNow);
   const closeNote = useWorkspaceStore((state) => state.closeNote);
   const closeAllNotes = useWorkspaceStore((state) => state.closeAllNotes);
@@ -243,6 +245,8 @@ export function EditorArea({
                 onAttachmentError={handleAttachmentError}
                 resolveMediaUrl={handleResolveMediaUrl}
                 useVimMode={useVimMode}
+                slashMenuEnabled={slashMenuEnabled}
+                vimMode={vimMode}
                 onVimModeChange={setVimModeState}
                 onSaveNoteNow={saveNoteNow}
                 onCloseNote={closeNote}

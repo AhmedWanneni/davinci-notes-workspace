@@ -21,11 +21,11 @@ export function insertItem(
   view: EditorView,
   item: InsertItem,
   selection: EditorSelection = view.state.selection,
+  selectedText = view.state.doc.sliceString(selection.main.from, selection.main.to),
 ) {
   if (!view.state.facet(EditorView.editable)) return false;
 
   const range = selection.main;
-  const selectedText = view.state.doc.sliceString(range.from, range.to);
   const result = item.build({ selectedText });
   const padding = result.block
     ? blockPadding(view.state.doc.toString(), range.from, range.to)

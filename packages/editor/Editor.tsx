@@ -56,6 +56,7 @@ import {
   createEditorPluginAdapter,
   type EditorPluginAdapter,
 } from "./integration";
+import { slashMenuSource } from "./insert/SlashMenu";
 import {
   externalChangeAnnotations,
   externalDocumentChange,
@@ -80,6 +81,8 @@ export interface EditorProps {
   onCloseAllNotes?: () => Promise<void>;
   onEditorReady?: (editor: EditorPluginAdapter | null) => void;
   onViewReady?: (view: EditorView | null) => void;
+  slashMenuEnabled?: boolean;
+  vimMode?: string | null;
 }
 
 export function Editor({
@@ -100,6 +103,8 @@ export function Editor({
   onCloseAllNotes,
   onEditorReady,
   onViewReady,
+  slashMenuEnabled = true,
+  vimMode,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -194,7 +199,7 @@ export function Editor({
           }),
         ),
         autocompleteCompartmentRef.current.of(
-          autocompletion({ override: [autocompleteExtension({ notePaths })] }),
+          autocompletion({ override: [autocompleteExtension({ notePaths }), slashMenuSource({ enabled: slashMenuEnabled, vimMode })] }),
         ),
         vimCompartmentRef.current.of([]),
         // Document changes updater
@@ -322,7 +327,7 @@ export function Editor({
         ),
       ],
     });
-  }, [notePaths, sourcePath, onLinkClick, onExternalLinkClick]);
+  }, [notePaths, sourcePath, onLinkClick, onExternalLinkClick, slashMenuEnabled, vimMode]);
 
   return <div ref={containerRef} className={"editor-container"} />;
 }
