@@ -9,7 +9,12 @@ import {
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { markdown } from "@codemirror/lang-markdown";
 import { Strikethrough } from "@lezer/markdown";
-import { autocompletion } from "@codemirror/autocomplete";
+import {
+  autocompletion,
+  clearSnippet,
+  nextSnippetField,
+  prevSnippetField,
+} from "@codemirror/autocomplete";
 import { syntaxHighlighting } from "@codemirror/language";
 import { editorHighlightStyle, editorTheme, markdownAnnotationTheme, tagTheme } from "./theme";
 import {
@@ -157,6 +162,9 @@ export function Editor({
           { key: "Shift-Enter", run: insertHardLineBreak },
           ...defaultKeymap,
           ...historyKeymap,
+          { key: "Tab", run: nextSnippetField },
+          { key: "Shift-Tab", run: prevSnippetField },
+          { key: "Escape", run: clearSnippet },
           ...listIndentKeymap,
         ]),
         markdown({

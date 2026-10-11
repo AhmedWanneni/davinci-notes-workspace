@@ -6,3 +6,4 @@ export type {
   InsertItem,
 } from "./InsertItem";
 export { loadInsertRegistry } from "./loadInsertRegistry";
+export { insertItem } from "./InsertAction";
