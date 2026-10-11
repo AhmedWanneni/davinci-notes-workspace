@@ -8,6 +8,8 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-11 | Editor styling tokens — Phase 5 | Implemented Editor Font Size and Font Family settings with curated options (System UI, Serif, Monospace, Montserrat, Raleway), custom font support, and live re-measurement. Added ADR-0173. Zero remote font requests using self-hosted @fontsource-variable WOFF2 assets with font-display: swap. Input sanitization prevents CSS injection. Font sizes scale 12–24px (default 16px) with reset. Caret lands accurately at wrapped line ends. All 97 editor and 384 desktop unit tests pass with zero public token violations. |
+| 2026-10-11 | Editor styling tokens — Phase 4 | Implemented element-cursor-gated reveal/dimming for Markdown markers and hanging indent / nested styling for lists using Phase 2 tokens. Bounded decoration computation, 0px line-height shifts, and preserved raw Markdown for active lists. |
 | 2026-10-11 | Editor styling tokens — Phase 3 | Applied Phase 2 Obsidian-parity tokens to CodeMirror 6 theme and highlight styles (`editorHighlightStyle.ts`, `editorTheme.ts`); mapped H1-H6 typography to `--editor-obsidian-heading-h{1-6}-*`, unified body line-height to `--editor-obsidian-body-line-height` (1.5), updated content bottom padding to `--editor-content-padding-bottom`, and added line inline padding `--editor-obsidian-content-line-padding-inline`. Maintained full-width content without arbitrary max-width constraints. Allowlisted tokens in `check-public-tokens.mjs`. All 73 editor unit tests and 377 desktop unit tests pass with zero public token violations. |
 | 2026-10-11 | Editor styling tokens — Phase 2 | Added 30 editor-prefixed Obsidian-parity tokens in a separate `editor.obsidian` namespace; generated CSS, SCSS, and TypeScript outputs. All existing token source values and generated token values were preserved. Design-system build and typecheck passed; `packages/editor` was not modified. |
 | 2026-10-11 | Tray Phase 4b — Click-to-capture popover with left-click setting | Implemented ADR-0172 (supersedes Phase 1 click decision): left-click on tray icon toggles Quick Capture popover anchored under the tray icon; right-click opens the native menu; pure Rust positioning in tray_position.rs clamps strictly to monitor work area with Retina DPI and multi-monitor support; eliminated blur/toggle race via 350ms timestamp debounce; in-memory draft text preserved across blur, dismiss, and Escape; live configurable "Menu bar icon click" setting ("Open quick capture" vs "Open menu") with existing-user fallback to "menu". 45 Rust tests and 373 frontend tests pass with 0 lint errors. |
@@ -111,6 +113,17 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-11 — Editor styling tokens: Phase 5 (Editor Font Size and Font Family Settings)
+
+- Implemented editor font size numeric control (suggested range 12–24 px, clamped 12–28 px, default 16 px taken from `--type-scale-base`) with a reset-to-default button.
+- Implemented curated font family dropdown: System default, Serif, Monospace, Montserrat, Raleway, plus Custom font input.
+- Zero remote network calls: Evaluated and rejected runtime Google Fonts CDN (ADR-0173). Self-hosted via `@fontsource-variable/montserrat` (37.9 KB normal, 39.6 KB italic) and `@fontsource-variable/raleway` (48.2 KB normal, 50.2 KB italic) WOFF2 assets with `font-display: swap`. Initial bundle has 0 KB font payload; loaded lazily only when selected.
+- Custom font validation: Enforced 50-character limit, strict allowlist regex (`/^[a-zA-Z0-9\s\-',.]+$/`), quote escaping, and safe fallback to `var(--font-ui)`. Proved immune to CSS injection (`x; } body { display:none`).
+- Dynamic live updates via CSS custom properties (`--editor-font-size`, `--font-editor`) applied directly to the `.cm-editor` container without rebuilding extensions or themes.
+- Re-measurement trigger: Calls `document.fonts.load(...)` with `allSettled` and CodeMirror `view.requestMeasure()` so line heights, selections, and caret positioning update accurately. Verified 0px displacement at end of wrapped lines.
+- Persistence: Stored in SQLite `settings` table via `createEditorSettings.ts` using `withDbLock` (`editorFont`, `editorCustomFont`, `editorFontSize`).
+- Added unit tests in `editorSettings.test.ts`, `editorFontRegistry.test.ts`, and `editorSettingsStore.test.ts`. All 97 editor and 384 desktop unit tests pass cleanly.
 
 ### 2026-10-11 — Editor styling tokens: Phase 2
 

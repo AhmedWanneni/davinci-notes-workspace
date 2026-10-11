@@ -6,24 +6,32 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Editor styling tokens — Phase 4 complete (Live Preview Markers & Lists)**
-Implemented element-cursor-gated reveal/hide for Markdown markers and hanging indent / nested styling for lists using Phase 2 tokens:
-1. `livePreviewExtension.ts`:
-   - Cursor/selection gating: Markdown syntax markers (`#`, `**`, `_`, `` ` ``, `[[ ]]`, `[ ]`, `>`, escapes, horizontal rules) are hidden away from selection and revealed dimmed (`opacity: 0.5`, `color: var(--color-text-muted)`) when selection intersects that specific element.
-   - Bounded computation: decorates only visible ranges with a 1,000-character margin; rebuilds on doc, selection, or viewport changes.
-   - Non-destructive mark decorations preserve exact Markdown syntax during copy/paste, undo/redo, and IME composition with zero line-height shifts.
-2. `listExtension.ts`:
-   - Hanging indent: line decoration sets `padding-left: calc((level + 1) * var(--editor-list-indent))` and `text-indent: calc(-1 * var(--editor-list-indent))`. Wrapped lines align with text (0px diff from first word), not the bullet.
-   - Nested steps: indent steps scale by `--editor-list-indent: 1.5em` across all nesting levels (0..6).
-   - Off-active-line indentation spaces collapsed via `cm-list-indent-space` mark decorations without altering underlying document slice text.
-   - List spacing routes through `--editor-obsidian-spacing-list: 0.075em` and task checkbox spacing uses `var(--space-2)`.
-   - Active editable line preserves raw Markdown syntax for unordered bullets and tasks per ADR-0068 / ADR-0069.
-3. Tests & Verification:
-   - Added unit test suites `livePreviewExtension.test.ts` (5 tests) and `listExtension.test.ts` (5 tests). All 16 editor test suites (83 tests) pass cleanly.
-   - Verified in real Chromium: 0px line-height difference on cursor entry/exit, 0px hanging indent alignment difference on 4-level nested lists, 100% fidelity on copy/paste across hidden markers, undo/redo and IME safety, and 4.17ms average typing latency on 5,000-line note.
-   - Staged in two commits with git hooks and public-token audit passing cleanly.
+**Editor styling tokens — Phase 5 complete (Editor Font Size and Font Family Settings, ADR-0173)**
+Implemented live editor font sizing and curated/custom font family settings with self-hosted font delivery and CSS injection prevention:
+1. `editorSettings.ts`:
+   - Curated fonts tuple: `["system", "serif", "monospace", "montserrat", "raleway", "custom", "roboto"]`.
+   - `validateAndSanitizeCustomFont`: enforces 50-char cap, regex validation (`^[a-zA-Z0-9\s\-',.]+$`), rejection of dangerous characters (`;`, `{`, `}`, `<`, `>`, `"`, `\`), safe escaping, and fallback to `var(--font-ui)`.
+   - `clampEditorFontSize`: clamps numeric inputs from 12 to 28 px (suggested 12–24 px range in settings UI), defaulting to 16px.
+   - Persistence layer: SQLite `settings` table via `withDbLock` (`editorFont`, `editorCustomFont`, `editorFontSize`).
+2. Font delivery & registry (`editorFontRegistry.ts`):
+   - Zero remote network requests: self-hosted `@fontsource-variable/montserrat` (37.9KB normal + 39.6KB italic WOFF2) and `@fontsource-variable/raleway` (48.2KB normal + 50.2KB italic WOFF2). 0KB on initial startup; loaded lazily on selection.
+   - `serif` and `monospace` use OS-native system stacks with zero asset weight.
+   - Added `font-display: swap` to all `@font-face` definitions to eliminate invisible text flashes during font swaps.
+   - `document.fonts.load(...)` with `allSettled` and CodeMirror `view.requestMeasure()` re-measurement.
+3. Settings UI (`EditorSettingsTab.tsx`):
+   - Curated dropdown (System UI, Serif, Monospace, Montserrat, Raleway, Custom).
+   - Dynamic custom font text input with live validation error messaging.
+   - Range slider + number input (12–24px) with Reset button restoring 16px.
+   - Live CSS variable application (`--editor-font-size`, `--font-editor`) without rebuilding extensions or themes.
+4. Verification:
+   - Body and H1 font sizes scale proportionally (12px -> 19.416px, 16px -> 25.888px, 24px -> 38.832px; Reset -> 16px).
+   - Caret lands accurately at the end of wrapped lines across all fonts (dist = 0px).
+   - Offline mode verified: 0 external requests, all fonts render.
+   - Custom font tested: valid (Menlo), non-existent (NonExistentFont999 with fallback), malicious injection (`x; } body { display:none` rejected without DOM disruption).
+   - Wheel and scrollbar scrolling verified on 500+ line documents.
+   - Staged across 3 scoped commits with all git hooks and public-token audit passing.
 
-**Next:** Phase 5 — code blocks, tables, math, and callouts/mermaid styling.
+**Next:** Phase 6 — code blocks, tables, math, and callouts/mermaid styling.
 
 **Theme Parity — Obsidian Default Light Theme Alignment (complete)**
 Aligned base design tokens and desktop CUBE CSS styles to visually match Obsidian's default light theme baseline:
