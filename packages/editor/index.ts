@@ -31,9 +31,12 @@ export {
   loadEditorSettings,
   MAX_EDITOR_FONT_SIZE,
   MIN_EDITOR_FONT_SIZE,
+  DEFAULT_EDITOR_FONT_SIZE,
   saveEditorSetting,
+  validateAndSanitizeCustomFont,
 } from "./editorSettings";
 export type {
+  CustomFontValidationResult,
   EditorFont,
   EditorSettings,
   EditorSettingsStorage,
