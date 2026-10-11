@@ -243,4 +243,5 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0171](adr/0171-capture-window-sql-permission-and-quick-search.md) | Capture window SQL permissions and direct indexer quick search with WAL mode and native note activation | Accepted |
 | [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) | Tray left-click popover toggle for quick capture with monitor work area clamping and left-click setting | Accepted; supersedes Phase 1 click decision |
 | [0173](adr/0173-curated-editor-fonts-and-custom-font-input-sanitization.md) | Curated editor fonts and custom font input sanitization with self-hosted font-display swap | Accepted |
+| [0174](adr/0174-curated-editor-fonts-and-vim-monospace-mode.md) | Curated editor fonts and vim monospace mode with lazy Latin woff2 assets | Accepted |
 
