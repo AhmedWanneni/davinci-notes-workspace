@@ -6,16 +6,19 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
-**Editor styling tokens — Phase 2 complete**
-Added 30 editor-prefixed Obsidian-parity tokens under `editor.obsidian` without
-replacing any existing tokens. Generated CSS, SCSS, and TypeScript outputs;
-documented token names and the existing spacing-token boundary in
-`packages/design-system/tokens/README.md`. Design-system build and typecheck
-pass. The `packages/editor` package was not modified.
+**Editor styling tokens — Phase 3 complete (CM6 theme token consumption)**
+Applied Phase 2 Obsidian-parity tokens to CodeMirror 6 theme and highlight styles:
+1. `editorHighlightStyle.ts`: Mapped H1-H6 font-size, font-weight, and line-height directly to Phase 2 tokens (`--editor-obsidian-heading-h{1-6}-*`), setting H6 color to `var(--color-text-normal)` matching Obsidian heading hierarchy.
+2. `editorTheme.ts`:
+   - Updated `editorTheme` and `readOnlyEditorTheme` body line height to `var(--editor-obsidian-body-line-height)` on both `&` and `.cm-scroller` (overriding CodeMirror default 1.4).
+   - Read-only editor font size uses `var(--editor-obsidian-body-font-size)`, while editable editor preserves user-configured `var(--editor-font-size)`.
+   - Content bottom padding routes through `var(--editor-content-padding-bottom)`, replacing hardcoded `30vh`.
+   - Line padding routes through `var(--editor-obsidian-content-line-padding-inline)` (0).
+   - Content width retains full available editor width with no max-width cap, matching established full-width behavior.
+3. Allowlisted the consumed internal editor tokens in `scripts/check-public-tokens.mjs` with documented justifications.
+4. Typecheck, lint, public token guard (0 violations), and all 14 editor test suites (73 tests) and 103 desktop test suites (377 tests) pass.
 
-**Next:** Phase 3 should consume the new `--editor-obsidian-*` values. Existing
-`editor.heading.*.space-above` / `space-below` values remain unchanged because
-the audit did not establish replacement per-heading values.
+**Next:** Phase 4 — code blocks, tables, math, and syntax markers.
 
 **Theme Parity — Obsidian Default Light Theme Alignment (complete)**
 Aligned base design tokens and desktop CUBE CSS styles to visually match Obsidian's default light theme baseline:

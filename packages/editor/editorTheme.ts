@@ -9,7 +9,7 @@ export const editorTheme = EditorView.theme({
     fontFamily: "var(--font-editor)",
     // This is a vault-scoped runtime setting, rather than a theme token.
     fontSize: "var(--editor-font-size)",
-    lineHeight: "var(--type-leading-relaxed)",
+    lineHeight: "var(--editor-obsidian-body-line-height)",
   },
   "&.cm-focused": {
     outline: "none",
@@ -20,9 +20,15 @@ export const editorTheme = EditorView.theme({
   },
   ".cm-scroller": {
     fontFamily: "inherit",
+    lineHeight: "var(--editor-obsidian-body-line-height)",
   },
   ".cm-content": {
-    padding: "var(--space-6) var(--space-8) 30vh",
+    padding:
+      "var(--space-6) var(--space-8) var(--editor-content-padding-bottom)",
+  },
+  ".cm-line": {
+    paddingLeft: "var(--editor-obsidian-content-line-padding-inline)",
+    paddingRight: "var(--editor-obsidian-content-line-padding-inline)",
   },
   ".cm-cursor": {
     borderLeftColor: "var(--color-text-accent)",
@@ -152,18 +158,23 @@ export const readOnlyEditorTheme = EditorView.theme({
     backgroundColor: "transparent",
     color: "var(--color-text-normal)",
     fontFamily: "var(--font-editor)",
-    fontSize: "var(--type-scale-sm)",
-    lineHeight: "1.5",
+    fontSize: "var(--editor-obsidian-body-font-size)",
+    lineHeight: "var(--editor-obsidian-body-line-height)",
   },
   "&.cm-focused": {
     outline: "none",
   },
   ".cm-scroller": {
     fontFamily: "inherit",
+    lineHeight: "var(--editor-obsidian-body-line-height)",
     overflow: "auto",
   },
   ".cm-content": {
     padding: "var(--space-2) var(--space-3)",
+  },
+  ".cm-line": {
+    paddingLeft: "var(--editor-obsidian-content-line-padding-inline)",
+    paddingRight: "var(--editor-obsidian-content-line-padding-inline)",
   },
   ".cm-cursor": {
     display: "none",
