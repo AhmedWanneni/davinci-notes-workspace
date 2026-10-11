@@ -95,4 +95,82 @@ describe("QuickCapture", () => {
       expect(screen.getByText("Vault not found error")).toBeDefined();
     });
   });
+
+  it("preserves typed capture text when switching to search and back", () => {
+    render(<QuickCapture />);
+
+    const textarea = screen.getByRole("textbox", {
+      name: /quick capture text/i,
+    });
+    fireEvent.change(textarea, { target: { value: "Preserved thought" } });
+
+    // Switch to search via header tab
+    const searchTab = screen.getByRole("tab", { name: /search/i });
+    fireEvent.click(searchTab);
+
+    expect(
+      screen.queryByRole("textbox", { name: /quick capture text/i }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("textbox", { name: /search notes/i }),
+    ).toBeDefined();
+
+    // Switch back to capture
+    const captureTab = screen.getByRole("tab", { name: /capture/i });
+    fireEvent.click(captureTab);
+
+    const restoredTextarea = screen.getByRole("textbox", {
+      name: /quick capture text/i,
+    }) as HTMLTextAreaElement;
+    expect(restoredTextarea.value).toBe("Preserved thought");
+  });
+
+  it("switches back to capture on Escape in search mode without losing text", () => {
+    render(<QuickCapture />);
+
+    const textarea = screen.getByRole("textbox", {
+      name: /quick capture text/i,
+    });
+    fireEvent.change(textarea, { target: { value: "Important idea" } });
+
+    // Switch to search via Tab
+    fireEvent.keyDown(textarea, { key: "Tab" });
+    const searchInput = screen.getByRole("textbox", { name: /search notes/i });
+
+    // Press Escape while in search mode
+    fireEvent.keyDown(searchInput, { key: "Escape" });
+
+    const restoredTextarea = screen.getByRole("textbox", {
+      name: /quick capture text/i,
+    }) as HTMLTextAreaElement;
+    expect(restoredTextarea).toBeDefined();
+    expect(restoredTextarea.value).toBe("Important idea");
+  });
+
+  it("opens selected search result on Enter", async () => {
+    const handleOpenNote = vi.fn().mockResolvedValue(undefined);
+    const mockSearchResults = [
+      { path: "work/project.md", title: "Project Note", mtime: 1, score: -2 },
+    ];
+    render(
+      <QuickCapture
+        initialMode="search"
+        searchFn={async () => mockSearchResults}
+        onOpenNote={handleOpenNote}
+      />,
+    );
+
+    const searchInput = screen.getByRole("textbox", { name: /search notes/i });
+    fireEvent.change(searchInput, { target: { value: "proj" } });
+
+    await waitFor(() => {
+      expect(screen.getByText("Project Note")).toBeDefined();
+    });
+
+    fireEvent.keyDown(searchInput, { key: "Enter" });
+
+    await waitFor(() => {
+      expect(handleOpenNote).toHaveBeenCalledWith("work/project.md");
+    });
+  });
 });

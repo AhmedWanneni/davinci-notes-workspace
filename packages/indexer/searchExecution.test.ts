@@ -4,9 +4,51 @@ import { executeSearchQuery, type SearchDatabase } from "./searchExecution";
 import { parseSearchQuery } from "./searchQuery";
 
 const notes = [
-  { path: "a.md", title: "Alpha", mtime: 1, frontmatter: {}, content: "meeting work", outlinks: [], tags: { frontmatter: [], inline: [], all: [{ key: "work", display: "#work", segments: ["work"] }] } },
-  { path: "b.md", title: "Beta", mtime: 2, frontmatter: {}, content: "meeting inbox", outlinks: [], tags: { frontmatter: [], inline: [], all: [{ key: "inbox/to-read", display: "#inbox/to-read", segments: ["inbox", "to-read"] }] } },
-  { path: "c.md", title: "Gamma", mtime: 3, frontmatter: {}, content: "meeting work", outlinks: [], tags: { frontmatter: [], inline: [], all: [{ key: "work", display: "#work", segments: ["work"] }] } },
+  {
+    path: "a.md",
+    title: "Alpha",
+    mtime: 1,
+    frontmatter: {},
+    content: "meeting work",
+    outlinks: [],
+    tags: {
+      frontmatter: [],
+      inline: [],
+      all: [{ key: "work", display: "#work", segments: ["work"] }],
+    },
+  },
+  {
+    path: "b.md",
+    title: "Beta",
+    mtime: 2,
+    frontmatter: {},
+    content: "meeting inbox",
+    outlinks: [],
+    tags: {
+      frontmatter: [],
+      inline: [],
+      all: [
+        {
+          key: "inbox/to-read",
+          display: "#inbox/to-read",
+          segments: ["inbox", "to-read"],
+        },
+      ],
+    },
+  },
+  {
+    path: "c.md",
+    title: "Gamma",
+    mtime: 3,
+    frontmatter: {},
+    content: "meeting work",
+    outlinks: [],
+    tags: {
+      frontmatter: [],
+      inline: [],
+      all: [{ key: "work", display: "#work", segments: ["work"] }],
+    },
+  },
 ];
 
 function fakeDb(dataset = notes): SearchDatabase {
@@ -16,9 +58,17 @@ function fakeDb(dataset = notes): SearchDatabase {
         const value = String(bindings[0]).replaceAll('"', "");
         return dataset
           .filter((note) => note.content.includes(value))
-          .map((note, index) => ({ ...note, score: index, snippet: note.content })) as T[];
+          .map((note, index) => ({
+            ...note,
+            score: index,
+            snippet: note.content,
+          })) as T[];
       }
-      return dataset.map((note) => ({ path: note.path, title: note.title, mtime: note.mtime })) as T[];
+      return dataset.map((note) => ({
+        path: note.path,
+        title: note.title,
+        mtime: note.mtime,
+      })) as T[];
     },
   };
 }
@@ -27,17 +77,29 @@ describe("executeSearchQuery", () => {
   const tagIndex = buildTagIndex(notes);
 
   it("ANDs text and tag components and removes exclusions", async () => {
-    const result = await executeSearchQuery(fakeDb(), tagIndex, parseSearchQuery("meeting tag:work"));
+    const result = await executeSearchQuery(
+      fakeDb(),
+      tagIndex,
+      parseSearchQuery("meeting tag:work"),
+    );
     expect(result.map((row) => row.path)).toEqual(["a.md", "c.md"]);
   });
 
   it("uses Phase 4 nested matching for tag-only queries", async () => {
-    const result = await executeSearchQuery(fakeDb(), tagIndex, parseSearchQuery("tag:inbox"));
+    const result = await executeSearchQuery(
+      fakeDb(),
+      tagIndex,
+      parseSearchQuery("tag:inbox"),
+    );
     expect(result.map((row) => row.path)).toEqual(["b.md"]);
   });
 
   it("ranks plain text deterministically and excludes terms", async () => {
-    const result = await executeSearchQuery(fakeDb(), tagIndex, parseSearchQuery('meeting -"inbox"'));
+    const result = await executeSearchQuery(
+      fakeDb(),
+      tagIndex,
+      parseSearchQuery('meeting -"inbox"'),
+    );
     expect(result.map((row) => row.path)).toEqual(["a.md", "c.md"]);
   });
 
@@ -55,5 +117,25 @@ describe("executeSearchQuery", () => {
     );
     expect(result).toHaveLength(667);
     expect(performance.now() - started).toBeLessThan(1000);
+  });
+
+  it("safely handles odd, malicious, and special-character queries without throwing", async () => {
+    const maliciousQueries = [
+      '"',
+      "*",
+      "NEAR(",
+      ")",
+      '"unbalanced',
+      "a".repeat(5000),
+      "🎉 🚀 📝",
+      "مرحبا بالعالم",
+      "'; DROP TABLE notes;--",
+    ];
+
+    for (const q of maliciousQueries) {
+      const parsed = parseSearchQuery(q);
+      const result = await executeSearchQuery(fakeDb(), tagIndex, parsed);
+      expect(Array.isArray(result)).toBe(true);
+    }
   });
 });

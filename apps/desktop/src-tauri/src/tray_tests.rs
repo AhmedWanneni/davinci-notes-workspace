@@ -103,4 +103,14 @@ mod tests {
     assert!(!validate_recent_note_path("../outside.md", Some(vault)));
     assert!(!validate_recent_note_path("sub/../../outside.md", Some(vault)));
   }
+
+  #[test]
+  fn search_result_paths_outside_vault_are_rejected() {
+    let vault = Path::new("/Users/user/Vault");
+    assert!(!validate_recent_note_path("../../../etc/shadow", Some(vault)));
+    assert!(!validate_recent_note_path("/private/var/db", Some(vault)));
+    assert!(!validate_recent_note_path("notes/../../outside.md", Some(vault)));
+    assert!(validate_recent_note_path("notes/inside.md", Some(vault)));
+  }
 }
+

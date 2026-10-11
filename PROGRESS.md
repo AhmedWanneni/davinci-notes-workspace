@@ -6,6 +6,18 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Tray Phase 5 — Quick Search from the capture window (complete)**
+Implemented quick search from the capture window, providing unified FTS5 search directly from the capture view:
+1. Architectural decision (Option C, ADR-0171): Granted scoped SQL permissions (`sql:default`, `sql:allow-execute`) to `capabilities/capture.json` so the capture window queries `vault-index.db` directly via `@tauri-apps/plugin-sql` and the canonical `@app/indexer` search engine (`executeSearchQuery` / `parseSearchQuery`). Reuses the exact same BM25 ranking and query syntax as the in-app quick switcher with zero ranking drift and zero IPC proxy lag.
+2. WAL mode concurrency: `vault-index.db` executes with `journal_mode=WAL` and `busy_timeout=5000`. Read-only queries in the capture window execute concurrently without blocking or failing on writer transactions in the main window.
+3. Keyboard-first UI & seamless mode switching: Tab or header tab toggles between Capture and Search modes. Typed capture text is safely preserved across mode toggles and Escape dismissals. Up/Down arrows navigate results, Enter opens note in main window, and Esc returns to capture mode.
+4. Native note opening with strict path validation: `open_note_from_capture(path)` verifies caller authorization via `authorize_capture_window`, validates path within the vault root via `validate_recent_note_path`, focuses and unminimizes the main window (`show_main_window`), emits `davinci-tray-open-note`, and hides the capture window.
+5. Debounced querying & cancellation: Queries are debounced by 150ms with sequence token cancellation so only the latest query's results are rendered, capping results at 8 items with parent folder paths.
+6. Safe display rendering: Note titles and folder paths render strictly as text children without HTML/script injection. Malicious, odd, and injection queries (`"`, `*`, `NEAR(`, long strings, SQL syntax) execute safely with parameterized bindings.
+7. Lightweight bundle & file limits: Capture bundle grew by only ~1.43 KB gzip (`dist/assets/capture-*.js` 8.14 KB raw / 2.57 KB gzip). All source files strictly ≤ 230 lines (within caps).
+8. Tests & Verification: 39/39 Cargo unit tests pass; 102/102 frontend test suites (370 tests) pass with 0 lint errors.
+Tray Phase 6 (sync status in tray) is next.
+
 **Tray Phase 4 — Global shortcut and lazy Quick Capture window (complete)**
 Implemented global shortcut (`Control+Alt+N` default, configurable via General Settings) and lazy Quick Capture window:
 1. `tauri-plugin-global-shortcut`: registered on `ShortcutState::Pressed` only to eliminate double-firing. Handled conflict registration gracefully with error surfacing and rollback.
@@ -17,7 +29,7 @@ Implemented global shortcut (`Control+Alt+N` default, configurable via General S
 7. Least-privilege capability file: `capabilities/capture.json` grants only `core:default`, `core:window:allow-close`, `core:window:allow-hide`, `core:window:allow-set-focus`, `core:event:allow-listen`. All native commands reject non-main windows via `command_auth.rs`.
 8. Code limits: all source files strictly ≤ 200 lines (`capture.rs` 195, `capture_commands.rs` 144, `capture_format.rs` 51, `tray.rs` 200, `lib.rs` 196, `QuickCapture.tsx` 145, `GeneralSettingsTab.tsx` 187, `CaptureSettingsSection.tsx` 115).
 9. Tests & Verification: 38/38 Cargo unit tests pass (including 20x concurrency, large file tail seek, CRLF preservation, frontmatter preservation, path traversal rejection, shortcut validation); 100/100 frontend test suites (358 tests) pass with 0 lint errors.
-Tray Phase 5 (quick search) is next.
+Tray Phase 5 (quick search) is complete.
 
 **Phase 4a — Save-time external-change guard with append-aware merge (ADR-0170 supersedes ADR-0161) — complete**
 

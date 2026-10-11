@@ -240,3 +240,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0168](adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md) | Universal `withDbLock` serialization for index reads and writes, batch removals, and unified transaction boundaries | Accepted |
 | [0169](adr/0169-ui-decoupling-from-sqlite-index-and-unhandled-rejection-resilience.md) | Decouple UI tab opening from SQLite indexing, capped exponential backoff for SQLITE_BUSY, and error boundaries | Accepted |
 | [0170](adr/0170-save-time-external-change-guard-and-append-merge.md) | Save-time external change guard with append-aware merge and conflict copy on exit (supersedes 0161) | Accepted |
+| [0171](adr/0171-capture-window-sql-permission-and-quick-search.md) | Capture window SQL permissions and direct indexer quick search with WAL mode and native note activation | Accepted |

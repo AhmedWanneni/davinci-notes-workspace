@@ -107,6 +107,7 @@ pub fn run() {
       tray_commands::request_app_exit,
       capture_commands::quick_capture_save,
       capture_commands::quick_capture_dismiss,
+      capture_commands::open_note_from_capture,
       capture_commands::get_capture_shortcut,
       capture_commands::set_capture_shortcut,
       capture_commands::get_capture_target,

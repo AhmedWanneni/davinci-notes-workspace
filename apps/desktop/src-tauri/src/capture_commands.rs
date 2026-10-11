@@ -1,6 +1,6 @@
 use std::path::Path;
 use std::str::FromStr;
-use tauri::{AppHandle, Manager, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 use crate::capture::{append_capture_text, trigger_quick_capture, CaptureState};
@@ -25,6 +25,32 @@ pub fn quick_capture_save(
 #[tauri::command]
 pub fn quick_capture_dismiss(window: WebviewWindow) -> Result<(), String> {
   authorize_capture_window(&window)?;
+  let _ = window.hide();
+  Ok(())
+}
+
+#[tauri::command]
+pub fn open_note_from_capture(
+  window: WebviewWindow,
+  app: AppHandle,
+  path: String,
+) -> Result<(), String> {
+  authorize_capture_window(&window)?;
+  let vault_root = app
+    .try_state::<crate::state::VaultState>()
+    .and_then(|vs| vs.get_root().ok());
+
+  if !crate::tray_menu::validate_recent_note_path(&path, vault_root.as_deref()) {
+    return Err(format!("Invalid or unsafe note path: {path}"));
+  }
+
+  if let Some(main_window) = app.get_webview_window(crate::tray::MAIN_WINDOW) {
+    crate::tray::show_main_window(&main_window);
+    let _ = main_window.emit(
+      crate::tray::TRAY_OPEN_NOTE_EVENT,
+      serde_json::json!({ "path": path }),
+    );
+  }
   let _ = window.hide();
   Ok(())
 }
