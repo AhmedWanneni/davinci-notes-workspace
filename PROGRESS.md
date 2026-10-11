@@ -4,6 +4,11 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Editor Insert Menu Phase 1 (implementation complete; native verification pending)**
+Added the immutable, lazy-loaded `@app/editor` insert registry for headings, lists, task, quote, divider, callout, code, table, math, footnote, and HTML. Insertions use CodeMirror snippets at the selection captured before the menu opens, preserve one undo step, add blank-line padding for block constructs, focus the editor, and support Tab/Shift-Tab placeholders. The header `...` control now lazy-loads a flat Radix Popover with grouping, label/keyword search, keyboard navigation, and session-local recent items. No dependencies were added; Mermaid and KaTeX are not loaded just by opening the menu. ADR-0175 records the boundary. Focused insertion tests, editor typecheck/lint, and desktop lint pass. Desktop-wide typecheck remains blocked by pre-existing workspace/canvas/storybook/sync errors; native app verification and bundle/startup comparison remain pending.
+
+**Next:** Native Phase 1 smoke test for all insert templates and bundle/startup measurements against `main`.
+
 **Editor feature-folder refactor (complete; native smoke test pending local GUI access)**
 Reorganized `packages/editor` into `theme/`, `settings/`, `live-preview/`, `vim/`, `links/`, `embeds/`, `blocks/{code,html,math,mermaid,table}/`, `clipboard/`, and `integration/`; retained `Editor.tsx`, `MarkdownView.tsx`, `Editor.module.scss`, and `index.ts` at package root. Tests remain adjacent to their source files and public exports from `index.ts` are unchanged. Added required feature-folder barrels and the scoped ESLint boundary override needed for the package-internal folder imports; external consumer boundary checks remain enabled. Updated desktop test deep imports and editor TypeScript include paths. No dependencies or runtime logic changed.
 
