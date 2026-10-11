@@ -96,6 +96,7 @@ export function App() {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
   const tagIndex = useWorkspaceStore((state) => state.tagIndex);
   const activeContent = activeNotePath
@@ -347,7 +348,7 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
-    void loadEditorFont(editorFont)
+    void loadEditorFont(editorFont, editorCustomFont)
       .then((font) => {
         if (!cancelled) {
           document.body.style.setProperty("--font-editor", font.cssFamily);
@@ -361,7 +362,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [editorFont]);
+  }, [editorFont, editorCustomFont]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {

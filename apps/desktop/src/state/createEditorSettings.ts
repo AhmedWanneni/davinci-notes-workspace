@@ -3,6 +3,7 @@ import {
   clampEditorFontSize,
   isEditorFont,
   saveEditorSetting,
+  validateAndSanitizeCustomFont,
   type EditorFont,
   type EditorSettings,
   type EditorSettingsStorage,
@@ -21,6 +22,7 @@ export interface EditorSettingsState extends EditorSettings {
   loadSettings: () => Promise<void>;
   previewEditorFontSize: (size: number) => void;
   setEditorFont: (font: EditorFont) => Promise<void>;
+  setEditorCustomFont: (customFont: string) => Promise<void>;
   setEditorFontSize: (size: number) => Promise<void>;
   setStrictLineBreaks: (enabled: boolean) => Promise<void>;
   setUseVimMode: (enabled: boolean) => Promise<void>;
@@ -48,6 +50,9 @@ export function createEditorSettings(
       try {
         const db = await getVaultIndexDb();
         const editorFont = await withDbLock(() => getSetting(db, "editorFont"));
+        const editorCustomFont = await withDbLock(() =>
+          getSetting(db, "editorCustomFont"),
+        );
         const editorFontSize = await withDbLock(() =>
           getSetting(db, "editorFontSize"),
         );
@@ -58,10 +63,14 @@ export function createEditorSettings(
         const attachmentSettings = await withDbLock(() =>
           getSetting(db, "attachmentSettings"),
         );
+        const validatedCustom = validateAndSanitizeCustomFont(editorCustomFont);
         set({
           editorFont: isEditorFont(editorFont)
             ? editorFont
             : defaultEditorSettings.editorFont,
+          editorCustomFont: validatedCustom.isValid
+            ? validatedCustom.sanitized
+            : "",
           editorFontSize: clampEditorFontSize(editorFontSize),
           strictLineBreaks: strictLineBreaks === "true",
           useVimMode: useVimMode === "true",
@@ -81,6 +90,22 @@ export function createEditorSettings(
         );
       } catch (error) {
         console.error("Failed to save editor font", error);
+      }
+    },
+
+    setEditorCustomFont: async (customFont: string) => {
+      set({ editorCustomFont: customFont });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(
+            vaultEditorSettingsStorage(db),
+            "editorCustomFont",
+            customFont,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to save custom editor font", error);
       }
     },
 

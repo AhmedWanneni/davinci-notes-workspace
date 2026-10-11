@@ -106,6 +106,8 @@ export function EditorArea({
   );
 
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
   const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setVimModeState = useWorkspaceStore((state) => state.setVimModeState);
   const saveNoteNow = useWorkspaceStore((state) => state.saveNoteNow);
@@ -120,7 +122,7 @@ export function EditorArea({
   useEffect(() => {
     editorViewRef.current?.requestMeasure();
     editorViewRef.current?.focus();
-  }, [editorFontSize, activeNotePath]);
+  }, [editorFontSize, editorFont, editorCustomFont, activeNotePath]);
 
   return (
     <div

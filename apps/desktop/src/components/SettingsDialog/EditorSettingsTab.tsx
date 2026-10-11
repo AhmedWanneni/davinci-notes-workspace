@@ -1,19 +1,34 @@
 import { Button, Toggle } from "@app/design-system";
 import {
-  editorFonts,
+  DEFAULT_EDITOR_FONT_SIZE,
   isEditorFont,
   MAX_EDITOR_FONT_SIZE,
   MIN_EDITOR_FONT_SIZE,
+  validateAndSanitizeCustomFont,
+  type EditorFont,
 } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
 import styles from "./SettingsDialog.module.scss";
 
+const CURATED_FONT_OPTIONS: Array<{ value: EditorFont; label: string }> = [
+  { value: "system", label: "System UI" },
+  { value: "serif", label: "Serif" },
+  { value: "monospace", label: "Monospace" },
+  { value: "montserrat", label: "Montserrat" },
+  { value: "raleway", label: "Raleway" },
+  { value: "custom", label: "Custom" },
+];
+
 export function EditorSettingsTab() {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
   const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setEditorFont = useWorkspaceStore((state) => state.setEditorFont);
+  const setEditorCustomFont = useWorkspaceStore(
+    (state) => state.setEditorCustomFont,
+  );
   const previewEditorFontSize = useWorkspaceStore(
     (state) => state.previewEditorFontSize,
   );
@@ -26,6 +41,16 @@ export function EditorSettingsTab() {
   );
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
   const setUseVimMode = useWorkspaceStore((state) => state.setUseVimMode);
+
+  const customValidation = validateAndSanitizeCustomFont(editorCustomFont);
+
+  const displayOptions =
+    editorFont === "roboto"
+      ? [
+          ...CURATED_FONT_OPTIONS,
+          { value: "roboto" as EditorFont, label: "Roboto" },
+        ]
+      : CURATED_FONT_OPTIONS;
 
   return (
     <div className={styles["settings-tab-content"]}>
@@ -44,15 +69,37 @@ export function EditorSettingsTab() {
             className={styles["settings-select"]}
             aria-label="Editor Font"
           >
-            {editorFonts.map((font) => (
-              <option key={font} value={font}>
-                {font === "system"
-                  ? "System UI"
-                  : font[0].toUpperCase() + font.slice(1)}
+            {displayOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
               </option>
             ))}
           </select>
         </SettingsRow>
+
+        {editorFont === "custom" && (
+          <SettingsRow
+            title="Custom Font Name"
+            description="Type the name of a font installed on your system (e.g. Menlo, Fira Code, Georgia)."
+          >
+            <div className={styles["settings-custom-font-control"]}>
+              <input
+                type="text"
+                value={editorCustomFont}
+                aria-label="Custom Font Name"
+                placeholder="e.g. Fira Code"
+                maxLength={50}
+                onChange={(e) => void setEditorCustomFont(e.target.value)}
+                className={styles["settings-text-input"]}
+              />
+              {!customValidation.isValid && editorCustomFont.length > 0 && (
+                <span className={styles["settings-field-error"]}>
+                  {customValidation.error}
+                </span>
+              )}
+            </div>
+          </SettingsRow>
+        )}
 
         <SettingsRow
           title="Editor Font Size"
@@ -89,7 +136,7 @@ export function EditorSettingsTab() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => void setEditorFontSize(16)}
+              onClick={() => void setEditorFontSize(DEFAULT_EDITOR_FONT_SIZE)}
             >
               Reset
             </Button>
