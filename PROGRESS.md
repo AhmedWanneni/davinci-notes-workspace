@@ -4,6 +4,9 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Fix — heading `#` marker cropped (24fb40e)**
+Revealed markers (`.cm-marker-active`, `.cm-activeLine .cm-markdown-syntax`) were dimmed with `opacity: 0.5` on a wrapper span sized at the 16px body font, while the heading `#` inside renders at heading size (~26px for H1) and overflows the wrapper's box by ~3px. WebKit (WKWebView) bounds the opacity group to that box and clips the glyph. Markers are now coloured with `--color-text-faint` (no opacity). Verified in Playwright WebKit (JetBrains Mono, vim on/off); **native Tauri window still needs Ahmed's visual confirmation** (headless WebKit didn't show the clip, so this is the most likely cause, not a proven one). Next up unchanged.
+
 **Editor styling tokens — Curated Font List & Vim Monospace Mode Settings (complete, ADR-0174)**
 Expanded curated font options in editor settings with self-hosted lazy Latin WOFF2 assets and Vim monospace mode cursor harmonization:
 1. Curated font roster:
