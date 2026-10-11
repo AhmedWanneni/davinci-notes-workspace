@@ -27,6 +27,7 @@ export interface EditorSettingsState extends EditorSettings {
   setStrictLineBreaks: (enabled: boolean) => Promise<void>;
   setUseVimMode: (enabled: boolean) => Promise<void>;
   setVimMonospaceMode: (enabled: boolean) => Promise<void>;
+  setSlashMenuEnabled: (enabled: boolean) => Promise<void>;
   setAttachmentSettings: (settings: AttachmentSettings) => Promise<void>;
 }
 
@@ -64,6 +65,9 @@ export function createEditorSettings(
         const vimMonospaceMode = await withDbLock(() =>
           getSetting(db, "vimMonospaceMode"),
         );
+        const slashMenuEnabled = await withDbLock(() =>
+          getSetting(db, "slashMenuEnabled"),
+        );
         const attachmentSettings = await withDbLock(() =>
           getSetting(db, "attachmentSettings"),
         );
@@ -82,6 +86,10 @@ export function createEditorSettings(
             vimMonospaceMode === null
               ? defaultEditorSettings.vimMonospaceMode
               : vimMonospaceMode === "true",
+          slashMenuEnabled:
+            slashMenuEnabled === null
+              ? defaultEditorSettings.slashMenuEnabled
+              : slashMenuEnabled === "true",
           attachmentSettings: parseAttachmentSettings(attachmentSettings),
         });
       } catch (error) {
@@ -183,6 +191,18 @@ export function createEditorSettings(
         );
       } catch (error) {
         console.error("Failed to save Vim Monospace Mode setting", error);
+      }
+    },
+
+    setSlashMenuEnabled: async (enabled: boolean) => {
+      set({ slashMenuEnabled: enabled });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(vaultEditorSettingsStorage(db), "slashMenuEnabled", enabled),
+        );
+      } catch (error) {
+        console.error("Failed to save Slash Menu setting", error);
       }
     },
 

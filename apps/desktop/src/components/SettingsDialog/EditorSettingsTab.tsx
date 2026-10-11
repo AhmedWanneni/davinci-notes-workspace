@@ -81,6 +81,8 @@ export function EditorSettingsTab() {
   const setVimMonospaceMode = useWorkspaceStore(
     (state) => state.setVimMonospaceMode,
   );
+  const slashMenuEnabled = useWorkspaceStore((state) => state.slashMenuEnabled);
+  const setSlashMenuEnabled = useWorkspaceStore((state) => state.setSlashMenuEnabled);
 
   const customValidation = validateAndSanitizeCustomFont(editorCustomFont);
 
@@ -215,6 +217,17 @@ export function EditorSettingsTab() {
             checked={useVimMode}
             onCheckedChange={(checked) => void setUseVimMode(checked)}
             aria-label="Vim Keybindings"
+          />
+        </SettingsRow>
+
+        <SettingsRow
+          title="Slash menu"
+          description="Show insert options when typing / at the start of a line or after whitespace."
+        >
+          <Toggle
+            checked={slashMenuEnabled}
+            onCheckedChange={(checked) => void setSlashMenuEnabled(checked)}
+            aria-label="Slash menu"
           />
         </SettingsRow>
 

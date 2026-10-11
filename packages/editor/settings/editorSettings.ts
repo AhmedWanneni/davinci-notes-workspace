@@ -22,6 +22,7 @@ export interface EditorSettings {
   strictLineBreaks: boolean;
   useVimMode: boolean;
   vimMonospaceMode: boolean;
+  slashMenuEnabled: boolean;
 }
 
 export interface EditorSettingsStorage {
@@ -40,6 +41,7 @@ export const defaultEditorSettings: EditorSettings = {
   strictLineBreaks: false,
   useVimMode: false,
   vimMonospaceMode: true,
+  slashMenuEnabled: true,
 };
 
 export function isEditorFont(
@@ -130,6 +132,7 @@ export async function loadEditorSettings(
   const strictLineBreaks = await storage.get("strictLineBreaks");
   const useVimMode = await storage.get("useVimMode");
   const vimMonospaceMode = await storage.get("vimMonospaceMode");
+  const slashMenuEnabled = await storage.get("slashMenuEnabled");
 
   const validatedCustom = validateAndSanitizeCustomFont(editorCustomFont);
 
@@ -145,6 +148,10 @@ export async function loadEditorSettings(
       vimMonospaceMode === null
         ? defaultEditorSettings.vimMonospaceMode
         : vimMonospaceMode === "true",
+    slashMenuEnabled:
+      slashMenuEnabled === null
+        ? defaultEditorSettings.slashMenuEnabled
+        : slashMenuEnabled === "true",
   };
 }
 
