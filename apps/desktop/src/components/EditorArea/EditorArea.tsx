@@ -39,6 +39,7 @@ export interface EditorAreaProps {
   onTagClick: (tagKey: string) => void;
   pluginManager?: PluginLifecycleManager | null;
   onEditorReady?: (editor: EditorPluginAdapter | null) => void;
+  onViewReady?: (view: EditorView | null) => void;
 }
 
 export function EditorArea({
@@ -48,6 +49,7 @@ export function EditorArea({
   onTagClick,
   pluginManager,
   onEditorReady,
+  onViewReady,
 }: EditorAreaProps) {
   const content = useWorkspaceStore(
     (state) => (activeNotePath ? state.notesContent[activeNotePath] : "") || "",
@@ -257,6 +259,7 @@ export function EditorArea({
                 }}
                 onViewReady={(view) => {
                   editorViewRef.current = view;
+                  onViewReady?.(view);
                   view?.focus();
                 }}
               />

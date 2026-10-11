@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import type { EditorSelection } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
 import { Dialog, DialogContent } from "@app/design-system";
 import fuzzysort from "fuzzysort";
 import { FileText, Gear } from "@phosphor-icons/react";
+import { insertItem, insertRegistry } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { EmptyState } from "../EmptyState";
 import type { RegisteredPluginCommand } from "@app/plugin-runtime";
+import { buildPaletteCommands } from "./buildPaletteCommands";
 
-interface CommandPaletteProps {
+export interface CommandPaletteProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSelectNote: (path: string) => void;
@@ -18,6 +22,9 @@ interface CommandPaletteProps {
   onSaveVersionNow?: () => void;
   pluginCommands?: RegisteredPluginCommand[];
   onInvokePluginCommand?: (id: string) => void;
+  editorView?: EditorView | null;
+  onInsertSuccess?: (itemId: string) => void;
+  recentInsertIds?: readonly string[];
 }
 
 export function CommandPalette({
@@ -32,6 +39,9 @@ export function CommandPalette({
   onSaveVersionNow,
   pluginCommands = [],
   onInvokePluginCommand,
+  editorView,
+  onInsertSuccess,
+  recentInsertIds = [],
 }: CommandPaletteProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const openNotes = useWorkspaceStore((state) => state.openNotes);
@@ -41,83 +51,33 @@ export function CommandPalette({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const editorSelectionRef = useRef<EditorSelection | null>(null);
 
-  // Reset state when opened
+  const isEditableEditor = Boolean(
+    editorView && editorView.state.facet(EditorView.editable),
+  );
+
   useEffect(() => {
     if (isOpen) {
       setQuery("");
       setSelectedIndex(0);
-      // Small timeout to allow dialog to mount before focusing
+      editorSelectionRef.current = editorView?.state.selection ?? null;
       setTimeout(() => inputRef.current?.focus(), 0);
     }
-  }, [isOpen]);
+  }, [isOpen, editorView]);
 
-  const preparedTargets = useMemo(() => {
-    const targets: {
-      path?: string;
-      title: string;
-      recencyScore: number;
-      isCommand?: boolean;
-      id?: string;
-    }[] = allNotePaths.map((path) => {
-      const title = path.replace(/\.md$/i, "").split(/[/\\]/).pop() ?? path;
-      const recencyScore = openNotes.includes(path) ? 1000 : 0;
-      return { path, title, recencyScore };
-    });
-    if (useVimMode) {
-      targets.push({
-        isCommand: true,
-        id: "action:disable-vim",
-        title: "Disable Vim keybindings",
-        recencyScore: 600,
-      });
-    }
-    targets.push({
-      isCommand: true,
-      id: "action:settings",
-      title: "Open Settings",
-      recencyScore: 500,
-    });
-    targets.push({
-      isCommand: true,
-      id: "action:tags",
-      title: "Browse Tags",
-      recencyScore: 400,
-    });
-    targets.push({
-      isCommand: true,
-      id: "action:save-version",
-      title: "Save version now",
-      recencyScore: 350,
-    });
-    targets.push({
-      isCommand: true,
-      id: "action:drive-sign-in",
-      title: "Sign in to Drive",
-      recencyScore: 300,
-    });
-    targets.push({
-      isCommand: true,
-      id: "action:drive-disconnect",
-      title: "Disconnect Drive",
-      recencyScore: 290,
-    });
-    targets.push({
-      isCommand: true,
-      id: "action:drive-refresh",
-      title: "Refresh Drive Session",
-      recencyScore: 280,
-    });
-    for (const command of pluginCommands) {
-      targets.push({
-        isCommand: true,
-        id: `plugin:${command.id}`,
-        title: command.title,
-        recencyScore: 200,
-      });
-    }
-    return targets;
-  }, [allNotePaths, openNotes, useVimMode, pluginCommands]);
+  const preparedTargets = useMemo(
+    () =>
+      buildPaletteCommands({
+        allNotePaths,
+        openNotes,
+        useVimMode,
+        pluginCommands,
+        isEditableEditor,
+        recentInsertIds,
+      }),
+    [allNotePaths, openNotes, useVimMode, pluginCommands, isEditableEditor, recentInsertIds],
+  );
 
   const results = useMemo(() => {
     if (!query) {
@@ -146,6 +106,7 @@ export function CommandPalette({
   }, [query, preparedTargets]);
 
   const runCommand = (id?: string) => {
+    if (!id) return;
     if (id === "action:disable-vim") void setUseVimMode(false);
     if (id === "action:settings") onOpenSettings?.();
     if (id === "action:tags") onOpenTags?.();
@@ -153,15 +114,31 @@ export function CommandPalette({
     if (id === "action:drive-sign-in") onDriveSignIn?.();
     if (id === "action:drive-disconnect") onDriveDisconnect?.();
     if (id === "action:drive-refresh") onDriveRefresh?.();
-    const pluginId = id?.startsWith("plugin:") ? id.slice(7) : undefined;
+    if (id.startsWith("insert:")) {
+      const itemId = id.slice(7);
+      const item = insertRegistry.find((entry) => entry.id === itemId);
+      if (item && editorView && editorView.state.facet(EditorView.editable)) {
+        const selection = editorSelectionRef.current ?? editorView.state.selection;
+        insertItem(editorView, item, selection);
+        onInsertSuccess?.(item.id);
+        editorView.focus();
+      }
+    }
+    const pluginId = id.startsWith("plugin:") ? id.slice(7) : undefined;
     const command = pluginCommands.find((item) => item.id === pluginId);
     if (command) onInvokePluginCommand?.(command.id);
   };
 
-  // Reset selection when results change
   useEffect(() => {
     setSelectedIndex(0);
   }, [results]);
+
+  const handleClose = () => {
+    onOpenChange(false);
+    if (editorView) {
+      editorView.focus();
+    }
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
@@ -184,12 +161,11 @@ export function CommandPalette({
           } else if (selected.obj.path) {
             onSelectNote(selected.obj.path);
           }
-          onOpenChange(false);
+          handleClose();
         }
       } else if (query.trim() !== "") {
-        // Create new note
         onSelectNote(query.trim());
-        onOpenChange(false);
+        handleClose();
       }
     }
   };
@@ -205,7 +181,7 @@ export function CommandPalette({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); else onOpenChange(true); }}>
       <DialogContent
         className="command-palette__dialog"
         showCloseButton={false}
@@ -243,7 +219,7 @@ export function CommandPalette({
                   } else if (result.obj.path) {
                     onSelectNote(result.obj.path);
                   }
-                  onOpenChange(false);
+                  handleClose();
                 }}
                 onMouseEnter={() => setSelectedIndex(index)}
               >

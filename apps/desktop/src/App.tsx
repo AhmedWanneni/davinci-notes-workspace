@@ -85,6 +85,7 @@ export function App() {
   const [aiProviderName, setAiProviderName] = useState("AI");
   const [aiTransmitting, setAiTransmitting] = useState(false);
   const editorRef = useRef<EditorPluginAdapter | null>(null);
+  const editorViewRef = useRef<import("@codemirror/view").EditorView | null>(null);
   const activeNoteRef = useRef<string | null>(null);
   const pendingCitationRef = useRef<CitationNavigationTarget | null>(null);
 
@@ -646,6 +647,9 @@ export function App() {
               onTagClick={handleTagClick}
               pluginManager={pluginManager}
               onEditorReady={handleEditorReady}
+              onViewReady={(view) => {
+                editorViewRef.current = view;
+              }}
             />
           )}
         </main>
@@ -738,6 +742,7 @@ export function App() {
             onDriveDisconnect={() => void handleDriveDisconnect()}
             pluginCommands={pluginCommands}
             onInvokePluginCommand={(id) => void invokePluginCommand(id)}
+            editorView={editorViewRef.current}
           />
         )}
       </Suspense>
