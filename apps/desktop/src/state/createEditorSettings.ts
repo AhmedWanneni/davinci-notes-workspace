@@ -26,6 +26,7 @@ export interface EditorSettingsState extends EditorSettings {
   setEditorFontSize: (size: number) => Promise<void>;
   setStrictLineBreaks: (enabled: boolean) => Promise<void>;
   setUseVimMode: (enabled: boolean) => Promise<void>;
+  setVimMonospaceMode: (enabled: boolean) => Promise<void>;
   setAttachmentSettings: (settings: AttachmentSettings) => Promise<void>;
 }
 
@@ -60,6 +61,9 @@ export function createEditorSettings(
           getSetting(db, "strictLineBreaks"),
         );
         const useVimMode = await withDbLock(() => getSetting(db, "useVimMode"));
+        const vimMonospaceMode = await withDbLock(() =>
+          getSetting(db, "vimMonospaceMode"),
+        );
         const attachmentSettings = await withDbLock(() =>
           getSetting(db, "attachmentSettings"),
         );
@@ -74,6 +78,10 @@ export function createEditorSettings(
           editorFontSize: clampEditorFontSize(editorFontSize),
           strictLineBreaks: strictLineBreaks === "true",
           useVimMode: useVimMode === "true",
+          vimMonospaceMode:
+            vimMonospaceMode === null
+              ? defaultEditorSettings.vimMonospaceMode
+              : vimMonospaceMode === "true",
           attachmentSettings: parseAttachmentSettings(attachmentSettings),
         });
       } catch (error) {
@@ -159,6 +167,22 @@ export function createEditorSettings(
         );
       } catch (error) {
         console.error("Failed to save Vim Keybindings setting", error);
+      }
+    },
+
+    setVimMonospaceMode: async (enabled: boolean) => {
+      set({ vimMonospaceMode: enabled });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(
+            vaultEditorSettingsStorage(db),
+            "vimMonospaceMode",
+            enabled,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to save Vim Monospace Mode setting", error);
       }
     },
 

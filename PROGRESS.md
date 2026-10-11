@@ -4,32 +4,29 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Current Focus
+**Editor styling tokens — Curated Font List & Vim Monospace Mode Settings (complete, ADR-0174)**
+Expanded curated font options in editor settings with self-hosted lazy Latin WOFF2 assets and Vim monospace mode cursor harmonization:
+1. Curated font roster:
+   - System default (`system`), loads nothing (0 KB).
+   - Sans: Inter (`inter`), IBM Plex Sans (`ibm-plex-sans`, 400/500/600/700 + italic).
+   - Serif: Literata (`literata`), Source Serif 4 (`source-serif-4`).
+   - Monospace: JetBrains Mono (`jetbrains-mono`).
+   - Display: Montserrat (`montserrat`), Raleway (`raleway`).
+   - Custom: locally installed typeface name entered by user with strict sanitization (`^[a-zA-Z0-9\s\-',.]+$`).
+2. Self-hosted delivery & bundle impact:
+   - All fonts delivered as local WOFF2 files (Latin subset only, `@font-display: swap`).
+   - Zero runtime requests to external CDNs (`fonts.googleapis.com`).
+   - Loaded dynamically on selection via code-split CSS imports; initial startup bundle overhead is 0 KB.
+   - Total WOFF2 assets across all 7 curated fonts: 750.5 KB (16 files).
+3. Vim monospace mode:
+   - Added setting "Use monospace font in vim mode" (`vimMonospaceMode: boolean`, default `true`).
+   - When Vim mode is enabled and `vimMonospaceMode` is active, the editor dynamically overrides the active font with JetBrains Mono to keep the block cursor width uniform on all characters ("w", "i", "m", and space).
+   - Disabling Vim mode or toggling the setting off reverts smoothly to the user's selected font without reloading the editor.
+4. Settings UI & measurement:
+   - Curated font selector organized with `<optgroup>` categories (Sans, Serif, Monospace, Display, Custom).
+   - Uses plain text labels in dropdown to avoid eagerly downloading all webfonts upfront.
+   - Live application via `--font-editor` and `--editor-font-size` CSS variables, triggering `view.requestMeasure()` after `document.fonts.load(...)` settles.
 
-**Editor styling tokens — Phase 5 complete (Editor Font Size and Font Family Settings, ADR-0173)**
-Implemented live editor font sizing and curated/custom font family settings with self-hosted font delivery and CSS injection prevention:
-1. `editorSettings.ts`:
-   - Curated fonts tuple: `["system", "serif", "monospace", "montserrat", "raleway", "custom", "roboto"]`.
-   - `validateAndSanitizeCustomFont`: enforces 50-char cap, regex validation (`^[a-zA-Z0-9\s\-',.]+$`), rejection of dangerous characters (`;`, `{`, `}`, `<`, `>`, `"`, `\`), safe escaping, and fallback to `var(--font-ui)`.
-   - `clampEditorFontSize`: clamps numeric inputs from 12 to 28 px (suggested 12–24 px range in settings UI), defaulting to 16px.
-   - Persistence layer: SQLite `settings` table via `withDbLock` (`editorFont`, `editorCustomFont`, `editorFontSize`).
-2. Font delivery & registry (`editorFontRegistry.ts`):
-   - Zero remote network requests: self-hosted `@fontsource-variable/montserrat` (37.9KB normal + 39.6KB italic WOFF2) and `@fontsource-variable/raleway` (48.2KB normal + 50.2KB italic WOFF2). 0KB on initial startup; loaded lazily on selection.
-   - `serif` and `monospace` use OS-native system stacks with zero asset weight.
-   - Added `font-display: swap` to all `@font-face` definitions to eliminate invisible text flashes during font swaps.
-   - `document.fonts.load(...)` with `allSettled` and CodeMirror `view.requestMeasure()` re-measurement.
-3. Settings UI (`EditorSettingsTab.tsx`):
-   - Curated dropdown (System UI, Serif, Monospace, Montserrat, Raleway, Custom).
-   - Dynamic custom font text input with live validation error messaging.
-   - Range slider + number input (12–24px) with Reset button restoring 16px.
-   - Live CSS variable application (`--editor-font-size`, `--font-editor`) without rebuilding extensions or themes.
-4. Verification:
-   - Body and H1 font sizes scale proportionally (12px -> 19.416px, 16px -> 25.888px, 24px -> 38.832px; Reset -> 16px).
-   - Caret lands accurately at the end of wrapped lines across all fonts (dist = 0px).
-   - Offline mode verified: 0 external requests, all fonts render.
-   - Custom font tested: valid (Menlo), non-existent (NonExistentFont999 with fallback), malicious injection (`x; } body { display:none` rejected without DOM disruption).
-   - Wheel and scrollbar scrolling verified on 500+ line documents.
-   - Staged across 3 scoped commits with all git hooks and public-token audit passing.
 
 **Bug Fix — Vim mode initial load block cursor timing**
 - Resolved timing issue where lazy-loaded `@replit/codemirror-vim` extension attached without selection/measure dispatch, leaving native 2px thin cursor visible until first motion key (`h`/`j`/`k`/`l`).

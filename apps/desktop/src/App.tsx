@@ -97,6 +97,8 @@ export function App() {
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
+  const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const vimMonospaceMode = useWorkspaceStore((state) => state.vimMonospaceMode);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
   const tagIndex = useWorkspaceStore((state) => state.tagIndex);
   const activeContent = activeNotePath
@@ -348,7 +350,9 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
-    void loadEditorFont(editorFont, editorCustomFont)
+    const effectiveFont =
+      useVimMode && vimMonospaceMode ? "jetbrains-mono" : editorFont;
+    void loadEditorFont(effectiveFont, editorCustomFont)
       .then((font) => {
         if (!cancelled) {
           document.body.style.setProperty("--font-editor", font.cssFamily);
@@ -362,7 +366,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [editorFont, editorCustomFont]);
+  }, [editorFont, editorCustomFont, useVimMode, vimMonospaceMode]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {

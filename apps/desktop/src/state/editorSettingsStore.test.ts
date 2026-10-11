@@ -31,6 +31,7 @@ describe("createEditorSettings", () => {
     expect(state.editorFont).toBe("system");
     expect(state.editorCustomFont).toBe("");
     expect(state.editorFontSize).toBe(16);
+    expect(state.vimMonospaceMode).toBe(true);
   });
 
   it("loads and sanitizes persisted settings from database", async () => {
@@ -38,6 +39,7 @@ describe("createEditorSettings", () => {
       if (key === "editorFont") return "custom";
       if (key === "editorCustomFont") return "Fira Code";
       if (key === "editorFontSize") return "18";
+      if (key === "vimMonospaceMode") return "false";
       return null;
     });
 
@@ -46,6 +48,7 @@ describe("createEditorSettings", () => {
     expect(state.editorFont).toBe("custom");
     expect(state.editorCustomFont).toBe("Fira Code");
     expect(state.editorFontSize).toBe(18);
+    expect(state.vimMonospaceMode).toBe(false);
   });
 
   it("updates and persists font selection", async () => {
@@ -65,6 +68,16 @@ describe("createEditorSettings", () => {
       expect.anything(),
       "editorCustomFont",
       "Menlo",
+    );
+  });
+
+  it("updates and persists vimMonospaceMode", async () => {
+    await state.setVimMonospaceMode(false);
+    expect(state.vimMonospaceMode).toBe(false);
+    expect(setSettingMock).toHaveBeenCalledWith(
+      expect.anything(),
+      "vimMonospaceMode",
+      "false",
     );
   });
 
