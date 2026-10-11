@@ -6,11 +6,11 @@ import { markdown } from "@codemirror/lang-markdown";
 import { Strikethrough } from "@lezer/markdown";
 import { loadVimExtension } from "./vimExtension";
 import { getCM, Vim } from "@replit/codemirror-vim";
-import { livePreviewExtension } from "./livePreviewExtension";
-import { linkExtension } from "./linkExtension";
-import { highlightExtension } from "./highlightExtension";
-import { listExtension } from "./listExtension";
-import { tagExtension } from "./tagExtension";
+import { livePreviewExtension } from "../live-preview/livePreviewExtension";
+import { linkExtension } from "../links/linkExtension";
+import { highlightExtension } from "../live-preview/highlightExtension";
+import { listExtension } from "../live-preview/listExtension";
+import { tagExtension } from "../live-preview/tagExtension";
 
 if (typeof Range.prototype.getClientRects !== "function") {
   Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
