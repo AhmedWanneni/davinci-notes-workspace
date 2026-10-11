@@ -10,16 +10,13 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
       {mode === "capture" ? (
         <>
           <span className={styles["quick-capture-hint-item"]}>
-            <kbd className={styles["quick-capture-kbd"]}>⏎</kbd> Save
-          </span>
-          <span className={styles["quick-capture-hint-item"]}>
-            <kbd className={styles["quick-capture-kbd"]}>⇧⏎</kbd> Newline
+            <kbd className={styles["quick-capture-kbd"]}>⌘S</kbd> Save
           </span>
           <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>Tab</kbd> Search
           </span>
           <span className={styles["quick-capture-hint-item"]}>
-            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Dismiss
+            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
           </span>
         </>
       ) : (

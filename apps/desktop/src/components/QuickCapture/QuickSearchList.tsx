@@ -1,5 +1,5 @@
 import type { SearchResult } from "@app/indexer";
-import styles from "./QuickCapture.module.scss";
+import styles from "./QuickSearchList.module.scss";
 
 export function formatNoteTitle(path: string, title?: string): string {
   const trimmed = title?.trim();

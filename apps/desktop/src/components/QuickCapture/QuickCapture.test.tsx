@@ -11,11 +11,13 @@ describe("QuickCapture", () => {
       screen.getByRole("textbox", { name: /quick capture text/i }),
     ).toBeDefined();
     expect(screen.getByText(/0 \/ 10000/)).toBeDefined();
-    expect(screen.getByText(/Save/i)).toBeDefined();
-    expect(screen.getByText(/Dismiss/i)).toBeDefined();
+    expect(screen.getByRole("button", { name: /save note/i })).toBeDefined();
+    expect(
+      screen.getAllByRole("button", { name: /quit quick capture/i }).length,
+    ).toBeGreaterThan(0);
   });
 
-  it("submits on Enter without shift and clears input", async () => {
+  it("submits on Cmd+S and clears input", async () => {
     const handleSave = vi.fn().mockResolvedValue(undefined);
     render(<QuickCapture onSave={handleSave} />);
 
@@ -24,7 +26,7 @@ describe("QuickCapture", () => {
     });
     fireEvent.change(textarea, { target: { value: "My captured note" } });
 
-    fireEvent.keyDown(textarea, { key: "Enter", shiftKey: false });
+    fireEvent.keyDown(textarea, { key: "s", metaKey: true });
 
     await waitFor(() => {
       expect(handleSave).toHaveBeenCalledWith("My captured note");
@@ -32,7 +34,28 @@ describe("QuickCapture", () => {
     expect((textarea as HTMLTextAreaElement).value).toBe("");
   });
 
-  it("does not submit on Shift+Enter (allows multiline typing)", () => {
+  it("saves on clicking the Save note button", async () => {
+    const handleSave = vi.fn().mockResolvedValue(undefined);
+    render(<QuickCapture onSave={handleSave} />);
+
+    const saveButton = screen.getByRole("button", { name: /save note/i });
+    expect((saveButton as HTMLButtonElement).disabled).toBe(true);
+
+    const textarea = screen.getByRole("textbox", {
+      name: /quick capture text/i,
+    });
+    fireEvent.change(textarea, { target: { value: "Saved via button" } });
+
+    expect((saveButton as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(saveButton);
+
+    await waitFor(() => {
+      expect(handleSave).toHaveBeenCalledWith("Saved via button");
+    });
+    expect((textarea as HTMLTextAreaElement).value).toBe("");
+  });
+
+  it("does not submit on Enter without modifier (allows multiline typing)", () => {
     const handleSave = vi.fn();
     render(<QuickCapture onSave={handleSave} />);
 
@@ -41,7 +64,7 @@ describe("QuickCapture", () => {
     });
     fireEvent.change(textarea, { target: { value: "Line one" } });
 
-    fireEvent.keyDown(textarea, { key: "Enter", shiftKey: true });
+    fireEvent.keyDown(textarea, { key: "Enter" });
 
     expect(handleSave).not.toHaveBeenCalled();
   });
@@ -63,7 +86,22 @@ describe("QuickCapture", () => {
     expect((textarea as HTMLTextAreaElement).value).toBe("Unsaved text");
   });
 
-  it("dismisses silently when Enter is pressed on empty/whitespace text", async () => {
+  it("dismisses on clicking the Quit button", async () => {
+    const handleDismiss = vi.fn().mockResolvedValue(undefined);
+    render(<QuickCapture onDismiss={handleDismiss} />);
+
+    const quitButtons = screen.getAllByRole("button", {
+      name: /quit quick capture/i,
+    });
+    expect(quitButtons.length).toBeGreaterThan(0);
+    fireEvent.click(quitButtons[0]);
+
+    await waitFor(() => {
+      expect(handleDismiss).toHaveBeenCalled();
+    });
+  });
+
+  it("dismisses silently when save is triggered on empty/whitespace text", async () => {
     const handleSave = vi.fn();
     const handleDismiss = vi.fn().mockResolvedValue(undefined);
     render(<QuickCapture onSave={handleSave} onDismiss={handleDismiss} />);
@@ -73,7 +111,7 @@ describe("QuickCapture", () => {
     });
     fireEvent.change(textarea, { target: { value: "   " } });
 
-    fireEvent.keyDown(textarea, { key: "Enter", shiftKey: false });
+    fireEvent.keyDown(textarea, { key: "s", metaKey: true });
 
     await waitFor(() => {
       expect(handleDismiss).toHaveBeenCalled();
@@ -89,7 +127,7 @@ describe("QuickCapture", () => {
       name: /quick capture text/i,
     });
     fireEvent.change(textarea, { target: { value: "Failed note" } });
-    fireEvent.keyDown(textarea, { key: "Enter", shiftKey: false });
+    fireEvent.keyDown(textarea, { key: "s", metaKey: true });
 
     await waitFor(() => {
       expect(screen.getByRole("alert")).toBeDefined();

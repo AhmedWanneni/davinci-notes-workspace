@@ -129,7 +129,7 @@ fn create_and_show_capture_window(
     WebviewUrl::App("capture.html".into()),
   )
   .title("Quick Capture")
-  .inner_size(520.0, 160.0)
+  .inner_size(640.0, 340.0)
   .resizable(false)
   .always_on_top(true)
   .skip_taskbar(true);
@@ -152,6 +152,8 @@ fn create_and_show_capture_window(
     .build()
     .map_err(|e| format!("Failed to create capture window: {e}"))?;
 
+  let _ = window.show();
+  let _ = window.set_always_on_top(true);
   let _ = window.set_focus();
   let _ = window.emit("davinci-capture-focus", ());
   Ok(())

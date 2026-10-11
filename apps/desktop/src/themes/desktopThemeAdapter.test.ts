@@ -12,7 +12,12 @@ vi.mock("../vault/vaultCommands", () => ({
 }));
 
 import { ThemeLifecycleManager } from "./ThemeLifecycleManager";
-import { createDesktopThemeFsAdapter } from "./desktopThemeAdapter";
+import {
+  createDesktopThemeFsAdapter,
+  createDesktopThemeStorage,
+  applyThemeCss,
+  restoreCachedBuiltinTheme,
+} from "./desktopThemeAdapter";
 
 const manifest = {
   id: "fixture-theme",
@@ -65,5 +70,46 @@ describe("createDesktopThemeFsAdapter", () => {
       "fixture-theme",
       "theme.css",
     );
+  });
+
+  it("applies and removes theme CSS dynamically", () => {
+    applyThemeCss("theme-a", ".custom { color: red; }");
+    const style = document.querySelector("style[data-davinci-theme='theme-a']");
+    expect(style).not.toBeNull();
+    expect(style?.textContent).toBe(".custom { color: red; }");
+
+    applyThemeCss("theme-a", ".custom { color: blue; }");
+    expect(style?.textContent).toBe(".custom { color: blue; }");
+
+    applyThemeCss(null, null);
+    expect(document.querySelector("style[data-davinci-theme]")).toBeNull();
+  });
+
+  it("restores cached theme from localStorage", async () => {
+    const store = new Map<string, string>();
+    const storageMock = {
+      getItem: (key: string) => store.get(key) ?? null,
+      setItem: (key: string, val: string) => store.set(key, val),
+      removeItem: (key: string) => store.delete(key),
+      clear: () => store.clear(),
+      length: 0,
+      key: () => null,
+    };
+    Object.defineProperty(window, "localStorage", {
+      value: storageMock,
+      writable: true,
+      configurable: true,
+    });
+
+    const storage = createDesktopThemeStorage();
+    await storage.saveActiveTheme("persisted-theme", ".p { color: green; }");
+
+    const restoredId = restoreCachedBuiltinTheme();
+    expect(restoredId).toBe("persisted-theme");
+    const style = document.querySelector(
+      "style[data-davinci-theme='persisted-theme']",
+    );
+    expect(style).not.toBeNull();
+    expect(style?.textContent).toBe(".p { color: green; }");
   });
 });

@@ -134,7 +134,6 @@ pub fn run() {
             if let Some(state) = window.app_handle().try_state::<capture::CaptureState>() {
               state.record_blur();
             }
-            let _ = window.hide();
           }
           _ => {}
         }

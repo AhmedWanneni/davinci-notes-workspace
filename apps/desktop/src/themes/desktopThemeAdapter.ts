@@ -37,12 +37,21 @@ export function createDesktopThemeStorage(): ThemeStateStorage {
       try {
         const value: PersistedTheme = {
           id: themeId,
-          ...(source === "builtin" && css ? { css, source } : {}),
+          ...(css ? { css, source: source ?? undefined } : {}),
         };
         window.localStorage.setItem(
           ACTIVE_THEME_STORAGE_KEY,
           JSON.stringify(value),
         );
+        try {
+          const { emit } = await import("@tauri-apps/api/event");
+          await emit("davinci-theme-changed", {
+            id: themeId,
+            css: css ?? null,
+          });
+        } catch {
+          // Ignored outside Tauri
+        }
       } catch (error) {
         console.error("Failed to save active theme:", error);
       }
@@ -50,16 +59,35 @@ export function createDesktopThemeStorage(): ThemeStateStorage {
   };
 }
 
+export function applyThemeCss(
+  themeId: string | null,
+  css: string | null,
+): void {
+  const existing = document.querySelector(`style[${THEME_STYLE_ATTRIBUTE}]`);
+  if (!themeId || !css) {
+    existing?.remove();
+    return;
+  }
+  if (existing) {
+    existing.setAttribute(THEME_STYLE_ATTRIBUTE, themeId);
+    existing.textContent = css;
+    return;
+  }
+  const style = document.createElement("style");
+  style.setAttribute(THEME_STYLE_ATTRIBUTE, themeId);
+  style.textContent = css;
+  document.head.append(style);
+}
+
 export function restoreCachedBuiltinTheme(): string | null {
   const persisted = readPersistedTheme();
-  if (!persisted?.id || persisted.source !== "builtin" || !persisted.css)
+  if (!persisted?.id || !persisted.css) {
+    if (persisted?.id === null) {
+      applyThemeCss(null, null);
+    }
     return null;
-  const existing = document.querySelector("style[data-davinci-theme]");
-  if (existing) return persisted.id;
-  const style = document.createElement("style");
-  style.setAttribute(THEME_STYLE_ATTRIBUTE, persisted.id);
-  style.textContent = persisted.css;
-  document.head.append(style);
+  }
+  applyThemeCss(persisted.id, persisted.css);
   return persisted.id;
 }
 

@@ -19,3 +19,12 @@ export {
   QuickCaptureHints,
   type QuickCaptureHintsProps,
 } from "./QuickCaptureHints";
+export {
+  QuickCaptureHeader,
+  type QuickCaptureHeaderProps,
+} from "./QuickCaptureHeader";
+export {
+  QuickCaptureFooter,
+  type QuickCaptureFooterProps,
+} from "./QuickCaptureFooter";
+export { useCaptureTheme } from "./useCaptureTheme";

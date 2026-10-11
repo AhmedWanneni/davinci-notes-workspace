@@ -3,7 +3,7 @@ use tauri::{AppHandle, Manager};
 
 const SETTINGS_FILE_NAME: &str = "davinci-tray-settings.json";
 pub const DEFAULT_CAPTURE_SHORTCUT: &str = "Control+Alt+N";
-pub const DEFAULT_CAPTURE_TARGET: &str = "Inbox.md";
+pub const DEFAULT_CAPTURE_TARGET: &str = "temporary/Inbox.md";
 
 pub fn get_settings_path(app: &AppHandle) -> Option<PathBuf> {
   app.path().app_config_dir().ok().map(|dir| dir.join(SETTINGS_FILE_NAME))
@@ -67,12 +67,16 @@ pub fn save_capture_shortcut_to_disk(app: &AppHandle, shortcut: &str) {
 
 pub fn load_saved_capture_target(app: &AppHandle) -> String {
   let json = read_settings_json(app);
-  json
+  let target = json
     .get("captureTarget")
     .and_then(|v| v.as_str())
-    .unwrap_or(DEFAULT_CAPTURE_TARGET)
-    .to_string()
+    .unwrap_or(DEFAULT_CAPTURE_TARGET);
+  if target == "Inbox.md" {
+    return DEFAULT_CAPTURE_TARGET.to_string();
+  }
+  target.to_string()
 }
+
 
 pub fn save_capture_target_to_disk(app: &AppHandle, target: &str) {
   write_settings_json(app, |obj| {

@@ -16,7 +16,7 @@ describe("CaptureSettingsSection", () => {
         return Promise.resolve("Control+Alt+N");
       }
       if (cmd === "get_capture_target") {
-        return Promise.resolve("Inbox.md");
+        return Promise.resolve("temporary/Inbox.md");
       }
       return Promise.resolve();
     });
@@ -42,7 +42,7 @@ describe("CaptureSettingsSection", () => {
     }) as HTMLInputElement;
 
     expect(shortcutInput.value).toBe("Control+Alt+N");
-    expect(targetInput.value).toBe("Inbox.md");
+    expect(targetInput.value).toBe("temporary/Inbox.md");
   });
 
   it("invokes set_capture_shortcut on blur", async () => {

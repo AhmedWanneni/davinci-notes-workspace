@@ -2,6 +2,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "@app/design-system/styles/_global.scss";
 import { QuickCapture } from "../components/QuickCapture";
+import { restoreCachedBuiltinTheme } from "../themes";
+
+restoreCachedBuiltinTheme();
 
 const rootElement = document.getElementById("root");
 

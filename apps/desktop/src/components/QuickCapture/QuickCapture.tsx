@@ -2,10 +2,14 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { SearchResult } from "@app/indexer";
-import { QuickCaptureHints } from "./QuickCaptureHints";
+import { QuickCaptureFooter } from "./QuickCaptureFooter";
+import { QuickCaptureHeader } from "./QuickCaptureHeader";
 import { QuickSearchList } from "./QuickSearchList";
+import { useCaptureTheme } from "./useCaptureTheme";
 import { useQuickSearch } from "./useQuickSearch";
+import { restoreCachedBuiltinTheme } from "../../themes";
 import styles from "./QuickCapture.module.scss";
+import { Input } from "@app/design-system";
 
 export const MAX_CAPTURE_CHARS = 10_000;
 
@@ -32,6 +36,8 @@ export function QuickCapture(props: QuickCaptureProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  useCaptureTheme();
+
   const search = useQuickSearch({ searchFn });
   const { query, setQuery, results, selectedIndex, setSelectedIndex } = search;
 
@@ -41,6 +47,7 @@ export function QuickCapture(props: QuickCaptureProps) {
 
     let unlisten: (() => void) | undefined;
     void listen("davinci-capture-focus", () => {
+      restoreCachedBuiltinTheme();
       if (mode === "capture") textareaRef.current?.focus();
       else searchInputRef.current?.focus();
     })
@@ -110,22 +117,34 @@ export function QuickCapture(props: QuickCaptureProps) {
   };
 
   const handleCaptureKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    const isSave =
+      (e.key === "s" && (e.ctrlKey || e.metaKey)) ||
+      (e.key === "Enter" && (e.ctrlKey || e.metaKey));
+    const isQuit =
+      e.key === "Escape" ||
+      ((e.ctrlKey || e.metaKey) &&
+        (e.key.toLowerCase() === "q" || e.key.toLowerCase() === "w"));
+
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
       e.preventDefault();
       setMode("search");
     } else if (e.key === "Tab" && !e.shiftKey) {
       e.preventDefault();
       setMode("search");
-    } else if (e.key === "Escape") {
+    } else if (isQuit) {
       e.preventDefault();
       void handleDismiss();
-    } else if (e.key === "Enter" && !e.shiftKey) {
+    } else if (isSave) {
       e.preventDefault();
       void handleSave(text);
     }
   };
 
   const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    const isQuit =
+      (e.ctrlKey || e.metaKey) &&
+      (e.key.toLowerCase() === "q" || e.key.toLowerCase() === "w");
+
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
       e.preventDefault();
       setMode("capture");
@@ -136,6 +155,9 @@ export function QuickCapture(props: QuickCaptureProps) {
       e.preventDefault();
       search.resetSearch();
       setMode("capture");
+    } else if (isQuit) {
+      e.preventDefault();
+      void handleDismiss();
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       search.selectNext();
@@ -149,44 +171,17 @@ export function QuickCapture(props: QuickCaptureProps) {
     }
   };
 
-  const charCount = text.length;
-  const isNearLimit = charCount > MAX_CAPTURE_CHARS * 0.9;
-
   return (
     <div className={styles["quick-capture-container"]}>
-      <div className={styles["quick-capture-header"]}>
-        <div className={styles["quick-capture-tabs"]} role="tablist">
-          <button
-            role="tab"
-            aria-selected={mode === "capture"}
-            className={`${styles["quick-capture-tab-btn"]} ${mode === "capture" ? styles["is-active"] : ""}`}
-            onClick={() => setMode("capture")}
-          >
-            Capture
-          </button>
-          <button
-            role="tab"
-            aria-selected={mode === "search"}
-            className={`${styles["quick-capture-tab-btn"]} ${mode === "search" ? styles["is-active"] : ""}`}
-            onClick={() => setMode("search")}
-          >
-            Search
-          </button>
-        </div>
-        {mode === "capture" ? (
-          <span
-            className={`${styles["quick-capture-counter"]} ${isNearLimit ? styles["quick-capture-counter-warning"] : ""}`}
-          >
-            {charCount} / {MAX_CAPTURE_CHARS}
-          </span>
-        ) : (
-          <span className={styles["quick-capture-counter"]}>
-            {results.length > 0
-              ? `${selectedIndex + 1} of ${results.length}`
-              : ""}
-          </span>
-        )}
-      </div>
+      <QuickCaptureHeader
+        mode={mode}
+        onModeChange={setMode}
+        charCount={text.length}
+        maxChars={MAX_CAPTURE_CHARS}
+        selectedIndex={selectedIndex}
+        resultCount={results.length}
+        onDismiss={() => void handleDismiss()}
+      />
 
       {mode === "capture" ? (
         <textarea
@@ -194,7 +189,7 @@ export function QuickCapture(props: QuickCaptureProps) {
           className={styles["quick-capture-textarea"]}
           value={text}
           maxLength={MAX_CAPTURE_CHARS}
-          placeholder="Type a thought... (Tab to search, Enter to save, Esc to dismiss)"
+          placeholder="Type a thought... (Tab to search, ⌘S to save, Esc to quit)"
           onChange={(e) => {
             setText(e.target.value);
             if (errorMessage) setErrorMessage(null);
@@ -204,7 +199,7 @@ export function QuickCapture(props: QuickCaptureProps) {
         />
       ) : (
         <div className={styles["quick-search-body"]}>
-          <input
+          <Input
             ref={searchInputRef}
             className={styles["quick-search-input"]}
             value={query}
@@ -234,9 +229,12 @@ export function QuickCapture(props: QuickCaptureProps) {
         </div>
       )}
 
-      <div className={styles["quick-capture-footer"]}>
-        <QuickCaptureHints mode={mode} />
-      </div>
+      <QuickCaptureFooter
+        mode={mode}
+        canSave={text.trim().length > 0}
+        onSave={() => void handleSave(text)}
+        onDismiss={() => void handleDismiss()}
+      />
     </div>
   );
 }

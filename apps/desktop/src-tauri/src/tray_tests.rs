@@ -123,12 +123,12 @@ mod tests {
 
     // Icon placed at x: 600 on 1440px screen (not near edge)
     let icon = TrayIconBounds { x: 600, y: 0, width: 30, height: 25 };
-    let win_size = PhysicalSize::new(520, 160);
+    let win_size = PhysicalSize::new(640, 340);
     let work_area = WorkArea { x: 0, y: 25, width: 1440, height: 875 };
     let pos = calculate_popover_position(icon, win_size, work_area, 1.0);
 
-    // icon center = 615, win_w/2 = 260 -> 355
-    assert_eq!(pos.x, 355);
+    // icon center = 615, win_w/2 = 320 -> 295
+    assert_eq!(pos.x, 295);
     // top menubar -> below icon: 0 + 25 + 4 = 29
     assert_eq!(pos.y, 29);
   }
@@ -138,14 +138,14 @@ mod tests {
     use crate::tray_position::{calculate_popover_position, TrayIconBounds, WorkArea};
     use tauri::PhysicalSize;
 
-    let win_size = PhysicalSize::new(520, 160);
+    let win_size = PhysicalSize::new(640, 340);
     let work_area = WorkArea { x: 0, y: 25, width: 1440, height: 875 };
 
     // Near right edge (x: 1420 on 1440px screen):
     let icon_right = TrayIconBounds { x: 1420, y: 0, width: 20, height: 25 };
     let pos_right = calculate_popover_position(icon_right, win_size, work_area, 1.0);
-    // max_x = 1440 - 520 - 8 = 912
-    assert_eq!(pos_right.x, 912);
+    // max_x = 1440 - 640 - 8 = 792
+    assert_eq!(pos_right.x, 792);
 
     // Near left edge (x: 5 on 1440px screen):
     let icon_left = TrayIconBounds { x: 5, y: 0, width: 20, height: 25 };
@@ -162,15 +162,14 @@ mod tests {
     // Windows bottom taskbar setup: screen 1920x1080, taskbar 40px at bottom
     // Icon at x: 800 (center of taskbar, not hitting edge clamp)
     let icon = TrayIconBounds { x: 800, y: 1045, width: 30, height: 35 };
-    let win_size = PhysicalSize::new(520, 160);
+    let win_size = PhysicalSize::new(640, 340);
     let work_area = WorkArea { x: 0, y: 0, width: 1920, height: 1040 };
     let pos = calculate_popover_position(icon, win_size, work_area, 1.0);
 
-    assert_eq!(pos.x, 800 + 15 - 260); // 555
-    // icon.y (1045) is in lower half -> anchors ABOVE: clamped to work area max_y (880)
-    assert_eq!(pos.y, 880);
+    assert_eq!(pos.x, 800 + 15 - 320); // 495
+    // icon.y (1045) is in lower half -> anchors ABOVE: clamped to work area max_y (1040 - 340 = 700)
+    assert_eq!(pos.y, 700);
   }
-
 
   #[test]
   fn popover_position_secondary_monitor_retina() {
@@ -180,15 +179,16 @@ mod tests {
     // Secondary monitor offset at x=1920, scale=2.0
     let scale = 2.0;
     let icon = TrayIconBounds { x: 3000, y: 0, width: 60, height: 50 };
-    let win_size = PhysicalSize::new((520.0 * scale) as u32, (160.0 * scale) as u32); // 1040 x 320
+    let win_size = PhysicalSize::new((640.0 * scale) as u32, (340.0 * scale) as u32); // 1280 x 680
     let work_area = WorkArea { x: 1920, y: 50, width: 2880, height: 1750 };
     let pos = calculate_popover_position(icon, win_size, work_area, scale);
 
-    // icon center = 3030, desired_x = 3030 - 520 = 2510
-    assert_eq!(pos.x, 2510);
+    // icon center = 3030, desired_x = 3030 - 640 = 2390
+    assert_eq!(pos.x, 2390);
     // icon.y (0) in upper half -> des_y = 0 + 50 + 8 = 58
     assert_eq!(pos.y, 58);
   }
+
 
   #[test]
   fn capture_state_blur_debounce_tracking() {

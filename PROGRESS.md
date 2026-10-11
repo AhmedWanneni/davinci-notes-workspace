@@ -6,6 +6,17 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Quick Capture Improvements (theme parity, floating above all windows, quit option, enlarged box, save button, temporary folder target — complete)**
+Updated the Quick Capture popover and save destination per user preferences:
+1. App theme parity: Quick Capture now synchronizes with the main app's active theme. `restoreCachedBuiltinTheme` runs synchronously on startup, while `useCaptureTheme` listens to `davinci-theme-changed` and `davinci-capture-focus` to instantly mirror theme swaps across windows without reloads.
+2. Floating window above all opened windows: Quick Capture is configured with `always_on_top(true)` on window build and display, and no longer automatically vanishes on `Focused(false)` blur, staying floating on top of all opened windows (browsers, editors, documents) while referencing or writing notes.
+3. Quit option to close: Added a dedicated "Quit" button in both the header (`.quick-capture-quit-btn`) and footer actions, alongside `Esc`, `⌘Q`, `Ctrl+Q`, and tray icon click toggling.
+4. Enlarged popover dimensions: Increased Quick Capture window geometry from 520x160 to 640px wide by 340px high (`capture.rs` and `tray_position.rs`), with all screen/taskbar positioning tests updated and passing.
+5. Direct "Save note" button & Cmd+S: Added an accessible, styled Save button in the footer actions and wired `⌘S` / `Ctrl+S` / `⌘Enter` saving with disabled state when empty.
+6. Vault target in `temporary/`: Updated default target note in `tray_config.rs` and `CaptureSettingsSection.tsx` to `temporary/Inbox.md`. Rust capture writer creates parent directories recursively (`create_dir_all`) if they do not exist.
+7. Modular architecture: Factored out `useCaptureTheme.ts`, `QuickCaptureFooter.tsx`, `QuickCaptureHeader.tsx`, and `QuickSearchList.module.scss`, keeping all files strictly under 240 lines (enforcing the 250 hard cap).
+8. Tests & Verification: All 45 Cargo unit tests passing; all frontend tests passing; zero ESLint errors in desktop workspace.
+
 **Tray Phase 4b — Click-to-capture popover with left-click setting (complete, ADR-0172)**
 Implemented click-to-capture popover anchored under the tray icon with configurable left-click setting:
 1. Architectural decision (ADR-0172 supersedes Phase 1 click decision): Left-click on tray icon toggles the Quick Capture window anchored directly under the icon (or above on Windows bottom taskbars); right-click opens the tray menu.

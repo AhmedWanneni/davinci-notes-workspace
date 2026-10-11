@@ -97,7 +97,7 @@ pub fn find_popover_position(
 
   let win_size = window
     .and_then(|w| w.outer_size().ok())
-    .unwrap_or_else(|| PhysicalSize::new((520.0 * scale).round() as u32, (160.0 * scale).round() as u32));
+    .unwrap_or_else(|| PhysicalSize::new((640.0 * scale).round() as u32, (340.0 * scale).round() as u32));
 
   let icon_bounds = TrayIconBounds {
     x: icon_pos.x,

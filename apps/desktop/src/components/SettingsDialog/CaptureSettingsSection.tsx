@@ -6,7 +6,7 @@ import styles from "./SettingsDialog.module.scss";
 
 export function CaptureSettingsSection() {
   const [shortcut, setShortcut] = useState("Control+Alt+N");
-  const [targetNote, setTargetNote] = useState("Inbox.md");
+  const [targetNote, setTargetNote] = useState("temporary/Inbox.md");
   const [shortcutError, setShortcutError] = useState<string | null>(null);
   const [targetError, setTargetError] = useState<string | null>(null);
 
