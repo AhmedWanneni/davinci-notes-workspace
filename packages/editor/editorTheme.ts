@@ -134,7 +134,9 @@ export const editorTheme = EditorView.theme({
   },
   ".cm-activeLine .cm-markdown-syntax": {
     display: "inline !important",
-    opacity: 0.5,
+  },
+  ".cm-activeLine .cm-markdown-syntax, .cm-activeLine .cm-markdown-syntax *": {
+    color: "var(--color-text-faint)",
   },
   ".cm-hr-line": {
     position: "relative",

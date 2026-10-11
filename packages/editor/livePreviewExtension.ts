@@ -148,12 +148,16 @@ const livePreviewTheme = EditorView.baseTheme({
   ".cm-editor .cm-activeLine .cm-marker-hidden": {
     display: "none !important",
   },
+  // No opacity here: an opacity group is bounded by this wrapper's inline
+  // box (body font size), but heading markers inside render at the heading
+  // size and would be clipped in WebKit. Colour the glyphs directly instead.
   ".cm-marker-active": {
     display: "inline !important",
-    opacity: "0.5",
-    color: "var(--color-text-muted)",
     fontSize: "inherit",
     lineHeight: "inherit",
+  },
+  ".cm-marker-active, .cm-marker-active *": {
+    color: "var(--color-text-faint) !important",
   },
   ".cm-marker-hidden": {
     display: "none !important",
