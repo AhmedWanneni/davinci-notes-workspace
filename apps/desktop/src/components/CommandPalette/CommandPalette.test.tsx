@@ -5,6 +5,7 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { CommandPalette } from "./CommandPalette";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import { getRecentInsertIds, clearRecentInserts } from "@app/editor";
 
 function createTestView(doc = "initial text", editable = true) {
   const container = document.createElement("div");
@@ -166,6 +167,27 @@ describe("CommandPalette Insert Registry Commands", () => {
 
     expect(view.state.selection.main.from).toBe(originalSelection.from);
     expect(view.state.selection.main.to).toBe(originalSelection.to);
+    destroy();
+  });
+
+  it("records recent insert to shared store and boosts it in command palette", () => {
+    clearRecentInserts();
+    const { view, destroy } = createTestView("hello world", true);
+    view.dispatch({ selection: { anchor: 5 } });
+
+    render(
+      <CommandPalette
+        isOpen={true}
+        onOpenChange={() => {}}
+        onSelectNote={() => {}}
+        editorView={view}
+      />,
+    );
+
+    const calloutCmd = screen.getByText("Insert: Callout");
+    fireEvent.click(calloutCmd);
+
+    expect(getRecentInsertIds()).toContain("callout");
     destroy();
   });
 });

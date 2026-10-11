@@ -1,6 +1,15 @@
 export { Editor } from "./Editor";
 export type { EditorProps } from "./Editor";
-export { insertItem, insertRegistry, loadInsertRegistry } from "./insert";
+export {
+  insertItem,
+  insertRegistry,
+  loadInsertRegistry,
+  getRecentInsertIds,
+  recordRecentInsert,
+  clearRecentInserts,
+  subscribeRecentInserts,
+  useRecentInsertIds,
+} from "./insert";
 export type { InsertItem, InsertBuildContext, InsertBuildResult } from "./insert";
 export { createEditorPluginAdapter } from "./integration/pluginEditorAdapter";
 export type {

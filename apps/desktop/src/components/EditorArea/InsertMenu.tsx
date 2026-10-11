@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { EditorSelection } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { Popover, PopoverAnchor, PopoverContent } from "@app/design-system";
-import { insertItem, loadInsertRegistry, type InsertItem } from "@app/editor";
+import {
+  insertItem,
+  loadInsertRegistry,
+  useRecentInsertIds,
+  recordRecentInsert,
+  type InsertItem,
+} from "@app/editor";
 
 interface InsertMenuProps {
   anchor: DOMRect;
@@ -15,13 +21,19 @@ export function InsertMenu({ anchor, selection, view, onClose }: InsertMenuProps
   const inputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<readonly InsertItem[]>([]);
   const [query, setQuery] = useState("");
-  const [recent, setRecent] = useState<readonly InsertItem[]>([]);
+  const recentIds = useRecentInsertIds();
   const [active, setActive] = useState(0);
 
   useEffect(() => {
     void loadInsertRegistry().then(({ insertRegistry }) => setItems(insertRegistry));
     inputRef.current?.focus();
   }, []);
+
+  const recent = useMemo(() => {
+    return recentIds
+      .map((id) => items.find((item) => item.id === id))
+      .filter((item): item is InsertItem => Boolean(item));
+  }, [items, recentIds]);
 
   const visible = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -34,7 +46,7 @@ export function InsertMenu({ anchor, selection, view, onClose }: InsertMenuProps
 
   const choose = (item: InsertItem) => {
     if (insertItem(view, item, selection)) {
-      setRecent((current) => [item, ...current.filter(({ id }) => id !== item.id)].slice(0, 5));
+      recordRecentInsert(item.id);
     }
     onClose();
   };

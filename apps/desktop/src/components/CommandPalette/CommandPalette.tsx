@@ -4,7 +4,12 @@ import { EditorView } from "@codemirror/view";
 import { Dialog, DialogContent } from "@app/design-system";
 import fuzzysort from "fuzzysort";
 import { FileText, Gear } from "@phosphor-icons/react";
-import { insertItem, insertRegistry } from "@app/editor";
+import {
+  insertItem,
+  insertRegistry,
+  recordRecentInsert,
+  useRecentInsertIds,
+} from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { EmptyState } from "../EmptyState";
 import type { RegisteredPluginCommand } from "@app/plugin-runtime";
@@ -66,6 +71,10 @@ export function CommandPalette({
     }
   }, [isOpen, editorView]);
 
+  const storedRecentIds = useRecentInsertIds();
+  const effectiveRecentIds =
+    recentInsertIds.length > 0 ? recentInsertIds : storedRecentIds;
+
   const preparedTargets = useMemo(
     () =>
       buildPaletteCommands({
@@ -74,9 +83,16 @@ export function CommandPalette({
         useVimMode,
         pluginCommands,
         isEditableEditor,
-        recentInsertIds,
+        recentInsertIds: effectiveRecentIds,
       }),
-    [allNotePaths, openNotes, useVimMode, pluginCommands, isEditableEditor, recentInsertIds],
+    [
+      allNotePaths,
+      openNotes,
+      useVimMode,
+      pluginCommands,
+      isEditableEditor,
+      effectiveRecentIds,
+    ],
   );
 
   const results = useMemo(() => {
@@ -120,6 +136,7 @@ export function CommandPalette({
       if (item && editorView && editorView.state.facet(EditorView.editable)) {
         const selection = editorSelectionRef.current ?? editorView.state.selection;
         insertItem(editorView, item, selection);
+        recordRecentInsert(item.id);
         onInsertSuccess?.(item.id);
         editorView.focus();
       }
