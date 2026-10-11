@@ -4,6 +4,17 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Editor Insert Menu Phase 2 (implementation complete; native verification pending, ADR-0176)**
+Completed Phase 2 slash menu autocomplete source, trigger exclusions, Vim modal integration, Command Palette insert commands, and unified recently used item store:
+1. Lazy `/` slash menu autocompletion source queries `insertRegistry` via `loadInsertRegistry()` and replaces `/query` with the selected item's snippet in a single transaction.
+2. Trigger exclusions: trigger is allowed only at line start or after whitespace; excluded inside fenced code blocks, inline code, URLs, and paths via `syntaxTree`; excluded in YAML frontmatter via bounded top-of-document line scanning; excluded in block and inline math via `mathBlocksField` and line delimiter checks; excluded during IME composition via `view.composing`.
+3. Vim mode integration: `/` in Normal and Visual mode remains dedicated to Vim search and is never intercepted by autocompletion; slash menu completions activate only in Insert and Replace modes.
+4. Command Palette commands: generated `Insert: <label>` commands backed by `insertRegistry` that insert at active editor's current selection; hidden or no-op when no editable editor is focused or view is read-only; closing the palette restores editor focus without losing selection.
+5. Unified recently used items: single shared in-memory MRU store (`recentInsertStore`) connects the header `...` popover menu, slash autocomplete menu, and Command Palette.
+6. ADR-0176 records the trigger exclusions, modal preservation, palette integration, and shared store boundary.
+
+**Next:** Native app verification for slash menu trigger rules, Vim `/` search vs insert mode popup, palette insert commands, and Phase 3 planning.
+
 **Editor Insert Menu Phase 1 (implementation complete; native verification pending)**
 Added the immutable, lazy-loaded `@app/editor` insert registry for headings, lists, task, quote, divider, callout, code, table, math, footnote, and HTML. Insertions use CodeMirror snippets at the selection captured before the menu opens, preserve one undo step, add blank-line padding for block constructs, focus the editor, and support Tab/Shift-Tab placeholders. The header `...` control now lazy-loads a flat Radix Popover with grouping, label/keyword search, keyboard navigation, and session-local recent items. No dependencies were added; Mermaid and KaTeX are not loaded just by opening the menu. ADR-0175 records the boundary. Focused insertion tests, editor typecheck/lint, and desktop lint pass. Desktop-wide typecheck remains blocked by pre-existing workspace/canvas/storybook/sync errors; native app verification and bundle/startup comparison remain pending.
 

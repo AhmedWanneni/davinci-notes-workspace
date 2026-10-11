@@ -3241,4 +3241,32 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Added unit tests in `TrayClickSettingsRow.test.tsx` and updated `QuickCapture.test.tsx` for in-memory draft preservation.
   - All 45 Rust unit tests and 373 frontend unit tests (103 test files) pass with 0 lint errors.
 
+## 2026-10-11 — Editor Insert Menu Phase 2 (Slash Menu Trigger Rules, Vim Integration, Palette Commands & Shared Recent Store)
+
+- **Slash Menu Autocompletion Source**:
+  - Implemented lazy `/` slash menu autocompletion source via CodeMirror `autocompletion({ override: [...] })`.
+  - Lazy-loads `@app/editor` insert registry via `loadInsertRegistry()` only upon slash match.
+  - Replaces `/query` with snippet insertion and restores plain text on undo.
+- **Trigger Exclusions & Syntax Inspection**:
+  - Requires line-start or whitespace context immediately preceding `/`.
+  - Excludes mid-word slashes (`and/or`, `a/b`), URLs, and paths (`https://`, `/dir`).
+  - Excludes triggers inside fenced code blocks and inline code via CodeMirror `syntaxTree` node traversal.
+  - Excludes triggers inside YAML frontmatter via bounded line scan at document head.
+  - Excludes triggers inside math blocks and inline math via `mathBlocksField` StateField and line delimiter matching.
+  - Excludes triggers during IME composition via `context.view.composing`.
+- **Vim Modal Editing Preservation**:
+  - `/` in Normal and Visual mode remains dedicated to Vim search and is never intercepted by autocompletion.
+  - Slash autocomplete popup triggers only in Insert and Replace modes.
+- **Command Palette Commands**:
+  - Generates one `Insert: <label>` command per registry item in the Command Palette.
+  - Commands insert at the active editor's captured cursor selection.
+  - Hidden or no-op when no editable editor is focused or the view is read-only.
+  - Palette closing preserves editor focus and selection.
+- **Unified Recently Used Store**:
+  - Created shared in-memory MRU store (`recentInsertStore`) capped at 5 items.
+  - Shared across the header `...` popover menu (`InsertMenu.tsx`), slash autocomplete menu (`SlashMenu.ts`), and Command Palette (`CommandPalette.tsx`).
+- **ADR & Indexing**:
+  - Authored and indexed [ADR-0176](adr/0176-editor-slash-menu-trigger-rules-and-shared-recent-store.md).
+
+
 
