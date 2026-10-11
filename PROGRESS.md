@@ -6,6 +6,17 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Editor styling tokens — Phase 2 complete**
+Added 30 editor-prefixed Obsidian-parity tokens under `editor.obsidian` without
+replacing any existing tokens. Generated CSS, SCSS, and TypeScript outputs;
+documented token names and the existing spacing-token boundary in
+`packages/design-system/tokens/README.md`. Design-system build and typecheck
+pass. The `packages/editor` package was not modified.
+
+**Next:** Phase 3 should consume the new `--editor-obsidian-*` values. Existing
+`editor.heading.*.space-above` / `space-below` values remain unchanged because
+the audit did not establish replacement per-heading values.
+
 **Theme Parity — Obsidian Default Light Theme Alignment (complete)**
 Aligned base design tokens and desktop CUBE CSS styles to visually match Obsidian's default light theme baseline:
 1. Step 1 token sampling & mapping: Sampled values directly from Obsidian (v1.13.7 default light theme). Mapped values to design system tokens (`--color-bg-primary: #ffffff`, `--color-bg-primary-alt: #f6f6f6`, `--color-text-normal: #222222`, `--color-text-muted: #5c5c5c`, `--color-text-faint: #ababab`, `--color-border-subtle: #e4e4e4`, `--color-border-normal: #d4d4d4`, `--color-bg-hover: rgba(0,0,0,0.05)`, `--color-bg-active: rgba(0,0,0,0.08)`).
@@ -993,18 +1004,19 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
-2. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
-3. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
-4. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
-5. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
-6. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
-7. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-8. **Unlinked Mentions Detection**
-9. **Inline Property Editing**
-10. **Outline Scroll Synchronization**
-11. Add success/warning semantic color tokens
-12. Chromatic / Playwright screenshot regression
+1. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+2. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
+3. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+4. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
+5. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+6. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+7. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+8. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+9. **Unlinked Mentions Detection**
+10. **Inline Property Editing**
+11. **Outline Scroll Synchronization**
+12. Add success/warning semantic color tokens
+13. Chromatic / Playwright screenshot regression
 
 ## Blocked / Open Questions
 
