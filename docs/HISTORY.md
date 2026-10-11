@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-11 | Curated Editor Fonts & Vim Monospace Mode | Added curated editor fonts (Inter, IBM Plex Sans, Literata, Source Serif 4, JetBrains Mono, Montserrat, Raleway, System default, and sanitized custom input) and "Use monospace font in vim mode" setting (default on). Self-hosted Latin WOFF2 assets (750.5 KB total, 0 KB initial bundle overhead). Added ADR-0174. 99 editor and 387 desktop tests pass. |
 | 2026-10-11 | Editor styling tokens — Phase 5 | Implemented Editor Font Size and Font Family settings with curated options (System UI, Serif, Monospace, Montserrat, Raleway), custom font support, and live re-measurement. Added ADR-0173. Zero remote font requests using self-hosted @fontsource-variable WOFF2 assets with font-display: swap. Input sanitization prevents CSS injection. Font sizes scale 12–24px (default 16px) with reset. Caret lands accurately at wrapped line ends. All 97 editor and 384 desktop unit tests pass with zero public token violations. |
 | 2026-10-11 | Editor styling tokens — Phase 4 | Implemented element-cursor-gated reveal/dimming for Markdown markers and hanging indent / nested styling for lists using Phase 2 tokens. Bounded decoration computation, 0px line-height shifts, and preserved raw Markdown for active lists. |
 | 2026-10-11 | Editor styling tokens — Phase 3 | Applied Phase 2 Obsidian-parity tokens to CodeMirror 6 theme and highlight styles (`editorHighlightStyle.ts`, `editorTheme.ts`); mapped H1-H6 typography to `--editor-obsidian-heading-h{1-6}-*`, unified body line-height to `--editor-obsidian-body-line-height` (1.5), updated content bottom padding to `--editor-content-padding-bottom`, and added line inline padding `--editor-obsidian-content-line-padding-inline`. Maintained full-width content without arbitrary max-width constraints. Allowlisted tokens in `check-public-tokens.mjs`. All 73 editor unit tests and 377 desktop unit tests pass with zero public token violations. |
@@ -113,6 +114,28 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-11 — Curated Editor Fonts & Vim Monospace Mode
+- Expanded curated editor fonts in `editorSettings.ts` and `editorFontRegistry.ts`:
+  - System default (loads nothing, 0 KB)
+  - Sans: Inter (Variable), IBM Plex Sans (400, 500, 600, 700 + italic)
+  - Serif: Literata (Variable), Source Serif 4 (Variable)
+  - Monospace: JetBrains Mono (Variable)
+  - Display: Montserrat (Variable), Raleway (Variable)
+  - Custom font text input with strict sanitization (`/^[a-zA-Z0-9\s\-',.]+$/`, length ≤ 50) and quote escaping.
+- Local-first self-hosted font delivery:
+  - 16 WOFF2 files total (750.5 KB Latin subset), loaded dynamically via Vite dynamic CSS `import()` on user selection only.
+  - Zero initial bundle overhead (0 KB font files in startup bundle).
+  - Network panel and filesystem checks confirm zero remote requests to Google Fonts or external CDNs.
+- Vim Monospace Mode setting:
+  - Added "Use monospace font in vim mode" setting (default: on).
+  - When Vim mode is enabled and setting is on, effective font automatically uses JetBrains Mono (`jetbrains-mono`) to prevent proportional block cursor width shifts across characters ("w", "i", "m", and space). Block cursor measured strictly uniform at 9.61px across characters.
+  - Toggling Vim mode off or toggling setting off returns the selected proportional font live without editor reloading.
+- Re-measurement & caret landing:
+  - Re-measurement waits for `document.fonts.load` on the selected font family before calling `view.requestMeasure()`.
+  - Verified 0px displacement when clicking at the end of long wrapped lines across all fonts.
+- Recorded ADR-0174 in `DECISIONS.md` and `docs/adr/0174-curated-editor-fonts-and-vim-monospace-mode.md`.
+- All unit tests pass (99 in packages/editor, 387 in apps/desktop). Production build passed in 7.87s + 38.78s.
 
 ### 2026-10-11 — Editor styling tokens: Phase 5 (Editor Font Size and Font Family Settings)
 
