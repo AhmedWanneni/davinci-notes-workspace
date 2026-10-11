@@ -4,6 +4,7 @@ import { Button, Toggle } from "@app/design-system";
 import { CaptureSettingsSection } from "./CaptureSettingsSection";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
+import { TrayClickSettingsRow } from "./TrayClickSettingsRow";
 import styles from "./SettingsDialog.module.scss";
 
 interface GeneralSettingsTabProps {
@@ -77,6 +78,8 @@ export function GeneralSettingsTab({
             aria-label="Keep running in menu bar"
           />
         </SettingsRow>
+
+        <TrayClickSettingsRow />
 
         <CaptureSettingsSection />
 

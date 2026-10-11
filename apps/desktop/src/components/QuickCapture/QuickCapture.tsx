@@ -56,7 +56,6 @@ export function QuickCapture(props: QuickCaptureProps) {
 
   const handleDismiss = async () => {
     setErrorMessage(null);
-    setText("");
     search.resetSearch();
     setMode("capture");
     if (onDismiss) {

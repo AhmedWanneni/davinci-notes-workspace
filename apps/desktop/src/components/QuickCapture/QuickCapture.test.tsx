@@ -60,6 +60,7 @@ describe("QuickCapture", () => {
     await waitFor(() => {
       expect(handleDismiss).toHaveBeenCalled();
     });
+    expect((textarea as HTMLTextAreaElement).value).toBe("Unsaved text");
   });
 
   it("dismisses silently when Enter is pressed on empty/whitespace text", async () => {

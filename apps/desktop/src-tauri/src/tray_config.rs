@@ -82,3 +82,30 @@ pub fn save_capture_target_to_disk(app: &AppHandle, target: &str) {
   });
 }
 
+pub const DEFAULT_TRAY_CLICK_ACTION_NEW: &str = "capture";
+pub const DEFAULT_TRAY_CLICK_ACTION_EXISTING: &str = "menu";
+
+pub fn load_saved_tray_click_action(app: &AppHandle) -> String {
+  let json = read_settings_json(app);
+  if let Some(val) = json.get("trayLeftClickAction").and_then(|v| v.as_str()) {
+    if val == "menu" || val == "capture" {
+      return val.to_string();
+    }
+  }
+  if let Some(path) = get_settings_path(app) {
+    if path.exists() {
+      return DEFAULT_TRAY_CLICK_ACTION_EXISTING.to_string();
+    }
+  }
+  DEFAULT_TRAY_CLICK_ACTION_NEW.to_string()
+}
+
+pub fn save_tray_click_action_to_disk(app: &AppHandle, action: &str) {
+  write_settings_json(app, |obj| {
+    if let Some(map) = obj.as_object_mut() {
+      map.insert("trayLeftClickAction".to_string(), serde_json::json!(action));
+    }
+  });
+}
+
+

@@ -29,6 +29,50 @@ pub fn set_keep_in_tray(window: WebviewWindow, app: AppHandle, enabled: bool) ->
   Ok(())
 }
 
+#[derive(serde::Serialize)]
+pub struct TrayClickActionResponse {
+  pub action: String,
+  pub supported: bool,
+}
+
+#[tauri::command]
+pub fn get_tray_click_action(window: WebviewWindow, app: AppHandle) -> Result<TrayClickActionResponse, String> {
+  reject_plugin_runner(&window)?;
+  let supported = cfg!(any(target_os = "macos", windows));
+  let action = crate::tray::get_tray_click_action_from_state_or_disk(&app);
+  Ok(TrayClickActionResponse { action, supported })
+}
+
+#[tauri::command]
+pub fn set_tray_click_action(
+  window: WebviewWindow,
+  app: AppHandle,
+  action: String,
+) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+  if action != "capture" && action != "menu" {
+    return Err("Invalid tray click action: must be 'capture' or 'menu'".into());
+  }
+  let state = app
+    .try_state::<TraySettingsState>()
+    .ok_or_else(|| "Tray settings state not found".to_string())?;
+
+  if let Ok(mut guard) = state.left_click_action.lock() {
+    *guard = action.clone();
+  }
+  crate::tray_config::save_tray_click_action_to_disk(&app, &action);
+
+  #[cfg(any(target_os = "macos", windows))]
+  {
+    if let Some(tray) = app.tray_by_id("davinci-tray") {
+      let _ = tray.set_show_menu_on_left_click(action == "menu");
+    }
+  }
+
+  Ok(())
+}
+
+
 #[tauri::command]
 pub fn update_tray_recent_notes(
   window: WebviewWindow,

@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-11 | Tray Phase 4b — Click-to-capture popover with left-click setting | Implemented ADR-0172 (supersedes Phase 1 click decision): left-click on tray icon toggles Quick Capture popover anchored under the tray icon; right-click opens the native menu; pure Rust positioning in tray_position.rs clamps strictly to monitor work area with Retina DPI and multi-monitor support; eliminated blur/toggle race via 350ms timestamp debounce; in-memory draft text preserved across blur, dismiss, and Escape; live configurable "Menu bar icon click" setting ("Open quick capture" vs "Open menu") with existing-user fallback to "menu". 45 Rust tests and 373 frontend tests pass with 0 lint errors. |
 | 2026-10-11 | Tray Phase 5 — Quick Search from the capture window | Implemented Option C (ADR-0171): granted scoped SQL permissions (`sql:default`, `sql:allow-execute`) to `capabilities/capture.json` so the capture window queries `vault-index.db` directly via `@tauri-apps/plugin-sql` and the canonical `@app/indexer` search engine (`executeSearchQuery` / `parseSearchQuery`). Reuses exact same BM25 ranking and query syntax without IPC proxy lag or main webview coupling. Queries are debounced by 150ms with sequence token cancellation and WAL concurrency (`journal_mode=WAL`, `busy_timeout=5000`). Up/Down keys navigate, Enter opens note via native `open_note_from_capture` with strict vault-root path confinement, and Tab toggles modes while preserving typed capture text. All 39 Rust unit tests and 370 frontend unit tests (102 test suites) pass with 0 lint errors. Capture bundle grew by only 1.43 KB gzip (8.14 KB raw / 2.57 KB gzip). |
 | 2026-10-11 | Tray Phase 4 — Global shortcut and lazy Quick Capture window | Added global shortcut (`Control+Alt+N` default, configurable via General Settings) via `tauri-plugin-global-shortcut` with conflict rollback and double-press suppression; created lazy Quick Capture always-on-top window loading separate tiny entry point (`capture.html`, 2.97 KB raw / 1.14 KB gzip) using design tokens; added safe Rust pure-append write path with mutex serialization, EOL and CRLF detection, missing directory creation, and strict vault confinement; added "Quick capture" menu item to tray; enforced least privilege via `capabilities/capture.json` and `command_auth.rs`. 38 Rust unit tests and 358 frontend unit tests pass with 0 lint errors. |
 | 2026-10-10 | Phase 4a — Save-time external-change guard with append-aware merge | Superseded ADR-0161 with ADR-0170. Fixed silent data loss bug in saveNoteNow where dirty in-memory buffers unconditionally overwrote external disk changes. Added Rust stat_note & atomic write_note (.tmp.<pid> + rename), in-memory diskStateTracker, classifyDiskChange (touched_only, pure_append, conflict), saveQueue promise serialization, EditorConflictBanner with 3-action resolution (Keep mine, Use disk, Save copy), tab conflict dot, and automatic conflict copy creation on quit in saveAllDirty. 28 Rust tests and 348 frontend tests pass with 0 lint errors. |
@@ -3151,6 +3152,38 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Added Rust unit tests in `capture_tests.rs`: 20x rapid concurrency serialization, CRLF line ending preservation, frontmatter preservation, empty file / missing folder creation, large file tail seek, safe path traversal rejection, shortcut validation. All 38 Rust unit tests pass.
   - Added TypeScript unit tests in `QuickCapture.test.tsx` and `CaptureSettingsSection.test.tsx`. All 100 test files (358 tests) pass.
   - Web production build succeeds with 2.97 KB capture chunk; ESLint passes with 0 errors.
+
+---
+
+### 2026-10-11: Tray Phase 4b — Click-to-Capture Popover and Left-Click Setting
+
+- **Architectural Shift (ADR-0172)**:
+  - Superseded Phase 1 decision ("menu opens on left click").
+  - Left click on tray icon toggles the Quick Capture window anchored directly under the icon (macOS top menubar) or above the taskbar (Windows bottom taskbar).
+  - Right click continues to open the native tray menu (`Show/Hide`, `New note`, `Quick capture`, `recent notes`, `daily note`, `Open vault`, `Quit`).
+- **Popover Positioning & Work Area Clamping (`tray_position.rs`)**:
+  - Pure Rust positioning avoiding external dependencies (zero crate weight).
+  - Resolves active monitor from `available_monitors()`, calculates physical coordinates with monitor DPI scaling, horizontally centers under the icon, and clamps strictly within the monitor's work area with an 8px margin.
+  - Automatically adapts for top menu bars vs bottom taskbars without hardcoded geometry.
+- **Blur/Toggle Race Elimination**:
+  - `CaptureState` maintains atomic timestamp `last_blur_time`.
+  - On `WindowEvent::Focused(false)`, the capture window hides and records `now_ms`.
+  - When the tray left-click handler fires within 350ms of a blur event, it suppresses reopening, guaranteeing clean single-click open and single-click close with zero flicker.
+- **In-Memory Draft Preservation**:
+  - Unsaved typed text in `<QuickCapture />` is retained in React memory across blur, Escape, and mode switches.
+  - Cleared only upon successful save (`quick_capture_save`) or process exit.
+- **Live Left-Click Setting & Non-Destructive Migration**:
+  - Added `"trayLeftClickAction"` (`"capture"` | `"menu"`) in `davinci-tray-settings.json`.
+  - Defaults to `"capture"` for new users; defaults to `"menu"` for existing configs missing the key to prevent silent behavior changes.
+  - Live runtime toggle via `tray.set_show_menu_on_left_click(action == "menu")` with zero restart required.
+  - Setting row in General Settings (`TrayClickSettingsRow.tsx`) automatically hides on platforms where tray click events cannot be intercepted (e.g. Linux).
+- **Capability & Performance**:
+  - `capabilities/capture.json` remains completely unmodified (0 permission expansion).
+  - 0 timers or polling loops added.
+- **Testing & Verification**:
+  - Added unit tests in `tray_tests.rs`: top menubar positioning, screen edge clamping, bottom taskbar placement, Retina scaling, blur debounce tracking, setting defaults.
+  - Added unit tests in `TrayClickSettingsRow.test.tsx` and updated `QuickCapture.test.tsx` for in-memory draft preservation.
+  - All 45 Rust unit tests and 373 frontend unit tests (103 test files) pass with 0 lint errors.
 
 
 

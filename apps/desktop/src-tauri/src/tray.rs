@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use crate::tray_config::load_saved_keep_in_tray;
+use crate::tray_config::{load_saved_keep_in_tray, load_saved_tray_click_action};
 use crate::tray_menu::{build_tray_menu, validate_recent_note_path, RecentNoteItem};
 use crate::watcher::VaultWatcher;
 #[cfg(target_os = "macos")]
@@ -21,6 +21,7 @@ pub const WINDOW_HIDDEN_EVENT: &str = "davinci-window-hidden";
 pub struct TraySettingsState {
   pub keep_in_tray: Arc<AtomicBool>,
   pub is_quitting: Arc<AtomicBool>,
+  pub left_click_action: Arc<Mutex<String>>,
 }
 
 #[derive(Default)]
@@ -29,17 +30,28 @@ pub struct TrayDynamicState {
 }
 
 impl TraySettingsState {
-  pub fn new(default_keep_in_tray: bool) -> Self {
+  pub fn new(default_keep_in_tray: bool, default_left_click_action: String) -> Self {
     Self {
       keep_in_tray: Arc::new(AtomicBool::new(default_keep_in_tray)),
       is_quitting: Arc::new(AtomicBool::new(false)),
+      left_click_action: Arc::new(Mutex::new(default_left_click_action)),
     }
   }
 }
 
+pub fn get_tray_click_action_from_state_or_disk(app: &AppHandle) -> String {
+  if let Some(state) = app.try_state::<TraySettingsState>() {
+    if let Ok(guard) = state.left_click_action.lock() {
+      return guard.clone();
+    }
+  }
+  load_saved_tray_click_action(app)
+}
+
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
-  let initial_setting = load_saved_keep_in_tray(app);
-  app.manage(TraySettingsState::new(initial_setting));
+  let initial_keep = load_saved_keep_in_tray(app);
+  let initial_action = load_saved_tray_click_action(app);
+  app.manage(TraySettingsState::new(initial_keep, initial_action));
   app.manage(TrayDynamicState::default());
 
   #[cfg(target_os = "macos")]
@@ -53,13 +65,32 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
 fn setup_macos_tray(app: &AppHandle) -> tauri::Result<()> {
   let menu = build_tray_menu(app, false, &[])?;
   let icon = Image::new(include_bytes!("../icons/tray-icon@2x.rgba"), 44, 44);
+  let initial_action = get_tray_click_action_from_state_or_disk(app);
+  let show_menu_on_left = initial_action == "menu";
 
   TrayIconBuilder::with_id("davinci-tray")
     .icon(icon)
     .icon_as_template(true)
     .tooltip("DaVinci Notes")
     .menu(&menu)
-    .show_menu_on_left_click(true)
+    .show_menu_on_left_click(show_menu_on_left)
+    .on_tray_icon_event(|tray, event| {
+      match event {
+        tauri::tray::TrayIconEvent::Click {
+          button: tauri::tray::MouseButton::Left,
+          button_state: tauri::tray::MouseButtonState::Up,
+          rect,
+          ..
+        } => {
+          let app = tray.app_handle();
+          let action = get_tray_click_action_from_state_or_disk(app);
+          if action == "capture" {
+            let _ = crate::capture::toggle_capture_popover(app, Some(rect));
+          }
+        }
+        _ => {}
+      }
+    })
     .on_menu_event(|app, event| {
       let id = event.id.as_ref();
       match id {

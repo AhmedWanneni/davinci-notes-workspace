@@ -2,6 +2,7 @@ mod ai_auth;
 mod capture;
 mod capture_commands;
 mod capture_format;
+mod capture_writer;
 #[cfg(test)]
 mod capture_tests;
 mod command_auth;
@@ -23,6 +24,7 @@ mod tray;
 mod tray_commands;
 mod tray_config;
 mod tray_menu;
+mod tray_position;
 #[cfg(test)]
 mod fs_tests;
 #[cfg(test)]
@@ -103,6 +105,8 @@ pub fn run() {
       plugin_webview::plugin_webview_response,
       tray_commands::get_keep_in_tray,
       tray_commands::set_keep_in_tray,
+      tray_commands::get_tray_click_action,
+      tray_commands::set_tray_click_action,
       tray_commands::update_tray_recent_notes,
       tray_commands::request_app_exit,
       capture_commands::quick_capture_save,
@@ -121,9 +125,18 @@ pub fn run() {
           }
         }
       } else if window.label() == command_auth::CAPTURE_WINDOW_LABEL {
-        if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-          api.prevent_close();
-          let _ = window.hide();
+        match event {
+          tauri::WindowEvent::CloseRequested { api, .. } => {
+            api.prevent_close();
+            let _ = window.hide();
+          }
+          tauri::WindowEvent::Focused(false) => {
+            if let Some(state) = window.app_handle().try_state::<capture::CaptureState>() {
+              state.record_blur();
+            }
+            let _ = window.hide();
+          }
+          _ => {}
         }
       }
     })

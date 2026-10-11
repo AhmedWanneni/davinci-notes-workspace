@@ -12,18 +12,20 @@ mod tests {
 
   #[test]
   fn tray_settings_state_initializes_with_default() {
-    let state_true = TraySettingsState::new(true);
+    let state_true = TraySettingsState::new(true, "capture".into());
     assert!(state_true.keep_in_tray.load(Ordering::SeqCst));
+    assert_eq!(*state_true.left_click_action.lock().unwrap(), "capture");
     assert!(!state_true.is_quitting.load(Ordering::SeqCst));
 
-    let state_false = TraySettingsState::new(false);
+    let state_false = TraySettingsState::new(false, "menu".into());
     assert!(!state_false.keep_in_tray.load(Ordering::SeqCst));
+    assert_eq!(*state_false.left_click_action.lock().unwrap(), "menu");
     assert!(!state_false.is_quitting.load(Ordering::SeqCst));
   }
 
   #[test]
   fn tray_settings_state_can_toggle_keep_in_tray() {
-    let state = TraySettingsState::new(true);
+    let state = TraySettingsState::new(true, "capture".into());
     state.keep_in_tray.store(false, Ordering::SeqCst);
     assert!(!state.keep_in_tray.load(Ordering::SeqCst));
     state.keep_in_tray.store(true, Ordering::SeqCst);
@@ -32,11 +34,12 @@ mod tests {
 
   #[test]
   fn tray_settings_state_sets_quitting_atomic_flag() {
-    let state = TraySettingsState::new(true);
+    let state = TraySettingsState::new(true, "capture".into());
     assert!(!state.is_quitting.swap(true, Ordering::SeqCst));
     assert!(state.is_quitting.load(Ordering::SeqCst));
     assert!(state.is_quitting.swap(true, Ordering::SeqCst));
   }
+
 
   #[test]
   fn tray_event_names_are_stable() {
@@ -112,5 +115,96 @@ mod tests {
     assert!(!validate_recent_note_path("notes/../../outside.md", Some(vault)));
     assert!(validate_recent_note_path("notes/inside.md", Some(vault)));
   }
+
+  #[test]
+  fn popover_position_top_menubar_centered() {
+    use crate::tray_position::{calculate_popover_position, TrayIconBounds, WorkArea};
+    use tauri::PhysicalSize;
+
+    // Icon placed at x: 600 on 1440px screen (not near edge)
+    let icon = TrayIconBounds { x: 600, y: 0, width: 30, height: 25 };
+    let win_size = PhysicalSize::new(520, 160);
+    let work_area = WorkArea { x: 0, y: 25, width: 1440, height: 875 };
+    let pos = calculate_popover_position(icon, win_size, work_area, 1.0);
+
+    // icon center = 615, win_w/2 = 260 -> 355
+    assert_eq!(pos.x, 355);
+    // top menubar -> below icon: 0 + 25 + 4 = 29
+    assert_eq!(pos.y, 29);
+  }
+
+  #[test]
+  fn popover_position_clamped_to_screen_edges() {
+    use crate::tray_position::{calculate_popover_position, TrayIconBounds, WorkArea};
+    use tauri::PhysicalSize;
+
+    let win_size = PhysicalSize::new(520, 160);
+    let work_area = WorkArea { x: 0, y: 25, width: 1440, height: 875 };
+
+    // Near right edge (x: 1420 on 1440px screen):
+    let icon_right = TrayIconBounds { x: 1420, y: 0, width: 20, height: 25 };
+    let pos_right = calculate_popover_position(icon_right, win_size, work_area, 1.0);
+    // max_x = 1440 - 520 - 8 = 912
+    assert_eq!(pos_right.x, 912);
+
+    // Near left edge (x: 5 on 1440px screen):
+    let icon_left = TrayIconBounds { x: 5, y: 0, width: 20, height: 25 };
+    let pos_left = calculate_popover_position(icon_left, win_size, work_area, 1.0);
+    // min_x = 0 + 8 = 8
+    assert_eq!(pos_left.x, 8);
+  }
+
+  #[test]
+  fn popover_position_bottom_taskbar_anchors_above() {
+    use crate::tray_position::{calculate_popover_position, TrayIconBounds, WorkArea};
+    use tauri::PhysicalSize;
+
+    // Windows bottom taskbar setup: screen 1920x1080, taskbar 40px at bottom
+    // Icon at x: 800 (center of taskbar, not hitting edge clamp)
+    let icon = TrayIconBounds { x: 800, y: 1045, width: 30, height: 35 };
+    let win_size = PhysicalSize::new(520, 160);
+    let work_area = WorkArea { x: 0, y: 0, width: 1920, height: 1040 };
+    let pos = calculate_popover_position(icon, win_size, work_area, 1.0);
+
+    assert_eq!(pos.x, 800 + 15 - 260); // 555
+    // icon.y (1045) is in lower half -> anchors ABOVE: clamped to work area max_y (880)
+    assert_eq!(pos.y, 880);
+  }
+
+
+  #[test]
+  fn popover_position_secondary_monitor_retina() {
+    use crate::tray_position::{calculate_popover_position, TrayIconBounds, WorkArea};
+    use tauri::PhysicalSize;
+
+    // Secondary monitor offset at x=1920, scale=2.0
+    let scale = 2.0;
+    let icon = TrayIconBounds { x: 3000, y: 0, width: 60, height: 50 };
+    let win_size = PhysicalSize::new((520.0 * scale) as u32, (160.0 * scale) as u32); // 1040 x 320
+    let work_area = WorkArea { x: 1920, y: 50, width: 2880, height: 1750 };
+    let pos = calculate_popover_position(icon, win_size, work_area, scale);
+
+    // icon center = 3030, desired_x = 3030 - 520 = 2510
+    assert_eq!(pos.x, 2510);
+    // icon.y (0) in upper half -> des_y = 0 + 50 + 8 = 58
+    assert_eq!(pos.y, 58);
+  }
+
+  #[test]
+  fn capture_state_blur_debounce_tracking() {
+    let state = crate::capture::CaptureState::new("Control+Alt+N".into(), "Inbox.md".into());
+    assert!(!state.is_recently_blurred());
+
+    state.record_blur();
+    assert!(state.is_recently_blurred());
+  }
+
+  #[test]
+  fn tray_click_action_defaults_match_design() {
+    use crate::tray_config::{DEFAULT_TRAY_CLICK_ACTION_EXISTING, DEFAULT_TRAY_CLICK_ACTION_NEW};
+    assert_eq!(DEFAULT_TRAY_CLICK_ACTION_NEW, "capture");
+    assert_eq!(DEFAULT_TRAY_CLICK_ACTION_EXISTING, "menu");
+  }
 }
+
 

@@ -6,7 +6,20 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Tray Phase 4b — Click-to-capture popover with left-click setting (complete, ADR-0172)**
+Implemented click-to-capture popover anchored under the tray icon with configurable left-click setting:
+1. Architectural decision (ADR-0172 supersedes Phase 1 click decision): Left-click on tray icon toggles the Quick Capture window anchored directly under the icon (or above on Windows bottom taskbars); right-click opens the tray menu.
+2. Work area clamping & multi-monitor math (`tray_position.rs`): Pure Rust positioning querying monitors, identifying the icon's monitor, handling Retina DPI scaling, horizontally centering with 8px screen margins, and vertical clamping. Zero new external dependencies (evaluated and avoided `tauri-plugin-positioner`).
+3. Focus/blur toggle race resolution: `CaptureState` tracks `last_blur_time`. On `WindowEvent::Focused(false)`, window hides and timestamp is recorded. Tray left-click within 350ms of blur suppresses reopen, guaranteeing clean one-click open and one-click close with 0 flicker.
+4. In-memory draft preservation: Unsaved typed text in `<QuickCapture />` is preserved in memory across blur, Escape, and mode switches; cleared only on successful save (`quick_capture_save`) or app quit.
+5. Live left-click setting & non-destructive migration: Added "Menu bar icon click" setting in General Settings (`TrayClickSettingsRow.tsx`) allowing users to choose between "Open quick capture" (`capture`, default for new users) and "Open menu" (`menu`, default for existing configs without key). Changes take effect live with no restart via `tray.set_show_menu_on_left_click`. Hides automatically on unsupported platforms (e.g. Linux).
+6. Zero capability growth: `capabilities/capture.json` remains completely unmodified (0 new permissions).
+7. Zero timers/polling: 0 background loops or intervals added.
+8. Tests & verification: All 45 Rust unit tests pass; all 103 frontend test files (373 tests) pass; ESLint 0 errors; full production release build passes.
+Phase 7 (settings consolidation and audit) is next (Phase 6 is deferred).
+
 **Tray Phase 5 — Quick Search from the capture window (complete)**
+
 Implemented quick search from the capture window, providing unified FTS5 search directly from the capture view:
 1. Architectural decision (Option C, ADR-0171): Granted scoped SQL permissions (`sql:default`, `sql:allow-execute`) to `capabilities/capture.json` so the capture window queries `vault-index.db` directly via `@tauri-apps/plugin-sql` and the canonical `@app/indexer` search engine (`executeSearchQuery` / `parseSearchQuery`). Reuses the exact same BM25 ranking and query syntax as the in-app quick switcher with zero ranking drift and zero IPC proxy lag.
 2. WAL mode concurrency: `vault-index.db` executes with `journal_mode=WAL` and `busy_timeout=5000`. Read-only queries in the capture window execute concurrently without blocking or failing on writer transactions in the main window.
