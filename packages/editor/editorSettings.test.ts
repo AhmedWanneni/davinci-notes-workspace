@@ -50,11 +50,16 @@ describe("editorSettings", () => {
         expect(isEditorFont(font)).toBe(true);
       }
       expect(isEditorFont("system")).toBe(true);
-      expect(isEditorFont("serif")).toBe(true);
-      expect(isEditorFont("monospace")).toBe(true);
+      expect(isEditorFont("inter")).toBe(true);
+      expect(isEditorFont("ibm-plex-sans")).toBe(true);
+      expect(isEditorFont("literata")).toBe(true);
+      expect(isEditorFont("source-serif-4")).toBe(true);
+      expect(isEditorFont("jetbrains-mono")).toBe(true);
       expect(isEditorFont("montserrat")).toBe(true);
       expect(isEditorFont("raleway")).toBe(true);
       expect(isEditorFont("custom")).toBe(true);
+      expect(isEditorFont("serif")).toBe(true);
+      expect(isEditorFont("monospace")).toBe(true);
       expect(isEditorFont("roboto")).toBe(true);
     });
 
@@ -156,6 +161,7 @@ describe("editorSettings", () => {
       await saveEditorSetting(storage, "editorFontSize", 18);
       await saveEditorSetting(storage, "strictLineBreaks", true);
       await saveEditorSetting(storage, "useVimMode", true);
+      await saveEditorSetting(storage, "vimMonospaceMode", false);
 
       const loaded = await loadEditorSettings(storage);
       expect(loaded.editorFont).toBe("custom");
@@ -163,6 +169,7 @@ describe("editorSettings", () => {
       expect(loaded.editorFontSize).toBe(18);
       expect(loaded.strictLineBreaks).toBe(true);
       expect(loaded.useVimMode).toBe(true);
+      expect(loaded.vimMonospaceMode).toBe(false);
     });
 
     it("sanitizes invalid custom font names upon loading", async () => {

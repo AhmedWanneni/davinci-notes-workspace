@@ -1,10 +1,15 @@
 export const editorFonts = [
   "system",
-  "serif",
-  "monospace",
+  "inter",
+  "ibm-plex-sans",
+  "literata",
+  "source-serif-4",
+  "jetbrains-mono",
   "montserrat",
   "raleway",
   "custom",
+  "serif",
+  "monospace",
   "roboto",
 ] as const;
 
@@ -16,6 +21,7 @@ export interface EditorSettings {
   editorFontSize: number;
   strictLineBreaks: boolean;
   useVimMode: boolean;
+  vimMonospaceMode: boolean;
 }
 
 export interface EditorSettingsStorage {
@@ -33,6 +39,7 @@ export const defaultEditorSettings: EditorSettings = {
   editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
   strictLineBreaks: false,
   useVimMode: false,
+  vimMonospaceMode: true,
 };
 
 export function isEditorFont(
@@ -122,6 +129,7 @@ export async function loadEditorSettings(
   const editorFontSize = await storage.get("editorFontSize");
   const strictLineBreaks = await storage.get("strictLineBreaks");
   const useVimMode = await storage.get("useVimMode");
+  const vimMonospaceMode = await storage.get("vimMonospaceMode");
 
   const validatedCustom = validateAndSanitizeCustomFont(editorCustomFont);
 
@@ -133,6 +141,10 @@ export async function loadEditorSettings(
     editorFontSize: clampEditorFontSize(editorFontSize),
     strictLineBreaks: strictLineBreaks === "true",
     useVimMode: useVimMode === "true",
+    vimMonospaceMode:
+      vimMonospaceMode === null
+        ? defaultEditorSettings.vimMonospaceMode
+        : vimMonospaceMode === "true",
   };
 }
 
