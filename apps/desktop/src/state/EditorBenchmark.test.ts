@@ -3,15 +3,15 @@ import { describe, expect, it } from "vitest";
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
-import { livePreviewExtension } from "../../../../packages/editor/livePreviewExtension";
-import { wikilinkExtension } from "../../../../packages/editor/wikilinkExtension";
-import { imageExtension } from "../../../../packages/editor/imageExtension";
-import { listExtension } from "../../../../packages/editor/listExtension";
-import { softLineBreakExtension } from "../../../../packages/editor/lineBreakExtension";
-import { codeBlockLanguage } from "../../../../packages/editor/codeBlockExtension";
-import { markdownAnnotationsExtension } from "../../../../packages/editor/markdownAnnotationsExtension";
-import { mermaidExtension } from "../../../../packages/editor/mermaidExtension";
-import { mathExtension } from "../../../../packages/editor/mathExtension";
+import { livePreviewExtension } from "../../../../packages/editor/live-preview/livePreviewExtension";
+import { wikilinkExtension } from "../../../../packages/editor/links/wikilinkExtension";
+import { imageExtension } from "../../../../packages/editor/embeds/imageExtension";
+import { listExtension } from "../../../../packages/editor/live-preview/listExtension";
+import { softLineBreakExtension } from "../../../../packages/editor/live-preview/lineBreakExtension";
+import { codeBlockLanguage } from "../../../../packages/editor/blocks/code/codeBlockExtension";
+import { markdownAnnotationsExtension } from "../../../../packages/editor/live-preview/markdownAnnotationsExtension";
+import { mermaidExtension } from "../../../../packages/editor/blocks/mermaid/mermaidExtension";
+import { mathExtension } from "../../../../packages/editor/blocks/math/mathExtension";
 
 describe("Editor Performance Benchmark", () => {
   it("profiles document update with live preview and wikilink extensions", () => {
@@ -97,7 +97,7 @@ describe("Editor Performance Benchmark", () => {
     }
 
     const { loadVimExtension, attachVimModeListener } =
-      await import("../../../../packages/editor/vimExtension");
+      await import("../../../../packages/editor/vim/vimExtension");
     const vimExt = await loadVimExtension();
 
     // 1. Measure Vim Mode OFF

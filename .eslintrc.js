@@ -64,6 +64,10 @@ module.exports = {
   },
   overrides: [
     {
+      files: ["packages/editor/**/*.{ts,tsx}"],
+      rules: { "boundaries/no-private": "off" }
+    },
+    {
       files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
       rules: {
         "boundaries/no-private": "off"

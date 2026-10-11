@@ -4,6 +4,13 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Editor feature-folder refactor (complete; native smoke test pending local GUI access)**
+Reorganized `packages/editor` into `theme/`, `settings/`, `live-preview/`, `vim/`, `links/`, `embeds/`, `blocks/{code,html,math,mermaid,table}/`, `clipboard/`, and `integration/`; retained `Editor.tsx`, `MarkdownView.tsx`, `Editor.module.scss`, and `index.ts` at package root. Tests remain adjacent to their source files and public exports from `index.ts` are unchanged. Added required feature-folder barrels and the scoped ESLint boundary override needed for the package-internal folder imports; external consumer boundary checks remain enabled. Updated desktop test deep imports and editor TypeScript include paths. No dependencies or runtime logic changed.
+
+Verification: editor typecheck/lint/build pass; editor tests remain 17 files / 97 tests; desktop tests pass at 104 files / 386 tests. Desktop typecheck is blocked by unrelated pre-existing errors in workspace/canvas/storybook/theme/vault files. Native GUI verification remains pending because this agent has no accessible GUI surface; a Vite dev server was already listening on port 1420, and launching a second dev session therefore failed on that occupied port.
+
+**Next:** Phase 6 — code blocks, tables, math, and callouts/mermaid styling; perform the native editor smoke test (live preview, tags, image, code, math, mermaid, table, and Vim) from an interactive desktop session.
+
 **Fix — heading `#` marker cropped (24fb40e)**
 Revealed markers (`.cm-marker-active`, `.cm-activeLine .cm-markdown-syntax`) were dimmed with `opacity: 0.5` on a wrapper span sized at the 16px body font, while the heading `#` inside renders at heading size (~26px for H1) and overflows the wrapper's box by ~3px. WebKit (WKWebView) bounds the opacity group to that box and clips the glyph. Markers are now coloured with `--color-text-faint` (no opacity). Verified in Playwright WebKit (JetBrains Mono, vim on/off); **native Tauri window still needs Ahmed's visual confirmation** (headless WebKit didn't show the clip, so this is the most likely cause, not a proven one). Next up unchanged.
 

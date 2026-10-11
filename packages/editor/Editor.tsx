@@ -11,53 +11,51 @@ import { markdown } from "@codemirror/lang-markdown";
 import { Strikethrough } from "@lezer/markdown";
 import { autocompletion } from "@codemirror/autocomplete";
 import { syntaxHighlighting } from "@codemirror/language";
-import { editorHighlightStyle, editorTheme } from "./editorTheme";
-import { highlightExtension } from "./highlightExtension";
-import { livePreviewExtension } from "./livePreviewExtension";
-import { linkExtension } from "./linkExtension";
-import { imageExtension } from "./imageExtension";
-import { embedImageExtension } from "./embedImageExtension";
-import { listExtension, listIndentKeymap } from "./listExtension";
-import { autocompleteExtension } from "./autocompleteExtension";
-import { codeBlockLanguage } from "./codeBlockExtension";
-import { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
-import { markdownAnnotationTheme } from "./markdownAnnotationTheme";
-import { tableExtension } from "./tableExtension";
-import { tableTheme } from "./tableTheme";
-import { codeBlockLayoutTheme } from "./codeBlockLayoutTheme";
-import { mermaidExtension } from "./mermaidExtension";
-import { mermaidTheme } from "./mermaidTheme";
-import { mathExtension } from "./mathExtension";
-import { mathTheme } from "./mathTheme";
-import { tagExtension } from "./tagExtension";
-import { tagTheme } from "./tagTheme";
-import { htmlBlockExtension } from "./htmlBlockExtension";
-import { htmlBlockTheme } from "./htmlBlockTheme";
-import { htmlInlineExtension } from "./htmlInlineExtension";
-import { htmlInlineTheme } from "./htmlInlineTheme";
+import { editorHighlightStyle, editorTheme, markdownAnnotationTheme, tagTheme } from "./theme";
+import {
+  autocompleteExtension,
+  highlightExtension,
+  listExtension,
+  listIndentKeymap,
+  livePreviewExtension,
+  markdownAnnotationsExtension,
+  tagExtension,
+} from "./live-preview";
+import { linkExtension } from "./links";
+import { embedImageExtension, imageExtension } from "./embeds";
+import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
+import { tableExtension, tableTheme } from "./blocks/table";
+import { mermaidExtension, mermaidTheme } from "./blocks/mermaid";
+import { mathExtension, mathTheme } from "./blocks/math";
+import {
+  htmlBlockExtension,
+  htmlBlockTheme,
+  htmlInlineExtension,
+  htmlInlineTheme,
+} from "./blocks/html";
 import {
   insertHardLineBreak,
   softLineBreakExtension,
-} from "./lineBreakExtension";
+} from "./live-preview";
 import {
   attachVimModeListener,
   loadVimExtension,
   registerVimExCommands,
-} from "./vimExtension";
+} from "./vim";
 import {
   attachmentDropHandler,
   attachmentPasteHandler,
   type PasteAttachmentHandler,
-} from "./pasteAttachment";
+} from "./clipboard";
 import {
   createEditorPluginAdapter,
   type EditorPluginAdapter,
-} from "./pluginEditorAdapter";
+} from "./integration";
 import {
   externalChangeAnnotations,
   externalDocumentChange,
   minimalDocumentChange,
-} from "./externalDocumentChange";
+} from "./integration";
 
 export interface EditorProps {
   value: string;

@@ -4,30 +4,27 @@ import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
 import { Strikethrough } from "@lezer/markdown";
 import { syntaxHighlighting } from "@codemirror/language";
-import { editorHighlightStyle, readOnlyEditorTheme } from "./editorTheme";
-import { highlightExtension } from "./highlightExtension";
-import { codeBlockLanguage } from "./codeBlockExtension";
-import { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
-import { readOnlyMarkdownAnnotationTheme } from "./markdownAnnotationTheme";
-import { tableExtension } from "./tableExtension";
-import { readOnlyTableTheme } from "./tableTheme";
-import { codeBlockLayoutTheme } from "./codeBlockLayoutTheme";
-import { livePreviewExtension } from "./livePreviewExtension";
-import { linkExtension } from "./linkExtension";
-import { imageExtension } from "./imageExtension";
-import { embedImageExtension } from "./embedImageExtension";
-import { listExtension } from "./listExtension";
-import { softLineBreakExtension } from "./lineBreakExtension";
-import { mermaidExtension } from "./mermaidExtension";
-import { mermaidTheme } from "./mermaidTheme";
-import { mathExtension } from "./mathExtension";
-import { mathTheme } from "./mathTheme";
-import { tagExtension } from "./tagExtension";
-import { tagTheme } from "./tagTheme";
-import { htmlBlockExtension } from "./htmlBlockExtension";
-import { htmlBlockTheme } from "./htmlBlockTheme";
-import { htmlInlineExtension } from "./htmlInlineExtension";
-import { htmlInlineTheme } from "./htmlInlineTheme";
+import { editorHighlightStyle, readOnlyEditorTheme, readOnlyMarkdownAnnotationTheme, tagTheme } from "./theme";
+import {
+  highlightExtension,
+  listExtension,
+  livePreviewExtension,
+  markdownAnnotationsExtension,
+  softLineBreakExtension,
+  tagExtension,
+} from "./live-preview";
+import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
+import { readOnlyTableTheme, tableExtension } from "./blocks/table";
+import { linkExtension } from "./links";
+import { embedImageExtension, imageExtension } from "./embeds";
+import { mermaidExtension, mermaidTheme } from "./blocks/mermaid";
+import { mathExtension, mathTheme } from "./blocks/math";
+import {
+  htmlBlockExtension,
+  htmlBlockTheme,
+  htmlInlineExtension,
+  htmlInlineTheme,
+} from "./blocks/html";
 
 export interface MarkdownViewProps {
   value: string;

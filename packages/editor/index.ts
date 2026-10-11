@@ -1,26 +1,26 @@
 export { Editor } from "./Editor";
 export type { EditorProps } from "./Editor";
-export { createEditorPluginAdapter } from "./pluginEditorAdapter";
+export { createEditorPluginAdapter } from "./integration/pluginEditorAdapter";
 export type {
   EditorPluginAdapter,
   EditorSelection,
-} from "./pluginEditorAdapter";
-export { resolveEmbedLink } from "./embedLinkResolution";
+} from "./integration/pluginEditorAdapter";
+export { resolveEmbedLink } from "./embeds/embedLinkResolution";
 export type {
   EmbedLinkResolutionOptions,
   EmbedResolution,
-} from "./embedLinkResolution";
+} from "./embeds/embedLinkResolution";
 export {
   attachmentDropHandler,
   attachmentPasteHandler,
   handleAttachmentPaste,
   handleIncomingFiles,
   pastedFileName,
-} from "./pasteAttachment";
+} from "./clipboard/pasteAttachment";
 export type {
   IncomingAttachmentHandler,
   PasteAttachmentHandler,
-} from "./pasteAttachment";
+} from "./clipboard/pasteAttachment";
 export { MarkdownView } from "./MarkdownView";
 export type { MarkdownViewProps } from "./MarkdownView";
 export {
@@ -34,77 +34,77 @@ export {
   DEFAULT_EDITOR_FONT_SIZE,
   saveEditorSetting,
   validateAndSanitizeCustomFont,
-} from "./editorSettings";
+} from "./settings/editorSettings";
 export type {
   CustomFontValidationResult,
   EditorFont,
   EditorSettings,
   EditorSettingsStorage,
-} from "./editorSettings";
+} from "./settings/editorSettings";
 export {
   softLineBreakExtension,
   insertHardLineBreak,
-} from "./lineBreakExtension";
+} from "./live-preview/lineBreakExtension";
 export {
   editorHighlightStyle,
   editorTheme,
   readOnlyEditorTheme,
-} from "./editorTheme";
-export { livePreviewExtension } from "./livePreviewExtension";
-export { codeBlockLanguage } from "./codeBlockExtension";
-export { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
-export type { MarkdownAnnotationsOptions } from "./markdownAnnotationsExtension";
+} from "./theme/editorTheme";
+export { livePreviewExtension } from "./live-preview/livePreviewExtension";
+export { codeBlockLanguage } from "./blocks/code/codeBlockExtension";
+export { markdownAnnotationsExtension } from "./live-preview/markdownAnnotationsExtension";
+export type { MarkdownAnnotationsOptions } from "./live-preview/markdownAnnotationsExtension";
 export {
   markdownAnnotationTheme,
   readOnlyMarkdownAnnotationTheme,
-} from "./markdownAnnotationTheme";
-export { insertTableCommand, tableExtension } from "./tableExtension";
-export type { TableExtensionOptions } from "./tableExtension";
-export { readOnlyTableTheme, tableTheme } from "./tableTheme";
-export { codeBlockLayoutTheme } from "./codeBlockLayoutTheme";
-export { mermaidExtension } from "./mermaidExtension";
-export type { MermaidExtensionOptions } from "./mermaidExtension";
-export { mermaidTheme } from "./mermaidTheme";
-export { mathExtension } from "./mathExtension";
-export type { MathExtensionOptions } from "./mathExtension";
-export { mathTheme } from "./mathTheme";
+} from "./theme/markdownAnnotationTheme";
+export { insertTableCommand, tableExtension } from "./blocks/table/tableExtension";
+export type { TableExtensionOptions } from "./blocks/table/tableExtension";
+export { readOnlyTableTheme, tableTheme } from "./blocks/table/tableTheme";
+export { codeBlockLayoutTheme } from "./blocks/code/codeBlockLayoutTheme";
+export { mermaidExtension } from "./blocks/mermaid/mermaidExtension";
+export type { MermaidExtensionOptions } from "./blocks/mermaid/mermaidExtension";
+export { mermaidTheme } from "./blocks/mermaid/mermaidTheme";
+export { mathExtension } from "./blocks/math/mathExtension";
+export type { MathExtensionOptions } from "./blocks/math/mathExtension";
+export { mathTheme } from "./blocks/math/mathTheme";
 export {
   linkExtension,
   wikilinkExtension,
   isExternalUrl,
   sanitizeLinkDestination,
-} from "./linkExtension";
-export type { LinkExtensionOptions } from "./linkExtension";
+} from "./links/linkExtension";
+export type { LinkExtensionOptions } from "./links/linkExtension";
 export {
   imageExtension,
   parseImageDimensions,
   sanitizeImageUrl,
-} from "./imageExtension";
-export type { ImageDimensions, ImageExtensionOptions } from "./imageExtension";
-export { embedImageExtension } from "./embedImageExtension";
-export type { EmbedImageExtensionOptions } from "./embedImageExtension";
+} from "./embeds/imageExtension";
+export type { ImageDimensions, ImageExtensionOptions } from "./embeds/imageExtension";
+export { embedImageExtension } from "./embeds/embedImageExtension";
+export type { EmbedImageExtensionOptions } from "./embeds/embedImageExtension";
 export {
   isYoutubeImage,
   youtubeEmbedVideoId,
   youtubeImageToIframe,
   youtubeThumbnailUrl,
   youtubeVideoId,
-} from "./youtubeEmbed";
+} from "./embeds/youtubeEmbed";
 export {
   isTweetImage,
   tweetImageToStatusUrl,
   tweetStatusUrl,
-} from "./tweetEmbed";
-export { listExtension, listIndentKeymap } from "./listExtension";
-export type { ListExtensionOptions } from "./listExtension";
-export { highlightExtension, highlightTag } from "./highlightExtension";
-export { tagExtension } from "./tagExtension";
-export type { TagExtensionOptions } from "./tagExtension";
-export { tagTheme } from "./tagTheme";
-export { htmlBlockExtension } from "./htmlBlockExtension";
-export { htmlBlockTheme } from "./htmlBlockTheme";
-export { htmlInlineExtension } from "./htmlInlineExtension";
-export { htmlInlineTheme } from "./htmlInlineTheme";
-export { loadVimExtension } from "./vimExtension";
+} from "./embeds/tweetEmbed";
+export { listExtension, listIndentKeymap } from "./live-preview/listExtension";
+export type { ListExtensionOptions } from "./live-preview/listExtension";
+export { highlightExtension, highlightTag } from "./live-preview/highlightExtension";
+export { tagExtension } from "./live-preview/tagExtension";
+export type { TagExtensionOptions } from "./live-preview/tagExtension";
+export { tagTheme } from "./theme/tagTheme";
+export { htmlBlockExtension } from "./blocks/html/htmlBlockExtension";
+export { htmlBlockTheme } from "./blocks/html/htmlBlockTheme";
+export { htmlInlineExtension } from "./blocks/html/htmlInlineExtension";
+export { htmlInlineTheme } from "./blocks/html/htmlInlineTheme";
+export { loadVimExtension } from "./vim/vimExtension";
 export { Strikethrough } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";
