@@ -64,6 +64,7 @@ fn setup_macos_tray(app: &AppHandle) -> tauri::Result<()> {
       let id = event.id.as_ref();
       match id {
         "tray-show-hide" => toggle_main_window(app),
+        "tray-quick-capture" => crate::capture::trigger_quick_capture(app),
         "tray-new-note" => emit_tray_action(app, TRAY_NEW_NOTE_EVENT, None),
         "tray-daily-note" => emit_tray_action(app, TRAY_DAILY_NOTE_EVENT, None),
         "tray-open-vault" => emit_tray_action(app, TRAY_OPEN_VAULT_EVENT, None),

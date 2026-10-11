@@ -129,6 +129,10 @@ export default defineConfig({
     outDir: "dist",
     emptyOutDir: true,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, "index.html"),
+        capture: path.resolve(__dirname, "capture.html"),
+      },
       output: {
         manualChunks: (id) => {
           if (id.includes("@codemirror") || id.includes("@lezer")) {

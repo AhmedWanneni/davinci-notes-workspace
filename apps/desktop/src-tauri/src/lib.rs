@@ -1,6 +1,11 @@
-mod db;
 mod ai_auth;
+mod capture;
+mod capture_commands;
+mod capture_format;
+#[cfg(test)]
+mod capture_tests;
 mod command_auth;
+mod db;
 mod folder_commands;
 mod fs;
 mod git;
@@ -9,9 +14,9 @@ mod git_history;
 mod git_remote;
 mod manifest;
 mod oauth;
-mod plugin_webview;
 mod plugin_files;
 mod plugin_network;
+mod plugin_webview;
 mod state;
 mod theme_files;
 mod tray;
@@ -33,6 +38,7 @@ pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
+    .plugin(tauri_plugin_global_shortcut::Builder::new().build())
     .plugin(
       tauri_plugin_sql::Builder::default()
         .add_migrations(db::DB_URL, db::migrations())
@@ -99,6 +105,12 @@ pub fn run() {
       tray_commands::set_keep_in_tray,
       tray_commands::update_tray_recent_notes,
       tray_commands::request_app_exit,
+      capture_commands::quick_capture_save,
+      capture_commands::quick_capture_dismiss,
+      capture_commands::get_capture_shortcut,
+      capture_commands::set_capture_shortcut,
+      capture_commands::get_capture_target,
+      capture_commands::set_capture_target,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
@@ -106,6 +118,11 @@ pub fn run() {
           if tray::handle_window_close_requested(window) {
             api.prevent_close();
           }
+        }
+      } else if window.label() == command_auth::CAPTURE_WINDOW_LABEL {
+        if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+          api.prevent_close();
+          let _ = window.hide();
         }
       }
     })
@@ -130,6 +147,8 @@ pub fn run() {
       window.build()?;
 
       tray::setup(app.handle())?;
+      capture::setup(app.handle())?;
+
 
       if std::env::var_os("DAVINCI_PLUGIN_RPC_PROBE").is_some() {
         println!("[plugin-rpc] probe requested");

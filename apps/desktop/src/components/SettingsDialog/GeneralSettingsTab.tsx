@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Button, Toggle } from "@app/design-system";
+import { CaptureSettingsSection } from "./CaptureSettingsSection";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
 import styles from "./SettingsDialog.module.scss";
@@ -76,6 +77,8 @@ export function GeneralSettingsTab({
             aria-label="Keep running in menu bar"
           />
         </SettingsRow>
+
+        <CaptureSettingsSection />
 
         <SettingsRow
           title="Automatic updates"

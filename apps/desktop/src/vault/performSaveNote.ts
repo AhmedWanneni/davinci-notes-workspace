@@ -5,8 +5,7 @@ import type {
 } from "./noteConflictTypes";
 import { noteFromMarkdown } from "./noteFromMarkdown";
 import { persistNote, getVaultIndexDb, withDbLock } from "./sqliteIndex";
-import { updateGraphForNote } from "./sqliteGraphIndex";
-import { updateTagIndexForNote } from "@app/indexer";
+import { updateGraphForNote, updateTagIndexForNote } from "@app/indexer";
 import { readNote, statNote, writeNote } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
 import { diskStateTracker } from "./diskStateTracker";

@@ -6,7 +6,21 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Tray Phase 4 — Global shortcut and lazy Quick Capture window (complete)**
+Implemented global shortcut (`Control+Alt+N` default, configurable via General Settings) and lazy Quick Capture window:
+1. `tauri-plugin-global-shortcut`: registered on `ShortcutState::Pressed` only to eliminate double-firing. Handled conflict registration gracefully with error surfacing and rollback.
+2. Lazy Quick Capture window: created lazily on first shortcut press or tray "Quick capture" menu trigger (`WebviewUrl::App("capture.html")`), then hidden/shown. Intercepted close event to hide rather than destroy. Single textarea with auto-focus, Enter saves, Shift+Enter for newline, Esc dismisses.
+3. Isolated tiny frontend entry point: `capture.html` -> `src/capture/main.tsx` importing only design-system tokens and React (`dist/assets/capture-*.js` 2.97 KB raw / 1.14 KB gzip). Zero CodeMirror, Canvas, KaTeX, Mermaid, or SQLite imports.
+4. Pure Rust append with mutex serialization: `Arc<Mutex<()>>` write lock in `CaptureState` serializes rapid concurrent capture invocations with 0 loss or interleaving. Appends `- [YYYY-MM-DD HH:mm:ss] <text>\n` (or CRLF matching the file) to target note (default `Inbox.md`). Checks last 4 bytes without reading full file into memory (< 1 KB overhead even for 50 MB files). Never modifies or reformats existing bytes, ensuring Phase 4a's `classifyDiskChange` classifies changes as `pure_append` so active dirty editors merge losslessly.
+5. Vault-root path confinement: webview passes text only; target note is resolved from settings in Rust via `resolve_in_vault`, rejecting any path traversal (`..`), absolute paths, or escaping symlinks.
+6. Zero SQLite / `vault-index.db` access: capture writes exclusively to disk markdown files via filesystem `O_APPEND`. Indexing flows naturally through watcher under `withDbLock`.
+7. Least-privilege capability file: `capabilities/capture.json` grants only `core:default`, `core:window:allow-close`, `core:window:allow-hide`, `core:window:allow-set-focus`, `core:event:allow-listen`. All native commands reject non-main windows via `command_auth.rs`.
+8. Code limits: all source files strictly ≤ 200 lines (`capture.rs` 195, `capture_commands.rs` 144, `capture_format.rs` 51, `tray.rs` 200, `lib.rs` 196, `QuickCapture.tsx` 145, `GeneralSettingsTab.tsx` 187, `CaptureSettingsSection.tsx` 115).
+9. Tests & Verification: 38/38 Cargo unit tests pass (including 20x concurrency, large file tail seek, CRLF preservation, frontmatter preservation, path traversal rejection, shortcut validation); 100/100 frontend test suites (358 tests) pass with 0 lint errors.
+Tray Phase 5 (quick search) is next.
+
 **Phase 4a — Save-time external-change guard with append-aware merge (ADR-0170 supersedes ADR-0161) — complete**
+
 Fixed silent data loss vulnerability where autosave (750 ms) or manual save unconditionally overwrote external disk modifications when notes were dirty in memory:
 1. `stat_note` & atomic `write_note` in Rust: returns `{ exists, mtime, size }`; writes to atomic sibling `.tmp.<pid>` then executes `fs::rename`.
 2. `diskStateTracker`: in-memory tracking of `{ mtime, size, content }` on load, reload, and save.

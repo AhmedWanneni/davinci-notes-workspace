@@ -83,6 +83,7 @@ pub fn build_tray_menu(
 ) -> tauri::Result<Menu<Wry>> {
   let menu = Menu::new(app)?;
   let show_hide = MenuItem::with_id(app, "tray-show-hide", "Show/Hide window", true, None::<&str>)?;
+  let quick_capture = MenuItem::with_id(app, "tray-quick-capture", "Quick capture", true, None::<&str>)?;
   let new_note = MenuItem::with_id(app, "tray-new-note", "New note", has_vault, None::<&str>)?;
   let daily_note = MenuItem::with_id(
     app,
@@ -100,6 +101,7 @@ pub fn build_tray_menu(
   let quit = MenuItem::with_id(app, "tray-quit", "Quit", true, None::<&str>)?;
 
   menu.append(&show_hide)?;
+  menu.append(&quick_capture)?;
   menu.append(&new_note)?;
   menu.append(&daily_note)?;
   menu.append(&sep1)?;

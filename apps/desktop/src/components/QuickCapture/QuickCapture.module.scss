@@ -1,0 +1,104 @@
+.quick-capture-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
+  background-color: var(--color-bg-primary);
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-3);
+  overflow: hidden;
+  user-select: none;
+}
+
+.quick-capture-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.quick-capture-title {
+  color: var(--color-text-normal);
+  font-weight: var(--type-weight-semibold);
+}
+
+.quick-capture-counter {
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.quick-capture-counter-warning {
+  color: var(--color-text-warning);
+}
+
+.quick-capture-textarea {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-normal);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  padding: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-sm);
+  line-height: var(--type-leading-normal);
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: var(--color-border-focus);
+  }
+
+  &::placeholder {
+    color: var(--color-text-faint);
+  }
+}
+
+.quick-capture-error {
+  margin-top: var(--space-1);
+  color: var(--color-text-error);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+}
+
+.quick-capture-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+  color: var(--color-text-faint);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+}
+
+.quick-capture-hints {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.quick-capture-hint-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.quick-capture-kbd {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-secondary-alt);
+  color: var(--color-text-muted);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
+}

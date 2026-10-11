@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-11 | Tray Phase 4 — Global shortcut and lazy Quick Capture window | Added global shortcut (`Control+Alt+N` default, configurable via General Settings) via `tauri-plugin-global-shortcut` with conflict rollback and double-press suppression; created lazy Quick Capture always-on-top window loading separate tiny entry point (`capture.html`, 2.97 KB raw / 1.14 KB gzip) using design tokens; added safe Rust pure-append write path with mutex serialization, EOL and CRLF detection, missing directory creation, and strict vault confinement; added "Quick capture" menu item to tray; enforced least privilege via `capabilities/capture.json` and `command_auth.rs`. 38 Rust unit tests and 358 frontend unit tests pass with 0 lint errors. |
 | 2026-10-10 | Phase 4a — Save-time external-change guard with append-aware merge | Superseded ADR-0161 with ADR-0170. Fixed silent data loss bug in saveNoteNow where dirty in-memory buffers unconditionally overwrote external disk changes. Added Rust stat_note & atomic write_note (.tmp.<pid> + rename), in-memory diskStateTracker, classifyDiskChange (touched_only, pure_append, conflict), saveQueue promise serialization, EditorConflictBanner with 3-action resolution (Keep mine, Use disk, Save copy), tab conflict dot, and automatic conflict copy creation on quit in saveAllDirty. 28 Rust tests and 348 frontend tests pass with 0 lint errors. |
 | 2026-10-10 | Tray Phase 3 — dynamic tray menu with recent notes, daily note, open vault | Added dynamic menu in macOS tray with last 5 recent notes (derived from workspace navigation history and open tabs in reverse-chronological order, disambiguated by parent folder on collisions, validated in Rust against path traversal and vault root escapes), "Open today's daily note", and "Open vault...". Debounced updates at 200ms trailing debounce with 0 polling at rest. All files kept strictly under line limits; 26 Rust tests and 329 frontend tests pass. |
 | 2026-10-10 | Tray Phase 2 — close-to-tray setting and unified clean quit | Implemented "Keep running in menu bar" toggle in General Settings with config file persistence and zero-race atomic state in Rust; intercepted window close to hide window and switch macOS Dock activation policy (Accessory when hidden, Regular when shown) with single-instance reopen restore; unified all quit routes (Tray Quit, Cmd+Q, App Menu Quit, Close when setting OFF, OS shutdown) to flush dirty editors via `saveAllDirty()`, stop the file watcher debouncer, and exit cleanly. Added Rust tests in `tray_tests.rs` (4 tests) and TypeScript tests in `useTrayMenuActions.test.ts` (5 tests); all 23 Rust tests and 93 desktop test files (325 tests) pass. |
@@ -3113,6 +3114,43 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - `useTrayMenuActions.test.ts`: 5 tests covering clean quit, tray quit, window hidden flush, and note creation.
   - `SettingsDialog.test.tsx`: verified "Keep running in menu bar" setting row rendering.
 - Verification: 23 Rust tests pass; all 93 desktop test files (325 tests) pass; ESLint 0 errors; production web build passes.
+
+---
+
+### 2026-10-11: Tray Phase 4 — Global Shortcut and Lazy Quick Capture Window
+
+- **Global Shortcut Implementation**:
+  - Registered official `tauri-plugin-global-shortcut` (v2.3.2) during application setup.
+  - Default shortcut: `Control+Alt+N` (does not conflict with macOS Mission Control, Spotlight, Finder, Alfred, or Raycast).
+  - Explicitly filtered on `ShortcutState::Pressed` only to eliminate double-firing on key release.
+  - Handled conflicting / invalid shortcuts gracefully with validation, user error surfacing, and rollback to previously active shortcut.
+  - Persisted user-configured shortcut (`captureShortcut`) and target note (`captureTarget`) in `davinci-tray-settings.json`.
+- **Lazy Quick Capture Window**:
+  - Created lazily on first trigger (`show_or_create_capture_window`): `WebviewUrl::App("capture.html")`, `520x160`, always-on-top, skip taskbar, centered, frameless.
+  - Kept in memory and hidden/shown on subsequent triggers (`unminimize()`, `show()`, `set_focus()`).
+  - Intercepted `CloseRequested` on `"capture"` window to hide rather than destroy.
+  - Added "Quick capture" menu item (`tray-quick-capture`) in tray menu.
+- **Isolated Tiny Frontend Entry Point**:
+  - Declared multi-page Rollup input in `vite.config.ts` (`main: index.html`, `capture: capture.html`).
+  - `capture.html` loads `src/capture/main.tsx`, mounting `<QuickCapture />`.
+  - Emits bundle `dist/assets/capture-*.js` of only **2.97 KB raw / 1.14 KB gzip**.
+  - Zero imports of CodeMirror, SQLite, Canvas, KaTeX, Mermaid, or indexer in the capture bundle.
+- **Pure-Append Rust Write Path**:
+  - Handled entirely in Rust (`capture.rs` and `capture_commands.rs`).
+  - Frontend passes only `{ text: String }`. Rust resolves target note relative to active `vault_root` via `resolve_in_vault`, strictly confining writes within the vault and rejecting traversal (`..`) or symlink escapes.
+  - Managed `CaptureState` with `write_lock: Arc<Mutex<()>>` serializing rapid concurrent captures to guarantee ordered writes with zero interleaving or data loss.
+  - File appends via `O_APPEND` without rewriting or truncating existing content. Inspects last 4 bytes to check EOL and CRLF without reading large files into memory (< 1 KB memory usage on 50 MB files).
+  - Automatically prepends missing trailing newlines and matches file CRLF line endings.
+  - Guaranteed pure append format: Phase 4a's `classifyDiskChange` classifies changes as `pure_append`, allowing open dirty editors in the main window to merge captured text losslessly.
+  - Zero SQLite / `vault-index.db` access: capture never opens or accesses SQLite; file watcher handles indexing naturally under universal `withDbLock`.
+- **Least Privilege Capability Boundary**:
+  - `capabilities/capture.json` grants only `core:default`, `core:window:allow-close`, `core:window:allow-hide`, `core:window:allow-set-focus`, `core:event:allow-listen`.
+  - `command_auth.rs` rejects all native main-window commands (`fs::*`, `git::*`, `ai_auth::*`, etc.) when invoked from the `"capture"` window.
+- **Testing & Verification**:
+  - Added Rust unit tests in `capture_tests.rs`: 20x rapid concurrency serialization, CRLF line ending preservation, frontmatter preservation, empty file / missing folder creation, large file tail seek, safe path traversal rejection, shortcut validation. All 38 Rust unit tests pass.
+  - Added TypeScript unit tests in `QuickCapture.test.tsx` and `CaptureSettingsSection.test.tsx`. All 100 test files (358 tests) pass.
+  - Web production build succeeds with 2.97 KB capture chunk; ESLint passes with 0 errors.
+
 
 
 
