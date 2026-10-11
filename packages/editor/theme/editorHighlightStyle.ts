@@ -1,7 +1,7 @@
 import { HighlightStyle } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 
-import { highlightTag } from "./highlightExtension";
+import { highlightTag } from "../live-preview";
 
 export const editorHighlightStyle = HighlightStyle.define([
   {
