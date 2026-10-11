@@ -90,3 +90,11 @@
   display: flex;
   flex-direction: column;
 }
+
+.insert-menu__anchor { position: fixed; width: 1px; height: 1px; }
+.insert-menu { width: 260px; max-height: min(70vh, 520px); overflow-y: auto; padding: var(--space-2); border-radius: var(--border-radius-sm); box-shadow: none; }
+.insert-menu__search { width: 100%; box-sizing: border-box; border: var(--border-width-thin) solid var(--color-border-normal); border-radius: var(--border-radius-sm); background: var(--color-bg-primary); color: var(--color-text-normal); padding: var(--space-2); font: inherit; }
+.insert-menu__group { margin-top: var(--space-3); }
+.insert-menu__group h2 { margin: 0 0 var(--space-1); color: var(--color-text-muted); font-size: var(--type-scale-xs); font-weight: var(--type-weight-semibold); }
+.insert-menu__item { display: block; width: 100%; border: 0; border-radius: var(--border-radius-sm); background: transparent; color: var(--color-text-normal); padding: var(--space-2); text-align: left; font: inherit; }
+.insert-menu__item:hover, .insert-menu__item[data-active] { background: var(--color-bg-hover); }

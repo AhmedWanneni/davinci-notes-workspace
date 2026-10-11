@@ -30,6 +30,7 @@ const LazyCanvasView = lazy(() =>
     default: m.CanvasView,
   })),
 );
+const LazyInsertMenu = lazy(() => import("./InsertMenu").then((m) => ({ default: m.InsertMenu })));
 
 export interface EditorAreaProps {
   activeNotePath: string | null;
@@ -63,6 +64,8 @@ export function EditorArea({
   const resolveConflict = useWorkspaceStore((state) => state.resolveConflict);
   const editorViewRef = useRef<EditorView | null>(null);
   const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
+  const [insertAnchor, setInsertAnchor] = useState<DOMRect | null>(null);
+  const insertSelectionRef = useRef<import("@codemirror/state").EditorSelection | null>(null);
 
   const {
     handlePasteAttachment,
@@ -192,10 +195,21 @@ export function EditorArea({
                     className="editor-area__note-header-button"
                     aria-label="Insert"
                     aria-expanded={isInsertMenuOpen}
-                    onClick={() => setIsInsertMenuOpen((open) => !open)}
+                    onClick={(event) => {
+                      const view = editorViewRef.current;
+                      if (!view) return;
+                      insertSelectionRef.current = view.state.selection;
+                      setInsertAnchor(event.currentTarget.getBoundingClientRect());
+                      setIsInsertMenuOpen(true);
+                    }}
                   >
                     <DotsThree size={16} weight="regular" />
                   </button>
+                  {isInsertMenuOpen && insertAnchor && editorViewRef.current && insertSelectionRef.current && (
+                    <Suspense fallback={null}>
+                      <LazyInsertMenu anchor={insertAnchor} selection={insertSelectionRef.current} view={editorViewRef.current} onClose={() => setIsInsertMenuOpen(false)} />
+                    </Suspense>
+                  )}
                 </div>
               </div>
               <PropertiesBlock
