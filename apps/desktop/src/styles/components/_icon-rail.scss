@@ -40,8 +40,8 @@
   }
 
   &[data-active="true"] {
-    background-color: var(--color-bg-hover);
-    color: var(--color-text-accent);
-    border-color: var(--color-border-subtle);
+    background-color: var(--color-bg-active);
+    color: var(--color-text-normal);
+    border-color: transparent;
   }
 }

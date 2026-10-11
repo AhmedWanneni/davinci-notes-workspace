@@ -6,6 +6,19 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Current Focus
 
+**Theme Parity — Obsidian Default Light Theme Alignment (complete)**
+Aligned base design tokens and desktop CUBE CSS styles to visually match Obsidian's default light theme baseline:
+1. Step 1 token sampling & mapping: Sampled values directly from Obsidian (v1.13.7 default light theme). Mapped values to design system tokens (`--color-bg-primary: #ffffff`, `--color-bg-primary-alt: #f6f6f6`, `--color-text-normal: #222222`, `--color-text-muted: #5c5c5c`, `--color-text-faint: #ababab`, `--color-border-subtle: #e4e4e4`, `--color-border-normal: #d4d4d4`, `--color-bg-hover: rgba(0,0,0,0.05)`, `--color-bg-active: rgba(0,0,0,0.08)`).
+2. Step 2 token rebuild: Updated `packages/design-system/tokens/src/color.json` and rebuilt tokens (`variables.css`, `_variables.scss`, `tokens.ts`) with zero hardcoded values in components.
+3. Step 3 component styles & visual QA:
+   - Root: updated `:root { color-scheme: light; }`.
+   - Tabs: 40px tab bar height with `#f6f6f6` background, active tab `#ffffff` with 6px border radius, 1px bottom border matching editor background, seamlessly eliminating previous purple accent underline.
+   - File tree: active row and icon updated from purple accent to `var(--color-text-normal)` (`#222222`) with `rgba(0, 0, 0, 0.08)` background and medium font weight.
+   - Icon rail: active item styled with `var(--color-text-normal)` and `var(--color-bg-active)`.
+   - Editor header: removed bottom divider border (`border-bottom: none`), aligned title and button colors to `var(--color-text-muted)`.
+   - Status bar: full-width white background with subtle top border, UI font family for stats, and right-aligned chip/pill container matching Obsidian's status chip.
+4. Constraints & verification: Pure styling changes (no behavior or layout-structure changes, no new dependencies). All 12 design system tests and all 103 desktop frontend tests passing. Staged in a single commit.
+
 **Quick Capture Improvements (theme parity, floating above all windows, quit option, enlarged box, save button, temporary folder target — complete)**
 Updated the Quick Capture popover and save destination per user preferences:
 1. App theme parity: Quick Capture now synchronizes with the main app's active theme. `restoreCachedBuiltinTheme` runs synchronously on startup, while `useCaptureTheme` listens to `davinci-theme-changed` and `davinci-capture-focus` to instantly mirror theme swaps across windows without reloads.

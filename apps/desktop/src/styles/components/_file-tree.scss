@@ -59,8 +59,8 @@
   &[data-active="true"],
   &--active {
     background-color: var(--color-bg-active);
-    color: var(--color-text-accent);
-    font-weight: var(--type-weight-semibold);
+    color: var(--color-text-normal);
+    font-weight: var(--type-weight-medium);
   }
 }
 
@@ -95,7 +95,7 @@
 
   .file-tree__row[data-active="true"] &,
   .file-tree__row--active & {
-    color: var(--color-text-accent);
+    color: var(--color-text-normal);
     opacity: 1;
   }
 }

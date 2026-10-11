@@ -1,22 +1,22 @@
 {
   "color": {
     "bg": {
-      "primary": { "value": "#1e1e1e" },
-      "primary-alt": { "value": "#161616" },
-      "secondary": { "value": "#262626" },
-      "secondary-alt": { "value": "#202020" },
-      "scrim": { "value": "rgb(0 0 0 / 60%)" },
-      "status-accent": { "value": "rgb(127 109 242 / 15%)" },
-      "status-success": { "value": "rgb(46 204 113 / 15%)" },
-      "status-warning": { "value": "rgb(241 196 15 / 15%)" },
-      "status-error": { "value": "rgb(229 83 83 / 15%)" },
-      "hover": { "value": "rgba(255, 255, 255, 0.05)" },
-      "active": { "value": "rgba(255, 255, 255, 0.08)" }
+      "primary": { "value": "#ffffff" },
+      "primary-alt": { "value": "#f6f6f6" },
+      "secondary": { "value": "#f6f6f6" },
+      "secondary-alt": { "value": "#f6f6f6" },
+      "scrim": { "value": "rgb(0 0 0 / 25%)" },
+      "status-accent": { "value": "rgb(127 109 242 / 12%)" },
+      "status-success": { "value": "rgb(46 204 113 / 12%)" },
+      "status-warning": { "value": "rgb(241 196 15 / 12%)" },
+      "status-error": { "value": "rgb(229 83 83 / 12%)" },
+      "hover": { "value": "rgba(0, 0, 0, 0.05)" },
+      "active": { "value": "rgba(0, 0, 0, 0.08)" }
     },
     "text": {
-      "normal": { "value": "#dcddde" },
-      "muted": { "value": "#888888" },
-      "faint": { "value": "#555555" },
+      "normal": { "value": "#222222" },
+      "muted": { "value": "#5c5c5c" },
+      "faint": { "value": "#ababab" },
       "accent": { "value": "#7f6df2" },
       "on-accent": { "value": "#ffffff" },
       "error": { "value": "#e55353" },
@@ -24,19 +24,19 @@
       "warning": { "value": "#f1c40f" }
     },
     "border": {
-      "subtle": { "value": "#2e2e2e" },
-      "normal": { "value": "#363636" },
-      "focus": { "value": "#7f6df2" }
-      ,"status-accent": { "value": "rgb(127 109 242 / 30%)" }
-      ,"status-success": { "value": "rgb(46 204 113 / 30%)" }
-      ,"status-warning": { "value": "rgb(241 196 15 / 30%)" }
-      ,"status-error": { "value": "rgb(229 83 83 / 30%)" }
+      "subtle": { "value": "#e4e4e4" },
+      "normal": { "value": "#d4d4d4" },
+      "focus": { "value": "#7f6df2" },
+      "status-accent": { "value": "rgb(127 109 242 / 30%)" },
+      "status-success": { "value": "rgb(46 204 113 / 30%)" },
+      "status-warning": { "value": "rgb(241 196 15 / 30%)" },
+      "status-error": { "value": "rgb(229 83 83 / 30%)" }
     },
     "interactive": {
       "accent": { "value": "#7f6df2" },
       "accent-hover": { "value": "#8d7cf4" },
       "accent-active": { "value": "#6c5ce7" }
-    }
-    ,"shadow": { "value": "rgb(0 0 0)" }
+    },
+    "shadow": { "value": "rgb(0 0 0 / 12%)" }
   }
 }

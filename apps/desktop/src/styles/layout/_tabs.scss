@@ -4,8 +4,8 @@
   justify-content: space-between;
   background-color: var(--color-bg-primary-alt);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
-  height: 38px;
-  min-height: 38px;
+  height: 40px;
+  min-height: 40px;
   width: 100%;
   overflow: hidden;
   user-select: none;
@@ -48,12 +48,13 @@
   padding: 0 var(--space-3);
   border-right: var(--border-width-thin) solid var(--color-border-subtle);
   cursor: pointer;
-  font-size: var(--type-scale-xs);
+  font-size: var(--type-scale-sm);
   color: var(--color-text-muted);
-  background-color: var(--color-bg-primary-alt);
+  background-color: transparent;
   height: 100%;
   max-width: 200px;
   min-width: 100px;
+  box-sizing: border-box;
   transition: background-color var(--motion-duration-fast)
     var(--motion-ease-standard);
 
@@ -66,7 +67,11 @@
   &--active {
     background-color: var(--color-bg-primary);
     color: var(--color-text-normal);
-    border-bottom: var(--border-width-thick) solid var(--color-text-accent);
+    border-bottom: var(--border-width-thin) solid var(--color-bg-primary);
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    margin-bottom: -1px;
+    position: relative;
+    z-index: 1;
   }
 }
 
