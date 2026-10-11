@@ -8,7 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
-| 2026-10-11 | Editor feature-folder refactor | Reorganized `@app/editor` into feature folders with tests colocated, preserved the root public API, and updated desktop deep-import test paths. Editor typecheck/lint/build pass; 17 editor test files / 97 tests and 104 desktop test files / 386 tests pass. Native GUI smoke test remains pending due unavailable agent GUI access. |
+| 2026-10-11 | Editor feature-folder refactor | Reorganized `@app/editor` into feature folders with tests colocated, preserved the root public API, and updated desktop deep-import test paths. Editor typecheck/lint/build pass; 17 editor test files / 97 tests pass. The initial 104-file / 386-test desktop run passed, while later reruns hit its pre-existing timing-sensitive `versionHistoryLatency.test.ts` threshold. Native GUI smoke test remains pending due unavailable agent GUI access. |
 | 2026-10-11 | Curated Editor Fonts & Vim Monospace Mode | Added curated editor fonts (Inter, IBM Plex Sans, Literata, Source Serif 4, JetBrains Mono, Montserrat, Raleway, System default, and sanitized custom input) and "Use monospace font in vim mode" setting (default on). Self-hosted Latin WOFF2 assets (750.5 KB total, 0 KB initial bundle overhead). Added ADR-0174. 99 editor and 387 desktop tests pass. |
 | 2026-10-11 | Editor styling tokens — Phase 5 | Implemented Editor Font Size and Font Family settings with curated options (System UI, Serif, Monospace, Montserrat, Raleway), custom font support, and live re-measurement. Added ADR-0173. Zero remote font requests using self-hosted @fontsource-variable WOFF2 assets with font-display: swap. Input sanitization prevents CSS injection. Font sizes scale 12–24px (default 16px) with reset. Caret lands accurately at wrapped line ends. All 97 editor and 384 desktop unit tests pass with zero public token violations. |
 | 2026-10-11 | Editor styling tokens — Phase 4 | Implemented element-cursor-gated reveal/dimming for Markdown markers and hanging indent / nested styling for lists using Phase 2 tokens. Bounded decoration computation, 0px line-height shifts, and preserved raw Markdown for active lists. |
@@ -3240,6 +3240,5 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Added unit tests in `tray_tests.rs`: top menubar positioning, screen edge clamping, bottom taskbar placement, Retina scaling, blur debounce tracking, setting defaults.
   - Added unit tests in `TrayClickSettingsRow.test.tsx` and updated `QuickCapture.test.tsx` for in-memory draft preservation.
   - All 45 Rust unit tests and 373 frontend unit tests (103 test files) pass with 0 lint errors.
-
 
 
