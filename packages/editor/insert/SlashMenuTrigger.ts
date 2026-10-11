@@ -1,3 +1,4 @@
+import { getCM } from "@replit/codemirror-vim";
 import { syntaxTree } from "@codemirror/language";
 import type { EditorState } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
@@ -100,6 +101,10 @@ export function isSlashMenuTrigger(
 ): boolean {
   if (!enabled || (vimMode && vimMode !== "INSERT" && vimMode !== "REPLACE"))
     return false;
+  if (context?.view) {
+    const cm = getCM(context.view);
+    if (cm?.state?.vim && !cm.state.vim.insertMode) return false;
+  }
   if (context?.view?.composing) return false;
   if (before.length > 0 && !/\s$/.test(before)) return false;
 
