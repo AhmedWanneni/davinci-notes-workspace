@@ -204,7 +204,8 @@ export function Editor({
               update.state.doc.toString(),
             );
           }
-          if (update.docChanged || update.selectionSet) pluginEditorRef.current?.emitChange();
+          if (update.docChanged || update.selectionSet)
+            pluginEditorRef.current?.emitChange();
         }),
       ],
     });
@@ -269,7 +270,9 @@ export function Editor({
         if (!cancelled && viewRef.current === view) {
           view.dispatch({
             effects: vimCompartmentRef.current.reconfigure(extension),
+            selection: view.state.selection,
           });
+          view.requestMeasure();
           if (onVimModeChangeRef.current) {
             cleanupListener = attachVimModeListener(view, (mode) => {
               onVimModeChangeRef.current?.(mode);
@@ -280,7 +283,9 @@ export function Editor({
     } else {
       view.dispatch({
         effects: vimCompartmentRef.current.reconfigure([]),
+        selection: view.state.selection,
       });
+      view.requestMeasure();
       onVimModeChangeRef.current?.(null);
     }
 

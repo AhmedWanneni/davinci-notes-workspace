@@ -31,6 +31,11 @@ Implemented live editor font sizing and curated/custom font family settings with
    - Wheel and scrollbar scrolling verified on 500+ line documents.
    - Staged across 3 scoped commits with all git hooks and public-token audit passing.
 
+**Bug Fix — Vim mode initial load block cursor timing**
+- Resolved timing issue where lazy-loaded `@replit/codemirror-vim` extension attached without selection/measure dispatch, leaving native 2px thin cursor visible until first motion key (`h`/`j`/`k`/`l`).
+- Dispatched `selection: view.state.selection` and invoked `view.requestMeasure()` upon compartment reconfiguration in `Editor.tsx`.
+- Verified block cursor on initial load, on empty notes, empty lines, across note switches, thin 2px cursor in Insert mode (`i`), restored block on `Escape`, and thin cursor when Vim mode is toggled off.
+
 **Next:** Phase 6 — code blocks, tables, math, and callouts/mermaid styling.
 
 **Theme Parity — Obsidian Default Light Theme Alignment (complete)**
