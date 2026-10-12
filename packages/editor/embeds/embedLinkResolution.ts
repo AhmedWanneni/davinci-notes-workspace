@@ -3,6 +3,7 @@ import {
   findWikilinkCandidates,
   parseWikilinkTarget,
 } from "@app/indexer";
+import { extractHeadingSection } from "./noteSectionExtraction";
 
 export type EmbedResolution =
   | { type: "image" | "audio" | "video" | "pdf"; path: string }
@@ -28,11 +29,7 @@ function targetKind(path: string): "image" | "audio" | "video" | "pdf" | "note" 
 
 function hasHeading(content: string | undefined, heading: string): boolean {
   if (content === undefined) return false;
-  const expected = heading.trim().toLowerCase();
-  return content.split(/\r?\n/).some((line) => {
-    const match = /^(#{1,6})\s+(.+?)\s*#*\s*$/.exec(line);
-    return match?.[2]?.trim().toLowerCase() === expected;
-  });
+  return extractHeadingSection(content, heading).found;
 }
 
 export function resolveEmbedLink(
