@@ -246,3 +246,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0174](adr/0174-curated-editor-fonts-and-vim-monospace-mode.md) | Curated editor fonts and vim monospace mode with lazy Latin woff2 assets | Accepted |
 | [0175](adr/0175-editor-insert-registry-and-lazy-menu.md) | Immutable editor insert registry, lazy header menu, and CodeMirror snippets | Accepted |
 | [0176](adr/0176-editor-slash-menu-trigger-rules-and-shared-recent-store.md) | Editor slash menu trigger exclusions, Vim modal preservation, palette commands, and shared recent store | Accepted |
+| [0177](adr/0177-editor-media-insert-items-and-dialogs.md) | Editor media insert items, declarative dialogs, and attachment pipeline integration | Accepted |

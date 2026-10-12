@@ -3268,5 +3268,25 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - **ADR & Indexing**:
   - Authored and indexed [ADR-0176](adr/0176-editor-slash-menu-trigger-rules-and-shared-recent-store.md).
 
+## 2026-10-12 — Editor Insert Menu Phase 3 Limited (Media Inserts, Declarative Dialogs & Attachment Pipeline)
+
+- **Media Insert Items in Registry**:
+  - Registered `Image`, `YouTube`, and `Tweet / X` under a new `Media` group.
+  - Image supports local file attachment copy into vault (`![[path]]`) and remote URLs (`![](url)`).
+  - YouTube validates watch and youtu.be URLs, preserving timestamp query parameters (`?t=...`), and strictly rejecting Shorts per ADR-0102.
+  - Tweet / X validates status URLs and inserts `![](x-status-url)`, rendered by the script-free card widget.
+  - Media syntax matches existing extension parsers (`imageExtension.ts`, `embedImageExtension.ts`, `youtubeEmbed.ts`, `tweetEmbed.ts`).
+- **Declarative Dialog Runner**:
+  - Added `InsertDialogSpec` to `InsertItem` and created `runInsertItem()` in `insertDialogStore.ts`.
+  - Items without dialogs insert immediately; items with dialog specs trigger a flat Obsidian-style dialog built dynamically from the spec.
+  - No dialogs hardcoded inside menu components (`InsertMenu.tsx`, `SlashMenu.ts`, `CommandPalette.tsx`).
+  - Enter confirms, Esc cancels, Cancel button inserts nothing and keeps cursor, invalid input shows inline error without closing dialog.
+- **Attachment Pipeline Integration**:
+  - Created `insertLocalImage.ts` invoking the Tauri file dialog lazily and copying the selected file through `writeAttachmentToVault`.
+  - Generated links are vault-relative and collision-safe with numeric suffixes.
+- **ADR & Indexing**:
+  - Authored and indexed [ADR-0177](adr/0177-editor-media-insert-items-and-dialogs.md).
+
+
 
 

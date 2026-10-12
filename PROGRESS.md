@@ -4,6 +4,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Editor Insert Menu Phase 3 Limited (implementation complete; native verification pending, ADR-0177)**
+Added three media items (`Image`, `YouTube`, `Tweet / X`) to the immutable `@app/editor` insert registry and connected them to declarative dialog runners across the header `...` menu, slash menu, and Command Palette:
+1. Media insert items:
+   - `Image`: two sources in one dialog — local file (copied via attachment pipeline `writeAttachmentToVault` with collision suffixing, generating vault-relative `![[path]]`) or external URL generating `![](url)`.
+   - `YouTube`: accepts watch and youtu.be URLs, preserves query parameters and timestamps (`?t=...`), strictly rejects Shorts with inline message. Syntax: `![](youtube-url)`.
+   - `Tweet / X`: strictly validates status URLs, syntax: `![](x-status-url)`.
+2. Declarative dialogs:
+   - Driven by `InsertItem.dialog` specs. Single small flat Obsidian-style dialog built with `@app/design-system` primitives.
+   - Enter confirms, Esc cancels, Cancel button keeps cursor and inserts nothing. Invalid input displays inline error and keeps dialog open.
+   - Zero dialog hardcoding in menu components (`runInsertItem` unified entry point).
+3. Insertion rules: one transaction, one undo step, block padding, read-only view no-op.
+4. Lazy loading: dialogs and file pickers are dynamically imported on demand with zero startup bundle overhead.
+5. Deferred items:
+   - Video: deferred (missing dedicated video player renderer and extension).
+   - Generic file attachment: deferred (missing generic non-image file embed renderer and ADR).
+   - Note embed: deferred (missing note block/heading embed renderer and wikilink transclusion specification).
+   - Bookmark: deferred (missing web bookmark card metadata fetcher and card preview renderer).
+   - YouTube Shorts: deferred (ADR-0102 explicitly excludes shorts; requires new ADR and dedicated embed format).
+
+**Next:** Native app verification of Image (local & URL), YouTube, and Tweet insert dialogs across header `...` menu, slash menu, and Command Palette.
+
 **Editor Insert Menu Phase 2 (implementation complete; native verification pending, ADR-0176)**
 Completed Phase 2 slash menu autocomplete source, trigger exclusions, Vim modal integration, Command Palette insert commands, and unified recently used item store:
 1. Lazy `/` slash menu autocompletion source queries `insertRegistry` via `loadInsertRegistry()` and replaces `/query` with the selected item's snippet in a single transaction.
