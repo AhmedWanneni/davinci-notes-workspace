@@ -50,6 +50,7 @@ const LazySettingsDialog = React.lazy(() =>
     default: m.SettingsDialog,
   })),
 );
+import type { SettingsTabId } from "./components/SettingsDialog";
 const LazyCommandPalette = React.lazy(() =>
   import("./components/CommandPalette").then((m) => ({
     default: m.CommandPalette,
@@ -78,6 +79,16 @@ export function App() {
     (state) => state.setIsGlobalGraphOpen,
   );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] =
+    useState<SettingsTabId>("general");
+  const handleOpenSettings = useCallback(() => {
+    setSettingsInitialTab("general");
+    setIsSettingsOpen(true);
+  }, []);
+  const handleOpenLogs = useCallback(() => {
+    setSettingsInitialTab("logs");
+    setIsSettingsOpen(true);
+  }, []);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
@@ -571,7 +582,7 @@ export function App() {
             setIsSearchOpen(true);
           }}
           onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
-          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenSettings={handleOpenSettings}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
           onCreateCanvas={handleCreateCanvas}
@@ -583,7 +594,8 @@ export function App() {
           onSwitchVault={(target) => void switchVaultTo(target)}
           onOpenFolderPicker={openPicker}
           onCreateNewVault={openPicker}
-          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenSettings={handleOpenSettings}
+          onOpenLogs={handleOpenLogs}
           allNotePaths={allNotePaths}
           allFolderPaths={allFolderPaths}
           activeNotePath={activeNotePath}
@@ -737,6 +749,8 @@ export function App() {
             themeManager={themeManager}
             onReloadThemes={() => initThemes(vaultPath)}
             onActivateThemeFromBrowser={activateTheme}
+            log={log}
+            initialTab={settingsInitialTab}
           />
         )}
         {isCommandPaletteOpen && (
@@ -744,7 +758,8 @@ export function App() {
             isOpen={isCommandPaletteOpen}
             onOpenChange={setIsCommandPaletteOpen}
             onSelectNote={(target) => void handleLinkClick(target)}
-            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenSettings={handleOpenSettings}
+            onOpenLogs={handleOpenLogs}
             onOpenTags={() => setIsTagsOpen(true)}
             onSaveVersionNow={() => {
               if (activeNotePath) void saveVersionNow(activeNotePath);

@@ -190,4 +190,21 @@ describe("CommandPalette Insert Registry Commands", () => {
     expect(getRecentInsertIds()).toContain("callout");
     destroy();
   });
+
+  it("calls onOpenLogs when 'Open Logs' command is selected", () => {
+    const onOpenLogs = vi.fn();
+    render(
+      <CommandPalette
+        isOpen={true}
+        onOpenChange={() => {}}
+        onSelectNote={() => {}}
+        onOpenLogs={onOpenLogs}
+      />,
+    );
+
+    const logsCmd = screen.getByText("Open Logs");
+    fireEvent.click(logsCmd);
+
+    expect(onOpenLogs).toHaveBeenCalledTimes(1);
+  });
 });

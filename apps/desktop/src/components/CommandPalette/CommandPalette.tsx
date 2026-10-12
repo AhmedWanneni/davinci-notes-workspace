@@ -20,6 +20,7 @@ export interface CommandPaletteProps {
   onSelectNote: (path: string) => void;
   onOpenSettings?: () => void;
   onOpenTags?: () => void;
+  onOpenLogs?: () => void;
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
@@ -37,6 +38,7 @@ export function CommandPalette({
   onSelectNote,
   onOpenSettings,
   onOpenTags,
+  onOpenLogs,
   onDriveSignIn,
   onDriveDisconnect,
   onDriveRefresh,
@@ -124,6 +126,7 @@ export function CommandPalette({
     if (!id) return;
     if (id === "action:disable-vim") void setUseVimMode(false);
     if (id === "action:settings") onOpenSettings?.();
+    if (id === "action:logs") onOpenLogs?.();
     if (id === "action:tags") onOpenTags?.();
     if (id === "action:save-version") onSaveVersionNow?.();
     if (id === "action:drive-sign-in") onDriveSignIn?.();

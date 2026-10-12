@@ -42,6 +42,7 @@ export interface AppSidebarProps {
   onCreateNewVault?: () => void;
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
+  onOpenLogs?: () => void;
 }
 
 export function AppSidebar({
@@ -51,7 +52,7 @@ export function AppSidebar({
   allFolderPaths,
   activeNotePath,
   dirtyNotes,
-  log,
+  log: _log,
   navigation,
   isCollapsed,
   isMac,
@@ -81,6 +82,7 @@ export function AppSidebar({
   onCreateNewVault,
   onOpenSettings,
   onOpenHelp,
+  onOpenLogs,
 }: AppSidebarProps) {
   const { width, isResizing, handleMouseDown } = useSidebarResize();
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(
@@ -158,9 +160,8 @@ export function AppSidebar({
         onCreateNewVault={onCreateNewVault}
         onOpenSettings={onOpenSettings}
         onOpenHelp={onOpenHelp}
+        onOpenLogs={onOpenLogs}
       />
-
-      {log.length > 0 && <pre className="debug-log">{log.join("\n")}</pre>}
 
       {!isCollapsed && (
         <div

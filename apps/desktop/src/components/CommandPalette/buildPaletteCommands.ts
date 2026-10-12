@@ -50,6 +50,13 @@ export function buildPaletteCommands({
 
   targets.push({
     isCommand: true,
+    id: "action:logs",
+    title: "Open Logs",
+    recencyScore: 450,
+  });
+
+  targets.push({
+    isCommand: true,
     id: "action:tags",
     title: "Browse Tags",
     recencyScore: 400,

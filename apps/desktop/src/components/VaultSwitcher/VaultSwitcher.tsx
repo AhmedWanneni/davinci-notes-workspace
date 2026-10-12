@@ -7,6 +7,7 @@ import {
   FolderOpen,
   FolderPlus,
   Trash,
+  ListBullets,
 } from "@phosphor-icons/react";
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ export interface VaultSwitcherProps {
   vaultPath: string | null;
   onOpenSettings?: () => void;
   onOpenHelp?: () => void;
+  onOpenLogs?: () => void;
   onSwitchVault: (path: string) => void | Promise<void>;
   onOpenFolderPicker: () => void | Promise<void>;
   onCreateNewVault?: () => void | Promise<void>;
@@ -39,6 +41,7 @@ export function VaultSwitcher({
   vaultPath,
   onOpenSettings,
   onOpenHelp,
+  onOpenLogs,
   onSwitchVault,
   onOpenFolderPicker,
   onCreateNewVault,
@@ -182,6 +185,20 @@ export function VaultSwitcher({
                 />
                 <span>Create new vault…</span>
               </DropdownMenuItem>
+            )}
+
+            {onOpenLogs && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => void onOpenLogs()}>
+                  <ListBullets
+                    size={16}
+                    weight="regular"
+                    style={{ marginRight: 8 }}
+                  />
+                  <span>View vault logs…</span>
+                </DropdownMenuItem>
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

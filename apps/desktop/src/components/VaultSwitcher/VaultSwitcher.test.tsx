@@ -163,4 +163,31 @@ describe("VaultSwitcher", () => {
       "/vaults/missing",
     );
   });
+
+  it("calls onOpenLogs when 'View vault logs…' is clicked in menu", async () => {
+    const onOpenLogs = vi.fn();
+    render(
+      <VaultSwitcher
+        vaultName="Active Vault"
+        vaultPath="/vaults/active"
+        onOpenSettings={onOpenSettings}
+        onOpenHelp={onOpenHelp}
+        onSwitchVault={onSwitchVault}
+        onOpenFolderPicker={onOpenFolderPicker}
+        onOpenLogs={onOpenLogs}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /Current vault: Active Vault/i,
+    });
+    fireEvent.click(trigger);
+
+    await waitFor(() => {
+      expect(screen.getByText("View vault logs…")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText("View vault logs…"));
+    expect(onOpenLogs).toHaveBeenCalledTimes(1);
+  });
 });
