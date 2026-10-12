@@ -3,6 +3,7 @@ export type { EditorProps } from "./Editor";
 export {
   insertItem,
   insertRegistry,
+  findInsertItem,
   loadInsertRegistry,
   getRecentInsertIds,
   recordRecentInsert,
@@ -13,6 +14,12 @@ export {
   validateImageUrl,
   validateYoutubeUrl,
   validateTweetUrl,
+  runInsertItem,
+  openInsertDialog,
+  closeInsertDialog,
+  useInsertDialogRequest,
+  completeInsertDialog,
+  cancelInsertDialog,
 } from "./insert";
 export type {
   InsertItem,
@@ -20,6 +27,7 @@ export type {
   InsertBuildResult,
   InsertDialogInput,
   InsertDialogSpec,
+  InsertDialogRequest,
 } from "./insert";
 export { createEditorPluginAdapter } from "./integration/pluginEditorAdapter";
 export type {

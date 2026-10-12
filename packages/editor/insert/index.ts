@@ -7,7 +7,7 @@ export type {
   InsertIconName,
   InsertItem,
 } from "./InsertItem";
-export { insertRegistry } from "./InsertRegistry";
+export { insertRegistry, findInsertItem } from "./InsertRegistry";
 export { loadInsertRegistry } from "./loadInsertRegistry";
 export { insertItem } from "./InsertAction";
 export { slashMenuSource, isSlashMenuTrigger } from "./SlashMenu";
@@ -24,3 +24,12 @@ export {
   validateYoutubeUrl,
   validateTweetUrl,
 } from "./mediaValidation";
+export {
+  runInsertItem,
+  openInsertDialog,
+  closeInsertDialog,
+  useInsertDialogRequest,
+  completeInsertDialog,
+  cancelInsertDialog,
+} from "./insertDialogStore";
+export type { InsertDialogRequest } from "./insertDialogStore";

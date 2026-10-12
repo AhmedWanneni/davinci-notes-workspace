@@ -1,7 +1,7 @@
 import { snippet } from "@codemirror/autocomplete";
 import type { EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import type { InsertItem } from "./InsertItem";
+import type { InsertDialogInput, InsertItem } from "./InsertItem";
 
 function blockPadding(document: string, from: number, to: number) {
   if (!document) return { before: "", after: "" };
@@ -22,11 +22,12 @@ export function insertItem(
   item: InsertItem,
   selection: EditorSelection = view.state.selection,
   selectedText = view.state.doc.sliceString(selection.main.from, selection.main.to),
+  input?: InsertDialogInput,
 ) {
   if (!view.state.facet(EditorView.editable)) return false;
 
   const range = selection.main;
-  const result = item.build({ selectedText });
+  const result = item.build({ selectedText, input });
   const padding = result.block
     ? blockPadding(view.state.doc.toString(), range.from, range.to)
     : { before: "", after: "" };
