@@ -71,7 +71,12 @@ export function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
   const [searchInitialQuery, setSearchInitialQuery] = useState("");
-  const [isGlobalGraphOpen, setIsGlobalGraphOpen] = useState(false);
+  const isGlobalGraphOpen = useWorkspaceStore(
+    (state) => state.isGlobalGraphOpen,
+  );
+  const setIsGlobalGraphOpen = useWorkspaceStore(
+    (state) => state.setIsGlobalGraphOpen,
+  );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);

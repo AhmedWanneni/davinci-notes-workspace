@@ -305,4 +305,19 @@ describe("useWorkspaceStore", () => {
     expect(state.activeNotePath).toBeNull();
     expect(state.dirtyNotes.size).toBe(0);
   });
+
+  it("automatically closes global graph when opening or activating a note", async () => {
+    const store = useWorkspaceStore.getState();
+    store.setIsGlobalGraphOpen(true);
+    expect(useWorkspaceStore.getState().isGlobalGraphOpen).toBe(true);
+
+    await store.openNote("a.md");
+    expect(useWorkspaceStore.getState().isGlobalGraphOpen).toBe(false);
+
+    store.setIsGlobalGraphOpen(true);
+    expect(useWorkspaceStore.getState().isGlobalGraphOpen).toBe(true);
+
+    await store.setActiveNote("b.md");
+    expect(useWorkspaceStore.getState().isGlobalGraphOpen).toBe(false);
+  });
 });

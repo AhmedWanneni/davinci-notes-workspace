@@ -12,14 +12,13 @@ import {
   createNoteSaveActions,
   type NoteSaveActions,
 } from "./createNoteSaveActions";
-import { saveTimers } from "./saveTimers";
 import {
-  emptyNoteHistory,
-  moveNoteHistory,
-  pushNoteHistory,
-  type NoteHistory,
-} from "./noteHistory";
-import { readNote, diskStateTracker } from "../vault";
+  createNoteNavigationActions,
+  type NoteNavigationActions,
+} from "./createNoteNavigationActions";
+import { saveTimers } from "./saveTimers";
+import { emptyNoteHistory, type NoteHistory } from "./noteHistory";
+import { diskStateTracker } from "../vault";
 import {
   flushH1DrivenRename,
   scheduleH1DrivenRename,
@@ -27,7 +26,11 @@ import {
 import { notifyNoteEmbedUpdate } from "@app/editor";
 
 export interface WorkspaceState
-  extends EditorSettingsState, NoteCrudActions, NoteSaveActions {
+  extends
+    EditorSettingsState,
+    NoteCrudActions,
+    NoteSaveActions,
+    NoteNavigationActions {
   activeNotePath: string | null;
   openNotes: string[];
   notesContent: Record<string, string>;
@@ -42,8 +45,6 @@ export interface WorkspaceState
   setVimModeState: (mode: string | null) => void;
   syncMode: "off" | "drive" | "folder";
   noteHistory: NoteHistory;
-  goBack: () => Promise<void>;
-  goForward: () => Promise<void>;
   setSyncMode: (mode: "off" | "drive" | "folder") => void;
   setVaultPath: (path: string | null) => void;
   initializeVault: (
@@ -55,12 +56,8 @@ export interface WorkspaceState
   updateAllPaths: (paths: string[]) => void;
   updateAllFolderPaths: (paths: string[]) => void;
   incrementVaultUpdateCounter: () => void;
-  openNote: (path: string) => Promise<void>;
-  closeNote: (path: string) => Promise<void>;
-  setActiveNote: (path: string) => Promise<void>;
   updateNoteContent: (path: string, content: string) => void;
   replaceLoadedNoteContent: (path: string, content: string) => void;
-  closeAllNotes: () => Promise<void>;
 }
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
@@ -100,6 +97,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       activeNotePath: null,
       graph: initialGraph,
       tagIndex,
+      isGlobalGraphOpen: false,
       vaultUpdateCounter: get().vaultUpdateCounter + 1,
     });
   },
@@ -108,98 +106,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   updateAllFolderPaths: (paths: string[]) => set({ allFolderPaths: paths }),
   incrementVaultUpdateCounter: () =>
     set((state) => ({ vaultUpdateCounter: state.vaultUpdateCounter + 1 })),
-
-  openNote: async (path: string) => {
-    const { notesContent, openNotes } = get();
-    if (notesContent[path] === undefined) {
-      try {
-        const file = await readNote(path);
-        diskStateTracker.set(path, {
-          mtime: file.mtime,
-          size: file.size,
-          content: file.content,
-        });
-        set((state) => ({
-          notesContent: { ...state.notesContent, [path]: file.content },
-        }));
-      } catch (e) {
-        console.error(`Failed to open note: ${path}`, e);
-        return;
-      }
-    }
-    const nextOpenNotes = openNotes.includes(path)
-      ? openNotes
-      : [...openNotes, path];
-    await get().setActiveNote(path);
-    set((state) => ({
-      openNotes: nextOpenNotes,
-      noteHistory: pushNoteHistory(state.noteHistory, path),
-    }));
-  },
-
-  goBack: async () => {
-    const next = moveNoteHistory(get().noteHistory, -1);
-    const path = next.paths[next.index];
-    if (!path || !get().allNotePaths.includes(path)) return;
-    set({ noteHistory: next });
-    await get().openNote(path);
-    set({ noteHistory: next });
-  },
-  goForward: async () => {
-    const next = moveNoteHistory(get().noteHistory, 1);
-    const path = next.paths[next.index];
-    if (!path || !get().allNotePaths.includes(path)) return;
-    set({ noteHistory: next });
-    await get().openNote(path);
-    set({ noteHistory: next });
-  },
-
-  closeNote: async (path: string) => {
-    if (saveTimers[path]) {
-      clearTimeout(saveTimers[path]);
-      delete saveTimers[path];
-    }
-    const effectivePath = await flushH1DrivenRename(path);
-    await get().saveNoteNow(effectivePath);
-
-    const { openNotes, activeNotePath, notesContent, conflictNotes } = get();
-    const nextOpenNotes = openNotes.filter((p) => p !== effectivePath);
-    let nextActivePath = activeNotePath;
-    if (activeNotePath === effectivePath) {
-      nextActivePath =
-        nextOpenNotes.length > 0
-          ? nextOpenNotes[nextOpenNotes.length - 1]
-          : null;
-    }
-
-    const nextNotesContent = { ...notesContent };
-    delete nextNotesContent[effectivePath];
-    const nextConflict = new Map(conflictNotes);
-    nextConflict.delete(effectivePath);
-    diskStateTracker.remove(effectivePath);
-
-    set({
-      openNotes: nextOpenNotes,
-      activeNotePath: nextActivePath,
-      notesContent: nextNotesContent,
-      conflictNotes: nextConflict,
-    });
-  },
-
-  setActiveNote: async (path: string) => {
-    const { activeNotePath, dirtyNotes } = get();
-    if (activeNotePath && activeNotePath !== path) {
-      if (saveTimers[activeNotePath]) {
-        clearTimeout(saveTimers[activeNotePath]);
-        delete saveTimers[activeNotePath];
-      }
-      const effectivePath = await flushH1DrivenRename(activeNotePath);
-      if (dirtyNotes.has(effectivePath) || dirtyNotes.has(activeNotePath)) {
-        await get().saveNoteNow(effectivePath);
-      }
-    }
-    set({ activeNotePath: path });
-  },
 
   updateNoteContent: (path: string, content: string) => {
     set((state) => {
@@ -224,21 +130,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
 
   replaceLoadedNoteContent: (path: string, content: string) => {
     notifyNoteEmbedUpdate(path, content);
-    set((state) => ({ notesContent: { ...state.notesContent, [path]: content } }));
-  },
-
-  closeAllNotes: async () => {
-    await get().saveAllDirty();
-    diskStateTracker.clear();
-    set({
-      openNotes: [],
-      activeNotePath: null,
-      notesContent: {},
-      dirtyNotes: new Set(),
-      conflictNotes: new Map(),
-    });
+    set((state) => ({
+      notesContent: { ...state.notesContent, [path]: content },
+    }));
   },
 
   ...createNoteCrudActions(),
   ...createNoteSaveActions(get, set),
+  ...createNoteNavigationActions(get, set),
 }));
