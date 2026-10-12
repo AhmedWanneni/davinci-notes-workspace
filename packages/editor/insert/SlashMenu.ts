@@ -5,10 +5,10 @@ import type {
 } from "@codemirror/autocomplete";
 import { EditorSelection } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
-import { insertItem } from "./InsertAction";
+import { runInsertItem } from "./insertDialogStore";
 import { loadInsertRegistry } from "./loadInsertRegistry";
 import { isSlashMenuTrigger } from "./SlashMenuTrigger";
-import { getRecentInsertIds, recordRecentInsert } from "./recentInsertStore";
+import { getRecentInsertIds } from "./recentInsertStore";
 
 export interface SlashMenuOptions {
   enabled: boolean;
@@ -58,12 +58,10 @@ export function slashMenuSource(options: SlashMenuOptions) {
       detail: item.group,
       type: "keyword",
       apply: (view: EditorView, _completion, from, to) => {
-        recordRecentInsert(item.id);
-        return insertItem(
+        return runInsertItem(
           view,
           item,
           EditorSelection.create([EditorSelection.range(from, to)]),
-          "",
         );
       },
     }));

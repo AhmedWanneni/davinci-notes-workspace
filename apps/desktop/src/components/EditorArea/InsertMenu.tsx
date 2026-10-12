@@ -3,10 +3,9 @@ import type { EditorSelection } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { Popover, PopoverAnchor, PopoverContent } from "@app/design-system";
 import {
-  insertItem,
+  runInsertItem,
   loadInsertRegistry,
   useRecentInsertIds,
-  recordRecentInsert,
   type InsertItem,
 } from "@app/editor";
 
@@ -45,9 +44,7 @@ export function InsertMenu({ anchor, selection, view, onClose }: InsertMenuProps
   }, [items, query]);
 
   const choose = (item: InsertItem) => {
-    if (insertItem(view, item, selection)) {
-      recordRecentInsert(item.id);
-    }
+    runInsertItem(view, item, selection);
     onClose();
   };
 
@@ -61,7 +58,7 @@ export function InsertMenu({ anchor, selection, view, onClose }: InsertMenuProps
     }
   };
 
-  const grouped = ["Basics", "Code and data", "HTML"].map((group) => [
+  const grouped = ["Basics", "Code and data", "HTML", "Media"].map((group) => [
     group,
     visible.filter((item) => item.group === group),
   ] as const);

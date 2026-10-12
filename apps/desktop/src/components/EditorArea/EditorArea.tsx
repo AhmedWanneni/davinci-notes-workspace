@@ -30,7 +30,17 @@ const LazyCanvasView = lazy(() =>
     default: m.CanvasView,
   })),
 );
-const LazyInsertMenu = lazy(() => import("./InsertMenu").then((m) => ({ default: m.InsertMenu })));
+const LazyInsertMenu = lazy(() =>
+  import("./InsertMenu").then((m) => ({ default: m.InsertMenu })),
+);
+const LazyInsertDialog = lazy(() =>
+  import("./InsertDialog").then((m) => ({ default: m.InsertDialog })),
+);
+import {
+  useInsertDialogRequest,
+  completeInsertDialog,
+  cancelInsertDialog,
+} from "@app/editor";
 
 export interface EditorAreaProps {
   activeNotePath: string | null;
@@ -68,6 +78,21 @@ export function EditorArea({
   const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
   const [insertAnchor, setInsertAnchor] = useState<DOMRect | null>(null);
   const insertSelectionRef = useRef<import("@codemirror/state").EditorSelection | null>(null);
+  const insertDialogRequest = useInsertDialogRequest();
+  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
+  const attachmentSettings = useWorkspaceStore(
+    (state) => state.attachmentSettings,
+  );
+
+  const handlePickLocalImage = useCallback(async () => {
+    if (!vaultPath) throw new Error("Please open a vault first.");
+    const { insertLocalImage } = await import("./insertLocalImage");
+    return insertLocalImage({
+      vaultPath,
+      activeNotePath,
+      attachmentSettings,
+    });
+  }, [vaultPath, activeNotePath, attachmentSettings]);
 
   const {
     handlePasteAttachment,
@@ -212,6 +237,18 @@ export function EditorArea({
                   {isInsertMenuOpen && insertAnchor && editorViewRef.current && insertSelectionRef.current && (
                     <Suspense fallback={null}>
                       <LazyInsertMenu anchor={insertAnchor} selection={insertSelectionRef.current} view={editorViewRef.current} onClose={() => setIsInsertMenuOpen(false)} />
+                    </Suspense>
+                  )}
+                  {insertDialogRequest && (
+                    <Suspense fallback={null}>
+                      <LazyInsertDialog
+                        request={insertDialogRequest}
+                        onConfirm={(input) =>
+                          completeInsertDialog(insertDialogRequest, input)
+                        }
+                        onCancel={() => cancelInsertDialog(insertDialogRequest)}
+                        onPickLocalFile={handlePickLocalImage}
+                      />
                     </Suspense>
                   )}
                 </div>

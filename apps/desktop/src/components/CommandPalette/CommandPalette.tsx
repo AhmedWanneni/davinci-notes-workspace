@@ -5,9 +5,8 @@ import { Dialog, DialogContent } from "@app/design-system";
 import fuzzysort from "fuzzysort";
 import { FileText, Gear } from "@phosphor-icons/react";
 import {
-  insertItem,
   insertRegistry,
-  recordRecentInsert,
+  runInsertItem,
   useRecentInsertIds,
 } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
@@ -135,8 +134,7 @@ export function CommandPalette({
       const item = insertRegistry.find((entry) => entry.id === itemId);
       if (item && editorView && editorView.state.facet(EditorView.editable)) {
         const selection = editorSelectionRef.current ?? editorView.state.selection;
-        insertItem(editorView, item, selection);
-        recordRecentInsert(item.id);
+        runInsertItem(editorView, item, selection);
         onInsertSuccess?.(item.id);
         editorView.focus();
       }
