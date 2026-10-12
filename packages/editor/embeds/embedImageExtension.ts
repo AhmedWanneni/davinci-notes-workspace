@@ -77,6 +77,10 @@ function decorations(state: EditorState, options: EmbedImageExtensionOptions): D
         const result = resolveEmbedLink(`![[${inner}]]`, { paths: options.notePaths });
         const imageResult = result.type === "image" ? result : undefined;
         const imageTarget = /\.(png|jpe?g|gif|webp|svg)$/i.test(target ?? "");
+        if (!imageResult && !imageTarget) {
+          continue;
+        }
+
         let widget: WidgetType;
         if (imageResult) {
           widget = new EmbedImageWidget(
@@ -87,10 +91,8 @@ function decorations(state: EditorState, options: EmbedImageExtensionOptions): D
           );
         } else if (result.type === "ambiguous") {
           widget = new EmbedImagePlaceholder(`Multiple files match: ${target}`);
-        } else if (imageTarget) {
-          widget = new EmbedImagePlaceholder(`Missing image: ${target}`);
         } else {
-          widget = new EmbedImagePlaceholder(`Cannot embed: ${target}`);
+          widget = new EmbedImagePlaceholder(`Missing image: ${target}`);
         }
         ranges.push(Decoration.replace({ widget, block: true }).range(line.from, line.to));
       }
