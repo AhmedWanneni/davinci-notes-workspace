@@ -283,6 +283,7 @@ export function EditorArea({
                 onPasteAttachment={handlePasteAttachment}
                 onAttachmentError={handleAttachmentError}
                 resolveMediaUrl={handleResolveMediaUrl}
+                loadNoteContent={handleReadNote}
                 useVimMode={useVimMode}
                 slashMenuEnabled={slashMenuEnabled}
                 vimMode={vimMode}

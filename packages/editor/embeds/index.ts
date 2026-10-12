@@ -7,6 +7,8 @@ export * from "./noteEmbedExtension";
 export * from "./noteEmbedPlaceholderWidgets";
 export * from "./noteEmbedTheme";
 export * from "./noteEmbedTypes";
+export * from "./noteEmbedUpdateStore";
+export * from "./noteEmbedUtils";
 export * from "./noteSectionExtraction";
 export * from "./tweetCard";
 export * from "./tweetEmbed";

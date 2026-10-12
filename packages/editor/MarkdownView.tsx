@@ -16,7 +16,12 @@ import {
 import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
 import { readOnlyTableTheme, tableExtension } from "./blocks/table";
 import { linkExtension } from "./links";
-import { embedImageExtension, imageExtension } from "./embeds";
+import {
+  embedImageExtension,
+  imageExtension,
+  noteEmbedExtension,
+  noteEmbedTheme,
+} from "./embeds";
 import { mermaidExtension, mermaidTheme } from "./blocks/mermaid";
 import { mathExtension, mathTheme } from "./blocks/math";
 import {
@@ -35,6 +40,8 @@ export interface MarkdownViewProps {
   onTagClick?: (tagKey: string) => void;
   className?: string;
   resolveMediaUrl?: (path: string) => string;
+  loadNoteContent?: (path: string) => Promise<string | null>;
+  noteContents?: Readonly<Record<string, string>>;
 }
 
 /**
@@ -50,6 +57,8 @@ export function MarkdownView({
   onTagClick = () => {},
   className = "",
   resolveMediaUrl,
+  loadNoteContent,
+  noteContents,
 }: MarkdownViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -89,6 +98,16 @@ export function MarkdownView({
         mathExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
         embedImageExtension({ notePaths, isReadOnly: true, resolveMediaUrl }),
+        noteEmbedTheme,
+        noteEmbedExtension({
+          notePaths,
+          sourcePath,
+          onLinkClick,
+          resolveMediaUrl,
+          isReadOnly: true,
+          loadNoteContent,
+          noteContents,
+        }),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
         htmlBlockExtension(),
         htmlInlineExtension(),

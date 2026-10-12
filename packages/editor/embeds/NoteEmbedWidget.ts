@@ -10,10 +10,17 @@ import {
   DEFAULT_EMBED_MAX_LINES,
   type NoteEmbedOptions,
 } from "./noteEmbedTypes";
+import { noteEmbedUpdateEmitter } from "./noteEmbedUpdateStore";
+import { matchesNotePath, pathStem } from "./noteEmbedUtils";
+
+export const EMBED_UPDATE_DEBOUNCE_MS = 200;
 
 export class NoteEmbedWidget extends WidgetType {
   private embeddedView: EditorView | null = null;
   private observer: IntersectionObserver | null = null;
+  private unsubscribeUpdate: (() => void) | null = null;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private bodyEl: HTMLElement | null = null;
 
   constructor(
     readonly path: string,
@@ -26,11 +33,7 @@ export class NoteEmbedWidget extends WidgetType {
   }
 
   eq(other: NoteEmbedWidget): boolean {
-    return (
-      this.path === other.path &&
-      this.heading === other.heading &&
-      this.rawSyntax === other.rawSyntax
-    );
+    return this.path === other.path && this.heading === other.heading && this.rawSyntax === other.rawSyntax;
   }
 
   toDOM(): HTMLElement {
@@ -38,8 +41,8 @@ export class NoteEmbedWidget extends WidgetType {
     container.className = "cm-note-embed";
 
     const titleText = this.heading
-      ? `${this.pathStem(this.path)} > ${this.heading}`
-      : this.pathStem(this.path);
+      ? `${pathStem(this.path)} > ${this.heading}`
+      : pathStem(this.path);
 
     const header = document.createElement("div");
     header.className = "cm-note-embed__header";
@@ -56,7 +59,12 @@ export class NoteEmbedWidget extends WidgetType {
 
     const body = document.createElement("div");
     body.className = "cm-note-embed__body";
+    this.bodyEl = body;
     container.appendChild(body);
+
+    this.unsubscribeUpdate = noteEmbedUpdateEmitter.subscribe(
+      (updatedPath, newContent) => this.handleExternalUpdate(updatedPath, newContent),
+    );
 
     const initialContent = this.options.noteContents?.[this.path];
     if (initialContent !== undefined) {
@@ -64,11 +72,12 @@ export class NoteEmbedWidget extends WidgetType {
     } else if (this.options.loadNoteContent) {
       const loader = () => {
         void this.options.loadNoteContent!(this.path).then((loaded) => {
+          if (!this.bodyEl) return;
           if (loaded === null || loaded === undefined) {
-            body.className = "cm-note-embed__body cm-note-embed__muted";
-            body.textContent = `Note not found: ${this.rawSyntax}`;
+            this.bodyEl.className = "cm-note-embed__body cm-note-embed__muted";
+            this.bodyEl.textContent = `Note not found: ${this.rawSyntax}`;
           } else {
-            this.renderContent(body, loaded);
+            this.renderContent(this.bodyEl, loaded);
           }
         });
       };
@@ -98,8 +107,24 @@ export class NoteEmbedWidget extends WidgetType {
     return container;
   }
 
-  private pathStem(path: string): string {
-    return path.replace(/\.md$/i, "").split("/").pop() ?? path;
+  private handleExternalUpdate(updatedPath: string, newContent?: string): void {
+    if (!matchesNotePath(this.path, updatedPath)) return;
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    this.debounceTimer = setTimeout(() => {
+      this.debounceTimer = null;
+      if (!this.bodyEl) return;
+      if (newContent !== undefined) {
+        this.renderContent(this.bodyEl, newContent);
+      } else if (this.options.loadNoteContent) {
+        void this.options.loadNoteContent(this.path).then((loaded) => {
+          if (loaded !== null && loaded !== undefined && this.bodyEl) {
+            this.renderContent(this.bodyEl, loaded);
+          }
+        });
+      }
+    }, EMBED_UPDATE_DEBOUNCE_MS);
   }
 
   private renderContent(body: HTMLElement, rawMarkdown: string): void {
@@ -111,7 +136,7 @@ export class NoteEmbedWidget extends WidgetType {
       const section = extractHeadingSection(rawMarkdown, this.heading);
       if (!section.found) {
         body.className = "cm-note-embed__body cm-note-embed__muted";
-        body.textContent = `Heading not found: #${this.heading} in [[${this.pathStem(this.path)}]]`;
+        body.textContent = `Heading not found: #${this.heading} in [[${pathStem(this.path)}]]`;
         return;
       }
       markdownToRender = section.content;
@@ -168,9 +193,14 @@ export class NoteEmbedWidget extends WidgetType {
   }
 
   destroy(): void {
+    if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    this.debounceTimer = null;
+    this.unsubscribeUpdate?.();
+    this.unsubscribeUpdate = null;
     this.observer?.disconnect();
     this.observer = null;
     this.embeddedView?.destroy();
     this.embeddedView = null;
+    this.bodyEl = null;
   }
 }

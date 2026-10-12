@@ -27,7 +27,12 @@ import {
   tagExtension,
 } from "./live-preview";
 import { linkExtension } from "./links";
-import { embedImageExtension, imageExtension } from "./embeds";
+import {
+  embedImageExtension,
+  imageExtension,
+  noteEmbedExtension,
+  noteEmbedTheme,
+} from "./embeds";
 import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
 import { tableExtension, tableTheme } from "./blocks/table";
 import { mermaidExtension, mermaidTheme } from "./blocks/mermaid";
@@ -74,6 +79,8 @@ export interface EditorProps {
   onPasteAttachment?: PasteAttachmentHandler;
   onAttachmentError?: (message: string) => void;
   resolveMediaUrl?: (path: string) => string;
+  loadNoteContent?: (path: string) => Promise<string | null>;
+  noteContents?: Readonly<Record<string, string>>;
   useVimMode?: boolean;
   onVimModeChange?: (mode: string | null) => void;
   onSaveNoteNow?: (path: string) => Promise<void>;
@@ -96,6 +103,8 @@ export function Editor({
   onPasteAttachment,
   onAttachmentError,
   resolveMediaUrl,
+  loadNoteContent,
+  noteContents,
   useVimMode = false,
   onVimModeChange,
   onSaveNoteNow,
@@ -113,6 +122,7 @@ export function Editor({
   // Compartments for reactive updates of options
   const wikilinkCompartmentRef = useRef(new Compartment());
   const autocompleteCompartmentRef = useRef(new Compartment());
+  const noteEmbedCompartmentRef = useRef(new Compartment());
   const vimCompartmentRef = useRef(new Compartment());
   const onTagClickRef = useRef(onTagClick ?? (() => {}));
   const onPasteAttachmentRef = useRef(onPasteAttachment);
@@ -186,6 +196,17 @@ export function Editor({
         mathExtension(),
         imageExtension(),
         embedImageExtension({ notePaths, resolveMediaUrl }),
+        noteEmbedTheme,
+        noteEmbedCompartmentRef.current.of(
+          noteEmbedExtension({
+            notePaths,
+            sourcePath,
+            onLinkClick,
+            resolveMediaUrl,
+            loadNoteContent,
+            noteContents,
+          }),
+        ),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
         htmlBlockExtension(),
         htmlInlineExtension(),
@@ -325,9 +346,19 @@ export function Editor({
         autocompleteCompartmentRef.current.reconfigure(
           autocompletion({ override: [autocompleteExtension({ notePaths })] }),
         ),
+        noteEmbedCompartmentRef.current.reconfigure(
+          noteEmbedExtension({
+            notePaths,
+            sourcePath,
+            onLinkClick,
+            resolveMediaUrl,
+            loadNoteContent,
+            noteContents,
+          }),
+        ),
       ],
     });
-  }, [notePaths, sourcePath, onLinkClick, onExternalLinkClick, slashMenuEnabled, vimMode]);
+  }, [notePaths, sourcePath, onLinkClick, onExternalLinkClick, slashMenuEnabled, vimMode, resolveMediaUrl, loadNoteContent, noteContents]);
 
   return <div ref={containerRef} className={"editor-container"} />;
 }

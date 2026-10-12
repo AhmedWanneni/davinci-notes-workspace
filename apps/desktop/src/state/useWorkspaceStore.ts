@@ -24,6 +24,7 @@ import {
   flushH1DrivenRename,
   scheduleH1DrivenRename,
 } from "../vault/h1DrivenRename";
+import { notifyNoteEmbedUpdate } from "@app/editor";
 
 export interface WorkspaceState
   extends EditorSettingsState, NoteCrudActions, NoteSaveActions {
@@ -209,6 +210,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         dirtyNotes: nextDirty,
       };
     });
+    notifyNoteEmbedUpdate(path, content);
 
     if (saveTimers[path]) clearTimeout(saveTimers[path]);
     saveTimers[path] = setTimeout(async () => {
@@ -220,10 +222,10 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     scheduleH1DrivenRename(path);
   },
 
-  replaceLoadedNoteContent: (path: string, content: string) =>
-    set((state) => ({
-      notesContent: { ...state.notesContent, [path]: content },
-    })),
+  replaceLoadedNoteContent: (path: string, content: string) => {
+    notifyNoteEmbedUpdate(path, content);
+    set((state) => ({ notesContent: { ...state.notesContent, [path]: content } }));
+  },
 
   closeAllNotes: async () => {
     await get().saveAllDirty();

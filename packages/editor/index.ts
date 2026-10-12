@@ -137,5 +137,14 @@ export { htmlBlockTheme } from "./blocks/html/htmlBlockTheme";
 export { htmlInlineExtension } from "./blocks/html/htmlInlineExtension";
 export { htmlInlineTheme } from "./blocks/html/htmlInlineTheme";
 export { loadVimExtension } from "./vim/vimExtension";
+export {
+  noteEmbedExtension,
+  noteEmbedTheme,
+  notifyNoteEmbedUpdate,
+  extractHeadingSection,
+  stripFrontmatter,
+} from "./embeds";
+export type { NoteEmbedOptions } from "./embeds";
 export { Strikethrough } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";
+
