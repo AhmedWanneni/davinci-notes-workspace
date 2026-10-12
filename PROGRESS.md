@@ -4,6 +4,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Four UI & Behavior Improvements (complete)**
+Implemented 4 targeted UI and behavior enhancements across desktop navigation, status bar, sidebar layout, and logs viewing:
+1. **Graph view auto-close (`5f5dbd4`)**:
+   - Centralized graph view auto-close in `useWorkspaceStore` (`openNote` and `setActiveNote` now automatically reset `isGlobalGraphOpen: false`).
+   - Any navigation action that selects a note (file tree click, quick switcher selection, backlink click, search result navigation, or graph node navigation) automatically dismisses the full-screen global graph view and returns focus to the editor.
+   - Refactored note navigation actions into `createNoteNavigationActions.ts` (158 lines) to strictly respect the AGENTS.md 200-line soft cap.
+2. **Status bar vault indicator cleanup & active note counts (`66e934f`)**:
+   - Removed the vault name label and status dot from the footer status bar (`StatusBar.tsx`).
+   - Cleaned up right-side statistics to exclusively display character and word counts for the active note (`X words · Y characters`).
+   - When no note is active, renders empty stats on the right (no stale count or placeholders). Preserves Vim mode and AI transmitting status indicators.
+3. **Sidebar collapse with visible icon rail and drag resizer (`faa4997`)**:
+   - Updated layout (`_app-shell.scss` and `_sidebar.scss`) to maintain the 40px `IconRail` visible at all times, collapsing only the inner sidebar panel.
+   - Added zero-gap, zero-overlap grid layout (Col 1: IconRail, Col 2: AppSidebar, Col 3: Editor, Col 4: RightSidebar).
+   - Added panel drag-resizing with `useSidebarResize.ts` and a subtle border hover resizer handle, persisting panel width across collapse/expand toggles.
+4. **Vault logs migration to Settings dialog & entry points (`fd74f33`)**:
+   - Removed raw debug log `<pre>` section from below the vault switcher in `AppSidebar`.
+   - Created `LogsSettingsTab.tsx` in `SettingsDialog`, presenting the existing logs in a clean settings card.
+   - Added multiple clear UI entry points:
+     - Settings sidebar tab: **Logs** (`ListBullets` icon)
+     - Command Palette: **Open Logs** (`action:logs`)
+     - Vault Switcher menu: **View vault logs…**
+   - Strictly reused existing logging events without creating new logging or schema changes.
+
+**Next:** Phase 6 — sync status indicator in tray menu.
+
+---
+
 **Auto-Open Last Vault on Launch + Sidebar Vault Switcher (complete, ADR-0181)**
 Implemented auto-opening the last valid vault on launch, an Obsidian-matching bottom-sidebar vault switcher, and a safe serialized vault switching teardown/init lifecycle:
 1. App-level recent-vaults registry (`recent_vaults.rs`, `recentVaultsRegistry.ts`):

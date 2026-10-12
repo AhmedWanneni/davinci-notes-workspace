@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-12 | Four UI & Behavior Improvements | Implemented graph view auto-close on note open/navigation in centralized workspace store (`createNoteNavigationActions.ts`), cleaned up status bar (removed vault label/dot, display word & character counts for active note only), updated sidebar collapse to keep 40px icon rail visible without gaps/overlaps with panel drag-resize, and migrated vault activity logs from under VaultSwitcher to a dedicated Settings Dialog tab with multiple entry points (Settings, Command Palette, Vault Switcher menu). All 113 test suites (431 tests) pass. |
 | 2026-10-12 | Note Embeds (![[Note]] and ![[Note#Heading]]) & Insert Item | Implemented inline read-only CodeMirror 6 note embeds with heading narrowing, cycle detection, depth limit (3), size truncation with 'Show more', IntersectionObserver viewport lazy-loading, and debounced live updates without host document modifications. Added 'Note embed' to insert registry with quick switcher fuzzy search and heading picker. Recorded ADR-0179. All unit tests pass. |
 | 2026-10-12 | Editor Insert Menu Phase 4 — Diagram Templates under Diagrams Group | Added 21 Mermaid diagram templates to `insertRegistry` across 4 sub-groups (Flow and structure, Time and planning, Data and charts, Frameworks). Verified all templates against installed `mermaid@11.16.1` using `mermaid.parse` in jsdom. None deferred. Strict lazy loading guarantees `mermaid` is never imported by insert menus. 27 test files / 179 unit tests pass in `@app/editor`. Recorded ADR-0178. |
 | 2026-10-11 | Editor feature-folder refactor | Reorganized `@app/editor` into feature folders with tests colocated, preserved the root public API, and updated desktop deep-import test paths. Editor typecheck/lint/build pass; 17 editor test files / 97 tests pass. The initial 104-file / 386-test desktop run passed, while later reruns hit its pre-existing timing-sensitive `versionHistoryLatency.test.ts` threshold. Native GUI smoke test remains pending due unavailable agent GUI access. |
@@ -3316,3 +3317,29 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Automatically available in the `...` menu, slash menu (`/note`), and Command Palette (`Insert: Note embed`).
 - **Testing & Verification**:
   - 10 unit test suites covering section extraction, note embed widget lifecycle, cycle/depth/size guards, debounced live updates, insert item, and React note picker.
+
+## 2026-10-12 — Four UI and Behavior Enhancements
+
+- **Graph View Auto-Close (`5f5dbd4`)**:
+  - **Problem**: When the global graph view was open, opening notes from the file tree, quick switcher, backlinks, search results, or graph nodes kept the graph view active over the editor.
+  - **Root Cause & Centralization**: The full-screen global graph overlay is governed by `isGlobalGraphOpen` in `useWorkspaceStore`. Previously, `isGlobalGraphOpen` was toggled at disparate UI sites. By placing `isGlobalGraphOpen: false` centrally inside `openNote` and `setActiveNote` within `createNoteNavigationActions.ts`, any user action or link navigation that opens or focuses a note automatically closes the graph view and returns focus to the note editor.
+  - **Refactoring for AGENTS.md Limits**: Extracted `createNoteNavigationActions.ts` (158 lines) from `useWorkspaceStore.ts`, keeping `useWorkspaceStore.ts` strictly at 152 lines (below the 200-line soft cap).
+- **Status Bar Vault Cleanup & Dynamic Note Counts (`66e934f`)**:
+  - **Cleanup**: Removed the vault indicator dot and vault name label from `StatusBar.tsx`.
+  - **Statistics**: Simplified stats section to display only the word count and character count of the active note (`X words · Y characters`). When no file is open (`!activeNotePath`), right-hand statistics are not rendered, preventing stale word/character metrics.
+  - Preserved Vim mode and AI transmission status indicators on the left.
+- **Sidebar Collapse with Continuous IconRail & Drag Resizing (`faa4997`)**:
+  - **Layout & Structure**: Updated `_app-shell.scss` CSS grid layout to 4 explicit columns (`IconRail`, `AppSidebar`, `main`, `right-sidebar`). Moved `<IconRail />` outside `<AppSidebar />` to be a direct sibling in `App.tsx`.
+  - **Behavior**: When the sidebar collapses, the 40px icon rail stays visible, while the sidebar panel smoothly collapses to width 0 without gaps or overlaps with the main content area.
+  - **Drag Resizing**: Added `useSidebarResize.ts` hook and an invisible hover handle (`.app-sidebar__resizer`) on the right edge of `AppSidebar`. Maintains min/max clamping (180px–600px), prevents text selection during drag, and persists panel width across collapse and reopen.
+- **Vault Logs Relocation & Navigation Entry Points (`fd74f33`)**:
+  - **Cleanup**: Removed the raw `<pre className="debug-log">` section from under the `VaultSwitcher` in the sidebar.
+  - **Relocation**: Created `LogsSettingsTab.tsx` in `SettingsDialog` presenting existing activity log entries in a scrollable, styled card matching the design system.
+  - **Navigation**:
+    - Settings dialog sidebar tab: **Logs** with Phosphor `ListBullets` icon.
+    - Command Palette: **Open Logs** (`action:logs`).
+    - Vault Switcher menu: **View vault logs…** action.
+  - Reused existing log data (`log: string[]`) from `useVaultIndex` without introducing any new log events or runtime overhead.
+- **Verification**:
+  - All 113 Vitest test suites (431 tests) in `@app/desktop` pass cleanly.
+  - ESLint passes with 0 errors and 0 warnings.
