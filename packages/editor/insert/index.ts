@@ -1,6 +1,8 @@
 export type {
   InsertBuildContext,
   InsertBuildResult,
+  InsertDialogInput,
+  InsertDialogSpec,
   InsertGroup,
   InsertIconName,
   InsertItem,
@@ -16,3 +18,9 @@ export {
   subscribeRecentInserts,
   useRecentInsertIds,
 } from "./recentInsertStore";
+export {
+  parseGeneralMediaUrl,
+  validateImageUrl,
+  validateYoutubeUrl,
+  validateTweetUrl,
+} from "./mediaValidation";

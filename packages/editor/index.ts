@@ -9,8 +9,18 @@ export {
   clearRecentInserts,
   subscribeRecentInserts,
   useRecentInsertIds,
+  parseGeneralMediaUrl,
+  validateImageUrl,
+  validateYoutubeUrl,
+  validateTweetUrl,
 } from "./insert";
-export type { InsertItem, InsertBuildContext, InsertBuildResult } from "./insert";
+export type {
+  InsertItem,
+  InsertBuildContext,
+  InsertBuildResult,
+  InsertDialogInput,
+  InsertDialogSpec,
+} from "./insert";
 export { createEditorPluginAdapter } from "./integration/pluginEditorAdapter";
 export type {
   EditorPluginAdapter,

@@ -1,8 +1,9 @@
-export type InsertGroup = "Basics" | "Code and data" | "HTML";
+export type InsertGroup = "Basics" | "Code and data" | "HTML" | "Media";
 
 export type InsertIconName =
   | "Code"
   | "Function"
+  | "Image"
   | "ListBullets"
   | "ListNumbers"
   | "ListChecks"
@@ -14,10 +15,28 @@ export type InsertIconName =
   | "TextHOne"
   | "TextHTwo"
   | "TextHThree"
-  | "TextT";
+  | "TextT"
+  | "TwitterLogo"
+  | "VideoCamera";
+
+export interface InsertDialogInput {
+  url?: string;
+  path?: string;
+  [key: string]: unknown;
+}
+
+export interface InsertDialogSpec {
+  title: string;
+  description?: string;
+  kind: "media-url" | "image-sources";
+  placeholder?: string;
+  confirmLabel?: string;
+  validate?: (input: InsertDialogInput) => string | null;
+}
 
 export interface InsertBuildContext {
   selectedText: string;
+  input?: InsertDialogInput;
 }
 
 export interface InsertBuildResult {
@@ -31,5 +50,6 @@ export interface InsertItem {
   label: string;
   icon: InsertIconName;
   keywords: readonly string[];
+  dialog?: InsertDialogSpec;
   build(context: InsertBuildContext): InsertBuildResult;
 }
