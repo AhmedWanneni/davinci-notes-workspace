@@ -51,6 +51,7 @@ impl VaultWatcher {
     self.paused.store(paused, Ordering::SeqCst);
   }
 
+  #[allow(dead_code)]
   pub fn is_paused(&self) -> bool {
     self.paused.load(Ordering::SeqCst)
   }

@@ -85,7 +85,9 @@ export function App() {
   const [aiProviderName, setAiProviderName] = useState("AI");
   const [aiTransmitting, setAiTransmitting] = useState(false);
   const editorRef = useRef<EditorPluginAdapter | null>(null);
-  const editorViewRef = useRef<import("@codemirror/view").EditorView | null>(null);
+  const editorViewRef = useRef<import("@codemirror/view").EditorView | null>(
+    null,
+  );
   const activeNoteRef = useRef<string | null>(null);
   const pendingCitationRef = useRef<CitationNavigationTarget | null>(null);
 
@@ -149,6 +151,7 @@ export function App() {
     createNewFolder,
     createNewCanvas,
     handleLinkClick,
+    switchVaultTo,
     openFixture,
     openLargeFixture,
     openPicker,
@@ -557,6 +560,11 @@ export function App() {
       <div className="app-shell__body">
         <AppSidebar
           vaultName={vaultName}
+          vaultPath={vaultPath}
+          onSwitchVault={(target) => void switchVaultTo(target)}
+          onOpenFolderPicker={openPicker}
+          onCreateNewVault={openPicker}
+          onOpenSettings={() => setIsSettingsOpen(true)}
           allNotePaths={allNotePaths}
           allFolderPaths={allFolderPaths}
           activeNotePath={activeNotePath}

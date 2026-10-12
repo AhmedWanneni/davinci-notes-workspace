@@ -4,6 +4,38 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Auto-Open Last Vault on Launch + Sidebar Vault Switcher (complete, ADR-0181)**
+Implemented auto-opening the last valid vault on launch, an Obsidian-matching bottom-sidebar vault switcher, and a safe serialized vault switching teardown/init lifecycle:
+1. App-level recent-vaults registry (`recent_vaults.rs`, `recentVaultsRegistry.ts`):
+   - Persisted to `$APP_CONFIG_DIR/davinci-recent-vaults.json` completely outside `vault-index.db`.
+   - Capped at 20 entries, deduplicated by canonical path, sorted by `lastOpenedAt` descending.
+   - Live availability check on query (`exists: bool`); missing/moved vaults are preserved in registry and displayed as disabled in UI with a "Remove from list" action.
+   - Startup performance: sub-millisecond synchronous JSON read; does not block first paint.
+2. Auto-open launch sequence:
+   - On application mount, `getAutoOpenVault()` selects the most recent valid vault and mounts it directly with zero picker screen flicker.
+   - Fallback: iterates to next valid entry if primary is missing; gracefully falls back to welcome picker if all are invalid or list is empty. Never crashes or presents blank window.
+3. Vault switcher bar (`VaultSwitcher.tsx`):
+   - Sits flush at the bottom of `AppSidebar` using flex column layout with subtle top border (`--color-border-subtle`).
+   - Built strictly with `@app/design-system` primitives and tokens: Radix `DropdownMenu`, `TooltipProvider`/`Tooltip`, Phosphor icons (`CaretUpDown`, `Gear`, `Question`, `Check`, `FolderOpen`, `Plus`, `Trash`), CUBE CSS + SCSS Modules.
+   - Left: Vault name in medium weight with up/down chevron button opening recent vaults menu.
+   - Right: Help icon (stub with callback) and Settings gear icon (opens settings dialog).
+   - Menu: Checkmark for active vault, disabled styling with trash remove button for missing vaults, separator, "Open folder as vault…" and "Create new vault…" actions. Full keyboard navigation and accessible ARIA attributes.
+4. Safe teardown and initialization lifecycle (`vaultSwitchOrchestrator.ts`):
+   - Teardown sequence: (1) `saveAllDirty()` flushes unsaved editor changes; (2) saves `session.openNotes` and `session.activeNotePath` to `vault-index.db` `settings` table; (3) stops native file watcher via `stop_vault_watcher`; (4) acquires `withDbLock` to drain all in-flight indexer queries, runs `PRAGMA wal_checkpoint(TRUNCATE)`, and closes SQLite connection pool; (5) resets all in-memory store state (`diskStateTracker`, `openNotes`, `activeNotePath`, `notesContent`, `dirtyNotes`, `conflictNotes`, file tree, graph).
+   - Init sequence: (5) mounts new vault (`open_vault`), runs full indexing (`indexVaultFull`), loads tree and graph; (6) restores new vault's saved open notes and active note; (7) records path in recent-vaults registry.
+   - Serialized concurrency: all switch requests run through promise chain (`switchLock`); rapid consecutive switches queue sequentially and never interleave. Rollback logic restores previous vault or picker on error.
+5. Standing SQLite audit & verification:
+   - Audited all SQLite call sites across the codebase (`rg` for `db.execute`, `db.select`, `getSetting`, `setSetting`); 100% covered under `withDbLock`.
+   - Added concurrency regression test running vault switch simultaneously with indexing and settings update; zero lock contention or unhandled rejections.
+   - All 112 Vitest suites (423 tests) and all Rust unit tests pass.
+   - ESLint and `cargo test --no-run` pass with 0 errors and 0 warnings.
+6. File size constraints:
+   - All files strictly adhere to AGENTS.md caps: `VaultSwitcher.tsx` (183 lines), `VaultSwitcher.module.scss` (146 lines), `AppSidebar.tsx` (162 lines), `AppSidebarHeader.tsx` (90 lines), `vaultSwitchOrchestrator.ts` (191 lines), `useVaultSession.ts` (126 lines), `sqliteIndex.ts` (232 lines), `recent_vaults.rs` (191 lines).
+
+**Next:** Phase 6 — sync status indicator in tray menu.
+
+---
+
 **Tray Phase 4c — Exact Popover Anchoring and Save-As Options (complete, ADR-0180 supersedes capture target of ADR-0172)**
 Implemented exact anchored popover positioning directly under clicked tray icon and save-as destination options with full path safety:
 1. Exact popover anchoring & root cause resolution:

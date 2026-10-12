@@ -3,8 +3,8 @@
   min-width: 240px;
   border-right: var(--border-width-thin) solid var(--color-border-subtle);
   background-color: var(--color-bg-primary-alt);
-  grid-template-columns: 40px minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   grid-column: 1;
   grid-row: 1 /-1;

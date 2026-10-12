@@ -21,6 +21,9 @@ mod oauth;
 mod plugin_files;
 mod plugin_network;
 mod plugin_webview;
+mod recent_vaults;
+#[cfg(test)]
+mod recent_vaults_tests;
 mod state;
 mod theme_files;
 mod tray;
@@ -122,6 +125,11 @@ pub fn run() {
       capture_commands::get_capture_target,
       capture_commands::set_capture_target,
       capture_commands::quick_capture_bring_to_front,
+      recent_vaults::get_recent_vaults,
+      recent_vaults::record_recent_vault,
+      recent_vaults::remove_recent_vault,
+      recent_vaults::check_vault_exists,
+      recent_vaults::stop_vault_watcher,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
