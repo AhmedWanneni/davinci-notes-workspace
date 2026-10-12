@@ -248,3 +248,5 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0176](adr/0176-editor-slash-menu-trigger-rules-and-shared-recent-store.md) | Editor slash menu trigger exclusions, Vim modal preservation, palette commands, and shared recent store | Accepted |
 | [0177](adr/0177-editor-media-insert-items-and-dialogs.md) | Editor media insert items, declarative dialogs, and attachment pipeline integration | Accepted |
 | [0178](adr/0178-editor-mermaid-diagram-templates.md) | Editor Mermaid diagram templates, sub-grouping, and lazy preview rendering | Accepted |
+| [0179](adr/0179-note-embeds-and-safety-guards.md) | Note embeds (![[Note]] and ![[Note#Heading]]), cycle/depth/size guards, debounced live updates, and insert item (extends 0115) | Accepted |
+

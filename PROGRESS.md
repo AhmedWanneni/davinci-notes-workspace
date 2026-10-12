@@ -4,6 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Editor Note Embeds and Safety Guards (implementation complete; ADR-0179 extends ADR-0115)**
+Implemented inline note embeds (`![[Note]]` and section embeds `![[Note#Heading]]`) with comprehensive cycle, depth, and size guards, viewport lazy loading, debounced live updates, and "Note embed" insert registry item:
+1. Renderer:
+   - Inline read-only CodeMirror 6 live-preview block (`createReadOnlyEmbedView`, `readOnlyEditorTheme`, markdown syntax highlighting, live preview, tables, math, mermaid).
+   - Section extraction (`extractHeadingSection`): extracts heading through subheadings until equal or higher level ATX heading, with fenced code block masking.
+   - Header bar with title click to open target note (`onLinkClick`). Clicking embed content does not edit it.
+   - States: loading, note not found, heading not found, circular embed, ambiguous match. Non-note embeds pass through to existing handlers.
+2. Safety guards:
+   - Cycle prevention: `embedChain` tracking terminates recursion immediately on circular paths (`A->A`, `A->B->A`, `A->B->C->A`) with `.cm-note-embed-circular` placeholder.
+   - Depth limit: capped at `MAX_EMBED_DEPTH = 3`. Depth 4+ renders as a plain clickable wikilink (`[[Note]]`).
+   - Size limit: capped at `DEFAULT_EMBED_MAX_LINES = 25` lines with interactive "Show more" / "Show less" toggle.
+   - Sandboxing: identical sandboxing guarantees to primary note views; scripts and unpermitted remote media never execute.
+3. Performance:
+   - Viewport lazy loading via `IntersectionObserver` (200px margin). Notes outside viewport show loading state and do not hit disk.
+   - Minimal read-only view: ~35 KB per embed (~350 KB for 10 embeds on a page) vs ~10 MB for 10 editable editors.
+   - Debounced live updates: `noteEmbedUpdateEmitter` notifies embeds with 200ms debounce. Updates child view in-place without touching the host document or rebuilding host decorations.
+4. "Note embed" insert item:
+   - Added to `insertRegistry` under `"Links"` group.
+   - Automatically available in header `"..."` menu, slash menu, and Command Palette.
+   - Opens `InsertNotePicker` dialog with note title search, keyboard navigation (ArrowUp/Down/Enter), optional heading selector, and standard wikilink disambiguation.
+5. Deferred items:
+   - Block embeds (`![[Note^block]]`): deferred (missing block ID indexing and block-range parser specification).
+   - Editing inside embeds: deferred (embeds are strictly read-only views per ADR-0179).
+   - Audio/video/PDF/file embeds: deferred (deferred non-image media renderers per ADR-0115).
+   - Bookmarks: deferred (missing web bookmark card metadata fetcher and card preview renderer).
+
+**Next:** Native app smoke test for note embeds (`![[Note]]`, `![[Note#Heading]]`), cycle/depth/size guards, and note picker dialog across header `"..."` menu, slash menu, and Command Palette.
+
+---
+
 **Editor Insert Menu Phase 4 — Diagram Templates under "Diagrams" Group (implementation complete; native verification pending, ADR-0178)**
 Added 21 Mermaid diagram templates to the immutable `@app/editor` insert registry partitioned into four sub-groups under `"Diagrams"`, automatically available in the `"..."` menu, slash menu, and Command Palette:
 1. Installed Mermaid version check:

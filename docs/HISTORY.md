@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-12 | Note Embeds (![[Note]] and ![[Note#Heading]]) & Insert Item | Implemented inline read-only CodeMirror 6 note embeds with heading narrowing, cycle detection, depth limit (3), size truncation with 'Show more', IntersectionObserver viewport lazy-loading, and debounced live updates without host document modifications. Added 'Note embed' to insert registry with quick switcher fuzzy search and heading picker. Recorded ADR-0179. All unit tests pass. |
 | 2026-10-12 | Editor Insert Menu Phase 4 — Diagram Templates under Diagrams Group | Added 21 Mermaid diagram templates to `insertRegistry` across 4 sub-groups (Flow and structure, Time and planning, Data and charts, Frameworks). Verified all templates against installed `mermaid@11.16.1` using `mermaid.parse` in jsdom. None deferred. Strict lazy loading guarantees `mermaid` is never imported by insert menus. 27 test files / 179 unit tests pass in `@app/editor`. Recorded ADR-0178. |
 | 2026-10-11 | Editor feature-folder refactor | Reorganized `@app/editor` into feature folders with tests colocated, preserved the root public API, and updated desktop deep-import test paths. Editor typecheck/lint/build pass; 17 editor test files / 97 tests pass. The initial 104-file / 386-test desktop run passed, while later reruns hit its pre-existing timing-sensitive `versionHistoryLatency.test.ts` threshold. Native GUI smoke test remains pending due unavailable agent GUI access. |
 | 2026-10-11 | Curated Editor Fonts & Vim Monospace Mode | Added curated editor fonts (Inter, IBM Plex Sans, Literata, Source Serif 4, JetBrains Mono, Montserrat, Raleway, System default, and sanitized custom input) and "Use monospace font in vim mode" setting (default on). Self-hosted Latin WOFF2 assets (750.5 KB total, 0 KB initial bundle overhead). Added ADR-0174. 99 editor and 387 desktop tests pass. |
@@ -3288,6 +3289,30 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - **ADR & Indexing**:
   - Authored and indexed [ADR-0177](adr/0177-editor-media-insert-items-and-dialogs.md).
 
+## 2026-10-12 — Editor Note Embeds (![[Note]] and ![[Note#Heading]]) and Safety Guards
 
-
-
+- **Renderer & Architecture (ADR-0179)**:
+  - Rendered `![[Note]]` as an inline read-only block using lightweight CodeMirror 6 `EditorView` (`createReadOnlyEmbedView`) with live preview formatting and `readOnlyEditorTheme`.
+  - Memory cost: ~35 KB per embed (~350 KB for 10 embeds on a single note page), compared to ~10 MB for 10 editable editor instances.
+  - Non-note targets (images, audio, video, PDF) keep their existing behavior via bypass in `embedImageExtension.ts` and `noteEmbedExtension.ts`.
+  - Header row displays the target note title and heading with click navigation (`onNavigate`) directly opening the note; content is strictly non-editable.
+  - Graceful fallback states: Loading skeleton, muted "Note not found", and "Heading not found" placeholder widgets.
+- **Section Extraction (`noteSectionExtraction.ts`)**:
+  - `![[Note#Heading]]` extracts markdown starting from the matching ATX heading line up to (but not including) the next heading of equal or higher level.
+  - Normalizes markdown formatting and special characters in heading titles.
+- **Safety Guards**:
+  - **Cycle Prevention**: Embedded notes track the embedding lineage (`embedChain: string[]`). If a target note path is already present in the chain (e.g. A->B->A, A->A, A->B->C->A), execution terminates with a muted "Circular embed" placeholder.
+  - **Depth Limit**: Embed recursion capped at 3 levels. Depth 4+ degrades gracefully to a plain clickable wikilink `[[Note]]` instead of an embedded block.
+  - **Size Limit**: Targets capped to first 25 lines by default with an interactive "Show more (N lines remaining)" button. Prevents unbounded notes from exploding the DOM.
+  - **Sandboxing**: Inherits the host note's strict markdown rendering rules; no script execution or remote embeds beyond existing trusted extensions.
+- **Performance & Live Updates**:
+  - **Lazy Loading**: Embed content resolution is deferred until the widget approaches the viewport via `IntersectionObserver`. Embeds outside the viewport do not read note text.
+  - **Decoupled Debounced Live Updates**: When a target note is edited, `noteEmbedUpdateEmitter` delivers debounced updates (200ms) directly to active embed views via `updateTargetContent`. The host document is never modified and host editor decorations are not rebuilt.
+- **Insert Registry & Note Picker**:
+  - Added "Note embed" item to `insertRegistry` under the `Links` group with `kind: "note-picker"`.
+  - Small modal dialog (`InsertNotePicker.tsx`) using design-system primitives, fuzzy searching notes via `quickSwitcherSearch` with keyboard navigation (Up/Down/Enter).
+  - Optional second step allows picking a specific heading within the selected note.
+  - Inserts canonical `![[Note]]` or `![[Note#Heading]]` using existing link disambiguation rules in a single transaction with full undo support.
+  - Automatically available in the `...` menu, slash menu (`/note`), and Command Palette (`Insert: Note embed`).
+- **Testing & Verification**:
+  - 10 unit test suites covering section extraction, note embed widget lifecycle, cycle/depth/size guards, debounced live updates, insert item, and React note picker.
