@@ -7,20 +7,29 @@ import { afterEach, describe, expect, it } from "vitest";
 import { findInsertItem } from "./InsertRegistry";
 import { insertItem } from "./InsertAction";
 
-let view: EditorView | undefined;
+if (typeof Range !== "undefined" && !Range.prototype.getClientRects) {
+  Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+}
+
+const views: EditorView[] = [];
 
 function createEditor(doc: string, from = 0, to = from, editable = true) {
-  view = new EditorView({
+  const v = new EditorView({
     state: EditorState.create({
       doc,
       selection: EditorSelection.range(from, to),
       extensions: [history(), EditorView.editable.of(editable)],
     }),
   });
-  return view;
+  views.push(v);
+  return v;
 }
 
-afterEach(() => view?.destroy());
+afterEach(() => {
+  while (views.length > 0) {
+    views.pop()?.destroy();
+  }
+});
 
 describe("insertItem", () => {
   it("replaces selected text and pads a block in one undoable insertion", () => {
@@ -54,5 +63,19 @@ describe("insertItem", () => {
     const editor = createEditor("text", 0, 4, false);
     expect(insertItem(editor, findInsertItem("quote")!)).toBe(false);
     expect(editor.state.doc.toString()).toBe("text");
+  });
+
+  it("inserts note-embed item with input, pads block, is undoable, and no-ops in read-only view", () => {
+    const editor = createEditor("Before\nAfter", 7);
+    const item = findInsertItem("note-embed")!;
+    insertItem(editor, item, undefined, "", { target: "MyNote", heading: "Heading" });
+
+    expect(editor.state.doc.toString()).toBe("Before\n\n![[MyNote#Heading]]\n\nAfter");
+    expect(undo(editor)).toBe(true);
+    expect(editor.state.doc.toString()).toBe("Before\nAfter");
+
+    const readOnly = createEditor("Text", 0, 4, false);
+    expect(insertItem(readOnly, item, undefined, "", { target: "MyNote" })).toBe(false);
+    expect(readOnly.state.doc.toString()).toBe("Text");
   });
 });

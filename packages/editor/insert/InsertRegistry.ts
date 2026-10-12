@@ -1,10 +1,6 @@
 import type { InsertBuildContext, InsertItem } from "./InsertItem";
 import { diagramItems } from "./diagrams";
-import {
-  validateImageUrl,
-  validateYoutubeUrl,
-  validateTweetUrl,
-} from "./mediaValidation";
+import { mediaItems } from "./mediaItems";
 
 function escapeSnippetText(value: string) {
   return value
@@ -155,75 +151,30 @@ export const insertRegistry: readonly InsertItem[] = [
     build: (context) => inline(`<span>${field(context, "Text")}</span>`),
   },
   {
-    id: "image",
-    group: "Media",
-    label: "Image",
-    icon: "Image",
-    keywords: ["image", "picture", "photo", "img", "media"],
+    id: "note-embed",
+    group: "Links",
+    label: "Note embed",
+    icon: "Note",
+    keywords: ["embed", "note", "transclusion", "wikilink", "link"],
     dialog: {
-      kind: "image-sources",
-      title: "Insert Image",
-      description: "Choose a local file to import or provide an image URL.",
-      placeholder: "https://example.com/image.png",
-      confirmLabel: "Insert Image",
+      kind: "note-picker",
+      title: "Embed Note",
+      description: "Search notes by title and optionally select a heading.",
+      confirmLabel: "Embed Note",
       validate: (input) => {
-        if (input.path) return null;
-        if (!input.url) return "Please choose a file or enter an image URL.";
-        return validateImageUrl(input.url);
+        if (!input.path && !input.target) {
+          return "Please choose a note to embed.";
+        }
+        return null;
       },
     },
     build: (context) => {
-      if (context.input?.path) {
-        return block(`![[${context.input.path}]]`);
-      }
-      const url = context.input?.url || "https://";
-      return block(`![](${url})`);
+      const target = context.input?.target || context.input?.path || "Note";
+      const heading = context.input?.heading ? `#${context.input.heading}` : "";
+      return block(`![[${target}${heading}]]`);
     },
   },
-  {
-    id: "youtube",
-    group: "Media",
-    label: "YouTube",
-    icon: "VideoCamera",
-    keywords: ["youtube", "video", "yt", "media"],
-    dialog: {
-      kind: "media-url",
-      title: "Insert YouTube Video",
-      description: "Enter a YouTube watch or youtu.be URL.",
-      placeholder: "https://www.youtube.com/watch?v=...",
-      confirmLabel: "Insert Video",
-      validate: (input) => {
-        if (!input.url) return "URL cannot be empty.";
-        return validateYoutubeUrl(input.url);
-      },
-    },
-    build: (context) => {
-      const url = context.input?.url || "https://youtube.com/watch?v=";
-      return block(`![](${url})`);
-    },
-  },
-  {
-    id: "tweet",
-    group: "Media",
-    label: "Tweet / X",
-    icon: "TwitterLogo",
-    keywords: ["tweet", "twitter", "x", "post", "social", "media"],
-    dialog: {
-      kind: "media-url",
-      title: "Insert Tweet / X Post",
-      description: "Enter an X or Twitter post URL.",
-      placeholder: "https://x.com/username/status/...",
-      confirmLabel: "Insert Post",
-      validate: (input) => {
-        if (!input.url) return "URL cannot be empty.";
-        return validateTweetUrl(input.url);
-      },
-    },
-    build: (context) => {
-      const url = context.input?.url || "https://x.com/";
-      return block(`![](${url})`);
-    },
-  },
+  ...mediaItems,
   ...diagramItems,
 ];
 

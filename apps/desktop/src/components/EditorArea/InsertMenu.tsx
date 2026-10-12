@@ -13,6 +13,7 @@ import {
 
 const GROUP_ORDER: InsertGroup[] = [
   "Basics",
+  "Links",
   "Code and data",
   "HTML",
   "Media",

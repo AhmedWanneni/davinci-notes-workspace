@@ -2,17 +2,43 @@ import { describe, expect, it } from "vitest";
 import { findInsertItem, insertRegistry } from "./InsertRegistry";
 
 describe("insertRegistry", () => {
-  it("contains all insert items including Media and Diagrams", () => {
-    expect(insertRegistry).toHaveLength(39);
+  it("contains all insert items including Links, Media, and Diagrams", () => {
+    expect(insertRegistry).toHaveLength(40);
     expect(insertRegistry.map((item) => item.group)).toEqual(
       expect.arrayContaining([
         "Basics",
+        "Links",
         "Code and data",
         "HTML",
         "Media",
         "Diagrams",
       ]),
     );
+  });
+
+  it("builds note-embed item syntax with target and optional heading", () => {
+    const item = findInsertItem("note-embed");
+    expect(item).toBeDefined();
+    expect(item?.group).toBe("Links");
+    expect(item?.dialog?.kind).toBe("note-picker");
+
+    // Without heading
+    expect(item?.build({ selectedText: "", input: { target: "Alpha" } })).toEqual({
+      text: "![[Alpha]]",
+      block: true,
+    });
+
+    // With heading
+    expect(
+      item?.build({ selectedText: "", input: { target: "Alpha", heading: "Section One" } }),
+    ).toEqual({
+      text: "![[Alpha#Section One]]",
+      block: true,
+    });
+
+    // Validation
+    expect(item?.dialog?.validate?.({})).toBe("Please choose a note to embed.");
+    expect(item?.dialog?.validate?.({ target: "Alpha" })).toBeNull();
   });
 
   it("uses selected text as the first snippet placeholder", () => {
@@ -33,3 +59,4 @@ describe("insertRegistry", () => {
     );
   });
 });
+

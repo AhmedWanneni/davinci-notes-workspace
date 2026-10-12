@@ -5,6 +5,7 @@ import type {
   InsertDialogRequest,
 } from "@app/editor";
 import styles from "./InsertDialog.module.scss";
+import { InsertNotePicker } from "./InsertNotePicker";
 
 export interface InsertDialogProps {
   request: InsertDialogRequest | null;
@@ -43,6 +44,32 @@ export function InsertDialog({
   }, [request, dialogSpec, isImageSources]);
 
   if (!request || !dialogSpec) return null;
+
+  if (dialogSpec.kind === "note-picker") {
+    return (
+      <Dialog open={Boolean(request)} onOpenChange={(open) => !open && onCancel()}>
+        <DialogContent className={styles["insert-dialog-root"]} showCloseButton={false}>
+          <div className={styles["insert-dialog-header"]}>
+            <h2 className={styles["insert-dialog-title"]}>{dialogSpec.title}</h2>
+            {dialogSpec.description && (
+              <p className={styles["insert-dialog-description"]}>{dialogSpec.description}</p>
+            )}
+          </div>
+          <div className={styles["insert-dialog-body"]}>
+            <InsertNotePicker
+              onSelect={(target, heading) => onConfirm({ target, heading })}
+              onCancel={onCancel}
+            />
+          </div>
+          <div className={styles["insert-dialog-footer"]}>
+            <button type="button" className={styles["insert-dialog-btn-cancel"]} onClick={onCancel}>
+              Cancel
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();

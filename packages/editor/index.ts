@@ -143,6 +143,9 @@ export {
   notifyNoteEmbedUpdate,
   extractHeadingSection,
   stripFrontmatter,
+  pathStem,
+  resolveWikilinkTargetForPath,
+  extractNoteHeadings,
 } from "./embeds";
 export type { NoteEmbedOptions } from "./embeds";
 export { Strikethrough } from "@lezer/markdown";
