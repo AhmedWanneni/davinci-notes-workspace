@@ -119,8 +119,7 @@ pub fn show_or_create_capture_window(app: &AppHandle, tray_rect: Option<Rect>) -
     }
     let _ = window.unminimize();
     let _ = window.show();
-    let _ = window.set_always_on_top(true);
-    let _ = window.set_focus();
+    make_window_topmost(&window.as_ref().window());
     let _ = window.emit("davinci-capture-focus", ());
     return Ok(());
   }
@@ -159,8 +158,7 @@ fn create_and_show_capture_window(app: &AppHandle, target_rect: &Rect) -> Result
   }
 
   let _ = window.show();
-  let _ = window.set_always_on_top(true);
-  let _ = window.set_focus();
+  make_window_topmost(&window.as_ref().window());
   let _ = window.emit("davinci-capture-focus", ());
   Ok(())
 }
@@ -173,6 +171,17 @@ pub fn reclamp_popover(app: &AppHandle, window: &WebviewWindow) -> Result<(), St
     let _ = window.set_position(tauri::Position::Physical(pos));
   }
   Ok(())
+}
+
+pub fn make_window_topmost(window: &tauri::Window) {
+  #[cfg(target_os = "macos")]
+  {
+    let _ = window.app_handle().set_activation_policy(tauri::ActivationPolicy::Regular);
+  }
+  let _ = window.unminimize();
+  let _ = window.show();
+  let _ = window.set_always_on_top(true);
+  let _ = window.set_focus();
 }
 
 #[allow(unused_imports)]

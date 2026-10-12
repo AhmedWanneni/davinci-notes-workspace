@@ -121,6 +121,7 @@ pub fn run() {
       capture_commands::set_capture_shortcut,
       capture_commands::get_capture_target,
       capture_commands::set_capture_target,
+      capture_commands::quick_capture_bring_to_front,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
@@ -139,6 +140,9 @@ pub fn run() {
             if let Some(state) = window.app_handle().try_state::<capture::CaptureState>() {
               state.record_blur();
             }
+          }
+          tauri::WindowEvent::Focused(true) => {
+            capture::make_window_topmost(window);
           }
           _ => {}
         }

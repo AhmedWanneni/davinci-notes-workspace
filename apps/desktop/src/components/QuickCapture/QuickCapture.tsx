@@ -80,15 +80,8 @@ export function QuickCapture(props: QuickCaptureProps) {
     setSavedDestination(null);
     search.resetSearch();
     setMode("capture");
-    if (onDismiss) {
-      await onDismiss();
-      return;
-    }
-    try {
-      await invoke("quick_capture_dismiss");
-    } catch {
-      // Ignored outside Tauri
-    }
+    if (onDismiss) await onDismiss();
+    else void invoke("quick_capture_dismiss").catch(() => {});
   };
 
   const handleSave = async (content: string) => {
@@ -97,6 +90,11 @@ export function QuickCapture(props: QuickCaptureProps) {
       await handleDismiss();
       return;
     }
+    const clearInputs = () => {
+      setText("");
+      setFilename("");
+      setFolder("");
+    };
     setErrorMessage(null);
     try {
       const fName = filename.trim() || undefined;
@@ -104,9 +102,7 @@ export function QuickCapture(props: QuickCaptureProps) {
       if (onSave) {
         if (fName || fDir) await onSave(content, fName, fDir);
         else await onSave(content);
-        setText("");
-        setFilename("");
-        setFolder("");
+        clearInputs();
       } else {
         const res = await invoke<{ path: string; isAppend: boolean }>(
           "quick_capture_save",
@@ -118,9 +114,7 @@ export function QuickCapture(props: QuickCaptureProps) {
         );
         setSavedDestination(res.path);
         setTimeout(() => {
-          setText("");
-          setFilename("");
-          setFolder("");
+          clearInputs();
           setSavedDestination(null);
           void invoke("quick_capture_dismiss").catch(() => {});
         }, 650);
@@ -153,7 +147,12 @@ export function QuickCapture(props: QuickCaptureProps) {
   });
 
   return (
-    <div className={styles["quick-capture-container"]}>
+    <div
+      className={styles["quick-capture-container"]}
+      onMouseDown={() =>
+        void invoke("quick_capture_bring_to_front").catch(() => {})
+      }
+    >
       <QuickCaptureHeader
         mode={mode}
         onModeChange={setMode}

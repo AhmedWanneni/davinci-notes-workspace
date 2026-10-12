@@ -219,3 +219,10 @@ pub fn set_capture_target(
   *state.target.lock().map_err(|e| e.to_string())? = note_name;
   Ok(())
 }
+
+#[tauri::command]
+pub fn quick_capture_bring_to_front(window: WebviewWindow) -> Result<(), String> {
+  authorize_capture_window(&window)?;
+  crate::capture::make_window_topmost(&window.as_ref().window());
+  Ok(())
+}
