@@ -693,6 +693,7 @@ dependencies = [
  "tauri-plugin-global-shortcut",
  "tauri-plugin-log",
  "tauri-plugin-sql",
+ "unicode-normalization",
  "walkdir",
 ]
 

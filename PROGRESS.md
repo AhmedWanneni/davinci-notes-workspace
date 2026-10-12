@@ -4,6 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Tray Phase 4c — Exact Popover Anchoring and Save-As Options (complete, ADR-0180 supersedes capture target of ADR-0172)**
+Implemented exact anchored popover positioning directly under clicked tray icon and save-as destination options with full path safety:
+1. Exact popover anchoring & root cause resolution:
+   - Root cause: On Retina displays (2.0x), `WebviewWindowBuilder::position` interpreted coordinates as logical points while receiving physical pixels, doubling the offset on first open (+1360px horizontally, +52px vertically on 2560x1600 Retina); opens via global shortcut or tray menu were unanchored.
+   - Fix: Query real window size via `outer_size()` at placement time; perform all positioning math strictly in physical pixels via pure function `calculate_popover_position`; recompute and call `set_position(Position::Physical(pos))` on every show; dynamically re-clamp via `reclamp_capture_popover` if popover grows.
+   - Non-click opens fallback chain: queries native tray handle rect (`tray.rect()`), then last known click rect in `CaptureState`, then defined primary monitor top-right fallback.
+   - Measured offset: 0px horizontal offset between icon bottom-center and popover top-center; vertical placement anchored 2px below tray icon bottom edge (clamped within monitor work area 8px margins).
+2. Save-as destination options:
+   - Default flow: saves as a NEW standalone note in `Quick Notes/` at vault root with local timestamp `Quick note YYYY-MM-DD HH-mm-ss.md` (no colons). 20 same-second captures generate 20 distinct files with unique numeric suffixes (` 1.md`, etc.). Atomic `create_new(true)` prevents overwrites.
+   - Optional secondary fields: `Name` and `Folder` fields reachable via Tab from textarea without stealing initial focus.
+   - Combinations: Name only saves to `Quick Notes/<Name>.md`; Folder only saves to `<Folder>/Quick note YYYY-MM-DD HH-mm-ss.md`; Both saves to `<Folder>/<Name>.md`. Normalized `.md` extension is never doubled.
+   - Folder picker: read-only lazy Rust command `list_vault_folders_for_capture` enumerates vault folders on first focus (capped at 500, sorted, filtered), with zero startup overhead.
+   - Collision handling: if an existing note is explicitly chosen, falls back to lossless PURE APPEND (`append_entry_to_disk`), merging seamlessly with Phase 4a save guard. Never truncates.
+   - H1 sync decision: user typed thoughts are written raw without synthetic `# Heading`, preventing rename loops with ADR-0060.
+   - Folder retention decision: destinations are stateless across opens (not remembered) to preserve high-frequency capture speed.
+   - Feedback: brief visual destination confirmation (`✓ Saved to ...`) for 650ms, then hides. Text preserved on error.
+3. Path safety & isolation:
+   - Filename validation rejects path separators (`/`, `\`), `..`, leading dots, control chars, null bytes, trailing spaces/dots, reserved names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`), and `: * ? " < > |`. Unicode NFC normalized.
+   - Folder validation canonicalizes and confines targets inside vault root; rejects `..`, absolute paths, symlinks escaping vault, and hidden folders (`.git`, `.trash`).
+   - SQLite safety: Capture window never touches `vault-index.db`. All indexing remains deferred to `VaultWatcher`.
+   - Capabilities: `capabilities/capture.json` remains least-privilege with zero filesystem plugin access.
+4. Code limits:
+   - All source files strictly ≤ 200-240 lines (`QuickCapture.tsx` 208, `QuickCaptureDestination.tsx` 162, `tray_position.rs` 169, `capture.rs` 178, `capture_writer.rs` 183, `capture_validation.rs` 178, `capture_commands.rs` 196).
+
+**Next:** Phase 6 — sync status indicator in tray menu.
+
+---
+
 **Editor Note Embeds and Safety Guards (implementation complete; ADR-0179 extends ADR-0115)**
 Implemented inline note embeds (`![[Note]]` and section embeds `![[Note#Heading]]`) with comprehensive cycle, depth, and size guards, viewport lazy loading, debounced live updates, and "Note embed" insert registry item:
 1. Renderer:

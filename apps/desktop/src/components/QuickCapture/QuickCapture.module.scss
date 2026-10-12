@@ -70,6 +70,13 @@
   font-size: var(--type-scale-xs);
 }
 
+.quick-capture-success {
+  margin-top: var(--space-1);
+  color: var(--color-text-success);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+}
+
 .quick-capture-footer {
   display: flex;
   align-items: center;

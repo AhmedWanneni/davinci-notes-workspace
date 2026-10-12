@@ -2,9 +2,12 @@ mod ai_auth;
 mod capture;
 mod capture_commands;
 mod capture_format;
+mod capture_validation;
 mod capture_writer;
 #[cfg(test)]
 mod capture_tests;
+#[cfg(test)]
+mod capture_options_tests;
 mod command_auth;
 mod db;
 mod folder_commands;
@@ -111,6 +114,8 @@ pub fn run() {
       tray_commands::request_app_exit,
       capture_commands::quick_capture_save,
       capture_commands::quick_capture_dismiss,
+      capture_commands::reclamp_capture_popover,
+      capture_commands::list_vault_folders_for_capture,
       capture_commands::open_note_from_capture,
       capture_commands::get_capture_shortcut,
       capture_commands::set_capture_shortcut,
