@@ -2,10 +2,16 @@ import { describe, expect, it } from "vitest";
 import { findInsertItem, insertRegistry } from "./InsertRegistry";
 
 describe("insertRegistry", () => {
-  it("contains all insert items including Media", () => {
-    expect(insertRegistry).toHaveLength(18);
+  it("contains all insert items including Media and Diagrams", () => {
+    expect(insertRegistry).toHaveLength(39);
     expect(insertRegistry.map((item) => item.group)).toEqual(
-      expect.arrayContaining(["Basics", "Code and data", "HTML", "Media"]),
+      expect.arrayContaining([
+        "Basics",
+        "Code and data",
+        "HTML",
+        "Media",
+        "Diagrams",
+      ]),
     );
   });
 

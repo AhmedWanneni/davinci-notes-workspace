@@ -22,6 +22,8 @@ export {
   cancelInsertDialog,
 } from "./insert";
 export type {
+  DiagramSubgroup,
+  InsertGroup,
   InsertItem,
   InsertBuildContext,
   InsertBuildResult,

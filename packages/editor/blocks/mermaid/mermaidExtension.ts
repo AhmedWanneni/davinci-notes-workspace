@@ -39,7 +39,7 @@ function loadMermaid() {
   return mermaidLoader;
 }
 
-function findMermaidBlocks(state: EditorState): MermaidBlock[] {
+export function findMermaidBlocks(state: EditorState): MermaidBlock[] {
   const blocks: MermaidBlock[] = [];
   syntaxTree(state).iterate({
     enter(node) {

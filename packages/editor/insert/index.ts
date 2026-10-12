@@ -3,6 +3,7 @@ export type {
   InsertBuildResult,
   InsertDialogInput,
   InsertDialogSpec,
+  DiagramSubgroup,
   InsertGroup,
   InsertIconName,
   InsertItem,

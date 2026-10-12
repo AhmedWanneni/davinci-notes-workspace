@@ -1,4 +1,5 @@
 import type { InsertBuildContext, InsertItem } from "./InsertItem";
+import { diagramItems } from "./diagrams";
 import {
   validateImageUrl,
   validateYoutubeUrl,
@@ -223,6 +224,7 @@ export const insertRegistry: readonly InsertItem[] = [
       return block(`![](${url})`);
     },
   },
+  ...diagramItems,
 ];
 
 export function findInsertItem(id: string) {

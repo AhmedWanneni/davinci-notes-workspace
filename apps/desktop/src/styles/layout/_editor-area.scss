@@ -98,3 +98,4 @@
 .insert-menu__group h2 { margin: 0 0 var(--space-1); color: var(--color-text-muted); font-size: var(--type-scale-xs); font-weight: var(--type-weight-semibold); }
 .insert-menu__item { display: block; width: 100%; border: 0; border-radius: var(--border-radius-sm); background: transparent; color: var(--color-text-normal); padding: var(--space-2); text-align: left; font: inherit; }
 .insert-menu__item:hover, .insert-menu__item[data-active] { background: var(--color-bg-hover); }
+.insert-menu__subheading { margin: var(--space-2) 0 var(--space-1) var(--space-1); color: var(--color-text-muted); font-size: var(--type-scale-xs); font-weight: var(--type-weight-medium); letter-spacing: 0.04em; }

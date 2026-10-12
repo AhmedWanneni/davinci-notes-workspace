@@ -7,7 +7,24 @@ import {
   loadInsertRegistry,
   useRecentInsertIds,
   type InsertItem,
+  type InsertGroup,
+  type DiagramSubgroup,
 } from "@app/editor";
+
+const GROUP_ORDER: InsertGroup[] = [
+  "Basics",
+  "Code and data",
+  "HTML",
+  "Media",
+  "Diagrams",
+];
+
+const DIAGRAM_SUBGROUPS: DiagramSubgroup[] = [
+  "Flow and structure",
+  "Time and planning",
+  "Data and charts",
+  "Frameworks",
+];
 
 interface InsertMenuProps {
   anchor: DOMRect;
@@ -58,7 +75,7 @@ export function InsertMenu({ anchor, selection, view, onClose }: InsertMenuProps
     }
   };
 
-  const grouped = ["Basics", "Code and data", "HTML", "Media"].map((group) => [
+  const grouped = GROUP_ORDER.map((group) => [
     group,
     visible.filter((item) => item.group === group),
   ] as const);
@@ -71,7 +88,46 @@ export function InsertMenu({ anchor, selection, view, onClose }: InsertMenuProps
       <PopoverContent className="insert-menu" align="end" onOpenAutoFocus={(event) => event.preventDefault()}>
         <input ref={inputRef} className="insert-menu__search" value={query} onChange={(event) => { setQuery(event.target.value); setActive(0); }} onKeyDown={onKeyDown} placeholder="Search insert options" aria-label="Search insert options" />
         {!query && recent.length > 0 && <InsertGroup label="Recently used" items={recent} active={active} visible={visible} onChoose={choose} />}
-        {grouped.map(([label, groupItems]) => groupItems.length > 0 && <InsertGroup key={label} label={label} items={groupItems} active={active} visible={visible} onChoose={choose} />)}
+        {grouped.map(([label, groupItems]) => {
+          if (groupItems.length === 0) return null;
+          if (label === "Diagrams") {
+            return (
+              <section key="Diagrams" className="insert-menu__group">
+                <h2>Diagrams</h2>
+                {DIAGRAM_SUBGROUPS.map((sub) => {
+                  const subItems = groupItems.filter((item) => item.subgroup === sub);
+                  if (subItems.length === 0) return null;
+                  return (
+                    <div key={sub} className="insert-menu__subgroup">
+                      <h3 className="insert-menu__subheading">{sub}</h3>
+                      {subItems.map((item) => (
+                        <button
+                          className="insert-menu__item"
+                          data-active={visible[active]?.id === item.id || undefined}
+                          key={item.id}
+                          type="button"
+                          onClick={() => choose(item)}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })}
+              </section>
+            );
+          }
+          return (
+            <InsertGroup
+              key={label}
+              label={label}
+              items={groupItems}
+              active={active}
+              visible={visible}
+              onChoose={choose}
+            />
+          );
+        })}
       </PopoverContent>
     </Popover>
   );
