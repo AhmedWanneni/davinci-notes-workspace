@@ -61,4 +61,53 @@ describe("AppSidebar", () => {
     expect(screen.getByLabelText("Settings")).toBeDefined();
     expect(screen.getByLabelText("Help")).toBeDefined();
   });
+
+  it("handles collapsed state and shows/hides resizer", () => {
+    const { rerender, container } = render(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath={null}
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isCollapsed={false}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    const sidebar = container.querySelector(".app-sidebar");
+    expect(sidebar?.getAttribute("data-collapsed")).toBeNull();
+    expect(container.querySelector(".app-sidebar__resizer")).not.toBeNull();
+
+    // Collapse sidebar
+    rerender(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath={null}
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isCollapsed={true}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(sidebar?.getAttribute("data-collapsed")).toBe("true");
+    expect(container.querySelector(".app-sidebar__resizer")).toBeNull();
+  });
 });
+

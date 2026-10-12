@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { AppSidebarHeader } from "./AppSidebarHeader";
 import { FileTree } from "../FileTree";
 import { VaultSwitcher } from "../VaultSwitcher";
+import { useSidebarResize } from "./useSidebarResize";
 
 export interface AppSidebarProps {
   vaultName: string;
@@ -81,6 +82,7 @@ export function AppSidebar({
   onOpenSettings,
   onOpenHelp,
 }: AppSidebarProps) {
+  const { width, isResizing, handleMouseDown } = useSidebarResize();
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(
     null,
   );
@@ -109,6 +111,8 @@ export function AppSidebar({
     <aside
       className="app-sidebar"
       data-collapsed={isCollapsed || undefined}
+      data-resizing={isResizing || undefined}
+      style={!isCollapsed ? { width: `${width}px` } : undefined}
       aria-label="File Explorer"
     >
       <AppSidebarHeader
@@ -157,6 +161,15 @@ export function AppSidebar({
       />
 
       {log.length > 0 && <pre className="debug-log">{log.join("\n")}</pre>}
+
+      {!isCollapsed && (
+        <div
+          className="app-sidebar__resizer"
+          onMouseDown={handleMouseDown}
+          aria-hidden="true"
+        />
+      )}
     </aside>
   );
 }
+

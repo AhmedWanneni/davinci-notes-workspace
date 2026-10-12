@@ -563,6 +563,20 @@ export function App() {
       data-right-collapsed={!isRightSidebarOpen || undefined}
     >
       <div className="app-shell__body">
+        <IconRail
+          isLeftSidebarOpen={isLeftSidebarOpen}
+          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
+          onOpenSearch={() => {
+            setSearchInitialQuery("");
+            setIsSearchOpen(true);
+          }}
+          onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onCloseVault={() => setVaultPath(null)}
+          onDailyNotes={handleDailyNotes}
+          onCreateCanvas={handleCreateCanvas}
+        />
+
         <AppSidebar
           vaultName={vaultName}
           vaultPath={vaultPath}
@@ -575,21 +589,6 @@ export function App() {
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
           log={log}
-          navigation={
-            <IconRail
-              isLeftSidebarOpen={isLeftSidebarOpen}
-              onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
-              onOpenSearch={() => {
-                setSearchInitialQuery("");
-                setIsSearchOpen(true);
-              }}
-              onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              onCloseVault={() => setVaultPath(null)}
-              onDailyNotes={handleDailyNotes}
-              onCreateCanvas={handleCreateCanvas}
-            />
-          }
           isCollapsed={!isLeftSidebarOpen}
           isMac={isMac}
           onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
