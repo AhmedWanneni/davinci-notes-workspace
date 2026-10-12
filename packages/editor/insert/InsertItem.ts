@@ -1,8 +1,13 @@
-export type InsertGroup = "Basics" | "Code and data" | "HTML" | "Media";
+export type InsertGroup =
+  "Basics" | "Code and data" | "HTML" | "Media" | "Diagrams";
+
+export type DiagramSubgroup =
+  "Flow and structure" | "Time and planning" | "Data and charts" | "Frameworks";
 
 export type InsertIconName =
   | "Code"
   | "Function"
+  | "Graph"
   | "Image"
   | "ListBullets"
   | "ListNumbers"
@@ -47,6 +52,7 @@ export interface InsertBuildResult {
 export interface InsertItem {
   id: string;
   group: InsertGroup;
+  subgroup?: DiagramSubgroup;
   label: string;
   icon: InsertIconName;
   keywords: readonly string[];
