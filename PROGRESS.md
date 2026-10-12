@@ -4,6 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Editor Insert Menu Phase 4 — Diagram Templates under "Diagrams" Group (implementation complete; native verification pending, ADR-0178)**
+Added 21 Mermaid diagram templates to the immutable `@app/editor` insert registry partitioned into four sub-groups under `"Diagrams"`, automatically available in the `"..."` menu, slash menu, and Command Palette:
+1. Installed Mermaid version check:
+   - `mermaid@11.16.1` is installed.
+   - All 12 core diagram types and 9 newer/beta types parsed and verified against 11.16.1:
+     - Core: flowchart (`graph TD`), sequence (`sequenceDiagram`), class (`classDiagram`), state (`stateDiagram-v2`), entity-relationship (`erDiagram`), user journey (`journey`), gantt (`gantt`), pie (`pie`), quadrant chart (`quadrantChart`), mindmap (`mindmap`), timeline (`timeline`), git graph (`gitGraph`).
+     - Newer: kanban (`kanban`), sankey (`sankey-beta`), XY chart (`xychart-beta`), block (`block-beta`), packet (`packet-beta`), architecture (`architecture-beta`), radar (`radar-beta`), treemap (`treemap`), cynefin (`cynefin-beta`).
+   - Deferred: None. All 21 diagram types are fully supported in 11.16.1.
+2. Sub-group organization:
+   - "Flow and structure" (8 items): Flowchart, Sequence, Class, State, Entity-relationship, Block, Packet, Architecture.
+   - "Time and planning" (5 items): User journey, Gantt, Timeline, Kanban, Git graph.
+   - "Data and charts" (6 items): Pie, Quadrant, XY chart, Sankey, Radar, Treemap.
+   - "Frameworks" (2 items): Mindmap, Cynefin framework.
+3. Behavior and rules:
+   - Canonical `insertItem()` execution: one transaction, one undo step, block padding, first placeholder selected upon insertion, Tab traversal between fields.
+   - When placeholders are left unchanged, templates render valid diagrams immediately in live preview with the existing theme tokens.
+   - Strict lazy-loading boundary: opening the menu, slash popup, or palette never imports or loads `mermaid`. `mermaid` is only dynamically imported when rendering live preview blocks in `mermaidExtension.ts`.
+   - Each template is concise (< 15 lines) with zero external URLs, images, or click directives.
+4. Search keywords:
+   - Common search terms ("flow", "uml", "chart", "timeline", "cynefin", "matrix", "board", "network") discover expected diagram templates across menus and palette.
+5. Verification:
+   - All 21 templates verified via `mermaid.parse()` in Vitest jsdom.
+   - Fenced block syntax verified via `findMermaidBlocks()` on inserted documents.
+   - Insertion test suite verifies empty note, mid-paragraph padding, end of list item, active selection replacement, single undo, and read-only view no-op.
+   - Static analysis test verifies `mermaid` is not imported anywhere in `packages/editor/insert/`.
+   - Bundle check confirms `mermaid.core` and diagram modules remain isolated in dynamic lazy chunks with zero impact on Entry JS (0.86 KB raw / 0.43 KB gzip).
+
+**Next:** Native app verification of diagram insertion and live preview rendering across `"..."` menu, slash menu, and Command Palette.
+
 **Editor Insert Menu Phase 3 Limited (implementation complete; native verification pending, ADR-0177)**
 Added three media items (`Image`, `YouTube`, `Tweet / X`) to the immutable `@app/editor` insert registry and connected them to declarative dialog runners across the header `...` menu, slash menu, and Command Palette:
 1. Media insert items:
