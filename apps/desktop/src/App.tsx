@@ -127,6 +127,7 @@ export function App() {
   const loadSettings = useWorkspaceStore((state) => state.loadSettings);
   const openNote = useWorkspaceStore((state) => state.openNote);
   const closeNote = useWorkspaceStore((state) => state.closeNote);
+  const closeAllNotes = useWorkspaceStore((state) => state.closeAllNotes);
   const setActiveNote = useWorkspaceStore((state) => state.setActiveNote);
   const renameNoteFromTree = useWorkspaceStore(
     (state) => state.renameNoteFromTree,
@@ -641,6 +642,7 @@ export function App() {
             conflictNotes={conflictNotes}
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
+            onCloseAllNotes={() => void closeAllNotes()}
             onCreateNote={handleCreateNoteFromTabs}
             isLeftSidebarOpen={isLeftSidebarOpen}
             onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
