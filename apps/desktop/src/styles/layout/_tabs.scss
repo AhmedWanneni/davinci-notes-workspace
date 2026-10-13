@@ -9,15 +9,19 @@
   width: 100%;
   overflow: hidden;
   user-select: none;
+  position: relative;
 }
 
 .app-tabs__strip {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   height: 100%;
+  padding: var(--space-1) var(--space-2) 0 var(--space-2);
   overflow-x: auto;
+  overflow-y: hidden;
   flex: 1;
   scrollbar-width: none;
+  gap: 2px;
 
   &::-webkit-scrollbar {
     display: none;
@@ -35,6 +39,7 @@
   height: 100%;
   flex-shrink: 0;
   border-right: var(--border-width-thin) solid var(--color-border-subtle);
+  padding: 0 var(--space-1);
 }
 
 .app-tabs__sidebar-toggle-btn {
@@ -42,37 +47,86 @@
 }
 
 .app-tabs__tab {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   padding: 0 var(--space-3);
-  border-right: var(--border-width-thin) solid var(--color-border-subtle);
   cursor: pointer;
   font-size: var(--type-scale-sm);
   color: var(--color-text-muted);
   background-color: transparent;
-  height: 100%;
-  max-width: 200px;
-  min-width: 100px;
+  height: calc(100% - var(--space-1));
+  max-width: 220px;
+  min-width: 80px;
   box-sizing: border-box;
-  transition: background-color var(--motion-duration-fast)
-    var(--motion-ease-standard);
+  border: var(--border-width-thin) solid transparent;
+  border-bottom: none;
+  outline: none;
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
 
-  &:hover {
+  &:hover:not([data-active="true"]) {
     background-color: var(--color-bg-hover);
     color: var(--color-text-normal);
+    border-radius: var(--border-radius-md);
   }
 
-  &[data-active="true"],
-  &--active {
+  &:focus-visible {
+    outline: var(--border-width-thick) solid var(--color-border-focus);
+    outline-offset: -2px;
+  }
+
+  &[data-active="true"] {
     background-color: var(--color-bg-primary);
     color: var(--color-text-normal);
+    border-top: var(--border-width-thin) solid var(--color-border-subtle);
+    border-left: var(--border-width-thin) solid var(--color-border-subtle);
+    border-right: var(--border-width-thin) solid var(--color-border-subtle);
     border-bottom: var(--border-width-thin) solid var(--color-bg-primary);
     border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     margin-bottom: -1px;
-    position: relative;
-    z-index: 1;
+    z-index: 2;
   }
+
+  &:not([data-active="true"]):not(:hover) + .app-tabs__tab:not([data-active="true"]):not(:hover)::before {
+    content: "";
+    position: absolute;
+    left: -2px;
+    top: 25%;
+    height: 50%;
+    width: var(--border-width-thin);
+    background-color: var(--color-border-subtle);
+  }
+}
+
+.app-tabs__tab-curve {
+  position: absolute;
+  bottom: -1px;
+  width: 6px;
+  height: 6px;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 2;
+
+  &--left {
+    left: -6px;
+  }
+
+  &--right {
+    right: -6px;
+  }
+}
+
+.app-tabs__tab-curve-fill {
+  fill: var(--color-bg-primary);
+}
+
+.app-tabs__tab-curve-stroke {
+  fill: none;
+  stroke: var(--color-border-subtle);
+  stroke-width: var(--border-width-thin);
 }
 
 .app-tabs__tab-icon {
@@ -91,72 +145,47 @@
   flex: 1;
 }
 
-.app-tabs__dirty-dot {
+.app-tabs__dirty-dot,
+.app-tabs__conflict-dot {
   width: 6px;
   height: 6px;
-  background-color: var(--color-text-accent);
   border-radius: 50%;
   flex-shrink: 0;
 }
 
+.app-tabs__dirty-dot {
+  background-color: var(--color-text-accent);
+}
+
 .app-tabs__conflict-dot {
-  width: 6px;
-  height: 6px;
   background-color: var(--color-text-warning);
-  border-radius: 50%;
-  flex-shrink: 0;
 }
 
 .app-tabs__close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: var(--border-radius-sm);
   background: transparent;
   border: none;
-  font-size: 10px;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
-
-  &:hover {
-    background-color: var(--color-bg-hover);
-    color: var(--color-text-error);
-  }
-}
-
-.app-tabs__new-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin: 0 var(--space-1);
-  border-radius: var(--border-radius-sm);
-  background: transparent;
-  border: var(--border-width-thin) solid transparent;
-  color: var(--color-text-muted);
-  cursor: pointer;
+  outline: none;
   transition: all var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     background-color: var(--color-bg-hover);
     color: var(--color-text-normal);
-    border-color: var(--color-border-subtle);
+  }
+
+  &:focus-visible {
+    outline: var(--border-width-thin) solid var(--color-border-focus);
   }
 }
 
-.app-tabs__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: 0 var(--space-2);
-  border-left: var(--border-width-thin) solid var(--color-border-subtle);
-  height: 100%;
-}
-
+.app-tabs__new-btn,
 .app-tabs__action-btn {
   display: flex;
   align-items: center;
@@ -168,16 +197,34 @@
   border: var(--border-width-thin) solid transparent;
   color: var(--color-text-muted);
   cursor: pointer;
+  outline: none;
   transition: all var(--motion-duration-fast) var(--motion-ease-standard);
 
   &:hover {
     background-color: var(--color-bg-hover);
     color: var(--color-text-normal);
-    border-color: var(--color-border-subtle);
   }
 
-  &[data-active="true"] {
-    background-color: var(--color-bg-hover);
-    color: var(--color-text-accent);
+  &:focus-visible {
+    outline: var(--border-width-thin) solid var(--color-border-focus);
   }
+}
+
+.app-tabs__new-btn {
+  align-self: center;
+  margin: 0 var(--space-1);
+}
+
+.app-tabs__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+  border-left: var(--border-width-thin) solid var(--color-border-subtle);
+  height: 100%;
+}
+
+.app-tabs__action-btn[data-active="true"] {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-accent);
 }
