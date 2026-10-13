@@ -18,7 +18,8 @@ Reworked the desktop top tab bar in two scoped commits:
    - Mapped every visual property to existing design tokens without introducing hardcoded values.
    - Restyled active tab to match the reference image: seamless bottom with 6px concave flare SVG curves (`.app-tabs__tab-curve--left` and `.app-tabs__tab-curve--right`), 6px top corner radius (`--border-radius-lg`), and 1px borders (`--color-border-subtle`).
    - Restyled inactive tabs: transparent background, 1px subtle separator pseudo-elements, hover background (`--color-bg-hover`), and focus-visible outlines (`--color-border-focus`).
-   - Restyled close button: 18x18px with Phosphor `X` icon, muted color (`--color-text-muted`), and hover effect (`--color-bg-hover`, `--color-text-normal`).
+   - Restyled close button: 22x22px with Phosphor `X` icon (size 16), muted color (`--color-text-muted`), and hover effect (`--color-bg-hover`, `--color-text-normal`).
+   - Widened tabs to match reference image: min-width 180px, max-width 280px.
    - Restyled `+` new tab button: 26x26px centered alongside tabs in the strip.
    - Kept all source files strictly under line caps: `AppTabs.tsx` (243 lines), `TabListDropdown.tsx` (103 lines), `_tabs.scss` (230 lines), `_tab-list-dropdown.scss` (71 lines).
 
