@@ -4,6 +4,28 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Tab Bar Rework — Dropdown Menu and Obsidian Visual Parity (complete, commits `f8408d0` and `7a9d71c`)**
+Reworked the desktop top tab bar in two scoped commits:
+1. **Part 1: Tab list dropdown & behavior (`f8408d0`)**:
+   - Replaced the deprecated "view" options slider button with a down-arrow (chevron `CaretDown`) button.
+   - Built with Radix `DropdownMenu` primitives from `@app/design-system` (`TabListDropdown.tsx`, 103 lines).
+   - Displays all currently open tabs with note icon (`FileText` or `FrameCorners` for canvas) and title truncated with ellipsis.
+   - Distinctly marks the active tab with bold `Check` indicator and active text styling.
+   - Adds a "Close all" action separated by a divider, faithfully wiring through to `useWorkspaceStore.closeAllNotes()` which flushes pending H1 renames, clears debounce timers, resolves conflicts by saving copies, and persists all dirty note contents to disk.
+   - Added automatic smooth scroll-into-view behavior when selecting tabs or switching active tab on overflow.
+   - Unit tests covering dropdown trigger, active indicator, off-screen tab selection, and close-all in `AppTabs.test.tsx`.
+2. **Part 2: Visual styling matching Obsidian reference image (`7a9d71c`)**:
+   - Mapped every visual property to existing design tokens without introducing hardcoded values.
+   - Restyled active tab to match the reference image: seamless bottom with 6px concave flare SVG curves (`.app-tabs__tab-curve--left` and `.app-tabs__tab-curve--right`), 6px top corner radius (`--border-radius-lg`), and 1px borders (`--color-border-subtle`).
+   - Restyled inactive tabs: transparent background, 1px subtle separator pseudo-elements, hover background (`--color-bg-hover`), and focus-visible outlines (`--color-border-focus`).
+   - Restyled close button: 18x18px with Phosphor `X` icon, muted color (`--color-text-muted`), and hover effect (`--color-bg-hover`, `--color-text-normal`).
+   - Restyled `+` new tab button: 26x26px centered alongside tabs in the strip.
+   - Kept all source files strictly under line caps: `AppTabs.tsx` (243 lines), `TabListDropdown.tsx` (103 lines), `_tabs.scss` (230 lines), `_tab-list-dropdown.scss` (71 lines).
+
+**Next:** Phase 6 — sync status indicator in tray menu.
+
+---
+
 **Four UI & Behavior Improvements (complete)**
 Implemented 4 targeted UI and behavior enhancements across desktop navigation, status bar, sidebar layout, and logs viewing:
 1. **Graph view auto-close (`5f5dbd4`)**:
