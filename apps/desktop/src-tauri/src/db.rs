@@ -43,5 +43,11 @@ pub fn migrations() -> Vec<Migration> {
     description: "create_reminders_table",
     sql: "CREATE TABLE IF NOT EXISTS reminders (id INTEGER PRIMARY KEY AUTOINCREMENT, note_path TEXT NOT NULL, line INTEGER NOT NULL, due_at_utc TEXT NOT NULL, tz TEXT NOT NULL, text TEXT NOT NULL, done INTEGER NOT NULL DEFAULT 0, FOREIGN KEY (note_path) REFERENCES notes(path) ON DELETE CASCADE); CREATE INDEX IF NOT EXISTS idx_reminders_done_due ON reminders(done, due_at_utc); CREATE INDEX IF NOT EXISTS idx_reminders_note_path ON reminders(note_path);",
     kind: MigrationKind::Up,
+  },
+  Migration {
+    version: 7,
+    description: "create_reminder_local_state_table",
+    sql: "CREATE TABLE IF NOT EXISTS reminder_local_state (reminder_key TEXT PRIMARY KEY NOT NULL, note_path TEXT NOT NULL, due_at_utc TEXT NOT NULL, text TEXT NOT NULL, status TEXT NOT NULL, notified_at INTEGER NOT NULL, snooze_until_utc TEXT, updated_at INTEGER NOT NULL); CREATE INDEX IF NOT EXISTS idx_reminder_local_status ON reminder_local_state(status);",
+    kind: MigrationKind::Up,
   }]
 }

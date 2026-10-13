@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-13 | Reminders Phase 2 — Rust Scheduler, Device-Local Notifications, and Adversarial Verification | Implemented zero-polling Rust scheduler in `reminder_scheduler.rs`, device-local table `reminder_local_state` (Migration 7 in `db.rs`), grouped catch-up pass on launch, window hide/close persistence via `keep_in_tray`, and recorded ADR-0183. Evaluated `tauri-plugin-notification`: 0 bytes JS bundle overhead when fired from Rust; plugin desktop scheduling is unsupported (mobile only), so scheduler fires directly when due. Reminders keyed by Blake3 hash `(note_path, due_at_utc, text)` preventing re-fire on line moves. Grouped notification prevents notification spam on multiple due/missed reminders. Ran comprehensive adversarial verification suite in `reminder_tests.rs`: 5s fire once while window closed/hidden, quit & relaunch catch-up, edit pending reminder reschedules and cancels old fire, complete task cancels notification, clock forward/backward and timezone invariance, DST spring-forward nonexistent time and fall-back ambiguous hour resolution, 500 simultaneous reminders grouped in 6.36 ms with zero UI freeze, and 1,000 future reminders idle test with next-due calculated in 325 µs and 0 wakeups / 0% CPU. All 8 Rust adversarial tests and 115 desktop Vitest suites (441 tests) pass. |
 | 2026-10-13 | Reminders Phase 1 — Syntax, Parser, SQLite Index, and ADR-0182 | Implemented reminder syntax, parser, SQLite migration 6, and index queries. Added ADR-0182 resolving the 4 open decisions: Obsidian Reminder standard `(@YYYY-MM-DD[ HH:mm])`, task checklist scope (`- [ ]`, `- [x]`, etc.), ISO-8601 UTC string (`due_at_utc TEXT`) + `tz TEXT` storage, and default `09:00:00` morning time. Implemented `parseReminders.ts` in `@app/indexer` with code block/frontmatter masking, malformed date resilience, and zero-allocation fast bailout. Added SQLite Migration 6 in `apps/desktop/src-tauri/src/db.rs` creating `reminders` table and indexes on `(done, due_at_utc)` and `(note_path)`. Created `sqliteReminderIndex.ts` with batch replacement, removals, and upcoming/overdue/by-note queries, serialized under `withDbLock`. Verified checkbox toggling flips `done`, note deletion/rename updates rows, full rebuild produces identical rows, and 10k note vault parse delta is 50.32 ms total (0.0050 ms/note). All indexer and desktop vault tests pass with 0 ESLint errors. |
 | 2026-10-13 | Global Graph IconRail Integration & Blank Page Fix | Fixed blank page when opening Graph View from IconRail: connected `useVaultSession` to `useWorkspaceStore.graph` as single source of truth, added `EMPTY_GRAPH` fallback to `GlobalGraphLeaf.tsx` instead of returning `null`, and added global mode empty state in `GraphView.tsx`. Added `isGlobalGraphOpen` to `IconRail` with active state styling and toggle click behavior. Ensured selecting any file or tab in sidebar, tabs, dropdown, search, command palette, or graph node auto-closes the graph view. Added `IconRail.test.tsx` and `IconRail.stories.tsx`. All 114 test files (436 tests) pass. |
 | 2026-10-13 | Tab Bar Rework — Dropdown Menu and Obsidian Visual Parity | Reworked top tab bar across 2 scoped commits: replaced "view" option with Radix `DropdownMenu` listing open tabs with icons, titles, active indicator, scroll-into-view on activation, and dirty-respecting `Close all` (`f8408d0`); restyled tab bar to Obsidian reference image with border-based depth, concave active tab corner flares (SVG 6px), 1px border treatment, muted close button hover, and token-based spacing (`7a9d71c`). Kept all files strictly under line caps (`AppTabs.tsx` 243, `_tabs.scss` 230). |
@@ -121,6 +122,35 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-13 — Reminders Phase 2 — Rust Scheduler, Device-Local Notifications, and Adversarial Verification
+- Evaluated `tauri-plugin-notification`:
+  - Bundle cost: 0 bytes added to JS when notifications are triggered directly from Rust.
+  - Desktop capability audit: `Schedule` API is implemented for iOS and Android only. Desktop platforms (macOS/Windows/Linux) do not support scheduled notifications in `tauri-plugin-notification`.
+  - Design decision: Run a single Rust background timer that sleeps until the earliest pending reminder and fires immediate native notifications on due.
+- Created `reminder_local_state` table via Migration 7 in `apps/desktop/src-tauri/src/db.rs`:
+  - Columns: `reminder_key TEXT PRIMARY KEY`, `note_path TEXT`, `due_at_utc TEXT`, `text TEXT`, `status TEXT`, `notified_at INTEGER`, `snooze_until_utc TEXT`, `updated_at INTEGER`.
+  - Indexed on `status`.
+  - Keyed by `(note_path, due_at_utc, text)` using Blake3 hash; line number changes (moving reminder to another line in note) never trigger duplicate notifications.
+- Built Rust scheduler in `reminder_scheduler.rs`:
+  - Tokio background task sleeping until earliest pending reminder (`due_at_utc > now_utc`).
+  - Zero JS polling; wakes on `Notify` trigger or sleep expiry.
+  - Exposes `reschedule_reminders`, `snooze_reminder`, and `dismiss_reminder` Tauri commands.
+  - Wired `sqliteReminderIndex.ts` to call `reschedule_reminders` on note saves, deletions, or index updates.
+- Added catch-up pass on launch:
+  - Queries past-due incomplete reminders not yet in local state, marks them `status = 'missed'`, and groups into a single summary notification toast.
+- Background persistence on window close:
+  - Preserved background timer via existing `keep_in_tray` setting in `tray.rs`; closing window hides it rather than quitting.
+- Adversarial verification in `reminder_tests.rs` (8 passed in 0.01s):
+  - 5-second fire once with window closed/hidden.
+  - Quit & relaunch catch-up (missed reminder surfaced once).
+  - Edit pending reminder cancels old fire and reschedules.
+  - Complete task (`done = 1`) cancels notification.
+  - Clock forward/backward jumps and timezone invariance.
+  - DST spring-forward and fall-back boundaries.
+  - 500 simultaneous reminders: query took 2.65 ms, record took 1.55 ms (total 6.36 ms), grouped into 1 notification with 0 UI freeze.
+  - 1,000 future reminders idle test: query next took 325 µs, 0 wakeups during sleep, 0.00% CPU.
+- All 115 desktop Vitest suites (441 tests), 48 indexer tests, and 8 Rust adversarial tests passing.
 
 ### 2026-10-13 — Global Graph IconRail Integration & Blank Page Fix
 - Diagnosed root cause for blank page when clicking Graph View in IconRail:

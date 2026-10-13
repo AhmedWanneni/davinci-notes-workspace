@@ -12,9 +12,19 @@ export interface ReminderRow {
   done: number;
 }
 
+async function notifyScheduler(): Promise<void> {
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("reschedule_reminders");
+  } catch {
+    // Ignore outside Tauri runtime (e.g. tests)
+  }
+}
+
 /** Clear all rows in the reminders table. */
 export async function clearReminders(db: Database): Promise<void> {
   await db.execute("DELETE FROM reminders");
+  void notifyScheduler();
 }
 
 /** Batch remove reminders for specified note paths. */
@@ -35,6 +45,7 @@ export async function removeRemindersBatch(
       chunk,
     );
   }
+  void notifyScheduler();
 }
 
 /** Batch persist reminders for notes: deletes existing rows and bulk inserts. */
@@ -93,6 +104,7 @@ export async function replaceRemindersBatch(
       params,
     );
   }
+  void notifyScheduler();
 }
 
 /** Query the next N upcoming (incomplete, due at or after now) reminders. */

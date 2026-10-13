@@ -252,4 +252,5 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0180](adr/0180-quick-capture-note-creation-and-destination-options.md) | Quick capture note creation with optional filename/folder, unique same-second naming, pure append fallback, and exact anchored popover positioning | Accepted; supersedes capture target of 0172 |
 | [0181](adr/0181-recent-vaults-registry-and-switch-lifecycle.md) | App-level recent-vaults registry, auto-open launch behavior, and safe vault-switch lifecycle | Accepted |
 | [0182](adr/0182-reminder-syntax-and-storage-model.md) | Reminder syntax, task parsing scope, default 09:00 time, and SQLite index storage | Accepted |
+| [0183](adr/0183-rust-reminder-scheduler-and-notifications.md) | Rust reminder scheduler, device-local notification state, and background lifecycle | Accepted |
 

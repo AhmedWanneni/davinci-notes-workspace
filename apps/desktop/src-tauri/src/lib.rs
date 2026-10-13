@@ -24,6 +24,12 @@ mod plugin_webview;
 mod recent_vaults;
 #[cfg(test)]
 mod recent_vaults_tests;
+mod reminder_commands;
+mod reminder_db;
+mod reminder_notify;
+mod reminder_scheduler;
+#[cfg(test)]
+mod reminder_tests;
 mod state;
 mod theme_files;
 mod tray;
@@ -46,6 +52,7 @@ pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
+    .plugin(tauri_plugin_notification::init())
     .plugin(tauri_plugin_global_shortcut::Builder::new().build())
     .plugin(
       tauri_plugin_sql::Builder::default()
@@ -130,6 +137,9 @@ pub fn run() {
       recent_vaults::remove_recent_vault,
       recent_vaults::check_vault_exists,
       recent_vaults::stop_vault_watcher,
+      reminder_commands::reschedule_reminders,
+      reminder_commands::snooze_reminder,
+      reminder_commands::dismiss_reminder,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
@@ -178,6 +188,15 @@ pub fn run() {
 
       tray::setup(app.handle())?;
       capture::setup(app.handle())?;
+
+      if let Some(db_path) = reminder_db::get_db_path(app.handle()) {
+        let scheduler = std::sync::Arc::new(reminder_scheduler::ReminderScheduler::new(
+          app.handle().clone(),
+          db_path,
+        ));
+        app.manage(scheduler.clone());
+        scheduler.start();
+      }
 
 
       if std::env::var_os("DAVINCI_PLUGIN_RPC_PROBE").is_some() {
