@@ -182,7 +182,7 @@ export function AppTabs({
                   onCloseNote(path);
                 }}
               >
-                <X size={12} weight="regular" />
+                <X size={16} weight="regular" />
               </button>
             </div>
           );

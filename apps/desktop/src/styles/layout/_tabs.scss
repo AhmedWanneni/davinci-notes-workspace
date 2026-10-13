@@ -57,8 +57,8 @@
   color: var(--color-text-muted);
   background-color: transparent;
   height: calc(100% - var(--space-1));
-  max-width: 220px;
-  min-width: 80px;
+  min-width: 180px;
+  max-width: 280px;
   box-sizing: border-box;
   border: var(--border-width-thin) solid transparent;
   border-bottom: none;
@@ -165,8 +165,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: var(--border-radius-sm);
   background: transparent;
   border: none;
