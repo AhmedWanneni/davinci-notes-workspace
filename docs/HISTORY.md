@@ -8,6 +8,8 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-13 | Reminders Phase 1 — Syntax, Parser, SQLite Index, and ADR-0182 | Implemented reminder syntax, parser, SQLite migration 6, and index queries. Added ADR-0182 resolving the 4 open decisions: Obsidian Reminder standard `(@YYYY-MM-DD[ HH:mm])`, task checklist scope (`- [ ]`, `- [x]`, etc.), ISO-8601 UTC string (`due_at_utc TEXT`) + `tz TEXT` storage, and default `09:00:00` morning time. Implemented `parseReminders.ts` in `@app/indexer` with code block/frontmatter masking, malformed date resilience, and zero-allocation fast bailout. Added SQLite Migration 6 in `apps/desktop/src-tauri/src/db.rs` creating `reminders` table and indexes on `(done, due_at_utc)` and `(note_path)`. Created `sqliteReminderIndex.ts` with batch replacement, removals, and upcoming/overdue/by-note queries, serialized under `withDbLock`. Verified checkbox toggling flips `done`, note deletion/rename updates rows, full rebuild produces identical rows, and 10k note vault parse delta is 50.32 ms total (0.0050 ms/note). All indexer and desktop vault tests pass with 0 ESLint errors. |
+| 2026-10-13 | Global Graph IconRail Integration & Blank Page Fix | Fixed blank page when opening Graph View from IconRail: connected `useVaultSession` to `useWorkspaceStore.graph` as single source of truth, added `EMPTY_GRAPH` fallback to `GlobalGraphLeaf.tsx` instead of returning `null`, and added global mode empty state in `GraphView.tsx`. Added `isGlobalGraphOpen` to `IconRail` with active state styling and toggle click behavior. Ensured selecting any file or tab in sidebar, tabs, dropdown, search, command palette, or graph node auto-closes the graph view. Added `IconRail.test.tsx` and `IconRail.stories.tsx`. All 114 test files (436 tests) pass. |
 | 2026-10-13 | Tab Bar Rework — Dropdown Menu and Obsidian Visual Parity | Reworked top tab bar across 2 scoped commits: replaced "view" option with Radix `DropdownMenu` listing open tabs with icons, titles, active indicator, scroll-into-view on activation, and dirty-respecting `Close all` (`f8408d0`); restyled tab bar to Obsidian reference image with border-based depth, concave active tab corner flares (SVG 6px), 1px border treatment, muted close button hover, and token-based spacing (`7a9d71c`). Kept all files strictly under line caps (`AppTabs.tsx` 243, `_tabs.scss` 230). |
 | 2026-10-12 | Four UI & Behavior Improvements | Implemented graph view auto-close on note open/navigation in centralized workspace store (`createNoteNavigationActions.ts`), cleaned up status bar (removed vault label/dot, display word & character counts for active note only), updated sidebar collapse to keep 40px icon rail visible without gaps/overlaps with panel drag-resize, and migrated vault activity logs from under VaultSwitcher to a dedicated Settings Dialog tab with multiple entry points (Settings, Command Palette, Vault Switcher menu). All 113 test suites (431 tests) pass. |
 | 2026-10-12 | Note Embeds (![[Note]] and ![[Note#Heading]]) & Insert Item | Implemented inline read-only CodeMirror 6 note embeds with heading narrowing, cycle detection, depth limit (3), size truncation with 'Show more', IntersectionObserver viewport lazy-loading, and debounced live updates without host document modifications. Added 'Note embed' to insert registry with quick switcher fuzzy search and heading picker. Recorded ADR-0179. All unit tests pass. |
@@ -119,6 +121,26 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-13 — Global Graph IconRail Integration & Blank Page Fix
+- Diagnosed root cause for blank page when clicking Graph View in IconRail:
+  - `useVaultSession` maintained an isolated `useState(null)` for `graph`. Vault mount (`mountVault`) and note saves only updated `useWorkspaceStore.graph`.
+  - As a result, `graph` in `useVaultSession` remained `null` on initial launch and vault switch, and was passed to `LazyGlobalGraphLeaf`.
+  - `GlobalGraphLeaf.tsx` contained an early `if (!graph) return null;`, causing the content view to render completely blank.
+- Connected `useVaultSession` to `useWorkspaceStore((state) => state.graph)` as the single source of truth:
+  - `setGraph` updates `useWorkspaceStore.setState({ graph: nextGraph })` during watcher reconciliations.
+  - Added an `EMPTY_GRAPH` fallback in `GlobalGraphLeaf.tsx` instead of returning `null`.
+  - Added `EmptyState` in `GraphView.tsx` for global mode when a vault has 0 notes.
+- IconRail graph button toggle & state indicator:
+  - Added `isGlobalGraphOpen?: boolean` to `IconRailProps` and wired `data-active` on the Graph view button.
+  - Wired toggle behavior in `App.tsx`: clicking the Graph icon when graph view is already active closes it.
+- Auto-close graph view on navigation:
+  - Verified and ensured selecting any file or tab in `AppSidebar`, `AppTabs`, `TabListDropdown`, `SearchDialog`, `CommandPalette`, or `GraphView` node click dismisses `isGlobalGraphOpen` and restores the note editor view.
+  - Added `isGlobalGraphOpen: false` to `closeAllNotes`.
+- Test coverage:
+  - Added unit test in `GlobalGraphLeaf.test.tsx` verifying it renders without blanking when `graph` is `null`.
+  - Added `IconRail.test.tsx` and `IconRail.stories.tsx`.
+  - All 114 test files (436 unit tests) passing.
 
 ### 2026-10-11 — Curated Editor Fonts & Vim Monospace Mode
 - Expanded curated editor fonts in `editorSettings.ts` and `editorFontRegistry.ts`:

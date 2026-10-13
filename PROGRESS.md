@@ -4,24 +4,55 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-**Tab Bar Rework — Dropdown Menu and Obsidian Visual Parity (complete, commits `f8408d0` and `7a9d71c`)**
-Reworked the desktop top tab bar in two scoped commits:
-1. **Part 1: Tab list dropdown & behavior (`f8408d0`)**:
-   - Replaced the deprecated "view" options slider button with a down-arrow (chevron `CaretDown`) button.
-   - Built with Radix `DropdownMenu` primitives from `@app/design-system` (`TabListDropdown.tsx`, 103 lines).
-   - Displays all currently open tabs with note icon (`FileText` or `FrameCorners` for canvas) and title truncated with ellipsis.
-   - Distinctly marks the active tab with bold `Check` indicator and active text styling.
-   - Adds a "Close all" action separated by a divider, faithfully wiring through to `useWorkspaceStore.closeAllNotes()` which flushes pending H1 renames, clears debounce timers, resolves conflicts by saving copies, and persists all dirty note contents to disk.
-   - Added automatic smooth scroll-into-view behavior when selecting tabs or switching active tab on overflow.
-   - Unit tests covering dropdown trigger, active indicator, off-screen tab selection, and close-all in `AppTabs.test.tsx`.
-2. **Part 2: Visual styling matching Obsidian reference image (`7a9d71c`)**:
-   - Mapped every visual property to existing design tokens without introducing hardcoded values.
-   - Restyled active tab to match the reference image: seamless bottom with 6px concave flare SVG curves (`.app-tabs__tab-curve--left` and `.app-tabs__tab-curve--right`), 6px top corner radius (`--border-radius-lg`), and 1px borders (`--color-border-subtle`).
-   - Restyled inactive tabs: transparent background, 1px subtle separator pseudo-elements, hover background (`--color-bg-hover`), and focus-visible outlines (`--color-border-focus`).
-   - Restyled close button: 22x22px with Phosphor `X` icon (size 16), muted color (`--color-text-muted`), and hover effect (`--color-bg-hover`, `--color-text-normal`).
-   - Widened tabs to match reference image: min-width 180px, max-width 280px.
-   - Restyled `+` new tab button: 26x26px centered alongside tabs in the strip.
-   - Kept all source files strictly under line caps: `AppTabs.tsx` (243 lines), `TabListDropdown.tsx` (103 lines), `_tabs.scss` (230 lines), `_tab-list-dropdown.scss` (71 lines).
+**Reminders Phase 1 — Syntax, Parser, Index Table, and ADR-0182 (complete)**
+Implemented reminder syntax, parsing, SQLite storage migration, and index lifecycle queries:
+1. **Architectural Decision (ADR-0182)**:
+   - Token Syntax: Adopted ecosystem standard `(@YYYY-MM-DD[ HH:mm[:ss]])`. Enclosed parentheses prevent false positives with `@mentions` and emails.
+   - V1 Scope: Scoped to Markdown task checklist items (`- [ ]`, `- [x]`, `* [ ]`, `+ [ ]`, `1. [ ]`). Toggling task checkbox acts as durable completion source; checking the box flips `done: true` and removes it from upcoming queries. Non-task lines with reminder tokens are ignored in v1.
+   - Time Storage: ISO-8601 UTC string (`due_at_utc TEXT NOT NULL`) sorted lexicographically identical to chronological order in SQLite, paired with timezone identifier (`tz TEXT NOT NULL`).
+   - Date-Only Default: Defaults to `09:00:00` (9:00 AM) in user's timezone, converted to UTC.
+2. **Parser (`parseReminders.ts`) in `@app/indexer`**:
+   - Masking: Ignores reminder tokens inside fenced code blocks (` ``` `, `~~~`), inline code spans (`` `...` ``), and YAML frontmatter (`^---\n...\n---`).
+   - Line Numbers: Frontmatter and code block masking preserves newlines, ensuring 1-based `line` indices match original file lines.
+   - Robustness: Malformed dates (e.g. `2026-02-31`, `2026-13-45`) and times are ignored without throwing.
+   - Fast-path Bailout: Content without `(@` exits immediately with 0 allocations.
+3. **Database Migration v6 & SQLite Indexer Integration**:
+   - Added Migration 6 in `apps/desktop/src-tauri/src/db.rs` creating `reminders` table and indices on `(done, due_at_utc)` and `(note_path)`.
+   - Wired `replaceRemindersBatch`, `removeRemindersBatch`, and `clearReminders` into `persistNotesBatch`, `removeNotesBatch`, and `clearVaultIndex` in `sqliteIndex.ts` (strictly under `withDbLock`).
+   - File watcher batches, save-time writes, note deletion, and note renames automatically maintain reminder rows.
+4. **Queries Exposed**:
+   - `queryUpcomingReminders(db, limit, nowUtc)`: Incomplete reminders due on or after `nowUtc`.
+   - `queryOverdueReminders(db, nowUtc)`: Incomplete reminders due before `nowUtc`.
+   - `queryRemindersByNote(db, notePath)`: All reminders in a note ordered by line number.
+5. **Adversarial Verification & 10k Notes Benchmark**:
+   - Verified code block, inline code, and frontmatter masking (0 rows indexed).
+   - Verified checkbox toggle (`- [ ]` -> `- [x]`) flips `done: 1` and removes from upcoming query.
+   - Verified note deletion and rename update rows correctly.
+   - Verified full index rebuild produces identical rows.
+   - 10,000 notes benchmark: 50.32 ms total (0.0050 ms/note), confirming zero overhead on large vaults.
+   - All 48 indexer tests and 114 desktop vault tests passing with 0 ESLint errors.
+
+**Next:** Reminders Phase 2 — Editor live preview rendering and interactive date/time picker.
+
+---
+
+**Global Graph IconRail Integration and Rendering Fix (complete)**
+Resolved blank page issue when clicking Graph view in IconRail and ensured auto-closing graph on file selection:
+1. **Root cause analysis & fix for blank graph view**:
+   - `useVaultSession` held a disconnected React state (`useState(null)`) for `graph`, which remained `null` on vault mount/switch because the vault indexer only updated `useWorkspaceStore`.
+   - `GlobalGraphLeaf` returned `null` whenever `graph` was falsy, causing the content area below tabs to be entirely blank.
+   - Connected `useVaultSession` directly to `useWorkspaceStore((state) => state.graph)` as the single source of truth, updating `useWorkspaceStore` on watcher reconciliations.
+   - Replaced `if (!graph) return null;` in `GlobalGraphLeaf.tsx` with an `EMPTY_GRAPH` fallback, preventing blank page rendering even before vault indexing finishes.
+   - Added `EmptyState` in `GraphView` for global mode when a vault has 0 notes.
+2. **IconRail Graph View Toggle & State Indicator**:
+   - Added `isGlobalGraphOpen` prop to `IconRail` and styled the button with `data-active` when active.
+   - Toggling the graph button closes the graph if already open.
+3. **Closing graph on navigation**:
+   - Verified and ensured selecting any file or tab in `AppSidebar`, `AppTabs`, `TabListDropdown`, `SearchDialog`, `CommandPalette`, or `GraphView` node navigation dismisses the graph view and returns focus to the note editor.
+   - Added `isGlobalGraphOpen: false` to `closeAllNotes`.
+4. **Testing**:
+   - Added `IconRail.test.tsx` and `IconRail.stories.tsx`.
+   - Added test for `GlobalGraphLeaf` when `graph` is `null`. All 114 test files (436 tests) passing.
 
 **Next:** Phase 6 — sync status indicator in tray menu.
 

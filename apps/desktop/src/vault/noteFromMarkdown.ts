@@ -1,5 +1,10 @@
 import type { Note } from "@app/core-types";
-import { parseFrontmatter, parseLinks, parseNoteTags } from "@app/indexer";
+import {
+  parseFrontmatter,
+  parseLinks,
+  parseNoteTags,
+  parseReminders,
+} from "@app/indexer";
 
 function titleFromPath(path: string): string {
   const base = path.split("/").pop() ?? path;
@@ -27,6 +32,7 @@ export function noteFromMarkdown(
     content,
     outlinks: parseLinks(content, { notePaths, sourcePath: path }),
     tags: parseNoteTags(frontmatter, content),
+    reminders: parseReminders(raw),
     mtime,
   };
 }

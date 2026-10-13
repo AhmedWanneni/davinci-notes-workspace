@@ -36,3 +36,5 @@ export {
   MARKDOWN_LINK_PATTERN,
 } from "./parseLinks";
 export type { ParseLinksOptions } from "./parseLinks";
+export { parseReminders } from "./parseReminders";
+export type { ParsedReminder, ParseRemindersOptions } from "./parseReminders";

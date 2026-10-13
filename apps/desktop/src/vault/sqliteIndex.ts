@@ -1,6 +1,11 @@
 import type { Note } from "@app/core-types";
 import Database from "@tauri-apps/plugin-sql";
 import { clearFtsRows, removeFtsRows, replaceFtsRows } from "./sqliteFtsIndex";
+import {
+  clearReminders,
+  removeRemindersBatch,
+  replaceRemindersBatch,
+} from "./sqliteReminderIndex";
 
 /** Must match `db::DB_URL` in src-tauri. */
 export const VAULT_INDEX_DB = "sqlite:vault-index.db";
@@ -89,6 +94,7 @@ export async function clearVaultIndex(db: Database): Promise<void> {
   await db.execute("DELETE FROM links");
   await db.execute("DELETE FROM notes");
   await clearFtsRows(db);
+  await clearReminders(db);
 }
 
 /** Batch remove notes, links, and FTS rows in chunked operations. */
@@ -113,6 +119,7 @@ export async function removeNotesBatch(
       chunk,
     );
     await removeFtsRows(db, chunk);
+    await removeRemindersBatch(db, chunk, batchSize);
   }
 }
 
@@ -215,6 +222,7 @@ export async function persistNotesBatch(
     }
 
     await replaceFtsRows(db, chunk);
+    await replaceRemindersBatch(db, chunk, batchSize);
   }
 }
 
@@ -227,5 +235,13 @@ export {
   listIndexedNotePaths,
   queryBacklinkSources,
 } from "./sqliteNoteQueries";
-
 export { queryFullGraphIndex } from "./sqliteGraphIndex";
+export {
+  clearReminders,
+  queryOverdueReminders,
+  queryRemindersByNote,
+  queryUpcomingReminders,
+  removeRemindersBatch,
+  replaceRemindersBatch,
+  type ReminderRow,
+} from "./sqliteReminderIndex";

@@ -251,4 +251,5 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0179](adr/0179-note-embeds-and-safety-guards.md) | Note embeds (![[Note]] and ![[Note#Heading]]), cycle/depth/size guards, debounced live updates, and insert item (extends 0115) | Accepted |
 | [0180](adr/0180-quick-capture-note-creation-and-destination-options.md) | Quick capture note creation with optional filename/folder, unique same-second naming, pure append fallback, and exact anchored popover positioning | Accepted; supersedes capture target of 0172 |
 | [0181](adr/0181-recent-vaults-registry-and-switch-lifecycle.md) | App-level recent-vaults registry, auto-open launch behavior, and safe vault-switch lifecycle | Accepted |
+| [0182](adr/0182-reminder-syntax-and-storage-model.md) | Reminder syntax, task parsing scope, default 09:00 time, and SQLite index storage | Accepted |
 

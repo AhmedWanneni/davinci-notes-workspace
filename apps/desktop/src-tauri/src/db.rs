@@ -37,5 +37,11 @@ pub fn migrations() -> Vec<Migration> {
     description: "retain_ai_embedding_chunk_text",
     sql: "ALTER TABLE embedding_chunks ADD COLUMN text TEXT NOT NULL DEFAULT '';",
     kind: MigrationKind::Up,
+  },
+  Migration {
+    version: 6,
+    description: "create_reminders_table",
+    sql: "CREATE TABLE IF NOT EXISTS reminders (id INTEGER PRIMARY KEY AUTOINCREMENT, note_path TEXT NOT NULL, line INTEGER NOT NULL, due_at_utc TEXT NOT NULL, tz TEXT NOT NULL, text TEXT NOT NULL, done INTEGER NOT NULL DEFAULT 0, FOREIGN KEY (note_path) REFERENCES notes(path) ON DELETE CASCADE); CREATE INDEX IF NOT EXISTS idx_reminders_done_due ON reminders(done, due_at_utc); CREATE INDEX IF NOT EXISTS idx_reminders_note_path ON reminders(note_path);",
+    kind: MigrationKind::Up,
   }]
 }
