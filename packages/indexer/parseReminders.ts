@@ -4,6 +4,7 @@ export interface ParsedReminder {
   tz: string;
   text: string;
   done: boolean;
+  recurrence?: string;
 }
 
 export interface ParseRemindersOptions {
@@ -17,8 +18,7 @@ const FENCED_CODE_PATTERN = /(```|~~~)[\s\S]*?\1/g;
 const INLINE_CODE_PATTERN = /`[^`\r\n]+`/g;
 const TASK_LINE_PATTERN =
   /^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[([- xX])\][ \t]*(.*)$/;
-const REMINDER_TOKEN_PATTERN =
-  /\(@(\d{4}-\d{2}-\d{2})(?:[ T](\d{1,2}:\d{2}(?::\d{2})?))?(?:[ \t]+([A-Za-z0-9_/+:-]+))?\)/g;
+const REMINDER_TOKEN_PATTERN = /\(@([^)]+)\)/g;
 
 function isValidDate(year: number, month: number, day: number): boolean {
   if (
@@ -28,9 +28,8 @@ function isValidDate(year: number, month: number, day: number): boolean {
     month > 12 ||
     day < 1 ||
     day > 31
-  ) {
+  )
     return false;
-  }
   const d = new Date(Date.UTC(year, month - 1, day));
   return (
     d.getUTCFullYear() === year &&
@@ -50,7 +49,7 @@ function isValidTime(hour: number, minute: number, second: number): boolean {
   );
 }
 
-function localToUtcIso(
+export function localToUtcIso(
   year: number,
   month: number,
   day: number,
@@ -154,9 +153,43 @@ export function parseReminders(
       continue;
     }
 
-    const dateStr = tokenMatch[1];
-    const timeStr = tokenMatch[2] ?? defaultTime;
-    const explicitTz = tokenMatch[3];
+    const rawToken = tokenMatch[1].trim();
+    const dateMatch = /^(\d{4}-\d{2}-\d{2})/.exec(rawToken);
+    if (!dateMatch) {
+      continue;
+    }
+    const dateStr = dateMatch[1];
+    let rest = rawToken.slice(dateMatch[0].length).trim();
+
+    let recurrence: string | undefined;
+    const slashIdx = rest.indexOf("/");
+    if (slashIdx !== -1) {
+      recurrence = rest.slice(slashIdx + 1).trim();
+      rest = rest.slice(0, slashIdx).trim();
+    }
+
+    let timeStr = defaultTime;
+    const timeMatch = /^(\d{1,2}:\d{2}(?::\d{2})?)/.exec(rest);
+    if (timeMatch) {
+      timeStr = timeMatch[1];
+      rest = rest.slice(timeMatch[0].length).trim();
+    }
+
+    let explicitTz: string | undefined;
+    if (rest) {
+      explicitTz = rest;
+    } else if (recurrence) {
+      const words = recurrence.split(/\s+/);
+      const lastWord = words[words.length - 1];
+      if (
+        /^[A-Za-z_]+\/[A-Za-z_]+$|^[+-]\d{2}(?::?\d{2})?$|^UTC$|^GMT$|^Z$/i.test(
+          lastWord,
+        )
+      ) {
+        explicitTz = lastWord;
+        recurrence = words.slice(0, -1).join(" ").trim();
+      }
+    }
 
     const [yearStr, monthStr, dayStr] = dateStr.split("-");
     const year = parseInt(yearStr, 10);
@@ -221,6 +254,7 @@ export function parseReminders(
       tz: targetTz,
       text: cleanText,
       done,
+      recurrence,
     });
   }
 

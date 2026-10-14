@@ -13,6 +13,7 @@ export interface ReminderClickInfo {
 export interface ReminderWidgetOptions {
   date: string;
   time?: string;
+  recurrence?: string;
   rawToken: string;
   from: number;
   to: number;
@@ -35,9 +36,22 @@ export class ReminderWidget extends WidgetType {
   }
 
   toDOM(view: EditorView): HTMLElement {
-    const { date, time, rawToken, from, to, isDone, onReminderClick } =
-      this.options;
-    const { label, isOverdue, tooltip } = formatReminderChip(date, time);
+    const {
+      date,
+      time,
+      recurrence,
+      rawToken,
+      from,
+      to,
+      isDone,
+      onReminderClick,
+    } = this.options;
+    const { label, isOverdue, tooltip } = formatReminderChip(
+      date,
+      time,
+      undefined,
+      recurrence,
+    );
 
     const span = document.createElement("span");
     span.className = "cm-reminder-chip";

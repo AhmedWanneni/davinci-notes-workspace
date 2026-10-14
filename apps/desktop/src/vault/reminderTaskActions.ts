@@ -1,3 +1,4 @@
+import { advanceRecurringReminder } from "@app/indexer";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import { readNote } from "./vaultCommands";
 import { writeAndIndexNote } from "./performSaveNote";
@@ -12,6 +13,8 @@ const CHECKBOX_PATTERN = /^(\s*(?:[-*+]|\d+[.)])\s+\[)([ xX])(\].*)$/;
 
 /**
  * Toggles a reminder checklist item in Markdown content between `[ ]` and `[x]`.
+ * If the reminder has a recurrence rule and is marked done, rolls the due date
+ * forward in-place and leaves the checkbox unchecked.
  * Matches by line number with fallback to task text matching.
  */
 export function toggleReminderInMarkdown(
@@ -53,6 +56,34 @@ export function toggleReminderInMarkdown(
   }
 
   const line = lines[targetIndex];
+
+  // Recurring reminder roll-forward on completion
+  if (done) {
+    const tokenMatch = /\(@([^)]+)\)/.exec(line);
+    if (tokenMatch && tokenMatch[1].includes("/")) {
+      const rawToken = tokenMatch[1].trim();
+      const dateMatch = /^(\d{4}-\d{2}-\d{2})/.exec(rawToken);
+      const slashIdx = rawToken.indexOf("/");
+      if (dateMatch && slashIdx !== -1) {
+        const dateStr = dateMatch[1];
+        const rest = rawToken.slice(dateMatch[0].length, slashIdx).trim();
+        let timeStr: string | null = null;
+        const timeMatch = /^(\d{1,2}:\d{2}(?::\d{2})?)/.exec(rest);
+        if (timeMatch) timeStr = timeMatch[1];
+
+        const recurrence = rawToken.slice(slashIdx + 1).trim();
+        const advanced = advanceRecurringReminder(dateStr, timeStr, recurrence);
+        if (advanced) {
+          lines[targetIndex] = line.replace(
+            tokenMatch[0],
+            advanced.nextTokenStr,
+          );
+          return lines.join(eol);
+        }
+      }
+    }
+  }
+
   const newMark = done ? "x" : " ";
   lines[targetIndex] = line.replace(CHECKBOX_PATTERN, `$1${newMark}$3`);
 

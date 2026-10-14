@@ -25,6 +25,7 @@ export function formatReminderChip(
   dateStr: string,
   timeStr?: string,
   now = new Date(),
+  recurrence?: string,
 ): FormattedReminder {
   const [yearStr, monthStr, dayStr] = dateStr.split("-");
   const year = parseInt(yearStr || "0", 10);
@@ -82,10 +83,14 @@ export function formatReminderChip(
     dateLabel = `${MONTH_NAMES[month]} ${day}, ${year}`;
   }
 
-  const label = `${dateLabel}${timeFormatted}`;
-  const tooltip = hasExplicitTime
+  const baseLabel = `${dateLabel}${timeFormatted}`;
+  const label = recurrence ? `${baseLabel} ↻` : baseLabel;
+  const tooltipBase = hasExplicitTime
     ? `${dateStr} ${timeStr}`
     : `${dateStr} (all day)`;
+  const tooltip = recurrence
+    ? `${tooltipBase} (repeats: ${recurrence})`
+    : tooltipBase;
 
   return { label, isOverdue, tooltip };
 }

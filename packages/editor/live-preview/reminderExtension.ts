@@ -14,8 +14,7 @@ export interface ReminderExtensionOptions {
   onReminderClick?: (info: ReminderClickInfo) => void;
 }
 
-const REMINDER_TOKEN_REGEX =
-  /\(@(\d{4}-\d{2}-\d{2})(?:[ T](\d{1,2}:\d{2}(?::\d{2})?))?(?:[ \t]+([A-Za-z0-9_/+:-]+))?\)/g;
+const REMINDER_TOKEN_REGEX = /\(@([^)]+)\)/g;
 
 const TASK_DONE_REGEX = /^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\[[xX]\]/;
 
@@ -84,6 +83,26 @@ function getReminderDecorations(
         let match: RegExpExecArray | null;
 
         while ((match = REMINDER_TOKEN_REGEX.exec(text)) !== null) {
+          const rawTokenInside = match[1].trim();
+          const dateMatch = /^(\d{4}-\d{2}-\d{2})/.exec(rawTokenInside);
+          if (!dateMatch) {
+            continue;
+          }
+
+          const date = dateMatch[1];
+          let rest = rawTokenInside.slice(date.length).trim();
+          let recurrence: string | undefined;
+          const slashIdx = rest.indexOf("/");
+          if (slashIdx !== -1) {
+            recurrence = rest.slice(slashIdx + 1).trim();
+            rest = rest.slice(0, slashIdx).trim();
+          }
+          let time: string | undefined;
+          const timeMatch = /^(\d{1,2}:\d{2}(?::\d{2})?)/.exec(rest);
+          if (timeMatch) {
+            time = timeMatch[1];
+          }
+
           const start = line.from + match.index;
           const end = start + match[0].length;
 
@@ -105,8 +124,9 @@ function getReminderDecorations(
           decorations.push(
             Decoration.replace({
               widget: new ReminderWidget({
-                date: match[1] || "",
-                time: match[2],
+                date,
+                time,
+                recurrence,
                 rawToken: match[0],
                 from: start,
                 to: end,

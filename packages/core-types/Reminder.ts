@@ -10,4 +10,6 @@ export interface Reminder {
   text: string;
   /** Completion state from task checkbox (`[x]`/`[-]` vs `[ ]`). */
   done: boolean;
+  /** Optional recurrence rule (e.g. `daily`, `weekly`, `monthly`, `every 2 weeks`). */
+  recurrence?: string;
 }

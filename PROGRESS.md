@@ -4,8 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Reminders Phase 5 — Recurrence Syntax, Due-Date Roll-Forward, and Calendar Invariance (complete)**
+Implemented recurrence parsing, recurrence-aware live-preview chips, in-place due-date roll-forward, and recorded ADR-0184:
+1. **Recurrence Syntax & Specification (`ADR-0184`)**:
+   - Syntax: `(@YYYY-MM-DD[ HH:mm][ /<rule>][ <tz>])` embedded in markdown task checklists (`- [ ]`, `- [x]`).
+   - Supported recurrence rules: `daily`, `weekly`, `monthly`, `yearly`, `every N days/weeks/months/years`, shorthand `Nd/Nw/Nm/Ny`, and weekly weekday lists (e.g. `/weekly on mon, wed, fri`).
+   - Open Decision 1: Next occurrence is computed **strictly from due date**, preserving calendar cadence and avoiding drift when tasks are completed late.
+   - Open Decision 2: Completed recurring tasks perform an **in-place roll-forward** of the reminder token while leaving the checkbox open (`- [ ]`). Avoids markdown bloat and duplicate tasks across synced devices.
+2. **Recurrence Engine (`recurrenceRule.ts`)**:
+   - Zero-allocation rule parsing and calendar advancement.
+   - Month-end clamping & preservation: monthly reminders anchored on the 31st advance across shorter months (Feb 28, Apr 30) while restoring the 31st on months with 31 days.
+   - Leap day handling: Feb 29 yearly reminders advance to Feb 28 in common years and restore Feb 29 on leap years.
+   - DST invariance: preserves wall-clock time across spring-forward / fall-back transitions using local timezone wall-clock calculation (`localToUtcIso`).
+3. **Editor Live-Preview Decoration & In-Place Roll-Forward (`reminderExtension.ts`, `reminderWidget.ts`, `reminderTaskActions.ts`)**:
+   - Live-preview reminder chips append a repeat indicator (`↻`) with recurrence rule tooltip.
+   - Checking a recurring task row in Reminders view or in-app toast advances the markdown date token in-place to the next occurrence instant and preserves `- [ ]` state.
+4. **Adversarial Verification Suite (`remindersPhase5Recurrence.test.ts`, `recurrenceRule.test.ts`)**:
+   - Month-end 31st across 12 consecutive months advances cleanly: Jan 31 -> Feb 28 -> Mar 31 -> Apr 30 -> May 31 -> Jun 30 -> Jul 31 -> Aug 31 -> Sep 30 -> Oct 31 -> Nov 30 -> Dec 31 -> Jan 31.
+   - Feb 29 yearly advances 2024-02-29 -> 2025-02-28 -> 2026-02-28 -> 2027-02-28 -> 2028-02-29.
+   - Weekly across Europe/London DST transition (BST UTC+1 -> GMT UTC+0) preserves 10:00 AM wall-clock.
+   - Completing three times in a row advances Oct 14 -> Oct 21 -> Oct 28 -> Nov 04 with checkbox remaining open (`- [ ]`).
+   - Concurrent completion on two synced offline devices converges on identical markdown due instant (`2026-11-15`), preventing double advancement.
+   - All tests pass; all files strictly under line caps (<250 lines).
+
+**Next:** Mobile reminders notifications & background sync.
+
+---
+
 **Reminders Phase 4 — Reminders View, Virtualization, Snooze/Done Actions, and Native Tray Integration (complete)**
-Implemented the Reminders dialog view, virtualized listing, local snooze & task checkbox toggling, in-app notification toasts, and native macOS tray integration:
+Implements the Reminders dialog view, virtualized listing, local snooze & task checkbox toggling, in-app notification toasts, and native macOS tray integration:
 1. **Reminders Dialog View & Filtering (`RemindersDialog.tsx`)**:
    - Structured sections matching TagsDialog: "Overdue", "Today", "Upcoming", and "All", with live badge counts.
    - Shows note name, task text, due badge, relative time, and "Snoozed" indicator.
@@ -37,8 +64,6 @@ Implemented the Reminders dialog view, virtualized listing, local snooze & task 
    - External edits: Note edits via external tools/file watcher correctly update reminders view queries and categories.
    - Multi-device shared vault isolation: Device A snoozing on a shared note does not touch markdown, leaving Device B to categorize based strictly on original markdown due instant.
    - All 121 desktop test suites (470 tests) and 8 Rust adversarial reminder tests pass. All files adhere strictly to <250 line hard cap and design token guidelines.
-
-**Next:** Reminders Phase 5 — Mobile notifications & background sync.
 
 ---
 

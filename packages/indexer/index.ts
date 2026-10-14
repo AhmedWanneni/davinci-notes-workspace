@@ -36,5 +36,18 @@ export {
   MARKDOWN_LINK_PATTERN,
 } from "./parseLinks";
 export type { ParseLinksOptions } from "./parseLinks";
-export { parseReminders } from "./parseReminders";
+export { parseReminders, localToUtcIso } from "./parseReminders";
 export type { ParsedReminder, ParseRemindersOptions } from "./parseReminders";
+export {
+  parseRecurrenceRule,
+  computeNextOccurrenceDate,
+  advanceRecurringReminder,
+  getDaysInMonth,
+  isLeapYear,
+} from "./recurrenceRule";
+export type {
+  RecurrenceFrequency,
+  Weekday,
+  RecurrenceRule,
+  AdvancedOccurrenceResult,
+} from "./recurrenceRule";

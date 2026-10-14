@@ -58,4 +58,42 @@ describe("reminderTaskActions — toggleReminderInMarkdown", () => {
     );
     expect(updated).toBe(markdown);
   });
+
+  it("rolls recurring reminder due date forward in-place and keeps checkbox open", () => {
+    const markdown = `- [ ] Weekly sprint (@2026-10-14 10:00 /weekly)`;
+    const updated = toggleReminderInMarkdown(
+      markdown,
+      { line: 1, text: "Weekly sprint" },
+      true,
+    );
+    expect(updated).toBe(`- [ ] Weekly sprint (@2026-10-21 10:00 /weekly)`);
+  });
+
+  it("completing a recurring reminder three times in a row advances correctly", () => {
+    let markdown = `- [ ] Daily standup (@2026-10-14 09:30 /daily)`;
+
+    // 1st completion -> Oct 15
+    markdown = toggleReminderInMarkdown(
+      markdown,
+      { line: 1, text: "Daily standup" },
+      true,
+    );
+    expect(markdown).toBe(`- [ ] Daily standup (@2026-10-15 09:30 /daily)`);
+
+    // 2nd completion -> Oct 16
+    markdown = toggleReminderInMarkdown(
+      markdown,
+      { line: 1, text: "Daily standup" },
+      true,
+    );
+    expect(markdown).toBe(`- [ ] Daily standup (@2026-10-16 09:30 /daily)`);
+
+    // 3rd completion -> Oct 17
+    markdown = toggleReminderInMarkdown(
+      markdown,
+      { line: 1, text: "Daily standup" },
+      true,
+    );
+    expect(markdown).toBe(`- [ ] Daily standup (@2026-10-17 09:30 /daily)`);
+  });
 });
