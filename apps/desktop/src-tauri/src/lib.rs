@@ -121,6 +121,7 @@ pub fn run() {
       tray_commands::get_tray_click_action,
       tray_commands::set_tray_click_action,
       tray_commands::update_tray_recent_notes,
+      tray_commands::update_tray_reminders,
       tray_commands::request_app_exit,
       capture_commands::quick_capture_save,
       capture_commands::quick_capture_dismiss,

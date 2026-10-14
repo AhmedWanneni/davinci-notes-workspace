@@ -64,6 +64,13 @@ export function buildPaletteCommands({
 
   targets.push({
     isCommand: true,
+    id: "action:reminders",
+    title: "Browse Reminders",
+    recencyScore: 380,
+  });
+
+  targets.push({
+    isCommand: true,
     id: "action:save-version",
     title: "Save version now",
     recencyScore: 350,

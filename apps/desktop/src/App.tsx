@@ -64,6 +64,12 @@ const LazySearchDialog = React.lazy(() =>
 const LazyTagsDialog = React.lazy(() =>
   import("./components/TagsDialog").then((m) => ({ default: m.TagsDialog })),
 );
+const LazyRemindersDialog = React.lazy(() =>
+  import("./components/RemindersDialog").then((m) => ({
+    default: m.RemindersDialog,
+  })),
+);
+import { ReminderNotificationToast } from "./components/RemindersDialog";
 
 export function App() {
   useWindowFullscreen();
@@ -71,6 +77,7 @@ export function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
+  const [isRemindersOpen, setIsRemindersOpen] = useState(false);
   const [searchInitialQuery, setSearchInitialQuery] = useState("");
   const isGlobalGraphOpen = useWorkspaceStore(
     (state) => state.isGlobalGraphOpen,
@@ -552,6 +559,23 @@ export function App() {
     }
   };
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    void (async () => {
+      try {
+        const { listen } = await import("@tauri-apps/api/event");
+        unlisten = await listen("davinci-tray-open-reminders", () => {
+          setIsRemindersOpen(true);
+        });
+      } catch {
+        // Outside Tauri runtime
+      }
+    })();
+    return () => {
+      unlisten?.();
+    };
+  }, []);
+
   if (!vaultPath) {
     return (
       <VaultWelcomeView
@@ -577,16 +601,18 @@ export function App() {
       <div className="app-shell__body">
         <IconRail
           isLeftSidebarOpen={isLeftSidebarOpen}
+          isGlobalGraphOpen={isGlobalGraphOpen}
           onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
           onOpenSearch={() => {
             setSearchInitialQuery("");
             setIsSearchOpen(true);
           }}
-          onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
+          onOpenGlobalGraph={() => setIsGlobalGraphOpen((prev) => !prev)}
           onOpenSettings={handleOpenSettings}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
           onCreateCanvas={handleCreateCanvas}
+          onOpenReminders={() => setIsRemindersOpen(true)}
         />
 
         <AppSidebar
@@ -730,6 +756,16 @@ export function App() {
             onSelectTag={handleSelectTag}
           />
         )}
+        {isRemindersOpen && (
+          <LazyRemindersDialog
+            isOpen={isRemindersOpen}
+            onOpenChange={setIsRemindersOpen}
+            onSelectNote={(path) => void openNote(path)}
+          />
+        )}
+        <ReminderNotificationToast
+          onSelectNote={(path) => void openNote(path)}
+        />
         {isSettingsOpen && (
           <LazySettingsDialog
             isOpen={isSettingsOpen}
@@ -763,6 +799,7 @@ export function App() {
             onOpenSettings={handleOpenSettings}
             onOpenLogs={handleOpenLogs}
             onOpenTags={() => setIsTagsOpen(true)}
+            onOpenReminders={() => setIsRemindersOpen(true)}
             onSaveVersionNow={() => {
               if (activeNotePath) void saveVersionNow(activeNotePath);
             }}

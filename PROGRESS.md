@@ -4,6 +4,44 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Reminders Phase 4 — Reminders View, Virtualization, Snooze/Done Actions, and Native Tray Integration (complete)**
+Implemented the Reminders dialog view, virtualized listing, local snooze & task checkbox toggling, in-app notification toasts, and native macOS tray integration:
+1. **Reminders Dialog View & Filtering (`RemindersDialog.tsx`)**:
+   - Structured sections matching TagsDialog: "Overdue", "Today", "Upcoming", and "All", with live badge counts.
+   - Shows note name, task text, due badge, relative time, and "Snoozed" indicator.
+   - Clicking note link or line number navigates to the note directly at the target line using `selectNote` and editor line jumping.
+   - Lazy-loaded via React `lazy()` in `App.tsx` ensuring zero initial bundle weight impact.
+   - Wired to Command Palette (`action:reminders` / "Browse Reminders") and left IconRail Bell button.
+2. **Virtualization (`RemindersList.tsx`)**:
+   - Virtualized row rendering using `@tanstack/react-virtual` with dynamic height measurement (`estimateSize: 58px`, `overscan: 5`).
+   - Testing/SSR fallback in place for zero-height jsdom environments.
+3. **Task Checkbox Toggling & Markdown as Single Source of Truth (`reminderTaskActions.ts`)**:
+   - Checking a reminder row or clicking "Done" flips `- [ ]` to `- [x]` in the note file on disk.
+   - Regex-based matching (`CHECKBOX_PATTERN`) with line-number precision and task text fallback.
+   - Synchronizes in-memory content in `notesContent` and flushes immediately via `saveNoteNow` (or `writeAndIndexNote` if unloaded).
+   - Re-indexing automatically updates SQLite `reminders` table (`done = 1`).
+4. **Snooze Actions & Device-Local Isolation (`reminderSnoozeActions.ts`, `reminder_db.rs`)**:
+   - Snooze presets: 10 minutes (`"10m"`), 1 hour (`"1h"`), and tomorrow morning 9:00 AM local (`"tomorrow"`).
+   - Writes strictly to device-local SQLite table (`reminder_local_state`), setting `snooze_until_utc` and `status = 'snoozed'`.
+   - Never alters markdown files. Markdown files remain 100% pristine and unaffected.
+5. **In-App Toast Notification (`ReminderNotificationToast.tsx`)**:
+   - Subscribes to `davinci-reminders-due` and `davinci-reminders-missed` emitted by Rust scheduler.
+   - Provides quick "Done", "Snooze", and "Open" actions directly from the toast.
+6. **Native Tray Integration (`tray_menu.rs`, `tray.rs`, `tray_commands.rs`, `useTrayMenuActions.ts`)**:
+   - Added "Open reminders" entry to native macOS tray menu emitting `davinci-tray-open-reminders`.
+   - Added upcoming reminders submenu/items displaying the next 3 due reminders with text and due time. Clicking an upcoming reminder directly opens the note at the reminder's line.
+   - Debounced synchronization via `update_tray_reminders` on vault load and `vaultUpdateCounter` changes.
+7. **Adversarial Verification Suite (`remindersPhase4Verification.test.ts`)**:
+   - Done parity: Done from notification, Done from view, and Done from editor all produce the exact same Markdown text on disk (`- [x] <task> (@...)`) and identical index state.
+   - Snooze persistence: Snooze survives simulated reload/restart, correctly categorizes based on effective due time, and never modifies markdown files.
+   - External edits: Note edits via external tools/file watcher correctly update reminders view queries and categories.
+   - Multi-device shared vault isolation: Device A snoozing on a shared note does not touch markdown, leaving Device B to categorize based strictly on original markdown due instant.
+   - All 121 desktop test suites (470 tests) and 8 Rust adversarial reminder tests pass. All files adhere strictly to <250 line hard cap and design token guidelines.
+
+**Next:** Reminders Phase 5 — Mobile notifications & background sync.
+
+---
+
 **Reminders Phase 3 — Editor Live-Preview Decoration & Date/Time Picker (complete)**
 Implemented CodeMirror 6 live-preview reminder chips, zero-bundle date/time picker, and in-place editing:
 1. **Insert Reminder Action & Registry**:

@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-14 | Reminders Phase 4 — Reminders View, Virtualized List, Snooze/Done Actions, and Native Tray Integration | Implemented the Reminders dialog view (`RemindersDialog.tsx`), virtualized row rendering (`RemindersList.tsx`, `ReminderRowItem.tsx`), markdown checklist toggling (`reminderTaskActions.ts`), device-local snooze persistence (`reminderSnoozeActions.ts`, `reminder_db.rs`), in-app toast notifications (`ReminderNotificationToast.tsx`), and native macOS tray integration (`tray_menu.rs`, `tray.rs`, `tray_commands.rs`, `useTrayMenuActions.ts`). Reminders view displays categorized sections (Overdue, Today, Upcoming, All) with live counts, note navigation at the target line, and markdown checklist checkbox toggling. Checking an item flips `- [ ]` to `- [x]` in the note file on disk. Snooze writes strictly to device-local SQLite `reminder_local_state`, leaving markdown untouched. Native macOS tray displays upcoming reminders submenu (next 3 due) and "Open reminders" menu item. Added comprehensive adversarial test suite (`remindersPhase4Verification.test.ts`) verifying: Done parity across notification/view/editor, snooze persistence surviving reloads without modifying markdown, external file edits updating view queries, and multi-device shared vault isolation where device A snoozing does not affect device B. All 121 desktop test suites (470 tests) and 8 Rust reminder tests pass; all files strictly under line caps. |
 | 2026-10-14 | Reminders Phase 3 — Editor Live-Preview Decoration, Zero-Bundle Date/Time Picker, and In-Place Editing | Implemented CodeMirror 6 live-preview reminder chip decorations (`reminderExtension.ts`, `reminderWidget.ts`, `reminderFormat.ts`, `reminderTheme.ts`), design-system date/time picker dialog (`ReminderDatePicker.tsx`, `ReminderEditModal.tsx`, `InsertDialog.tsx`), and insert menu/slash command registry item (`InsertRegistry.ts`). Added cursor gating so raw markdown tokens `(@YYYY-MM-DD[ HH:mm])` reveal when the cursor intersects the token range. Ignored code blocks, inline code, and frontmatter. Built date/time picker using existing primitives (`Dialog`, `Button`, `Input`) resulting in 0 KB bundle weight overhead. Clicking chip dispatches in-place rewrite/delete modal preserving native CodeMirror undo/redo history. Measured typing latency on a 5,000-line note with 200 reminders: 0.344 ms/keystroke before vs 0.402 ms/keystroke after (+0.058 ms overhead, 0 doc-wide scan on typing). Styled with CUBE CSS and public design tokens only. All 33 editor test suites (219 tests) and desktop reminder tests pass. |
 | 2026-10-13 | Reminders Phase 2 — Rust Scheduler, Device-Local Notifications, and Adversarial Verification | Implemented zero-polling Rust scheduler in `reminder_scheduler.rs`, device-local table `reminder_local_state` (Migration 7 in `db.rs`), grouped catch-up pass on launch, window hide/close persistence via `keep_in_tray`, and recorded ADR-0183. Evaluated `tauri-plugin-notification`: 0 bytes JS bundle overhead when fired from Rust; plugin desktop scheduling is unsupported (mobile only), so scheduler fires directly when due. Reminders keyed by Blake3 hash `(note_path, due_at_utc, text)` preventing re-fire on line moves. Grouped notification prevents notification spam on multiple due/missed reminders. Ran comprehensive adversarial verification suite in `reminder_tests.rs`: 5s fire once while window closed/hidden, quit & relaunch catch-up, edit pending reminder reschedules and cancels old fire, complete task cancels notification, clock forward/backward and timezone invariance, DST spring-forward nonexistent time and fall-back ambiguous hour resolution, 500 simultaneous reminders grouped in 6.36 ms with zero UI freeze, and 1,000 future reminders idle test with next-due calculated in 325 µs and 0 wakeups / 0% CPU. All 8 Rust adversarial tests and 115 desktop Vitest suites (441 tests) pass. |
 | 2026-10-13 | Reminders Phase 1 — Syntax, Parser, SQLite Index, and ADR-0182 | Implemented reminder syntax, parser, SQLite migration 6, and index queries. Added ADR-0182 resolving the 4 open decisions: Obsidian Reminder standard `(@YYYY-MM-DD[ HH:mm])`, task checklist scope (`- [ ]`, `- [x]`, etc.), ISO-8601 UTC string (`due_at_utc TEXT`) + `tz TEXT` storage, and default `09:00:00` morning time. Implemented `parseReminders.ts` in `@app/indexer` with code block/frontmatter masking, malformed date resilience, and zero-allocation fast bailout. Added SQLite Migration 6 in `apps/desktop/src-tauri/src/db.rs` creating `reminders` table and indexes on `(done, due_at_utc)` and `(note_path)`. Created `sqliteReminderIndex.ts` with batch replacement, removals, and upcoming/overdue/by-note queries, serialized under `withDbLock`. Verified checkbox toggling flips `done`, note deletion/rename updates rows, full rebuild produces identical rows, and 10k note vault parse delta is 50.32 ms total (0.0050 ms/note). All indexer and desktop vault tests pass with 0 ESLint errors. |
@@ -123,6 +124,43 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-14 — Reminders Phase 4 — Reminders View, Virtualized List, Snooze/Done Actions, and Native Tray Integration
+- Reminders View Dialog (`RemindersDialog.tsx`):
+  - Structured tabs: "Overdue", "Today", "Upcoming", and "All" with live badge counts and active tab indicators.
+  - Displays note path, line number, task text, formatted due time/relative badge, overdue styling, and "Snoozed" status.
+  - Clicking note link or line number navigates directly to the target line in the editor via `selectNote` and `editorLineJump`.
+  - Lazy-loaded via React `lazy()` in `App.tsx` ensuring 0 KB initial bundle cost.
+  - Accessible via Command Palette (`action:reminders`), Icon Rail `Bell` button, and macOS native tray menu ("Open reminders").
+- Virtualization & Performance (`RemindersList.tsx`, `ReminderRowItem.tsx`):
+  - Virtualized list rendering using `@tanstack/react-virtual` with dynamic row measurement (`estimateSize: 58px`, `overscan: 5`).
+  - Added graceful SSR/testing fallback for zero-height jsdom test runs.
+  - Colocated CUBE CSS styling (`RemindersDialog.module.scss`, `ReminderRowItem.module.scss`) using exclusively public design tokens.
+  - Strict line limit compliance: `RemindersDialog.tsx` (191 lines), `ReminderRowItem.tsx` (160 lines), `RemindersList.tsx` (73 lines) — all well below 250 cap.
+- Checkbox Toggling & Markdown as Single Source of Truth (`reminderTaskActions.ts`):
+  - Checking a reminder row or clicking "Done" flips `- [ ]` to `- [x]` in the markdown note file on disk.
+  - Precision regex checklist toggle (`CHECKBOX_PATTERN`), matching by line number with fallback to task text matching.
+  - Updates in-memory content in `notesContent` and triggers immediate flush via `saveNoteNow` (or `writeAndIndexNote` if note is not currently loaded).
+  - Background indexing updates SQLite `reminders` table (`done = 1`), canceling any pending scheduler timers.
+- Snooze Actions & Device-Local State (`reminderSnoozeActions.ts`, `reminder_db.rs`, `reminder_commands.rs`):
+  - Snooze presets: 10 minutes (`"10m"`), 1 hour (`"1h"`), and tomorrow morning 9:00 AM local (`"tomorrow"`).
+  - Writes strictly to device-local SQLite table (`reminder_local_state`), updating `snooze_until_utc` and setting `status = 'snoozed'`.
+  - Markdown files on disk remain 100% untouched.
+  - Multi-device safety: on shared vaults, device A snoozing does not touch markdown, leaving device B to categorize based on markdown due instant.
+- In-App Toast Notification (`ReminderNotificationToast.tsx`):
+  - Subscribes to `davinci-reminders-due` and `davinci-reminders-missed` emitted by Rust scheduler.
+  - Provides instant "Done", "Snooze", and "Open" actions directly from the toast notification.
+- Native macOS Tray Menu Integration (`tray_menu.rs`, `tray.rs`, `tray_commands.rs`, `useTrayMenuActions.ts`):
+  - Added "Open reminders" entry to native macOS tray menu emitting `davinci-tray-open-reminders`.
+  - Added upcoming reminders list in tray displaying top 3 upcoming reminders with text and due time.
+  - Clicking a tray reminder directly opens the note at the reminder's line.
+  - Synchronized via debounced `update_tray_reminders` on vault open and `vaultUpdateCounter` changes.
+- Adversarial Verification Suite (`remindersPhase4Verification.test.ts`):
+  - Done parity: Verified Done from notification, view, and editor all produce byte-for-byte identical markdown text on disk (`- [x] <task> (@...)`) and identical SQLite index state.
+  - Snooze persistence: Verified snooze writes strictly to `reminder_local_state`, leaves markdown unaltered, survives app restarts/reloads, and dynamically shifts category.
+  - External edits: Verified external file edits via watcher path correctly update view queries and line numbers.
+  - Multi-device shared vault isolation: Verified that device A snoozing on a shared note does not touch markdown, leaving device B to categorize based on original due instant.
+  - All 121 desktop test suites (470 tests) and 8 Rust reminder tests pass cleanly.
 
 ### 2026-10-14 — Reminders Phase 3 — Editor Live-Preview Decoration, Zero-Bundle Date/Time Picker, and In-Place Editing
 - Built zero-bundle Date/Time Picker:

@@ -4,11 +4,7 @@ import { EditorView } from "@codemirror/view";
 import { Dialog, DialogContent } from "@app/design-system";
 import fuzzysort from "fuzzysort";
 import { FileText, Gear } from "@phosphor-icons/react";
-import {
-  insertRegistry,
-  runInsertItem,
-  useRecentInsertIds,
-} from "@app/editor";
+import { insertRegistry, runInsertItem, useRecentInsertIds } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { EmptyState } from "../EmptyState";
 import type { RegisteredPluginCommand } from "@app/plugin-runtime";
@@ -20,6 +16,7 @@ export interface CommandPaletteProps {
   onSelectNote: (path: string) => void;
   onOpenSettings?: () => void;
   onOpenTags?: () => void;
+  onOpenReminders?: () => void;
   onOpenLogs?: () => void;
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
@@ -38,6 +35,7 @@ export function CommandPalette({
   onSelectNote,
   onOpenSettings,
   onOpenTags,
+  onOpenReminders,
   onOpenLogs,
   onDriveSignIn,
   onDriveDisconnect,
@@ -128,6 +126,7 @@ export function CommandPalette({
     if (id === "action:settings") onOpenSettings?.();
     if (id === "action:logs") onOpenLogs?.();
     if (id === "action:tags") onOpenTags?.();
+    if (id === "action:reminders") onOpenReminders?.();
     if (id === "action:save-version") onSaveVersionNow?.();
     if (id === "action:drive-sign-in") onDriveSignIn?.();
     if (id === "action:drive-disconnect") onDriveDisconnect?.();
@@ -136,7 +135,8 @@ export function CommandPalette({
       const itemId = id.slice(7);
       const item = insertRegistry.find((entry) => entry.id === itemId);
       if (item && editorView && editorView.state.facet(EditorView.editable)) {
-        const selection = editorSelectionRef.current ?? editorView.state.selection;
+        const selection =
+          editorSelectionRef.current ?? editorView.state.selection;
         runInsertItem(editorView, item, selection);
         onInsertSuccess?.(item.id);
         editorView.focus();
@@ -199,7 +199,13 @@ export function CommandPalette({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) handleClose(); else onOpenChange(true); }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+        else onOpenChange(true);
+      }}
+    >
       <DialogContent
         className="command-palette__dialog"
         showCloseButton={false}

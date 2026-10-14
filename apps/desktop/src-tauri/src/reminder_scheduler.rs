@@ -7,7 +7,7 @@ use chrono::{DateTime, Utc};
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 use tokio::sync::Notify;
 use tokio::{select, time::sleep};
 
@@ -45,6 +45,7 @@ impl ReminderScheduler {
       if let Ok(missed) = catchup_missed_reminders_db(&mut conn, &now_iso, now_ms) {
         if !missed.is_empty() {
           send_missed_notification(&self.app, &missed);
+          let _ = self.app.emit("davinci-reminders-missed", &missed);
         }
       }
     }
@@ -79,9 +80,11 @@ impl ReminderScheduler {
     if let Ok(due) = query_due_reminders(&conn, &now_iso) {
       if !due.is_empty() {
         send_reminder_notification(&self.app, &due);
+        let _ = self.app.emit("davinci-reminders-due", &due);
         let _ = record_reminder_status(&mut conn, &due, "notified", now_ms);
       }
     }
+
 
     let next_due_iso = query_earliest_future_due(&conn, &now_iso).ok()??;
     let next_time = DateTime::parse_from_rfc3339(&next_due_iso).ok()?.with_timezone(&Utc);

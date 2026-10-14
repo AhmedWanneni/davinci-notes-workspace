@@ -151,6 +151,9 @@ pub fn record_reminder_status(
 pub fn snooze_reminder_db(
   conn: &Connection,
   reminder_key: &str,
+  note_path: Option<&str>,
+  due_at_utc: Option<&str>,
+  text: Option<&str>,
   snooze_until_utc: &str,
   now_ms: i64,
 ) -> Result<bool> {
@@ -162,7 +165,24 @@ pub fn snooze_reminder_db(
      WHERE reminder_key = ?3",
     params![snooze_until_utc, now_ms, reminder_key],
   )?;
-  Ok(count > 0)
+  if count > 0 {
+    return Ok(true);
+  }
+
+  let np = note_path.unwrap_or("");
+  let due = due_at_utc.unwrap_or("");
+  let txt = text.unwrap_or("");
+  conn.execute(
+    "INSERT INTO reminder_local_state (
+       reminder_key, note_path, due_at_utc, text, status, notified_at, snooze_until_utc, updated_at
+     ) VALUES (?1, ?2, ?3, ?4, 'snoozed', ?5, ?6, ?5)
+     ON CONFLICT(reminder_key) DO UPDATE SET
+       status = 'snoozed',
+       snooze_until_utc = excluded.snooze_until_utc,
+       updated_at = excluded.updated_at",
+    params![reminder_key, np, due, txt, now_ms, snooze_until_utc],
+  )?;
+  Ok(true)
 }
 
 pub fn dismiss_reminder_db(

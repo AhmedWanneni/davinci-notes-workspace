@@ -20,15 +20,36 @@ pub async fn reschedule_reminders(
 pub async fn snooze_reminder(
   app: AppHandle,
   scheduler: State<'_, SchedulerState>,
-  reminder_key: String,
+  reminder_key: Option<String>,
+  note_path: Option<String>,
+  due_at_utc: Option<String>,
+  text: Option<String>,
   snooze_until_utc: String,
 ) -> Result<bool, String> {
   let db_path = get_db_path(&app).ok_or_else(|| "Failed to resolve db path".to_string())?;
   let conn = open_connection(&db_path).map_err(|e| e.to_string())?;
   let now_ms = Utc::now().timestamp_millis();
 
-  let ok = snooze_reminder_db(&conn, &reminder_key, &snooze_until_utc, now_ms)
-    .map_err(|e| e.to_string())?;
+  let key = match reminder_key {
+    Some(k) if !k.is_empty() => k,
+    _ => {
+      let np = note_path.as_deref().unwrap_or("");
+      let due = due_at_utc.as_deref().unwrap_or("");
+      let txt = text.as_deref().unwrap_or("");
+      crate::reminder_db::compute_reminder_key(np, due, txt)
+    }
+  };
+
+  let ok = snooze_reminder_db(
+    &conn,
+    &key,
+    note_path.as_deref(),
+    due_at_utc.as_deref(),
+    text.as_deref(),
+    &snooze_until_utc,
+    now_ms,
+  )
+  .map_err(|e| e.to_string())?;
   if ok {
     scheduler.reschedule();
   }

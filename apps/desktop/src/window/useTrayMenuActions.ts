@@ -55,7 +55,39 @@ export function useTrayMenuActions({
       }, 200);
     };
 
+    const syncRemindersToTray = async () => {
+      if (!vaultPath) return;
+      try {
+        const { getVaultIndexDb } = await import("../vault/sqliteIndex");
+        const { queryUpcomingReminders } =
+          await import("../vault/sqliteReminderIndex");
+        const db = await getVaultIndexDb();
+        const upcoming = await queryUpcomingReminders(db, 3);
+        const upcomingReminders = upcoming.map((r) => {
+          const date = new Date(r.due_at_utc);
+          const dueTime = date.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit",
+          });
+          return {
+            notePath: r.note_path,
+            line: r.line,
+            text: r.text,
+            dueTime,
+          };
+        });
+        void invoke("update_tray_reminders", {
+          upcomingReminders,
+          hasVault: true,
+        }).catch(() => {});
+      } catch {
+        // ignore outside tauri
+      }
+    };
+
     syncToTray();
+    void syncRemindersToTray();
+
     const unsub = useWorkspaceStore.subscribe((state, prevState) => {
       if (
         state.noteHistory !== prevState.noteHistory ||
@@ -64,6 +96,9 @@ export function useTrayMenuActions({
         state.allNotePaths !== prevState.allNotePaths
       ) {
         syncToTray();
+      }
+      if (state.vaultUpdateCounter !== prevState.vaultUpdateCounter) {
+        void syncRemindersToTray();
       }
     });
 
