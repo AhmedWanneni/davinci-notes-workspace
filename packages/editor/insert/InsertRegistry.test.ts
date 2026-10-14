@@ -3,7 +3,7 @@ import { findInsertItem, insertRegistry } from "./InsertRegistry";
 
 describe("insertRegistry", () => {
   it("contains all insert items including Links, Media, and Diagrams", () => {
-    expect(insertRegistry).toHaveLength(40);
+    expect(insertRegistry).toHaveLength(41);
     expect(insertRegistry.map((item) => item.group)).toEqual(
       expect.arrayContaining([
         "Basics",
@@ -16,6 +16,32 @@ describe("insertRegistry", () => {
     );
   });
 
+  it("builds reminder item syntax with date and optional time", () => {
+    const item = findInsertItem("reminder");
+    expect(item).toBeDefined();
+    expect(item?.group).toBe("Basics");
+    expect(item?.dialog?.kind).toBe("reminder-picker");
+
+    // Without time
+    expect(
+      item?.build({ selectedText: "", input: { date: "2026-10-15" } }),
+    ).toEqual({
+      text: "(@2026-10-15)",
+      block: false,
+    });
+
+    // With time
+    expect(
+      item?.build({
+        selectedText: "",
+        input: { date: "2026-10-15", time: "14:30" },
+      }),
+    ).toEqual({
+      text: "(@2026-10-15 14:30)",
+      block: false,
+    });
+  });
+
   it("builds note-embed item syntax with target and optional heading", () => {
     const item = findInsertItem("note-embed");
     expect(item).toBeDefined();
@@ -23,14 +49,19 @@ describe("insertRegistry", () => {
     expect(item?.dialog?.kind).toBe("note-picker");
 
     // Without heading
-    expect(item?.build({ selectedText: "", input: { target: "Alpha" } })).toEqual({
+    expect(
+      item?.build({ selectedText: "", input: { target: "Alpha" } }),
+    ).toEqual({
       text: "![[Alpha]]",
       block: true,
     });
 
     // With heading
     expect(
-      item?.build({ selectedText: "", input: { target: "Alpha", heading: "Section One" } }),
+      item?.build({
+        selectedText: "",
+        input: { target: "Alpha", heading: "Section One" },
+      }),
     ).toEqual({
       text: "![[Alpha#Section One]]",
       block: true,
@@ -59,4 +90,3 @@ describe("insertRegistry", () => {
     );
   });
 });
-

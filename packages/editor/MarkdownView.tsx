@@ -4,12 +4,20 @@ import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
 import { Strikethrough } from "@lezer/markdown";
 import { syntaxHighlighting } from "@codemirror/language";
-import { editorHighlightStyle, readOnlyEditorTheme, readOnlyMarkdownAnnotationTheme, tagTheme } from "./theme";
+import {
+  editorHighlightStyle,
+  readOnlyEditorTheme,
+  readOnlyMarkdownAnnotationTheme,
+  reminderTheme,
+  tagTheme,
+} from "./theme";
 import {
   highlightExtension,
   listExtension,
   livePreviewExtension,
   markdownAnnotationsExtension,
+  reminderExtension,
+  type ReminderClickInfo,
   softLineBreakExtension,
   tagExtension,
 } from "./live-preview";
@@ -38,6 +46,7 @@ export interface MarkdownViewProps {
   onLinkClick?: (targetRaw: string) => void;
   onExternalLinkClick?: (url: string) => void;
   onTagClick?: (tagKey: string) => void;
+  onReminderClick?: (info: ReminderClickInfo) => void;
   className?: string;
   resolveMediaUrl?: (path: string) => string;
   loadNoteContent?: (path: string) => Promise<string | null>;
@@ -55,6 +64,7 @@ export function MarkdownView({
   onLinkClick = () => {},
   onExternalLinkClick,
   onTagClick = () => {},
+  onReminderClick,
   className = "",
   resolveMediaUrl,
   loadNoteContent,
@@ -65,6 +75,8 @@ export function MarkdownView({
   const wikilinkCompartmentRef = useRef(new Compartment());
   const onTagClickRef = useRef(onTagClick);
   onTagClickRef.current = onTagClick;
+  const onReminderClickRef = useRef(onReminderClick);
+  onReminderClickRef.current = onReminderClick;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -109,6 +121,10 @@ export function MarkdownView({
           noteContents,
         }),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
+        reminderTheme,
+        reminderExtension({
+          onReminderClick: (info) => onReminderClickRef.current?.(info),
+        }),
         htmlBlockExtension(),
         htmlInlineExtension(),
         wikilinkCompartmentRef.current.of(

@@ -16,7 +16,13 @@ import {
   prevSnippetField,
 } from "@codemirror/autocomplete";
 import { syntaxHighlighting } from "@codemirror/language";
-import { editorHighlightStyle, editorTheme, markdownAnnotationTheme, tagTheme } from "./theme";
+import {
+  editorHighlightStyle,
+  editorTheme,
+  markdownAnnotationTheme,
+  reminderTheme,
+  tagTheme,
+} from "./theme";
 import {
   autocompleteExtension,
   highlightExtension,
@@ -24,6 +30,8 @@ import {
   listIndentKeymap,
   livePreviewExtension,
   markdownAnnotationsExtension,
+  reminderExtension,
+  type ReminderClickInfo,
   tagExtension,
 } from "./live-preview";
 import { linkExtension } from "./links";
@@ -43,10 +51,7 @@ import {
   htmlInlineExtension,
   htmlInlineTheme,
 } from "./blocks/html";
-import {
-  insertHardLineBreak,
-  softLineBreakExtension,
-} from "./live-preview";
+import { insertHardLineBreak, softLineBreakExtension } from "./live-preview";
 import {
   attachVimModeListener,
   loadVimExtension,
@@ -76,6 +81,7 @@ export interface EditorProps {
   onLinkClick: (targetRaw: string) => void;
   onExternalLinkClick?: (url: string) => void;
   onTagClick?: (tagKey: string) => void;
+  onReminderClick?: (info: ReminderClickInfo) => void;
   onPasteAttachment?: PasteAttachmentHandler;
   onAttachmentError?: (message: string) => void;
   resolveMediaUrl?: (path: string) => string;
@@ -100,6 +106,7 @@ export function Editor({
   onLinkClick,
   onExternalLinkClick,
   onTagClick,
+  onReminderClick,
   onPasteAttachment,
   onAttachmentError,
   resolveMediaUrl,
@@ -125,6 +132,7 @@ export function Editor({
   const noteEmbedCompartmentRef = useRef(new Compartment());
   const vimCompartmentRef = useRef(new Compartment());
   const onTagClickRef = useRef(onTagClick ?? (() => {}));
+  const onReminderClickRef = useRef(onReminderClick);
   const onPasteAttachmentRef = useRef(onPasteAttachment);
   const onAttachmentErrorRef = useRef(onAttachmentError ?? (() => {}));
 
@@ -132,6 +140,7 @@ export function Editor({
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   onTagClickRef.current = onTagClick ?? (() => {});
+  onReminderClickRef.current = onReminderClick;
   onPasteAttachmentRef.current = onPasteAttachment;
   onAttachmentErrorRef.current = onAttachmentError ?? (() => {});
 
@@ -208,6 +217,10 @@ export function Editor({
           }),
         ),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
+        reminderTheme,
+        reminderExtension({
+          onReminderClick: (info) => onReminderClickRef.current?.(info),
+        }),
         htmlBlockExtension(),
         htmlInlineExtension(),
         // Dynamic compartments for options
@@ -220,7 +233,12 @@ export function Editor({
           }),
         ),
         autocompleteCompartmentRef.current.of(
-          autocompletion({ override: [autocompleteExtension({ notePaths }), slashMenuSource({ enabled: slashMenuEnabled, vimMode })] }),
+          autocompletion({
+            override: [
+              autocompleteExtension({ notePaths }),
+              slashMenuSource({ enabled: slashMenuEnabled, vimMode }),
+            ],
+          }),
         ),
         vimCompartmentRef.current.of([]),
         // Document changes updater
@@ -358,7 +376,17 @@ export function Editor({
         ),
       ],
     });
-  }, [notePaths, sourcePath, onLinkClick, onExternalLinkClick, slashMenuEnabled, vimMode, resolveMediaUrl, loadNoteContent, noteContents]);
+  }, [
+    notePaths,
+    sourcePath,
+    onLinkClick,
+    onExternalLinkClick,
+    slashMenuEnabled,
+    vimMode,
+    resolveMediaUrl,
+    loadNoteContent,
+    noteContents,
+  ]);
 
   return <div ref={containerRef} className={"editor-container"} />;
 }

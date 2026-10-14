@@ -72,6 +72,24 @@ export const insertRegistry: readonly InsertItem[] = [
     build: (context) => block(`- [ ] ${field(context, "Task")}`),
   },
   {
+    id: "reminder",
+    group: "Basics",
+    label: "Reminder",
+    icon: "Bell",
+    keywords: ["reminder", "due", "date", "time", "todo", "alarm"],
+    dialog: {
+      kind: "reminder-picker",
+      title: "Set Reminder",
+      description: "Pick a date and optional time for this reminder.",
+      confirmLabel: "Insert Reminder",
+    },
+    build: (context) => {
+      const date = context.input?.date || new Date().toISOString().slice(0, 10);
+      const time = context.input?.time ? ` ${context.input.time}` : "";
+      return inline(`(@${date}${time})`);
+    },
+  },
+  {
     id: "quote",
     group: "Basics",
     label: "Quote",

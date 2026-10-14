@@ -5,3 +5,6 @@ export * from "./listExtension";
 export * from "./livePreviewExtension";
 export * from "./markdownAnnotationsExtension";
 export * from "./tagExtension";
+export * from "./reminderFormat";
+export * from "./reminderWidget";
+export * from "./reminderExtension";

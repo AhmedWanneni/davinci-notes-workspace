@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-14 | Reminders Phase 3 — Editor Live-Preview Decoration, Zero-Bundle Date/Time Picker, and In-Place Editing | Implemented CodeMirror 6 live-preview reminder chip decorations (`reminderExtension.ts`, `reminderWidget.ts`, `reminderFormat.ts`, `reminderTheme.ts`), design-system date/time picker dialog (`ReminderDatePicker.tsx`, `ReminderEditModal.tsx`, `InsertDialog.tsx`), and insert menu/slash command registry item (`InsertRegistry.ts`). Added cursor gating so raw markdown tokens `(@YYYY-MM-DD[ HH:mm])` reveal when the cursor intersects the token range. Ignored code blocks, inline code, and frontmatter. Built date/time picker using existing primitives (`Dialog`, `Button`, `Input`) resulting in 0 KB bundle weight overhead. Clicking chip dispatches in-place rewrite/delete modal preserving native CodeMirror undo/redo history. Measured typing latency on a 5,000-line note with 200 reminders: 0.344 ms/keystroke before vs 0.402 ms/keystroke after (+0.058 ms overhead, 0 doc-wide scan on typing). Styled with CUBE CSS and public design tokens only. All 33 editor test suites (219 tests) and desktop reminder tests pass. |
 | 2026-10-13 | Reminders Phase 2 — Rust Scheduler, Device-Local Notifications, and Adversarial Verification | Implemented zero-polling Rust scheduler in `reminder_scheduler.rs`, device-local table `reminder_local_state` (Migration 7 in `db.rs`), grouped catch-up pass on launch, window hide/close persistence via `keep_in_tray`, and recorded ADR-0183. Evaluated `tauri-plugin-notification`: 0 bytes JS bundle overhead when fired from Rust; plugin desktop scheduling is unsupported (mobile only), so scheduler fires directly when due. Reminders keyed by Blake3 hash `(note_path, due_at_utc, text)` preventing re-fire on line moves. Grouped notification prevents notification spam on multiple due/missed reminders. Ran comprehensive adversarial verification suite in `reminder_tests.rs`: 5s fire once while window closed/hidden, quit & relaunch catch-up, edit pending reminder reschedules and cancels old fire, complete task cancels notification, clock forward/backward and timezone invariance, DST spring-forward nonexistent time and fall-back ambiguous hour resolution, 500 simultaneous reminders grouped in 6.36 ms with zero UI freeze, and 1,000 future reminders idle test with next-due calculated in 325 µs and 0 wakeups / 0% CPU. All 8 Rust adversarial tests and 115 desktop Vitest suites (441 tests) pass. |
 | 2026-10-13 | Reminders Phase 1 — Syntax, Parser, SQLite Index, and ADR-0182 | Implemented reminder syntax, parser, SQLite migration 6, and index queries. Added ADR-0182 resolving the 4 open decisions: Obsidian Reminder standard `(@YYYY-MM-DD[ HH:mm])`, task checklist scope (`- [ ]`, `- [x]`, etc.), ISO-8601 UTC string (`due_at_utc TEXT`) + `tz TEXT` storage, and default `09:00:00` morning time. Implemented `parseReminders.ts` in `@app/indexer` with code block/frontmatter masking, malformed date resilience, and zero-allocation fast bailout. Added SQLite Migration 6 in `apps/desktop/src-tauri/src/db.rs` creating `reminders` table and indexes on `(done, due_at_utc)` and `(note_path)`. Created `sqliteReminderIndex.ts` with batch replacement, removals, and upcoming/overdue/by-note queries, serialized under `withDbLock`. Verified checkbox toggling flips `done`, note deletion/rename updates rows, full rebuild produces identical rows, and 10k note vault parse delta is 50.32 ms total (0.0050 ms/note). All indexer and desktop vault tests pass with 0 ESLint errors. |
 | 2026-10-13 | Global Graph IconRail Integration & Blank Page Fix | Fixed blank page when opening Graph View from IconRail: connected `useVaultSession` to `useWorkspaceStore.graph` as single source of truth, added `EMPTY_GRAPH` fallback to `GlobalGraphLeaf.tsx` instead of returning `null`, and added global mode empty state in `GraphView.tsx`. Added `isGlobalGraphOpen` to `IconRail` with active state styling and toggle click behavior. Ensured selecting any file or tab in sidebar, tabs, dropdown, search, command palette, or graph node auto-closes the graph view. Added `IconRail.test.tsx` and `IconRail.stories.tsx`. All 114 test files (436 tests) pass. |
@@ -122,6 +123,40 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-14 — Reminders Phase 3 — Editor Live-Preview Decoration, Zero-Bundle Date/Time Picker, and In-Place Editing
+- Built zero-bundle Date/Time Picker:
+  - Zero external date/time libraries used (0 KB added bundle size). Built using native HTML5 date/time inputs styled cleanly with design-system primitives (`Dialog`, `DialogContent`, `Button`, `Input`).
+  - Implemented presets: "Later today", "Tomorrow (9:00 AM)", "Next week", and "All day" toggle.
+  - Implemented `ReminderDatePicker.tsx` (174 lines) and `ReminderEditModal.tsx` (47 lines), keeping strictly below the 200/250 line limit.
+  - Styled with CUBE CSS in `ReminderDatePicker.module.scss` using public design tokens only (`--color-bg-primary`, `--color-bg-secondary`, `--color-border-normal`, `--color-text-normal`, `--color-text-muted`, `--color-bg-status-error`, `--border-radius-sm`, etc.).
+- Extended Insert Registry:
+  - Added `reminder` item to `InsertRegistry.ts` under `"Basics"` group with `reminder-picker` dialog spec.
+  - Updated `InsertItem.ts` with `InsertDialogSpec` extension and `Bell` icon.
+  - Integrated into Slash menu (`/reminder`), Command Palette, and editor header "..." insert menu.
+  - Added unit tests in `InsertRegistry.test.ts` (count updated to 41, all 5 tests passing).
+- CodeMirror 6 Live-Preview Decoration (`reminderExtension.ts`):
+  - Viewport-bounded `ViewPlugin` iterating only over `view.visibleRanges`.
+  - Matches `(@YYYY-MM-DD[ HH:mm[:ss]])` reminder tokens within task list items (`- [ ]`, `- [x]`, etc.).
+  - Code Block & Frontmatter Masking: Ignores tokens inside fenced code blocks (`FencedCode`, `CodeText`), inline code (`InlineCode`), and YAML frontmatter (`^---\n...\n---`).
+  - Cursor Gating: When the cursor or selection intersects `[from, to]`, the raw markdown token reappears seamlessly for editing.
+  - Human-friendly relative and absolute formatting (`reminderFormat.ts`): "Today at 2:30 PM", "Tomorrow at 9:00 AM", "Yesterday (overdue)", "Oct 25".
+  - Status Indicators: `.cm-reminder-overdue` (error background/border/text) and `.cm-reminder-done` (dimmed text for completed tasks).
+  - CodeMirror theme extension (`reminderTheme.ts`) applying exclusively public design tokens.
+- In-Place Token Rewriting & Undo/Redo Integration:
+  - Clicking the reminder chip dispatches `onReminderClick` to open lazy-loaded `ReminderEditModal`.
+  - Token editing/removal modifies document via `view.dispatch({ changes: { from, to, insert: newText } })`.
+  - Native CodeMirror history integration guarantees complete undo/redo support across inserts, edits, and deletions.
+- Performance Benchmark (5,000-Line Note with 200 Reminders):
+  - Keystroke latency before reminderExtension: 0.344 ms/keystroke (34.41 ms total for 100 keystrokes).
+  - Keystroke latency after reminderExtension: 0.402 ms/keystroke (40.18 ms total for 100 keystrokes).
+  - Overhead: +0.058 ms/keystroke overhead.
+- Verification & Test Coverage:
+  - `reminderBenchmark.test.ts`: Measures typing latency overhead on 5k lines / 200 reminders.
+  - `reminderEditorIntegration.test.ts`: Verifies insert, edit, remove on disk and undo/redo cycles.
+  - `reminderExtension.test.ts`: Verifies relative/absolute labels, overdue styling, done tasks, code/frontmatter masking, cursor gating, and click handling.
+  - `ReminderDatePicker.test.tsx` and `ReminderEditModal.test.tsx`: Component rendering, preset clicks, and change callbacks.
+  - All 33 test suites (219 tests) in `@app/editor` and desktop reminder tests pass with 0 ESLint errors.
 
 ### 2026-10-13 — Reminders Phase 2 — Rust Scheduler, Device-Local Notifications, and Adversarial Verification
 - Evaluated `tauri-plugin-notification`:

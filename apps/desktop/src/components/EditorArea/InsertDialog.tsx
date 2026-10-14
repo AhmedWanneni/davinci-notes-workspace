@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@app/design-system";
-import type {
-  InsertDialogInput,
-  InsertDialogRequest,
-} from "@app/editor";
+import type { InsertDialogInput, InsertDialogRequest } from "@app/editor";
 import styles from "./InsertDialog.module.scss";
 import { InsertNotePicker } from "./InsertNotePicker";
+import { ReminderDatePicker } from "./ReminderDatePicker";
 
 export interface InsertDialogProps {
   request: InsertDialogRequest | null;
@@ -47,12 +45,22 @@ export function InsertDialog({
 
   if (dialogSpec.kind === "note-picker") {
     return (
-      <Dialog open={Boolean(request)} onOpenChange={(open) => !open && onCancel()}>
-        <DialogContent className={styles["insert-dialog-root"]} showCloseButton={false}>
+      <Dialog
+        open={Boolean(request)}
+        onOpenChange={(open) => !open && onCancel()}
+      >
+        <DialogContent
+          className={styles["insert-dialog-root"]}
+          showCloseButton={false}
+        >
           <div className={styles["insert-dialog-header"]}>
-            <h2 className={styles["insert-dialog-title"]}>{dialogSpec.title}</h2>
+            <h2 className={styles["insert-dialog-title"]}>
+              {dialogSpec.title}
+            </h2>
             {dialogSpec.description && (
-              <p className={styles["insert-dialog-description"]}>{dialogSpec.description}</p>
+              <p className={styles["insert-dialog-description"]}>
+                {dialogSpec.description}
+              </p>
             )}
           </div>
           <div className={styles["insert-dialog-body"]}>
@@ -62,12 +70,26 @@ export function InsertDialog({
             />
           </div>
           <div className={styles["insert-dialog-footer"]}>
-            <button type="button" className={styles["insert-dialog-btn-cancel"]} onClick={onCancel}>
+            <button
+              type="button"
+              className={styles["insert-dialog-btn-cancel"]}
+              onClick={onCancel}
+            >
               Cancel
             </button>
           </div>
         </DialogContent>
       </Dialog>
+    );
+  }
+
+  if (dialogSpec.kind === "reminder-picker") {
+    return (
+      <ReminderDatePicker
+        open={Boolean(request)}
+        onConfirm={({ date, time }) => onConfirm({ date, time })}
+        onCancel={onCancel}
+      />
     );
   }
 
@@ -108,7 +130,8 @@ export function InsertDialog({
         setLocalPath(chosenPath);
       }
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to import image.";
+      const message =
+        err instanceof Error ? err.message : "Failed to import image.";
       setError(message);
     } finally {
       setIsPicking(false);

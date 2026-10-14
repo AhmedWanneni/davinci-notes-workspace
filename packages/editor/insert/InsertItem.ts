@@ -1,15 +1,11 @@
 export type InsertGroup =
-  | "Basics"
-  | "Links"
-  | "Code and data"
-  | "HTML"
-  | "Media"
-  | "Diagrams";
+  "Basics" | "Links" | "Code and data" | "HTML" | "Media" | "Diagrams";
 
 export type DiagramSubgroup =
   "Flow and structure" | "Time and planning" | "Data and charts" | "Frameworks";
 
 export type InsertIconName =
+  | "Bell"
   | "Code"
   | "Function"
   | "Graph"
@@ -34,13 +30,15 @@ export interface InsertDialogInput {
   path?: string;
   target?: string;
   heading?: string;
+  date?: string;
+  time?: string;
   [key: string]: unknown;
 }
 
 export interface InsertDialogSpec {
   title: string;
   description?: string;
-  kind: "media-url" | "image-sources" | "note-picker";
+  kind: "media-url" | "image-sources" | "note-picker" | "reminder-picker";
   placeholder?: string;
   confirmLabel?: string;
   validate?: (input: InsertDialogInput) => string | null;

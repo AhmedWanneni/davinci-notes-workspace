@@ -36,10 +36,16 @@ const LazyInsertMenu = lazy(() =>
 const LazyInsertDialog = lazy(() =>
   import("./InsertDialog").then((m) => ({ default: m.InsertDialog })),
 );
+const LazyReminderEditModal = lazy(() =>
+  import("./ReminderEditModal").then((m) => ({
+    default: m.ReminderEditModal,
+  })),
+);
 import {
   useInsertDialogRequest,
   completeInsertDialog,
   cancelInsertDialog,
+  type ReminderClickInfo,
 } from "@app/editor";
 
 export interface EditorAreaProps {
@@ -77,8 +83,12 @@ export function EditorArea({
   const editorViewRef = useRef<EditorView | null>(null);
   const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
   const [insertAnchor, setInsertAnchor] = useState<DOMRect | null>(null);
-  const insertSelectionRef = useRef<import("@codemirror/state").EditorSelection | null>(null);
+  const insertSelectionRef = useRef<
+    import("@codemirror/state").EditorSelection | null
+  >(null);
   const insertDialogRequest = useInsertDialogRequest();
+  const [editingReminder, setEditingReminder] =
+    useState<ReminderClickInfo | null>(null);
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
   const attachmentSettings = useWorkspaceStore(
     (state) => state.attachmentSettings,
@@ -228,17 +238,27 @@ export function EditorArea({
                       const view = editorViewRef.current;
                       if (!view) return;
                       insertSelectionRef.current = view.state.selection;
-                      setInsertAnchor(event.currentTarget.getBoundingClientRect());
+                      setInsertAnchor(
+                        event.currentTarget.getBoundingClientRect(),
+                      );
                       setIsInsertMenuOpen(true);
                     }}
                   >
                     <DotsThree size={16} weight="regular" />
                   </button>
-                  {isInsertMenuOpen && insertAnchor && editorViewRef.current && insertSelectionRef.current && (
-                    <Suspense fallback={null}>
-                      <LazyInsertMenu anchor={insertAnchor} selection={insertSelectionRef.current} view={editorViewRef.current} onClose={() => setIsInsertMenuOpen(false)} />
-                    </Suspense>
-                  )}
+                  {isInsertMenuOpen &&
+                    insertAnchor &&
+                    editorViewRef.current &&
+                    insertSelectionRef.current && (
+                      <Suspense fallback={null}>
+                        <LazyInsertMenu
+                          anchor={insertAnchor}
+                          selection={insertSelectionRef.current}
+                          view={editorViewRef.current}
+                          onClose={() => setIsInsertMenuOpen(false)}
+                        />
+                      </Suspense>
+                    )}
                   {insertDialogRequest && (
                     <Suspense fallback={null}>
                       <LazyInsertDialog
@@ -248,6 +268,14 @@ export function EditorArea({
                         }
                         onCancel={() => cancelInsertDialog(insertDialogRequest)}
                         onPickLocalFile={handlePickLocalImage}
+                      />
+                    </Suspense>
+                  )}
+                  {editingReminder && (
+                    <Suspense fallback={null}>
+                      <LazyReminderEditModal
+                        reminder={editingReminder}
+                        onClose={() => setEditingReminder(null)}
                       />
                     </Suspense>
                   )}
@@ -280,6 +308,7 @@ export function EditorArea({
                 sourcePath={activeNotePath}
                 onLinkClick={onLinkClick}
                 onTagClick={onTagClick}
+                onReminderClick={setEditingReminder}
                 onPasteAttachment={handlePasteAttachment}
                 onAttachmentError={handleAttachmentError}
                 resolveMediaUrl={handleResolveMediaUrl}

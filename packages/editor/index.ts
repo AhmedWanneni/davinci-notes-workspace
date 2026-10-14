@@ -89,7 +89,10 @@ export {
   markdownAnnotationTheme,
   readOnlyMarkdownAnnotationTheme,
 } from "./theme/markdownAnnotationTheme";
-export { insertTableCommand, tableExtension } from "./blocks/table/tableExtension";
+export {
+  insertTableCommand,
+  tableExtension,
+} from "./blocks/table/tableExtension";
 export type { TableExtensionOptions } from "./blocks/table/tableExtension";
 export { readOnlyTableTheme, tableTheme } from "./blocks/table/tableTheme";
 export { codeBlockLayoutTheme } from "./blocks/code/codeBlockLayoutTheme";
@@ -111,7 +114,10 @@ export {
   parseImageDimensions,
   sanitizeImageUrl,
 } from "./embeds/imageExtension";
-export type { ImageDimensions, ImageExtensionOptions } from "./embeds/imageExtension";
+export type {
+  ImageDimensions,
+  ImageExtensionOptions,
+} from "./embeds/imageExtension";
 export { embedImageExtension } from "./embeds/embedImageExtension";
 export type { EmbedImageExtensionOptions } from "./embeds/embedImageExtension";
 export {
@@ -128,10 +134,25 @@ export {
 } from "./embeds/tweetEmbed";
 export { listExtension, listIndentKeymap } from "./live-preview/listExtension";
 export type { ListExtensionOptions } from "./live-preview/listExtension";
-export { highlightExtension, highlightTag } from "./live-preview/highlightExtension";
+export {
+  highlightExtension,
+  highlightTag,
+} from "./live-preview/highlightExtension";
 export { tagExtension } from "./live-preview/tagExtension";
 export type { TagExtensionOptions } from "./live-preview/tagExtension";
 export { tagTheme } from "./theme/tagTheme";
+export {
+  reminderExtension,
+  ReminderWidget,
+  formatReminderChip,
+} from "./live-preview";
+export type {
+  ReminderExtensionOptions,
+  ReminderClickInfo,
+  ReminderWidgetOptions,
+  FormattedReminder,
+} from "./live-preview";
+export { reminderTheme } from "./theme";
 export { htmlBlockExtension } from "./blocks/html/htmlBlockExtension";
 export { htmlBlockTheme } from "./blocks/html/htmlBlockTheme";
 export { htmlInlineExtension } from "./blocks/html/htmlInlineExtension";
@@ -150,4 +171,3 @@ export {
 export type { NoteEmbedOptions } from "./embeds";
 export { Strikethrough } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";
-
