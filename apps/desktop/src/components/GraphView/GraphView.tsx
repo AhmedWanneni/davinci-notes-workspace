@@ -101,6 +101,14 @@ export const GraphView: React.FC<GraphViewProps> = ({
             description="This note isn't linked to any others yet."
           />
         </div>
+      ) : nodes.length === 0 && mode === "global" ? (
+        <div className="graph-view__empty">
+          <EmptyState
+            icon={<ShareNetwork size={32} weight="regular" />}
+            title="Empty Graph"
+            description="No notes found in this vault."
+          />
+        </div>
       ) : (
         <GraphRenderer
           nodes={nodes}

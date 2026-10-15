@@ -56,7 +56,7 @@ export function StatusBar({
   );
 
   return (
-    <footer className="status-bar" role="status" aria-label="Status bar">
+    <>
       <div className="status-bar__left">
         {aiCloudEnabled && (
           <React.Suspense fallback={null}>
@@ -97,7 +97,6 @@ export function StatusBar({
           </div>
         )
       ) : null}
-    </footer>
+    </>
   );
 }
-

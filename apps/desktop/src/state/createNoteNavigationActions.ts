@@ -151,6 +151,7 @@ export function createNoteNavigationActions(
         notesContent: {},
         dirtyNotes: new Set(),
         conflictNotes: new Map(),
+        isGlobalGraphOpen: false,
       });
     },
   };

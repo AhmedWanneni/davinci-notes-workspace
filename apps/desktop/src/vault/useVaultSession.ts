@@ -14,7 +14,10 @@ export function useVaultSession() {
   const [log, setLog] = useState<string[]>([]);
   const [isLoadingVault, setIsLoadingVault] = useState(false);
   const [vaultError, setVaultError] = useState<string | null>(null);
-  const [graph, setGraph] = useState<GraphIndex | null>(null);
+  const graph = useWorkspaceStore((state) => state.graph);
+  const setGraph = useCallback((nextGraph: GraphIndex) => {
+    useWorkspaceStore.setState({ graph: nextGraph });
+  }, []);
 
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
   const setVaultPath = useWorkspaceStore((state) => state.setVaultPath);
