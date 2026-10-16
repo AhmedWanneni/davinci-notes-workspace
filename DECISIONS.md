@@ -16,7 +16,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 
 | ADR | Decision | Status |
 |---|---|---|
-| [0001](adr/0001-use-tauri-v2-not-electron.md) | App shell: Tauri v2, not Electron (desktop + mobile, ~8 MB) | Accepted |
+| [0001](adr/0001-use-tauri-v2-not-electron.md) | App shell: Tauri v2, not Electron (desktop + mobile, ~8 MB) | Superseded by [0185](adr/0185-mobile-shell-expo.md) |
 | [0002](adr/0002-use-react-and-typescript.md) | Frontend: React + TypeScript | Accepted |
 | [0003](adr/0003-use-codemirror-6-not-prosemirror.md) | Editor: CodeMirror 6, not ProseMirror/Tiptap | Accepted |
 | [0004](adr/0004-store-notes-as-plain-markdown-files.md) | Notes are plain `.md` files, not a database | Accepted |
@@ -160,6 +160,8 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0012](adr/0012-mobile-app-sandboxed-storage.md) | Mobile storage app-sandboxed; changes via sync client | Accepted |
 | [0013](adr/0013-mobile-stack-navigation.md) | Mobile navigation stack-based, not multi-pane | Accepted |
 | [0014](adr/0014-mobile-graph-view-deferred.md) | Mobile graph view deferred; backlinks-only for v1 | Accepted |
+| [0185](adr/0185-mobile-shell-expo.md) | Mobile shell: Expo (React Native + Expo Router), CodeMirror 6 in DOM component | Accepted |
+| [0186](adr/0186-shared-tokens-per-platform-components.md) | Shared tokens, per-platform components; Radix/SCSS desktop-only | Accepted |
 
 ## Design System & Tooling
 
