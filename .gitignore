@@ -29,6 +29,8 @@ out/
 # Style Dictionary token output is committed — see section 9.
 !packages/design-system/tokens/dist/
 !packages/design-system/tokens/dist/**
+!packages/design-tokens/dist/
+!packages/design-tokens/dist/**
 
 # -----------------------------------------------------------------------------
 # 3. TAURI / RUST

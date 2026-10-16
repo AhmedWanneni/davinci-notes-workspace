@@ -16,6 +16,7 @@
   "dependencies": {
     "@app/attachments": "workspace:*",
     "@app/core-types": "workspace:*",
+    "@app/design-tokens": "workspace:*",
     "@app/editor": "workspace:*",
     "@app/indexer": "workspace:*",
     "@app/sync-client": "workspace:*",

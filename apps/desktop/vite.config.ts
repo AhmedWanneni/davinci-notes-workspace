@@ -62,6 +62,10 @@ export default defineConfig({
         replacement: path.join(repoRoot, "packages/design-system/index.ts"),
       },
       {
+        find: "@app/design-tokens",
+        replacement: path.join(repoRoot, "packages/design-tokens"),
+      },
+      {
         find: "@app/core-types",
         replacement: path.join(repoRoot, "packages/core-types/index.ts"),
       },

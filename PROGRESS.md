@@ -4,6 +4,37 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Design Tokens — Single Source of Truth (`@app/design-tokens`) (complete)**
+Created `packages/design-tokens` as the shared single source of truth for colors, spacing, radii, borders, type scale, z-index, and motion across desktop and mobile:
+1. **Token Architecture & Model (`packages/design-tokens`)**:
+   - Strictly pure TS/JSON definitions without DOM, Node, React Native, or Tauri imports in runtime/model files.
+   - Preserved all current desktop token values exactly as they are without renaming, rebalancing, or alterations.
+   - Dedicated `mobile` namespace for platform-specific tokens: `minTouchTarget: 44`, safe-area handling constants (`headerHeight: 44`, `bottomBarHeight: 48`), mobile body font size/line-height (`16px`/`1.4`), bottom-sheet radius (`16px`), and press-state colors (hover, active, ripple, overlay). Mobile tokens strictly excluded from desktop CSS/SCSS outputs.
+2. **Generator Pipeline (`scripts/generate.mjs`)**:
+   - Produces SCSS variables (`dist/scss/_variables.scss`) and CSS variables (`dist/css/variables.css`) consumed by `@app/design-system`.
+   - Produces Tailwind preset (`dist/tailwind/preset.js` and `.cjs`) for NativeWind in `apps/mobile`.
+   - Produces webview CSS injection string (`dist/webview/index.js` and `editorVariables.css`) for the mobile CodeMirror 6 DOM component.
+   - Produces typed mobile tokens bundle (`dist/mobile/index.js`) containing all desktop color tokens plus the mobile namespace.
+3. **Design System Integration (`@app/design-system`)**:
+   - Added `@app/design-tokens` workspace dependency.
+   - Updated `styles/_mixins.scss` and `styles/_global.scss` to import from `@app/design-tokens/dist/`.
+   - Mirrored build outputs to maintain backward compatibility with external scripts (`scripts/check-public-tokens.mjs`).
+   - Public API of `@app/design-system` completely unchanged.
+4. **Turborepo Caching**:
+   - Integrated into Turborepo pipeline (`pnpm turbo run build --filter=@app/design-tokens`).
+   - Cold run: 514 ms (`0 cached, 1 total`).
+   - Warm run: 23 ms (`1 cached, 1 total, FULL TURBO`).
+5. **Verification & Parity**:
+   - Desktop CSS diff before vs after: zero differences across rules, properties, and values (normalized CSS module hashes produce an empty diff).
+   - Bundle size delta: exactly 0 bytes (baseline 213,533 bytes vs new build 213,533 bytes).
+   - Automated token check (`src/tokens.test.ts`): verified 100% of desktop color tokens are present in mobile outputs, and mobile tokens do not appear in desktop stylesheets.
+   - Storybook build succeeds; all properties match baseline.
+   - All tests pass: 4/4 design-tokens tests, 40/40 design-system tests, 6/6 mobile tests, and 477/477 desktop tests. All files strictly adhere to AGENTS.md line caps (<250 lines).
+
+**Next:** Mobile vault storage adapter & background synchronization.
+
+---
+
 **Mobile Shell: Expo Architecture Decisions & Monorepo Wiring (complete, ADR-0185, ADR-0186)**
 Established the Expo mobile application shell, recorded ADR-0185 and ADR-0186, wired Metro and boundary linting, and eliminated editor circular dependencies:
 1. **Architectural Decisions (`ADR-0185`, `ADR-0186`)**:

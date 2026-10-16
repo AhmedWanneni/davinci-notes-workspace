@@ -17,6 +17,7 @@ module.exports = {
     "boundaries/ignore": ["**/*.scss", "**/*.css", "**/*.json", "**/*.sql"],
     "boundaries/elements": [
       { type: "core-types", pattern: "packages/core-types/**/*", mode: "full" },
+      { type: "design-tokens", pattern: "packages/design-tokens/**/*", mode: "full" },
       { type: "design-system", pattern: "packages/design-system/**/*", mode: "full" },
       { type: "canvas", pattern: "packages/canvas/**/*", mode: "full" },
       { type: "editor", pattern: "packages/editor/**/*", mode: "full" },
@@ -41,9 +42,10 @@ module.exports = {
         default: "disallow",
         rules: [
           { from: "core-types", allow: ["core-types"] },
+          { from: "design-tokens", allow: ["design-tokens"] },
           { from: "indexer", allow: ["core-types", "indexer"] },
           { from: "sync-client", allow: ["core-types", "sync-client"] },
-          { from: "design-system", allow: ["core-types", "design-system"] },
+          { from: "design-system", allow: ["core-types", "design-tokens", "design-system"] },
           { from: "canvas", allow: ["core-types", "design-system", "editor", "canvas"] },
           { from: "editor", allow: ["core-types", "indexer", "editor", "attachments", "sanitize"] },
           { from: "attachments", allow: ["attachments"] },
@@ -57,6 +59,7 @@ module.exports = {
             from: "app-desktop",
             allow: [
               "core-types",
+              "design-tokens",
               "design-system",
               "indexer",
               "sync-client",
@@ -76,6 +79,7 @@ module.exports = {
             from: "app-mobile",
             allow: [
               "core-types",
+              "design-tokens",
               "indexer",
               "sync-client",
               "editor",
