@@ -27,7 +27,10 @@ module.exports = {
       { type: "theme-api", pattern: "packages/theme-api/**/*", mode: "full" },
       { type: "ai-api", pattern: "packages/ai-api/**/*", mode: "full" },
       { type: "ai-runtime", pattern: "packages/ai-runtime/**/*", mode: "full" },
-      { type: "app", pattern: "apps/**/*", mode: "full" },
+      { type: "attachments", pattern: "packages/attachments/**/*", mode: "full" },
+      { type: "sanitize", pattern: "packages/sanitize/**/*", mode: "full" },
+      { type: "app-desktop", pattern: "apps/desktop/**/*", mode: "full" },
+      { type: "app-mobile", pattern: "apps/mobile/**/*", mode: "full" },
       { type: "service", pattern: "services/**/*", mode: "full" }
     ]
   },
@@ -42,13 +45,51 @@ module.exports = {
           { from: "sync-client", allow: ["core-types", "sync-client"] },
           { from: "design-system", allow: ["core-types", "design-system"] },
           { from: "canvas", allow: ["core-types", "design-system", "editor", "canvas"] },
-          { from: "editor", allow: ["core-types", "indexer", "editor"] },
+          { from: "editor", allow: ["core-types", "indexer", "editor", "attachments", "sanitize"] },
+          { from: "attachments", allow: ["attachments"] },
+          { from: "sanitize", allow: ["sanitize"] },
           { from: "plugin-api", allow: ["core-types", "plugin-api"] },
           { from: "plugin-runtime", allow: ["core-types", "plugin-api", "plugin-runtime"] },
           { from: "theme-api", allow: ["theme-api"] },
           { from: "ai-api", allow: ["ai-api"] },
           { from: "ai-runtime", allow: ["ai-api", "ai-runtime"] },
-          { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "plugin-api", "plugin-runtime", "theme-api", "ai-api", "ai-runtime", "app"] },
+          {
+            from: "app-desktop",
+            allow: [
+              "core-types",
+              "design-system",
+              "indexer",
+              "sync-client",
+              "editor",
+              "canvas",
+              "plugin-api",
+              "plugin-runtime",
+              "theme-api",
+              "ai-api",
+              "ai-runtime",
+              "attachments",
+              "sanitize",
+              "app-desktop"
+            ]
+          },
+          {
+            from: "app-mobile",
+            allow: [
+              "core-types",
+              "indexer",
+              "sync-client",
+              "editor",
+              "canvas",
+              "plugin-api",
+              "plugin-runtime",
+              "theme-api",
+              "ai-api",
+              "ai-runtime",
+              "attachments",
+              "sanitize",
+              "app-mobile"
+            ]
+          },
           { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }
         ]
       }
@@ -64,7 +105,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["packages/editor/**/*.{ts,tsx}"],
+      files: ["packages/editor/**/*.{ts,tsx}", "apps/mobile/**/*.{ts,tsx}"],
       rules: { "boundaries/no-private": "off" }
     },
     {

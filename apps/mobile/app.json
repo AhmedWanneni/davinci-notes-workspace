@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "DaVinci Notes",
+    "slug": "davinci-notes",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "davinci",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.davinci.notes"
+    },
+    "android": {
+      "package": "com.davinci.notes"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}

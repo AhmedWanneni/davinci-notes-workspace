@@ -4,6 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Mobile Shell: Expo Architecture Decisions & Monorepo Wiring (complete, ADR-0185, ADR-0186)**
+Established the Expo mobile application shell, recorded ADR-0185 and ADR-0186, wired Metro and boundary linting, and eliminated editor circular dependencies:
+1. **Architectural Decisions (`ADR-0185`, `ADR-0186`)**:
+   - `ADR-0185`: Mobile shell uses Expo (React Native + Expo Router) in `apps/mobile`, with CodeMirror 6 hosted in an Expo DOM component (`"use dom"`). Supersedes mobile shell decision in ADR-0001 (desktop remains Tauri v2). Records `GO-WITH-FIXES` spike result, alternatives considered (Tauri mobile, Swift/Kotlin, pure native text), bridge traffic metrics (122 B debounced payload vs 260 KB document), and fallback editor architecture (headless CM6 state engine).
+   - `ADR-0186`: Design tokens (`packages/design-system/tokens`) are the shared single source of truth; components are implemented per platform. Radix UI, CUBE CSS, and SCSS modules remain desktop-only.
+   - Indexed both ADRs in `DECISIONS.md` under `## Mobile` and updated `ADR-0001` status.
+2. **Monorepo & Metro Wiring (`apps/mobile`)**:
+   - Integrated `apps/mobile` into pnpm workspace and Turborepo pipeline (`start`, `android`, `ios`, `web`, `build`, `lint`, `test`, `typecheck`).
+   - Configured `metro.config.js` with `watchFolders = [monorepoRoot]`, `nodeModulesPaths = [mobile, root]`, and `unstable_enablePackageExports = true` for seamless workspace package consumption without hoisting conflicts.
+   - Reused editor components from throwaway spike into `apps/mobile` (`EditorDom.tsx`, `FormattingToolbar.tsx`, `bridgeProtocol.ts`, `viewportHandler.ts`, `iosFocusWorkaround.ts`, `testNotes.ts`, `mobileEditor.test.ts`), and cleanly deleted `apps/mobile-spike`.
+3. **Boundary Lint Enforcement (`eslint-plugin-boundaries`)**:
+   - Configured boundaries: `apps/mobile` may import `packages/*` (`@app/core-types`, `@app/indexer`, `@app/sync-client`, `@app/attachments`, `@app/editor`); `packages/*` cannot import `apps/*`.
+   - `apps/mobile` is strictly forbidden from importing `apps/desktop` or `@app/design-system` (web). Deliberate violation test verified failure: `boundaries/element-types` error for both dependencies.
+4. **Circular Dependency Fix (`madge`)**:
+   - Eliminated the barrel circular import between `packages/editor/blocks/html` and `packages/editor/embeds` by importing directly from leaf files (`tweetCard.ts`, `tweetEmbed.ts`, `youtubeEmbed.ts`, `htmlBlockExtension.ts`, `htmlInlineExtension.ts`).
+   - Verified 0 circular dependencies across all 120 files of shared packages used by mobile (`npx madge --circular`).
+5. **Verification**:
+   - Shared package import (`@app/core-types` and `@app/indexer`) verified in `apps/mobile/app/index.tsx`.
+   - `pnpm --filter @app/mobile test` passes (6/6 tests).
+   - `pnpm --filter @app/mobile typecheck` and `lint` pass with 0 errors.
+   - Desktop web build passes (`pnpm --filter @app/desktop run build:web` in 7.95s).
+   - Desktop test suite verified with 121/122 test suites (476/477 tests) passing.
+
+**Next:** Mobile vault storage adapter & background synchronization.
+
+---
+
+
 **Reminders Phase 5 — Recurrence Syntax, Due-Date Roll-Forward, and Calendar Invariance (complete)**
 Implemented recurrence parsing, recurrence-aware live-preview chips, in-place due-date roll-forward, and recorded ADR-0184:
 1. **Recurrence Syntax & Specification (`ADR-0184`)**:

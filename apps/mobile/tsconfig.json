@@ -1,9 +1,15 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "include": [
-    "."
+    "**/*",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
   ]
 }
