@@ -14,10 +14,8 @@ import { tableExtension } from "../blocks/table";
 import { mermaidExtension } from "../blocks/mermaid";
 import { mathExtension } from "../blocks/math";
 import { imageExtension } from "./imageExtension";
-import {
-  htmlBlockExtension,
-  htmlInlineExtension,
-} from "../blocks/html";
+import { htmlBlockExtension } from "../blocks/html/htmlBlockExtension";
+import { htmlInlineExtension } from "../blocks/html/htmlInlineExtension";
 import type { NoteEmbedOptions } from "./noteEmbedTypes";
 
 export function createReadOnlyEmbedView(

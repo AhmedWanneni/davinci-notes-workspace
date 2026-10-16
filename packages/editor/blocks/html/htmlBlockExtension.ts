@@ -1,7 +1,9 @@
 import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import { EditorState, StateField } from "@codemirror/state";
 import { sanitizeHtml } from "@app/sanitize";
-import { mountTweetCard, tweetImageToStatusUrl, youtubeEmbedVideoId, youtubeImageToIframe, youtubeThumbnailUrl } from "../../embeds";
+import { mountTweetCard } from "../../embeds/tweetCard";
+import { tweetImageToStatusUrl } from "../../embeds/tweetEmbed";
+import { youtubeEmbedVideoId, youtubeImageToIframe, youtubeThumbnailUrl } from "../../embeds/youtubeEmbed";
 
 export interface HtmlBlock {
   from: number;
