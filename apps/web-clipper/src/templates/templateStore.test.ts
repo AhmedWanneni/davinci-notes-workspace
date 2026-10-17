@@ -4,6 +4,7 @@ import {
   type ClipTemplate,
 } from "@app/clipper-core";
 import { describe, expect, it } from "vitest";
+import type { StorageArea } from "../storage/storageArea";
 import { matchTemplate } from "./matchTemplate";
 import {
   TEMPLATES_KEY,
@@ -12,7 +13,6 @@ import {
   loadTemplates,
   saveTemplates,
   templatesFromStorageValue,
-  type StorageArea,
 } from "./templateStore";
 
 function memoryStorage(initial: Record<string, unknown> = {}): StorageArea & {

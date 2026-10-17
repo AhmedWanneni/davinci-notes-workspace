@@ -4,6 +4,7 @@ import {
   validateClipTemplate,
   type ClipTemplate,
 } from "@app/clipper-core";
+import type { StorageArea } from "../storage/storageArea";
 
 /**
  * Template persistence.
@@ -12,12 +13,6 @@ import {
  * way out: a corrupted storage entry must never reach the renderer.
  */
 export const TEMPLATES_KEY = "clipper.templates";
-
-/** The minimal slice of `browser.storage.local` this module needs. */
-export interface StorageArea {
-  get(keys: string | string[] | null): Promise<Record<string, unknown>>;
-  set(items: Record<string, unknown>): Promise<void>;
-}
 
 export function defaultTemplates(): ClipTemplate[] {
   return STARTER_TEMPLATES.map((template) => ({ ...template }));
