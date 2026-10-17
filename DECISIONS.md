@@ -246,13 +246,16 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 ## Web Clipper (planned)
 
 Draft ADRs for the Web Clipper feature. All are **Proposed** — they need owner
-input on the open decisions before implementation. Plan:
-`web-clipper-feature-plan.md`. See ADR-0173 ("Open decisions") for the list.
+input on the open decisions before implementation is considered settled. Phase 1
+(`packages/clipper-core`) and Phase 2a (the `apps/web-clipper` capture → payload
+pipeline) are already implemented against these drafts; none is accepted until the
+owner answers the open decisions. Plan: `web-clipper-feature-plan.md`. See
+ADR-0173 ("Open decisions") for the list.
 
 | ADR | Decision | Status |
 |---|---|---|
 | [0173](adr/0173-clipper-transport-extension-to-desktop.md) | Clipper transport: deep-link wake/handshake only, clip payload over loopback with a per-install keychain token (loopback-only bind, Origin/Host checks, size cap); Native Messaging deferred | Proposed |
-| [0174](adr/0174-clipper-content-extraction-and-markdown-libraries.md) | Content extraction + HTML→Markdown: use Defuddle (MIT, ~86 KB gzip) with `useAsync:false`; Readability+Turndown (~17 KB gzip) is the documented fallback | Proposed |
+| [0174](adr/0174-clipper-content-extraction-and-markdown-libraries.md) | Content extraction + HTML→Markdown: Defuddle **core** (MIT, `useAsync:false`, synchronous `parse()`) + Turndown/turndown-plugin-gfm — measured 99.6 KB gzip vs 218 KB for `defuddle/full`, because core has no Markdown converter; Readability+Turndown (~16 KB gzip) is the fallback | Proposed |
 | [0175](adr/0175-clipper-extension-framework-and-core-package.md) | Extension at `apps/web-clipper` built with WXT (MV3, Chromium first); shared pure-TS `packages/clipper-core`; new `clipper-core`/`web-clipper` boundaries elements | Proposed |
 | [0176](adr/0176-clipper-template-engine-execution-split.md) | Template engine split: extension resolves page variables and renders body/properties; desktop resolves vault context, behavior and paths; templates are data only (no eval); one `ClipPayload` schema | Proposed |
 | [0177](adr/0177-clipper-vault-write-path.md) | Clipped notes write through the canonical vault write path — Rust authenticates/validates then the main webview calls `createNoteInVault`/`appendToNoteInVault`; no extension-side or Rust-side direct write | Proposed |

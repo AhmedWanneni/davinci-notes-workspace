@@ -3270,3 +3270,110 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - **Not done (explicitly)**: no `apps/web-clipper`, no `packages/clipper-core`, no
   Rust receiver code, no dependency installs. Nothing was marked Accepted;
   no accepted ADR was edited.
+
+### 2026-10-17: Web Clipper Phase 2a — extension pipeline producing real Markdown
+
+- **Scope**: `apps/web-clipper` Phase 2a only — capture, extraction, page
+  variables, template matching, payload building, note-file composition and
+  download. Phase 1 (`packages/clipper-core`, template engine + filters + safe
+  names + starter templates, 59 tests) was the previous commit. One commit, one
+  concern.
+- **Architecture change from the plan (§2)**: the plan specified a content
+  script. This phase uses **no content script**. The popup calls
+  `browser.scripting.executeScript({ target, func: readPage })`, which needs only
+  `activeTab` + `scripting`, and parses the returned HTML with `DOMParser` in the
+  popup. `host_permissions` stays `[]` and nothing is injected until the user
+  invokes the clipper. Manifest permissions: `activeTab, scripting, storage,
+  contextMenus, downloads`. `minimum_chrome_version` raised to `"127"` because
+  `chrome.action.openPopup()` only left developer preview there; declaring 116
+  would advertise a capability the extension does not have.
+- **Libraries and measured cost**. The ADR-0174 premise was re-tested and turned
+  out to be wrong for the installed version. `defuddle/dist/index.js` (core) has
+  **no** `contentMarkdown` and **no** `separateMarkdown` — both exist only in
+  `index.full.js`. Measured with esbuild (`--bundle --minify --format=esm
+  --platform=browser`) and `gzip -9`: core 332,378 B raw / 97,372 B gzip; `full`
+  764,343 B raw / 218,493 B gzip; core + `turndown` + `turndown-plugin-gfm`
+  345,614 B raw / 101,914 B gzip. Real `wxt build` output: popup chunk 350,180 B
+  raw / **99,576 B gzip**, background 970 B / 507 B gzip, manifest 545 B.
+  ADR-0174 was amended (it is still `Proposed`, so amending is allowed): the
+  decision moved from Option A (full Defuddle, the original recommendation) to
+  **Option C (core Defuddle + Turndown)**, saving ~114 KB gzip, with the earlier
+  gating condition now verified. `DECISIONS.md` row and `PROGRESS.md` updated to
+  the measured figure; O2 restated as ~100 KB gzip vs ~16 KB gzip for the
+  Readability fallback.
+- **Math and callouts recovered without the full bundle**. Core still annotates
+  MathML with `data-latex` and normalises `.admonition` into a
+  `data-callout`/`.callout` tree — verified by reading the real output, e.g.
+  `<math xmlns="…MathML" display="inline" data-latex="x+1">` and
+  `<div data-callout="warning" class="callout"><div class="callout-title"><div
+  class="callout-title-inner">Careful</div></div><p>Admonition body.</p></div>`.
+  Two Turndown rules in `src/extraction/htmlToMarkdown.ts` therefore produce
+  `$x+1$` / `$$\na=2\n$$` and `> [!warning] Careful`, and an end-to-end test
+  asserts those exact strings from real Defuddle output, so a Defuddle upgrade
+  that changes the markup fails in CI instead of silently degrading notes.
+- **Real bugs the tests found** (each fixed, not worked around):
+  1. **Relative URLs resolved against the extension origin.** A document produced
+     by `DOMParser` in the popup has `baseURI === chrome-extension://…`, so
+     `selector:img.hero?src` and `og:image` yielded extension-relative URLs that
+     would have been written into notes as broken links. Fixed by
+     `src/page/parsePageHtml.ts` (injects `<base href="<page url>">` before
+     parsing) plus `src/page/resolveUrl.ts`, applied to URL-valued attributes and
+     to the `image`/`favicon` presets.
+  2. **Callout separator space lost.** `> [!warning]Careful` was produced whenever
+     a callout had a title but no fold marker. Fixed; both folded and unfolded
+     shapes are now pinned.
+  3. **Turndown drops blank elements before consulting custom rules**, which
+     silently discarded `<math data-latex="…"></math>` with no children.
+     `seedBlankMath()` seeds the text content, guarded by an
+     `html.includes("data-latex")` check so the common path skips the extra parse.
+  4. **`schema:@Type` auto-apply matched nested JSON-LD.** A regex over
+     `@type` collected nested nodes, so an article whose `author` is a `Person`
+     would fire every `schema:@Person` template. Auto-apply now uses
+     `readSchemaOrg`'s top-level/`@graph` indexing, which deliberately does not
+     recurse into nested objects.
+  5. **`turndown-plugin-gfm` emits `-   item`** (three spaces). Tidied to
+     `- item` by a documented regex that preserves the leading indentation of
+     nested lines, so nesting still renders.
+  6. `turndown-plugin-gfm` ships no types and has no `@types` package (the install
+     attempt failed against the registry), so `types/turndown-plugin-gfm.d.ts`
+     declares only the five exports used, and `tsconfig.json` includes `types/**`.
+- **Boundaries/lint**: `apps/web-clipper/.eslintrc.cjs` extends the root config.
+  `boundaries/no-private` was turned off for this app's own files: `web-clipper`
+  is an element nested inside the broader `app` element, so intra-app imports
+  were reported as another element's privates. The meaningful boundary — the
+  extension may import only `@app/clipper-core` (and later
+  `@app/design-system`) — is still enforced by `boundaries/element-types`. This
+  mirrors the root config's existing targeted override for test files.
+- **Repo hygiene**: `.gitignore` now ignores `**/.wxt/` and `**/.output/` (WXT
+  generates both; neither matched the existing `dist/`, `build/`, `out/` rules);
+  `turbo.json` build outputs gained `.output/**`.
+- **Cost of the clip measured and one duplicate removed.** `runClipSession` used
+  to parse the page DOM twice — once to read the Schema.org types for template
+  matching, once inside `buildClipFromPage`. The document is now parsed exactly
+  once and shared (`parsePageHtml` → `schemaTypesOf` → `buildClipFromPage`), which
+  removed ~350 ms from the large-page case. Measured in jsdom (median of 3, pinned
+  by `src/popup/runClipSession.perf.test.ts` with loose bounds because jsdom is
+  several times slower than a browser DOM): 7.6 KB page 24.9 ms, 18.6 KB 30.4 ms,
+  37 KB 44.8 ms, 1.48 MB / 4k-paragraph page 2,781.8 ms. The large-page cost is
+  surfaced rather than hidden: it grows with page size, nothing caps it, and the
+  plan's 2 MiB cap belongs to the Phase 3 transport. Truncating captured HTML
+  would silently degrade extraction quality, so the page-size limit is left as an
+  owner decision instead of being guessed.
+- **Verification**: 51 tests in 9 files pass — `extractArticle` (metadata,
+  Markdown, non-mutation of the caller's document, math/callout recovery),
+  `htmlToMarkdown` (GFM blocks, math, both callout shapes, script/style removal),
+  `pageVariables` (meta, selectors, Schema.org, `schemaTypesOf` top-level-only
+  behaviour, presets, `fullHtml` cap), `buildClipFromPage` (payload shape, schema
+  variables, the injected `markdown` filter, selection mode, highlights mode,
+  hostile-page path safety), `templateStore` + `matchTemplate` (validation,
+  eviction of invalid entries, schema/prefix/regex triggers, first-match-wins),
+  `composeNoteFile` (frontmatter round-trip and injection containment),
+  `downloadNoteFile`, `runClipSession` (auto-apply, fallback, explicit mode
+  override), and the clip-cost bounds. `tsc --noEmit` clean, ESLint clean,
+  `wxt build` succeeds. Largest file 156 lines; every file under the 250 hard cap.
+  A prior failing assertion set (Markdown not produced, script stripping) was
+  resolved by the implementation change rather than by weakening the test.
+- **Not done (explicitly)**: no React popup (Phase 2b), no `@app/design-system` in
+  the extension, no icons, no Storybook config for the app, no desktop receiver,
+  no transport, no Rust code, no queue, no `webextension-polyfill` (Firefox is not
+  a target yet). No ADR was marked Accepted and no accepted ADR was edited.

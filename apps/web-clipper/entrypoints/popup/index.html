@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DaVinci Notes Web Clipper</title>
+  </head>
+  <body>
+    <!--
+      Deliberately unstyled: the design-system popup (design tokens, SCSS modules,
+      Storybook stories) is the Phase 2 UI deliverable. This shell exists so the
+      capture → extract → render → download pipeline is usable and testable
+      end-to-end before that lands.
+    -->
+    <main>
+      <h1>DaVinci Notes Web Clipper</h1>
+      <p data-role="status" role="status">Reading the page…</p>
+      <dl hidden data-role="details">
+        <dt>Template</dt>
+        <dd data-role="template"></dd>
+        <dt>Mode</dt>
+        <dd data-role="mode"></dd>
+        <dt>Note</dt>
+        <dd data-role="note-name"></dd>
+        <dt>Folder</dt>
+        <dd data-role="folder"></dd>
+      </dl>
+      <pre hidden data-role="preview"></pre>
+      <p>
+        <button type="button" data-role="download" disabled>Download .md</button>
+        <button type="button" data-role="send" disabled>
+          Add to DaVinci Notes
+        </button>
+      </p>
+      <p data-role="transport-note">
+        Sending to the desktop arrives with the transport phase.
+      </p>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

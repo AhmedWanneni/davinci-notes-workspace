@@ -2,10 +2,15 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). Draft only; no code.
+Proposed — still needs the owner's decision on the cost (see "Open decisions").
+The extraction path was implemented in Phase 2a, so the figures below are now
+measured rather than estimated. Not accepted; no accepted ADR was edited.
 
-Sizes below are from bundlephobia at the time of writing (min+gzip) and must be
-re-verified in Phase 0 before adoption.
+The bundlephobia figures in Context are kept for the record because they turned
+out to be wrong for the version actually installed. Real sizes were measured in
+Phase 2a by bundling with esbuild (`--bundle --minify --format=esm
+--platform=browser`), piping through `gzip -9`, and confirming against the real
+`wxt build` output.
 
 ## Context
 
@@ -27,6 +32,16 @@ Verified facts:
   callouts. Its full bundle adds math and Markdown via `mathml-to-latex` +
   `temml`. It offers `useAsync` (default `true`) which may fetch from the
   FxTwitter third-party API for SPAs — must be disabled for us.
+- **Re-measured in Phase 2a (this repo, `gzip -9`):** Defuddle **core** bundle
+  332,378 B raw / **97,372 B gzip**; `defuddle/full` 764,343 B raw / **218,493 B
+  gzip**; core + `turndown` + `turndown-plugin-gfm` 345,614 B raw / **101,914 B
+  gzip**. The real build confirms it: the whole popup chunk is 350,180 B raw /
+  99,576 B gzip.
+- **The core bundle cannot emit Markdown.** `contentMarkdown` and the
+  `separateMarkdown` option appear only in `defuddle/dist/index.full.js`; neither
+  appears in `defuddle/dist/index.js`. Core *does* still annotate MathML with
+  `data-latex` and normalises `.admonition` into `data-callout`, which is what
+  makes Option C viable.
 - **@mozilla/readability** 0.6.0: **33.8 KB / 11.2 KB gzip, 0 dependencies**,
   Apache-2.0 (per its README license section). Extraction only — returns cleaned
   HTML plus metadata; **no** Markdown conversion. Its README explicitly warns it
@@ -55,31 +70,43 @@ Verified facts:
   Schema.org helper; we would re-implement the normalization that produces the
   reference's output quality — the expensive part.
 
-### Option C — Defuddle core + Turndown for Markdown
+### Option C — Defuddle core + Turndown for Markdown (adopted)
 
-- Cons: overlaps two converters; Defuddle already converts. Rejected unless the
-  Phase 0 spike shows Defuddle's core bundle cannot emit Markdown in-browser
-  (the README implies the full bundle owns Markdown conversion — this must be
-  verified, it changes the cost).
+- Verified in Phase 2a: core has no Markdown converter, so this is not "two
+  converters doing the same job" — it is the only way to get Markdown without the
+  full bundle.
+- Pros: ~116 KB gzip cheaper than Option A (101,914 vs 218,493 B gzip) while
+  keeping Defuddle's extraction, metadata and normalisation. Core's `data-latex`
+  and `data-callout` annotations let two small Turndown rules restore LaTeX math
+  and Obsidian callouts (`apps/web-clipper/src/extraction/htmlToMarkdown.ts`).
+- Cons: math and callouts are our own rules to keep correct. They are pinned by
+  tests written against **real Defuddle output**, so an upgrade that changes the
+  markup fails loudly instead of silently degrading clipped notes.
 
-## Decision (recommended)
+## Decision (revised in Phase 2a from measurement — still not accepted)
 
-**Option A**, with hard conditions:
+**Option C — Defuddle core for extraction, Turndown for Markdown** — keeping the
+original hard conditions:
 
-1. **Pin** the Defuddle version; keep it behind `packages/clipper-core` /
-   extraction adapter so it can be swapped without touching UI.
-2. Call it with **`useAsync: false`** — no third-party API is ever contacted.
-3. Sanitize the extracted HTML with a clip-specific DOMPurify policy (reuse the
-   `@app/sanitize` dependency, not necessarily its editor allowlist) before any
-   of it is rendered in the popup.
-4. Re-verify in Phase 0: the exact sub-bundle needed for Markdown, its real
-   transitive deps, and the license file — and record the measured size.
+1. **Pin** the Defuddle version; keep it behind the extraction adapter
+   (`apps/web-clipper/src/extraction/extractArticle.ts`) so it can be swapped
+   without touching the popup.
+2. Call it with **`useAsync: false`** *and* the synchronous `parse()` — never
+   `parseAsync()`. No third-party API is ever contacted on a clip's behalf.
+3. Markdown comes from our own Turndown conversion of `result.content`
+   (`htmlToMarkdown.ts`), including the `data-latex` and `data-callout` rules.
+4. Sanitize the extracted HTML with a clip-specific DOMPurify policy before it is
+   rendered in the popup (Phase 2b, when the preview exists).
 5. Because the cost is real, **surface it explicitly** in the Phase 2 PR
-   description (PERFORMANCE.md rule 1).
+   description (PERFORMANCE.md rule 1) — see "Performance cost".
 
-If Phase 0 finds the Markdown path requires the much heavier full bundle without
-a tree-shakeable split, fall back to Option B and accept re-implementing
-normalization.
+Option A (previously recommended) is **rejected on measurement**: the Markdown
+converter lives in `defuddle/full`, which costs 218,493 B gzip, i.e. ~114 KB gzip
+more than Option C for the same extraction. Option B remains the fallback only if
+Defuddle's *extraction* quality itself disappoints.
+
+The condition that used to gate this choice — "verify the core bundle cannot emit
+Markdown" — is met, as recorded in Context.
 
 ## Consequences
 
@@ -89,14 +116,21 @@ normalization.
   are mandatory, not optional.
 - `useAsync:false` is a correctness/security requirement, not a preference.
 
-## Performance cost
+## Performance cost (measured)
 
-- ~86.4 KB gzip in the extension's on-invoke content script; **zero** cost on
-  normal page loads because the script is not injected until the user invokes the
-  clipper (PERFORMANCE.md rule 4). Alternative Option B is ~16.9 KB gzip.
+- **99,576 B gzip** for the popup chunk, which contains Defuddle + Turndown +
+  turndown-plugin-gfm (~100 KB gzip); background service worker 507 B gzip.
+- **Zero cost on normal page loads:** no content script, no host permission and no
+  fetch until the user invokes the clipper (PERFORMANCE.md rule 4). Turndown is
+  also only constructed on the first conversion.
+- Option B (Readability + Turndown) would be ~16 KB gzip and stays recorded as the
+  fallback.
 - No desktop/app bundle impact.
 
 ## Open decisions
 
-- O2: accept ~86 KB gzip for reference-parity extraction, or ~17 KB gzip with
-  more custom normalization work.
+- O2 (still open, restated with measured figures): accept **~100 KB gzip** (core
+  Defuddle + Turndown: reference-parity extraction plus our own math/callout
+  rules), or aim for **~16 KB gzip** with Readability + Turndown and accept
+  re-implementing the extraction normalisation. Option A (full Defuddle, 218 KB
+  gzip, includes its own Markdown converter) is measured out.

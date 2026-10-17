@@ -4,7 +4,73 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Web Clipper feature plan (plan only, no code)
+## Last Session — Web Clipper Phase 2a: extension pipeline with real Markdown
+
+**Scope:** `apps/web-clipper` Phase 2a (capture → extract → variables → template →
+payload → note file). Phase 1 (`packages/clipper-core`) shipped in the previous
+commit. One commit, one concern.
+
+**Built:** WXT 0.21.4 + Vite, MV3, Chromium first. Manifest permissions are only
+`activeTab, scripting, storage, contextMenus, downloads` with
+**`host_permissions: []`**; background service worker (context menu + keyboard
+command); popup entrypoint. `minimum_chrome_version: "127"` because
+`action.openPopup()` needs it.
+
+**Architecture change from the plan (§2):** there is **no content script**. The
+popup calls `browser.scripting.executeScript({ func: readPage })` and parses the
+returned HTML with `DOMParser` locally. `activeTab` + `scripting` is enough, so no
+host permission is granted and nothing is injected until the user invokes the
+clipper.
+
+**Measured (real `wxt build`):** popup chunk 350,180 raw / **99,576 B gzip**;
+background 970 / 507; manifest 545 B. Total 353.09 KB raw.
+
+**Cost of the clip itself** (jsdom, median of 3, pinned by `runClipSession.perf.test.ts`):
+a 7.6 KB page clips in 24.9 ms, 18.6 KB in 30.4 ms, 37 KB in 44.8 ms, and a
+pathological 1.48 MB / 4k-paragraph page in 2,781.8 ms. jsdom is several times
+slower than a browser DOM, so these are upper bounds, not user-visible cost. The
+page DOM is now parsed **once** per clip — template matching and rendering share
+the document — which removed ~350 ms from the large-page case. **Surfaced, not
+hidden:** the large-page cost grows with page size and nothing caps it. The plan's
+2 MiB cap is a Phase 3 transport concern, and truncating captured HTML would
+silently degrade extraction, so the page-size limit is left to the owner rather
+than guessed at here.
+
+**Extraction decision changed by measurement (ADR-0174 amended):** Defuddle's
+**core** bundle has no Markdown converter — `contentMarkdown`/`separateMarkdown`
+exist only in `index.full.js` (verified by grep and by a failing test).
+`defuddle/full` measures 218,493 B gzip against **101,914 B gzip** for core +
+`turndown` + `turndown-plugin-gfm` — **~114 KB gzip saved**. Core still annotates
+MathML with `data-latex` and normalises `.admonition` to `data-callout`, so two
+Turndown rules recover **LaTeX math** (`$…$` / `$$…$$`) and **Obsidian callouts**
+(`> [!warning] Title`). Both are asserted against real Defuddle output, not
+hand-written markup, so a Defuddle upgrade that changes the markup fails the test.
+
+**Real bugs found by the tests (not test-only):**
+1. Relative URLs resolved against the **extension origin** — `DOMParser` gives the
+   parsed document `baseURI = chrome-extension://…`, so `selector:img?src` and
+   `og:image` produced extension-relative URLs. Fixed with `parsePageHtml()`
+   (injects `<base href="<page url>">`) plus `resolveUrl()`.
+2. Callout output dropped the separator space (`> [!warning]Careful`). Fixed.
+3. Turndown discards blank elements *before* custom rules, silently losing
+   `<math data-latex="…"></math>`; `seedBlankMath` seeds the text content, guarded
+   by an `includes("data-latex")` check so the common path skips the extra parse.
+4. `schema:@Type` auto-apply matched **nested** JSON-LD nodes — an article whose
+   `author` is a `Person` made every `schema:@Person` template fire. Auto-apply now
+   uses `readSchemaOrg`'s top-level `@graph` indexing only.
+5. `turndown-plugin-gfm` emits `-   item`; tidied to `- item` by a documented
+   regex that preserves nested indentation.
+
+**Verification:** 51 tests across 9 files pass — extraction, Markdown rules, page
+variables, the whole pipeline, template store/match, note file, downloads, session,
+and clip cost — including hostile page metadata (a `../../escape` title yields no
+`..` and no `/` in the note name or folder) and a path-traversal-safe download
+filename. `tsc --noEmit` and ESLint are clean; `wxt build` succeeds. Largest file
+156 lines, every file ≤ 250.
+
+---
+
+## Previous Session — Web Clipper feature plan (plan only, no code)
 
 **Deliverables:** `web-clipper-feature-plan.md` (phased build plan, architecture
 diagram, payload schema, phases 0–8 with dependencies + adversarial verification),
@@ -1047,7 +1113,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Web Clipper Phase 0**: ADRs + transport spike — prove one clip round-trips end to end and settle the deep-link/Rust-version question. **Recommended first**; plan in `web-clipper-feature-plan.md`, decisions ADR-0173…0178 (all `Proposed`, need owner input).
+1. **Web Clipper Phase 2b — React popup**: replace the plain-TS popup with `@app/design-system` components (`TemplatePicker`, `ClipPreview`, `ModeSelector`) each with `.module.scss`, a Storybook story and an interaction test; add `@wxt-dev/module-react` + React deps and Storybook config for the app; add extension icons; add template import/export. Then **Phase 3 (desktop receiver)**: implement the ADR-0173 loopback listener + deep-link wake and the ADR-0177 write path. **Before Phase 3**, verify `tauri-plugin-deep-link` Rust ≥ 1.90 against `rust-version = "1.77.2"` in `apps/desktop/src-tauri/Cargo.toml` (loopback-only + manual pairing is the documented fallback). Keep ADRs 0173–0178 `Proposed` until the owner answers O3–O8.
 2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
 3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
@@ -1069,7 +1135,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 - **Visual regression**: Not yet configured.
 - **Total JS/CSS size budgets**: lazy chunks counted toward totals — adjust if/when configured.
 - **AI feature plan artifact**: `plans/ai-integration-plan/ai-features-build-plan.md` is missing; recover it before treating any undiscovered prior AI decision as authoritative.
-- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction library (ADR-0174), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. Also verify the `tauri-plugin-deep-link` Rust ≥ 1.90 requirement against the pinned `rust-version = "1.77.2"` before committing to the recommended transport.
+- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction budget (ADR-0174 — the measured size is now ~95 KB gzip core Defuddle + Turndown, not the 86.4 KB bundlephobia figure; the owner has not yet accepted the ~100 KB gzip popup cost), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. Also verify the `tauri-plugin-deep-link` Rust ≥ 1.90 requirement against the pinned `rust-version = "1.77.2"` before committing to the recommended transport.
 
 ---
 

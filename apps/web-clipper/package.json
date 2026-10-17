@@ -1,0 +1,29 @@
+{
+  "name": "@app/web-clipper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "build": "wxt build",
+    "zip": "wxt zip",
+    "postinstall": "wxt prepare",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "vitest run",
+    "typecheck": "wxt prepare && tsc --noEmit",
+    "build-storybook": "echo 'build-storybook not applicable for @app/web-clipper'"
+  },
+  "dependencies": {
+    "@app/clipper-core": "workspace:*",
+    "defuddle": "^0.19.5",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/turndown": "^5.0.6",
+    "jsdom": "^30.0.1",
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.10",
+    "wxt": "^0.21.4"
+  }
+}
