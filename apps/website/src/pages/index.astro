@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const roles = ['Students', 'Academics', 'Writers', 'Project managers', 'Developers'];
+const trustPoints = ['Open files', 'Private by default', 'Offline first', 'Markdown notes', 'Local search', 'Portable vaults'];
+---
+
+<BaseLayout title="Davinci — Connect your notes" description="A local-first space to connect your notes and build understanding.">
+  <main>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a class="brand" href="/">davinci<span>.notes</span></a>
+      <div class="nav-links"><a href="#features">Features</a><a href="#community">Community</a><a href="#privacy">Privacy</a></div>
+      <a class="nav-button" href="#download">Download</a>
+    </nav>
+
+    <section class="hero" id="download">
+      <p class="kicker">A LOCAL-FIRST KNOWLEDGE SPACE</p>
+      <h1>Connect your notes,<br /><strong>increase understanding.</strong></h1>
+      <div class="hero-collage" aria-hidden="true">
+        <img src="/images/marcus-aurelius-engraving.jpg" alt="" />
+        <div class="note-card note-one">↗ &nbsp; Ideas grow in relation</div>
+        <div class="note-card note-two"><b>Today</b><br />Draft a better question</div>
+        <div class="note-card note-three">[[ studio notes ]]</div>
+      </div>
+      <div class="hero-actions"><a class="button" href="#features">Download for free <span>↓</span></a><a class="button button-quiet" href="#features">Explore Davinci <span>↗</span></a></div>
+    </section>
+
+    <section class="role-section" id="features">
+      <h2>Today, everyone is a<br /><strong>researcher.</strong></h2>
+      <div class="role-icons"><span>◫<b>Tasks</b></span><span>⌁<b>References</b></span><span>?<b>Questions</b></span></div>
+      <div class="role-tabs">{roles.map((role, index) => <button class:list={['role-tab', { 'is-active': index === 0 }]}>{index === 0 ? '⌛' : index === 1 ? '⌁' : index === 2 ? '✎' : index === 3 ? '▣' : '⌘'}<span>{role}</span></button>)}</div>
+      <div class="mini-preview"><div class="mini-note"><b>☕ &nbsp; Morning page</b><p>Get in the habit of writing thoughts down every day.</p><small>Tip 1 · Think in sections, use indentation.</small></div><div class="mini-editor"><small>▼ studio / ideas</small><p>How do <mark>[[notes]]</mark> become a useful system?</p><p class="is-indent">— Start with what you revisit.</p></div></div>
+    </section>
+
+    <section class="community" id="community">
+      <p class="kicker">A HELPFUL COMMUNITY</p>
+      <h2>Make a practice<br />of <strong>thinking.</strong></h2>
+      <div class="community-links"><a href="#community">✦ Join our circle ↗</a><a href="#community">⌘ Read field notes ↗</a></div>
+      <div class="thought-stage"><span class="stage-note note-left">Watch<br />closely.</span><span class="stage-note note-right">Keep what<br />matters.</span><p>What are you<br /><strong>thinking about?</strong></p><div class="floating-paper paper-one">✦<br /><small>reading list</small></div><div class="floating-paper paper-two">PDF<br /><small>annotated</small></div></div>
+    </section>
+
+    <section class="relationship-section">
+      <p>Davinci helps you turn the daily mess into structured information.</p>
+      <div class="role-tabs relationship-tabs">{['Relationships', 'Daily plan', 'Journaling', 'Data control'].map((role, index) => <button class:list={['role-tab', { 'is-active': index === 0 }]}>{index === 0 ? '◉' : '▦'}<span>{role}</span></button>)}</div>
+      <h2>Communicate better. Stay on top of your<br /><strong>relationships, conversations, and meetings.</strong></h2>
+      <div class="conversation"><div class="contact-list"><b>People</b><span class="is-selected">Tessica<br /><small>Research partner</small></span><span>Ronan<br /><small>Studio critique</small></span><span>Ling<br /><small>Reading group</small></span></div><div class="conversation-note"><small>↗ people / tessica</small><h3>“I mostly use it for work: keeping daily notes &amp; meeting notes. It’s the best solution I’ve found to manage my tasks.”</h3><p>— Field feedback, via Davinci Circle ↗</p></div></div>
+    </section>
+
+    <section class="safe-space" id="privacy">
+      <p class="kicker">A SAFE SPACE FOR YOUR THOUGHTS</p>
+      <h2>Designed to store your interests, questions, ideas, favorite quotes, reminders, reading and meeting notes <strong>in a future-proof way.</strong></h2>
+      <div class="trust-grid">{trustPoints.map((point, index) => <article><span>{['⌂', '◌', '↯', '▤', '⌕', '◫'][index]}</span>{point}</article>)}</div>
+      <div class="sync-card"><div><span>◌ Davinci Sync <small>BETA</small></span><h3>Always up-to-date notes<br />between all your devices.</h3><p>With encrypted file syncing, your vault stays close at hand on any device.</p></div><div class="sync-progress"><b>Currently syncing your graph…</b><span>Research / studio-notes.md</span><i><em></em></i><span>Reading / questions.md</span><i><em class="is-short"></em></i></div></div>
+    </section>
+
+    <section class="closing"><h2>Think faster, <strong>think better!</strong></h2><p>By thinking and writing with Davinci, you’ll gain confidence in what you know and stop worrying about forgetting anything.</p><div class="hero-actions"><a class="button" href="#download">Download for free <span>↓</span></a><a class="button button-quiet" href="#features">Explore Davinci <span>↗</span></a></div></section>
+    <footer><a class="brand" href="/">davinci<span>.notes</span></a><p>Made for long thoughts.</p><a href="https://www.metmuseum.org/art/collection/search/343595">Hero image: Marco Dente, The Met, Public Domain</a><span>© 2026</span></footer>
+  </main>
+</BaseLayout>

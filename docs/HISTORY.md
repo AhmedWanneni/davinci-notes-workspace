@@ -4,6 +4,18 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-17: Public Astro Website — Initial Landing Page
+
+- Added `apps/website`, a static Astro 7.4.0 application with scripts for local development, production builds, previewing, and validation.
+- Created an editorial, responsive Davinci landing page inspired by Logseq's calm, privacy-first positioning without copying its layout or assets.
+- The page presents local-first notes, nested blocks, graph connections, and an in-app workspace preview. It uses a custom inline Da Vinci-study SVG instead of external imagery, adding no image weight or runtime JavaScript.
+- Verification: `pnpm --filter @app/website build` completes successfully and generates the static `/index.html` route.
+- Poster-style revision: reworked the hero with large overlapping red type, warm grey paper, exhibition labels, and an optimized local copy of Marco Dente's public-domain *Equestrian Statue of Marcus Aurelius* from The Met. The asset is 416 KB and credited in the footer.
+- Product-page revision: replaced the poster composition with a long-form product narrative modeled on the supplied reference's information architecture: centered hero, audience tabs, preview cards, community/story section, relationship workspace, safe-storage grid, sync feature, and final CTA. Kept the existing Davinci grey/red palette and static, zero-framework runtime.
+- Layout scale revision: enlarged desktop display typography, navigation, cards, product previews, section spacing, and sync/relationship panels, while defining a separate compact mobile scale.
+
+---
+
 ## Session Log
 
 | Date | Focus | Outcome |

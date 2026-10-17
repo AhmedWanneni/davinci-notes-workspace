@@ -1,0 +1,8 @@
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"Generated 1ms","label":"types","level":"info"}
+{"message":"connected.","label":"vite","level":"info"}
+{"message":"Re-optimizing dependencies because vite config has changed","label":"vite","level":"info"}
+listen EPERM: operation not permitted 127.0.0.1:4321
+  Stack trace:
+    at Server.setupListenHandle [as _listen2] (node:net:2306:21)
+    at node:net:2666:7
