@@ -1,0 +1,28 @@
+{
+  "id": "paper",
+  "name": "Paper",
+  "behavior": "create",
+  "noteNameFormat": "{{title|safe_name}}",
+  "folder": "Clippings/Papers",
+  "properties": [
+    {
+      "name": "authors",
+      "value": "{{schema:ScholarlyArticle:author|join:\", \"}}"
+    },
+    {
+      "name": "published",
+      "value": "{{schema:ScholarlyArticle:datePublished|date:\"YYYY-MM-DD\"}}"
+    },
+    {
+      "name": "source",
+      "value": "{{url}}"
+    },
+    {
+      "name": "created",
+      "value": "{{date|date:\"YYYY-MM-DD\"}}"
+    }
+  ],
+  "tags": ["clippings", "paper"],
+  "body": "# {{title}}\n\n{{description}}\n\n{{content}}",
+  "triggers": ["schema:@ScholarlyArticle"]
+}

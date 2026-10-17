@@ -11,6 +11,7 @@
       "@app/canvas": ["packages/canvas/index.ts"],
       "@app/attachments": ["packages/attachments/index.ts"],
       "@app/core-types": ["packages/core-types/index.ts"],
+      "@app/clipper-core": ["packages/clipper-core/index.ts"],
       "@app/design-system": ["packages/design-system/index.ts"],
       "@app/editor": ["packages/editor/index.ts"],
       "@app/indexer": ["packages/indexer/index.ts"],

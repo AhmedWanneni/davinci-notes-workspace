@@ -17,6 +17,7 @@ module.exports = {
     "boundaries/ignore": ["**/*.scss", "**/*.css", "**/*.json", "**/*.sql"],
     "boundaries/elements": [
       { type: "core-types", pattern: "packages/core-types/**/*", mode: "full" },
+      { type: "clipper-core", pattern: "packages/clipper-core/**/*", mode: "full" },
       { type: "design-system", pattern: "packages/design-system/**/*", mode: "full" },
       { type: "canvas", pattern: "packages/canvas/**/*", mode: "full" },
       { type: "editor", pattern: "packages/editor/**/*", mode: "full" },
@@ -27,6 +28,7 @@ module.exports = {
       { type: "theme-api", pattern: "packages/theme-api/**/*", mode: "full" },
       { type: "ai-api", pattern: "packages/ai-api/**/*", mode: "full" },
       { type: "ai-runtime", pattern: "packages/ai-runtime/**/*", mode: "full" },
+      { type: "web-clipper", pattern: "apps/web-clipper/**/*", mode: "full" },
       { type: "app", pattern: "apps/**/*", mode: "full" },
       { type: "service", pattern: "services/**/*", mode: "full" }
     ]
@@ -38,6 +40,7 @@ module.exports = {
         default: "disallow",
         rules: [
           { from: "core-types", allow: ["core-types"] },
+          { from: "clipper-core", allow: ["clipper-core"] },
           { from: "indexer", allow: ["core-types", "indexer"] },
           { from: "sync-client", allow: ["core-types", "sync-client"] },
           { from: "design-system", allow: ["core-types", "design-system"] },
@@ -49,6 +52,7 @@ module.exports = {
           { from: "ai-api", allow: ["ai-api"] },
           { from: "ai-runtime", allow: ["ai-api", "ai-runtime"] },
           { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "plugin-api", "plugin-runtime", "theme-api", "ai-api", "ai-runtime", "app"] },
+          { from: "web-clipper", allow: ["clipper-core", "web-clipper"] },
           { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }
         ]
       }
