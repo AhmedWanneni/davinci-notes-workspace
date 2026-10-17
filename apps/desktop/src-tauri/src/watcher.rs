@@ -172,6 +172,10 @@ fn rename_paths(vault_root: &Path, event: &notify::Event) -> Option<(String, Str
 }
 
 fn is_supported_vault_file(relative: &str) -> bool {
+  let file_name = Path::new(relative).file_name().and_then(|n| n.to_str()).unwrap_or("");
+  if file_name.starts_with(".syncthing.") && file_name.ends_with(".tmp") {
+    return false;
+  }
   matches!(
     Path::new(relative).extension().and_then(|ext| ext.to_str()).map(|ext| ext.to_ascii_lowercase()).as_deref(),
     Some("md" | "canvas" | "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "bmp" | "ico" | "avif"
@@ -184,19 +188,13 @@ pub fn classify_vault_event(kind: &EventKind) -> Option<VaultPathChange> {
   match kind {
     EventKind::Remove(RemoveKind::Any | RemoveKind::File) => Some(VaultPathChange::Removed),
     EventKind::Create(CreateKind::Any | CreateKind::File) => Some(VaultPathChange::Changed),
-    // macOS FSEvents commonly reports an external editor write as WriteTime
-    // metadata only. Access events are still ignored, so index reads do not loop.
     EventKind::Modify(ModifyKind::Any | ModifyKind::Data(_) | ModifyKind::Metadata(_)) => Some(VaultPathChange::Changed),
     _ => None,
   }
 }
 
 fn vault_relative(vault_root: &Path, absolute: &Path) -> Option<String> {
-  absolute
-    .strip_prefix(vault_root)
-    .ok()
-    .map(|p| p.to_string_lossy().replace('\\', "/"))
-    .filter(|s| !s.is_empty())
+  absolute.strip_prefix(vault_root).ok().map(|p| p.to_string_lossy().replace('\\', "/")).filter(|s| !s.is_empty())
 }
 
 #[cfg(test)]
@@ -206,55 +204,36 @@ mod tests {
 
   #[test]
   fn ignores_access_events_but_treats_write_metadata_as_changed() {
-    assert_eq!(
-      classify_vault_event(&EventKind::Modify(ModifyKind::Metadata(
-        notify::event::MetadataKind::WriteTime
-      ))),
-      Some(VaultPathChange::Changed)
-    );
-    assert_eq!(
-      classify_vault_event(&EventKind::Access(AccessKind::Read)),
-      None
-    );
+    assert_eq!(classify_vault_event(&EventKind::Modify(ModifyKind::Metadata(notify::event::MetadataKind::WriteTime))), Some(VaultPathChange::Changed));
+    assert_eq!(classify_vault_event(&EventKind::Access(AccessKind::Read)), None);
   }
 
   #[test]
   fn treats_data_modify_and_create_as_changed() {
-    assert_eq!(
-      classify_vault_event(&EventKind::Modify(ModifyKind::Data(DataChange::Any))),
-      Some(VaultPathChange::Changed)
-    );
-    assert_eq!(
-      classify_vault_event(&EventKind::Modify(ModifyKind::Any)),
-      Some(VaultPathChange::Changed)
-    );
-    assert_eq!(
-      classify_vault_event(&EventKind::Create(CreateKind::File)),
-      Some(VaultPathChange::Changed)
-    );
+    assert_eq!(classify_vault_event(&EventKind::Modify(ModifyKind::Data(DataChange::Any))), Some(VaultPathChange::Changed));
+    assert_eq!(classify_vault_event(&EventKind::Modify(ModifyKind::Any)), Some(VaultPathChange::Changed));
+    assert_eq!(classify_vault_event(&EventKind::Create(CreateKind::File)), Some(VaultPathChange::Changed));
   }
 
   #[test]
   fn treats_file_remove_as_removed() {
-    assert_eq!(
-      classify_vault_event(&EventKind::Remove(RemoveKind::File)),
-      Some(VaultPathChange::Removed)
-    );
+    assert_eq!(classify_vault_event(&EventKind::Remove(RemoveKind::File)), Some(VaultPathChange::Removed));
   }
 
   #[test]
   fn recognizes_supported_file_renames() {
     let root = Path::new("/vault");
     let event = notify::Event::new(EventKind::Modify(ModifyKind::Name(RenameMode::Both)))
-      .add_path("/vault/old.md".into())
-      .add_path("/vault/new.md".into());
+      .add_path("/vault/old.md".into()).add_path("/vault/new.md".into());
     assert_eq!(rename_paths(root, &event), Some(("old.md".into(), "new.md".into())));
   }
 
   #[test]
-  fn watches_supported_attachments_but_ignores_unlisted_files() {
+  fn watches_supported_attachments_and_ignores_syncthing_tmp() {
     assert!(is_supported_vault_file("attachments/photo.PNG"));
     assert!(is_supported_vault_file("attachments/manual.pdf"));
+    assert!(!is_supported_vault_file(".syncthing.note.md.tmp"));
+    assert!(!is_supported_vault_file("sub/.syncthing.file.png.tmp"));
     assert!(!is_supported_vault_file("attachments/archive.zip"));
     assert!(!is_supported_vault_file("README"));
   }

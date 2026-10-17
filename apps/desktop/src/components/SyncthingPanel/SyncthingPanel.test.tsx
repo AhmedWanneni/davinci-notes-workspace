@@ -15,6 +15,8 @@ describe("SyncthingPanel Component", () => {
     uptime: 120,
     qrDataUrl:
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    pendingDevices: [],
+    pendingFolders: [],
     errorMessage: null,
     isLoading: false,
     refresh: vi.fn(),
@@ -37,6 +39,44 @@ describe("SyncthingPanel Component", () => {
     const qrImage = screen.getByTestId("syncthing-qr-image");
     expect(qrImage).toBeDefined();
     expect(qrImage.getAttribute("src")).toBe(baseStatus.qrDataUrl);
+  });
+
+  it("renders Add Device and Share Vault sections when running", () => {
+    render(<SyncthingPanel customStatus={baseStatus} />);
+    expect(screen.getByText("Add Remote Device")).toBeDefined();
+    expect(screen.getByText("Share Active Vault")).toBeDefined();
+  });
+
+  it("renders incoming pending devices and folders when present", () => {
+    const withPending: SyncthingStatusState = {
+      ...baseStatus,
+      pendingDevices: [
+        {
+          deviceId:
+            "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH",
+          name: "Phone Peer",
+          address: "192.168.1.100:22000",
+          time: "2026-10-17T16:00:00Z",
+        },
+      ],
+      pendingFolders: [
+        {
+          folderId: "vault-offer-1",
+          label: "Team Notes",
+          offeredBy:
+            "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH",
+          time: "2026-10-17T16:05:00Z",
+        },
+      ],
+    };
+
+    render(<SyncthingPanel customStatus={withPending} />);
+    expect(screen.getByText("Incoming Requests")).toBeDefined();
+    expect(screen.getByText("Phone Peer")).toBeDefined();
+    expect(screen.getByText("Team Notes")).toBeDefined();
+    expect(screen.getByText("Accept")).toBeDefined();
+    expect(screen.getByText("Ignore")).toBeDefined();
+    expect(screen.getByText("Accept Folder Offer")).toBeDefined();
   });
 
   it("renders Not running state with fix hint", () => {

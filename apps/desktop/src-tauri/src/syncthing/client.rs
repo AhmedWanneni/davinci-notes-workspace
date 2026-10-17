@@ -4,7 +4,7 @@ use super::config::SyncthingResolvedConfig;
 use super::types::{redact_secrets, to_base64, SyncthingDetectResult, SyncthingError, SyncthingStatusResult};
 
 pub struct SyncthingClient {
-  http: reqwest::Client,
+  pub(crate) http: reqwest::Client,
   pub config: SyncthingResolvedConfig,
 }
 

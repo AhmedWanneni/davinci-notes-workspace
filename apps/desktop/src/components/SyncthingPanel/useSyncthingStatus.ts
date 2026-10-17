@@ -3,6 +3,10 @@ import {
   fetchSyncthingDetect,
   fetchSyncthingQrPng,
   fetchSyncthingStatus,
+  syncthingPendingDevices,
+  syncthingPendingFolders,
+  type SyncthingPendingDevice,
+  type SyncthingPendingFolder,
 } from "./syncthingCommands";
 
 export type SyncthingState =
@@ -16,6 +20,8 @@ export interface SyncthingStatusState {
   deviceName: string;
   uptime: number;
   qrDataUrl: string | null;
+  pendingDevices: SyncthingPendingDevice[];
+  pendingFolders: SyncthingPendingFolder[];
   errorMessage: string | null;
   isLoading: boolean;
   refresh: () => Promise<void>;
@@ -29,6 +35,12 @@ export function useSyncthingStatus(enabled = true): SyncthingStatusState {
   const [deviceName, setDeviceName] = useState("");
   const [uptime, setUptime] = useState(0);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [pendingDevices, setPendingDevices] = useState<
+    SyncthingPendingDevice[]
+  >([]);
+  const [pendingFolders, setPendingFolders] = useState<
+    SyncthingPendingFolder[]
+  >([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -47,29 +59,33 @@ export function useSyncthingStatus(enabled = true): SyncthingStatusState {
         setDeviceName(stat.deviceName);
         setUptime(stat.uptime);
 
-        try {
-          const qr = await fetchSyncthingQrPng();
-          setQrDataUrl(qr);
-        } catch {
-          setQrDataUrl(null);
-        }
+        const [qr, pDevs, pFolders] = await Promise.all([
+          fetchSyncthingQrPng().catch(() => null),
+          syncthingPendingDevices().catch(() => []),
+          syncthingPendingFolders().catch(() => []),
+        ]);
+        setQrDataUrl(qr);
+        setPendingDevices(pDevs);
+        setPendingFolders(pFolders);
 
         setStatus("running");
       } else {
         setStatus("not-running");
         setQrDataUrl(null);
+        setPendingDevices([]);
+        setPendingFolders([]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMessage(msg);
       setQrDataUrl(null);
+      setPendingDevices([]);
+      setPendingFolders([]);
 
       if (msg.includes("NotInstalled")) {
         setStatus("not-installed");
       } else if (msg.includes("BadKey")) {
         setStatus("bad-key");
-      } else if (msg.includes("NotRunning")) {
-        setStatus("not-running");
       } else {
         setStatus("not-running");
       }
@@ -92,6 +108,8 @@ export function useSyncthingStatus(enabled = true): SyncthingStatusState {
     deviceName,
     uptime,
     qrDataUrl,
+    pendingDevices,
+    pendingFolders,
     errorMessage,
     isLoading,
     refresh,

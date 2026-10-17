@@ -8,6 +8,9 @@ import {
   QrCode,
 } from "@phosphor-icons/react";
 import { useSyncthingStatus, type SyncthingState } from "./useSyncthingStatus";
+import { SyncthingAddDeviceSection } from "./SyncthingAddDeviceSection";
+import { SyncthingPendingSection } from "./SyncthingPendingSection";
+import { SyncthingVaultShareSection } from "./SyncthingVaultShareSection";
 import styles from "./SyncthingPanel.module.scss";
 
 export interface SyncthingPanelProps {
@@ -60,6 +63,8 @@ export function SyncthingPanel({ customStatus }: SyncthingPanelProps) {
     deviceId,
     deviceName,
     qrDataUrl,
+    pendingDevices,
+    pendingFolders,
     isLoading,
     refresh,
   } = customStatus || hookStatus;
@@ -176,6 +181,23 @@ export function SyncthingPanel({ customStatus }: SyncthingPanelProps) {
             this device.
           </p>
         </div>
+      )}
+
+      {/* 4. Incoming Pending Requests (Devices + Folders) */}
+      {status === "running" && (
+        <SyncthingPendingSection
+          pendingDevices={pendingDevices}
+          pendingFolders={pendingFolders}
+          onUpdated={refresh}
+        />
+      )}
+
+      {/* 5. Add Remote Device */}
+      {status === "running" && <SyncthingAddDeviceSection onAdded={refresh} />}
+
+      {/* 6. Share Current Vault with Remote Device */}
+      {status === "running" && (
+        <SyncthingVaultShareSection onShared={refresh} />
       )}
     </div>
   );

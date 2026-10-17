@@ -29,8 +29,15 @@ import {
   activateVaultWatcher,
   withVaultWatchSuppressed,
 } from "./vaultWatchSession";
+import { isSyncthingConflictPath } from "./syncthingConflicts";
 
 function isIndexedNotePath(path: string): boolean {
+  if (isSyncthingConflictPath(path)) {
+    return false;
+  }
+  if (/\.syncthing\.[^/]+\.tmp$/i.test(path)) {
+    return false;
+  }
   return /\.(md|canvas)$/i.test(path);
 }
 

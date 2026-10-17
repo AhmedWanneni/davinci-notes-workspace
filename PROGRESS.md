@@ -4,6 +4,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Desktop Syncthing Device Pairing, Incoming Requests & Safe Vault Folder Sharing (`apps/desktop/`, ADR-0198) (complete)**
+Extended Desktop Syncthing panel and Rust backend commands so the desktop can pair devices and share vault folders safely:
+1. **Rust Backend Commands (`apps/desktop/src-tauri/src/syncthing/`)**:
+   - `syncthing_add_device(id, name)`: Validates 56-char (8 groups x 7 chars) format, prevents self-pairing (`Cannot add this device: this is your own Device ID`), prevents duplicates (`Device already added`), and surfaces Syncthing Luhn/length check errors.
+   - `syncthing_pending_devices()` & `syncthing_accept_device(id)` & `syncthing_dismiss_pending_device(id)`: Queries `/rest/cluster/pending/devices` and accepts or ignores incoming connection offers without auto-accepting.
+   - `syncthing_share_vault_folder(deviceId)`: Automatically excludes per-device state (`(?d).DS_Store`, `(?d)Thumbs.db`, `(?d).trash`, `(?d)vault-index.db*`, `(?d).davinci/workspace.json`, `(?d).davinci/cache/`) by safely creating/appending to `.stignore` (never overwriting user lines), and shares active vault folder with Send & Receive mode.
+   - `syncthing_pending_folders()` & `syncthing_accept_folder(folderId, path, allowNonEmpty)`: Queries `/rest/cluster/pending/folders`, requires explicit user-chosen destination folder, verifies folder emptiness, surfaces warnings if non-empty, and accepts folder with `.stignore` protection.
+   - Watcher & Indexer Safety: Updated `watcher.rs` and `VaultIndexer.ts` to ignore `.syncthing.*.tmp` files, and ensure `*.sync-conflict-*` files are surfaced in conflict management rather than indexed as normal notes.
+2. **Frontend UI Components (`apps/desktop/src/components/SyncthingPanel/`)**:
+   - `SyncthingAddDeviceSection.tsx`: 8x7 auto-formatting input, validation error display, and name field.
+   - `SyncthingPendingSection.tsx`: Lists incoming device requests with explicit Accept/Ignore buttons, and incoming folder offers with destination path selection and non-empty confirmation.
+   - `SyncthingVaultShareSection.tsx`: Single-click "Share current vault" button with peer device selector and per-device state warning.
+   - CUBE CSS, Radix primitives, Phosphor icons, strict 0-shadow / border-depth design language.
+3. **Verification**:
+   - Multi-Instance Pairing: Spawned second Syncthing daemon on `127.0.0.1:8385` (`/tmp/syncthing_peer`). Peer 1 sent pairing offer; Peer 2 queried pending devices, accepted, and established connected session (`Connected=True, Paused=False`).
+   - Vault Sync & SHA-256 Hash Match: Shared test vault folder. Arrived as pending folder offer on Peer 2. Peer 2 accepted into replica directory. Synced files `Welcome.md` and `Ideas.md` matched source SHA256 hashes byte-for-byte.
+   - Adversarial Error Messages:
+     - Malformed ID: Status 400: `"MALFORMED-NOT-7X8": device ID invalid: incorrect length`.
+     - Own ID: `Cannot add this device: this is your own Device ID.`
+     - Duplicate ID: `Device already added.`
+   - Safe `.stignore`: Verified resulting contents properly format and append per-device exclusions without clobbering user lines.
+   - Tests & Line Caps: 12/12 Cargo tests pass; 14/14 Vitest tests pass in `SyncthingPanel/`; 0 ESLint errors; all files under 250-line hard cap.
+
+---
+
 **Desktop Settings -> Sync -> Syncthing Panel, Lazy QR Proxy & Status State Machine (`apps/desktop/`, ADR-0198) (complete)**
 Implemented Obsidian-style, flat, Radix-based Syncthing panel with zero main-bundle growth:
 1. **Component & Architecture (`apps/desktop/src/components/SyncthingPanel/`)**:

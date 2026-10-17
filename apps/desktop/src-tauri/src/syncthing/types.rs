@@ -17,6 +17,25 @@ pub struct SyncthingStatusResult {
   pub uptime: u64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncthingPendingDevice {
+  #[serde(rename = "deviceId")]
+  pub device_id: String,
+  pub name: String,
+  pub address: String,
+  pub time: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncthingPendingFolder {
+  #[serde(rename = "folderId")]
+  pub folder_id: String,
+  pub label: String,
+  #[serde(rename = "offeredBy")]
+  pub offered_by: String,
+  pub time: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SyncthingError {
   NotInstalled,
