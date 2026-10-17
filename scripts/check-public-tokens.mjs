@@ -79,6 +79,11 @@ export const ALLOWLIST = [
     justification: "Native-style window-control affordance, intentionally not theme content.",
   },
   {
+    file: "apps/desktop/src/components/SyncthingPanel/SyncthingPanel.module.scss",
+    pattern: "#fff",
+    justification: "QR quiet zone requires pure white background for scanner contrast in dark mode.",
+  },
+  {
     file: "packages/design-system/components/Dialog/Dialog.module.scss",
     pattern: "rgb(0 0 0 / 35%)",
     justification: "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",

@@ -4,6 +4,23 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Desktop Settings -> Sync -> Syncthing Panel, Lazy QR Proxy & Status State Machine (`apps/desktop/`, ADR-0198) (complete)**
+Implemented Obsidian-style, flat, Radix-based Syncthing panel with zero main-bundle growth:
+1. **Component & Architecture (`apps/desktop/src/components/SyncthingPanel/`)**:
+   - **`SyncthingPanel.tsx` & CUBE SCSS**: Obsidian-style flat layout with borders instead of shadows, design tokens, Phosphor icons, and Radix primitives. Includes Running / Not running / Not installed / Key problem status badge with 1-line contextual fix hints.
+   - **Device Identity & Copy Action**: Monospace block displaying local device name and 56-character formatted Syncthing Device ID with a Copy button and inline feedback pill/toast.
+   - **QR Code with White Quiet Zone**: Dedicated QR code section rendering base64 PNG proxied directly from local Syncthing `/qr/?text={id}` via Rust command `syncthing_qr_png`. Enclosed in a 12px `#ffffff` quiet zone container to guarantee immediate scanning by mobile cameras even in dark mode.
+   - **Manual Refresh Only**: `useSyncthingStatus.ts` executes exclusively on mount/tab open and manual "Refresh" button click with spinning loader state. Zero timer loops or polling intervals.
+   - **Zero Main Bundle Delta**: Lazy-loaded in `SyncSettingsTab.tsx` via `React.lazy()`. Emitted as isolated dynamic chunk `index-_JQHCK3S.js` (5.62 kB, gzip 1.85 kB). Main desktop bundle remained exactly **439.88 kB** before and after (0 byte delta). Zero JS QR dependencies added.
+2. **Verification**:
+   - **Live Syncthing Toggling**: Verified Running (`127.0.0.1:8384`, `v2.1.6`), Not Running (when daemon killed, port 8384 closed), and Bad Key states.
+   - **Character-for-Character ID Verification**: Probed local Syncthing daemon via `/rest/system/status` and `config.xml`; confirmed device ID `C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE` matches character-for-character.
+   - **QR Code Payload Verification**: Decoded live Syncthing QR PNG with OpenCV `QRCodeDetector`; decoded string exactly matched `C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE` (`Exact Match: True`).
+   - **Test Suites & Linting**: 123/123 test files passed (483 tests green) including `SyncthingPanel.test.tsx` (6 tests). ESLint passed with 0 errors. All files conform to line count cap ($\le 181$ lines).
+
+---
+
+
 **Mobile Editor Immediate-Back Flush Handshake, Focus Reload & Document Synchronization (`apps/mobile/`, ADR-0197) (complete)**
 Resolved issue where typing in a note, navigating back, and reopening showed stale or missing content:
 1. **Root Cause Diagnosis**:

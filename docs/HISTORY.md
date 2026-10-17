@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-17 | Desktop Settings -> Sync -> Syncthing Panel (ADR-0198) | Implemented Obsidian-style, flat, Radix-based Syncthing panel with status badge (Running / Not running / Not installed / Key problem), monospace device identity block with copy feedback, QR code with white quiet zone, and manual refresh. Proxied QR code via Rust backend syncthing_qr_png with 0 JS QR libraries. Lazy-loaded via React.lazy() into a separate 5.62 kB chunk (gzip 1.85 kB) with exactly 0 byte main-bundle growth (439.88 kB before vs 439.88 kB after). Verified live toggling, exact character match against Syncthing GUI ID, and full QR decode via OpenCV. All 123 desktop Vitest suites (483 tests) pass. |
 | 2026-10-16 | NativeWind Color Scheme & Dark Mode Class Resolution | Resolved runtime exception "Cannot manually set color scheme, as dark mode is type 'media'. Please use StyleSheet.setFlag('darkMode', 'class')". Added darkMode: "class" to apps/mobile/tailwind.config.js and packages/design-tokens/scripts/generate.mjs preset. Regenerated design-tokens dist files. Verified NativeWind outputs --css-interop-darkMode: class dark and no longer throws in react-native-css-interop MutationObserver. Added unit test in mobileShell.test.ts asserting darkMode === "class". All 16 mobile test suites (81 tests) and desktop build pass. |
 | 2026-10-16 | Mobile Expo FileSystem Modern API Migration | Migrated apps/mobile from deprecated expo-file-system methods (getInfoAsync, readAsStringAsync, writeAsStringAsync, makeDirectoryAsync, readDirectoryAsync, deleteAsync, moveAsync, copyAsync) to modern Expo SDK 57 File, Directory, and Paths classes without switching to legacy imports. Centralized all file operations behind MobileVaultStorageAdapter; eliminated direct FileSystem imports from fastCaptureService, mobileSyncEngine, and transferWithRetry. Preserved atomic write semantics (temp file + move) and binary read/write speed without base64 transcoding overhead. Added adversarial note CRUD lifecycle test verifying filesystem directly. Metro cleared-cache startup verified with zero deprecation warnings and 5,122 modules bundled. All 15 mobile test files (69 tests), mobile typecheck, mobile lint, desktop web build, and all 122 desktop test files (477 tests) pass. |
 | 2026-10-16 | Mobile Expo SDK Pin & Dependency Alignment (ADR-0194) | Fixed Metro crash caused by stale SDK 52 metro overrides in root package.json. Pinned apps/mobile to Expo SDK 57 stable (expo@~57.0.30, expo-router@~57.0.28, react-native@0.86.3, react@19.2.3). Replaced unmaintained expo-av with expo-audio (~57.0.5). Resolved dual React instance resolution in desktop with local alias while preserving desktop on react@^19.2.8. npx expo-doctor passed 21/21 checks. Metro dev server starts cleanly (0 errors). Production Android bundle exports successfully (11 MB Hermes bytecode). All 15 mobile tests and 122 desktop tests pass. |
@@ -3791,6 +3792,27 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - All 16 mobile test suites (81 tests) pass (100% green).
   - TypeScript typecheck and ESLint pass with 0 errors.
   - Desktop web build and tests pass without regression.
+
+## Desktop Settings -> Sync -> Syncthing Panel (ADR-0198)
+
+- **Architecture & Design Principles**:
+  - Built an Obsidian-style, flat, Radix-based Syncthing settings panel in `apps/desktop/src/components/SyncthingPanel/`.
+  - Design constraints strictly upheld: CUBE CSS with CSS modules, no gradients, no box-shadows, no glassmorphism, no pill badges. Depth achieved via borders and design tokens.
+  - Status banner with badges: Running (variant: success), Not running (variant: warning), Not installed (variant: neutral), and Key problem (variant: error), each paired with a 1-line actionable fix hint.
+  - Device Identity: Monospace block rendering local device name and 56-character formatted Syncthing Device ID with a Copy button and feedback pill/toast.
+  - QR Code: High-contrast QR code with a 12px `#ffffff` white quiet zone container to guarantee effortless mobile scanning even in dark mode. Proxied from local Syncthing `/qr/?text={id}` via native Rust `syncthing_qr_png` command (0 JS QR libraries added).
+  - Polling Policy: Zero interval polling loops; loads on mount / tab open, with a manual "Refresh" button that reflects loading state via an animated spin icon.
+- **Bundle Weight & Performance**:
+  - Dynamically loaded via `React.lazy()` in `SyncSettingsTab.tsx`.
+  - Pre-panel main bundle: `dist/assets/main-DMg1ER26.js: 439.88 kB (gzip: 137.69 kB)`.
+  - Post-panel main bundle: `dist/assets/main-CIOc98lT.js: 439.88 kB (gzip: 137.68 kB)`.
+  - Panel chunk: `dist/assets/index-_JQHCK3S.js: 5.62 kB (gzip: 1.85 kB)`.
+  - Main bundle growth: **0.00 kB**.
+- **Adversarial & Live Verification**:
+  - Live toggling: Tested daemon Running, Not running (process killed, port 8384 closed), and Bad Key states.
+  - Device ID match: Local daemon device ID character-for-character equals `C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE`.
+  - QR decode: Decoded live Syncthing QR code image via OpenCV `QRCodeDetector`; decoded text exactly matched the 56-character device ID.
+  - Tests: All 123 desktop Vitest suites (483 tests) pass 100% green. All files strictly conform to line caps ($\le 181$ lines).
 
 
 
