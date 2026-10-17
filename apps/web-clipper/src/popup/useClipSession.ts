@@ -20,6 +20,7 @@ import { parsePageHtml } from "../page/parsePageHtml";
 import { schemaTypesOf } from "../page/schemaTypes";
 import { matchTemplate } from "../templates/matchTemplate";
 import { fallbackTemplate } from "../templates/templateStore";
+import { describeDeliveryFailure } from "../transport/describeDeliveryFailure";
 import {
   defaultClipSessionDeps,
   type ClipSessionDeps,
@@ -53,8 +54,11 @@ export function useClipSession(
   const [mode, setMode] = useState<ClipMode>("full");
   const [chosenTemplateId, setChosenTemplateId] = useState<string>();
   const [edits, setEdits] = useState<ClipEdits>({});
-  const [saving, setSaving] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [paired, setPaired] = useState(false);
   const [saveError, setSaveError] = useState<string>();
+  const [sentPath, setSentPath] = useState<string>();
 
   // Read through a ref and run once: a re-created `deps` object must not trigger a
   // second page read, and the popup is a fresh document on every open.
@@ -66,10 +70,12 @@ export function useClipSession(
 
     void (async () => {
       try {
-        const { loadTemplates, readCapture, newClipId, now } = depsRef.current;
-        const [stored, capture] = await Promise.all([
+        const { loadTemplates, loadPairing, readCapture, newClipId, now } =
+          depsRef.current;
+        const [stored, capture, pairing] = await Promise.all([
           loadTemplates(),
           readCapture(),
+          loadPairing(),
         ]);
         if (cancelled) return;
 
@@ -91,6 +97,7 @@ export function useClipSession(
           now: moment,
         });
         setMode(defaultClipMode(capture));
+        setPaired(pairing !== undefined);
         setStatus("ready");
       } catch (cause) {
         if (cancelled) return;
@@ -186,12 +193,12 @@ export function useClipSession(
     const path = suggestedFilePath(payload);
     const file = composeNoteFile(payload);
 
-    setSaving(true);
+    setDownloading(true);
     setSaveError(undefined);
 
     void (async () => {
       try {
-        await depsRef.current.saveNote(path, file);
+        await depsRef.current.saveNoteFile(path, file);
       } catch (cause) {
         setSaveError(
           cause instanceof Error
@@ -199,10 +206,40 @@ export function useClipSession(
             : "The note could not be saved.",
         );
       } finally {
-        setSaving(false);
+        setDownloading(false);
       }
     })();
   }, [payload]);
+
+  const send = useCallback(() => {
+    if (payload === undefined) return;
+    const clip = payload;
+
+    setSending(true);
+    setSaveError(undefined);
+    setSentPath(undefined);
+
+    void (async () => {
+      try {
+        const delivery = await depsRef.current.sendClip(clip);
+        if (delivery.delivered) setSentPath(delivery.path ?? "");
+        else setSaveError(describeDeliveryFailure(delivery.reason));
+      } catch (cause) {
+        // `sendClip` reports failures as values; this is the seam misbehaving.
+        setSaveError(
+          cause instanceof Error
+            ? cause.message
+            : "The clip could not be sent.",
+        );
+      } finally {
+        setSending(false);
+      }
+    })();
+  }, [payload]);
+
+  const openOptions = useCallback(() => {
+    depsRef.current.openOptionsPage();
+  }, []);
 
   return {
     status,
@@ -217,12 +254,18 @@ export function useClipSession(
     disabledModes,
     payload,
     draft,
-    saving,
+    paired,
+    sending,
+    downloading,
+    sent: sentPath !== undefined,
+    sentPath: sentPath === "" ? undefined : sentPath,
     setMode,
     setTemplateId,
     setNoteName,
     setFolder,
     setProperty,
+    send,
     download,
+    openOptions,
   };
 }

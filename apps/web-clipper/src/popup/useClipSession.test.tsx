@@ -3,6 +3,7 @@ import { STARTER_TEMPLATES } from "@app/clipper-core";
 import { describe, expect, it, vi } from "vitest";
 import type { PageCapture } from "../capture/readPage";
 import { ARTICLE_PAGE_HTML, RECIPE_PAGE_HTML } from "../fixtures/pages";
+import type { ClipDelivery } from "../transport/postClipToDesktop";
 import type { ClipSessionDeps } from "./clipSessionDeps";
 import { useClipSession } from "./useClipSession";
 
@@ -22,7 +23,10 @@ function deps(overrides: Partial<ClipSessionDeps> = {}): ClipSessionDeps {
   return {
     readCapture: async () => capture(ARTICLE_PAGE_HTML),
     loadTemplates: async () => [...STARTER_TEMPLATES],
-    saveNote: vi.fn(async () => {}),
+    loadPairing: async () => undefined,
+    saveNoteFile: vi.fn(async () => {}),
+    sendClip: async (): Promise<ClipDelivery> => ({ delivered: true }),
+    openOptionsPage: vi.fn(),
     now: () => new Date("2026-10-17T09:05:07.000Z"),
     newClipId: () => "clip-test",
     ...overrides,
@@ -122,21 +126,140 @@ describe("useClipSession", () => {
   });
 
   it("saves the note under its suggested path", async () => {
-    const saveNote = vi.fn(async () => {});
-    const { result } = renderHook(() => useClipSession(deps({ saveNote })));
+    const saveNoteFile = vi.fn(async () => {});
+    const { result } = renderHook(() => useClipSession(deps({ saveNoteFile })));
     await waitFor(() => expect(result.current.status).toBe("ready"));
 
     await act(async () => {
       result.current.download();
     });
 
-    await waitFor(() => expect(saveNote).toHaveBeenCalledTimes(1));
-    expect(saveNote).toHaveBeenCalledWith(
+    await waitFor(() => expect(saveNoteFile).toHaveBeenCalledTimes(1));
+    expect(saveNoteFile).toHaveBeenCalledWith(
       "Clippings/Probe Article.md",
       expect.stringContaining("clippings"),
     );
-    expect(result.current.saving).toBe(false);
+    expect(result.current.downloading).toBe(false);
     expect(result.current.error).toBeUndefined();
+  });
+
+  it("sends the clip to the app and reports the path it wrote", async () => {
+    const sendClip = vi.fn(async (): Promise<ClipDelivery> => ({
+      delivered: true,
+      path: "Clippings/Probe Article.md",
+    }));
+    const { result } = renderHook(() =>
+      useClipSession(
+        deps({
+          loadPairing: async () => ({ port: 47912, token: "abc" }),
+          sendClip,
+        }),
+      ),
+    );
+    await waitFor(() => expect(result.current.paired).toBe(true));
+
+    await act(async () => {
+      result.current.send();
+    });
+
+    await waitFor(() => expect(result.current.sent).toBe(true));
+    expect(sendClip).toHaveBeenCalledTimes(1);
+    expect(sendClip.mock.calls[0][0].clipId).toBe("clip-test");
+    expect(result.current.sentPath).toBe("Clippings/Probe Article.md");
+    expect(result.current.sending).toBe(false);
+    expect(result.current.error).toBeUndefined();
+  });
+
+  it("keeps the clip when the app refuses it, and says why", async () => {
+    const { result } = renderHook(() =>
+      useClipSession(
+        deps({
+          loadPairing: async () => ({ port: 47912, token: "abc" }),
+          sendClip: async () => ({ delivered: false, reason: "unauthorized" }),
+        }),
+      ),
+    );
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+
+    await act(async () => {
+      result.current.send();
+    });
+
+    await waitFor(() =>
+      expect(result.current.error).toMatch(/refused the pairing token/),
+    );
+    expect(result.current.sent).toBe(false);
+    expect(result.current.status).toBe("ready");
+    expect(result.current.payload).toBeDefined();
+  });
+
+  it("keeps the clip when the app cannot be reached", async () => {
+    const { result } = renderHook(() =>
+      useClipSession(
+        deps({
+          loadPairing: async () => ({ port: 47912, token: "abc" }),
+          sendClip: async () => ({ delivered: false, reason: "unreachable" }),
+        }),
+      ),
+    );
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+
+    await act(async () => {
+      result.current.send();
+    });
+
+    await waitFor(() => expect(result.current.error).toMatch(/not sent/));
+    expect(result.current.payload).toBeDefined();
+  });
+
+  it("reports an unpaired extension from the send path", async () => {
+    const sendClip = vi.fn(async (): Promise<ClipDelivery> => ({
+      delivered: false,
+      reason: "not-paired",
+    }));
+    const { result } = renderHook(() => useClipSession(deps({ sendClip })));
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+
+    expect(result.current.paired).toBe(false);
+    await act(async () => {
+      result.current.send();
+    });
+
+    await waitFor(() => expect(result.current.error).toMatch(/not paired/));
+    expect(sendClip).toHaveBeenCalledTimes(1);
+  });
+
+  it("opens the extension's pairing options when asked", async () => {
+    const openOptionsPage = vi.fn();
+    const { result } = renderHook(() =>
+      useClipSession(deps({ openOptionsPage })),
+    );
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+
+    act(() => result.current.openOptions());
+
+    expect(openOptionsPage).toHaveBeenCalledTimes(1);
+  });
+
+  it("surfaces a save that fails as a thrown error", async () => {
+    const { result } = renderHook(() =>
+      useClipSession(
+        deps({
+          sendClip: async () => {
+            throw new Error("The seam misbehaved.");
+          },
+        }),
+      ),
+    );
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+
+    await act(async () => {
+      result.current.send();
+    });
+
+    await waitFor(() =>
+      expect(result.current.error).toBe("The seam misbehaved."),
+    );
   });
 
   it("reports a page it cannot read", async () => {
@@ -160,7 +283,7 @@ describe("useClipSession", () => {
     const { result } = renderHook(() =>
       useClipSession(
         deps({
-          saveNote: async () => {
+          saveNoteFile: async () => {
             throw new Error("Download refused.");
           },
         }),
@@ -190,8 +313,8 @@ describe("useClipSession", () => {
   });
 
   it("saves under the name the user typed, sanitised", async () => {
-    const saveNote = vi.fn(async () => {});
-    const { result } = renderHook(() => useClipSession(deps({ saveNote })));
+    const saveNoteFile = vi.fn(async () => {});
+    const { result } = renderHook(() => useClipSession(deps({ saveNoteFile })));
     await waitFor(() => expect(result.current.status).toBe("ready"));
 
     act(() => result.current.setNoteName("../Probe Soup"));
@@ -206,8 +329,8 @@ describe("useClipSession", () => {
       result.current.download();
     });
 
-    await waitFor(() => expect(saveNote).toHaveBeenCalledTimes(1));
-    expect(saveNote).toHaveBeenCalledWith(
+    await waitFor(() => expect(saveNoteFile).toHaveBeenCalledTimes(1));
+    expect(saveNoteFile).toHaveBeenCalledWith(
       "Clippings/Soups/Probe Soup.md",
       expect.any(String),
     );

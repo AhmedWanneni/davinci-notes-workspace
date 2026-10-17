@@ -29,13 +29,24 @@ export interface ClipPopupController {
   /** The sanitised clip, exactly as it will be written to the file. */
   payload?: ClipPayload;
   draft: ClipDraft;
-  saving: boolean;
+  /** The extension holds a pairing for the app, so `send` can do anything. */
+  paired: boolean;
+  /** A clip is being sent to the app. */
+  sending: boolean;
+  /** The note is being written to a downloaded file. */
+  downloading: boolean;
+  /** The app reported the last clip written. */
+  sent: boolean;
+  /** Vault-relative path of the last clip the app wrote, when it reported one. */
+  sentPath?: string;
   setMode(mode: ClipMode): void;
   setTemplateId(id: string): void;
   setNoteName(noteName: string): void;
   setFolder(folder: string): void;
   setProperty(name: string, value: string): void;
+  send(): void;
   download(): void;
+  openOptions(): void;
 }
 
 export interface ClipPopupProps {
@@ -131,21 +142,47 @@ export function ClipPopup({ controller }: ClipPopupProps) {
             <Button
               variant="primary"
               size="sm"
-              onClick={controller.download}
-              disabled={controller.saving}
+              onClick={controller.send}
+              disabled={!controller.paired || controller.sending}
             >
-              {controller.saving ? "Saving…" : "Download .md"}
+              {controller.sending ? "Sending…" : "Add to DaVinci Notes"}
             </Button>
-            <Button variant="secondary" size="sm" disabled>
-              Add to DaVinci Notes
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={controller.download}
+              disabled={controller.downloading}
+            >
+              {controller.downloading ? "Saving…" : "Download .md"}
             </Button>
           </div>
 
-          <Typography variant="text" size="xs" color="muted">
-            Sending the note straight to the app arrives with the transport
-            step. Until then the note is saved as a Markdown file you can move
-            into your vault.
-          </Typography>
+          {controller.sent ? (
+            <Typography variant="text" size="xs" color="muted" role="status">
+              {controller.sentPath === undefined
+                ? "Saved to your vault."
+                : `Saved to ${controller.sentPath}.`}
+            </Typography>
+          ) : controller.paired ? (
+            <Typography variant="text" size="xs" color="muted">
+              The clip is written by DaVinci Notes on this computer. Nothing is
+              sent anywhere else.
+            </Typography>
+          ) : (
+            <div className={styles["clip-popup__pairing"]}>
+              <Typography variant="text" size="xs" color="muted">
+                This extension is not paired with DaVinci Notes. Pair it to save
+                straight to your vault, or download the note as a file.
+              </Typography>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={controller.openOptions}
+              >
+                Pairing options
+              </Button>
+            </div>
+          )}
         </>
       ) : null}
     </main>

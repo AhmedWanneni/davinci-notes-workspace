@@ -12,7 +12,11 @@ const repoRoot = path.resolve(
  *
  * Permissions are deliberately minimal (plan §5): `activeTab` + `scripting` mean
  * the extension can read the current page only after the user invokes it, so no
- * host permission is ever granted for browsing.
+ * host permission is ever granted for browsing. The one host permission is the
+ * app's own loopback listener (ADR-0173): `http://127.0.0.1/*` covers the port
+ * the app reports at pairing time, which is not known when the manifest is
+ * written. Without it the popup's `fetch` would be subject to CORS and the app
+ * would have to preflight; with it nothing else is reachable.
  */
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
@@ -44,7 +48,7 @@ export default defineConfig({
       "contextMenus",
       "downloads",
     ],
-    host_permissions: [],
+    host_permissions: ["http://127.0.0.1/*"],
     commands: {
       _execute_action: {
         suggested_key: { default: "Alt+Shift+C" },

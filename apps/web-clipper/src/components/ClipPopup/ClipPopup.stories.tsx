@@ -51,13 +51,18 @@ function controller(
       folder: PAYLOAD.target.folder,
       properties: PAYLOAD.properties,
     },
-    saving: false,
+    paired: false,
+    sending: false,
+    downloading: false,
+    sent: false,
     setMode: (mode) => console.log("Clip mode:", mode),
     setTemplateId: (id) => console.log("Template:", id),
     setNoteName: (noteName) => console.log("Note name:", noteName),
     setFolder: (folder) => console.log("Folder:", folder),
     setProperty: (name, value) => console.log("Property:", name, value),
+    send: () => console.log("Send the clip to DaVinci Notes"),
     download: () => console.log("Download the note file"),
+    openOptions: () => console.log("Open the pairing options"),
     ...overrides,
   };
 }
@@ -116,6 +121,30 @@ export const SaveFailed: Story = {
   },
 };
 
-export const Saving: Story = {
-  args: { controller: controller({ saving: true }) },
+export const Paired: Story = {
+  args: { controller: controller({ paired: true }) },
+};
+
+export const Sent: Story = {
+  args: {
+    controller: controller({
+      paired: true,
+      sent: true,
+      sentPath: "Clippings/Why probes drift.md",
+    }),
+  },
+};
+
+export const SendFailed: Story = {
+  args: {
+    controller: controller({
+      paired: true,
+      error:
+        "DaVinci Notes refused the pairing token. Copy the current token from its Web Clipper settings into the extension options.",
+    }),
+  },
+};
+
+export const Downloading: Story = {
+  args: { controller: controller({ downloading: true }) },
 };
