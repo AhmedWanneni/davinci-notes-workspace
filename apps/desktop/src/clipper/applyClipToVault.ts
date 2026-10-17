@@ -1,6 +1,7 @@
 import type { ClipAck, ClipBehavior, ClipPayload } from "@app/clipper-core";
 import { composeNoteFile } from "@app/clipper-core";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
+import { processClipAttachments } from "./clipperAttachments";
 import {
   appendToNoteInVault,
   createNoteInVault,
@@ -86,19 +87,24 @@ export async function applyClipToVault(
   }
 
   try {
+    let payload = event.payload;
+    if (payload.attachments && payload.attachments.length > 0) {
+      payload = await processClipAttachments(payload, {
+        vaultPath: store.vaultPath,
+        activeNotePath: event.relativePath,
+        attachmentSettings: store.attachmentSettings,
+      });
+    }
+
     const plan = clipTargetPlan(
-      event.payload.behavior,
+      payload.behavior,
       event.relativePath,
       store.allNotePaths,
     );
     const path =
       plan.kind === "create"
-        ? await createNoteInVault(plan.path, composeNoteFile(event.payload))
-        : await appendToNoteInVault(
-            plan.path,
-            event.payload.body,
-            plan.position,
-          );
+        ? await createNoteInVault(plan.path, composeNoteFile(payload))
+        : await appendToNoteInVault(plan.path, payload.body, plan.position);
     return { clipId, status: "written", path };
   } catch (error) {
     console.error(`[clipper] could not write clip ${clipId}:`, error);

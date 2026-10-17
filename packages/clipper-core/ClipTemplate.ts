@@ -28,4 +28,6 @@ export interface ClipTemplate {
   body: string;
   /** Auto-apply rules: URL prefix, `/regex/`, or `schema:@Type`. */
   triggers: string[];
+  /** Optional: whether to download image attachments into the vault attachments folder (Phase 6). */
+  downloadImages?: boolean;
 }

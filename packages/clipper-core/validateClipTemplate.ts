@@ -44,6 +44,13 @@ export function validateClipTemplate(input: unknown): ClipTemplateValidation {
     if (reason !== undefined) errors.push(`triggers[${index}] ${reason}`);
   });
 
+  if (
+    record.downloadImages !== undefined &&
+    typeof record.downloadImages !== "boolean"
+  ) {
+    errors.push("downloadImages must be a boolean");
+  }
+
   if (errors.length > 0) return { ok: false, errors };
 
   return {
@@ -60,6 +67,10 @@ export function validateClipTemplate(input: unknown): ClipTemplateValidation {
       tags,
       body,
       triggers,
+      downloadImages:
+        typeof record.downloadImages === "boolean"
+          ? record.downloadImages
+          : undefined,
     },
   };
 }

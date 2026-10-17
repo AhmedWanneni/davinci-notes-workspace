@@ -114,4 +114,12 @@ describe("TemplateEditor", () => {
     render(<TemplateEditor {...props({ draft })} />);
     expect(screen.getByLabelText("Note body")).toHaveValue("{{content}}");
   });
+
+  it("toggles the save images to vault switch", () => {
+    const onChange = vi.fn();
+    render(<TemplateEditor {...props({ onChange })} />);
+    const toggle = screen.getByRole("switch");
+    fireEvent.click(toggle);
+    expect(onChange).toHaveBeenCalledWith({ downloadImages: true });
+  });
 });

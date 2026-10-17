@@ -1,6 +1,7 @@
 import {
   buildClipPayload,
   createFilterRegistry,
+  extractImageAttachments,
   renderClipTemplate,
   type ClipHighlight,
   type ClipPayload,
@@ -70,6 +71,9 @@ export function renderClipPayload(
       wordCount: extracted.wordCount,
     },
     highlights: toHighlights(snapshot.highlights ?? [], ids.capturedAt),
+    attachments: template.downloadImages
+      ? extractImageAttachments(rendered.body)
+      : undefined,
   });
 
   return { payload, extracted };

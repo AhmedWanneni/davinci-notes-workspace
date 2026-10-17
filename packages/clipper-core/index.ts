@@ -116,6 +116,11 @@ export {
   RECIPE_TEMPLATE,
   STARTER_TEMPLATES,
 } from "./starterTemplates.js";
+export {
+  deriveSuggestedImageName,
+  extractImageAttachments,
+  rewriteMarkdownImageLinks,
+} from "./attachmentExtractor.js";
 
 /** Package identifier kept for shell smoke tests. */
 export const name = "@app/clipper-core";

@@ -844,9 +844,9 @@ name = "davinci-notes-desktop"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "chrono",
  "constant_time_eq",
  "getrandom 0.2.17",
- "chrono",
  "keyring",
  "log",
  "notify",

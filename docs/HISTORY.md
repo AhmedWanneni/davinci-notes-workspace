@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-17 | Web Clipper Phase 6 — Attachment download, offline images, and SSRF protection | Implemented Phase 6 image attachments download pipeline and offline vault storage. Added `downloadImages` boolean flag to `ClipTemplate` and TemplateEditor general settings. Added `extractImageAttachments`, `deriveSuggestedImageName`, and `rewriteMarkdownImageLinks` in `packages/clipper-core`. Built `clipper_fetch_attachment` in Rust with strict SSRF validation (`is_disallowed_ip` blocking loopback, link-local, carrier-grade NAT, private LAN, metadata IPs, bracketed IPv6, and localhost), max 5 redirects with SSRF check on each hop, 1 MiB per-image cap, and content sniffing checks rejecting HTML/scripts. Built `processClipAttachments` in desktop applying `MAX_CLIP_ATTACHMENTS = 50` and `MAX_TOTAL_ATTACHMENT_BYTES = 20 * 1024 * 1024` (20 MiB), writing to vault via `writeAttachmentToVault`, generating vault-relative links, and rewriting markdown note body with graceful partial-success fallback. All 4 Rust tests, 88 clipper-core tests, 212 web-clipper tests, and 26 desktop clipper/adversarial tests passing; all files strictly under line caps. |
 | 2026-10-17 | Web Clipper Phase 5 — Highlighter, safe markdown rendering, and popup integration | Built page text-quote anchoring and highlighting in apps/web-clipper with persistent storage in chrome.storage.local (bounded FIFO eviction: MAX_HIGHLIGHTS = 2,000, MAX_HIGHLIGHTS_PER_URL = 200). Added "Highlight selection" action to ClipPopup with dynamic highlights extraction mode enablement when stored highlights exist. Optimized restoreHighlights with instant 0-highlight early bailout (<0.01 ms vs 55 ms on 5,000-node DOM). Added highlight markdown filter (==...== escaping nested == to \=\= and multiline support), hardened wikilinkFilter against hostile ]] injections, and updated tableFilter for primitive row arrays. Passed all 4 Phase 5 adversarial checks. All 81 clipper-core and 211 web-clipper tests passing; 0 lint / 0 tsc errors. |
 | 2026-10-17 | Web Clipper Phase 4 part 1 — template library settings | Completed options-page template management: stored-order list (which defines first-match auto-apply precedence), isolated draft editor for all template fields, create/duplicate/delete/restore, and bounded JSON import/export. Imports are capped at 1 MiB before parsing, require a non-empty array, validate every entry atomically, reject duplicate IDs and literal absolute/traversal/backslash folders, and preserve the current library on failure; exports preserve list order. No dependency or background work was added. web-clipper 198 tests / 29 files, lint, typecheck and production build pass; full extension 630.29 kB raw / 186,008 B gzip. Remaining Phase 4 settings export and real-browser options acceptance are separately scoped. |
 | 2026-10-17 | Web Clipper Phase 3 part 3 — the extension transport | Completed the browser half of Phase 3 in two commits: the transport wire (`5ed0a45`) and the popup + options wiring (`8393920`). `postClipToDesktop` posts the `ClipPayload` to `http://127.0.0.1:<port>/clipper/clip` with `Authorization: Bearer <token>` and **never throws** — a failure is a value (`{delivered:false,reason}`) in the app's own error vocabulary plus `not-paired`/`unreachable`/`timeout`/`queued`. The ack body is read first and the status is the fallback (400 `invalid-payload`, 401/403 `unauthorized`, 409 `vault-not-open`, 413 `too-large`, 422 `invalid-path`, 503 `app-busy`, anything else `unreachable`); the ack is trusted only when it names the sent `clipId` **or names none**, because Rust deliberately sends `clipId: ""` for refusals that happen before the body parses; 15 s abort plus a client-side 2 MiB pre-check mirroring `clipper_validate::MAX_BODY_BYTES`. `pairingStore` holds the manual copy-token pairing (`clipper.pairing`; a malformed entry reads as unpaired — nothing repaired, nothing guessed), and the extension's new options page + `PairingPanel` (story + tests) are its surface. The popup's "Add to DaVinci Notes" is live and gated on pairing, reports the path the app wrote, and otherwise shows `describeDeliveryFailure(reason)` while keeping the clip for a retry or a `.md` download; its `saving` flag became `downloading`. The manifest gains its only host permission, `http://127.0.0.1/*`, which is what keeps CORS handling off the desktop. **Scope corrected:** the closed-app queue is Phase 7, not part of Phase 3, and was not built — an undeliverable clip is reported and kept on screen, never buffered where nothing can drain it. No new dependency anywhere. Total extension output 595.5 kB → 610.1 kB raw / 173.8 kB → 179.6 kB gzip (the new options page is 4.85 kB raw / 1.77 kB gzip; read the totals, because a second HTML entrypoint splits a shared chunk out of the popup bundle). web-clipper **166** tests / 21 files (was 102/17), `pnpm lint` and `tsc --noEmit` clean, `wxt build` clean with `options_ui` and the host permission present in the generated manifest; only `apps/web-clipper` was touched, so clipper-core (63) and desktop (408) were not re-run. Real-browser `Origin`/preflight behaviour and the end-to-end handshake remain owner-local. |
@@ -153,7 +154,38 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 
 ## Detailed Session Notes
 
-<<<<<<< HEAD
+### 2026-10-17 — Web Clipper Phase 6: Attachment download, offline images, and SSRF protection
+
+- Added `downloadImages?: boolean` flag to `ClipTemplate` and template schema validation in `packages/clipper-core`.
+- Built `attachmentExtractor.ts` in `packages/clipper-core` containing:
+  - `extractImageAttachments`: extracts image URLs from markdown `![alt](url)` and HTML `<img src="url">`, normalizes URLs, ensures HTTP/HTTPS protocol, and dedupes references.
+  - `deriveSuggestedImageName`: safely derives filenames preserving image extensions while stripping path traversal and invalid characters.
+  - `rewriteMarkdownImageLinks`: replaces remote image URLs with local vault-relative paths.
+- Updated `apps/web-clipper`:
+  - `renderClipPayload.ts`: extracts attachments into `payload.attachments` when `template.downloadImages` is enabled.
+  - `TemplateEditor.tsx` / `TemplateGeneralFields.tsx`: extracted general template fields to keep files <150 lines, and added "Save images to vault" toggle (`Toggle` from `@app/design-system`).
+- Built native attachment fetching in `apps/desktop/src-tauri/src/clipper_attachments.rs`:
+  - Command `clipper_fetch_attachment` gated by `reject_plugin_runner`.
+  - Strict SSRF protections (`is_disallowed_ip` rejecting loopback, link-local, carrier-grade NAT, private LAN, AWS/cloud metadata IPs, bracketed IPv6, and localhost).
+  - Maximum 5 redirects with SSRF re-check on each redirect target.
+  - 10-second timeout, 1 MiB per-image cap.
+  - Content sniffing check (`validate_image_content`) rejecting HTML (`<!DOCTYPE`, `<html`, `<head`, `<body`) and script tags, validating magic bytes for PNG, JPEG, GIF, WebP, SVG, BMP, ICO.
+- Built TypeScript attachment pipeline in `apps/desktop/src/clipper/clipperAttachments.ts`:
+  - `processClipAttachments`: enforces `MAX_CLIP_ATTACHMENTS = 50` and `MAX_TOTAL_ATTACHMENT_BYTES = 20 * 1024 * 1024` (20 MiB).
+  - Writes images to vault using existing `writeAttachmentToVault` (handling folder routing and numeric suffix collision resolution, ADR-0110).
+  - Rewrites markdown body with local vault-relative links.
+  - Partial success: failed downloads log a warning and preserve the original URL in the note.
+- Integrated `processClipAttachments` in `applyClipToVault.ts`.
+- Verified all 6 Phase 6 adversarial checks in `clipper_attachments_tests.rs` and `clipperAttachmentsAdversarial.test.ts`.
+
+### 2026-10-17 — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration
+
+- Built page text-quote anchoring and highlighting in `apps/web-clipper` with persistent storage in `chrome.storage.local` with bounded FIFO eviction (`MAX_HIGHLIGHTS = 2,000`, `MAX_HIGHLIGHTS_PER_URL = 200`).
+- Added "Highlight selection" action to `ClipPopup` with dynamic highlights extraction mode enablement when stored highlights exist for the page.
+- Optimized `restoreHighlights` with instant 0-highlight early bailout (<0.01 ms vs 55 ms on 5,000-node DOM).
+- Added `highlightFilter` markdown filter (`==...==` escaping nested `==` to `\=\=` and multiline support), hardened `wikilinkFilter` against hostile `]]` injections, and updated `tableFilter` for primitive row arrays.
+- Passed all 4 Phase 5 adversarial checks.
+
 ### 2026-10-17 — Web Clipper Phase 4 part 1: template library settings
 
 - Added a draft-based options-page template library with stored-order selection,
@@ -167,7 +199,7 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 - Added component SCSS/stories/tests and pure transfer tests. `pnpm --filter
   @app/web-clipper test` passed 198 tests across 29 files; lint, typecheck and
   production build passed. No dependency or background work was added.
-=======
+
 ### 2026-10-16 — Mobile Expo SDK Pin & Dependency Alignment (ADR-0194)
 - **Diagnosed and Resolved Metro Startup Failure**:
   - Identified root cause of `Cannot find module '.../@expo+metro@56.0.2/node_modules/metro/src/lib/isResolvedDependency.js'`: Root `package.json` had legacy SDK 52 `pnpm.overrides` pinning `metro` and related packages to `0.81.5`. Metro 0.81.5 did not include `isResolvedDependency.js`.

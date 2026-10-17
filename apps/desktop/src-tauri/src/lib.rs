@@ -4,6 +4,7 @@ mod capture_commands;
 mod capture_format;
 mod capture_validation;
 mod capture_writer;
+mod clipper_attachments;
 mod clipper_auth;
 mod clipper_commands;
 mod clipper_dispatch;
@@ -51,6 +52,8 @@ mod tray_position;
 mod fs_tests;
 #[cfg(test)]
 mod tray_tests;
+#[cfg(test)]
+mod clipper_attachments_tests;
 #[cfg(test)]
 mod clipper_auth_tests;
 #[cfg(test)]
@@ -130,6 +133,7 @@ pub fn run() {
       clipper_commands::clipper_rotate_token,
       clipper_commands::clipper_revoke_token,
       clipper_commands::clipper_submit_result,
+      clipper_attachments::clipper_fetch_attachment,
       ai_auth::save_ai_key,
       ai_auth::load_ai_key,
       ai_auth::clear_ai_key,

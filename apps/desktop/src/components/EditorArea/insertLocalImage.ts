@@ -1,23 +1,13 @@
 import type { AttachmentSettings } from "@app/attachments";
 import { resolveAttachmentFolder } from "@app/attachments";
-import { writeAttachmentToVault } from "../../vault";
+import { computeVaultRelativeLink, writeAttachmentToVault } from "../../vault";
+
+export { computeVaultRelativeLink };
 
 export interface InsertLocalImageOptions {
   vaultPath: string;
   activeNotePath: string | null;
   attachmentSettings: AttachmentSettings;
-}
-
-export function computeVaultRelativeLink(
-  vaultPath: string,
-  writtenPath: string,
-): string {
-  const vaultPrefix = `${vaultPath.replaceAll("\\", "/").replace(/\/+$/u, "")}/`;
-  const normalizedWritten = writtenPath.replaceAll("\\", "/");
-  const linkTarget = normalizedWritten.startsWith(vaultPrefix)
-    ? normalizedWritten.slice(vaultPrefix.length)
-    : normalizedWritten;
-  return linkTarget;
 }
 
 /**
