@@ -1,4 +1,8 @@
 import { Directory, File } from "expo-file-system";
+import {
+  isSyncthingConflictPath,
+  isSyncthingTmpPath,
+} from "@app/syncthing-api";
 import { isMarkdownPath, isHiddenPath, normalizeVaultPath } from "./pathUtils";
 import type { VaultScanResult } from "./types";
 
@@ -7,6 +11,7 @@ interface ScanContext {
   notes: string[];
   folders: string[];
   attachments: string[];
+  conflicts: string[];
   stats: Record<string, { size: number; mtime: number }>;
   visitedDirs: Set<string>;
 }
@@ -46,6 +51,14 @@ async function scanDirectoryRecursive(
       ctx.folders.push(relativePath);
       await scanDirectoryRecursive(entry.uri, relativePath, ctx);
     } else {
+      if (isSyncthingTmpPath(relativePath)) {
+        continue;
+      }
+      if (isSyncthingConflictPath(relativePath)) {
+        ctx.conflicts.push(relativePath);
+        continue;
+      }
+
       const size = entry.size ?? 0;
       const mtime = entry.lastModified ?? entry.modificationTime ?? Date.now();
 
@@ -72,6 +85,7 @@ export async function scanVaultDirectory(
     notes: [],
     folders: [],
     attachments: [],
+    conflicts: [],
     stats: {},
     visitedDirs: new Set<string>(),
   };
@@ -91,11 +105,15 @@ export async function scanVaultDirectory(
   ctx.attachments.sort((a, b) =>
     a.localeCompare(b, undefined, { numeric: true }),
   );
+  ctx.conflicts.sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true }),
+  );
 
   return {
     notes: ctx.notes,
     folders: ctx.folders,
     attachments: ctx.attachments,
+    conflicts: ctx.conflicts,
     stats: ctx.stats,
   };
 }

@@ -125,6 +125,10 @@ export default defineConfig({
         find: "@app/ai-qa",
         replacement: path.join(repoRoot, "packages/ai-qa/index.ts"),
       },
+      {
+        find: "@app/syncthing-api",
+        replacement: path.join(repoRoot, "packages/syncthing-api/index.ts"),
+      },
     ],
   },
   server: {

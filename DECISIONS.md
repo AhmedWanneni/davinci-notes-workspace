@@ -284,3 +284,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0195](adr/0195-mobile-vault-onboarding-and-registry.md) | Mobile vault onboarding, multi-vault registry, and storage selection | Accepted |
 | [0196](adr/0196-mobile-vault-storage-and-flow-remediation.md) | Mobile vault storage and flow remediation: object-based fs seam, atomic overwrite, and UI hardening | Accepted |
 | [0197](adr/0197-mobile-note-identity-and-rename-safety.md) | Stable note identity via NoteStore, single-pass atomic write, and safe collision-free rename | Accepted |
+| [0198](adr/0198-syncthing-desktop-mobile-sync-verification-and-conflict-isolation.md) | Syncthing desktop-mobile sync verification, non-destructive conflict routing, and transfer isolation | Accepted |

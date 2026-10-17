@@ -21,6 +21,7 @@ export interface VaultScanResult {
   notes: string[];
   folders: string[];
   attachments: string[];
+  conflicts?: string[];
   stats: Record<string, { size: number; mtime: number }>;
 }
 

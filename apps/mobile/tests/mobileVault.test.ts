@@ -133,4 +133,55 @@ describe("Mobile Vault Storage & 5,000-Note Benchmark", () => {
     const { info: recoveredInfo } = await manager.getActiveAdapter();
     expect(recoveredInfo.isAccessible).toBe(true);
   });
+
+  it("filters out Syncthing tmp files and surfaces conflict files without indexing as normal notes", async () => {
+    // Populate vault with normal notes, conflict notes, and tmp files
+    const TEST_VAULT = `${documentDirectory}syncthing-filter-test/`;
+    inMemoryFs.set(TEST_VAULT.replace(/\/+$/, ""), {
+      isDirectory: true,
+      size: 0,
+      mtime: Date.now(),
+    });
+
+    inMemoryFs.set(`${TEST_VAULT}Regular.md`, {
+      isDirectory: false,
+      content: "# Regular",
+      size: 9,
+      mtime: 1000,
+    });
+
+    inMemoryFs.set(`${TEST_VAULT}Regular.sync-conflict-20261017-120000-ABCDEF.md`, {
+      isDirectory: false,
+      content: "# Conflict Content",
+      size: 18,
+      mtime: 1001,
+    });
+
+    inMemoryFs.set(`${TEST_VAULT}.syncthing.Regular.md.tmp`, {
+      isDirectory: false,
+      content: "tmp bytes",
+      size: 9,
+      mtime: 1002,
+    });
+
+    inMemoryFs.set(`${TEST_VAULT}large-attachment.syncthing.tmp`, {
+      isDirectory: false,
+      content: "200mb tmp transfer",
+      size: 200 * 1024 * 1024,
+      mtime: 1003,
+    });
+
+    const result = await scanVaultDirectory(TEST_VAULT);
+
+    // Only regular note is in notes
+    expect(result.notes).toEqual(["Regular.md"]);
+    // Conflict note is routed to conflicts
+    expect(result.conflicts).toEqual([
+      "Regular.sync-conflict-20261017-120000-ABCDEF.md",
+    ]);
+    // Neither tmp file is in notes or attachments
+    expect(result.attachments).toEqual([]);
+    expect(result.notes.some((n) => n.includes(".tmp"))).toBe(false);
+  });
 });
+
