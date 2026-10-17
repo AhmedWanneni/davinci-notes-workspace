@@ -4,7 +4,70 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Web Clipper Phase 2b: React popup on the design system
+## Last Session — Web Clipper Phase 3 (part 1): the Rust receiver core
+
+**Scope:** the Rust half of Phase 3 of `web-clipper-feature-plan.md` — validation,
+token auth, the loopback listener and the webview handshake. The listener is
+**inert**: `clipper_enable` is the only way to start it and no UI calls it yet, so
+the shipped risk is unchanged. Deferred to the next session: `clipperService.ts`,
+`appendToNoteInVault`, the Settings pairing section. One commit, one concern, on
+top of Phase 2b (`e5743f3`).
+
+**Phase 0 gate resolved first (it was the blocker).** The plan required verifying
+`tauri-plugin-deep-link`'s Rust ≥ 1.90 against `rust-version = "1.77.2"`. Result:
+deep-link v2 latest is 2.6.2 (needs 1.90); 2.4.10 is the last 1.77.2-compatible
+release; `tauri-plugin-single-instance` 2.5.x also needs 1.90; the installed
+toolchain is already rustc 1.97.1, so the pin is declarative only. Since the deep
+link is a *launch convenience* (payload always goes over loopback, and ADR-0178's
+queue already covers the closed-app case) and the loopback carrier is required
+under every option, the chosen path is **loopback-only + manual pairing**: no
+plugin added, MSRV unchanged. ADR-0173 amended (still Proposed); no ADR accepted.
+
+**Built (`apps/desktop/src-tauri/src/`):** `clipper_payload.rs` (wire types mirroring
+`ClipPayload.ts`, `deny_unknown_fields`, `ClipAck`/`ClipError`),
+`clipper_name_rules.rs` (literal Rust port of `safeName`/`normalizeFolder`/
+`normalizeNoteName`/`isSafeRelativePath`), `clipper_validate.rs` (bounds + shape),
+`clipper_http.rs` (hand-rolled request reader with hard caps), `clipper_routes.rs`
+(the one route and its checks), `clipper_dispatch.rs` (the `ClipDispatcher` trait +
+the webview handshake), `clipper_server.rs` (`ClipperState` + lazy lifecycle),
+`clipper_commands.rs` (7 Tauri commands, all `reject_plugin_runner`-gated).
+`Cargo.toml` gains `constant_time_eq = "0.4"` and `getrandom = "0.2"` — both
+already compiled in the tree (via `blake3` and the lockfile), so zero binary delta.
+
+**The decision that mattered most (ADR-0180):** the desktop **re-validates and
+rejects** rather than re-sanitising. `safeName` is the shared *definition* of safe;
+the extension applies it and the desktop compares the result to the input, so a
+`folder`/`noteName` that is not already the fixed point is `invalid-path`. This
+matches the plan's adversarial check 1 and is better than silently writing a name
+the user never saw. `clipper_validate_tests.rs` pins both directions (legitimate
+extension output accepted, hostile input rejected) — including the literal,
+odd-looking parts of the port (a TAB is *removed*, not collapsed; truncation counts
+UTF-16 units as JS `slice` does).
+
+**Security shape:** token is the boundary and is compared in constant time;
+`Host` must be exactly `127.0.0.1:<port>` (`localhost` and `127.0.0.1.evil` are
+refused — DNS-rebinding defence); a present `Origin` must be `chrome-extension://`/
+`moz-extension://`; no CORS headers (the extension will hold a narrow
+`http://127.0.0.1/*` host permission instead). The body cap (2 MiB) and header cap
+(16 KiB) are enforced **before** buffering; a truncated body is an error, never a
+short read. Rust never writes: it emits `clipper:clip-received` and blocks on a
+20 s `clipId`-keyed channel the webview completes via `clipper_submit_result`.
+Stopping the listener wakes the blocked `accept()` with one throwaway connection —
+no poll loop (PERFORMANCE.md rule 9).
+
+**Verification:** 32 new Rust tests (attack matrix over real loopback sockets:
+checks 1–4 and 9), `cargo test` 76 pass / 1 fail — the failure being the
+pre-existing `git_auth::tests::system_git_accepts_a_pat_through_its_standard_https_askpass_path`,
+which shells out to system `git` 2.56, is untouched by this session, and fails
+standalone. `cargo clippy --all-targets` adds zero warnings (the 7 present are all
+pre-existing). Largest new clipper file 243 lines; every new file ≤ 250.
+
+**Environment gotcha for the next session:** a cold `cargo` build fails to link on
+this machine — the default `MacOSX27.0.sdk` `.tbd` files use an `arm64e.x1-macos`
+target this `ld` cannot read. Prefix Rust commands with
+`SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk`.
+
+## Previous Session — Web Clipper Phase 2b: React popup on the design system
 
 **Scope:** `apps/web-clipper` Phase 2b — the popup UI (`ClipPopup`, `ClipEditor`,
 `ClipPreview`, `ClipModeSelector`, `TemplatePicker`) on `@app/design-system`, plus
@@ -85,7 +148,7 @@ components, but no app has a Storybook config in this repo (only
 
 ---
 
-## Previous Session — Web Clipper Phase 2a: extension pipeline with real Markdown
+## Earlier — Web Clipper Phase 2a: extension pipeline with real Markdown
 
 **Scope:** `apps/web-clipper` Phase 2a (capture → extract → variables → template →
 payload → note file). Phase 1 (`packages/clipper-core`) shipped in the previous
@@ -151,7 +214,7 @@ filename. `tsc --noEmit` and ESLint are clean; `wxt build` succeeds. Largest fil
 
 ---
 
-## Earlier — Web Clipper feature plan (plan only, no code)
+## Earliest — Web Clipper feature plan (plan only, no code)
 
 **Deliverables:** `web-clipper-feature-plan.md` (phased build plan, architecture
 diagram, payload schema, phases 0–8 with dependencies + adversarial verification),
@@ -1194,20 +1257,21 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Web Clipper Phase 3 (desktop receiver, HIGH-RISK / one session)**: implement the ADR-0173 loopback listener + deep-link wake, `clipper_auth.rs` / `clipper_validate.rs`, `apps/desktop/src/clipper/clipperService.ts`, the new `appendToNoteInVault`, and the Settings pairing section, then the ADR-0177 write path. **Before starting**, verify `tauri-plugin-deep-link` Rust ≥ 1.90 against `rust-version = "1.77.2"` in `apps/desktop/src-tauri/Cargo.toml` (loopback-only + manual pairing is the documented fallback). Every step that touches `vault-index.db` must follow the standing withDbLock/WAL concurrency rules. Owner-local: real-browser clip timing and native GUI checks for Phases 2a/2b. Then plan Phases 4–8. Keep ADRs 0173–0179 `Proposed` until the owner answers O2–O8 in the plan §10 (template import/export is Phase 4, not Phase 2).
-2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
-3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
-4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
-5. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
-6. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
-7. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
-8. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
-9. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-10. **Unlinked Mentions Detection**
-11. **Inline Property Editing**
-12. **Outline Scroll Synchronization**
-13. Add success/warning semantic color tokens
-14. Chromatic / Playwright screenshot regression
+1. **Web Clipper Phase 3 (part 2) — the TS/UI half of the desktop receiver**: Phase 3 part 1 (the Rust core) is done and inert; the listener is reachable only through `clipper_enable`. Now wire it up: `apps/desktop/src/clipper/clipperService.ts` listens for `clipper:clip-received`, calls the canonical helpers (`createNoteInVault`, new `appendToNoteInVault`) and returns the outcome through `clipper_submit_result`; the Settings "Web Clipper" section (enable toggle, show/copy the token, the bound port, rotate, revoke) with stories + tests. `appendToNoteInVault` must **create** the note when the target is missing (documented outcome for plan §5 check 5; never truncate). Any step that touches vault-index.db must follow the standing withDbLock/WAL concurrency rules. Owner-local: real-browser clip timing and native GUI checks for Phases 2a/2b/3. Then plan Phases 4–8.
+2. **Web Clipper Phase 3 (part 3) — extension transport**: `saveNote` in `apps/web-clipper`'s `clipSessionDeps` seam posts to loopback (narrow `http://127.0.0.1/*` host permission; no CORS on the desktop side), so the "Add to DaVinci Notes" button goes live, plus the closed-app queue (ADR-0178).
+3. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+4. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
+5. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+6. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
+7. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+8. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+9. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+10. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+11. **Unlinked Mentions Detection**
+12. **Inline Property Editing**
+13. **Outline Scroll Synchronization**
+14. Add success/warning semantic color tokens
+15. Chromatic / Playwright screenshot regression
 
 ## Blocked / Open Questions
 
@@ -1216,7 +1280,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 - **Visual regression**: Not yet configured.
 - **Total JS/CSS size budgets**: lazy chunks counted toward totals — adjust if/when configured.
 - **AI feature plan artifact**: `plans/ai-integration-plan/ai-features-build-plan.md` is missing; recover it before treating any undiscovered prior AI decision as authoritative.
-- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction budget (ADR-0174 — the measured size is now ~100 KB gzip for Defuddle core + Turndown, not the 86.4 KB bundlephobia figure, and the browser popup costs another ~71 KB gzip for React + the design system, taking the popup chunk to 170,650 B gzip; the owner has not yet accepted either cost), popup data flow (ADR-0179 — draft vs payload and the template-switching split), the **page-size cap** (the plan's 2 MiB belongs to the Phase 3 transport; nothing caps capture today), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. Also verify the `tauri-plugin-deep-link` Rust ≥ 1.90 requirement against the pinned `rust-version = "1.77.2"` before committing to the recommended transport.
+- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction budget (ADR-0174 — the measured size is now ~100 KB gzip for Defuddle core + Turndown, not the 86.4 KB bundlephobia figure, and the browser popup costs another ~71 KB gzip for React + the design system, taking the popup chunk to 170,650 B gzip; the owner has not yet accepted either cost), popup data flow (ADR-0179 — draft vs payload and the template-switching split), the **page-size cap** (the plan's 2 MiB belongs to the Phase 3 transport; nothing caps capture today), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. The `tauri-plugin-deep-link` Rust ≥ 1.90 check **is done** (Phase 3 part 1): it needs 1.90 against the declared `1.77.2` and macOS schemes are install-time only, so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173, "Phase 0 verification outcome"). Still owner-approved-by-default only: the 2 MiB body cap and the per-field caps in `clipper_validate.rs` (ADR-0180, "Open decisions") and whether `clipper_status`/`ack` are the final Settings API.
 
 ---
 

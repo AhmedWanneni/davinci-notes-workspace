@@ -2,7 +2,11 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). Draft only; no code.
+Proposed (needs owner input, see "Open decisions"). The **loopback half is
+implemented** (Phase 3, part 1 — see "Phase 0 verification outcome" below); the
+deep-link half is **deferred, not built**. The decision below is unchanged in
+substance but its default has narrowed: Option 4's deep-link leg is now optional
+rather than assumed.
 
 ## Context
 
@@ -79,8 +83,12 @@ Constraints in this repo:
 
 ## Decision (recommended)
 
-**Option 4.** Deep link `davinci://clip/wake?nonce=<random>` is a *wake and
-pairing handshake only* — it never carries clip content. The clip payload is
+**Option 4**, with the deep-link leg **optional and deferred** as of Phase 3
+(part 1). What is built today is the loopback carrier, which every variant needs:
+`POST /clipper/clip` on a `127.0.0.1` loopback listener, per-install token in the
+OS keychain, constant-time compare, exact `Host` check, `Origin` check, 2 MiB cap.
+Deep link `davinci://clip/wake?nonce=<random>` — if taken later — is a *wake and
+pairing handshake only*; it never carries clip content. The clip payload is
 `POST`ed to a loopback-only listener.
 
 - Listener binds `127.0.0.1` on a fixed, per-install port; started **only** when
@@ -91,10 +99,44 @@ pairing handshake only* — it never carries clip content. The clip payload is
 - Pairing: either (a) the user copies the token from Settings into the extension,
   or (b) the extension opens `davinci://clip/wake?nonce=…`, the app opens a 60 s
   pairing window, and the extension `POST`s the nonce to `/clipper/pair` to
-  receive the token. Both are offered; owner picks the default (O5).
-- The extension tries loopback first (short timeout). On failure it fires the
-  deep link to launch the app, then retries. If it still cannot reach the app, it
-  queues (ADR-0178).
+  receive the token. Both are offered; owner picks the default (O5). Only (a)
+  exists until the deep link is added.
+- The extension posts to loopback. If the app cannot be reached, it queues
+  (ADR-0178) — so the missing deep link costs the "one click launches the app"
+  convenience and nothing else.
+
+## Phase 0 verification outcome
+
+The check `PROGRESS.md` required before Phase 3 was run, and it produced a
+concrete answer.
+
+| Fact | Result |
+|---|---|
+| Declared MSRV | `apps/desktop/src-tauri/Cargo.toml`: `rust-version = "1.77.2"` |
+| Installed toolchain | `rustc 1.97.1` (aarch64-apple-darwin) — the pin is declarative, not enforced locally |
+| `tauri-plugin-deep-link` v2 latest | **2.6.2, `rust-version = "1.90"`** |
+| Last deep-link release fitting `1.77.2` | **2.4.10** |
+| `tauri-plugin-single-instance` v2 latest | 2.5.4, `rust-version = "1.90"` (2.5.0–2.5.4 all need 1.90) |
+| Newest deep-link overall | `3.0.0-alpha.3`, `rust-version = "1.95"` (Tauri 3 line) |
+| `keyring = "3.6.2"` | already in the tree (OAuth precedent) |
+| Loopback precedent | `apps/desktop/src-tauri/src/oauth.rs` (`TcpListener`, `keyring::Entry`) |
+
+Two further constraints were confirmed from the plugin documentation rather than
+tested: macOS cannot register a URL scheme at runtime (it must be in
+`tauri.conf.json`, so the scheme is install-time only), and desktop deep links
+only fire for an installed/bundled app.
+
+**Conclusion.** Taking the deep link costs either a declared MSRV bump
+(1.77.2 → 1.90 across the workspace) or a pin to the older 2.4.10 line, plus a
+macOS bundled-app caveat — in exchange for a launch convenience that ADR-0178's
+queue already makes non-critical (a clip taken while the app is closed is queued
+and drained on next open; no clip is lost either way). The loopback carrier is
+required under *every* option, so building it first wastes nothing and the deep
+link remains addable later behind the same route.
+
+**Chosen:** loopback-only + manual pairing. `tauri-plugin-deep-link` and
+`tauri-plugin-single-instance` are **not** added; the declared MSRV stays
+`1.77.2`; O1's deep-link leg stays open for a later session.
 
 ## Consequences
 
@@ -102,22 +144,38 @@ pairing handshake only* — it never carries clip content. The clip payload is
 - Fallback if `tauri-plugin-deep-link` cannot be used with the pinned Rust
   toolchain: loopback-only + manual pairing (the app cannot auto-launch). The
   architecture survives; only the "app closed → one click launches it"
-  convenience is lost.
+  convenience is lost. **This is the path taken** (see "Phase 0 verification
+  outcome").
 - Rejected Native Messaging keeps distribution to two channels (desktop app +
   extension store), not three.
-- Adds `tauri-plugin-deep-link` and `tauri-plugin-single-instance` as Rust
-  dependencies; their binary delta must be measured (ADR-0152 precedent), not
-  assumed.
+- The deep link, if ever added, brings `tauri-plugin-deep-link` and
+  `tauri-plugin-single-instance` as Rust dependencies; their binary delta must be
+  measured (ADR-0152 precedent), not assumed. Nothing is added today.
+- The extension will need a narrow `http://127.0.0.1/*` host permission to `fetch`
+  the loopback route without CORS. That is an extension-side change and lands with
+  the popup's transport wiring, not here.
 
 ## Performance cost
 
 - Clipper disabled: zero — no listener, no thread, no port.
 - Clipper enabled, idle: one listening socket and one blocked `accept()`; expected
-  near-zero CPU. Must be measured in Phase 0 and recorded (ruling 9: no polling).
+  near-zero CPU. Ruling 9 (no polling) is honoured: stopping is event-driven — the
+  accept thread is woken by one throwaway connection — so there is no timeout poll.
+  The RSS/CPU measurement itself needs a running GUI build, so it is **owner-local
+  and still outstanding**; nothing here has been measured at runtime.
+- Binding uses a preferred port (`47912`, below the ephemeral range so it is not
+  recycled) and falls back to an ephemeral port if that one is taken; the actual
+  bound port is reported to the UI for pairing.
 - Clip in flight: one bounded request (≤ 2 MiB cap) and one file write.
 
 ## Open decisions
 
-- O1: confirm hybrid over the other three.
-- O5: default pairing UX (copy-token vs nonce window).
-- O7: keychain vs config file for the token.
+- O1: confirm hybrid over the other three. **Partly answered by Phase 0**: the
+  loopback carrier is built (it is needed under every option); the deep-link leg
+  is deferred pending an owner call on the MSRV bump vs the 2.4.10 pin. See
+  "Phase 0 verification outcome".
+- O5: default pairing UX (copy-token vs nonce window). Only copy-token is reachable
+  until/unless the deep link is added.
+- O7: keychain vs config file for the token. Until answered, the token store is an
+  internal trait (`clipper_auth::ClipTokenStore`) with a keychain implementation,
+  so the answer is a swap rather than a rewrite.

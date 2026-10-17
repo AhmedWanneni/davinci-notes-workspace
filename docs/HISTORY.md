@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-17 | Web Clipper Phase 3 part 1 — Rust receiver core | Ran the Phase 0 gate first: `tauri-plugin-deep-link` v2 latest (2.6.2) needs Rust ≥ 1.90 against the declared `rust-version = "1.77.2"` (2.4.10 is the last 1.77.2-compatible release), and macOS schemes are install-time only — so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173 amended, still Proposed). Built the desktop receiver as a complete, tested, **inert** unit (14 new `clipper_*.rs` files): `ClipPayload`-mirroring wire types with `deny_unknown_fields`, a literal Rust port of `safeName`/`normalizeFolder`/`normalizeNoteName`, bounds+shape validation, a capped hand-rolled request reader, the one loopback route with exact-`Host`/`Origin`/constant-time-token checks, and the emit-and-await webview handshake. Key decision (ADR-0180): the desktop **re-validates and rejects** rather than re-sanitising — a name that is not the fixed point of `safeName` is `invalid-path`. `constant_time_eq` + `getrandom` reused from the existing tree (zero binary delta); no HTTP framework, no CORS headers. `clipper_enable` is the only way to start the listener and no UI calls it yet. 32 new Rust tests (attack matrix 1–4/9 over real loopback sockets); `cargo test` 76 pass / 1 pre-existing `git_auth` failure; clippy adds zero warnings. |
 | 2026-10-17 | Web Clipper Phase 2b — React popup on the design system | Replaced the unstyled plain-TS popup with React 19 + `@wxt-dev/module-react` on `@app/design-system` (`ClipPopup`, `ClipEditor`, `ClipPreview`, `ClipModeSelector`, `TemplatePicker`; each with `.module.scss` + story + tests). Split the pipeline so `prepareClipContext` (page+mode) is memoised apart from `renderClipPayload` (template) — a template change no longer re-extracts a page — and deleted the now-callerless one-shot compositions. Edit fields show a raw `ClipDraft` while the written payload is sanitised (`applyClipEdits`: separators/`..` stripped, `.md` ensured, cleared property removed); `contentHash` untouched because the body is not editable. Recorded ADR-0179 (Proposed). Popup chunk 580,258 B raw / 170,650 B gzip (React + design system ≈ +71 KB gzip over Phase 2a); tree-shaking of the design-system barrel verified by grepping the built chunk. 106 tests / 17 files pass; `tsc`, ESLint and `wxt build` clean. |
 | 2026-10-17 | Web Clipper Phase 2a — extension capture/extraction pipeline | WXT 0.21.4 + MV3 with no content script (`activeTab` + `scripting`, `host_permissions: []`); Defuddle core + Turndown+turndown-plugin-gfm (101,914 B gzip vs 218,493 for `defuddle/full`, ~114 KB gzip saved) with LaTeX-math and callout recovery; real bugs fixed (extension-origin relative URLs, callout separator, blank `<math>` dropped by Turndown, nested-JSON-LD auto-apply, `-   ` list markers). Popup chunk 350,180 B raw / 99,576 B gzip; 51 tests / 9 files pass. |
 | 2026-10-17 | Web Clipper feature plan (plan only) | Produced `web-clipper-feature-plan.md` (architecture diagram, `ClipPayload` schema, phases 0–8 with dependency/size costs and adversarial verification steps) plus six draft ADRs (0173 transport hybrid; 0174 Defuddle vs Readability+Turndown with measured gzip sizes; 0175 WXT + `packages/clipper-core`; 0176 template-engine split; 0177 canonical vault write path; 0178 closed-app queue with dedupe). All Proposed, pending owner input; no code and no dependencies added. |
@@ -3457,3 +3458,143 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   ADR was edited.
 - **Owner-local verification still outstanding**: real-browser clip timing (the
   jsdom figures are upper bounds) and native GUI checks of the popup.
+
+### 2026-10-17: Web Clipper Phase 3 part 1 — the Rust receiver core
+
+- **Scope**: the Rust half of Phase 3 of `web-clipper-feature-plan.md` — validation,
+  token auth, the loopback listener and the webview handshake — in
+  `apps/desktop/src-tauri/src/`. Deliberately **one commit, one concern**: the TS
+  half (`clipperService.ts`, `appendToNoteInVault`, Settings pairing UI) and the
+  extension transport are deferred to the next sessions, because the security work
+  (validation, auth, request parsing) is independent of the write path and is where
+  almost all of the attack surface is. The listener is **inert**: `clipper_enable`
+  is the only way to start it and no UI calls it yet, so the shipped risk is
+  unchanged.
+- **Phase 0 gate run first (it was the blocker on the plan).** The plan required
+  verifying `tauri-plugin-deep-link` before committing to the recommended hybrid
+  transport. Findings, from the crates.io manifest and the local toolchain rather
+  than assumption:
+
+  | Fact | Result |
+  |---|---|
+  | Declared MSRV | `apps/desktop/src-tauri/Cargo.toml`: `rust-version = "1.77.2"` |
+  | Installed toolchain | `rustc 1.97.1` (aarch64-apple-darwin) — the pin is declarative, not enforced locally |
+  | `tauri-plugin-deep-link` v2 latest | **2.6.2, `rust-version = "1.90"`** |
+  | Last deep-link release fitting `1.77.2` | **2.4.10** |
+  | `tauri-plugin-single-instance` v2 latest | 2.5.4, needs 1.90 (2.5.0–2.5.4 all do) |
+  | Newest deep-link overall | `3.0.0-alpha.3`, needs 1.95 (Tauri 3 line) |
+  | `keyring = "3.6.2"` | already in the tree (OAuth precedent) |
+  | Loopback precedent | `apps/desktop/src-tauri/src/oauth.rs` |
+
+  Conclusion: taking the deep link costs either a declared MSRV bump (1.77.2 →
+  1.90 across the workspace) or a pin to the older 2.4.10 line, plus the
+  documented macOS bundled-app/install-time-scheme caveat — in exchange for a
+  launch convenience that ADR-0178's queue already makes non-critical (a clip
+  taken while the app is closed is queued and drained on next open; no clip is
+  lost either way). The loopback carrier is required under *every* option, so it
+  was built first. **Chosen: loopback-only + manual pairing.** No plugin added;
+  the declared MSRV is unchanged; the deep-link leg stays open for a later
+  session. ADR-0173 was amended (still Proposed — no accepted ADR was edited).
+- **The decision that mattered most — re-validate and *reject*, never
+  re-sanitise (ADR-0180).** `packages/clipper-core/safeName.ts` turns untrusted
+  text into a safe path segment and the extension already applies it, so a
+  payload's `target.folder` and `target.noteName` arrive normalised. The desktop
+  runs the *same* rules in Rust (`clipper_name_rules.rs`) and compares the result
+  to the input: equal → accept; not equal → **reject with `invalid-path`**.
+  Re-sanitising would silently write a *different* name than the user saw, and a
+  clip whose names are not already normalised is either a bug or an attack. This
+  matches the plan's adversarial check 1 (`noteName = "../../etc/x"` → rejected,
+  nothing written). Because the extension's own output is the fixed point of the
+  normalisation, legitimate clips always pass — pinned in both directions by
+  `clipper_validate_tests.rs`. The Rust port is deliberately literal, including
+  the odd-looking parts: `stripControlCharacters` **removes** a TAB (0x09 ≤ 0x1f)
+  rather than collapsing it, so `"a\tb"` → `"ab"`; truncation counts UTF-16 units
+  as JS `slice` does. One deliberate divergence: `safeName` applies Unicode NFC
+  and Rust's std cannot, so the Rust side is NFC-agnostic — composition cannot
+  introduce a path separator, so a non-NFC but otherwise safe name is accepted
+  and still cannot escape the vault; a normalisation crate would be a new
+  dependency for no security gain.
+- **Status/error mapping** (small deviation from the plan, which lists
+  400/413 for an oversized properties map): **413/`too-large`** for any size or
+  count breach (body, header block, property count, tag count,
+  highlight/attachment count, field length); **422/`invalid-path`** for a path
+  that is not already-normalised and vault-confined; **422/`invalid-payload`**
+  for anything else malformed or hostile (version, mode, behaviour, empty ids,
+  reserved property names, control characters); 403 for a bad `Host`/`Origin`,
+  401 for a bad token, 404/405 for the wrong route/method, 400 for unparseable
+  JSON, 409 for `vault-not-open`, 503 for `app-busy`.
+- **Host/Origin are hardening; the token is the boundary.** `Host` must be
+  **exactly** `127.0.0.1:<port>` — `localhost` and `127.0.0.1.evil` are refused,
+  which is the DNS-rebinding defence. A present `Origin` must be
+  `chrome-extension://`/`moz-extension://`; an absent `Origin` is allowed and
+  falls through to the token check, because a browser `fetch` may omit it while
+  `curl` never sends it — and `Origin` is forgeable by a non-browser client
+  anyway, so it can only ever be defence in depth. **No CORS headers are
+  emitted**: the extension is expected to hold a narrow `http://127.0.0.1/*`
+  host permission instead (an extension-side change, next session).
+- **Caps and hostile input.** The 2 MiB body cap and 16 KiB header cap are
+  enforced **before** buffering; a truncated body is an error, never a short
+  read. An oversized request may be answered with a connection reset rather than
+  the 413 body, because the server refuses to drain hostile input rather than
+  buffering it — the extension treats a reset as a failed attempt and keeps the
+  clip queued. Documented, not worked around.
+- **Lazy lifecycle, no polling (PERFORMANCE.md rule 9).** Nothing binds until
+  `clipper_enable` runs, so the disabled cost is zero — no socket, no thread.
+  Binding prefers port `47912` (below the ephemeral range, so not recycled) and
+  falls back to an ephemeral port; the actual bound port is reported to the UI for
+  pairing. `accept()` blocks; stopping sets a flag and wakes the thread with
+  **one throwaway connection** rather than polling a timeout. Token rotation
+  swaps the token the listener compares against in memory, so a revoked token
+  stops working immediately with no keychain read per request (adversarial check
+  9).
+- **Rust never writes (ADR-0177 Option 2).** Per the plan, the write path stays
+  canonical: the listener emits `clipper:clip-received` to the main window and
+  blocks on a channel keyed by `clipId`, which the webview completes through
+  `clipper_submit_result`, so the HTTP response carries the *real* outcome rather
+  than an optimistic one. The wait is bounded (20 s); on timeout the response is
+  `app-busy` and the clip stays in the extension queue, so a timeout is never data
+  loss. The handshake sits behind a `ClipDispatcher` trait, which is what lets the
+  attack matrix run against a recording dispatcher instead of a webview.
+- **Dependencies: two already-vendored crates, no new dependency class.**
+  `constant_time_eq = "0.4"` (0.4.2, already compiled via `blake3`) replaces a
+  hand-rolled comparison a compiler is free to optimise into an early exit;
+  `getrandom = "0.2"` (0.2.17, already in the lockfile) supplies the token's 256
+  bits of OS randomness. Both resolve to versions already built, so the binary
+  delta is **zero**. No HTTP framework (`std::net::TcpListener`), no URL parser
+  (the reader is ~90 lines and enforces caps the `oauth.rs` reader does not).
+- **File split (250-line hard cap).** The plan named three Rust files; the cap
+  and one-responsibility-per-file produced nine: `clipper_payload.rs` (wire types
+  mirroring `ClipPayload.ts`, `deny_unknown_fields` on every struct, `ClipAck`/
+  `ClipError`), `clipper_name_rules.rs` (the `safeName` port),
+  `clipper_validate.rs` (bounds + shape), `clipper_http.rs` (capped read/write),
+  `clipper_routes.rs` (the one route and its checks), `clipper_dispatch.rs`
+  (emit-and-await), `clipper_server.rs` (state + lifecycle), `clipper_auth.rs`
+  (token trait + keychain), `clipper_commands.rs` (the seven Tauri commands).
+  Largest new clipper file 243 lines; every new file ≤ 250 (two pre-existing
+  files, `fs.rs` and `watcher.rs`, were already over the cap and are untouched).
+  Tests live in four `*_tests.rs` files plus a shared `clipper_test_harness.rs`.
+- **`ClipAckStatus` deliberately has no `duplicate`** — the shipped TS type is
+  `written | queued | rejected`, so the Rust mirror matches it; `duplicate` is an
+  error code whose semantics belong to Phase 7 (ADR-0178). `Queued`,
+  `Duplicate` and `VaultNotOpen` carry `#[allow(dead_code)]` with comments
+  explaining which phase produces them.
+- **Verification**: 32 new Rust tests, all passing — the attack matrix (plan §5
+  checks 1–4 and 9) exercises the real route handler over real loopback sockets
+  with a recording dispatcher. Full suite **76 pass / 1 fail**; the failure is the
+  pre-existing, environmental
+  `git_auth::tests::system_git_accepts_a_pat_through_its_standard_https_askpass_path`
+  (shells out to system `git` 2.56, fails standalone, file untouched). Zero new
+  clippy warnings (the 7 warnings present are all pre-existing).
+- **Not covered by tests, and named as such in code**: the emit-and-await
+  handshake's happy path needs a live webview; the idle RSS/CPU delta and
+  "unreachable from the LAN" need a running GUI and a second host — all
+  owner-local.
+- **Environment gotcha recorded for the next session**: a cold `cargo` build
+  fails to link on this machine — the default `MacOSX27.0.sdk` `.tbd` files use
+  an `arm64e.x1-macos` target this `ld` cannot read. Prefix Rust commands with
+  `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk`.
+- **Not done (explicitly)**: no `clipperService.ts`, no `appendToNoteInVault`, no
+  Settings UI (so no way to enable the clipper), no extension transport, no
+  `http://127.0.0.1/*` host permission, no queue. No ADR accepted; ADR-0173
+  amended in place because it is still Proposed, ADR-0180 added for the new
+  receiver decisions.

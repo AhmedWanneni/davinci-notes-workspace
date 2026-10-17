@@ -3,6 +3,15 @@ mod capture;
 mod capture_commands;
 mod capture_format;
 mod capture_writer;
+mod clipper_auth;
+mod clipper_commands;
+mod clipper_dispatch;
+mod clipper_http;
+mod clipper_name_rules;
+mod clipper_payload;
+mod clipper_routes;
+mod clipper_server;
+mod clipper_validate;
 #[cfg(test)]
 mod capture_tests;
 mod command_auth;
@@ -29,6 +38,16 @@ mod tray_position;
 mod fs_tests;
 #[cfg(test)]
 mod tray_tests;
+#[cfg(test)]
+mod clipper_auth_tests;
+#[cfg(test)]
+mod clipper_target_tests;
+#[cfg(test)]
+mod clipper_test_harness;
+#[cfg(test)]
+mod clipper_transport_tests;
+#[cfg(test)]
+mod clipper_validate_tests;
 mod watcher;
 
 use state::VaultState;
@@ -49,6 +68,7 @@ pub fn run() {
     .manage(VaultState::new())
     .manage(VaultWatcher::new())
     .manage(oauth::OAuthListenerState::default())
+    .manage(clipper_server::ClipperState::new())
     .manage(plugin_webview::PluginProbeState::default())
     .manage(plugin_network::PluginNetworkClient::new().expect("plugin network client must initialize"))
     .invoke_handler(tauri::generate_handler![
@@ -89,6 +109,13 @@ pub fn run() {
       oauth::save_drive_token,
       oauth::load_drive_token,
       oauth::clear_drive_token,
+      clipper_commands::clipper_enable,
+      clipper_commands::clipper_disable,
+      clipper_commands::clipper_status,
+      clipper_commands::clipper_reveal_token,
+      clipper_commands::clipper_rotate_token,
+      clipper_commands::clipper_revoke_token,
+      clipper_commands::clipper_submit_result,
       ai_auth::save_ai_key,
       ai_auth::load_ai_key,
       ai_auth::clear_ai_key,

@@ -248,18 +248,21 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 Draft ADRs for the Web Clipper feature. All are **Proposed** — they need owner
 input on the open decisions before implementation is considered settled. Phase 1
 (`packages/clipper-core`), Phase 2a (the `apps/web-clipper` capture → payload
-pipeline) and Phase 2b (the React popup on the design system) are already
+pipeline), Phase 2b (the React popup on the design system) and Phase 3 part 1 (the
+Rust receiver core — validation, auth, loopback listener, webview handshake; the
+listener is inert until a later Settings UI calls `clipper_enable`) are already
 implemented against these drafts; none is accepted until the owner answers the open
 decisions. Plan: `web-clipper-feature-plan.md`. See ADR-0173 ("Open decisions") for
 the list.
 
 | ADR | Decision | Status |
 |---|---|---|
-| [0173](adr/0173-clipper-transport-extension-to-desktop.md) | Clipper transport: deep-link wake/handshake only, clip payload over loopback with a per-install keychain token (loopback-only bind, Origin/Host checks, size cap); Native Messaging deferred | Proposed |
+| [0173](adr/0173-clipper-transport-extension-to-desktop.md) | Clipper transport: clip payload over loopback with a per-install keychain token (loopback-only bind, exact-Host/Origin checks, 2 MiB cap). **Phase 0 verification: the deep-link leg is deferred** — `tauri-plugin-deep-link` needs Rust ≥ 1.90 against the declared `1.77.2` (2.4.10 is the last 1.77.2-compatible release) and macOS schemes are install-time only, for a launch convenience ADR-0178's queue already covers; loopback-only + manual pairing is the path built. Native Messaging deferred | Proposed |
 | [0174](adr/0174-clipper-content-extraction-and-markdown-libraries.md) | Content extraction + HTML→Markdown: Defuddle **core** (MIT, `useAsync:false`, synchronous `parse()`) + Turndown/turndown-plugin-gfm — measured 99.6 KB gzip vs 218 KB for `defuddle/full`, because core has no Markdown converter; Readability+Turndown (~16 KB gzip) is the fallback | Proposed |
 | [0175](adr/0175-clipper-extension-framework-and-core-package.md) | Extension at `apps/web-clipper` built with WXT (MV3, Chromium first); shared pure-TS `packages/clipper-core`; new `clipper-core`/`web-clipper` boundaries elements | Proposed |
 | [0176](adr/0176-clipper-template-engine-execution-split.md) | Template engine split: extension resolves page variables and renders body/properties; desktop resolves vault context, behavior and paths; templates are data only (no eval); one `ClipPayload` schema | Proposed |
 | [0177](adr/0177-clipper-vault-write-path.md) | Clipped notes write through the canonical vault write path — Rust authenticates/validates then the main webview calls `createNoteInVault`/`appendToNoteInVault`; no extension-side or Rust-side direct write | Proposed |
 | [0178](adr/0178-clipper-closed-app-queue.md) | Closed-app clips queue in extension storage (bounded, oldest-first eviction) and drain event-driven (no timers) with `clipId`+`contentHash` dedupe against a desktop ledger | Proposed |
 | [0179](adr/0179-clipper-popup-data-flow.md) | Popup data flow: preparation (`prepareClipContext`: page+mode) split from rendering (`renderClipPayload`: template) so a template change does not re-extract, with the one-shot compositions deleted; edit fields show a raw `ClipDraft` while the written `ClipPayload` is the sanitised result; list-valued properties shown but not editable; `contentHash` untouched by edits | Proposed |
+| [0180](adr/0180-clipper-receiver-validation-and-lifecycle.md) | Receiver core: the desktop **re-validates and rejects** rather than re-sanitising (a `folder`/`noteName` that is not already the fixed point of `safeName`/`normalizeFolder` is `invalid-path`); 413/`too-large` for size/count breaches vs 422/`invalid-path`/`invalid-payload` for shape; `Host` must be exactly `127.0.0.1:<port>` and a present `Origin` must be an extension origin (token is the real boundary, no CORS headers); the listener is inert until enabled and stops by waking `accept()` with one throwaway connection (no poll); Rust asks the webview and blocks on a 20 s `clipId`-keyed handshake; `constant_time_eq` + `getrandom` are re-used from the existing tree (zero binary delta) | Proposed |
 
