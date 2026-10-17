@@ -1,0 +1,40 @@
+.clip-popup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  /* Chrome sizes a popup to its content; without a floor the layout collapses to
+     the widest word. No width token exists, so this is the one literal size. */
+  width: 22rem;
+  padding: var(--space-3);
+  font-family: var(--font-ui);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-normal);
+}
+
+.clip-popup__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.clip-popup__message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background-color: var(--color-bg-secondary-alt);
+  border: var(--border-width-thin) solid var(--color-border-status-error);
+  border-radius: var(--border-radius-sm);
+}
+
+.clip-popup__warning {
+  display: block;
+  color: var(--color-text-warning);
+}
+
+.clip-popup__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}

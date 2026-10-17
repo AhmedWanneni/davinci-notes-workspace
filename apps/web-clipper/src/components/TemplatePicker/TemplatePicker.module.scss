@@ -1,0 +1,32 @@
+.template-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.template-picker__label {
+  display: block;
+}
+
+.template-picker__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.template-picker__select {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-sm);
+  color: var(--color-text-normal);
+  background-color: var(--color-bg-primary);
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  border-radius: var(--border-radius-sm);
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-border-focus);
+  }
+}

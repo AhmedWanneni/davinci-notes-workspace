@@ -52,7 +52,7 @@ module.exports = {
           { from: "ai-api", allow: ["ai-api"] },
           { from: "ai-runtime", allow: ["ai-api", "ai-runtime"] },
           { from: "app", allow: ["core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "plugin-api", "plugin-runtime", "theme-api", "ai-api", "ai-runtime", "app"] },
-          { from: "web-clipper", allow: ["clipper-core", "web-clipper"] },
+          { from: "web-clipper", allow: ["clipper-core", "design-system", "web-clipper"] },
           { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }
         ]
       }

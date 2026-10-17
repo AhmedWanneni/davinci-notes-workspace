@@ -4,7 +4,88 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Web Clipper Phase 2a: extension pipeline with real Markdown
+## Last Session — Web Clipper Phase 2b: React popup on the design system
+
+**Scope:** `apps/web-clipper` Phase 2b — the popup UI (`ClipPopup`, `ClipEditor`,
+`ClipPreview`, `ClipModeSelector`, `TemplatePicker`) on `@app/design-system`, plus
+the pipeline split that lets it change templates without re-extracting a page.
+One commit, one concern, on top of Phase 2a (`1e9dc6d`).
+
+**Built:** React 19 + `@wxt-dev/module-react` mounting into
+`entrypoints/popup/main.tsx` (StrictMode deliberately off: its dev double-invoke
+would read and extract the page twice, and a popup is a fresh document each open).
+`@app/design-system` styles come from `_global.scss`; the app resolves
+`@app/design-system` through an alias in `wxt.config.ts` + tsconfig paths + a vitest
+alias, because that package has no `main`/`exports` (the same reason
+`apps/desktop/vite.config.ts` aliases it). Every component ships `.module.scss` +
+story + test, kebab-case classes, tokens only (one literal: the popup width, which
+has no token).
+
+**Plan §Phase 2 deliverables, item by item:** template picker ✓; editable
+title/folder/properties ✓ (`ClipEditor`); preview ✓ (`ClipPreview`, Markdown as
+text); "Add to DaVinci Notes" disabled until Phase 3 ✓; extraction modes full /
+selection / highlights ✓ (highlights stays listed but disabled — no highlighter
+exists until Phase 5, and a hidden option is worse than an explained one);
+"no page access at load" ✓ (still no content script). Adversarial checks 1
+(hostile `<title>`/`og:*` → literal text, asserted with `container.querySelector`)
+and 5 (unreadable page → explicit error state, no partial file) are covered here;
+check 4 (large page cost) is covered by `clipPipeline.perf.test.ts`.
+
+**Two costs forced by an interactive popup (ADR-0179, Proposed):**
+1. **Pipeline split.** `prepareClipContext` (page, mode → extraction + variables)
+   is memoised separately from `renderClipPayload` (template → payload), so
+   switching templates re-renders without re-parsing the DOM or re-running
+   Defuddle. The one-shot compositions (`runClipSession`, `buildClipFromPage`) were
+   **deleted** rather than left beside it — with the popup as the only caller they
+   were dead code.
+2. **Draft vs payload.** The inputs show the user's raw typing (`ClipDraft`); the
+   payload is what that typing sanitises to (`applyClipEdits`): separators and `..`
+   segments stripped, leading dot removed, `.md` ensured, characters no filesystem
+   and no Chrome download accept removed, and a cleared property removed from the
+   frontmatter instead of written empty. `contentHash` is untouched, because it
+   hashes the body and the body is not editable here (ADR-0178 dedupe stays sound).
+
+**Measured (real `wxt build`):** popup chunk 580,258 raw / **170,650 B gzip** and
+15,288 / 3,196 B gzip of CSS, against Phase 2a's 350,180 / 99,576 — so React 19 +
+the design-system primitives cost **~71 KB gzip**. **Tree-shaking verified, not
+assumed:** the built chunk and CSS contain no `Dialog`, `DropdownMenu`, `Popover`,
+`Tooltip`, `Checkbox` or `Switch` code despite the barrel re-exporting them, so the
+whole barrel is not being pulled in. Background stays 970 / 507 B.
+
+**Clip cost re-measured on the popup's own path** (`clipPipeline.perf.test.ts`,
+jsdom, median of 3): 8.4 KB page 39.8 ms, 19.2 KB 41.9 ms, 33.6 KB 66.6 ms,
+1.43 MB / 4k paragraphs 3,085.2 ms. jsdom is several times slower than a browser
+DOM, so these are upper bounds. Bounds are pinned loosely (<1000 ms / <8000 ms).
+**Surfaced again:** the large-page cost still grows with page size and nothing caps
+it — the plan's 2 MiB cap is a Phase 3 transport concern and truncating captured
+HTML would silently degrade extraction, so the page-size limit remains an owner
+decision.
+
+**Real bug found by the tests:** a save failure was invisible — the popup only
+rendered an error when `status === "error"`, so a rejected download showed nothing
+while the form stayed usable. An error is now shown whenever it is set, and the
+"page cannot be read" explanation only when the page itself failed. Asserted both
+ways (`ClipPopup.test.tsx`, `useClipSession.test.tsx`).
+
+**Also fixed:** a stale comment in `buildVariableContext.ts` claimed the extractor
+mutates the document; Phase 2a proved it does not (`extractArticle.test.ts` pins
+that), so the comment now says the opposite, which is what `prepareClipContext`
+relies on.
+
+**Verification:** 106 tests across 17 files pass (was 51/9), including the new
+component interaction tests, the session hook driven through injected dependencies
+(no `wxt/browser` module mock), edit sanitisation, and clip cost. `tsc --noEmit`
+clean, ESLint clean, `wxt build` succeeds. Largest file 227 lines, every file ≤ 250.
+
+**Not done here, deliberately:** extension icons (WXT falls back to the default
+puzzle icon; the plan does not list icons) and template import/export, which the
+plan puts in **Phase 4**, not Phase 2. Storybook stories exist for all five
+components, but no app has a Storybook config in this repo (only
+`packages/design-system` does), so app stories are still not rendered anywhere.
+
+---
+
+## Previous Session — Web Clipper Phase 2a: extension pipeline with real Markdown
 
 **Scope:** `apps/web-clipper` Phase 2a (capture → extract → variables → template →
 payload → note file). Phase 1 (`packages/clipper-core`) shipped in the previous
@@ -70,7 +151,7 @@ filename. `tsc --noEmit` and ESLint are clean; `wxt build` succeeds. Largest fil
 
 ---
 
-## Previous Session — Web Clipper feature plan (plan only, no code)
+## Earlier — Web Clipper feature plan (plan only, no code)
 
 **Deliverables:** `web-clipper-feature-plan.md` (phased build plan, architecture
 diagram, payload schema, phases 0–8 with dependencies + adversarial verification),
@@ -1113,7 +1194,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Web Clipper Phase 2b — React popup**: replace the plain-TS popup with `@app/design-system` components (`TemplatePicker`, `ClipPreview`, `ModeSelector`) each with `.module.scss`, a Storybook story and an interaction test; add `@wxt-dev/module-react` + React deps and Storybook config for the app; add extension icons; add template import/export. Then **Phase 3 (desktop receiver)**: implement the ADR-0173 loopback listener + deep-link wake and the ADR-0177 write path. **Before Phase 3**, verify `tauri-plugin-deep-link` Rust ≥ 1.90 against `rust-version = "1.77.2"` in `apps/desktop/src-tauri/Cargo.toml` (loopback-only + manual pairing is the documented fallback). Keep ADRs 0173–0178 `Proposed` until the owner answers O3–O8.
+1. **Web Clipper Phase 3 (desktop receiver, HIGH-RISK / one session)**: implement the ADR-0173 loopback listener + deep-link wake, `clipper_auth.rs` / `clipper_validate.rs`, `apps/desktop/src/clipper/clipperService.ts`, the new `appendToNoteInVault`, and the Settings pairing section, then the ADR-0177 write path. **Before starting**, verify `tauri-plugin-deep-link` Rust ≥ 1.90 against `rust-version = "1.77.2"` in `apps/desktop/src-tauri/Cargo.toml` (loopback-only + manual pairing is the documented fallback). Every step that touches `vault-index.db` must follow the standing withDbLock/WAL concurrency rules. Owner-local: real-browser clip timing and native GUI checks for Phases 2a/2b. Then plan Phases 4–8. Keep ADRs 0173–0179 `Proposed` until the owner answers O2–O8 in the plan §10 (template import/export is Phase 4, not Phase 2).
 2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
 3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
@@ -1135,7 +1216,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 - **Visual regression**: Not yet configured.
 - **Total JS/CSS size budgets**: lazy chunks counted toward totals — adjust if/when configured.
 - **AI feature plan artifact**: `plans/ai-integration-plan/ai-features-build-plan.md` is missing; recover it before treating any undiscovered prior AI decision as authoritative.
-- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction budget (ADR-0174 — the measured size is now ~95 KB gzip core Defuddle + Turndown, not the 86.4 KB bundlephobia figure; the owner has not yet accepted the ~100 KB gzip popup cost), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. Also verify the `tauri-plugin-deep-link` Rust ≥ 1.90 requirement against the pinned `rust-version = "1.77.2"` before committing to the recommended transport.
+- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction budget (ADR-0174 — the measured size is now ~100 KB gzip for Defuddle core + Turndown, not the 86.4 KB bundlephobia figure, and the browser popup costs another ~71 KB gzip for React + the design system, taking the popup chunk to 170,650 B gzip; the owner has not yet accepted either cost), popup data flow (ADR-0179 — draft vs payload and the template-switching split), the **page-size cap** (the plan's 2 MiB belongs to the Phase 3 transport; nothing caps capture today), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. Also verify the `tauri-plugin-deep-link` Rust ≥ 1.90 requirement against the pinned `rust-version = "1.77.2"` before committing to the recommended transport.
 
 ---
 

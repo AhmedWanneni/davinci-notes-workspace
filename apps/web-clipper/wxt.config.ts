@@ -1,4 +1,11 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "wxt";
+
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
 
 /**
  * MV3, Chromium first (ADR-0175).
@@ -8,6 +15,19 @@ import { defineConfig } from "wxt";
  * host permission is ever granted for browsing.
  */
 export default defineConfig({
+  modules: ["@wxt-dev/module-react"],
+  alias: {
+    // `@app/design-system/styles` must come first: it is a prefix of the bare
+    // specifier, and alias entries are matched in declaration order.
+    "@app/design-system/styles": path.join(
+      repoRoot,
+      "packages/design-system/styles",
+    ),
+    "@app/design-system": path.join(
+      repoRoot,
+      "packages/design-system/index.ts",
+    ),
+  },
   manifest: {
     name: "DaVinci Notes Web Clipper",
     description:

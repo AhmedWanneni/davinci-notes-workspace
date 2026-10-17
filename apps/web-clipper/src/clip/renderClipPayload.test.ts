@@ -1,7 +1,7 @@
 import {
   ARTICLE_TEMPLATE,
+  type ClipMode,
   type ClipTemplate,
-  type ClipPayload,
 } from "@app/clipper-core";
 import { describe, expect, it } from "vitest";
 import type { PageCapture } from "../capture/readPage";
@@ -11,7 +11,8 @@ import {
   RECIPE_PAGE_HTML,
 } from "../fixtures/pages";
 import { parsePageHtml } from "../page/parsePageHtml";
-import { buildClipFromPage } from "./buildClipFromPage";
+import { prepareClipContext } from "./prepareClipContext";
+import { renderClipPayload } from "./renderClipPayload";
 
 const NOW = new Date(2026, 9, 17, 9, 5, 7);
 
@@ -27,21 +28,26 @@ function capture(overrides: Partial<PageCapture> = {}): PageCapture {
 function build(
   template: ClipTemplate = ARTICLE_TEMPLATE,
   overrides: Partial<PageCapture> = {},
-  mode: ClipPayload["mode"] = "full",
+  mode: ClipMode = "full",
+  highlights?: string[],
+  clipId = "clip-1",
 ) {
   const cap = capture(overrides);
-  return buildClipFromPage({
+  const context = prepareClipContext({
     capture: cap,
     doc: parsePageHtml(cap.html, cap.url),
-    template,
     mode,
     now: NOW,
-    clipId: "clip-1",
+    highlights,
+  });
+
+  return renderClipPayload(context, template, {
+    clipId,
     capturedAt: "2026-10-17T09:05:07.000Z",
   });
 }
 
-describe("buildClipFromPage", () => {
+describe("renderClipPayload", () => {
   it("renders the article template into a payload", () => {
     const { payload } = build();
 
@@ -126,16 +132,13 @@ describe("buildClipFromPage", () => {
       body: "{{highlights|list}}",
       triggers: [],
     };
-    const { payload } = buildClipFromPage({
-      capture: capture(),
-      doc: parsePageHtml(ARTICLE_PAGE_HTML, "https://probe.example/a"),
+    const { payload } = build(
       template,
-      mode: "highlights",
-      now: NOW,
-      clipId: "clip-h",
-      capturedAt: "2026-10-17T09:05:07.000Z",
-      highlights: ["first quote", "second quote"],
-    });
+      {},
+      "highlights",
+      ["first quote", "second quote"],
+      "clip-h",
+    );
 
     expect(payload.body).toBe("- first quote\n- second quote");
     expect(payload.highlights).toEqual([

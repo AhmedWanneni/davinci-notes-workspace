@@ -247,10 +247,11 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 
 Draft ADRs for the Web Clipper feature. All are **Proposed** — they need owner
 input on the open decisions before implementation is considered settled. Phase 1
-(`packages/clipper-core`) and Phase 2a (the `apps/web-clipper` capture → payload
-pipeline) are already implemented against these drafts; none is accepted until the
-owner answers the open decisions. Plan: `web-clipper-feature-plan.md`. See
-ADR-0173 ("Open decisions") for the list.
+(`packages/clipper-core`), Phase 2a (the `apps/web-clipper` capture → payload
+pipeline) and Phase 2b (the React popup on the design system) are already
+implemented against these drafts; none is accepted until the owner answers the open
+decisions. Plan: `web-clipper-feature-plan.md`. See ADR-0173 ("Open decisions") for
+the list.
 
 | ADR | Decision | Status |
 |---|---|---|
@@ -260,4 +261,5 @@ ADR-0173 ("Open decisions") for the list.
 | [0176](adr/0176-clipper-template-engine-execution-split.md) | Template engine split: extension resolves page variables and renders body/properties; desktop resolves vault context, behavior and paths; templates are data only (no eval); one `ClipPayload` schema | Proposed |
 | [0177](adr/0177-clipper-vault-write-path.md) | Clipped notes write through the canonical vault write path — Rust authenticates/validates then the main webview calls `createNoteInVault`/`appendToNoteInVault`; no extension-side or Rust-side direct write | Proposed |
 | [0178](adr/0178-clipper-closed-app-queue.md) | Closed-app clips queue in extension storage (bounded, oldest-first eviction) and drain event-driven (no timers) with `clipId`+`contentHash` dedupe against a desktop ledger | Proposed |
+| [0179](adr/0179-clipper-popup-data-flow.md) | Popup data flow: preparation (`prepareClipContext`: page+mode) split from rendering (`renderClipPayload`: template) so a template change does not re-extract, with the one-shot compositions deleted; edit fields show a raw `ClipDraft` while the written `ClipPayload` is the sanitised result; list-valued properties shown but not editable; `contentHash` untouched by edits | Proposed |
 

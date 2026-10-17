@@ -1,16 +1,22 @@
 import { STARTER_TEMPLATES } from "@app/clipper-core";
 import { describe, expect, it } from "vitest";
-import { runClipSession } from "./runClipSession";
+import { parsePageHtml } from "../page/parsePageHtml";
+import { schemaTypesOf } from "../page/schemaTypes";
+import { matchTemplate } from "../templates/matchTemplate";
+import { prepareClipContext } from "./prepareClipContext";
+import { renderClipPayload } from "./renderClipPayload";
 
 /**
  * Plan Phase 2 adversarial check 4: a large page must clip without hanging the
- * popup. The expensive work — page DOM parse, extraction, Markdown conversion —
- * must happen exactly once per clip.
+ * popup. This measures the exact path the popup takes — parse the page once, then
+ * prepare and render — so the expensive work (DOM parse, extraction, Markdown
+ * conversion) happens exactly once per clip and not once per template.
  *
- * Bounds are deliberately loose. These run in jsdom, which is several times
- * slower than a browser DOM, so the numbers here are upper bounds, not the
- * user-visible cost. Recorded medians of three runs on the development machine:
- * 7.6 KB page 24.9 ms, 18.6 KB 30.4 ms, 37 KB 44.8 ms, 1.48 MB 2,781.8 ms.
+ * Bounds are deliberately loose. These run in jsdom, which is several times slower
+ * than a browser DOM, so the numbers here are upper bounds, not the user-visible
+ * cost. Recorded medians of three runs on the development machine (measured on a
+ * loaded machine, so treat them as an order of magnitude, not a benchmark):
+ * 8.4 KB page 39.8 ms, 19.2 KB 41.9 ms, 33.6 KB 66.6 ms, 1.43 MB 3,085.2 ms.
  */
 const PARAGRAPH =
   "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam. ".repeat(
@@ -34,12 +40,23 @@ function page(paragraphs: number, links = 20): string {
   );
 }
 
+/** One clip, as the popup runs it. */
 function clip(html: string) {
   const started = performance.now();
-  const result = runClipSession({
-    capture: { url: "https://probe.example/big", title: "Large", html },
-    templates: STARTER_TEMPLATES,
+  const capture = { url: "https://probe.example/big", title: "Large", html };
+  const doc = parsePageHtml(capture.html, capture.url);
+  const template =
+    matchTemplate(STARTER_TEMPLATES, {
+      url: capture.url,
+      schemaTypes: schemaTypesOf(doc),
+    }) ?? STARTER_TEMPLATES[0]!;
+  const context = prepareClipContext({
+    capture,
+    doc,
+    mode: "full",
     now: new Date(2026, 9, 17, 9, 5, 7),
+  });
+  const result = renderClipPayload(context, template, {
     clipId: "clip-big",
     capturedAt: "2026-10-17T09:05:07.000Z",
   });

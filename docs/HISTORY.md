@@ -8,6 +8,8 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-17 | Web Clipper Phase 2b — React popup on the design system | Replaced the unstyled plain-TS popup with React 19 + `@wxt-dev/module-react` on `@app/design-system` (`ClipPopup`, `ClipEditor`, `ClipPreview`, `ClipModeSelector`, `TemplatePicker`; each with `.module.scss` + story + tests). Split the pipeline so `prepareClipContext` (page+mode) is memoised apart from `renderClipPayload` (template) — a template change no longer re-extracts a page — and deleted the now-callerless one-shot compositions. Edit fields show a raw `ClipDraft` while the written payload is sanitised (`applyClipEdits`: separators/`..` stripped, `.md` ensured, cleared property removed); `contentHash` untouched because the body is not editable. Recorded ADR-0179 (Proposed). Popup chunk 580,258 B raw / 170,650 B gzip (React + design system ≈ +71 KB gzip over Phase 2a); tree-shaking of the design-system barrel verified by grepping the built chunk. 106 tests / 17 files pass; `tsc`, ESLint and `wxt build` clean. |
+| 2026-10-17 | Web Clipper Phase 2a — extension capture/extraction pipeline | WXT 0.21.4 + MV3 with no content script (`activeTab` + `scripting`, `host_permissions: []`); Defuddle core + Turndown+turndown-plugin-gfm (101,914 B gzip vs 218,493 for `defuddle/full`, ~114 KB gzip saved) with LaTeX-math and callout recovery; real bugs fixed (extension-origin relative URLs, callout separator, blank `<math>` dropped by Turndown, nested-JSON-LD auto-apply, `-   ` list markers). Popup chunk 350,180 B raw / 99,576 B gzip; 51 tests / 9 files pass. |
 | 2026-10-17 | Web Clipper feature plan (plan only) | Produced `web-clipper-feature-plan.md` (architecture diagram, `ClipPayload` schema, phases 0–8 with dependency/size costs and adversarial verification steps) plus six draft ADRs (0173 transport hybrid; 0174 Defuddle vs Readability+Turndown with measured gzip sizes; 0175 WXT + `packages/clipper-core`; 0176 template-engine split; 0177 canonical vault write path; 0178 closed-app queue with dedupe). All Proposed, pending owner input; no code and no dependencies added. |
 | 2026-10-11 | Editor styling tokens — Phase 2 | Added 30 editor-prefixed Obsidian-parity tokens in a separate `editor.obsidian` namespace; generated CSS, SCSS, and TypeScript outputs. All existing token source values and generated token values were preserved. Design-system build and typecheck passed; `packages/editor` was not modified. |
 | 2026-10-11 | Tray Phase 4b — Click-to-capture popover with left-click setting | Implemented ADR-0172 (supersedes Phase 1 click decision): left-click on tray icon toggles Quick Capture popover anchored under the tray icon; right-click opens the native menu; pure Rust positioning in tray_position.rs clamps strictly to monitor work area with Retina DPI and multi-monitor support; eliminated blur/toggle race via 350ms timestamp debounce; in-memory draft text preserved across blur, dismiss, and Escape; live configurable "Menu bar icon click" setting ("Open quick capture" vs "Open menu") with existing-user fallback to "menu". 45 Rust tests and 373 frontend tests pass with 0 lint errors. |
@@ -3377,3 +3379,81 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   the extension, no icons, no Storybook config for the app, no desktop receiver,
   no transport, no Rust code, no queue, no `webextension-polyfill` (Firefox is not
   a target yet). No ADR was marked Accepted and no accepted ADR was edited.
+
+### 2026-10-17: Web Clipper Phase 2b — React popup on the design system
+
+- **Scope**: `apps/web-clipper` Phase 2b only — the popup UI on
+  `@app/design-system`, plus the pipeline split that an interactive popup needs.
+  Phase 2a (`1e9dc6d`) was the previous commit. One commit, one concern.
+- **Dependencies added (with cost)**: `react` / `react-dom` 19.2.8,
+  `@app/design-system` (workspace), `@wxt-dev/module-react`, `sass`,
+  `@testing-library/react` + `jest-dom`, `@types/react(-dom)`, `@storybook/react`
+  (types only, so the app's stories are typechecked). Measured: the popup chunk
+  went from 350,180 B raw / 99,576 B gzip (Phase 2a) to **580,258 B raw / 170,650 B
+  gzip**, plus 15,288 / 3,196 B gzip of CSS — **+71 KB gzip for React 19 + the
+  design-system primitives**. `background.js` stays 970 / 507 B.
+- **Tree-shaking verified rather than assumed**: `@app/design-system/index.ts`
+  re-exports Dialog, DropdownMenu, Popover, Tooltip, Checkbox, Toggle, Divider and
+  more. Grepping the built chunk and CSS shows zero occurrences of Dialog,
+  DropdownMenu, Popover, Tooltip, Checkbox or Switch — only Button, Radio and Badge
+  styles survive. The package declares `sideEffects: ["**/*.scss", "**/*.css"]`, so
+  unused component CSS goes with the unused component code.
+- **Pipeline split (ADR-0179)**: `prepareClipContext` (page, DOM, mode → snapshot,
+  extraction, variables, Schema.org index) is memoised on `(document, mode)`;
+  `renderClipPayload` (context + template → `ClipPayload`) is memoised on the
+  template. Switching templates therefore re-renders without re-parsing the DOM or
+  re-running Defuddle. **`runClipSession` and `buildClipFromPage` were deleted**
+  rather than left beside the split: with the popup as the only caller they had no
+  callers at all, and their coverage was retargeted (`renderClipPayload.test.ts`
+  keeps every Phase 2a assertion through the split API; `defaultClipMode` moved to
+  its own module and test). The single-parse property from Phase 2a is preserved:
+  the hook calls `parsePageHtml` exactly once per clip.
+- **Draft vs payload (ADR-0179)**: the inputs render `ClipDraft`
+  (`buildClipDraft`: the rendered clip with the user's raw typing laid over it), so
+  typing is never rewritten under the caret. `applyClipEdits` produces the written
+  payload: separators and `..` segments dropped, leading dot removed, `.md`
+  ensured, characters no filesystem or Chrome download accepts removed
+  (`[<>:"|?*\p{Cc}]`), and a property the user clears removed from the frontmatter
+  rather than written as an empty value. List-valued properties are displayed but
+  not editable — a text field would have to guess whether a comma is a separator,
+  and a silently misread frontmatter value is worse than a read-only one.
+  `contentHash` is deliberately not recomputed: it hashes the body (ADR-0178
+  dedupe path) and the body is not editable here. Pinned by
+  `applyClipEdits.test.ts` (including "does not modify the clip it was given").
+- **Testability**: the session hook takes its outside world as
+  `ClipSessionDeps` (`readCapture`, `loadTemplates`, `saveNote`, `now`,
+  `newClipId`) instead of importing `wxt/browser`, so the whole popup flow is
+  testable without module mocking, and Phase 3 can swap `saveNote` for the desktop
+  transport without touching the popup. The hook reads deps through a ref and runs
+  its effect once, so a re-created deps object cannot trigger a second page read.
+- **Real bug the tests found**: a failed save was invisible. The popup rendered an
+  error only when `status === "error"`, so a rejected download showed nothing while
+  the form stayed usable. An error is now shown whenever one is set, and the
+  "browser settings pages cannot be clipped" explanation only when the page itself
+  failed; asserted in `ClipPopup.test.tsx` and `useClipSession.test.tsx` (which
+  also asserts the clip survives the failure so it can be retried).
+- **Existing bug fixed in passing**: a stale comment in
+  `src/page/buildVariableContext.ts` claimed the extractor mutates the document.
+  Phase 2a proved the opposite (`extractArticle.test.ts` pins it), and
+  `prepareClipContext` depends on the opposite, so the comment was corrected.
+- **Clip cost re-measured on the popup's actual path**
+  (`src/clip/clipPipeline.perf.test.ts`, jsdom, median of 3 on a loaded machine):
+  8.4 KB page 39.8 ms, 19.2 KB 41.9 ms, 33.6 KB 66.6 ms, 1.43 MB / 4k paragraphs
+  3,085.2 ms. Bounds stay deliberately loose (<1000 ms / <8000 ms) because jsdom is
+  several times slower than a browser DOM; these are upper bounds.
+- **Verification**: 106 tests across 17 files pass (Phase 2a had 51 across 9),
+  including hostile page metadata rendered as literal text (`container.querySelector`
+  proves no `<script>`/`<img>` is created), the error states for unreadable pages,
+  edit sanitisation and traversal refusal, and the clip-cost bounds. `tsc --noEmit`
+  clean, ESLint clean, `wxt build` succeeds. Largest file `useClipSession.ts` at 227
+  lines; every file ≤ 250. WXT/`wxt prepare` must run before `tsc`/`vitest`
+  (tsconfig extends `.wxt/tsconfig.json`).
+- **Not done (explicitly)**: no extension icons (WXT falls back to the default
+  puzzle icon; the plan does not list icons); no template import/export — the plan
+  puts that in Phase 4, not Phase 2; no app Storybook config (no app in this repo
+  has one — only `packages/design-system` renders stories — so the five components'
+  stories are written and typechecked but not rendered anywhere); no desktop
+  receiver, transport, Rust, or queue. No ADR was marked Accepted and no accepted
+  ADR was edited.
+- **Owner-local verification still outstanding**: real-browser clip timing (the
+  jsdom figures are upper bounds) and native GUI checks of the popup.
