@@ -13,3 +13,4 @@ export * from "./SyncStatusBadge";
 export * from "./pendingChangesTracker";
 export * from "./backgroundSyncCoordinator";
 export * from "./SyncSettingsPanel";
+export * from "./syncthing";

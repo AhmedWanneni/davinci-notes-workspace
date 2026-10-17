@@ -4,6 +4,7 @@ import { Button, Text, Divider } from "../components/primitives";
 import type { MobileSyncEngine } from "./mobileSyncEngine";
 import { useSyncStatus } from "./useSyncStatus";
 import { SyncStatusBadge } from "./SyncStatusBadge";
+import { MobileSyncthingPanel } from "./syncthing";
 
 export interface SyncSettingsPanelProps {
   engine?: MobileSyncEngine;
@@ -110,6 +111,9 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
           {isAuthenticated ? "Disconnect Drive" : "Connect with Google Drive"}
         </Button>
       </View>
+
+      {/* Local Peer-to-Peer Syncthing */}
+      <MobileSyncthingPanel />
 
       {/* Conflicts section if detected */}
       {conflicts.length > 0 ? (

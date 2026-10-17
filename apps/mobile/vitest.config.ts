@@ -25,6 +25,10 @@ export default defineConfig({
         __dirname,
         "../../packages/attachments/index.ts",
       ),
+      "@app/syncthing-api": path.resolve(
+        __dirname,
+        "../../packages/syncthing-api/index.ts",
+      ),
       "react-native-svg": path.resolve(
         __dirname,
         "tests/mocks/react-native-svg.ts",

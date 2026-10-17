@@ -23,7 +23,8 @@
       "@app/ai-runtime": ["packages/ai-runtime/index.ts"],
       "@app/ai-embeddings": ["packages/ai-embeddings/index.ts"],
       "@app/ai-qa": ["packages/ai-qa/index.ts"],
-      "@app/sync-client": ["packages/sync-client/index.ts"]
+      "@app/sync-client": ["packages/sync-client/index.ts"],
+      "@app/syncthing-api": ["packages/syncthing-api/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist"]

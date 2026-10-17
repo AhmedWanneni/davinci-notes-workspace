@@ -4,6 +4,32 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Mobile Syncthing-Fork Settings, QR Code & Device ID Integration (`apps/mobile/`, `packages/syncthing-api/`) (complete)**
+Shipped Settings -> Sync -> Syncthing panel connecting to local Syncthing-Fork on Android:
+1. **Shared `@app/syncthing-api` Package (`packages/syncthing-api/`)**:
+   - Pure TypeScript types (`SyncthingState`, `SyncthingDetectResult`, `SyncthingStatusResult`, `SyncthingCheckReport`, etc.).
+   - Pure parsers and utilities: `normalizeDeviceId`, `isValidDeviceIdFormat`, `formatDeviceIdGroups`, `redactApiKey`, `sanitizeError`.
+   - 0 platform dependencies, boundaries lint passing project-wide, reused by both `@app/desktop` and `@app/mobile`.
+2. **Android Narrow Localhost Network Security Config (`withLocalhostNetworkSecurity.js`)**:
+   - Built custom Expo config plugin `withLocalhostNetworkSecurity` creating `res/xml/network_security_config.xml` permitting cleartext HTTP strictly on `localhost` and `127.0.0.1`.
+   - Wired `android:networkSecurityConfig="@xml/network_security_config"` in `AndroidManifest.xml` without using any blanket `usesCleartextTraffic`.
+3. **Key Security (`apps/mobile/sync/syncthing/secureKeyStore.ts`)**:
+   - Stored in `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`), never `AsyncStorage`, never in logs or error messages.
+4. **Mobile Syncthing Client & UI (`apps/mobile/sync/syncthing/`)**:
+   - `mobileSyncthingClient.ts`: Strictly restricts connections to `http://127.0.0.1:8384` with 3-second timeout and clean error typing.
+   - `useMobileSyncthing.ts`: Reactive state hook handling `running`, `not-running`, and `bad-key` states with manual refresh (no continuous polling loops).
+   - `MobileSyncthingPanel.tsx` & `SyncthingQrView.tsx`: Displays status badge, Device ID in formatted monospace with copy button (`expo-clipboard`), and high-contrast QR code with white quiet zone. Reuses Syncthing's `/qr` proxy at 0 additional bundle cost.
+   - `SyncthingKeyModal.tsx`: Secure sheet for pasting and managing the Syncthing-Fork API key.
+5. **Verification**:
+   - Stopped Syncthing: Reports friendly "Not Running" status.
+   - Wrong API key: Reports "Key Problem" with "Invalid or unauthorized API key" without echoing the key anywhere.
+   - Running + valid key: Device ID matches Syncthing GUI character-for-character (`C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE`).
+   - QR code: Validated binary PNG bytes with valid header directly from Syncthing endpoint.
+   - Key security: Verified API key is never present in error strings, console logs, or unencrypted storage.
+   - 21 unit & integration tests passing across `@app/syncthing-api` and `@app/mobile`; 0 lint / 0 typecheck errors.
+
+---
+
 **Desktop Syncthing Sync Health Verification & Self-Test Round-Trip (`apps/desktop/`, ADR-0198) (complete)**
 Shipped "Check sync" diagnostic engine and UI section in the Syncthing settings panel proving sync works through empirical checks rather than assumptions:
 1. **Five Diagnostic Checks (`apps/desktop/src-tauri/src/syncthing/sync_check.rs`, `sync_check_marker.rs`)**:

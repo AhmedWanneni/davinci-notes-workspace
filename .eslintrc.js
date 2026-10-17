@@ -30,6 +30,7 @@ module.exports = {
       { type: "ai-runtime", pattern: "packages/ai-runtime/**/*", mode: "full" },
       { type: "attachments", pattern: "packages/attachments/**/*", mode: "full" },
       { type: "sanitize", pattern: "packages/sanitize/**/*", mode: "full" },
+      { type: "syncthing-api", pattern: "packages/syncthing-api/**/*", mode: "full" },
       { type: "app-desktop", pattern: "apps/desktop/**/*", mode: "full" },
       { type: "app-mobile", pattern: "apps/mobile/**/*", mode: "full" },
       { type: "service", pattern: "services/**/*", mode: "full" }
@@ -50,6 +51,7 @@ module.exports = {
           { from: "editor", allow: ["core-types", "indexer", "editor", "attachments", "sanitize"] },
           { from: "attachments", allow: ["attachments"] },
           { from: "sanitize", allow: ["sanitize"] },
+          { from: "syncthing-api", allow: ["core-types", "syncthing-api"] },
           { from: "plugin-api", allow: ["core-types", "plugin-api"] },
           { from: "plugin-runtime", allow: ["core-types", "plugin-api", "plugin-runtime"] },
           { from: "theme-api", allow: ["theme-api"] },
@@ -72,6 +74,7 @@ module.exports = {
               "ai-runtime",
               "attachments",
               "sanitize",
+              "syncthing-api",
               "app-desktop"
             ]
           },
@@ -91,6 +94,7 @@ module.exports = {
               "ai-runtime",
               "attachments",
               "sanitize",
+              "syncthing-api",
               "app-mobile"
             ]
           },
