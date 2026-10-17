@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { View, AppState, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import EditorDom from "../components/EditorDom";
 import { FormattingToolbar } from "../components/FormattingToolbar";
 import { EditorConflictBanner } from "../components/EditorConflictBanner";
@@ -41,7 +41,15 @@ export default function EditorScreen(): React.ReactElement {
     isLoaded,
     loadError,
     baseMtimeRef,
+    loadCounter,
+    reloadNote,
   } = useEditorNoteLoader({ storePath, noteId, preset });
+
+  useFocusEffect(
+    useCallback(() => {
+      void reloadNote();
+    }, [reloadNote]),
+  );
 
   const pathRef = useRef<string>(activePath);
   pathRef.current = activePath;
@@ -137,7 +145,7 @@ export default function EditorScreen(): React.ReactElement {
       <View style={{ flex: 1, width: "100%" }}>
         {isLoaded ? (
           <EditorDom
-            key={noteId ?? "editor-dom"}
+            key={`${noteId ?? activePath}-${loadCounter}`}
             dom={{
               useExpoDOMWebView: false,
               matchContents: false,

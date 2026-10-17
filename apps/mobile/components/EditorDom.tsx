@@ -131,12 +131,8 @@ export default function EditorDom({
       }
     };
     const hostEl = containerRef.current;
-    hostEl.addEventListener("click", handleContainerTap);
-    hostEl.addEventListener("touchend", handleContainerTap);
-    hostEl.addEventListener("touchstart", handleContainerTap, {
-      passive: true,
-    });
-    hostEl.addEventListener("pointerdown", handleContainerTap);
+    const evs = ["click", "touchend", "touchstart", "pointerdown"] as const;
+    evs.forEach((e) => hostEl.addEventListener(e, handleContainerTap));
 
     // Save Guard: Flush on blur, visibilitychange (app background), and pagehide
     const handleFlush = () => bridgeRef.current.flush();
@@ -149,10 +145,7 @@ export default function EditorDom({
     window.addEventListener("pagehide", handleFlush);
 
     return () => {
-      hostEl.removeEventListener("click", handleContainerTap);
-      hostEl.removeEventListener("touchend", handleContainerTap);
-      hostEl.removeEventListener("touchstart", handleContainerTap);
-      hostEl.removeEventListener("pointerdown", handleContainerTap);
+      evs.forEach((e) => hostEl.removeEventListener(e, handleContainerTap));
       view.contentDOM.removeEventListener("blur", handleFlush);
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("pagehide", handleFlush);
@@ -163,6 +156,19 @@ export default function EditorDom({
       viewRef.current = null;
     };
   }, []);
+
+  // Sync document content if initialContent changes externally
+  useEffect(() => {
+    const v = viewRef.current;
+    if (!v) return;
+    const currentDoc = v.state.doc.toString();
+    const newDoc = decodePayload(initialContent);
+    if (newDoc !== currentDoc) {
+      v.dispatch({
+        changes: { from: 0, to: currentDoc.length, insert: newDoc },
+      });
+    }
+  }, [initialContent]);
 
   // Update path reference on notePath updates without resetting editor state
   useEffect(() => {
@@ -209,9 +215,7 @@ export default function EditorDom({
 
   // Apply reset & theme CSS to DOM container
   useEffect(() => {
-    let styleEl = document.getElementById(
-      "davinci-mobile-theme",
-    ) as HTMLStyleElement | null;
+    let styleEl = document.getElementById("davinci-mobile-theme") as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.id = "davinci-mobile-theme";

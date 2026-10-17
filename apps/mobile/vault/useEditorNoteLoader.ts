@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { defaultVaultManager } from "./vaultManager";
 import { defaultNoteStore } from "./noteStore";
 import { generateUniqueNotePath } from "./uniqueNoteName";
@@ -18,6 +18,8 @@ export interface UseEditorNoteLoaderResult {
   isLoaded: boolean;
   loadError: string | null;
   baseMtimeRef: React.MutableRefObject<number>;
+  loadCounter: number;
+  reloadNote: () => Promise<void>;
 }
 
 export function useEditorNoteLoader({
@@ -29,81 +31,66 @@ export function useEditorNoteLoader({
   const [content, setContent] = useState<string>("");
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadCounter, setLoadCounter] = useState<number>(0);
   const baseMtimeRef = useRef<number>(0);
+  const hasCreatedNewRef = useRef<boolean>(false);
 
-  const lastLoadedKeyRef = useRef<string>("");
+  const loadNote = useCallback(async () => {
+    try {
+      const { adapter } = await defaultVaultManager.getActiveAdapter();
+      if (!adapter) {
+        setLoadError("No vault configured.");
+        return;
+      }
 
-  useEffect(() => {
-    const currentKey = `${noteId ?? ""}:${storePath}:${preset ?? ""}`;
-    if (lastLoadedKeyRef.current === currentKey) return;
-    lastLoadedKeyRef.current = currentKey;
-
-    let mounted = true;
-    (async () => {
-      try {
-        const { adapter } = await defaultVaultManager.getActiveAdapter();
-        if (!adapter) {
-          if (mounted) setLoadError("No vault configured.");
-          return;
-        }
-
-        if (preset === "new") {
-          let resolvedPath = storePath;
-          const statCheck = await adapter.statFile(resolvedPath);
-          if (statCheck.exists) {
-            resolvedPath = await generateUniqueNotePath(
-              adapter,
-              "",
-              "Untitled",
-            );
-          }
-          if (mounted) {
-            setActivePath(resolvedPath);
-          }
-          defaultNoteStore.register(resolvedPath, noteId);
-          const title =
-            resolvedPath.replace(/\.md$/i, "").split("/").pop() ?? "Untitled";
-          const initial = `# ${title}\n\n`;
-          if (mounted) setContent(initial);
-          const stat = await atomicWriteNote(adapter, resolvedPath, initial);
-          baseMtimeRef.current = stat.mtime;
-        } else {
-          const resolvedPath = noteId
-            ? (defaultNoteStore.getPath(noteId) ?? storePath)
-            : storePath;
-          if (mounted) {
-            setActivePath(resolvedPath);
-          }
-          try {
-            const file = await adapter.readNote(resolvedPath);
-            baseMtimeRef.current = file.mtime;
-            if (mounted) setContent(file.content);
-          } catch {
-            const title =
-              resolvedPath.replace(/\.md$/i, "").split("/").pop() ?? "Untitled";
-            if (mounted) setContent(`# ${title}\n\n`);
-          }
-        }
-        if (mounted) {
-          setLoadError(null);
-          setIsLoaded(true);
-        }
-      } catch (err) {
-        console.error("[editor] Initialization failed:", err);
-        if (mounted) {
-          setLoadError(
-            err instanceof Error ? err.message : "Failed to load note.",
+      if (preset === "new" && !hasCreatedNewRef.current) {
+        hasCreatedNewRef.current = true;
+        let resolvedPath = storePath;
+        const statCheck = await adapter.statFile(resolvedPath);
+        if (statCheck.exists) {
+          resolvedPath = await generateUniqueNotePath(
+            adapter,
+            "",
+            "Untitled",
           );
         }
+        setActivePath(resolvedPath);
+        defaultNoteStore.register(resolvedPath, noteId);
+        const title =
+          resolvedPath.replace(/\.md$/i, "").split("/").pop() ?? "Untitled";
+        const initial = `# ${title}\n\n`;
+        setContent(initial);
+        const stat = await atomicWriteNote(adapter, resolvedPath, initial);
+        baseMtimeRef.current = stat.mtime;
+      } else {
+        const resolvedPath = noteId
+          ? (defaultNoteStore.getPath(noteId) ?? storePath)
+          : storePath;
+        setActivePath(resolvedPath);
+        try {
+          const file = await adapter.readNote(resolvedPath);
+          baseMtimeRef.current = file.mtime;
+          setContent(file.content);
+        } catch {
+          const title =
+            resolvedPath.replace(/\.md$/i, "").split("/").pop() ?? "Untitled";
+          setContent(`# ${title}\n\n`);
+        }
       }
-    })().catch((err) => {
-      console.error("[editor] Uncaught error during init:", err);
-    });
+      setLoadError(null);
+      setIsLoaded(true);
+      setLoadCounter((c) => c + 1);
+    } catch (err) {
+      console.error("[editor] Initialization failed:", err);
+      setLoadError(
+        err instanceof Error ? err.message : "Failed to load note.",
+      );
+    }
+  }, [noteId, preset, storePath]);
 
-    return () => {
-      mounted = false;
-    };
-  }, [storePath, preset, noteId]);
+  useEffect(() => {
+    void loadNote();
+  }, [loadNote]);
 
   return {
     activePath,
@@ -113,5 +100,7 @@ export function useEditorNoteLoader({
     isLoaded,
     loadError,
     baseMtimeRef,
+    loadCounter,
+    reloadNote: loadNote,
   };
 }

@@ -89,6 +89,7 @@ export function useEditorSaveManager({
           const stat = await atomicWriteNote(adapter, currentPath, newText);
           baseMtimeRef.current = stat.mtime;
           unsavedContentRef.current = null;
+          setContent(newText);
           setSaveStatus("saved");
           setSaveError(null);
           console.log(
@@ -160,6 +161,7 @@ export function useEditorSaveManager({
         }
       }
     } finally {
+      isBackingRef.current = false;
       onBack();
     }
   }, [noteId, onBack, pathRef]);
