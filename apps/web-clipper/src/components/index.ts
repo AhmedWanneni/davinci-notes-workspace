@@ -2,6 +2,7 @@ export * from "./ClipEditor";
 export * from "./ClipModeSelector";
 export * from "./ClipPreview";
 export * from "./ClipPopup";
+export * from "./HighlighterPanel";
 export * from "./PairingPanel";
 export * from "./TemplateEditor";
 export * from "./TemplatePicker";

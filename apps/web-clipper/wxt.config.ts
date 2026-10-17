@@ -49,6 +49,9 @@ export default defineConfig({
       "downloads",
     ],
     host_permissions: ["http://127.0.0.1/*"],
+    // Highlight restoration is an explicit opt-in. Without this optional grant,
+    // no content script is injected into browsing pages.
+    optional_host_permissions: ["*://*/*"],
     commands: {
       _execute_action: {
         suggested_key: { default: "Alt+Shift+C" },

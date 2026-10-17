@@ -152,3 +152,4 @@ Desktop.ini
 # -----------------------------------------------------------------------------
 # .changeset/ markdown files must be committed until consumed by version bump.
 # (intentionally not ignored)
+.aider*
