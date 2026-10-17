@@ -6,6 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import { darkColorTokens } from "@app/design-tokens/mobile";
 import { Text, Button } from "../components/primitives";
+import { defaultVaultManager } from "../vault/vaultManager";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -37,7 +38,14 @@ export function ErrorBoundary({
 
 export default function RootLayout(): React.ReactElement {
   useEffect(() => {
-    SplashScreen.hideAsync().catch(() => {});
+    async function hideSplashAfterInitialShell() {
+      try {
+        await defaultVaultManager.getRegistry().catch(() => {});
+      } finally {
+        await SplashScreen.hideAsync().catch(() => {});
+      }
+    }
+    hideSplashAfterInitialShell();
   }, []);
 
   return (
@@ -60,6 +68,12 @@ export default function RootLayout(): React.ReactElement {
         />
         <Stack.Screen
           name="editor"
+          options={{
+            animation: "slide_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="settings"
           options={{
             animation: "slide_from_right",
           }}

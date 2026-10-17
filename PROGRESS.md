@@ -4,6 +4,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Mobile Vault Storage Seam, Startup Performance, Native UI Hardening & ADR-0196 (`apps/mobile/`, ADR-0196) (complete)**
+Resolved all 6 Android runtime issues, hardened design system primitives, and introduced object-based filesystem seam:
+1. **Root Cause Diagnosis**:
+   - **Issue 1 (Splash hang)**: Startup held splash screen waiting on synchronous recursive `scanVault()`, full SQLite indexing, and foreground sync baseline scan.
+   - **Issue 2 (Vault creation URI crash)**: Hand-concatenated strings with unencoded spaces passed to `FileSystemFile.move(new File(uri))` triggered Android `JavaFile.kt:20` `java.net.URI.create()` IllegalArgumentException at index 146. Additionally, `tempFile.move(targetFile)` failed without `{ overwrite: true }`.
+   - **Issue 3 & 6 (Missing open folder & vault switcher UI)**: External folder was disabled in Expo Go with unclear copy; ScreenLayout title was static unclickable text; VaultSettingsSection / SyncSettingsPanel were unmounted.
+   - **Issue 4 (Plus button crash)**: `FormattingToolbar.tsx` rendered lowercase HTML `<div>` and `<button>` in native React Native, crashing upon navigating to `/editor`.
+   - **Issue 5 (Text string outside <Text>)**: `Badge.tsx` leaked raw numbers (`{item.count}`) directly into `<View>`. Unsafe `{val && <X/>}` expressions in multiple screens leaked `""` into `<View>`.
+2. **Architecture & Changes**:
+   - **Object-Based Filesystem Seam (`apps/mobile/vault/fs/`)**: Replaced string path concatenation with `new File(parentDir, segmentName)` and `new Directory(...)`. Atomic writes use temp file + move with `{ overwrite: true }`.
+   - **Entry Name Sanitizer (`entryName.ts`)**: Single byte-budgeted sanitizer preserving Unicode, Arabic, emoji, and spaces, while stripping illegal control chars.
+   - **Transactional Vault Creation**: Integrated rollback to delete directories on creation failure before re-throwing.
+   - **UI Hardening & Lint Rules**: Replaced HTML tags with React Native primitives; coerced text in Badge/Button/ListItem/Input; added ESLint `no-restricted-syntax` rules forbidding lowercase intrinsic JSX elements and logical `&&` in JSX.
+   - **Startup & Settings Navigation**: Dismiss splash screen in `finally`; defer vault indexing and sync scan post-first-paint; add `/settings` screen and header dropdown to switch vaults.
+3. **Verification**:
+   - All 16 mobile test suites (81 tests) pass 100% green.
+   - TypeScript `tsc --noEmit` and ESLint pass with 0 errors across `apps/mobile`.
+   - ADR-0196 documented and indexed in `DECISIONS.md`.
+
+---
+
 **NativeWind Color Scheme & Dark Mode Class Resolution (`apps/mobile/tailwind.config.js`, `packages/design-tokens/scripts/generate.mjs`) (complete)**
 Resolved runtime exception `Cannot manually set color scheme, as dark mode is type 'media'. Please use StyleSheet.setFlag('darkMode', 'class')`:
 1. **Diagnosis & Root Cause**:

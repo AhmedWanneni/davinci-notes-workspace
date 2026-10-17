@@ -6,6 +6,7 @@ import {
   SortDescending,
   SlidersHorizontal,
   Folders,
+  Gear,
 } from "phosphor-react-native";
 import { darkColorTokens } from "@app/design-tokens/mobile";
 import { IconButton, Text } from "../../components/primitives";
@@ -47,6 +48,8 @@ export default function FilesScreen(): React.ReactElement {
   const [pinnedNotes, setPinnedNotes] = useState<Set<string>>(new Set());
   const [actionTargetNote, setActionTargetNote] = useState<string | null>(null);
 
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+
   const loadVault = useCallback(async () => {
     const {
       adapter: active,
@@ -58,18 +61,25 @@ export default function FilesScreen(): React.ReactElement {
     setAdapter(active);
 
     if (active) {
-      try {
-        const scan = await active.scanVault();
-        setAllNotes(scan.notes);
-        setAllFolders(scan.folders);
-        defaultVaultIndexer.indexVault(active).catch(() => {});
-      } catch (err) {
-        setVaultInfo({
-          ...info,
-          isAccessible: false,
-          error: err instanceof Error ? err.message : "Failed to scan vault",
-        });
-      }
+      setIsLoadingNotes(true);
+      setTimeout(async () => {
+        try {
+          const scan = await active.scanVault();
+          setAllNotes(scan.notes);
+          setAllFolders(scan.folders);
+          setTimeout(() => {
+            defaultVaultIndexer.indexVault(active).catch(() => {});
+          }, 100);
+        } catch (err) {
+          setVaultInfo({
+            ...info,
+            isAccessible: false,
+            error: err instanceof Error ? err.message : "Failed to scan vault",
+          });
+        } finally {
+          setIsLoadingNotes(false);
+        }
+      }, 0);
     }
   }, []);
 
@@ -112,6 +122,7 @@ export default function FilesScreen(): React.ReactElement {
   return (
     <ScreenLayout
       title={vaultInfo?.name ?? "Files"}
+      onTitlePress={() => setIsSwitcherVisible(true)}
       headerLeft={
         <IconButton
           icon={<Folders size={18} color={darkColorTokens.text.normal} />}
@@ -136,7 +147,13 @@ export default function FilesScreen(): React.ReactElement {
               setSortMode(sortMode === "name-asc" ? "name-desc" : "name-asc")
             }
           />
-          {__DEV__ && (
+          <IconButton
+            icon={<Gear size={18} color={darkColorTokens.text.normal} />}
+            accessibilityLabel="Settings"
+            size="sm"
+            onPress={() => router.push("/settings")}
+          />
+          {__DEV__ ? (
             <IconButton
               icon={
                 <SlidersHorizontal
@@ -148,7 +165,7 @@ export default function FilesScreen(): React.ReactElement {
               size="sm"
               onPress={() => router.push("/gallery")}
             />
-          )}
+          ) : null}
         </View>
       }
     >
@@ -157,7 +174,7 @@ export default function FilesScreen(): React.ReactElement {
         onNavigate={(folder) => setCurrentFolder(folder)}
       />
 
-      {vaultInfo && !vaultInfo.isAccessible ? (
+      {vaultInfo?.isAccessible === false ? (
         <VaultInaccessibleBanner
           error={vaultInfo.error}
           onRecover={() =>
@@ -187,7 +204,9 @@ export default function FilesScreen(): React.ReactElement {
           ListEmptyComponent={
             <View className="p-8 items-center justify-center">
               <Text variant="body" color="muted">
-                No notes in this folder. Tap &quot;+&quot; to create one.
+                {isLoadingNotes
+                  ? "Loading vault notes..."
+                  : "No notes in this folder. Tap \"+\" to create one."}
               </Text>
             </View>
           }

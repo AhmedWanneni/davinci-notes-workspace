@@ -21,16 +21,18 @@ export function useVaultForegroundSync({
   useEffect(() => {
     if (!adapter || !enabled) return;
 
-    // Initial baseline scan
+    // Initial baseline scan deferred after startup render
     let isCancelled = false;
-    adapter
-      .scanVault()
-      .then((scan) => {
-        if (!isCancelled) {
-          previousStatsRef.current = scan.stats;
-        }
-      })
-      .catch(() => {});
+    const timer = setTimeout(() => {
+      adapter
+        .scanVault()
+        .then((scan) => {
+          if (!isCancelled) {
+            previousStatsRef.current = scan.stats;
+          }
+        })
+        .catch(() => {});
+    }, 300);
 
     const subscription = AppState.addEventListener(
       "change",
@@ -66,6 +68,7 @@ export function useVaultForegroundSync({
 
     return () => {
       isCancelled = true;
+      clearTimeout(timer);
       subscription.remove();
     };
   }, [adapter, enabled, onChangesDetected]);
