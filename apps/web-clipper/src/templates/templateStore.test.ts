@@ -1,11 +1,6 @@
-import {
-  ARTICLE_TEMPLATE,
-  RECIPE_TEMPLATE,
-  type ClipTemplate,
-} from "@app/clipper-core";
+import { ARTICLE_TEMPLATE } from "@app/clipper-core";
 import { describe, expect, it } from "vitest";
 import type { StorageArea } from "../storage/storageArea";
-import { matchTemplate } from "./matchTemplate";
 import {
   TEMPLATES_KEY,
   defaultTemplates,
@@ -92,79 +87,5 @@ describe("templateStore", () => {
     const first = fallbackTemplate();
     first.id = "mutated";
     expect(fallbackTemplate().id).not.toBe("mutated");
-  });
-});
-
-describe("matchTemplate", () => {
-  const templates = [RECIPE_TEMPLATE, ARTICLE_TEMPLATE];
-
-  it("matches a schema.org type trigger", () => {
-    expect(
-      matchTemplate(templates, { url: "https://x/y", schemaTypes: ["Recipe"] })
-        ?.id,
-    ).toBe("recipe");
-  });
-
-  it("matches a URL prefix trigger", () => {
-    const scoped: ClipTemplate = {
-      ...ARTICLE_TEMPLATE,
-      id: "scoped",
-      triggers: ["https://blog.example/"],
-    };
-    expect(
-      matchTemplate([scoped], {
-        url: "https://blog.example/post",
-        schemaTypes: [],
-      })?.id,
-    ).toBe("scoped");
-    expect(
-      matchTemplate([scoped], {
-        url: "https://other.example/",
-        schemaTypes: [],
-      }),
-    ).toBe(undefined);
-  });
-
-  it("matches a /regex/ trigger and ignores an invalid pattern", () => {
-    const regexed: ClipTemplate = {
-      ...ARTICLE_TEMPLATE,
-      id: "regexed",
-      triggers: ["/^https:\\/\\/news\\./"],
-    };
-    expect(
-      matchTemplate([regexed], {
-        url: "https://news.example/a",
-        schemaTypes: [],
-      })?.id,
-    ).toBe("regexed");
-
-    const broken: ClipTemplate = {
-      ...ARTICLE_TEMPLATE,
-      id: "broken",
-      triggers: ["/(/"],
-    };
-    expect(() =>
-      matchTemplate([broken], { url: "https://x/", schemaTypes: [] }),
-    ).not.toThrow();
-  });
-
-  it("returns undefined when nothing matches", () => {
-    expect(
-      matchTemplate(templates, { url: "https://x/y", schemaTypes: ["Thing"] }),
-    ).toBe(undefined);
-  });
-
-  it("first match wins, so user templates can override starters", () => {
-    const override: ClipTemplate = {
-      ...ARTICLE_TEMPLATE,
-      id: "override",
-      triggers: ["schema:@Recipe"],
-    };
-    expect(
-      matchTemplate([override, RECIPE_TEMPLATE], {
-        url: "https://x/y",
-        schemaTypes: ["Recipe"],
-      })?.id,
-    ).toBe("override");
   });
 });

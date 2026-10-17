@@ -73,4 +73,35 @@ describe("validateClipTemplate", () => {
       triggers: [],
     });
   });
+
+  it("rejects a trigger that could hang matching, and names its position", () => {
+    const result = validateClipTemplate({
+      id: "x",
+      name: "X",
+      noteNameFormat: "{{title}}",
+      behavior: "create",
+      triggers: ["schema:@Article", "/(a+)+$/", ""],
+    });
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContainEqual(
+      expect.stringContaining("triggers[1] repeats a group"),
+    );
+    expect(result.errors).toContain("triggers[2] is empty");
+  });
+
+  it("accepts the three documented trigger shapes", () => {
+    const result = validateClipTemplate({
+      id: "x",
+      name: "X",
+      noteNameFormat: "{{title}}",
+      behavior: "create",
+      triggers: [
+        "schema:@Recipe",
+        "/^https:\\/\\/news\\./",
+        "https://blog.example/",
+      ],
+    });
+    expect(result.errors).toEqual([]);
+    expect(result.ok).toBe(true);
+  });
 });

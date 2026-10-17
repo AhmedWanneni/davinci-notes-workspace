@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   composeNoteFile,
+  matchTemplate,
   suggestedFilePath,
   type ClipMode,
   type ClipTemplate,
@@ -18,7 +19,6 @@ import { prepareClipContext } from "../clip/prepareClipContext";
 import { renderClipPayload } from "../clip/renderClipPayload";
 import { parsePageHtml } from "../page/parsePageHtml";
 import { schemaTypesOf } from "../page/schemaTypes";
-import { matchTemplate } from "../templates/matchTemplate";
 import { fallbackTemplate } from "../templates/templateStore";
 import { describeDeliveryFailure } from "../transport/describeDeliveryFailure";
 import {

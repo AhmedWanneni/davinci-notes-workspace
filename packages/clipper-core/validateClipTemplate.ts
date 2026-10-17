@@ -1,6 +1,7 @@
 import { CLIP_BEHAVIORS, type ClipBehavior } from "./ClipPayload.js";
 import type { ClipTemplate, ClipTemplateProperty } from "./ClipTemplate.js";
 import { isReservedPropertyName } from "./propertyName.js";
+import { triggerRuleError } from "./triggerRule.js";
 
 export interface ClipTemplateValidation {
   ok: boolean;
@@ -38,6 +39,10 @@ export function validateClipTemplate(input: unknown): ClipTemplateValidation {
   const properties = readProperties(record.properties, errors);
   const tags = readStringArray(record.tags, "tags", errors);
   const triggers = readStringArray(record.triggers, "triggers", errors);
+  triggers.forEach((trigger, index) => {
+    const reason = triggerRuleError(trigger);
+    if (reason !== undefined) errors.push(`triggers[${index}] ${reason}`);
+  });
 
   if (errors.length > 0) return { ok: false, errors };
 

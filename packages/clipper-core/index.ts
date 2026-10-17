@@ -88,6 +88,20 @@ export {
   type ClipTemplateValidation,
 } from "./validateClipTemplate.js";
 export {
+  MAX_REGEX_SOURCE_LENGTH,
+  MAX_TRIGGER_LENGTH,
+  MAX_TRIGGER_URL_LENGTH,
+  parseTriggerRule,
+  triggerRuleError,
+  type TriggerRule,
+  type TriggerRuleParse,
+} from "./triggerRule.js";
+export {
+  matchesTrigger,
+  matchTemplate,
+  type TriggerContext,
+} from "./matchTemplate.js";
+export {
   ARTICLE_TEMPLATE,
   MOVIE_TEMPLATE,
   PAPER_TEMPLATE,

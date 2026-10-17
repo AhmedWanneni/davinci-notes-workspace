@@ -1,8 +1,7 @@
-import { STARTER_TEMPLATES } from "@app/clipper-core";
+import { matchTemplate, STARTER_TEMPLATES } from "@app/clipper-core";
 import { describe, expect, it } from "vitest";
 import { parsePageHtml } from "../page/parsePageHtml";
 import { schemaTypesOf } from "../page/schemaTypes";
-import { matchTemplate } from "../templates/matchTemplate";
 import { prepareClipContext } from "./prepareClipContext";
 import { renderClipPayload } from "./renderClipPayload";
 
