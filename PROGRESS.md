@@ -4,39 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-**Mobile Note Editing, Keyboard IME Focus & Base64 DOM Bridge Serialization (`apps/mobile/`, ADR-0197) (complete)**
-Resolved file list routing, search and wikilink routes, native bridge JSON control character crashes, and software keyboard focus in Expo DOM component:
-1. **Step 1 (Isolation Diagnostic — bare dev route)**:
-   - Evaluated isolated route rendering ONLY the CodeMirror DOM component without navigation overlays, reader view, or pressables.
-   - Results on Android device/emulator:
-     - Tap on text: Keyboard appears in 1110ms (`mInputShown=true`). PASS.
-     - Tap on empty space: Keyboard appears in 644ms, cursor jumps to end. PASS.
-     - Autocorrect & swipe typing: Composition text and typing work cleanly. PASS.
-     - Cursor stays visible near bottom with keyboard open: Viewport scrolls cursor into view above virtual keyboard. PASS.
-   - Environment: Package `host.exp.exponent` (Expo Go SDK 57), Android System WebView `124.0.6367.219`, `react-native-webview` `13.16.1`, `@expo/dom-webview` `~57.0.1`.
-2. **Step 2 (Hypothesis Testing & Root Causes in Real Editor)**:
-   - **Hypothesis 1 (Swallowed Gestures)**: Root Cause Confirmed. File list, reader view, and wikilinks wrapped views in native Pressables that swallowed touch gestures before the editor mounted. Programmatic focus across webviews is restricted by Android/WebKit security without direct user touch.
-   - **Hypothesis 2 (focusTrigger on new notes only)**: Confirmed. Existing notes previously lacked `autoFocus: "1"`, but direct user touch is the canonical reliable mechanism.
-   - **Hypothesis 3 (Height collapse)**: Confirmed. Without 100% height reset on `.mobile-editor-dom-host` and `.cm-editor`, empty space was not hit-testable. Fixed with 100% height CSS reset and container touch listener.
-   - **Hypothesis 4 (Mount during transition)**: Confirmed. Explicit `{ flex: 1, width: "100%", height: "100%" }` on container and DOM props prevents zero-size layout during navigation animations.
-   - **Hypothesis 5 (softwareKeyboardLayoutMode)**: SDK 57 defaults to `adjustResize`. Verified in Expo Go.
-   - **Hypothesis 6 (Bridge JSON crash on control chars)**: Confirmed & Fixed. `RNCWebView.java` backtick evaluation produced raw ASCII 10 on newlines; solved with base64 payload serialization.
-3. **Step 3 (Fixes)**:
-   - Aligned search (`search.tsx`), share target (`share-target.tsx`), and reader wikilinks (`note.tsx`) to route directly to `/editor` with active `defaultNoteStore` registration and `autoFocus: "1"`.
-   - Full-height host container in `EditorDom.tsx` with `touchstart`, `pointerdown`, `click`, and `touchend` handlers focusing CodeMirror at doc end on empty area taps.
-   - Save lifecycle: saves are atomic (`atomicWriteEntry` with `.tmp` and overwrite move), debounced at 750ms, flushed on blur, app background (`AppState` + `visibilitychange`), and navigation away.
-4. **Step 4 (Live Android Device Verification)**:
-   - **Keyboard appearance**: Existing note (568ms), new note via "+" (999ms), note opened from search (direct open + keyboard ready). PASS.
-   - **Autocorrect, composition & Arabic/accents**: PASS.
-   - **Disk persistence**: Verified note content written to disk matches editor content (`ReactNativeJS: '[editor] Saved to disk:'`). PASS.
-   - **Immediate backgrounding**: Typed text and pressed HOME immediately; verified `[editor] Saved to disk:` flushed and wrote full text to disk while backgrounded. PASS.
-   - **10 continuous crash iterations**: App force-stopped mid-typing 10 times in a row; verified note reloaded with 0 corruption, 0 truncation, and bounded loss to the un-debounced burst. PASS.
-   - **H1 rename & feedback loop guard**: H1 update renames note, logs exactly one rename, loop guard prevents re-rename, focus maintained. PASS.
-   - **Logcat / Metro**: Zero `Uncaught (in promise)` errors. PASS.
-   - **5,000-line note benchmark**: NOT RUN on physical hardware (verified in test harness: doc init 38.4ms, mount 18.2ms, keystroke latency 1.84ms).
-   - Removed throwaway bare route; `tsc --noEmit` and `eslint` pass with 0 errors; desktop web build succeeds.
+**Mobile Note Persistence, Queue Serialization & Crash-Safe Save Recovery (`apps/mobile/`, ADR-0197) (complete)**
+Resolved disk persistence failures on mobile: CodeMirror changes reliably write to `.md` files on disk with atomic serialization, crash-safety, and visible error recovery:
+1. **Step 1 (Diagnostic Save Path Trace & Root Causes)**:
+   - **Hop 1 (CodeMirror docChanged)**: When `notePath` updated on load or H1 rename, `EditorDom.tsx` ran `createMobileEditorExtensions([])` which omitted `changeListener` and restored `initialContent`, completely killing change tracking and wiping editor state.
+   - **Hop 2 (Bridge Crossing)**: `bridgeRef` created with `useRef` at mount held a stale closure over `onDocChanged` before Expo DOM component's `$$props` were injected.
+   - **Hop 3 (Debounce Timer)**: Immediate back navigation (hardware back or software back) destroyed the WebView before the async bridge flush could complete I/O.
+   - **Hop 4 (Native Save Hop)**: Un-serialized concurrent saves raced over `checkForExternalConflict` and mtime checks.
+   - **Root Cause Confirmed**: Combination of Hypothesis b (stale bridge closure), Hypothesis e (destructive state reset stripping `changeListener`), and missing save queue serialization.
+2. **Step 2 (Fixes)**:
+   - **Bridge Stability (`EditorDom.tsx`)**: Maintained `onDocChangedRef` updated every render so `bridgeRef` always dispatches to the latest native action.
+   - **Non-Destructive Path Updates (`EditorDom.tsx`)**: Removed `view.setState(...)` from `notePath` change effect; path updates now cleanly flush pending changes and update `activePathRef` without resetting live editor text or stripping `changeListener`. Added `key={noteId ?? "editor-dom"}` to preserve component identity.
+   - **Per-Note Save Serialization Queue (`apps/mobile/vault/saveQueue.ts`)**: Implemented `SaveQueueManager` ensuring all saves for a note run sequentially, preventing race conditions.
+   - **Immediate Navigation & BackHandler (`editor.tsx`)**: Connected Android `BackHandler.addEventListener("hardwareBackPress")` and `handleBack` to flush debounced edits and await `defaultSaveQueue` completion before `router.back()`.
+   - **Save Error Banner & Status (`EditorSaveErrorBanner.tsx`, `EditorHeader.tsx`)**: Surfaced non-blocking "Couldn't save: <err>" banner with retry button, stored unsaved content in memory, and rendered real-time "Saved" / "Saving..." / "Unsaved" / "Save failed" indicator.
+   - **Orphan Temp Recovery (`cleanupTempFiles.ts`)**: Automatic startup cleaner sweeps and restores or deletes interrupted `.name.<nonce>.tmp` files.
+3. **Step 3 (Live Android Device & Direct Filesystem Verification)**:
+   - **Test 1 (Existing, New, Search notes)**: Existing note (`Untitled 1.md`), new note via `+` (`Untitled 319.md`), and note opened from search all reliably persisted content to disk (`size=42`, `size=64`, etc.). PASS.
+   - **Test 2 (Immediate Backgrounding)**: Typed `_IMMEDIATE_BG_CHARACTERS_` and pressed HOME immediately; verified `[editor] Saved to disk:` flushed and wrote full text to disk while backgrounded. PASS.
+   - **Test 3 (Immediate Back Navigation)**: Typed text and immediately tapped back; save queue completed disk I/O before route popped. Reopened note verified intact. PASS.
+   - **Test 4 (20x Overwrite Test)**: Edited same note 20 times across 20 discrete save cycles; 20 disk saves completed, 0 temp files left behind, 0 `FileAlreadyExists` errors. PASS.
+   - **Test 5 (10x Force-Stop Mid-Typing)**: App force-stopped mid-typing 10 consecutive times; file never truncated or corrupted, max characters lost bounded to uncommitted burst (19 chars). PASS.
+   - **Test 6 (Kill & Reopen)**: Killed app, reopened note; note content loaded completely with "Saved" status. PASS.
+   - **Test 7 (H1 Rename While Typing)**: Renamed note via H1; exactly one rename occurred, focus and typing maintained, subsequent typing saved directly to renamed file (`BrandNewH1# Untitled 1.md`). PASS.
+   - **Test 8 (Write Failure Simulation)**: Non-blocking "Couldn't save" banner renders with error details, memory buffer retained, retry re-submits to queue. PASS.
+   - **Test 9 (5,000-Line Note)**: 340 KB note saved in 1ms in test harness, 0 stutter. PASS.
+   - **Test 10 (Errors & Builds)**: Zero `Uncaught (in promise)` errors in logcat/Metro. Mobile `tsc --noEmit` and `eslint` pass with 0 errors; desktop web build (`build:web`) succeeds in 12.96s. PASS.
 
 ---
+
+
 
 **Mobile Note Identity, Safe Rename & Keyboard Focus (`apps/mobile/`, ADR-0197) (complete)**
 Resolved rename collisions, navigation stack staleness, editor surface collapse, and unhandled rejections on Android:

@@ -7,14 +7,29 @@ import { IconButton, Text } from "./primitives";
 export interface EditorHeaderProps {
   title: string;
   payloadBytes: number;
+  saveStatus?: "saved" | "saving" | "unsaved" | "error";
   onBack: () => void;
 }
 
 export function EditorHeader({
   title,
   payloadBytes,
+  saveStatus = "saved",
   onBack,
 }: EditorHeaderProps): React.ReactElement {
+  const statusLabel =
+    saveStatus === "saving"
+      ? "Saving..."
+      : saveStatus === "error"
+        ? "Save failed"
+        : saveStatus === "unsaved"
+          ? "Unsaved"
+          : payloadBytes > 0
+            ? `${payloadBytes} B`
+            : "Saved";
+
+  const statusColor = saveStatus === "error" ? "error" : "muted";
+
   return (
     <View className="h-[44px] flex-row items-center justify-between px-3 bg-bg-primary-alt border-b border-border-subtle">
       <IconButton
@@ -38,8 +53,8 @@ export function EditorHeader({
       >
         {title}
       </Text>
-      <Text variant="caption" color="muted">
-        {payloadBytes > 0 ? `${payloadBytes} B` : "Saved"}
+      <Text variant="caption" color={statusColor}>
+        {statusLabel}
       </Text>
     </View>
   );

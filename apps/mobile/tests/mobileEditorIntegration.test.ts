@@ -212,4 +212,23 @@ describe("Mobile Editor Integration & Adversarial Verification", () => {
     const diskContent = (await adapter.readNote(notePath)).content;
     expect(diskContent).toBe("External remote edit from desktop sync");
   });
+
+  it("6. Large note (5,000 lines): saves within budget and verifies content", async () => {
+    const lines = Array.from(
+      { length: 5000 },
+      (_, i) => `- [ ] Item ${i}: note content`,
+    );
+    const largeContent = `# 5000 Lines Benchmark\n\n${lines.join("\n")}`;
+
+    const start = performance.now();
+    const stat = await atomicWriteNote(adapter, "LargeNote.md", largeContent);
+    const elapsedMs = performance.now() - start;
+
+    expect(stat.size).toBeGreaterThan(100_000);
+    expect(elapsedMs).toBeLessThan(50); // In-memory mock write sub-50ms
+
+    const readBack = await adapter.readNote("LargeNote.md");
+    expect(readBack.content).toBe(largeContent);
+    expect(readBack.content.length).toBe(largeContent.length);
+  });
 });

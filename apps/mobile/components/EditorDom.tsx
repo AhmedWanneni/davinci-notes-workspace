@@ -53,10 +53,15 @@ export default function EditorDom({
   const activePathRef = useRef<string | undefined>(notePath);
   const [_isReady, setIsReady] = useState(false);
 
+  const onDocChangedRef = useRef(onDocChanged);
+  useEffect(() => {
+    onDocChangedRef.current = onDocChanged;
+  }, [onDocChanged]);
+
   // Debounced bridge emitter (750ms) - only crosses on debounce or explicit flush
   const bridgeRef = useRef(
     createDebouncedBridge<DocChangeNotification>((notification, size) => {
-      onDocChanged?.(notification, size);
+      onDocChangedRef.current?.(notification, size);
     }, 750),
   );
 
@@ -121,7 +126,9 @@ export default function EditorDom({
     const hostEl = containerRef.current;
     hostEl.addEventListener("click", handleContainerTap);
     hostEl.addEventListener("touchend", handleContainerTap);
-    hostEl.addEventListener("touchstart", handleContainerTap, { passive: true });
+    hostEl.addEventListener("touchstart", handleContainerTap, {
+      passive: true,
+    });
     hostEl.addEventListener("pointerdown", handleContainerTap);
 
     // Save Guard: Flush on blur, visibilitychange (app background), and pagehide
@@ -150,19 +157,13 @@ export default function EditorDom({
     };
   }, []);
 
-  // Reuse editor instance when notePath or initialContent updates
+  // Update path reference on notePath updates without resetting editor state
   useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
-
     if (activePathRef.current !== notePath) {
       bridgeRef.current.flush();
       activePathRef.current = notePath;
-      const docText = decodePayload(initialContent);
-      const extensions = createMobileEditorExtensions([]);
-      view.setState(EditorState.create({ doc: docText, extensions }));
     }
-  }, [notePath, initialContent]);
+  }, [notePath]);
 
   // Execute toolbar actions
   useEffect(() => {
