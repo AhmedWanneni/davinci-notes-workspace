@@ -204,7 +204,7 @@ export function NoteReaderView({
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 48 }}
     >
-      <Pressable onPress={onEditPress}>
+      <Pressable onPress={onEditPress} style={{ flex: 1, minHeight: 450 }}>
         {/* Properties / Frontmatter */}
         <PropertiesBlock
           properties={document.frontmatterData}

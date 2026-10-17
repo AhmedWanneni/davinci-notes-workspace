@@ -16,6 +16,7 @@ import { FolderActionSheet } from "../../components/FolderActionSheet";
 import { VaultInaccessibleBanner } from "../../components/VaultInaccessibleBanner";
 import {
   defaultVaultManager,
+  defaultNoteStore,
   useVaultForegroundSync,
   FirstRunVaultScreen,
   VaultSwitcherSheet,
@@ -49,6 +50,14 @@ export default function FilesScreen(): React.ReactElement {
   const [actionTargetNote, setActionTargetNote] = useState<string | null>(null);
 
   const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+
+  const handleOpenNote = (path: string) => {
+    const noteId = defaultNoteStore.register(path);
+    router.push({
+      pathname: "/editor",
+      params: { path, noteId, autoFocus: "1" },
+    });
+  };
 
   const loadVault = useCallback(async () => {
     const {
@@ -195,9 +204,7 @@ export default function FilesScreen(): React.ReactElement {
               item={item}
               isPinned={pinnedNotes.has(item.path)}
               onPressFolder={(folder) => setCurrentFolder(folder)}
-              onPressNote={(path) =>
-                router.push({ pathname: "/note", params: { path } })
-              }
+              onPressNote={handleOpenNote}
               onLongPressNote={(path) => setActionTargetNote(path)}
             />
           )}
@@ -219,7 +226,7 @@ export default function FilesScreen(): React.ReactElement {
         folders={allFolders}
         visible={actionTargetNote !== null}
         onClose={() => setActionTargetNote(null)}
-        onOpen={(path) => router.push({ pathname: "/note", params: { path } })}
+        onOpen={handleOpenNote}
         onTogglePin={togglePin}
         onMove={async (p, dest) => {
           if (adapter) await moveNoteWithCollisionHandling(adapter, p, dest);

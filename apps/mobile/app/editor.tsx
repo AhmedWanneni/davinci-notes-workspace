@@ -23,6 +23,7 @@ import type {
   DocChangeNotification,
   ToolbarActionType,
 } from "../src/bridgeProtocol";
+import { encodePayload } from "../src/base64Payload";
 
 export default function EditorScreen(): React.ReactElement {
   const router = useRouter();
@@ -197,17 +198,27 @@ export default function EditorScreen(): React.ReactElement {
             dom={{
               useExpoDOMWebView: false,
               matchContents: false,
-              scrollEnabled: false,
+              scrollEnabled: true,
+              focusable: true,
+              injectedJavaScriptBeforeContentLoaded:
+                "window.$$EXPO_DOM_HOST_OS = 'android'; true;",
               containerStyle: { flex: 1, width: "100%", height: "100%" },
               style: { flex: 1, width: "100%", height: "100%" },
             }}
-            initialContent={content}
+            initialContent={encodePayload(content)}
             notePath={activePath}
             onDocChanged={handleDocChanged}
             actionTrigger={actionTrigger}
             focusTrigger={focusTrigger}
             flushTrigger={flushTrigger}
-            insertTrigger={insertTrigger}
+            insertTrigger={
+              insertTrigger
+                ? {
+                    id: insertTrigger.id,
+                    text: encodePayload(insertTrigger.text),
+                  }
+                : null
+            }
           />
         ) : null}
       </View>

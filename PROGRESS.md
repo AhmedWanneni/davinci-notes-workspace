@@ -4,6 +4,23 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Mobile Note Editing, Keyboard IME Focus & Base64 DOM Bridge Serialization (`apps/mobile/`, ADR-0197) (complete)**
+Resolved file list routing, native bridge JSON control character crashes, and software keyboard focus in Expo DOM component:
+1. **Root Causes & Reproduction**:
+   - **Route Target**: Tapping notes in `(tabs)/index.tsx` navigated to `/note` (`NoteViewScreen`), which rendered read-only markdown (`NoteReaderView`). Updated `onPressNote` and `onOpen` to route to `/editor` with active `defaultNoteStore` registration and `autoFocus: "1"`.
+   - **Bridge Crash (`JSON.parse` / Bad Control Character)**: `react-native-webview`'s Android layer (`RNCWebView.java:279`) wrapped `injectedJavaScriptObject` in a JS template literal. Any newline `\n` in note content produced raw ASCII 0x0A, throwing `SyntaxError: Bad control character in string literal in JSON` in `DomComponentsMiddleware.js`. This halted Expo DOM component registration and left `#root` with 0 children.
+   - **Bridge Race Fallback**: If `window.ReactNativeWebView.injectedObjectJson` evaluated asynchronously after DOM load, `DomComponentsMiddleware.js` threw. Added safe fallback in `@expo/cli` middleware and injected `window.$$EXPO_DOM_HOST_OS = 'android'` via `injectedJavaScriptBeforeContentLoaded`.
+2. **Architecture & Changes**:
+   - **Base64 Payload Bridge (`apps/mobile/src/base64Payload.ts`)**: Built lightweight base64 encoder/decoder for string content passing across the native bridge (`encodePayload` / `decodePayload`). Note content and insert trigger payloads are safely serialized without control characters.
+   - **Touch & Keyboard IME Focus (`apps/mobile/components/EditorDom.tsx`)**: Added `touchstart` (passive) and `pointerdown` event listeners alongside `click`/`touchend`, setting `tabIndex={0}` and invoking `v.focus()`. Passed `scrollEnabled: true` and `focusable: true` via DOM props.
+   - **Reader Edit Seam (`apps/mobile/reader/NoteReaderView.tsx`)**: Added full-height pressable area so tapping a note reader view automatically redirects into `/editor`.
+3. **Verification**:
+   - Live Android verification on emulator: tapped note, CodeMirror mounted with `# Untitled 1`, cursor teardrop displayed, software keyboard IME appeared (`mInputShown=true`).
+   - Typed text into CodeMirror, verified changes updated and saved back to vault without error.
+   - `base64Payload.test.ts` passed; `npm run lint` and `npm run typecheck` passed with 0 errors; all files under 250 line hard cap.
+
+---
+
 **Mobile Note Identity, Safe Rename & Keyboard Focus (`apps/mobile/`, ADR-0197) (complete)**
 Resolved rename collisions, navigation stack staleness, editor surface collapse, and unhandled rejections on Android:
 1. **Reproduction & Root Causes (Issue 2)**:

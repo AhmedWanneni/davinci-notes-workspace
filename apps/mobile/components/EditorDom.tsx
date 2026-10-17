@@ -13,6 +13,7 @@ import { requestEditorFocus } from "../src/iosFocusWorkaround";
 import { createMobileEditorExtensions } from "./editorExtensions";
 import { executeToolbarAction } from "./editorToolbarActions";
 import { darkColorTokens } from "@app/design-tokens/mobile";
+import { decodePayload } from "../src/base64Payload";
 
 export interface EditorDomProps {
   dom?: {
@@ -90,8 +91,9 @@ export default function EditorDom({
       }
     });
 
+    const docText = decodePayload(initialContent);
     const extensions = createMobileEditorExtensions([changeListener]);
-    const state = EditorState.create({ doc: initialContent, extensions });
+    const state = EditorState.create({ doc: docText, extensions });
     const view = new EditorView({ state, parent: containerRef.current });
 
     viewRef.current = view;
@@ -103,7 +105,7 @@ export default function EditorDom({
       getView: () => viewRef.current,
     });
 
-    // Tap on empty container area focuses CodeMirror and places cursor at end
+    // Touch/click on editor host focuses CodeMirror and places cursor at end
     const handleContainerTap = (e: Event) => {
       const v = viewRef.current;
       if (!v) return;
@@ -119,46 +121,27 @@ export default function EditorDom({
     const hostEl = containerRef.current;
     hostEl.addEventListener("click", handleContainerTap);
     hostEl.addEventListener("touchend", handleContainerTap);
+    hostEl.addEventListener("touchstart", handleContainerTap, { passive: true });
+    hostEl.addEventListener("pointerdown", handleContainerTap);
 
     // Save Guard: Flush on blur, visibilitychange (app background), and pagehide
-    const handleBlur = () => {
-      console.log("[EditorDom] Focus lost");
-      bridgeRef.current.flush();
-    };
-    const handleFocus = () => {
-      console.log(
-        "[EditorDom] Focus gained, visualViewport height:",
-        window.visualViewport?.height,
-      );
-    };
-    const handleViewportResize = () => {
-      console.log(
-        "[EditorDom] visualViewport resize:",
-        window.visualViewport?.height,
-      );
-    };
-    const handleVisibilityChange = () => {
+    const handleFlush = () => bridgeRef.current.flush();
+    const handleVisibility = () => {
       if (document.visibilityState === "hidden") bridgeRef.current.flush();
     };
-    const handlePageHide = () => bridgeRef.current.flush();
 
-    view.contentDOM.addEventListener("blur", handleBlur);
-    view.contentDOM.addEventListener("focus", handleFocus);
-    window.visualViewport?.addEventListener("resize", handleViewportResize);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("pagehide", handlePageHide);
+    view.contentDOM.addEventListener("blur", handleFlush);
+    document.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pagehide", handleFlush);
 
     return () => {
       hostEl.removeEventListener("click", handleContainerTap);
       hostEl.removeEventListener("touchend", handleContainerTap);
-      view.contentDOM.removeEventListener("blur", handleBlur);
-      view.contentDOM.removeEventListener("focus", handleFocus);
-      window.visualViewport?.removeEventListener(
-        "resize",
-        handleViewportResize,
-      );
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("pagehide", handlePageHide);
+      hostEl.removeEventListener("touchstart", handleContainerTap);
+      hostEl.removeEventListener("pointerdown", handleContainerTap);
+      view.contentDOM.removeEventListener("blur", handleFlush);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pagehide", handleFlush);
       detachViewport();
       bridgeRef.current.flush();
       bridgeRef.current.cancel();
@@ -175,8 +158,9 @@ export default function EditorDom({
     if (activePathRef.current !== notePath) {
       bridgeRef.current.flush();
       activePathRef.current = notePath;
+      const docText = decodePayload(initialContent);
       const extensions = createMobileEditorExtensions([]);
-      view.setState(EditorState.create({ doc: initialContent, extensions }));
+      view.setState(EditorState.create({ doc: docText, extensions }));
     }
   }, [notePath, initialContent]);
 
@@ -204,10 +188,11 @@ export default function EditorDom({
   // Insert arbitrary markdown text at cursor (for camera, photo, voice embeds)
   useEffect(() => {
     if (viewRef.current && insertTrigger) {
+      const textToInsert = decodePayload(insertTrigger.text);
       const { from, to } = viewRef.current.state.selection.main;
       viewRef.current.dispatch({
-        changes: { from, to, insert: insertTrigger.text },
-        selection: { anchor: from + insertTrigger.text.length },
+        changes: { from, to, insert: textToInsert },
+        selection: { anchor: from + textToInsert.length },
         scrollIntoView: true,
       });
     }
@@ -236,6 +221,7 @@ export default function EditorDom({
   return (
     <div
       ref={containerRef}
+      tabIndex={0}
       className="mobile-editor-dom-host"
       style={{
         width: "100%",
