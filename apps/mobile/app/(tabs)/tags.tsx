@@ -116,7 +116,7 @@ export default function TagsScreen(): React.ReactElement {
                   >
                     {item.display}
                   </Text>
-                  {item.isNested && <Badge variant="neutral">nested</Badge>}
+                  {item.isNested ? <Badge variant="neutral">nested</Badge> : null}
                 </View>
               }
               subtitle={`${item.count} ${item.count === 1 ? "note" : "notes"}`}

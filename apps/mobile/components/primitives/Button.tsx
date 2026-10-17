@@ -93,7 +93,7 @@ export const Button = React.forwardRef<
         className={containerClasses}
         style={style}
       >
-        {icon && (
+        {icon ? (
           <View
             className={
               children ? "mr-2 flex-row items-center" : "flex-row items-center"
@@ -101,15 +101,15 @@ export const Button = React.forwardRef<
           >
             {icon}
           </View>
-        )}
-        {typeof children === "string" ? (
+        ) : null}
+        {typeof children === "string" || typeof children === "number" ? (
           <Text
             size={textSize}
             weight="medium"
             color={textColor}
             className="select-none"
           >
-            {children}
+            {String(children)}
           </Text>
         ) : (
           children

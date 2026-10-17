@@ -6,6 +6,18 @@ module.exports = {
       "error",
       {
         selector:
+          "JSXOpeningElement[name.name=/^[a-z]/]",
+        message:
+          "Lowercase intrinsic HTML elements (div, span, button, input, etc.) are forbidden in native React Native views. Use React Native components or design-system primitives.",
+      },
+      {
+        selector:
+          "JSXExpressionContainer > LogicalExpression[operator='&&']",
+        message:
+          "Logical && in JSX is forbidden to avoid rendering '0' or '' text strings outside <Text>. Use explicit ternaries (cond ? <X/> : null) instead.",
+      },
+      {
+        selector:
           "Literal[value=/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
         message:
           "Raw hex color values are forbidden. Use design tokens from '@app/design-tokens' or NativeWind token classes.",
@@ -37,6 +49,12 @@ module.exports = {
     ],
   },
   overrides: [
+    {
+      files: ["**/*Dom.tsx"],
+      rules: {
+        "no-restricted-syntax": "off",
+      },
+    },
     {
       files: ["app/**/*.{ts,tsx}"],
       rules: {

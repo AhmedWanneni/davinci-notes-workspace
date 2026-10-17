@@ -48,10 +48,10 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <View className={containerClasses} style={style}>
-      {icon && <View className="mr-1 flex-shrink-0">{icon}</View>}
-      {typeof children === "string" ? (
+      {icon ? <View className="mr-1 flex-shrink-0">{icon}</View> : null}
+      {typeof children === "string" || typeof children === "number" ? (
         <Text size="xs" weight="medium" color={textColor}>
-          {children}
+          {String(children)}
         </Text>
       ) : (
         children

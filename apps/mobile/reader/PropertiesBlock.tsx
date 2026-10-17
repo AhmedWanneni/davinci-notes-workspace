@@ -41,7 +41,7 @@ export function PropertiesBlock({
       </Pressable>
 
       {/* Content */}
-      {!collapsed && (
+      {!collapsed ? (
         <View className="p-3 gap-2">
           {entries.map(([key, value]) => {
             if (key === "tags" && Array.isArray(value)) {
@@ -95,7 +95,7 @@ export function PropertiesBlock({
             );
           })}
         </View>
-      )}
+      ) : null}
     </View>
   );
 }

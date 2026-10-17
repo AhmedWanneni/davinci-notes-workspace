@@ -62,39 +62,39 @@ export const ListItem = React.forwardRef<
         style={style}
       >
         <View className="flex-row items-center flex-1 mr-3">
-          {left && <View className="mr-3 flex-shrink-0">{left}</View>}
+          {left ? <View className="mr-3 flex-shrink-0">{left}</View> : null}
           <View className="flex-1 justify-center">
-            {typeof title === "string" ? (
+            {typeof title === "string" || typeof title === "number" ? (
               <Text
                 variant="body"
                 weight={selected ? "semibold" : "regular"}
                 color="normal"
                 numberOfLines={1}
               >
-                {title}
+                {String(title)}
               </Text>
             ) : (
               title
             )}
-            {subtitle && (
+            {subtitle ? (
               <View className="mt-0.5">
-                {typeof subtitle === "string" ? (
+                {typeof subtitle === "string" || typeof subtitle === "number" ? (
                   <Text variant="caption" color="muted" numberOfLines={1}>
-                    {subtitle}
+                    {String(subtitle)}
                   </Text>
                 ) : (
                   subtitle
                 )}
               </View>
-            )}
+            ) : null}
           </View>
         </View>
 
-        {right && (
+        {right ? (
           <View className="flex-shrink-0 items-center justify-center">
             {right}
           </View>
-        )}
+        ) : null}
       </Pressable>
     );
   },

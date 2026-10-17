@@ -73,11 +73,11 @@ export const LocalGraphView: React.FC<LocalGraphViewProps> = ({
           </TouchableOpacity>
         </View>
 
-        {data?.isTruncated && (
+        {data?.isTruncated ? (
           <Badge variant="warning">
             {`Showing ${data.nodes.length} of ${data.totalConnectedCount + 1}`}
           </Badge>
-        )}
+        ) : null}
       </View>
 
       {/* SVG Vector Graph Rendering */}

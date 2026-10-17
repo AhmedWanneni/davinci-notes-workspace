@@ -46,7 +46,7 @@ export function FolderActionSheet({
 
   return (
     <Sheet visible={visible} onClose={resetAndClose} title={filename}>
-      {mode === "menu" && (
+      {mode === "menu" ? (
         <View className="gap-1">
           <Pressable
             onPress={() => {
@@ -102,9 +102,9 @@ export function FolderActionSheet({
             </Text>
           </Pressable>
         </View>
-      )}
+      ) : null}
 
-      {mode === "move" && (
+      {mode === "move" ? (
         <View>
           <Text variant="caption" color="muted" className="mb-2">
             Select destination folder for "{filename}":
@@ -142,9 +142,9 @@ export function FolderActionSheet({
             Back
           </Button>
         </View>
-      )}
+      ) : null}
 
-      {mode === "delete_confirm" && (
+      {mode === "delete_confirm" ? (
         <View>
           <Text variant="body" color="normal" className="mb-2">
             Are you sure you want to delete "{filename}"?
@@ -168,7 +168,7 @@ export function FolderActionSheet({
             </Button>
           </View>
         </View>
-      )}
+      ) : null}
     </Sheet>
   );
 }

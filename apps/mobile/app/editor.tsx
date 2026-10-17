@@ -169,15 +169,15 @@ export default function EditorScreen(): React.ReactElement {
         onBack={handleBack}
       />
 
-      {conflictContent !== null && (
+      {conflictContent !== null ? (
         <EditorConflictBanner
           onOverwrite={handleOverwriteConflict}
           onReload={handleReloadDisk}
         />
-      )}
+      ) : null}
 
       <View className="flex-1">
-        {isLoaded && (
+        {isLoaded ? (
           <EditorDom
             initialContent={content}
             notePath={activePath}
@@ -187,7 +187,7 @@ export default function EditorScreen(): React.ReactElement {
             flushTrigger={flushTrigger}
             insertTrigger={insertTrigger}
           />
-        )}
+        ) : null}
       </View>
 
       <FormattingToolbar

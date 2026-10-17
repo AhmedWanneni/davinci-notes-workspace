@@ -83,14 +83,14 @@ export const CanvasViewer: React.FC<CanvasViewerProps> = ({
 
   return (
     <View className="flex-1 bg-bg-primary">
-      {document.hasCycle && (
+      {document.hasCycle ? (
         <View className="p-2 bg-accent-warning/10 border-b border-accent-warning flex-row items-center justify-between">
           <Text variant="caption" color="warning">
             Circular canvas embed detected and neutralized
           </Text>
           <Badge variant="warning">Cycle Protected</Badge>
         </View>
-      )}
+      ) : null}
       <View className="flex-1">
         <CanvasViewerDom document={document} />
       </View>

@@ -1,5 +1,7 @@
 import React from "react";
+import { ScrollView, Pressable, View } from "react-native";
 import { darkColorTokens, mobileTokens } from "@app/design-tokens/mobile";
+import { Text } from "./primitives";
 import type { ToolbarActionType } from "../src/bridgeProtocol";
 
 export interface FormattingToolbarProps {
@@ -32,52 +34,50 @@ export function FormattingToolbar({
   disabled = false,
 }: FormattingToolbarProps): React.ReactElement {
   return (
-    <div
-      className="mobile-formatting-toolbar"
+    <View
+      className="bg-bg-secondary border-t border-border-subtle py-1 px-2"
       style={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        overflowX: "auto",
-        backgroundColor: `var(--color-bg-secondary, ${darkColorTokens.bg.secondary})`,
-        borderTop: `1px solid var(--color-border-subtle, ${darkColorTokens.border.subtle})`,
-        padding: "4px 8px",
-        gap: "4px",
-        WebkitOverflowScrolling: "touch",
+        backgroundColor: darkColorTokens.bg.secondary,
+        borderTopWidth: 1,
+        borderTopColor: darkColorTokens.border.subtle,
       }}
     >
-      {TOOLBAR_BUTTONS.map((btn) => (
-        <button
-          key={btn.action}
-          type="button"
-          disabled={disabled}
-          onClick={(e) => {
-            // Prevent button from stealing focus from CodeMirror webview
-            e.preventDefault();
-            onAction(btn.action);
-          }}
-          aria-label={btn.ariaLabel}
-          style={{
-            padding: "8px 12px",
-            minHeight: `${mobileTokens.minTouchTarget}px`,
-            minWidth: `${mobileTokens.minTouchTarget}px`,
-            fontSize: "14px",
-            fontWeight: 500,
-            borderRadius: "4px",
-            border: `1px solid var(--color-border-normal, ${darkColorTokens.border.normal})`,
-            backgroundColor: `var(--color-bg-primary, ${darkColorTokens.bg.primary})`,
-            color: `var(--color-text-normal, ${darkColorTokens.text.normal})`,
-            cursor: disabled ? "not-allowed" : "pointer",
-            flexShrink: 0,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            touchAction: "manipulation",
-          }}
-        >
-          {btn.label}
-        </button>
-      ))}
-    </div>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        keyboardShouldPersistTaps="always"
+        contentContainerStyle={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 4,
+        }}
+      >
+        {TOOLBAR_BUTTONS.map((btn) => (
+          <Pressable
+            key={btn.action}
+            disabled={disabled}
+            onPress={() => onAction(btn.action)}
+            accessibilityRole="button"
+            accessibilityLabel={btn.ariaLabel}
+            className="px-3 rounded border border-border-normal bg-bg-primary items-center justify-center active:opacity-75"
+            style={{
+              minHeight: mobileTokens.minTouchTarget,
+              minWidth: mobileTokens.minTouchTarget,
+              backgroundColor: darkColorTokens.bg.primary,
+              borderColor: darkColorTokens.border.normal,
+              borderWidth: 1,
+            }}
+          >
+            <Text
+              size="sm"
+              weight="medium"
+              color={disabled ? "muted" : "normal"}
+            >
+              {btn.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
   );
 }

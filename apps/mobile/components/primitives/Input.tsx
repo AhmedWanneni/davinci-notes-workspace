@@ -61,7 +61,7 @@ export const Input = React.forwardRef<RNTextInput, InputProps>(
 
     return (
       <View className={containerClasses}>
-        {prefix && <View className="mr-2 flex-shrink-0">{prefix}</View>}
+        {prefix ? <View className="mr-2 flex-shrink-0">{prefix}</View> : null}
         <RNTextInput
           ref={ref}
           editable={!disabled}
@@ -78,7 +78,7 @@ export const Input = React.forwardRef<RNTextInput, InputProps>(
           }}
           {...props}
         />
-        {suffix && <View className="ml-2 flex-shrink-0">{suffix}</View>}
+        {suffix ? <View className="ml-2 flex-shrink-0">{suffix}</View> : null}
       </View>
     );
   },

@@ -75,13 +75,13 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
           />
         </View>
 
-        {errorMessage && (
+        {errorMessage ? (
           <View className="p-3 rounded bg-accent-danger/10 border border-accent-danger/20 mb-3">
             <Text variant="caption" className="text-accent-danger">
               {errorMessage}
             </Text>
           </View>
-        )}
+        ) : null}
 
         <Button
           variant="primary"
@@ -112,7 +112,7 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
       </View>
 
       {/* Conflicts section if detected */}
-      {conflicts.length > 0 && (
+      {conflicts.length > 0 ? (
         <View className="p-4 rounded border border-accent-warning/30 bg-accent-warning/10 mb-6">
           <Text
             variant="body"
@@ -138,7 +138,7 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
             </View>
           ))}
         </View>
-      )}
+      ) : null}
 
       <Divider className="my-4" />
 

@@ -141,7 +141,7 @@ export default function NoteViewScreen(): React.ReactElement {
         </View>
       }
     >
-      {doc && (
+      {doc ? (
         <NoteReaderView
           document={doc}
           onWikilinkPress={handleWikilinkPress}
@@ -153,7 +153,7 @@ export default function NoteViewScreen(): React.ReactElement {
           }
           scrollViewRef={scrollRef}
         />
-      )}
+      ) : null}
 
       {/* Outline Sheet */}
       <OutlineSheet
