@@ -121,6 +121,35 @@ export class Directory {
     }
   }
 
+  createFile(name: string, _mimeType: string | null = null): File {
+    const child = new File(this, name);
+    child.write("");
+    return child;
+  }
+
+  createDirectory(name: string): Directory {
+    const child = new Directory(this, name);
+    child.create({ intermediates: true, idempotent: true });
+    return child;
+  }
+
+  rename(newName: string): void {
+    const fromKey = normalizeKey(this.uri);
+    const parent = fromKey.slice(0, fromKey.lastIndexOf("/"));
+    const toKey = `${parent}/${newName}`;
+    const prefix = fromKey + "/";
+    for (const [key, node] of Array.from(inMemoryFs.entries())) {
+      if (key === fromKey) {
+        inMemoryFs.set(toKey, node);
+        inMemoryFs.delete(fromKey);
+      } else if (key.startsWith(prefix)) {
+        inMemoryFs.set(toKey + "/" + key.slice(prefix.length), node);
+        inMemoryFs.delete(key);
+      }
+    }
+    (this as unknown as { uri: string }).uri = toKey;
+  }
+
   delete(): void {
     const key = normalizeKey(this.uri);
     const prefix = key + "/";
@@ -270,7 +299,9 @@ export class File {
     const key = normalizeKey(this.uri);
     const size =
       typeof content === "string"
-        ? new TextEncoder().encode(content).byteLength
+        ? typeof Buffer !== "undefined"
+          ? Buffer.byteLength(content, "utf8")
+          : content.length
         : content.byteLength;
     inMemoryFs.set(key, {
       isDirectory: false,
@@ -280,15 +311,32 @@ export class File {
     });
   }
 
+  rename(newName: string): void {
+    const fromKey = normalizeKey(this.uri);
+    const parent = fromKey.slice(0, fromKey.lastIndexOf("/"));
+    const toKey = `${parent}/${newName}`;
+    const node = inMemoryFs.get(fromKey);
+    if (!node) throw new Error(`Cannot rename non-existent path: ${this.uri}`);
+    inMemoryFs.set(toKey, node);
+    inMemoryFs.delete(fromKey);
+    (this as unknown as { uri: string }).uri = toKey;
+  }
+
   delete(): void {
     inMemoryFs.delete(normalizeKey(this.uri));
   }
 
-  async move(destination: Directory | File): Promise<void> {
+  async move(
+    destination: Directory | File,
+    options?: { overwrite?: boolean },
+  ): Promise<void> {
     const fromKey = normalizeKey(this.uri);
     const toKey = normalizeKey(destination.uri);
     const node = inMemoryFs.get(fromKey);
     if (!node) throw new Error(`Cannot move non-existent path: ${this.uri}`);
+    if (inMemoryFs.has(toKey) && options?.overwrite === false) {
+      throw new Error(`Destination already exists: ${destination.uri}`);
+    }
     inMemoryFs.set(toKey, node);
     inMemoryFs.delete(fromKey);
   }

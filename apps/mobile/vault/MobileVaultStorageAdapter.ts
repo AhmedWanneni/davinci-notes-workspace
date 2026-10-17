@@ -1,12 +1,14 @@
-import { Paths, File, Directory } from "expo-file-system";
+import { Directory, File, Paths } from "expo-file-system";
 import type { ManifestFile } from "@app/sync-client";
-import {
-  assertSafeVaultPath,
-  joinVaultPaths,
-  normalizeVaultPath,
-  getParentFolder,
-} from "./pathUtils";
+import { assertSafeVaultPath, normalizeVaultPath } from "./pathUtils";
 import { scanVaultDirectory } from "./vaultScanner";
+import {
+  atomicWriteEntry,
+  ensureDirectory,
+  moveEntry,
+  resolveEntry,
+  resolveExisting,
+} from "./fs/vaultEntries";
 import type {
   NoteFilePayload,
   VaultMode,
@@ -15,47 +17,31 @@ import type {
   VaultStorageAdapter,
 } from "./types";
 
-async function atomicWrite(
-  uri: string,
-  data: string | Uint8Array,
-): Promise<void> {
-  const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  const tempUri = `${uri}.tmp.${nonce}`;
-  const tempFile = new File(tempUri);
-  try {
-    tempFile.write(data);
-    await tempFile.move(new File(uri));
-  } catch (err) {
-    try {
-      if (tempFile.exists) tempFile.delete();
-    } catch {
-      // ignore
-    }
-    throw err;
-  }
-}
-
 export class MobileVaultStorageAdapter implements VaultStorageAdapter {
   readonly vaultUri: string;
   readonly mode: VaultMode;
+  readonly rootDirectory: Directory;
 
   constructor(vaultUri: string, mode: VaultMode = "sandbox") {
     this.vaultUri = vaultUri.endsWith("/") ? vaultUri.slice(0, -1) : vaultUri;
     this.mode = mode;
+    this.rootDirectory = new Directory(this.vaultUri);
   }
 
   resolveFileUri(relativePath: string): string {
     assertSafeVaultPath(relativePath);
-    return joinVaultPaths(this.vaultUri, normalizeVaultPath(relativePath));
+    const resolved = resolveEntry(this.rootDirectory, relativePath, "file");
+    return resolved
+      ? resolved.uri
+      : `${this.vaultUri}/${normalizeVaultPath(relativePath)}`;
   }
 
   async readNote(relativePath: string): Promise<NoteFilePayload> {
-    const fileUri = this.resolveFileUri(relativePath);
-    const pathInfo = Paths.info(fileUri);
-    if (!pathInfo.exists || pathInfo.isDirectory) {
+    assertSafeVaultPath(relativePath);
+    const file = resolveEntry(this.rootDirectory, relativePath, "file");
+    if (!(file instanceof File) || !file.exists) {
       throw new Error(`Note not found: ${relativePath}`);
     }
-    const file = new File(fileUri);
     const content = await file.text();
     const mtime = file.lastModified ?? file.modificationTime ?? Date.now();
     return {
@@ -67,70 +53,49 @@ export class MobileVaultStorageAdapter implements VaultStorageAdapter {
   }
 
   async writeNote(relativePath: string, content: string): Promise<VaultStat> {
-    const fileUri = this.resolveFileUri(relativePath);
-    const parentFolder = getParentFolder(relativePath);
-    if (parentFolder) {
-      await this.createFolder(parentFolder);
-    }
-    await atomicWrite(fileUri, content);
+    assertSafeVaultPath(relativePath);
+    await atomicWriteEntry(this.rootDirectory, relativePath, content);
     return this.statFile(relativePath);
   }
 
   async deleteNote(relativePath: string): Promise<void> {
-    const fileUri = this.resolveFileUri(relativePath);
-    const pathInfo = Paths.info(fileUri);
-    if (pathInfo.exists) {
-      if (pathInfo.isDirectory) new Directory(fileUri).delete();
-      else new File(fileUri).delete();
+    assertSafeVaultPath(relativePath);
+    const existing = resolveExisting(this.rootDirectory, relativePath);
+    if (existing && existing.exists) {
+      existing.delete();
     }
   }
 
   async renameNote(fromPath: string, toPath: string): Promise<void> {
-    const fromUri = this.resolveFileUri(fromPath);
-    const toUri = this.resolveFileUri(toPath);
-    const toParent = getParentFolder(toPath);
-    if (toParent) await this.createFolder(toParent);
-
-    const info = Paths.info(fromUri);
-    if (!info.exists) {
-      throw new Error(`Cannot move non-existent path: ${fromPath}`);
-    }
-    if (info.isDirectory) {
-      await new Directory(fromUri).move(new Directory(toUri));
-    } else {
-      await new File(fromUri).move(new File(toUri));
-    }
+    assertSafeVaultPath(fromPath);
+    assertSafeVaultPath(toPath);
+    await moveEntry(this.rootDirectory, fromPath, toPath);
   }
 
   async statFile(relativePath: string): Promise<VaultStat> {
-    const fileUri = this.resolveFileUri(relativePath);
-    const pathInfo = Paths.info(fileUri);
-    if (!pathInfo.exists) {
+    assertSafeVaultPath(relativePath);
+    const existing = resolveExisting(this.rootDirectory, relativePath);
+    if (!existing || !existing.exists) {
       return { exists: false, mtime: 0, size: 0, isDirectory: false };
     }
-    if (pathInfo.isDirectory) {
-      const dirInfo = new Directory(fileUri).info();
-      const mtime = dirInfo.modificationTime
-        ? Math.round(dirInfo.modificationTime * 1000)
-        : Date.now();
-      return {
-        exists: true,
-        mtime,
-        size: dirInfo.size ?? 0,
-        isDirectory: true,
-      };
-    }
-    const file = new File(fileUri);
-    const mtime = file.lastModified ?? file.modificationTime ?? Date.now();
-    return { exists: true, mtime, size: file.size ?? 0, isDirectory: false };
+    const isDir = existing instanceof Directory;
+    const mtime = isDir
+      ? Date.now()
+      : ((existing as File).lastModified ??
+        (existing as File).modificationTime ??
+        Date.now());
+    const size = isDir ? 0 : ((existing as File).size ?? 0);
+    return {
+      exists: true,
+      mtime,
+      size,
+      isDirectory: isDir,
+    };
   }
 
   async createFolder(folderPath: string): Promise<void> {
     assertSafeVaultPath(folderPath);
-    const dir = new Directory(this.resolveFileUri(folderPath));
-    if (!dir.exists) {
-      dir.create({ intermediates: true, idempotent: true });
-    }
+    ensureDirectory(this.rootDirectory, folderPath);
   }
 
   async listNotes(): Promise<string[]> {
@@ -148,53 +113,63 @@ export class MobileVaultStorageAdapter implements VaultStorageAdapter {
   // --- AttachmentFileSystem Seam (@app/attachments) ---
 
   async exists(path: string): Promise<boolean> {
-    const uri = path.startsWith("file://") ? path : this.resolveFileUri(path);
-    return Paths.info(uri).exists;
+    if (path.startsWith("file://") || path.startsWith("content://")) {
+      return Paths.info(path).exists;
+    }
+    const stat = await this.statFile(path);
+    return stat.exists;
   }
 
   async mkdir(path: string): Promise<void> {
-    const uri = path.startsWith("file://") ? path : this.resolveFileUri(path);
-    const dir = new Directory(uri);
-    if (!dir.exists) {
-      dir.create({ intermediates: true, idempotent: true });
+    if (path.startsWith("file://") || path.startsWith("content://")) {
+      const dir = new Directory(path);
+      if (!dir.exists) dir.create({ intermediates: true, idempotent: true });
+      return;
     }
+    await this.createFolder(path);
   }
 
   async writeFile(path: string, data: Uint8Array): Promise<void> {
-    const uri = path.startsWith("file://") ? path : this.resolveFileUri(path);
-    const parentFolder = getParentFolder(path);
-    if (parentFolder && !path.startsWith("file://")) {
-      await this.createFolder(parentFolder);
+    if (path.startsWith("file://") || path.startsWith("content://")) {
+      const file = new File(path);
+      file.write(data);
+      return;
     }
-    await atomicWrite(uri, data);
+    await atomicWriteEntry(this.rootDirectory, path, data);
   }
 
   async readBinary(path: string): Promise<Uint8Array> {
-    const uri = path.startsWith("file://") ? path : this.resolveFileUri(path);
-    const file = new File(uri);
-    if (!file.exists) throw new Error(`File not found: ${path}`);
+    if (path.startsWith("file://") || path.startsWith("content://")) {
+      const file = new File(path);
+      if (!file.exists) throw new Error(`File not found: ${path}`);
+      return file.bytes();
+    }
+    const file = resolveEntry(this.rootDirectory, path, "file");
+    if (!(file instanceof File) || !file.exists) {
+      throw new Error(`File not found: ${path}`);
+    }
     return file.bytes();
   }
 
   async copyFile(from: string, to: string): Promise<void> {
-    const fromUri =
-      from.startsWith("file://") || from.startsWith("/")
-        ? from
-        : this.resolveFileUri(from);
-    const toUri =
-      to.startsWith("file://") || to.startsWith("/")
-        ? to
-        : this.resolveFileUri(to);
-    const toParent = getParentFolder(to);
-    if (toParent && !to.startsWith("file://")) {
-      await this.createFolder(toParent);
-    }
-    const info = Paths.info(fromUri);
-    if (!info.exists) throw new Error(`Source does not exist: ${from}`);
-    if (info.isDirectory) {
-      await new Directory(fromUri).copy(new Directory(toUri));
+    let sourceFile: File;
+    if (from.startsWith("file://") || from.startsWith("content://")) {
+      sourceFile = new File(from);
     } else {
-      await new File(fromUri).copy(new File(toUri));
+      const entry = resolveEntry(this.rootDirectory, from, "file");
+      if (!(entry instanceof File) || !entry.exists) {
+        throw new Error(`Source does not exist: ${from}`);
+      }
+      sourceFile = entry;
+    }
+    if (!sourceFile.exists) throw new Error(`Source does not exist: ${from}`);
+
+    const bytes = await sourceFile.bytes();
+    if (to.startsWith("file://") || to.startsWith("content://")) {
+      const targetFile = new File(to);
+      targetFile.write(bytes);
+    } else {
+      await atomicWriteEntry(this.rootDirectory, to, bytes);
     }
   }
 
@@ -212,7 +187,10 @@ export class MobileVaultStorageAdapter implements VaultStorageAdapter {
 
   async hashFile(path: string): Promise<string> {
     try {
-      const file = new File(this.resolveFileUri(path));
+      const file = resolveEntry(this.rootDirectory, path, "file");
+      if (!(file instanceof File) || !file.exists) {
+        return "0";
+      }
       const bytes = await file.bytes();
       const buffer = await crypto.subtle.digest("SHA-256", bytes);
       return Array.from(new Uint8Array(buffer))
