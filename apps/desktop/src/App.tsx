@@ -39,6 +39,7 @@ import {
 } from "./ai/citationNavigation";
 import { loadAIStartupGate } from "./ai/loadAIStartupGate";
 import { useTrayMenuActions, useWindowFullscreen } from "./window";
+import { useClipperService } from "./clipper";
 
 const LazyGlobalGraphLeaf = React.lazy(() =>
   import("./components/GlobalGraphLeaf").then((m) => ({
@@ -169,6 +170,9 @@ export function App() {
     onDailyNotes: handleDailyNotes,
     onOpenVault: openPicker,
   });
+
+  // Serve clips the loopback listener hands to this window (ADR-0177).
+  useClipperService();
 
   const initPlugins = usePluginStore((state) => state.initPlugins);
   const pluginCommands = usePluginStore((state) => state.commands);
