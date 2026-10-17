@@ -4,6 +4,44 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Web Clipper Phase 4 (part 1): template library settings
+
+**Scope:** extension options-page template management: the starter library can now
+be created, edited, duplicated, deleted, restored, imported and exported. This is
+the first bounded part of Phase 4; settings export and any future cross-setting
+surface remain out of scope.
+
+**Built (`apps/web-clipper`).** `TemplatesPanel` presents the stored order (which
+is the first-match auto-apply precedence) beside an isolated draft editor for the
+complete `ClipTemplate` shape: name, behaviour, name format, folder, optional
+vault, one-per-line tags and triggers, ordered frontmatter properties, and body.
+Draft changes cannot affect the popup until an explicit save validates them.
+Create/duplicate/delete/restore persist immediately and always report a storage
+failure rather than pretending success. All components have colocated SCSS,
+stories and interaction tests; no package was added.
+
+**Import/export.** Export is a JSON download in list order. Import accepts only a
+non-empty JSON template array up to **1 MiB**, validates every entry before one
+atomic replacement, rejects duplicate IDs and literal absolute/traversal/backslash
+folders, then leaves the stored library untouched on any error. Existing
+`validateClipTemplate` already bounds auto-apply regexes, so hostile patterns are
+refused before they can reach popup matching. The 1 MiB cap rejects the plan's
+5 MiB adversarial input before JSON parsing; it is vastly above a practical
+template library while avoiding a large options-page allocation.
+
+**Verification:** web-clipper **198 tests across 29 files** pass; ESLint and
+`tsc --noEmit` pass; `wxt build` passes. The total extension is 630.29 kB raw /
+**186,008 B gzip** (the options-specific JS/CSS are 20.98 kB raw / 6,000 B gzip).
+No dependencies or runtime background work were added. The Sass `@import`
+deprecation warnings come from the existing design system.
+
+**Next up:** manually exercise the options page in Chromium (especially native
+file chooser/export download) and complete any separately-scoped remaining Phase
+4 settings export work. The Phase 3 owner-local loopback/browser handshake checks
+remain outstanding.
+
+---
+
 ## Last Session — Web Clipper Phase 3 (part 3): the extension transport
 
 **Scope:** the browser half of Phase 3 of `web-clipper-feature-plan.md` — the piece

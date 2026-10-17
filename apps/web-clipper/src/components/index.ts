@@ -3,4 +3,8 @@ export * from "./ClipModeSelector";
 export * from "./ClipPreview";
 export * from "./ClipPopup";
 export * from "./PairingPanel";
+export * from "./TemplateEditor";
 export * from "./TemplatePicker";
+export * from "./TemplatePropertiesEditor";
+export * from "./TemplateTransferControls";
+export * from "./TemplatesPanel";
