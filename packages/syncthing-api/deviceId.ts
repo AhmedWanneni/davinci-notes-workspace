@@ -27,3 +27,49 @@ export function formatDeviceIdGroups(raw: string): string {
   }
   return groups.join("-");
 }
+
+export interface ParseScannedIdResult {
+  valid: boolean;
+  deviceId: string;
+  error?: string;
+}
+
+/**
+ * Parses and validates text scanned from a QR code or pasted from clipboard.
+ * Accepts raw 56-char IDs, hyphenated IDs, or syncthing:// schemes.
+ */
+export function parseScannedDeviceId(raw: string): ParseScannedIdResult {
+  if (!raw || raw.trim().length === 0) {
+    return { valid: false, deviceId: "", error: "Device ID is empty" };
+  }
+
+  let text = raw.trim();
+  // Strip syncthing:// or syncthing: URI schemes if present
+  if (text.toLowerCase().startsWith("syncthing://")) {
+    text = text.slice(12);
+  } else if (text.toLowerCase().startsWith("syncthing:")) {
+    text = text.slice(10);
+  }
+
+  // Remove any query params like ?id=... or &...
+  if (text.includes("?id=")) {
+    text = text.split("?id=")[1].split("&")[0];
+  } else if (text.includes("?")) {
+    text = text.split("?")[0];
+  }
+
+  const clean = normalizeDeviceId(text);
+  if (!isValidDeviceIdFormat(clean)) {
+    return {
+      valid: false,
+      deviceId: "",
+      error: `Invalid Syncthing Device ID format (${clean.length}/56 characters). Expected 8 groups of 7 characters.`,
+    };
+  }
+
+  return {
+    valid: true,
+    deviceId: formatDeviceIdGroups(clean),
+  };
+}
+

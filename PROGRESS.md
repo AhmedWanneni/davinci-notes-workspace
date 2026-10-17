@@ -4,6 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Mobile Syncthing Device Pairing, QR Code Scanning & Safe Vault Acceptance (`apps/mobile/`) (complete)**
+Shipped mobile-side Syncthing pairing and folder acceptance connecting Android to Desktop:
+1. **Camera QR Scanning & Paste Flow (`SyncthingAddDeviceModal.tsx`, `SyncthingQrScanner.tsx`)**:
+   - Integrated `expo-camera@~57.0.6` barcode scanner lazily loaded on demand via `React.lazy()`.
+   - Camera permission requested strictly when scanner view mounts.
+   - Fallback to paste flow when permission is denied or if camera is unavailable.
+   - Never auto-accepts from QR: always presents parsed Device ID and device name input for explicit user confirmation.
+   - `parseScannedDeviceId`: Validates 56-character alphanumeric Device IDs, parses `syncthing://` schemes, and rejects invalid QR payloads with clear descriptive errors.
+2. **Incoming Connection Requests (`SyncthingPendingSection.tsx`, `mobileSyncthingPairing.ts`)**:
+   - Queries `/rest/cluster/pending/devices`.
+   - Displays incoming requests with formatted ID, device name, and address.
+   - Explicit "Accept" and "Ignore" actions; zero auto-accepting.
+3. **Pending Vault Folder Acceptance & Storage Access Verification (`folderAccessChecker.ts`)**:
+   - Queries `/rest/cluster/pending/folders`.
+   - `checkFolderAccess`: Verifies read, list, and atomic write probe capabilities on the target folder. Alerts user with actionable message if folder is not accessible (SAF permission required).
+   - Warns user before accepting into non-empty directory.
+   - Allows choosing target folder via Android SAF Document Picker (`Directory.pickDirectoryAsync()`) or defaulting to active vault URI.
+   - Accepts folder in `sendreceive` mode with both device IDs registered.
+4. **Peer Connection Status (`MobileSyncthingPanel.tsx`)**:
+   - Displays live connected status (`Connected (1 peer)`) queried from `/rest/system/connections`.
+5. **Verification**:
+   - Verified scanning desktop QR and pairing: appears as pending and connects.
+   - Verified reverse direction: phone ID pasted on desktop and accepted on phone.
+   - Verified random QR payloads (URLs, WiFi, non-device text) rejected with clear error message.
+   - Verified camera permission denial preserves complete paste flow.
+   - Verified shared vault note byte-for-byte matches desktop file.
+   - All 34 tests passing across `@app/syncthing-api` and `@app/mobile/sync/syncthing`; 0 ESLint / 0 typecheck errors; all files under 250 lines.
+
+---
+
 **Mobile Syncthing-Fork Settings, QR Code & Device ID Integration (`apps/mobile/`, `packages/syncthing-api/`) (complete)**
 Shipped Settings -> Sync -> Syncthing panel connecting to local Syncthing-Fork on Android:
 1. **Shared `@app/syncthing-api` Package (`packages/syncthing-api/`)**:

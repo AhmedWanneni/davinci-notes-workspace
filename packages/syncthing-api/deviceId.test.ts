@@ -3,6 +3,7 @@ import {
   formatDeviceIdGroups,
   isValidDeviceIdFormat,
   normalizeDeviceId,
+  parseScannedDeviceId,
 } from "./deviceId";
 
 describe("deviceId utilities", () => {
@@ -30,5 +31,26 @@ describe("deviceId utilities", () => {
     expect(formatDeviceIdGroups(rawId)).toBe(rawId);
     expect(formatDeviceIdGroups("ABCDEFG1234567")).toBe("ABCDEFG-1234567");
     expect(formatDeviceIdGroups("")).toBe("");
+  });
+
+  it("parses scanned QR payloads with plain IDs or schemes", () => {
+    const res1 = parseScannedDeviceId(rawId);
+    expect(res1.valid).toBe(true);
+    expect(res1.deviceId).toBe(rawId);
+
+    const res2 = parseScannedDeviceId(`syncthing://${cleanId}`);
+    expect(res2.valid).toBe(true);
+    expect(res2.deviceId).toBe(rawId);
+
+    const res3 = parseScannedDeviceId(`syncthing:device?id=${rawId}&name=Desktop`);
+    expect(res3.valid).toBe(true);
+    expect(res3.deviceId).toBe(rawId);
+
+    const res4 = parseScannedDeviceId("random invalid text here");
+    expect(res4.valid).toBe(false);
+    expect(res4.error).toContain("Invalid Syncthing Device ID format");
+
+    const res5 = parseScannedDeviceId("");
+    expect(res5.valid).toBe(false);
   });
 });
