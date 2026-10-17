@@ -9,6 +9,7 @@ mod clipper_auth;
 mod clipper_commands;
 mod clipper_dispatch;
 mod clipper_http;
+mod clipper_ledger;
 mod clipper_name_rules;
 mod clipper_payload;
 mod clipper_routes;
@@ -54,6 +55,8 @@ mod fs_tests;
 mod tray_tests;
 #[cfg(test)]
 mod clipper_attachments_tests;
+#[cfg(test)]
+mod clipper_ledger_tests;
 #[cfg(test)]
 mod clipper_auth_tests;
 #[cfg(test)]
@@ -134,6 +137,8 @@ pub fn run() {
       clipper_commands::clipper_revoke_token,
       clipper_commands::clipper_submit_result,
       clipper_attachments::clipper_fetch_attachment,
+      clipper_ledger::clipper_check_duplicate,
+      clipper_ledger::clipper_record_written,
       ai_auth::save_ai_key,
       ai_auth::load_ai_key,
       ai_auth::clear_ai_key,

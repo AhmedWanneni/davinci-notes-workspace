@@ -5,7 +5,7 @@ import {
   type ClipMode,
 } from "@app/clipper-core";
 import type { ClipPopupController, ClipStatus } from "../components/ClipPopup";
-import { applyClipEdits, type ClipEdits } from "../clip/applyClipEdits";
+import { applyClipEdits } from "../clip/applyClipEdits";
 import {
   buildClipDraft,
   EMPTY_CLIP_DRAFT,
@@ -14,7 +14,6 @@ import {
 import { prepareClipContext } from "../clip/prepareClipContext";
 import { renderClipPayload } from "../clip/renderClipPayload";
 import { fallbackTemplate } from "../templates/templateStore";
-import { describeDeliveryFailure } from "../transport/describeDeliveryFailure";
 import {
   defaultClipSessionDeps,
   type ClipSessionDeps,
@@ -24,13 +23,11 @@ import {
   loadClipPage,
   type LoadedClipPage,
 } from "./loadClipPage";
+import { useClipEdits } from "./useClipEdits";
+import { useClipQueueSync } from "./useClipQueueSync";
 
 /**
  * Drive one clip session for the popup.
- *
- * The page is read exactly once when the popup opens. Changing the mode re-prepares
- * the context, because the source content differs; changing the template or typing
- * in a field only re-renders.
  */
 export function useClipSession(
   deps: ClipSessionDeps = defaultClipSessionDeps,
@@ -39,8 +36,6 @@ export function useClipSession(
   const [error, setError] = useState<string>();
   const [page, setPage] = useState<LoadedClipPage>();
   const [mode, setMode] = useState<ClipMode>("full");
-  const [chosenTemplateId, setChosenTemplateId] = useState<string>();
-  const [edits, setEdits] = useState<ClipEdits>({});
   const [downloading, setDownloading] = useState(false);
   const [sending, setSending] = useState(false);
   const [paired, setPaired] = useState(false);
@@ -50,16 +45,22 @@ export function useClipSession(
   const depsRef = useRef(deps);
   depsRef.current = deps;
 
+  const editsState = useClipEdits();
+  const queueSync = useClipQueueSync(depsRef, setSaveError);
+
   useEffect(() => {
     let cancelled = false;
-
     void (async () => {
       try {
-        const initial = await loadClipPage(depsRef.current);
+        const [initial, count] = await Promise.all([
+          loadClipPage(depsRef.current),
+          depsRef.current.loadQueueCount?.() ?? Promise.resolve(0),
+        ]);
         if (cancelled) return;
         setPage(initial.page);
         setMode(initial.mode);
         setPaired(initial.paired);
+        queueSync.setQueuedCount(count);
         setStatus("ready");
       } catch (cause) {
         if (cancelled) return;
@@ -71,14 +72,16 @@ export function useClipSession(
         setStatus("error");
       }
     })();
-
     return () => {
       cancelled = true;
     };
   }, []);
 
   const templateId =
-    chosenTemplateId ?? page?.matchedTemplateId ?? page?.templates[0]?.id ?? "";
+    editsState.chosenTemplateId ??
+    page?.matchedTemplateId ??
+    page?.templates[0]?.id ??
+    "";
 
   const context = useMemo(
     () =>
@@ -97,8 +100,7 @@ export function useClipSession(
   const built = useMemo(() => {
     if (context === undefined || page === undefined) return undefined;
     const template =
-      page.templates.find((candidate) => candidate.id === templateId) ??
-      fallbackTemplate();
+      page.templates.find((c) => c.id === templateId) ?? fallbackTemplate();
     return renderClipPayload(context, template, {
       clipId: page.clipId,
       capturedAt: page.capturedAt,
@@ -107,16 +109,18 @@ export function useClipSession(
 
   const payload = useMemo(
     () =>
-      built === undefined ? undefined : applyClipEdits(built.payload, edits),
-    [built, edits],
+      built === undefined
+        ? undefined
+        : applyClipEdits(built.payload, editsState.edits),
+    [built, editsState.edits],
   );
 
   const draft = useMemo<ClipDraft>(
     () =>
       built === undefined
         ? EMPTY_CLIP_DRAFT
-        : buildClipDraft(built.payload, edits),
-    [built, edits],
+        : buildClipDraft(built.payload, editsState.edits),
+    [built, editsState.edits],
   );
 
   const disabledModes = useMemo<readonly ClipMode[]>(() => {
@@ -153,33 +157,12 @@ export function useClipSession(
     })();
   }, [page, canHighlightSelection]);
 
-  const setTemplateId = useCallback((id: string) => {
-    setEdits({});
-    setChosenTemplateId(id);
-  }, []);
-
-  const setNoteName = useCallback((noteName: string) => {
-    setEdits((curr) => ({ ...curr, noteName }));
-  }, []);
-
-  const setFolder = useCallback((folder: string) => {
-    setEdits((curr) => ({ ...curr, folder }));
-  }, []);
-
-  const setProperty = useCallback((name: string, value: string) => {
-    setEdits((curr) => ({
-      ...curr,
-      properties: { ...curr.properties, [name]: value },
-    }));
-  }, []);
-
   const download = useCallback(() => {
     if (payload === undefined) return;
     const path = suggestedFilePath(payload);
     const file = composeNoteFile(payload);
     setDownloading(true);
     setSaveError(undefined);
-
     void (async () => {
       try {
         await depsRef.current.saveNoteFile(path, file);
@@ -205,8 +188,11 @@ export function useClipSession(
     void (async () => {
       try {
         const delivery = await depsRef.current.sendClip(clip);
-        if (delivery.delivered) setSentPath(delivery.path ?? "");
-        else setSaveError(describeDeliveryFailure(delivery.reason));
+        if (delivery.delivered) {
+          setSentPath(delivery.path ?? "");
+        } else {
+          await queueSync.handleDeliveryQueueing(clip, delivery.reason);
+        }
       } catch (cause) {
         setSaveError(
           cause instanceof Error
@@ -217,11 +203,7 @@ export function useClipSession(
         setSending(false);
       }
     })();
-  }, [payload]);
-
-  const openOptions = useCallback(() => {
-    depsRef.current.openOptionsPage();
-  }, []);
+  }, [payload, queueSync]);
 
   return {
     status,
@@ -241,16 +223,19 @@ export function useClipSession(
     downloading,
     sent: sentPath !== undefined,
     sentPath: sentPath === "" ? undefined : sentPath,
+    queuedCount: queueSync.queuedCount,
+    syncingQueue: queueSync.syncingQueue,
+    syncQueue: queueSync.syncQueue,
     canHighlightSelection,
     highlightsCount: page?.highlights.length ?? 0,
     highlightSelection,
     setMode,
-    setTemplateId,
-    setNoteName,
-    setFolder,
-    setProperty,
+    setTemplateId: editsState.setTemplateId,
+    setNoteName: editsState.setNoteName,
+    setFolder: editsState.setFolder,
+    setProperty: editsState.setProperty,
     send,
     download,
-    openOptions,
+    openOptions: () => depsRef.current.openOptionsPage(),
   };
 }

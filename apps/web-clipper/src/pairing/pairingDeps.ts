@@ -18,6 +18,9 @@ export interface PairingDeps {
   load(): Promise<ClipperPairing | undefined>;
   save(pairing: ClipperPairing): Promise<void>;
   clear(): Promise<void>;
+  loadQueueCount?(): Promise<number>;
+  drainQueue?(): Promise<import("../queue/clipQueue.js").DrainSummary>;
+  clearQueue?(): Promise<void>;
 }
 
 function area(): StorageArea {
@@ -28,4 +31,16 @@ export const defaultPairingDeps: PairingDeps = {
   load: () => loadPairing(area()),
   save: (pairing) => savePairing(area(), pairing),
   clear: () => clearPairing(area()),
+  loadQueueCount: async () => {
+    const { loadQueuedClips } = await import("../queue/clipQueue");
+    return (await loadQueuedClips(area())).length;
+  },
+  drainQueue: async () => {
+    const { drainQueue } = await import("../queue/clipQueue");
+    return drainQueue(area(), await loadPairing(area()));
+  },
+  clearQueue: async () => {
+    const { clearQueue } = await import("../queue/clipQueue");
+    await clearQueue(area());
+  },
 };

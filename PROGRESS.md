@@ -4,38 +4,41 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Web Clipper Phase 6: Attachment download, offline images, and SSRF protection
+## Last Session — Web Clipper Phase 7: Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting
 
-**Scope:** Implement Phase 6 of `web-clipper-feature-plan.md` — desktop receiver fetches images referenced in clips using native SSRF protections, stores them offline via existing `packages/attachments`, rewrites markdown image links to vault-relative paths, and exposes "Save images to vault" in template settings.
+**Scope:** Implement Phase 7 of `web-clipper-feature-plan.md` — persistent ring buffer dedupe ledger on the desktop (ADR-0178), bounded offline queue in extension local storage with oldest-first eviction (max 200 clips, max 5 MiB, max 30-day expiry), event-driven startup/reconnect drain, headless quick-clip hotkey (`Alt+Shift+S`) and popup hotkey (`Alt+Shift+C`), multi-vault targeting guard (`vault-not-open`), and offline queue notice + sync buttons in popup and options.
 
-**Built (`packages/clipper-core`, `apps/web-clipper`, `apps/desktop`):**
+**Built (`packages/clipper-core`, `apps/desktop`, `apps/web-clipper`):**
 - `packages/clipper-core`:
-  - `ClipTemplate.ts` & `validateClipTemplate.ts`: Added optional `downloadImages?: boolean` flag.
-  - `attachmentExtractor.ts`: Added `extractImageAttachments` (extracts markdown and HTML `<img>` URLs, filters to HTTP/HTTPS, dedupes), `deriveSuggestedImageName` (sanitizes unsafe chars, preserves valid extensions), and `rewriteMarkdownImageLinks` (rewrites remote URLs to local vault paths).
-- `apps/web-clipper`:
-  - `renderClipPayload.ts`: Extracts image attachments when `template.downloadImages` is true and populates `payload.attachments`.
-  - `TemplateGeneralFields.tsx` & `TemplateEditor.tsx`: Extracted general settings into `TemplateGeneralFields.tsx` to maintain strict line budgets (<150 lines each), added "Save images to vault" toggle (`Toggle` from `@app/design-system`).
+  - `ClipQueue.ts` & `ClipQueue.test.ts`: Defined `ClipQueueEntry` interface, bound constants (`MAX_QUEUE_ENTRIES = 200`, `MAX_QUEUE_BYTES = 5 * 1024 * 1024`, `MAX_QUEUE_AGE_MS = 30 * 24 * 60 * 60 * 1000`), and `isQueueEntryExpired(entry, now)`.
 - `apps/desktop`:
-  - `src-tauri/src/clipper_attachments.rs`: Rust command `clipper_fetch_attachment` gated by `reject_plugin_runner`. Enforces strict SSRF validation (`is_disallowed_ip` rejecting loopback, link-local, carrier-grade NAT, private LAN, metadata IPs, bracketed IPv6, and localhost), max 5 redirects (with SSRF checked on every hop), 10s timeout, 1 MiB per-image cap, HTML/script content rejection, and magic byte validation (PNG, JPEG, GIF, WebP, SVG, BMP, ICO).
-  - `src/clipper/clipperAttachments.ts`: Implemented `processClipAttachments` enforcing `MAX_CLIP_ATTACHMENTS = 50` and `MAX_TOTAL_ATTACHMENT_BYTES = 20 * 1024 * 1024` (20 MiB). Downloads attachments, writes to vault using `writeAttachmentToVault`, computes relative link via `computeVaultRelativeLink`, and rewrites note body. Partial success: failed downloads log a warning and preserve the original URL in note without failing the clip.
-  - `src/clipper/applyClipToVault.ts`: Integrated `processClipAttachments` before planning and writing note into vault.
+  - `src-tauri/src/clipper_ledger.rs` & `clipper_ledger_tests.rs`: Added persistent dedupe ledger (`davinci-clipper-ledger.json` in `app_config_dir`) with `MAX_LEDGER_ENTRIES = 500`. Added `clipper_check_duplicate` (matches by `clip_id` or identical `(content_hash, relative_path)`) and `clipper_record_written`. Registered in `lib.rs`.
+  - `src/clipper/applyClipToVault.ts`: Added multi-vault check (returns `vault-not-open` if `payload.target.vaultId` does not match active vault) and dedupe check (calls `clipper_check_duplicate` before planning note write, returns `duplicate` with `previousPath`). Calls `clipper_record_written` upon successful write.
+- `apps/web-clipper`:
+  - `src/queue/clipQueue.ts` & `clipQueue.test.ts`: Implemented `loadQueuedClips` (with 30-day expiration pruning), `enqueueClip` (200-item / 5 MiB oldest-first eviction), `dequeueClip`, `clearQueue`, and `drainQueue` (event-driven, oldest first, cleans up written and duplicate clips, halts immediately on unreachable/vault-not-open/app-busy).
+  - `wxt.config.ts`: Registered manifest commands `_execute_action` (`Alt+Shift+C`), `quick_clip` (`Alt+Shift+S`), and `toggle_highlighter` (`Alt+Shift+H`).
+  - `src/clip/quickClipTab.ts`: Headless quick-clip runner executing `readPage`, `prepareClipContext`, `matchTemplate`, and `postClipToDesktop`. Bails cleanly on browser-restricted schemes (`chrome://`, `about:`, `edge://`) and CSP restrictions. Enqueues clip into local storage when desktop is unreachable.
+  - `entrypoints/background.ts`: Registered startup drain (`browser.runtime.onStartup`), install drain (`browser.runtime.onInstalled`), and commands listener.
+  - `src/popup/`: Added `useClipEdits.ts` and `useClipQueueSync.ts` to keep `useClipSession.ts` strictly under line caps (232 lines). Popup displays offline queue badge and "Sync now" button when clips are queued.
+  - `src/components/PairingPanel/`: Added offline queue status block with "Sync queue" and "Clear queue" controls.
 
-**Adversarial Verification (`clipper_attachments_tests.rs` & `clipperAttachmentsAdversarial.test.ts`):**
-1. Check 1 (SSRF rejection): Rejects `169.254.169.254`, `127.0.0.1`, `[::1]`, `10.0.0.0/8`, `192.168.0.0/16`, `172.16.0.0/12`, and `localhost`.
-2. Check 2 (Redirect chain SSRF): 5-redirect max limit enforced; redirects targeting private/loopback addresses rejected.
-3. Check 3 (Content sniffing & HTML masquerade): HTML documents or script-injected SVGs served as images rejected by content validation; link kept as remote URL.
-4. Check 4 (Duplicate image names): Duplicate filenames in the same folder resolve collision via numeric suffixes (`cat 1.png`, `cat 2.png`, ADR-0110).
-5. Check 5 (Bounded batch size): 200 images totalling 500 MB safely capped at 50 images / 20 MiB with partial success reporting.
-6. Check 6 (Offline readability): Written images verified with vault-relative links (`attachments/...`).
+**Adversarial Verification (`clipperQueueAdversarial.test.ts` & `clipQueue.test.ts`):**
+1. Check 1 (Enqueued clip written once): Offline clip saved to queue -> drained on launch -> written once, ack received, evicted from queue only after ack, recorded into dedupe ledger.
+2. Check 2 (Duplicate replay rejection): Second delivery with same `clipId` or identical `(contentHash, relativePath)` rejected with `duplicate` and previous path, zero second file created.
+3. Check 3 (Mid-write crash recovery): Write failure returns `app-busy`, not recorded in dedupe ledger, clip retained in client queue for retry.
+4. Check 4 (Bounded queue cap): Queue bound constants (`MAX_QUEUE_ENTRIES = 200`, `MAX_QUEUE_BYTES = 5 MiB`, 30-day age cap) verified with oldest-first eviction.
+5. Check 5 (Multi-vault targeting): Clip specifying non-matching `vaultId` rejected with `vault-not-open` without modifying active vault, retained in queue.
+6. Check 6 (Zero continuous polling): Event-driven drain only (on startup, install, popup open, and user action; no `setInterval`).
+7. Check 7 (Restricted URLs): Headless quick-clip on `chrome://` and restricted pages fails cleanly without hanging.
 
 **Verification:**
-- Rust tests: 4/4 passing (`clipper_attachments_tests`).
-- `@app/clipper-core`: 15 files, 88 tests passing.
-- `@app/web-clipper`: 33 files, 212 tests passing.
-- `@app/desktop`: All clipper tests and adversarial suites passing (26 tests).
+- Rust tests: 39/39 passing (`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml clipper`).
+- `@app/clipper-core`: 16 files, 90 tests passing.
+- `@app/web-clipper`: 35 files, 223 tests passing.
+- `@app/desktop`: All 6 clipper test suites (32 tests) passing.
 - All modified/created files strictly under 250-line hard cap (soft cap 150-200 lines observed).
 
-**Next up:** Web Clipper Phase 7: Closed-app queuing, desktop dedupe, hotkeys, context menu, and multi-vault targeting.
+**Next up:** Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass (Chrome/Edge/Firefox packaging, permission auditing, eval/new-Function-free verification, desktop release binary delta measurement).
 
 ---
 

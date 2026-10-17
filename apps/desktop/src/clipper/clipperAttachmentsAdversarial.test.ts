@@ -95,8 +95,10 @@ describe("clipperAttachments adversarial verification (Phase 6)", () => {
       ],
     });
 
-    invokeMock.mockImplementation((_cmd: string, args: { url: string }) => {
-      if (args.url.includes("169.254")) {
+    invokeMock.mockImplementation((cmd: string, args: { url?: string }) => {
+      if (cmd === "clipper_check_duplicate") return Promise.resolve(null);
+      if (cmd === "clipper_record_written") return Promise.resolve(undefined);
+      if (args?.url?.includes("169.254")) {
         return Promise.reject("private network address disallowed");
       }
       return Promise.resolve([137, 80, 78, 71]);
@@ -133,7 +135,11 @@ describe("clipperAttachments adversarial verification (Phase 6)", () => {
       ],
     });
 
-    invokeMock.mockRejectedValue("Unsupported or invalid image content format");
+    invokeMock.mockImplementation((cmd: string) => {
+      if (cmd === "clipper_check_duplicate") return Promise.resolve(null);
+      if (cmd === "clipper_record_written") return Promise.resolve(undefined);
+      return Promise.reject("Unsupported or invalid image content format");
+    });
 
     const ack = await applyClipToVault({
       clipId: "adv-clip-1",
@@ -167,7 +173,11 @@ describe("clipperAttachments adversarial verification (Phase 6)", () => {
       ],
     });
 
-    invokeMock.mockResolvedValue([137, 80, 78, 71]);
+    invokeMock.mockImplementation((cmd: string) => {
+      if (cmd === "clipper_check_duplicate") return Promise.resolve(null);
+      if (cmd === "clipper_record_written") return Promise.resolve(undefined);
+      return Promise.resolve([137, 80, 78, 71]);
+    });
     writeAttachmentToVaultMock
       .mockResolvedValueOnce("/Users/test/Vault/attachments/cat.png")
       .mockResolvedValueOnce("/Users/test/Vault/attachments/cat 1.png");
@@ -194,7 +204,11 @@ describe("clipperAttachments adversarial verification (Phase 6)", () => {
     const body = attachments.map((a) => `![](${a.sourceUrl})`).join("\n");
     const payload = adversarialPayload(body, { attachments });
 
-    invokeMock.mockResolvedValue([137, 80, 78, 71]);
+    invokeMock.mockImplementation((cmd: string) => {
+      if (cmd === "clipper_check_duplicate") return Promise.resolve(null);
+      if (cmd === "clipper_record_written") return Promise.resolve(undefined);
+      return Promise.resolve([137, 80, 78, 71]);
+    });
     writeAttachmentToVaultMock.mockImplementation(
       (_v: string, _f: string, name: string) =>
         `/Users/test/Vault/attachments/${name}`,
@@ -208,7 +222,10 @@ describe("clipperAttachments adversarial verification (Phase 6)", () => {
 
     expect(ack.status).toBe("written");
     // Max 50 downloads
-    expect(invokeMock).toHaveBeenCalledTimes(50);
+    const downloadCalls = invokeMock.mock.calls.filter(
+      ([cmd]) => cmd === "clipper_fetch_attachment",
+    );
+    expect(downloadCalls).toHaveLength(50);
     // The first 50 rewritten to attachments/, remaining 150 preserved as remote URLs
     expect(createNoteInVaultMock).toHaveBeenCalledWith(
       "Clippings/Adversarial.md",

@@ -40,6 +40,10 @@ export interface ClipSessionDeps {
   saveNoteFile(path: string, content: string): Promise<void>;
   /** Send the clip to the app; never throws (see `postClipToDesktop`). */
   sendClip(payload: ClipPayload): Promise<ClipDelivery>;
+  loadQueueCount?(): Promise<number>;
+  enqueueClip?(payload: ClipPayload): Promise<void>;
+  drainQueue?(): Promise<import("../queue/clipQueue.js").DrainSummary>;
+  clearQueue?(): Promise<void>;
   openOptionsPage(): void;
   now(): Date;
   newClipId(): string;
@@ -78,6 +82,22 @@ export const defaultClipSessionDeps: ClipSessionDeps = {
       // loses its receiver and throws "Illegal invocation" in a browser.
       globalThis.fetch(url, init),
     ),
+  loadQueueCount: async () => {
+    const { loadQueuedClips } = await import("../queue/clipQueue");
+    return (await loadQueuedClips(area())).length;
+  },
+  enqueueClip: async (payload) => {
+    const { enqueueClip } = await import("../queue/clipQueue");
+    await enqueueClip(area(), payload);
+  },
+  drainQueue: async () => {
+    const { drainQueue } = await import("../queue/clipQueue");
+    return drainQueue(area(), await loadPairing(area()));
+  },
+  clearQueue: async () => {
+    const { clearQueue } = await import("../queue/clipQueue");
+    await clearQueue(area());
+  },
   openOptionsPage: () => {
     void browser.runtime.openOptionsPage();
   },

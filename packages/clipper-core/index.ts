@@ -121,6 +121,13 @@ export {
   extractImageAttachments,
   rewriteMarkdownImageLinks,
 } from "./attachmentExtractor.js";
+export {
+  isQueueEntryExpired,
+  MAX_QUEUE_AGE_MS,
+  MAX_QUEUE_BYTES,
+  MAX_QUEUE_ENTRIES,
+  type ClipQueueEntry,
+} from "./ClipQueue.js";
 
 /** Package identifier kept for shell smoke tests. */
 export const name = "@app/clipper-core";

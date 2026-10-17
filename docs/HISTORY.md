@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-18 | Web Clipper Phase 7 — Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting | Implemented Phase 7 closed-app queuing, persistent ring buffer dedupe ledger, hotkeys, and multi-vault guard. Added `ClipQueueEntry` and bounds (`MAX_QUEUE_ENTRIES = 200`, `MAX_QUEUE_BYTES = 5 MiB`, 30-day age cap) in `packages/clipper-core`. Built persistent dedupe ledger (`davinci-clipper-ledger.json`, 500 entries) in desktop Rust with `clipper_check_duplicate` and `clipper_record_written`. Added multi-vault guard (`vault-not-open`) and dedupe check in `applyClipToVault.ts`. Built bounded extension queue in `apps/web-clipper/src/queue/clipQueue.ts` with oldest-first eviction and event-driven startup/install drain. Registered manifest shortcut commands (`Alt+Shift+C`, `Alt+Shift+S`, `Alt+Shift+H`). Added headless quick-clip runner in `quickClipTab.ts` with graceful restricted URL handling (`chrome://`). Added offline queue notice and sync controls to popup and options. Verified all 7 Phase 7 adversarial checks. All 39 Rust tests, 90 clipper-core tests, 223 web-clipper tests, and 32 desktop clipper tests passing; all files strictly under line caps. |
 | 2026-10-17 | Web Clipper Phase 6 — Attachment download, offline images, and SSRF protection | Implemented Phase 6 image attachments download pipeline and offline vault storage. Added `downloadImages` boolean flag to `ClipTemplate` and TemplateEditor general settings. Added `extractImageAttachments`, `deriveSuggestedImageName`, and `rewriteMarkdownImageLinks` in `packages/clipper-core`. Built `clipper_fetch_attachment` in Rust with strict SSRF validation (`is_disallowed_ip` blocking loopback, link-local, carrier-grade NAT, private LAN, metadata IPs, bracketed IPv6, and localhost), max 5 redirects with SSRF check on each hop, 1 MiB per-image cap, and content sniffing checks rejecting HTML/scripts. Built `processClipAttachments` in desktop applying `MAX_CLIP_ATTACHMENTS = 50` and `MAX_TOTAL_ATTACHMENT_BYTES = 20 * 1024 * 1024` (20 MiB), writing to vault via `writeAttachmentToVault`, generating vault-relative links, and rewriting markdown note body with graceful partial-success fallback. All 4 Rust tests, 88 clipper-core tests, 212 web-clipper tests, and 26 desktop clipper/adversarial tests passing; all files strictly under line caps. |
 | 2026-10-17 | Web Clipper Phase 5 — Highlighter, safe markdown rendering, and popup integration | Built page text-quote anchoring and highlighting in apps/web-clipper with persistent storage in chrome.storage.local (bounded FIFO eviction: MAX_HIGHLIGHTS = 2,000, MAX_HIGHLIGHTS_PER_URL = 200). Added "Highlight selection" action to ClipPopup with dynamic highlights extraction mode enablement when stored highlights exist. Optimized restoreHighlights with instant 0-highlight early bailout (<0.01 ms vs 55 ms on 5,000-node DOM). Added highlight markdown filter (==...== escaping nested == to \=\= and multiline support), hardened wikilinkFilter against hostile ]] injections, and updated tableFilter for primitive row arrays. Passed all 4 Phase 5 adversarial checks. All 81 clipper-core and 211 web-clipper tests passing; 0 lint / 0 tsc errors. |
 | 2026-10-17 | Web Clipper Phase 4 part 1 — template library settings | Completed options-page template management: stored-order list (which defines first-match auto-apply precedence), isolated draft editor for all template fields, create/duplicate/delete/restore, and bounded JSON import/export. Imports are capped at 1 MiB before parsing, require a non-empty array, validate every entry atomically, reject duplicate IDs and literal absolute/traversal/backslash folders, and preserve the current library on failure; exports preserve list order. No dependency or background work was added. web-clipper 198 tests / 29 files, lint, typecheck and production build pass; full extension 630.29 kB raw / 186,008 B gzip. Remaining Phase 4 settings export and real-browser options acceptance are separately scoped. |
@@ -153,6 +154,46 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-18 — Web Clipper Phase 7: Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting
+
+- Added `ClipQueueEntry` interface and queue bound constants in `packages/clipper-core/ClipQueue.ts`:
+  - `MAX_QUEUE_ENTRIES = 200`: oldest-first FIFO eviction when exceeded.
+  - `MAX_QUEUE_BYTES = 5 * 1024 * 1024`: 5 MiB total serialized payload storage limit.
+  - `MAX_QUEUE_AGE_MS = 30 * 24 * 60 * 60 * 1000`: 30-day age expiration pruning.
+  - `isQueueEntryExpired(entry, now)` utility.
+- Built persistent desktop ring buffer dedupe ledger in `apps/desktop/src-tauri/src/clipper_ledger.rs`:
+  - Ring buffer ledger serialized to `davinci-clipper-ledger.json` in `app_config_dir` capped at `MAX_LEDGER_ENTRIES = 500`.
+  - Added Tauri commands `clipper_check_duplicate` (matches by exact `clip_id` or identical `(content_hash, relative_path)`) and `clipper_record_written`.
+- Updated desktop vault writing in `apps/desktop/src/clipper/applyClipToVault.ts`:
+  - Multi-vault check: if `target.vaultId` is specified and does not match the active vault, returns `vault-not-open` without touching the vault.
+  - Dedupe check: calls `clipper_check_duplicate` before planning note write, rejecting duplicate deliveries with `duplicate` and returning the previously written path.
+  - Records successfully written clips in ledger via `clipper_record_written`.
+- Built extension offline queue in `apps/web-clipper/src/queue/clipQueue.ts`:
+  - `loadQueuedClips`, `enqueueClip`, `dequeueClip`, `clearQueue`.
+  - `drainQueue`: event-driven sequential drain attempting delivery for each queued clip, removing successfully written clips and duplicate entries, and halting on `unreachable`, `timeout`, `vault-not-open`, or `app-busy`.
+- Registered manifest keyboard shortcuts in `apps/web-clipper/wxt.config.ts`:
+  - `_execute_action` (`Alt+Shift+C`): opens clipper popup.
+  - `quick_clip` (`Alt+Shift+S`): headless quick-clip using active page and matching template.
+  - `toggle_highlighter` (`Alt+Shift+H`): toggles highlighter mode.
+- Implemented headless quick clip runner in `apps/web-clipper/src/clip/quickClipTab.ts`:
+  - Reads active tab, extracts content, matches template, and sends to desktop.
+  - Bails gracefully without throwing or hanging on restricted browser schemes (`chrome://`, `about:`, `edge://`) or CSP injection limits.
+  - Automatically enqueues into offline storage when desktop is unreachable or closed.
+- Wired startup and install event drains in `apps/web-clipper/entrypoints/background.ts`:
+  - Drains queue on `browser.runtime.onStartup` and `browser.runtime.onInstalled`. Zero polling intervals (`setInterval`).
+- Added popup and options queue integration:
+  - Extracted `useClipEdits.ts` and `useClipQueueSync.ts` to keep `useClipSession.ts` strictly under line caps (232 lines).
+  - Added offline queue count notice and "Sync now" button in `ClipPopup.tsx`.
+  - Added "Offline queue" section in `PairingPanel.tsx` with "Sync queue" and "Clear queue" controls.
+- Ran all 7 Phase 7 adversarial tests:
+  - Check 1: Enqueued clip delivered on launch written once and recorded in ledger.
+  - Check 2: Duplicate clip replay rejected with `duplicate` and previous path, no duplicate file.
+  - Check 3: Mid-write crash returns `app-busy`, omitted from dedupe ledger, retried on next drain.
+  - Check 4: Queue bounds (200 clips, 5 MiB, 30 days) evict oldest entries with visible count.
+  - Check 5: Multi-vault mismatch returns `vault-not-open`, preserved in queue, not written to wrong vault.
+  - Check 6: Zero continuous polling confirmed (event-driven only).
+  - Check 7: Quick clip on `chrome://` pages exits cleanly without hanging.
 
 ### 2026-10-17 — Web Clipper Phase 6: Attachment download, offline images, and SSRF protection
 

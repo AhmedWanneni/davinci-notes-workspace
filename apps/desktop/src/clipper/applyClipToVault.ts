@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import type { ClipAck, ClipBehavior, ClipPayload } from "@app/clipper-core";
 import { composeNoteFile } from "@app/clipper-core";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
@@ -63,8 +64,12 @@ export function clipTargetPlan(
   return { kind: "insert", path: relativePath, position: action };
 }
 
-function rejected(clipId: string, error: ClipAck["error"]): ClipAck {
-  return { clipId, status: "rejected", error };
+function rejected(
+  clipId: string,
+  error: ClipAck["error"],
+  path?: string,
+): ClipAck {
+  return { clipId, status: "rejected", error, path };
 }
 
 /**
@@ -86,7 +91,36 @@ export async function applyClipToVault(
     return rejected(clipId, "vault-not-open");
   }
 
+  // Multi-vault rule (open decision O4, plan check 5):
+  const targetVaultId = event.payload.target.vaultId;
+  if (targetVaultId) {
+    const currentVaultName = store.vaultPath
+      .replaceAll("\\", "/")
+      .split("/")
+      .filter(Boolean)
+      .pop();
+    if (
+      targetVaultId !== store.vaultPath &&
+      targetVaultId !== currentVaultName
+    ) {
+      return rejected(clipId, "vault-not-open");
+    }
+  }
+
   try {
+    // Dedupe ledger check (ADR-0178, plan check 2):
+    const duplicatePath = await invoke<string | null>(
+      "clipper_check_duplicate",
+      {
+        clipId: event.clipId,
+        contentHash: event.payload.contentHash,
+        relativePath: event.relativePath,
+      },
+    );
+    if (duplicatePath) {
+      return rejected(clipId, "duplicate", duplicatePath);
+    }
+
     let payload = event.payload;
     if (payload.attachments && payload.attachments.length > 0) {
       payload = await processClipAttachments(payload, {
@@ -105,6 +139,17 @@ export async function applyClipToVault(
       plan.kind === "create"
         ? await createNoteInVault(plan.path, composeNoteFile(payload))
         : await appendToNoteInVault(plan.path, payload.body, plan.position);
+
+    try {
+      await invoke("clipper_record_written", {
+        clipId: payload.clipId,
+        contentHash: payload.contentHash,
+        relativePath: path,
+      });
+    } catch (recordError) {
+      console.warn("[clipper] failed to record in dedupe ledger:", recordError);
+    }
+
     return { clipId, status: "written", path };
   } catch (error) {
     console.error(`[clipper] could not write clip ${clipId}:`, error);

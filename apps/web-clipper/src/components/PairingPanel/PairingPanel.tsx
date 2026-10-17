@@ -126,6 +126,34 @@ export function PairingPanel({ controller }: PairingPanelProps) {
         </Typography>
       )}
 
+      {controller.queuedCount !== undefined && controller.queuedCount > 0 ? (
+        <section className={styles["pairing-panel__queue"]}>
+          <Typography variant="text" size="sm" weight="medium">
+            Offline queue ({controller.queuedCount}{" "}
+            {controller.queuedCount === 1 ? "clip" : "clips"})
+          </Typography>
+          <div className={styles["pairing-panel__actions"]}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={!paired || controller.syncingQueue}
+              onClick={controller.syncQueue}
+            >
+              {controller.syncingQueue ? "Syncing…" : "Sync queue"}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={controller.clearQueue}
+            >
+              Clear queue
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
       <Typography variant="text" size="xs" color="muted">
         {paired
           ? "This extension sends clips to DaVinci Notes on this computer only. Nothing is sent anywhere else."

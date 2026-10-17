@@ -57,6 +57,14 @@ export default defineConfig({
         suggested_key: { default: "Alt+Shift+C" },
         description: "Clip the current page to DaVinci Notes",
       },
+      quick_clip: {
+        suggested_key: { default: "Alt+Shift+S" },
+        description: "Quick-clip current page to DaVinci Notes",
+      },
+      toggle_highlighter: {
+        suggested_key: { default: "Alt+Shift+H" },
+        description: "Highlight selection for DaVinci Notes",
+      },
     },
   },
 });

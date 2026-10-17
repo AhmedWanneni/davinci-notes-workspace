@@ -56,3 +56,14 @@
   display: flex;
   justify-content: flex-end;
 }
+
+.clip-popup__queue-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background-color: var(--color-bg-secondary-alt);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+}

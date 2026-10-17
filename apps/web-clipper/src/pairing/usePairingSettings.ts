@@ -29,10 +29,14 @@ export interface PairingSettingsController {
   /** Confirmation of the last completed save or clear. */
   notice?: string;
   saving: boolean;
+  queuedCount?: number;
+  syncingQueue?: boolean;
   setPort(value: string): void;
   setToken(value: string): void;
   save(): void;
   clear(): void;
+  syncQueue?(): void;
+  clearQueue?(): void;
 }
 
 function messageFor(cause: unknown, fallback: string): string {
@@ -51,6 +55,8 @@ export function usePairingSettings(
   const [error, setError] = useState<string>();
   const [notice, setNotice] = useState<string>();
   const [saving, setSaving] = useState(false);
+  const [queuedCount, setQueuedCount] = useState<number>(0);
+  const [syncingQueue, setSyncingQueue] = useState(false);
 
   // Read through a ref and run once: a re-created `deps` object must not trigger
   // a second read of the stored pairing.
@@ -62,8 +68,12 @@ export function usePairingSettings(
 
     void (async () => {
       try {
-        const stored = await depsRef.current.load();
+        const [stored, queueCount] = await Promise.all([
+          depsRef.current.load(),
+          depsRef.current.loadQueueCount?.() ?? Promise.resolve(0),
+        ]);
         if (cancelled) return;
+        setQueuedCount(queueCount);
         if (stored !== undefined) {
           setPortState(String(stored.port));
           setTokenState(stored.token);
@@ -148,6 +158,40 @@ export function usePairingSettings(
     })();
   }, []);
 
+  const syncQueue = useCallback(() => {
+    setSyncingQueue(true);
+    setError(undefined);
+    setNotice(undefined);
+    void (async () => {
+      try {
+        const summary = await depsRef.current.drainQueue?.();
+        if (summary) {
+          setQueuedCount(summary.remaining);
+          setNotice(
+            `Synced ${summary.delivered} clip(s). ${summary.remaining} remaining in queue.`,
+          );
+        }
+      } catch (cause) {
+        setError(messageFor(cause, "The queued clips could not be synced."));
+      } finally {
+        setSyncingQueue(false);
+      }
+    })();
+  }, []);
+
+  const handleClearQueue = useCallback(() => {
+    setError(undefined);
+    void (async () => {
+      try {
+        await depsRef.current.clearQueue?.();
+        setQueuedCount(0);
+        setNotice("Queued clips cleared.");
+      } catch (cause) {
+        setError(messageFor(cause, "Could not clear queued clips."));
+      }
+    })();
+  }, []);
+
   return {
     loading,
     paired,
@@ -158,9 +202,13 @@ export function usePairingSettings(
     error,
     notice,
     saving,
+    queuedCount,
+    syncingQueue,
     setPort,
     setToken,
     save,
     clear,
+    syncQueue,
+    clearQueue: handleClearQueue,
   };
 }

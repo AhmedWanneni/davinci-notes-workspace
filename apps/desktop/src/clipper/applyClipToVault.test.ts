@@ -6,11 +6,17 @@ const {
   appendToNoteInVaultMock,
   resolveUniqueNotePathMock,
   getStateMock,
+  invokeMock,
 } = vi.hoisted(() => ({
   createNoteInVaultMock: vi.fn(),
   appendToNoteInVaultMock: vi.fn(),
   resolveUniqueNotePathMock: vi.fn(),
   getStateMock: vi.fn(),
+  invokeMock: vi.fn(),
+}));
+
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: (...args: unknown[]) => invokeMock(...args),
 }));
 
 vi.mock("../vault", () => ({
@@ -103,6 +109,7 @@ describe("clipTargetPlan", () => {
 describe("applyClipToVault", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    invokeMock.mockResolvedValue(null);
     createNoteInVaultMock.mockImplementation(async (path: string) => path);
     appendToNoteInVaultMock.mockImplementation(async (path: string) => path);
     resolveUniqueNotePathMock.mockImplementation(
@@ -169,5 +176,51 @@ describe("applyClipToVault", () => {
     await expect(
       applyClipToVault({ ...event(), clipId: "clip-9" }),
     ).resolves.toMatchObject({ clipId: "clip-9" });
+  });
+
+  it("rejects with duplicate and returns existing path when ledger matches", async () => {
+    invokeMock.mockImplementation((cmd: string) => {
+      if (cmd === "clipper_check_duplicate") {
+        return Promise.resolve("Clippings/Probe.md");
+      }
+      return Promise.resolve(null);
+    });
+
+    await expect(applyClipToVault(event())).resolves.toEqual({
+      clipId: "clip-1",
+      status: "rejected",
+      error: "duplicate",
+      path: "Clippings/Probe.md",
+    });
+    expect(createNoteInVaultMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects with vault-not-open when target vaultId does not match current vault", async () => {
+    const mismatchedEvent = {
+      ...event(),
+      payload: payload({
+        target: {
+          vaultId: "OtherVault",
+          folder: "Clippings",
+          noteName: "Probe.md",
+        },
+      }),
+    };
+
+    await expect(applyClipToVault(mismatchedEvent)).resolves.toEqual({
+      clipId: "clip-1",
+      status: "rejected",
+      error: "vault-not-open",
+    });
+    expect(createNoteInVaultMock).not.toHaveBeenCalled();
+  });
+
+  it("records successfully written note into dedupe ledger", async () => {
+    await applyClipToVault(event());
+    expect(invokeMock).toHaveBeenCalledWith("clipper_record_written", {
+      clipId: "clip-1",
+      contentHash: "0123456789abcdef",
+      relativePath: "Clippings/Probe.md",
+    });
   });
 });

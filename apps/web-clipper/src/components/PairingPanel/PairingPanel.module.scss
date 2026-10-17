@@ -39,3 +39,13 @@
 .pairing-panel__notice {
   display: block;
 }
+
+.pairing-panel__queue {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--color-bg-secondary-alt);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+}

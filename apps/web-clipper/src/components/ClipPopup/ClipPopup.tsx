@@ -39,6 +39,9 @@ export interface ClipPopupController {
   sent: boolean;
   /** Vault-relative path of the last clip the app wrote, when it reported one. */
   sentPath?: string;
+  queuedCount?: number;
+  syncingQueue?: boolean;
+  syncQueue?(): void;
   canHighlightSelection?: boolean;
   highlightsCount?: number;
   highlightSelection?(): void;
@@ -154,6 +157,26 @@ export function ClipPopup({ controller }: ClipPopupProps) {
           />
 
           <ClipPreview tags={payload.tags} body={payload.body} />
+
+          {controller.queuedCount && controller.queuedCount > 0 ? (
+            <div className={styles["clip-popup__queue-notice"]}>
+              <Typography variant="text" size="xs" color="muted">
+                {controller.queuedCount}{" "}
+                {controller.queuedCount === 1 ? "clip" : "clips"} queued
+                offline.
+              </Typography>
+              {controller.syncQueue ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={controller.syncQueue}
+                  disabled={controller.syncingQueue || !controller.paired}
+                >
+                  {controller.syncingQueue ? "Syncing…" : "Sync now"}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className={styles["clip-popup__actions"]}>
             <Button
