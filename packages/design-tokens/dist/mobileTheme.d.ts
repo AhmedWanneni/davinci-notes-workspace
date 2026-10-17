@@ -14,6 +14,8 @@ export interface MobileTokens {
     readonly radius: BorderRadiusTokens;
   };
   readonly color: ColorTokens;
+  readonly lightColor: ColorTokens;
+  readonly darkColor: ColorTokens;
   readonly space: SpacingTokens;
   readonly typography: TypographyTokens;
   readonly zIndex: ZIndexTokens;

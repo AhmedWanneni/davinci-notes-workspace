@@ -1,4 +1,4 @@
-import { colorTokens } from "./colors.js";
+import { colorTokens, darkColorTokens } from "./colors.js";
 import { borderWidthTokens } from "./borders.js";
 import { borderRadiusTokens } from "./radii.js";
 import { spacingTokens } from "./spacing.js";
@@ -13,7 +13,9 @@ export const fullMobileTokens = {
         width: borderWidthTokens,
         radius: borderRadiusTokens,
     },
-    color: colorTokens,
+    color: darkColorTokens,
+    lightColor: colorTokens,
+    darkColor: darkColorTokens,
     space: spacingTokens,
     typography: typographyTokens,
     zIndex: zIndexTokens,

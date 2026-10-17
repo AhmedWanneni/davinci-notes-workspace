@@ -54,6 +54,14 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: "react",
+        replacement: path.join(__dirname, "node_modules/react"),
+      },
+      {
+        find: "react-dom",
+        replacement: path.join(__dirname, "node_modules/react-dom"),
+      },
+      {
         find: "@app/design-system/styles",
         replacement: path.join(repoRoot, "packages/design-system/styles"),
       },

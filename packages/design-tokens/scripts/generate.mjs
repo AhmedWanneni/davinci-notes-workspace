@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { borderWidthTokens } from "../dist/borders.js";
 import { borderRadiusTokens } from "../dist/radii.js";
-import { colorTokens } from "../dist/colors.js";
+import { colorTokens, darkColorTokens } from "../dist/colors.js";
 import { spacingTokens } from "../dist/spacing.js";
 import { typographyTokens } from "../dist/typography.js";
 import { zIndexTokens } from "../dist/zIndex.js";
@@ -124,24 +124,30 @@ function generateWebview(vars) {
 
 function generateMobile() {
   ensureDir(path.join(distDir, "mobile"));
-  const content = `export const mobileTokens = ${JSON.stringify(mobileTokens, null, 2)};\nexport const fullMobileTokens = ${JSON.stringify(fullMobileTokens, null, 2)};\nexport default fullMobileTokens;\n`;
+  const content = `export const mobileTokens = ${JSON.stringify(mobileTokens, null, 2)};\nexport const fullMobileTokens = ${JSON.stringify(fullMobileTokens, null, 2)};\nexport const darkColorTokens = ${JSON.stringify(fullMobileTokens.color, null, 2)};\nexport default fullMobileTokens;\n`;
   fs.writeFileSync(path.join(distDir, "mobile/index.js"), content, "utf8");
-  const dts = `import type { MobileTokensNamespace } from "../mobile";\nimport type { MobileTokens } from "../mobileTheme";\nexport declare const mobileTokens: MobileTokensNamespace;\nexport declare const fullMobileTokens: MobileTokens;\nexport default fullMobileTokens;\n`;
+  const dts = `import type { MobileTokensNamespace } from "../mobile";\nimport type { MobileTokens } from "../mobileTheme";\nimport type { ColorTokens } from "../colors";\nexport declare const mobileTokens: MobileTokensNamespace;\nexport declare const fullMobileTokens: MobileTokens;\nexport declare const darkColorTokens: ColorTokens;\nexport default fullMobileTokens;\n`;
   fs.writeFileSync(path.join(distDir, "mobile/index.d.ts"), dts, "utf8");
 }
 
 function generateTailwindPreset() {
   ensureDir(path.join(distDir, "tailwind"));
   const presetConfig = {
+    darkMode: "class",
     theme: {
       extend: {
         colors: {
-          bg: colorTokens.bg,
-          text: colorTokens.text,
-          border: colorTokens.border,
-          interactive: colorTokens.interactive,
-          shadow: colorTokens.shadow,
-          press: mobileTokens.pressState,
+          bg: darkColorTokens.bg,
+          text: darkColorTokens.text,
+          border: darkColorTokens.border,
+          interactive: darkColorTokens.interactive,
+          shadow: darkColorTokens.shadow,
+          press: {
+            ...mobileTokens.pressState,
+            active: "rgba(255, 255, 255, 0.08)",
+            hover: "rgba(255, 255, 255, 0.05)",
+          },
+          light: colorTokens,
         },
         spacing: {
           ...spacingTokens,

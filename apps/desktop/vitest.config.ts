@@ -20,6 +20,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      react: path.join(__dirname, "node_modules/react"),
+      "react-dom": path.join(__dirname, "node_modules/react-dom"),
       "@app/core-types": path.join(repoRoot, "packages/core-types/index.ts"),
       "@app/editor": path.join(repoRoot, "packages/editor/index.ts"),
       "@app/indexer": path.join(repoRoot, "packages/indexer/index.ts"),

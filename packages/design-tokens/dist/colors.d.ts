@@ -43,4 +43,5 @@ export interface ColorTokens {
   readonly shadow: string;
 }
 export declare const colorTokens: ColorTokens;
+export declare const darkColorTokens: ColorTokens;
 //# sourceMappingURL=colors.d.ts.map

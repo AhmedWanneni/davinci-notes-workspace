@@ -15,13 +15,17 @@ export type ToolbarActionType =
   | "indent"
   | "outdent"
   | "undo"
-  | "redo";
+  | "redo"
+  | "camera"
+  | "photo"
+  | "audio";
 
 export interface DocChangeNotification {
   docLength: number;
   changeCount: number;
   excerpt: string;
   timestamp: number;
+  content?: string;
 }
 
 export function measurePayloadSize(payload: unknown): number {
@@ -35,7 +39,7 @@ export function measurePayloadSize(payload: unknown): number {
 
 export function createDebouncedBridge<T>(
   callback: (payload: T, sizeBytes: number) => void,
-  delayMs = 300,
+  delayMs = 750,
 ): {
   emit: (payload: T) => void;
   flush: () => void;

@@ -52,6 +52,8 @@ apps/mobile/ios/Pods/
 apps/mobile/android/.gradle/
 apps/mobile/android/build/
 apps/mobile/android/app/build/
+.expo/
+apps/mobile/.expo/
 
 # Signing credentials — never commit.
 *.keystore

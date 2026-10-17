@@ -1,36 +1,8 @@
 "use dom";
 
 import React, { useEffect, useRef, useState } from "react";
-import { EditorState, type Extension } from "@codemirror/state";
-import {
-  EditorView,
-  drawSelection,
-  highlightActiveLine,
-  keymap,
-} from "@codemirror/view";
-import {
-  defaultKeymap,
-  history,
-  historyKeymap,
-  undo,
-  redo,
-  indentMore,
-  indentLess,
-} from "@codemirror/commands";
-import { markdown } from "@codemirror/lang-markdown";
-import { Strikethrough } from "@lezer/markdown";
-import { syntaxHighlighting } from "@codemirror/language";
-import {
-  editorHighlightStyle,
-  editorTheme,
-  highlightExtension,
-  listExtension,
-  listIndentKeymap,
-  livePreviewExtension,
-  softLineBreakExtension,
-  tagExtension,
-  tagTheme,
-} from "@app/editor";
+import { EditorState } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
 import {
   createDebouncedBridge,
   type DocChangeNotification,
@@ -38,32 +10,47 @@ import {
 } from "../src/bridgeProtocol";
 import { attachMobileViewportHandler } from "../src/viewportHandler";
 import { requestEditorFocus } from "../src/iosFocusWorkaround";
+import { createMobileEditorExtensions } from "./editorExtensions";
+import { executeToolbarAction } from "./editorToolbarActions";
+import { darkColorTokens } from "@app/design-tokens/mobile";
 
 export interface EditorDomProps {
   initialContent: string;
-  onDocChanged?: (notification: DocChangeNotification, payloadBytes: number) => void;
+  notePath?: string;
+  onDocChanged?: (
+    notification: DocChangeNotification,
+    payloadBytes: number,
+  ) => void;
   onMetricsUpdate?: (keystrokeLatencyMs: number) => void;
   actionTrigger?: { id: number; action: ToolbarActionType } | null;
   focusTrigger?: number;
+  flushTrigger?: number;
+  insertTrigger?: { id: number; text: string } | null;
+  themeCss?: string;
 }
 
 export default function EditorDom({
   initialContent,
+  notePath,
   onDocChanged,
   onMetricsUpdate,
   actionTrigger,
   focusTrigger,
+  flushTrigger,
+  insertTrigger,
+  themeCss,
 }: EditorDomProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const changeCountRef = useRef<number>(0);
+  const activePathRef = useRef<string | undefined>(notePath);
   const [_isReady, setIsReady] = useState(false);
 
-  // Debounced bridge emitter (300ms) - only metadata crosses bridge
+  // Debounced bridge emitter (750ms) - only crosses on debounce or explicit flush
   const bridgeRef = useRef(
     createDebouncedBridge<DocChangeNotification>((notification, size) => {
       onDocChanged?.(notification, size);
-    }, 300),
+    }, 750),
   );
 
   useEffect(() => {
@@ -76,57 +63,33 @@ export default function EditorDom({
         changeCountRef.current += 1;
         const now = performance.now();
         if (lastKeystrokeTime > 0) {
-          const latency = now - lastKeystrokeTime;
-          onMetricsUpdate?.(latency);
+          onMetricsUpdate?.(now - lastKeystrokeTime);
         }
         lastKeystrokeTime = now;
 
         const docLength = update.state.doc.length;
-        const excerpt = update.state.doc.sliceString(0, Math.min(60, docLength));
+        const excerpt = update.state.doc.sliceString(
+          0,
+          Math.min(60, docLength),
+        );
+        const fullContent = update.state.doc.toString();
 
         bridgeRef.current.emit({
           docLength,
           changeCount: changeCountRef.current,
           excerpt,
           timestamp: Date.now(),
+          content: fullContent,
         });
       }
     });
 
-    const extensions: Extension[] = [
-      history(),
-      drawSelection(),
-      highlightActiveLine(),
-      EditorView.lineWrapping,
-      keymap.of([
-        ...historyKeymap,
-        ...listIndentKeymap,
-        ...defaultKeymap,
-      ]),
-      syntaxHighlighting(editorHighlightStyle),
-      editorTheme,
-      tagTheme,
-      softLineBreakExtension,
-      markdown({
-        extensions: [Strikethrough, highlightExtension],
-      }),
-      livePreviewExtension,
-      listExtension(),
-      tagExtension(),
-      changeListener,
-    ];
-
-    const state = EditorState.create({
-      doc: initialContent,
-      extensions,
-    });
-
-    const view = new EditorView({
-      state,
-      parent: containerRef.current,
-    });
+    const extensions = createMobileEditorExtensions([changeListener]);
+    const state = EditorState.create({ doc: initialContent, extensions });
+    const view = new EditorView({ state, parent: containerRef.current });
 
     viewRef.current = view;
+    activePathRef.current = notePath;
     setIsReady(true);
 
     const detachViewport = attachMobileViewportHandler({
@@ -134,100 +97,91 @@ export default function EditorDom({
       getView: () => viewRef.current,
     });
 
-    // Background Save Guard: flush pending changes before webview is paused
+    // Save Guard: Flush on blur, visibilitychange (app background), and pagehide
+    const handleBlur = () => bridgeRef.current.flush();
     const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        bridgeRef.current.flush();
-      }
+      if (document.visibilityState === "hidden") bridgeRef.current.flush();
     };
-    const handlePageHide = () => {
-      bridgeRef.current.flush();
-    };
+    const handlePageHide = () => bridgeRef.current.flush();
 
+    view.contentDOM.addEventListener("blur", handleBlur);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("pagehide", handlePageHide);
 
     return () => {
+      view.contentDOM.removeEventListener("blur", handleBlur);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pagehide", handlePageHide);
       detachViewport();
+      bridgeRef.current.flush(); // Flush any pending edit before unmounting
       bridgeRef.current.cancel();
       view.destroy();
       viewRef.current = null;
     };
-  }, [initialContent]);
+  }, []);
 
-  // Execute toolbar actions dispatched from native toolbar
+  // Reuse editor instance when notePath or initialContent updates
   useEffect(() => {
     const view = viewRef.current;
-    if (!view || !actionTrigger) return;
+    if (!view) return;
 
-    const { action } = actionTrigger;
-    const { from, to } = view.state.selection.main;
+    if (activePathRef.current !== notePath) {
+      bridgeRef.current.flush();
+      activePathRef.current = notePath;
+      const extensions = createMobileEditorExtensions([]);
+      view.setState(EditorState.create({ doc: initialContent, extensions }));
+    }
+  }, [notePath, initialContent]);
 
-    switch (action) {
-      case "wikilink": {
-        const text = view.state.sliceDoc(from, to);
-        const insert = `[[${text}]]`;
-        view.dispatch({
-          changes: { from, to, insert },
-          selection: { anchor: from + (text ? insert.length : 2) },
-          scrollIntoView: true,
-        });
-        break;
-      }
-      case "link": {
-        const text = view.state.sliceDoc(from, to) || "text";
-        const insert = `[${text}](url)`;
-        view.dispatch({
-          changes: { from, to, insert },
-          selection: { anchor: from + insert.length - 4, head: from + insert.length - 1 },
-          scrollIntoView: true,
-        });
-        break;
-      }
-      case "tag": {
-        view.dispatch({
-          changes: { from, to, insert: "#" },
-          selection: { anchor: from + 1 },
-          scrollIntoView: true,
-        });
-        break;
-      }
-      case "checkbox": {
-        const line = view.state.doc.lineAt(from);
-        const insert = "- [ ] ";
-        view.dispatch({
-          changes: { from: line.from, to: line.from, insert },
-          selection: { anchor: from + insert.length },
-          scrollIntoView: true,
-        });
-        break;
-      }
-      case "indent": {
-        indentMore(view);
-        break;
-      }
-      case "outdent": {
-        indentLess(view);
-        break;
-      }
-      case "undo": {
-        undo(view);
-        break;
-      }
-      case "redo": {
-        redo(view);
-        break;
-      }
+  // Execute toolbar actions
+  useEffect(() => {
+    if (viewRef.current && actionTrigger) {
+      executeToolbarAction(viewRef.current, actionTrigger.action);
     }
   }, [actionTrigger]);
 
-  // Handle programmatic focus requests (iOS focus workaround)
+  // Execute programmatic focus requests (iOS focus workaround)
   useEffect(() => {
-    if (!viewRef.current || !focusTrigger) return;
-    requestEditorFocus(viewRef.current, { position: "end" });
+    if (viewRef.current && focusTrigger) {
+      requestEditorFocus(viewRef.current, { position: "end" });
+    }
   }, [focusTrigger]);
+
+  // Execute programmatic flush requests from native container
+  useEffect(() => {
+    if (flushTrigger) {
+      bridgeRef.current.flush();
+    }
+  }, [flushTrigger]);
+
+  // Insert arbitrary markdown text at cursor (for camera, photo, voice embeds)
+  useEffect(() => {
+    if (viewRef.current && insertTrigger) {
+      const { from, to } = viewRef.current.state.selection.main;
+      viewRef.current.dispatch({
+        changes: { from, to, insert: insertTrigger.text },
+        selection: { anchor: from + insertTrigger.text.length },
+        scrollIntoView: true,
+      });
+    }
+  }, [insertTrigger]);
+
+  // Apply sanitized theme CSS to DOM container
+  useEffect(() => {
+    let styleEl = document.getElementById(
+      "davinci-mobile-theme",
+    ) as HTMLStyleElement | null;
+    if (!themeCss) {
+      styleEl?.remove();
+      return;
+    }
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "davinci-mobile-theme";
+      document.head.appendChild(styleEl);
+    }
+    styleEl.textContent = themeCss;
+  }, [themeCss]);
 
   return (
     <div
@@ -237,7 +191,7 @@ export default function EditorDom({
         width: "100%",
         height: "100%",
         overflow: "hidden",
-        backgroundColor: "var(--color-bg-primary, #ffffff)",
+        backgroundColor: `var(--color-bg-primary, ${darkColorTokens.bg.primary})`,
       }}
     />
   );

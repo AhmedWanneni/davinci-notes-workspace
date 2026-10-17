@@ -35,7 +35,9 @@ export function classifySyncDiff(
     const remoteChanged = state(remoteEntry) !== state(baseEntry);
     const classification: SyncClassification =
       localChanged && remoteChanged
-        ? "conflict"
+        ? state(localEntry) === state(remoteEntry)
+          ? "no-op"
+          : "conflict"
         : localChanged
           ? "push"
           : remoteChanged

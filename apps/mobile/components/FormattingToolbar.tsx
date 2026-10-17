@@ -1,4 +1,5 @@
 import React from "react";
+import { darkColorTokens, mobileTokens } from "@app/design-tokens/mobile";
 import type { ToolbarActionType } from "../src/bridgeProtocol";
 
 export interface FormattingToolbarProps {
@@ -17,6 +18,9 @@ const TOOLBAR_BUTTONS: ToolbarButtonSpec[] = [
   { action: "link", label: "Link", ariaLabel: "Insert markdown link" },
   { action: "tag", label: "#Tag", ariaLabel: "Insert tag" },
   { action: "checkbox", label: "☑ Task", ariaLabel: "Insert task checkbox" },
+  { action: "camera", label: "📷", ariaLabel: "Take photo with camera" },
+  { action: "photo", label: "🖼", ariaLabel: "Attach photo from library" },
+  { action: "audio", label: "🎙", ariaLabel: "Record voice memo" },
   { action: "indent", label: "⇥ Indent", ariaLabel: "Indent list item" },
   { action: "outdent", label: "⇤ Outdent", ariaLabel: "Outdent list item" },
   { action: "undo", label: "↶ Undo", ariaLabel: "Undo last change" },
@@ -35,10 +39,10 @@ export function FormattingToolbar({
         flexDirection: "row",
         alignItems: "center",
         overflowX: "auto",
-        backgroundColor: "var(--color-bg-secondary, #f6f6f6)",
-        borderTop: "1px solid var(--color-border-subtle, #e4e4e4)",
-        padding: "6px 8px",
-        gap: "6px",
+        backgroundColor: `var(--color-bg-secondary, ${darkColorTokens.bg.secondary})`,
+        borderTop: `1px solid var(--color-border-subtle, ${darkColorTokens.border.subtle})`,
+        padding: "4px 8px",
+        gap: "4px",
         WebkitOverflowScrolling: "touch",
       }}
     >
@@ -55,14 +59,14 @@ export function FormattingToolbar({
           aria-label={btn.ariaLabel}
           style={{
             padding: "8px 12px",
-            minHeight: "40px",
-            minWidth: "44px",
+            minHeight: `${mobileTokens.minTouchTarget}px`,
+            minWidth: `${mobileTokens.minTouchTarget}px`,
             fontSize: "14px",
             fontWeight: 500,
             borderRadius: "4px",
-            border: "1px solid var(--color-border-normal, #d4d4d4)",
-            backgroundColor: "var(--color-bg-primary, #ffffff)",
-            color: "var(--color-text-normal, #222222)",
+            border: `1px solid var(--color-border-normal, ${darkColorTokens.border.normal})`,
+            backgroundColor: `var(--color-bg-primary, ${darkColorTokens.bg.primary})`,
+            color: `var(--color-text-normal, ${darkColorTokens.text.normal})`,
             cursor: disabled ? "not-allowed" : "pointer",
             flexShrink: 0,
             display: "inline-flex",

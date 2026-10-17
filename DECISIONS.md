@@ -162,6 +162,15 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0014](adr/0014-mobile-graph-view-deferred.md) | Mobile graph view deferred; backlinks-only for v1 | Accepted |
 | [0185](adr/0185-mobile-shell-expo.md) | Mobile shell: Expo (React Native + Expo Router), CodeMirror 6 in DOM component | Accepted |
 | [0186](adr/0186-shared-tokens-per-platform-components.md) | Shared tokens, per-platform components; Radix/SCSS desktop-only | Accepted |
+| [0187](adr/0187-mobile-vault-storage-hybrid-sandbox-and-saf.md) | Mobile vault storage: hybrid sandbox by default with SAF fallback | Accepted |
+| [0188](adr/0188-mobile-fast-capture-destination-and-attachment-routing.md) | Mobile fast capture: standalone Quick Notes by default, configurable Inbox/Daily, desktop attachment rules | Accepted |
+| [0189](adr/0189-sync-conflict-resolution-orchestration-and-safety.md) | Sync conflict resolution orchestration: clean 3-way merge when safe, conflict copies when unsafe, delete-vs-edit edit-wins | Accepted |
+| [0190](adr/0190-mobile-suspended-sync-semantics-and-background-limits.md) | Mobile suspended sync semantics: foreground/open priority, best-effort short background tasks, pending changes honesty | Accepted |
+| [0191](adr/0191-mobile-theme-safety-and-shell-isolation.md) | Mobile theme safe loader rules: pure-CSS sanitization (no remote url/import/scripts) and native shell isolation | Accepted |
+| [0192](adr/0192-mobile-local-graph-rendering-and-node-bounds.md) | Mobile local graph view: react-native-svg (0 KB native overhead), 50-node cap, withDbLock concurrency | Accepted |
+| [0193](adr/0193-mobile-readonly-canvas-and-cycle-prevention.md) | Mobile read-only JSON Canvas: lazy webview pan/zoom, ancestor chain cycle detection (max depth 3) | Accepted |
+| [0194](adr/0194-mobile-expo-sdk-pin-and-dependency-alignment.md) | Mobile Expo SDK pin and dependency alignment: pinned SDK 57 stable, React version ownership, expo-audio migration | Accepted |
+| [0195](adr/0195-mobile-vault-onboarding-and-registry.md) | Mobile vault onboarding, multi-vault registry, and storage selection | Accepted |
 
 ## Design System & Tooling
 

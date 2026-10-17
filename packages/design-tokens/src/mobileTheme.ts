@@ -1,4 +1,4 @@
-import { colorTokens, type ColorTokens } from "./colors.js";
+import { colorTokens, darkColorTokens, type ColorTokens } from "./colors.js";
 import { borderWidthTokens, type BorderWidthTokens } from "./borders.js";
 import { borderRadiusTokens, type BorderRadiusTokens } from "./radii.js";
 import { spacingTokens, type SpacingTokens } from "./spacing.js";
@@ -15,6 +15,8 @@ export interface MobileTokens {
     readonly radius: BorderRadiusTokens;
   };
   readonly color: ColorTokens;
+  readonly lightColor: ColorTokens;
+  readonly darkColor: ColorTokens;
   readonly space: SpacingTokens;
   readonly typography: TypographyTokens;
   readonly zIndex: ZIndexTokens;
@@ -29,7 +31,9 @@ export const fullMobileTokens: MobileTokens = {
     width: borderWidthTokens,
     radius: borderRadiusTokens,
   },
-  color: colorTokens,
+  color: darkColorTokens,
+  lightColor: colorTokens,
+  darkColor: darkColorTokens,
   space: spacingTokens,
   typography: typographyTokens,
   zIndex: zIndexTokens,
