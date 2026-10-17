@@ -243,3 +243,18 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0171](adr/0171-capture-window-sql-permission-and-quick-search.md) | Capture window SQL permissions and direct indexer quick search with WAL mode and native note activation | Accepted |
 | [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) | Tray left-click popover toggle for quick capture with monitor work area clamping and left-click setting | Accepted; supersedes Phase 1 click decision |
 
+## Web Clipper (planned)
+
+Draft ADRs for the Web Clipper feature. All are **Proposed** — they need owner
+input on the open decisions before implementation. Plan:
+`web-clipper-feature-plan.md`. See ADR-0173 ("Open decisions") for the list.
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0173](adr/0173-clipper-transport-extension-to-desktop.md) | Clipper transport: deep-link wake/handshake only, clip payload over loopback with a per-install keychain token (loopback-only bind, Origin/Host checks, size cap); Native Messaging deferred | Proposed |
+| [0174](adr/0174-clipper-content-extraction-and-markdown-libraries.md) | Content extraction + HTML→Markdown: use Defuddle (MIT, ~86 KB gzip) with `useAsync:false`; Readability+Turndown (~17 KB gzip) is the documented fallback | Proposed |
+| [0175](adr/0175-clipper-extension-framework-and-core-package.md) | Extension at `apps/web-clipper` built with WXT (MV3, Chromium first); shared pure-TS `packages/clipper-core`; new `clipper-core`/`web-clipper` boundaries elements | Proposed |
+| [0176](adr/0176-clipper-template-engine-execution-split.md) | Template engine split: extension resolves page variables and renders body/properties; desktop resolves vault context, behavior and paths; templates are data only (no eval); one `ClipPayload` schema | Proposed |
+| [0177](adr/0177-clipper-vault-write-path.md) | Clipped notes write through the canonical vault write path — Rust authenticates/validates then the main webview calls `createNoteInVault`/`appendToNoteInVault`; no extension-side or Rust-side direct write | Proposed |
+| [0178](adr/0178-clipper-closed-app-queue.md) | Closed-app clips queue in extension storage (bounded, oldest-first eviction) and drain event-driven (no timers) with `clipId`+`contentHash` dedupe against a desktop ledger | Proposed |
+

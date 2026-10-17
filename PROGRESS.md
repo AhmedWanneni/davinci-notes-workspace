@@ -4,6 +4,49 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Web Clipper feature plan (plan only, no code)
+
+**Deliverables:** `web-clipper-feature-plan.md` (phased build plan, architecture
+diagram, payload schema, phases 0–8 with dependencies + adversarial verification),
+draft ADRs `docs/adr/0173`…`0178`, and this file + `DECISIONS.md` updated.
+
+**What was decided (all `Proposed`, awaiting owner input — see the plan §10 and
+each ADR's "Open decisions"):**
+1. **Transport (ADR-0173):** hybrid — `davinci://clip/wake` deep link as a
+   *handshake/wake only* (never carries content), payload over a loopback-only
+   HTTP listener on `127.0.0.1` with a per-install keychain token, Origin/Host
+   checks and a 2 MiB cap. Native Messaging deferred. Rationale in ADR-0173;
+   precedent is the existing OAuth `TcpListener` in `oauth.rs`. **Blocker to
+   verify:** the Tauri docs state `tauri-plugin-deep-link` needs Rust ≥ 1.90 while
+   `Cargo.toml` pins `1.77.2`; loopback-only + manual pairing is the fallback.
+2. **Extraction (ADR-0174):** Defuddle (MIT, 310 KB / ~86.4 KB gzip, WIP, the
+   library the reference clipper uses) with **`useAsync:false`** so no third-party
+   API is ever contacted; `@mozilla/readability` (11.2 KB gzip) + Turndown
+   (4.1 KB gzip) recorded as the lighter fallback.
+3. **Framework/location (ADR-0175):** new `apps/web-clipper` (WXT, MV3, Chromium
+   first) + new pure-TS `packages/clipper-core`; new `clipper-core`/`web-clipper`
+   entries in `eslint-plugin-boundaries`.
+4. **Engine split (ADR-0176):** extension resolves page variables and renders
+   body/properties; desktop resolves vault context, behavior and paths; templates
+   are data only; one `ClipPayload` schema (documented in the plan §4).
+5. **Write path (ADR-0177):** Rust authenticates/validates then emits to the main
+   webview, which uses the canonical `createNoteInVault` / new
+   `appendToNoteInVault`; no extension-side and no Rust-side direct note write.
+6. **Closed-app queue (ADR-0178):** queue in extension storage (200 clips / 5 MB /
+   30 days, oldest-first), event-driven drain (no timers), `clipId` +
+   `contentHash` dedupe against a bounded desktop ledger.
+
+**No dependencies were installed and no application code was written.** Bundle
+sizes and library facts were verified against bundlephobia, the Obsidian
+documentation/help repo, and the Defuddle/Readability/WXT repositories; the
+Obsidian clipper is cited only for its documented behavior and public repo
+contents.
+
+**Recommended first phase:** Phase 0 (ADRs + transport spike, HIGH-RISK / one
+session) — see the plan §12.
+
+---
+
 ## Current Focus
 
 **Editor styling tokens — Phase 2 complete**
@@ -1004,19 +1047,20 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
-2. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
-3. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
-4. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
-5. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
-6. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
-7. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
-8. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-9. **Unlinked Mentions Detection**
-10. **Inline Property Editing**
-11. **Outline Scroll Synchronization**
-12. Add success/warning semantic color tokens
-13. Chromatic / Playwright screenshot regression
+1. **Web Clipper Phase 0**: ADRs + transport spike — prove one clip round-trips end to end and settle the deep-link/Rust-version question. **Recommended first**; plan in `web-clipper-feature-plan.md`, decisions ADR-0173…0178 (all `Proposed`, need owner input).
+2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
+4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+5. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
+6. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+7. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+8. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+9. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+10. **Unlinked Mentions Detection**
+11. **Inline Property Editing**
+12. **Outline Scroll Synchronization**
+13. Add success/warning semantic color tokens
+14. Chromatic / Playwright screenshot regression
 
 ## Blocked / Open Questions
 
@@ -1025,6 +1069,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 - **Visual regression**: Not yet configured.
 - **Total JS/CSS size budgets**: lazy chunks counted toward totals — adjust if/when configured.
 - **AI feature plan artifact**: `plans/ai-integration-plan/ai-features-build-plan.md` is missing; recover it before treating any undiscovered prior AI decision as authoritative.
+- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction library (ADR-0174), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. Also verify the `tauri-plugin-deep-link` Rust ≥ 1.90 requirement against the pinned `rust-version = "1.77.2"` before committing to the recommended transport.
 
 ---
 

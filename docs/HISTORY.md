@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-17 | Web Clipper feature plan (plan only) | Produced `web-clipper-feature-plan.md` (architecture diagram, `ClipPayload` schema, phases 0–8 with dependency/size costs and adversarial verification steps) plus six draft ADRs (0173 transport hybrid; 0174 Defuddle vs Readability+Turndown with measured gzip sizes; 0175 WXT + `packages/clipper-core`; 0176 template-engine split; 0177 canonical vault write path; 0178 closed-app queue with dedupe). All Proposed, pending owner input; no code and no dependencies added. |
 | 2026-10-11 | Editor styling tokens — Phase 2 | Added 30 editor-prefixed Obsidian-parity tokens in a separate `editor.obsidian` namespace; generated CSS, SCSS, and TypeScript outputs. All existing token source values and generated token values were preserved. Design-system build and typecheck passed; `packages/editor` was not modified. |
 | 2026-10-11 | Tray Phase 4b — Click-to-capture popover with left-click setting | Implemented ADR-0172 (supersedes Phase 1 click decision): left-click on tray icon toggles Quick Capture popover anchored under the tray icon; right-click opens the native menu; pure Rust positioning in tray_position.rs clamps strictly to monitor work area with Retina DPI and multi-monitor support; eliminated blur/toggle race via 350ms timestamp debounce; in-memory draft text preserved across blur, dismiss, and Escape; live configurable "Menu bar icon click" setting ("Open quick capture" vs "Open menu") with existing-user fallback to "menu". 45 Rust tests and 373 frontend tests pass with 0 lint errors. |
 | 2026-10-11 | Tray Phase 5 — Quick Search from the capture window | Implemented Option C (ADR-0171): granted scoped SQL permissions (`sql:default`, `sql:allow-execute`) to `capabilities/capture.json` so the capture window queries `vault-index.db` directly via `@tauri-apps/plugin-sql` and the canonical `@app/indexer` search engine (`executeSearchQuery` / `parseSearchQuery`). Reuses exact same BM25 ranking and query syntax without IPC proxy lag or main webview coupling. Queries are debounced by 150ms with sequence token cancellation and WAL concurrency (`journal_mode=WAL`, `busy_timeout=5000`). Up/Down keys navigate, Enter opens note via native `open_note_from_capture` with strict vault-root path confinement, and Tab toggles modes while preserving typed capture text. All 39 Rust unit tests and 370 frontend unit tests (102 test suites) pass with 0 lint errors. Capture bundle grew by only 1.43 KB gzip (8.14 KB raw / 2.57 KB gzip). |
@@ -3206,3 +3207,66 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 
 
 
+
+---
+
+### 2026-10-17: Web Clipper feature plan (plan only — no application code)
+
+- **Scope**: A planning-only session for a Web Clipper browser extension that
+  saves web pages (or selections/highlights) into the vault as Markdown notes,
+  adapted to this stack. Deliverables were the plan, draft ADRs, and index
+  updates. No packages, no code, no dependencies.
+- **Reading order followed**: `AGENTS.md`, `DECISIONS.md` (index), `PERFORMANCE.md`,
+  `PROGRESS.md`, then only the feature-relevant ADRs (vault/file I/O, attachments,
+  tags, properties/frontmatter, Tauri shell, sync, capture).
+- **Research (not invented)**: Obsidian Web Clipper docs (help site + the
+  `obsidianmd/obsidian-help` "Obsidian Web Clipper" directory) and its public repo
+  (`obsidianmd/obsidian-clipper`, MIT, v1.7.1) were used for documented behavior
+  only. Documented delivery relies on the `obsidian://` URI plus the clipboard,
+  with a "Legacy mode" that passes content via URI and is explicitly
+  character-limited — cited as evidence that a deep-link-only payload is unsafe
+  for full articles. Bundle sizes came from bundlephobia: Defuddle 0.19.5
+  310,010 B / 86,406 B gzip (2 deps), `@mozilla/readability` 0.6.0 33,781 B /
+  11,196 B gzip (0 deps), `turndown` 7.2.4 10,781 B / 4,094 B gzip, plus
+  `turndown-plugin-gfm` 2,062 B / 952 B gzip. Licenses verified: Defuddle MIT
+  (LICENSE file), Readability Apache-2.0 (README license section), Turndown MIT.
+  WXT verified at v0.21.4, MIT, Chromium/Firefox/Edge/Safari, MV2+MV3, Vite-based.
+- **Codebase facts used**: existing OAuth loopback `TcpListener` in
+  `apps/desktop/src-tauri/src/oauth.rs` (precedent for the recommended transport);
+  `resolve_in_vault` confinement + atomic `write_note` in `fs.rs`; the canonical
+  `createNoteInVault` write path (ADR-0058) and `withDbLock`/`withDbTransaction`
+  discipline (ADR-0168); attachments model (ADR-0109/0110/0112/0113/0115);
+  boundary elements in `.eslintrc.js`; `tauri.conf.json` `csp: null`; Cargo
+  `rust-version = "1.77.2"` vs the Tauri docs' stated deep-link requirement of
+  Rust ≥ 1.90.
+- **Decisions drafted (all `Proposed`, owner input required)**:
+  - ADR-0173 transport: hybrid deep-link wake/handshake + loopback payload with a
+    per-install keychain token, loopback-only bind, Origin/Host checks, 2 MiB cap;
+    Native Messaging deferred; loopback-only + manual pairing is the documented
+    fallback if deep links are blocked by the Rust version.
+  - ADR-0174 extraction: Defuddle with `useAsync:false` (never contact the
+    FxTwitter fallback API); Readability+Turndown recorded as the ~17 KB gzip
+    alternative.
+  - ADR-0175: `apps/web-clipper` (WXT, MV3, Chromium first) + pure-TS
+    `packages/clipper-core`; new `clipper-core`/`web-clipper` boundary elements.
+  - ADR-0176: extension resolves page variables and renders body/properties;
+    desktop resolves vault context/behavior/paths; templates are data only; one
+    `ClipPayload` schema.
+  - ADR-0177: Rust authenticates/validates, main webview writes via the canonical
+    path; no extension-side or Rust-side direct note write.
+  - ADR-0178: bounded extension-side queue (200 clips / 5 MB / 30 days,
+    oldest-first) drained on events (no timers) with `clipId`+`contentHash` dedupe
+    against a bounded desktop ledger.
+- **Plan**: `web-clipper-feature-plan.md` — goals/non-goals, stated assumptions,
+  a Mermaid architecture diagram, the payload/ack schema, phases 0–8 each with
+  scope, files/packages touched, dependency size costs, and explicit adversarial
+  verification steps (path traversal with actual-result reporting, 5 MiB payloads,
+  closed-app queue then launch, dedupe replay, SSRF for Phase 6, idle-cost and
+  no-polling assertions). Phase 0 (ADRs + transport spike), Phase 3 (desktop
+  receiver) and Phase 7 (queue/hotkeys/multi-vault) are marked HIGH-RISK / must
+  stay in one session; the verbatim DB rule ("Any step that touches
+  vault-index.db must follow the standing withDbLock/WAL concurrency rules.") is
+  carried in every DB-touching phase.
+- **Not done (explicitly)**: no `apps/web-clipper`, no `packages/clipper-core`, no
+  Rust receiver code, no dependency installs. Nothing was marked Accepted;
+  no accepted ADR was edited.
