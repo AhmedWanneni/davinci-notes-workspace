@@ -19,4 +19,5 @@ export * from "./VaultSettingsSection";
 export * from "./noteStore";
 export * from "./uniqueNoteName";
 export * from "./useEditorNoteLoader";
+export * from "./useEditorSaveManager";
 export * from "./saveQueue";

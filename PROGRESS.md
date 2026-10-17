@@ -4,6 +4,25 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Mobile Editor Immediate-Back Flush Handshake & Viewport Reload (`apps/mobile/`, ADR-0197) (complete)**
+Resolved issue where typing in a note, navigating back, and reopening showed stale or missing content:
+1. **Root Cause Diagnosis**:
+   - **Bridge Flush Race on Back Navigation**: When typing, edits were held in `EditorDom.tsx`'s 750ms debounced bridge. When tapping Back or pressing hardware back, `handleBack` set `flushTrigger` and blindly awaited `setTimeout(200)`. Because prop serialization into the Android WebView and the subsequent `onDocChanged` postMessage across the native bridge takes >200ms on Android, `defaultSaveQueue.isPending` evaluated to `false`, immediately unmounting the `/editor` screen and destroying the WebView before pending changes could be saved.
+   - **Stale Files List on Stack Return**: `(tabs)/index.tsx` loaded the vault list only on initial mount (`useEffect`). When popping back from `/editor` to `(tabs)`, the screen remained mounted in the background and never re-scanned the vault, leading to stale paths and H1 rename collisions.
+   - **Loader Path Staleness**: `useEditorNoteLoader.ts` guarded initialization with a boolean `hasInitializedRef`, which prevented re-reading the note when re-opened with updated parameters.
+2. **Fixes**:
+   - **Bridge Flush Handshake (`EditorDom.tsx`, `useEditorSaveManager.ts`)**: Added `onFlushAck` callback prop. When `flushTrigger` fires, `EditorDom` flushes its debounced bridge and immediately signals `onFlushAck(flushId)`. In `useEditorSaveManager`, `handleBack` awaits the explicit `onFlushAck` confirmation (with timeout fallback) and awaits `defaultSaveQueue` completion before navigating back, guaranteeing 100% of keystrokes are flushed and committed to disk.
+   - **File-Size Refactoring**: Extracted save queue coordination, conflict detection, H1 sync, and back handling into `useEditorSaveManager.ts` (232 lines), shrinking `editor.tsx` to 181 lines (well under the 250 hard cap).
+   - **Vault Focus Refresh (`(tabs)/index.tsx`)**: Replaced `useEffect` with `useFocusEffect` so the file list immediately refreshes on return, showing all new and renamed notes.
+   - **Key-Based Loader & NoteStore Resolution (`useEditorNoteLoader.ts`)**: Switched initialization guard from a boolean to a compound key (`${noteId}:${storePath}:${preset}`) and resolved paths through `defaultNoteStore.getPath(noteId)`.
+3. **Live Device Verification (`emulator-5554`)**:
+   - Tested typing and immediately tapping back (<50ms, without waiting for debounce timer); logcat confirmed immediate atomic save to disk (`size=77 content="# Untitled 1\n\ntesting_persistencPERSISTENCE_VERIFIED_SUCCESS_999e_content_123"`).
+   - Reopened note; verified via UI automator hierarchy dump that `PERSISTENCE_VERIFIED_SUCCESS_999` rendered properly in the CodeMirror editor.
+   - Tested creating a new note via `+` (`Untitled 320`), typing `NEW_NOTE_PERSISTENCE_SUCCESS_ABC`, and immediately tapping back; note saved to disk, appeared in search, and reopened with complete text preserved.
+   - TypeScript `tsc --noEmit` and ESLint pass with 0 errors across `apps/mobile`.
+
+---
+
 **Mobile Note Persistence, Queue Serialization & Crash-Safe Save Recovery (`apps/mobile/`, ADR-0197) (complete)**
 Resolved disk persistence failures on mobile: CodeMirror changes reliably write to `.md` files on disk with atomic serialization, crash-safety, and visible error recovery:
 1. **Step 1 (Diagnostic Save Path Trace & Root Causes)**:

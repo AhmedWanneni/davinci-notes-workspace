@@ -31,11 +31,12 @@ export function useEditorNoteLoader({
   const [loadError, setLoadError] = useState<string | null>(null);
   const baseMtimeRef = useRef<number>(0);
 
-  const hasInitializedRef = useRef<boolean>(false);
+  const lastLoadedKeyRef = useRef<string>("");
 
   useEffect(() => {
-    if (hasInitializedRef.current) return;
-    hasInitializedRef.current = true;
+    const currentKey = `${noteId ?? ""}:${storePath}:${preset ?? ""}`;
+    if (lastLoadedKeyRef.current === currentKey) return;
+    lastLoadedKeyRef.current = currentKey;
 
     let mounted = true;
     (async () => {
@@ -67,13 +68,19 @@ export function useEditorNoteLoader({
           const stat = await atomicWriteNote(adapter, resolvedPath, initial);
           baseMtimeRef.current = stat.mtime;
         } else {
+          const resolvedPath = noteId
+            ? (defaultNoteStore.getPath(noteId) ?? storePath)
+            : storePath;
+          if (mounted) {
+            setActivePath(resolvedPath);
+          }
           try {
-            const file = await adapter.readNote(storePath);
+            const file = await adapter.readNote(resolvedPath);
             baseMtimeRef.current = file.mtime;
             if (mounted) setContent(file.content);
           } catch {
             const title =
-              storePath.replace(/\.md$/i, "").split("/").pop() ?? "Untitled";
+              resolvedPath.replace(/\.md$/i, "").split("/").pop() ?? "Untitled";
             if (mounted) setContent(`# ${title}\n\n`);
           }
         }

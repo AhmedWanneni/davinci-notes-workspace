@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { View, FlatList } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import {
   SortAscending,
   SortDescending,
@@ -92,9 +92,9 @@ export default function FilesScreen(): React.ReactElement {
     }
   }, []);
 
-  useEffect(() => {
-    loadVault();
-  }, [loadVault]);
+  useFocusEffect(
+    useCallback(() => { void loadVault(); }, [loadVault]),
+  );
 
   useVaultForegroundSync({
     adapter,

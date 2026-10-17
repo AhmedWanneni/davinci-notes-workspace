@@ -32,6 +32,7 @@ export interface EditorDomProps {
   actionTrigger?: { id: number; action: ToolbarActionType } | null;
   focusTrigger?: number;
   flushTrigger?: number;
+  onFlushAck?: (id: number) => void;
   insertTrigger?: { id: number; text: string } | null;
   themeCss?: string;
 }
@@ -40,6 +41,7 @@ export default function EditorDom({
   initialContent,
   notePath,
   onDocChanged,
+  onFlushAck,
   onMetricsUpdate,
   actionTrigger,
   focusTrigger,
@@ -57,6 +59,11 @@ export default function EditorDom({
   useEffect(() => {
     onDocChangedRef.current = onDocChanged;
   }, [onDocChanged]);
+
+  const onFlushAckRef = useRef(onFlushAck);
+  useEffect(() => {
+    onFlushAckRef.current = onFlushAck;
+  }, [onFlushAck]);
 
   // Debounced bridge emitter (750ms) - only crosses on debounce or explicit flush
   const bridgeRef = useRef(
@@ -183,6 +190,7 @@ export default function EditorDom({
   useEffect(() => {
     if (flushTrigger) {
       bridgeRef.current.flush();
+      onFlushAckRef.current?.(flushTrigger);
     }
   }, [flushTrigger]);
 
