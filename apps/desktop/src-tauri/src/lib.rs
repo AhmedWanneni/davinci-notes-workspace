@@ -31,6 +31,7 @@ mod reminder_scheduler;
 #[cfg(test)]
 mod reminder_tests;
 mod state;
+mod syncthing;
 mod theme_files;
 mod tray;
 mod tray_commands;
@@ -141,6 +142,9 @@ pub fn run() {
       reminder_commands::reschedule_reminders,
       reminder_commands::snooze_reminder,
       reminder_commands::dismiss_reminder,
+      syncthing::syncthing_detect,
+      syncthing::syncthing_status,
+      syncthing::syncthing_qr_png,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
@@ -178,10 +182,8 @@ pub fn run() {
 
       #[cfg(target_os = "macos")]
       let window = window.decorations(false).transparent(true);
-
       #[cfg(target_os = "windows")]
       let window = window.decorations(false).shadow(true);
-
       #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
       let window = window.decorations(false);
 
@@ -198,7 +200,6 @@ pub fn run() {
         app.manage(scheduler.clone());
         scheduler.start();
       }
-
 
       if std::env::var_os("DAVINCI_PLUGIN_RPC_PROBE").is_some() {
         println!("[plugin-rpc] probe requested");
