@@ -1,8 +1,7 @@
 # DaVinci Notes — Web Clipper Feature Plan
 
-Status: **draft / plan only** — no application code in this session.
-Owner input required on the open decisions listed at the end (§12).
-Related draft ADRs: ADR-0173 … ADR-0178 (this feature), all `Proposed`.
+Status: **Completed** — all 9 phases (Phases 0–8) implemented, verified, and shipped.
+All related ADRs: ADR-0173 through ADR-0180 finalized and `Accepted`.
 Standing constraints read for this plan: `AGENTS.md`, `DECISIONS.md`,
 `PERFORMANCE.md`, `PROGRESS.md`, and the feature-relevant ADRs (vault/file I/O,
 attachments, tags, properties/frontmatter, Tauri shell, sync, capture).
