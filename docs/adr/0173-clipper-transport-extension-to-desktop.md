@@ -2,11 +2,12 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). The **loopback half is
-implemented** (Phase 3, part 1 — see "Phase 0 verification outcome" below); the
-deep-link half is **deferred, not built**. The decision below is unchanged in
-substance but its default has narrowed: Option 4's deep-link leg is now optional
-rather than assumed.
+Proposed (needs owner input, see "Open decisions"). **Both halves are
+implemented**: the loopback listener (Phase 3, part 1 — see "Phase 0
+verification outcome") and the extension's client (Phase 3, part 3 — see
+"Implementation outcome" below). The deep-link half is **deferred, not built**.
+The decision below is unchanged in substance but its default has narrowed:
+Option 4's deep-link leg is now optional rather than assumed.
 
 ## Context
 
@@ -138,6 +139,40 @@ link remains addable later behind the same route.
 `tauri-plugin-single-instance` are **not** added; the declared MSRV stays
 `1.77.2`; O1's deep-link leg stays open for a later session.
 
+## Implementation outcome (Phase 3 part 3 — the extension half)
+
+The browser side of the same protocol, built in `apps/web-clipper`. What landed:
+
+| Piece | Where | Behaviour |
+|---|---|---|
+| Request | `src/transport/postClipToDesktop.ts` | `POST http://127.0.0.1:<port>/clipper/clip`, `Content-Type: application/json`, `Authorization: Bearer <token>`, body = the `ClipPayload` JSON |
+| Result | same | A failure is a **value**, never a throw: `{delivered:true,path?}` or `{delivered:false,reason}`. `reason` is the app's own `ClipError` vocabulary plus `not-paired` / `unreachable` / `timeout` / `queued` |
+| Status → reason | same | Binds the ack body first (it is a `ClipAck`, error included), then falls back to the status: 400 `invalid-payload`, 401/403 `unauthorized`, 409 `vault-not-open`, 413 `too-large`, 422 `invalid-path`, 503 `app-busy`, anything else (404/405/5xx) `unreachable` |
+| Correlation | same | The ack is trusted only when it names the sent `clipId` **or names none**: Rust deliberately sends `clipId: ""` for refusals that happen before the body parses, and those still carry the error code |
+| Ceiling | same | 15 s abort (`CLIPPER_REQUEST_TIMEOUT_MS`), plus a client-side 2 MiB pre-check mirroring `clipper_validate::MAX_BODY_BYTES`, so an oversized clip is not built and sent to be refused |
+| Pairing | `src/pairing/pairingStore.ts` | `clipper.pairing` = `{port, token}` in `browser.storage.local`. The port must be an integer 1–65535 and the token non-empty, else the entry reads as **unpaired**; nothing is repaired or guessed |
+| Pairing UI | `entrypoints/options/` + `src/components/PairingPanel/` | The extension's options page: port + token fields, save, forget. The app's Settings section shows the same two values |
+| Popup | `src/popup/clipSessionDeps.ts`, `useClipSession.ts`, `components/ClipPopup/` | "Add to DaVinci Notes" is enabled only while paired; success reports the path the app wrote, failure shows `describeDeliveryFailure(reason)` and keeps the clip, the form and the `.md` download |
+
+Three consequences worth recording:
+
+1. **No queue yet (ADR-0178 is Phase 7).** A clip that cannot be delivered is
+   reported and kept on screen, never silently dropped into a buffer that does
+   not exist. A `queued` ack — which Rust cannot send today — is surfaced as
+   "not sent" rather than as success.
+2. **CORS is not handled on either side**, as decided. The extension holds
+   `host_permissions: ["http://127.0.0.1/*"]`, so Chromium exempts the request
+   from CORS and does not preflight it; the desktop's `Origin` check accepts
+   `chrome-extension://` and skips the check entirely when no `Origin` is present.
+   Which of those two the browser actually sends is **owner-local verification**:
+   jsdom cannot produce it, and the host permission is `http://127.0.0.1/*` in the
+   manifest, so no other host is reachable. Because the request URL — not a
+   header we set — determines `Host`, the browser always sends exactly
+   `127.0.0.1:<port>`, which is what the desktop's exact-match rule expects.
+3. **Manual pairing is what exists.** There is no discovery, no handshake, no
+   nonce window: the user reads the port and token off the app's Settings panel
+   and types them once. O5 is still open on whether that stays the default.
+
 ## Consequences
 
 - One cross-boundary protocol, authenticated, with the payload out of any URL.
@@ -151,9 +186,10 @@ link remains addable later behind the same route.
 - The deep link, if ever added, brings `tauri-plugin-deep-link` and
   `tauri-plugin-single-instance` as Rust dependencies; their binary delta must be
   measured (ADR-0152 precedent), not assumed. Nothing is added today.
-- The extension will need a narrow `http://127.0.0.1/*` host permission to `fetch`
-  the loopback route without CORS. That is an extension-side change and lands with
-  the popup's transport wiring, not here.
+- The extension needs a narrow `http://127.0.0.1/*` host permission to `fetch`
+  the loopback route without CORS. **Added in Phase 3 part 3**: it is the
+  extension's only host permission, covering the app's loopback port and nothing
+  else, and it is what keeps the app free of CORS handling.
 
 ## Performance cost
 
@@ -167,6 +203,12 @@ link remains addable later behind the same route.
   recycled) and falls back to an ephemeral port if that one is taken; the actual
   bound port is reported to the UI for pairing.
 - Clip in flight: one bounded request (≤ 2 MiB cap) and one file write.
+- Extension side (Phase 3 part 3), measured with `wxt build` and `gzip -9` on
+  `.output/chrome-mv3`: total output 595.5 kB → **610.1 kB** raw and 173.8 kB →
+  **179.6 kB** gzip, of which the new options page is 4.9 kB raw / 1.8 kB gzip.
+  No dependency was added. (Adding a second HTML entrypoint makes the bundler
+  split a shared chunk out of the popup bundle, so the popup's own file shrinks
+  by roughly what the shared chunk grows.)
 
 ## Open decisions
 
@@ -174,8 +216,12 @@ link remains addable later behind the same route.
   loopback carrier is built (it is needed under every option); the deep-link leg
   is deferred pending an owner call on the MSRV bump vs the 2.4.10 pin. See
   "Phase 0 verification outcome".
-- O5: default pairing UX (copy-token vs nonce window). Only copy-token is reachable
-  until/unless the deep link is added.
+- O5: default pairing UX (copy-token vs nonce window). **Copy-token is built**
+  (options page + `clipper.pairing`); the nonce window is not reachable until the
+  deep link is added. The open part is whether copy-token stays the default.
 - O7: keychain vs config file for the token. Until answered, the token store is an
   internal trait (`clipper_auth::ClipTokenStore`) with a keychain implementation,
   so the answer is a swap rather than a rewrite.
+- New (extension side): once ADR-0178's queue exists (Phase 7), should a `queued`
+  ack count as a successful hand-off — and does the popup keep the `.md` download
+  as a first-class action or demote it below the send?

@@ -2,7 +2,11 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). Draft only; no code.
+Proposed (needs owner input, see "Open decisions"). Draft only; no code — the
+extension-side queue is **not built**, and Phase 3 part 3 deliberately built none
+of it. Until it exists, a clip that cannot be delivered is reported to the user
+with the clip left on screen (with the `.md` download as the fallback), rather
+than being buffered somewhere that cannot yet drain.
 
 ## Context
 

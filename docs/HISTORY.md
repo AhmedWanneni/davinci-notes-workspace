@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-17 | Web Clipper Phase 3 part 3 — the extension transport | Completed the browser half of Phase 3 in two commits: the transport wire (`5ed0a45`) and the popup + options wiring (`8393920`). `postClipToDesktop` posts the `ClipPayload` to `http://127.0.0.1:<port>/clipper/clip` with `Authorization: Bearer <token>` and **never throws** — a failure is a value (`{delivered:false,reason}`) in the app's own error vocabulary plus `not-paired`/`unreachable`/`timeout`/`queued`. The ack body is read first and the status is the fallback (400 `invalid-payload`, 401/403 `unauthorized`, 409 `vault-not-open`, 413 `too-large`, 422 `invalid-path`, 503 `app-busy`, anything else `unreachable`); the ack is trusted only when it names the sent `clipId` **or names none**, because Rust deliberately sends `clipId: ""` for refusals that happen before the body parses; 15 s abort plus a client-side 2 MiB pre-check mirroring `clipper_validate::MAX_BODY_BYTES`. `pairingStore` holds the manual copy-token pairing (`clipper.pairing`; a malformed entry reads as unpaired — nothing repaired, nothing guessed), and the extension's new options page + `PairingPanel` (story + tests) are its surface. The popup's "Add to DaVinci Notes" is live and gated on pairing, reports the path the app wrote, and otherwise shows `describeDeliveryFailure(reason)` while keeping the clip for a retry or a `.md` download; its `saving` flag became `downloading`. The manifest gains its only host permission, `http://127.0.0.1/*`, which is what keeps CORS handling off the desktop. **Scope corrected:** the closed-app queue is Phase 7, not part of Phase 3, and was not built — an undeliverable clip is reported and kept on screen, never buffered where nothing can drain it. No new dependency anywhere. Total extension output 595.5 kB → 610.1 kB raw / 173.8 kB → 179.6 kB gzip (the new options page is 4.85 kB raw / 1.77 kB gzip; read the totals, because a second HTML entrypoint splits a shared chunk out of the popup bundle). web-clipper **166** tests / 21 files (was 102/17), `pnpm lint` and `tsc --noEmit` clean, `wxt build` clean with `options_ui` and the host permission present in the generated manifest; only `apps/web-clipper` was touched, so clipper-core (63) and desktop (408) were not re-run. Real-browser `Origin`/preflight behaviour and the end-to-end handshake remain owner-local. |
 | 2026-10-17 | Web Clipper Phase 3 part 2 — the webview write path and pairing UI | Completed the TS/UI half of Phase 3 in four commits. Moved `composeNoteFile`/`suggestedFilePath` into `packages/clipper-core` so the extension and the desktop compose one file shape (the desktop gained a `@app/clipper-core` dependency plus an `app`→`clipper-core` ESLint boundary allowance). Added `appendToNoteInVault(path, body, position)`, which reuses `writeAndIndexNote` — atomic write, disk tracker, dirty clearing, `withDbLock`/`withDbTransaction` indexing and history — inside `queuePerPath`: it creates a missing note rather than rejecting (plan §5 check 5), prefers an open note's in-memory buffer, preserves the note's EOL and normalises only the seam to one blank line so an append can never truncate, and lands a `top` insert after any leading frontmatter. Wired the receiver: `useClipperService` (one lifetime subscription) → `handleClipReceived` (always acks, even a rejection, because Rust waits 20 s) → `applyClipToVault`, whose total behaviour map gives `create` a numeric suffix instead of overwriting (check 7), treats `append-top` as an alias of `prepend`, sends appends the body only (never a second frontmatter block), reports an unexpected write failure as `app-busy` (the only retryable code, so ADR-0178's queue retries and nothing is lost) and `vault-not-open` when no vault is open; `target.vaultId` is ignored (O4). No cold-start buffer: a clip arriving before the webview listens waits out the 20 s handshake and is `app-busy` too. Added the "Web Clipper" Settings section (enable toggle, bound address, Show/Copy/Rotate/Revoke, with state taken from each command's returned `ClipperStatus` so a failed bind surfaces as an alert rather than a toggle that flips back). ADR-0177 amended in place with all of it. clipper-core 63 tests, web-clipper 102, desktop 408 (from 387); lint clean in all three; no new third-party dependency (the desktop's clipper surface is 20,789 B of TS source, 7,116 B gzip unminified); zero new `tsc` errors — the desktop's 23 are pre-existing, mostly `vaultUpdateCounter` missing from `WorkspaceState`. |
 | 2026-10-17 | Web Clipper Phase 3 part 1 — Rust receiver core | Ran the Phase 0 gate first: `tauri-plugin-deep-link` v2 latest (2.6.2) needs Rust ≥ 1.90 against the declared `rust-version = "1.77.2"` (2.4.10 is the last 1.77.2-compatible release), and macOS schemes are install-time only — so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173 amended, still Proposed). Built the desktop receiver as a complete, tested, **inert** unit (14 new `clipper_*.rs` files): `ClipPayload`-mirroring wire types with `deny_unknown_fields`, a literal Rust port of `safeName`/`normalizeFolder`/`normalizeNoteName`, bounds+shape validation, a capped hand-rolled request reader, the one loopback route with exact-`Host`/`Origin`/constant-time-token checks, and the emit-and-await webview handshake. Key decision (ADR-0180): the desktop **re-validates and rejects** rather than re-sanitising — a name that is not the fixed point of `safeName` is `invalid-path`. `constant_time_eq` + `getrandom` reused from the existing tree (zero binary delta); no HTTP framework, no CORS headers. `clipper_enable` is the only way to start the listener and no UI calls it yet. 32 new Rust tests (attack matrix 1–4/9 over real loopback sockets); `cargo test` 76 pass / 1 pre-existing `git_auth` failure; clippy adds zero warnings. |
 | 2026-10-17 | Web Clipper Phase 2b — React popup on the design system | Replaced the unstyled plain-TS popup with React 19 + `@wxt-dev/module-react` on `@app/design-system` (`ClipPopup`, `ClipEditor`, `ClipPreview`, `ClipModeSelector`, `TemplatePicker`; each with `.module.scss` + story + tests). Split the pipeline so `prepareClipContext` (page+mode) is memoised apart from `renderClipPayload` (template) — a template change no longer re-extracts a page — and deleted the now-callerless one-shot compositions. Edit fields show a raw `ClipDraft` while the written payload is sanitised (`applyClipEdits`: separators/`..` stripped, `.md` ensured, cleared property removed); `contentHash` untouched because the body is not editable. Recorded ADR-0179 (Proposed). Popup chunk 580,258 B raw / 170,650 B gzip (React + design system ≈ +71 KB gzip over Phase 2a); tree-shaking of the design-system barrel verified by grepping the built chunk. 106 tests / 17 files pass; `tsc`, ESLint and `wxt build` clean. |
@@ -3716,3 +3717,97 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   verification (owner-local). No ADR accepted; ADR-0177 amended in place because
   it is still Proposed, and its open decisions now carry the four write-path
   semantics this session had to choose.
+
+### 2026-10-17: Web Clipper Phase 3 part 3 — the extension transport
+
+- **Scope**: the browser half of Phase 3 of `web-clipper-feature-plan.md`. Phase 2
+  shipped the popup with "Add to DaVinci Notes" `disabled` and the note "arrives
+  with the transport step", so this is the commit that step named. Two commits,
+  one concern each: `5ed0a45` (the wire) and `8393920` (the popup and the
+  extension's options page). Nothing pushed.
+- **Scope correction, recorded rather than silently dropped.** The previous
+  session's "Next up" listed the closed-app queue (ADR-0178) as part of this
+  step. The plan puts that queue in **Phase 7** (with hotkeys, context menu and
+  multi-vault targeting), so no queue was built. Until it exists, a clip that
+  cannot be delivered is reported to the user with the clip left on screen and
+  the `.md` download as the fallback — not buffered somewhere that cannot drain.
+  ADR-0178's Status and `DECISIONS.md` now say so explicitly.
+- **The wire** (`src/transport/postClipToDesktop.ts`). `POST
+  http://127.0.0.1:<port>/clipper/clip`, `Content-Type: application/json`,
+  `Authorization: Bearer <token>`, body = the rendered `ClipPayload`. The
+  signature returns `{delivered:true,path?}` or `{delivered:false,reason}` and
+  **never throws**, because every failure here has a user-facing explanation and
+  the popup must keep the clip rather than unwind. `reason` speaks the app's own
+  `ClipError` vocabulary plus `not-paired`/`unreachable`/`timeout`/`queued`.
+  - The ack **body is authoritative** and the status is the fallback: Rust
+    answers every refusal with a serialised `ClipAck`, including the ones with no
+    clip id, so the reader binds the JSON first and only then maps 400 →
+    `invalid-payload`, 401/403 → `unauthorized`, 409 → `vault-not-open`, 413 →
+    `too-large`, 422 → `invalid-path`, 503 → `app-busy`, anything else (404, 405,
+    other 5xx) → `unreachable` — a 404/405 means whatever holds the port is not
+    our route.
+  - **Correlation allows an empty id.** An ack is trusted only when it names the
+    `clipId` that was sent *or names none*, because Rust deliberately sends
+    `clipId: ""` for refusals that happen before the payload parses (bad token,
+    bad host, oversized body). A reply naming a *different* clip is not evidence
+    this clip was written, and is reported `unreachable`.
+  - **Two ceilings.** A 15 s abort (`CLIPPER_REQUEST_TIMEOUT_MS`) so a stranger
+    holding the port cannot hang the popup, and a client-side 2 MiB pre-check
+    (mirroring `clipper_validate::MAX_BODY_BYTES`) so an oversized clip is never
+    built only to be refused.
+  - A `queued` ack is surfaced as **not sent** rather than as success: Rust
+    cannot send it today, and treating it as delivered before ADR-0178's queue
+    exists would be a lie the user acts on.
+- **Pairing** (`src/pairing/pairingStore.ts`, ADR-0173). Manual copy-token
+  pairing — the option Phase 0 chose: `clipper.pairing` = `{port, token}` in
+  `browser.storage.local`. A port outside 1–65535, a non-integer port, an empty
+  token, or a hand-edited shape makes the entry read as **unpaired**; nothing is
+  repaired and nothing is guessed, because a guessed token would only produce a
+  401 later. `clearPairing` writes `null` rather than removing the key, since the
+  `get`/`set` seam needs no third method and the reader cannot tell the
+  difference.
+- **Pairing's surface** is the extension's new options page
+  (`entrypoints/options/`), rendered by `PairingPanel` — a design-system
+  component with `.module.scss`, a story (unpaired / paired / invalid / failed /
+  loading) and an interaction test, per AGENTS.md. It shows the port and token
+  back, validates the port with `parsePort`, and offers Save and Forget. The
+  popup links to it (`browser.runtime.openOptionsPage`) when it is unpaired.
+- **The popup** (`useClipSession`, `ClipPopup`) gained `paired`, `sending`,
+  `sent`, `sentPath`, `send()` beside `download()`, and
+  `describeDeliveryFailure(reason)` — a total `Record` of one line per reason, so
+  a new failure cannot reach the user as a blank message. Its old `saving` flag
+  is now `downloading`, since there are two independent actions.
+- **Manifest**: `host_permissions: ["http://127.0.0.1/*"]` — the extension's only
+  host permission. It has to be a pattern rather than a port because the app
+  reports its bound port at pairing time (47912 preferred, ephemeral fallback).
+  This is also what keeps CORS handling off the desktop: with the host
+  permission, Chromium exempts the request from CORS. **No new dependency
+  anywhere.**
+- **Measured** (`wxt build` + `gzip -9` on `.output/chrome-mv3`): total output
+  595.5 kB → **610.1 kB** raw, 173.8 kB → **179.6 kB** gzip. The new options page
+  is 4.85 kB raw / 1.77 kB gzip of that. Adding a second HTML entrypoint makes the
+  bundler split a shared chunk out of the popup bundle (the popup's *own* file
+  drops from 580,254 B to 387,646 B raw while a 196,836 B shared chunk appears),
+  so the totals are the number that means anything here.
+- **One deliberate refactor inside the first commit**: the `StorageArea` seam
+  moved out of `templates/templateStore.ts` into `src/storage/storageArea.ts`, so
+  the template store and the pairing store depend on a seam rather than on each
+  other. Three files, mechanical.
+- **Verification.** web-clipper **166** tests across 21 files pass (was 102/17);
+  `pnpm lint` and `tsc --noEmit` clean; `wxt build` succeeds with both `options_ui`
+  and `host_permissions` present in the generated `manifest.json`. Only
+  `apps/web-clipper` was touched this session, so clipper-core (63) and desktop
+  (408) stand from the previous session and were not re-run. No Rust, no
+  migration, no `vault-index.db` access anywhere in this change.
+- **Owner-local, still outstanding** (an agent cannot produce these): the
+  real-browser `fetch` — whether Chromium sends `Origin` and whether the host
+  permission really suppresses the preflight; the end-to-end emit-and-await
+  handshake happy path; the options page in a real browser; idle RSS/CPU with the
+  clipper on; and reachability from another network interface.
+- **Not done, deliberately**: the closed-app queue (Phase 7), extension icons
+  (WXT still falls back to the default puzzle icon), and an app-level Storybook
+  config (so app stories still render nowhere, as with Phase 2b).
+- **Plan note, recorded not fixed**: the plan's Phase 3 "Files / packages touched"
+  lists only desktop paths even though Phase 2 says the button is "disabled until
+  Phase 3". The extension transport belongs to Phase 3 in intent and is missing
+  from that list; the plan file was left alone.
