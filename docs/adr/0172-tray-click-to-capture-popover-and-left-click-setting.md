@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (supersedes Phase 1 "menu opens on left click" decision)
+Accepted (supersedes Phase 1 "menu opens on left click" decision; capture destination & single-file append superseded by ADR-0180)
 
 ## Context
 

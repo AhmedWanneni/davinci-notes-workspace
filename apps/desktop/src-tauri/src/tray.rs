@@ -16,6 +16,7 @@ pub const TRAY_OPEN_VAULT_EVENT: &str = "davinci-tray-open-vault";
 pub const TRAY_QUIT_EVENT: &str = "davinci-tray-quit";
 pub const CLEAN_QUIT_EVENT: &str = "davinci-clean-quit";
 pub const WINDOW_HIDDEN_EVENT: &str = "davinci-window-hidden";
+pub const TRAY_OPEN_REMINDERS_EVENT: &str = "davinci-tray-open-reminders";
 
 #[derive(Default)]
 pub struct TraySettingsState {
@@ -27,6 +28,7 @@ pub struct TraySettingsState {
 #[derive(Default)]
 pub struct TrayDynamicState {
   pub recent_notes: Mutex<Vec<RecentNoteItem>>,
+  pub upcoming_reminders: Mutex<Vec<crate::tray_menu::TrayReminderItem>>,
 }
 
 impl TraySettingsState {
@@ -63,7 +65,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
 
 #[cfg(target_os = "macos")]
 fn setup_macos_tray(app: &AppHandle) -> tauri::Result<()> {
-  let menu = build_tray_menu(app, false, &[])?;
+  let menu = build_tray_menu(app, false, &[], &[])?;
   let icon = Image::new(include_bytes!("../icons/tray-icon@2x.rgba"), 44, 44);
   let initial_action = get_tray_click_action_from_state_or_disk(app);
   let show_menu_on_left = initial_action == "menu";
@@ -98,11 +100,16 @@ fn setup_macos_tray(app: &AppHandle) -> tauri::Result<()> {
         "tray-quick-capture" => crate::capture::trigger_quick_capture(app),
         "tray-new-note" => emit_tray_action(app, TRAY_NEW_NOTE_EVENT, None),
         "tray-daily-note" => emit_tray_action(app, TRAY_DAILY_NOTE_EVENT, None),
+        "tray-open-reminders" => emit_tray_action(app, TRAY_OPEN_REMINDERS_EVENT, None),
         "tray-open-vault" => emit_tray_action(app, TRAY_OPEN_VAULT_EVENT, None),
         "tray-quit" => trigger_clean_quit(app),
         _ => if let Some(rest) = id.strip_prefix("tray-recent:") {
           if let Ok(idx) = rest.parse::<usize>() {
             open_recent_note_from_tray(app, idx);
+          }
+        } else if let Some(rest) = id.strip_prefix("tray-reminder:") {
+          if let Ok(idx) = rest.parse::<usize>() {
+            open_reminder_from_tray(app, idx);
           }
         },
       }
@@ -201,6 +208,15 @@ fn open_recent_note_from_tray(app: &AppHandle, idx: usize) {
     TRAY_OPEN_NOTE_EVENT,
     Some(serde_json::json!({ "path": item.path })),
   );
+}
+
+fn open_reminder_from_tray(app: &AppHandle, idx: usize) {
+  let item = app
+    .try_state::<TrayDynamicState>()
+    .and_then(|s| s.upcoming_reminders.lock().ok()?.get(idx).cloned());
+  if let Some(item) = item {
+    emit_tray_action(app, TRAY_OPEN_NOTE_EVENT, Some(serde_json::json!({ "path": item.note_path, "line": item.line })));
+  }
 }
 
 pub fn trigger_clean_quit(app: &AppHandle) {

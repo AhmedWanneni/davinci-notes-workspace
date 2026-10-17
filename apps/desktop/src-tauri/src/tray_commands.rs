@@ -82,26 +82,63 @@ pub fn update_tray_recent_notes(
 ) -> Result<(), String> {
   reject_plugin_runner(&window)?;
 
-  if let Some(dynamic_state) = app.try_state::<TrayDynamicState>() {
+  let upcoming_reminders = if let Some(dynamic_state) = app.try_state::<TrayDynamicState>() {
     if let Ok(mut guard) = dynamic_state.recent_notes.lock() {
       *guard = recent_notes.clone();
     }
-  }
+    dynamic_state.upcoming_reminders.lock().map(|g| g.clone()).unwrap_or_default()
+  } else {
+    Vec::new()
+  };
 
   #[cfg(target_os = "macos")]
   {
     if let Some(tray) = app.tray_by_id("davinci-tray") {
-      if let Ok(menu) = build_tray_menu(&app, has_vault, &recent_notes) {
+      if let Ok(menu) = build_tray_menu(&app, has_vault, &recent_notes, &upcoming_reminders) {
         let _ = tray.set_menu(Some(menu));
       }
     }
   }
 
   #[cfg(not(target_os = "macos"))]
-  let _ = (has_vault, &recent_notes);
+  let _ = (has_vault, &recent_notes, &upcoming_reminders);
 
   Ok(())
 }
+
+#[tauri::command]
+pub fn update_tray_reminders(
+  window: WebviewWindow,
+  app: AppHandle,
+  upcoming_reminders: Vec<crate::tray_menu::TrayReminderItem>,
+  has_vault: bool,
+) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+
+  let recent_notes = if let Some(dynamic_state) = app.try_state::<TrayDynamicState>() {
+    if let Ok(mut guard) = dynamic_state.upcoming_reminders.lock() {
+      *guard = upcoming_reminders.clone();
+    }
+    dynamic_state.recent_notes.lock().map(|g| g.clone()).unwrap_or_default()
+  } else {
+    Vec::new()
+  };
+
+  #[cfg(target_os = "macos")]
+  {
+    if let Some(tray) = app.tray_by_id("davinci-tray") {
+      if let Ok(menu) = build_tray_menu(&app, has_vault, &recent_notes, &upcoming_reminders) {
+        let _ = tray.set_menu(Some(menu));
+      }
+    }
+  }
+
+  #[cfg(not(target_os = "macos"))]
+  let _ = (has_vault, &recent_notes, &upcoming_reminders);
+
+  Ok(())
+}
+
 
 #[tauri::command]
 pub fn request_app_exit(window: WebviewWindow, app: AppHandle) -> Result<(), String> {

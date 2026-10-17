@@ -5,11 +5,11 @@ import { describe, expect, it } from "vitest";
 import { EditorSelection, EditorState } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { EditorView, highlightActiveLine } from "@codemirror/view";
-import { livePreviewExtension } from "../../../../packages/editor/livePreviewExtension";
+import { livePreviewExtension } from "../../../../packages/editor/live-preview/livePreviewExtension";
 import {
   editorTheme,
   readOnlyEditorTheme,
-} from "../../../../packages/editor/editorTheme";
+} from "../../../../packages/editor/theme/editorTheme";
 import { MarkdownView } from "../../../../packages/editor/MarkdownView";
 
 describe("horizontal rule live preview extension", () => {

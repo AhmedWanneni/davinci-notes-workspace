@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "jsx": "react-jsx",
-    "types": ["react", "react-dom"]
+    "types": ["react", "react-dom"],
+    "ignoreDeprecations": "6.0"
   },
   "include": [
     "index.ts",

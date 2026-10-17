@@ -2,9 +2,12 @@ use std::path::Path;
 use std::str::FromStr;
 use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
+use walkdir::WalkDir;
 
-use crate::capture::{append_capture_text, trigger_quick_capture, CaptureState};
+use crate::capture::{trigger_quick_capture, CaptureState};
+use crate::capture_writer::{save_quick_capture, QuickCaptureSaveResponse};
 use crate::command_auth::{authorize_capture_window, reject_plugin_runner};
+use crate::state::VaultState;
 use crate::tray_config::{
   load_saved_capture_shortcut, load_saved_capture_target, save_capture_shortcut_to_disk,
   save_capture_target_to_disk,
@@ -15,11 +18,12 @@ pub fn quick_capture_save(
   window: WebviewWindow,
   app: AppHandle,
   text: String,
-) -> Result<(), String> {
+  filename: Option<String>,
+  folder: Option<String>,
+) -> Result<QuickCaptureSaveResponse, String> {
   authorize_capture_window(&window)?;
-  append_capture_text(&app, &text)?;
-  let _ = window.hide();
-  Ok(())
+  let result = save_quick_capture(&app, &text, filename.as_deref(), folder.as_deref())?;
+  Ok(result)
 }
 
 #[tauri::command]
@@ -30,6 +34,55 @@ pub fn quick_capture_dismiss(window: WebviewWindow) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn reclamp_capture_popover(window: WebviewWindow, app: AppHandle) -> Result<(), String> {
+  authorize_capture_window(&window)?;
+  crate::capture::reclamp_popover(&app, &window)
+}
+
+#[tauri::command]
+pub fn list_vault_folders_for_capture(
+  window: WebviewWindow,
+  app: AppHandle,
+) -> Result<Vec<String>, String> {
+  authorize_capture_window(&window)?;
+
+  let vault_root = app
+    .try_state::<VaultState>()
+    .ok_or_else(|| "Vault state not found".to_string())?
+    .get_root()
+    .map_err(|_| "No vault is open".to_string())?;
+
+  let mut folders = Vec::new();
+  const MAX_FOLDERS: usize = 500;
+
+  for entry in WalkDir::new(&vault_root)
+    .follow_links(false)
+    .min_depth(1)
+    .max_depth(20)
+    .into_iter()
+    .filter_entry(|e| !e.file_name().to_string_lossy().starts_with('.'))
+    .filter_map(|e| e.ok())
+  {
+    if !entry.file_type().is_dir() {
+      continue;
+    }
+    if let Ok(rel) = entry.path().strip_prefix(&vault_root) {
+      let rel_str = rel.to_string_lossy().replace('\\', "/");
+      if !rel_str.is_empty() {
+        folders.push(rel_str);
+        if folders.len() >= MAX_FOLDERS {
+          break;
+        }
+      }
+    }
+  }
+
+  folders.sort();
+  folders.dedup();
+  Ok(folders)
+}
+
+#[tauri::command]
 pub fn open_note_from_capture(
   window: WebviewWindow,
   app: AppHandle,
@@ -37,7 +90,7 @@ pub fn open_note_from_capture(
 ) -> Result<(), String> {
   authorize_capture_window(&window)?;
   let vault_root = app
-    .try_state::<crate::state::VaultState>()
+    .try_state::<VaultState>()
     .and_then(|vs| vs.get_root().ok());
 
   if !crate::tray_menu::validate_recent_note_path(&path, vault_root.as_deref()) {
@@ -77,7 +130,6 @@ pub fn set_capture_shortcut(
     return Err("Shortcut cannot be empty".to_string());
   }
 
-  // Reject known conflicting shortcuts
   if trimmed.eq_ignore_ascii_case("Alt+Space")
     || trimmed.eq_ignore_ascii_case("Option+Space")
     || trimmed.eq_ignore_ascii_case("Command+Shift+C")
@@ -111,7 +163,6 @@ pub fn set_capture_shortcut(
       }
     })
   {
-    // Restore previous shortcut
     if let Ok(old) = Shortcut::from_str(&current_shortcut) {
       let _ = app.global_shortcut().on_shortcut(old, |app, _sc, event| {
         if event.state() == ShortcutState::Pressed {
@@ -166,5 +217,12 @@ pub fn set_capture_target(
 
   save_capture_target_to_disk(&app, &note_name);
   *state.target.lock().map_err(|e| e.to_string())? = note_name;
+  Ok(())
+}
+
+#[tauri::command]
+pub fn quick_capture_bring_to_front(window: WebviewWindow) -> Result<(), String> {
+  authorize_capture_window(&window)?;
+  crate::capture::make_window_topmost(&window.as_ref().window());
   Ok(())
 }

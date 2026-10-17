@@ -1,6 +1,11 @@
 import type { Note } from "@app/core-types";
 import Database from "@tauri-apps/plugin-sql";
 import { clearFtsRows, removeFtsRows, replaceFtsRows } from "./sqliteFtsIndex";
+import {
+  clearReminders,
+  removeRemindersBatch,
+  replaceRemindersBatch,
+} from "./sqliteReminderIndex";
 
 /** Must match `db::DB_URL` in src-tauri. */
 export const VAULT_INDEX_DB = "sqlite:vault-index.db";
@@ -58,6 +63,26 @@ export async function getVaultIndexDb(): Promise<Database> {
   return dbPromise;
 }
 
+/**
+ * Flush WAL and cleanly close the database connection pool.
+ * Runs inside the single withDbLock queue to ensure all queued reads/writes finish first.
+ */
+export async function closeVaultIndexDb(): Promise<void> {
+  return withDbLock(async () => {
+    if (dbPromise) {
+      try {
+        const db = await dbPromise;
+        await db.execute("PRAGMA wal_checkpoint(TRUNCATE);");
+        await db.close();
+      } catch (err) {
+        console.warn("[vault] Error during db close/checkpoint:", err);
+      } finally {
+        dbPromise = undefined;
+      }
+    }
+  });
+}
+
 export async function verifyJournalMode(db: Database): Promise<string> {
   const rows = await db.select<{ journal_mode: string }[]>(
     "PRAGMA journal_mode;",
@@ -69,6 +94,7 @@ export async function clearVaultIndex(db: Database): Promise<void> {
   await db.execute("DELETE FROM links");
   await db.execute("DELETE FROM notes");
   await clearFtsRows(db);
+  await clearReminders(db);
 }
 
 /** Batch remove notes, links, and FTS rows in chunked operations. */
@@ -93,6 +119,7 @@ export async function removeNotesBatch(
       chunk,
     );
     await removeFtsRows(db, chunk);
+    await removeRemindersBatch(db, chunk, batchSize);
   }
 }
 
@@ -195,6 +222,7 @@ export async function persistNotesBatch(
     }
 
     await replaceFtsRows(db, chunk);
+    await replaceRemindersBatch(db, chunk, batchSize);
   }
 }
 
@@ -202,32 +230,18 @@ export async function persistNote(db: Database, note: Note): Promise<void> {
   await persistNotesBatch(db, [note]);
 }
 
-export async function queryBacklinkSources(
-  db: Database,
-  targetPath: string,
-): Promise<string[]> {
-  const rows = await db.select<{ source_path: string }[]>(
-    `SELECT source_path FROM links
-     WHERE target_path = $1 AND resolved = 1
-     ORDER BY source_path`,
-    [targetPath],
-  );
-  return rows.map((row) => row.source_path);
-}
-
-export async function countIndexedNotes(db: Database): Promise<number> {
-  const rows = await db.select<{ count: number }[]>(
-    "SELECT COUNT(*) as count FROM notes",
-  );
-  return rows[0]?.count ?? 0;
-}
-
-/** Returns the existing note paths so a watcher batch can repair missed directory events. */
-export async function listIndexedNotePaths(db: Database): Promise<string[]> {
-  const rows = await db.select<{ path: string }[]>(
-    "SELECT path FROM notes ORDER BY path",
-  );
-  return rows.map((row) => row.path);
-}
-
+export {
+  countIndexedNotes,
+  listIndexedNotePaths,
+  queryBacklinkSources,
+} from "./sqliteNoteQueries";
 export { queryFullGraphIndex } from "./sqliteGraphIndex";
+export {
+  clearReminders,
+  queryOverdueReminders,
+  queryRemindersByNote,
+  queryUpcomingReminders,
+  removeRemindersBatch,
+  replaceRemindersBatch,
+  type ReminderRow,
+} from "./sqliteReminderIndex";

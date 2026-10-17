@@ -6,7 +6,7 @@ import { EditorView } from "@codemirror/view";
 import {
   insertHardLineBreak,
   softLineBreakExtension,
-} from "../../../../packages/editor/lineBreakExtension";
+} from "../../../../packages/editor/live-preview/lineBreakExtension";
 
 function softBreakRanges(doc: string): Array<[number, number]> {
   const state = EditorState.create({

@@ -30,6 +30,23 @@ const LazyCanvasView = lazy(() =>
     default: m.CanvasView,
   })),
 );
+const LazyInsertMenu = lazy(() =>
+  import("./InsertMenu").then((m) => ({ default: m.InsertMenu })),
+);
+const LazyInsertDialog = lazy(() =>
+  import("./InsertDialog").then((m) => ({ default: m.InsertDialog })),
+);
+const LazyReminderEditModal = lazy(() =>
+  import("./ReminderEditModal").then((m) => ({
+    default: m.ReminderEditModal,
+  })),
+);
+import {
+  useInsertDialogRequest,
+  completeInsertDialog,
+  cancelInsertDialog,
+  type ReminderClickInfo,
+} from "@app/editor";
 
 export interface EditorAreaProps {
   activeNotePath: string | null;
@@ -38,6 +55,7 @@ export interface EditorAreaProps {
   onTagClick: (tagKey: string) => void;
   pluginManager?: PluginLifecycleManager | null;
   onEditorReady?: (editor: EditorPluginAdapter | null) => void;
+  onViewReady?: (view: EditorView | null) => void;
 }
 
 export function EditorArea({
@@ -47,6 +65,7 @@ export function EditorArea({
   onTagClick,
   pluginManager,
   onEditorReady,
+  onViewReady,
 }: EditorAreaProps) {
   const content = useWorkspaceStore(
     (state) => (activeNotePath ? state.notesContent[activeNotePath] : "") || "",
@@ -63,6 +82,27 @@ export function EditorArea({
   const resolveConflict = useWorkspaceStore((state) => state.resolveConflict);
   const editorViewRef = useRef<EditorView | null>(null);
   const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
+  const [insertAnchor, setInsertAnchor] = useState<DOMRect | null>(null);
+  const insertSelectionRef = useRef<
+    import("@codemirror/state").EditorSelection | null
+  >(null);
+  const insertDialogRequest = useInsertDialogRequest();
+  const [editingReminder, setEditingReminder] =
+    useState<ReminderClickInfo | null>(null);
+  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
+  const attachmentSettings = useWorkspaceStore(
+    (state) => state.attachmentSettings,
+  );
+
+  const handlePickLocalImage = useCallback(async () => {
+    if (!vaultPath) throw new Error("Please open a vault first.");
+    const { insertLocalImage } = await import("./insertLocalImage");
+    return insertLocalImage({
+      vaultPath,
+      activeNotePath,
+      attachmentSettings,
+    });
+  }, [vaultPath, activeNotePath, attachmentSettings]);
 
   const {
     handlePasteAttachment,
@@ -106,8 +146,13 @@ export function EditorArea({
   );
 
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const slashMenuEnabled = useWorkspaceStore((state) => state.slashMenuEnabled);
+  const vimMonospaceMode = useWorkspaceStore((state) => state.vimMonospaceMode);
+  const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
   const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setVimModeState = useWorkspaceStore((state) => state.setVimModeState);
+  const vimMode = useWorkspaceStore((state) => state.vimMode);
   const saveNoteNow = useWorkspaceStore((state) => state.saveNoteNow);
   const closeNote = useWorkspaceStore((state) => state.closeNote);
   const closeAllNotes = useWorkspaceStore((state) => state.closeAllNotes);
@@ -120,7 +165,14 @@ export function EditorArea({
   useEffect(() => {
     editorViewRef.current?.requestMeasure();
     editorViewRef.current?.focus();
-  }, [editorFontSize, activeNotePath]);
+  }, [
+    editorFontSize,
+    editorFont,
+    editorCustomFont,
+    useVimMode,
+    vimMonospaceMode,
+    activeNotePath,
+  ]);
 
   return (
     <div
@@ -182,10 +234,51 @@ export function EditorArea({
                     className="editor-area__note-header-button"
                     aria-label="Insert"
                     aria-expanded={isInsertMenuOpen}
-                    onClick={() => setIsInsertMenuOpen((open) => !open)}
+                    onClick={(event) => {
+                      const view = editorViewRef.current;
+                      if (!view) return;
+                      insertSelectionRef.current = view.state.selection;
+                      setInsertAnchor(
+                        event.currentTarget.getBoundingClientRect(),
+                      );
+                      setIsInsertMenuOpen(true);
+                    }}
                   >
                     <DotsThree size={16} weight="regular" />
                   </button>
+                  {isInsertMenuOpen &&
+                    insertAnchor &&
+                    editorViewRef.current &&
+                    insertSelectionRef.current && (
+                      <Suspense fallback={null}>
+                        <LazyInsertMenu
+                          anchor={insertAnchor}
+                          selection={insertSelectionRef.current}
+                          view={editorViewRef.current}
+                          onClose={() => setIsInsertMenuOpen(false)}
+                        />
+                      </Suspense>
+                    )}
+                  {insertDialogRequest && (
+                    <Suspense fallback={null}>
+                      <LazyInsertDialog
+                        request={insertDialogRequest}
+                        onConfirm={(input) =>
+                          completeInsertDialog(insertDialogRequest, input)
+                        }
+                        onCancel={() => cancelInsertDialog(insertDialogRequest)}
+                        onPickLocalFile={handlePickLocalImage}
+                      />
+                    </Suspense>
+                  )}
+                  {editingReminder && (
+                    <Suspense fallback={null}>
+                      <LazyReminderEditModal
+                        reminder={editingReminder}
+                        onClose={() => setEditingReminder(null)}
+                      />
+                    </Suspense>
+                  )}
                 </div>
               </div>
               <PropertiesBlock
@@ -215,10 +308,14 @@ export function EditorArea({
                 sourcePath={activeNotePath}
                 onLinkClick={onLinkClick}
                 onTagClick={onTagClick}
+                onReminderClick={setEditingReminder}
                 onPasteAttachment={handlePasteAttachment}
                 onAttachmentError={handleAttachmentError}
                 resolveMediaUrl={handleResolveMediaUrl}
+                loadNoteContent={handleReadNote}
                 useVimMode={useVimMode}
+                slashMenuEnabled={slashMenuEnabled}
+                vimMode={vimMode}
                 onVimModeChange={setVimModeState}
                 onSaveNoteNow={saveNoteNow}
                 onCloseNote={closeNote}
@@ -229,6 +326,7 @@ export function EditorArea({
                 }}
                 onViewReady={(view) => {
                   editorViewRef.current = view;
+                  onViewReady?.(view);
                   view?.focus();
                 }}
               />

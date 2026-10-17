@@ -1,0 +1,190 @@
+.toast {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 1000;
+  width: 320px;
+  background-color: var(--color-bg-secondary);
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  border-left: var(--border-width-thick) solid var(--color-interactive-accent);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  animation: slideIn var(--motion-duration-fast) ease-out;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__titleGroup {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  &__icon {
+    color: var(--color-interactive-accent);
+  }
+
+  &__heading {
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-xs);
+    font-weight: var(--type-weight-semibold);
+    color: var(--color-text-normal);
+  }
+
+  &__badge {
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-xs);
+    color: var(--color-text-muted);
+    background-color: var(--color-bg-primary);
+    padding: 1px var(--space-1);
+    border-radius: var(--border-radius-sm);
+    border: var(--border-width-thin) solid var(--color-border-subtle);
+  }
+
+  &__close {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-radius-sm);
+
+    &:hover {
+      color: var(--color-text-normal);
+      background-color: var(--color-bg-hover);
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__text {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-sm);
+    color: var(--color-text-normal);
+    line-height: var(--type-leading-normal);
+  }
+
+  &__note {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-xs);
+    color: var(--color-text-accent);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__line {
+    opacity: 0.7;
+    margin-left: 2px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-1);
+  }
+
+  &__btn--done {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px var(--space-3);
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-xs);
+    font-weight: var(--type-weight-medium);
+    color: var(--color-text-on-accent);
+    background-color: var(--color-interactive-accent);
+    border: var(--border-width-thin) solid var(--color-interactive-accent);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-interactive-accent-hover);
+    }
+  }
+
+  &__btn--snooze {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px var(--space-2);
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-xs);
+    color: var(--color-text-normal);
+    background-color: var(--color-bg-primary);
+    border: var(--border-width-thin) solid var(--color-border-normal);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+  }
+
+  &__snoozeWrap {
+    position: relative;
+  }
+
+  &__menu {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 0;
+    z-index: 1001;
+    min-width: 140px;
+    background-color: var(--color-bg-secondary);
+    border: var(--border-width-thin) solid var(--color-border-normal);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    flex-direction: column;
+    padding: 2px;
+  }
+
+  &__menuItem {
+    padding: 6px var(--space-2);
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-xs);
+    text-align: left;
+    color: var(--color-text-normal);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

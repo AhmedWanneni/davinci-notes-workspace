@@ -19,6 +19,7 @@ import {
   Eye,
   MagnifyingGlass,
   CopySimple,
+  ListBullets,
 } from "@phosphor-icons/react";
 import { Typography } from "@app/design-system";
 import styles from "./SettingsDialog.module.scss";
@@ -34,6 +35,7 @@ export type SettingsTabId =
   | "sync"
   | "ai"
   | "plugins"
+  | "logs"
   | "backlinks"
   | "canvas"
   | "command-palette"
@@ -64,6 +66,7 @@ export const SETTINGS_SIDEBAR_ITEMS: SettingsSidebarItem[] = [
   { id: "sync", label: "Sync & Backup", icon: CloudArrowUp, category: "options" },
   { id: "ai", label: "AI Assistant", icon: Sparkle, category: "options" },
   { id: "plugins", label: "Community plugins", icon: PuzzlePiece, category: "options" },
+  { id: "logs", label: "Logs", icon: ListBullets, category: "options" },
 
   // Core Plugins
   { id: "backlinks", label: "Backlinks", icon: TreeStructure, category: "core-plugins" },

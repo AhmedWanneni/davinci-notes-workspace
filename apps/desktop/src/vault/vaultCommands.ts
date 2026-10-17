@@ -32,6 +32,10 @@ export async function startVaultWatcher(): Promise<void> {
   return invoke("start_vault_watcher");
 }
 
+export async function stopVaultWatcher(): Promise<void> {
+  return invoke("stop_vault_watcher");
+}
+
 export async function setVaultWatcherPaused(paused: boolean): Promise<void> {
   return invoke("set_vault_watcher_paused", { paused });
 }

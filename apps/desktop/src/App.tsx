@@ -50,6 +50,7 @@ const LazySettingsDialog = React.lazy(() =>
     default: m.SettingsDialog,
   })),
 );
+import type { SettingsTabId } from "./components/SettingsDialog";
 const LazyCommandPalette = React.lazy(() =>
   import("./components/CommandPalette").then((m) => ({
     default: m.CommandPalette,
@@ -63,6 +64,12 @@ const LazySearchDialog = React.lazy(() =>
 const LazyTagsDialog = React.lazy(() =>
   import("./components/TagsDialog").then((m) => ({ default: m.TagsDialog })),
 );
+const LazyRemindersDialog = React.lazy(() =>
+  import("./components/RemindersDialog").then((m) => ({
+    default: m.RemindersDialog,
+  })),
+);
+import { ReminderNotificationToast } from "./components/RemindersDialog";
 
 export function App() {
   useWindowFullscreen();
@@ -70,9 +77,25 @@ export function App() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
+  const [isRemindersOpen, setIsRemindersOpen] = useState(false);
   const [searchInitialQuery, setSearchInitialQuery] = useState("");
-  const [isGlobalGraphOpen, setIsGlobalGraphOpen] = useState(false);
+  const isGlobalGraphOpen = useWorkspaceStore(
+    (state) => state.isGlobalGraphOpen,
+  );
+  const setIsGlobalGraphOpen = useWorkspaceStore(
+    (state) => state.setIsGlobalGraphOpen,
+  );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] =
+    useState<SettingsTabId>("general");
+  const handleOpenSettings = useCallback(() => {
+    setSettingsInitialTab("general");
+    setIsSettingsOpen(true);
+  }, []);
+  const handleOpenLogs = useCallback(() => {
+    setSettingsInitialTab("logs");
+    setIsSettingsOpen(true);
+  }, []);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
@@ -85,6 +108,9 @@ export function App() {
   const [aiProviderName, setAiProviderName] = useState("AI");
   const [aiTransmitting, setAiTransmitting] = useState(false);
   const editorRef = useRef<EditorPluginAdapter | null>(null);
+  const editorViewRef = useRef<import("@codemirror/view").EditorView | null>(
+    null,
+  );
   const activeNoteRef = useRef<string | null>(null);
   const pendingCitationRef = useRef<CitationNavigationTarget | null>(null);
 
@@ -96,6 +122,9 @@ export function App() {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
+  const useVimMode = useWorkspaceStore((state) => state.useVimMode);
+  const vimMonospaceMode = useWorkspaceStore((state) => state.vimMonospaceMode);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
   const tagIndex = useWorkspaceStore((state) => state.tagIndex);
   const activeContent = activeNotePath
@@ -105,6 +134,7 @@ export function App() {
   const loadSettings = useWorkspaceStore((state) => state.loadSettings);
   const openNote = useWorkspaceStore((state) => state.openNote);
   const closeNote = useWorkspaceStore((state) => state.closeNote);
+  const closeAllNotes = useWorkspaceStore((state) => state.closeAllNotes);
   const setActiveNote = useWorkspaceStore((state) => state.setActiveNote);
   const renameNoteFromTree = useWorkspaceStore(
     (state) => state.renameNoteFromTree,
@@ -145,6 +175,7 @@ export function App() {
     createNewFolder,
     createNewCanvas,
     handleLinkClick,
+    switchVaultTo,
     openFixture,
     openLargeFixture,
     openPicker,
@@ -347,7 +378,9 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
-    void loadEditorFont(editorFont)
+    const effectiveFont =
+      useVimMode && vimMonospaceMode ? "jetbrains-mono" : editorFont;
+    void loadEditorFont(effectiveFont, editorCustomFont)
       .then((font) => {
         if (!cancelled) {
           document.body.style.setProperty("--font-editor", font.cssFamily);
@@ -361,7 +394,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [editorFont]);
+  }, [editorFont, editorCustomFont, useVimMode, vimMonospaceMode]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -526,6 +559,23 @@ export function App() {
     }
   };
 
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    void (async () => {
+      try {
+        const { listen } = await import("@tauri-apps/api/event");
+        unlisten = await listen("davinci-tray-open-reminders", () => {
+          setIsRemindersOpen(true);
+        });
+      } catch {
+        // Outside Tauri runtime
+      }
+    })();
+    return () => {
+      unlisten?.();
+    };
+  }, []);
+
   if (!vaultPath) {
     return (
       <VaultWelcomeView
@@ -549,28 +599,35 @@ export function App() {
       data-right-collapsed={!isRightSidebarOpen || undefined}
     >
       <div className="app-shell__body">
+        <IconRail
+          isLeftSidebarOpen={isLeftSidebarOpen}
+          isGlobalGraphOpen={isGlobalGraphOpen}
+          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
+          onOpenSearch={() => {
+            setSearchInitialQuery("");
+            setIsSearchOpen(true);
+          }}
+          onOpenGlobalGraph={() => setIsGlobalGraphOpen((prev) => !prev)}
+          onOpenSettings={handleOpenSettings}
+          onCloseVault={() => setVaultPath(null)}
+          onDailyNotes={handleDailyNotes}
+          onCreateCanvas={handleCreateCanvas}
+          onOpenReminders={() => setIsRemindersOpen(true)}
+        />
+
         <AppSidebar
           vaultName={vaultName}
+          vaultPath={vaultPath}
+          onSwitchVault={(target) => void switchVaultTo(target)}
+          onOpenFolderPicker={openPicker}
+          onCreateNewVault={openPicker}
+          onOpenSettings={handleOpenSettings}
+          onOpenLogs={handleOpenLogs}
           allNotePaths={allNotePaths}
           allFolderPaths={allFolderPaths}
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
           log={log}
-          navigation={
-            <IconRail
-              isLeftSidebarOpen={isLeftSidebarOpen}
-              onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
-              onOpenSearch={() => {
-                setSearchInitialQuery("");
-                setIsSearchOpen(true);
-              }}
-              onOpenGlobalGraph={() => setIsGlobalGraphOpen(true)}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              onCloseVault={() => setVaultPath(null)}
-              onDailyNotes={handleDailyNotes}
-              onCreateCanvas={handleCreateCanvas}
-            />
-          }
           isCollapsed={!isLeftSidebarOpen}
           isMac={isMac}
           onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
@@ -611,6 +668,7 @@ export function App() {
             conflictNotes={conflictNotes}
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
+            onCloseAllNotes={() => void closeAllNotes()}
             onCreateNote={handleCreateNoteFromTabs}
             isLeftSidebarOpen={isLeftSidebarOpen}
             onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
@@ -641,6 +699,9 @@ export function App() {
               onTagClick={handleTagClick}
               pluginManager={pluginManager}
               onEditorReady={handleEditorReady}
+              onViewReady={(view) => {
+                editorViewRef.current = view;
+              }}
             />
           )}
         </main>
@@ -695,6 +756,16 @@ export function App() {
             onSelectTag={handleSelectTag}
           />
         )}
+        {isRemindersOpen && (
+          <LazyRemindersDialog
+            isOpen={isRemindersOpen}
+            onOpenChange={setIsRemindersOpen}
+            onSelectNote={(path) => void openNote(path)}
+          />
+        )}
+        <ReminderNotificationToast
+          onSelectNote={(path) => void openNote(path)}
+        />
         {isSettingsOpen && (
           <LazySettingsDialog
             isOpen={isSettingsOpen}
@@ -716,6 +787,8 @@ export function App() {
             themeManager={themeManager}
             onReloadThemes={() => initThemes(vaultPath)}
             onActivateThemeFromBrowser={activateTheme}
+            log={log}
+            initialTab={settingsInitialTab}
           />
         )}
         {isCommandPaletteOpen && (
@@ -723,8 +796,10 @@ export function App() {
             isOpen={isCommandPaletteOpen}
             onOpenChange={setIsCommandPaletteOpen}
             onSelectNote={(target) => void handleLinkClick(target)}
-            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenSettings={handleOpenSettings}
+            onOpenLogs={handleOpenLogs}
             onOpenTags={() => setIsTagsOpen(true)}
+            onOpenReminders={() => setIsRemindersOpen(true)}
             onSaveVersionNow={() => {
               if (activeNotePath) void saveVersionNow(activeNotePath);
             }}
@@ -733,6 +808,7 @@ export function App() {
             onDriveDisconnect={() => void handleDriveDisconnect()}
             pluginCommands={pluginCommands}
             onInvokePluginCommand={(id) => void invokePluginCommand(id)}
+            editorView={editorViewRef.current}
           />
         )}
       </Suspense>

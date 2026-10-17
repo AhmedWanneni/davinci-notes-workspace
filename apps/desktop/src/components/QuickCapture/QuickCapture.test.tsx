@@ -172,8 +172,8 @@ describe("QuickCapture", () => {
     });
     fireEvent.change(textarea, { target: { value: "Important idea" } });
 
-    // Switch to search via Tab
-    fireEvent.keyDown(textarea, { key: "Tab" });
+    // Switch to search via Cmd+K
+    fireEvent.keyDown(textarea, { key: "k", metaKey: true });
     const searchInput = screen.getByRole("textbox", { name: /search notes/i });
 
     // Press Escape while in search mode
@@ -184,6 +184,31 @@ describe("QuickCapture", () => {
     }) as HTMLTextAreaElement;
     expect(restoredTextarea).toBeDefined();
     expect(restoredTextarea.value).toBe("Important idea");
+  });
+
+  it("submits with optional filename and folder when provided", async () => {
+    const handleSave = vi.fn().mockResolvedValue(undefined);
+    render(<QuickCapture onSave={handleSave} />);
+
+    const textarea = screen.getByRole("textbox", {
+      name: /quick capture text/i,
+    });
+    const nameInput = screen.getByRole("textbox", { name: /note name/i });
+    const folderInput = screen.getByRole("combobox", { name: /note folder/i });
+
+    fireEvent.change(textarea, { target: { value: "Task details" } });
+    fireEvent.change(nameInput, { target: { value: "Sprint Task" } });
+    fireEvent.change(folderInput, { target: { value: "work/sprints" } });
+
+    fireEvent.keyDown(textarea, { key: "s", metaKey: true });
+
+    await waitFor(() => {
+      expect(handleSave).toHaveBeenCalledWith(
+        "Task details",
+        "Sprint Task",
+        "work/sprints",
+      );
+    });
   });
 
   it("opens selected search result on Enter", async () => {

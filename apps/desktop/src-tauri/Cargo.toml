@@ -18,7 +18,9 @@ blake3 = "1.8"
 log = "0.4"
 notify = "8.0.0"
 notify-debouncer-full = "0.6.0"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 reqwest = { version = "0.13.4", default-features = false, features = ["native-tls"] }
+rusqlite = "0.32"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tauri = { version = "2.11.3", features = ["macos-private-api", "tray-icon"] }
@@ -26,6 +28,9 @@ tauri-plugin-dialog = "2.6.0"
 tauri-plugin-fs = { version = "2.5.1", features = ["watch"] }
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-log = "2"
+tauri-plugin-notification = "2"
 tauri-plugin-sql = { version = "2.4.0", features = ["sqlite"] }
+tokio = { version = "1", features = ["sync", "time", "macros"] }
 keyring = "3.6.2"
+unicode-normalization = "0.1"
 walkdir = "2.5.0"

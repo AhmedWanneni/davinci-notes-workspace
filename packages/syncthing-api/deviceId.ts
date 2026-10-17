@@ -1,0 +1,75 @@
+/**
+ * Normalizes a Device ID by stripping spaces, hyphens, and uppercase converting.
+ */
+export function normalizeDeviceId(raw: string): string {
+  return raw.trim().toUpperCase().replace(/[\s-]/g, "");
+}
+
+/**
+ * Validates whether a device ID conforms to the standard 56-character
+ * alphanumeric format (8 groups of 7 characters).
+ */
+export function isValidDeviceIdFormat(raw: string): boolean {
+  const clean = normalizeDeviceId(raw);
+  return clean.length === 56 && /^[A-Z0-9]{56}$/.test(clean);
+}
+
+/**
+ * Formats a raw device ID into hyphen-separated 7-character groups
+ * (e.g. AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH).
+ */
+export function formatDeviceIdGroups(raw: string): string {
+  const clean = normalizeDeviceId(raw);
+  if (clean.length === 0) return raw.trim();
+  const groups: string[] = [];
+  for (let i = 0; i < clean.length && i < 56; i += 7) {
+    groups.push(clean.slice(i, i + 7));
+  }
+  return groups.join("-");
+}
+
+export interface ParseScannedIdResult {
+  valid: boolean;
+  deviceId: string;
+  error?: string;
+}
+
+/**
+ * Parses and validates text scanned from a QR code or pasted from clipboard.
+ * Accepts raw 56-char IDs, hyphenated IDs, or syncthing:// schemes.
+ */
+export function parseScannedDeviceId(raw: string): ParseScannedIdResult {
+  if (!raw || raw.trim().length === 0) {
+    return { valid: false, deviceId: "", error: "Device ID is empty" };
+  }
+
+  let text = raw.trim();
+  // Strip syncthing:// or syncthing: URI schemes if present
+  if (text.toLowerCase().startsWith("syncthing://")) {
+    text = text.slice(12);
+  } else if (text.toLowerCase().startsWith("syncthing:")) {
+    text = text.slice(10);
+  }
+
+  // Remove any query params like ?id=... or &...
+  if (text.includes("?id=")) {
+    text = text.split("?id=")[1].split("&")[0];
+  } else if (text.includes("?")) {
+    text = text.split("?")[0];
+  }
+
+  const clean = normalizeDeviceId(text);
+  if (!isValidDeviceIdFormat(clean)) {
+    return {
+      valid: false,
+      deviceId: "",
+      error: `Invalid Syncthing Device ID format (${clean.length}/56 characters). Expected 8 groups of 7 characters.`,
+    };
+  }
+
+  return {
+    valid: true,
+    deviceId: formatDeviceIdGroups(clean),
+  };
+}
+

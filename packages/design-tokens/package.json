@@ -1,0 +1,44 @@
+{
+  "name": "@app/design-tokens",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./mobile": {
+      "types": "./dist/mobile/index.d.ts",
+      "import": "./dist/mobile/index.js"
+    },
+    "./tailwind": {
+      "types": "./dist/tailwind/preset.d.ts",
+      "import": "./dist/tailwind/preset.js",
+      "require": "./dist/tailwind/preset.cjs"
+    },
+    "./css": "./dist/css/variables.css",
+    "./scss": "./dist/scss/_variables.scss",
+    "./css/*": "./dist/css/*",
+    "./scss/*": "./dist/scss/*",
+    "./dist/*": "./dist/*",
+    "./*": "./*",
+    "./webview": {
+      "types": "./dist/webview/index.d.ts",
+      "import": "./dist/webview/index.js"
+    }
+  },
+  "scripts": {
+    "generate": "tsc && node scripts/generate.mjs",
+    "build": "tsc && node scripts/generate.mjs",
+    "dev": "echo 'dev @app/design-tokens'",
+    "lint": "eslint . --ext .ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.10"
+  }
+}

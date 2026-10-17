@@ -93,4 +93,32 @@ describe("SettingsDialog", () => {
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("navigates to logs tab when clicked and displays logs", () => {
+    const logs = [
+      "2026-10-12 12:00:00 [info] Vault indexed",
+      "2026-10-12 12:00:01 [info] Ready",
+    ];
+    render(<SettingsDialog {...defaultProps} log={logs} />);
+
+    const logsBtn = screen.getByRole("button", { name: "Logs" });
+    fireEvent.click(logsBtn);
+
+    expect(screen.getByText("Vault Activity Logs")).toBeDefined();
+    expect(screen.getByText(/Vault indexed/)).toBeDefined();
+    expect(screen.getByText(/Ready/)).toBeDefined();
+  });
+
+  it("renders logs tab directly when initialTab is 'logs'", () => {
+    render(
+      <SettingsDialog
+        {...defaultProps}
+        initialTab="logs"
+        log={["Single log entry"]}
+      />,
+    );
+
+    expect(screen.getByText("Vault Activity Logs")).toBeDefined();
+    expect(screen.getByText("Single log entry")).toBeDefined();
+  });
 });

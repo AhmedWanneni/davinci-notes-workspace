@@ -2,14 +2,12 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::SystemTime;
-use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, Rect, WebviewUrl, WebviewWindow, WebviewWindowBuilder};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 use crate::command_auth::CAPTURE_WINDOW_LABEL;
-
-use crate::tray_config::{
-  load_saved_capture_shortcut, load_saved_capture_target,
-};
+use crate::tray_config::{load_saved_capture_shortcut, load_saved_capture_target};
+use crate::tray_position::{find_popover_position, resolve_tray_rect_or_fallback};
 
 pub const MAX_CAPTURE_LENGTH: usize = 10_000;
 
@@ -18,6 +16,7 @@ pub struct CaptureState {
   pub shortcut: Mutex<String>,
   pub target: Mutex<String>,
   pub last_blur_time: Arc<AtomicU64>,
+  pub last_tray_rect: Arc<Mutex<Option<Rect>>>,
 }
 
 impl CaptureState {
@@ -27,6 +26,7 @@ impl CaptureState {
       shortcut: Mutex::new(initial_shortcut),
       target: Mutex::new(initial_target),
       last_blur_time: Arc::new(AtomicU64::new(0)),
+      last_tray_rect: Arc::new(Mutex::new(None)),
     }
   }
 
@@ -48,6 +48,16 @@ impl CaptureState {
       .unwrap_or_default()
       .as_millis() as u64;
     now.saturating_sub(last) < 350
+  }
+
+  pub fn set_last_tray_rect(&self, rect: Rect) {
+    if let Ok(mut guard) = self.last_tray_rect.lock() {
+      *guard = Some(rect);
+    }
+  }
+
+  pub fn get_last_tray_rect(&self) -> Option<Rect> {
+    self.last_tray_rect.lock().ok().and_then(|g| *g)
   }
 }
 
@@ -72,15 +82,18 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
 }
 
 pub fn trigger_quick_capture(app: &AppHandle) {
-  if let Err(err) = show_or_create_capture_window(app) {
+  if let Err(err) = show_or_create_capture_window(app, None) {
     log::error!("Failed to show or create capture window: {err}");
   }
 }
 
-pub fn toggle_capture_popover(app: &AppHandle, tray_rect: Option<tauri::Rect>) -> Result<(), String> {
+pub fn toggle_capture_popover(app: &AppHandle, tray_rect: Option<Rect>) -> Result<(), String> {
   if let Some(state) = app.try_state::<CaptureState>() {
     if state.is_recently_blurred() {
       return Ok(());
+    }
+    if let Some(r) = tray_rect {
+      state.set_last_tray_rect(r);
     }
   }
 
@@ -89,40 +102,32 @@ pub fn toggle_capture_popover(app: &AppHandle, tray_rect: Option<tauri::Rect>) -
       let _ = window.hide();
       return Ok(());
     }
-    if let Some(ref rect) = tray_rect {
-      if let Some(pos) = crate::tray_position::find_popover_position(app, Some(&window), rect) {
-        let _ = window.set_position(tauri::Position::Physical(pos));
-      }
+  }
+
+  show_or_create_capture_window(app, tray_rect)
+}
+
+pub fn show_or_create_capture_window(app: &AppHandle, tray_rect: Option<Rect>) -> Result<(), String> {
+  let last_known = app.try_state::<CaptureState>().and_then(|s| s.get_last_tray_rect());
+  let target_rect = tray_rect
+    .or_else(|| last_known)
+    .unwrap_or_else(|| resolve_tray_rect_or_fallback(app, None));
+
+  if let Some(window) = app.get_webview_window(CAPTURE_WINDOW_LABEL) {
+    if let Some(pos) = find_popover_position(app, Some(&window), &target_rect) {
+      let _ = window.set_position(tauri::Position::Physical(pos));
     }
     let _ = window.unminimize();
     let _ = window.show();
-    let _ = window.set_always_on_top(true);
-    let _ = window.set_focus();
+    make_window_topmost(&window.as_ref().window());
     let _ = window.emit("davinci-capture-focus", ());
     return Ok(());
   }
 
-  let initial_pos = tray_rect.as_ref().and_then(|r| crate::tray_position::find_popover_position(app, None, r));
-  create_and_show_capture_window(app, initial_pos)
+  create_and_show_capture_window(app, &target_rect)
 }
 
-pub fn show_or_create_capture_window(app: &AppHandle) -> Result<(), String> {
-  if let Some(window) = app.get_webview_window(CAPTURE_WINDOW_LABEL) {
-    let _ = window.unminimize();
-    let _ = window.show();
-    let _ = window.set_always_on_top(true);
-    let _ = window.set_focus();
-    let _ = window.emit("davinci-capture-focus", ());
-    return Ok(());
-  }
-
-  create_and_show_capture_window(app, None)
-}
-
-fn create_and_show_capture_window(
-  app: &AppHandle,
-  pos: Option<tauri::PhysicalPosition<i32>>,
-) -> Result<(), String> {
+fn create_and_show_capture_window(app: &AppHandle, target_rect: &Rect) -> Result<(), String> {
   let builder = WebviewWindowBuilder::new(
     app,
     CAPTURE_WINDOW_LABEL,
@@ -133,11 +138,6 @@ fn create_and_show_capture_window(
   .resizable(false)
   .always_on_top(true)
   .skip_taskbar(true);
-
-  let builder = match pos {
-    Some(p) => builder.position(p.x as f64, p.y as f64),
-    None => builder.center(),
-  };
 
   #[cfg(target_os = "macos")]
   let builder = builder.decorations(false).transparent(true);
@@ -152,14 +152,37 @@ fn create_and_show_capture_window(
     .build()
     .map_err(|e| format!("Failed to create capture window: {e}"))?;
 
+  // Read the real physical size and position directly anchored under the icon
+  if let Some(pos) = find_popover_position(app, Some(&window), target_rect) {
+    let _ = window.set_position(tauri::Position::Physical(pos));
+  }
+
   let _ = window.show();
-  let _ = window.set_always_on_top(true);
-  let _ = window.set_focus();
+  make_window_topmost(&window.as_ref().window());
   let _ = window.emit("davinci-capture-focus", ());
   Ok(())
 }
 
+pub fn reclamp_popover(app: &AppHandle, window: &WebviewWindow) -> Result<(), String> {
+  let last_known = app.try_state::<CaptureState>().and_then(|s| s.get_last_tray_rect());
+  let target_rect = resolve_tray_rect_or_fallback(app, last_known);
+
+  if let Some(pos) = find_popover_position(app, Some(window), &target_rect) {
+    let _ = window.set_position(tauri::Position::Physical(pos));
+  }
+  Ok(())
+}
+
+pub fn make_window_topmost(window: &tauri::Window) {
+  #[cfg(target_os = "macos")]
+  {
+    let _ = window.app_handle().set_activation_policy(tauri::ActivationPolicy::Regular);
+  }
+  let _ = window.unminimize();
+  let _ = window.show();
+  let _ = window.set_always_on_top(true);
+  let _ = window.set_focus();
+}
+
 #[allow(unused_imports)]
-pub use crate::capture_writer::{append_capture_text, append_entry_to_disk};
-
-
+pub use crate::capture_writer::{append_capture_text, append_entry_to_disk, save_quick_capture};

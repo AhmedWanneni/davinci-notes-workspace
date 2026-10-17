@@ -29,6 +29,8 @@ out/
 # Style Dictionary token output is committed — see section 9.
 !packages/design-system/tokens/dist/
 !packages/design-system/tokens/dist/**
+!packages/design-tokens/dist/
+!packages/design-tokens/dist/**
 
 # -----------------------------------------------------------------------------
 # 3. TAURI / RUST
@@ -50,6 +52,8 @@ apps/mobile/ios/Pods/
 apps/mobile/android/.gradle/
 apps/mobile/android/build/
 apps/mobile/android/app/build/
+.expo/
+apps/mobile/.expo/
 
 # Signing credentials — never commit.
 *.keystore
