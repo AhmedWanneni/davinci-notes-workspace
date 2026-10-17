@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ClipMode, ClipTemplate } from "@app/clipper-core";
+import {
+  composeNoteFile,
+  suggestedFilePath,
+  type ClipMode,
+  type ClipTemplate,
+} from "@app/clipper-core";
 import type { PageCapture } from "../capture/readPage";
 import type { ClipPopupController, ClipStatus } from "../components/ClipPopup";
 import { applyClipEdits, type ClipEdits } from "../clip/applyClipEdits";
@@ -8,7 +13,6 @@ import {
   EMPTY_CLIP_DRAFT,
   type ClipDraft,
 } from "../clip/clipDraft";
-import { composeNoteFile, suggestedFilePath } from "../clip/composeNoteFile";
 import { defaultClipMode } from "../clip/defaultClipMode";
 import { prepareClipContext } from "../clip/prepareClipContext";
 import { renderClipPayload } from "../clip/renderClipPayload";

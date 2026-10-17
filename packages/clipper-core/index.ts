@@ -62,6 +62,11 @@ export {
 export { isReservedPropertyName } from "./propertyName.js";
 export { renderFrontmatter, yamlScalar } from "./frontmatter.js";
 export {
+  composeNoteFile,
+  suggestedFilePath,
+  type NoteFileInput,
+} from "./composeNoteFile.js";
+export {
   DEFAULT_DAILY_NOTE_FORMAT,
   normalizeNoteName,
   renderNoteName,

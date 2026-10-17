@@ -1,6 +1,6 @@
-import type { ClipPayload } from "@app/clipper-core";
+import type { ClipPayload } from "./ClipPayload.js";
 import { describe, expect, it } from "vitest";
-import { composeNoteFile, suggestedFilePath } from "./composeNoteFile";
+import { composeNoteFile, suggestedFilePath } from "./composeNoteFile.js";
 
 function payload(overrides: Partial<ClipPayload> = {}): ClipPayload {
   return {
