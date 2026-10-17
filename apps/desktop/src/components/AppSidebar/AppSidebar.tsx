@@ -1,17 +1,12 @@
-import {
-  BookmarkSimple,
-  FolderSimple,
-  MagnifyingGlass,
-  SidebarSimple,
-} from "@phosphor-icons/react";
 import { type ReactNode, useEffect, useState } from "react";
-import { Tooltip } from "@app/design-system";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { WindowControls } from "../WindowControls";
+import { AppSidebarHeader } from "./AppSidebarHeader";
 import { FileTree } from "../FileTree";
+import { VaultSwitcher } from "../VaultSwitcher";
+import { useSidebarResize } from "./useSidebarResize";
 
 export interface AppSidebarProps {
   vaultName: string;
+  vaultPath?: string | null;
   allNotePaths: string[];
   allFolderPaths: string[];
   activeNotePath: string | null;
@@ -42,14 +37,22 @@ export interface AppSidebarProps {
   pendingRenameNote?: string | null;
   onPendingRenameFolderHandled?: () => void;
   onPendingRenameNoteHandled?: () => void;
+  onSwitchVault?: (path: string) => void;
+  onOpenFolderPicker?: () => void;
+  onCreateNewVault?: () => void;
+  onOpenSettings?: () => void;
+  onOpenHelp?: () => void;
+  onOpenLogs?: () => void;
 }
 
 export function AppSidebar({
+  vaultName,
+  vaultPath,
   allNotePaths,
   allFolderPaths,
   activeNotePath,
   dirtyNotes,
-  log,
+  log: _log,
   navigation,
   isCollapsed,
   isMac,
@@ -74,7 +77,14 @@ export function AppSidebar({
   pendingRenameNote,
   onPendingRenameFolderHandled,
   onPendingRenameNoteHandled,
+  onSwitchVault,
+  onOpenFolderPicker,
+  onCreateNewVault,
+  onOpenSettings,
+  onOpenHelp,
+  onOpenLogs,
 }: AppSidebarProps) {
+  const { width, isResizing, handleMouseDown } = useSidebarResize();
   const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(
     null,
   );
@@ -85,6 +95,11 @@ export function AppSidebar({
   const handleSelectedFolderChange = (folderPath: string | null) => {
     setSelectedFolderPath(folderPath);
     onSelectedFolderChange?.(folderPath);
+  };
+
+  const handleTabChange = (tab: "files" | "search" | "bookmarks") => {
+    setCurrentTab(tab);
+    onTabChange?.(tab);
   };
 
   useEffect(() => {
@@ -98,73 +113,18 @@ export function AppSidebar({
     <aside
       className="app-sidebar"
       data-collapsed={isCollapsed || undefined}
+      data-resizing={isResizing || undefined}
+      style={!isCollapsed ? { width: `${width}px` } : undefined}
       aria-label="File Explorer"
     >
-      <div className="app-sidebar__header">
-        <WindowControls variant={isMac ? "mac" : "default"} />
-        <div className="app-sidebar__header-nav">
-          <Tooltip content="Files" contentProps={{ side: "bottom" }}>
-            <button
-              type="button"
-              className={`app-sidebar__nav-btn ${currentTab === "files" ? "is-active" : ""}`}
-              onClick={() => {
-                setCurrentTab("files");
-                onTabChange?.("files");
-              }}
-              aria-label="Files"
-            >
-              <FolderSimple size={18} weight="regular" />
-            </button>
-          </Tooltip>
-          <Tooltip content="Search (Cmd+P)" contentProps={{ side: "bottom" }}>
-            <button
-              type="button"
-              className={`app-sidebar__nav-btn ${currentTab === "search" ? "is-active" : ""}`}
-              onClick={() => {
-                setCurrentTab("search");
-                onTabChange?.("search");
-                onOpenSearch?.();
-              }}
-              aria-label="Search"
-            >
-              <MagnifyingGlass size={18} weight="regular" />
-            </button>
-          </Tooltip>
-          <Tooltip content="Bookmarks" contentProps={{ side: "bottom" }}>
-            <button
-              type="button"
-              className={`app-sidebar__nav-btn ${currentTab === "bookmarks" ? "is-active" : ""}`}
-              onClick={() => {
-                setCurrentTab("bookmarks");
-                onTabChange?.("bookmarks");
-                onOpenTags?.();
-              }}
-              aria-label="Bookmarks"
-            >
-              <BookmarkSimple size={18} weight="regular" />
-            </button>
-          </Tooltip>
-        </div>
-        <div
-          className="app-sidebar__drag-region"
-          data-tauri-drag-region
-          onDoubleClick={() => void getCurrentWindow().toggleMaximize()}
-        />
-        <div className="app-sidebar__header-actions">
-          {onToggleLeftSidebar && (
-            <Tooltip content="Toggle sidebar" contentProps={{ side: "bottom" }}>
-              <button
-                type="button"
-                className="app-sidebar__action-btn"
-                onClick={onToggleLeftSidebar}
-                aria-label="Toggle sidebar"
-              >
-                <SidebarSimple size={18} weight="regular" />
-              </button>
-            </Tooltip>
-          )}
-        </div>
-      </div>
+      <AppSidebarHeader
+        isMac={isMac}
+        currentTab={currentTab}
+        onTabChange={handleTabChange}
+        onOpenSearch={onOpenSearch}
+        onOpenTags={onOpenTags}
+        onToggleLeftSidebar={onToggleLeftSidebar}
+      />
 
       <div className="app-sidebar__content">
         {navigation}
@@ -192,7 +152,25 @@ export function AppSidebar({
         />
       </div>
 
-      {log.length > 0 && <pre className="debug-log">{log.join("\n")}</pre>}
+      <VaultSwitcher
+        vaultName={vaultName}
+        vaultPath={vaultPath ?? null}
+        onSwitchVault={onSwitchVault ?? (() => {})}
+        onOpenFolderPicker={onOpenFolderPicker ?? (() => {})}
+        onCreateNewVault={onCreateNewVault}
+        onOpenSettings={onOpenSettings}
+        onOpenHelp={onOpenHelp}
+        onOpenLogs={onOpenLogs}
+      />
+
+      {!isCollapsed && (
+        <div
+          className="app-sidebar__resizer"
+          onMouseDown={handleMouseDown}
+          aria-hidden="true"
+        />
+      )}
     </aside>
   );
 }
+

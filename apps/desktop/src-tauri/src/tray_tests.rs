@@ -129,8 +129,8 @@ mod tests {
 
     // icon center = 615, win_w/2 = 320 -> 295
     assert_eq!(pos.x, 295);
-    // top menubar -> below icon: 0 + 25 + 4 = 29
-    assert_eq!(pos.y, 29);
+    // top menubar -> below icon: 0 + 25 + 2 = 27
+    assert_eq!(pos.y, 27);
   }
 
   #[test]
@@ -185,8 +185,35 @@ mod tests {
 
     // icon center = 3030, desired_x = 3030 - 640 = 2390
     assert_eq!(pos.x, 2390);
-    // icon.y (0) in upper half -> des_y = 0 + 50 + 8 = 58
-    assert_eq!(pos.y, 58);
+    // icon.y (0) in upper half -> des_y = 0 + 50 + 4 = 54
+    assert_eq!(pos.y, 54);
+  }
+
+  #[test]
+  fn popover_position_reclamps_when_growing() {
+    use crate::tray_position::{calculate_popover_position, TrayIconBounds, WorkArea};
+    use tauri::PhysicalSize;
+
+    // Small screen: 1024x768, icon at y: 0, height: 30, work_area y: 30, h: 738
+    let icon = TrayIconBounds { x: 500, y: 0, width: 30, height: 30 };
+    let work_area = WorkArea { x: 0, y: 30, width: 1024, height: 738 };
+
+    // Standard height 340
+    let normal_size = PhysicalSize::new(640, 340);
+    let normal_pos = calculate_popover_position(icon, normal_size, work_area, 1.0);
+    assert_eq!(normal_pos.y, 32);
+
+    // Expanded height 720 (nearly fills screen)
+    let grown_size = PhysicalSize::new(640, 720);
+    let grown_pos = calculate_popover_position(icon, grown_size, work_area, 1.0);
+    // max_y = 30 + 738 - 720 - 8 = 40. Desired y (32) < max_y (40) -> remains 32
+    assert_eq!(grown_pos.y, 32);
+
+    // Very large height 750 (exceeds available height minus margin)
+    let huge_size = PhysicalSize::new(640, 750);
+    let huge_pos = calculate_popover_position(icon, huge_size, work_area, 1.0);
+    // max_y = (30 + 738 - 750 - 8).max(30) = 30 -> clamped strictly inside screen
+    assert_eq!(huge_pos.y, 30);
   }
 
 

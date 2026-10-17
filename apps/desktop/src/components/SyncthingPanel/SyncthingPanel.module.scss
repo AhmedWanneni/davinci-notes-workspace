@@ -1,0 +1,161 @@
+.syncthing-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-1) 0;
+}
+
+.syncthing-panel__status-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  background-color: var(--color-bg-secondary);
+}
+
+.syncthing-panel__status-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.syncthing-panel__badge-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.syncthing-panel__hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.syncthing-panel__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-normal);
+  border-radius: 4px;
+  background-color: var(--color-bg-secondary);
+}
+
+.syncthing-panel__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.syncthing-panel__device-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-normal);
+}
+
+.syncthing-panel__device-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  background-color: var(--color-bg-primary);
+  flex-wrap: wrap;
+}
+
+.syncthing-panel__device-id {
+  font-family: var(--font-editor);
+  font-size: 12px;
+  color: var(--color-text-accent);
+  margin: 0;
+  word-break: break-all;
+  user-select: all;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+}
+
+.syncthing-panel__copy-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.syncthing-panel__toast {
+  font-size: 11px;
+  color: var(--color-text-accent);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  animation: fade-in 0.15s ease-out;
+}
+
+.syncthing-panel__qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-normal);
+  border-radius: 4px;
+  background-color: var(--color-bg-secondary);
+}
+
+.syncthing-panel__qr-quiet-zone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff; // stylelint-disable-line color-no-hex -- QR quiet zone requires pure white background for scanner contrast in dark mode.
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+}
+
+.syncthing-panel__qr-image {
+  width: 180px;
+  height: 180px;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.syncthing-panel__qr-caption {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+.is-spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

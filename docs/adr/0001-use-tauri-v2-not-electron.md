@@ -1,7 +1,7 @@
 # ADR-0001: Use Tauri v2, not Electron
 
 ## Status
-Accepted
+Superseded by 0185 (for mobile shell; desktop remains Tauri v2)
 
 ## Context
 Need desktop *and* mobile (iOS/Android) from one codebase. Electron has no mobile path. Bundle size, idle memory, and startup speed matter (see `PERFORMANCE.md`).

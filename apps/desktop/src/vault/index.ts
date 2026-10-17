@@ -19,6 +19,7 @@ export { resolveUniqueNotePath } from "./resolveUniqueNotePath";
 export { getSetting, setSetting } from "./settingsCommands";
 export { writeAttachmentToVault } from "./writeAttachment";
 export {
+  closeVaultIndexDb,
   countIndexedNotes,
   getVaultIndexDb,
   persistNote,
@@ -32,8 +33,17 @@ export {
 } from "./sqliteIndex";
 export {
   activateVaultWatcher,
+  deactivateVaultWatcher,
   withVaultWatchSuppressed,
 } from "./vaultWatchSession";
+export {
+  getRecentVaults,
+  recordRecentVault,
+  removeRecentVault,
+  checkVaultExists,
+  getAutoOpenVault,
+  type RecentVaultEntry,
+} from "./recentVaultsRegistry";
 export {
   vaultWatchCoordinator,
   VAULT_WATCHER_SETTLE_MS,
@@ -61,6 +71,11 @@ export {
   type VaultChangeBatch,
   type NoteStatPayload,
 } from "./vaultCommands";
+export {
+  switchVault,
+  closeVault,
+  isVaultSwitching,
+} from "./vaultSwitchOrchestrator";
 export { useVaultSession } from "./useVaultSession";
 export { retryOnSqliteBusy, isSqliteBusyError } from "./retryOnSqliteBusy";
 export { diskStateTracker } from "./diskStateTracker";

@@ -120,3 +120,93 @@ export function resolveDeleteVsEdit(
     surfacedMessage: `File '${input.path}' was edited locally; remote deletion ignored and local edit preserved.`,
   };
 }
+
+export type ConflictActionKind =
+  | "clean-merge"
+  | "conflict-copy"
+  | "delete-vs-edit-keep-local"
+  | "delete-vs-edit-apply-remote";
+
+export interface ConflictAction {
+  kind: ConflictActionKind;
+  path: string;
+  mergedContent?: string;
+  copyPath?: string;
+  copyContent?: string | ArrayBuffer;
+  surfacedMessage: string;
+}
+
+export interface ConflictActionInput {
+  path: string;
+  localDeleted: boolean;
+  remoteDeleted: boolean;
+  localContent?: string | ArrayBuffer;
+  baseContent?: string | ArrayBuffer;
+  remoteContent?: string | ArrayBuffer;
+  remoteDeviceName: string;
+  existingPaths: readonly string[];
+}
+
+/** Unified conflict resolution orchestrator satisfying zero-silent-data-loss policy. */
+export function resolveConflictAction(
+  input: ConflictActionInput,
+): ConflictAction {
+  // 1. Delete vs Edit
+  if (input.localDeleted !== input.remoteDeleted) {
+    const res = resolveDeleteVsEdit({
+      path: input.path,
+      localDeleted: input.localDeleted,
+      remoteDeleted: input.remoteDeleted,
+    });
+    return {
+      kind:
+        res.winner === "local"
+          ? "delete-vs-edit-keep-local"
+          : "delete-vs-edit-apply-remote",
+      path: input.path,
+      surfacedMessage: res.surfacedMessage,
+      copyContent: res.winner === "remote" ? input.remoteContent : undefined,
+    };
+  }
+
+  // 2. Both edited / created: check text mergeability
+  if (isTextMergeable(input.path)) {
+    const toStr = (v?: string | ArrayBuffer): string =>
+      typeof v === "string" ? v : v ? new TextDecoder().decode(v) : "";
+    const local = toStr(input.localContent);
+    const base = toStr(input.baseContent);
+    const remote = toStr(input.remoteContent);
+
+    const mergeResult = resolveTextConflict({
+      path: input.path,
+      localContent: local,
+      baseContent: base,
+      remoteContent: remote,
+      remoteLabel: input.remoteDeviceName,
+    });
+
+    if (!mergeResult.hasConflict) {
+      return {
+        kind: "clean-merge",
+        path: input.path,
+        mergedContent: mergeResult.mergedContent,
+        surfacedMessage: `Cleanly merged edits on '${input.path}'.`,
+      };
+    }
+  }
+
+  // 3. Merge cannot be proven safe: keep both versions (conflict copy)
+  const copyRes = resolveBinaryConflictName({
+    path: input.path,
+    remoteDeviceName: input.remoteDeviceName,
+    existingPaths: input.existingPaths,
+  });
+
+  return {
+    kind: "conflict-copy",
+    path: input.path,
+    copyPath: copyRes.copyPath,
+    copyContent: input.remoteContent,
+    surfacedMessage: `Conflicting changes on '${input.path}' could not be safely merged. Preserved both versions as '${copyRes.copyPath}'.`,
+  };
+}

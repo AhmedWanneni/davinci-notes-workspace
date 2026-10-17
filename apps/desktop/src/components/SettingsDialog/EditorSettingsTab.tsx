@@ -1,19 +1,70 @@
 import { Button, Toggle } from "@app/design-system";
 import {
-  editorFonts,
+  DEFAULT_EDITOR_FONT_SIZE,
   isEditorFont,
   MAX_EDITOR_FONT_SIZE,
   MIN_EDITOR_FONT_SIZE,
+  validateAndSanitizeCustomFont,
+  type EditorFont,
 } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
 import styles from "./SettingsDialog.module.scss";
 
+interface FontOption {
+  value: EditorFont;
+  label: string;
+}
+
+interface FontGroup {
+  label?: string;
+  options: FontOption[];
+}
+
+const FONT_GROUPS: FontGroup[] = [
+  {
+    options: [{ value: "system", label: "System default" }],
+  },
+  {
+    label: "Sans",
+    options: [
+      { value: "inter", label: "Inter" },
+      { value: "ibm-plex-sans", label: "IBM Plex Sans" },
+    ],
+  },
+  {
+    label: "Serif",
+    options: [
+      { value: "literata", label: "Literata" },
+      { value: "source-serif-4", label: "Source Serif 4" },
+    ],
+  },
+  {
+    label: "Monospace",
+    options: [{ value: "jetbrains-mono", label: "JetBrains Mono" }],
+  },
+  {
+    label: "Display",
+    options: [
+      { value: "montserrat", label: "Montserrat" },
+      { value: "raleway", label: "Raleway" },
+    ],
+  },
+  {
+    label: "Custom",
+    options: [{ value: "custom", label: "Custom font" }],
+  },
+];
+
 export function EditorSettingsTab() {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
+  const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
   const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setEditorFont = useWorkspaceStore((state) => state.setEditorFont);
+  const setEditorCustomFont = useWorkspaceStore(
+    (state) => state.setEditorCustomFont,
+  );
   const previewEditorFontSize = useWorkspaceStore(
     (state) => state.previewEditorFontSize,
   );
@@ -26,6 +77,14 @@ export function EditorSettingsTab() {
   );
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
   const setUseVimMode = useWorkspaceStore((state) => state.setUseVimMode);
+  const vimMonospaceMode = useWorkspaceStore((state) => state.vimMonospaceMode);
+  const setVimMonospaceMode = useWorkspaceStore(
+    (state) => state.setVimMonospaceMode,
+  );
+  const slashMenuEnabled = useWorkspaceStore((state) => state.slashMenuEnabled);
+  const setSlashMenuEnabled = useWorkspaceStore((state) => state.setSlashMenuEnabled);
+
+  const customValidation = validateAndSanitizeCustomFont(editorCustomFont);
 
   return (
     <div className={styles["settings-tab-content"]}>
@@ -44,15 +103,56 @@ export function EditorSettingsTab() {
             className={styles["settings-select"]}
             aria-label="Editor Font"
           >
-            {editorFonts.map((font) => (
-              <option key={font} value={font}>
-                {font === "system"
-                  ? "System UI"
-                  : font[0].toUpperCase() + font.slice(1)}
-              </option>
-            ))}
+            {FONT_GROUPS.map((group) =>
+              group.label ? (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </optgroup>
+              ) : (
+                group.options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))
+              ),
+            )}
+            {editorFont === "roboto" && <option value="roboto">Roboto</option>}
+            {editorFont === "serif" && (
+              <option value="serif">Serif (Legacy)</option>
+            )}
+            {editorFont === "monospace" && (
+              <option value="monospace">Monospace (Legacy)</option>
+            )}
           </select>
         </SettingsRow>
+
+        {editorFont === "custom" && (
+          <SettingsRow
+            title="Custom Font Name"
+            description="Type the name of a font installed on your system (e.g. Menlo, Fira Code, Georgia)."
+          >
+            <div className={styles["settings-custom-font-control"]}>
+              <input
+                type="text"
+                value={editorCustomFont}
+                aria-label="Custom Font Name"
+                placeholder="e.g. Fira Code"
+                maxLength={50}
+                onChange={(e) => void setEditorCustomFont(e.target.value)}
+                className={styles["settings-text-input"]}
+              />
+              {!customValidation.isValid && editorCustomFont.length > 0 && (
+                <span className={styles["settings-field-error"]}>
+                  {customValidation.error}
+                </span>
+              )}
+            </div>
+          </SettingsRow>
+        )}
 
         <SettingsRow
           title="Editor Font Size"
@@ -89,7 +189,7 @@ export function EditorSettingsTab() {
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => void setEditorFontSize(16)}
+              onClick={() => void setEditorFontSize(DEFAULT_EDITOR_FONT_SIZE)}
             >
               Reset
             </Button>
@@ -117,6 +217,28 @@ export function EditorSettingsTab() {
             checked={useVimMode}
             onCheckedChange={(checked) => void setUseVimMode(checked)}
             aria-label="Vim Keybindings"
+          />
+        </SettingsRow>
+
+        <SettingsRow
+          title="Slash menu"
+          description="Show insert options when typing / at the start of a line or after whitespace."
+        >
+          <Toggle
+            checked={slashMenuEnabled}
+            onCheckedChange={(checked) => void setSlashMenuEnabled(checked)}
+            aria-label="Slash menu"
+          />
+        </SettingsRow>
+
+        <SettingsRow
+          title="Use monospace font in vim mode"
+          description="Maintain uniform cursor width across characters by switching to JetBrains Mono in Vim mode."
+        >
+          <Toggle
+            checked={vimMonospaceMode}
+            onCheckedChange={(checked) => void setVimMonospaceMode(checked)}
+            aria-label="Use monospace font in vim mode"
           />
         </SettingsRow>
       </SettingsCard>

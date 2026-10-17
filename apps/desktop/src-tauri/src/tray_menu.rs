@@ -12,6 +12,15 @@ pub struct RecentNoteItem {
   pub title: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct TrayReminderItem {
+  pub note_path: String,
+  pub line: i64,
+  pub text: String,
+  pub due_time: String,
+}
+
 pub const MAX_RECENT_NOTES: usize = 5;
 pub const MAX_TITLE_CHARS: usize = 40;
 
@@ -80,6 +89,7 @@ pub fn build_tray_menu(
   app: &AppHandle,
   has_vault: bool,
   recent_notes: &[RecentNoteItem],
+  upcoming_reminders: &[TrayReminderItem],
 ) -> tauri::Result<Menu<Wry>> {
   let menu = Menu::new(app)?;
   let show_hide = MenuItem::with_id(app, "tray-show-hide", "Show/Hide window", true, None::<&str>)?;
@@ -89,6 +99,13 @@ pub fn build_tray_menu(
     app,
     "tray-daily-note",
     "Open today's daily note",
+    has_vault,
+    None::<&str>,
+  )?;
+  let open_reminders = MenuItem::with_id(
+    app,
+    "tray-open-reminders",
+    "Open reminders",
     has_vault,
     None::<&str>,
   )?;
@@ -104,7 +121,21 @@ pub fn build_tray_menu(
   menu.append(&quick_capture)?;
   menu.append(&new_note)?;
   menu.append(&daily_note)?;
+  menu.append(&open_reminders)?;
   menu.append(&sep1)?;
+
+  if !upcoming_reminders.is_empty() {
+    let capped_rem = upcoming_reminders.len().min(3);
+    for idx in 0..capped_rem {
+      let r = &upcoming_reminders[idx];
+      let item_id = format!("tray-reminder:{idx}");
+      let label = format!("⏰ {} ({})", sanitize_title(&r.text), r.due_time);
+      let menu_item = MenuItem::with_id(app, item_id, label, true, None::<&str>)?;
+      menu.append(&menu_item)?;
+    }
+    let sep_rem = PredefinedMenuItem::separator(app)?;
+    menu.append(&sep_rem)?;
+  }
 
   let display_titles = disambiguate_titles(recent_notes);
   let capped_count = recent_notes.len().min(MAX_RECENT_NOTES);
@@ -133,3 +164,4 @@ pub fn build_tray_menu(
 
   Ok(menu)
 }
+

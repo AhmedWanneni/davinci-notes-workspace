@@ -23,4 +23,13 @@ describe("GlobalGraphLeaf", () => {
     fireEvent.click(screen.getByLabelText("Close global graph"));
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it("renders without blanking when graph is null", () => {
+    render(
+      <GlobalGraphLeaf graph={null} onClose={vi.fn()} onNavigate={vi.fn()} />,
+    );
+
+    expect(screen.getByLabelText("Global graph view")).toBeDefined();
+    expect(screen.getByText("Graph canvas")).toBeDefined();
+  });
 });

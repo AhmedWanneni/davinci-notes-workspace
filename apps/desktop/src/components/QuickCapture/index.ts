@@ -27,4 +27,12 @@ export {
   QuickCaptureFooter,
   type QuickCaptureFooterProps,
 } from "./QuickCaptureFooter";
+export {
+  QuickCaptureDestination,
+  type QuickCaptureDestinationProps,
+} from "./QuickCaptureDestination";
 export { useCaptureTheme } from "./useCaptureTheme";
+export {
+  useCaptureKeybindings,
+  type UseCaptureKeybindingsOptions,
+} from "./useCaptureKeybindings";

@@ -29,5 +29,13 @@
     "turbo": "^2.0.0",
     "typescript": "^5.4.0"
   },
+  "pnpm": {
+    "overrides": {
+      "@expo/dom-webview": "57.0.1",
+      "@expo/log-box": "57.0.4",
+      "@app/editor>react": "19.2.3",
+      "@app/editor>react-dom": "19.2.3"
+    }
+  },
   "packageManager": "pnpm@10.27.0"
 }

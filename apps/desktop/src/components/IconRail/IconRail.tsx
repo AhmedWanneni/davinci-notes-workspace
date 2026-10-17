@@ -4,6 +4,7 @@ import {
   ShareNetwork,
   CalendarBlank,
   FrameCorners,
+  Bell,
   Gear,
   SignOut,
 } from "@phosphor-icons/react";
@@ -18,6 +19,8 @@ export interface IconRailProps {
   onCloseVault: () => void;
   onDailyNotes?: () => void;
   onCreateCanvas?: () => void;
+  onOpenReminders?: () => void;
+  isGlobalGraphOpen?: boolean;
 }
 
 export function IconRail({
@@ -29,6 +32,8 @@ export function IconRail({
   onCloseVault,
   onDailyNotes,
   onCreateCanvas,
+  onOpenReminders,
+  isGlobalGraphOpen,
 }: IconRailProps) {
   return (
     <nav className="icon-rail" aria-label="Primary navigation">
@@ -66,6 +71,7 @@ export function IconRail({
           <button
             type="button"
             className="icon-rail__btn"
+            data-active={isGlobalGraphOpen || undefined}
             onClick={onOpenGlobalGraph}
             aria-label="Graph view"
           >
@@ -93,6 +99,19 @@ export function IconRail({
               aria-label="New canvas"
             >
               <FrameCorners size={18} weight="regular" />
+            </button>
+          </Tooltip>
+        )}
+
+        {onOpenReminders && (
+          <Tooltip content="Reminders" contentProps={{ side: "right" }}>
+            <button
+              type="button"
+              className="icon-rail__btn"
+              onClick={onOpenReminders}
+              aria-label="Reminders"
+            >
+              <Bell size={18} weight="regular" />
             </button>
           </Tooltip>
         )}

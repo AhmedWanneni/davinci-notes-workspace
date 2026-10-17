@@ -1,23 +1,46 @@
 .app-sidebar {
-  width: 270px;
-  min-width: 240px;
+  width: 240px;
+  min-width: 180px;
+  position: relative;
   border-right: var(--border-width-thin) solid var(--color-border-subtle);
   background-color: var(--color-bg-primary-alt);
-  grid-template-columns: 40px minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  grid-column: 1;
-  grid-row: 1 /-1;
+  grid-column: 2;
+  grid-row: 1 / -1;
   transition: width var(--motion-duration-fast) var(--motion-ease-standard);
 
+  &[data-resizing="true"] {
+    transition: none;
+    user-select: none;
+  }
+
   &[data-collapsed="true"] {
-    width: 0;
-    min-width: 0;
-    border-right: none;
+    width: 0 !important;
+    min-width: 0 !important;
+    border-right: none !important;
     visibility: hidden;
     pointer-events: none;
+    overflow: hidden;
   }
 }
+
+.app-sidebar__resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+
+  &:hover,
+  &[data-resizing="true"] {
+    background-color: var(--color-border-normal);
+  }
+}
+
 
 .app-sidebar__header {
   grid-column: 1 / -1;
