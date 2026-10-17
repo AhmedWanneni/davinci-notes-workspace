@@ -82,3 +82,47 @@ export async function syncthingAcceptFolder(
     allowNonEmpty: allowNonEmpty ?? false,
   });
 }
+
+export interface SyncthingCheckItem {
+  passed: boolean;
+  reason: string;
+}
+
+export interface SyncthingRemoteConnectedItem {
+  passed: boolean;
+  reason: string;
+  connectedDevices: string[];
+}
+
+export interface SyncthingFolderStateItem {
+  passed: boolean;
+  reason: string;
+  folderId: string | null;
+  state: string | null;
+  outOfSyncItems: number;
+  remoteCompletions: Record<string, number>;
+}
+
+export interface SyncthingFolderErrorsItem {
+  passed: boolean;
+  reason: string;
+  errors: string[];
+}
+
+export interface SyncthingSelfTestItem {
+  passed: boolean;
+  reason: string;
+  roundTripMs: number | null;
+}
+
+export interface SyncthingCheckReport {
+  reachability: SyncthingCheckItem;
+  remoteConnected: SyncthingRemoteConnectedItem;
+  folderState: SyncthingFolderStateItem;
+  folderErrors: SyncthingFolderErrorsItem;
+  selfTest: SyncthingSelfTestItem;
+}
+
+export async function syncthingCheckSync(): Promise<SyncthingCheckReport> {
+  return invoke<SyncthingCheckReport>("syncthing_check_sync");
+}

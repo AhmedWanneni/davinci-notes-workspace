@@ -135,7 +135,7 @@ pub fn run() {
       syncthing::syncthing_add_device, syncthing::syncthing_pending_devices,
       syncthing::syncthing_accept_device, syncthing::syncthing_dismiss_pending_device,
       syncthing::syncthing_share_vault_folder, syncthing::syncthing_pending_folders,
-      syncthing::syncthing_accept_folder,
+      syncthing::syncthing_accept_folder, syncthing::syncthing_check_sync,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {

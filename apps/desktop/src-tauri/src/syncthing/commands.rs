@@ -121,3 +121,19 @@ pub async fn syncthing_accept_folder(
     .accept_folder(&folder_id, &target_path, allow_non_empty.unwrap_or(false))
     .await
 }
+
+#[command]
+pub async fn syncthing_check_sync(
+  window: WebviewWindow,
+  app: AppHandle,
+) -> Result<super::sync_check::SyncthingCheckReport, SyncthingError> {
+  reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
+  let vault_root = app
+    .state::<VaultState>()
+    .get_root()
+    .map_err(|e| SyncthingError::UnexpectedResponse(format!("Cannot check sync without open vault: {e}")))?;
+
+  let config = resolve_local_syncthing_config()?;
+  let client = SyncthingClient::new(config)?;
+  client.check_sync(&vault_root).await
+}

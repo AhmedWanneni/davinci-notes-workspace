@@ -4,6 +4,9 @@ pub mod commands;
 pub mod devices;
 pub mod folders;
 pub mod stignore;
+pub mod sync_check;
+pub mod sync_check_marker;
+pub mod sync_check_types;
 pub mod types;
 
 #[cfg(test)]

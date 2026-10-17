@@ -4,6 +4,29 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Desktop Syncthing Sync Health Verification & Self-Test Round-Trip (`apps/desktop/`, ADR-0198) (complete)**
+Shipped "Check sync" diagnostic engine and UI section in the Syncthing settings panel proving sync works through empirical checks rather than assumptions:
+1. **Five Diagnostic Checks (`apps/desktop/src-tauri/src/syncthing/sync_check.rs`, `sync_check_marker.rs`)**:
+   - **Check 1 (Reachability)**: Probes local Syncthing REST status and version; flags not running or bad key with actionable reason.
+   - **Check 2 (Remote Devices)**: Inspects `/rest/system/connections` for active connections (`connected == true`); reports clear offline reason if 0 remote peers connected.
+   - **Check 3 (Vault Folder State)**: Matches active vault against Syncthing folders; reports state (`idle`/`scanning`/`syncing`/`error`), out-of-sync items count, and per-remote completion percentage.
+   - **Check 4 (Folder Errors)**: Surfaces filesystem and permission errors from `/rest/folder/errors` and folder status invalid/error fields.
+   - **Check 5 (Self-Test Round-Trip)**: Writes ephemeral marker file `.davinci-sync-check/<deviceId>-<timestamp>.txt`, triggers scan, polls remote completion with 10s timeout, measures round-trip time in milliseconds, and guarantees marker cleanup on success, timeout, or failure.
+2. **Safety & Startup Cleanup (`apps/desktop/src-tauri/src/fs.rs`)**:
+   - Zero background polling when panel is closed.
+   - Marker directory `.davinci-sync-check/` filtered from `collect_vault_paths` and `collect_vault_folders`; non-markdown extension `.txt` excluded from note indexing (`VaultIndexer.ts`), search, and graph.
+   - Added `cleanup_stale_marker` to `open_vault` guaranteeing that force-killing mid-test leaves zero stale markers on the next app launch.
+3. **UI Section (`SyncthingSyncCheckSection.tsx`, `SyncthingCheckItemRow.tsx`)**:
+   - Obsidian-style card with Pulse icon, loading spinner while checking, and 5 clear pass/fail status rows with badges and detail text.
+4. **Verification**:
+   - Remote online: Passed all 5 checks with live peer round-trip measured at 1795ms; marker verified deleted on disk.
+   - Remote offline: Reported Check 2 FAIL ("No remote devices connected") and Check 5 SKIPPED with clear reason; marker verified deleted.
+   - App killed mid-test: Simulated leaked marker; verified `cleanup_stale_marker` purged marker directory on startup.
+   - File tree / search / graph isolation: Confirmed `.txt` and `.davinci-sync-check` excluded from vault paths and SQLite index.
+   - All 13 Cargo tests pass; all 17 Vitest tests in `SyncthingPanel/` pass; 0 ESLint / 0 Stylelint / 0 token errors; all files under 250 lines.
+
+---
+
 **Desktop Syncthing Device Pairing, Incoming Requests & Safe Vault Folder Sharing (`apps/desktop/`, ADR-0198) (complete)**
 Extended Desktop Syncthing panel and Rust backend commands so the desktop can pair devices and share vault folders safely:
 1. **Rust Backend Commands (`apps/desktop/src-tauri/src/syncthing/`)**:

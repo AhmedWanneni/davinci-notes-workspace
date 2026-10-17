@@ -10,6 +10,7 @@ import {
 import { useSyncthingStatus, type SyncthingState } from "./useSyncthingStatus";
 import { SyncthingAddDeviceSection } from "./SyncthingAddDeviceSection";
 import { SyncthingPendingSection } from "./SyncthingPendingSection";
+import { SyncthingSyncCheckSection } from "./SyncthingSyncCheckSection";
 import { SyncthingVaultShareSection } from "./SyncthingVaultShareSection";
 import styles from "./SyncthingPanel.module.scss";
 
@@ -199,6 +200,9 @@ export function SyncthingPanel({ customStatus }: SyncthingPanelProps) {
       {status === "running" && (
         <SyncthingVaultShareSection onShared={refresh} />
       )}
+
+      {/* 7. Check Sync Health Verification */}
+      {status === "running" && <SyncthingSyncCheckSection />}
     </div>
   );
 }
