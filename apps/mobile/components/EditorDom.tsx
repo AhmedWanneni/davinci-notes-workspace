@@ -15,6 +15,12 @@ import { executeToolbarAction } from "./editorToolbarActions";
 import { darkColorTokens } from "@app/design-tokens/mobile";
 
 export interface EditorDomProps {
+  dom?: {
+    useExpoDOMWebView?: boolean;
+    matchContents?: boolean;
+    scrollEnabled?: boolean;
+    [key: string]: unknown;
+  };
   initialContent: string;
   notePath?: string;
   onDocChanged?: (

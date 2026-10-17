@@ -5,6 +5,12 @@ import { darkColorTokens } from "@app/design-tokens/mobile";
 import type { CanvasDocument, CanvasNode } from "./canvasParser";
 
 export interface CanvasViewerDomProps {
+  dom?: {
+    useExpoDOMWebView?: boolean;
+    matchContents?: boolean;
+    scrollEnabled?: boolean;
+    [key: string]: unknown;
+  };
   document: CanvasDocument;
   initialScale?: number;
 }

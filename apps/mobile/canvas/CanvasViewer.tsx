@@ -92,7 +92,10 @@ export const CanvasViewer: React.FC<CanvasViewerProps> = ({
         </View>
       ) : null}
       <View className="flex-1">
-        <CanvasViewerDom document={document} />
+        <CanvasViewerDom
+          dom={{ useExpoDOMWebView: false }}
+          document={document}
+        />
       </View>
     </View>
   );

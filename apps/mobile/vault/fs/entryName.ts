@@ -14,8 +14,7 @@ const RESERVED_CHARS = /[/\\:*?"<>|]/g;
 // C0 + DEL + C1 control characters, plus bidi/zero-width format controls that
 // would make two visually identical names differ.
 // eslint-disable-next-line no-control-regex
-const CONTROL_CHARS =
-  /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g;
+const CONTROL_CHARS = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g;
 const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i;
 
 const encoder = new TextEncoder();

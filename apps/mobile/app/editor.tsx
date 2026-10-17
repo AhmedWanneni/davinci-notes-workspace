@@ -179,6 +179,7 @@ export default function EditorScreen(): React.ReactElement {
       <View className="flex-1">
         {isLoaded ? (
           <EditorDom
+            dom={{ useExpoDOMWebView: false }}
             initialContent={content}
             notePath={activePath}
             onDocChanged={handleDocChanged}
