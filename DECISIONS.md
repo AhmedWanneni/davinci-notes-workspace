@@ -112,9 +112,10 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0120](adr/0120-drive-oauth-authentication-and-verification.md) | Desktop PKCE Drive auth with `drive.file`, OS-keychain tokens, refresh/sign-out behavior, and verification rollout posture | Accepted |
 | [0121](adr/0121-drive-appdata-scope-correction.md) | Add non-sensitive `drive.appdata` alongside `drive.file` for hidden app-scoped manifest storage; explicit amendment to ADR-0120 | Accepted |
 | [0122](adr/0122-sync-conflict-resolution-and-safety.md) | Sync Phase 4 conflict resolution: diff3 for .md, atomic copy for .canvas, device-name copy for binaries, edit-wins for delete-vs-edit | Accepted |
-| [0123](adr/0123-syncthing-folder-sync-mode-and-watcher-burst-robustness.md) | Syncthing/folder sync mode: zero daemon IPC, parallel IPC pre-fetch for watcher bursts, conflict recognition & SyncConflictsPanel UI | Accepted |
+| [0123](adr/0123-syncthing-folder-sync-mode-and-watcher-burst-robustness.md) | Syncthing/folder sync mode: zero daemon IPC, parallel IPC pre-fetch for watcher bursts, conflict recognition & SyncConflictsPanel UI | Partially superseded by [0198](adr/0198-syncthing-local-rest-api-and-keychain-security.md) |
 | [0124](adr/0124-sync-settings-asymmetric-framing-and-mode-isolation.md) | Sync settings UI: asymmetric framing for Drive vs Folder, opt-in default, isolated per-mode configuration panels | Accepted |
 | [0125](adr/0125-comprehensive-sync-architecture-closeout.md) | Comprehensive Sync Architecture Closeout across Phases 0–7: zero backend, appDataFolder Drive sync, node-diff3 text merge, atomic canvas/binary conflict copies, watcher burst pre-fetch, asymmetric UI | Accepted |
+| [0198](adr/0198-syncthing-local-rest-api-and-keychain-security.md) | Syncthing local REST API integration: automatic config discovery, OS keychain fallback, native loopback confinement, and 0 KB QR proxy | Accepted |
 | [0113](adr/0113-attachment-settings-validation.md) | Specified folders validate/create at first use; invalid subfolder drafts stay local with inline validation | Accepted |
 
 
