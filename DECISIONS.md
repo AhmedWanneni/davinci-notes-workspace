@@ -282,3 +282,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0194](adr/0194-mobile-expo-sdk-pin-and-dependency-alignment.md) | Expo SDK pin and strict peer dependency alignment | Accepted |
 | [0195](adr/0195-mobile-vault-onboarding-and-registry.md) | Mobile vault onboarding, multi-vault registry, and storage selection | Accepted |
 | [0196](adr/0196-mobile-vault-storage-and-flow-remediation.md) | Mobile vault storage and flow remediation: object-based fs seam, atomic overwrite, and UI hardening | Accepted |
+| [0197](adr/0197-mobile-note-identity-and-rename-safety.md) | Stable note identity via NoteStore, single-pass atomic write, and safe collision-free rename | Accepted |

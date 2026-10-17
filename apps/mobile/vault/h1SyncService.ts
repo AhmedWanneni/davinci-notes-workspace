@@ -65,13 +65,14 @@ export async function syncH1ToFilename(
   }
 
   // 1. Rename on disk
-  await adapter.renameNote(currentPath, targetPath);
+  const actualNewPath = await adapter.renameNote(currentPath, targetPath);
 
   // 2. Propagate wikilinks in other vault notes
   let linksUpdatedCount = 0;
   const scan = await adapter.scanVault();
   for (const otherNotePath of scan.notes) {
-    if (otherNotePath === currentPath || otherNotePath === targetPath) continue;
+    if (otherNotePath === currentPath || otherNotePath === actualNewPath)
+      continue;
 
     try {
       const file = await adapter.readNote(otherNotePath);
@@ -94,7 +95,7 @@ export async function syncH1ToFilename(
 
   return {
     renamed: true,
-    newPath: targetPath,
+    newPath: actualNewPath,
     linksUpdatedCount,
   };
 }

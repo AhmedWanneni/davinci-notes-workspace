@@ -7,8 +7,12 @@ import EditorDom from "../components/EditorDom";
 import { FormattingToolbar } from "../components/FormattingToolbar";
 import { EditorConflictBanner } from "../components/EditorConflictBanner";
 import { EditorHeader } from "../components/EditorHeader";
-import { defaultVaultManager } from "../vault";
+import { Text } from "../components/primitives";
 import {
+  defaultVaultManager,
+  defaultNoteStore,
+  useNotePath,
+  useEditorNoteLoader,
   atomicWriteNote,
   checkForExternalConflict,
   syncH1ToFilename,
@@ -23,16 +27,29 @@ import type {
 export default function EditorScreen(): React.ReactElement {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { path: initialPath, preset } = useLocalSearchParams<{
+  const {
+    path: initialPath,
+    noteId,
+    preset,
+    autoFocus,
+  } = useLocalSearchParams<{
     path?: string;
+    noteId?: string;
     preset?: string;
+    autoFocus?: string;
   }>();
 
-  const [activePath, setActivePath] = useState<string>(
-    initialPath ?? "Untitled.md",
-  );
-  const [content, setContent] = useState<string>("");
-  const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const storePath = useNotePath(noteId, initialPath ?? "Untitled.md");
+  const {
+    activePath,
+    setActivePath,
+    content,
+    setContent,
+    isLoaded,
+    loadError,
+    baseMtimeRef,
+  } = useEditorNoteLoader({ storePath, noteId, preset });
+
   const [conflictContent, setConflictContent] = useState<string | null>(null);
   const [actionTrigger, setActionTrigger] = useState<{
     id: number;
@@ -45,41 +62,16 @@ export default function EditorScreen(): React.ReactElement {
   const [flushTrigger, setFlushTrigger] = useState<number>(0);
   const [lastPayloadBytes, setLastPayloadBytes] = useState<number>(0);
 
+  const shouldAutoFocus = autoFocus === "1" || preset === "new";
+  const [focusTrigger] = useState<number>(shouldAutoFocus ? 1 : 0);
+
   const { handleMediaAction } = useMediaCaptureActions((markdown) => {
     setInsertTrigger({ id: Date.now(), text: markdown });
   });
 
-  const baseMtimeRef = useRef<number>(0);
   const pathRef = useRef<string>(activePath);
   pathRef.current = activePath;
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const { adapter } = await defaultVaultManager.getActiveAdapter();
-      if (!adapter) return;
-      if (preset === "new") {
-        const initial = "# Untitled\n\n";
-        setContent(initial);
-        const stat = await atomicWriteNote(adapter, activePath, initial);
-        baseMtimeRef.current = stat.mtime;
-      } else {
-        try {
-          const file = await adapter.readNote(activePath);
-          baseMtimeRef.current = file.mtime;
-          if (mounted) setContent(file.content);
-        } catch {
-          if (mounted) setContent(`# ${activePath.replace(/\.md$/i, "")}\n\n`);
-        }
-      }
-      if (mounted) setIsLoaded(true);
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [activePath, preset]);
-
-  // App background save flush
   useEffect(() => {
     const sub = AppState.addEventListener("change", (nextState) => {
       if (nextState !== "active") {
@@ -95,51 +87,65 @@ export default function EditorScreen(): React.ReactElement {
       const newText = notification.content;
       if (newText === undefined) return;
 
-      const { adapter } = await defaultVaultManager.getActiveAdapter();
-      if (!adapter) return;
+      try {
+        const { adapter } = await defaultVaultManager.getActiveAdapter();
+        if (!adapter) return;
 
-      const currentPath = pathRef.current;
-      const conflict = await checkForExternalConflict(
-        adapter,
-        currentPath,
-        baseMtimeRef.current,
-      );
-      if (conflict.hasConflict) {
-        setConflictContent(newText);
-        return;
+        const currentPath = pathRef.current;
+        const conflict = await checkForExternalConflict(
+          adapter,
+          currentPath,
+          baseMtimeRef.current,
+        );
+        if (conflict.hasConflict) {
+          setConflictContent(newText);
+          return;
+        }
+
+        const stat = await atomicWriteNote(adapter, currentPath, newText);
+        baseMtimeRef.current = stat.mtime;
+
+        const sync = await syncH1ToFilename(adapter, currentPath, newText);
+        if (sync.renamed) {
+          setActivePath(sync.newPath);
+          defaultNoteStore.rename(currentPath, sync.newPath);
+        } else {
+          await defaultVaultIndexer.indexVault(adapter, false);
+        }
+      } catch (err) {
+        console.error("[editor] Auto-save failed:", err);
       }
-
-      const stat = await atomicWriteNote(adapter, currentPath, newText);
-      baseMtimeRef.current = stat.mtime;
-
-      const sync = await syncH1ToFilename(adapter, currentPath, newText);
-      if (sync.renamed) setActivePath(sync.newPath);
-      else await defaultVaultIndexer.indexVault(adapter, false);
     },
-    [],
+    [baseMtimeRef, setActivePath],
   );
 
   const handleOverwriteConflict = async () => {
     if (!conflictContent) return;
-    const { adapter } = await defaultVaultManager.getActiveAdapter();
-    if (!adapter) return;
-    const stat = await atomicWriteNote(
-      adapter,
-      pathRef.current,
-      conflictContent,
-    );
-    baseMtimeRef.current = stat.mtime;
-    setConflictContent(null);
-    await defaultVaultIndexer.indexVault(adapter, false);
+    try {
+      const { adapter } = await defaultVaultManager.getActiveAdapter();
+      if (!adapter) return;
+      const stat = await atomicWriteNote(
+        adapter,
+        pathRef.current,
+        conflictContent,
+      );
+      baseMtimeRef.current = stat.mtime;
+      setConflictContent(null);
+      await defaultVaultIndexer.indexVault(adapter, false);
+    } catch (err) {
+      console.error("[editor] Overwrite conflict failed:", err);
+    }
   };
 
   const handleReloadDisk = async () => {
-    const { adapter } = await defaultVaultManager.getActiveAdapter();
-    if (!adapter) return;
     try {
+      const { adapter } = await defaultVaultManager.getActiveAdapter();
+      if (!adapter) return;
       const file = await adapter.readNote(pathRef.current);
       baseMtimeRef.current = file.mtime;
       setContent(file.content);
+    } catch (err) {
+      console.error("[editor] Reload from disk failed:", err);
     } finally {
       setConflictContent(null);
     }
@@ -148,7 +154,7 @@ export default function EditorScreen(): React.ReactElement {
   const handleBack = () => {
     setFlushTrigger(Date.now());
     setTimeout(() => {
-      router.replace({ pathname: "/note", params: { path: pathRef.current } });
+      router.back();
     }, 50);
   };
 
@@ -158,6 +164,7 @@ export default function EditorScreen(): React.ReactElement {
     <View
       className="flex-1 bg-bg-primary"
       style={{
+        flex: 1,
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
       }}
@@ -169,22 +176,36 @@ export default function EditorScreen(): React.ReactElement {
         onBack={handleBack}
       />
 
+      {loadError ? (
+        <View className="m-4 p-4 rounded-lg bg-accent-critical/10 border border-accent-critical">
+          <Text variant="body" color="error">
+            {loadError}
+          </Text>
+        </View>
+      ) : null}
+
       {conflictContent !== null ? (
         <EditorConflictBanner
-          onOverwrite={handleOverwriteConflict}
-          onReload={handleReloadDisk}
+          onOverwrite={() => void handleOverwriteConflict()}
+          onReload={() => void handleReloadDisk()}
         />
       ) : null}
 
-      <View className="flex-1">
+      <View style={{ flex: 1, width: "100%" }}>
         {isLoaded ? (
           <EditorDom
-            dom={{ useExpoDOMWebView: false }}
+            dom={{
+              useExpoDOMWebView: false,
+              matchContents: false,
+              scrollEnabled: false,
+              containerStyle: { flex: 1, width: "100%", height: "100%" },
+              style: { flex: 1, width: "100%", height: "100%" },
+            }}
             initialContent={content}
             notePath={activePath}
             onDocChanged={handleDocChanged}
             actionTrigger={actionTrigger}
-            focusTrigger={preset === "new" ? 1 : 0}
+            focusTrigger={focusTrigger}
             flushTrigger={flushTrigger}
             insertTrigger={insertTrigger}
           />

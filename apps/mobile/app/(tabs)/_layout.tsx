@@ -4,16 +4,39 @@ import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Files, MagnifyingGlass, Plus, Tag } from "phosphor-react-native";
 import { darkColorTokens, mobileTokens } from "@app/design-tokens/mobile";
+import {
+  defaultVaultManager,
+  generateUniqueNotePath,
+  defaultNoteStore,
+} from "../../vault";
 
 export default function TabLayout(): React.ReactElement {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const handleNewNote = () => {
-    router.push({
-      pathname: "/editor",
-      params: { preset: "new" },
-    });
+  const handleNewNote = async () => {
+    try {
+      const { adapter } = await defaultVaultManager.getActiveAdapter();
+      if (!adapter) {
+        router.push({
+          pathname: "/editor",
+          params: { preset: "new", autoFocus: "1" },
+        });
+        return;
+      }
+      const uniquePath = await generateUniqueNotePath(adapter, "", "Untitled");
+      const noteId = defaultNoteStore.register(uniquePath);
+      router.push({
+        pathname: "/editor",
+        params: { path: uniquePath, noteId, preset: "new", autoFocus: "1" },
+      });
+    } catch (err) {
+      console.error("[tabs] Failed to initialize new note path:", err);
+      router.push({
+        pathname: "/editor",
+        params: { preset: "new", autoFocus: "1" },
+      });
+    }
   };
 
   const tabHeight = 52 + insets.bottom;

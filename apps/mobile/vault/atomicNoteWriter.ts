@@ -35,9 +35,10 @@ export async function checkForExternalConflict(
 }
 
 /**
- * Atomically writes a note to disk:
- * 1. Writes content to a temporary file in the vault (`.tmp.<timestamp>_<rand>`).
- * 2. Renames the temporary file over the destination note file (atomic move/rename).
+ * Atomically writes a note to disk.
+ *
+ * Uses adapter.writeNote, which writes to an internal temporary file (.name.<nonce>.tmp)
+ * and atomically moves it over the target with overwrite: true.
  *
  * This guarantees that even if the app process is force-killed mid-write,
  * the target note is never left corrupted, truncated, or half-written.
@@ -47,25 +48,5 @@ export async function atomicWriteNote(
   relativePath: string,
   content: string,
 ): Promise<VaultStat> {
-  const nonce = `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-  const tempPath = `${relativePath}.tmp.${nonce}`;
-
-  try {
-    // 1. Write entire payload to the temp file
-    await adapter.writeNote(tempPath, content);
-
-    // 2. Atomic rename/move over the target path
-    await adapter.renameNote(tempPath, relativePath);
-
-    // 3. Return updated file stat
-    return await adapter.statFile(relativePath);
-  } catch (error) {
-    // Clean up temporary file if write or rename failed
-    try {
-      await adapter.deleteNote(tempPath);
-    } catch {
-      // Ignore cleanup error
-    }
-    throw error;
-  }
+  return await adapter.writeNote(relativePath, content);
 }

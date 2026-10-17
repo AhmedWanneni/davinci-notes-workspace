@@ -1,5 +1,6 @@
 import type { MobileVaultStorageAdapter } from "./MobileVaultStorageAdapter";
 import { defaultVaultIndexer } from "../indexer";
+import { defaultNoteStore } from "./noteStore";
 
 export interface MoveNoteResult {
   oldPath: string;
@@ -52,5 +53,6 @@ export async function deleteNoteAndReindex(
   path: string,
 ): Promise<void> {
   await adapter.deleteNote(path);
+  defaultNoteStore.remove(path);
   await defaultVaultIndexer.indexVault(adapter, false);
 }

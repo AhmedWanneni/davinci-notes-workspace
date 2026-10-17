@@ -47,7 +47,7 @@ export interface VaultStorageAdapter
   readNote(relativePath: string): Promise<NoteFilePayload>;
   writeNote(relativePath: string, content: string): Promise<VaultStat>;
   deleteNote(relativePath: string): Promise<void>;
-  renameNote(fromPath: string, toPath: string): Promise<void>;
+  renameNote(fromPath: string, toPath: string): Promise<string>;
   statFile(relativePath: string): Promise<VaultStat>;
   listNotes(): Promise<string[]>;
   listFolders(): Promise<string[]>;

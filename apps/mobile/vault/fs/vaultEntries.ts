@@ -71,7 +71,10 @@ export function ensureDirectory(
   return current;
 }
 
-function splitParent(relativePath: string): { parent: string; name: string } {
+export function splitParent(relativePath: string): {
+  parent: string;
+  name: string;
+} {
   const segments = splitRelativePath(relativePath);
   const name = segments.pop() ?? "";
   return { parent: segments.join("/"), name };
@@ -157,4 +160,24 @@ export async function moveEntry(
       ? new Directory(destDir, name)
       : new File(destDir, name),
   );
+}
+
+/** Finds a non-colliding path by appending a numerical suffix if target exists. */
+export function disambiguatePath(root: Directory, targetPath: string): string {
+  let candidate = targetPath;
+  let existing = resolveExisting(root, candidate);
+  if (!existing || !existing.exists) return candidate;
+
+  const { parent, name } = splitParent(targetPath);
+  const ext = name.toLowerCase().endsWith(".md") ? ".md" : "";
+  const baseStem = ext ? name.slice(0, -ext.length) : name;
+
+  let counter = 1;
+  while (existing && existing.exists && counter < 1000) {
+    const nextName = `${baseStem} ${counter}${ext}`;
+    candidate = parent ? `${parent}/${nextName}` : nextName;
+    existing = resolveExisting(root, candidate);
+    counter++;
+  }
+  return candidate;
 }

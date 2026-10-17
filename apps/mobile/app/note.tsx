@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import { View, ScrollView } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import {
   ArrowLeft,
   ListBullets,
@@ -10,7 +10,7 @@ import {
 import { darkColorTokens } from "@app/design-tokens/mobile";
 import { Button, IconButton, Sheet, Text } from "../components/primitives";
 import { ScreenLayout } from "../components/layout";
-import { defaultVaultManager } from "../vault";
+import { defaultVaultManager, defaultNoteStore, useNotePath } from "../vault";
 import { defaultVaultIndexer } from "../indexer";
 import { resolveWikilink } from "../vault/wikilinkResolver";
 import {
@@ -26,10 +26,16 @@ import {
 
 export default function NoteViewScreen(): React.ReactElement {
   const router = useRouter();
-  const { path: notePath } = useLocalSearchParams<{ path?: string }>();
-  const activePath = notePath ?? "Untitled.md";
+  const { path: routePath, noteId } = useLocalSearchParams<{
+    path?: string;
+    noteId?: string;
+  }>();
+
+  const activePath = useNotePath(noteId, routePath ?? "Untitled.md");
+  const currentNoteId = noteId ?? defaultNoteStore.register(activePath);
 
   const [doc, setDoc] = useState<ParsedMarkdownDocument | null>(null);
+  const [isMissing, setIsMissing] = useState(false);
   const [allNotes, setAllNotes] = useState<string[]>([]);
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [backlinksOpen, setBacklinksOpen] = useState(false);
@@ -40,50 +46,59 @@ export default function NoteViewScreen(): React.ReactElement {
   const scrollRef = useRef<ScrollView | null>(null);
 
   const loadNote = useCallback(async () => {
-    const { adapter } = await defaultVaultManager.getActiveAdapter();
-    if (!adapter) return;
-
     try {
+      const { adapter } = await defaultVaultManager.getActiveAdapter();
+      if (!adapter) return;
+
       const scan = await adapter.scanVault();
       setAllNotes(scan.notes);
       const res = await adapter.readNote(activePath);
       setDoc(parseMarkdownDocument(res.content));
+      setIsMissing(false);
     } catch {
-      setDoc(
-        parseMarkdownDocument(
-          `# Note Not Found\n\nCould not open **${activePath}**.`,
-        ),
-      );
+      setDoc(null);
+      setIsMissing(true);
     }
   }, [activePath]);
 
-  useEffect(() => {
-    loadNote();
-  }, [loadNote]);
+  useFocusEffect(
+    useCallback(() => {
+      void loadNote();
+    }, [loadNote]),
+  );
 
   const handleOpenMentions = async () => {
     setBacklinksOpen(true);
     setLoadingMentions(true);
-    const { adapter } = await defaultVaultManager.getActiveAdapter();
-    if (!adapter) return;
+    try {
+      const { adapter } = await defaultVaultManager.getActiveAdapter();
+      if (!adapter) return;
 
-    const res = await queryNoteMentions(activePath, async (p) => {
-      try {
-        const n = await adapter.readNote(p);
-        return n.content;
-      } catch {
-        return null;
-      }
-    });
-    setLinked(res.linked);
-    setUnlinked(res.unlinked);
-    setLoadingMentions(false);
+      const res = await queryNoteMentions(activePath, async (p) => {
+        try {
+          const n = await adapter.readNote(p);
+          return n.content;
+        } catch {
+          return null;
+        }
+      });
+      setLinked(res.linked);
+      setUnlinked(res.unlinked);
+    } catch (err) {
+      console.warn("[note] Mentions query failed:", err);
+    } finally {
+      setLoadingMentions(false);
+    }
   };
 
   const handleWikilinkPress = (target: string, displayText?: string) => {
     const res = resolveWikilink(target, allNotes, displayText);
     if (res.isResolved && res.resolvedPath) {
-      router.push({ pathname: "/note", params: { path: res.resolvedPath } });
+      const targetId = defaultNoteStore.register(res.resolvedPath);
+      router.push({
+        pathname: "/note",
+        params: { path: res.resolvedPath, noteId: targetId },
+      });
     } else {
       setUnresolvedTarget(res.targetStem);
     }
@@ -91,14 +106,29 @@ export default function NoteViewScreen(): React.ReactElement {
 
   const handleCreateUnresolvedNote = async () => {
     if (!unresolvedTarget) return;
-    const { adapter } = await defaultVaultManager.getActiveAdapter();
-    if (!adapter) return;
+    try {
+      const { adapter } = await defaultVaultManager.getActiveAdapter();
+      if (!adapter) return;
 
-    const newPath = `${unresolvedTarget}.md`;
-    await adapter.writeNote(newPath, `# ${unresolvedTarget}\n\n`);
-    await defaultVaultIndexer.indexVault(adapter);
-    setUnresolvedTarget(null);
-    router.push({ pathname: "/note", params: { path: newPath } });
+      const newPath = `${unresolvedTarget}.md`;
+      await adapter.writeNote(newPath, `# ${unresolvedTarget}\n\n`);
+      await defaultVaultIndexer.indexVault(adapter);
+      setUnresolvedTarget(null);
+      const targetId = defaultNoteStore.register(newPath);
+      router.push({
+        pathname: "/note",
+        params: { path: newPath, noteId: targetId },
+      });
+    } catch (err) {
+      console.error("[note] Failed to create unresolved note:", err);
+    }
+  };
+
+  const navigateToEditor = () => {
+    router.push({
+      pathname: "/editor",
+      params: { path: activePath, noteId: currentNoteId, autoFocus: "1" },
+    });
   };
 
   const title = activePath.replace(/\.md$/i, "").split("/").pop() ?? activePath;
@@ -126,7 +156,7 @@ export default function NoteViewScreen(): React.ReactElement {
             icon={<LinkIcon size={18} color={darkColorTokens.text.normal} />}
             accessibilityLabel="Backlinks"
             size="sm"
-            onPress={handleOpenMentions}
+            onPress={() => void handleOpenMentions()}
           />
           <IconButton
             icon={
@@ -134,28 +164,40 @@ export default function NoteViewScreen(): React.ReactElement {
             }
             accessibilityLabel="Edit note"
             size="sm"
-            onPress={() =>
-              router.push({ pathname: "/editor", params: { path: activePath } })
-            }
+            onPress={navigateToEditor}
           />
         </View>
       }
     >
-      {doc ? (
+      {isMissing ? (
+        <View className="flex-1 items-center justify-center p-6 gap-4">
+          <Text variant="h2" color="normal">
+            Note Not Found
+          </Text>
+          <Text variant="body" color="muted" className="text-center">
+            Could not open "{activePath}". It may have been renamed or deleted.
+          </Text>
+          <View className="flex-row gap-3 mt-4">
+            <Button variant="secondary" onPress={() => router.back()}>
+              Back
+            </Button>
+            <Button variant="primary" onPress={() => router.replace("/(tabs)")}>
+              Go to Files
+            </Button>
+          </View>
+        </View>
+      ) : doc ? (
         <NoteReaderView
           document={doc}
           onWikilinkPress={handleWikilinkPress}
           onTagPress={(tag) =>
             router.push({ pathname: "/(tabs)/search", params: { q: tag } })
           }
-          onEditPress={() =>
-            router.push({ pathname: "/editor", params: { path: activePath } })
-          }
+          onEditPress={navigateToEditor}
           scrollViewRef={scrollRef}
         />
       ) : null}
 
-      {/* Outline Sheet */}
       <OutlineSheet
         visible={outlineOpen}
         onClose={() => setOutlineOpen(false)}
@@ -165,19 +207,21 @@ export default function NoteViewScreen(): React.ReactElement {
         }}
       />
 
-      {/* Backlinks Sheet */}
       <BacklinksSheet
         visible={backlinksOpen}
         onClose={() => setBacklinksOpen(false)}
         linked={linked}
         unlinked={unlinked}
         loading={loadingMentions}
-        onSelectNote={(note) =>
-          router.push({ pathname: "/note", params: { path: note } })
-        }
+        onSelectNote={(note) => {
+          const targetId = defaultNoteStore.register(note);
+          router.push({
+            pathname: "/note",
+            params: { path: note, noteId: targetId },
+          });
+        }}
       />
 
-      {/* Unresolved Link Dialog */}
       <Sheet
         visible={unresolvedTarget !== null}
         onClose={() => setUnresolvedTarget(null)}
@@ -191,7 +235,10 @@ export default function NoteViewScreen(): React.ReactElement {
           <Button variant="secondary" onPress={() => setUnresolvedTarget(null)}>
             Cancel
           </Button>
-          <Button variant="primary" onPress={handleCreateUnresolvedNote}>
+          <Button
+            variant="primary"
+            onPress={() => void handleCreateUnresolvedNote()}
+          >
             Create Note
           </Button>
         </View>

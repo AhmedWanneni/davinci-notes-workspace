@@ -4,11 +4,13 @@ import { assertSafeVaultPath, normalizeVaultPath } from "./pathUtils";
 import { scanVaultDirectory } from "./vaultScanner";
 import {
   atomicWriteEntry,
+  disambiguatePath,
   ensureDirectory,
   moveEntry,
   resolveEntry,
   resolveExisting,
 } from "./fs/vaultEntries";
+import { defaultNoteStore } from "./noteStore";
 import type {
   NoteFilePayload,
   VaultMode,
@@ -66,10 +68,25 @@ export class MobileVaultStorageAdapter implements VaultStorageAdapter {
     }
   }
 
-  async renameNote(fromPath: string, toPath: string): Promise<void> {
+  async renameNote(fromPath: string, toPath: string): Promise<string> {
     assertSafeVaultPath(fromPath);
     assertSafeVaultPath(toPath);
-    await moveEntry(this.rootDirectory, fromPath, toPath);
+    const normFrom = normalizeVaultPath(fromPath);
+    const normTo = normalizeVaultPath(toPath);
+
+    if (normFrom === normTo) {
+      return normTo;
+    }
+
+    const source = resolveExisting(this.rootDirectory, normFrom);
+    if (!source || !source.exists) {
+      throw new Error(`Source note does not exist: ${normFrom}`);
+    }
+
+    const targetPath = disambiguatePath(this.rootDirectory, normTo);
+    await moveEntry(this.rootDirectory, normFrom, targetPath);
+    defaultNoteStore.rename(normFrom, targetPath);
+    return targetPath;
   }
 
   async statFile(relativePath: string): Promise<VaultStat> {

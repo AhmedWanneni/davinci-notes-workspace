@@ -44,6 +44,22 @@ export function createMobileEditorExtensions(
     livePreviewExtension,
     listExtension(),
     tagExtension(),
+    EditorView.theme({
+      "&": {
+        height: "100%",
+        outline: "none",
+        fontSize: "16px",
+      },
+      ".cm-scroller": {
+        height: "100%",
+        overflow: "auto",
+        fontFamily: "inherit",
+      },
+      ".cm-content": {
+        minHeight: "100%",
+        paddingBottom: "300px",
+      },
+    }),
     ...extraExtensions,
   ];
 }

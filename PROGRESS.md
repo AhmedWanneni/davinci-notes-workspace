@@ -4,6 +4,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Mobile Note Identity, Safe Rename & Keyboard Focus (`apps/mobile/`, ADR-0197) (complete)**
+Resolved rename collisions, navigation stack staleness, editor surface collapse, and unhandled rejections on Android:
+1. **Reproduction & Root Causes (Issue 2)**:
+   - Reproduced `FileSystemFile.rename` failure on live Android device/emulator:
+     `java.nio.file.FileAlreadyExistsException: /data/user/0/host.exp.exponent/files/ExperienceData/%40anonymous%2Fdavinci-notes-47ccaeb4-d860-42c3-b6c1-da837896cd63/vaults/Personal Vault/Untitled.md`
+   - Cause: `atomicWriteNote` performed a redundant second rename step on top of `adapter.writeNote`'s own atomic write (`atomicWriteEntry`). Kotlin `rename(name)` moves without `REPLACE_EXISTING`, throwing `FileAlreadyExistsException` when destination exists.
+2. **Architecture & Changes**:
+   - **Stable Note Identity (`apps/mobile/vault/noteStore.ts`)**: Reactive `NoteStore` mapping stable `noteId` to current path. Screen components subscribe with `useNotePath` and refresh on focus with `useFocusEffect`.
+   - **Creation-Time Disambiguation (`apps/mobile/vault/uniqueNoteName.ts`)**: `generateUniqueNotePath` pre-checks existing paths, producing `Untitled.md`, `Untitled 1.md`, etc., eliminating rename-on-open failures.
+   - **Crash-Safe Single-Pass Atomic Writes**: Simplified `atomicWriteNote` to delegate directly to `adapter.writeNote`, which uses `.name.<nonce>.tmp` and moves with `{ overwrite: true }` (`StandardCopyOption.REPLACE_EXISTING`).
+   - **Safe Rename (`MobileVaultStorageAdapter.ts`)**: Disambiguates collisions with numeric suffixes, returns actual destination path, and updates `NoteStore`.
+   - **Navigation & Recovery**:
+     - `handleBack` in `/editor` flushes pending saves and calls `router.back()`.
+     - `new-note-action` trampoline uses `<Redirect>` so it never stays in back history.
+     - `/note` displays recovery actions ("Back" and "Go to Files") on missing note, eliminating dead ends.
+   - **Editor Surface & Touch Focus**:
+     - Applied explicit `style={{ flex: 1, width: "100%" }}` to editor containers, expanding height from 0 (`[0,179][1080,179]`) to 2022px (`[0,179][1080,2201]`).
+     - Added CSS reset with theme variables (`--color-text-normal`, `--color-bg-primary`, `--color-text-accent`).
+     - Added `click` and `touchend` handlers to host container in `EditorDom.tsx` to focus CodeMirror and place cursor at end on empty area taps.
+3. **Verification**:
+   - Zero `Uncaught (in promise)` errors across logcat and Metro.
+   - Android hardware back button (`adb shell input keyevent 4`) navigates reliably across stack.
+   - TypeScript `tsc --noEmit` and ESLint pass with 0 errors across `apps/mobile`.
+   - ADR-0197 documented and indexed in `DECISIONS.md`.
+
+---
+
 **Mobile Vault Storage Seam, Startup Performance, Native UI Hardening & ADR-0196 (`apps/mobile/`, ADR-0196) (complete)**
 Resolved all 6 Android runtime issues, hardened design system primitives, and introduced object-based filesystem seam:
 1. **Root Cause Diagnosis**:

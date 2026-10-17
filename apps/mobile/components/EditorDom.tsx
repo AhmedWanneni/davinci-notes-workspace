@@ -103,23 +103,64 @@ export default function EditorDom({
       getView: () => viewRef.current,
     });
 
+    // Tap on empty container area focuses CodeMirror and places cursor at end
+    const handleContainerTap = (e: Event) => {
+      const v = viewRef.current;
+      if (!v) return;
+      if (!v.contentDOM.contains(e.target as Node)) {
+        v.focus();
+        const docLen = v.state.doc.length;
+        v.dispatch({
+          selection: { anchor: docLen, head: docLen },
+          scrollIntoView: true,
+        });
+      }
+    };
+    const hostEl = containerRef.current;
+    hostEl.addEventListener("click", handleContainerTap);
+    hostEl.addEventListener("touchend", handleContainerTap);
+
     // Save Guard: Flush on blur, visibilitychange (app background), and pagehide
-    const handleBlur = () => bridgeRef.current.flush();
+    const handleBlur = () => {
+      console.log("[EditorDom] Focus lost");
+      bridgeRef.current.flush();
+    };
+    const handleFocus = () => {
+      console.log(
+        "[EditorDom] Focus gained, visualViewport height:",
+        window.visualViewport?.height,
+      );
+    };
+    const handleViewportResize = () => {
+      console.log(
+        "[EditorDom] visualViewport resize:",
+        window.visualViewport?.height,
+      );
+    };
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") bridgeRef.current.flush();
     };
     const handlePageHide = () => bridgeRef.current.flush();
 
     view.contentDOM.addEventListener("blur", handleBlur);
+    view.contentDOM.addEventListener("focus", handleFocus);
+    window.visualViewport?.addEventListener("resize", handleViewportResize);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("pagehide", handlePageHide);
 
     return () => {
+      hostEl.removeEventListener("click", handleContainerTap);
+      hostEl.removeEventListener("touchend", handleContainerTap);
       view.contentDOM.removeEventListener("blur", handleBlur);
+      view.contentDOM.removeEventListener("focus", handleFocus);
+      window.visualViewport?.removeEventListener(
+        "resize",
+        handleViewportResize,
+      );
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pagehide", handlePageHide);
       detachViewport();
-      bridgeRef.current.flush(); // Flush any pending edit before unmounting
+      bridgeRef.current.flush();
       bridgeRef.current.cancel();
       view.destroy();
       viewRef.current = null;
@@ -172,21 +213,24 @@ export default function EditorDom({
     }
   }, [insertTrigger]);
 
-  // Apply sanitized theme CSS to DOM container
+  // Apply reset & theme CSS to DOM container
   useEffect(() => {
     let styleEl = document.getElementById(
       "davinci-mobile-theme",
     ) as HTMLStyleElement | null;
-    if (!themeCss) {
-      styleEl?.remove();
-      return;
-    }
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.id = "davinci-mobile-theme";
       document.head.appendChild(styleEl);
     }
-    styleEl.textContent = themeCss;
+    const vars = `:root{--color-bg-primary:${darkColorTokens.bg.primary};--color-text-normal:${darkColorTokens.text.normal};--color-text-muted:${darkColorTokens.text.muted};--color-text-accent:${darkColorTokens.interactive.accent};--color-bg-active:rgba(255,255,255,0.1);--font-editor:monospace,sans-serif;--editor-font-size:16px;--editor-obsidian-body-line-height:1.5;--editor-content-padding-bottom:300px;--space-6:16px;--space-8:16px;--border-width-thin:1px;}`;
+    const reset =
+      "html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:" +
+      darkColorTokens.bg.primary +
+      "!important;color:" +
+      darkColorTokens.text.normal +
+      "!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}";
+    styleEl.textContent = `${vars}\n${reset}\n${themeCss ?? ""}`;
   }, [themeCss]);
 
   return (
