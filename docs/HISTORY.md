@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-17 | Web Clipper Phase 3 part 2 — the webview write path and pairing UI | Completed the TS/UI half of Phase 3 in four commits. Moved `composeNoteFile`/`suggestedFilePath` into `packages/clipper-core` so the extension and the desktop compose one file shape (the desktop gained a `@app/clipper-core` dependency plus an `app`→`clipper-core` ESLint boundary allowance). Added `appendToNoteInVault(path, body, position)`, which reuses `writeAndIndexNote` — atomic write, disk tracker, dirty clearing, `withDbLock`/`withDbTransaction` indexing and history — inside `queuePerPath`: it creates a missing note rather than rejecting (plan §5 check 5), prefers an open note's in-memory buffer, preserves the note's EOL and normalises only the seam to one blank line so an append can never truncate, and lands a `top` insert after any leading frontmatter. Wired the receiver: `useClipperService` (one lifetime subscription) → `handleClipReceived` (always acks, even a rejection, because Rust waits 20 s) → `applyClipToVault`, whose total behaviour map gives `create` a numeric suffix instead of overwriting (check 7), treats `append-top` as an alias of `prepend`, sends appends the body only (never a second frontmatter block), reports an unexpected write failure as `app-busy` (the only retryable code, so ADR-0178's queue retries and nothing is lost) and `vault-not-open` when no vault is open; `target.vaultId` is ignored (O4). No cold-start buffer: a clip arriving before the webview listens waits out the 20 s handshake and is `app-busy` too. Added the "Web Clipper" Settings section (enable toggle, bound address, Show/Copy/Rotate/Revoke, with state taken from each command's returned `ClipperStatus` so a failed bind surfaces as an alert rather than a toggle that flips back). ADR-0177 amended in place with all of it. clipper-core 63 tests, web-clipper 102, desktop 408 (from 387); lint clean in all three; no new third-party dependency (the desktop's clipper surface is 20,789 B of TS source, 7,116 B gzip unminified); zero new `tsc` errors — the desktop's 23 are pre-existing, mostly `vaultUpdateCounter` missing from `WorkspaceState`. |
 | 2026-10-17 | Web Clipper Phase 3 part 1 — Rust receiver core | Ran the Phase 0 gate first: `tauri-plugin-deep-link` v2 latest (2.6.2) needs Rust ≥ 1.90 against the declared `rust-version = "1.77.2"` (2.4.10 is the last 1.77.2-compatible release), and macOS schemes are install-time only — so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173 amended, still Proposed). Built the desktop receiver as a complete, tested, **inert** unit (14 new `clipper_*.rs` files): `ClipPayload`-mirroring wire types with `deny_unknown_fields`, a literal Rust port of `safeName`/`normalizeFolder`/`normalizeNoteName`, bounds+shape validation, a capped hand-rolled request reader, the one loopback route with exact-`Host`/`Origin`/constant-time-token checks, and the emit-and-await webview handshake. Key decision (ADR-0180): the desktop **re-validates and rejects** rather than re-sanitising — a name that is not the fixed point of `safeName` is `invalid-path`. `constant_time_eq` + `getrandom` reused from the existing tree (zero binary delta); no HTTP framework, no CORS headers. `clipper_enable` is the only way to start the listener and no UI calls it yet. 32 new Rust tests (attack matrix 1–4/9 over real loopback sockets); `cargo test` 76 pass / 1 pre-existing `git_auth` failure; clippy adds zero warnings. |
 | 2026-10-17 | Web Clipper Phase 2b — React popup on the design system | Replaced the unstyled plain-TS popup with React 19 + `@wxt-dev/module-react` on `@app/design-system` (`ClipPopup`, `ClipEditor`, `ClipPreview`, `ClipModeSelector`, `TemplatePicker`; each with `.module.scss` + story + tests). Split the pipeline so `prepareClipContext` (page+mode) is memoised apart from `renderClipPayload` (template) — a template change no longer re-extracts a page — and deleted the now-callerless one-shot compositions. Edit fields show a raw `ClipDraft` while the written payload is sanitised (`applyClipEdits`: separators/`..` stripped, `.md` ensured, cleared property removed); `contentHash` untouched because the body is not editable. Recorded ADR-0179 (Proposed). Popup chunk 580,258 B raw / 170,650 B gzip (React + design system ≈ +71 KB gzip over Phase 2a); tree-shaking of the design-system barrel verified by grepping the built chunk. 106 tests / 17 files pass; `tsc`, ESLint and `wxt build` clean. |
 | 2026-10-17 | Web Clipper Phase 2a — extension capture/extraction pipeline | WXT 0.21.4 + MV3 with no content script (`activeTab` + `scripting`, `host_permissions: []`); Defuddle core + Turndown+turndown-plugin-gfm (101,914 B gzip vs 218,493 for `defuddle/full`, ~114 KB gzip saved) with LaTeX-math and callout recovery; real bugs fixed (extension-origin relative URLs, callout separator, blank `<math>` dropped by Turndown, nested-JSON-LD auto-apply, `-   ` list markers). Popup chunk 350,180 B raw / 99,576 B gzip; 51 tests / 9 files pass. |
@@ -3598,3 +3599,120 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   `http://127.0.0.1/*` host permission, no queue. No ADR accepted; ADR-0173
   amended in place because it is still Proposed, ADR-0180 added for the new
   receiver decisions.
+
+### 2026-10-17: Web Clipper Phase 3 part 2 — the webview write path and the pairing UI
+
+- **Scope**: the TS/UI half of Phase 3 — everything between the Rust receiver
+  (part 1) and a feature a user can actually switch on. Split into **four commits,
+  each one concern**, which is a deliberate departure from the plan's "one
+  session, one commit" for quite a different reason than part 1's: a mechanical
+  refactor, a new vault helper, the receiver wiring and a Settings section are
+  separately reviewable and a reviewer should be able to reject any one of them
+  without unwinding the others.
+  - `f6d0244` `refactor(clipper-core)`: share the note-file assembly.
+  - `ece9206` `feat(clipper)`: `appendToNoteInVault`.
+  - `6db0189` `feat(clipper)`: serve received clips from the webview.
+  - `7c6f30d` `feat(clipper)`: the Web Clipper settings section.
+- **`packages/clipper-core` now owns the note-file shape.** `composeNoteFile` and
+  `suggestedFilePath` lived in `apps/web-clipper/src/clip/composeNoteFile.ts`.
+  ADR-0176 said the file the extension downloads and the note the vault receives
+  "are identical", which two copies can only promise, not guarantee — so the shape
+  (frontmatter block, then body, and the folder/name join) moved to the package
+  both sides already depend on, with its four tests. The extension's
+  `useClipSession` now imports them from `@app/clipper-core`. Test counts moved
+  with the tests (clipper-core 59 → 63, web-clipper 106 → 102), which is the
+  observable proof nothing else changed.
+- **`appendToNoteInVault(path, clipBody, position)` reuses `writeAndIndexNote`**
+  rather than assembling its own write. That is the whole point of ADR-0177
+  Option 2, and it is worth being explicit about what it buys: the atomic
+  `write_note` IPC, `diskStateTracker` bookkeeping (so the save-time guard of
+  ADR-0170 does not treat our own write as an external change), clearing the path
+  from `dirtyNotes`, background indexing through `withDbLock` +
+  `withDbTransaction` (ADR-0168) and the version-history record. It runs inside
+  `queuePerPath`, so a clip cannot interleave with an in-flight autosave for the
+  same note — without that, an autosave already in the promise queue could land
+  *after* the append and revert it.
+- **Append semantics, decided (ADR-0177's open question, now recorded):**
+  - bottom = end of file; top = after a leading frontmatter block, detected by a
+    small pure scanner, so a prepend can never split a note's properties.
+  - A missing target is **created**, not rejected (plan §5 check 5). There is
+    nothing to truncate, and a clip that survived the extension must survive the
+    desktop.
+  - An **open** note's in-memory buffer wins over the on-disk copy, so unsaved
+    typing is not silently reverted by a clip.
+  - The note's own line ending is preserved, and only the *seam* is normalised —
+    trailing/leading runs of line breaks collapse to exactly one blank line. Every
+    other character of the existing note survives, which is how "never truncates"
+    is actually enforced rather than merely intended.
+- **The behaviour map is total by construction.** `BEHAVIOR_ACTIONS` is a
+  `Record<ClipBehavior, …>`, so adding a behaviour to the wire type without
+  deciding what it does is a compile error. `create` never overwrites: a taken
+  name gets ADR-0110's numeric suffix (`Note.md`, `Note 1.md`, `Note 2.md`) —
+  plan §5 check 7; dedupe is Phase 7 (ADR-0178), so re-clipping a page is
+  deliberately a second file today. `append-top` is an **alias of `prepend`**
+  (the wire carries both, both mean "insert above the body"), and
+  `daily-append`/`daily-prepend` map to bottom/top — they differ only in the note
+  name their template renders. Appends carry the **body only**: a second
+  `---…---` block in the middle of a note is literal text, not properties.
+- **Failure mapping.** An unexpected write failure becomes `app-busy`, the only
+  *retryable* code on the wire. That choice is deliberate: the extension keeps a
+  non-`written` clip queued (ADR-0178) and retries it, so reporting `app-busy`
+  cannot lose a clip, whereas a code the extension treats as terminal could. No
+  vault open is `vault-not-open` — which means the webview (TS) is now what
+  produces that code, not Rust (Rust's `ClipError::VaultNotOpen` stays
+  `#[allow(dead_code)]` and its comment about "no Rust code produces them" remains
+  literally true). `target.vaultId` is **ignored**: the desktop has exactly one
+  open vault and no identity to compare against, so honouring a vault id is O4's
+  problem, not something to fake here.
+- **The handshake is completed, not assumed.** `handleClipReceived` sends the ack
+  for a rejection just as much as for a success, because Rust blocks for 20 s and
+  a missing ack would surface as `app-busy` anyway. A failed `invoke` (the window
+  may have closed, so nothing is waiting any more) is logged, never thrown: the
+  clip is still queued on the extension side.
+- **No cold-start buffer.** ADR-0177 had recommended a small buffer plus a
+  webview-ready signal. It was not built, and that is a decision rather than an
+  omission: a clip that arrives before the main webview is listening now waits out
+  the 20 s handshake and is answered `app-busy`, leaving ADR-0178's queue to be
+  the buffer. One mechanism instead of two, and it loses nothing. Recorded in
+  ADR-0177 so the next session does not "restore" it by accident.
+- **Settings.** A new "Web Clipper" sidebar entry renders
+  `ClipperSettingsSection`: enable toggle, the bound loopback address, and the
+  pairing token with Show / Copy / Rotate / Revoke. It takes every state change
+  from the `ClipperStatus` the command returns instead of optimistically flipping
+  its own toggle, so a failed bind (the port is already taken) surfaces as an
+  alert rather than a switch that silently snaps back. No story, matching its
+  siblings `CaptureSettingsSection`/`TrayClickSettingsRow`: `@app/desktop` has no
+  Storybook config and the design-system Storybook glob covers
+  `packages/design-system` only, so a story here could never run.
+- **Two lint/build surprises, both handled rather than worked around:**
+  - The `boundaries` ESLint plugin rejected `app → clipper-core` outright. The
+    fix is a one-line allow added to `.eslintrc.js`'s `app` rule: the desktop
+    consumes the shared wire contract by design (ADR-0176), so this is a boundary
+    that should be open. (The first attempt also reformatted the whole file via a
+    manual `prettier` run; that unrelated churn was reverted and the commit kept
+    to the single line.)
+  - `SettingsSidebar.tsx` and `SettingsDialog.tsx` are not prettier-clean on
+    `main`, and `lint-staged` runs `prettier --write` on every staged `.ts/.tsx`.
+    Touching them therefore reformats them, unavoidably, inside the commit. Worth
+    knowing before blaming the diff.
+- **Verification.** clipper-core 63 tests, web-clipper 102, desktop **408** (from
+  387), lint clean in all three packages. `pnpm install` was needed for the new
+  workspace dependency; it also normalised a stale `@app/design-system`
+  specifier in `pnpm-lock.yaml` to match its manifest. No new third-party
+  dependency anywhere: the desktop's entire clipper surface is 20,789 B of TS
+  source across seven files (7,116 B gzip *unminified, comments included*), so the
+  minified delta is smaller and no size budget changes (recorded in ADR-0177).
+- **Pre-existing problem, not ours, deliberately not fixed here:**
+  `apps/desktop` `tsc --noEmit` reports **23 errors on `main`** and still 23 after
+  this work — verified by stashing. The bulk is `vaultUpdateCounter` being
+  initialised (line 78) and mutated by the store but never declared on
+  `WorkspaceState`, which breaks every caller that needs a `WorkspaceSaveContext`.
+  It forced exactly one documented cast in `appendToNoteInVault.ts` (passing the
+  store's `setState` as the canonical writer's updater). Adding the missing field
+  would clear most of the 23, but mixing that into a clipper commit is precisely
+  the scope-mixing AGENTS.md warns against; it is listed as its own next-up item.
+- **Not done (explicitly)**: no extension transport, no `http://127.0.0.1/*` host
+  permission, no closed-app queue (ADR-0178), no real-browser or native-GUI
+  verification (owner-local). No ADR accepted; ADR-0177 amended in place because
+  it is still Proposed, and its open decisions now carry the four write-path
+  semantics this session had to choose.

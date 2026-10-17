@@ -4,7 +4,68 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Web Clipper Phase 3 (part 1): the Rust receiver core
+## Last Session — Web Clipper Phase 3 (part 2): the webview write path and pairing UI
+
+**Scope:** the TS/UI half of Phase 3 — everything between the Rust receiver and a
+usable feature. Three commits, one concern each: `f6d0244` (shared file shape),
+`ece9206` (`appendToNoteInVault`), `6db0189` (the webview service), `7c6f30d` (the
+Settings section). The receiver is no longer inert: the enable toggle calls
+`clipper_enable`. Still missing: Phase 3 part 3, the extension's transport.
+
+**`packages/clipper-core` now owns the note-file shape.** `composeNoteFile` and
+`suggestedFilePath` moved out of `apps/web-clipper`, so the extension (which
+composes the file it downloads) and the desktop (which composes the file it writes)
+share one definition and cannot drift. The desktop gained a
+`@app/clipper-core` dependency (aliased in `vite.config.ts` and
+`vitest.config.ts`; the root tsconfig already had the path) and `.eslintrc.js` now
+allows the `clipper-core` boundary element for `app`.
+
+**`appendToNoteInVault(path, body, position)`** is the second canonical write path
+(ADR-0177). It **reuses `writeAndIndexNote`** rather than re-implementing a write,
+so a clip gets the atomic `write_note`, `diskStateTracker` bookkeeping, dirty-state
+clearing, `withDbLock`/`withDbTransaction` indexing (ADR-0168) and the version-history
+record an autosave gets — inside `queuePerPath`, so a clip cannot interleave with an
+in-flight autosave. It **creates** a missing note rather than rejecting (plan §5
+check 5), prefers an open note's in-memory buffer so unsaved typing survives,
+preserves the note's own EOL, and normalises only the seam (one blank line), so an
+append can never truncate. A `top` insert lands after a leading frontmatter block.
+
+**Behaviour mapping (the decisions a reviewer should check).** `create` never
+overwrites: a taken name gets ADR-0110's numeric suffix (`Note.md`, `Note 1.md`) —
+plan §5 check 7; dedupe is Phase 7, so re-clipping is deliberately a second file
+today. `append-top` is an **alias of `prepend`** (the wire carries both), and
+`daily-*` map to bottom/top. Appends carry the **body only**, never a second
+frontmatter block. An unexpected write failure is reported as `app-busy` — the only
+retryable code, so ADR-0178's queue retries and nothing is lost. No vault open is
+`vault-not-open`, so the webview (TS) is what produces that code today, not Rust.
+`target.vaultId` is **ignored** (one open vault, no identity to compare — O4).
+ADR-0177 amended in place with all of this (still Proposed).
+
+**No cold-start buffer.** ADR-0177 had recommended a buffer plus a webview-ready
+signal; it was not built. A clip arriving before the webview listens waits out the
+20 s handshake and is answered `app-busy`, leaving the extension's queue to be the
+buffer. One mechanism instead of two, and it loses nothing.
+
+**Settings.** A new "Web Clipper" sidebar entry renders `ClipperSettingsSection`:
+enable toggle, the bound loopback address, and the token with Show/Copy, Rotate and
+Revoke. It takes every state change from the `ClipperStatus` a command returns
+rather than optimistically flipping the toggle, so a failed bind (port taken)
+surfaces as an alert. No story, like its siblings `CaptureSettingsSection`/
+`TrayClickSettingsRow`: the desktop has no Storybook config and the design-system
+Storybook glob covers `packages/design-system` only, so a story here could never run.
+
+**Verification:** clipper-core 63 tests, web-clipper 102, desktop **408** (up from
+387), lint clean in all three, and the new files add **zero** `tsc` errors. No new
+third-party dependency anywhere; the desktop's whole clipper surface is 20,789 B of
+TS source (7,116 B gzip unminified) — see ADR-0177's performance note.
+
+**Known pre-existing gap (not ours, do not "fix" blind):** `apps/desktop` `tsc`
+reports **23 errors** on `main` before this work and after it. The bulk is
+`vaultUpdateCounter` being initialised and mutated by the store but never declared on
+`WorkspaceState`. It forced one documented cast in `appendToNoteInVault.ts`. Adding
+the missing field would clear most of them, but that is a separate change.
+
+## Previous Session — Web Clipper Phase 3 (part 1): the Rust receiver core
 
 **Scope:** the Rust half of Phase 3 of `web-clipper-feature-plan.md` — validation,
 token auth, the loopback listener and the webview handshake. The listener is
@@ -67,7 +128,7 @@ this machine — the default `MacOSX27.0.sdk` `.tbd` files use an `arm64e.x1-mac
 target this `ld` cannot read. Prefix Rust commands with
 `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk`.
 
-## Previous Session — Web Clipper Phase 2b: React popup on the design system
+## Session before that — Web Clipper Phase 2b: React popup on the design system
 
 **Scope:** `apps/web-clipper` Phase 2b — the popup UI (`ClipPopup`, `ClipEditor`,
 `ClipPreview`, `ClipModeSelector`, `TemplatePicker`) on `@app/design-system`, plus
@@ -148,7 +209,7 @@ components, but no app has a Storybook config in this repo (only
 
 ---
 
-## Earlier — Web Clipper Phase 2a: extension pipeline with real Markdown
+## Session before that — Web Clipper Phase 2a: extension pipeline with real Markdown
 
 **Scope:** `apps/web-clipper` Phase 2a (capture → extract → variables → template →
 payload → note file). Phase 1 (`packages/clipper-core`) shipped in the previous
@@ -1257,21 +1318,21 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Web Clipper Phase 3 (part 2) — the TS/UI half of the desktop receiver**: Phase 3 part 1 (the Rust core) is done and inert; the listener is reachable only through `clipper_enable`. Now wire it up: `apps/desktop/src/clipper/clipperService.ts` listens for `clipper:clip-received`, calls the canonical helpers (`createNoteInVault`, new `appendToNoteInVault`) and returns the outcome through `clipper_submit_result`; the Settings "Web Clipper" section (enable toggle, show/copy the token, the bound port, rotate, revoke) with stories + tests. `appendToNoteInVault` must **create** the note when the target is missing (documented outcome for plan §5 check 5; never truncate). Any step that touches vault-index.db must follow the standing withDbLock/WAL concurrency rules. Owner-local: real-browser clip timing and native GUI checks for Phases 2a/2b/3. Then plan Phases 4–8.
-2. **Web Clipper Phase 3 (part 3) — extension transport**: `saveNote` in `apps/web-clipper`'s `clipSessionDeps` seam posts to loopback (narrow `http://127.0.0.1/*` host permission; no CORS on the desktop side), so the "Add to DaVinci Notes" button goes live, plus the closed-app queue (ADR-0178).
-3. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
-4. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
-5. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
-6. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
-7. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
-8. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
-9. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
-10. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-11. **Unlinked Mentions Detection**
-12. **Inline Property Editing**
-13. **Outline Scroll Synchronization**
-14. Add success/warning semantic color tokens
-15. Chromatic / Playwright screenshot regression
+1. **Web Clipper Phase 3 (part 3) — extension transport**: `saveNote` in `apps/web-clipper`'s `clipSessionDeps` seam posts to the loopback receiver (narrow `http://127.0.0.1/*` host permission; no CORS on the desktop side), so the "Add to DaVinci Notes" button goes live, plus the closed-app queue (ADR-0178: 200 clips / 5 MB / 30 days, oldest-first, event-driven drain, `clipId`+`contentHash` dedupe). The desktop's half is ready and waiting: one route, `POST /clipper/clip`, with a bearer token, `Host` exactly `127.0.0.1:<port>`, and a `ClipAck` the extension correlates by `clipId`.
+2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
+4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+5. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
+6. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+7. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+8. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+9. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+10. **Unlinked Mentions Detection**
+11. **Inline Property Editing**
+12. **Outline Scroll Synchronization**
+13. Add success/warning semantic color tokens
+14. Chromatic / Playwright screenshot regression
+15. **Declare `vaultUpdateCounter` on `WorkspaceState`** (small, separate change): the store initialises and mutates it but the interface omits it, which is most of `apps/desktop`'s 23 pre-existing `tsc` errors. Removing them also removes the one cast in `appendToNoteInVault.ts`.
 
 ## Blocked / Open Questions
 
@@ -1280,7 +1341,8 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 - **Visual regression**: Not yet configured.
 - **Total JS/CSS size budgets**: lazy chunks counted toward totals — adjust if/when configured.
 - **AI feature plan artifact**: `plans/ai-integration-plan/ai-features-build-plan.md` is missing; recover it before treating any undiscovered prior AI decision as authoritative.
-- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction budget (ADR-0174 — the measured size is now ~100 KB gzip for Defuddle core + Turndown, not the 86.4 KB bundlephobia figure, and the browser popup costs another ~71 KB gzip for React + the design system, taking the popup chunk to 170,650 B gzip; the owner has not yet accepted either cost), popup data flow (ADR-0179 — draft vs payload and the template-switching split), the **page-size cap** (the plan's 2 MiB belongs to the Phase 3 transport; nothing caps capture today), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. The `tauri-plugin-deep-link` Rust ≥ 1.90 check **is done** (Phase 3 part 1): it needs 1.90 against the declared `1.77.2` and macOS schemes are install-time only, so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173, "Phase 0 verification outcome"). Still owner-approved-by-default only: the 2 MiB body cap and the per-field caps in `clipper_validate.rs` (ADR-0180, "Open decisions") and whether `clipper_status`/`ack` are the final Settings API.
+- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction budget (ADR-0174 — the measured size is now ~100 KB gzip for Defuddle core + Turndown, not the 86.4 KB bundlephobia figure, and the browser popup costs another ~71 KB gzip for React + the design system, taking the popup chunk to 170,650 B gzip; the owner has not yet accepted either cost), popup data flow (ADR-0179 — draft vs payload and the template-switching split), the **page-size cap** (the plan's 2 MiB belongs to the Phase 3 transport; nothing caps capture today), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. The `tauri-plugin-deep-link` Rust ≥ 1.90 check **is done** (Phase 3 part 1): it needs 1.90 against the declared `1.77.2` and macOS schemes are install-time only, so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173, "Phase 0 verification outcome"). Still owner-approved-by-default only: the 2 MiB body cap and the per-field caps in `clipper_validate.rs` (ADR-0180, "Open decisions"), whether `clipper_status`/`ack` are the final Settings API, and — added with Phase 3 part 2 — the write-path semantics ADR-0177 now records: `append-top` treated as an alias of `prepend`, appends carrying the body with no frontmatter and no source footer, an unexpected write failure reported as `app-busy`, and no cold-start buffer (a clip arriving before the webview listens is `app-busy` too, left to ADR-0178's queue).
+- **`apps/desktop` `tsc` is red on `main`** (23 errors, pre-existing, none from the clipper work). Most are `vaultUpdateCounter` being used by the store without being declared on `WorkspaceState`. Until that is fixed the desktop typecheck cannot gate anything, which is why each session reports its own delta instead of a green run.
 
 ---
 
