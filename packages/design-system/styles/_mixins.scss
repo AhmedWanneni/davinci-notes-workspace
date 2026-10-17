@@ -1,4 +1,4 @@
-@import "../tokens/dist/variables.css";
+@import "@app/design-tokens/dist/css/variables.css";
 
 @mixin border-depth($level: "normal") {
   box-shadow: none;

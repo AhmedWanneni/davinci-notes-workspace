@@ -1,16 +1,19 @@
 import React, { useMemo } from "react";
-import { Circle } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import type { GraphIndex } from "@app/indexer";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
-const LazyAIStatusIndicator = React.lazy(() => import("../../ai/AIStatusIndicator").then((module) => ({ default: module.AIStatusIndicator })));
+const LazyAIStatusIndicator = React.lazy(() =>
+  import("../../ai/AIStatusIndicator").then((module) => ({
+    default: module.AIStatusIndicator,
+  })),
+);
 
 export interface StatusBarProps {
-  vaultName: string;
+  vaultName?: string;
   activeNotePath: string | null;
   content: string;
-  graph: GraphIndex | null;
+  graph?: GraphIndex | null;
   aiCloudEnabled?: boolean;
   aiProviderName?: string;
   aiTransmitting?: boolean;
@@ -37,10 +40,8 @@ export function computeNoteStats(content: string) {
 }
 
 export function StatusBar({
-  vaultName,
   activeNotePath,
   content,
-  graph,
   aiCloudEnabled = false,
   aiProviderName = "AI",
   aiTransmitting = false,
@@ -54,19 +55,17 @@ export function StatusBar({
     [content, isCanvas],
   );
 
-  const backlinkCount = useMemo(() => {
-    if (!activeNotePath || !graph || isCanvas) return 0;
-    return graph.backlinks.get(activeNotePath)?.length ?? 0;
-  }, [activeNotePath, graph, isCanvas]);
-
   return (
-    <footer className="status-bar" role="status" aria-label="Status bar">
+    <>
       <div className="status-bar__left">
-        <span className="status-bar__vault-indicator" aria-hidden="true">
-          <Circle size={6} weight="fill" />
-        </span>
-        <span className="status-bar__vault-name">{vaultName}</span>
-        {aiCloudEnabled && <React.Suspense fallback={null}><LazyAIStatusIndicator providerName={aiProviderName} transmitting={aiTransmitting} /></React.Suspense>}
+        {aiCloudEnabled && (
+          <React.Suspense fallback={null}>
+            <LazyAIStatusIndicator
+              providerName={aiProviderName}
+              transmitting={aiTransmitting}
+            />
+          </React.Suspense>
+        )}
       </div>
 
       {activeNotePath ? (
@@ -88,15 +87,6 @@ export function StatusBar({
               </>
             )}
             <span className="status-bar__stat">
-              {backlinkCount} {backlinkCount === 1 ? "backlink" : "backlinks"}
-            </span>
-            <span className="status-bar__divider">·</span>
-            <span className="status-bar__stat">
-              {stats!.propertyCount}{" "}
-              {stats!.propertyCount === 1 ? "property" : "properties"}
-            </span>
-            <span className="status-bar__divider">·</span>
-            <span className="status-bar__stat">
               {stats!.wordCount} {stats!.wordCount === 1 ? "word" : "words"}
             </span>
             <span className="status-bar__divider">·</span>
@@ -106,11 +96,7 @@ export function StatusBar({
             </span>
           </div>
         )
-      ) : (
-        <div className="status-bar__right">
-          <span className="status-bar__stat">No file open</span>
-        </div>
-      )}
-    </footer>
+      ) : null}
+    </>
   );
 }

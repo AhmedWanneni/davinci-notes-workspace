@@ -386,3 +386,31 @@
   text-align: right;
   max-width: 260px;
 }
+
+.settings-text-input {
+  width: 220px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--border-radius-md);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-sm);
+  outline: none;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  &:focus {
+    border-color: var(--color-border-focus);
+  }
+}
+
+.settings-custom-font-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+}

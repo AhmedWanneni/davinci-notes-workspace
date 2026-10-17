@@ -16,7 +16,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 
 | ADR | Decision | Status |
 |---|---|---|
-| [0001](adr/0001-use-tauri-v2-not-electron.md) | App shell: Tauri v2, not Electron (desktop + mobile, ~8 MB) | Accepted |
+| [0001](adr/0001-use-tauri-v2-not-electron.md) | App shell: Tauri v2, not Electron (desktop + mobile, ~8 MB) | Superseded by [0185](adr/0185-mobile-shell-expo.md) |
 | [0002](adr/0002-use-react-and-typescript.md) | Frontend: React + TypeScript | Accepted |
 | [0003](adr/0003-use-codemirror-6-not-prosemirror.md) | Editor: CodeMirror 6, not ProseMirror/Tiptap | Accepted |
 | [0004](adr/0004-store-notes-as-plain-markdown-files.md) | Notes are plain `.md` files, not a database | Accepted |
@@ -112,9 +112,10 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0120](adr/0120-drive-oauth-authentication-and-verification.md) | Desktop PKCE Drive auth with `drive.file`, OS-keychain tokens, refresh/sign-out behavior, and verification rollout posture | Accepted |
 | [0121](adr/0121-drive-appdata-scope-correction.md) | Add non-sensitive `drive.appdata` alongside `drive.file` for hidden app-scoped manifest storage; explicit amendment to ADR-0120 | Accepted |
 | [0122](adr/0122-sync-conflict-resolution-and-safety.md) | Sync Phase 4 conflict resolution: diff3 for .md, atomic copy for .canvas, device-name copy for binaries, edit-wins for delete-vs-edit | Accepted |
-| [0123](adr/0123-syncthing-folder-sync-mode-and-watcher-burst-robustness.md) | Syncthing/folder sync mode: zero daemon IPC, parallel IPC pre-fetch for watcher bursts, conflict recognition & SyncConflictsPanel UI | Accepted |
+| [0123](adr/0123-syncthing-folder-sync-mode-and-watcher-burst-robustness.md) | Syncthing/folder sync mode: zero daemon IPC, parallel IPC pre-fetch for watcher bursts, conflict recognition & SyncConflictsPanel UI | Partially superseded by [0198](adr/0198-syncthing-local-rest-api-and-keychain-security.md) |
 | [0124](adr/0124-sync-settings-asymmetric-framing-and-mode-isolation.md) | Sync settings UI: asymmetric framing for Drive vs Folder, opt-in default, isolated per-mode configuration panels | Accepted |
 | [0125](adr/0125-comprehensive-sync-architecture-closeout.md) | Comprehensive Sync Architecture Closeout across Phases 0–7: zero backend, appDataFolder Drive sync, node-diff3 text merge, atomic canvas/binary conflict copies, watcher burst pre-fetch, asymmetric UI | Accepted |
+| [0198](adr/0198-syncthing-local-rest-api-and-keychain-security.md) | Syncthing local REST API integration: automatic config discovery, OS keychain fallback, native loopback confinement, and 0 KB QR proxy | Accepted |
 | [0113](adr/0113-attachment-settings-validation.md) | Specified folders validate/create at first use; invalid subfolder drafts stay local with inline validation | Accepted |
 
 
@@ -160,6 +161,17 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0012](adr/0012-mobile-app-sandboxed-storage.md) | Mobile storage app-sandboxed; changes via sync client | Accepted |
 | [0013](adr/0013-mobile-stack-navigation.md) | Mobile navigation stack-based, not multi-pane | Accepted |
 | [0014](adr/0014-mobile-graph-view-deferred.md) | Mobile graph view deferred; backlinks-only for v1 | Accepted |
+| [0185](adr/0185-mobile-shell-expo.md) | Mobile shell: Expo (React Native + Expo Router), CodeMirror 6 in DOM component | Accepted |
+| [0186](adr/0186-shared-tokens-per-platform-components.md) | Shared tokens, per-platform components; Radix/SCSS desktop-only | Accepted |
+| [0187](adr/0187-mobile-vault-storage-hybrid-sandbox-and-saf.md) | Mobile vault storage: hybrid sandbox by default with SAF fallback | Accepted |
+| [0188](adr/0188-mobile-fast-capture-destination-and-attachment-routing.md) | Mobile fast capture: standalone Quick Notes by default, configurable Inbox/Daily, desktop attachment rules | Accepted |
+| [0189](adr/0189-sync-conflict-resolution-orchestration-and-safety.md) | Sync conflict resolution orchestration: clean 3-way merge when safe, conflict copies when unsafe, delete-vs-edit edit-wins | Accepted |
+| [0190](adr/0190-mobile-suspended-sync-semantics-and-background-limits.md) | Mobile suspended sync semantics: foreground/open priority, best-effort short background tasks, pending changes honesty | Accepted |
+| [0191](adr/0191-mobile-theme-safety-and-shell-isolation.md) | Mobile theme safe loader rules: pure-CSS sanitization (no remote url/import/scripts) and native shell isolation | Accepted |
+| [0192](adr/0192-mobile-local-graph-rendering-and-node-bounds.md) | Mobile local graph view: react-native-svg (0 KB native overhead), 50-node cap, withDbLock concurrency | Accepted |
+| [0193](adr/0193-mobile-readonly-canvas-and-cycle-prevention.md) | Mobile read-only JSON Canvas: lazy webview pan/zoom, ancestor chain cycle detection (max depth 3) | Accepted |
+| [0194](adr/0194-mobile-expo-sdk-pin-and-dependency-alignment.md) | Mobile Expo SDK pin and dependency alignment: pinned SDK 57 stable, React version ownership, expo-audio migration | Accepted |
+| [0195](adr/0195-mobile-vault-onboarding-and-registry.md) | Mobile vault onboarding, multi-vault registry, and storage selection | Accepted |
 
 ## Design System & Tooling
 
@@ -241,7 +253,19 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0169](adr/0169-ui-decoupling-from-sqlite-index-and-unhandled-rejection-resilience.md) | Decouple UI tab opening from SQLite indexing, capped exponential backoff for SQLITE_BUSY, and error boundaries | Accepted |
 | [0170](adr/0170-save-time-external-change-guard-and-append-merge.md) | Save-time external change guard with append-aware merge and conflict copy on exit (supersedes 0161) | Accepted |
 | [0171](adr/0171-capture-window-sql-permission-and-quick-search.md) | Capture window SQL permissions and direct indexer quick search with WAL mode and native note activation | Accepted |
-| [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) | Tray left-click popover toggle for quick capture with monitor work area clamping and left-click setting | Accepted; supersedes Phase 1 click decision |
+| [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) | Tray left-click popover toggle for quick capture with monitor work area clamping and left-click setting | Accepted; target superseded by [0180](adr/0180-quick-capture-note-creation-and-destination-options.md) |
+| [0173](adr/0173-curated-editor-fonts-and-custom-font-input-sanitization.md) | Curated editor fonts and custom font input sanitization with self-hosted font-display swap | Accepted |
+| [0174](adr/0174-curated-editor-fonts-and-vim-monospace-mode.md) | Curated editor fonts and vim monospace mode with lazy Latin woff2 assets | Accepted |
+| [0175](adr/0175-editor-insert-registry-and-lazy-menu.md) | Immutable editor insert registry, lazy header menu, and CodeMirror snippets | Accepted |
+| [0176](adr/0176-editor-slash-menu-trigger-rules-and-shared-recent-store.md) | Editor slash menu trigger exclusions, Vim modal preservation, palette commands, and shared recent store | Accepted |
+| [0177](adr/0177-editor-media-insert-items-and-dialogs.md) | Editor media insert items, declarative dialogs, and attachment pipeline integration | Accepted |
+| [0178](adr/0178-editor-mermaid-diagram-templates.md) | Editor Mermaid diagram templates, sub-grouping, and lazy preview rendering | Accepted |
+| [0179](adr/0179-note-embeds-and-safety-guards.md) | Note embeds (![[Note]] and ![[Note#Heading]]), cycle/depth/size guards, debounced live updates, and insert item (extends 0115) | Accepted |
+| [0180](adr/0180-quick-capture-note-creation-and-destination-options.md) | Quick capture note creation with optional filename/folder, unique same-second naming, pure append fallback, and exact anchored popover positioning | Accepted; supersedes capture target of 0172 |
+| [0181](adr/0181-recent-vaults-registry-and-switch-lifecycle.md) | App-level recent-vaults registry, auto-open launch behavior, and safe vault-switch lifecycle | Accepted |
+| [0182](adr/0182-reminder-syntax-and-storage-model.md) | Reminder syntax, task parsing scope, default 09:00 time, and SQLite index storage | Accepted |
+| [0183](adr/0183-rust-reminder-scheduler-and-notifications.md) | Rust reminder scheduler, device-local notification state, and background lifecycle | Accepted |
+| [0184](adr/0184-reminder-recurrence-syntax-and-completion-model.md) | Reminder recurrence syntax, due-date anchoring, and in-place completion model | Accepted |
 
 ## Web Clipper (planned)
 
@@ -266,3 +290,21 @@ the list.
 | [0179](adr/0179-clipper-popup-data-flow.md) | Popup data flow: preparation (`prepareClipContext`: page+mode) split from rendering (`renderClipPayload`: template) so a template change does not re-extract, with the one-shot compositions deleted; edit fields show a raw `ClipDraft` while the written `ClipPayload` is the sanitised result; list-valued properties shown but not editable; `contentHash` untouched by edits | Proposed |
 | [0180](adr/0180-clipper-receiver-validation-and-lifecycle.md) | Receiver core: the desktop **re-validates and rejects** rather than re-sanitising (a `folder`/`noteName` that is not already the fixed point of `safeName`/`normalizeFolder` is `invalid-path`); 413/`too-large` for size/count breaches vs 422/`invalid-path`/`invalid-payload` for shape; `Host` must be exactly `127.0.0.1:<port>` and a present `Origin` must be an extension origin (token is the real boundary, no CORS headers); the listener is inert until enabled and stops by waking `accept()` with one throwaway connection (no poll); Rust asks the webview and blocks on a 20 s `clipId`-keyed handshake; `constant_time_eq` + `getrandom` are re-used from the existing tree (zero binary delta) | Proposed |
 
+## Mobile Shell
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0185](adr/0185-mobile-shell-expo.md) | Mobile shell: Expo SDK 53 + React Native + NativeWind, replacing Tauri v2 mobile | Accepted |
+| [0186](adr/0186-shared-tokens-per-platform-components.md) | Design system: shared CSS tokens via NativeWind, platform-specific UI primitives | Accepted |
+| [0187](adr/0187-mobile-vault-storage-hybrid-sandbox-and-saf.md) | Mobile vault storage: hybrid app sandbox default + SAF/folder picker | Accepted |
+| [0188](adr/0188-mobile-fast-capture-destination-and-attachment-routing.md) | Mobile fast capture: share target, daily note routing, attachment collision handling | Accepted |
+| [0189](adr/0189-sync-conflict-resolution-orchestration-and-safety.md) | Sync conflict resolution: orchestration and non-destructive safety | Accepted |
+| [0190](adr/0190-mobile-suspended-sync-semantics-and-background-limits.md) | Mobile suspended sync semantics, lifecycle events, and OS background limits | Accepted |
+| [0191](adr/0191-mobile-theme-safety-and-shell-isolation.md) | Mobile theme safety, dark-first default, and shell isolation | Accepted |
+| [0192](adr/0192-mobile-local-graph-rendering-and-node-bounds.md) | Mobile local graph rendering: SVG-based, node bounding, and zoom/pan | Accepted |
+| [0193](adr/0193-mobile-readonly-canvas-and-cycle-prevention.md) | Mobile read-only canvas viewer and cycle prevention | Accepted |
+| [0194](adr/0194-mobile-expo-sdk-pin-and-dependency-alignment.md) | Expo SDK pin and strict peer dependency alignment | Accepted |
+| [0195](adr/0195-mobile-vault-onboarding-and-registry.md) | Mobile vault onboarding, multi-vault registry, and storage selection | Accepted |
+| [0196](adr/0196-mobile-vault-storage-and-flow-remediation.md) | Mobile vault storage and flow remediation: object-based fs seam, atomic overwrite, and UI hardening | Accepted |
+| [0197](adr/0197-mobile-note-identity-and-rename-safety.md) | Stable note identity via NoteStore, single-pass atomic write, and safe collision-free rename | Accepted |
+| [0198](adr/0198-syncthing-desktop-mobile-sync-verification-and-conflict-isolation.md) | Syncthing desktop-mobile sync verification, non-destructive conflict routing, and transfer isolation | Accepted |

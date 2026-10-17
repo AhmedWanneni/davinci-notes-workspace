@@ -62,12 +62,16 @@ export type { SyncState, SyncStateStorage } from "./syncState";
 export {
   isTextMergeable,
   resolveBinaryConflictName,
+  resolveConflictAction,
   resolveDeleteVsEdit,
   resolveTextConflict,
 } from "./conflictResolver";
 export type {
   BinaryConflictInput,
   BinaryConflictResult,
+  ConflictAction,
+  ConflictActionInput,
+  ConflictActionKind,
   DeleteVsEditInput,
   DeleteVsEditResult,
   TextConflictInput,

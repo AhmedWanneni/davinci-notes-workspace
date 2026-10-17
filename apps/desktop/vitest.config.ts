@@ -20,6 +20,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      react: path.join(__dirname, "node_modules/react"),
+      "react-dom": path.join(__dirname, "node_modules/react-dom"),
       "@app/core-types": path.join(repoRoot, "packages/core-types/index.ts"),
       "@app/clipper-core": path.join(
         repoRoot,
@@ -36,6 +38,10 @@ export default defineConfig({
       "@app/theme-api": path.join(repoRoot, "packages/theme-api/index.ts"),
       "@app/ai-api": path.join(repoRoot, "packages/ai-api/index.ts"),
       "@app/ai-runtime": path.join(repoRoot, "packages/ai-runtime/index.ts"),
+      "@app/syncthing-api": path.join(
+        repoRoot,
+        "packages/syncthing-api/index.ts",
+      ),
     },
   },
   test: {

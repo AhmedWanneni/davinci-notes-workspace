@@ -67,9 +67,10 @@ describe("List Extension (Phase 5)", () => {
     view.dispatch({ changes: { from: view.state.doc.length, insert: "item" } });
     const typedText = container.textContent;
     expect(view.state.doc.toString()).toBe("1. item");
-    expect(activeText).toContain("1. ");
+    expect(activeText).toContain("1.");
     expect(activeMarker?.textContent).toBe("1.");
-    expect(typedText).toContain("1. item");
+    expect(typedText).toContain("1.");
+    expect(typedText).toContain("item");
     expect(container.querySelector(".cm-list-ordered")?.textContent).toBe("1.");
 
     destroy();

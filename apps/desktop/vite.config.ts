@@ -54,12 +54,24 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: "react",
+        replacement: path.join(__dirname, "node_modules/react"),
+      },
+      {
+        find: "react-dom",
+        replacement: path.join(__dirname, "node_modules/react-dom"),
+      },
+      {
         find: "@app/design-system/styles",
         replacement: path.join(repoRoot, "packages/design-system/styles"),
       },
       {
         find: "@app/design-system",
         replacement: path.join(repoRoot, "packages/design-system/index.ts"),
+      },
+      {
+        find: "@app/design-tokens",
+        replacement: path.join(repoRoot, "packages/design-tokens"),
       },
       {
         find: "@app/core-types",
@@ -116,6 +128,10 @@ export default defineConfig({
       {
         find: "@app/ai-qa",
         replacement: path.join(repoRoot, "packages/ai-qa/index.ts"),
+      },
+      {
+        find: "@app/syncthing-api",
+        replacement: path.join(repoRoot, "packages/syncthing-api/index.ts"),
       },
     ],
   },

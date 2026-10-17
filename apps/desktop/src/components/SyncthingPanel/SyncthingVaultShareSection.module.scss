@@ -1,0 +1,96 @@
+.vault-share-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-normal);
+  border-radius: 4px;
+  background-color: var(--color-bg-secondary);
+}
+
+.vault-share-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.vault-share-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-normal);
+}
+
+.vault-share-card__safety-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-normal);
+  background-color: var(--color-bg-primary);
+
+  p {
+    margin: var(--space-1) 0 0;
+    font-size: 11px;
+    color: var(--color-text-muted);
+  }
+}
+
+.vault-share-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.vault-share-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.vault-share-card__label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.vault-share-card__input-mono {
+  font-family: var(--font-editor);
+  font-size: 12px;
+}
+
+.vault-share-card__error-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  border: 1px solid var(--color-border-status-error);
+  color: var(--color-text-error);
+  background-color: var(--color-bg-primary);
+}
+
+.vault-share-card__success-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  border: 1px solid var(--color-border-status-success);
+  color: var(--color-text-success);
+  background-color: var(--color-bg-primary);
+}
+
+.vault-share-card__actions {
+  display: flex;
+  justify-content: flex-end;
+}

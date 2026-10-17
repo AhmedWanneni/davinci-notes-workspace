@@ -4,6 +4,12 @@ import type { GraphIndex } from "@app/indexer";
 
 import { GraphView } from "../GraphView";
 
+const EMPTY_GRAPH: GraphIndex = {
+  nodes: new Map(),
+  edges: [],
+  backlinks: new Map(),
+};
+
 interface GlobalGraphLeafProps {
   graph: GraphIndex | null;
   onClose: () => void;
@@ -15,8 +21,6 @@ export function GlobalGraphLeaf({
   onClose,
   onNavigate,
 }: GlobalGraphLeafProps) {
-  if (!graph) return null;
-
   return (
     <section className="global-graph-leaf" aria-label="Global graph view">
       <header className="global-graph-leaf__header">
@@ -32,7 +36,7 @@ export function GlobalGraphLeaf({
       </header>
       <div className="global-graph-leaf__content">
         <GraphView
-          graph={graph}
+          graph={graph ?? EMPTY_GRAPH}
           defaultMode="global"
           onNavigate={(path) => {
             onNavigate(path);

@@ -2,3 +2,4 @@
 > @app/sync-client@0.1.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/packages/sync-client
 > eslint . --ext .ts,.tsx
 
+ ELIFECYCLE  Command failed.

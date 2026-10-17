@@ -17,6 +17,7 @@ import { PluginsSettingsTab } from "./PluginsSettingsTab";
 import { ClipperSettingsSection } from "./ClipperSettingsSection";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
+import { LogsSettingsTab } from "./LogsSettingsTab";
 import styles from "./SettingsDialog.module.scss";
 
 const LazyAISettingsPanel = React.lazy(() =>
@@ -47,6 +48,8 @@ export interface SettingsDialogProps {
   themeManager: ThemeLifecycleManager | null;
   onReloadThemes: () => Promise<void>;
   onActivateThemeFromBrowser: (themeId: string) => Promise<void>;
+  log?: string[];
+  initialTab?: SettingsTabId;
 }
 
 export function SettingsDialog({
@@ -71,9 +74,17 @@ export function SettingsDialog({
   themeManager,
   onReloadThemes,
   onActivateThemeFromBrowser,
+  log = [],
+  initialTab = "general",
 }: SettingsDialogProps) {
-  const [activeTab, setActiveTab] = useState<SettingsTabId>("general");
+  const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
   const [searchQuery, setSearchQuery] = useState("");
+
+  React.useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [isOpen, initialTab]);
 
   const handleSwitchVault = async () => {
     try {
@@ -182,6 +193,7 @@ export function SettingsDialog({
               )}
 
               {activeTab === "web-clipper" && <ClipperSettingsSection />}
+              {activeTab === "logs" && <LogsSettingsTab log={log} />}
 
               {![
                 "general",
@@ -192,6 +204,7 @@ export function SettingsDialog({
                 "ai",
                 "plugins",
                 "web-clipper",
+                "logs",
               ].includes(activeTab) && (
                 <div className={styles["settings-tab-content"]}>
                   <SettingsCard

@@ -4,30 +4,40 @@ import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
 import { Strikethrough } from "@lezer/markdown";
 import { syntaxHighlighting } from "@codemirror/language";
-import { editorHighlightStyle, readOnlyEditorTheme } from "./editorTheme";
-import { highlightExtension } from "./highlightExtension";
-import { codeBlockLanguage } from "./codeBlockExtension";
-import { markdownAnnotationsExtension } from "./markdownAnnotationsExtension";
-import { readOnlyMarkdownAnnotationTheme } from "./markdownAnnotationTheme";
-import { tableExtension } from "./tableExtension";
-import { readOnlyTableTheme } from "./tableTheme";
-import { codeBlockLayoutTheme } from "./codeBlockLayoutTheme";
-import { livePreviewExtension } from "./livePreviewExtension";
-import { linkExtension } from "./linkExtension";
-import { imageExtension } from "./imageExtension";
-import { embedImageExtension } from "./embedImageExtension";
-import { listExtension } from "./listExtension";
-import { softLineBreakExtension } from "./lineBreakExtension";
-import { mermaidExtension } from "./mermaidExtension";
-import { mermaidTheme } from "./mermaidTheme";
-import { mathExtension } from "./mathExtension";
-import { mathTheme } from "./mathTheme";
-import { tagExtension } from "./tagExtension";
-import { tagTheme } from "./tagTheme";
-import { htmlBlockExtension } from "./htmlBlockExtension";
-import { htmlBlockTheme } from "./htmlBlockTheme";
-import { htmlInlineExtension } from "./htmlInlineExtension";
-import { htmlInlineTheme } from "./htmlInlineTheme";
+import {
+  editorHighlightStyle,
+  readOnlyEditorTheme,
+  readOnlyMarkdownAnnotationTheme,
+  reminderTheme,
+  tagTheme,
+} from "./theme";
+import {
+  highlightExtension,
+  listExtension,
+  livePreviewExtension,
+  markdownAnnotationsExtension,
+  reminderExtension,
+  type ReminderClickInfo,
+  softLineBreakExtension,
+  tagExtension,
+} from "./live-preview";
+import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
+import { readOnlyTableTheme, tableExtension } from "./blocks/table";
+import { linkExtension } from "./links";
+import {
+  embedImageExtension,
+  imageExtension,
+  noteEmbedExtension,
+  noteEmbedTheme,
+} from "./embeds";
+import { mermaidExtension, mermaidTheme } from "./blocks/mermaid";
+import { mathExtension, mathTheme } from "./blocks/math";
+import {
+  htmlBlockExtension,
+  htmlBlockTheme,
+  htmlInlineExtension,
+  htmlInlineTheme,
+} from "./blocks/html";
 
 export interface MarkdownViewProps {
   value: string;
@@ -36,8 +46,11 @@ export interface MarkdownViewProps {
   onLinkClick?: (targetRaw: string) => void;
   onExternalLinkClick?: (url: string) => void;
   onTagClick?: (tagKey: string) => void;
+  onReminderClick?: (info: ReminderClickInfo) => void;
   className?: string;
   resolveMediaUrl?: (path: string) => string;
+  loadNoteContent?: (path: string) => Promise<string | null>;
+  noteContents?: Readonly<Record<string, string>>;
 }
 
 /**
@@ -51,14 +64,19 @@ export function MarkdownView({
   onLinkClick = () => {},
   onExternalLinkClick,
   onTagClick = () => {},
+  onReminderClick,
   className = "",
   resolveMediaUrl,
+  loadNoteContent,
+  noteContents,
 }: MarkdownViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const wikilinkCompartmentRef = useRef(new Compartment());
   const onTagClickRef = useRef(onTagClick);
   onTagClickRef.current = onTagClick;
+  const onReminderClickRef = useRef(onReminderClick);
+  onReminderClickRef.current = onReminderClick;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -92,7 +110,21 @@ export function MarkdownView({
         mathExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
         embedImageExtension({ notePaths, isReadOnly: true, resolveMediaUrl }),
+        noteEmbedTheme,
+        noteEmbedExtension({
+          notePaths,
+          sourcePath,
+          onLinkClick,
+          resolveMediaUrl,
+          isReadOnly: true,
+          loadNoteContent,
+          noteContents,
+        }),
         tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
+        reminderTheme,
+        reminderExtension({
+          onReminderClick: (info) => onReminderClickRef.current?.(info),
+        }),
         htmlBlockExtension(),
         htmlInlineExtension(),
         wikilinkCompartmentRef.current.of(

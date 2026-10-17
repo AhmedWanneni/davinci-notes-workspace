@@ -2,6 +2,7 @@ mod ai_auth;
 mod capture;
 mod capture_commands;
 mod capture_format;
+mod capture_validation;
 mod capture_writer;
 mod clipper_auth;
 mod clipper_commands;
@@ -14,6 +15,8 @@ mod clipper_server;
 mod clipper_validate;
 #[cfg(test)]
 mod capture_tests;
+#[cfg(test)]
+mod capture_options_tests;
 mod command_auth;
 mod db;
 mod folder_commands;
@@ -27,7 +30,17 @@ mod oauth;
 mod plugin_files;
 mod plugin_network;
 mod plugin_webview;
+mod recent_vaults;
+#[cfg(test)]
+mod recent_vaults_tests;
+mod reminder_commands;
+mod reminder_db;
+mod reminder_notify;
+mod reminder_scheduler;
+#[cfg(test)]
+mod reminder_tests;
 mod state;
+mod syncthing;
 mod theme_files;
 mod tray;
 mod tray_commands;
@@ -59,6 +72,7 @@ pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
+    .plugin(tauri_plugin_notification::init())
     .plugin(tauri_plugin_global_shortcut::Builder::new().build())
     .plugin(
       tauri_plugin_sql::Builder::default()
@@ -130,19 +144,25 @@ pub fn run() {
       plugin_webview::plugin_webview_send,
       plugin_webview::plugin_webview_request,
       plugin_webview::plugin_webview_response,
-      tray_commands::get_keep_in_tray,
-      tray_commands::set_keep_in_tray,
-      tray_commands::get_tray_click_action,
-      tray_commands::set_tray_click_action,
-      tray_commands::update_tray_recent_notes,
+      tray_commands::get_keep_in_tray, tray_commands::set_keep_in_tray,
+      tray_commands::get_tray_click_action, tray_commands::set_tray_click_action,
+      tray_commands::update_tray_recent_notes, tray_commands::update_tray_reminders,
       tray_commands::request_app_exit,
-      capture_commands::quick_capture_save,
-      capture_commands::quick_capture_dismiss,
-      capture_commands::open_note_from_capture,
-      capture_commands::get_capture_shortcut,
-      capture_commands::set_capture_shortcut,
-      capture_commands::get_capture_target,
-      capture_commands::set_capture_target,
+      capture_commands::quick_capture_save, capture_commands::quick_capture_dismiss,
+      capture_commands::reclamp_capture_popover, capture_commands::list_vault_folders_for_capture,
+      capture_commands::open_note_from_capture, capture_commands::quick_capture_bring_to_front,
+      capture_commands::get_capture_shortcut, capture_commands::set_capture_shortcut,
+      capture_commands::get_capture_target, capture_commands::set_capture_target,
+      recent_vaults::get_recent_vaults, recent_vaults::record_recent_vault,
+      recent_vaults::remove_recent_vault, recent_vaults::check_vault_exists,
+      recent_vaults::stop_vault_watcher,
+      reminder_commands::reschedule_reminders, reminder_commands::snooze_reminder,
+      reminder_commands::dismiss_reminder,
+      syncthing::syncthing_detect, syncthing::syncthing_status, syncthing::syncthing_qr_png,
+      syncthing::syncthing_add_device, syncthing::syncthing_pending_devices,
+      syncthing::syncthing_accept_device, syncthing::syncthing_dismiss_pending_device,
+      syncthing::syncthing_share_vault_folder, syncthing::syncthing_pending_folders,
+      syncthing::syncthing_accept_folder, syncthing::syncthing_check_sync,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
@@ -162,6 +182,9 @@ pub fn run() {
               state.record_blur();
             }
           }
+          tauri::WindowEvent::Focused(true) => {
+            capture::make_window_topmost(window);
+          }
           _ => {}
         }
       }
@@ -177,10 +200,8 @@ pub fn run() {
 
       #[cfg(target_os = "macos")]
       let window = window.decorations(false).transparent(true);
-
       #[cfg(target_os = "windows")]
       let window = window.decorations(false).shadow(true);
-
       #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
       let window = window.decorations(false);
 
@@ -189,6 +210,14 @@ pub fn run() {
       tray::setup(app.handle())?;
       capture::setup(app.handle())?;
 
+      if let Some(db_path) = reminder_db::get_db_path(app.handle()) {
+        let scheduler = std::sync::Arc::new(reminder_scheduler::ReminderScheduler::new(
+          app.handle().clone(),
+          db_path,
+        ));
+        app.manage(scheduler.clone());
+        scheduler.start();
+      }
 
       if std::env::var_os("DAVINCI_PLUGIN_RPC_PROBE").is_some() {
         println!("[plugin-rpc] probe requested");

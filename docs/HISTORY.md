@@ -9,12 +9,48 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 | Date | Focus | Outcome |
 | 2026-10-17 | Web Clipper Phase 4 part 1 — template library settings | Completed options-page template management: stored-order list (which defines first-match auto-apply precedence), isolated draft editor for all template fields, create/duplicate/delete/restore, and bounded JSON import/export. Imports are capped at 1 MiB before parsing, require a non-empty array, validate every entry atomically, reject duplicate IDs and literal absolute/traversal/backslash folders, and preserve the current library on failure; exports preserve list order. No dependency or background work was added. web-clipper 198 tests / 29 files, lint, typecheck and production build pass; full extension 630.29 kB raw / 186,008 B gzip. Remaining Phase 4 settings export and real-browser options acceptance are separately scoped. |
 |---|---|---|
+<<<<<<< HEAD
 | 2026-10-17 | Web Clipper Phase 3 part 3 — the extension transport | Completed the browser half of Phase 3 in two commits: the transport wire (`5ed0a45`) and the popup + options wiring (`8393920`). `postClipToDesktop` posts the `ClipPayload` to `http://127.0.0.1:<port>/clipper/clip` with `Authorization: Bearer <token>` and **never throws** — a failure is a value (`{delivered:false,reason}`) in the app's own error vocabulary plus `not-paired`/`unreachable`/`timeout`/`queued`. The ack body is read first and the status is the fallback (400 `invalid-payload`, 401/403 `unauthorized`, 409 `vault-not-open`, 413 `too-large`, 422 `invalid-path`, 503 `app-busy`, anything else `unreachable`); the ack is trusted only when it names the sent `clipId` **or names none**, because Rust deliberately sends `clipId: ""` for refusals that happen before the body parses; 15 s abort plus a client-side 2 MiB pre-check mirroring `clipper_validate::MAX_BODY_BYTES`. `pairingStore` holds the manual copy-token pairing (`clipper.pairing`; a malformed entry reads as unpaired — nothing repaired, nothing guessed), and the extension's new options page + `PairingPanel` (story + tests) are its surface. The popup's "Add to DaVinci Notes" is live and gated on pairing, reports the path the app wrote, and otherwise shows `describeDeliveryFailure(reason)` while keeping the clip for a retry or a `.md` download; its `saving` flag became `downloading`. The manifest gains its only host permission, `http://127.0.0.1/*`, which is what keeps CORS handling off the desktop. **Scope corrected:** the closed-app queue is Phase 7, not part of Phase 3, and was not built — an undeliverable clip is reported and kept on screen, never buffered where nothing can drain it. No new dependency anywhere. Total extension output 595.5 kB → 610.1 kB raw / 173.8 kB → 179.6 kB gzip (the new options page is 4.85 kB raw / 1.77 kB gzip; read the totals, because a second HTML entrypoint splits a shared chunk out of the popup bundle). web-clipper **166** tests / 21 files (was 102/17), `pnpm lint` and `tsc --noEmit` clean, `wxt build` clean with `options_ui` and the host permission present in the generated manifest; only `apps/web-clipper` was touched, so clipper-core (63) and desktop (408) were not re-run. Real-browser `Origin`/preflight behaviour and the end-to-end handshake remain owner-local. |
 | 2026-10-17 | Web Clipper Phase 3 part 2 — the webview write path and pairing UI | Completed the TS/UI half of Phase 3 in four commits. Moved `composeNoteFile`/`suggestedFilePath` into `packages/clipper-core` so the extension and the desktop compose one file shape (the desktop gained a `@app/clipper-core` dependency plus an `app`→`clipper-core` ESLint boundary allowance). Added `appendToNoteInVault(path, body, position)`, which reuses `writeAndIndexNote` — atomic write, disk tracker, dirty clearing, `withDbLock`/`withDbTransaction` indexing and history — inside `queuePerPath`: it creates a missing note rather than rejecting (plan §5 check 5), prefers an open note's in-memory buffer, preserves the note's EOL and normalises only the seam to one blank line so an append can never truncate, and lands a `top` insert after any leading frontmatter. Wired the receiver: `useClipperService` (one lifetime subscription) → `handleClipReceived` (always acks, even a rejection, because Rust waits 20 s) → `applyClipToVault`, whose total behaviour map gives `create` a numeric suffix instead of overwriting (check 7), treats `append-top` as an alias of `prepend`, sends appends the body only (never a second frontmatter block), reports an unexpected write failure as `app-busy` (the only retryable code, so ADR-0178's queue retries and nothing is lost) and `vault-not-open` when no vault is open; `target.vaultId` is ignored (O4). No cold-start buffer: a clip arriving before the webview listens waits out the 20 s handshake and is `app-busy` too. Added the "Web Clipper" Settings section (enable toggle, bound address, Show/Copy/Rotate/Revoke, with state taken from each command's returned `ClipperStatus` so a failed bind surfaces as an alert rather than a toggle that flips back). ADR-0177 amended in place with all of it. clipper-core 63 tests, web-clipper 102, desktop 408 (from 387); lint clean in all three; no new third-party dependency (the desktop's clipper surface is 20,789 B of TS source, 7,116 B gzip unminified); zero new `tsc` errors — the desktop's 23 are pre-existing, mostly `vaultUpdateCounter` missing from `WorkspaceState`. |
 | 2026-10-17 | Web Clipper Phase 3 part 1 — Rust receiver core | Ran the Phase 0 gate first: `tauri-plugin-deep-link` v2 latest (2.6.2) needs Rust ≥ 1.90 against the declared `rust-version = "1.77.2"` (2.4.10 is the last 1.77.2-compatible release), and macOS schemes are install-time only — so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173 amended, still Proposed). Built the desktop receiver as a complete, tested, **inert** unit (14 new `clipper_*.rs` files): `ClipPayload`-mirroring wire types with `deny_unknown_fields`, a literal Rust port of `safeName`/`normalizeFolder`/`normalizeNoteName`, bounds+shape validation, a capped hand-rolled request reader, the one loopback route with exact-`Host`/`Origin`/constant-time-token checks, and the emit-and-await webview handshake. Key decision (ADR-0180): the desktop **re-validates and rejects** rather than re-sanitising — a name that is not the fixed point of `safeName` is `invalid-path`. `constant_time_eq` + `getrandom` reused from the existing tree (zero binary delta); no HTTP framework, no CORS headers. `clipper_enable` is the only way to start the listener and no UI calls it yet. 32 new Rust tests (attack matrix 1–4/9 over real loopback sockets); `cargo test` 76 pass / 1 pre-existing `git_auth` failure; clippy adds zero warnings. |
 | 2026-10-17 | Web Clipper Phase 2b — React popup on the design system | Replaced the unstyled plain-TS popup with React 19 + `@wxt-dev/module-react` on `@app/design-system` (`ClipPopup`, `ClipEditor`, `ClipPreview`, `ClipModeSelector`, `TemplatePicker`; each with `.module.scss` + story + tests). Split the pipeline so `prepareClipContext` (page+mode) is memoised apart from `renderClipPayload` (template) — a template change no longer re-extracts a page — and deleted the now-callerless one-shot compositions. Edit fields show a raw `ClipDraft` while the written payload is sanitised (`applyClipEdits`: separators/`..` stripped, `.md` ensured, cleared property removed); `contentHash` untouched because the body is not editable. Recorded ADR-0179 (Proposed). Popup chunk 580,258 B raw / 170,650 B gzip (React + design system ≈ +71 KB gzip over Phase 2a); tree-shaking of the design-system barrel verified by grepping the built chunk. 106 tests / 17 files pass; `tsc`, ESLint and `wxt build` clean. |
 | 2026-10-17 | Web Clipper Phase 2a — extension capture/extraction pipeline | WXT 0.21.4 + MV3 with no content script (`activeTab` + `scripting`, `host_permissions: []`); Defuddle core + Turndown+turndown-plugin-gfm (101,914 B gzip vs 218,493 for `defuddle/full`, ~114 KB gzip saved) with LaTeX-math and callout recovery; real bugs fixed (extension-origin relative URLs, callout separator, blank `<math>` dropped by Turndown, nested-JSON-LD auto-apply, `-   ` list markers). Popup chunk 350,180 B raw / 99,576 B gzip; 51 tests / 9 files pass. |
 | 2026-10-17 | Web Clipper feature plan (plan only) | Produced `web-clipper-feature-plan.md` (architecture diagram, `ClipPayload` schema, phases 0–8 with dependency/size costs and adversarial verification steps) plus six draft ADRs (0173 transport hybrid; 0174 Defuddle vs Readability+Turndown with measured gzip sizes; 0175 WXT + `packages/clipper-core`; 0176 template-engine split; 0177 canonical vault write path; 0178 closed-app queue with dedupe). All Proposed, pending owner input; no code and no dependencies added. |
+=======
+| 2026-10-17 | Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (ADR-0198) | Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem. Scenarios passed: (1) Desktop -> Phone CRUD (6562ms), (2) Phone -> Desktop CRUD (5549ms), (3) Round-trip mtime stability (12537ms; 0 loops/rewrites), (4) Offline concurrent edits with *.sync-conflict-* generation and zero data loss (3432ms), (5) Edit vs delete & rename vs edit resolution (8363ms), (6) Syncthing .tmp file transfer isolation (2ms), (7) Background mobile rescan upon reopening (1519ms), (8) 5,000-note vault scale benchmark (642ms; 392ms write, 0.2 MB heap delta, no UI freeze), (9) Clean unpair & re-pair via REST API (33ms), (10) Convergence hash match across vaults (100% SHA-256 match, 3778ms). Root-caused and resolved note index pollution by routing conflict files to `VaultScanResult.conflicts` and excluding them from `ctx.notes` in `vaultScanner.ts` (mobile) and `VaultIndexer.ts` (desktop). Recorded ADR-0198. All unit and integration tests passing; ESLint 0 errors. |
+| 2026-10-17 | Mobile Syncthing Device Pairing, QR Code Scanning & Safe Vault Acceptance (`apps/mobile/`) | Implemented mobile-side device pairing and vault folder acceptance. Added `expo-camera@~57.0.6` barcode scanning in `SyncthingQrScanner.tsx` lazily loaded on demand via `React.lazy()`. Requested camera permission only when scanner mounts, with fallback to manual paste flow upon permission denial. Implemented `parseScannedDeviceId` validating 56-character Device IDs and rejecting random payloads with descriptive errors. Enforced explicit confirmation step showing parsed Device ID and name field (zero auto-accepting from QR). Added `SyncthingPendingSection.tsx` listing incoming device requests (Accept/Ignore) and pending vault folder offers. Implemented `folderAccessChecker.ts` explicitly verifying folder read, list, and atomic write probe capabilities before folder acceptance (SAF permission required) and warning if directory is non-empty. Added connected peers badge from `/rest/system/connections`. All 32 mobile Syncthing tests pass; 0 ESLint / 0 typecheck errors. |
+| 2026-10-17 | Mobile Syncthing-Fork Settings, QR Code & Device ID Integration (`apps/mobile/`, `packages/syncthing-api/`) | Shipped Settings -> Sync -> Syncthing panel connecting to local Syncthing-Fork instance on Android. Created shared TypeScript package `packages/syncthing-api` containing pure types (`SyncthingState`, `SyncthingDetectResult`, `SyncthingStatusResult`, etc.) and pure parsers (`normalizeDeviceId`, `isValidDeviceIdFormat`, `formatDeviceIdGroups`, `redactApiKey`, `sanitizeError`), reused by desktop and mobile. Configured narrowest Android network security config via Expo config plugin `withLocalhostNetworkSecurity` permitting cleartext HTTP strictly on `127.0.0.1` and `localhost` with zero blanket `usesCleartextTraffic`. Implemented secure API key storage in `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`) with zero logging and zero plain storage. Built `MobileSyncthingPanel` displaying status badge (Running / Not running / Key problem), formatted monospace Device ID with Copy button (`expo-clipboard`), and high-contrast QR code with white quiet zone reusing Syncthing's `/qr` proxy (0 KB external QR library overhead). All 21 unit and integration tests passing; 0 ESLint / 0 typecheck errors. |
+| 2026-10-17 | Desktop Syncthing Sync Health Verification & Self-Test Round-Trip (ADR-0198) | Implemented "Check sync" diagnostic engine and UI section in Syncthing settings panel. Five checks: (1) Syncthing reachability & key, (2) remote device connectivity, (3) vault folder sync state (idle/scanning/syncing/error, out-of-sync count, per-remote completion %), (4) folder API error diagnostics, and (5) self-test round-trip writing an ephemeral marker file (.davinci-sync-check/<deviceId>-<ts>.txt) and polling remote completion with 10s timeout. Guaranteed marker cleanup in all paths (success, timeout, failure) and startup purge in open_vault. Isolated marker from file tree, search, and graph. Verified with live remote peer (1795ms round-trip), offline remote (clear skipped/disconnected reasons), mid-test kill recovery, and index isolation. 13/13 Cargo tests and 17/17 Vitest tests pass. |
+| 2026-10-17 | Desktop Syncthing Device Pairing, Incoming Requests & Safe Vault Folder Sharing (ADR-0198) | Extended desktop Syncthing panel and Rust backend commands (syncthing_add_device, syncthing_pending_devices, syncthing_accept_device, syncthing_dismiss_pending_device, syncthing_share_vault_folder, syncthing_pending_folders, syncthing_accept_folder). UI features: 8x7 auto-formatting ID input with Luhn validation surfacing, incoming connection requests with explicit Accept/Ignore buttons, 1-click vault sharing with Send & Receive mode, and incoming folder offers with user-selected target paths and non-empty checks. Safety: automated .stignore generation preserving user lines while excluding per-device state; watcher and indexer ignore .syncthing.*.tmp; *.sync-conflict-* surfaced in conflict panel and excluded from note indexing. Verified with real secondary Syncthing daemon: remote pairing accepted, SHA256 hashes matched, malformed/duplicate/own ID errors verified, and .stignore contents confirmed. 12/12 Cargo tests and 14/14 Vitest tests pass. |
+| 2026-10-17 | Desktop Settings -> Sync -> Syncthing Panel (ADR-0198) | Implemented Obsidian-style, flat, Radix-based Syncthing panel with status badge (Running / Not running / Not installed / Key problem), monospace device identity block with copy feedback, QR code with white quiet zone, and manual refresh. Proxied QR code via Rust backend syncthing_qr_png with 0 JS QR libraries. Lazy-loaded via React.lazy() into a separate 5.62 kB chunk (gzip 1.85 kB) with exactly 0 byte main-bundle growth (439.88 kB before vs 439.88 kB after). Verified live toggling, exact character match against Syncthing GUI ID, and full QR decode via OpenCV. All 123 desktop Vitest suites (483 tests) pass. |
+| 2026-10-16 | NativeWind Color Scheme & Dark Mode Class Resolution | Resolved runtime exception "Cannot manually set color scheme, as dark mode is type 'media'. Please use StyleSheet.setFlag('darkMode', 'class')". Added darkMode: "class" to apps/mobile/tailwind.config.js and packages/design-tokens/scripts/generate.mjs preset. Regenerated design-tokens dist files. Verified NativeWind outputs --css-interop-darkMode: class dark and no longer throws in react-native-css-interop MutationObserver. Added unit test in mobileShell.test.ts asserting darkMode === "class". All 16 mobile test suites (81 tests) and desktop build pass. |
+| 2026-10-16 | Mobile Expo FileSystem Modern API Migration | Migrated apps/mobile from deprecated expo-file-system methods (getInfoAsync, readAsStringAsync, writeAsStringAsync, makeDirectoryAsync, readDirectoryAsync, deleteAsync, moveAsync, copyAsync) to modern Expo SDK 57 File, Directory, and Paths classes without switching to legacy imports. Centralized all file operations behind MobileVaultStorageAdapter; eliminated direct FileSystem imports from fastCaptureService, mobileSyncEngine, and transferWithRetry. Preserved atomic write semantics (temp file + move) and binary read/write speed without base64 transcoding overhead. Added adversarial note CRUD lifecycle test verifying filesystem directly. Metro cleared-cache startup verified with zero deprecation warnings and 5,122 modules bundled. All 15 mobile test files (69 tests), mobile typecheck, mobile lint, desktop web build, and all 122 desktop test files (477 tests) pass. |
+| 2026-10-16 | Mobile Expo SDK Pin & Dependency Alignment (ADR-0194) | Fixed Metro crash caused by stale SDK 52 metro overrides in root package.json. Pinned apps/mobile to Expo SDK 57 stable (expo@~57.0.30, expo-router@~57.0.28, react-native@0.86.3, react@19.2.3). Replaced unmaintained expo-av with expo-audio (~57.0.5). Resolved dual React instance resolution in desktop with local alias while preserving desktop on react@^19.2.8. npx expo-doctor passed 21/21 checks. Metro dev server starts cleanly (0 errors). Production Android bundle exports successfully (11 MB Hermes bytecode). All 15 mobile tests and 122 desktop tests pass. |
+| 2026-10-16 | Mobile Themes, Local Graph, Read-Only Canvas & Mobile v1 Performance Pass (ADR-0191, ADR-0192, ADR-0193) | Applied installed CSS themes in webview via safe loader (no remote URLs, no @import, no scripts); verified native shell tokens and touch targets are immune to theme CSS. Built local graph using react-native-svg (0 KB native bloat vs 5.2 MB Skia) capped at MAX_LOCAL_GRAPH_NODES = 50 with < 2ms radial layout and tap-to-navigate. Built read-only JSON Canvas 1.0 viewer with touch pan/zoom and ancestor-chain circular embed detection (A -> B -> A). Passed performance benchmarks against Phase 1B baseline. All 15 mobile test files (68 tests) pass; 0 ESLint / 0 TypeScript errors. Closed Mobile v1 checklist. |
+| 2026-10-16 | Mobile Suspended Sync Semantics & Background Execution (ADR-0190) | Defined realistic platform limits on iOS (immediate suspension, opportunistic BGAppRefreshTask, ~15-30s short background window) and Android (WorkManager 15-min periodic minimum, Doze windows, Syncthing service reconciler). Implemented `BackgroundSyncCoordinator` with 25s execution timeout and `AbortSignal` cancellation mid-transfer. Implemented atomic resume without duplicate or corrupt notes. Respected Low Power Mode (< 20% battery or low-power mode on) with `"paused-low-battery"` and metered network with `"paused-metered"`. Built honest pending state in `SyncStatusBadge` and `useSyncStatus`: zero false claims when local changes are pending. Verified real-device latency (1.85s avg), force-kill recovery, and idle battery drain (< 0.15%/hr). All 14 mobile test files (62 tests) pass; 0 ESLint / 0 TypeScript errors. |
+| 2026-10-16 | Mobile Sync Conflict Resolution (ADR-0189) | Reused shared `@app/sync-client` conflict resolution on mobile without forking. Identified and fixed false-conflict gap in `classifySyncDiff` on identical concurrent changes. Automated and passed all 10 adversarial conflict cases with zero silent data loss. Re-verified desktop test suite (122 files, 477 tests). |
+| 2026-10-16 | Mobile Manifest Sync & Transfer (`apps/mobile/sync/`, `apps/mobile/tests/mobileSyncEngine.test.ts`, `apps/mobile/tests/mobileSyncPolicyBenchmark.test.ts`) | Ported Google Drive manifest sync and transfer to mobile reusing `@app/sync-client` directly without forking. Implemented native PKCE OAuth with `expo-web-browser` (`WebBrowser.openAuthSessionAsync` via ASWebAuthenticationSession / Custom Tabs, 0 embedded webviews) and confirmed non-sensitive scope tiers (`drive.file` and `drive.appdata`). Token storage in `expo-secure-store` with 0 secret leaks. Built `MobileSyncIndexUpdater` wrapping index mutations in `withDbLock` and `withDbTransaction`. Implemented resumable transfers with atomic temp files (`.tmp.sync_...`) and exponential backoff retry. Flagged metered network (selective text-only sync) and low battery (< 20% auto-sync pause, manual bypass) policies. Shipped `SyncStatusBadge` and `SyncSettingsPanel`. Verified two-device convergence (create/edit/rename/delete), mid-transfer interruption recovery, revoked token handling, zero data loss on conflicts, and 5,000-note benchmark (3.35 ms diff, 1.6 MB memory). All 47 mobile tests pass with 0 lint/typecheck errors. |
+| 2026-10-16 | Mobile Fast Capture & Attachment Handling (`apps/mobile/capture/`, `apps/mobile/app/share-target.tsx`, `apps/mobile/app/new-note-action.tsx`, `apps/mobile/app/daily-note-action.tsx`) | Implemented mobile fast capture system with ADR-0188 routing: shared text, URLs (with title fetch), and images write by default to `Quick Notes/Quick note YYYY-MM-DD HH-mm-ss.md` to prevent background write collisions, with support for `inbox` and `daily` destinations. Reused desktop `Attachments/` rules with ADR-0110 numeric suffix collision resolution. Created OS share target receiver functioning across closed, backgrounded, and open states. Added instant App Shortcuts (`davinci://new-note` and `davinci://daily-note`) with 0 KB native overhead. Integrated camera, photo picker, and audio recording into the editor toolbar with dynamic lazy-loading and permission denial recovery. Verified with 7 comprehensive filesystem adversarial scenarios (large image >10MB, long audio memo, collisions, FTS5 search indexing). All 40 mobile tests pass; 0 ESLint errors; 0 TypeScript errors. |
+| 2026-10-16 | Mobile Read Experience (`apps/mobile/reader`, `apps/mobile/app/note.tsx`, `apps/mobile/app/(tabs)/index.tsx`, `apps/mobile/app/(tabs)/tags.tsx`) | Implemented complete read experience: Files tab virtualized list with breadcrumbs, sorting (A-Z, Z-A), pin/unpin, move with collision resolution (`Idea (1).md`), and delete with confirmation. Native read-only note renderer (`apps/mobile/reader`) with generous typography, line spacing (1.6), and 0 webview overhead. Frontmatter Properties block with badges. Wikilink resolver (ADR-0020) supporting aliases, headings, and unresolved note creation dialog. Backlinks sheet querying SQLite `links` and FTS5 unlinked mentions through `withDbLock`. Outline sheet with hierarchical headings. Tags tab with live index counts and nested tags. All 28 mobile tests pass with 0 lint/typecheck errors. |
+| 2026-10-16 | Mobile SQLite Indexer & Search Screen (`apps/mobile/database`, `apps/mobile/indexer`, `apps/mobile/app/(tabs)/search.tsx`) | Implemented mobile SQLite storage via `expo-sqlite@~15.0.0` with verified FTS5 support (`ENABLE_FTS5=1`). Ported universal `withDbLock` promise queue from desktop ADR-0168 with re-entrancy depth tracking preventing self-deadlock. Initialized `busy_timeout=5000` before `journal_mode=WAL` and `synchronous=NORMAL` outside transactions. Built background incremental indexer (`MobileVaultIndexer.ts`) with 50-note parameterized batching and cooperative yielding (`setTimeout(0)`). Shipped virtualized Search screen with 150ms debouncing, `<mark>` highlighted snippets, tag filter chips, and path operators. Verified adversarial concurrency (0 `SQLITE_BUSY`), mid-index kill recovery, external file edits, and 5,000-note benchmark (~7.8s first index, < 35ms incremental, p50 < 15ms / p95 < 35ms latency). All 23 mobile tests pass with 0 lint/typecheck errors. |
+| 2026-10-16 | Mobile Vault Storage & Scanning (`apps/mobile/vault`) | Implemented hybrid mobile vault storage (ADR-0187) with default POSIX sandbox (`expo-file-system`) and iOS Files app sharing (`UIFileSharingEnabled`, `LSSupportsOpeningDocumentsInPlace`) alongside Android SAF folder support. Built `MobileVaultStorageAdapter` implementing `VaultStorageAdapter`, `AttachmentFileSystem`, and sync seams (`ManifestSource`, `LocalChangeApplier`) with 0 forking of shared package logic. Created fast recursive scanner handling adversarial filenames (emoji, Arabic, accents, 200+ char paths, spaces) and ignoring hidden files (`.git`, `.obsidian`). Created lightweight foreground reconciler diffing `mtime`/`size` without re-reading file contents. Built `VaultManager` with persistent config and recoverable error UI for missing/revoked folders. 5,000-note benchmark scanned in 86 ms with < 15 MB heap. All 17 mobile tests pass with 0 lint/typecheck errors. |
+| 2026-10-16 | Mobile App Shell (`apps/mobile`) | Built mobile application shell in `apps/mobile` with Expo Router (Files, Search, Tags tabs + prominent center New Note action), dark-first flat border-based NativeWind styling from `@app/design-tokens` (0 shadows, 0 gradients, 0 glassmorphism, 0 pill badges), 8 shared design-system primitives (`Button`, `IconButton`, `ListItem`, `Input`, `Sheet`, `Badge`, `Divider`, `Text`) with min 44pt touch targets, safe-area layout helpers (`ScreenLayout`, `KeyboardAwareContainer`), ESLint enforcement against raw colors/spacing and direct RN primitives, and dev-only Component Gallery verified tree-shaken from production Hermes release bundles. 10/10 mobile tests pass; bundle size: 10.78 MB Hermes bytecode / 2.74 MB gzip. |
+| 2026-10-14 | Reminders Phase 5 — Recurrence Syntax, Due-Date Roll-Forward, and Calendar Invariance | Implemented recurrence parsing and calendar advancement in `@app/indexer` (`recurrenceRule.ts`, `parseReminders.ts`), recorded ADR-0184, updated Live-Preview chips with recurrence indicator (`↻`), and implemented in-place due-date roll-forward on task completion (`reminderTaskActions.ts`). Recurrence syntax follows `(@YYYY-MM-DD[ HH:mm][ /<rule>][ <tz>])`. Supported rules include `daily`, `weekly` (with optional weekday lists), `monthly`, `yearly`, and `every N days/weeks/months/years` (`Nd/Nw/Nm/Ny`). Resolved open decisions in ADR-0184: next occurrence is anchored to the due date (preserving calendar rhythm and preventing late-completion drift) and completion rolls forward in-place while keeping checkbox unchecked (`- [ ]`), avoiding markdown bloat and sync divergence. Added robust calendar math handling month-end 31st preservation across 28/30-day months, Feb 29 leap years, and wall-clock DST invariance via `localToUtcIso`. Comprehensive adversarial test suite in `remindersPhase5Recurrence.test.ts` verified 12-month 31st progression, leap year cycles, Europe/London DST transitions, consecutive completions, and multi-device offline convergence to identical markdown state. All tests pass with zero lint errors; all files under 250 lines. |
+| 2026-10-14 | Reminders Phase 4 — Reminders View, Virtualized List, Snooze/Done Actions, and Native Tray Integration | Implemented the Reminders dialog view (`RemindersDialog.tsx`), virtualized row rendering (`RemindersList.tsx`, `ReminderRowItem.tsx`), markdown checklist toggling (`reminderTaskActions.ts`), device-local snooze persistence (`reminderSnoozeActions.ts`, `reminder_db.rs`), in-app toast notifications (`ReminderNotificationToast.tsx`), and native macOS tray integration (`tray_menu.rs`, `tray.rs`, `tray_commands.rs`, `useTrayMenuActions.ts`). Reminders view displays categorized sections (Overdue, Today, Upcoming, All) with live counts, note navigation at the target line, and markdown checklist checkbox toggling. Checking an item flips `- [ ]` to `- [x]` in the note file on disk. Snooze writes strictly to device-local SQLite `reminder_local_state`, leaving markdown untouched. Native macOS tray displays upcoming reminders submenu (next 3 due) and "Open reminders" menu item. Added comprehensive adversarial test suite (`remindersPhase4Verification.test.ts`) verifying: Done parity across notification/view/editor, snooze persistence surviving reloads without modifying markdown, external file edits updating view queries, and multi-device shared vault isolation where device A snoozing does not affect device B. All 121 desktop test suites (470 tests) and 8 Rust reminder tests pass; all files strictly under line caps. |
+| 2026-10-14 | Reminders Phase 3 — Editor Live-Preview Decoration, Zero-Bundle Date/Time Picker, and In-Place Editing | Implemented CodeMirror 6 live-preview reminder chip decorations (`reminderExtension.ts`, `reminderWidget.ts`, `reminderFormat.ts`, `reminderTheme.ts`), design-system date/time picker dialog (`ReminderDatePicker.tsx`, `ReminderEditModal.tsx`, `InsertDialog.tsx`), and insert menu/slash command registry item (`InsertRegistry.ts`). Added cursor gating so raw markdown tokens `(@YYYY-MM-DD[ HH:mm])` reveal when the cursor intersects the token range. Ignored code blocks, inline code, and frontmatter. Built date/time picker using existing primitives (`Dialog`, `Button`, `Input`) resulting in 0 KB bundle weight overhead. Clicking chip dispatches in-place rewrite/delete modal preserving native CodeMirror undo/redo history. Measured typing latency on a 5,000-line note with 200 reminders: 0.344 ms/keystroke before vs 0.402 ms/keystroke after (+0.058 ms overhead, 0 doc-wide scan on typing). Styled with CUBE CSS and public design tokens only. All 33 editor test suites (219 tests) and desktop reminder tests pass. |
+| 2026-10-13 | Reminders Phase 2 — Rust Scheduler, Device-Local Notifications, and Adversarial Verification | Implemented zero-polling Rust scheduler in `reminder_scheduler.rs`, device-local table `reminder_local_state` (Migration 7 in `db.rs`), grouped catch-up pass on launch, window hide/close persistence via `keep_in_tray`, and recorded ADR-0183. Evaluated `tauri-plugin-notification`: 0 bytes JS bundle overhead when fired from Rust; plugin desktop scheduling is unsupported (mobile only), so scheduler fires directly when due. Reminders keyed by Blake3 hash `(note_path, due_at_utc, text)` preventing re-fire on line moves. Grouped notification prevents notification spam on multiple due/missed reminders. Ran comprehensive adversarial verification suite in `reminder_tests.rs`: 5s fire once while window closed/hidden, quit & relaunch catch-up, edit pending reminder reschedules and cancels old fire, complete task cancels notification, clock forward/backward and timezone invariance, DST spring-forward nonexistent time and fall-back ambiguous hour resolution, 500 simultaneous reminders grouped in 6.36 ms with zero UI freeze, and 1,000 future reminders idle test with next-due calculated in 325 µs and 0 wakeups / 0% CPU. All 8 Rust adversarial tests and 115 desktop Vitest suites (441 tests) pass. |
+| 2026-10-13 | Reminders Phase 1 — Syntax, Parser, SQLite Index, and ADR-0182 | Implemented reminder syntax, parser, SQLite migration 6, and index queries. Added ADR-0182 resolving the 4 open decisions: Obsidian Reminder standard `(@YYYY-MM-DD[ HH:mm])`, task checklist scope (`- [ ]`, `- [x]`, etc.), ISO-8601 UTC string (`due_at_utc TEXT`) + `tz TEXT` storage, and default `09:00:00` morning time. Implemented `parseReminders.ts` in `@app/indexer` with code block/frontmatter masking, malformed date resilience, and zero-allocation fast bailout. Added SQLite Migration 6 in `apps/desktop/src-tauri/src/db.rs` creating `reminders` table and indexes on `(done, due_at_utc)` and `(note_path)`. Created `sqliteReminderIndex.ts` with batch replacement, removals, and upcoming/overdue/by-note queries, serialized under `withDbLock`. Verified checkbox toggling flips `done`, note deletion/rename updates rows, full rebuild produces identical rows, and 10k note vault parse delta is 50.32 ms total (0.0050 ms/note). All indexer and desktop vault tests pass with 0 ESLint errors. |
+| 2026-10-13 | Global Graph IconRail Integration & Blank Page Fix | Fixed blank page when opening Graph View from IconRail: connected `useVaultSession` to `useWorkspaceStore.graph` as single source of truth, added `EMPTY_GRAPH` fallback to `GlobalGraphLeaf.tsx` instead of returning `null`, and added global mode empty state in `GraphView.tsx`. Added `isGlobalGraphOpen` to `IconRail` with active state styling and toggle click behavior. Ensured selecting any file or tab in sidebar, tabs, dropdown, search, command palette, or graph node auto-closes the graph view. Added `IconRail.test.tsx` and `IconRail.stories.tsx`. All 114 test files (436 tests) pass. |
+| 2026-10-13 | Tab Bar Rework — Dropdown Menu and Obsidian Visual Parity | Reworked top tab bar across 2 scoped commits: replaced "view" option with Radix `DropdownMenu` listing open tabs with icons, titles, active indicator, scroll-into-view on activation, and dirty-respecting `Close all` (`f8408d0`); restyled tab bar to Obsidian reference image with border-based depth, concave active tab corner flares (SVG 6px), 1px border treatment, muted close button hover, and token-based spacing (`7a9d71c`). Kept all files strictly under line caps (`AppTabs.tsx` 243, `_tabs.scss` 230). |
+| 2026-10-12 | Four UI & Behavior Improvements | Implemented graph view auto-close on note open/navigation in centralized workspace store (`createNoteNavigationActions.ts`), cleaned up status bar (removed vault label/dot, display word & character counts for active note only), updated sidebar collapse to keep 40px icon rail visible without gaps/overlaps with panel drag-resize, and migrated vault activity logs from under VaultSwitcher to a dedicated Settings Dialog tab with multiple entry points (Settings, Command Palette, Vault Switcher menu). All 113 test suites (431 tests) pass. |
+| 2026-10-12 | Note Embeds (![[Note]] and ![[Note#Heading]]) & Insert Item | Implemented inline read-only CodeMirror 6 note embeds with heading narrowing, cycle detection, depth limit (3), size truncation with 'Show more', IntersectionObserver viewport lazy-loading, and debounced live updates without host document modifications. Added 'Note embed' to insert registry with quick switcher fuzzy search and heading picker. Recorded ADR-0179. All unit tests pass. |
+| 2026-10-12 | Editor Insert Menu Phase 4 — Diagram Templates under Diagrams Group | Added 21 Mermaid diagram templates to `insertRegistry` across 4 sub-groups (Flow and structure, Time and planning, Data and charts, Frameworks). Verified all templates against installed `mermaid@11.16.1` using `mermaid.parse` in jsdom. None deferred. Strict lazy loading guarantees `mermaid` is never imported by insert menus. 27 test files / 179 unit tests pass in `@app/editor`. Recorded ADR-0178. |
+| 2026-10-11 | Editor feature-folder refactor | Reorganized `@app/editor` into feature folders with tests colocated, preserved the root public API, and updated desktop deep-import test paths. Editor typecheck/lint/build pass; 17 editor test files / 97 tests pass. The initial 104-file / 386-test desktop run passed, while later reruns hit its pre-existing timing-sensitive `versionHistoryLatency.test.ts` threshold. Native GUI smoke test remains pending due unavailable agent GUI access. |
+| 2026-10-11 | Curated Editor Fonts & Vim Monospace Mode | Added curated editor fonts (Inter, IBM Plex Sans, Literata, Source Serif 4, JetBrains Mono, Montserrat, Raleway, System default, and sanitized custom input) and "Use monospace font in vim mode" setting (default on). Self-hosted Latin WOFF2 assets (750.5 KB total, 0 KB initial bundle overhead). Added ADR-0174. 99 editor and 387 desktop tests pass. |
+| 2026-10-11 | Editor styling tokens — Phase 5 | Implemented Editor Font Size and Font Family settings with curated options (System UI, Serif, Monospace, Montserrat, Raleway), custom font support, and live re-measurement. Added ADR-0173. Zero remote font requests using self-hosted @fontsource-variable WOFF2 assets with font-display: swap. Input sanitization prevents CSS injection. Font sizes scale 12–24px (default 16px) with reset. Caret lands accurately at wrapped line ends. All 97 editor and 384 desktop unit tests pass with zero public token violations. |
+| 2026-10-11 | Editor styling tokens — Phase 4 | Implemented element-cursor-gated reveal/dimming for Markdown markers and hanging indent / nested styling for lists using Phase 2 tokens. Bounded decoration computation, 0px line-height shifts, and preserved raw Markdown for active lists. |
+| 2026-10-11 | Editor styling tokens — Phase 3 | Applied Phase 2 Obsidian-parity tokens to CodeMirror 6 theme and highlight styles (`editorHighlightStyle.ts`, `editorTheme.ts`); mapped H1-H6 typography to `--editor-obsidian-heading-h{1-6}-*`, unified body line-height to `--editor-obsidian-body-line-height` (1.5), updated content bottom padding to `--editor-content-padding-bottom`, and added line inline padding `--editor-obsidian-content-line-padding-inline`. Maintained full-width content without arbitrary max-width constraints. Allowlisted tokens in `check-public-tokens.mjs`. All 73 editor unit tests and 377 desktop unit tests pass with zero public token violations. |
+>>>>>>> main
 | 2026-10-11 | Editor styling tokens — Phase 2 | Added 30 editor-prefixed Obsidian-parity tokens in a separate `editor.obsidian` namespace; generated CSS, SCSS, and TypeScript outputs. All existing token source values and generated token values were preserved. Design-system build and typecheck passed; `packages/editor` was not modified. |
 | 2026-10-11 | Tray Phase 4b — Click-to-capture popover with left-click setting | Implemented ADR-0172 (supersedes Phase 1 click decision): left-click on tray icon toggles Quick Capture popover anchored under the tray icon; right-click opens the native menu; pure Rust positioning in tray_position.rs clamps strictly to monitor work area with Retina DPI and multi-monitor support; eliminated blur/toggle race via 350ms timestamp debounce; in-memory draft text preserved across blur, dismiss, and Escape; live configurable "Menu bar icon click" setting ("Open quick capture" vs "Open menu") with existing-user fallback to "menu". 45 Rust tests and 373 frontend tests pass with 0 lint errors. |
 | 2026-10-11 | Tray Phase 5 — Quick Search from the capture window | Implemented Option C (ADR-0171): granted scoped SQL permissions (`sql:default`, `sql:allow-execute`) to `capabilities/capture.json` so the capture window queries `vault-index.db` directly via `@tauri-apps/plugin-sql` and the canonical `@app/indexer` search engine (`executeSearchQuery` / `parseSearchQuery`). Reuses exact same BM25 ranking and query syntax without IPC proxy lag or main webview coupling. Queries are debounced by 150ms with sequence token cancellation and WAL concurrency (`journal_mode=WAL`, `busy_timeout=5000`). Up/Down keys navigate, Enter opens note via native `open_note_from_capture` with strict vault-root path confinement, and Tab toggles modes while preserving typed capture text. All 39 Rust unit tests and 370 frontend unit tests (102 test suites) pass with 0 lint errors. Capture bundle grew by only 1.43 KB gzip (8.14 KB raw / 2.57 KB gzip). |
@@ -118,6 +154,7 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 
 ## Detailed Session Notes
 
+<<<<<<< HEAD
 ### 2026-10-17 — Web Clipper Phase 4 part 1: template library settings
 
 - Added a draft-based options-page template library with stored-order selection,
@@ -131,6 +168,347 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 - Added component SCSS/stories/tests and pure transfer tests. `pnpm --filter
   @app/web-clipper test` passed 198 tests across 29 files; lint, typecheck and
   production build passed. No dependency or background work was added.
+=======
+### 2026-10-16 — Mobile Expo SDK Pin & Dependency Alignment (ADR-0194)
+- **Diagnosed and Resolved Metro Startup Failure**:
+  - Identified root cause of `Cannot find module '.../@expo+metro@56.0.2/node_modules/metro/src/lib/isResolvedDependency.js'`: Root `package.json` had legacy SDK 52 `pnpm.overrides` pinning `metro` and related packages to `0.81.5`. Metro 0.81.5 did not include `isResolvedDependency.js`.
+  - Cleared all obsolete `metro*` and `react-native-screens` overrides from root `package.json`.
+- **Pinned Expo SDK 57 Stable Across Mobile**:
+  - `expo`: `~57.0.30`
+  - `expo-router`: `~57.0.28`
+  - `react-native`: `0.86.3`
+  - `react` / `react-dom`: `19.2.3`
+  - Peer modules aligned: `expo-constants` (`~57.0.22`), `expo-linking` (`~57.0.13`), `expo-asset` (`~57.0.20`), `react-native-worklets` (`0.10.1`), `@expo/dom-webview` (`~57.0.1`), `@expo/log-box` (`~57.0.4`), `react-native-screens` (`~4.26.0`).
+- **React Version Ownership & Desktop Isolation**:
+  - In `packages/editor` and `packages/canvas`, maintained `peerDependencies: { "react": "^19.0.0", "react-dom": "^19.0.0" }`.
+  - Added explicit local React aliases in `apps/desktop/vite.config.ts` and `apps/desktop/vitest.config.ts` mapping `react` and `react-dom` to desktop's local `19.2.8` installation, preventing dual-React hook dispatcher collisions (`null useRef`).
+  - Desktop web build and all 122 test files (477 tests) pass.
+- **Migrated Deprecated `expo-av` to `expo-audio`**:
+  - Replaced unmaintained `expo-av` with `expo-audio` (`~57.0.5`) in `apps/mobile/capture/mediaCaptureService.ts` for voice memo recording (`requestRecordingPermissionsAsync`, `setAudioModeAsync`, `AudioRecorder`, `RecordingPresets.HIGH_QUALITY`).
+  - Updated audio mock in `apps/mobile/tests/mobileFastCapture.test.ts`.
+- **Monorepo Export & Metro Validation**:
+  - Verified `npx expo-doctor`: **21/21 checks passed (0 warnings, 0 errors)**.
+  - Metro starts cleanly via `pnpm dev` with QR code ready for Expo Go (SDK 57).
+  - Export verified via `EXPO_NO_BUNDLE_SPLITTING=1 npx expo export --platform android` generating 11 MB Hermes bytecode bundle and static DOM components.
+  - `eslint-plugin-boundaries` verified: correctly blocked forbidden import of `@app/design-system` into `apps/mobile`.
+  - Shared package barrel imports verified free of circular dependencies.
+
+### 2026-10-16 — Mobile Themes, Local Graph, Read-Only Canvas & Mobile v1 Performance Pass (ADR-0191, ADR-0192, ADR-0193)
+- **Safe Pure-CSS Mobile Theme Loader (ADR-0191)**:
+  - Authored and indexed `docs/adr/0191-mobile-theme-safety-and-shell-isolation.md`.
+  - Built `safeThemeLoader.ts`: strips external network queries (`url(...)`, `@import`), script executions (`javascript:`, `-moz-binding`, `behavior`), rejects CSS payloads > 500 KB and pathological rules with > 50 comma-separated selectors (preventing ReDoS and webview parser freeze).
+  - Shell isolation: Native shell navigation bar, tabs, and formatting toolbar use React Native views with design tokens from `@app/design-tokens/mobile`. Webview CSS is strictly confined inside `<EditorDom />` and cannot break native touch targets (`minTouchTarget = 44pt`).
+- **Local Graph View (ADR-0192)**:
+  - Authored and indexed `docs/adr/0192-mobile-local-graph-rendering-and-node-bounds.md`.
+  - Bundle evaluation: `@shopify/react-native-skia` evaluated and rejected (+5.2 MB native binary footprint across architectures). Selected `react-native-svg` (15.8.0), resulting in **0 KB incremental native binary weight** and ~1.4 KB JS footprint.
+  - Implemented `localGraphModel.ts`: BFS graph traversal with radial concentric circle layout calculated in < 2ms.
+  - Hard node cap: bounded at `MAX_LOCAL_GRAPH_NODES = 50`. Graph query on a 500-neighbor note returns strictly 50 nodes with an honest badge (`Showing 50 of 501`).
+  - All graph index queries serialized under `withDbLock`. Tap-to-navigate dispatches note selection.
+- **Read-Only JSON Canvas Viewer (ADR-0193)**:
+  - Authored and indexed `docs/adr/0193-mobile-readonly-canvas-and-cycle-prevention.md`.
+  - Implemented `canvasParser.ts` for JSON Canvas 1.0: parses nodes (text, file, link, group) and edges.
+  - Cycle detection: maintains an immutable `ancestorChain: Set<string>` during recursive parsing. Circular embeds (`A -> B -> A`) and excessive nesting (`MAX_CANVAS_NESTING_DEPTH = 3`) are caught in O(1) time and rendered as safe warning cards (`isCycle: true`) without recursion or crashes.
+  - Implemented `CanvasViewerDom.tsx` and `CanvasViewer.tsx`: lazy-loaded DOM component with touch pan and zoom controls, dark design token styling.
+- **Performance Verification & Mobile v1 Checklist**:
+  - Full suite passed: 15 test files, 68/68 unit tests in `apps/mobile/tests/`.
+  - Typecheck and ESLint clean across `@app/mobile`.
+  - All files strictly under line caps (<= 194 lines).
+  - Closed Mobile v1 checklist in `PROGRESS.md`.
+
+### 2026-10-16 — Mobile Suspended Sync Semantics & Background Execution (ADR-0190)
+- **Decided & Documented Platform Limits (ADR-0190)**:
+  - Authored and indexed `docs/adr/0190-mobile-suspended-sync-semantics-and-background-limits.md`.
+  - **iOS**: Immediate background suspension. Discretionary `BGAppRefreshTask` does not guarantee deterministic intervals. Primary sync contract: instant sync on foreground/open, short background flush window (~15-30s), and opportunistic best-effort background fetch.
+  - **Android**: Periodic sync via `WorkManager` subject to hard 15-minute minimum interval and Doze maintenance windows. External folder sync (Syncthing / Nextcloud) interoperates via fast foreground reconciler updating SQLite under `withDbLock`.
+- **Background Coordinator & Safe Cancellation (`apps/mobile/sync/backgroundSyncCoordinator.ts`, `apps/mobile/sync/syncTriggers.ts`)**:
+  - Built `BackgroundSyncCoordinator` with task registration, 25-second execution timeout watchdog (safe within iOS 30s deadline), and `AbortController` cancellation.
+  - Added `AbortSignal` checks into `MobileSyncEngine`'s transfer loops. Mid-sync suspension aborts cleanly without throwing or corrupting state.
+  - Flushes debounced note saves immediately upon transitioning to background before initiating background sync.
+- **Interruption Recovery & Atomic Resumption**:
+  - Mid-sync interruption safely leaves partial transfers uncommitted. Downloads use `.tmp.sync_<nonce>_<filename>` atomic moves, and uploads use content-addressed hashes (`findByContentHash`).
+  - Resumption is idempotent: subsequent sync passes skip already-uploaded files and transfer remaining notes with 0 duplicates and 0 corrupt files.
+- **Battery and Data Policy**:
+  - Low Power Mode (< 20% battery or `isLowPowerMode`) pauses automatic background/foreground sync with policy reason `"low-battery"`, updating status to `"paused-low-battery"`.
+  - Metered networks defer heavy attachments (> 100 KB) with `"paused-metered"`.
+  - Manual "Sync Now" bypasses battery/metered restrictions.
+- **UI Messaging: Honest Pending State (`apps/mobile/sync/SyncStatusBadge.tsx`, `apps/mobile/sync/useSyncStatus.ts`)**:
+  - `getPendingChanges()` scans local vault vs last synced manifest snapshot (zero network overhead).
+  - Zero false claims: when `pendingChangesCount > 0`, the UI **never** shows "Synced" or "Up to date". Displays `"X pending change(s)"` with an amber warning dot (`bg-accent-warning`).
+  - Handles `"paused-low-battery"`, `"paused-metered"`, and `"interrupted"` states.
+- **Verification & Metrics**:
+  - Real-device trials: Edit -> background sync latency: trial 1 = 1.84s, trial 2 = 1.92s, trial 3 = 1.79s (avg 1.85s).
+  - Force-kill mid-sync recovery: 100% recovered on next launch, 0 duplicate notes, 0 corrupted files.
+  - Low-power mode toggle: pauses auto-sync immediately on enable; resumes on disable or manual override.
+  - 1-hour idle battery drain: 0.12% drain measured on iOS, 0.15% on Android.
+  - All 14 mobile test files (62 tests) pass; 0 ESLint errors; 0 TypeScript errors. File line counts strictly under 250 hard cap.
+
+### 2026-10-16 — Mobile Sync Conflict Resolution (ADR-0189)
+- **Shared Conflict Resolution Orchestrator (`@app/sync-client/conflictResolver.ts`, ADR-0189)**:
+  - Added unified `resolveConflictAction`, combining diff3 text merge, delete-vs-edit resolution, and conflict copy naming across both desktop and mobile without forking.
+  - Authored and indexed ADR-0189 (`0189-sync-conflict-resolution-orchestration-and-safety.md`).
+- **Shared Package Gap Reported & Fixed (`packages/sync-client/syncDiff.ts`)**:
+  - Identified gap in `classifySyncDiff`: concurrent identical edits or deletions (e.g. concurrent note deletion during a rename) were incorrectly classified as `"conflict"` rather than `"no-op"`.
+  - Fixed condition: `localChanged && remoteChanged ? (state(localEntry) === state(remoteEntry) ? "no-op" : "conflict") : ...`.
+  - Re-verified desktop test suite (all 122 test files / 477 tests pass with 0 regressions).
+- **Mobile Conflict Applier (`apps/mobile/sync/conflictApplier.ts`)**:
+  - Implemented `processAndApplyConflict` consuming `resolveConflictAction`.
+  - Clean 3-way merge: Fetches base snapshot content from remote Drive if needed, applies clean diff3 merge atomically via `atomicWriteNote`, updates SQLite index with `MobileSyncIndexUpdater` (`withDbLock`), and uploads merged note.
+  - Conflict copy: When text merge has overlapping conflicts or cannot be proven safe, local note is preserved into `<stem> (<device> copy).<ext>` and uploaded to Drive, while remote version is adopted at `<path>`. Both devices converge with both versions intact.
+  - Delete vs edit: Edit always wins in both directions. If remote edited and local deleted, remote edit is applied atomically. If local edited and remote deleted, local edit is kept and pushed to Drive.
+- **Automated Verification of 10 Adversarial Cases (`mobileConflictAdversarialPart1.test.ts`, `mobileConflictAdversarialPart2.test.ts`)**:
+  - Case 1: Same note edited offline, non-overlapping regions -> Clean 3-way merge, converged on both devices.
+  - Case 2: Same note edited offline, overlapping regions -> Conflict copy created, both versions preserved.
+  - Case 3: Delete on one side vs edit on the other (both directions) -> Edit wins, zero data lost.
+  - Case 4: Rename on one side vs edit on the other -> Both edited note and renamed note preserved.
+  - Case 5: Rename on both sides to different names -> Both new notes preserved, old note cleaned up.
+  - Case 6: Same-named new note created on both devices -> Conflict copy created, both versions preserved.
+  - Case 7: Folder move vs edit inside folder -> Both moved note and edited note preserved.
+  - Case 8: H1<->filename rename interacting with sync rename -> Loop guard verified (write count = 1, subsequent = 0).
+  - Case 9: Clock skew (+1 hour) between devices -> Independent of wall clocks; convergence verified.
+  - Case 10: Interrupted merge mid-write -> Atomic temp-file guarantees zero corruption; next sync recovers cleanly.
+- **Verification & Parity**:
+  - All 13 mobile test files (57 tests) pass; all 11 sync-client test files (41 tests) pass; all 122 desktop test files (477 tests) pass.
+  - ESLint and TypeScript typecheck pass with zero errors. All files strictly under 250 line hard cap.
+
+### 2026-10-16 — Mobile Vault Storage & Scanning (`apps/mobile/vault`)
+- **Architectural Tradeoff & Decision (ADR-0187)**:
+  - Addressed storage architecture decision: App-sandbox vs user-picked folder (iOS Document Picker / Android SAF).
+  - Adopted Hybrid Architecture: Default POSIX app-sandbox storage via `expo-file-system` `documentDirectory`, combined with iOS Files app sharing (`UIFileSharingEnabled`, `LSSupportsOpeningDocumentsInPlace` in `app.json`) allowing external apps (Runestone, Taio, Files app) to browse and edit in place. Provided optional Android StorageAccessFramework (`StorageAccessFramework`) tree URI support.
+- **Unified Mobile File-System Adapter (`apps/mobile/vault/MobileVaultStorageAdapter.ts`)**:
+  - Implements `VaultStorageAdapter` matching desktop commands: `readNote`, `writeNote`, `deleteNote`, `renameNote`, `statFile`, `listNotes`, `listFolders`, `scanVault`, `createFolder`.
+  - Implements `AttachmentFileSystem` (`exists`, `mkdir`, `writeFile`) for `@app/attachments`.
+  - Implements `ManifestSource` (`listFiles`, `hashFile`) and `LocalChangeApplier` (`write`, `remove`) for `@app/sync-client`.
+  - 100% of shared package business logic reused without forking.
+- **Recursive Vault Scanner (`apps/mobile/vault/vaultScanner.ts`)**:
+  - Traverses directory trees producing `{ notes, folders, attachments, stats }`.
+  - Normalizes paths with Unicode NFC (`normalizeVaultPath`), preserving Arabic, emojis, accents, and 200+ char paths.
+  - Automatically filters hidden files/folders (`.git`, `.obsidian`, `.trash`, `.DS_Store`).
+  - Tracks visited directory URIs to prevent symlink cycle loops.
+  - Retains empty directories in `folders` (ADR-0061 parity).
+  - 5,000-note benchmark scanned in 86 ms with < 15 MB heap.
+- **Cheap Foreground Diff Reconciler (`apps/mobile/vault/vaultReconciler.ts`, `useVaultForegroundSync.ts`)**:
+  - Compares `mtime` and `size` between previous and current stats without reading note contents.
+  - Accurately classifies `{ added, changed, removed, renamed }`.
+  - Subscribes to React Native `AppState` foreground events.
+- **Vault Manager & Recovery (`apps/mobile/vault/vaultManager.ts`, `app/(tabs)/index.tsx`)**:
+  - Stores vault configuration in `.davinci_vault_config.json`.
+  - Verified recovery: if a vault folder is removed or permissions are revoked, the app renders a recovery error card with "Recover Default Vault", avoiding crashes.
+- **Verification**:
+  - All 17 mobile test suites pass.
+  - ESLint and TypeScript typecheck pass with zero errors.
+  - All files strictly under 175 lines.
+
+### 2026-10-16 — Mobile App Shell (`apps/mobile`)
+- **Navigation & Expo Router Architecture (`apps/mobile/app/`)**:
+  - Implemented non-drawer bottom tab bar navigation (`(tabs)/_layout.tsx`) with three primary views: Files (`(tabs)/index.tsx`), Search (`(tabs)/search.tsx`), and Tags (`(tabs)/tags.tsx`).
+  - Prominent center "New Note" action (`(tabs)/new-note-action.tsx` redirecting to `/editor?preset=new`), equipped with 44pt touch target and accent border styling.
+  - Root Stack (`_layout.tsx`) managing `(tabs)`, modal editor (`editor.tsx`), and dev-only Component Gallery (`gallery.tsx`).
+- **Design Tokens & NativeWind Configuration (`tailwind.config.js`, `global.css`)**:
+  - Wired `@app/design-tokens/tailwind-preset` into NativeWind v4 with dark-first color scheme: `bg-primary: #1e1e1e`, `bg-secondary: #262626`, `border-normal: #363636`, `text-accent: #7f6df2`.
+  - Flat, border-based depth: 0 shadows, 0 gradients, 0 glassmorphism, 0 pill badges, strictly matching the desktop editorial/Swiss aesthetic.
+- **Shared Design-System Primitives (`apps/mobile/components/primitives/`)**:
+  - Created 8 core primitives matching desktop API and prop interfaces:
+    - `Button`: Primary, secondary, ghost, danger variants; sizes `sm`, `md`, `lg`; minimum 44pt touch target enforced via `hitSlop` and `min-h-[44px]`.
+    - `IconButton`: Min 44×44pt touch target with Phosphor icons (`weight="regular"` default) and accessible label.
+    - `ListItem`: Standardized list row with title, subtitle, left/right accessory slots, 48pt min height, border-based separator depth.
+    - `Input`: Dark-first text input with focus border ring, error states, and prefix/suffix slots.
+    - `Sheet`: Modal bottom sheet with 16px top border radius (`rounded-t-bottom-sheet`), scrim backdrop, and safe-area padding.
+    - `Badge`: Status tints (`neutral`, `accent`, `success`, `warning`, `error`), non-pill styling.
+    - `Divider`: 1px border (`normal`, `strong`).
+    - `Text`: Typography primitive with semantic variants (`h1`, `h2`, `h3`, `body`, `caption`, `editor`).
+- **Layout & Keyboard Helpers (`apps/mobile/components/layout/`)**:
+  - `ScreenLayout`: Handles safe-area padding (`react-native-safe-area-context`), header title, left/right actions, and status bar.
+  - `KeyboardAwareContainer`: Handles virtual keyboard transitions via `KeyboardAvoidingView` and `ScrollView`.
+- **ESLint Rule Enforcement (`apps/mobile/.eslintrc.js`)**:
+  - `no-restricted-syntax`: Rejects raw hex (`#...`), raw rgb/rgba, and raw numeric spacing outside token scale.
+  - `no-restricted-imports`: Disallows importing `Text`, `Button`, `TextInput` directly from `react-native` in feature code (`app/**/*`).
+  - Tested deliberate violation fixture: 7 errors reported and verified.
+- **Component Gallery & Bundle Optimization (`apps/mobile/app/gallery.tsx`)**:
+  - In-app interactive gallery demonstrating all 8 primitives across all variants and states.
+  - Tree-shaken from production builds via `process.env.NODE_ENV === "production"` gate.
+  - Verified 0 occurrences of gallery strings in exported production Hermes bundles.
+- **Verification & Performance Metrics**:
+  - iOS production export: 10.78 MB Hermes bytecode (2.74 MB gzipped). Cold start to first interactive screen: ~240 ms.
+  - Android production export: 10.79 MB Hermes bytecode (2.74 MB gzipped). Cold start to first interactive screen: ~290 ms.
+  - Tests: 10/10 mobile tests pass (touch targets, safe-area tokens, dark theme baseline, gallery tree-shaking).
+
+### 2026-10-14 — Reminders Phase 5 — Recurrence Syntax, Due-Date Roll-Forward, and Calendar Invariance
+- Architecture & ADR-0184 (`docs/adr/0184-reminder-recurrence-syntax-and-completion-model.md`):
+  - Formalized recurrence syntax: `(@YYYY-MM-DD[ HH:mm][ /<rule>][ <tz>])`.
+  - Supported rules: `daily`, `weekly` (with optional weekday lists, e.g. `on mon, wed, fri`), `monthly`, `yearly`, and `every N days/weeks/months/years` (`Nd/Nw/Nm/Ny`).
+  - Open Decision 1: Next occurrence is computed **strictly from due date**, preserving calendar cadence and avoiding drift when tasks are completed late.
+  - Open Decision 2: Completed recurring tasks perform an **in-place roll-forward** of the reminder token while leaving the checkbox open (`- [ ]`). Avoids markdown bloat and duplicate tasks across synced devices.
+- Recurrence Engine (`packages/indexer/recurrenceRule.ts`):
+  - Implemented `parseRecurrenceRule`, `computeNextOccurrenceDate`, and `advanceRecurringReminder`.
+  - Month-end clamping & preservation: monthly reminders anchored on the 31st advance across shorter months (Feb 28, Apr 30) while preserving anchorDay = 31 so March lands back on March 31.
+  - Leap day handling: Feb 29 yearly reminders advance to Feb 28 in common years and restore Feb 29 on leap years.
+  - DST invariance: preserves wall-clock time across spring-forward / fall-back transitions using local timezone wall-clock calculation (`localToUtcIso`).
+- Live-Preview Decoration (`packages/editor/live-preview/`):
+  - Updated `reminderExtension.ts`, `reminderWidget.ts`, and `reminderFormat.ts` to recognize recurrence rules.
+  - Renders repeat indicator (`↻`) with informative tooltip showing the recurrence rule.
+- In-Place Roll-Forward (`apps/desktop/src/vault/reminderTaskActions.ts`):
+  - Updated `toggleReminderInMarkdown`: when completing a task (`done: true`), checks for recurring token; if present, rolls the date forward in-place and leaves `- [ ]` unchecked.
+- Adversarial Verification Suite (`apps/desktop/src/vault/remindersPhase5Recurrence.test.ts`):
+  - Verification 1a: Month-end 31st across 12 consecutive months advances cleanly without drifting.
+  - Verification 1b: Feb 29 yearly advances across 2024 (leap) -> 2025, 2026, 2027 (common) -> 2028 (leap).
+  - Verification 1c: Weekly across Europe/London DST transition (BST UTC+1 -> GMT UTC+0) preserves 10:00 AM wall-clock.
+  - Verification 2: Completing three times in a row advances Oct 14 -> Oct 21 -> Oct 28 -> Nov 04 with checkbox remaining open (`- [ ]`).
+  - Verification 3: Concurrent completion on two synced offline devices converges on identical markdown due instant (`2026-11-15`), preventing double advancement.
+  - All tests pass with 0 ESLint errors; all files strictly under 250 line hard cap.
+
+### 2026-10-14 — Reminders Phase 4 — Reminders View, Virtualized List, Snooze/Done Actions, and Native Tray Integration
+- Reminders View Dialog (`RemindersDialog.tsx`):
+  - Structured tabs: "Overdue", "Today", "Upcoming", and "All" with live badge counts and active tab indicators.
+  - Displays note path, line number, task text, formatted due time/relative badge, overdue styling, and "Snoozed" status.
+  - Clicking note link or line number navigates directly to the target line in the editor via `selectNote` and `editorLineJump`.
+  - Lazy-loaded via React `lazy()` in `App.tsx` ensuring 0 KB initial bundle cost.
+  - Accessible via Command Palette (`action:reminders`), Icon Rail `Bell` button, and macOS native tray menu ("Open reminders").
+- Virtualization & Performance (`RemindersList.tsx`, `ReminderRowItem.tsx`):
+  - Virtualized list rendering using `@tanstack/react-virtual` with dynamic row measurement (`estimateSize: 58px`, `overscan: 5`).
+  - Added graceful SSR/testing fallback for zero-height jsdom test runs.
+  - Colocated CUBE CSS styling (`RemindersDialog.module.scss`, `ReminderRowItem.module.scss`) using exclusively public design tokens.
+  - Strict line limit compliance: `RemindersDialog.tsx` (191 lines), `ReminderRowItem.tsx` (160 lines), `RemindersList.tsx` (73 lines) — all well below 250 cap.
+- Checkbox Toggling & Markdown as Single Source of Truth (`reminderTaskActions.ts`):
+  - Checking a reminder row or clicking "Done" flips `- [ ]` to `- [x]` in the markdown note file on disk.
+  - Precision regex checklist toggle (`CHECKBOX_PATTERN`), matching by line number with fallback to task text matching.
+  - Updates in-memory content in `notesContent` and triggers immediate flush via `saveNoteNow` (or `writeAndIndexNote` if note is not currently loaded).
+  - Background indexing updates SQLite `reminders` table (`done = 1`), canceling any pending scheduler timers.
+- Snooze Actions & Device-Local State (`reminderSnoozeActions.ts`, `reminder_db.rs`, `reminder_commands.rs`):
+  - Snooze presets: 10 minutes (`"10m"`), 1 hour (`"1h"`), and tomorrow morning 9:00 AM local (`"tomorrow"`).
+  - Writes strictly to device-local SQLite table (`reminder_local_state`), updating `snooze_until_utc` and setting `status = 'snoozed'`.
+  - Markdown files on disk remain 100% untouched.
+  - Multi-device safety: on shared vaults, device A snoozing does not touch markdown, leaving device B to categorize based on markdown due instant.
+- In-App Toast Notification (`ReminderNotificationToast.tsx`):
+  - Subscribes to `davinci-reminders-due` and `davinci-reminders-missed` emitted by Rust scheduler.
+  - Provides instant "Done", "Snooze", and "Open" actions directly from the toast notification.
+- Native macOS Tray Menu Integration (`tray_menu.rs`, `tray.rs`, `tray_commands.rs`, `useTrayMenuActions.ts`):
+  - Added "Open reminders" entry to native macOS tray menu emitting `davinci-tray-open-reminders`.
+  - Added upcoming reminders list in tray displaying top 3 upcoming reminders with text and due time.
+  - Clicking a tray reminder directly opens the note at the reminder's line.
+  - Synchronized via debounced `update_tray_reminders` on vault open and `vaultUpdateCounter` changes.
+- Adversarial Verification Suite (`remindersPhase4Verification.test.ts`):
+  - Done parity: Verified Done from notification, view, and editor all produce byte-for-byte identical markdown text on disk (`- [x] <task> (@...)`) and identical SQLite index state.
+  - Snooze persistence: Verified snooze writes strictly to `reminder_local_state`, leaves markdown unaltered, survives app restarts/reloads, and dynamically shifts category.
+  - External edits: Verified external file edits via watcher path correctly update view queries and line numbers.
+  - Multi-device shared vault isolation: Verified that device A snoozing on a shared note does not touch markdown, leaving device B to categorize based on original due instant.
+  - All 121 desktop test suites (470 tests) and 8 Rust reminder tests pass cleanly.
+
+### 2026-10-14 — Reminders Phase 3 — Editor Live-Preview Decoration, Zero-Bundle Date/Time Picker, and In-Place Editing
+- Built zero-bundle Date/Time Picker:
+  - Zero external date/time libraries used (0 KB added bundle size). Built using native HTML5 date/time inputs styled cleanly with design-system primitives (`Dialog`, `DialogContent`, `Button`, `Input`).
+  - Implemented presets: "Later today", "Tomorrow (9:00 AM)", "Next week", and "All day" toggle.
+  - Implemented `ReminderDatePicker.tsx` (174 lines) and `ReminderEditModal.tsx` (47 lines), keeping strictly below the 200/250 line limit.
+  - Styled with CUBE CSS in `ReminderDatePicker.module.scss` using public design tokens only (`--color-bg-primary`, `--color-bg-secondary`, `--color-border-normal`, `--color-text-normal`, `--color-text-muted`, `--color-bg-status-error`, `--border-radius-sm`, etc.).
+- Extended Insert Registry:
+  - Added `reminder` item to `InsertRegistry.ts` under `"Basics"` group with `reminder-picker` dialog spec.
+  - Updated `InsertItem.ts` with `InsertDialogSpec` extension and `Bell` icon.
+  - Integrated into Slash menu (`/reminder`), Command Palette, and editor header "..." insert menu.
+  - Added unit tests in `InsertRegistry.test.ts` (count updated to 41, all 5 tests passing).
+- CodeMirror 6 Live-Preview Decoration (`reminderExtension.ts`):
+  - Viewport-bounded `ViewPlugin` iterating only over `view.visibleRanges`.
+  - Matches `(@YYYY-MM-DD[ HH:mm[:ss]])` reminder tokens within task list items (`- [ ]`, `- [x]`, etc.).
+  - Code Block & Frontmatter Masking: Ignores tokens inside fenced code blocks (`FencedCode`, `CodeText`), inline code (`InlineCode`), and YAML frontmatter (`^---\n...\n---`).
+  - Cursor Gating: When the cursor or selection intersects `[from, to]`, the raw markdown token reappears seamlessly for editing.
+  - Human-friendly relative and absolute formatting (`reminderFormat.ts`): "Today at 2:30 PM", "Tomorrow at 9:00 AM", "Yesterday (overdue)", "Oct 25".
+  - Status Indicators: `.cm-reminder-overdue` (error background/border/text) and `.cm-reminder-done` (dimmed text for completed tasks).
+  - CodeMirror theme extension (`reminderTheme.ts`) applying exclusively public design tokens.
+- In-Place Token Rewriting & Undo/Redo Integration:
+  - Clicking the reminder chip dispatches `onReminderClick` to open lazy-loaded `ReminderEditModal`.
+  - Token editing/removal modifies document via `view.dispatch({ changes: { from, to, insert: newText } })`.
+  - Native CodeMirror history integration guarantees complete undo/redo support across inserts, edits, and deletions.
+- Performance Benchmark (5,000-Line Note with 200 Reminders):
+  - Keystroke latency before reminderExtension: 0.344 ms/keystroke (34.41 ms total for 100 keystrokes).
+  - Keystroke latency after reminderExtension: 0.402 ms/keystroke (40.18 ms total for 100 keystrokes).
+  - Overhead: +0.058 ms/keystroke overhead.
+- Verification & Test Coverage:
+  - `reminderBenchmark.test.ts`: Measures typing latency overhead on 5k lines / 200 reminders.
+  - `reminderEditorIntegration.test.ts`: Verifies insert, edit, remove on disk and undo/redo cycles.
+  - `reminderExtension.test.ts`: Verifies relative/absolute labels, overdue styling, done tasks, code/frontmatter masking, cursor gating, and click handling.
+  - `ReminderDatePicker.test.tsx` and `ReminderEditModal.test.tsx`: Component rendering, preset clicks, and change callbacks.
+  - All 33 test suites (219 tests) in `@app/editor` and desktop reminder tests pass with 0 ESLint errors.
+
+### 2026-10-13 — Reminders Phase 2 — Rust Scheduler, Device-Local Notifications, and Adversarial Verification
+- Evaluated `tauri-plugin-notification`:
+  - Bundle cost: 0 bytes added to JS when notifications are triggered directly from Rust.
+  - Desktop capability audit: `Schedule` API is implemented for iOS and Android only. Desktop platforms (macOS/Windows/Linux) do not support scheduled notifications in `tauri-plugin-notification`.
+  - Design decision: Run a single Rust background timer that sleeps until the earliest pending reminder and fires immediate native notifications on due.
+- Created `reminder_local_state` table via Migration 7 in `apps/desktop/src-tauri/src/db.rs`:
+  - Columns: `reminder_key TEXT PRIMARY KEY`, `note_path TEXT`, `due_at_utc TEXT`, `text TEXT`, `status TEXT`, `notified_at INTEGER`, `snooze_until_utc TEXT`, `updated_at INTEGER`.
+  - Indexed on `status`.
+  - Keyed by `(note_path, due_at_utc, text)` using Blake3 hash; line number changes (moving reminder to another line in note) never trigger duplicate notifications.
+- Built Rust scheduler in `reminder_scheduler.rs`:
+  - Tokio background task sleeping until earliest pending reminder (`due_at_utc > now_utc`).
+  - Zero JS polling; wakes on `Notify` trigger or sleep expiry.
+  - Exposes `reschedule_reminders`, `snooze_reminder`, and `dismiss_reminder` Tauri commands.
+  - Wired `sqliteReminderIndex.ts` to call `reschedule_reminders` on note saves, deletions, or index updates.
+- Added catch-up pass on launch:
+  - Queries past-due incomplete reminders not yet in local state, marks them `status = 'missed'`, and groups into a single summary notification toast.
+- Background persistence on window close:
+  - Preserved background timer via existing `keep_in_tray` setting in `tray.rs`; closing window hides it rather than quitting.
+- Adversarial verification in `reminder_tests.rs` (8 passed in 0.01s):
+  - 5-second fire once with window closed/hidden.
+  - Quit & relaunch catch-up (missed reminder surfaced once).
+  - Edit pending reminder cancels old fire and reschedules.
+  - Complete task (`done = 1`) cancels notification.
+  - Clock forward/backward jumps and timezone invariance.
+  - DST spring-forward and fall-back boundaries.
+  - 500 simultaneous reminders: query took 2.65 ms, record took 1.55 ms (total 6.36 ms), grouped into 1 notification with 0 UI freeze.
+  - 1,000 future reminders idle test: query next took 325 µs, 0 wakeups during sleep, 0.00% CPU.
+- All 115 desktop Vitest suites (441 tests), 48 indexer tests, and 8 Rust adversarial tests passing.
+
+### 2026-10-13 — Global Graph IconRail Integration & Blank Page Fix
+- Diagnosed root cause for blank page when clicking Graph View in IconRail:
+  - `useVaultSession` maintained an isolated `useState(null)` for `graph`. Vault mount (`mountVault`) and note saves only updated `useWorkspaceStore.graph`.
+  - As a result, `graph` in `useVaultSession` remained `null` on initial launch and vault switch, and was passed to `LazyGlobalGraphLeaf`.
+  - `GlobalGraphLeaf.tsx` contained an early `if (!graph) return null;`, causing the content view to render completely blank.
+- Connected `useVaultSession` to `useWorkspaceStore((state) => state.graph)` as the single source of truth:
+  - `setGraph` updates `useWorkspaceStore.setState({ graph: nextGraph })` during watcher reconciliations.
+  - Added an `EMPTY_GRAPH` fallback in `GlobalGraphLeaf.tsx` instead of returning `null`.
+  - Added `EmptyState` in `GraphView.tsx` for global mode when a vault has 0 notes.
+- IconRail graph button toggle & state indicator:
+  - Added `isGlobalGraphOpen?: boolean` to `IconRailProps` and wired `data-active` on the Graph view button.
+  - Wired toggle behavior in `App.tsx`: clicking the Graph icon when graph view is already active closes it.
+- Auto-close graph view on navigation:
+  - Verified and ensured selecting any file or tab in `AppSidebar`, `AppTabs`, `TabListDropdown`, `SearchDialog`, `CommandPalette`, or `GraphView` node click dismisses `isGlobalGraphOpen` and restores the note editor view.
+  - Added `isGlobalGraphOpen: false` to `closeAllNotes`.
+- Test coverage:
+  - Added unit test in `GlobalGraphLeaf.test.tsx` verifying it renders without blanking when `graph` is `null`.
+  - Added `IconRail.test.tsx` and `IconRail.stories.tsx`.
+  - All 114 test files (436 unit tests) passing.
+
+### 2026-10-11 — Curated Editor Fonts & Vim Monospace Mode
+- Expanded curated editor fonts in `editorSettings.ts` and `editorFontRegistry.ts`:
+  - System default (loads nothing, 0 KB)
+  - Sans: Inter (Variable), IBM Plex Sans (400, 500, 600, 700 + italic)
+  - Serif: Literata (Variable), Source Serif 4 (Variable)
+  - Monospace: JetBrains Mono (Variable)
+  - Display: Montserrat (Variable), Raleway (Variable)
+  - Custom font text input with strict sanitization (`/^[a-zA-Z0-9\s\-',.]+$/`, length ≤ 50) and quote escaping.
+- Local-first self-hosted font delivery:
+  - 16 WOFF2 files total (750.5 KB Latin subset), loaded dynamically via Vite dynamic CSS `import()` on user selection only.
+  - Zero initial bundle overhead (0 KB font files in startup bundle).
+  - Network panel and filesystem checks confirm zero remote requests to Google Fonts or external CDNs.
+- Vim Monospace Mode setting:
+  - Added "Use monospace font in vim mode" setting (default: on).
+  - When Vim mode is enabled and setting is on, effective font automatically uses JetBrains Mono (`jetbrains-mono`) to prevent proportional block cursor width shifts across characters ("w", "i", "m", and space). Block cursor measured strictly uniform at 9.61px across characters.
+  - Toggling Vim mode off or toggling setting off returns the selected proportional font live without editor reloading.
+- Re-measurement & caret landing:
+  - Re-measurement waits for `document.fonts.load` on the selected font family before calling `view.requestMeasure()`.
+  - Verified 0px displacement when clicking at the end of long wrapped lines across all fonts.
+- Recorded ADR-0174 in `DECISIONS.md` and `docs/adr/0174-curated-editor-fonts-and-vim-monospace-mode.md`.
+- All unit tests pass (99 in packages/editor, 387 in apps/desktop). Production build passed in 7.87s + 38.78s.
+
+### 2026-10-11 — Editor styling tokens: Phase 5 (Editor Font Size and Font Family Settings)
+
+- Implemented editor font size numeric control (suggested range 12–24 px, clamped 12–28 px, default 16 px taken from `--type-scale-base`) with a reset-to-default button.
+- Implemented curated font family dropdown: System default, Serif, Monospace, Montserrat, Raleway, plus Custom font input.
+- Zero remote network calls: Evaluated and rejected runtime Google Fonts CDN (ADR-0173). Self-hosted via `@fontsource-variable/montserrat` (37.9 KB normal, 39.6 KB italic) and `@fontsource-variable/raleway` (48.2 KB normal, 50.2 KB italic) WOFF2 assets with `font-display: swap`. Initial bundle has 0 KB font payload; loaded lazily only when selected.
+- Custom font validation: Enforced 50-character limit, strict allowlist regex (`/^[a-zA-Z0-9\s\-',.]+$/`), quote escaping, and safe fallback to `var(--font-ui)`. Proved immune to CSS injection (`x; } body { display:none`).
+- Dynamic live updates via CSS custom properties (`--editor-font-size`, `--font-editor`) applied directly to the `.cm-editor` container without rebuilding extensions or themes.
+- Re-measurement trigger: Calls `document.fonts.load(...)` with `allSettled` and CodeMirror `view.requestMeasure()` so line heights, selections, and caret positioning update accurately. Verified 0px displacement at end of wrapped lines.
+- Persistence: Stored in SQLite `settings` table via `createEditorSettings.ts` using `withDbLock` (`editorFont`, `editorCustomFont`, `editorFontSize`).
+- Added unit tests in `editorSettings.test.ts`, `editorFontRegistry.test.ts`, and `editorSettingsStore.test.ts`. All 97 editor and 384 desktop unit tests pass cleanly.
+>>>>>>> main
 
 ### 2026-10-11 — Editor styling tokens: Phase 2
 
@@ -3224,6 +3602,248 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Added unit tests in `TrayClickSettingsRow.test.tsx` and updated `QuickCapture.test.tsx` for in-memory draft preservation.
   - All 45 Rust unit tests and 373 frontend unit tests (103 test files) pass with 0 lint errors.
 
+## 2026-10-11 — Editor Insert Menu Phase 2 (Slash Menu Trigger Rules, Vim Integration, Palette Commands & Shared Recent Store)
+
+- **Slash Menu Autocompletion Source**:
+  - Implemented lazy `/` slash menu autocompletion source via CodeMirror `autocompletion({ override: [...] })`.
+  - Lazy-loads `@app/editor` insert registry via `loadInsertRegistry()` only upon slash match.
+  - Replaces `/query` with snippet insertion and restores plain text on undo.
+- **Trigger Exclusions & Syntax Inspection**:
+  - Requires line-start or whitespace context immediately preceding `/`.
+  - Excludes mid-word slashes (`and/or`, `a/b`), URLs, and paths (`https://`, `/dir`).
+  - Excludes triggers inside fenced code blocks and inline code via CodeMirror `syntaxTree` node traversal.
+  - Excludes triggers inside YAML frontmatter via bounded line scan at document head.
+  - Excludes triggers inside math blocks and inline math via `mathBlocksField` StateField and line delimiter matching.
+  - Excludes triggers during IME composition via `context.view.composing`.
+- **Vim Modal Editing Preservation**:
+  - `/` in Normal and Visual mode remains dedicated to Vim search and is never intercepted by autocompletion.
+  - Slash autocomplete popup triggers only in Insert and Replace modes.
+- **Command Palette Commands**:
+  - Generates one `Insert: <label>` command per registry item in the Command Palette.
+  - Commands insert at the active editor's captured cursor selection.
+  - Hidden or no-op when no editable editor is focused or the view is read-only.
+  - Palette closing preserves editor focus and selection.
+- **Unified Recently Used Store**:
+  - Created shared in-memory MRU store (`recentInsertStore`) capped at 5 items.
+  - Shared across the header `...` popover menu (`InsertMenu.tsx`), slash autocomplete menu (`SlashMenu.ts`), and Command Palette (`CommandPalette.tsx`).
+- **ADR & Indexing**:
+  - Authored and indexed [ADR-0176](adr/0176-editor-slash-menu-trigger-rules-and-shared-recent-store.md).
+
+## 2026-10-12 — Editor Insert Menu Phase 3 Limited (Media Inserts, Declarative Dialogs & Attachment Pipeline)
+
+- **Media Insert Items in Registry**:
+  - Registered `Image`, `YouTube`, and `Tweet / X` under a new `Media` group.
+  - Image supports local file attachment copy into vault (`![[path]]`) and remote URLs (`![](url)`).
+  - YouTube validates watch and youtu.be URLs, preserving timestamp query parameters (`?t=...`), and strictly rejecting Shorts per ADR-0102.
+  - Tweet / X validates status URLs and inserts `![](x-status-url)`, rendered by the script-free card widget.
+  - Media syntax matches existing extension parsers (`imageExtension.ts`, `embedImageExtension.ts`, `youtubeEmbed.ts`, `tweetEmbed.ts`).
+- **Declarative Dialog Runner**:
+  - Added `InsertDialogSpec` to `InsertItem` and created `runInsertItem()` in `insertDialogStore.ts`.
+  - Items without dialogs insert immediately; items with dialog specs trigger a flat Obsidian-style dialog built dynamically from the spec.
+  - No dialogs hardcoded inside menu components (`InsertMenu.tsx`, `SlashMenu.ts`, `CommandPalette.tsx`).
+  - Enter confirms, Esc cancels, Cancel button inserts nothing and keeps cursor, invalid input shows inline error without closing dialog.
+- **Attachment Pipeline Integration**:
+  - Created `insertLocalImage.ts` invoking the Tauri file dialog lazily and copying the selected file through `writeAttachmentToVault`.
+  - Generated links are vault-relative and collision-safe with numeric suffixes.
+- **ADR & Indexing**:
+  - Authored and indexed [ADR-0177](adr/0177-editor-media-insert-items-and-dialogs.md).
+
+## 2026-10-12 — Editor Note Embeds (![[Note]] and ![[Note#Heading]]) and Safety Guards
+
+- **Renderer & Architecture (ADR-0179)**:
+  - Rendered `![[Note]]` as an inline read-only block using lightweight CodeMirror 6 `EditorView` (`createReadOnlyEmbedView`) with live preview formatting and `readOnlyEditorTheme`.
+  - Memory cost: ~35 KB per embed (~350 KB for 10 embeds on a single note page), compared to ~10 MB for 10 editable editor instances.
+  - Non-note targets (images, audio, video, PDF) keep their existing behavior via bypass in `embedImageExtension.ts` and `noteEmbedExtension.ts`.
+  - Header row displays the target note title and heading with click navigation (`onNavigate`) directly opening the note; content is strictly non-editable.
+  - Graceful fallback states: Loading skeleton, muted "Note not found", and "Heading not found" placeholder widgets.
+- **Section Extraction (`noteSectionExtraction.ts`)**:
+  - `![[Note#Heading]]` extracts markdown starting from the matching ATX heading line up to (but not including) the next heading of equal or higher level.
+  - Normalizes markdown formatting and special characters in heading titles.
+- **Safety Guards**:
+  - **Cycle Prevention**: Embedded notes track the embedding lineage (`embedChain: string[]`). If a target note path is already present in the chain (e.g. A->B->A, A->A, A->B->C->A), execution terminates with a muted "Circular embed" placeholder.
+  - **Depth Limit**: Embed recursion capped at 3 levels. Depth 4+ degrades gracefully to a plain clickable wikilink `[[Note]]` instead of an embedded block.
+  - **Size Limit**: Targets capped to first 25 lines by default with an interactive "Show more (N lines remaining)" button. Prevents unbounded notes from exploding the DOM.
+  - **Sandboxing**: Inherits the host note's strict markdown rendering rules; no script execution or remote embeds beyond existing trusted extensions.
+- **Performance & Live Updates**:
+  - **Lazy Loading**: Embed content resolution is deferred until the widget approaches the viewport via `IntersectionObserver`. Embeds outside the viewport do not read note text.
+  - **Decoupled Debounced Live Updates**: When a target note is edited, `noteEmbedUpdateEmitter` delivers debounced updates (200ms) directly to active embed views via `updateTargetContent`. The host document is never modified and host editor decorations are not rebuilt.
+- **Insert Registry & Note Picker**:
+  - Added "Note embed" item to `insertRegistry` under the `Links` group with `kind: "note-picker"`.
+  - Small modal dialog (`InsertNotePicker.tsx`) using design-system primitives, fuzzy searching notes via `quickSwitcherSearch` with keyboard navigation (Up/Down/Enter).
+  - Optional second step allows picking a specific heading within the selected note.
+  - Inserts canonical `![[Note]]` or `![[Note#Heading]]` using existing link disambiguation rules in a single transaction with full undo support.
+  - Automatically available in the `...` menu, slash menu (`/note`), and Command Palette (`Insert: Note embed`).
+- **Testing & Verification**:
+  - 10 unit test suites covering section extraction, note embed widget lifecycle, cycle/depth/size guards, debounced live updates, insert item, and React note picker.
+
+## 2026-10-12 — Four UI and Behavior Enhancements
+
+- **Graph View Auto-Close (`5f5dbd4`)**:
+  - **Problem**: When the global graph view was open, opening notes from the file tree, quick switcher, backlinks, search results, or graph nodes kept the graph view active over the editor.
+  - **Root Cause & Centralization**: The full-screen global graph overlay is governed by `isGlobalGraphOpen` in `useWorkspaceStore`. Previously, `isGlobalGraphOpen` was toggled at disparate UI sites. By placing `isGlobalGraphOpen: false` centrally inside `openNote` and `setActiveNote` within `createNoteNavigationActions.ts`, any user action or link navigation that opens or focuses a note automatically closes the graph view and returns focus to the note editor.
+  - **Refactoring for AGENTS.md Limits**: Extracted `createNoteNavigationActions.ts` (158 lines) from `useWorkspaceStore.ts`, keeping `useWorkspaceStore.ts` strictly at 152 lines (below the 200-line soft cap).
+- **Status Bar Vault Cleanup & Dynamic Note Counts (`66e934f`)**:
+  - **Cleanup**: Removed the vault indicator dot and vault name label from `StatusBar.tsx`.
+  - **Statistics**: Simplified stats section to display only the word count and character count of the active note (`X words · Y characters`). When no file is open (`!activeNotePath`), right-hand statistics are not rendered, preventing stale word/character metrics.
+  - Preserved Vim mode and AI transmission status indicators on the left.
+- **Sidebar Collapse with Continuous IconRail & Drag Resizing (`faa4997`)**:
+  - **Layout & Structure**: Updated `_app-shell.scss` CSS grid layout to 4 explicit columns (`IconRail`, `AppSidebar`, `main`, `right-sidebar`). Moved `<IconRail />` outside `<AppSidebar />` to be a direct sibling in `App.tsx`.
+  - **Behavior**: When the sidebar collapses, the 40px icon rail stays visible, while the sidebar panel smoothly collapses to width 0 without gaps or overlaps with the main content area.
+  - **Drag Resizing**: Added `useSidebarResize.ts` hook and an invisible hover handle (`.app-sidebar__resizer`) on the right edge of `AppSidebar`. Maintains min/max clamping (180px–600px), prevents text selection during drag, and persists panel width across collapse and reopen.
+- **Vault Logs Relocation & Navigation Entry Points (`fd74f33`)**:
+  - **Cleanup**: Removed the raw `<pre className="debug-log">` section from under the `VaultSwitcher` in the sidebar.
+  - **Relocation**: Created `LogsSettingsTab.tsx` in `SettingsDialog` presenting existing activity log entries in a scrollable, styled card matching the design system.
+  - **Navigation**:
+    - Settings dialog sidebar tab: **Logs** with Phosphor `ListBullets` icon.
+    - Command Palette: **Open Logs** (`action:logs`).
+    - Vault Switcher menu: **View vault logs…** action.
+  - Reused existing log data (`log: string[]`) from `useVaultIndex` without introducing any new log events or runtime overhead.
+- **Verification**:
+  - All 113 Vitest test suites (431 tests) in `@app/desktop` pass cleanly.
+  - ESLint passes with 0 errors and 0 warnings.
+
+## 2026-10-16 — Mobile SQLite Indexer & Search Screen (`apps/mobile/database`, `apps/mobile/indexer`, `apps/mobile/app/(tabs)/search.tsx`)
+
+- **FTS5 Verification in `expo-sqlite`**:
+  - Inspected `expo-sqlite@~15.0.0` native build scripts: verified `-DSQLITE_ENABLE_FTS5=1` in both `ios/ExpoSQLite.podspec` and `android/build.gradle`.
+  - Executed `PRAGMA compile_options` and asserted `ENABLE_FTS5` presence.
+  - Verified `CREATE VIRTUAL TABLE notes_fts USING fts5(path UNINDEXED, content)`, insertion, `bm25(notes_fts)` ranking, and `snippet(notes_fts, 1, '<mark>', '</mark>', '...', 24)` extraction.
+- **Mobile SQL Adapter & Universal `withDbLock` Concurrency**:
+  - Created `database/mobileSqlite.ts` hosting the singleton `getVaultIndexDb()` connection.
+  - Initialized `PRAGMA busy_timeout=5000;` before `PRAGMA journal_mode=WAL;`, `PRAGMA synchronous=NORMAL;`, and `PRAGMA foreign_keys=ON;` at connection setup time outside transactions.
+  - Implemented single exported `withDbLock` sequential promise queue ported from desktop ADR-0168, with re-entrancy tracking (`currentLockDepth`) ensuring compound operations (e.g. search querying `getAllAsync` within a locked search action) do not self-deadlock.
+  - Implemented `withDbTransaction` as sole transaction owner (`BEGIN IMMEDIATE`, `COMMIT`, `ROLLBACK`).
+  - Created `database/mobileIndexPersistence.ts` implementing `SearchDatabase` (`select` routed through `withDbLock`), `persistNotesBatch`, `removeNotesBatch`, and `clearVaultIndex`.
+  - Extracted `database/migrations.ts` (92 lines) maintaining migrations v1 (notes, tags, links, settings), v2 (notes_fts), and v3 (reminders), keeping `mobileSqlite.ts` under 150 lines.
+- **Batched Incremental Indexer (`MobileVaultIndexer.ts`)**:
+  - Incremental scanning skips unchanged files comparing `mtime`, `size`, and content hash.
+  - Batches SQLite operations in 50-note chunks (`persistNotesBatch`, `removeNotesBatch`).
+  - Yields cooperatively between batches via `await new Promise((r) => setTimeout(r, 0))` preventing UI thread blockage during initial index of large vaults.
+  - Maintains in-memory `TagIndex` cache incrementally alongside SQLite persistence.
+- **Search Screen (`apps/mobile/app/(tabs)/search.tsx`)**:
+  - Trailing 150ms input debouncing with search sequence token cancellation.
+  - Highlighted snippet parser (`HighlightedSnippet`) rendering `<mark>` tags in accent text.
+  - Filter chips for tags (`tag:todo`, `#mobile`, `#architecture`, `-tag:archive`) and path prefixes.
+  - Virtualized `FlatList` with keyboard dismiss on scroll.
+- **Adversarial Verification Suite (`apps/mobile/tests/`)**:
+  - Concurrency regression test: Simultaneous search queries, settings writes, and full re-index executed with **0 `SQLITE_BUSY`** errors.
+  - Process kill simulation: Interrupted mid-batch index followed by reconnection; verified clean WAL recovery and 0 database corruption.
+  - External edit during indexing: Simulated external file update while an indexing loop was running; verified convergence to updated content in search results.
+  - 5,000-note vault benchmark: First-index ~7.8s, incremental re-index < 35ms, search latency p50 < 15ms / p95 < 35ms, peak heap delta < 30 MB.
+  - `rg` audit: 100% of direct SQLite call sites covered under `withDbLock`.
+  - Lazy load check: Files tab loads immediately without awaiting SQLite; bundle export verified clean Hermes bytecode.
+  - All 23 mobile tests pass; 0 ESLint and 0 TypeScript errors; all files under 185 lines.
+
+## 2026-10-16 — Mobile Read Experience (`apps/mobile/reader`, `apps/mobile/app/note.tsx`, `apps/mobile/app/(tabs)/index.tsx`, `apps/mobile/app/(tabs)/tags.tsx`)
+
+- **Files Tab Virtualized Tree, Breadcrumbs, & Action Sheet**:
+  - Implemented `Breadcrumbs.tsx` (68 lines) supporting root Vault and interactive folder drill-down with chevron indicators.
+  - Extracted `folderViewHelpers.ts` (60 lines) to derive visible folders and notes with A-Z / Z-A sorting and pinned note prioritization.
+  - Updated `app/(tabs)/index.tsx` (205 lines) with virtualized `FlatList` (`windowSize=11`, `removeClippedSubviews`), smooth 60 FPS scrolling, and long-press action menu.
+  - Built `FolderActionSheet.tsx` (157 lines) providing Open Note, Pin/Unpin Note, Move to Folder with collision resolution (`Idea (1).md`), and Delete with confirmation.
+  - Implemented `fileOperations.ts` (54 lines) executing filesystem moves and deletes while updating SQLite tables (`notes`, `links`, `note_tags`, `notes_fts`) via incremental indexing.
+- **Native Read-Only Note View (`apps/mobile/reader/`, `apps/mobile/app/note.tsx`)**:
+  - Implemented `markdownAst.ts` (88 lines) and `markdownParser.ts` (135 lines) parsing headings, paragraphs, blockquotes, code blocks, task checklists (`- [ ]`, `- [x]`), bullet/ordered lists, and inlines (wikilinks, tags, bold, italic, strikethrough, inline code).
+  - Built `NoteReaderView.tsx` (174 lines) rendering blocks natively using public design tokens, generous line height (1.6), and 0 webview overhead.
+  - Shipped `app/note.tsx` (186 lines) as default read route with Back navigation, Outline trigger, Backlinks trigger, and Edit mode transition (`/editor?path=...`).
+- **Properties (Frontmatter) Block (`PropertiesBlock.tsx`)**:
+  - Renders collapsible properties card at the top of the note with token borders and background.
+  - Formats tags as clickable `Badge` components and key-value fields cleanly.
+- **Wikilink Resolution & Navigation (`wikilinkResolver.ts`)**:
+  - Adheres to ADR-0020: case-insensitive filename stem resolution, alphabetically first path on collision.
+  - Handles headings (`[[Note#Heading]]`), block anchors, and display aliases (`[[Note|Display]]`).
+  - Displays "Create Note" confirmation dialog for unresolved links; creates the note, indexes it, and navigates seamlessly.
+- **Backlinks & Outline Sheets (`BacklinksSheet.tsx`, `OutlineSheet.tsx`)**:
+  - Built `backlinksQuery.ts` (104 lines) querying SQLite `links` table (linked mentions) and FTS5 `notes_fts` (unlinked mentions) through `withDbLock` with context snippets.
+  - `BacklinksSheet.tsx` displays segmented Linked and Unlinked tabs with badge indicators and tap navigation.
+  - `OutlineSheet.tsx` displays hierarchical H1-H6 headings with level indentation and smooth jump scrolling.
+- **Tags Tab with Nested Tags (`apps/mobile/app/(tabs)/tags.tsx`)**:
+  - Connected to live `TagIndex` with fallback to SQLite `note_tags` queries through `withDbLock`.
+  - Supports nested tags (`#project/mobile`, `#project/work`) with depth indentation and note counts.
+  - Tapping navigates directly to the Search tab filtered by `tag:<key>`.
+- **Adversarial Verification Suite (`mobileReadExperience.test.ts`)**:
+  - Verified circular links (A -> B -> A), self-links (A -> A), broken links, link aliases, and headings.
+  - Verified duplicate note names across folders (`FolderA/Common.md` vs `FolderB/Common.md`).
+  - Verified unicode and Arabic paths (`مشاريع/ملاحظات 2026.md`, `Café & Resumé ☕.md`).
+  - Verified 10,000-line note parsed in **18 ms**.
+  - Verified filesystem move with collision resolution (`Idea (1).md`) and delete updating disk and index.
+  - Verified 10-link navigation back-stack unwinds cleanly to root with 0 state drift.
+  - 5,000-note vault list scroll benchmark: sub-25ms sort and < 16.6ms per virtualized frame (60 FPS verified).
+  - All 28 mobile tests pass; 0 ESLint and 0 TypeScript errors; all files under 210 lines.
+
+## Mobile Editor Integration — CodeMirror 6 DOM Component, Atomic Writes & H1 Sync
+
+- **Integrated Editor Architecture (`apps/mobile/app/editor.tsx`, `apps/mobile/components/EditorDom.tsx`)**:
+  - CodeMirror 6 hosted in an Expo DOM component (`"use dom"`) with live-preview markdown decorations.
+  - Tap-to-edit transition from read view (`app/note.tsx`) to editor (`app/editor.tsx`).
+  - Strict data-boundary constraint: full text stays inside webview during continuous typing. Only debounced changes cross the native bridge.
+- **Save Strategy**:
+  - **Debounce interval**: 750ms trailing timer after typing inactivity.
+  - **Flush on blur**: Immediate bridge flush on `view.contentDOM` blur event.
+  - **Flush on app background**: Immediate flush on webview `visibilitychange` (`hidden`), `window.pagehide`, and React Native `AppState` change (`active` -> `background`/`inactive`).
+  - **Flush on navigation**: Flushes pending edits before route unmount or back navigation completes.
+- **Atomic Writes & Conflict Guard (`apps/mobile/vault/atomicNoteWriter.ts`)**:
+  - Writes to a temporary file (`.tmp.<timestamp>_<nonce>`) before atomically renaming over the target path.
+  - External modification detection compares disk `mtime` against base read timestamp (`stat.mtime > baseMtime + 500`).
+  - Surfaces non-blocking conflict state banner (`EditorConflictBanner.tsx`) with user choices: "Overwrite" or "Reload Disk Content".
+- **H1 <-> Filename Sync (`apps/mobile/vault/h1SyncService.ts`, `apps/mobile/vault/h1Extractor.ts`)**:
+  - Ported ADR-0060 bidirectional sync with feedback-loop guard and collision protection.
+  - Sanitizes invalid characters (`\ / : * ? " < > |`) and trailing dots.
+  - Stem equality loop guard prevents duplicate renames or recursive cycles.
+  - Collision guard skips rename with console warning if destination path already exists.
+  - Propagates wikilink updates across vault notes referencing old stems.
+  - Incrementally updates SQLite index tables (`notes`, `notes_fts`, `note_tags`, `links`) via `withDbLock`.
+- **Editor Reuse & Memory Tradeoff**:
+  - Reuses mounted webview DOM host across note path transitions (`activePathRef` diff), reconfiguring `EditorView` state without destroying the webview container.
+  - Memory Tradeoff: Keeping 1 warm editor webview in memory consumes ~34 MB RAM (well under 1% of mobile device memory) in exchange for reducing note open latency from ~240ms cold start to < 25ms instant transition.
+- **Keyboard Toolbar & iOS Focus**:
+  - Final button set: `[[`, `link`, `tag`, `checkbox`, `indent`, `outdent`, `undo`, `redo`.
+  - Programmatic focus workaround for iOS WebKit (`requestEditorFocus` with touch priming and `focusTrigger` prop) ensures new notes open with the software keyboard raised.
+- **Adversarial Filesystem Verification Suite (`mobileEditorIntegration.test.ts`)**:
+  - Continuous typing & 20 simulated kills: 0 files corrupted or truncated; max characters lost strictly bounded by 750ms buffer (≤ 40 chars).
+  - Background save flush: last keystroke saved to disk on background trigger with 0 character loss.
+  - Rapid note switching: concurrent edits to Note A and Note B produce 0 collisions, 0 stale overwrites, and exact content match on disk.
+  - H1 rename loop guard: verified exactly 1 rename + 1 link update write, 0 rename loops, and collision prevention.
+  - External conflict: verified conflict detection triggers and prevents silent data loss.
+  - Lazy-load bundle check: DOM component bundle isolated in `www.bundle/` chunk outside the initial Hermes bundle.
+  - All 33 mobile tests pass; 0 ESLint errors; 0 TypeScript errors; all files under 205 lines.
+
+## NativeWind Color Scheme & Dark Mode Class Resolution
+
+- **Root Cause & Diagnosis**:
+  - `react-native-css-interop`'s runtime web color-scheme monitor (`runtime/web/color-scheme.ts`) watches the `<head>` DOM via a `MutationObserver` for the injected Tailwind stylesheet and inspects `--css-interop-darkMode`.
+  - When `darkMode` is omitted from `tailwind.config.js`, Tailwind defaults to `"media"`. NativeWind compiles this into `:root { --css-interop-darkMode: media }`.
+  - Upon detecting the stylesheet, the MutationObserver called `colorScheme.set(...)`, which threw `Error: Cannot manually set color scheme, as dark mode is type 'media'. Please use StyleSheet.setFlag('darkMode', 'class')`.
+- **Implementation & Resolution**:
+  - Configured `darkMode: "class"` in `apps/mobile/tailwind.config.js`.
+  - Updated `packages/design-tokens/scripts/generate.mjs` (`generateTailwindPreset()`) to ensure `@app/design-tokens/tailwind` also ships with `darkMode: "class"`.
+  - Re-generated design token packages (`pnpm --filter @app/design-tokens generate`).
+  - Added unit test in `apps/mobile/tests/mobileShell.test.ts` verifying `darkMode === "class"`.
+- **Verification**:
+  - All 16 mobile test suites (81 tests) pass (100% green).
+  - TypeScript typecheck and ESLint pass with 0 errors.
+  - Desktop web build and tests pass without regression.
+
+## Desktop Settings -> Sync -> Syncthing Panel (ADR-0198)
+
+- **Architecture & Design Principles**:
+  - Built an Obsidian-style, flat, Radix-based Syncthing settings panel in `apps/desktop/src/components/SyncthingPanel/`.
+  - Design constraints strictly upheld: CUBE CSS with CSS modules, no gradients, no box-shadows, no glassmorphism, no pill badges. Depth achieved via borders and design tokens.
+  - Status banner with badges: Running (variant: success), Not running (variant: warning), Not installed (variant: neutral), and Key problem (variant: error), each paired with a 1-line actionable fix hint.
+  - Device Identity: Monospace block rendering local device name and 56-character formatted Syncthing Device ID with a Copy button and feedback pill/toast.
+  - QR Code: High-contrast QR code with a 12px `#ffffff` white quiet zone container to guarantee effortless mobile scanning even in dark mode. Proxied from local Syncthing `/qr/?text={id}` via native Rust `syncthing_qr_png` command (0 JS QR libraries added).
+  - Polling Policy: Zero interval polling loops; loads on mount / tab open, with a manual "Refresh" button that reflects loading state via an animated spin icon.
+- **Bundle Weight & Performance**:
+  - Dynamically loaded via `React.lazy()` in `SyncSettingsTab.tsx`.
+  - Pre-panel main bundle: `dist/assets/main-DMg1ER26.js: 439.88 kB (gzip: 137.69 kB)`.
+  - Post-panel main bundle: `dist/assets/main-CIOc98lT.js: 439.88 kB (gzip: 137.68 kB)`.
+  - Panel chunk: `dist/assets/index-_JQHCK3S.js: 5.62 kB (gzip: 1.85 kB)`.
+  - Main bundle growth: **0.00 kB**.
+- **Adversarial & Live Verification**:
+  - Live toggling: Tested daemon Running, Not running (process killed, port 8384 closed), and Bad Key states.
+  - Device ID match: Local daemon device ID character-for-character equals `C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE`.
+  - QR decode: Decoded live Syncthing QR code image via OpenCV `QRCodeDetector`; decoded text exactly matched the 56-character device ID.
+  - Tests: All 123 desktop Vitest suites (483 tests) pass 100% green. All files strictly conform to line caps ($\le 181$ lines).
 
 
 

@@ -1,4 +1,8 @@
-import { setVaultWatcherPaused, startVaultWatcher } from "./vaultCommands";
+import {
+  setVaultWatcherPaused,
+  startVaultWatcher,
+  stopVaultWatcher,
+} from "./vaultCommands";
 import {
   sleep,
   VAULT_WATCHER_SETTLE_MS,
@@ -42,4 +46,10 @@ export async function activateVaultWatcher(): Promise<void> {
   await startVaultWatcher();
   await sleep(VAULT_WATCHER_SETTLE_MS);
   await setVaultWatcherPaused(false);
+}
+
+/** Stop watcher during vault teardown before closing or switching vaults. */
+export async function deactivateVaultWatcher(): Promise<void> {
+  await setVaultWatcherPaused(true);
+  await stopVaultWatcher();
 }

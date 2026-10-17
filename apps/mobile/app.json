@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "DaVinci Notes",
+    "slug": "davinci-notes",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "davinci",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.davinci.notes",
+      "infoPlist": {
+        "UIFileSharingEnabled": true,
+        "LSSupportsOpeningDocumentsInPlace": true,
+        "NSCameraUsageDescription": "Allow DaVinci Notes to take photos to attach to your notes.",
+        "NSPhotoLibraryUsageDescription": "Allow DaVinci Notes to attach photos from your library.",
+        "NSMicrophoneUsageDescription": "Allow DaVinci Notes to record audio voice memos."
+      }
+    },
+    "android": {
+      "package": "com.davinci.notes",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-dev-client",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow DaVinci Notes to attach photos from your library.",
+          "cameraPermission": "Allow DaVinci Notes to take photos to attach to your notes."
+        }
+      ],
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-web-browser",
+      "./plugins/withLocalhostNetworkSecurity"
+    ]
+  }
+}

@@ -3,6 +3,7 @@ import {
   clampEditorFontSize,
   isEditorFont,
   saveEditorSetting,
+  validateAndSanitizeCustomFont,
   type EditorFont,
   type EditorSettings,
   type EditorSettingsStorage,
@@ -21,9 +22,12 @@ export interface EditorSettingsState extends EditorSettings {
   loadSettings: () => Promise<void>;
   previewEditorFontSize: (size: number) => void;
   setEditorFont: (font: EditorFont) => Promise<void>;
+  setEditorCustomFont: (customFont: string) => Promise<void>;
   setEditorFontSize: (size: number) => Promise<void>;
   setStrictLineBreaks: (enabled: boolean) => Promise<void>;
   setUseVimMode: (enabled: boolean) => Promise<void>;
+  setVimMonospaceMode: (enabled: boolean) => Promise<void>;
+  setSlashMenuEnabled: (enabled: boolean) => Promise<void>;
   setAttachmentSettings: (settings: AttachmentSettings) => Promise<void>;
 }
 
@@ -48,6 +52,9 @@ export function createEditorSettings(
       try {
         const db = await getVaultIndexDb();
         const editorFont = await withDbLock(() => getSetting(db, "editorFont"));
+        const editorCustomFont = await withDbLock(() =>
+          getSetting(db, "editorCustomFont"),
+        );
         const editorFontSize = await withDbLock(() =>
           getSetting(db, "editorFontSize"),
         );
@@ -55,16 +62,34 @@ export function createEditorSettings(
           getSetting(db, "strictLineBreaks"),
         );
         const useVimMode = await withDbLock(() => getSetting(db, "useVimMode"));
+        const vimMonospaceMode = await withDbLock(() =>
+          getSetting(db, "vimMonospaceMode"),
+        );
+        const slashMenuEnabled = await withDbLock(() =>
+          getSetting(db, "slashMenuEnabled"),
+        );
         const attachmentSettings = await withDbLock(() =>
           getSetting(db, "attachmentSettings"),
         );
+        const validatedCustom = validateAndSanitizeCustomFont(editorCustomFont);
         set({
           editorFont: isEditorFont(editorFont)
             ? editorFont
             : defaultEditorSettings.editorFont,
+          editorCustomFont: validatedCustom.isValid
+            ? validatedCustom.sanitized
+            : "",
           editorFontSize: clampEditorFontSize(editorFontSize),
           strictLineBreaks: strictLineBreaks === "true",
           useVimMode: useVimMode === "true",
+          vimMonospaceMode:
+            vimMonospaceMode === null
+              ? defaultEditorSettings.vimMonospaceMode
+              : vimMonospaceMode === "true",
+          slashMenuEnabled:
+            slashMenuEnabled === null
+              ? defaultEditorSettings.slashMenuEnabled
+              : slashMenuEnabled === "true",
           attachmentSettings: parseAttachmentSettings(attachmentSettings),
         });
       } catch (error) {
@@ -81,6 +106,22 @@ export function createEditorSettings(
         );
       } catch (error) {
         console.error("Failed to save editor font", error);
+      }
+    },
+
+    setEditorCustomFont: async (customFont: string) => {
+      set({ editorCustomFont: customFont });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(
+            vaultEditorSettingsStorage(db),
+            "editorCustomFont",
+            customFont,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to save custom editor font", error);
       }
     },
 
@@ -134,6 +175,34 @@ export function createEditorSettings(
         );
       } catch (error) {
         console.error("Failed to save Vim Keybindings setting", error);
+      }
+    },
+
+    setVimMonospaceMode: async (enabled: boolean) => {
+      set({ vimMonospaceMode: enabled });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(
+            vaultEditorSettingsStorage(db),
+            "vimMonospaceMode",
+            enabled,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to save Vim Monospace Mode setting", error);
+      }
+    },
+
+    setSlashMenuEnabled: async (enabled: boolean) => {
+      set({ slashMenuEnabled: enabled });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(vaultEditorSettingsStorage(db), "slashMenuEnabled", enabled),
+        );
+      } catch (error) {
+        console.error("Failed to save Slash Menu setting", error);
       }
     },
 

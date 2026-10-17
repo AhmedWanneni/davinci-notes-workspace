@@ -104,7 +104,7 @@ pub(crate) fn collect_vault_paths(vault_root: &Path) -> Result<Vec<String>, Stri
     }
 
     if let Some(rel) = vault_relative(vault_root, path) {
-      if !rel.is_empty() {
+      if !rel.is_empty() && !rel.split('/').any(|s| s.starts_with('.')) {
         paths.push(rel);
       }
     }
@@ -127,7 +127,7 @@ fn collect_vault_folders(vault_root: &Path) -> Result<Vec<String>, String> {
       continue;
     }
     if let Some(rel) = vault_relative(vault_root, entry.path()) {
-      if !rel.is_empty() {
+      if !rel.is_empty() && !rel.split('/').any(|s| s.starts_with('.')) {
         folders.push(rel);
       }
     }
@@ -200,6 +200,8 @@ pub fn open_vault(window: WebviewWindow, app: AppHandle, path: String) -> Result
   let canonical = chosen
     .canonicalize()
     .map_err(|e| format!("Cannot open vault: {e}"))?;
+
+  crate::syncthing::sync_check::cleanup_stale_marker(&canonical);
 
   {
     let state = app.state::<VaultState>();
