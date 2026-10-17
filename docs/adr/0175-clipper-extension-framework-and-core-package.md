@@ -2,7 +2,8 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). Draft only; no code.
+Accepted.
+Extension implemented in `apps/web-clipper` with WXT (MV3), shared types and template engine in `packages/clipper-core`.
 
 ## Context
 

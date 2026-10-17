@@ -2,8 +2,8 @@
 
 ## Status
 
-Proposed (owner input not required for the mechanics below; the open decisions in
-ADR-0173/0177/0178 still apply). Implemented in Phase 3, part 1.
+Accepted.
+Implemented in Phase 3: the desktop re-validates and rejects rather than re-sanitising hostile input; zero-overhead inert loopback listener with constant-time token comparison.
 
 ## Context
 

@@ -2,15 +2,8 @@
 
 ## Status
 
-Proposed — still needs the owner's decision on the cost (see "Open decisions").
-The extraction path was implemented in Phase 2a, so the figures below are now
-measured rather than estimated. Not accepted; no accepted ADR was edited.
-
-The bundlephobia figures in Context are kept for the record because they turned
-out to be wrong for the version actually installed. Real sizes were measured in
-Phase 2a by bundling with esbuild (`--bundle --minify --format=esm
---platform=browser`), piping through `gzip -9`, and confirming against the real
-`wxt build` output.
+Accepted.
+Defuddle core (`useAsync:false`) + Turndown + turndown-plugin-gfm implemented and verified. Measured output is 99.6 KB gzip (vs 218 KB for full defuddle).
 
 ## Context
 

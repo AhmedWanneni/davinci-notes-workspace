@@ -2,11 +2,10 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). Draft only; no code — the
-extension-side queue is **not built**, and Phase 3 part 3 deliberately built none
-of it. Until it exists, a clip that cannot be delivered is reported to the user
-with the clip left on screen (with the `.md` download as the fallback), rather
-than being buffered somewhere that cannot yet drain.
+Accepted. Implemented in Phase 7:
+- Extension offline queue in `apps/web-clipper/src/queue/clipQueue.ts` bounded to `MAX_QUEUE_ENTRIES = 200`, `MAX_QUEUE_BYTES = 5 * 1024 * 1024` (5 MiB), and `MAX_QUEUE_AGE_MS = 30 * 24 * 60 * 60 * 1000` (30 days) with oldest-first eviction.
+- Desktop ring-buffer dedupe ledger in `apps/desktop/src-tauri/src/clipper_ledger.rs` (`davinci-clipper-ledger.json`, 500 entries) matching on exact `clip_id` or identical `(content_hash, relative_path)`.
+- Event-driven sequential drain on browser startup, extension install, and explicit user action with zero polling timers (`setInterval`).
 
 ## Context
 

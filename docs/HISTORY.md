@@ -8,6 +8,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-18 | Web Clipper Phase 8 — Packaging, store listings, docs, and hardening pass | Completed the final phase (Phase 8) of the 9-phase Web Clipper milestone (Phases 0–8). Added packaging scripts in `apps/web-clipper/package.json` (`build:firefox`, `build:all`, `zip:firefox`, `zip:all`) producing `.output/appweb-clipper-0.1.0-chrome.zip` (306.38 kB) and `.output/appweb-clipper-0.1.0-firefox.zip` (306.36 kB). Conducted security and permission audit: confirmed minimal permissions (`activeTab`, `scripting`, `storage`, `contextMenus`, `downloads`, loopback `http://127.0.0.1/*`, optional `*://*/*`); verified zero `eval(...)` and zero `new Function(...)` across all output bundles; confirmed strictly local asset loading (0 remote CDNs/scripts). Verified 0 new Cargo dependencies in `apps/desktop/src-tauri/Cargo.toml` with zero runtime bloat. Finalized and accepted all 8 Web Clipper ADRs (ADR-0173 through ADR-0180) in `DECISIONS.md` and `docs/adr/`. Wrote comprehensive user documentation in `docs/web-clipper.md` and store listing copy with permission justifications in `apps/web-clipper/STORE_LISTINGS.md`. Full test matrix passing: 39 Rust tests, 90 clipper-core tests, 223 web-clipper tests, and 542 desktop tests. All files under 250 lines. |
 | 2026-10-18 | Web Clipper Phase 7 — Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting | Implemented Phase 7 closed-app queuing, persistent ring buffer dedupe ledger, hotkeys, and multi-vault guard. Added `ClipQueueEntry` and bounds (`MAX_QUEUE_ENTRIES = 200`, `MAX_QUEUE_BYTES = 5 MiB`, 30-day age cap) in `packages/clipper-core`. Built persistent dedupe ledger (`davinci-clipper-ledger.json`, 500 entries) in desktop Rust with `clipper_check_duplicate` and `clipper_record_written`. Added multi-vault guard (`vault-not-open`) and dedupe check in `applyClipToVault.ts`. Built bounded extension queue in `apps/web-clipper/src/queue/clipQueue.ts` with oldest-first eviction and event-driven startup/install drain. Registered manifest shortcut commands (`Alt+Shift+C`, `Alt+Shift+S`, `Alt+Shift+H`). Added headless quick-clip runner in `quickClipTab.ts` with graceful restricted URL handling (`chrome://`). Added offline queue notice and sync controls to popup and options. Verified all 7 Phase 7 adversarial checks. All 39 Rust tests, 90 clipper-core tests, 223 web-clipper tests, and 32 desktop clipper tests passing; all files strictly under line caps. |
 | 2026-10-17 | Web Clipper Phase 6 — Attachment download, offline images, and SSRF protection | Implemented Phase 6 image attachments download pipeline and offline vault storage. Added `downloadImages` boolean flag to `ClipTemplate` and TemplateEditor general settings. Added `extractImageAttachments`, `deriveSuggestedImageName`, and `rewriteMarkdownImageLinks` in `packages/clipper-core`. Built `clipper_fetch_attachment` in Rust with strict SSRF validation (`is_disallowed_ip` blocking loopback, link-local, carrier-grade NAT, private LAN, metadata IPs, bracketed IPv6, and localhost), max 5 redirects with SSRF check on each hop, 1 MiB per-image cap, and content sniffing checks rejecting HTML/scripts. Built `processClipAttachments` in desktop applying `MAX_CLIP_ATTACHMENTS = 50` and `MAX_TOTAL_ATTACHMENT_BYTES = 20 * 1024 * 1024` (20 MiB), writing to vault via `writeAttachmentToVault`, generating vault-relative links, and rewriting markdown note body with graceful partial-success fallback. All 4 Rust tests, 88 clipper-core tests, 212 web-clipper tests, and 26 desktop clipper/adversarial tests passing; all files strictly under line caps. |
 | 2026-10-17 | Web Clipper Phase 5 — Highlighter, safe markdown rendering, and popup integration | Built page text-quote anchoring and highlighting in apps/web-clipper with persistent storage in chrome.storage.local (bounded FIFO eviction: MAX_HIGHLIGHTS = 2,000, MAX_HIGHLIGHTS_PER_URL = 200). Added "Highlight selection" action to ClipPopup with dynamic highlights extraction mode enablement when stored highlights exist. Optimized restoreHighlights with instant 0-highlight early bailout (<0.01 ms vs 55 ms on 5,000-node DOM). Added highlight markdown filter (==...== escaping nested == to \=\= and multiline support), hardened wikilinkFilter against hostile ]] injections, and updated tableFilter for primitive row arrays. Passed all 4 Phase 5 adversarial checks. All 81 clipper-core and 211 web-clipper tests passing; 0 lint / 0 tsc errors. |
@@ -154,6 +155,39 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-18 — Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass
+
+- **Packaging Tooling & Multi-Browser Builds (`apps/web-clipper/package.json`):**
+  - Added packaging npm scripts: `build:firefox` (`wxt build -b firefox`), `build:all`, `zip:firefox` (`wxt zip -b firefox`), and `zip:all`.
+  - Built and generated multi-browser zip artifacts:
+    - `.output/appweb-clipper-0.1.0-chrome.zip` (306.38 kB).
+    - `.output/appweb-clipper-0.1.0-firefox.zip` (306.36 kB).
+- **Security & Permission Audits (Phase 8 Checks 2 & 3):**
+  - Confirmed minimal permission manifest: `activeTab`, `scripting`, `storage`, `contextMenus`, `downloads`, loopback `http://127.0.0.1/*`, optional `*://*/*`.
+  - Confirmed that broad host permissions are strictly optional and only prompted if user chooses to clip without `activeTab`.
+  - Audited output bundles (`.output/chrome-mv3`): verified 0 instances of `eval(...)` and 0 instances of `new Function(...)`.
+  - Confirmed zero remote scripts or CDNs: all HTML entrypoints (`popup.html`, `options.html`) load strictly local chunks/assets.
+- **Desktop Overhead Measurement (Phase 8 Check 4):**
+  - Verified 0 new Cargo dependencies added to `apps/desktop/src-tauri/Cargo.toml` across all clipper phases (reused existing `std`, `tokio`, `reqwest`, `serde`, `constant_time_eq`, `getrandom`).
+  - Desktop binary delta: zero net dependency bloat.
+- **Finalized Architecture Decision Records (`DECISIONS.md` & `docs/adr/`):**
+  - Updated all Clipper ADRs from `Proposed` to `Accepted`:
+    - `ADR-0173`: Transport over loopback with token.
+    - `ADR-0174`: Content extraction + HTML→Markdown libraries (Defuddle core + Turndown).
+    - `ADR-0175`: Extension framework (WXT) & `@app/clipper-core`.
+    - `ADR-0176`: Template engine execution split.
+    - `ADR-0177`: Clipped notes written through canonical vault write path.
+    - `ADR-0178`: Closed-app queue & dedupe ledger.
+    - `ADR-0179`: Popup data flow (split preparation vs rendering, draft vs payload).
+    - `ADR-0180`: Receiver validation (re-validates and rejects rather than re-sanitising).
+- **Comprehensive Documentation Authored:**
+  - `docs/web-clipper.md`: User documentation detailing local-first privacy model, zero cloud dependencies, one-time loopback pairing runbook, capture modes (article, full page, selection, highlights), highlighter workflow, template customization, offline queue behavior, and keyboard shortcuts.
+  - `apps/web-clipper/STORE_LISTINGS.md`: Production store listings for Chrome Web Store, Mozilla Add-ons (AMO), and Microsoft Edge Add-ons, including full descriptions, permission justifications, and single-purpose declarations.
+- **Adversarial Hardening Pass:**
+  - Re-verified complete attack matrix: SSRF protections, loopback host validation, body size caps, content-type sniffing protection, hostile path traversal rejection, offline deduplication, and zero-polling event-driven drain.
+  - Test suites: 39 Rust tests, 90 clipper-core tests, 223 web-clipper tests, 542 desktop tests all passing.
+  - Hard cap adherence: all files strictly under 250 lines.
 
 ### 2026-10-18 — Web Clipper Phase 7: Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting
 

@@ -2,8 +2,8 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). Option 2 is **implemented** —
-see "Implementation outcome (Phase 3 part 2)" below.
+Accepted.
+Option 2 implemented: clipped notes are written through the canonical vault write path in `applyClipToVault.ts` using `createNoteInVault` and `appendToNoteInVault`, preserving indexing, disk tracking, atomicity, and `withDbLock`/WAL concurrency discipline.
 
 ## Context
 

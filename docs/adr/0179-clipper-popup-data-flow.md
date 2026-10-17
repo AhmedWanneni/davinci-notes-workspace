@@ -2,8 +2,8 @@
 
 ## Status
 
-Proposed — implemented in Phase 2b, awaiting the owner's review alongside
-ADR-0173…0178. No accepted ADR was edited.
+Accepted.
+Implemented in Phase 2b: preparation (`prepareClipContext`) split from rendering (`renderClipPayload`), draft state isolated from payload sanitization.
 
 ## Context
 

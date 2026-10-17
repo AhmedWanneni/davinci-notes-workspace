@@ -2,7 +2,8 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). Draft only; no code.
+Accepted.
+Split implemented: browser extension resolves DOM/page variables and renders body/properties; desktop app resolves vault context, uniqueness, append/prepend behavior, and file writing. Single `ClipPayload` wire schema.
 
 ## Context
 

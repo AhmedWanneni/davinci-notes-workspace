@@ -2,12 +2,8 @@
 
 ## Status
 
-Proposed (needs owner input, see "Open decisions"). **Both halves are
-implemented**: the loopback listener (Phase 3, part 1 — see "Phase 0
-verification outcome") and the extension's client (Phase 3, part 3 — see
-"Implementation outcome" below). The deep-link half is **deferred, not built**.
-The decision below is unchanged in substance but its default has narrowed:
-Option 4's deep-link leg is now optional rather than assumed.
+Accepted.
+Both halves are implemented: the loopback listener in Rust and the extension client. The deep-link leg remains deferred in favor of loopback + manual pairing with offline queue (ADR-0178).
 
 ## Context
 

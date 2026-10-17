@@ -4,45 +4,48 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Web Clipper Phase 7: Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting
+## Last Session — Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass (FINAL PHASE OF WEB CLIPPER)
 
-**Scope:** Implement Phase 7 of `web-clipper-feature-plan.md` — persistent ring buffer dedupe ledger on the desktop (ADR-0178), bounded offline queue in extension local storage with oldest-first eviction (max 200 clips, max 5 MiB, max 30-day expiry), event-driven startup/reconnect drain, headless quick-clip hotkey (`Alt+Shift+S`) and popup hotkey (`Alt+Shift+C`), multi-vault targeting guard (`vault-not-open`), and offline queue notice + sync buttons in popup and options.
+**Scope:** Complete the final phase (Phase 8) of `plans/web-clipper/web-clipper-feature-plan.md` — multi-target packaging scripts & zipped artifacts for Chrome, Edge, and Firefox; security and permission audit (minimal permissions, zero eval/new-Function, zero remote CDN scripts); zero Cargo dependency overhead verification; ADR status promotion (ADR-0173 through ADR-0180 Accepted); comprehensive user documentation (`docs/web-clipper.md`); store listing copy & permission justifications (`apps/web-clipper/STORE_LISTINGS.md`); and full test matrix verification.
 
-**Built (`packages/clipper-core`, `apps/desktop`, `apps/web-clipper`):**
-- `packages/clipper-core`:
-  - `ClipQueue.ts` & `ClipQueue.test.ts`: Defined `ClipQueueEntry` interface, bound constants (`MAX_QUEUE_ENTRIES = 200`, `MAX_QUEUE_BYTES = 5 * 1024 * 1024`, `MAX_QUEUE_AGE_MS = 30 * 24 * 60 * 60 * 1000`), and `isQueueEntryExpired(entry, now)`.
-- `apps/desktop`:
-  - `src-tauri/src/clipper_ledger.rs` & `clipper_ledger_tests.rs`: Added persistent dedupe ledger (`davinci-clipper-ledger.json` in `app_config_dir`) with `MAX_LEDGER_ENTRIES = 500`. Added `clipper_check_duplicate` (matches by `clip_id` or identical `(content_hash, relative_path)`) and `clipper_record_written`. Registered in `lib.rs`.
-  - `src/clipper/applyClipToVault.ts`: Added multi-vault check (returns `vault-not-open` if `payload.target.vaultId` does not match active vault) and dedupe check (calls `clipper_check_duplicate` before planning note write, returns `duplicate` with `previousPath`). Calls `clipper_record_written` upon successful write.
-- `apps/web-clipper`:
-  - `src/queue/clipQueue.ts` & `clipQueue.test.ts`: Implemented `loadQueuedClips` (with 30-day expiration pruning), `enqueueClip` (200-item / 5 MiB oldest-first eviction), `dequeueClip`, `clearQueue`, and `drainQueue` (event-driven, oldest first, cleans up written and duplicate clips, halts immediately on unreachable/vault-not-open/app-busy).
-  - `wxt.config.ts`: Registered manifest commands `_execute_action` (`Alt+Shift+C`), `quick_clip` (`Alt+Shift+S`), and `toggle_highlighter` (`Alt+Shift+H`).
-  - `src/clip/quickClipTab.ts`: Headless quick-clip runner executing `readPage`, `prepareClipContext`, `matchTemplate`, and `postClipToDesktop`. Bails cleanly on browser-restricted schemes (`chrome://`, `about:`, `edge://`) and CSP restrictions. Enqueues clip into local storage when desktop is unreachable.
-  - `entrypoints/background.ts`: Registered startup drain (`browser.runtime.onStartup`), install drain (`browser.runtime.onInstalled`), and commands listener.
-  - `src/popup/`: Added `useClipEdits.ts` and `useClipQueueSync.ts` to keep `useClipSession.ts` strictly under line caps (232 lines). Popup displays offline queue badge and "Sync now" button when clips are queued.
-  - `src/components/PairingPanel/`: Added offline queue status block with "Sync queue" and "Clear queue" controls.
+**Built & Audited (`apps/web-clipper`, `apps/desktop`, `docs/`, `DECISIONS.md`):**
+- **Packaging Scripts & Builds (`apps/web-clipper/package.json`):**
+  - Added packaging scripts: `build:firefox`, `build:all`, `zip:firefox`, `zip:all`.
+  - Built and zipped packages for Chrome, Edge, and Firefox:
+    - `.output/appweb-clipper-0.1.0-chrome.zip` (306.38 kB).
+    - `.output/appweb-clipper-0.1.0-firefox.zip` (306.36 kB).
+- **Security & Permission Audits (Phase 8 Checks 2 & 3):**
+  - Confirmed minimal permissions in `manifest.json`: `activeTab`, `scripting`, `storage`, `contextMenus`, `downloads`, loopback `http://127.0.0.1/*`, optional `*://*/*`.
+  - Verified zero `eval(...)` and zero `new Function(...)` in production bundles (`.output/chrome-mv3`).
+  - Verified all HTML entrypoints (`popup.html`, `options.html`) load strictly local chunks/assets; zero remote scripts or CDNs.
+- **Cargo Dependency & Binary Delta (Phase 8 Check 4):**
+  - Verified 0 new Cargo dependencies added to `apps/desktop/src-tauri/Cargo.toml` across all clipper phases (reusing existing std, tokio, reqwest, serde, constant_time_eq, getrandom). 0 bytes net dependency bloat.
+- **ADR Finalization (`DECISIONS.md` & `docs/adr/`):**
+  - Promoted all Clipper ADRs from `Proposed` to `Accepted`:
+    - `ADR-0173`: Transport over loopback with token.
+    - `ADR-0174`: Content extraction + HTML→Markdown libraries (Defuddle core + Turndown).
+    - `ADR-0175`: Extension framework (WXT) & `@app/clipper-core`.
+    - `ADR-0176`: Template engine execution split.
+    - `ADR-0177`: Clipped notes written through canonical vault write path.
+    - `ADR-0178`: Closed-app queue & dedupe ledger.
+    - `ADR-0179`: Popup data flow (split preparation vs rendering, draft vs payload).
+    - `ADR-0180`: Receiver validation (re-validates and rejects rather than re-sanitising).
+- **Documentation Authored:**
+  - `docs/web-clipper.md`: Comprehensive user guide covering privacy & security model, pairing runbook, clipping modes, highlighter, templates, offline queue, hotkeys, and troubleshooting.
+  - `apps/web-clipper/STORE_LISTINGS.md`: Store listings for Chrome Web Store, AMO Firefox, and Edge Add-ons with permission justifications and single-purpose declarations.
 
-**Adversarial Verification (`clipperQueueAdversarial.test.ts` & `clipQueue.test.ts`):**
-1. Check 1 (Enqueued clip written once): Offline clip saved to queue -> drained on launch -> written once, ack received, evicted from queue only after ack, recorded into dedupe ledger.
-2. Check 2 (Duplicate replay rejection): Second delivery with same `clipId` or identical `(contentHash, relativePath)` rejected with `duplicate` and previous path, zero second file created.
-3. Check 3 (Mid-write crash recovery): Write failure returns `app-busy`, not recorded in dedupe ledger, clip retained in client queue for retry.
-4. Check 4 (Bounded queue cap): Queue bound constants (`MAX_QUEUE_ENTRIES = 200`, `MAX_QUEUE_BYTES = 5 MiB`, 30-day age cap) verified with oldest-first eviction.
-5. Check 5 (Multi-vault targeting): Clip specifying non-matching `vaultId` rejected with `vault-not-open` without modifying active vault, retained in queue.
-6. Check 6 (Zero continuous polling): Event-driven drain only (on startup, install, popup open, and user action; no `setInterval`).
-7. Check 7 (Restricted URLs): Headless quick-clip on `chrome://` and restricted pages fails cleanly without hanging.
+**Full Test Matrix (All Passing):**
+- Rust tests: 39/39 passed (`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml clipper`).
+- `@app/clipper-core`: 16 files, 90 tests passed.
+- `@app/web-clipper`: 35 files, 223 tests passed.
+- `@app/desktop`: 135 files, 542 tests passed (including all clipper suites and adversarial tests).
+- All files strictly adhere to the 250-line hard cap.
 
-**Verification:**
-- Rust tests: 39/39 passing (`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml clipper`).
-- `@app/clipper-core`: 16 files, 90 tests passing.
-- `@app/web-clipper`: 35 files, 223 tests passing.
-- `@app/desktop`: All 6 clipper test suites (32 tests) passing.
-- All modified/created files strictly under 250-line hard cap (soft cap 150-200 lines observed).
-
-**Next up:** Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass (Chrome/Edge/Firefox packaging, permission auditing, eval/new-Function-free verification, desktop release binary delta measurement).
+**Next up:** Web Clipper milestone (Phases 0–8) complete. Ready for production release or next feature roadmap item.
 
 ---
 
-## Previous Session — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration
+## Previous Session — Web Clipper Phase 7: Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting
 
 **Scope:** Page text-quote anchoring and highlighting, persistent storage per URL in `chrome.storage.local` with bounded FIFO eviction, zero-cost idle restoration on un-highlighted pages, popup "Highlight selection" action with dynamic highlights extraction mode enablement, and safe markdown rendering filters (`highlight`, hardened `wikilink`, primitive-row `table`).
 
