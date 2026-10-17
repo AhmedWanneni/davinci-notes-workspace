@@ -34,7 +34,26 @@ Executed and verified the full 10-item sync matrix directly against live Syncthi
     - Documented in ADR-0198.
     - All unit & integration tests passing across subpackages; ESLint 0 errors; all files under 250 lines.
 
----
+**Public Astro website — initial landing page complete**
+Created a new static `apps/website` package using Astro 7.4.0. The page is a
+responsive, Logseq-inspired product narrative for Davinci: a compact nav,
+centered linked-note hero, role selector, notebook previews, community stage,
+relationship workspace, privacy grid, sync card, and final CTA. It retains the
+warm-grey, black, and red palette, along with a 416 KB public-domain Renaissance
+engraving from The Met for the hero. Production build passes.
+Desktop scale was increased across the page: larger display headings, navigation,
+cards, product previews, section spacing, and feature modules; mobile retains a
+separate compact scale.
+
+**Next:** Wire the website's download action to the eventual release location
+and add deployment configuration once the hosting target is chosen.
+
+**Editor styling tokens — Phase 2 complete**
+Added 30 editor-prefixed Obsidian-parity tokens under `editor.obsidian` without
+replacing any existing tokens. Generated CSS, SCSS, and TypeScript outputs;
+documented token names and the existing spacing-token boundary in
+`packages/design-system/tokens/README.md`. Design-system build and typecheck
+pass. The `packages/editor` package was not modified.
 
 **Mobile Syncthing Device Pairing, QR Code Scanning & Safe Vault Acceptance (`apps/mobile/`) (complete)**
 Shipped mobile-side Syncthing pairing and folder acceptance connecting Android to Desktop:
