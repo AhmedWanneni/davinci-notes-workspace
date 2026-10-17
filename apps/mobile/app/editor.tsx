@@ -105,6 +105,7 @@ export default function EditorScreen(): React.ReactElement {
 
         const stat = await atomicWriteNote(adapter, currentPath, newText);
         baseMtimeRef.current = stat.mtime;
+        console.log("[editor] Saved to disk:", currentPath, "size:", stat.size, "content:", JSON.stringify(newText));
 
         const sync = await syncH1ToFilename(adapter, currentPath, newText);
         if (sync.renamed) {

@@ -3,7 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { darkColorTokens } from "@app/design-tokens/mobile";
 import { Text } from "../components/primitives";
-import { defaultVaultManager } from "../vault";
+import { defaultVaultManager, defaultNoteStore } from "../vault";
 import { captureItem, fetchUrlMetadata, type CapturedItem } from "../capture";
 
 /**
@@ -59,9 +59,14 @@ export default function ShareTargetScreen(): React.ReactElement {
         if (mounted) {
           setStatus(`Captured to ${result.targetNotePath}!`);
           setTimeout(() => {
+            const targetId = defaultNoteStore.register(result.targetNotePath);
             router.replace({
-              pathname: "/note",
-              params: { path: result.targetNotePath },
+              pathname: "/editor",
+              params: {
+                path: result.targetNotePath,
+                noteId: targetId,
+                autoFocus: "1",
+              },
             });
           }, 400);
         }

@@ -96,8 +96,8 @@ export default function NoteViewScreen(): React.ReactElement {
     if (res.isResolved && res.resolvedPath) {
       const targetId = defaultNoteStore.register(res.resolvedPath);
       router.push({
-        pathname: "/note",
-        params: { path: res.resolvedPath, noteId: targetId },
+        pathname: "/editor",
+        params: { path: res.resolvedPath, noteId: targetId, autoFocus: "1" },
       });
     } else {
       setUnresolvedTarget(res.targetStem);
@@ -116,8 +116,8 @@ export default function NoteViewScreen(): React.ReactElement {
       setUnresolvedTarget(null);
       const targetId = defaultNoteStore.register(newPath);
       router.push({
-        pathname: "/note",
-        params: { path: newPath, noteId: targetId },
+        pathname: "/editor",
+        params: { path: newPath, noteId: targetId, autoFocus: "1" },
       });
     } catch (err) {
       console.error("[note] Failed to create unresolved note:", err);

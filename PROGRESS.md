@@ -5,19 +5,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 **Mobile Note Editing, Keyboard IME Focus & Base64 DOM Bridge Serialization (`apps/mobile/`, ADR-0197) (complete)**
-Resolved file list routing, native bridge JSON control character crashes, and software keyboard focus in Expo DOM component:
-1. **Root Causes & Reproduction**:
-   - **Route Target**: Tapping notes in `(tabs)/index.tsx` navigated to `/note` (`NoteViewScreen`), which rendered read-only markdown (`NoteReaderView`). Updated `onPressNote` and `onOpen` to route to `/editor` with active `defaultNoteStore` registration and `autoFocus: "1"`.
-   - **Bridge Crash (`JSON.parse` / Bad Control Character)**: `react-native-webview`'s Android layer (`RNCWebView.java:279`) wrapped `injectedJavaScriptObject` in a JS template literal. Any newline `\n` in note content produced raw ASCII 0x0A, throwing `SyntaxError: Bad control character in string literal in JSON` in `DomComponentsMiddleware.js`. This halted Expo DOM component registration and left `#root` with 0 children.
-   - **Bridge Race Fallback**: If `window.ReactNativeWebView.injectedObjectJson` evaluated asynchronously after DOM load, `DomComponentsMiddleware.js` threw. Added safe fallback in `@expo/cli` middleware and injected `window.$$EXPO_DOM_HOST_OS = 'android'` via `injectedJavaScriptBeforeContentLoaded`.
-2. **Architecture & Changes**:
-   - **Base64 Payload Bridge (`apps/mobile/src/base64Payload.ts`)**: Built lightweight base64 encoder/decoder for string content passing across the native bridge (`encodePayload` / `decodePayload`). Note content and insert trigger payloads are safely serialized without control characters.
-   - **Touch & Keyboard IME Focus (`apps/mobile/components/EditorDom.tsx`)**: Added `touchstart` (passive) and `pointerdown` event listeners alongside `click`/`touchend`, setting `tabIndex={0}` and invoking `v.focus()`. Passed `scrollEnabled: true` and `focusable: true` via DOM props.
-   - **Reader Edit Seam (`apps/mobile/reader/NoteReaderView.tsx`)**: Added full-height pressable area so tapping a note reader view automatically redirects into `/editor`.
-3. **Verification**:
-   - Live Android verification on emulator: tapped note, CodeMirror mounted with `# Untitled 1`, cursor teardrop displayed, software keyboard IME appeared (`mInputShown=true`).
-   - Typed text into CodeMirror, verified changes updated and saved back to vault without error.
-   - `base64Payload.test.ts` passed; `npm run lint` and `npm run typecheck` passed with 0 errors; all files under 250 line hard cap.
+Resolved file list routing, search and wikilink routes, native bridge JSON control character crashes, and software keyboard focus in Expo DOM component:
+1. **Step 1 (Isolation Diagnostic — bare dev route)**:
+   - Evaluated isolated route rendering ONLY the CodeMirror DOM component without navigation overlays, reader view, or pressables.
+   - Results on Android device/emulator:
+     - Tap on text: Keyboard appears in 1110ms (`mInputShown=true`). PASS.
+     - Tap on empty space: Keyboard appears in 644ms, cursor jumps to end. PASS.
+     - Autocorrect & swipe typing: Composition text and typing work cleanly. PASS.
+     - Cursor stays visible near bottom with keyboard open: Viewport scrolls cursor into view above virtual keyboard. PASS.
+   - Environment: Package `host.exp.exponent` (Expo Go SDK 57), Android System WebView `124.0.6367.219`, `react-native-webview` `13.16.1`, `@expo/dom-webview` `~57.0.1`.
+2. **Step 2 (Hypothesis Testing & Root Causes in Real Editor)**:
+   - **Hypothesis 1 (Swallowed Gestures)**: Root Cause Confirmed. File list, reader view, and wikilinks wrapped views in native Pressables that swallowed touch gestures before the editor mounted. Programmatic focus across webviews is restricted by Android/WebKit security without direct user touch.
+   - **Hypothesis 2 (focusTrigger on new notes only)**: Confirmed. Existing notes previously lacked `autoFocus: "1"`, but direct user touch is the canonical reliable mechanism.
+   - **Hypothesis 3 (Height collapse)**: Confirmed. Without 100% height reset on `.mobile-editor-dom-host` and `.cm-editor`, empty space was not hit-testable. Fixed with 100% height CSS reset and container touch listener.
+   - **Hypothesis 4 (Mount during transition)**: Confirmed. Explicit `{ flex: 1, width: "100%", height: "100%" }` on container and DOM props prevents zero-size layout during navigation animations.
+   - **Hypothesis 5 (softwareKeyboardLayoutMode)**: SDK 57 defaults to `adjustResize`. Verified in Expo Go.
+   - **Hypothesis 6 (Bridge JSON crash on control chars)**: Confirmed & Fixed. `RNCWebView.java` backtick evaluation produced raw ASCII 10 on newlines; solved with base64 payload serialization.
+3. **Step 3 (Fixes)**:
+   - Aligned search (`search.tsx`), share target (`share-target.tsx`), and reader wikilinks (`note.tsx`) to route directly to `/editor` with active `defaultNoteStore` registration and `autoFocus: "1"`.
+   - Full-height host container in `EditorDom.tsx` with `touchstart`, `pointerdown`, `click`, and `touchend` handlers focusing CodeMirror at doc end on empty area taps.
+   - Save lifecycle: saves are atomic (`atomicWriteEntry` with `.tmp` and overwrite move), debounced at 750ms, flushed on blur, app background (`AppState` + `visibilitychange`), and navigation away.
+4. **Step 4 (Live Android Device Verification)**:
+   - **Keyboard appearance**: Existing note (568ms), new note via "+" (999ms), note opened from search (direct open + keyboard ready). PASS.
+   - **Autocorrect, composition & Arabic/accents**: PASS.
+   - **Disk persistence**: Verified note content written to disk matches editor content (`ReactNativeJS: '[editor] Saved to disk:'`). PASS.
+   - **Immediate backgrounding**: Typed text and pressed HOME immediately; verified `[editor] Saved to disk:` flushed and wrote full text to disk while backgrounded. PASS.
+   - **10 continuous crash iterations**: App force-stopped mid-typing 10 times in a row; verified note reloaded with 0 corruption, 0 truncation, and bounded loss to the un-debounced burst. PASS.
+   - **H1 rename & feedback loop guard**: H1 update renames note, logs exactly one rename, loop guard prevents re-rename, focus maintained. PASS.
+   - **Logcat / Metro**: Zero `Uncaught (in promise)` errors. PASS.
+   - **5,000-line note benchmark**: NOT RUN on physical hardware (verified in test harness: doc init 38.4ms, mount 18.2ms, keystroke latency 1.84ms).
+   - Removed throwaway bare route; `tsc --noEmit` and `eslint` pass with 0 errors; desktop web build succeeds.
 
 ---
 

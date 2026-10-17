@@ -16,6 +16,7 @@ import {
   searchVault,
   type MobileSearchResult,
 } from "../../indexer";
+import { defaultNoteStore } from "../../vault/noteStore";
 
 function HighlightedSnippet({
   snippet,
@@ -105,9 +106,10 @@ export default function SearchScreen(): React.ReactElement {
   };
 
   const handleOpenNote = (notePath: string) => {
+    const targetId = defaultNoteStore.register(notePath);
     router.push({
       pathname: "/editor",
-      params: { path: notePath },
+      params: { path: notePath, noteId: targetId, autoFocus: "1" },
     });
   };
 
