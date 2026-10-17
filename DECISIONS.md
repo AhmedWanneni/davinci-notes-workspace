@@ -266,3 +266,19 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0183](adr/0183-rust-reminder-scheduler-and-notifications.md) | Rust reminder scheduler, device-local notification state, and background lifecycle | Accepted |
 | [0184](adr/0184-reminder-recurrence-syntax-and-completion-model.md) | Reminder recurrence syntax, due-date anchoring, and in-place completion model | Accepted |
 
+## Mobile Shell
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0185](adr/0185-mobile-shell-expo.md) | Mobile shell: Expo SDK 53 + React Native + NativeWind, replacing Tauri v2 mobile | Accepted |
+| [0186](adr/0186-shared-tokens-per-platform-components.md) | Design system: shared CSS tokens via NativeWind, platform-specific UI primitives | Accepted |
+| [0187](adr/0187-mobile-vault-storage-hybrid-sandbox-and-saf.md) | Mobile vault storage: hybrid app sandbox default + SAF/folder picker | Accepted |
+| [0188](adr/0188-mobile-fast-capture-destination-and-attachment-routing.md) | Mobile fast capture: share target, daily note routing, attachment collision handling | Accepted |
+| [0189](adr/0189-sync-conflict-resolution-orchestration-and-safety.md) | Sync conflict resolution: orchestration and non-destructive safety | Accepted |
+| [0190](adr/0190-mobile-suspended-sync-semantics-and-background-limits.md) | Mobile suspended sync semantics, lifecycle events, and OS background limits | Accepted |
+| [0191](adr/0191-mobile-theme-safety-and-shell-isolation.md) | Mobile theme safety, dark-first default, and shell isolation | Accepted |
+| [0192](adr/0192-mobile-local-graph-rendering-and-node-bounds.md) | Mobile local graph rendering: SVG-based, node bounding, and zoom/pan | Accepted |
+| [0193](adr/0193-mobile-readonly-canvas-and-cycle-prevention.md) | Mobile read-only canvas viewer and cycle prevention | Accepted |
+| [0194](adr/0194-mobile-expo-sdk-pin-and-dependency-alignment.md) | Expo SDK pin and strict peer dependency alignment | Accepted |
+| [0195](adr/0195-mobile-vault-onboarding-and-registry.md) | Mobile vault onboarding, multi-vault registry, and storage selection | Accepted |
+| [0196](adr/0196-mobile-vault-storage-and-flow-remediation.md) | Mobile vault storage and flow remediation: object-based fs seam, atomic overwrite, and UI hardening | Accepted |

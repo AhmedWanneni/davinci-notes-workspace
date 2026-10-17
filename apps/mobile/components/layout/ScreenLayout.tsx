@@ -1,11 +1,14 @@
 import React from "react";
-import { View, type ViewStyle } from "react-native";
+import { View, Pressable, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { CaretDown } from "phosphor-react-native";
+import { darkColorTokens } from "@app/design-tokens/mobile";
 import { Text } from "../primitives/Text";
 
 export interface ScreenLayoutProps {
   title?: string;
+  onTitlePress?: () => void;
   headerLeft?: React.ReactNode;
   headerRight?: React.ReactNode;
   edges?: Array<"top" | "bottom" | "left" | "right">;
@@ -16,6 +19,7 @@ export interface ScreenLayoutProps {
 
 export const ScreenLayout: React.FC<ScreenLayoutProps> = ({
   title,
+  onTitlePress,
   headerLeft,
   headerRight,
   edges = ["top", "left", "right"],
@@ -47,23 +51,37 @@ export const ScreenLayout: React.FC<ScreenLayoutProps> = ({
     >
       <StatusBar style="light" />
 
-      {hasHeader && (
+      {hasHeader ? (
         <View className="h-[44px] flex-row items-center justify-between px-4 border-b border-border-subtle bg-bg-primary">
           <View className="w-[44px] items-start justify-center">
             {headerLeft}
           </View>
           <View className="flex-1 items-center justify-center">
             {title ? (
-              <Text variant="h3" numberOfLines={1}>
-                {title}
-              </Text>
+              onTitlePress ? (
+                <Pressable
+                  onPress={onTitlePress}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Switch vault: ${title}`}
+                  className="flex-row items-center gap-1 px-2 py-1 rounded active:bg-bg-hover"
+                >
+                  <Text variant="h3" numberOfLines={1}>
+                    {title}
+                  </Text>
+                  <CaretDown size={14} color={darkColorTokens.text.muted} />
+                </Pressable>
+              ) : (
+                <Text variant="h3" numberOfLines={1}>
+                  {title}
+                </Text>
+              )
             ) : null}
           </View>
           <View className="w-[44px] items-end justify-center">
             {headerRight}
           </View>
         </View>
-      )}
+      ) : null}
 
       <View className="flex-1">{children}</View>
     </View>

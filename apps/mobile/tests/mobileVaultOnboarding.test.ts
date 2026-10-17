@@ -78,11 +78,27 @@ describe("Mobile Vault Onboarding, Multi-Vault Registry & Adversarial Tests", ()
 
     // Functional creation with Arabic & Emoji
     const manager = new VaultManager();
-    const arabicVault = await manager.createSandboxVault("ملاحظات 2026 🚀");
-    expect(arabicVault).toBeDefined();
+    const testNames = [
+      "My Notes",
+      "ملاحظات",
+      "Café ☕",
+      "a  b",
+      "x".repeat(150),
+    ];
+    for (const name of testNames) {
+      const adapter = await manager.createSandboxVault(name);
+      expect(adapter).toBeDefined();
+      expect(adapter.vaultUri).toBeTruthy();
 
-    const stat = await arabicVault.statFile("Welcome to DaVinci Notes.md");
-    expect(stat.exists).toBe(true);
+      const stat = await adapter.statFile("Welcome to DaVinci Notes.md");
+      expect(stat.exists).toBe(true);
+
+      const notes = await adapter.listNotes();
+      expect(notes).toContain("Welcome to DaVinci Notes.md");
+
+      const readBack = await adapter.readNote("Welcome to DaVinci Notes.md");
+      expect(readBack.content).toContain("# Welcome to DaVinci Notes");
+    }
   });
 
   it("5. External folder picking: registers SAF directory and persists across restart", async () => {

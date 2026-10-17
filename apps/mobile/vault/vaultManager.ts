@@ -1,17 +1,15 @@
-import { Paths, Directory } from "expo-file-system";
+import { Paths } from "expo-file-system";
 import { MobileVaultStorageAdapter } from "./MobileVaultStorageAdapter";
 import type { VaultInfo } from "./types";
-import {
-  type MobileVaultRegistry,
-  type RegisteredVault,
-  sanitizeVaultFolderName,
-} from "./vaultRegistryTypes";
+import type { MobileVaultRegistry, RegisteredVault } from "./vaultRegistryTypes";
 import { INITIAL_WELCOME_NOTE } from "./initialWelcomeNote";
+import { loadRegistryFromDisk, saveRegistryToDisk } from "./vaultRegistryStore";
 import {
-  loadRegistryFromDisk,
-  saveRegistryToDisk,
+  createSandboxVaultDirectory,
+  deleteVaultDirectory,
+  pickDirectory,
   verifyDirectoryAccess,
-} from "./vaultRegistryStore";
+} from "./fs/vaultStorage";
 
 const docDir = Paths.document.uri.endsWith("/")
   ? Paths.document.uri
@@ -38,17 +36,20 @@ export class VaultManager {
   }
 
   async createSandboxVault(name: string): Promise<MobileVaultStorageAdapter> {
-    const folderName = sanitizeVaultFolderName(name);
-    const rawVaultUri = `${docDir}vaults/${folderName}/`;
-    const dir = new Directory(rawVaultUri);
-    dir.create({ intermediates: true, idempotent: true });
+    const { uri: rawVaultUri, folderName } = createSandboxVaultDirectory(name);
+    let adapter: MobileVaultStorageAdapter;
 
-    const adapter = new MobileVaultStorageAdapter(rawVaultUri, "sandbox");
-    await adapter.createFolder("Attachments");
-    await adapter.writeNote(
-      "Welcome to DaVinci Notes.md",
-      INITIAL_WELCOME_NOTE,
-    );
+    try {
+      adapter = new MobileVaultStorageAdapter(rawVaultUri, "sandbox");
+      await adapter.createFolder("Attachments");
+      await adapter.writeNote(
+        "Welcome to DaVinci Notes.md",
+        INITIAL_WELCOME_NOTE,
+      );
+    } catch (err) {
+      deleteVaultDirectory(rawVaultUri);
+      throw err;
+    }
 
     const vaultUri = adapter.vaultUri;
     const registry = await this.getRegistry();
@@ -77,12 +78,10 @@ export class VaultManager {
     error?: string;
   }> {
     try {
-      const picked = await Directory.pickDirectoryAsync?.();
+      const picked = await pickDirectory();
       if (!picked || !picked.uri) {
         return { success: false };
       }
-
-      picked.list(); // Test read permission
 
       const adapter = new MobileVaultStorageAdapter(picked.uri, "saf");
       const vaultUri = adapter.vaultUri;
@@ -131,6 +130,16 @@ export class VaultManager {
 
     this.activeAdapter = new MobileVaultStorageAdapter(uri, target.mode);
     return this.activeAdapter;
+  }
+
+  async renameVault(uri: string, newDisplayName: string): Promise<void> {
+    const trimmed = newDisplayName.trim();
+    if (!trimmed) return;
+    const registry = await this.getRegistry();
+    const updatedVaults = registry.vaults.map((v) =>
+      v.uri === uri ? { ...v, name: trimmed } : v,
+    );
+    await this.saveRegistry({ ...registry, vaults: updatedVaults });
   }
 
   async removeVault(uri: string): Promise<void> {

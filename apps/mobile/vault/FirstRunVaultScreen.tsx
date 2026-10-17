@@ -132,7 +132,7 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
           <Text variant="h3" color={isExpoGo ? "muted" : "normal"}>
             Open Existing Folder
           </Text>
-          {isExpoGo && <Badge variant="neutral">Expo Go</Badge>}
+          {isExpoGo ? <Badge variant="neutral">Expo Go</Badge> : null}
         </View>
         <Text variant="caption" color="muted" className="mb-4">
           {isExpoGo
@@ -160,13 +160,13 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
         </Button>
       </View>
 
-      {errorMessage && (
+      {errorMessage ? (
         <View className="p-4 rounded-base bg-bg-secondary border border-border-status-error mb-4">
           <Text variant="body" color="error">
             {errorMessage}
           </Text>
         </View>
-      )}
+      ) : null}
     </ScrollView>
   );
 };

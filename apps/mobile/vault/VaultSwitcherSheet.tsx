@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Alert } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
-import { Check, Trash, Plus, FolderSimple } from "phosphor-react-native";
+import { Plus, FolderSimple } from "phosphor-react-native";
 import { darkColorTokens } from "@app/design-tokens/mobile";
 import {
   Sheet,
-  ListItem,
   Button,
-  IconButton,
   Text,
   Input,
   Divider,
 } from "../components/primitives";
 import { defaultVaultManager } from "./vaultManager";
 import type { RegisteredVault } from "./vaultRegistryTypes";
+import { VaultSwitcherItem } from "./VaultSwitcherItem";
 
 export interface VaultSwitcherSheetProps {
   visible: boolean;
@@ -30,6 +29,8 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
   const [activeUri, setActiveUri] = useState<string | null>(null);
   const [showCreateInput, setShowCreateInput] = useState(false);
   const [newVaultName, setNewVaultName] = useState("");
+  const [renamingUri, setRenamingUri] = useState<string | null>(null);
+  const [renamingName, setRenamingName] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const refreshRegistry = useCallback(async () => {
@@ -42,6 +43,7 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
     if (visible) {
       refreshRegistry();
       setShowCreateInput(false);
+      setRenamingUri(null);
       setErrorMsg(null);
     }
   }, [visible, refreshRegistry]);
@@ -56,10 +58,23 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
     onClose();
   };
 
-  const handleRemoveVault = async (uri: string) => {
-    await defaultVaultManager.removeVault(uri);
-    await refreshRegistry();
-    onVaultChanged();
+  const handleRemoveVault = (vault: RegisteredVault) => {
+    Alert.alert(
+      "Remove Vault",
+      `Are you sure you want to remove "${vault.name}" from your vault list? Your notes and files will remain untouched on disk.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            await defaultVaultManager.removeVault(vault.uri);
+            await refreshRegistry();
+            onVaultChanged();
+          },
+        },
+      ],
+    );
   };
 
   const handleCreateNew = async () => {
@@ -77,13 +92,27 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
     }
   };
 
+  const handleSaveRename = async () => {
+    const trimmed = renamingName.trim();
+    if (!renamingUri || !trimmed) return;
+    try {
+      await defaultVaultManager.renameVault(renamingUri, trimmed);
+      setRenamingUri(null);
+      setRenamingName("");
+      await refreshRegistry();
+      onVaultChanged();
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Rename failed.");
+    }
+  };
+
   const isExpoGo =
     Constants?.executionEnvironment === ExecutionEnvironment.StoreClient;
 
   const handleOpenFolder = async () => {
     if (isExpoGo) {
       setErrorMsg(
-        "External folder picking is unavailable in Expo Go. Use 'New Vault' for sandbox storage or run a development build.",
+        "External folder picking requires native permissions unavailable in Expo Go. Use 'New Vault' for app sandbox storage or run a development build.",
       );
       return;
     }
@@ -104,50 +133,32 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
   return (
     <Sheet visible={visible} onClose={onClose} title="Vaults">
       <ScrollView className="max-h-96 px-2 py-2">
-        {vaults.map((vault) => {
-          const isActive = vault.uri === activeUri;
-          return (
-            <ListItem
-              key={vault.uri}
-              title={vault.name}
-              subtitle={
-                vault.mode === "sandbox" ? "App Sandbox" : "External Folder"
-              }
-              left={
-                isActive ? (
-                  <Check
-                    size={18}
-                    color={darkColorTokens.text.accent}
-                    weight="bold"
-                  />
-                ) : (
-                  <View className="w-[18px]" />
-                )
-              }
-              right={
-                vaults.length > 1 ? (
-                  <IconButton
-                    icon={
-                      <Trash size={16} color={darkColorTokens.text.muted} />
-                    }
-                    accessibilityLabel={`Remove ${vault.name}`}
-                    size="sm"
-                    onPress={() => handleRemoveVault(vault.uri)}
-                  />
-                ) : undefined
-              }
-              onPress={() => handleSelectVault(vault.uri)}
-            />
-          );
-        })}
+        {vaults.map((vault) => (
+          <VaultSwitcherItem
+            key={vault.uri}
+            vault={vault}
+            isActive={vault.uri === activeUri}
+            isRenaming={vault.uri === renamingUri}
+            renamingName={renamingName}
+            onStartRename={() => {
+              setRenamingUri(vault.uri);
+              setRenamingName(vault.name);
+            }}
+            onCancelRename={() => setRenamingUri(null)}
+            onChangeRenamingName={setRenamingName}
+            onSaveRename={handleSaveRename}
+            onSelect={() => handleSelectVault(vault.uri)}
+            onRemove={() => handleRemoveVault(vault)}
+          />
+        ))}
 
-        {errorMsg && (
+        {errorMsg ? (
           <View className="p-3 my-2 bg-bg-secondary border border-border-status-error rounded-base">
             <Text variant="caption" color="error">
               {errorMsg}
             </Text>
           </View>
-        )}
+        ) : null}
 
         <Divider className="my-2" />
 
@@ -187,9 +198,7 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
               variant="secondary"
               size="sm"
               className="flex-1"
-              icon={
-                <FolderSimple size={16} color={darkColorTokens.text.normal} />
-              }
+              icon={<FolderSimple size={16} color={darkColorTokens.text.normal} />}
               onPress={handleOpenFolder}
             >
               Open Folder
