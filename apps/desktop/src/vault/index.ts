@@ -6,6 +6,10 @@ export {
 } from "./VaultIndexer";
 export { createFolderInVault } from "./createFolderInVault";
 export { createNoteInVault } from "./createNoteInVault";
+export {
+  appendToNoteInVault,
+  type ClipInsertPosition,
+} from "./appendToNoteInVault";
 export { deleteNoteInVault } from "./deleteNoteInVault";
 export { deleteFolderInVault } from "./deleteFolderInVault";
 export { duplicateNoteInVault } from "./duplicateNoteInVault";

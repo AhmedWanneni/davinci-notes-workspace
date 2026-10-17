@@ -65,6 +65,9 @@ importers:
       '@app/canvas':
         specifier: workspace:*
         version: link:../../packages/canvas
+      '@app/clipper-core':
+        specifier: workspace:*
+        version: link:../../packages/clipper-core
       '@app/core-types':
         specifier: workspace:*
         version: link:../../packages/core-types
@@ -223,7 +226,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/clipper-core
       '@app/design-system':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/design-system
       defuddle:
         specifier: ^0.19.5

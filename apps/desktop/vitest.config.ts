@@ -21,6 +21,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@app/core-types": path.join(repoRoot, "packages/core-types/index.ts"),
+      "@app/clipper-core": path.join(
+        repoRoot,
+        "packages/clipper-core/index.ts",
+      ),
       "@app/editor": path.join(repoRoot, "packages/editor/index.ts"),
       "@app/indexer": path.join(repoRoot, "packages/indexer/index.ts"),
       "@app/sync-client": path.join(repoRoot, "packages/sync-client/index.ts"),

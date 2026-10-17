@@ -17,6 +17,7 @@
   "dependencies": {
     "@app/attachments": "workspace:*",
     "@app/canvas": "workspace:*",
+    "@app/clipper-core": "workspace:*",
     "@app/core-types": "workspace:*",
     "@app/design-system": "workspace:*",
     "@app/editor": "workspace:*",
