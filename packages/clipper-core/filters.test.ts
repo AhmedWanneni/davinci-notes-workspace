@@ -73,10 +73,20 @@ describe("array filters", () => {
 });
 
 describe("markdown filters", () => {
-  it("renders wikilinks, images, links, and quotes", () => {
+  it("renders wikilinks, images, links, quotes, and highlights", () => {
     expect(run("wikilink", "Note")).toBe("[[Note]]");
     expect(run("wikilink", "Note", ["Alias"])).toBe("[[Note|Alias]]");
     expect(run("wikilink", ["A", "B"])).toEqual(["[[A]]", "[[B]]"]);
+    expect(run("wikilink", "Hostile]]Target\nMore", ["Bad]]Alias\nMore"])).toBe(
+      "[[HostileTarget More|BadAlias More]]",
+    );
+    expect(run("highlight", "text")).toBe("==text==");
+    expect(run("highlight", "a == b")).toBe("==a \\=\\= b==");
+    expect(run("highlight", "line1\nline2")).toBe("==line1==\n==line2==");
+    expect(run("highlight", ["item1", "item2"])).toEqual([
+      "==item1==",
+      "==item2==",
+    ]);
     expect(run("image", "https://x/y.png", ["alt"])).toBe(
       "![alt](https://x/y.png)",
     );

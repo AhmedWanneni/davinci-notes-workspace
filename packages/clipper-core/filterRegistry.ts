@@ -11,6 +11,7 @@ import { dateFilter } from "./formatDate.js";
 import type { FilterRegistry } from "./filterTypes.js";
 import {
   blockquoteFilter,
+  highlightFilter,
   imageFilter,
   linkFilter,
   markdownFilter,
@@ -47,6 +48,7 @@ export const DEFAULT_FILTERS: FilterRegistry = {
   list: listFilter,
   table: tableFilter,
   blockquote: blockquoteFilter,
+  highlight: highlightFilter,
   wikilink: wikilinkFilter,
   image: imageFilter,
   link: linkFilter,

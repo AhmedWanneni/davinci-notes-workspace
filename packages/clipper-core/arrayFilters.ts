@@ -72,14 +72,18 @@ export const listFilter: FilterFunction = (value, args) => {
 };
 
 export const tableFilter: FilterFunction = (value, args) => {
-  const rows: unknown[] = Array.isArray(value) ? value : [];
-  const records = rows.filter(
-    (row): row is Record<string, unknown> =>
-      typeof row === "object" && row !== null && !Array.isArray(row),
-  );
-  if (records.length === 0) return "";
+  const rawRows: unknown[] = Array.isArray(value) ? value : [];
+  if (rawRows.length === 0) return "";
 
-  const availableKeys = Object.keys(records[0]);
+  const defaultKey = args.length > 0 ? String(args[0]) : "Item";
+  const records = rawRows.map((row) => {
+    if (typeof row === "object" && row !== null && !Array.isArray(row)) {
+      return row as Record<string, unknown>;
+    }
+    return { [defaultKey]: row };
+  });
+
+  const availableKeys = Object.keys(records[0] ?? {});
   // Explicit args are header labels; match them to keys case-insensitively so
   // `table:("Rating")` finds `rating`.
   const columns = (

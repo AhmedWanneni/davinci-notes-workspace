@@ -58,6 +58,7 @@ export function restoreHighlights(
   document: Document,
   records: readonly HighlightRecord[],
 ): number {
+  if (records.length === 0) return 0;
   const nodes = textNodes(document.body);
   const source = nodes.map((node) => node.data).join("");
   let offset = 0;

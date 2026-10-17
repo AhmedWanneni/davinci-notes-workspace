@@ -7,6 +7,8 @@ import { newClipId } from "../clip/newClipId";
 import { loadPairing, type ClipperPairing } from "../pairing/pairingStore";
 import type { StorageArea } from "../storage/storageArea";
 import { loadTemplates } from "../templates/templateStore";
+import type { HighlightRecord } from "../highlighter/HighlightRecord";
+import { loadHighlights, saveHighlight } from "../highlighter/highlightStore";
 import {
   postClipToDesktop,
   type ClipDelivery,
@@ -24,6 +26,16 @@ export interface ClipSessionDeps {
   loadTemplates(): Promise<ClipTemplate[]>;
   /** The stored pairing, or `undefined` when the extension is not paired. */
   loadPairing(): Promise<ClipperPairing | undefined>;
+  /** Stored highlights for the given page URL. */
+  loadHighlights(
+    url: string,
+  ): Promise<import("../highlighter/HighlightRecord.js").HighlightRecord[]>;
+  /** Save a newly selected highlight. */
+  saveHighlight?(
+    record: import("../highlighter/HighlightRecord.js").HighlightRecord,
+  ): Promise<void>;
+  /** Signal the active tab to restore newly added highlights. */
+  notifyHighlightsUpdated?(url: string): Promise<void>;
   /** Export the note as a `.md` download. */
   saveNoteFile(path: string, content: string): Promise<void>;
   /** Send the clip to the app; never throws (see `postClipToDesktop`). */
@@ -41,6 +53,23 @@ export const defaultClipSessionDeps: ClipSessionDeps = {
   readCapture: readActiveTabCapture,
   loadTemplates: () => loadTemplates(area()),
   loadPairing: () => loadPairing(area()),
+  loadHighlights: (url: string) => loadHighlights(area(), url),
+  saveHighlight: (record: HighlightRecord) => saveHighlight(area(), record),
+  notifyHighlightsUpdated: async () => {
+    try {
+      const [tab] = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tab?.id !== undefined) {
+        await browser.tabs.sendMessage(tab.id, {
+          type: "davinci:restore-highlights",
+        });
+      }
+    } catch {
+      // Tab may be closed or scripting not permitted on this URL.
+    }
+  },
   saveNoteFile: (path, content) =>
     downloadNoteFile(browser.downloads, path, content),
   sendClip: async (payload) =>

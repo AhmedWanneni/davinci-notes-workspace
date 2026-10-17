@@ -35,6 +35,14 @@ export type {
   FilterRuntime,
 } from "./filterTypes.js";
 export { DEFAULT_FILTERS, createFilterRegistry } from "./filterRegistry.js";
+export {
+  blockquoteFilter,
+  highlightFilter,
+  imageFilter,
+  linkFilter,
+  markdownFilter,
+  wikilinkFilter,
+} from "./markdownFilters.js";
 
 export {
   applyFilters,

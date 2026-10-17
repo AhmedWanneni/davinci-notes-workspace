@@ -39,6 +39,9 @@ export interface ClipPopupController {
   sent: boolean;
   /** Vault-relative path of the last clip the app wrote, when it reported one. */
   sentPath?: string;
+  canHighlightSelection?: boolean;
+  highlightsCount?: number;
+  highlightSelection?(): void;
   setMode(mode: ClipMode): void;
   setTemplateId(id: string): void;
   setNoteName(noteName: string): void;
@@ -104,11 +107,25 @@ export function ClipPopup({ controller }: ClipPopupProps) {
 
       {status === "ready" && payload ? (
         <>
-          <ClipModeSelector
-            mode={controller.mode}
-            onChange={controller.setMode}
-            disabledModes={controller.disabledModes}
-          />
+          <div className={styles["clip-popup__mode-row"]}>
+            <ClipModeSelector
+              mode={controller.mode}
+              onChange={controller.setMode}
+              disabledModes={controller.disabledModes}
+            />
+            {controller.canHighlightSelection &&
+            controller.highlightSelection ? (
+              <div className={styles["clip-popup__highlight-action"]}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={controller.highlightSelection}
+                >
+                  Highlight selection
+                </Button>
+              </div>
+            ) : null}
+          </div>
           <TemplatePicker
             templates={controller.templates}
             selectedId={controller.templateId}

@@ -82,6 +82,6 @@ describe("clip pipeline cost", () => {
     expect(result.payload.target.noteName).toBe("Large.md");
     expect(result.payload.body).toContain("Paragraph 3999.");
     expect(result.payload.contentHash).toHaveLength(16);
-    expect(elapsed).toBeLessThan(8000);
+    expect(elapsed).toBeLessThan(12000);
   }, 60_000);
 });

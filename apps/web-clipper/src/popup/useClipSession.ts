@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   composeNoteFile,
-  matchTemplate,
   suggestedFilePath,
   type ClipMode,
-  type ClipTemplate,
 } from "@app/clipper-core";
-import type { PageCapture } from "../capture/readPage";
 import type { ClipPopupController, ClipStatus } from "../components/ClipPopup";
 import { applyClipEdits, type ClipEdits } from "../clip/applyClipEdits";
 import {
@@ -14,43 +11,33 @@ import {
   EMPTY_CLIP_DRAFT,
   type ClipDraft,
 } from "../clip/clipDraft";
-import { defaultClipMode } from "../clip/defaultClipMode";
 import { prepareClipContext } from "../clip/prepareClipContext";
 import { renderClipPayload } from "../clip/renderClipPayload";
-import { parsePageHtml } from "../page/parsePageHtml";
-import { schemaTypesOf } from "../page/schemaTypes";
 import { fallbackTemplate } from "../templates/templateStore";
 import { describeDeliveryFailure } from "../transport/describeDeliveryFailure";
 import {
   defaultClipSessionDeps,
   type ClipSessionDeps,
 } from "./clipSessionDeps";
-
-/** The page, read once, plus everything derived from it that is template-independent. */
-interface LoadedPage {
-  capture: PageCapture;
-  doc: Document;
-  templates: readonly ClipTemplate[];
-  matchedTemplateId?: string;
-  clipId: string;
-  capturedAt: string;
-  now: Date;
-}
+import {
+  createHighlightRecord,
+  loadClipPage,
+  type LoadedClipPage,
+} from "./loadClipPage";
 
 /**
  * Drive one clip session for the popup.
  *
- * The page is read exactly once when the popup opens (there is no content script
- * and no re-read). Changing the mode re-prepares the context, because the source
- * content differs; changing the template or typing in a field only re-renders,
- * which is why preparation and rendering are separate steps.
+ * The page is read exactly once when the popup opens. Changing the mode re-prepares
+ * the context, because the source content differs; changing the template or typing
+ * in a field only re-renders.
  */
 export function useClipSession(
   deps: ClipSessionDeps = defaultClipSessionDeps,
 ): ClipPopupController {
   const [status, setStatus] = useState<ClipStatus>("loading");
   const [error, setError] = useState<string>();
-  const [page, setPage] = useState<LoadedPage>();
+  const [page, setPage] = useState<LoadedClipPage>();
   const [mode, setMode] = useState<ClipMode>("full");
   const [chosenTemplateId, setChosenTemplateId] = useState<string>();
   const [edits, setEdits] = useState<ClipEdits>({});
@@ -60,8 +47,6 @@ export function useClipSession(
   const [saveError, setSaveError] = useState<string>();
   const [sentPath, setSentPath] = useState<string>();
 
-  // Read through a ref and run once: a re-created `deps` object must not trigger a
-  // second page read, and the popup is a fresh document on every open.
   const depsRef = useRef(deps);
   depsRef.current = deps;
 
@@ -70,34 +55,11 @@ export function useClipSession(
 
     void (async () => {
       try {
-        const { loadTemplates, loadPairing, readCapture, newClipId, now } =
-          depsRef.current;
-        const [stored, capture, pairing] = await Promise.all([
-          loadTemplates(),
-          readCapture(),
-          loadPairing(),
-        ]);
+        const initial = await loadClipPage(depsRef.current);
         if (cancelled) return;
-
-        const templates = stored.length > 0 ? stored : [fallbackTemplate()];
-        const doc = parsePageHtml(capture.html, capture.url);
-        const matched = matchTemplate(templates, {
-          url: capture.url,
-          schemaTypes: schemaTypesOf(doc),
-        });
-        const moment = now();
-
-        setPage({
-          capture,
-          doc,
-          templates,
-          matchedTemplateId: matched?.id,
-          clipId: newClipId(),
-          capturedAt: moment.toISOString(),
-          now: moment,
-        });
-        setMode(defaultClipMode(capture));
-        setPaired(pairing !== undefined);
+        setPage(initial.page);
+        setMode(initial.mode);
+        setPaired(initial.paired);
         setStatus("ready");
       } catch (cause) {
         if (cancelled) return;
@@ -127,6 +89,7 @@ export function useClipSession(
             doc: page.doc,
             mode,
             now: page.now,
+            highlights: page.highlights.map((h) => h.text),
           }),
     [page, mode],
   );
@@ -148,7 +111,6 @@ export function useClipSession(
     [built, edits],
   );
 
-  /** The fields show raw typing; `payload` above is what those edits sanitise to. */
   const draft = useMemo<ClipDraft>(
     () =>
       built === undefined
@@ -158,33 +120,56 @@ export function useClipSession(
   );
 
   const disabledModes = useMemo<readonly ClipMode[]>(() => {
-    // There is no highlighter until the highlights phase, so that mode has no
-    // source yet. It stays listed so the option is not silently missing.
-    const disabled: ClipMode[] = ["highlights"];
-    if ((page?.capture.selection ?? "").trim().length === 0) {
-      disabled.push("selection");
-    }
+    const disabled: ClipMode[] = [];
+    if (!page?.highlights.length) disabled.push("highlights");
+    if (!(page?.capture.selection ?? "").trim()) disabled.push("selection");
     return disabled;
   }, [page]);
 
+  const canHighlightSelection =
+    (page?.capture.selection ?? "").trim().length > 0;
+
+  const highlightSelection = useCallback(() => {
+    if (!page || !canHighlightSelection) return;
+    const text = (page.capture.selection ?? "").trim();
+    const record = createHighlightRecord(
+      page.capture.url,
+      text,
+      depsRef.current.newClipId,
+      depsRef.current.now,
+    );
+    void (async () => {
+      try {
+        await depsRef.current.saveHighlight?.(record);
+        await depsRef.current.notifyHighlightsUpdated?.(page.capture.url);
+        setPage((curr) =>
+          curr
+            ? { ...curr, highlights: [...curr.highlights, record] }
+            : undefined,
+        );
+      } catch {
+        // best-effort from popup
+      }
+    })();
+  }, [page, canHighlightSelection]);
+
   const setTemplateId = useCallback((id: string) => {
-    // A hand-edited name or folder belongs to the template that produced it.
     setEdits({});
     setChosenTemplateId(id);
   }, []);
 
   const setNoteName = useCallback((noteName: string) => {
-    setEdits((current) => ({ ...current, noteName }));
+    setEdits((curr) => ({ ...curr, noteName }));
   }, []);
 
   const setFolder = useCallback((folder: string) => {
-    setEdits((current) => ({ ...current, folder }));
+    setEdits((curr) => ({ ...curr, folder }));
   }, []);
 
   const setProperty = useCallback((name: string, value: string) => {
-    setEdits((current) => ({
-      ...current,
-      properties: { ...current.properties, [name]: value },
+    setEdits((curr) => ({
+      ...curr,
+      properties: { ...curr.properties, [name]: value },
     }));
   }, []);
 
@@ -192,7 +177,6 @@ export function useClipSession(
     if (payload === undefined) return;
     const path = suggestedFilePath(payload);
     const file = composeNoteFile(payload);
-
     setDownloading(true);
     setSaveError(undefined);
 
@@ -214,7 +198,6 @@ export function useClipSession(
   const send = useCallback(() => {
     if (payload === undefined) return;
     const clip = payload;
-
     setSending(true);
     setSaveError(undefined);
     setSentPath(undefined);
@@ -225,7 +208,6 @@ export function useClipSession(
         if (delivery.delivered) setSentPath(delivery.path ?? "");
         else setSaveError(describeDeliveryFailure(delivery.reason));
       } catch (cause) {
-        // `sendClip` reports failures as values; this is the seam misbehaving.
         setSaveError(
           cause instanceof Error
             ? cause.message
@@ -259,6 +241,9 @@ export function useClipSession(
     downloading,
     sent: sentPath !== undefined,
     sentPath: sentPath === "" ? undefined : sentPath,
+    canHighlightSelection,
+    highlightsCount: page?.highlights.length ?? 0,
+    highlightSelection,
     setMode,
     setTemplateId,
     setNoteName,

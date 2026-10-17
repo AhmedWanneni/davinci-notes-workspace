@@ -220,13 +220,28 @@ describe("ClipPopup", () => {
     expect(download).toHaveBeenCalledTimes(1);
   });
 
+  it("allows highlighting the selection when a selection is present", () => {
+    const highlightSelection = vi.fn();
+    render(
+      <ClipPopup
+        controller={controller({
+          canHighlightSelection: true,
+          highlightSelection,
+        })}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Highlight selection" }),
+    );
+    expect(highlightSelection).toHaveBeenCalledTimes(1);
+  });
+
   it("shows a failed save without losing the form", () => {
     render(
       <ClipPopup
         controller={controller({ error: "The note could not be saved." })}
       />,
     );
-
     expect(screen.getByRole("alert")).toHaveTextContent(
       "The note could not be saved.",
     );
@@ -235,7 +250,6 @@ describe("ClipPopup", () => {
 
   it("blocks a second download while one is in flight", () => {
     render(<ClipPopup controller={controller({ downloading: true })} />);
-
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
   });
 });

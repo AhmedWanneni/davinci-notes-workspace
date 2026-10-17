@@ -11,13 +11,42 @@ export const blockquoteFilter: FilterFunction = (value) => {
 };
 
 export const wikilinkFilter: FilterFunction = (value, args) => {
-  const alias = args.length > 0 ? String(args[0]) : undefined;
-  const wrap = (target: string): string =>
-    alias === undefined || alias.length === 0
-      ? `[[${target}]]`
-      : `[[${target}|${alias}]]`;
-  if (Array.isArray(value)) return value.map((item) => wrap(String(item)));
+  const sanitize = (text: string): string =>
+    text
+      .replace(/\]\]/g, "")
+      .replace(/[\r\n]+/g, " ")
+      .trim();
+  const rawAlias = args.length > 0 ? String(args[0]) : undefined;
+  const alias = rawAlias !== undefined ? sanitize(rawAlias) : undefined;
+  const wrap = (target: string): string => {
+    const cleanTarget = sanitize(target);
+    return alias === undefined || alias.length === 0
+      ? `[[${cleanTarget}]]`
+      : `[[${cleanTarget}|${alias}]]`;
+  };
+  if (Array.isArray(value)) return value.map((item) => wrap(asText(item)));
   return wrap(asText(value));
+};
+
+function formatHighlightText(raw: string): string {
+  const text = raw.trim();
+  if (text.length === 0) return "";
+  const escaped = text.replace(/==/g, "\\=\\=");
+  const lines = escaped.split(/\r?\n/);
+  return lines
+    .map((line) => {
+      const trimmed = line.trim();
+      return trimmed.length === 0 ? "" : `==${trimmed}==`;
+    })
+    .filter((line) => line.length > 0)
+    .join("\n");
+}
+
+export const highlightFilter: FilterFunction = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => formatHighlightText(asText(item)));
+  }
+  return formatHighlightText(asText(value));
 };
 
 export const imageFilter: FilterFunction = (value, args) => {

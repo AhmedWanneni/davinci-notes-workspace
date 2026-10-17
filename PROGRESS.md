@@ -4,41 +4,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Web Clipper Phase 4 (part 1): template library settings
+## Last Session — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration
 
-**Scope:** extension options-page template management: the starter library can now
-be created, edited, duplicated, deleted, restored, imported and exported. This is
-the first bounded part of Phase 4; settings export and any future cross-setting
-surface remain out of scope.
+**Scope:** Page text-quote anchoring and highlighting, persistent storage per URL in `chrome.storage.local` with bounded FIFO eviction, zero-cost idle restoration on un-highlighted pages, popup "Highlight selection" action with dynamic highlights extraction mode enablement, and safe markdown rendering filters (`highlight`, hardened `wikilink`, primitive-row `table`).
 
-**Built (`apps/web-clipper`).** `TemplatesPanel` presents the stored order (which
-is the first-match auto-apply precedence) beside an isolated draft editor for the
-complete `ClipTemplate` shape: name, behaviour, name format, folder, optional
-vault, one-per-line tags and triggers, ordered frontmatter properties, and body.
-Draft changes cannot affect the popup until an explicit save validates them.
-Create/duplicate/delete/restore persist immediately and always report a storage
-failure rather than pretending success. All components have colocated SCSS,
-stories and interaction tests; no package was added.
+**Built (`packages/clipper-core` & `apps/web-clipper`):**
+- `markdownFilters.ts`: Added `highlightFilter` (registered as `highlight`) wrapping text in `==...==`, escaping nested `==` to `\=\=`, and splitting multi-line selections across lines. Hardened `wikilinkFilter` by stripping `]]` and converting newlines to spaces so wikilink syntax cannot be broken by adversarial content.
+- `arrayFilters.ts`: Updated `tableFilter` to support primitive arrays (such as highlight string lists) as rows, escaping `|` to `\|` and newlines to spaces.
+- `apps/web-clipper`: Added `loadClipPage.ts` (factored page extraction, templates, pairing, and highlights parallel loading to strictly keep `useClipSession.ts` at 248 lines, under the 250 hard cap).
+- `clipSessionDeps.ts`: Added `loadHighlights`, `saveHighlight`, and `notifyHighlightsUpdated` (sends `davinci:restore-highlights` to active tab).
+- `ClipPopup.tsx` & `.module.scss`: Added `.clip-popup__highlight-action` rendering "Highlight selection" button (`size="sm"`) when an active text selection is present.
+- `pageHighlights.ts`: Added instant `if (records.length === 0) return 0;` early bailout in `restoreHighlights`, avoiding tree walker creation and DOM traversal on clean pages (<0.01 ms vs 55 ms on a 5,000-node DOM).
 
-**Import/export.** Export is a JSON download in list order. Import accepts only a
-non-empty JSON template array up to **1 MiB**, validates every entry before one
-atomic replacement, rejects duplicate IDs and literal absolute/traversal/backslash
-folders, then leaves the stored library untouched on any error. Existing
-`validateClipTemplate` already bounds auto-apply regexes, so hostile patterns are
-refused before they can reach popup matching. The 1 MiB cap rejects the plan's
-5 MiB adversarial input before JSON parsing; it is vastly above a practical
-template library while avoiding a large options-page allocation.
+**Adversarial Verification (`highlighterAdversarial.test.ts`):**
+1. Check 1 (5,000 nodes + 200 highlights): 200 highlights restored cleanly in jsdom; zero cost (<0.01 ms) on 5,000-node page with 0 highlights.
+2. Check 2 (DOM mutated/deleted): Graceful skip when anchor text no longer exists, zero errors thrown, remaining valid highlights restored.
+3. Check 3 (Hostile quote syntax): Selection containing `==`, `]]`, `|`, and `\n` rendered safely without breaking highlight, wikilink, or table syntax.
+4. Check 4 (Bounded storage & eviction): Enforces `MAX_HIGHLIGHTS = 2,000` and `MAX_HIGHLIGHTS_PER_URL = 200` with oldest-first eviction.
 
-**Verification:** web-clipper **198 tests across 29 files** pass; ESLint and
-`tsc --noEmit` pass; `wxt build` passes. The total extension is 630.29 kB raw /
-**186,008 B gzip** (the options-specific JS/CSS are 20.98 kB raw / 6,000 B gzip).
-No dependencies or runtime background work were added. The Sass `@import`
-deprecation warnings come from the existing design system.
+**Verification:**
+- `@app/clipper-core`: 14 files, 81 tests passing.
+- `@app/web-clipper`: 33 files, 211 tests passing.
+- ESLint and `tsc --noEmit`: 0 errors.
+- `wxt build`: clean build in 932 ms (655.90 kB raw / 194.1 kB gzip).
 
-**Next up:** manually exercise the options page in Chromium (especially native
-file chooser/export download) and complete any separately-scoped remaining Phase
-4 settings export work. The Phase 3 owner-local loopback/browser handshake checks
-remain outstanding.
+**Next up:** Web Clipper Phase 6: Attachments download / offline images. Desktop receiver fetches images referenced in clips (reusing `packages/attachments` and SSRF protections).
 
 ---
 
