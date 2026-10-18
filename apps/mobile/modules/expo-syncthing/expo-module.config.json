@@ -1,0 +1,8 @@
+{
+  "name": "expo-syncthing",
+  "platforms": ["android"],
+  "android": {
+    "package": "com.davinci.syncthing",
+    "modules": ["com.davinci.syncthing.ExpoSyncthingModule"]
+  }
+}
