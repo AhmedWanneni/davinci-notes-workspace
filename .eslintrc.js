@@ -31,6 +31,7 @@ module.exports = {
       { type: "attachments", pattern: "packages/attachments/**/*", mode: "full" },
       { type: "sanitize", pattern: "packages/sanitize/**/*", mode: "full" },
       { type: "syncthing-api", pattern: "packages/syncthing-api/**/*", mode: "full" },
+      { type: "google-calendar-api", pattern: "packages/google-calendar-api/**/*", mode: "full" },
       { type: "app-desktop", pattern: "apps/desktop/**/*", mode: "full" },
       { type: "app-mobile", pattern: "apps/mobile/**/*", mode: "full" },
       { type: "service", pattern: "services/**/*", mode: "full" }
@@ -52,6 +53,7 @@ module.exports = {
           { from: "attachments", allow: ["attachments"] },
           { from: "sanitize", allow: ["sanitize"] },
           { from: "syncthing-api", allow: ["core-types", "syncthing-api"] },
+          { from: "google-calendar-api", allow: ["core-types", "google-calendar-api"] },
           { from: "plugin-api", allow: ["core-types", "plugin-api"] },
           { from: "plugin-runtime", allow: ["core-types", "plugin-api", "plugin-runtime"] },
           { from: "theme-api", allow: ["theme-api"] },
@@ -75,6 +77,7 @@ module.exports = {
               "attachments",
               "sanitize",
               "syncthing-api",
+              "google-calendar-api",
               "app-desktop"
             ]
           },
@@ -95,6 +98,7 @@ module.exports = {
               "attachments",
               "sanitize",
               "syncthing-api",
+              "google-calendar-api",
               "app-mobile"
             ]
           },

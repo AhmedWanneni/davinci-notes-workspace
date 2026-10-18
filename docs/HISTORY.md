@@ -4,7 +4,29 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
-### 2026-10-17: Public Astro Website — Initial Landing Page
+### 2026-10-18: Google Calendar & Google Meet Integration — Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`)
+
+- **Feature Planning & Architecture**:
+  - Documented complete phased build plan in `plans/google-calendar-feature-plan.md`.
+  - Authored and accepted **ADR-0199** (`docs/adr/0199-google-calendar-oauth-architecture-and-scope-isolation.md`): Established sensitive-scope read-only architecture (`calendar.events.readonly`, `calendar.calendarlist.readonly`), dedicated OS keychain service (`com.davinci.notes.calendar-oauth`) isolated from Drive sync, and zero-SDK direct REST client boundary.
+  - Registered ADR-0199 in `DECISIONS.md`.
+- **Shared Package Implementation (`packages/google-calendar-api/`)**:
+  - Built pure TypeScript package with 0 external runtime dependencies.
+  - `calendarTypes.ts`: Full domain modeling for calendars, raw API events, normalized events, attendees, and delta query options.
+  - `parseMeetLink.ts`: Robust Meet link extraction with priority order: `hangoutLink` -> `conferenceData.entryPoints` (video) -> regex fallback in `location` / `description`, with URL protocol sanitization.
+  - `calendarClient.ts`: Lightweight, zero-dependency `fetch` REST client for `listCalendars` and `listEvents` (supporting `syncToken` delta queries and error typing for 401 Auth Expired, 410 SyncToken Expired, and 4xx/5xx).
+- **Monorepo Wiring & Verification**:
+  - Wired `@app/google-calendar-api` in root `tsconfig.json` paths and `.eslintrc.js` boundaries rules.
+  - 13/13 Vitest tests pass across `parseMeetLink.test.ts` and `calendarClient.test.ts`.
+  - Typecheck passes cleanly; 0 ESLint errors; all files under 160 lines (enforcing soft cap 200).
+
+---
+
+## Session Log
+
+| Date | Focus | Outcome |
+|---|---|---|
+| 2026-10-18 | Google Calendar Integration Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`) | Shipped Phase 0 (ADR-0199 OAuth scope isolation, sensitive-scope policy, OS keychain separation) and Phase 1 (created `@app/google-calendar-api` shared package with zero external SDKs, Meet link parser, and `syncToken`-ready REST client). 13/13 Vitest tests pass; 0 ESLint / 0 typecheck errors; all files under 160 lines. |
 
 - Added `apps/website`, a static Astro 7.4.0 application with scripts for local development, production builds, previewing, and validation.
 - Created an editorial, responsive Davinci landing page inspired by Logseq's calm, privacy-first positioning without copying its layout or assets.
