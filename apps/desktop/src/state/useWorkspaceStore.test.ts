@@ -320,4 +320,27 @@ describe("useWorkspaceStore", () => {
     await store.setActiveNote("b.md");
     expect(useWorkspaceStore.getState().isGlobalGraphOpen).toBe(false);
   });
+
+  it("automatically closes calendar when opening or activating a note, and keeps calendar/graph mutually exclusive", async () => {
+    const store = useWorkspaceStore.getState();
+    store.setIsCalendarOpen(true);
+    expect(useWorkspaceStore.getState().isCalendarOpen).toBe(true);
+
+    store.setIsGlobalGraphOpen(true);
+    expect(useWorkspaceStore.getState().isGlobalGraphOpen).toBe(true);
+    expect(useWorkspaceStore.getState().isCalendarOpen).toBe(false);
+
+    store.setIsCalendarOpen(true);
+    expect(useWorkspaceStore.getState().isCalendarOpen).toBe(true);
+    expect(useWorkspaceStore.getState().isGlobalGraphOpen).toBe(false);
+
+    await store.openNote("a.md");
+    expect(useWorkspaceStore.getState().isCalendarOpen).toBe(false);
+
+    store.setIsCalendarOpen(true);
+    expect(useWorkspaceStore.getState().isCalendarOpen).toBe(true);
+
+    await store.setActiveNote("b.md");
+    expect(useWorkspaceStore.getState().isCalendarOpen).toBe(false);
+  });
 });
