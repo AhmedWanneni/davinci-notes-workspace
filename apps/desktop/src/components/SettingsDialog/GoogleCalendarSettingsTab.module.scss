@@ -60,3 +60,29 @@
   color: var(--color-text-primary, #ffffff);
   width: 180px;
 }
+
+.settings-input-wide {
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--font-size-sm, 13px);
+  border: 1px solid var(--color-border-subtle, #333);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-bg-base, #161616);
+  color: var(--color-text-primary, #ffffff);
+  width: 100%;
+  max-width: 320px;
+}
+
+.settings-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  margin-bottom: var(--space-3, 12px);
+  border: 1px solid var(--color-text-error, #f87171);
+  background: var(--color-bg-secondary, #222);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--color-text-error, #fca5a5);
+  font-size: var(--font-size-sm, 13px);
+  gap: var(--space-2, 8px);
+}
+

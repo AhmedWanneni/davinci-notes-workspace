@@ -5,6 +5,7 @@ export interface CalendarOAuthToken {
   refreshToken?: string;
   expiresAt: number;
   scope: string;
+  clientId?: string;
 }
 
 export interface CalendarTokenStore {

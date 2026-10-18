@@ -13,8 +13,8 @@ vi.mock("@tauri-apps/api/core", () => ({
 }));
 
 vi.mock("./calendarAuthConfig", () => ({
-  getCalendarOAuthConfig: () => ({
-    clientId: "mock-client-id.apps.googleusercontent.com",
+  getCalendarOAuthConfig: (customClientId?: string) => ({
+    clientId: customClientId || "mock-client-id.apps.googleusercontent.com",
     authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
     tokenEndpoint: "https://oauth2.googleapis.com/token",
     revocationEndpoint: "https://oauth2.googleapis.com/revoke",
@@ -184,4 +184,40 @@ describe("desktopCalendarAuth", () => {
       "calendar-oauth-state-mismatch",
     );
   });
+
+  it("signInToCalendar respects custom client ID", async () => {
+    let capturedState = "";
+    const { invoke } = await import("@tauri-apps/api/core");
+    vi.mocked(invoke).mockImplementation(async (cmd) => {
+      if (cmd === "start_oauth_listener") {
+        return { port: 8089, redirect_uri: "http://127.0.0.1:8089" };
+      }
+      if (cmd === "wait_for_oauth_callback") {
+        return { code: "auth-code-123", state: capturedState };
+      }
+      return null;
+    });
+
+    let openedUrl = "";
+    const openUrl = vi.fn(async (urlStr: string) => {
+      openedUrl = urlStr;
+      const u = new URL(urlStr);
+      capturedState = u.searchParams.get("state") || "";
+    });
+
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        access_token: "custom-token",
+        expires_in: 3600,
+      }),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const token = await signInToCalendar(openUrl, mockTokenStore, "custom-client-id-123");
+    expect(openedUrl).toContain("client_id=custom-client-id-123");
+    expect(token.clientId).toBe("custom-client-id-123");
+  });
 });
+

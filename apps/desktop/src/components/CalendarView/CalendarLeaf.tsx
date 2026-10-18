@@ -71,6 +71,7 @@ export function CalendarLeaf({
   const handleJoinMeet = (url: string) => {
     void invoke("open_external_url", { url }).catch((err) => {
       console.error("Failed to open meeting url:", err);
+      setError(err instanceof Error ? err.message : String(err));
     });
   };
 

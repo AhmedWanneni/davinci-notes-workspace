@@ -73,8 +73,9 @@ export async function signInToCalendar(
   openAuthorizationUrl: (url: string) => Promise<void> = (url) =>
     invoke("open_external_url", { url }),
   tokenStore: CalendarTokenStore = createCalendarTokenStore(),
+  customClientId?: string,
 ): Promise<CalendarOAuthToken> {
-  const config = getCalendarOAuthConfig();
+  const config = getCalendarOAuthConfig(customClientId);
   const endpoint = await invoke<LoopbackEndpoint>("start_oauth_listener");
   const redirectUri = endpoint.redirect_uri;
   const verifier = generateVerifier();
@@ -110,8 +111,13 @@ export async function signInToCalendar(
     config.tokenEndpoint,
   );
 
-  await tokenStore.save(token);
-  return token;
+  const tokenWithClientId: CalendarOAuthToken = {
+    ...token,
+    clientId: config.clientId,
+  };
+
+  await tokenStore.save(tokenWithClientId);
+  return tokenWithClientId;
 }
 
 export async function getCalendarAccessToken(
@@ -131,7 +137,7 @@ export async function getCalendarAccessToken(
     throw new CalendarReauthRequiredError("Token expired and no refresh token available");
   }
 
-  const config = getCalendarOAuthConfig();
+  const config = getCalendarOAuthConfig(token.clientId);
   try {
     const refreshed = await requestToken(
       new URLSearchParams({
@@ -147,6 +153,7 @@ export async function getCalendarAccessToken(
       refreshToken: refreshed.refreshToken ?? token.refreshToken,
       expiresAt: refreshed.expiresAt,
       scope: refreshed.scope || token.scope,
+      clientId: token.clientId ?? config.clientId,
     };
 
     await tokenStore.save(merged);
@@ -164,13 +171,17 @@ export async function disconnectCalendar(
 ): Promise<void> {
   const token = await tokenStore.load();
   if (token) {
-    const config = getCalendarOAuthConfig();
-    const tokenToRevoke = token.refreshToken ?? token.accessToken;
-    if (tokenToRevoke) {
-      await fetch(`${config.revocationEndpoint}?token=${encodeURIComponent(tokenToRevoke)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      }).catch(() => {});
+    try {
+      const config = getCalendarOAuthConfig(token.clientId);
+      const tokenToRevoke = token.refreshToken ?? token.accessToken;
+      if (tokenToRevoke) {
+        await fetch(`${config.revocationEndpoint}?token=${encodeURIComponent(tokenToRevoke)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        }).catch(() => {});
+      }
+    } catch {
+      // Ignore config lookup error during disconnect
     }
   }
   await tokenStore.clear();

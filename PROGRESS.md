@@ -4,6 +4,25 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Google Calendar & Meet Browser Launch & Settings UI Error Resolution (complete)**
+- **Rust URL Allowlist (`apps/desktop/src-tauri/src/oauth.rs`)**:
+  - Broadened `open_external_url` allowlist to validate and permit Google Meet URLs (`https://meet.google.com/`, `http://meet.google.com/`) alongside Google OAuth authorization URLs (`https://accounts.google.com/`).
+  - Added unit tests in `oauth.rs` for `is_allowed_external_url`, verifying rejection of untrusted schemes/domains and acceptance of accounts/meet URLs.
+- **Dynamic Client ID & Error Surfacing (`calendarAuthConfig.ts`, `desktopCalendarAuth.ts`)**:
+  - Implemented dynamic Client ID resolution and fallback from SQLite setting `calendar.clientId` to allow zero-terminal setup without needing to rebuild or manually create `.env`.
+  - Added `clientId?: string` field to `CalendarOAuthToken` and stored on login so token refresh/revocation retains the client ID.
+  - Documented `VITE_GOOGLE_CLIENT_ID` in `apps/desktop/.env.example` and `vite-env.d.ts`.
+- **UI Error Banners & Component Splitting (`GoogleCalendarSettingsTab.tsx`, `GoogleAccountCard.tsx`, `CalendarPreferencesCard.tsx`)**:
+  - Refactored `GoogleCalendarSettingsTab.tsx` into modular components (`GoogleAccountCard.tsx`, `CalendarPreferencesCard.tsx`, `VisibleCalendarsCard.tsx`), keeping all files strictly under 195 lines (adhering to 150-200 soft cap).
+  - Surfaced actionable error alerts (`role="alert"`, `data-testid="calendar-settings-error"`) whenever OAuth or network requests fail instead of silently logging to `console.error`.
+  - Added an OAuth Client ID text input in `GoogleAccountCard` linked to SQLite `calendar.clientId`.
+  - Wired meeting link failures in `CalendarLeaf.tsx` to surface directly in the leaf's error banner.
+- **Testing & Verification**:
+  - Added Storybook stories and unit tests for `GoogleAccountCard` and `CalendarPreferencesCard`.
+  - All 44 calendar-related tests pass across `@app/google-calendar-api` and `@app/desktop`; Rust tests pass; `build:web` passes cleanly.
+
+---
+
 **Google Calendar & Google Meet Integration Complete (Phases 0–8 Fully Shipped)**
 - **Phase 8 Hardening, Offline Resiliency & Bundle Audit (`calendarHardening.test.ts`)**:
   - Offline Resiliency: Verified that network errors (`Failed to fetch`) fail gracefully without corrupting local SQLite event tables or resetting valid sync tokens.

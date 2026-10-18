@@ -155,4 +155,45 @@ describe("GoogleCalendarSettingsTab", () => {
       );
     });
   });
+
+  it("surfaces error banner when connect fails", async () => {
+    vi.mocked(auth.loadCalendarToken).mockResolvedValue(null);
+    vi.mocked(auth.signInToCalendar).mockRejectedValue(
+      new Error("Google Client ID is not configured"),
+    );
+
+    render(<GoogleCalendarSettingsTab />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("connect-calendar-btn")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByTestId("connect-calendar-btn"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("calendar-settings-error")).toBeDefined();
+      expect(screen.getByText("Google Client ID is not configured")).toBeDefined();
+    });
+  });
+
+  it("allows setting custom client id and saves to database", async () => {
+    vi.mocked(auth.loadCalendarToken).mockResolvedValue(null);
+
+    render(<GoogleCalendarSettingsTab />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("calendar-client-id-input")).toBeDefined();
+    });
+
+    const clientInput = screen.getByTestId("calendar-client-id-input");
+    fireEvent.change(clientInput, { target: { value: "my-custom-client-id" } });
+
+    await waitFor(() => {
+      expect(settings.setSetting).toHaveBeenCalledWith(
+        expect.anything(),
+        "calendar.clientId",
+        "my-custom-client-id",
+      );
+    });
+  });
 });
