@@ -5,4 +5,5 @@ declare const __LARGE_FIXTURE_VAULT_PATH__: string;
 
 interface ImportMetaEnv {
   readonly VITE_GOOGLE_DRIVE_CLIENT_ID?: string;
+  readonly VITE_GOOGLE_CLIENT_ID?: string;
 }

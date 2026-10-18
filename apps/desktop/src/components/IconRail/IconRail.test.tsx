@@ -71,4 +71,34 @@ describe("IconRail", () => {
     fireEvent.click(remindersBtn);
     expect(onOpenReminders).toHaveBeenCalledOnce();
   });
+
+  it("renders calendar button, triggers onOpenCalendar, and reflects isCalendarOpen", () => {
+    const onOpenCalendar = vi.fn();
+    const { rerender } = renderIconRail({ onOpenCalendar, isCalendarOpen: false });
+
+    const calBtn = screen.getByLabelText("Calendar");
+    expect(calBtn).toBeDefined();
+    expect(calBtn.getAttribute("data-active")).toBeNull();
+
+    fireEvent.click(calBtn);
+    expect(onOpenCalendar).toHaveBeenCalledOnce();
+
+    rerender(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={false}
+          onToggleLeftSidebar={vi.fn()}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          onOpenCalendar={onOpenCalendar}
+          isCalendarOpen={true}
+        />
+      </TooltipProvider>,
+    );
+
+    const activeCalBtn = screen.getByLabelText("Calendar");
+    expect(activeCalBtn.getAttribute("data-active")).toBe("true");
+  });
 });

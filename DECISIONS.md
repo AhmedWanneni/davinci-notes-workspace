@@ -285,3 +285,12 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0196](adr/0196-mobile-vault-storage-and-flow-remediation.md) | Mobile vault storage and flow remediation: object-based fs seam, atomic overwrite, and UI hardening | Accepted |
 | [0197](adr/0197-mobile-note-identity-and-rename-safety.md) | Stable note identity via NoteStore, single-pass atomic write, and safe collision-free rename | Accepted |
 | [0198](adr/0198-syncthing-desktop-mobile-sync-verification-and-conflict-isolation.md) | Syncthing desktop-mobile sync verification, non-destructive conflict routing, and transfer isolation | Accepted |
+
+## Google Integrations
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0199](adr/0199-google-calendar-oauth-architecture-and-scope-isolation.md) | Google Calendar read-only OAuth architecture, scope isolation, and OS keychain separation from Drive sync | Accepted |
+| [0201](adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md) | Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization | Accepted |
+| [0202](adr/0202-calendar-ui-shell-and-obsidian-leaf-integration.md) | Calendar UI shell: IconRail entry, lazy-loaded Obsidian CalendarLeaf, and mutually exclusive navigation state | Accepted |
+| [0203](adr/0203-calendar-reminder-alerts-and-tray-integration.md) | Calendar reminder alerts (5-minute heads-up) and menu-bar system tray upcoming meeting integration | Accepted |

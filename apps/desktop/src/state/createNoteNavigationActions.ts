@@ -15,12 +15,15 @@ export interface NoteNavigationState {
   conflictNotes: Map<string, string>;
   allNotePaths: string[];
   isGlobalGraphOpen: boolean;
+  isCalendarOpen: boolean;
   noteHistory: NoteHistory;
 }
 
 export interface NoteNavigationActions {
   isGlobalGraphOpen: boolean;
   setIsGlobalGraphOpen: (open: boolean) => void;
+  isCalendarOpen: boolean;
+  setIsCalendarOpen: (open: boolean) => void;
   openNote: (path: string) => Promise<void>;
   closeNote: (path: string) => Promise<void>;
   setActiveNote: (path: string) => Promise<void>;
@@ -45,8 +48,19 @@ export function createNoteNavigationActions(
 ): NoteNavigationActions {
   return {
     isGlobalGraphOpen: false,
+    isCalendarOpen: false,
 
-    setIsGlobalGraphOpen: (open: boolean) => set({ isGlobalGraphOpen: open }),
+    setIsGlobalGraphOpen: (open: boolean) =>
+      set((state) => ({
+        isGlobalGraphOpen: open,
+        isCalendarOpen: open ? false : state.isCalendarOpen,
+      })),
+
+    setIsCalendarOpen: (open: boolean) =>
+      set((state) => ({
+        isCalendarOpen: open,
+        isGlobalGraphOpen: open ? false : state.isGlobalGraphOpen,
+      })),
 
     openNote: async (path: string) => {
       const { notesContent, openNotes } = get();
@@ -74,6 +88,7 @@ export function createNoteNavigationActions(
         openNotes: nextOpenNotes,
         noteHistory: pushNoteHistory(state.noteHistory, path),
         isGlobalGraphOpen: false,
+        isCalendarOpen: false,
       }));
     },
 
@@ -89,7 +104,7 @@ export function createNoteNavigationActions(
           await get().saveNoteNow(effectivePath);
         }
       }
-      set({ activeNotePath: path, isGlobalGraphOpen: false });
+      set({ activeNotePath: path, isGlobalGraphOpen: false, isCalendarOpen: false });
     },
 
     closeNote: async (path: string) => {
@@ -152,6 +167,7 @@ export function createNoteNavigationActions(
         dirtyNotes: new Set(),
         conflictNotes: new Map(),
         isGlobalGraphOpen: false,
+        isCalendarOpen: false,
       });
     },
   };

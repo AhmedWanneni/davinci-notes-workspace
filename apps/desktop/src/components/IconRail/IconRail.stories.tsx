@@ -15,6 +15,8 @@ const meta = {
     onDailyNotes: () => {},
     onCreateCanvas: () => {},
     onOpenReminders: () => {},
+    onOpenCalendar: () => {},
+    isCalendarOpen: false,
   },
 } satisfies Meta<typeof IconRail>;
 
@@ -26,6 +28,12 @@ export const Default: Story = {};
 export const GraphActive: Story = {
   args: {
     isGlobalGraphOpen: true,
+  },
+};
+
+export const CalendarActive: Story = {
+  args: {
+    isCalendarOpen: true,
   },
 };
 

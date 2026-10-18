@@ -24,7 +24,8 @@
       "@app/ai-embeddings": ["packages/ai-embeddings/index.ts"],
       "@app/ai-qa": ["packages/ai-qa/index.ts"],
       "@app/sync-client": ["packages/sync-client/index.ts"],
-      "@app/syncthing-api": ["packages/syncthing-api/index.ts"]
+      "@app/syncthing-api": ["packages/syncthing-api/index.ts"],
+      "@app/google-calendar-api": ["packages/google-calendar-api/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist"]

@@ -1,0 +1,88 @@
+.calendar-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  width: 100%;
+}
+
+.calendar-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border: 1px solid var(--color-border-subtle, #333333);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-bg-surface, #1e1e1e);
+}
+
+.calendar-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.calendar-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.calendar-title {
+  font-size: var(--font-size-sm, 13px);
+  color: var(--color-text-primary, #ffffff);
+}
+
+.calendar-primary-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-subtle, #444);
+  color: var(--color-text-muted, #888);
+  text-transform: uppercase;
+}
+
+.settings-select {
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--font-size-sm, 13px);
+  border: 1px solid var(--color-border-subtle, #333);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-bg-base, #161616);
+  color: var(--color-text-primary, #ffffff);
+}
+
+.settings-input {
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--font-size-sm, 13px);
+  border: 1px solid var(--color-border-subtle, #333);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-bg-base, #161616);
+  color: var(--color-text-primary, #ffffff);
+  width: 180px;
+}
+
+.settings-input-wide {
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--font-size-sm, 13px);
+  border: 1px solid var(--color-border-subtle, #333);
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-bg-base, #161616);
+  color: var(--color-text-primary, #ffffff);
+  width: 100%;
+  max-width: 320px;
+}
+
+.settings-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  margin-bottom: var(--space-3, 12px);
+  border: 1px solid var(--color-text-error, #f87171);
+  background: var(--color-bg-secondary, #222);
+  border-radius: var(--radius-sm, 4px);
+  color: var(--color-text-error, #fca5a5);
+  font-size: var(--font-size-sm, 13px);
+  gap: var(--space-2, 8px);
+}
+

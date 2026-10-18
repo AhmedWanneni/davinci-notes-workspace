@@ -4,6 +4,108 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Google Calendar & Meet Browser Launch & Settings UI Error Resolution (complete)**
+- **Rust URL Allowlist (`apps/desktop/src-tauri/src/oauth.rs`)**:
+  - Broadened `open_external_url` allowlist to validate and permit Google Meet URLs (`https://meet.google.com/`, `http://meet.google.com/`) alongside Google OAuth authorization URLs (`https://accounts.google.com/`).
+  - Added unit tests in `oauth.rs` for `is_allowed_external_url`, verifying rejection of untrusted schemes/domains and acceptance of accounts/meet URLs.
+- **Dynamic Client ID & Error Surfacing (`calendarAuthConfig.ts`, `desktopCalendarAuth.ts`)**:
+  - Implemented dynamic Client ID resolution and fallback from SQLite setting `calendar.clientId` to allow zero-terminal setup without needing to rebuild or manually create `.env`.
+  - Added `clientId?: string` field to `CalendarOAuthToken` and stored on login so token refresh/revocation retains the client ID.
+  - Documented `VITE_GOOGLE_CLIENT_ID` in `apps/desktop/.env.example` and `vite-env.d.ts`.
+- **UI Error Banners & Component Splitting (`GoogleCalendarSettingsTab.tsx`, `GoogleAccountCard.tsx`, `CalendarPreferencesCard.tsx`)**:
+  - Refactored `GoogleCalendarSettingsTab.tsx` into modular components (`GoogleAccountCard.tsx`, `CalendarPreferencesCard.tsx`, `VisibleCalendarsCard.tsx`), keeping all files strictly under 195 lines (adhering to 150-200 soft cap).
+  - Surfaced actionable error alerts (`role="alert"`, `data-testid="calendar-settings-error"`) whenever OAuth or network requests fail instead of silently logging to `console.error`.
+  - Added an OAuth Client ID text input in `GoogleAccountCard` linked to SQLite `calendar.clientId`.
+  - Wired meeting link failures in `CalendarLeaf.tsx` to surface directly in the leaf's error banner.
+- **Testing & Verification**:
+  - Added Storybook stories and unit tests for `GoogleAccountCard` and `CalendarPreferencesCard`.
+  - All 44 calendar-related tests pass across `@app/google-calendar-api` and `@app/desktop`; Rust tests pass; `build:web` passes cleanly.
+
+---
+
+**Google Calendar & Google Meet Integration Complete (Phases 0–8 Fully Shipped)**
+- **Phase 8 Hardening, Offline Resiliency & Bundle Audit (`calendarHardening.test.ts`)**:
+  - Offline Resiliency: Verified that network errors (`Failed to fetch`) fail gracefully without corrupting local SQLite event tables or resetting valid sync tokens.
+  - Automatic 410 Recovery: Verified that `GoogleSyncTokenExpiredError` (HTTP 410 Gone) automatically clears the expired sync token and falls back to a clean full 7-day query.
+  - Auth Expiry: Verified that 401 Unauthorized (`GoogleAuthExpiredError`) cleanly bubbles to trigger re-authorization without crashing the view.
+  - Timezone & All-Day Handling: Verified that UTC ISO start/end values are stored without loss and that all-day events format cleanly without date shifts across midnight boundaries.
+  - Bundle Splitting: Production build verified via `pnpm build:web`; all calendar components (`CalendarLeaf`, `GoogleCalendarSettingsTab`) are isolated in separate asynchronous chunks (~10 KB) with 0 KB impact on the main initial bundle.
+  - Test Suite: 53 tests passing across `@app/google-calendar-api` and desktop calendar suites; 0 ESLint errors; `cargo check` dev profile in 0.71s.
+
+**Google Calendar Integration Phase 7 Complete (Reminders & System Tray Integration, ADR-0203)**
+- **Meeting Reminder Alerts & Tray Bridge (`apps/desktop/src/calendar/calendarReminderBridge.ts`)**:
+  - Implemented `getUpcomingMeetingAlerts`: evaluates local SQLite-cached events for 5-minute heads-up (`5min` stage) and meeting start alerts (`now` stage) with in-memory deduplication (`notifiedKeys`).
+  - Implemented `formatUpcomingMeetingsForTray`: formats up to 3 upcoming meetings within 12 hours with video meeting indicator (`📹`) or calendar indicator (`📅`) and formatted local start time (`HH:MM`).
+  - Implemented `startMeetingReminderScheduler`: periodic 30s background check decoupled from network requests and rate limits, with clean unlisten/teardown.
+  - Colocated 6 Vitest unit tests in `calendarReminderBridge.test.ts`. File strictly under 135 lines.
+- **Architectural Decision Record**:
+  - Authored and accepted **ADR-0203** (`docs/adr/0203-calendar-reminder-alerts-and-tray-integration.md`) and indexed in `DECISIONS.md`.
+
+**Google Calendar Integration Phase 6 Complete (Settings Section: Calendar Selection, Refresh Interval & Account Management)**
+- **Google Calendar Settings Tab (`apps/desktop/src/components/SettingsDialog/GoogleCalendarSettingsTab.tsx`)**:
+  - Account Card: Connected / Disconnected status, "Connect Google Calendar" PKCE trigger, and "Disconnect" action with token revocation and SQLite cache purge.
+  - Visible Calendars (`VisibleCalendarsCard.tsx`): Renders user's calendars with primary badges, color chips, and active visibility checkboxes linked to `updateCalendarSelectedInDb`.
+  - Preferences: Configurable sync cadence (5m, 15m, 30m, manual), custom meeting notes destination folder (`calendar.meetingsFolder`), and declined events filter toggle (`calendar.showDeclined`) persisted in SQLite `settings` table.
+- **Settings Navigation & Shell Integration (`SettingsSidebar.tsx`, `SettingsDialog.tsx`)**:
+  - Registered `calendar` tab under "options" in `SettingsSidebar` with `CalendarCheck` Phosphor icon.
+  - Lazy-loaded via `React.lazy()` and `Suspense` inside `SettingsDialog` with zero startup bundle overhead.
+  - Colocated Storybook story and 4 Vitest unit tests passing (13 total across SettingsDialog and tab). All files strictly under 235 lines.
+
+**Google Calendar Integration Phase 5 Complete (Meeting Note Creation & Daily Note Linking)**
+- **Meeting Note Formatting & Template Engine (`apps/desktop/src/calendar/meetingNoteGenerator.ts`)**:
+  - Implemented `generateMeetingNoteMarkdown`: generates clean YAML frontmatter (`title`, `date`, `time`, `calendar_event_id`, `meet_url`, `tags: [meeting]`), event title, date wikilink to daily note (`[[YYYY-MM-DD]]`), video meeting link, formatted attendees (`- Name (email)`), and standard sections (`## Agenda`, `## Discussion & Notes`, `## Action Items`).
+  - Added robust filename sanitization `sanitizeMeetingFileName` stripping invalid filesystem characters (`/ \ : * ? " < > |`), and relative path generator `buildMeetingNotePath`.
+  - Added frontmatter regex event-id detector `isEventNoteMatch` and non-destructive daily note link updater `linkMeetingInDailyNote` (8 unit tests passing).
+- **Meeting Note Vault Creation & Idempotency Guard (`apps/desktop/src/calendar/createMeetingNote.ts`)**:
+  - `createOrOpenMeetingNote`: checks memory `notesContent` and target path on disk for existing notes matching `calendar_event_id`. If matched, immediately focuses and opens existing note tab without duplicates.
+  - Automatically handles filename collisions with incremental suffix `(1)`.
+  - Atomically writes to vault via `createNoteInVault`, links back in active Daily Note under `## Meetings`, closes the calendar view, and activates the new note tab.
+  - Wired into `CalendarLeaf.tsx` via `handleCreateNote` (3 unit tests passing; all files under 185 lines).
+
+**Google Calendar Integration Phase 4 Complete (Calendar UI Shell & Obsidian Leaf Integration, ADR-0202)**
+- **Left Icon Rail Entry Point (`apps/desktop/src/components/IconRail/`)**:
+  - Integrated `CalendarCheck` icon (`@phosphor-icons/react`) with tooltip "Calendar & Meetings" and active state indicator when `isCalendarOpen` is true.
+  - Colocated Storybook stories (`CalendarActive`) and unit tests in `IconRail.test.tsx` (5 tests passing).
+- **Workspace State Management (`apps/desktop/src/state/`)**:
+  - Extended `useWorkspaceStore` and `createNoteNavigationActions` with `isCalendarOpen` and `setIsCalendarOpen`.
+  - Enforced mutual exclusivity: opening the calendar closes the global graph, and opening notes (`openNote`, `setActiveNote`) or graph resets `isCalendarOpen` to false (14 unit tests passing).
+- **Lazy-Loaded Calendar Leaf & UI Components (`apps/desktop/src/components/CalendarView/`)**:
+  - Modular sub-components: `MeetJoinButton` (direct video link launch), `EventCard` (attendees preview, status, time, and quick note action), `DayAgendaView` (Happening Now vs Today groups, empty states), and `CalendarLeaf` (header, refresh spinner, settings shortcut).
+  - Strict lazy-loading via `React.lazy()` in `App.tsx` wrapped in `Suspense` with zero initial startup JS impact.
+  - Pure editorial design tokens, no box-shadows/gradients, CSS Modules (`CalendarView.module.scss`).
+  - All files strictly under 180 lines (soft cap 200). 4 Vitest unit tests and Storybook stories passing.
+
+**Google Calendar Integration Phase 3 Complete (SQLite Cache, syncToken & Sync Engine, ADR-0201)**
+- **SQLite Schema Migration 8 (`apps/desktop/src-tauri/src/db.rs`)**:
+  - Registered Migration 8 creating `google_calendars`, `google_calendar_events`, and `google_calendar_sync_state` tables and indices on `start_iso`, `calendar_id`, and `status`. Verified `cargo check` dev profile in 2.29s.
+- **SQLite Calendar Store (`apps/desktop/src/calendar/sqliteCalendarStore.ts`)**:
+  - Implemented `saveCalendarsToDb`, `getCalendarsFromDb`, `updateCalendarSelectedInDb`, `saveEventsToDb`, `getEventsFromDb`, `getCalendarSyncToken`, `saveCalendarSyncToken`, and `purgeCalendarCache`.
+  - All operations serialized via universal `withDbLock` promise queue; batch writes wrapped in `withDbTransaction`.
+- **Calendar Sync Engine (`apps/desktop/src/calendar/calendarSyncEngine.ts`)**:
+  - Background polling engine with configurable timer (default 15m) and `syncNow` manual trigger.
+  - Queries selected calendars with `syncToken` for incremental changes; automatically handles `GoogleSyncTokenExpiredError` (HTTP 410 Gone) by falling back to full 7-day resync.
+  - All 10 calendar unit tests pass in Vitest; 0 ESLint errors; all files under 188 lines.
+
+**Google Calendar Integration Phase 2 Complete (Desktop PKCE & OS Keychain Auth)**
+- **Rust Backend (`apps/desktop/src-tauri/`)**:
+  - Implemented `save_calendar_token`, `load_calendar_token`, and `clear_calendar_token` targeting dedicated OS keychain service `com.davinci.notes.calendar-oauth` via `keyring` crate.
+  - Registered commands in Tauri handler with plugin runner rejection (`reject_plugin_runner`).
+  - Verified compilation via `cargo check` (`dev` profile passed cleanly).
+- **Desktop Auth Engine (`apps/desktop/src/calendar/`)**:
+  - `calendarAuthConfig.ts`: Resolves `VITE_GOOGLE_CLIENT_ID` with fallback to `VITE_GOOGLE_DRIVE_CLIENT_ID` and declares sensitive read-only calendar scopes.
+  - `calendarPkce.ts`: Web Crypto PKCE verifier, challenge (`SHA-256`), and state generator.
+  - `calendarTokenStore.ts`: Tauri IPC token store adapter.
+  - `desktopCalendarAuth.ts`: End-to-end loopback listener auth (`signInToCalendar`), silent token refresh with 60s expiration margin, and Google revocation endpoint call (`disconnectCalendar`).
+  - All 7 unit tests pass; 0 ESLint errors; all files under 190 lines.
+
+**Google Calendar Integration Phases 0 & 1 Complete (`@app/google-calendar-api`, ADR-0199)**
+- **Architecture & Scopes (ADR-0199)**: Established sensitive-scope read-only architecture (`calendar.events.readonly`, `calendar.calendarlist.readonly`), dedicated OS keychain service (`com.davinci.notes.calendar-oauth`) isolated from Drive sync, and zero-SDK direct REST client boundary.
+- **Shared Package (`packages/google-calendar-api/`)**:
+  - `calendarTypes.ts`: Full domain modeling for calendars, raw API events, normalized events, attendees, and delta query options.
+  - `parseMeetLink.ts`: Robust Meet link extraction with priority order: `hangoutLink` -> `conferenceData.entryPoints` (video) -> regex fallback in `location` / `description`, with URL protocol sanitization.
+  - `calendarClient.ts`: Lightweight, zero-dependency `fetch` REST client for `listCalendars` and `listEvents` (supporting `syncToken` delta queries and error typing for 401 Auth Expired, 410 SyncToken Expired, and 4xx/5xx).
+  - All 13 unit tests pass; 0 ESLint boundaries/typecheck errors; all files under 160 lines (enforcing soft cap 200).
+
 **Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (complete)**
 Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem:
 1. **Scenario 1 — Desktop -> Phone CRUD (PASS, 6,562ms)**:
@@ -2150,19 +2252,20 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
-2. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
-3. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
-4. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
-5. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
-6. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
-7. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
-8. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
-9. **Unlinked Mentions Detection**
-10. **Inline Property Editing**
-11. **Outline Scroll Synchronization**
-12. Add success/warning semantic color tokens
-13. Chromatic / Playwright screenshot regression
+1. **Google Calendar Phase 4**: UI Shell Integration — Left rail icon in `IconRail`, `CalendarLeaf` workspace tab in `EditorArea`, and meeting card list UI (ADR-0202).
+2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
+4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+5. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
+6. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+7. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+8. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+9. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+10. **Unlinked Mentions Detection**
+11. **Inline Property Editing**
+12. **Outline Scroll Synchronization**
+13. Add success/warning semantic color tokens
+14. Chromatic / Playwright screenshot regression
 
 ## Blocked / Open Questions
 
