@@ -291,3 +291,4 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | ADR | Decision | Status |
 |---|---|---|
 | [0199](adr/0199-google-calendar-oauth-architecture-and-scope-isolation.md) | Google Calendar read-only OAuth architecture, scope isolation, and OS keychain separation from Drive sync | Accepted |
+| [0201](adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md) | Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization | Accepted |

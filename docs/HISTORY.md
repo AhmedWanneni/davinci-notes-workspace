@@ -4,6 +4,22 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-18: Google Calendar Integration — Phase 3: SQLite Cache, syncToken & Sync Engine (ADR-0201)
+
+- **SQLite Schema Migration 8 (`apps/desktop/src-tauri/src/db.rs`)**:
+  - Registered Migration 8 creating `google_calendars`, `google_calendar_events`, and `google_calendar_sync_state` tables and indices on `start_iso`, `calendar_id`, and `status`. Verified `cargo check` dev profile in 2.29s.
+- **SQLite Calendar Store (`apps/desktop/src/calendar/sqliteCalendarStore.ts`)**:
+  - Implemented `saveCalendarsToDb`, `getCalendarsFromDb`, `updateCalendarSelectedInDb`, `saveEventsToDb`, `getEventsFromDb`, `getCalendarSyncToken`, `saveCalendarSyncToken`, and `purgeCalendarCache`.
+  - All operations serialized via universal `withDbLock` promise queue; batch writes wrapped in `withDbTransaction`.
+- **Calendar Sync Engine (`apps/desktop/src/calendar/calendarSyncEngine.ts`)**:
+  - Background polling engine with configurable timer (default 15m) and `syncNow` manual trigger.
+  - Queries selected calendars with `syncToken` for incremental changes; automatically handles `GoogleSyncTokenExpiredError` (HTTP 410 Gone) by falling back to full 7-day resync.
+  - All 10 calendar unit tests pass in Vitest; 0 ESLint errors; all files under 188 lines.
+- **Architectural Decision Record**:
+  - Authored and accepted **ADR-0201** (`docs/adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md`) and indexed in `DECISIONS.md`.
+
+---
+
 ### 2026-10-18: Google Calendar Integration — Phase 2: Desktop OAuth Loopback & OS Keychain Storage
 
 - **Rust Backend Commands (`apps/desktop/src-tauri/`)**:
@@ -43,6 +59,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-18 | Google Calendar Integration Phase 3 (SQLite Cache, syncToken & Sync Engine, ADR-0201) | Added Migration 8 in `vault-index.db` creating calendar, event, and sync state tables. Built `sqliteCalendarStore` wrapping all operations in universal `withDbLock` promise queue. Built `CalendarSyncEngine` with incremental `syncToken` delta polling and automatic HTTP 410 full-sync recovery. 10/10 Vitest tests pass; 0 ESLint errors; all files under 188 lines. |
 | 2026-10-18 | Google Calendar Integration Phase 2 (Desktop PKCE & OS Keychain Auth) | Implemented desktop OAuth PKCE loopback authentication, silent token refresh with 60s expiration margin, disconnect/revocation, and OS keychain token storage under `com.davinci.notes.calendar-oauth` via Rust `keyring` commands. Added 7 unit tests; 0 ESLint errors; all files under 190 lines. |
 | 2026-10-18 | Google Calendar Integration Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`) | Shipped Phase 0 (ADR-0199 OAuth scope isolation, sensitive-scope policy, OS keychain separation) and Phase 1 (created `@app/google-calendar-api` shared package with zero external SDKs, Meet link parser, and `syncToken`-ready REST client). 13/13 Vitest tests pass; 0 ESLint / 0 typecheck errors; all files under 160 lines. |
 
