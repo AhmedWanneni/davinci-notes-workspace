@@ -4,6 +4,17 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Google Calendar Integration Phase 5 Complete (Meeting Note Creation & Daily Note Linking)**
+- **Meeting Note Formatting & Template Engine (`apps/desktop/src/calendar/meetingNoteGenerator.ts`)**:
+  - Implemented `generateMeetingNoteMarkdown`: generates clean YAML frontmatter (`title`, `date`, `time`, `calendar_event_id`, `meet_url`, `tags: [meeting]`), event title, date wikilink to daily note (`[[YYYY-MM-DD]]`), video meeting link, formatted attendees (`- Name (email)`), and standard sections (`## Agenda`, `## Discussion & Notes`, `## Action Items`).
+  - Added robust filename sanitization `sanitizeMeetingFileName` stripping invalid filesystem characters (`/ \ : * ? " < > |`), and relative path generator `buildMeetingNotePath`.
+  - Added frontmatter regex event-id detector `isEventNoteMatch` and non-destructive daily note link updater `linkMeetingInDailyNote` (8 unit tests passing).
+- **Meeting Note Vault Creation & Idempotency Guard (`apps/desktop/src/calendar/createMeetingNote.ts`)**:
+  - `createOrOpenMeetingNote`: checks memory `notesContent` and target path on disk for existing notes matching `calendar_event_id`. If matched, immediately focuses and opens existing note tab without duplicates.
+  - Automatically handles filename collisions with incremental suffix `(1)`.
+  - Atomically writes to vault via `createNoteInVault`, links back in active Daily Note under `## Meetings`, closes the calendar view, and activates the new note tab.
+  - Wired into `CalendarLeaf.tsx` via `handleCreateNote` (3 unit tests passing; all files under 185 lines).
+
 **Google Calendar Integration Phase 4 Complete (Calendar UI Shell & Obsidian Leaf Integration, ADR-0202)**
 - **Left Icon Rail Entry Point (`apps/desktop/src/components/IconRail/`)**:
   - Integrated `CalendarCheck` icon (`@phosphor-icons/react`) with tooltip "Calendar & Meetings" and active state indicator when `isCalendarOpen` is true.

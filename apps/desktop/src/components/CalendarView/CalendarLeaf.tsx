@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { getEventsFromDb } from "../../calendar/sqliteCalendarStore";
+import { createOrOpenMeetingNote } from "../../calendar/createMeetingNote";
 import { DayAgendaView } from "./DayAgendaView";
 import styles from "./CalendarView.module.scss";
 
@@ -72,6 +73,23 @@ export function CalendarLeaf({
       console.error("Failed to open meeting url:", err);
     });
   };
+
+  const handleCreateNote = useCallback(
+    async (event: NormalizedCalendarEvent) => {
+      try {
+        if (onCreateNote) {
+          await onCreateNote(event);
+        } else {
+          await createOrOpenMeetingNote(event);
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to create meeting note",
+        );
+      }
+    },
+    [onCreateNote],
+  );
 
   const todayStr = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
@@ -156,7 +174,7 @@ export function CalendarLeaf({
           <DayAgendaView
             events={events}
             onJoinMeet={handleJoinMeet}
-            onCreateNote={onCreateNote}
+            onCreateNote={handleCreateNote}
           />
         )}
       </main>
