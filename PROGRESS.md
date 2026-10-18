@@ -4,6 +4,8 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Google Calendar & Google Meet Integration Feature Plan**: Phased feature plan added in `plans/google-calendar-feature-plan.md` covering zero-friction PKCE loopback OAuth, OS keychain isolation, zero-SDK REST client, SQLite syncToken caching, and Obsidian-style workspace tab UI.
+
 **Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (complete)**
 Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem:
 1. **Scenario 1 — Desktop -> Phone CRUD (PASS, 6,562ms)**:
