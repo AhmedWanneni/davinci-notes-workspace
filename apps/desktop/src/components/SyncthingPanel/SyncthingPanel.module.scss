@@ -148,6 +148,60 @@
   }
 }
 
+.syncthing-panel__button-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.syncthing-panel__toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--color-text-normal);
+  cursor: pointer;
+  user-select: none;
+  padding: var(--space-2) 0;
+}
+
+.syncthing-panel__checkbox {
+  cursor: pointer;
+  accent-color: var(--color-interactive-accent);
+}
+
+.syncthing-panel__logs-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  background-color: var(--color-bg-primary);
+}
+
+.syncthing-panel__logs-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.syncthing-panel__logs {
+  font-family: var(--font-editor);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin: 0;
+  max-height: 140px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
 @keyframes fade-in {
   from {
     opacity: 0;

@@ -12,9 +12,10 @@ import {
 import {
   mobileSyncthingDetect,
   mobileSyncthingStatus,
-  getSyncthingQrUrl,
+  getMobileSyncthingQrUri,
   MobileSyncthingError,
 } from "./mobileSyncthingClient";
+import { EmbeddedSyncthingBridge } from "./embeddedSyncthingBridge";
 import {
   mobileSyncthingAddDevice,
   mobileSyncthingPendingDevices,
@@ -34,11 +35,14 @@ export interface MobileSyncthingState {
   qrUrl: string | null;
   hasSavedKey: boolean;
   isLoading: boolean;
+  isEmbedded: boolean;
   errorMessage: string | null;
   pendingDevices: SyncthingPendingDevice[];
   pendingFolders: SyncthingPendingFolder[];
   connectedDevices: string[];
   refresh: () => Promise<void>;
+  startService?: () => Promise<void>;
+  stopService?: () => Promise<void>;
   saveKey: (key: string) => Promise<void>;
   clearKey: () => Promise<void>;
   addDevice: (id: string, name: string) => Promise<void>;
@@ -57,9 +61,23 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
   const [hasSavedKey, setHasSavedKey] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [pendingDevices, setPendingDevices] = useState<SyncthingPendingDevice[]>([]);
-  const [pendingFolders, setPendingFolders] = useState<SyncthingPendingFolder[]>([]);
+  const [pendingDevices, setPendingDevices] = useState<
+    SyncthingPendingDevice[]
+  >([]);
+  const [pendingFolders, setPendingFolders] = useState<
+    SyncthingPendingFolder[]
+  >([]);
   const [connectedDevices, setConnectedDevices] = useState<string[]>([]);
+
+  const isEmbedded = EmbeddedSyncthingBridge.isAvailable();
+
+  const resetActive = () => {
+    setDeviceId("");
+    setQrUrl(null);
+    setPendingDevices([]);
+    setPendingFolders([]);
+    setConnectedDevices([]);
+  };
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
@@ -71,32 +89,26 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
 
       if (!detect.running) {
         setStatus("not-running");
-        setDeviceId("");
-        setQrUrl(null);
-        setPendingDevices([]);
-        setPendingFolders([]);
-        setConnectedDevices([]);
+        resetActive();
         return;
       }
 
-      const key = await getSyncthingApiKey();
-      setHasSavedKey(Boolean(key));
+      const key = (await getSyncthingApiKey()) || "";
+      const isEmb = EmbeddedSyncthingBridge.isAvailable();
+      setHasSavedKey(isEmb || Boolean(key));
 
-      if (!key) {
+      if (!isEmb && !key) {
         setStatus("bad-key");
         setErrorMessage("API key required to connect to Syncthing-Fork");
-        setDeviceId("");
-        setQrUrl(null);
-        setPendingDevices([]);
-        setPendingFolders([]);
-        setConnectedDevices([]);
+        resetActive();
         return;
       }
 
       const stat = await mobileSyncthingStatus(key);
       setDeviceId(stat.deviceId);
       setDeviceName(stat.deviceName);
-      setQrUrl(getSyncthingQrUrl(stat.deviceId));
+      const qr = await getMobileSyncthingQrUri(stat.deviceId);
+      setQrUrl(qr);
 
       const [pDevs, pFolders, conns] = await Promise.all([
         mobileSyncthingPendingDevices(key).catch(() => []),
@@ -109,28 +121,43 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
       setConnectedDevices(conns);
       setStatus("running");
     } catch (err: unknown) {
-      setDeviceId("");
-      setQrUrl(null);
-      setPendingDevices([]);
-      setPendingFolders([]);
-      setConnectedDevices([]);
-
-      if (err instanceof MobileSyncthingError) {
-        if (err.kind === "bad-key") {
-          setStatus("bad-key");
-          setErrorMessage(err.message);
-        } else {
-          setStatus("not-running");
-          setErrorMessage(err.message);
-        }
-      } else {
-        setStatus("not-running");
-        setErrorMessage("Cannot connect to Syncthing on localhost");
-      }
+      resetActive();
+      const isBadKey =
+        err instanceof MobileSyncthingError && err.kind === "bad-key";
+      setStatus(isBadKey ? "bad-key" : "not-running");
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : "Cannot connect to Syncthing on localhost",
+      );
     } finally {
       setIsLoading(false);
     }
   }, []);
+
+  const startService = useCallback(async () => {
+    if (EmbeddedSyncthingBridge.isAvailable()) {
+      setIsLoading(true);
+      await EmbeddedSyncthingBridge.start();
+      await refresh();
+    }
+  }, [refresh]);
+
+  const stopService = useCallback(async () => {
+    if (EmbeddedSyncthingBridge.isAvailable()) {
+      setIsLoading(true);
+      await EmbeddedSyncthingBridge.stop();
+      await refresh();
+    }
+  }, [refresh]);
+
+  const getKey = async () => {
+    const key = (await getSyncthingApiKey()) || "";
+    if (!EmbeddedSyncthingBridge.isAvailable() && !key) {
+      throw new Error("API key is not configured");
+    }
+    return key;
+  };
 
   const saveKey = useCallback(
     async (newKey: string) => {
@@ -149,9 +176,7 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
 
   const addDevice = useCallback(
     async (id: string, name: string) => {
-      const key = await getSyncthingApiKey();
-      if (!key) throw new Error("API key is not configured");
-      await mobileSyncthingAddDevice(key, id, name);
+      await mobileSyncthingAddDevice(await getKey(), id, name);
       await refresh();
     },
     [refresh],
@@ -159,9 +184,7 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
 
   const acceptDevice = useCallback(
     async (id: string) => {
-      const key = await getSyncthingApiKey();
-      if (!key) throw new Error("API key is not configured");
-      await mobileSyncthingAcceptDevice(key, id);
+      await mobileSyncthingAcceptDevice(await getKey(), id);
       await refresh();
     },
     [refresh],
@@ -169,9 +192,10 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
 
   const dismissDevice = useCallback(
     async (id: string) => {
-      const key = await getSyncthingApiKey();
-      if (!key) return;
-      await mobileSyncthingDismissPendingDevice(key, id);
+      await mobileSyncthingDismissPendingDevice(
+        (await getSyncthingApiKey()) || "",
+        id,
+      );
       await refresh();
     },
     [refresh],
@@ -179,9 +203,7 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
 
   const acceptFolder = useCallback(
     async (folderId: string, targetPath: string) => {
-      const key = await getSyncthingApiKey();
-      if (!key) throw new Error("API key is not configured");
-      await mobileSyncthingAcceptFolder(key, folderId, targetPath);
+      await mobileSyncthingAcceptFolder(await getKey(), folderId, targetPath);
       await refresh();
     },
     [refresh],
@@ -189,9 +211,10 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
 
   const dismissFolder = useCallback(
     async (folderId: string) => {
-      const key = await getSyncthingApiKey();
-      if (!key) return;
-      await mobileSyncthingDismissPendingFolder(key, folderId);
+      await mobileSyncthingDismissPendingFolder(
+        (await getSyncthingApiKey()) || "",
+        folderId,
+      );
       await refresh();
     },
     [refresh],
@@ -211,11 +234,14 @@ export function useMobileSyncthing(autoRefresh = true): MobileSyncthingState {
     qrUrl,
     hasSavedKey,
     isLoading,
+    isEmbedded,
     errorMessage,
     pendingDevices,
     pendingFolders,
     connectedDevices,
     refresh,
+    startService,
+    stopService,
     saveKey,
     clearKey,
     addDevice,

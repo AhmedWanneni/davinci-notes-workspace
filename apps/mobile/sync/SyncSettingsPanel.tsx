@@ -4,7 +4,12 @@ import { Button, Text, Divider } from "../components/primitives";
 import type { MobileSyncEngine } from "./mobileSyncEngine";
 import { useSyncStatus } from "./useSyncStatus";
 import { SyncStatusBadge } from "./SyncStatusBadge";
-import { MobileSyncthingPanel } from "./syncthing";
+import {
+  MobileSyncthingPanel,
+  mobileSyncthingDetect,
+  mobileSyncthingTriggerScan,
+  getSyncthingApiKey,
+} from "./syncthing";
 
 export interface SyncSettingsPanelProps {
   engine?: MobileSyncEngine;
@@ -28,11 +33,33 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
   } = useSyncStatus(engine);
 
   const [isBusy, setIsBusy] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   const handleSyncPress = async () => {
     setIsBusy(true);
+    setFeedbackMessage(null);
     try {
-      await syncNow();
+      let didSync = false;
+
+      if (isAuthenticated && engine) {
+        await syncNow();
+        didSync = true;
+      }
+      try {
+        const detect = await mobileSyncthingDetect();
+        if (detect.running) {
+          const key = (await getSyncthingApiKey()) || "";
+          await mobileSyncthingTriggerScan(key);
+          didSync = true;
+        }
+      } catch {
+        /* Syncthing scan error handled gracefully */
+      }
+      if (!didSync && !isAuthenticated) {
+        setFeedbackMessage(
+          "Connect Google Drive or start Syncthing below to sync notes.",
+        );
+      }
     } finally {
       setIsBusy(false);
     }
@@ -84,12 +111,20 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
           </View>
         ) : null}
 
+        {feedbackMessage ? (
+          <View className="p-3 rounded bg-accent-warning/10 border border-accent-warning/20 mb-3">
+            <Text variant="caption" className="text-accent-warning">
+              {feedbackMessage}
+            </Text>
+          </View>
+        ) : null}
+
         <Button
           variant="primary"
           onPress={handleSyncPress}
-          disabled={isBusy || status === "syncing" || !isAuthenticated}
+          disabled={isBusy || status === "syncing"}
         >
-          {status === "syncing" ? "Syncing..." : "Sync Now"}
+          {status === "syncing" || isBusy ? "Syncing..." : "Sync Now"}
         </Button>
       </View>
 

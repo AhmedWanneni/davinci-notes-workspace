@@ -10,37 +10,8 @@ import {
 import {
   MobileSyncthingError,
   mobileSyncthingStatus,
+  mobileSyncthingFetch,
 } from "./mobileSyncthingClient";
-
-const BASE_URL = "http://127.0.0.1:8384";
-const TIMEOUT_MS = 3000;
-
-async function authedFetch(
-  apiKey: string,
-  path: string,
-  options: RequestInit = {},
-): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-  try {
-    const res = await fetch(`${BASE_URL}${path}`, {
-      ...options,
-      headers: {
-        "X-API-Key": apiKey.trim(),
-        "Content-Type": "application/json",
-        ...(options.headers || {}),
-      },
-      signal: controller.signal,
-    });
-    return res;
-  } catch (err: unknown) {
-    const safeMsg = sanitizeError(err, apiKey);
-    throw new MobileSyncthingError("unreachable", `Syncthing unreachable: ${safeMsg}`);
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 export async function mobileSyncthingAddDevice(
   apiKey: string,
@@ -64,11 +35,14 @@ export async function mobileSyncthingAddDevice(
   }
 
   // Check if device is already configured
-  const checkRes = await authedFetch(apiKey, "/rest/config/devices");
+  const checkRes = await mobileSyncthingFetch(apiKey, "/rest/config/devices");
   if (checkRes.ok) {
     const devs = (await checkRes.json()) as Array<{ deviceID?: string }>;
     if (devs.some((d) => normalizeDeviceId(d.deviceID || "") === cleanId)) {
-      throw new MobileSyncthingError("unexpected-response", "Device already added.");
+      throw new MobileSyncthingError(
+        "unexpected-response",
+        "Device already added.",
+      );
     }
   }
 
@@ -79,7 +53,7 @@ export async function mobileSyncthingAddDevice(
     compression: "metadata",
   };
 
-  const res = await authedFetch(apiKey, "/rest/config/devices", {
+  const res = await mobileSyncthingFetch(apiKey, "/rest/config/devices", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -96,7 +70,10 @@ export async function mobileSyncthingAddDevice(
 export async function mobileSyncthingPendingDevices(
   apiKey: string,
 ): Promise<SyncthingPendingDevice[]> {
-  const res = await authedFetch(apiKey, "/rest/cluster/pending/devices");
+  const res = await mobileSyncthingFetch(
+    apiKey,
+    "/rest/cluster/pending/devices",
+  );
   if (!res.ok) return [];
 
   const raw = (await res.json()) as Record<
@@ -126,7 +103,7 @@ export async function mobileSyncthingDismissPendingDevice(
   apiKey: string,
   id: string,
 ): Promise<void> {
-  await authedFetch(
+  await mobileSyncthingFetch(
     apiKey,
     `/rest/cluster/pending/devices?device=${encodeURIComponent(id.trim())}`,
     { method: "DELETE" },
@@ -136,7 +113,10 @@ export async function mobileSyncthingDismissPendingDevice(
 export async function mobileSyncthingPendingFolders(
   apiKey: string,
 ): Promise<SyncthingPendingFolder[]> {
-  const res = await authedFetch(apiKey, "/rest/cluster/pending/folders");
+  const res = await mobileSyncthingFetch(
+    apiKey,
+    "/rest/cluster/pending/folders",
+  );
   if (!res.ok) return [];
 
   const raw = (await res.json()) as Record<
@@ -155,7 +135,7 @@ export async function mobileSyncthingDismissPendingFolder(
   apiKey: string,
   folderId: string,
 ): Promise<void> {
-  await authedFetch(
+  await mobileSyncthingFetch(
     apiKey,
     `/rest/cluster/pending/folders?folder=${encodeURIComponent(folderId.trim())}`,
     { method: "DELETE" },
@@ -189,7 +169,7 @@ export async function mobileSyncthingAcceptFolder(
     devices,
   };
 
-  const res = await authedFetch(apiKey, "/rest/config/folders", {
+  const res = await mobileSyncthingFetch(apiKey, "/rest/config/folders", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -206,7 +186,7 @@ export async function mobileSyncthingAcceptFolder(
 export async function mobileSyncthingConnectedDevices(
   apiKey: string,
 ): Promise<string[]> {
-  const res = await authedFetch(apiKey, "/rest/system/connections");
+  const res = await mobileSyncthingFetch(apiKey, "/rest/system/connections");
   if (!res.ok) return [];
 
   const data = (await res.json()) as {

@@ -1,36 +1,33 @@
 import React, { useState } from "react";
-import { Badge, Button, Input, Typography } from "@app/design-system";
-import {
-  Check,
-  FolderOpen,
-  UserPlus,
-  WarningCircle,
-  X,
-} from "@phosphor-icons/react";
+import { Badge, Typography } from "@app/design-system";
+import { UserPlus, WarningCircle } from "@phosphor-icons/react";
 import {
   syncthingAcceptDevice,
   syncthingAcceptFolder,
   syncthingDismissPendingDevice,
+  syncthingShareVaultFolder,
   type SyncthingPendingDevice,
   type SyncthingPendingFolder,
 } from "./syncthingCommands";
+import { SyncthingPendingDeviceRow } from "./SyncthingPendingDeviceRow";
+import { SyncthingPendingFolderRow } from "./SyncthingPendingFolderRow";
 import styles from "./SyncthingPendingSection.module.scss";
 
 interface Props {
   pendingDevices: SyncthingPendingDevice[];
   pendingFolders: SyncthingPendingFolder[];
+  activePairingCode?: string | null;
+  isPairingExpired?: boolean;
   onUpdated: () => Promise<void>;
 }
 
 export function SyncthingPendingSection({
   pendingDevices,
   pendingFolders,
+  activePairingCode,
+  isPairingExpired,
   onUpdated,
 }: Props) {
-  const [folderPaths, setFolderPaths] = useState<Record<string, string>>({});
-  const [allowNonEmptyMap, setAllowNonEmptyMap] = useState<
-    Record<string, boolean>
-  >({});
   const [actionError, setActionError] = useState<string | null>(null);
   const [activeAction, setActiveAction] = useState<string | null>(null);
 
@@ -43,6 +40,8 @@ export function SyncthingPendingSection({
     setActiveAction(`accept-dev-${id}`);
     try {
       await syncthingAcceptDevice(id);
+      // Auto-share active vault folder upon accept
+      await syncthingShareVaultFolder(id).catch(() => {});
       await onUpdated();
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : String(err));
@@ -64,20 +63,15 @@ export function SyncthingPendingSection({
     }
   };
 
-  const handleAcceptFolder = async (folderId: string) => {
-    const path = (folderPaths[folderId] || "").trim();
-    if (!path) {
-      setActionError("Please specify a target destination folder path.");
-      return;
-    }
+  const handleAcceptFolder = async (
+    folderId: string,
+    path: string,
+    allowNonEmpty: boolean,
+  ) => {
     setActionError(null);
     setActiveAction(`accept-folder-${folderId}`);
     try {
-      await syncthingAcceptFolder(
-        folderId,
-        path,
-        allowNonEmptyMap[folderId] ?? false,
-      );
+      await syncthingAcceptFolder(folderId, path, allowNonEmpty);
       await onUpdated();
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : String(err));
@@ -114,38 +108,15 @@ export function SyncthingPendingSection({
             Device Connection Offers
           </Typography>
           {pendingDevices.map((dev) => (
-            <div key={dev.deviceId} className={styles["pending-card__item"]}>
-              <div className={styles["pending-card__item-info"]}>
-                <span className={styles["pending-card__item-title"]}>
-                  {dev.name || "Remote Device"}
-                </span>
-                <code className={styles["pending-card__item-id"]}>
-                  {dev.deviceId}
-                </code>
-              </div>
-              <div className={styles["pending-card__actions"]}>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => void handleAcceptDevice(dev.deviceId)}
-                  disabled={Boolean(activeAction)}
-                  aria-label={`Accept device ${dev.name || dev.deviceId}`}
-                >
-                  <Check size={14} />
-                  Accept
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => void handleDismissDevice(dev.deviceId)}
-                  disabled={Boolean(activeAction)}
-                  aria-label={`Ignore device ${dev.name || dev.deviceId}`}
-                >
-                  <X size={14} />
-                  Ignore
-                </Button>
-              </div>
-            </div>
+            <SyncthingPendingDeviceRow
+              key={dev.deviceId}
+              device={dev}
+              activePairingCode={activePairingCode}
+              isPairingExpired={isPairingExpired}
+              disabled={Boolean(activeAction)}
+              onAccept={handleAcceptDevice}
+              onDismiss={handleDismissDevice}
+            />
           ))}
         </div>
       )}
@@ -157,68 +128,17 @@ export function SyncthingPendingSection({
             Shared Folder Offers
           </Typography>
           {pendingFolders.map((f) => (
-            <div
+            <SyncthingPendingFolderRow
               key={f.folderId}
-              className={styles["pending-card__folder-offer"]}
-            >
-              <div className={styles["pending-card__item-info"]}>
-                <span className={styles["pending-card__item-title"]}>
-                  <FolderOpen size={14} />
-                  {f.label || f.folderId}
-                </span>
-                <span className={styles["pending-card__item-id"]}>
-                  From: {f.offeredBy}
-                </span>
-              </div>
-              <div className={styles["pending-card__folder-setup"]}>
-                <label
-                  className={styles["pending-card__label"]}
-                  htmlFor={`folder-path-${f.folderId}`}
-                >
-                  Target Destination Path:
-                </label>
-                <Input
-                  id={`folder-path-${f.folderId}`}
-                  value={folderPaths[f.folderId] || ""}
-                  onChange={(e) =>
-                    setFolderPaths((prev) => ({
-                      ...prev,
-                      [f.folderId]: e.target.value,
-                    }))
-                  }
-                  placeholder="/Users/name/Vaults/SharedVault"
-                  className={styles["pending-card__input-mono"]}
-                />
-                <label className={styles["pending-card__checkbox-label"]}>
-                  <input
-                    type="checkbox"
-                    checked={Boolean(allowNonEmptyMap[f.folderId])}
-                    onChange={(e) =>
-                      setAllowNonEmptyMap((prev) => ({
-                        ...prev,
-                        [f.folderId]: e.target.checked,
-                      }))
-                    }
-                  />
-                  <span>Allow syncing into a non-empty directory</span>
-                </label>
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => void handleAcceptFolder(f.folderId)}
-                  disabled={
-                    Boolean(activeAction) ||
-                    !(folderPaths[f.folderId] || "").trim()
-                  }
-                >
-                  <Check size={14} />
-                  Accept Folder Offer
-                </Button>
-              </div>
-            </div>
+              folder={f}
+              disabled={Boolean(activeAction)}
+              onAcceptFolder={handleAcceptFolder}
+            />
           ))}
         </div>
       )}
     </div>
   );
 }
+
+export default SyncthingPendingSection;

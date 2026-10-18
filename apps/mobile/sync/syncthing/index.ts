@@ -27,3 +27,18 @@ export {
   setSyncthingApiKey,
   clearSyncthingApiKey,
 } from "./secureKeyStore";
+export { ScanToSyncModal } from "./ScanToSyncModal";
+export { ScanToSyncScannerView } from "./ScanToSyncScannerView";
+export { ScanToSyncConfirmSheet } from "./ScanToSyncConfirmSheet";
+export { ScanToSyncProgressView } from "./ScanToSyncProgressView";
+export { ScanToSyncSetupGuide } from "./ScanToSyncSetupGuide";
+export { useScanToSync } from "./useScanToSync";
+export {
+  mobileSyncthingSetLocalDeviceName,
+  mobileSyncthingFolderCompletion,
+  mobileSyncthingIsDeviceConnected,
+  mobileSyncthingIsFolderConfigured,
+  mobileSyncthingTriggerScan,
+} from "./mobileSyncthingOperations";
+export { EmbeddedSyncthingBridge } from "./embeddedSyncthingBridge";
+export { SyncthingRunConditionsView } from "./SyncthingRunConditionsView";

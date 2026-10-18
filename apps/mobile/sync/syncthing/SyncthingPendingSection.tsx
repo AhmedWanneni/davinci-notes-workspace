@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
-import { Directory } from "expo-file-system";
-import type {
-  SyncthingPendingDevice,
-  SyncthingPendingFolder,
+import {
+  formatDeviceIdGroups,
+  type SyncthingPendingDevice,
+  type SyncthingPendingFolder,
 } from "@app/syncthing-api";
-import { formatDeviceIdGroups } from "@app/syncthing-api";
+import { Directory } from "expo-file-system";
 import { Badge, Button, Text } from "../../components/primitives";
 import { checkFolderAccess } from "./folderAccessChecker";
 
@@ -19,7 +19,9 @@ export interface SyncthingPendingSectionProps {
   onDismissFolder: (folderId: string) => Promise<void>;
 }
 
-export const SyncthingPendingSection: React.FC<SyncthingPendingSectionProps> = ({
+export const SyncthingPendingSection: React.FC<
+  SyncthingPendingSectionProps
+> = ({
   pendingDevices,
   pendingFolders,
   defaultTargetPath = "",
@@ -164,7 +166,8 @@ export const SyncthingPendingSection: React.FC<SyncthingPendingSectionProps> = (
                 {folder.label} ({folder.folderId})
               </Text>
               <Text size="xs" color="muted" className="mb-2">
-                Offered by: {formatDeviceIdGroups(folder.offeredBy).slice(0, 15)}...
+                Offered by:{" "}
+                {formatDeviceIdGroups(folder.offeredBy).slice(0, 15)}...
               </Text>
 
               {/* Destination folder path check */}
@@ -225,11 +228,9 @@ export const SyncthingPendingSection: React.FC<SyncthingPendingSectionProps> = (
                   onPress={async () => {
                     if (!accessState.accessible || !targetPath) return;
                     setBusyId(folder.folderId);
-                    try {
-                      await onAcceptFolder(folder.folderId, targetPath);
-                    } finally {
-                      setBusyId(null);
-                    }
+                    await onAcceptFolder(folder.folderId, targetPath).finally(
+                      () => setBusyId(null),
+                    );
                   }}
                   disabled={
                     !accessState.accessible ||
@@ -238,7 +239,9 @@ export const SyncthingPendingSection: React.FC<SyncthingPendingSectionProps> = (
                   }
                   className="flex-1"
                 >
-                  {busyId === folder.folderId ? "Accepting..." : "Accept Folder"}
+                  {busyId === folder.folderId
+                    ? "Accepting..."
+                    : "Accept Folder"}
                 </Button>
               </View>
             </View>

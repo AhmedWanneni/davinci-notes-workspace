@@ -65,6 +65,7 @@ pub fn run() {
     .manage(oauth::OAuthListenerState::default())
     .manage(plugin_webview::PluginProbeState::default())
     .manage(plugin_network::PluginNetworkClient::new().expect("plugin network client must initialize"))
+    .manage(syncthing::SyncthingManager::new())
     .invoke_handler(tauri::generate_handler![
       fs::open_vault,
       fs::start_vault_watcher,
@@ -136,12 +137,17 @@ pub fn run() {
       syncthing::syncthing_accept_device, syncthing::syncthing_dismiss_pending_device,
       syncthing::syncthing_share_vault_folder, syncthing::syncthing_pending_folders,
       syncthing::syncthing_accept_folder, syncthing::syncthing_check_sync,
+      syncthing::syncthing_start, syncthing::syncthing_stop,
+      syncthing::syncthing_restart, syncthing::syncthing_lifecycle_status,
+      syncthing::syncthing_ensure_vault_registered,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
         if let tauri::WindowEvent::CloseRequested { api, .. } = event {
           if tray::handle_window_close_requested(window) {
             api.prevent_close();
+          } else if let Some(mgr) = window.app_handle().try_state::<syncthing::SyncthingManager>() {
+            mgr.shutdown_on_exit(window.app_handle());
           }
         }
       } else if window.label() == command_auth::CAPTURE_WINDOW_LABEL {
