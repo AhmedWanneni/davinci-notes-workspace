@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Toggle } from "@app/design-system";
 import type { CalendarListEntry } from "@app/google-calendar-api";
-import { listCalendars } from "@app/google-calendar-api";
+import { GoogleCalendarClient } from "@app/google-calendar-api";
 import {
   loadCalendarToken,
   signInToCalendar,
@@ -76,7 +76,9 @@ export function GoogleCalendarSettingsTab({
     try {
       const token = await signInToCalendar();
       setIsConnected(true);
-      const remoteCals = await listCalendars(token.accessToken);
+      const remoteCals = await new GoogleCalendarClient().listCalendars(
+        token.accessToken,
+      );
       await saveCalendarsToDb(remoteCals);
       setCalendars(remoteCals);
       onStatusChange?.();

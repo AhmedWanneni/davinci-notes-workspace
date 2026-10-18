@@ -63,8 +63,15 @@ async function requestToken(params: URLSearchParams, tokenEndpoint: string): Pro
   };
 }
 
+export async function loadCalendarToken(
+  tokenStore: CalendarTokenStore = createCalendarTokenStore(),
+): Promise<CalendarOAuthToken | null> {
+  return tokenStore.load();
+}
+
 export async function signInToCalendar(
-  openAuthorizationUrl: (url: string) => Promise<void>,
+  openAuthorizationUrl: (url: string) => Promise<void> = (url) =>
+    invoke("open_external_url", { url }),
   tokenStore: CalendarTokenStore = createCalendarTokenStore(),
 ): Promise<CalendarOAuthToken> {
   const config = getCalendarOAuthConfig();

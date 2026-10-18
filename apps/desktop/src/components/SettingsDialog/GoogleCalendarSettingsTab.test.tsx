@@ -13,8 +13,8 @@ vi.mock("../../calendar/desktopCalendarAuth", () => ({
   disconnectCalendar: vi.fn(),
 }));
 
-vi.mock("@app/google-calendar-api", () => ({
-  listCalendars: vi.fn().mockResolvedValue([
+vi.mock("@app/google-calendar-api", () => {
+  const mockListCalendars = vi.fn().mockResolvedValue([
     {
       id: "cal-1",
       summary: "Work Calendar",
@@ -22,8 +22,13 @@ vi.mock("@app/google-calendar-api", () => ({
       selected: true,
       backgroundColor: "#4285F4",
     },
-  ]),
-}));
+  ]);
+  return {
+    GoogleCalendarClient: vi.fn().mockImplementation(() => ({
+      listCalendars: mockListCalendars,
+    })),
+  };
+});
 
 vi.mock("../../calendar/sqliteCalendarStore", () => ({
   getCalendarsFromDb: vi.fn(),
