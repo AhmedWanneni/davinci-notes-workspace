@@ -13,7 +13,7 @@ const TOKEN_DECLARATION = /(?:^|[;{\s])(--[a-z0-9-]+)\s*:/gmu;
 
 export const ALLOWLIST = [
   {
-    file: "packages/editor/editorTheme.ts",
+    file: "packages/editor/theme/editorTheme.ts",
     pattern: "--editor-font-size",
     detector: "non-public-token",
     justification: "Vault-scoped editor setting applied at runtime; it is not a theme contract token.",
@@ -38,7 +38,7 @@ export const ALLOWLIST = [
     "--editor-obsidian-heading-h6-weight",
     "--editor-obsidian-heading-h6-line-height",
   ].map((pattern) => ({
-    file: "packages/editor/editorHighlightStyle.ts",
+    file: "packages/editor/theme/editorHighlightStyle.ts",
     pattern,
     detector: "non-public-token",
     justification: "Phase 2 editor Obsidian-parity heading token consumed in Phase 3.",
@@ -49,7 +49,7 @@ export const ALLOWLIST = [
     "--editor-obsidian-content-line-padding-inline",
     "--editor-content-padding-bottom",
   ].map((pattern) => ({
-    file: "packages/editor/editorTheme.ts",
+    file: "packages/editor/theme/editorTheme.ts",
     pattern,
     detector: "non-public-token",
     justification: "Phase 2 editor Obsidian-parity body/content token consumed in Phase 3.",
@@ -58,7 +58,7 @@ export const ALLOWLIST = [
     "--editor-list-indent",
     "--editor-obsidian-spacing-list",
   ].map((pattern) => ({
-    file: "packages/editor/listExtension.ts",
+    file: "packages/editor/live-preview/listExtension.ts",
     pattern,
     detector: "non-public-token",
     justification: "Phase 2 editor list tokens consumed in Phase 4.",
@@ -80,6 +80,11 @@ export const ALLOWLIST = [
   },
   {
     file: "apps/desktop/src/components/SyncthingPanel/SyncthingPanel.module.scss",
+    pattern: "#fff",
+    justification: "QR quiet zone requires pure white background for scanner contrast in dark mode.",
+  },
+  {
+    file: "apps/desktop/src/components/SyncthingPanel/SyncthingQrPairingSection.module.scss",
     pattern: "#fff",
     justification: "QR quiet zone requires pure white background for scanner contrast in dark mode.",
   },

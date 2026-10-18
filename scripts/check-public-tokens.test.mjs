@@ -42,7 +42,7 @@ test("allows the documented runtime editor setting", () => {
   const source = 'fontSize: "var(--editor-font-size)"';
   const violations = auditSource({
     source,
-    file: "packages/editor/editorTheme.ts",
+    file: "packages/editor/theme/editorTheme.ts",
     publicTokens,
     allowlist: ALLOWLIST,
   });
