@@ -11,7 +11,8 @@ use tauri::{State, WebviewWindow};
 
 use crate::command_auth::reject_plugin_runner;
 
-const SERVICE: &str = "com.davinci.notes.drive-oauth";
+const DRIVE_SERVICE: &str = "com.davinci.notes.drive-oauth";
+const CALENDAR_SERVICE: &str = "com.davinci.notes.calendar-oauth";
 const ACCOUNT: &str = "default";
 
 #[derive(Default)]
@@ -137,14 +138,14 @@ mod tests {
 #[tauri::command]
 pub fn save_drive_token(window: WebviewWindow, token: String) -> Result<(), String> {
   reject_plugin_runner(&window)?;
-  Entry::new(SERVICE, ACCOUNT).map_err(|error| error.to_string())?
+  Entry::new(DRIVE_SERVICE, ACCOUNT).map_err(|error| error.to_string())?
     .set_password(&token).map_err(|error| error.to_string())
 }
 
 #[tauri::command]
 pub fn load_drive_token(window: WebviewWindow) -> Result<Option<String>, String> {
   reject_plugin_runner(&window)?;
-  match Entry::new(SERVICE, ACCOUNT).map_err(|error| error.to_string())?.get_password() {
+  match Entry::new(DRIVE_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.get_password() {
     Ok(token) => Ok(Some(token)),
     Err(keyring::Error::NoEntry) => Ok(None),
     Err(error) => Err(error.to_string()),
@@ -154,7 +155,33 @@ pub fn load_drive_token(window: WebviewWindow) -> Result<Option<String>, String>
 #[tauri::command]
 pub fn clear_drive_token(window: WebviewWindow) -> Result<(), String> {
   reject_plugin_runner(&window)?;
-  match Entry::new(SERVICE, ACCOUNT).map_err(|error| error.to_string())?.delete_credential() {
+  match Entry::new(DRIVE_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.delete_credential() {
+    Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+    Err(error) => Err(error.to_string()),
+  }
+}
+
+#[tauri::command]
+pub fn save_calendar_token(window: WebviewWindow, token: String) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+  Entry::new(CALENDAR_SERVICE, ACCOUNT).map_err(|error| error.to_string())?
+    .set_password(&token).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn load_calendar_token(window: WebviewWindow) -> Result<Option<String>, String> {
+  reject_plugin_runner(&window)?;
+  match Entry::new(CALENDAR_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.get_password() {
+    Ok(token) => Ok(Some(token)),
+    Err(keyring::Error::NoEntry) => Ok(None),
+    Err(error) => Err(error.to_string()),
+  }
+}
+
+#[tauri::command]
+pub fn clear_calendar_token(window: WebviewWindow) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+  match Entry::new(CALENDAR_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.delete_credential() {
     Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
     Err(error) => Err(error.to_string()),
   }

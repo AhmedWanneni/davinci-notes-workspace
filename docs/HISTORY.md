@@ -4,6 +4,23 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-18: Google Calendar Integration — Phase 2: Desktop OAuth Loopback & OS Keychain Storage
+
+- **Rust Backend Commands (`apps/desktop/src-tauri/`)**:
+  - Implemented `save_calendar_token`, `load_calendar_token`, and `clear_calendar_token` in `oauth.rs` using `keyring::Entry::new("com.davinci.notes.calendar-oauth", "default")`.
+  - Registered commands in `lib.rs` inside the `tauri::generate_handler!` invocation with `reject_plugin_runner` security guard.
+  - Verified compilation via `cargo check` (`dev` profile passed in 40.38s).
+- **Desktop Authentication Adapter (`apps/desktop/src/calendar/`)**:
+  - `calendarAuthConfig.ts`: Resolves `VITE_GOOGLE_CLIENT_ID` with fallback to `VITE_GOOGLE_DRIVE_CLIENT_ID` and declares sensitive read-only calendar scopes (`calendar.events.readonly`, `calendar.calendarlist.readonly`).
+  - `calendarPkce.ts`: Web Crypto PKCE verifier, challenge (`SHA-256`), and state generator with base64url encoding.
+  - `calendarTokenStore.ts`: Tauri IPC token store adapter for OS keychain credentials.
+  - `desktopCalendarAuth.ts`: End-to-end loopback listener auth (`signInToCalendar`), silent token refresh with 60s expiration margin, and Google revocation endpoint call (`disconnectCalendar`).
+- **Monorepo Integration & Testing**:
+  - Added `@app/google-calendar-api` workspace dependency to `apps/desktop/package.json`, `vite.config.ts`, and `vitest.config.ts`.
+  - Added 7 comprehensive unit tests in `desktopCalendarAuth.test.ts` covering unauthenticated errors, active token bypass, silent expiry refresh, `invalid_grant` store clearing, token revocation on disconnect, and state verification. All 7 tests pass; 0 ESLint errors; all files under 190 lines.
+
+---
+
 ### 2026-10-18: Google Calendar & Google Meet Integration — Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`)
 
 - **Feature Planning & Architecture**:
@@ -26,6 +43,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-18 | Google Calendar Integration Phase 2 (Desktop PKCE & OS Keychain Auth) | Implemented desktop OAuth PKCE loopback authentication, silent token refresh with 60s expiration margin, disconnect/revocation, and OS keychain token storage under `com.davinci.notes.calendar-oauth` via Rust `keyring` commands. Added 7 unit tests; 0 ESLint errors; all files under 190 lines. |
 | 2026-10-18 | Google Calendar Integration Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`) | Shipped Phase 0 (ADR-0199 OAuth scope isolation, sensitive-scope policy, OS keychain separation) and Phase 1 (created `@app/google-calendar-api` shared package with zero external SDKs, Meet link parser, and `syncToken`-ready REST client). 13/13 Vitest tests pass; 0 ESLint / 0 typecheck errors; all files under 160 lines. |
 
 - Added `apps/website`, a static Astro 7.4.0 application with scripts for local development, production builds, previewing, and validation.

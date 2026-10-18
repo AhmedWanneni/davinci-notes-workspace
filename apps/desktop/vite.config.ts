@@ -129,6 +129,10 @@ export default defineConfig({
         find: "@app/syncthing-api",
         replacement: path.join(repoRoot, "packages/syncthing-api/index.ts"),
       },
+      {
+        find: "@app/google-calendar-api",
+        replacement: path.join(repoRoot, "packages/google-calendar-api/index.ts"),
+      },
     ],
   },
   server: {

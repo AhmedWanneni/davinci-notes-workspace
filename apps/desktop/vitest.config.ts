@@ -35,6 +35,7 @@ export default defineConfig({
       "@app/ai-api": path.join(repoRoot, "packages/ai-api/index.ts"),
       "@app/ai-runtime": path.join(repoRoot, "packages/ai-runtime/index.ts"),
       "@app/syncthing-api": path.join(repoRoot, "packages/syncthing-api/index.ts"),
+      "@app/google-calendar-api": path.join(repoRoot, "packages/google-calendar-api/index.ts"),
     },
   },
   test: {

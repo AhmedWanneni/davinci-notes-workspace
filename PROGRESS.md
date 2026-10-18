@@ -4,6 +4,18 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Google Calendar Integration Phase 2 Complete (Desktop PKCE & OS Keychain Auth)**
+- **Rust Backend (`apps/desktop/src-tauri/`)**:
+  - Implemented `save_calendar_token`, `load_calendar_token`, and `clear_calendar_token` targeting dedicated OS keychain service `com.davinci.notes.calendar-oauth` via `keyring` crate.
+  - Registered commands in Tauri handler with plugin runner rejection (`reject_plugin_runner`).
+  - Verified compilation via `cargo check` (`dev` profile passed cleanly).
+- **Desktop Auth Engine (`apps/desktop/src/calendar/`)**:
+  - `calendarAuthConfig.ts`: Resolves `VITE_GOOGLE_CLIENT_ID` with fallback to `VITE_GOOGLE_DRIVE_CLIENT_ID` and declares sensitive read-only calendar scopes.
+  - `calendarPkce.ts`: Web Crypto PKCE verifier, challenge (`SHA-256`), and state generator.
+  - `calendarTokenStore.ts`: Tauri IPC token store adapter.
+  - `desktopCalendarAuth.ts`: End-to-end loopback listener auth (`signInToCalendar`), silent token refresh with 60s expiration margin, and Google revocation endpoint call (`disconnectCalendar`).
+  - All 7 unit tests pass; 0 ESLint errors; all files under 190 lines.
+
 **Google Calendar Integration Phases 0 & 1 Complete (`@app/google-calendar-api`, ADR-0199)**
 - **Architecture & Scopes (ADR-0199)**: Established sensitive-scope read-only architecture (`calendar.events.readonly`, `calendar.calendarlist.readonly`), dedicated OS keychain service (`com.davinci.notes.calendar-oauth`) isolated from Drive sync, and zero-SDK direct REST client boundary.
 - **Shared Package (`packages/google-calendar-api/`)**:
@@ -2158,7 +2170,7 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Google Calendar Phase 2**: Desktop OAuth loopback and OS keychain token management (`apps/desktop/src-tauri` and desktop auth adapter).
+1. **Google Calendar Phase 3**: SQLite cache tables (Migration 8) in `vault-index.db` and background incremental sync engine using `withDbLock`.
 2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
 3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
