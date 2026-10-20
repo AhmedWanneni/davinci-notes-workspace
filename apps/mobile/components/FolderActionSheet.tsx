@@ -7,7 +7,7 @@ import {
   PushPin,
   Trash,
 } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Button, Sheet, Text } from "./primitives";
 
 export interface FolderActionSheetProps {
@@ -33,6 +33,7 @@ export function FolderActionSheet({
   onMove,
   onDelete,
 }: FolderActionSheetProps): React.ReactElement {
+  const { tokens } = useTheme();
   const [mode, setMode] = useState<"menu" | "move" | "delete_confirm">("menu");
 
   const resetAndClose = () => {
@@ -56,7 +57,7 @@ export function FolderActionSheet({
             className="flex-row items-center gap-3 p-3 min-h-[44px] rounded-md active:bg-bg-hover"
             accessibilityRole="button"
           >
-            <FileText size={20} color={darkColorTokens.text.accent} />
+            <FileText size={20} color={tokens.color.interactive.accent} />
             <Text variant="body" color="normal">
               Open Note
             </Text>
@@ -72,7 +73,7 @@ export function FolderActionSheet({
           >
             <PushPin
               size={20}
-              color={darkColorTokens.text.normal}
+              color={tokens.color.text.normal}
               weight={isPinned ? "fill" : "regular"}
             />
             <Text variant="body" color="normal">
@@ -85,7 +86,7 @@ export function FolderActionSheet({
             className="flex-row items-center gap-3 p-3 min-h-[44px] rounded-md active:bg-bg-hover"
             accessibilityRole="button"
           >
-            <FolderSimple size={20} color={darkColorTokens.text.normal} />
+            <FolderSimple size={20} color={tokens.color.text.normal} />
             <Text variant="body" color="normal">
               Move to Folder...
             </Text>
@@ -96,7 +97,7 @@ export function FolderActionSheet({
             className="flex-row items-center gap-3 p-3 min-h-[44px] rounded-md active:bg-bg-hover"
             accessibilityRole="button"
           >
-            <Trash size={20} color={darkColorTokens.text.error} />
+            <Trash size={20} color={tokens.color.text.error} />
             <Text variant="body" color="error">
               Delete Note
             </Text>
@@ -117,7 +118,7 @@ export function FolderActionSheet({
               }}
               className="flex-row items-center gap-2 p-3 min-h-[44px] border-b border-border-subtle active:bg-bg-hover"
             >
-              <Folder size={18} color={darkColorTokens.text.accent} />
+              <Folder size={18} color={tokens.color.interactive.accent} />
               <Text variant="body" color="normal">
                 / (Vault Root)
               </Text>
@@ -131,7 +132,7 @@ export function FolderActionSheet({
                 }}
                 className="flex-row items-center gap-2 p-3 min-h-[44px] border-b border-border-subtle active:bg-bg-hover"
               >
-                <Folder size={18} color={darkColorTokens.text.muted} />
+                <Folder size={18} color={tokens.color.text.muted} />
                 <Text variant="body" color="normal">
                   {folder}
                 </Text>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, FlatList, Pressable } from "react-native";
-import { useRouter } from "expo-router";
+import { View, FlatList, Pressable, BackHandler } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { MagnifyingGlass, FileText, X } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../../theme";
 import {
   Badge,
   IconButton,
@@ -31,7 +31,6 @@ function HighlightedSnippet({
     );
   }
 
-  // Split by <mark> and </mark> tags
   const parts = snippet.split(/(<mark>.*?<\/mark>)/g);
 
   return (
@@ -58,10 +57,27 @@ function HighlightedSnippet({
 
 export default function SearchScreen(): React.ReactElement {
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const { tokens } = useTheme();
+  const { q } = useLocalSearchParams<{ q?: string }>();
+  const [query, setQuery] = useState(q ?? "");
   const [results, setResults] = useState<MobileSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [popularTags, setPopularTags] = useState<string[]>([]);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (q) setQuery(q);
+  }, [q]);
+
+  useEffect(() => {
+    try {
+      const tagIndex = defaultVaultIndexer.getTagIndex();
+      const tags = Array.from(tagIndex.tagToNotes.keys()).slice(0, 5);
+      setPopularTags(tags);
+    } catch {
+      setPopularTags([]);
+    }
+  }, []);
 
   const runSearch = useCallback(async (text: string) => {
     if (!text.trim()) {
@@ -75,8 +91,7 @@ export default function SearchScreen(): React.ReactElement {
       const tagIndex = defaultVaultIndexer.getTagIndex();
       const hits = await searchVault(text, tagIndex);
       setResults(hits);
-    } catch (err) {
-      console.warn("[search] Query execution error:", err);
+    } catch {
       setResults([]);
     } finally {
       setIsSearching(false);
@@ -84,40 +99,48 @@ export default function SearchScreen(): React.ReactElement {
   }, []);
 
   useEffect(() => {
-    // 150ms debounce
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
-      runSearch(query);
+      void runSearch(query);
     }, 150);
-
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
   }, [query, runSearch]);
 
+  useEffect(() => {
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (query.trim()) {
+        setQuery("");
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [query]);
+
   const handleApplyFilter = (filter: string) => {
-    const updated = query ? `${query} ${filter}` : filter;
-    setQuery(updated);
+    setQuery(query ? `${query} ${filter}` : filter);
   };
 
   const handleOpenNote = (notePath: string) => {
     const targetId = defaultNoteStore.register(notePath);
     router.push({
-      pathname: "/editor",
-      params: { path: notePath, noteId: targetId, autoFocus: "1" },
+      pathname: "/note",
+      params: { path: notePath, noteId: targetId },
     });
   };
 
   return (
     <ScreenLayout title="Search">
       <KeyboardAwareContainer scrollable={false}>
-        {/* Search Input Area */}
-        <View className="p-4 border-b border-border-subtle bg-bg-primary">
+        <View
+          className="p-4 border-b"
+          style={{
+            backgroundColor: tokens.color.bg.primary,
+            borderBottomColor: tokens.color.border.subtle,
+          }}
+        >
           <Input
             placeholder="Search full text, #tags, or operators..."
             value={query}
@@ -125,14 +148,14 @@ export default function SearchScreen(): React.ReactElement {
             prefix={
               <MagnifyingGlass
                 size={18}
-                color={darkColorTokens.text.muted}
+                color={tokens.color.text.muted}
                 weight="regular"
               />
             }
             suffix={
               query ? (
                 <IconButton
-                  icon={<X size={16} color={darkColorTokens.text.muted} />}
+                  icon={<X size={16} color={tokens.color.text.muted} />}
                   accessibilityLabel="Clear search"
                   size="sm"
                   variant="ghost"
@@ -142,31 +165,32 @@ export default function SearchScreen(): React.ReactElement {
             }
           />
 
-          {/* Tag & Path Quick Filters */}
-          <View className="flex-row items-center gap-2 mt-3 flex-wrap">
-            <Pressable onPress={() => handleApplyFilter("tag:todo")}>
-              <Badge variant="accent">tag:todo</Badge>
-            </Pressable>
-            <Pressable onPress={() => handleApplyFilter("#mobile")}>
-              <Badge variant="neutral">#mobile</Badge>
-            </Pressable>
-            <Pressable onPress={() => handleApplyFilter("#architecture")}>
-              <Badge variant="neutral">#architecture</Badge>
-            </Pressable>
-            <Pressable onPress={() => handleApplyFilter("-tag:archive")}>
-              <Badge variant="warning">-tag:archive</Badge>
-            </Pressable>
-          </View>
+          {popularTags.length > 0 ? (
+            <View className="flex-row items-center gap-2 mt-3 flex-wrap">
+              {popularTags.map((tag) => (
+                <Pressable
+                  key={tag}
+                  onPress={() => handleApplyFilter(`#${tag}`)}
+                >
+                  <Badge variant="accent">#{tag}</Badge>
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
         </View>
 
-        {/* Results Header */}
-        <View className="px-4 py-2 bg-bg-primary-alt border-b border-border-subtle flex-row justify-between items-center">
+        <View
+          className="px-4 py-2 border-b flex-row justify-between items-center"
+          style={{
+            backgroundColor: tokens.color.bg["primary-alt"],
+            borderBottomColor: tokens.color.border.subtle,
+          }}
+        >
           <Text variant="caption" color="muted">
             {isSearching ? "SEARCHING..." : `RESULTS (${results.length})`}
           </Text>
         </View>
 
-        {/* Virtualized Results List */}
         <FlatList
           data={results}
           keyExtractor={(item) => item.path}
@@ -179,7 +203,7 @@ export default function SearchScreen(): React.ReactElement {
               left={
                 <FileText
                   size={20}
-                  color={darkColorTokens.text.accent}
+                  color={tokens.color.interactive.accent}
                   weight="regular"
                 />
               }
@@ -196,7 +220,7 @@ export default function SearchScreen(): React.ReactElement {
                   ? isSearching
                     ? "Searching SQLite FTS5 index..."
                     : "No matching notes found."
-                  : "Type a query or select a tag filter above."}
+                  : "Type a query or select a tag above."}
               </Text>
             </View>
           }

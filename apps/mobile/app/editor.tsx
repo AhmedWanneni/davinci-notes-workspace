@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, AppState, BackHandler } from "react-native";
+import { View, AppState, BackHandler, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import { NavigationBar } from "expo-navigation-bar";
+import { useImmersiveNavigationBar, useImmersiveMode } from "../settings";
 import EditorDom from "../components/EditorDom";
 import { FormattingToolbar } from "../components/FormattingToolbar";
 import { EditorConflictBanner } from "../components/EditorConflictBanner";
@@ -17,9 +18,13 @@ import {
 import { useMediaCaptureActions } from "../capture";
 import type { ToolbarActionType } from "../src/bridgeProtocol";
 import { encodePayload } from "../src/base64Payload";
+import { useTheme } from "../theme";
 
 export default function EditorScreen(): React.ReactElement {
   const insets = useSafeAreaInsets();
+  const { tokens, themeCss } = useTheme();
+  const { isImmersiveMode } = useImmersiveMode();
+  useImmersiveNavigationBar();
   const {
     path: initialPath,
     noteId,
@@ -112,10 +117,17 @@ export default function EditorScreen(): React.ReactElement {
 
   return (
     <View
-      className="flex-1 bg-bg-primary"
-      style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }}
+      className="flex-1"
+      style={{
+        flex: 1,
+        backgroundColor: tokens.color.bg.primary,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+      }}
     >
-      <StatusBar style="light" />
+      {Platform.OS === "android" && isImmersiveMode ? (
+        <NavigationBar hidden={true} />
+      ) : null}
       <EditorHeader
         title={title}
         payloadBytes={lastPayloadBytes}
@@ -151,13 +163,40 @@ export default function EditorScreen(): React.ReactElement {
               matchContents: false,
               scrollEnabled: true,
               focusable: true,
-              injectedJavaScriptBeforeContentLoaded:
-                "window.$$EXPO_DOM_HOST_OS = 'android'; true;",
+              injectedJavaScriptBeforeContentLoaded: `
+                window.ReactNativeWebView = window.ReactNativeWebView || {};
+                if (typeof window.ReactNativeWebView.injectedObjectJson !== 'function') {
+                  window.ReactNativeWebView.injectedObjectJson = function() {
+                    return JSON.stringify({
+                      EXPO_DOM_HOST_OS: 'android',
+                      initialProps: {
+                        names: ['onDocChanged', 'onFlushAck', 'onMetricsUpdate'],
+                        props: {
+                          initialContent: ${JSON.stringify(encodePayload(content))},
+                          notePath: ${JSON.stringify(activePath)},
+                          themeCss: ${JSON.stringify(themeCss ?? "")}
+                        }
+                      }
+                    });
+                  };
+                }
+                window.$$EXPO_DOM_HOST_OS = window.$$EXPO_DOM_HOST_OS || 'android';
+                window.$$EXPO_INITIAL_PROPS = window.$$EXPO_INITIAL_PROPS || {
+                  names: ['onDocChanged', 'onFlushAck', 'onMetricsUpdate'],
+                  props: {
+                    initialContent: ${JSON.stringify(encodePayload(content))},
+                    notePath: ${JSON.stringify(activePath)},
+                    themeCss: ${JSON.stringify(themeCss ?? "")}
+                  }
+                };
+                true;
+              `,
               containerStyle: { flex: 1, width: "100%", height: "100%" },
               style: { flex: 1, width: "100%", height: "100%" },
             }}
             initialContent={encodePayload(content)}
             notePath={activePath}
+            themeCss={themeCss}
             onDocChanged={handleDocChanged}
             onFlushAck={handleFlushAck}
             actionTrigger={actionTrigger}

@@ -1,31 +1,41 @@
 import React, { useState, useCallback, useRef } from "react";
 import { View, ScrollView } from "react-native";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../theme";
+import { Button, Sheet, Text } from "../components/primitives";
 import {
-  ArrowLeft,
-  ListBullets,
-  Link as LinkIcon,
-  PencilSimple,
-} from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
-import { Button, IconButton, Sheet, Text } from "../components/primitives";
-import { ScreenLayout } from "../components/layout";
-import { defaultVaultManager, defaultNoteStore, useNotePath } from "../vault";
-import { defaultVaultIndexer } from "../indexer";
-import { resolveWikilink } from "../vault/wikilinkResolver";
+  MobileHeader,
+  QuickActionBar,
+  NoteActionSheet,
+  NavigationDrawer,
+  VaultDrawerContent,
+} from "../components/shell";
 import {
-  parseMarkdownDocument,
+  defaultNoteStore,
+  useNotePath,
+  defaultVaultManager,
+  type MobileVaultStorageAdapter,
+} from "../vault";
+import {
   NoteReaderView,
   OutlineSheet,
   BacklinksSheet,
-  queryNoteMentions,
-  type MentionItem,
+  useNoteReaderState,
   type OutlineHeading,
-  type ParsedMarkdownDocument,
 } from "../reader";
+import { LocalGraphView } from "../graph";
+import { CanvasViewer } from "../canvas";
+import { useImmersiveNavigationBar, useImmersiveMode } from "../settings";
+import { NavigationBar } from "expo-navigation-bar";
+import { Platform } from "react-native";
 
 export default function NoteViewScreen(): React.ReactElement {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { tokens } = useTheme();
+  const { isImmersiveMode } = useImmersiveMode();
+  useImmersiveNavigationBar();
   const { path: routePath, noteId } = useLocalSearchParams<{
     path?: string;
     noteId?: string;
@@ -34,141 +44,77 @@ export default function NoteViewScreen(): React.ReactElement {
   const activePath = useNotePath(noteId, routePath ?? "Untitled.md");
   const currentNoteId = noteId ?? defaultNoteStore.register(activePath);
 
-  const [doc, setDoc] = useState<ParsedMarkdownDocument | null>(null);
-  const [isMissing, setIsMissing] = useState(false);
-  const [allNotes, setAllNotes] = useState<string[]>([]);
+  const {
+    doc,
+    isMissing,
+    linked,
+    unlinked,
+    loadingMentions,
+    unresolvedTarget,
+    setUnresolvedTarget,
+    loadNote,
+    loadMentions,
+    handleWikilinkPress,
+    handleCreateUnresolvedNote,
+    navigateToEditor,
+  } = useNoteReaderState(activePath, currentNoteId);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [outlineOpen, setOutlineOpen] = useState(false);
   const [backlinksOpen, setBacklinksOpen] = useState(false);
-  const [unresolvedTarget, setUnresolvedTarget] = useState<string | null>(null);
-  const [linked, setLinked] = useState<MentionItem[]>([]);
-  const [unlinked, setUnlinked] = useState<MentionItem[]>([]);
-  const [loadingMentions, setLoadingMentions] = useState(false);
+  const [graphOpen, setGraphOpen] = useState(false);
+  const [adapter, setAdapter] = useState<MobileVaultStorageAdapter | null>(
+    null,
+  );
+  const [vaultName, setVaultName] = useState("Vault");
+  const [vaultNotes, setVaultNotes] = useState<string[]>([]);
+  const [vaultFolders, setVaultFolders] = useState<string[]>([]);
   const scrollRef = useRef<ScrollView | null>(null);
-
-  const loadNote = useCallback(async () => {
-    try {
-      const { adapter } = await defaultVaultManager.getActiveAdapter();
-      if (!adapter) return;
-
-      const scan = await adapter.scanVault();
-      setAllNotes(scan.notes);
-      const res = await adapter.readNote(activePath);
-      setDoc(parseMarkdownDocument(res.content));
-      setIsMissing(false);
-    } catch {
-      setDoc(null);
-      setIsMissing(true);
-    }
-  }, [activePath]);
 
   useFocusEffect(
     useCallback(() => {
       void loadNote();
+      defaultVaultManager.getActiveAdapter().then(({ adapter: a, info }) => {
+        setAdapter(a);
+        if (info?.name) setVaultName(info.name);
+        if (a)
+          a.scanVault()
+            .then((s) => {
+              setVaultNotes(s.notes);
+              setVaultFolders(s.folders);
+            })
+            .catch(() => {});
+      });
     }, [loadNote]),
   );
 
-  const handleOpenMentions = async () => {
-    setBacklinksOpen(true);
-    setLoadingMentions(true);
-    try {
-      const { adapter } = await defaultVaultManager.getActiveAdapter();
-      if (!adapter) return;
-
-      const res = await queryNoteMentions(activePath, async (p) => {
-        try {
-          const n = await adapter.readNote(p);
-          return n.content;
-        } catch {
-          return null;
-        }
-      });
-      setLinked(res.linked);
-      setUnlinked(res.unlinked);
-    } catch (err) {
-      console.warn("[note] Mentions query failed:", err);
-    } finally {
-      setLoadingMentions(false);
-    }
-  };
-
-  const handleWikilinkPress = (target: string, displayText?: string) => {
-    const res = resolveWikilink(target, allNotes, displayText);
-    if (res.isResolved && res.resolvedPath) {
-      const targetId = defaultNoteStore.register(res.resolvedPath);
-      router.push({
-        pathname: "/editor",
-        params: { path: res.resolvedPath, noteId: targetId, autoFocus: "1" },
-      });
-    } else {
-      setUnresolvedTarget(res.targetStem);
-    }
-  };
-
-  const handleCreateUnresolvedNote = async () => {
-    if (!unresolvedTarget) return;
-    try {
-      const { adapter } = await defaultVaultManager.getActiveAdapter();
-      if (!adapter) return;
-
-      const newPath = `${unresolvedTarget}.md`;
-      await adapter.writeNote(newPath, `# ${unresolvedTarget}\n\n`);
-      await defaultVaultIndexer.indexVault(adapter);
-      setUnresolvedTarget(null);
-      const targetId = defaultNoteStore.register(newPath);
-      router.push({
-        pathname: "/editor",
-        params: { path: newPath, noteId: targetId, autoFocus: "1" },
-      });
-    } catch (err) {
-      console.error("[note] Failed to create unresolved note:", err);
-    }
-  };
-
-  const navigateToEditor = () => {
-    router.push({
-      pathname: "/editor",
-      params: { path: activePath, noteId: currentNoteId, autoFocus: "1" },
-    });
-  };
-
-  const title = activePath.replace(/\.md$/i, "").split("/").pop() ?? activePath;
+  const pathParts = activePath.replace(/\.md$/i, "").split("/");
+  const title = pathParts.pop() ?? activePath;
+  const folder = pathParts.length > 0 ? pathParts.join("/") : undefined;
+  const isCanvas = activePath.endsWith(".canvas");
 
   return (
-    <ScreenLayout
-      title={title}
-      headerLeft={
-        <IconButton
-          icon={<ArrowLeft size={20} color={darkColorTokens.text.normal} />}
-          accessibilityLabel="Back"
-          size="sm"
-          onPress={() => router.back()}
-        />
-      }
-      headerRight={
-        <View className="flex-row items-center gap-1">
-          <IconButton
-            icon={<ListBullets size={18} color={darkColorTokens.text.normal} />}
-            accessibilityLabel="Outline"
-            size="sm"
-            onPress={() => setOutlineOpen(true)}
-          />
-          <IconButton
-            icon={<LinkIcon size={18} color={darkColorTokens.text.normal} />}
-            accessibilityLabel="Backlinks"
-            size="sm"
-            onPress={() => void handleOpenMentions()}
-          />
-          <IconButton
-            icon={
-              <PencilSimple size={18} color={darkColorTokens.text.accent} />
-            }
-            accessibilityLabel="Edit note"
-            size="sm"
-            onPress={navigateToEditor}
-          />
-        </View>
-      }
+    <View
+      className="flex-1"
+      style={{
+        flex: 1,
+        backgroundColor: tokens.color.bg.primary,
+        paddingTop: insets.top,
+      }}
     >
+      {Platform.OS === "android" && isImmersiveMode ? (
+        <NavigationBar hidden={true} />
+      ) : null}
+      <MobileHeader
+        title={title}
+        folder={folder}
+        isReadingView={true}
+        onToggleSidebar={() => setDrawerOpen(true)}
+        onToggleReadingView={navigateToEditor}
+        onOpenMoreMenu={() => setSheetOpen(true)}
+      />
+
       {isMissing ? (
         <View className="flex-1 items-center justify-center p-6 gap-4">
           <Text variant="h2" color="normal">
@@ -186,17 +132,113 @@ export default function NoteViewScreen(): React.ReactElement {
             </Button>
           </View>
         </View>
+      ) : isCanvas && adapter ? (
+        <CanvasViewer canvasPath={activePath} adapter={adapter} />
       ) : doc ? (
-        <NoteReaderView
-          document={doc}
-          onWikilinkPress={handleWikilinkPress}
-          onTagPress={(tag) =>
-            router.push({ pathname: "/(tabs)/search", params: { q: tag } })
-          }
-          onEditPress={navigateToEditor}
-          scrollViewRef={scrollRef}
-        />
+        <View className="flex-1">
+          <NoteReaderView
+            document={doc}
+            title={title}
+            onWikilinkPress={handleWikilinkPress}
+            onTagPress={(tag) =>
+              router.push({ pathname: "/(tabs)/search", params: { q: tag } })
+            }
+            onEditPress={navigateToEditor}
+            scrollViewRef={scrollRef}
+          />
+        </View>
       ) : null}
+
+      <QuickActionBar
+        canGoBack={true}
+        onBack={() => router.back()}
+        onForward={() => {}}
+        onNewNote={() =>
+          router.push({
+            pathname: "/editor",
+            params: { preset: "new", autoFocus: "1" },
+          })
+        }
+        onOpenTabs={() => router.push("/(tabs)")}
+        tabCount={1}
+        onOpenMore={() => setSheetOpen(true)}
+      />
+
+      <NavigationDrawer
+        visible={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      >
+        <VaultDrawerContent
+          vaultName={vaultName}
+          notesCount={vaultNotes.length}
+          foldersCount={vaultFolders.length}
+          folders={vaultFolders}
+          notes={vaultNotes}
+          onOpenVaultSwitcher={() => {
+            setDrawerOpen(false);
+            router.push("/(tabs)");
+          }}
+          onSelectNote={(n) => {
+            setDrawerOpen(false);
+            const targetId = defaultNoteStore.register(n);
+            router.push({
+              pathname: "/note",
+              params: { path: n, noteId: targetId },
+            });
+          }}
+          onOpenDailyNote={() => {
+            setDrawerOpen(false);
+            router.push("/daily-note-action");
+          }}
+          onOpenTags={() => {
+            setDrawerOpen(false);
+            router.push({ pathname: "/(tabs)/search", params: { q: "tag:" } });
+          }}
+          onOpenGraph={() => {
+            setDrawerOpen(false);
+            setGraphOpen(true);
+          }}
+          onOpenSettings={() => {
+            setDrawerOpen(false);
+            router.push("/settings");
+          }}
+          onCreateFolder={() => {
+            setDrawerOpen(false);
+            router.push("/(tabs)");
+          }}
+        />
+      </NavigationDrawer>
+
+      <NoteActionSheet
+        visible={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        isReadingView={true}
+        onToggleReadingView={() => {
+          setSheetOpen(false);
+          navigateToEditor();
+        }}
+        onToggleSourceMode={() => {
+          setSheetOpen(false);
+          navigateToEditor();
+        }}
+        onOpenOutline={() => {
+          setSheetOpen(false);
+          setOutlineOpen(true);
+        }}
+        onOpenBacklinks={() => {
+          setSheetOpen(false);
+          void loadMentions();
+          setBacklinksOpen(true);
+        }}
+        onOpenGraph={() => {
+          setSheetOpen(false);
+          setGraphOpen(true);
+        }}
+        onRename={() => {
+          setSheetOpen(false);
+          navigateToEditor();
+        }}
+      />
 
       <OutlineSheet
         visible={outlineOpen}
@@ -223,6 +265,24 @@ export default function NoteViewScreen(): React.ReactElement {
       />
 
       <Sheet
+        visible={graphOpen}
+        onClose={() => setGraphOpen(false)}
+        title="Local Graph"
+      >
+        <LocalGraphView
+          notePath={activePath}
+          onNavigate={(targetPath) => {
+            setGraphOpen(false);
+            const targetId = defaultNoteStore.register(targetPath);
+            router.push({
+              pathname: "/note",
+              params: { path: targetPath, noteId: targetId },
+            });
+          }}
+        />
+      </Sheet>
+
+      <Sheet
         visible={unresolvedTarget !== null}
         onClose={() => setUnresolvedTarget(null)}
         title="Unresolved Note"
@@ -243,6 +303,6 @@ export default function NoteViewScreen(): React.ReactElement {
           </Button>
         </View>
       </Sheet>
-    </ScreenLayout>
+    </View>
   );
 }

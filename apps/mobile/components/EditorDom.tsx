@@ -38,7 +38,7 @@ export interface EditorDomProps {
 }
 
 export default function EditorDom({
-  initialContent,
+  initialContent = "",
   notePath,
   onDocChanged,
   onFlushAck,
@@ -103,7 +103,7 @@ export default function EditorDom({
       }
     });
 
-    const docText = decodePayload(initialContent);
+    const docText = decodePayload(initialContent || "");
     const extensions = createMobileEditorExtensions([changeListener]);
     const state = EditorState.create({ doc: docText, extensions });
     const view = new EditorView({ state, parent: containerRef.current });
@@ -162,7 +162,7 @@ export default function EditorDom({
     const v = viewRef.current;
     if (!v) return;
     const currentDoc = v.state.doc.toString();
-    const newDoc = decodePayload(initialContent);
+    const newDoc = decodePayload(initialContent || "");
     if (newDoc !== currentDoc) {
       v.dispatch({
         changes: { from: 0, to: currentDoc.length, insert: newDoc },
@@ -215,7 +215,9 @@ export default function EditorDom({
 
   // Apply reset & theme CSS to DOM container
   useEffect(() => {
-    let styleEl = document.getElementById("davinci-mobile-theme") as HTMLStyleElement | null;
+    let styleEl = document.getElementById(
+      "davinci-mobile-theme",
+    ) as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.id = "davinci-mobile-theme";
@@ -223,12 +225,12 @@ export default function EditorDom({
     }
     const vars = `:root{--color-bg-primary:${darkColorTokens.bg.primary};--color-text-normal:${darkColorTokens.text.normal};--color-text-muted:${darkColorTokens.text.muted};--color-text-accent:${darkColorTokens.interactive.accent};--color-bg-active:rgba(255,255,255,0.1);--font-editor:monospace,sans-serif;--editor-font-size:16px;--editor-obsidian-body-line-height:1.5;--editor-content-padding-bottom:300px;--space-6:16px;--space-8:16px;--border-width-thin:1px;}`;
     const reset =
-      "html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:" +
+      "html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:var(--color-bg-primary," +
       darkColorTokens.bg.primary +
-      "!important;color:" +
+      ")!important;color:var(--color-text-normal," +
       darkColorTokens.text.normal +
-      "!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}";
-    styleEl.textContent = `${vars}\n${reset}\n${themeCss ?? ""}`;
+      ")!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}";
+    styleEl.textContent = `${vars}\n${themeCss ?? ""}\n${reset}`;
   }, [themeCss]);
 
   return (

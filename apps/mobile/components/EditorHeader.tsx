@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 import { ArrowLeft } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { IconButton, Text } from "./primitives";
 
 export interface EditorHeaderProps {
@@ -17,6 +17,8 @@ export function EditorHeader({
   saveStatus = "saved",
   onBack,
 }: EditorHeaderProps): React.ReactElement {
+  const { tokens } = useTheme();
+
   const statusLabel =
     saveStatus === "saving"
       ? "Saving..."
@@ -31,12 +33,18 @@ export function EditorHeader({
   const statusColor = saveStatus === "error" ? "error" : "muted";
 
   return (
-    <View className="h-[44px] flex-row items-center justify-between px-3 bg-bg-primary-alt border-b border-border-subtle">
+    <View
+      className="h-[44px] flex-row items-center justify-between px-3 border-b"
+      style={{
+        backgroundColor: tokens.color.bg["primary-alt"],
+        borderBottomColor: tokens.color.border.subtle,
+      }}
+    >
       <IconButton
         icon={
           <ArrowLeft
             size={20}
-            color={darkColorTokens.text.normal}
+            color={tokens.color.text.normal}
             weight="regular"
           />
         }

@@ -5,3 +5,4 @@ export * from "./OutlineSheet";
 export * from "./BacklinksSheet";
 export * from "./backlinksQuery";
 export * from "./NoteReaderView";
+export * from "./useNoteReaderState";

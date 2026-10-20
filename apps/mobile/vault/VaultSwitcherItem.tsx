@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 import { Check, Trash, PencilSimple } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import {
   ListItem,
   Button,
@@ -37,6 +37,7 @@ export const VaultSwitcherItem: React.FC<VaultSwitcherItemProps> = ({
   onSelect,
   onRemove,
 }) => {
+  const { tokens } = useTheme();
   if (isRenaming) {
     return (
       <View className="p-2 gap-2 bg-bg-hover rounded-md my-1">
@@ -75,7 +76,7 @@ export const VaultSwitcherItem: React.FC<VaultSwitcherItemProps> = ({
         isActive ? (
           <Check
             size={18}
-            color={darkColorTokens.text.accent}
+            color={tokens.color.interactive.accent}
             weight="bold"
           />
         ) : (
@@ -85,24 +86,14 @@ export const VaultSwitcherItem: React.FC<VaultSwitcherItemProps> = ({
       right={
         <View className="flex-row items-center gap-1">
           <IconButton
-            icon={
-              <PencilSimple
-                size={16}
-                color={darkColorTokens.text.muted}
-              />
-            }
+            icon={<PencilSimple size={16} color={tokens.color.text.muted} />}
             onPress={onStartRename}
             accessibilityLabel={`Rename ${vault.name}`}
             size="sm"
           />
           {!isActive ? (
             <IconButton
-              icon={
-                <Trash
-                  size={16}
-                  color={darkColorTokens.text.muted}
-                />
-              }
+              icon={<Trash size={16} color={tokens.color.text.muted} />}
               onPress={onRemove}
               accessibilityLabel={`Remove ${vault.name}`}
               size="sm"

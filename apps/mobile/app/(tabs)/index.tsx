@@ -4,16 +4,20 @@ import { useRouter, useFocusEffect } from "expo-router";
 import {
   SortAscending,
   SortDescending,
-  SlidersHorizontal,
-  Folders,
-  Gear,
+  SidebarSimple,
+  FolderPlus,
 } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../../theme";
 import { IconButton, Text } from "../../components/primitives";
 import { ScreenLayout } from "../../components/layout";
 import { Breadcrumbs } from "../../components/Breadcrumbs";
-import { FolderActionSheet } from "../../components/FolderActionSheet";
 import { VaultInaccessibleBanner } from "../../components/VaultInaccessibleBanner";
+import {
+  NavigationDrawer,
+  VaultDrawerContent,
+  FileActionSheet,
+  NewFolderSheet,
+} from "../../components/shell";
 import {
   defaultVaultManager,
   defaultNoteStore,
@@ -21,96 +25,53 @@ import {
   FirstRunVaultScreen,
   VaultSwitcherSheet,
   VaultItemRow,
-  type MobileVaultStorageAdapter,
-  type VaultInfo,
+  useFilesScreenState,
 } from "../../vault";
-import { defaultVaultIndexer } from "../../indexer";
 import {
   moveNoteWithCollisionHandling,
   deleteNoteAndReindex,
 } from "../../vault/fileOperations";
-import {
-  deriveVisibleItems,
-  type SortMode,
-} from "../../vault/folderViewHelpers";
+import { deriveVisibleItems } from "../../vault/folderViewHelpers";
 
 export default function FilesScreen(): React.ReactElement {
   const router = useRouter();
-  const [adapter, setAdapter] = useState<MobileVaultStorageAdapter | null>(
-    null,
-  );
-  const [vaultInfo, setVaultInfo] = useState<VaultInfo | null>(null);
-  const [hasAnyVaults, setHasAnyVaults] = useState<boolean | null>(null);
+  const { tokens } = useTheme();
   const [isSwitcherVisible, setIsSwitcherVisible] = useState(false);
-  const [allNotes, setAllNotes] = useState<string[]>([]);
-  const [allFolders, setAllFolders] = useState<string[]>([]);
-  const [currentFolder, setCurrentFolder] = useState<string>("");
-  const [sortMode, setSortMode] = useState<SortMode>("name-asc");
-  const [pinnedNotes, setPinnedNotes] = useState<Set<string>>(new Set());
-  const [actionTargetNote, setActionTargetNote] = useState<string | null>(null);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [newFolderVisible, setNewFolderVisible] = useState(false);
 
-  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+  const {
+    adapter,
+    vaultInfo,
+    hasAnyVaults,
+    allNotes,
+    allFolders,
+    currentFolder,
+    setCurrentFolder,
+    sortMode,
+    setSortMode,
+    pinnedNotes,
+    togglePin,
+    actionTargetNote,
+    setActionTargetNote,
+    isLoadingNotes,
+    loadVault,
+    handleCreateFolder,
+    handleRenameNote,
+  } = useFilesScreenState();
 
   const handleOpenNote = (path: string) => {
     const noteId = defaultNoteStore.register(path);
-    router.push({
-      pathname: "/editor",
-      params: { path, noteId, autoFocus: "1" },
-    });
+    router.push({ pathname: "/note", params: { path, noteId } });
   };
-
-  const loadVault = useCallback(async () => {
-    const {
-      adapter: active,
-      info,
-      hasAnyVaults: exists,
-    } = await defaultVaultManager.getActiveAdapter();
-    setHasAnyVaults(exists);
-    setVaultInfo(info);
-    setAdapter(active);
-
-    if (active) {
-      setIsLoadingNotes(true);
-      setTimeout(async () => {
-        try {
-          const scan = await active.scanVault();
-          setAllNotes(scan.notes);
-          setAllFolders(scan.folders);
-          setTimeout(() => {
-            defaultVaultIndexer.indexVault(active).catch(() => {});
-          }, 100);
-        } catch (err) {
-          setVaultInfo({
-            ...info,
-            isAccessible: false,
-            error: err instanceof Error ? err.message : "Failed to scan vault",
-          });
-        } finally {
-          setIsLoadingNotes(false);
-        }
-      }, 0);
-    }
-  }, []);
 
   useFocusEffect(
-    useCallback(() => { void loadVault(); }, [loadVault]),
+    useCallback(() => {
+      void loadVault();
+    }, [loadVault]),
   );
 
-  useVaultForegroundSync({
-    adapter,
-    onChangesDetected: () => {
-      loadVault();
-    },
-  });
-
-  const togglePin = (path: string) => {
-    setPinnedNotes((prev) => {
-      const next = new Set(prev);
-      if (next.has(path)) next.delete(path);
-      else next.add(path);
-      return next;
-    });
-  };
+  useVaultForegroundSync({ adapter, onChangesDetected: loadVault });
 
   const { listData } = useMemo(
     () =>
@@ -134,20 +95,32 @@ export default function FilesScreen(): React.ReactElement {
       onTitlePress={() => setIsSwitcherVisible(true)}
       headerLeft={
         <IconButton
-          icon={<Folders size={18} color={darkColorTokens.text.normal} />}
-          accessibilityLabel="Switch vault"
+          icon={
+            <SidebarSimple
+              size={20}
+              color={tokens.color.interactive.accent}
+              weight="regular"
+            />
+          }
+          accessibilityLabel="Open vault navigation"
           size="sm"
-          onPress={() => setIsSwitcherVisible(true)}
+          onPress={() => setDrawerVisible(true)}
         />
       }
       headerRight={
         <View className="flex-row items-center gap-1">
           <IconButton
+            icon={<FolderPlus size={18} color={tokens.color.text.normal} />}
+            accessibilityLabel="New folder"
+            size="sm"
+            onPress={() => setNewFolderVisible(true)}
+          />
+          <IconButton
             icon={
               sortMode === "name-asc" ? (
-                <SortAscending size={18} color={darkColorTokens.text.normal} />
+                <SortAscending size={18} color={tokens.color.text.normal} />
               ) : (
-                <SortDescending size={18} color={darkColorTokens.text.normal} />
+                <SortDescending size={18} color={tokens.color.text.normal} />
               )
             }
             accessibilityLabel="Toggle sort"
@@ -156,25 +129,6 @@ export default function FilesScreen(): React.ReactElement {
               setSortMode(sortMode === "name-asc" ? "name-desc" : "name-asc")
             }
           />
-          <IconButton
-            icon={<Gear size={18} color={darkColorTokens.text.normal} />}
-            accessibilityLabel="Settings"
-            size="sm"
-            onPress={() => router.push("/settings")}
-          />
-          {__DEV__ ? (
-            <IconButton
-              icon={
-                <SlidersHorizontal
-                  size={18}
-                  color={darkColorTokens.text.normal}
-                />
-              }
-              accessibilityLabel="Component Gallery"
-              size="sm"
-              onPress={() => router.push("/gallery")}
-            />
-          ) : null}
         </View>
       }
     >
@@ -213,21 +167,22 @@ export default function FilesScreen(): React.ReactElement {
               <Text variant="body" color="muted">
                 {isLoadingNotes
                   ? "Loading vault notes..."
-                  : "No notes in this folder. Tap \"+\" to create one."}
+                  : 'No notes in this folder. Tap "+" to create one.'}
               </Text>
             </View>
           }
         />
       )}
 
-      <FolderActionSheet
-        targetNote={actionTargetNote}
+      <FileActionSheet
+        targetPath={actionTargetNote}
         isPinned={actionTargetNote ? pinnedNotes.has(actionTargetNote) : false}
         folders={allFolders}
         visible={actionTargetNote !== null}
         onClose={() => setActionTargetNote(null)}
         onOpen={handleOpenNote}
         onTogglePin={togglePin}
+        onRename={handleRenameNote}
         onMove={async (p, dest) => {
           if (adapter) await moveNoteWithCollisionHandling(adapter, p, dest);
           await loadVault();
@@ -238,11 +193,58 @@ export default function FilesScreen(): React.ReactElement {
         }}
       />
 
+      <NewFolderSheet
+        visible={newFolderVisible}
+        onClose={() => setNewFolderVisible(false)}
+        onCreateFolder={handleCreateFolder}
+      />
+
       <VaultSwitcherSheet
         visible={isSwitcherVisible}
         onClose={() => setIsSwitcherVisible(false)}
         onVaultChanged={loadVault}
       />
+
+      <NavigationDrawer
+        visible={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+      >
+        <VaultDrawerContent
+          vaultName={vaultInfo?.name ?? "Vault"}
+          notesCount={allNotes.length}
+          foldersCount={allFolders.length}
+          folders={allFolders}
+          notes={allNotes}
+          onOpenVaultSwitcher={() => {
+            setDrawerVisible(false);
+            setIsSwitcherVisible(true);
+          }}
+          onSelectNote={(note) => {
+            setDrawerVisible(false);
+            handleOpenNote(note);
+          }}
+          onOpenDailyNote={() => {
+            setDrawerVisible(false);
+            router.push("/daily-note-action");
+          }}
+          onOpenTags={() => {
+            setDrawerVisible(false);
+            router.push({ pathname: "/(tabs)/search", params: { q: "tag:" } });
+          }}
+          onOpenGraph={() => {
+            setDrawerVisible(false);
+            if (allNotes[0]) handleOpenNote(allNotes[0]);
+          }}
+          onOpenSettings={() => {
+            setDrawerVisible(false);
+            router.push("/settings");
+          }}
+          onCreateFolder={() => {
+            setDrawerVisible(false);
+            setNewFolderVisible(true);
+          }}
+        />
+      </NavigationDrawer>
     </ScreenLayout>
   );
 }

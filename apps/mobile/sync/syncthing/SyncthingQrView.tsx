@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Image, ActivityIndicator } from "react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../../theme";
 import { Text } from "../../components/primitives";
 
 export interface SyncthingQrViewProps {
@@ -16,10 +16,18 @@ export const SyncthingQrView: React.FC<SyncthingQrViewProps> = ({
   qrUrl,
   isLoading = false,
 }) => {
+  const { tokens } = useTheme();
+
   if (isLoading) {
     return (
-      <View className="h-[200px] w-[200px] items-center justify-center bg-white rounded-lg border border-border-normal self-center">
-        <ActivityIndicator size="small" color={darkColorTokens.text.accent} />
+      <View
+        className="h-[200px] w-[200px] items-center justify-center bg-white rounded-lg border self-center"
+        style={{ borderColor: tokens.color.border.normal }}
+      >
+        <ActivityIndicator
+          size="small"
+          color={tokens.color.interactive.accent}
+        />
       </View>
     );
   }
@@ -31,7 +39,10 @@ export const SyncthingQrView: React.FC<SyncthingQrViewProps> = ({
   return (
     <View className="items-center my-3">
       {/* High-contrast white container ensuring scannable quiet zone */}
-      <View className="p-3 bg-white rounded-lg border border-border-normal items-center justify-center">
+      <View
+        className="p-3 bg-white rounded-lg border items-center justify-center"
+        style={{ borderColor: tokens.color.border.normal }}
+      >
         <Image
           source={{ uri: qrUrl }}
           style={{ width: 180, height: 180 }}
