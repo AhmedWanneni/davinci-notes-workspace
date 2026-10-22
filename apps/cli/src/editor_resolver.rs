@@ -117,11 +117,17 @@ pub fn resolve_editor_chain(
         }
     }
 
-    // 5. Automatic fallbacks: nvim -> vim -> vi (or notepad on Windows)
+    // 5. Automatic fallbacks: if ~/.vimrc exists, prioritize vim to load user's real vim config;
+    // otherwise if only nvim is configured, prioritize nvim.
     let candidates = if cfg!(windows) {
         vec!["notepad", "vi"]
     } else {
-        vec!["nvim", "vim", "vi", "nano"]
+        let has_vimrc = dirs::home_dir().map(|h| h.join(".vimrc").is_file()).unwrap_or(false);
+        if has_vimrc {
+            vec!["vim", "nvim", "vi", "nano"]
+        } else {
+            vec!["nvim", "vim", "vi", "nano"]
+        }
     };
 
     for candidate in &candidates {

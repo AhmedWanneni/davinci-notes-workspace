@@ -19,7 +19,13 @@ pub fn resolve_editor() -> String {
 }
 
 pub fn resolve_vim() -> String {
-    for candidate in &["nvim", "vim", "vi", "nano"] {
+    let has_vimrc = dirs::home_dir().map(|h| h.join(".vimrc").is_file()).unwrap_or(false);
+    let candidates = if has_vimrc {
+        vec!["vim", "nvim", "vi", "nano"]
+    } else {
+        vec!["nvim", "vim", "vi", "nano"]
+    };
+    for candidate in &candidates {
         if find_executable(candidate).is_some() {
             return candidate.to_string();
         }

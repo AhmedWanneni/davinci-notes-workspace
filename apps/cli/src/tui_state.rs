@@ -53,7 +53,7 @@ impl TuiState {
     pub fn new(vault_root: PathBuf) -> Self {
         let root_node = TreeNode::new_root(&vault_root);
         let settings = read_editor_settings();
-        let editor_mode = settings.mode.unwrap_or(EditorMode::Builtin);
+        let editor_mode = settings.mode.unwrap_or(EditorMode::External);
 
         let mut state = Self {
             vault_root,

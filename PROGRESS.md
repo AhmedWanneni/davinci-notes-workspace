@@ -5,15 +5,15 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 **DaVinci Notes CLI / TUI ("dn") — Native Vim/Neovim External Handoff, Config Resolution, and In-Process Vim Mode Evaluation (ADR-0205, ADR-0206) Complete**
-- **Root-Cause Resolution & Native Vim Handoff (`external_editor.rs`, `editor_resolver.rs`, `command_parser.rs`)**:
-  - Diagnosed root causes: candidate order placed system `/usr/bin/vim` before Homebrew `nvim` (`/opt/homebrew/bin/nvim`), missing users' `~/.config/nvim/init.lua` and LazyVim plugins; naive `split_whitespace()` broke quoted commands like `EDITOR="nvim -c 'set wrap'"`; missing `--` caused filenames with leading dashes (`-note.md`) to be parsed as editor flags; TUI lacked clean terminal suspension and restoration on child exit.
-  - Implemented 5-tier resolution precedence: `--editor` CLI flag -> `[editor] command/args` config -> `$VISUAL` -> `$EDITOR` -> `nvim` -> `vim` -> `vi` (Windows `notepad`).
-  - Added zero-dependency POSIX quote parser (`command_parser::parse_shell_words`) handling single/double quotes and escaped spaces.
-  - Added clean terminal handoff: `TerminalGuard::restore_terminal()` leaves alternate screen, disables mouse capture, and drops raw mode before spawning child with inherited TTY stdio; `TerminalGuard::reenter_terminal()` restores TUI and `terminal.clear()` handles terminal resize (`SIGWINCH`) upon return.
-  - Added leading `--` argument before file path to neutralize leading dashes.
-  - Added targeted file refresh: compares `mtime`, file size, and content hash before and after launch; reloads only that file in TUI without full-vault rescan.
-  - Added subcommands and flags: `dn edit <name>`, `dn open <name> --editor <cmd> --editor-args <args>`, and `dn config`.
-  - Added in-TUI keybinding: pressing `'e'` on any file triggers native external editor handoff with user config.
+- **Root-Cause Resolution & Native Vim Handoff (`external_editor.rs`, `editor_resolver.rs`, `command_parser.rs`, `tui_events.rs`, `tui_state.rs`)**:
+  - Diagnosed root causes:
+    1. Default `editor_mode` was set to `EditorMode::Builtin`, so pressing <kbd>Enter</kbd> or clicking notes focused the internal Ratatui rope buffer instead of running real Vim, keeping the user in the mini-editor without access to their `.vimrc`.
+    2. Fallback resolution blindly prioritized `nvim` over `vim`. On systems with `~/.vimrc`, Neovim does not load `.vimrc`, bypassing the user's Vim mappings and settings.
+    3. Missing `--` caused filenames with leading dashes (`-note.md`) to be parsed as editor flags; naive `split_whitespace()` broke quoted commands like `EDITOR="nvim -c 'set wrap'"`.
+  - Fixed default mode: switched `editor_mode` default to `EditorMode::External` so pressing <kbd>Enter</kbd>, double-clicking, clicking the right preview pane, or pressing <kbd>e</kbd>/<kbd>i</kbd> immediately runs real Vim.
+  - Fixed config resolution: if `~/.vimrc` exists in `$HOME`, automatically prioritizes `vim` so that user's `.vimrc` (line numbers, `nmap j gj`, `nnoremap K :m .-2<CR>==`) is natively loaded directly by Vim itself. If `init.lua` exists without `.vimrc`, prioritizes `nvim`. Explicit `$EDITOR`/`$VISUAL` or `--editor` flags always take precedence.
+  - Added clean terminal handoff: leaves alternate screen and disables raw mode before child process spawn with inherited stdio; restores TUI and resynchronizes terminal dimensions upon exit.
+  - Subcommands: `dn edit <name>`, `dn open <name> --editor <cmd> --editor-args <args>`, and `dn config`.
 - **In-Process Vim Mode Evaluation (Part B, `docs/cli-vim-mode-eval.md`, ADR-0206)**:
   - Researched and evaluated all 4 options: `edtui` (rejected for missing features/heavy `syntect`), `tui-textarea` (rejected for lack of modal engine), `nvim --embed` (evaluated for full fidelity; proposed behind optional `embedded-nvim` feature flag), and built-in rope buffer (retained as lightweight default).
   - Authored comprehensive evaluation in `docs/cli-vim-mode-eval.md` and proposed ADR-0206 with status "Proposed".

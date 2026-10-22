@@ -7,18 +7,19 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 ### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Native Vim/Neovim External Handoff, Config Resolution, and In-Process Vim Mode Evaluation (ADR-0205, ADR-0206)
 
 - **Root-Cause Diagnosis & Empirical Findings**:
-  - Found candidate order checked `/usr/bin/vim` before Homebrew `nvim` (`/opt/homebrew/bin/nvim`), missing users' `~/.config/nvim/init.lua` and LazyVim plugins.
+  - Found that default `editor_mode` was set to `EditorMode::Builtin`, so opening notes in the TUI entered the built-in Ratatui rope buffer instead of running real Vim, keeping the user in the mini-editor without access to their `.vimrc`.
+  - Found that fallback resolution blindly prioritized `nvim` over `vim`. On systems with `~/.vimrc`, Neovim does not load `.vimrc`, bypassing the user's Vim mappings and settings.
   - Found naive `split_whitespace()` split quoted editor arguments like `EDITOR="nvim -c 'set wrap'"` into broken arguments.
   - Found missing `--` caused notes with leading dashes (`-note.md`) to be parsed as editor command-line options.
-  - Found TUI did not restore raw mode, alternate screen, and mouse capture upon editor exit, causing desynchronization.
 - **Implementation & Architecture (ADR-0205)**:
-  - 5-tier editor resolution precedence: `--editor` flag -> `[editor] command/args` config -> `$VISUAL` -> `$EDITOR` -> `nvim` -> `vim` -> `vi` (Windows `notepad`).
-  - Added zero-dependency POSIX quote parser (`command_parser::parse_shell_words`).
+  - Switched default `editor_mode` to `EditorMode::External`: pressing <kbd>Enter</kbd>, double-clicking, clicking the right preview pane, or pressing <kbd>e</kbd>/<kbd>i</kbd> immediately runs real Vim natively.
+  - Config-aware fallback: if `~/.vimrc` exists in `$HOME`, automatically prioritizes `vim` so that the user's `.vimrc` (line numbers, `nmap j gj`, `nnoremap K :m .-2<CR>==`) is natively loaded directly by Vim itself. If `init.lua` exists without `.vimrc`, prioritizes `nvim`.
+  - 5-tier resolution precedence: `--editor` flag -> `[editor] command/args` config -> `$VISUAL` -> `$EDITOR` -> config-aware `vim`/`nvim`/`vi`.
+  - Zero-dependency POSIX quote parser (`command_parser::parse_shell_words`).
   - Terminal handoff: `TerminalGuard::restore_terminal()` leaves alternate screen and disables raw mode before child process spawn with inherited stdio (`isatty == 1`); `TerminalGuard::reenter_terminal()` restores TUI and `terminal.clear()` handles terminal resize (`SIGWINCH`) upon return.
   - Safe `--` argument placed immediately prior to note path.
   - Post-exit targeted file refresh: checks `mtime`, file size, and content hash; reloads only that file in TUI without full-vault rescan.
   - Subcommands: `dn edit <name>`, `dn open <name> --editor <cmd> --editor-args <args>`, and `dn config`.
-  - TUI keybinding: pressing `'e'` triggers external editor handoff with native config.
 - **In-Process Vim Mode Evaluation (ADR-0206, `docs/cli-vim-mode-eval.md`)**:
   - Researched 4 options: `edtui`, `tui-textarea`, `nvim --embed` (`nvim-rs`), and built-in rope buffer.
   - Recommended retaining external handoff (ADR-0205) as primary, keeping rope buffer as built-in default, and proposing future embedded Neovim behind an optional `embedded-nvim` Cargo feature flag so quick capture startup budget is never compromised.
