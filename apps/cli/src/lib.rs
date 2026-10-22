@@ -13,6 +13,7 @@ pub mod tui_state;
 pub mod tui_tree;
 pub mod tui_view;
 pub mod vault_watcher;
+pub mod vim_command;
 
 pub use builtin_editor::run_builtin_editor;
 pub use builtin_editor_buffer::EditorBuffer;
@@ -27,3 +28,4 @@ pub use tui_app::run_tui;
 pub use tui_state::TuiState;
 pub use tui_tree::TreeNode;
 pub use vault_watcher::VaultWatcher;
+pub use vim_command::{execute_vim_command, VimCommandAction};

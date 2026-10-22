@@ -20,6 +20,7 @@ pub enum FocusPane {
 pub enum VimMode {
     Normal,
     Insert,
+    Command,
 }
 
 pub struct TuiState {
@@ -35,6 +36,7 @@ pub struct TuiState {
     pub initial_mtime: Option<SystemTime>,
     pub editor_scroll: usize,
     pub vim_mode: VimMode,
+    pub command_input: String,
     pub search_query: String,
     pub focus_pane: FocusPane,
     pub is_fullscreen: bool,
@@ -59,6 +61,7 @@ impl TuiState {
             initial_mtime: None,
             editor_scroll: 0,
             vim_mode: VimMode::Normal,
+            command_input: String::new(),
             search_query: String::new(),
             focus_pane: FocusPane::Tree,
             is_fullscreen: false,

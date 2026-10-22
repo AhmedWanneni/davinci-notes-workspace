@@ -106,3 +106,47 @@ fn test_in_app_vim_editing_and_save() {
 
     let _ = fs::remove_dir_all(temp_vault);
 }
+
+#[test]
+fn test_vim_commands_change_focus_not_app_quit() {
+    let temp_vault = std::env::temp_dir().join(format!("dn_q_test_{}", SystemTime::now().elapsed().unwrap().as_nanos()));
+    fs::create_dir_all(&temp_vault).unwrap();
+    let note = temp_vault.join("sample.md");
+    fs::write(&note, "Sample Content").unwrap();
+
+    let mut state = TuiState::new(temp_vault.clone());
+    state.focus_pane = davinci_cli::tui_state::FocusPane::Editor;
+
+    // 1. :q on clean buffer returns focus to tree, does NOT quit app
+    davinci_cli::execute_vim_command(&mut state, ":q");
+    assert_eq!(state.focus_pane, davinci_cli::tui_state::FocusPane::Tree);
+    assert!(!state.should_quit);
+
+    // Re-focus editor and make dirty
+    state.focus_pane = davinci_cli::tui_state::FocusPane::Editor;
+    state.editor_buffer.insert_str(" change");
+    state.is_dirty = true;
+
+    // 2. :q on dirty buffer warns E37 and STAYS in editor
+    davinci_cli::execute_vim_command(&mut state, ":q");
+    assert_eq!(state.focus_pane, davinci_cli::tui_state::FocusPane::Editor);
+    assert!(state.status_message.as_ref().unwrap().contains("E37"));
+    assert!(!state.should_quit);
+
+    // 3. :q! discards changes and returns focus to tree
+    davinci_cli::execute_vim_command(&mut state, ":q!");
+    assert_eq!(state.focus_pane, davinci_cli::tui_state::FocusPane::Tree);
+    assert_eq!(state.editor_buffer.to_string(), "Sample Content");
+    assert!(!state.should_quit);
+
+    // 4. :wq saves changes and returns focus to tree
+    state.focus_pane = davinci_cli::tui_state::FocusPane::Editor;
+    state.editor_buffer.insert_str(" saved change");
+    state.is_dirty = true;
+    davinci_cli::execute_vim_command(&mut state, ":wq");
+    assert_eq!(state.focus_pane, davinci_cli::tui_state::FocusPane::Tree);
+    assert_eq!(fs::read_to_string(&note).unwrap(), " saved changeSample Content");
+    assert!(!state.should_quit);
+
+    let _ = fs::remove_dir_all(temp_vault);
+}

@@ -69,21 +69,21 @@ dn
 
 | Key / Action | Description |
 |---|---|
-| `Mouse Click` | Click note in tree to view on right; click header buttons |
-| `Double Click` / `v` / `Enter` | Edit selected note in **Vim** |
+| `Enter` / Click file | Open and edit note in right pane while keeping sidebar |
+| `i` / `a` / `o` | Enter Vim Insert mode to type and write |
+| `Esc` | Return to Vim Normal mode from Insert mode |
+| `:w` / `Ctrl+S` | Save note to disk atomically |
+| `:q` / `q` | Close note and return focus to sidebar (with safety check) |
+| `:q!` | Force close note and discard changes, returning to sidebar |
+| `:wq` / `:qw` / `:x` | Save note and return focus to sidebar |
 | `f` / `F` | Toggle **Fullscreen** mode (expands right pane to 100% width) |
-| `Esc` | Exit Fullscreen (restore split view) / Clear search / Exit |
-| `j` / `Down` | Move selection down (Tree) or scroll down (Preview) |
-| `k` / `Up` | Move selection up (Tree) or scroll up (Preview) |
-| `g` / `G` | Jump to top / bottom of note preview |
-| `Ctrl+D` / `Ctrl+U` | Half-page down / up in note preview |
-| `h` / `Left` | Collapse folder |
-| `l` / `Right` | Expand folder |
+| `Tab` | Switch focus between left sidebar and editor |
+| `j` / `k` / Arrows | Navigate in sidebar or editor |
+| `h` / `l` | Collapse / expand folders in sidebar |
 | `/` | Search-as-you-type fuzzy filter |
 | `d` | Move selected file to `.trash/` |
-| `Tab` | Switch focus between Tree and Preview |
-| `q` | Exit TUI |
-| `Mouse Scroll`| Scroll preview or tree |
+| `q` (in sidebar) | Exit application |
+| `Mouse Scroll`| Scroll editor or file tree |
 
 ### 3. Built-in Modeless Editor
 When editing in the built-in editor:

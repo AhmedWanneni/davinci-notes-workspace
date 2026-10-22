@@ -4,6 +4,21 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Command Mode (:q, :q!, :wq, :w) & Note-Level Focus Control
+
+- **Vim Command Mode & Focus Control (`vim_command.rs`, `tui_events.rs`, `tui_view.rs`)**:
+  - Typing `:` enters Vim Command mode with live command prompt (`:<cmd>█`) in the editor footer.
+  - `:w` / `Ctrl+S`: Saves file atomically to disk and stays in editor.
+  - `:q` / `q`: Closes note and switches focus back to the left sidebar (file tree) instead of quitting the application. Blocks quit if unsaved edits exist (`E37: No write since last change (add ! to override)`).
+  - `:q!`: Force closes note, discards unsaved edits by reloading disk content, and switches focus back to sidebar.
+  - `:wq` / `:qw` / `:x`: Saves file and switches focus back to sidebar.
+  - Quitting the entire application is reserved for pressing `q` when focused on the sidebar or running `:qa`/`:wqa`.
+- **Verification**:
+  - 41 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 200 lines (under 200 soft cap and 250 hard cap).
+
+---
+
 ### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — In-App Vim Editor with Persistent Sidebar & Fullscreen Toggle
 
 - **Persistent Sidebar Navigation (`tui_events.rs`, `tui_state.rs`)**:

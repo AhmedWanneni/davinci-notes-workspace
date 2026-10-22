@@ -27,9 +27,7 @@ fn render_header(frame: &mut Frame, state: &TuiState, area: Rect) {
         Span::styled(" DaVinci Notes ", Style::default().fg(Color::Black).bg(Color::Cyan).add_modifier(Modifier::BOLD)),
         Span::raw(format!(" Vault: {} | Items: {} ", vault_name, state.visible_items.len())),
     ];
-    if state.is_fullscreen {
-        spans.push(Span::styled(" [FULLSCREEN EDITOR] ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)));
-    }
+    if state.is_fullscreen { spans.push(Span::styled(" [FULLSCREEN] ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))); }
     frame.render_widget(Paragraph::new(Line::from(spans)), area);
 }
 
@@ -37,10 +35,8 @@ fn render_main_panes(frame: &mut Frame, state: &TuiState, area: Rect) {
     if state.is_fullscreen {
         render_editor_pane(frame, state, area);
     } else {
-        let chunks = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
-            .split(area);
+        let chunks = Layout::default().direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(35), Constraint::Percentage(65)]).split(area);
         render_file_tree(frame, state, chunks[0]);
         render_editor_pane(frame, state, chunks[1]);
     }
@@ -107,12 +103,7 @@ fn render_editor_pane(frame: &mut Frame, state: &TuiState, area: Rect) {
     } else {
         Span::styled(" [Saved] ", Style::default().fg(Color::Green))
     };
-
-    let fs_span = if state.is_fullscreen {
-        Span::styled(" [f] Split (Esc) ", Style::default().fg(Color::Green))
-    } else {
-        Span::styled(" [f] Fullscreen ", Style::default().fg(Color::Cyan))
-    };
+    let fs_span = if state.is_fullscreen { Span::styled(" [f] Split (Esc) ", Style::default().fg(Color::Green)) } else { Span::styled(" [f] Fullscreen ", Style::default().fg(Color::Cyan)) };
 
     let title_line = Line::from(vec![
         Span::styled(format!(" {file_label} "), Style::default().add_modifier(Modifier::BOLD)),
@@ -158,20 +149,30 @@ fn render_editor_pane(frame: &mut Frame, state: &TuiState, area: Rect) {
 
     frame.render_widget(Paragraph::new(rendered_lines), body_area);
 
-    if state.focus_pane == FocusPane::Editor && cur_line >= state.editor_scroll && cur_line < state.editor_scroll + body_height {
-        let screen_y = body_area.y + (cur_line - state.editor_scroll) as u16;
-        let screen_x = body_area.x + 4 + (cur_col as u16).min(body_area.width.saturating_sub(5));
-        frame.set_cursor_position(Position::new(screen_x, screen_y));
+    if state.focus_pane == FocusPane::Editor {
+        if state.vim_mode == VimMode::Command {
+            let cmd_x = mode_area.x + 2 + (state.command_input.len() as u16).min(mode_area.width.saturating_sub(3));
+            frame.set_cursor_position(Position::new(cmd_x, mode_area.y));
+        } else if cur_line >= state.editor_scroll && cur_line < state.editor_scroll + body_height {
+            let screen_y = body_area.y + (cur_line - state.editor_scroll) as u16;
+            let screen_x = body_area.x + 4 + (cur_col as u16).min(body_area.width.saturating_sub(5));
+            frame.set_cursor_position(Position::new(screen_x, screen_y));
+        }
     }
 
     let mode_line = match state.vim_mode {
+        VimMode::Command => Line::from(vec![
+            Span::styled(" :", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)),
+            Span::raw(&state.command_input),
+            Span::styled("█", Style::default().fg(Color::Cyan)),
+        ]),
         VimMode::Insert => Line::from(vec![
             Span::styled(" -- INSERT -- ", Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD)),
             Span::raw(" (Esc: normal mode | Ctrl+S: save)"),
         ]),
         VimMode::Normal => Line::from(vec![
             Span::styled(" -- NORMAL -- ", Style::default().fg(Color::Black).bg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw(" (i: edit | h/j/k/l: move | u: undo | Ctrl+S: save | f: fullscreen)"),
+            Span::raw(" (i: insert | :w save | :q close note | f: fullscreen)"),
         ]),
     };
     frame.render_widget(Paragraph::new(mode_line), mode_area);

@@ -29,16 +29,8 @@ pub fn handle_key(
 fn handle_search_key(state: &mut TuiState, key: KeyEvent) {
     match key.code {
         KeyCode::Esc | KeyCode::Enter => state.focus_pane = FocusPane::Tree,
-        KeyCode::Backspace => {
-            state.search_query.pop();
-            state.refresh_visible();
-            state.load_selected_file();
-        }
-        KeyCode::Char(c) => {
-            state.search_query.push(c);
-            state.refresh_visible();
-            state.load_selected_file();
-        }
+        KeyCode::Backspace => { state.search_query.pop(); state.refresh_visible(); state.load_selected_file(); }
+        KeyCode::Char(c) => { state.search_query.push(c); state.refresh_visible(); state.load_selected_file(); }
         _ => {}
     }
 }
@@ -84,8 +76,24 @@ fn handle_editor_key(state: &mut TuiState, key: KeyEvent) {
     }
 
     match state.vim_mode {
+        VimMode::Command => handle_editor_command(state, key),
         VimMode::Insert => handle_editor_insert(state, key),
         VimMode::Normal => handle_editor_normal(state, key),
+    }
+}
+
+fn handle_editor_command(state: &mut TuiState, key: KeyEvent) {
+    match key.code {
+        KeyCode::Esc => state.vim_mode = VimMode::Normal,
+        KeyCode::Enter => {
+            let cmd = std::mem::take(&mut state.command_input);
+            let _ = crate::vim_command::execute_vim_command(state, &cmd);
+        }
+        KeyCode::Backspace => {
+            if state.command_input.is_empty() { state.vim_mode = VimMode::Normal; } else { state.command_input.pop(); }
+        }
+        KeyCode::Char(c) => state.command_input.push(c),
+        _ => {}
     }
 }
 
@@ -128,7 +136,8 @@ fn handle_editor_normal(state: &mut TuiState, key: KeyEvent) {
         KeyCode::Char('f') | KeyCode::Char('F') => state.toggle_fullscreen(),
         KeyCode::Tab => state.focus_pane = FocusPane::Tree,
         KeyCode::Esc => { if state.is_fullscreen { state.toggle_fullscreen(); } else { state.focus_pane = FocusPane::Tree; } }
-        KeyCode::Char('q') => state.should_quit = true,
+        KeyCode::Char(':') => { state.vim_mode = VimMode::Command; state.command_input.clear(); }
+        KeyCode::Char('q') => { let _ = crate::vim_command::execute_vim_command(state, "q"); }
         _ => {}
     }
 }
@@ -175,18 +184,10 @@ pub fn handle_mouse(
             }
         }
         MouseEventKind::ScrollDown => {
-            if state.is_fullscreen || mouse.column >= tree_width {
-                state.editor_scroll = state.editor_scroll.saturating_add(3);
-            } else {
-                state.move_down();
-            }
+            if state.is_fullscreen || mouse.column >= tree_width { state.editor_scroll = state.editor_scroll.saturating_add(3); } else { state.move_down(); }
         }
         MouseEventKind::ScrollUp => {
-            if state.is_fullscreen || mouse.column >= tree_width {
-                state.editor_scroll = state.editor_scroll.saturating_sub(3);
-            } else {
-                state.move_up();
-            }
+            if state.is_fullscreen || mouse.column >= tree_width { state.editor_scroll = state.editor_scroll.saturating_sub(3); } else { state.move_up(); }
         }
         _ => {}
     }
