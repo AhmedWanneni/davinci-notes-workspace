@@ -80,6 +80,9 @@ importers:
       '@app/editor':
         specifier: workspace:*
         version: link:../../packages/editor
+      '@app/google-calendar-api':
+        specifier: workspace:*
+        version: link:../../packages/google-calendar-api
       '@app/indexer':
         specifier: workspace:*
         version: link:../../packages/indexer

@@ -294,3 +294,9 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0201](adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md) | Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization | Accepted |
 | [0202](adr/0202-calendar-ui-shell-and-obsidian-leaf-integration.md) | Calendar UI shell: IconRail entry, lazy-loaded Obsidian CalendarLeaf, and mutually exclusive navigation state | Accepted |
 | [0203](adr/0203-calendar-reminder-alerts-and-tray-integration.md) | Calendar reminder alerts (5-minute heads-up) and menu-bar system tray upcoming meeting integration | Accepted |
+
+## CLI & Terminal
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0204](adr/0204-davinci-cli-architecture-and-quick-capture.md) | DaVinci Notes CLI architecture: standalone Rust binary (`apps/cli`), zero-SQLite v1, 5-tier vault discovery, and atomic quick capture | Accepted |
