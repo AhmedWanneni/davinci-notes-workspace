@@ -127,6 +127,13 @@ pub fn join_lines(buf: &mut EditorBuffer) {
     }
 }
 
+pub fn join_n_lines(buf: &mut EditorBuffer, count: usize) {
+    let joins = if count <= 1 { 1 } else { count.saturating_sub(1) };
+    for _ in 0..joins {
+        join_lines(buf);
+    }
+}
+
 pub fn replace_char(buf: &mut EditorBuffer, c: char) {
     if buf.cursor_idx < buf.len_chars() {
         let old = buf.text.char(buf.cursor_idx).to_string();
@@ -143,4 +150,15 @@ pub fn toggle_case(buf: &mut EditorBuffer) {
         replace_char(buf, toggled);
         buf.move_right();
     }
+}
+
+pub fn move_first_non_whitespace(buf: &mut EditorBuffer) {
+    let (line, _) = buf.cursor_line_col();
+    let line_start = buf.text.line_to_char(line);
+    let line_slice = buf.text.line(line);
+    let mut offset = 0;
+    while offset < line_slice.len_chars() && line_slice.char(offset).is_whitespace() && line_slice.char(offset) != '\n' {
+        offset += 1;
+    }
+    buf.cursor_idx = line_start + offset;
 }

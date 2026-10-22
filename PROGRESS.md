@@ -4,6 +4,26 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**DaVinci Notes CLI / TUI ("dn") — Vim Motion Numeric Counts (4J, 4x, 4dd, 4yy, 4w, 4j, 4k) & Redo Stack (Ctrl+R) Complete**
+- **Numeric Count Prefix Engine (`vim_ops.rs`, `tui_state.rs`, `vim_motions.rs`)**:
+  - Implemented Vim standard numeric count prefix accumulation (`state.count_prefix`) for digits `'1'..='9'` and subsequent `'0'..='9'` (with standalone `'0'` remaining line-start).
+  - Wired count multiplier across all Vim operations and motions:
+    - Line joining (`4J`): Joins $N$ lines into one line via `join_n_lines` (e.g. `4J` joins 4 lines).
+    - Deletion (`4x`, `4X`): Deletes $N$ characters forward/backward in a single atomic undoable slice (`delete_forwards_n`, `delete_backwards_n`).
+    - Operator counts (`4dd`, `4yy`, `4dw`, `4yw`, `4cw`, `4cc`): Deletes/yanks/changes $N$ lines or words in one operation.
+    - Motion counts (`4j`, `4k`, `4h`, `4l`, `4w`, `4b`, `4e`): Moves $N$ lines, characters, or words.
+    - Line jump counts (`12G`, `12gg`): Jumps directly to line $N$.
+    - Paste & Undo counts (`4p`, `4P`, `4u`): Pastes or undoes $N$ times.
+  - Added full Redo stack (`EditorBuffer::redo_stack`) triggered via `Ctrl+R` in Normal mode.
+  - Live count visual indicator: displays pending count prefix in editor footer mode line (e.g. `-- NORMAL -- (4)`).
+  - Pressing <kbd>Esc</kbd> cancels any pending count prefix or pending operator.
+- **Verification**:
+  - Added integration test `test_vim_counts_and_4j` verifying `4J`, `4x`, `u`, and `Ctrl+R` redo.
+  - All 49 unit and integration tests passing (`pnpm --filter @app/cli test`); 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 248 lines (under 250 hard cap).
+
+---
+
 **DaVinci Notes CLI / TUI ("dn") — Native Vim/Neovim External Handoff, Config Resolution, and In-Process Vim Mode Evaluation (ADR-0205, ADR-0206) Complete**
 - **Root-Cause Resolution & Native Vim Handoff (`external_editor.rs`, `editor_resolver.rs`, `command_parser.rs`, `tui_events.rs`, `tui_state.rs`)**:
   - Diagnosed root causes:

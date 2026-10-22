@@ -3,7 +3,6 @@ use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 use std::io::Stdout;
 
-use crate::editor_config::EditorMode;
 use crate::external_editor::launch_editor_from_tui;
 use crate::tui_state::{FocusPane, TuiState, VimMode};
 
@@ -68,14 +67,7 @@ fn handle_tree_key(
         KeyCode::Char('q') => state.should_quit = true,
         KeyCode::Esc => { if state.is_fullscreen { state.toggle_fullscreen(); } else { state.should_quit = true; } }
         KeyCode::Char('f') | KeyCode::Char('F') => state.toggle_fullscreen(),
-        KeyCode::Tab => {
-            if state.editor_mode == EditorMode::External {
-                if let Some(item) = state.selected_item().cloned() {
-                    if !item.is_dir { handle_external_edit(state, terminal, &item.path, &item.name); return; }
-                }
-            }
-            state.focus_pane = FocusPane::Editor;
-        }
+        KeyCode::Tab => state.focus_pane = FocusPane::Editor,
         KeyCode::Char('/') => { state.focus_pane = FocusPane::Search; state.search_query.clear(); }
         KeyCode::Up | KeyCode::Char('k') => state.move_up(),
         KeyCode::Down | KeyCode::Char('j') => state.move_down(),
@@ -89,8 +81,6 @@ fn handle_tree_key(
             if let Some(item) = state.selected_item().cloned() {
                 if item.is_dir {
                     state.toggle_current();
-                } else if state.editor_mode == EditorMode::External {
-                    handle_external_edit(state, terminal, &item.path, &item.name);
                 } else {
                     state.focus_pane = FocusPane::Editor;
                 }
@@ -175,7 +165,7 @@ fn handle_editor_insert(state: &mut TuiState, key: KeyEvent) {
 
 pub fn handle_mouse(
     state: &mut TuiState,
-    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    _terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     mouse: MouseEvent,
     term_width: u16,
     term_height: u16,
@@ -193,27 +183,16 @@ pub fn handle_mouse(
             if !state.is_fullscreen && col < tree_width && row >= 2 && row < term_height.saturating_sub(1) {
                 let target_index = state.tree_scroll + (row - 2) as usize;
                 if target_index < state.visible_items.len() {
-                    let prev_idx = state.selected_index;
                     state.select_index(target_index);
                     if let Some(item) = state.selected_item().cloned() {
                         if item.is_dir {
                             state.toggle_current();
-                        } else if state.editor_mode == EditorMode::External && prev_idx == target_index {
-                            handle_external_edit(state, terminal, &item.path, &item.name);
-                        } else if state.editor_mode == EditorMode::Builtin {
+                        } else {
                             state.focus_pane = FocusPane::Editor;
                         }
                     }
                 }
             } else if col >= tree_width && row >= 2 && row < term_height.saturating_sub(2) {
-                if state.editor_mode == EditorMode::External {
-                    if let Some(item) = state.selected_item().cloned() {
-                        if !item.is_dir {
-                            handle_external_edit(state, terminal, &item.path, &item.name);
-                            return Ok(());
-                        }
-                    }
-                }
                 state.focus_pane = FocusPane::Editor;
                 let clicked_line = state.editor_scroll + (row - 2) as usize;
                 let text = &state.editor_buffer.text;

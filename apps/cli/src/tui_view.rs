@@ -170,10 +170,14 @@ fn render_editor_pane(frame: &mut Frame, state: &TuiState, area: Rect) {
             Span::styled(" -- INSERT -- ", Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD)),
             Span::raw(" (Esc: normal mode | Ctrl+S: save)"),
         ]),
-        VimMode::Normal => Line::from(vec![
-            Span::styled(" -- NORMAL -- ", Style::default().fg(Color::Black).bg(Color::Yellow).add_modifier(Modifier::BOLD)),
-            Span::raw(" (i: insert | :w save | :q close note | f: fullscreen)"),
-        ]),
+        VimMode::Normal => {
+            let count_str = if let Some(c) = state.count_prefix { format!(" ({c})") } else { String::new() };
+            Line::from(vec![
+                Span::styled(" -- NORMAL -- ", Style::default().fg(Color::Black).bg(Color::Yellow).add_modifier(Modifier::BOLD)),
+                Span::styled(count_str, Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+                Span::raw(" (i: insert | :w save | :q close | f: fullscreen | counts supported)"),
+            ])
+        }
     };
     frame.render_widget(Paragraph::new(mode_line), mode_area);
 }

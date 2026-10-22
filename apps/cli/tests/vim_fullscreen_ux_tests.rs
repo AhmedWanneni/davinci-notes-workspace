@@ -201,3 +201,43 @@ fn test_vim_dd_yy_p_operators() {
 
     let _ = fs::remove_dir_all(temp_vault);
 }
+
+#[test]
+fn test_vim_counts_and_4j() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+
+    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+    let temp_vault = std::env::temp_dir().join(format!("dn_counts_test_{nanos}"));
+    fs::create_dir_all(&temp_vault).unwrap();
+    let note = temp_vault.join("multi.md");
+    fs::write(&note, "one\ntwo\nthree\nfour\nfive\nsix\n").unwrap();
+
+    let mut state = TuiState::new(temp_vault.clone());
+    state.focus_pane = davinci_cli::tui_state::FocusPane::Editor;
+
+    let press = |state: &mut TuiState, c: char| {
+        davinci_cli::vim_ops::handle_vim_normal_key(state, KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE));
+    };
+
+    // 1. Test 4J joins 4 lines: "one two three four\nfive\nsix\n"
+    press(&mut state, '4');
+    assert_eq!(state.count_prefix, Some(4));
+    press(&mut state, 'J');
+    assert_eq!(state.count_prefix, None);
+    assert_eq!(state.editor_buffer.to_string(), "one two three four\nfive\nsix\n");
+
+    // 2. Test 4x on "five": cursor at start of "five", press '4' then 'x' deletes 4 chars
+    state.editor_buffer.cursor_idx = 19;
+    press(&mut state, '4');
+    press(&mut state, 'x');
+    assert_eq!(state.editor_buffer.to_string(), "one two three four\n\nsix\n");
+
+    // 3. Test undo and redo
+    press(&mut state, 'u');
+    assert_eq!(state.editor_buffer.to_string(), "one two three four\nfive\nsix\n");
+
+    davinci_cli::vim_ops::handle_vim_normal_key(&mut state, KeyEvent::new(KeyCode::Char('r'), KeyModifiers::CONTROL));
+    assert_eq!(state.editor_buffer.to_string(), "one two three four\n\nsix\n");
+
+    let _ = fs::remove_dir_all(temp_vault);
+}

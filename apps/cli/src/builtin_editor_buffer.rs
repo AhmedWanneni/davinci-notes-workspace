@@ -11,6 +11,7 @@ pub struct EditorBuffer {
     pub text: Rope,
     pub cursor_idx: usize,
     pub undo_stack: Vec<UndoAction>,
+    pub redo_stack: Vec<UndoAction>,
 }
 
 impl EditorBuffer {
@@ -19,6 +20,7 @@ impl EditorBuffer {
             text: Rope::from_str(initial),
             cursor_idx: 0,
             undo_stack: Vec::new(),
+            redo_stack: Vec::new(),
         }
     }
 
@@ -34,6 +36,7 @@ impl EditorBuffer {
     }
 
     pub fn insert_char(&mut self, c: char) {
+        self.redo_stack.clear();
         self.text.insert_char(self.cursor_idx, c);
         self.undo_stack.push(UndoAction {
             char_idx: self.cursor_idx,
@@ -44,6 +47,7 @@ impl EditorBuffer {
     }
 
     pub fn insert_str(&mut self, s: &str) {
+        self.redo_stack.clear();
         self.text.insert(self.cursor_idx, s);
         self.undo_stack.push(UndoAction {
             char_idx: self.cursor_idx,
@@ -53,14 +57,19 @@ impl EditorBuffer {
         self.cursor_idx += s.chars().count();
     }
 
-    pub fn delete_backwards(&mut self) -> bool {
-        if self.cursor_idx > 0 {
-            let removed = self.text.char(self.cursor_idx - 1);
-            self.cursor_idx -= 1;
-            self.text.remove(self.cursor_idx..self.cursor_idx + 1);
+    pub fn delete_forwards(&mut self) -> bool {
+        self.delete_forwards_n(1)
+    }
+
+    pub fn delete_forwards_n(&mut self, n: usize) -> bool {
+        let count = n.min(self.len_chars().saturating_sub(self.cursor_idx));
+        if count > 0 {
+            self.redo_stack.clear();
+            let removed = self.text.slice(self.cursor_idx..self.cursor_idx + count).to_string();
+            self.text.remove(self.cursor_idx..self.cursor_idx + count);
             self.undo_stack.push(UndoAction {
                 char_idx: self.cursor_idx,
-                deleted: removed.to_string(),
+                deleted: removed,
                 inserted: String::new(),
             });
             true
@@ -69,13 +78,21 @@ impl EditorBuffer {
         }
     }
 
-    pub fn delete_forwards(&mut self) -> bool {
-        if self.cursor_idx < self.len_chars() {
-            let removed = self.text.char(self.cursor_idx);
-            self.text.remove(self.cursor_idx..self.cursor_idx + 1);
+    pub fn delete_backwards(&mut self) -> bool {
+        self.delete_backwards_n(1)
+    }
+
+    pub fn delete_backwards_n(&mut self, n: usize) -> bool {
+        let count = n.min(self.cursor_idx);
+        if count > 0 {
+            self.redo_stack.clear();
+            let start = self.cursor_idx - count;
+            let removed = self.text.slice(start..self.cursor_idx).to_string();
+            self.text.remove(start..self.cursor_idx);
+            self.cursor_idx = start;
             self.undo_stack.push(UndoAction {
-                char_idx: self.cursor_idx,
-                deleted: removed.to_string(),
+                char_idx: start,
+                deleted: removed,
                 inserted: String::new(),
             });
             true
@@ -139,6 +156,25 @@ impl EditorBuffer {
                 self.text.insert(action.char_idx, &action.deleted);
             }
             self.cursor_idx = action.char_idx;
+            self.redo_stack.push(action);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn redo(&mut self) -> bool {
+        if let Some(action) = self.redo_stack.pop() {
+            if !action.deleted.is_empty() {
+                let count = action.deleted.chars().count();
+                self.text.remove(action.char_idx..action.char_idx + count);
+            }
+            if !action.inserted.is_empty() {
+                self.text.insert(action.char_idx, &action.inserted);
+            }
+            let inserted_count = action.inserted.chars().count();
+            self.cursor_idx = action.char_idx + inserted_count;
+            self.undo_stack.push(action);
             true
         } else {
             false
@@ -172,13 +208,16 @@ mod tests {
     }
 
     #[test]
-    fn test_buffer_undo() {
+    fn test_buffer_undo_and_redo() {
         let mut buf = EditorBuffer::new("Initial");
         buf.move_to_line_end();
         buf.insert_str(" Text");
         assert_eq!(buf.to_string(), "Initial Text");
 
-        buf.undo();
+        assert!(buf.undo());
         assert_eq!(buf.to_string(), "Initial");
+
+        assert!(buf.redo());
+        assert_eq!(buf.to_string(), "Initial Text");
     }
 }
