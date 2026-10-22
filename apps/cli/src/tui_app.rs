@@ -8,16 +8,26 @@ use std::time::Duration;
 use crate::terminal_guard::TerminalGuard;
 use crate::tui_state::{FocusPane, TuiState};
 use crate::tui_view::render_ui;
+use crate::vault_watcher::VaultWatcher;
 
 pub fn run_tui(vault_root: PathBuf) -> Result<Option<PathBuf>, std::io::Error> {
     let _guard = TerminalGuard::new()?;
     let backend = CrosstermBackend::new(stdout());
     let mut terminal = Terminal::new(backend)?;
 
+    let watcher = VaultWatcher::new(&vault_root).ok();
     let mut state = TuiState::new(vault_root);
     let mut chosen_file = None;
 
     while !state.should_quit {
+        if let Some(w) = &watcher {
+            if w.has_external_changes() {
+                state.root_node = crate::tui_tree::TreeNode::new_root(&state.vault_root);
+                state.refresh_visible();
+                state.update_preview();
+            }
+        }
+
         terminal.draw(|f| render_ui(f, &state))?;
 
         if crossterm::event::poll(Duration::from_millis(50))? {

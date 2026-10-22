@@ -24,6 +24,8 @@ ratatui = { version = "0.29", default-features = false, features = ["crossterm"]
 crossterm = { version = "0.28", features = ["event-stream"] }
 fuzzy-matcher = "0.3.7"
 ropey = "1.6"
+walkdir = "2.5.0"
+notify = "8.0.0"
 
 [profile.release]
 opt-level = 3

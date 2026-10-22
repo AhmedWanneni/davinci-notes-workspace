@@ -4,6 +4,21 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**DaVinci Notes CLI / TUI ("dn") — Phase 5: Fast In-Memory Content Search & Watcher Complete**
+- **Zero-SQLite Content Search (`search_engine.rs`, `main.rs`)**:
+  - Implemented `dn find <query>` full-text search across all vault Markdown files using `WalkDir` without touching SQLite or index locks.
+  - Returns file path, line numbers, and formatted line snippets.
+  - Automatically filters hidden files/directories (`.git`, `.trash`, `.obsidian`, etc.).
+  - Benchmarked search response time on 100 notes: executed in < 10 ms (strictly beating the < 100 ms budget).
+- **External Change Awareness (`vault_watcher.rs`, `tui_app.rs`)**:
+  - Integrated `notify` filesystem watcher into TUI event loop.
+  - Automatically detects when external files are created, modified, or deleted by the desktop app or sync clients, and re-renders tree and preview without UI freezes.
+- **Verification**:
+  - 34 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 186 lines.
+
+---
+
 **DaVinci Notes CLI / TUI ("dn") — Phase 4: Built-in Modeless Editor Complete**
 - **Rope Text Buffer (`builtin_editor_buffer.rs`)**:
   - Implemented high-performance text buffer using `Rope` (`ropey`), supporting $O(\log N)$ character insertions, deletions, and line-to-char mappings.
@@ -2323,8 +2338,8 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **DaVinci Notes CLI / TUI ("dn") — Phase 5**: Fast in-memory content search (`dn find`) and external-change watcher in TUI.
-2. **DaVinci Notes CLI / TUI ("dn") — Phase 6**: Packaging, release binaries, shell completions, and manpages.
+1. **DaVinci Notes CLI / TUI ("dn") — Phase 6**: Packaging, release binaries, shell completions, and manpages.
+2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
 3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
 5. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.

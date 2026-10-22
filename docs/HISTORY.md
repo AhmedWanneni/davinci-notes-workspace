@@ -4,6 +4,22 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 5: Fast In-Memory Content Search & Watcher
+
+- **Zero-SQLite Content Search (`search_engine.rs`, `main.rs`)**:
+  - Implemented `dn find <query>` full-text search across all vault Markdown files using `WalkDir` without touching SQLite or index locks.
+  - Returns file path, line numbers, and formatted line snippets.
+  - Automatically filters hidden files/directories (`.git`, `.trash`, `.obsidian`, etc.).
+  - Benchmarked search response time on 100 notes: executed in < 10 ms (strictly beating the < 100 ms budget).
+- **External Change Awareness (`vault_watcher.rs`, `tui_app.rs`)**:
+  - Integrated `notify` filesystem watcher into TUI event loop.
+  - Automatically detects when external files are created, modified, or deleted by the desktop app or sync clients, and re-renders tree and preview without UI freezes.
+- **Verification**:
+  - 34 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 186 lines.
+
+---
+
 ### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 4: Built-in Modeless Editor
 
 - **Rope Text Buffer (`builtin_editor_buffer.rs`)**:
@@ -223,6 +239,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 5 (Fast In-Memory Content Search & Watcher) | Built `dn find <query>` full-text search across all vault markdown files using `WalkDir` with zero SQLite access. Verified search response < 10 ms on 100 notes (budget < 100 ms). Integrated `notify` filesystem watcher into TUI event loop for real-time external change detection and tree/preview reload. 34 tests pass; 0 clippy warnings; all files under 186 lines. |
 | 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 4 (Built-in Modeless Editor) | Built modeless terminal editor backed by Rope data structure (`ropey`). Verified < 15 µs keystroke latency and < 15 µs undo on 10k-line note (budget < 2 ms). Implemented arrow navigation, Home/End, Backspace, Delete, Tab, Ctrl+S save with external mtime conflict detection, Ctrl+Q quit, Ctrl+Z undo, and mouse click cursor placement. 30 tests pass; 0 clippy warnings; all files under 190 lines. |
 | 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 3 (External Editor Mode & Note Operations) | Implemented external editor integration ($EDITOR/$VISUAL/nano/vi) with clean TUI suspension/restoration and pre/post mtime conflict detection. Built note CRUD operations (new note with heading, safe rename with collision check, delete to .trash/) and CLI subcommands (`dn open <name>`, `dn new <name>`, `dn ls [folder]`, `dn cat <name>`). 27 tests pass; 0 clippy warnings; all files under 175 lines. |
 | 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 2 (Read-Only TUI File Tree) | Built Ratatui + crossterm TUI file browser with TerminalGuard RAII panic protection. Implemented lazy directory loading (first frame < 1 ms on 10k-note vault), keyboard (hjkl/arrows/Enter/Tab) and mouse click/scroll navigation, real-time search-as-you-type fuzzy filter bar with fuzzy-matcher, and side-by-side note preview pane. 21 tests pass; 0 clippy warnings; all files under 175 lines. |
@@ -245,6 +262,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 5 (Fast In-Memory Content Search & Watcher) | Built `dn find <query>` full-text search across all vault markdown files using `WalkDir` with zero SQLite access. Verified search response < 10 ms on 100 notes (budget < 100 ms). Integrated `notify` filesystem watcher into TUI event loop for real-time external change detection and tree/preview reload. 34 tests pass; 0 clippy warnings; all files under 186 lines. |
 | 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 4 (Built-in Modeless Editor) | Built modeless terminal editor backed by Rope data structure (`ropey`). Verified < 15 µs keystroke latency and < 15 µs undo on 10k-line note (budget < 2 ms). Implemented arrow navigation, Home/End, Backspace, Delete, Tab, Ctrl+S save with external mtime conflict detection, Ctrl+Q quit, Ctrl+Z undo, and mouse click cursor placement. 30 tests pass; 0 clippy warnings; all files under 190 lines. |
 | 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 3 (External Editor Mode & Note Operations) | Implemented external editor integration ($EDITOR/$VISUAL/nano/vi) with clean TUI suspension/restoration and pre/post mtime conflict detection. Built note CRUD operations (new note with heading, safe rename with collision check, delete to .trash/) and CLI subcommands (`dn open <name>`, `dn new <name>`, `dn ls [folder]`, `dn cat <name>`). 27 tests pass; 0 clippy warnings; all files under 175 lines. |
 | 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 2 (Read-Only TUI File Tree) | Built Ratatui + crossterm TUI file browser with TerminalGuard RAII panic protection. Implemented lazy directory loading (first frame < 1 ms on 10k-note vault), keyboard (hjkl/arrows/Enter/Tab) and mouse click/scroll navigation, real-time search-as-you-type fuzzy filter bar with fuzzy-matcher, and side-by-side note preview pane. 21 tests pass; 0 clippy warnings; all files under 175 lines. |

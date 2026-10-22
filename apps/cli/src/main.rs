@@ -6,6 +6,7 @@ use davinci_cli::capture::{capture_note, CaptureTarget};
 use davinci_cli::config::resolve_vault;
 use davinci_cli::external_editor::launch_external_editor;
 use davinci_cli::note_ops::{create_new_note, find_best_match, list_notes};
+use davinci_cli::search_engine::search_vault;
 use davinci_cli::tui_app::run_tui;
 
 #[derive(Parser, Debug)]
@@ -46,6 +47,8 @@ enum SubCommand {
     Ls { folder: Option<String> },
     /// Print note contents to stdout
     Cat { name: String },
+    /// Search content across vault markdown files
+    Find { query: String },
 }
 
 fn read_input_text(pos_args: &[String]) -> Result<String, String> {
@@ -118,6 +121,16 @@ fn main() {
                     std::process::exit(1);
                 }
             },
+            SubCommand::Find { query } => {
+                let matches = search_vault(&vault, &query);
+                if matches.is_empty() {
+                    println!("No matches found for: {query}");
+                } else {
+                    for m in matches {
+                        println!("{}:{}: {}", m.rel_path, m.line_number, m.line_text);
+                    }
+                }
+            }
         }
         return;
     }
