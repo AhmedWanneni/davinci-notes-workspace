@@ -1,4 +1,4 @@
-use crossterm::cursor::{Hide, Show};
+use crossterm::cursor::{Hide, SetCursorStyle, Show};
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
 use crossterm::terminal::{
@@ -26,7 +26,13 @@ impl TerminalGuard {
 
     pub fn restore_terminal() -> std::io::Result<()> {
         let mut out = stdout();
-        let _ = execute!(out, Show, DisableMouseCapture, LeaveAlternateScreen);
+        let _ = execute!(
+            out,
+            Show,
+            SetCursorStyle::DefaultUserShape,
+            DisableMouseCapture,
+            LeaveAlternateScreen
+        );
         let _ = out.flush();
         let _ = disable_raw_mode();
         Ok(())
@@ -38,6 +44,21 @@ impl TerminalGuard {
         execute!(out, EnterAlternateScreen, EnableMouseCapture, Hide)?;
         out.flush()?;
         Ok(())
+    }
+
+    pub fn update_cursor_style(mode: &crate::tui_state::VimMode, in_editor: bool) {
+        let mut out = stdout();
+        let style = if in_editor {
+            match mode {
+                crate::tui_state::VimMode::Insert => SetCursorStyle::SteadyBar,
+                crate::tui_state::VimMode::Command => SetCursorStyle::SteadyUnderScore,
+                crate::tui_state::VimMode::Normal => SetCursorStyle::SteadyBlock,
+            }
+        } else {
+            SetCursorStyle::SteadyBlock
+        };
+        let _ = execute!(out, style);
+        let _ = out.flush();
     }
 }
 
@@ -53,9 +74,18 @@ impl Drop for TerminalGuard {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tui_state::VimMode;
 
     #[test]
     fn test_restore_terminal_does_not_panic() {
         let _ = TerminalGuard::restore_terminal();
+    }
+
+    #[test]
+    fn test_update_cursor_style_does_not_panic() {
+        TerminalGuard::update_cursor_style(&VimMode::Normal, true);
+        TerminalGuard::update_cursor_style(&VimMode::Insert, true);
+        TerminalGuard::update_cursor_style(&VimMode::Command, true);
+        TerminalGuard::update_cursor_style(&VimMode::Normal, false);
     }
 }

@@ -4,6 +4,23 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Dynamic Vim Cursor Styles (Block in Normal, Beam/Bar in Insert, Underline in Command)
+
+- **Dynamic Terminal Cursor Styling (`terminal_guard.rs`, `tui_app.rs`)**:
+  - Implemented terminal DECSCUSR cursor shape switching via `crossterm::cursor::SetCursorStyle`:
+    - **Insert mode**: Cursor dynamically switches to thin vertical beam/bar (`SetCursorStyle::SteadyBar`).
+    - **Normal mode**: Cursor switches to solid rectangular block (`SetCursorStyle::SteadyBlock`).
+    - **Command mode**: Cursor switches to horizontal underline (`SetCursorStyle::SteadyUnderScore`).
+    - **Sidebar / Non-editor panes**: Maintains solid block cursor.
+    - **Terminal Cleanup & Safe Handoff**: `TerminalGuard::restore_terminal()` executes `SetCursorStyle::DefaultUserShape` so the terminal emulator restores the user's native cursor shape when exiting the app, handling panics, or handing off to an external editor.
+- **Verification**:
+  - Unit test `test_update_cursor_style_does_not_panic` passing.
+  - All 50 tests passing (`pnpm --filter @app/cli test`).
+  - Strict line caps respected: `terminal_guard.rs` (91 lines), `tui_app.rs` (54 lines) (well below 150-200 line soft cap and 250 hard cap).
+  - Clippy clean (0 warnings with `-D warnings`).
+
+---
+
 ### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Motion Numeric Counts (4J, 4x, 4dd, 4yy, 4w, 4j, 4k) & Redo Stack (Ctrl+R)
 
 - **Numeric Count Prefix Engine (`vim_ops.rs`, `tui_state.rs`, `vim_motions.rs`)**:

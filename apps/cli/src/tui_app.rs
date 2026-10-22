@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use crate::terminal_guard::TerminalGuard;
 use crate::tui_events::{handle_key, handle_mouse};
-use crate::tui_state::TuiState;
+use crate::tui_state::{FocusPane, TuiState};
 use crate::tui_view::render_ui;
 use crate::vault_watcher::VaultWatcher;
 
@@ -35,6 +35,7 @@ pub fn run_tui(vault_root: PathBuf) -> Result<Option<PathBuf>, std::io::Error> {
         state.adjust_editor_scroll(visible_height);
 
         terminal.draw(|f| render_ui(f, &state))?;
+        TerminalGuard::update_cursor_style(&state.vim_mode, state.focus_pane == FocusPane::Editor);
 
         if crossterm::event::poll(Duration::from_millis(50))? {
             match crossterm::event::read()? {

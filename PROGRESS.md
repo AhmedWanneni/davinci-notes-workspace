@@ -4,6 +4,22 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**DaVinci Notes CLI / TUI ("dn") — Dynamic Vim Cursor Styles (Block in Normal, Beam/Bar in Insert, Underline in Command) Complete**
+- **Dynamic Terminal Cursor Styling (`terminal_guard.rs`, `tui_app.rs`)**:
+  - Integrated DECSCUSR cursor styling via `crossterm::cursor::SetCursorStyle`:
+    - **Insert mode**: Switches cursor dynamically to thin vertical beam/bar (`SetCursorStyle::SteadyBar`).
+    - **Normal mode**: Switches cursor to solid rectangular block (`SetCursorStyle::SteadyBlock`).
+    - **Command mode**: Switches cursor to underscore (`SetCursorStyle::SteadyUnderScore`).
+    - **Sidebar / Non-editor panes**: Retains steady block cursor.
+    - **Terminal Cleanup / Exit**: `TerminalGuard::restore_terminal()` executes `SetCursorStyle::DefaultUserShape` so the user's terminal emulator restores its native default cursor on exit, panic, or external editor handoff.
+- **Verification**:
+  - Added unit test `test_update_cursor_style_does_not_panic`.
+  - All 50 unit and integration tests passing (`pnpm --filter @app/cli test`).
+  - Zero clippy warnings with `-D warnings`.
+  - Source files kept under strict limits: `terminal_guard.rs` (91 lines), `tui_app.rs` (54 lines) — well below 150-200 line soft cap and 250 hard cap.
+
+---
+
 **DaVinci Notes CLI / TUI ("dn") — Vim Motion Numeric Counts (4J, 4x, 4dd, 4yy, 4w, 4j, 4k) & Redo Stack (Ctrl+R) Complete**
 - **Numeric Count Prefix Engine (`vim_ops.rs`, `tui_state.rs`, `vim_motions.rs`)**:
   - Implemented Vim standard numeric count prefix accumulation (`state.count_prefix`) for digits `'1'..='9'` and subsequent `'0'..='9'` (with standalone `'0'` remaining line-start).
