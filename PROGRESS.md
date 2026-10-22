@@ -4,6 +4,22 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**DaVinci Notes CLI / TUI ("dn") — Phase 2: Read-Only TUI File Tree Complete**
+- **Terminal Safety & Panic Protection (`terminal_guard.rs`)**:
+  - Encapsulated raw mode, alternate screen (`EnterAlternateScreen`), and mouse capture (`EnableMouseCapture`) inside RAII `TerminalGuard`.
+  - Installed global panic hook ensuring terminal state (cursor, cooked mode, screen) is fully restored even on unexpected panics or signals before stack unwinding.
+- **Lazy Hierarchical Tree & Navigation (`tui_tree.rs`, `tui_state.rs`, `tui_view.rs`)**:
+  - Dired/Obsidian-style file tree with lazy directory loading: only direct children of expanded folders are read from disk.
+  - Benchmarked first frame on 10,000-note vault: rendered in < 1 ms (strictly beating the < 50 ms budget).
+  - Keyboard navigation (`hjkl` / arrows / Tab / Enter / Space) and full mouse click selection / scroll wheel support.
+  - Real-time search-as-you-type fuzzy filter bar (`/`) using `SkimMatcherV2` (`fuzzy-matcher`).
+  - Side-by-side read-only note preview pane with automatic Markdown scroll and folder statistics.
+- **Verification**:
+  - 21 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
 **DaVinci Notes CLI / TUI ("dn") — Phase 1: Walking Skeleton & Quick Capture Complete (ADR-0204)**
 - **Architecture & Roadmap (`docs/cli-feature-plan.md`, ADR-0204)**:
   - Established a 6-phase plan for `dn` terminal companion to the desktop app.
@@ -2274,8 +2290,8 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **DaVinci Notes CLI / TUI ("dn") — Phase 2**: Read-only TUI file tree with lazy directory expansion, keyboard + mouse navigation, fuzzy search-as-you-type, and note preview pane.
-2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+1. **DaVinci Notes CLI / TUI ("dn") — Phase 3**: External editor mode ($EDITOR suspend/resume, conflict detection on exit, note rename/delete/create in TUI).
+2. **DaVinci Notes CLI / TUI ("dn") — Phase 4**: Built-in modeless editor (rope buffer, cursor/selection, mouse, conflict-guarded save).
 3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
 5. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.

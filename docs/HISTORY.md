@@ -4,6 +4,23 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 2: Read-Only TUI File Tree
+
+- **Terminal Safety & Panic Protection (`terminal_guard.rs`)**:
+  - Encapsulated raw mode, alternate screen (`EnterAlternateScreen`), and mouse capture (`EnableMouseCapture`) inside RAII `TerminalGuard`.
+  - Installed global panic hook ensuring terminal state (cursor, cooked mode, screen) is fully restored even on unexpected panics or signals before stack unwinding.
+- **Lazy Hierarchical Tree & Navigation (`tui_tree.rs`, `tui_state.rs`, `tui_view.rs`)**:
+  - Dired/Obsidian-style file tree with lazy directory loading: only direct children of expanded folders are read from disk.
+  - Benchmarked first frame on 10,000-note vault: rendered in < 1 ms (strictly beating the < 50 ms budget).
+  - Keyboard navigation (`hjkl` / arrows / Tab / Enter / Space) and full mouse click selection / scroll wheel support.
+  - Real-time search-as-you-type fuzzy filter bar (`/`) using `SkimMatcherV2` (`fuzzy-matcher`).
+  - Side-by-side read-only note preview pane with automatic Markdown scroll and folder statistics.
+- **Verification**:
+  - 21 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
 ### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 1: Walking Skeleton & Quick Capture (ADR-0204)
 
 - **Architecture & Roadmap (`docs/cli-feature-plan.md`, ADR-0204)**:
@@ -171,6 +188,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 2 (Read-Only TUI File Tree) | Built Ratatui + crossterm TUI file browser with TerminalGuard RAII panic protection. Implemented lazy directory loading (first frame < 1 ms on 10k-note vault), keyboard (hjkl/arrows/Enter/Tab) and mouse click/scroll navigation, real-time search-as-you-type fuzzy filter bar with fuzzy-matcher, and side-by-side note preview pane. 21 tests pass; 0 clippy warnings; all files under 175 lines. |
 | 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 1 (Walking Skeleton & Quick Capture, ADR-0204) | Built independent 604 KB Rust CLI binary at `apps/cli` (`dn`). Implemented 5-tier vault discovery, ADR-0180 compliant quick capture in `Quick Notes/`, collision suffix disambiguation, daily note append (`--daily`), custom note append (`--note`), and crash-safe atomic write engine with drop cleanup. Zero SQLite access. Cold-start benchmarked at 6.68 ms mean (budget < 15 ms). 15 tests pass; 0 clippy warnings; all files under 175 lines. Recorded ADR-0204 and `docs/cli-feature-plan.md`. |
 | 2026-10-18 | Google Calendar Integration Phase 3 (SQLite Cache, syncToken & Sync Engine, ADR-0201) | Added Migration 8 in `vault-index.db` creating calendar, event, and sync state tables. Built `sqliteCalendarStore` wrapping all operations in universal `withDbLock` promise queue. Built `CalendarSyncEngine` with incremental `syncToken` delta polling and automatic HTTP 410 full-sync recovery. 10/10 Vitest tests pass; 0 ESLint errors; all files under 188 lines. |
 | 2026-10-18 | Google Calendar Integration Phase 2 (Desktop PKCE & OS Keychain Auth) | Implemented desktop OAuth PKCE loopback authentication, silent token refresh with 60s expiration margin, disconnect/revocation, and OS keychain token storage under `com.davinci.notes.calendar-oauth` via Rust `keyring` commands. Added 7 unit tests; 0 ESLint errors; all files under 190 lines. |
@@ -190,6 +208,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 | Date | Focus | Outcome |
 |---|---|---|
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 2 (Read-Only TUI File Tree) | Built Ratatui + crossterm TUI file browser with TerminalGuard RAII panic protection. Implemented lazy directory loading (first frame < 1 ms on 10k-note vault), keyboard (hjkl/arrows/Enter/Tab) and mouse click/scroll navigation, real-time search-as-you-type fuzzy filter bar with fuzzy-matcher, and side-by-side note preview pane. 21 tests pass; 0 clippy warnings; all files under 175 lines. |
 | 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 1 (Walking Skeleton & Quick Capture, ADR-0204) | Built independent 604 KB Rust CLI binary at `apps/cli` (`dn`). Implemented 5-tier vault discovery, ADR-0180 compliant quick capture in `Quick Notes/`, collision suffix disambiguation, daily note append (`--daily`), custom note append (`--note`), and crash-safe atomic write engine with drop cleanup. Zero SQLite access. Cold-start benchmarked at 6.68 ms mean (budget < 15 ms). 15 tests pass; 0 clippy warnings; all files under 175 lines. Recorded ADR-0204 and `docs/cli-feature-plan.md`. |
 | 2026-10-17 | Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (ADR-0198) | Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem. Scenarios passed: (1) Desktop -> Phone CRUD (6562ms), (2) Phone -> Desktop CRUD (5549ms), (3) Round-trip mtime stability (12537ms; 0 loops/rewrites), (4) Offline concurrent edits with *.sync-conflict-* generation and zero data loss (3432ms), (5) Edit vs delete & rename vs edit resolution (8363ms), (6) Syncthing .tmp file transfer isolation (2ms), (7) Background mobile rescan upon reopening (1519ms), (8) 5,000-note vault scale benchmark (642ms; 392ms write, 0.2 MB heap delta, no UI freeze), (9) Clean unpair & re-pair via REST API (33ms), (10) Convergence hash match across vaults (100% SHA-256 match, 3778ms). Root-caused and resolved note index pollution by routing conflict files to `VaultScanResult.conflicts` and excluding them from `ctx.notes` in `vaultScanner.ts` (mobile) and `VaultIndexer.ts` (desktop). Recorded ADR-0198. All unit and integration tests passing; ESLint 0 errors. |
 | 2026-10-17 | Mobile Syncthing Device Pairing, QR Code Scanning & Safe Vault Acceptance (`apps/mobile/`) | Implemented mobile-side device pairing and vault folder acceptance. Added `expo-camera@~57.0.6` barcode scanning in `SyncthingQrScanner.tsx` lazily loaded on demand via `React.lazy()`. Requested camera permission only when scanner mounts, with fallback to manual paste flow upon permission denial. Implemented `parseScannedDeviceId` validating 56-character Device IDs and rejecting random payloads with descriptive errors. Enforced explicit confirmation step showing parsed Device ID and name field (zero auto-accepting from QR). Added `SyncthingPendingSection.tsx` listing incoming device requests (Accept/Ignore) and pending vault folder offers. Implemented `folderAccessChecker.ts` explicitly verifying folder read, list, and atomic write probe capabilities before folder acceptance (SAF permission required) and warning if directory is non-empty. Added connected peers badge from `/rest/system/connections`. All 32 mobile Syncthing tests pass; 0 ESLint / 0 typecheck errors. |

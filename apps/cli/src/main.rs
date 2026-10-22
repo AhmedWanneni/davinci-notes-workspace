@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use davinci_cli::capture::{capture_note, CaptureTarget};
 use davinci_cli::config::resolve_vault;
+use davinci_cli::tui_app::run_tui;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -59,6 +60,30 @@ fn read_input_text(pos_args: &[String]) -> Result<String, String> {
 
 fn main() {
     let args = CliArgs::parse();
+
+    let is_interactive =
+        stdin().is_terminal() && args.text.is_empty() && !args.daily && args.note.is_none();
+    if is_interactive {
+        let vault = match resolve_vault(args.vault.as_deref().and_then(|p| p.to_str())) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("Error: {e}");
+                std::process::exit(1);
+            }
+        };
+
+        match run_tui(vault) {
+            Ok(Some(chosen)) => {
+                println!("{}", chosen.display());
+            }
+            Ok(None) => {}
+            Err(e) => {
+                eprintln!("TUI Error: {e}");
+                std::process::exit(1);
+            }
+        }
+        return;
+    }
 
     let text = match read_input_text(&args.text) {
         Ok(t) => t,
