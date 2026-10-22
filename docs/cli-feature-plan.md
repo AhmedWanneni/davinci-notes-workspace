@@ -22,7 +22,7 @@ A fast, terminal companion to the DaVinci Notes desktop app for the same local M
 
 ## Phase Breakdown
 
-### Phase 1: Walking Skeleton & Quick Capture (CURRENT)
+### Phase 1: Walking Skeleton & Quick Capture (COMPLETE)
 - **Scope**:
   - Standalone Rust crate at `apps/cli` producing binary `dn`.
   - 5-tier vault discovery precedence (`--vault`, `DN_VAULT`, cwd traversal, CLI config, desktop `davinci-recent-vaults.json`).
@@ -35,7 +35,7 @@ A fast, terminal companion to the DaVinci Notes desktop app for the same local M
 - **Risks**: Slow argument parsing if heavy CLI frameworks are pulled in. Mitigated by using minimal `clap` configuration.
 - **Single Session**: Yes.
 
-### Phase 2: Read-Only TUI File Tree
+### Phase 2: Read-Only TUI File Tree (COMPLETE)
 - **Scope**:
   - Terminal initialization with `ratatui` + `crossterm` with mouse tracking enabled.
   - Safe terminal cleanup guard restoring raw mode, alternate screen, and mouse capture on normal exit, signal, or panic.
@@ -48,7 +48,7 @@ A fast, terminal companion to the DaVinci Notes desktop app for the same local M
 - **Perf Budget**: First frame < 50 ms on 10,000-note vault.
 - **Single Session**: Yes.
 
-### Phase 3: External Editor Mode ($EDITOR)
+### Phase 3: External Editor Mode ($EDITOR) (COMPLETE)
 - **Scope**:
   - Launching user's `$EDITOR` (vim, neovim, helix, emacs, nano, code).
   - Clean TUI suspension: leave alternate screen, disable mouse capture, restore cooked terminal mode.
@@ -60,7 +60,7 @@ A fast, terminal companion to the DaVinci Notes desktop app for the same local M
 - **Risks**: Terminal state corruption if editor crashes. Mitigated by unconditional TUI resume guard.
 - **Single Session**: Yes (contains conflict detection and process suspension logic).
 
-### Phase 4: Built-in "Normal" Modeless Editor
+### Phase 4: Built-in "Normal" Modeless Editor (COMPLETE)
 - **Scope**:
   - Modeless, nano/micro-style editor for users who prefer not to use modal editors like Vim.
   - Rope data structure (`ropey`) backing the text buffer for $O(\log N)$ edits and zero line-count limits.
@@ -73,7 +73,7 @@ A fast, terminal companion to the DaVinci Notes desktop app for the same local M
 - **Perf Budget**: Keypress to render latency < 2 ms.
 - **Single Session**: Yes (contains buffer modification and save-conflict guard).
 
-### Phase 5: Fast In-Memory Content Search (`dn find`) & Watcher
+### Phase 5: Fast In-Memory Content Search (`dn find`) & Watcher (COMPLETE)
 - **Scope**:
   - CLI subcommand `dn find <query>` and in-TUI search overlay (`/`).
   - Fast multi-threaded grep search across vault Markdown files without touching SQLite.
@@ -84,7 +84,7 @@ A fast, terminal companion to the DaVinci Notes desktop app for the same local M
 - **Perf Budget**: Query response < 100 ms on 10,000 notes.
 - **Single Session**: Yes.
 
-### Phase 6: Packaging, Shell Completions & Documentation
+### Phase 6: Packaging, Shell Completions & Documentation (COMPLETE)
 - **Scope**:
   - `cargo install` metadata, crates.io publishing prep, and standalone release binary builds.
   - Shell completion scripts for Zsh, Bash, and Fish generated via `clap_complete`.

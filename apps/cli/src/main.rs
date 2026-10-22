@@ -1,4 +1,5 @@
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::{generate, Shell};
 use std::io::{stdin, IsTerminal, Read};
 use std::path::PathBuf;
 
@@ -49,6 +50,8 @@ enum SubCommand {
     Cat { name: String },
     /// Search content across vault markdown files
     Find { query: String },
+    /// Generate shell completion script
+    Completions { shell: Shell },
 }
 
 fn read_input_text(pos_args: &[String]) -> Result<String, String> {
@@ -72,6 +75,12 @@ fn read_input_text(pos_args: &[String]) -> Result<String, String> {
 
 fn main() {
     let args = CliArgs::parse();
+
+    if let Some(SubCommand::Completions { shell }) = &args.command {
+        let mut cmd = CliArgs::command();
+        generate(*shell, &mut cmd, "dn", &mut std::io::stdout());
+        return;
+    }
 
     let vault = match resolve_vault(args.vault.as_deref().and_then(|p| p.to_str())) {
         Ok(v) => v,
@@ -131,6 +140,7 @@ fn main() {
                     }
                 }
             }
+            SubCommand::Completions { .. } => unreachable!(),
         }
         return;
     }
