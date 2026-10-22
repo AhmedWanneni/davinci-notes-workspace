@@ -13,10 +13,7 @@ pub struct TerminalGuard {
 
 impl TerminalGuard {
     pub fn new() -> std::io::Result<Self> {
-        enable_raw_mode()?;
-        let mut out = stdout();
-        execute!(out, EnterAlternateScreen, EnableMouseCapture, Hide)?;
-        out.flush()?;
+        Self::reenter_terminal()?;
 
         let prev_hook = panic::take_hook();
         panic::set_hook(Box::new(move |info| {
@@ -32,6 +29,14 @@ impl TerminalGuard {
         let _ = execute!(out, Show, DisableMouseCapture, LeaveAlternateScreen);
         let _ = out.flush();
         let _ = disable_raw_mode();
+        Ok(())
+    }
+
+    pub fn reenter_terminal() -> std::io::Result<()> {
+        enable_raw_mode()?;
+        let mut out = stdout();
+        execute!(out, EnterAlternateScreen, EnableMouseCapture, Hide)?;
+        out.flush()?;
         Ok(())
     }
 }
@@ -51,7 +56,6 @@ mod tests {
 
     #[test]
     fn test_restore_terminal_does_not_panic() {
-        // In headless test environments, verify restore_terminal handles errors safely
         let _ = TerminalGuard::restore_terminal();
     }
 }

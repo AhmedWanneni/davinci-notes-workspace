@@ -1,10 +1,11 @@
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime};
 
 use crate::builtin_editor_buffer::EditorBuffer;
+use crate::editor_config::{read_editor_settings, EditorMode};
 use crate::fs_atomic::atomic_write_new;
 use crate::tui_tree::{TreeNode, VisibleItem};
 
@@ -45,11 +46,15 @@ pub struct TuiState {
     pub status_message: Option<String>,
     pub last_click: Option<(usize, Instant)>,
     pub should_quit: bool,
+    pub editor_mode: EditorMode,
 }
 
 impl TuiState {
     pub fn new(vault_root: PathBuf) -> Self {
         let root_node = TreeNode::new_root(&vault_root);
+        let settings = read_editor_settings();
+        let editor_mode = settings.mode.unwrap_or(EditorMode::Builtin);
+
         let mut state = Self {
             vault_root,
             root_node,
@@ -72,6 +77,7 @@ impl TuiState {
             status_message: None,
             last_click: None,
             should_quit: false,
+            editor_mode,
         };
         state.refresh_visible();
         state.load_selected_file();
@@ -96,6 +102,19 @@ impl TuiState {
 
     pub fn selected_item(&self) -> Option<&VisibleItem> {
         self.visible_items.get(self.selected_index)
+    }
+
+    pub fn refresh_file(&mut self, path: &Path) {
+        if let Some(current) = &self.current_file {
+            if current == path {
+                if let Ok(content) = fs::read_to_string(path) {
+                    self.editor_buffer = EditorBuffer::new(&content);
+                    self.preview_content = content;
+                    self.is_dirty = false;
+                    self.initial_mtime = fs::metadata(path).ok().and_then(|m| m.modified().ok());
+                }
+            }
+        }
     }
 
     pub fn load_selected_file(&mut self) {
@@ -158,10 +177,7 @@ impl TuiState {
     }
 
     pub fn toggle_current(&mut self) {
-        let Some(item) = self.selected_item().cloned() else {
-            return;
-        };
-
+        let Some(item) = self.selected_item().cloned() else { return; };
         if item.is_dir {
             self.root_node.toggle_path(&item.path, &self.vault_root);
             self.refresh_visible();

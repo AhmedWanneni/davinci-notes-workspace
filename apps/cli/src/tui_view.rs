@@ -192,7 +192,7 @@ fn render_footer(frame: &mut Frame, state: &TuiState, area: Rect) {
         let help = [(" [i] Insert ", Color::Yellow), (" | [Esc] Normal ", Color::Yellow), (" | [Ctrl+S] Save ", Color::Yellow), (" | [f] Fullscreen ", Color::Cyan), (" | [Tab] Sidebar ", Color::Yellow)];
         frame.render_widget(Paragraph::new(Line::from(help.into_iter().map(|(t, c)| Span::styled(t, Style::default().fg(c))).collect::<Vec<_>>())), area);
     } else {
-        let help = [(" [Click/Enter] Edit Note ", Color::Yellow), (" | [f] Fullscreen ", Color::Cyan), (" | [/] Search ", Color::Yellow), (" | [d] Delete ", Color::Yellow), (" | [Tab] Switch ", Color::Yellow), (" | [q] Quit ", Color::Yellow)];
+        let help = [(" [Enter] Edit ", Color::Yellow), (" | [e] Vim ", Color::Green), (" | [f] Fullscreen ", Color::Cyan), (" | [/] Search ", Color::Yellow), (" | [d] Delete ", Color::Yellow), (" | [q] Quit ", Color::Yellow)];
         frame.render_widget(Paragraph::new(Line::from(help.into_iter().map(|(t, c)| Span::styled(t, Style::default().fg(c))).collect::<Vec<_>>())), area);
     }
 }

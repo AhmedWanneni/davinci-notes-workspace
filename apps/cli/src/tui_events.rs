@@ -3,11 +3,13 @@ use ratatui::backend::CrosstermBackend;
 use ratatui::Terminal;
 use std::io::Stdout;
 
+use crate::editor_config::EditorMode;
+use crate::external_editor::launch_editor_from_tui;
 use crate::tui_state::{FocusPane, TuiState, VimMode};
 
 pub fn handle_key(
     state: &mut TuiState,
-    _terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
     key: KeyEvent,
 ) -> std::io::Result<()> {
     state.status_message = None;
@@ -22,7 +24,7 @@ pub fn handle_key(
         return Ok(());
     }
 
-    handle_tree_key(state, key);
+    handle_tree_key(state, terminal, key);
     Ok(())
 }
 
@@ -35,7 +37,33 @@ fn handle_search_key(state: &mut TuiState, key: KeyEvent) {
     }
 }
 
-fn handle_tree_key(state: &mut TuiState, key: KeyEvent) {
+fn handle_external_edit(
+    state: &mut TuiState,
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    path: &std::path::Path,
+    name: &str,
+) {
+    match launch_editor_from_tui(path, None, None) {
+        Ok(status) => {
+            if status.was_modified {
+                state.refresh_file(path);
+                state.status_message = Some(format!("Updated {name}"));
+            } else {
+                state.status_message = Some(format!("No changes to {name}"));
+            }
+        }
+        Err(e) => {
+            state.status_message = Some(format!("Editor error: {e}"));
+        }
+    }
+    let _ = terminal.clear();
+}
+
+fn handle_tree_key(
+    state: &mut TuiState,
+    terminal: &mut Terminal<CrosstermBackend<Stdout>>,
+    key: KeyEvent,
+) {
     match key.code {
         KeyCode::Char('q') => state.should_quit = true,
         KeyCode::Esc => { if state.is_fullscreen { state.toggle_fullscreen(); } else { state.should_quit = true; } }
@@ -45,9 +73,22 @@ fn handle_tree_key(state: &mut TuiState, key: KeyEvent) {
         KeyCode::Up | KeyCode::Char('k') => state.move_up(),
         KeyCode::Down | KeyCode::Char('j') => state.move_down(),
         KeyCode::Char(' ') => state.toggle_current(),
+        KeyCode::Char('e') => {
+            if let Some(item) = state.selected_item().cloned() {
+                if !item.is_dir {
+                    handle_external_edit(state, terminal, &item.path, &item.name);
+                }
+            }
+        }
         KeyCode::Enter | KeyCode::Right | KeyCode::Char('l') => {
             if let Some(item) = state.selected_item().cloned() {
-                if item.is_dir { state.toggle_current(); } else { state.focus_pane = FocusPane::Editor; }
+                if item.is_dir {
+                    state.toggle_current();
+                } else if state.editor_mode == EditorMode::External {
+                    handle_external_edit(state, terminal, &item.path, &item.name);
+                } else {
+                    state.focus_pane = FocusPane::Editor;
+                }
             }
         }
         KeyCode::Left | KeyCode::Char('h') => {
@@ -78,7 +119,7 @@ fn handle_editor_key(state: &mut TuiState, key: KeyEvent) {
     match state.vim_mode {
         VimMode::Command => handle_editor_command(state, key),
         VimMode::Insert => handle_editor_insert(state, key),
-        VimMode::Normal => handle_editor_normal(state, key),
+        VimMode::Normal => crate::vim_ops::handle_vim_normal_key(state, key),
     }
 }
 
@@ -113,10 +154,6 @@ fn handle_editor_insert(state: &mut TuiState, key: KeyEvent) {
         KeyCode::End => state.editor_buffer.move_to_line_end(),
         _ => {}
     }
-}
-
-fn handle_editor_normal(state: &mut TuiState, key: KeyEvent) {
-    crate::vim_ops::handle_vim_normal_key(state, key);
 }
 
 pub fn handle_mouse(

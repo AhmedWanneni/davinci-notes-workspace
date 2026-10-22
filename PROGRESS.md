@@ -4,6 +4,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**DaVinci Notes CLI / TUI ("dn") — Native Vim/Neovim External Handoff, Config Resolution, and In-Process Vim Mode Evaluation (ADR-0205, ADR-0206) Complete**
+- **Root-Cause Resolution & Native Vim Handoff (`external_editor.rs`, `editor_resolver.rs`, `command_parser.rs`)**:
+  - Diagnosed root causes: candidate order placed system `/usr/bin/vim` before Homebrew `nvim` (`/opt/homebrew/bin/nvim`), missing users' `~/.config/nvim/init.lua` and LazyVim plugins; naive `split_whitespace()` broke quoted commands like `EDITOR="nvim -c 'set wrap'"`; missing `--` caused filenames with leading dashes (`-note.md`) to be parsed as editor flags; TUI lacked clean terminal suspension and restoration on child exit.
+  - Implemented 5-tier resolution precedence: `--editor` CLI flag -> `[editor] command/args` config -> `$VISUAL` -> `$EDITOR` -> `nvim` -> `vim` -> `vi` (Windows `notepad`).
+  - Added zero-dependency POSIX quote parser (`command_parser::parse_shell_words`) handling single/double quotes and escaped spaces.
+  - Added clean terminal handoff: `TerminalGuard::restore_terminal()` leaves alternate screen, disables mouse capture, and drops raw mode before spawning child with inherited TTY stdio; `TerminalGuard::reenter_terminal()` restores TUI and `terminal.clear()` handles terminal resize (`SIGWINCH`) upon return.
+  - Added leading `--` argument before file path to neutralize leading dashes.
+  - Added targeted file refresh: compares `mtime`, file size, and content hash before and after launch; reloads only that file in TUI without full-vault rescan.
+  - Added subcommands and flags: `dn edit <name>`, `dn open <name> --editor <cmd> --editor-args <args>`, and `dn config`.
+  - Added in-TUI keybinding: pressing `'e'` on any file triggers native external editor handoff with user config.
+- **In-Process Vim Mode Evaluation (Part B, `docs/cli-vim-mode-eval.md`, ADR-0206)**:
+  - Researched and evaluated all 4 options: `edtui` (rejected for missing features/heavy `syntect`), `tui-textarea` (rejected for lack of modal engine), `nvim --embed` (evaluated for full fidelity; proposed behind optional `embedded-nvim` feature flag), and built-in rope buffer (retained as lightweight default).
+  - Authored comprehensive evaluation in `docs/cli-vim-mode-eval.md` and proposed ADR-0206 with status "Proposed".
+- **Performance Budget & SQLite Verification**:
+  - Quick capture cold start re-measured with `hyperfine` on release binary: mean **8.9 ms** (min 4.9 ms, max 87.5 ms, 437 runs), strictly beating the < 15.00 ms budget.
+  - Zero SQLite call sites verified via `rg "rusqlite|vault-index.db"` (no SQLite connection or locks touched).
+  - All 48 unit and integration tests passing (`pnpm --filter @app/cli test`).
+  - All source files strictly under 209 lines (soft cap 150-200, hard cap 250).
+
+---
+
 **DaVinci Notes CLI / TUI ("dn") — Full Vim Editing Suite (dd, yy, p, P, dw, yw, cw, cc, r, J, ~) Complete**
 - **Vim Operator & Motion Engine (`vim_motions.rs`, `vim_ops.rs`)**:
   - Implemented multi-key operator state machine (`PendingOp`) supporting classic two-key Vim idioms:

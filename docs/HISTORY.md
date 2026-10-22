@@ -4,6 +4,32 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Native Vim/Neovim External Handoff, Config Resolution, and In-Process Vim Mode Evaluation (ADR-0205, ADR-0206)
+
+- **Root-Cause Diagnosis & Empirical Findings**:
+  - Found candidate order checked `/usr/bin/vim` before Homebrew `nvim` (`/opt/homebrew/bin/nvim`), missing users' `~/.config/nvim/init.lua` and LazyVim plugins.
+  - Found naive `split_whitespace()` split quoted editor arguments like `EDITOR="nvim -c 'set wrap'"` into broken arguments.
+  - Found missing `--` caused notes with leading dashes (`-note.md`) to be parsed as editor command-line options.
+  - Found TUI did not restore raw mode, alternate screen, and mouse capture upon editor exit, causing desynchronization.
+- **Implementation & Architecture (ADR-0205)**:
+  - 5-tier editor resolution precedence: `--editor` flag -> `[editor] command/args` config -> `$VISUAL` -> `$EDITOR` -> `nvim` -> `vim` -> `vi` (Windows `notepad`).
+  - Added zero-dependency POSIX quote parser (`command_parser::parse_shell_words`).
+  - Terminal handoff: `TerminalGuard::restore_terminal()` leaves alternate screen and disables raw mode before child process spawn with inherited stdio (`isatty == 1`); `TerminalGuard::reenter_terminal()` restores TUI and `terminal.clear()` handles terminal resize (`SIGWINCH`) upon return.
+  - Safe `--` argument placed immediately prior to note path.
+  - Post-exit targeted file refresh: checks `mtime`, file size, and content hash; reloads only that file in TUI without full-vault rescan.
+  - Subcommands: `dn edit <name>`, `dn open <name> --editor <cmd> --editor-args <args>`, and `dn config`.
+  - TUI keybinding: pressing `'e'` triggers external editor handoff with native config.
+- **In-Process Vim Mode Evaluation (ADR-0206, `docs/cli-vim-mode-eval.md`)**:
+  - Researched 4 options: `edtui`, `tui-textarea`, `nvim --embed` (`nvim-rs`), and built-in rope buffer.
+  - Recommended retaining external handoff (ADR-0205) as primary, keeping rope buffer as built-in default, and proposing future embedded Neovim behind an optional `embedded-nvim` Cargo feature flag so quick capture startup budget is never compromised.
+- **Verification**:
+  - Hyperfine benchmark on quick capture: mean **8.9 ms** (min 4.9 ms, max 87.5 ms, 437 runs) beating < 15.00 ms budget.
+  - Zero SQLite call sites verified (`vault-index.db` is never opened).
+  - All 48 unit and integration tests passing (`pnpm --filter @app/cli test`).
+  - All source files strictly under 209 lines.
+
+---
+
 ### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Full Vim Editing Suite (dd, yy, p, P, dw, yw, cw, cc, r, J, ~)
 
 - **Vim Operator & Motion Engine (`vim_motions.rs`, `vim_ops.rs`)**:
