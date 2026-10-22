@@ -14,7 +14,7 @@ fn test_fullscreen_toggle_and_focus() {
 
     state.toggle_fullscreen();
     assert!(state.is_fullscreen);
-    assert_eq!(state.focus_pane, davinci_cli::tui_state::FocusPane::Preview);
+    assert_eq!(state.focus_pane, davinci_cli::tui_state::FocusPane::Editor);
 
     state.toggle_fullscreen();
     assert!(!state.is_fullscreen);
@@ -73,4 +73,36 @@ fn test_tree_scroll_adjust() {
 fn test_resolve_vim_precedence() {
     let vim_binary = resolve_vim();
     assert!(vim_binary == "vim" || vim_binary == "nvim" || vim_binary == "vi" || vim_binary == "nano");
+}
+
+#[test]
+fn test_in_app_vim_editing_and_save() {
+    let temp_vault = std::env::temp_dir().join(format!("dn_edit_test_{}", SystemTime::now().elapsed().unwrap().as_nanos()));
+    fs::create_dir_all(&temp_vault).unwrap();
+    let note = temp_vault.join("todo.md");
+    fs::write(&note, "Initial Todo").unwrap();
+
+    let mut state = TuiState::new(temp_vault.clone());
+    assert_eq!(state.focus_pane, davinci_cli::tui_state::FocusPane::Tree);
+    assert!(!state.is_fullscreen);
+
+    // Enter focuses editor in right pane without toggling fullscreen
+    state.focus_pane = davinci_cli::tui_state::FocusPane::Editor;
+    assert!(!state.is_fullscreen);
+    assert_eq!(state.visible_items.len(), 1);
+
+    // In insert mode, typing edits the in-place buffer
+    state.vim_mode = davinci_cli::tui_state::VimMode::Insert;
+    state.editor_buffer.move_to_line_end();
+    state.editor_buffer.insert_str(" Added item");
+    state.is_dirty = true;
+    assert_eq!(state.editor_buffer.to_string(), "Initial Todo Added item");
+
+    // Save writes to disk
+    state.save_current_file().unwrap();
+    assert!(!state.is_dirty);
+    let disk_content = fs::read_to_string(&note).unwrap();
+    assert_eq!(disk_content, "Initial Todo Added item");
+
+    let _ = fs::remove_dir_all(temp_vault);
 }

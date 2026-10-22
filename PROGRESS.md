@@ -4,20 +4,21 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-**DaVinci Notes CLI / TUI ("dn") — Vim Integration, Fullscreen Mode & Interactive TUI UX Complete**
-- **Click to View & Focus (`tui_events.rs`, `tui_state.rs`)**:
-  - Clicking any file in the tree selects and immediately renders its formatted content in the right pane preview.
-  - Slices visible items by scroll offset so large directory trees scroll smoothly with the selection.
-- **Vim Editing Integration (`external_editor.rs`, `tui_events.rs`)**:
-  - Double-clicking a file, pressing `v` or `Enter`, or clicking `[v] Edit with Vim` launches real `vim` (or `nvim`/`vi`) full-screen.
-  - Automatically reloads modified content into the right preview pane upon exit and displays status feedback (`✔ Saved changes to <file>`).
-  - Added Vim scroll keybindings in the preview pane (`j`/`k`, `g`/`G` for top/bottom, `Ctrl+D`/`Ctrl+U` for half-page scroll).
-- **Fullscreen Preview Toggle (`tui_view.rs`, `tui_state.rs`)**:
-  - Pressing `f` or `F`, or clicking `[f] Fullscreen` expands the note reader to 100% terminal width.
-  - Pressing `f`, `Esc`, or clicking `[f] Split` restores the standard 35/65 split view.
+**DaVinci Notes CLI / TUI ("dn") — In-App Vim Editor with Persistent Sidebar & Fullscreen Toggle Complete**
+- **Persistent Sidebar Navigation (`tui_events.rs`, `tui_state.rs`)**:
+  - Pressing `Enter` or clicking on a file opens the note directly into the active right-pane editor while keeping the left file tree sidebar visible on screen.
+  - Automatically auto-saves modified files on note switch without lost edits.
+  - Slices directory items by scroll offset so large trees scroll with the selection.
+- **In-App Vim Mode Editing (`tui_events.rs`, `tui_view.rs`)**:
+  - Full modal in-place editing in the right pane: Normal mode (`h`/`j`/`k`/`l`, `0`/`$`, `x`, `u`, `g`/`G`, `Ctrl+D`/`Ctrl+U`), Insert mode (`i`, `a`, `A`, `I`, `o`, `O`), `Esc` to return to Normal mode.
+  - Real-time line numbering, cursor tracking with terminal position sync, and mode indicators (`-- NORMAL --` / `-- INSERT --`).
+  - `Ctrl+S` atomic save with `atomic_write_new` and status confirmation.
+- **On-Demand Fullscreen Toggle (`tui_view.rs`, `tui_state.rs`)**:
+  - Pressing `f` or `F`, or clicking `[f] Fullscreen` expands the editor to 100% terminal width.
+  - Pressing `f`, `Esc`, or clicking `[f] Split` restores the dual-pane view with the sidebar.
 - **Verification**:
-  - 39 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
-  - All source files strictly under 199 lines (under 200 soft cap and 250 hard cap).
+  - 40 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 197 lines (under 200 soft cap and 250 hard cap).
 
 ---
 

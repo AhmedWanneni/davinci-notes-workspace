@@ -4,6 +4,25 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — In-App Vim Editor with Persistent Sidebar & Fullscreen Toggle
+
+- **Persistent Sidebar Navigation (`tui_events.rs`, `tui_state.rs`)**:
+  - Pressing `Enter` or clicking on a file opens the note directly into the active right-pane editor while keeping the left file tree sidebar visible on screen.
+  - Automatically auto-saves modified files on note switch without lost edits.
+  - Slices directory items by scroll offset so large trees scroll with the selection.
+- **In-App Vim Mode Editing (`tui_events.rs`, `tui_view.rs`)**:
+  - Full modal in-place editing in the right pane: Normal mode (`h`/`j`/`k`/`l`, `0`/`$`, `x`, `u`, `g`/`G`, `Ctrl+D`/`Ctrl+U`), Insert mode (`i`, `a`, `A`, `I`, `o`, `O`), `Esc` to return to Normal mode.
+  - Real-time line numbering, cursor tracking with terminal position sync, and mode indicators (`-- NORMAL --` / `-- INSERT --`).
+  - `Ctrl+S` atomic save with `atomic_write_new` and status confirmation.
+- **On-Demand Fullscreen Toggle (`tui_view.rs`, `tui_state.rs`)**:
+  - Pressing `f` or `F`, or clicking `[f] Fullscreen` expands the editor to 100% terminal width.
+  - Pressing `f`, `Esc`, or clicking `[f] Split` restores the dual-pane view with the sidebar.
+- **Verification**:
+  - 40 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 197 lines (under 200 soft cap and 250 hard cap).
+
+---
+
 ### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Integration, Fullscreen Mode & Interactive TUI UX
 
 - **Click to View & Focus (`tui_events.rs`, `tui_state.rs`)**:

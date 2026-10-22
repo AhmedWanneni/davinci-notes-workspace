@@ -2,15 +2,24 @@ use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::fs;
 use std::path::PathBuf;
-use std::time::Instant;
+use std::time::{Instant, SystemTime};
 
+use crate::builtin_editor_buffer::EditorBuffer;
+use crate::fs_atomic::atomic_write_new;
 use crate::tui_tree::{TreeNode, VisibleItem};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FocusPane {
     Tree,
+    Editor,
     Preview,
     Search,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum VimMode {
+    Normal,
+    Insert,
 }
 
 pub struct TuiState {
@@ -19,8 +28,13 @@ pub struct TuiState {
     pub visible_items: Vec<VisibleItem>,
     pub selected_index: usize,
     pub tree_scroll: usize,
+    pub current_file: Option<PathBuf>,
+    pub editor_buffer: EditorBuffer,
     pub preview_content: String,
-    pub preview_scroll: u16,
+    pub is_dirty: bool,
+    pub initial_mtime: Option<SystemTime>,
+    pub editor_scroll: usize,
+    pub vim_mode: VimMode,
     pub search_query: String,
     pub focus_pane: FocusPane,
     pub is_fullscreen: bool,
@@ -38,8 +52,13 @@ impl TuiState {
             visible_items: Vec::new(),
             selected_index: 0,
             tree_scroll: 0,
+            current_file: None,
+            editor_buffer: EditorBuffer::new(""),
             preview_content: String::new(),
-            preview_scroll: 0,
+            is_dirty: false,
+            initial_mtime: None,
+            editor_scroll: 0,
+            vim_mode: VimMode::Normal,
             search_query: String::new(),
             focus_pane: FocusPane::Tree,
             is_fullscreen: false,
@@ -48,7 +67,7 @@ impl TuiState {
             should_quit: false,
         };
         state.refresh_visible();
-        state.update_preview();
+        state.load_selected_file();
         state
     }
 
@@ -64,9 +83,7 @@ impl TuiState {
             self.visible_items = all_visible
                 .into_iter()
                 .filter(|item| {
-                    matcher
-                        .fuzzy_match(&item.rel_path, query)
-                        .is_some()
+                    matcher.fuzzy_match(&item.rel_path, query).is_some()
                         || matcher.fuzzy_match(&item.name, query).is_some()
                 })
                 .collect();
@@ -83,24 +100,62 @@ impl TuiState {
         self.visible_items.get(self.selected_index)
     }
 
-    pub fn move_up(&mut self) {
-        if self.selected_index > 0 {
-            self.selected_index -= 1;
-            self.update_preview();
+    pub fn load_selected_file(&mut self) {
+        if self.is_dirty {
+            let _ = self.save_current_file();
         }
+        let Some(item) = self.selected_item().cloned() else {
+            self.current_file = None;
+            self.editor_buffer = EditorBuffer::new("");
+            self.preview_content.clear();
+            return;
+        };
+
+        if item.is_dir {
+            let count = fs::read_dir(&item.path).map(|e| e.count()).unwrap_or(0);
+            let summary = format!("# 📁 Folder: {}\n\nItems in folder: {}\n\nPress Space to expand/collapse.", item.name, count);
+            self.current_file = None; self.editor_buffer = EditorBuffer::new(&summary);
+            self.preview_content = summary; self.is_dirty = false;
+            self.initial_mtime = None; self.editor_scroll = 0;
+        } else {
+            let content = fs::read_to_string(&item.path).unwrap_or_default();
+            self.initial_mtime = fs::metadata(&item.path).ok().and_then(|m| m.modified().ok());
+            self.editor_buffer = EditorBuffer::new(&content);
+            self.preview_content = content; self.current_file = Some(item.path);
+            self.is_dirty = false; self.editor_scroll = 0; self.vim_mode = VimMode::Normal;
+        }
+    }
+
+    pub fn update_preview(&mut self) {
+        self.load_selected_file();
+    }
+
+    pub fn save_current_file(&mut self) -> Result<(), String> {
+        let Some(path) = &self.current_file else { return Ok(()); };
+        let content = self.editor_buffer.to_string();
+        if let Err(e) = atomic_write_new(path, &content) {
+            return Err(format!("Save failed: {e}"));
+        }
+        self.is_dirty = false;
+        self.initial_mtime = fs::metadata(path).ok().and_then(|m| m.modified().ok());
+        let name = path.file_name().unwrap_or_default().to_string_lossy();
+        self.status_message = Some(format!("Saved {name}"));
+        Ok(())
+    }
+
+    pub fn move_up(&mut self) {
+        if self.selected_index > 0 { self.selected_index -= 1; self.load_selected_file(); }
     }
 
     pub fn move_down(&mut self) {
         if !self.visible_items.is_empty() && self.selected_index + 1 < self.visible_items.len() {
-            self.selected_index += 1;
-            self.update_preview();
+            self.selected_index += 1; self.load_selected_file();
         }
     }
 
     pub fn select_index(&mut self, idx: usize) {
-        if idx < self.visible_items.len() {
-            self.selected_index = idx;
-            self.update_preview();
+        if idx < self.visible_items.len() && idx != self.selected_index {
+            self.selected_index = idx; self.load_selected_file();
         }
     }
 
@@ -110,72 +165,33 @@ impl TuiState {
         };
 
         if item.is_dir {
-            self.root_node
-                .toggle_path(&item.path, &self.vault_root);
+            self.root_node.toggle_path(&item.path, &self.vault_root);
             self.refresh_visible();
         }
-        self.update_preview();
-    }
-
-    pub fn update_preview(&mut self) {
-        self.preview_scroll = 0;
-        let Some(item) = self.selected_item() else {
-            self.preview_content = "No items in vault".to_string();
-            return;
-        };
-
-        if item.is_dir {
-            let count = fs::read_dir(&item.path)
-                .map(|entries| entries.count())
-                .unwrap_or(0);
-            self.preview_content = format!(
-                "📁 Folder: {}\n\nItems in folder: {}\n\nPress Enter or click to expand/collapse.",
-                item.name, count
-            );
-        } else {
-            match fs::read_to_string(&item.path) {
-                Ok(content) => {
-                    self.preview_content = content;
-                }
-                Err(e) => {
-                    self.preview_content = format!("Unable to preview file: {e}");
-                }
-            }
-        }
-    }
-
-    pub fn scroll_preview(&mut self, delta: i32) {
-        if delta < 0 {
-            self.preview_scroll = self.preview_scroll.saturating_sub((-delta) as u16);
-        } else {
-            self.preview_scroll = self.preview_scroll.saturating_add(delta as u16);
-        }
-    }
-
-    pub fn scroll_preview_to_top(&mut self) {
-        self.preview_scroll = 0;
-    }
-
-    pub fn scroll_preview_to_bottom(&mut self) {
-        let line_count = self.preview_content.lines().count();
-        self.preview_scroll = line_count.saturating_sub(5) as u16;
+        self.load_selected_file();
     }
 
     pub fn toggle_fullscreen(&mut self) {
         self.is_fullscreen = !self.is_fullscreen;
-        if self.is_fullscreen {
-            self.focus_pane = FocusPane::Preview;
-        }
+        if self.is_fullscreen { self.focus_pane = FocusPane::Editor; }
     }
 
     pub fn adjust_tree_scroll(&mut self, visible_height: usize) {
-        if visible_height == 0 {
-            return;
-        }
+        if visible_height == 0 { return; }
         if self.selected_index < self.tree_scroll {
             self.tree_scroll = self.selected_index;
         } else if self.selected_index >= self.tree_scroll + visible_height {
             self.tree_scroll = self.selected_index - visible_height + 1;
+        }
+    }
+
+    pub fn adjust_editor_scroll(&mut self, visible_height: usize) {
+        if visible_height == 0 { return; }
+        let (cursor_line, _) = self.editor_buffer.cursor_line_col();
+        if cursor_line < self.editor_scroll {
+            self.editor_scroll = cursor_line;
+        } else if cursor_line >= self.editor_scroll + visible_height {
+            self.editor_scroll = cursor_line - visible_height + 1;
         }
     }
 }

@@ -25,13 +25,14 @@ pub fn run_tui(vault_root: PathBuf) -> Result<Option<PathBuf>, std::io::Error> {
             if w.has_external_changes() {
                 state.root_node = crate::tui_tree::TreeNode::new_root(&state.vault_root);
                 state.refresh_visible();
-                state.update_preview();
+                state.load_selected_file();
             }
         }
 
         let term_size = terminal.size()?;
         let visible_height = term_size.height.saturating_sub(4) as usize;
         state.adjust_tree_scroll(visible_height);
+        state.adjust_editor_scroll(visible_height);
 
         terminal.draw(|f| render_ui(f, &state))?;
 
