@@ -108,12 +108,25 @@ fn handle_key(state: &mut TuiState, key: KeyEvent) -> Option<PathBuf> {
                 }
             }
         }
-        KeyCode::Enter | KeyCode::Char(' ') => {
+        KeyCode::Enter | KeyCode::Char('e') => {
             if let Some(item) = state.selected_item().cloned() {
                 if item.is_dir {
                     state.toggle_current();
                 } else {
-                    return Some(item.path);
+                    let _ = TerminalGuard::restore_terminal();
+                    let _ = crate::external_editor::launch_external_editor(&item.path);
+                    let _ = TerminalGuard::new();
+                    state.update_preview();
+                }
+            }
+        }
+        KeyCode::Char('d') => {
+            if let Some(item) = state.selected_item().cloned() {
+                if !item.is_dir {
+                    let _ = crate::note_ops::delete_note(&state.vault_root, &item.path);
+                    state.root_node = crate::tui_tree::TreeNode::new_root(&state.vault_root);
+                    state.refresh_visible();
+                    state.update_preview();
                 }
             }
         }

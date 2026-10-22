@@ -129,9 +129,9 @@ fn render_footer(frame: &mut Frame, state: &TuiState, area: Rect) {
         let help_spans = vec![
             Span::styled(" q:Quit ", Style::default().fg(Color::Yellow)),
             Span::styled(" | /:Search ", Style::default().fg(Color::Yellow)),
-            Span::styled(" | Enter:Expand/Open ", Style::default().fg(Color::Yellow)),
+            Span::styled(" | Enter/e:Edit ", Style::default().fg(Color::Yellow)),
+            Span::styled(" | d:Delete ", Style::default().fg(Color::Yellow)),
             Span::styled(" | Tab:Pane ", Style::default().fg(Color::Yellow)),
-            Span::styled(" | Mouse:Click/Scroll ", Style::default().fg(Color::Yellow)),
         ];
         frame.render_widget(Paragraph::new(Line::from(help_spans)), area);
     }

@@ -4,6 +4,23 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**DaVinci Notes CLI / TUI ("dn") — Phase 3: External Editor Mode ($EDITOR) Complete**
+- **$EDITOR Integration & Suspension (`external_editor.rs`)**:
+  - Resolves `$VISUAL` -> `$EDITOR` -> `nano`/`vi` (Windows `notepad`).
+  - Cleanly suspends TUI raw mode and alternate screen, executes editor child process, and resumes TUI upon exit.
+  - Snapshotting: records `mtime` and content byte comparison before/after execution to detect external conflicts and disk changes.
+- **Note Lifecycle Operations & Subcommands (`note_ops.rs`, `main.rs`)**:
+  - `dn open <name>`: opens best matching note in `$EDITOR` via fuzzy matching (`SkimMatcherV2`).
+  - `dn new <name>`: creates a new note with formatted `# Heading` and collision guard.
+  - `dn ls [folder]`: lists vault/folder contents with formatted byte sizes.
+  - `dn cat <name>`: prints note content to stdout.
+  - In-TUI operations: `'e'` or `Enter` on file opens in `$EDITOR`, `'d'` moves file to `.trash/` and updates tree.
+- **Verification**:
+  - 27 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
 **DaVinci Notes CLI / TUI ("dn") — Phase 2: Read-Only TUI File Tree Complete**
 - **Terminal Safety & Panic Protection (`terminal_guard.rs`)**:
   - Encapsulated raw mode, alternate screen (`EnterAlternateScreen`), and mouse capture (`EnableMouseCapture`) inside RAII `TerminalGuard`.
@@ -2290,8 +2307,8 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **DaVinci Notes CLI / TUI ("dn") — Phase 3**: External editor mode ($EDITOR suspend/resume, conflict detection on exit, note rename/delete/create in TUI).
-2. **DaVinci Notes CLI / TUI ("dn") — Phase 4**: Built-in modeless editor (rope buffer, cursor/selection, mouse, conflict-guarded save).
+1. **DaVinci Notes CLI / TUI ("dn") — Phase 4**: Built-in modeless editor (rope buffer, cursor/selection, mouse, conflict-guarded save).
+2. **DaVinci Notes CLI / TUI ("dn") — Phase 5**: Fast in-memory content search (`dn find`) and external-change watcher in TUI.
 3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
 5. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
