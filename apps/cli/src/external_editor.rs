@@ -27,7 +27,18 @@ pub fn resolve_editor() -> String {
 
     if cfg!(windows) {
         "notepad".to_string()
-    } else if Command::new("which").arg("nano").output().map(|o| o.status.success()).unwrap_or(false) {
+    } else {
+        resolve_vim()
+    }
+}
+
+pub fn resolve_vim() -> String {
+    for candidate in &["vim", "nvim", "vi"] {
+        if Command::new("which").arg(candidate).output().map(|o| o.status.success()).unwrap_or(false) {
+            return candidate.to_string();
+        }
+    }
+    if Command::new("which").arg("nano").output().map(|o| o.status.success()).unwrap_or(false) {
         "nano".to_string()
     } else {
         "vi".to_string()
@@ -38,9 +49,15 @@ fn get_file_mtime(path: &Path) -> Option<SystemTime> {
     fs::metadata(path).ok().and_then(|m| m.modified().ok())
 }
 
-pub fn launch_external_editor(file_path: &Path) -> std::io::Result<EditorExitStatus> {
-    let editor = resolve_editor();
+pub fn launch_vim_editor(file_path: &Path) -> std::io::Result<EditorExitStatus> {
+    launch_editor_binary(&resolve_vim(), file_path)
+}
 
+pub fn launch_external_editor(file_path: &Path) -> std::io::Result<EditorExitStatus> {
+    launch_editor_binary(&resolve_editor(), file_path)
+}
+
+fn launch_editor_binary(editor: &str, file_path: &Path) -> std::io::Result<EditorExitStatus> {
     // 1. Snapshot initial state before launching editor
     let initial_mtime = get_file_mtime(file_path);
     let initial_content = fs::read(file_path).ok();
@@ -68,7 +85,6 @@ pub fn launch_external_editor(file_path: &Path) -> std::io::Result<EditorExitSta
 
     let was_modified = initial_content != final_content;
     let external_conflict = if let (Some(t1), Some(t2)) = (initial_mtime, final_mtime) {
-        // If mtime moved but content is identical or if write occurred from external source
         t1 != t2 && !status.success()
     } else {
         false
@@ -88,6 +104,12 @@ mod tests {
     fn test_resolve_editor_fallback() {
         let editor = resolve_editor();
         assert!(!editor.is_empty());
+    }
+
+    #[test]
+    fn test_resolve_vim() {
+        let vim = resolve_vim();
+        assert!(!vim.is_empty());
     }
 
     #[test]

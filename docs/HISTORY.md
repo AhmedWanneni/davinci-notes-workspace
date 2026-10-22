@@ -4,6 +4,24 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Integration, Fullscreen Mode & Interactive TUI UX
+
+- **Click to View & Focus (`tui_events.rs`, `tui_state.rs`)**:
+  - Clicking any file in the tree selects and immediately renders its formatted content in the right pane preview.
+  - Slices visible items by scroll offset so large directory trees scroll smoothly with the selection.
+- **Vim Editing Integration (`external_editor.rs`, `tui_events.rs`)**:
+  - Double-clicking a file, pressing `v` or `Enter`, or clicking `[v] Edit with Vim` launches real `vim` (or `nvim`/`vi`) full-screen.
+  - Automatically reloads modified content into the right preview pane upon exit and displays status feedback (`✔ Saved changes to <file>`).
+  - Added Vim scroll keybindings in the preview pane (`j`/`k`, `g`/`G` for top/bottom, `Ctrl+D`/`Ctrl+U` for half-page scroll).
+- **Fullscreen Preview Toggle (`tui_view.rs`, `tui_state.rs`)**:
+  - Pressing `f` or `F`, or clicking `[f] Fullscreen` expands the note reader to 100% terminal width.
+  - Pressing `f`, `Esc`, or clicking `[f] Split` restores the standard 35/65 split view.
+- **Verification**:
+  - 39 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 199 lines (under 200 soft cap and 250 hard cap).
+
+---
+
 ### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 6: Packaging, Shell Completions & Documentation
 
 - **Packaging & Crate Metadata (`Cargo.toml`)**:

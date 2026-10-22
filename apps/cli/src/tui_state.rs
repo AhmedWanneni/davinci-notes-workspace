@@ -2,6 +2,7 @@ use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::fs;
 use std::path::PathBuf;
+use std::time::Instant;
 
 use crate::tui_tree::{TreeNode, VisibleItem};
 
@@ -17,10 +18,14 @@ pub struct TuiState {
     pub root_node: TreeNode,
     pub visible_items: Vec<VisibleItem>,
     pub selected_index: usize,
+    pub tree_scroll: usize,
     pub preview_content: String,
     pub preview_scroll: u16,
     pub search_query: String,
     pub focus_pane: FocusPane,
+    pub is_fullscreen: bool,
+    pub status_message: Option<String>,
+    pub last_click: Option<(usize, Instant)>,
     pub should_quit: bool,
 }
 
@@ -32,10 +37,14 @@ impl TuiState {
             root_node,
             visible_items: Vec::new(),
             selected_index: 0,
+            tree_scroll: 0,
             preview_content: String::new(),
             preview_scroll: 0,
             search_query: String::new(),
             focus_pane: FocusPane::Tree,
+            is_fullscreen: false,
+            status_message: None,
+            last_click: None,
             should_quit: false,
         };
         state.refresh_visible();
@@ -140,6 +149,33 @@ impl TuiState {
             self.preview_scroll = self.preview_scroll.saturating_sub((-delta) as u16);
         } else {
             self.preview_scroll = self.preview_scroll.saturating_add(delta as u16);
+        }
+    }
+
+    pub fn scroll_preview_to_top(&mut self) {
+        self.preview_scroll = 0;
+    }
+
+    pub fn scroll_preview_to_bottom(&mut self) {
+        let line_count = self.preview_content.lines().count();
+        self.preview_scroll = line_count.saturating_sub(5) as u16;
+    }
+
+    pub fn toggle_fullscreen(&mut self) {
+        self.is_fullscreen = !self.is_fullscreen;
+        if self.is_fullscreen {
+            self.focus_pane = FocusPane::Preview;
+        }
+    }
+
+    pub fn adjust_tree_scroll(&mut self, visible_height: usize) {
+        if visible_height == 0 {
+            return;
+        }
+        if self.selected_index < self.tree_scroll {
+            self.tree_scroll = self.selected_index;
+        } else if self.selected_index >= self.tree_scroll + visible_height {
+            self.tree_scroll = self.selected_index - visible_height + 1;
         }
     }
 }

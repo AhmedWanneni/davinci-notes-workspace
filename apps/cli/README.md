@@ -69,17 +69,20 @@ dn
 
 | Key / Action | Description |
 |---|---|
-| `j` / `Down` | Move selection down |
-| `k` / `Up` | Move selection up |
-| `Enter` / `e` | Open selected file in editor |
-| `Space` | Toggle folder expansion |
+| `Mouse Click` | Click note in tree to view on right; click header buttons |
+| `Double Click` / `v` / `Enter` | Edit selected note in **Vim** |
+| `f` / `F` | Toggle **Fullscreen** mode (expands right pane to 100% width) |
+| `Esc` | Exit Fullscreen (restore split view) / Clear search / Exit |
+| `j` / `Down` | Move selection down (Tree) or scroll down (Preview) |
+| `k` / `Up` | Move selection up (Tree) or scroll up (Preview) |
+| `g` / `G` | Jump to top / bottom of note preview |
+| `Ctrl+D` / `Ctrl+U` | Half-page down / up in note preview |
 | `h` / `Left` | Collapse folder |
 | `l` / `Right` | Expand folder |
 | `/` | Search-as-you-type fuzzy filter |
 | `d` | Move selected file to `.trash/` |
 | `Tab` | Switch focus between Tree and Preview |
-| `q` / `Esc` | Exit TUI |
-| `Mouse Click` | Select row / toggle folder |
+| `q` | Exit TUI |
 | `Mouse Scroll`| Scroll preview or tree |
 
 ### 3. Built-in Modeless Editor
