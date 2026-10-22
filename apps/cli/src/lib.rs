@@ -1,3 +1,5 @@
+pub mod builtin_editor;
+pub mod builtin_editor_buffer;
 pub mod capture;
 pub mod config;
 pub mod external_editor;
@@ -9,6 +11,8 @@ pub mod tui_state;
 pub mod tui_tree;
 pub mod tui_view;
 
+pub use builtin_editor::run_builtin_editor;
+pub use builtin_editor_buffer::EditorBuffer;
 pub use capture::{capture_note, find_unique_quick_note_path, CaptureTarget};
 pub use config::resolve_vault;
 pub use external_editor::{launch_external_editor, resolve_editor, EditorExitStatus};
