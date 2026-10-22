@@ -150,3 +150,54 @@ fn test_vim_commands_change_focus_not_app_quit() {
 
     let _ = fs::remove_dir_all(temp_vault);
 }
+
+#[test]
+fn test_vim_dd_yy_p_operators() {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+
+    let temp_vault = std::env::temp_dir().join(format!("dn_vim_ops_{}", SystemTime::now().elapsed().unwrap().as_nanos()));
+    fs::create_dir_all(&temp_vault).unwrap();
+    let note = temp_vault.join("lines.md");
+    fs::write(&note, "Line 1\nLine 2\nLine 3\n").unwrap();
+
+    let mut state = TuiState::new(temp_vault.clone());
+    state.focus_pane = davinci_cli::tui_state::FocusPane::Editor;
+
+    let press = |state: &mut TuiState, c: char| {
+        davinci_cli::vim_ops::handle_vim_normal_key(state, KeyEvent::new(KeyCode::Char(c), KeyModifiers::NONE));
+    };
+
+    // 1. dd on Line 1 deletes Line 1
+    press(&mut state, 'd');
+    assert_eq!(state.pending_op, davinci_cli::vim_ops::PendingOp::Delete);
+    press(&mut state, 'd');
+    assert_eq!(state.pending_op, davinci_cli::vim_ops::PendingOp::None);
+    assert_eq!(state.editor_buffer.to_string(), "Line 2\nLine 3\n");
+    assert!(state.yank_register.is_some());
+    assert_eq!(state.yank_register.as_ref().unwrap().text, "Line 1\n");
+
+    // 2. p pastes Line 1 below current line (Line 2)
+    press(&mut state, 'p');
+    assert_eq!(state.editor_buffer.to_string(), "Line 2\nLine 1\nLine 3\n");
+
+    // 3. yy on current line yanks without deleting
+    press(&mut state, 'y');
+    assert_eq!(state.pending_op, davinci_cli::vim_ops::PendingOp::Yank);
+    press(&mut state, 'y');
+    assert_eq!(state.pending_op, davinci_cli::vim_ops::PendingOp::None);
+    assert_eq!(state.yank_register.as_ref().unwrap().text, "Line 1\n");
+    assert_eq!(state.editor_buffer.to_string(), "Line 2\nLine 1\nLine 3\n");
+
+    // 4. dw deletes word
+    state.editor_buffer.cursor_idx = 0; // at 'L' of "Line 2"
+    press(&mut state, 'd');
+    press(&mut state, 'w');
+    assert_eq!(state.editor_buffer.to_string(), "2\nLine 1\nLine 3\n");
+    assert_eq!(state.yank_register.as_ref().unwrap().text, "Line ");
+
+    // 5. u undoes deletion
+    press(&mut state, 'u');
+    assert_eq!(state.editor_buffer.to_string(), "Line 2\nLine 1\nLine 3\n");
+
+    let _ = fs::remove_dir_all(temp_vault);
+}

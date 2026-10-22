@@ -36,6 +36,8 @@ pub struct TuiState {
     pub initial_mtime: Option<SystemTime>,
     pub editor_scroll: usize,
     pub vim_mode: VimMode,
+    pub pending_op: crate::vim_ops::PendingOp,
+    pub yank_register: Option<crate::vim_motions::YankRegister>,
     pub command_input: String,
     pub search_query: String,
     pub focus_pane: FocusPane,
@@ -61,6 +63,8 @@ impl TuiState {
             initial_mtime: None,
             editor_scroll: 0,
             vim_mode: VimMode::Normal,
+            pending_op: crate::vim_ops::PendingOp::None,
+            yank_register: None,
             command_input: String::new(),
             search_query: String::new(),
             focus_pane: FocusPane::Tree,
@@ -77,26 +81,17 @@ impl TuiState {
     pub fn refresh_visible(&mut self) {
         let mut all_visible = Vec::new();
         self.root_node.flatten_visible(0, &mut all_visible);
-
         if self.search_query.trim().is_empty() {
             self.visible_items = all_visible;
         } else {
             let matcher = SkimMatcherV2::default();
             let query = self.search_query.trim();
-            self.visible_items = all_visible
-                .into_iter()
-                .filter(|item| {
-                    matcher.fuzzy_match(&item.rel_path, query).is_some()
-                        || matcher.fuzzy_match(&item.name, query).is_some()
-                })
+            self.visible_items = all_visible.into_iter()
+                .filter(|item| matcher.fuzzy_match(&item.rel_path, query).is_some() || matcher.fuzzy_match(&item.name, query).is_some())
                 .collect();
         }
-
-        if self.visible_items.is_empty() {
-            self.selected_index = 0;
-        } else if self.selected_index >= self.visible_items.len() {
-            self.selected_index = self.visible_items.len() - 1;
-        }
+        if self.visible_items.is_empty() { self.selected_index = 0; }
+        else if self.selected_index >= self.visible_items.len() { self.selected_index = self.visible_items.len() - 1; }
     }
 
     pub fn selected_item(&self) -> Option<&VisibleItem> {

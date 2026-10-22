@@ -116,30 +116,7 @@ fn handle_editor_insert(state: &mut TuiState, key: KeyEvent) {
 }
 
 fn handle_editor_normal(state: &mut TuiState, key: KeyEvent) {
-    match key.code {
-        KeyCode::Char('i') => state.vim_mode = VimMode::Insert,
-        KeyCode::Char('a') => { state.editor_buffer.move_right(); state.vim_mode = VimMode::Insert; }
-        KeyCode::Char('A') => { state.editor_buffer.move_to_line_end(); state.vim_mode = VimMode::Insert; }
-        KeyCode::Char('I') => { state.editor_buffer.move_to_line_start(); state.vim_mode = VimMode::Insert; }
-        KeyCode::Char('o') => { state.editor_buffer.move_to_line_end(); state.editor_buffer.insert_char('\n'); state.is_dirty = true; state.vim_mode = VimMode::Insert; }
-        KeyCode::Char('O') => { state.editor_buffer.move_to_line_start(); state.editor_buffer.insert_char('\n'); state.editor_buffer.move_up(); state.is_dirty = true; state.vim_mode = VimMode::Insert; }
-        KeyCode::Char('x') => { if state.editor_buffer.delete_forwards() { state.is_dirty = true; } }
-        KeyCode::Char('u') => { if state.editor_buffer.undo() { state.is_dirty = true; } }
-        KeyCode::Char('h') | KeyCode::Left => state.editor_buffer.move_left(),
-        KeyCode::Char('l') | KeyCode::Right => state.editor_buffer.move_right(),
-        KeyCode::Char('j') | KeyCode::Down => state.editor_buffer.move_down(),
-        KeyCode::Char('k') | KeyCode::Up => state.editor_buffer.move_up(),
-        KeyCode::Char('0') => state.editor_buffer.move_to_line_start(),
-        KeyCode::Char('$') => state.editor_buffer.move_to_line_end(),
-        KeyCode::Char('g') => state.editor_buffer.cursor_idx = 0,
-        KeyCode::Char('G') => state.editor_buffer.cursor_idx = state.editor_buffer.len_chars(),
-        KeyCode::Char('f') | KeyCode::Char('F') => state.toggle_fullscreen(),
-        KeyCode::Tab => state.focus_pane = FocusPane::Tree,
-        KeyCode::Esc => { if state.is_fullscreen { state.toggle_fullscreen(); } else { state.focus_pane = FocusPane::Tree; } }
-        KeyCode::Char(':') => { state.vim_mode = VimMode::Command; state.command_input.clear(); }
-        KeyCode::Char('q') => { let _ = crate::vim_command::execute_vim_command(state, "q"); }
-        _ => {}
-    }
+    crate::vim_ops::handle_vim_normal_key(state, key);
 }
 
 pub fn handle_mouse(

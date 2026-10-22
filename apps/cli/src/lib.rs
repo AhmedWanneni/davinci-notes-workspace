@@ -14,6 +14,8 @@ pub mod tui_tree;
 pub mod tui_view;
 pub mod vault_watcher;
 pub mod vim_command;
+pub mod vim_motions;
+pub mod vim_ops;
 
 pub use builtin_editor::run_builtin_editor;
 pub use builtin_editor_buffer::EditorBuffer;
@@ -29,3 +31,5 @@ pub use tui_state::TuiState;
 pub use tui_tree::TreeNode;
 pub use vault_watcher::VaultWatcher;
 pub use vim_command::{execute_vim_command, VimCommandAction};
+pub use vim_motions::YankRegister;
+pub use vim_ops::PendingOp;
