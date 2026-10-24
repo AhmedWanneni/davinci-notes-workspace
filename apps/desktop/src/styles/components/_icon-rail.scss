@@ -29,7 +29,7 @@
   justify-content: center;
   background: transparent;
   border: var(--border-width-thin) solid transparent;
-  border-radius: var(--border-radius-sm);
+  border-radius: .5rem;
   color: var(--color-text-muted);
   cursor: pointer;
   transition: all var(--motion-duration-fast) var(--motion-ease-standard);

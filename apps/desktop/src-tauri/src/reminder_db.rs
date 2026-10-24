@@ -31,8 +31,7 @@ pub fn get_db_path(app: &AppHandle) -> Option<PathBuf> {
 pub fn open_connection(path: &Path) -> Result<Connection> {
   let conn = Connection::open(path)?;
   conn.execute_batch(
-    "PRAGMA journal_mode = WAL;
-     PRAGMA busy_timeout = 5000;
+    "PRAGMA busy_timeout = 10000;
      PRAGMA foreign_keys = ON;",
   )?;
   Ok(conn)

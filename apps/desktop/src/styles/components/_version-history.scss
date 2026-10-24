@@ -12,11 +12,18 @@
 
 .version-history__item {
   background: transparent;
-  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: .5rem;
   color: inherit;
   cursor: pointer;
-  padding: var(--space-2);
+  padding: var(--space-2) var(--space-3);
   text-align: left;
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-subtle);
+  }
 }
 
 .version-history__diff {

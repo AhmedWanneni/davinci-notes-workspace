@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "minAppVersion": "0.1.0",
   "author": "DaVinci Notes",
-  "description": "A true-black, high-contrast dark theme with bright cyan interaction states.",
+  "description": "Obsidian default dark theme with deep charcoal surfaces and purple-magenta accent states.",
   "styles": "theme.css",
   "license": "MIT",
-  "keywords": ["dark", "high-contrast", "built-in"]
+  "keywords": ["dark", "obsidian", "built-in"]
 }

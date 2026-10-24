@@ -179,12 +179,14 @@ export function AppTabs({
       </div>
 
       <div className="app-tabs__actions">
-        <TabListDropdown
-          openNotes={openNotes}
-          activeNotePath={activeNotePath}
-          onSelectNote={handleSelectNote}
-          onCloseAllNotes={onCloseAllNotes}
-        />
+        {openNotes.length > 0 && (
+          <TabListDropdown
+            openNotes={openNotes}
+            activeNotePath={activeNotePath}
+            onSelectNote={handleSelectNote}
+            onCloseAllNotes={onCloseAllNotes}
+          />
+        )}
 
         {onToggleRightSidebar && (
           <Tooltip

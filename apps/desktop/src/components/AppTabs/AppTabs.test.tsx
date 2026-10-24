@@ -121,4 +121,19 @@ describe("AppTabs", () => {
     fireEvent.click(screen.getByText("Close all"));
     expect(onCloseAllNotes).toHaveBeenCalledOnce();
   });
+
+  it("does not render dropdown icon when no tabs are open", () => {
+    render(
+      <AppTabs
+        openNotes={[]}
+        activeNotePath={null}
+        dirtyNotes={new Set()}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Open tabs list" })).toBeNull();
+  });
 });

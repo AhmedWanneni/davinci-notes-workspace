@@ -7,8 +7,8 @@ export interface UseSidebarResizeOptions {
 }
 
 export function useSidebarResize({
-  initialWidth = 240,
-  minWidth = 180,
+  initialWidth = 320,
+  minWidth = 240,
   maxWidth = 500,
 }: UseSidebarResizeOptions = {}) {
   const [width, setWidth] = useState(initialWidth);

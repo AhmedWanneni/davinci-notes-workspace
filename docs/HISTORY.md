@@ -2,6 +2,90 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-24: UI & Design Refinement: Unboxed Settings (AI & Sync), Deduplicated Plugins, Right Sidebar Polish, Compact Tabs Dropdown, Refined Rename Input, Lighter Button Hover & Expanded .5rem Border-Radius, Unboxed Reminders Dialog & 320px Sidebar
+
+- **Unboxed Settings (AI & Sync Panels)**:
+  - `AISettingsPanel.tsx`: Refactored layout to use unboxed `SettingsRow` components with clean padding and no raw box containers, adhering strictly to line caps (110 lines).
+  - `SyncSettingsPanel.module.scss`: Removed card borders and grey box backgrounds from `.sync-settings__status-banner` and `.sync-settings__card`.
+  - `SyncthingPanel.module.scss`: Unboxed status banner, card containers, `.syncthing-panel__device-block`, QR section, and logs card to transparent containers with clean dividers.
+- **Deduplicated Community Plugins in Settings**:
+  - `SettingsSidebar.tsx`: Removed the redundant second entry for `{ id: "plugins", label: "Community plugins", ... }` from `SETTINGS_SIDEBAR_ITEMS`, bringing line count from 266 to 206 lines.
+- **Right Sidebar Content Styling**:
+  - `_sidebar.scss`: Expanded `.app-right-sidebar` width to 280px (min 260px). Added content padding, rounded section headers (`border-radius: .5rem; padding: var(--space-2); margin: var(--space-1) var(--space-2)`), and refined empty states.
+  - `_backlinks-panel.scss`, `_version-history.scss`, `_note-outline.scss`: Unboxed cards and history items, replaced hard borders with transparent subtle hover states, applied `border-radius: .5rem;`.
+- **Compact Tab Dropdown**:
+  - `_tab-list-dropdown.scss`: Made `.app-tabs__dropdown-content` compact (`min-width: 160px; max-width: 240px; max-height: 280px`) with compact item padding (`4px var(--space-2)`).
+- **Left Sidebar File Edit / Rename Box**:
+  - `_file-tree.scss`: Sleek rename input (`height: 20px`, `font-size: 0.75rem`, `padding: 1px 4px`) and reduced context menu size (`min-width: 140px`, `font-size: var(--type-scale-xs)`).
+- **Button Hover & Radius Polish**:
+  - Lightened button hover opacity in `packages/design-tokens/src/colors.ts` (`rgba(0, 0, 0, 0.035)` light, `rgba(255, 255, 255, 0.04)` dark), `light-a` (`theme.css`), and `dark-b` (`theme.css`).
+  - Increased button border radius to `.5rem` across `Button.module.scss`, `_icon-rail.scss`, `_sidebar.scss`, `_tabs.scss`, `VaultSwitcher.module.scss`, `SettingsDialog.module.scss`, `RemindersDialog.module.scss`, and `ReminderRowItem.module.scss`.
+- **Unboxed Reminders Dialog**:
+  - `RemindersDialog.module.scss`: Unboxed the tabs header and footer (transparent / primary backgrounds, bottom/top dividers only, no nested grey boxes), updated active tab to use `var(--color-text-accent)` and `var(--color-bg-hover)`.
+  - `ReminderRowItem.module.scss`: Unboxed chips and action buttons with `border-radius: .5rem;` and transparent backgrounds.
+- **Expanded Left Sidebar Width**:
+  - `useSidebarResize.ts`: Increased `initialWidth` from 280 to 320, `minWidth` from 220 to 240.
+  - `_sidebar.scss`: Updated `.app-sidebar` to `width: 320px; min-width: 240px;`.
+- **Validation**:
+  - All desktop tests passing: `themes`, `AppTabs`, `SearchDialog`, `VaultSwitcher`, `AppSidebar`, `RemindersDialog`, `SyncSettingsPanel`, `SyncthingPanel`, `SettingsDialog`.
+  - Design tokens and design system tests passing.
+  - Mobile theme tests passing.
+  - All modified files strictly conform to the 250-line hard cap (e.g. `_sidebar.scss`: 247, `_file-tree.scss`: 248, `SettingsSidebar.tsx`: 206, `sqliteIndex.test.ts`: 243).
+
+---
+
+### 2026-10-24: UI & Design Refinement: Accent Color `#cd47ab`, Appearance Settings Accent Picker, Unboxed Settings Dialog, Wider Sidebar, Persistent Icon Rail, Button Polish & Clean Search/Tabs
+
+- **Accent Color Transition**:
+  - Replaced legacy purple/blue/cyan accent colors across `packages/design-tokens/src/colors.ts`, `packages/builtin-themes/light-a/theme.css`, `packages/builtin-themes/dark-b/theme.css`, and `apps/mobile/theme/builtinThemeTokens.ts` with `rgb(205, 71, 171)` (`#cd47ab`), hover `#dc5fbc`, and active `#b43296`.
+  - Realigned `dark-b` to Obsidian's signature dark palette (`#1e1e1e`, `#161616`, `#262626`, `#202020`, borders `#2e2e2e`, `#363636`).
+- **Appearance Settings Accent Picker**:
+  - Created `apps/desktop/src/themes/accentColor.ts` (with unit test suite `accentColor.test.ts`) providing color utilities, preset swatches, brightness calculations for hover/active/status tokens, and `localStorage` persistence.
+  - Added interactive Accent Color selector in `AppearanceSettingsTab.tsx` with instant dynamic CSS variable application and reset capability.
+  - Linked `useThemeStore.ts` to automatically reapply saved custom accent colors on theme switch and app startup.
+- **Unboxed Settings Dialog**:
+  - Removed enclosing grey card boxes from `.settings-card` in `SettingsDialog.module.scss`. Converted to clean, unboxed rows with subtle dividers, appropriate margins, and refined padding.
+- **Wider Sidebar & Persistent Icon Rail**:
+  - Increased left sidebar default width from 240px to 280px (min-width 220px) in `_sidebar.scss` and `useSidebarResize.ts`.
+  - Updated `.app-sidebar[data-collapsed="true"]` to maintain 40px width and keep `IconRail` permanently visible when the sidebar is collapsed, hiding only the file explorer, header, and vault switcher.
+- **Deduplicated Settings Button**:
+  - Removed duplicate settings gear button from `VaultSwitcher.tsx`, retaining the primary settings action on `IconRail`.
+- **Button Polish**:
+  - Standardized `border-radius: 0.8rem;` and added dark transparent hover state (`background-color: var(--color-bg-hover);`) across `Button.module.scss`, `_icon-rail.scss`, `_sidebar.scss`, `_tabs.scss`, and `VaultSwitcher.module.scss`.
+- **Tab Dropdown & Search Dialog Refinement**:
+  - Hid `TabListDropdown` in `AppTabs.tsx` when `openNotes` has 0 open tabs.
+  - Updated `SearchDialog.tsx` to display an empty state ("No files to display. Type to search.") when opened with an empty query instead of prematurely listing opened notes.
+- **Right Sidebar Panels**:
+  - Harmonized backlinks, version history, note outline, and local graph panels with design tokens, rounded badges, and consistent padding.
+- **Validation**:
+  - All test suites in desktop (themes, AppTabs, SearchDialog, VaultSwitcher, AppSidebar), mobile (theme), and design-tokens pass cleanly.
+  - All files strictly conform to the 250-line hard cap.
+
+---
+
+### 2026-10-24: Fix Vault Switch Database Locked Error ((code: 5))
+
+- **Root Cause Diagnosis**:
+  - `tauri-plugin-sql` delegates `db.execute()` to a multi-connection `sqlx::Pool<Sqlite>` (up to 10 connections).
+  - Executing `db.execute("BEGIN IMMEDIATE")` in `withDbTransaction` checked out Connection A, started a transaction, and returned Connection A to the pool without committing. Subsequent statements checked out Connection B, which immediately blocked and timed out with `SQLITE_BUSY (code: 5)` because Connection A held the write transaction.
+  - The catch block then executed `db.execute("ROLLBACK")` which checked out Connection C, throwing `"cannot rollback - no transaction is active"`. Connection A was left permanently holding the uncommitted write lock in memory.
+  - Because `keep_in_tray` kept the application alive in the background after closing the window, previous background instances (PID 12897, 78229) remained running with the leaked transaction lock, preventing any new app launch from writing to `vault-index.db`.
+  - `closeVaultIndexDb()` ran `PRAGMA wal_checkpoint(TRUNCATE)` which demands an exclusive SQLite lock and fails whenever any background reader is active.
+  - Rust's `ReminderScheduler` connection initialization ran `PRAGMA journal_mode = WAL;` on every single reminder loop poll, attempting an exclusive lock during active frontend indexing.
+- **Permanent Solution**:
+  - **Eliminated Raw Pool Transactions (`sqliteIndex.ts`)**: Refactored `withDbTransaction` to execute directly under `withDbLock` without issuing manual `BEGIN IMMEDIATE` / `COMMIT` / `ROLLBACK` strings across arbitrary pool connections. Serialization and atomicity are strictly guaranteed by the `withDbLock` promise queue without leaking transactions.
+  - **Non-blocking checkpointing (`sqliteIndex.ts`)**: Replaced `TRUNCATE` with `PRAGMA wal_checkpoint(PASSIVE);` and kept the single healthy connection pool alive across vault transitions.
+  - **Exponential backoff retry (`withDbRetry`)**: Implemented retry logic for `SQLITE_BUSY` / `(code: 5)` with exponential backoff up to 5 attempts.
+  - **Re-entrancy protection**: Added `currentLockDepth` to `withDbLock` to prevent recursive queue deadlocks.
+  - **Sanitized Rust connection (`reminder_db.rs`)**: Removed redundant `PRAGMA journal_mode = WAL;` and increased busy timeout to 10000ms.
+  - **Terminated Orphaned Processes**: Terminated orphaned detached background processes (PID 12897, 78229) that were holding uncommitted transaction locks.
+  - **Code splitting for line caps (`sqliteNotePersistence.ts`)**: Extracted chunked note/outlink batch operations into `sqliteNotePersistence.ts` (148 lines), keeping `sqliteIndex.ts` (158 lines) well within line caps.
+- **Validation**:
+  - Verified database integrity and write locks via native `sqlite3 "BEGIN IMMEDIATE; COMMIT;"` (succeeds with 0 errors).
+  - All unit and stress tests passed: `sqliteIndex.test.ts`, `vaultSwitchOrchestrator.test.ts`, `VaultIndexer.test.ts`, and `reminder_tests`.
+
+---
+
 ### 2026-10-24: Align App Colors & Borders with Obsidian Default Light Theme
 
 - **Root Cause Diagnosis**:

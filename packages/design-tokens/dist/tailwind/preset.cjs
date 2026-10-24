@@ -9,18 +9,18 @@ module.exports = {
           "secondary": "#262626",
           "secondary-alt": "#202020",
           "scrim": "rgb(0 0 0 / 60%)",
-          "status-accent": "rgb(127 109 242 / 15%)",
+          "status-accent": "rgb(205 71 171 / 15%)",
           "status-success": "rgb(46 204 113 / 15%)",
           "status-warning": "rgb(241 196 15 / 15%)",
           "status-error": "rgb(229 83 83 / 15%)",
-          "hover": "rgba(255, 255, 255, 0.05)",
-          "active": "rgba(255, 255, 255, 0.08)"
+          "hover": "rgba(255, 255, 255, 0.04)",
+          "active": "rgba(255, 255, 255, 0.07)"
         },
         "text": {
           "normal": "#dcddde",
           "muted": "#888888",
           "faint": "#555555",
-          "accent": "#7f6df2",
+          "accent": "#cd47ab",
           "on-accent": "#ffffff",
           "error": "#e55353",
           "success": "#2ecc71",
@@ -29,16 +29,16 @@ module.exports = {
         "border": {
           "subtle": "#2e2e2e",
           "normal": "#363636",
-          "focus": "#7f6df2",
-          "status-accent": "rgb(127 109 242 / 30%)",
+          "focus": "#cd47ab",
+          "status-accent": "rgb(205 71 171 / 30%)",
           "status-success": "rgb(46 204 113 / 30%)",
           "status-warning": "rgb(241 196 15 / 30%)",
           "status-error": "rgb(229 83 83 / 30%)"
         },
         "interactive": {
-          "accent": "#7f6df2",
-          "accent-hover": "#8d7cf4",
-          "accent-active": "#6c5ce7"
+          "accent": "#cd47ab",
+          "accent-hover": "#dc5fbc",
+          "accent-active": "#b43296"
         },
         "shadow": "rgb(0 0 0)",
         "press": {
@@ -54,18 +54,18 @@ module.exports = {
             "secondary": "#f6f6f6",
             "secondary-alt": "#f6f6f6",
             "scrim": "rgb(0 0 0 / 25%)",
-            "status-accent": "rgb(127 109 242 / 12%)",
+            "status-accent": "rgb(205 71 171 / 12%)",
             "status-success": "rgb(46 204 113 / 12%)",
             "status-warning": "rgb(241 196 15 / 12%)",
             "status-error": "rgb(229 83 83 / 12%)",
-            "hover": "rgba(0, 0, 0, 0.05)",
-            "active": "rgba(0, 0, 0, 0.08)"
+            "hover": "rgba(0, 0, 0, 0.035)",
+            "active": "rgba(0, 0, 0, 0.06)"
           },
           "text": {
             "normal": "#222222",
             "muted": "#5c5c5c",
             "faint": "#ababab",
-            "accent": "#7f6df2",
+            "accent": "#cd47ab",
             "on-accent": "#ffffff",
             "error": "#e55353",
             "success": "#2ecc71",
@@ -74,16 +74,16 @@ module.exports = {
           "border": {
             "subtle": "#e4e4e4",
             "normal": "#d4d4d4",
-            "focus": "#7f6df2",
-            "status-accent": "rgb(127 109 242 / 30%)",
+            "focus": "#cd47ab",
+            "status-accent": "rgb(205 71 171 / 30%)",
             "status-success": "rgb(46 204 113 / 30%)",
             "status-warning": "rgb(241 196 15 / 30%)",
             "status-error": "rgb(229 83 83 / 30%)"
           },
           "interactive": {
-            "accent": "#7f6df2",
-            "accent-hover": "#8d7cf4",
-            "accent-active": "#6c5ce7"
+            "accent": "#cd47ab",
+            "accent-hover": "#dc5fbc",
+            "accent-active": "#b43296"
           },
           "shadow": "rgb(0 0 0 / 12%)"
         }

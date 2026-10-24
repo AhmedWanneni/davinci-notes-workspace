@@ -37,11 +37,10 @@ describe("SearchDialog semantic mode", () => {
     expect(semanticSearch).not.toHaveBeenCalled();
   });
 
-  it("shows up to 5 current opened files when opened with empty query", () => {
+  it("shows empty search prompt when opened with empty query", () => {
     const openNotes = ["first.md", "second.md", "third.md", "fourth.md", "fifth.md", "sixth.md"];
     render(<SearchDialog {...props} openNotes={openNotes} />);
-    expect(screen.getByText("first")).toBeTruthy();
-    expect(screen.getByText("fifth")).toBeTruthy();
-    expect(screen.queryByText("sixth")).toBeNull();
+    expect(screen.queryByText("first")).toBeNull();
+    expect(screen.getByText("No files to display. Type to search.")).toBeTruthy();
   });
 });

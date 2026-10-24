@@ -30,11 +30,12 @@
   align-items: center;
   cursor: pointer;
   border-radius: var(--border-radius-lg);
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: var(--color-text-muted);
   box-sizing: border-box;
   padding-right: var(--space-2);
   user-select: none;
+  gap: var(--space-2);
 
   &:hover {
     background-color: var(--color-bg-hover);
@@ -96,13 +97,8 @@
   margin-right: var(--space-1);
 }
 
-.file-tree__folder-icon {
-  color: var(--color-text-muted);
-}
-
-.file-tree__caret {
-  color: var(--color-text-faint);
-}
+.file-tree__folder-icon { color: var(--color-text-muted); }
+.file-tree__caret { color: var(--color-text-faint); }
 
 .file-tree__file-icon {
   color: var(--color-text-muted);
@@ -120,19 +116,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   color: inherit;
 }
 
 .file-tree__rename-input {
   width: 100%;
   min-width: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  padding: 1px 4px;
+  height: 20px;
+  line-height: 18px;
+  font-size: 0.75rem;
+  border: var(--border-width-thin) solid var(--color-interactive-accent);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-bg-primary);
   color: inherit;
-  font: inherit;
   outline: none;
+  box-sizing: border-box;
 }
 
 .file-tree__dirty-dot {
@@ -147,11 +147,11 @@
 .file-tree__context-menu {
   position: fixed;
   z-index: 100;
-  min-width: 160px;
-  padding: var(--space-1);
+  min-width: 140px;
+  padding: 3px;
   background: var(--color-bg-primary);
-  border: 1px solid var(--color-border-normal);
-  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: .5rem;
 }
 
 .file-tree__context-menu-item {
@@ -159,13 +159,13 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: var(--space-2) var(--space-3);
+  padding: 4px var(--space-2);
   border: 0;
-  border-radius: var(--border-radius-sm);
+  border-radius: .5rem;
   background: transparent;
   color: var(--color-text-normal);
   font: inherit;
-  font-size: var(--type-scale-sm);
+  font-size: var(--type-scale-xs);
   text-align: left;
   cursor: pointer;
   outline: none;
@@ -186,11 +186,7 @@
   margin-left: var(--space-4);
 }
 
-.file-tree__context-menu-separator {
-  height: 1px;
-  background-color: var(--color-border-subtle);
-  margin: var(--space-1) 0;
-}
+.file-tree__context-menu-separator { height: 1px; background-color: var(--color-border-subtle); margin: var(--space-1) 0; }
 
 .file-tree-drag-preview {
   position: fixed;
@@ -227,15 +223,7 @@
   flex-shrink: 0;
   color: var(--color-text-muted);
 }
-
-.file-tree-drag-preview__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex: 1;
-  min-width: 0;
-}
-
+.file-tree-drag-preview__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
 .file-tree-drag-preview__badge {
   display: inline-flex;
   align-items: center;

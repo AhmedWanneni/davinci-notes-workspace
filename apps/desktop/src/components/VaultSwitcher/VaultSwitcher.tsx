@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   CaretUpDown,
-  Gear,
   Question,
   Check,
   FolderOpen,
@@ -39,7 +38,7 @@ export interface VaultSwitcherProps {
 export function VaultSwitcher({
   vaultName,
   vaultPath,
-  onOpenSettings,
+  onOpenSettings: _onOpenSettings,
   onOpenHelp,
   onOpenLogs,
   onSwitchVault,
@@ -218,17 +217,6 @@ export function VaultSwitcher({
               aria-label="Help"
             >
               <Question size={18} weight="regular" />
-            </button>
-          </Tooltip>
-
-          <Tooltip content="Settings" contentProps={{ side: "top" }}>
-            <button
-              type="button"
-              className={styles["vault-switcher__icon-btn"]}
-              onClick={onOpenSettings}
-              aria-label="Settings"
-            >
-              <Gear size={18} weight="regular" />
             </button>
           </Tooltip>
         </div>

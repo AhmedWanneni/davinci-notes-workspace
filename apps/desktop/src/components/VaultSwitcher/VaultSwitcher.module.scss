@@ -22,7 +22,7 @@
   background: transparent;
   color: var(--color-text-normal);
   cursor: pointer;
-  border-radius: var(--border-radius-sm);
+  border-radius: .5rem;
   text-align: left;
   transition: background-color var(--motion-duration-fast)
     var(--motion-ease-standard);
@@ -66,7 +66,7 @@
   border: none;
   background: transparent;
   color: var(--color-text-muted);
-  border-radius: var(--border-radius-sm);
+  border-radius: .5rem;
   cursor: pointer;
   padding: 0;
   transition: all var(--motion-duration-fast) var(--motion-ease-standard);

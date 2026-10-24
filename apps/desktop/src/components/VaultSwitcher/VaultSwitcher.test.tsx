@@ -60,11 +60,10 @@ describe("VaultSwitcher", () => {
     );
 
     expect(screen.getByText("Active Vault")).toBeDefined();
-    expect(screen.getByLabelText("Settings")).toBeDefined();
     expect(screen.getByLabelText("Help")).toBeDefined();
   });
 
-  it("triggers onOpenSettings and onOpenHelp when clicked", () => {
+  it("triggers onOpenHelp when clicked", () => {
     render(
       <VaultSwitcher
         vaultName="Active Vault"
@@ -75,9 +74,6 @@ describe("VaultSwitcher", () => {
         onOpenFolderPicker={onOpenFolderPicker}
       />,
     );
-
-    fireEvent.click(screen.getByLabelText("Settings"));
-    expect(onOpenSettings).toHaveBeenCalledTimes(1);
 
     fireEvent.click(screen.getByLabelText("Help"));
     expect(onOpenHelp).toHaveBeenCalledTimes(1);

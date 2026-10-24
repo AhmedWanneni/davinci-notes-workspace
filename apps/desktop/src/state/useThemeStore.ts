@@ -4,6 +4,8 @@ import {
   createDesktopThemeFsAdapter,
   createDesktopThemeStorage,
   restoreCachedBuiltinTheme,
+  applyAccentColor,
+  loadSavedAccentColor,
   type ThemeDiscoveryError,
   type ThemeRecord,
 } from "../themes";
@@ -35,6 +37,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
       }),
     );
     await manager.initialize();
+    applyAccentColor(loadSavedAccentColor());
     set({
       themeManager: manager,
       themes: manager.getThemes(),
@@ -44,7 +47,9 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   },
   activateTheme: async (themeId) => {
     await get().themeManager?.activateTheme(themeId);
+    applyAccentColor(loadSavedAccentColor());
   },
 }));
 
 restoreCachedBuiltinTheme();
+applyAccentColor(loadSavedAccentColor());

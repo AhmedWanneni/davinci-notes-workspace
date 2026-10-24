@@ -23,15 +23,6 @@ export interface SearchDialogProps {
   openNotes?: readonly string[];
 }
 
-function getOpenedFileResults(paths: readonly string[]): SearchResult[] {
-  return paths.slice(0, 5).map((path) => ({
-    path,
-    title: path.replace(/\.(md|canvas)$/i, "").split(/[/\\]/).pop() ?? path,
-    mtime: 0,
-    score: 0,
-  }));
-}
-
 export function SearchDialog({
   isOpen,
   onOpenChange,
@@ -56,20 +47,18 @@ export function SearchDialog({
   useEffect(() => {
     if (!isOpen) return;
     setQuery(initialQuery);
-    setResults(!initialQuery.trim() ? getOpenedFileResults(effectiveOpenNotes) : []);
+    setResults([]);
     setSemanticResults([]);
     setMode("exact");
     setSelectedIndex(0);
     const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 0);
     return () => window.clearTimeout(focusTimer);
-  }, [effectiveOpenNotes, initialQuery, isOpen]);
+  }, [initialQuery, isOpen]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       if (!query.trim()) {
-        setResults(
-          mode === "exact" ? getOpenedFileResults(effectiveOpenNotes) : [],
-        );
+        setResults([]);
         setSemanticResults([]);
         return;
       }
@@ -227,10 +216,13 @@ export function SearchDialog({
               </span>
             </li>
           ))}
-          {query.trim() &&
-            results.length === 0 &&
+          {results.length === 0 &&
             semanticResults.length === 0 && (
-              <li className="search-dialog__empty">No matching notes.</li>
+              <li className="search-dialog__empty">
+                {!query.trim()
+                  ? "No files to display. Type to search."
+                  : "No matching notes."}
+              </li>
             )}
         </ul>
         <div className="search-dialog__footer">
