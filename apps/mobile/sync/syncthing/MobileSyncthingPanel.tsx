@@ -6,10 +6,15 @@ import { useTheme } from "../../theme";
 import { Badge, Button, Text } from "../../components/primitives";
 import { VaultManager } from "../../vault/vaultManager";
 import { useMobileSyncthing } from "./useMobileSyncthing";
+import { getSyncthingStatusViewData } from "./syncthingStatusViewData";
 import { SyncthingQrView } from "./SyncthingQrView";
 import { SyncthingKeyModal } from "./SyncthingKeyModal";
 import { SyncthingAddDeviceModal } from "./SyncthingAddDeviceModal";
 import { SyncthingPendingSection } from "./SyncthingPendingSection";
+import { ScanToSyncModal } from "./ScanToSyncModal";
+import { SyncthingRunConditionsView } from "./SyncthingRunConditionsView";
+import { mobileSyncthingTriggerScan } from "./mobileSyncthingOperations";
+import { getSyncthingApiKey } from "./secureKeyStore";
 
 export const MobileSyncthingPanel: React.FC = () => {
   const {
@@ -20,11 +25,14 @@ export const MobileSyncthingPanel: React.FC = () => {
     qrUrl,
     hasSavedKey,
     isLoading,
+    isEmbedded,
     errorMessage,
     pendingDevices,
     pendingFolders,
     connectedDevices,
     refresh,
+    startService,
+    stopService,
     saveKey,
     clearKey,
     addDevice,
@@ -37,13 +45,18 @@ export const MobileSyncthingPanel: React.FC = () => {
   const { tokens } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [addDeviceVisible, setAddDeviceVisible] = useState(false);
+  const [scanToSyncVisible, setScanToSyncVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const [defaultVaultPath, setDefaultVaultPath] = useState("");
 
   useEffect(() => {
-    void new VaultManager().getRegistry().then((reg) => {
+    const vm = new VaultManager();
+    void vm.getRegistry().then(async (reg) => {
       if (reg.activeVaultUri) {
         setDefaultVaultPath(reg.activeVaultUri);
+      } else {
+        const adapter = await vm.initDefaultSandboxVault().catch(() => null);
+        if (adapter) setDefaultVaultPath(adapter.vaultUri);
       }
     });
   }, []);
@@ -55,39 +68,11 @@ export const MobileSyncthingPanel: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isConnected = connectedDevices.length > 0;
-  const statusVariant =
-    status === "running"
-      ? isConnected
-        ? "success"
-        : "accent"
-      : status === "bad-key"
-        ? "error"
-        : status === "not-running"
-          ? "warning"
-          : "neutral";
-
-  const statusLabel =
-    status === "running"
-      ? isConnected
-        ? `Connected (${connectedDevices.length})`
-        : "Online"
-      : status === "bad-key"
-        ? "Key Problem"
-        : status === "not-running"
-          ? "Not Running"
-          : "Checking...";
-
-  const statusHint =
-    status === "running"
-      ? isConnected
-        ? `Connected to ${connectedDevices.length} peer${connectedDevices.length > 1 ? "s" : ""} on Syncthing-Fork ${version ? `(${version})` : ""}`
-        : `Syncthing-Fork ${version ? `(${version})` : ""} online. Pair with desktop below.`
-      : status === "bad-key"
-        ? "API key invalid or missing. Configure key from Syncthing-Fork settings."
-        : status === "not-running"
-          ? "Syncthing-Fork is not active. Open Syncthing-Fork and ensure service is running."
-          : "Probing 127.0.0.1:8384...";
+  const statusInfo = getSyncthingStatusViewData(
+    status,
+    connectedDevices.length,
+    version,
+  );
 
   return (
     <View
@@ -105,15 +90,15 @@ export const MobileSyncthingPanel: React.FC = () => {
           </Text>
           {deviceName ? (
             <Text size="xs" color="muted">
-              ({deviceName})
+              {`(${deviceName})`}
             </Text>
           ) : null}
         </View>
-        <Badge variant={statusVariant}>{statusLabel}</Badge>
+        <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
       </View>
 
       <Text size="xs" color="muted" className="mb-4">
-        {statusHint}
+        {statusInfo.hint}
       </Text>
 
       {errorMessage && status !== "running" ? (
@@ -176,6 +161,9 @@ export const MobileSyncthingPanel: React.FC = () => {
         </View>
       ) : null}
 
+      {/* Run Conditions (when embedded) */}
+      {isEmbedded ? <SyncthingRunConditionsView /> : null}
+
       {/* Action controls */}
       <View
         className="flex-row gap-2 pt-2 border-t"
@@ -186,7 +174,6 @@ export const MobileSyncthingPanel: React.FC = () => {
           size="sm"
           onPress={refresh}
           disabled={isLoading}
-          className="flex-1"
         >
           {isLoading ? (
             <ActivityIndicator size="small" color={tokens.color.text.normal} />
@@ -194,26 +181,27 @@ export const MobileSyncthingPanel: React.FC = () => {
             "Refresh"
           )}
         </Button>
-        {status === "running" ? (
+
+        {!isEmbedded ? (
           <Button
-            variant="primary"
-            size="sm"
-            onPress={() => setAddDeviceVisible(true)}
-            className="flex-1"
-          >
-            Add Desktop
-          </Button>
-        ) : (
-          <Button
-            variant={hasSavedKey ? "secondary" : "primary"}
+            variant="ghost"
             size="sm"
             onPress={() => setModalVisible(true)}
-            className="flex-1"
           >
-            {hasSavedKey ? "Edit API Key" : "Set API Key"}
+            Key
           </Button>
-        )}
+        ) : null}
       </View>
+
+      <ScanToSyncModal
+        visible={scanToSyncVisible}
+        status={status}
+        hasSavedKey={hasSavedKey}
+        defaultVaultPath={defaultVaultPath}
+        onSaveKey={saveKey}
+        onRefresh={refresh}
+        onClose={() => setScanToSyncVisible(false)}
+      />
 
       <SyncthingKeyModal
         visible={modalVisible}

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use super::config::SyncthingResolvedConfig;
-use super::types::{redact_secrets, to_base64, SyncthingDetectResult, SyncthingError, SyncthingStatusResult};
+use super::types::{percent_encode, redact_secrets, to_base64, SyncthingDetectResult, SyncthingError, SyncthingStatusResult};
 
 pub struct SyncthingClient {
   pub(crate) http: reqwest::Client,
@@ -183,9 +183,12 @@ impl SyncthingClient {
     })
   }
 
-  pub async fn qr_png(&self) -> Result<String, SyncthingError> {
-    let stat = self.status().await?;
-    let url = format!("{}/qr/?text={}", self.config.base_url, stat.device_id);
+  pub async fn qr_png(&self, text: Option<&str>) -> Result<String, SyncthingError> {
+    let query_text = match text {
+      Some(t) if !t.trim().is_empty() => t.trim().to_string(),
+      _ => self.status().await?.device_id,
+    };
+    let url = format!("{}/qr/?text={}", self.config.base_url, percent_encode(&query_text));
 
     let resp = match self
       .http
@@ -222,5 +225,16 @@ impl SyncthingClient {
     })?;
 
     Ok(format!("data:image/png;base64,{}", to_base64(&bytes)))
+  }
+
+  pub async fn shutdown(&self) -> Result<(), SyncthingError> {
+    let url = format!("{}/rest/system/shutdown", self.config.base_url);
+    let _ = self
+      .http
+      .post(&url)
+      .header("X-API-Key", &self.config.api_key)
+      .send()
+      .await;
+    Ok(())
   }
 }

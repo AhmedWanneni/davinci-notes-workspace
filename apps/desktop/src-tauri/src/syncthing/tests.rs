@@ -146,7 +146,7 @@ async fn verification_live_syncthing_when_running() {
       assert!(!status_res.device_id.is_empty());
       println!("[VERIFICATION 1: STATUS] deviceId={}, deviceName={}, uptime={}", status_res.device_id, status_res.device_name, status_res.uptime);
 
-      let qr_data_url = client.qr_png().await.expect("qr should succeed with resolved key");
+      let qr_data_url = client.qr_png(None).await.expect("qr should succeed with resolved key");
       assert!(qr_data_url.starts_with("data:image/png;base64,"));
       println!("[VERIFICATION 1: QR] qr_png prefix={}", &qr_data_url[..35]);
     }

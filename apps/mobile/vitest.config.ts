@@ -58,6 +58,13 @@ export default defineConfig({
         __dirname,
         "tests/mocks/expoSplashScreenMock.ts",
       ),
+      "expo-syncthing": path.resolve(
+        __dirname,
+        "modules/expo-syncthing/index.ts",
+      ),
+      "expo-modules-core": path.resolve(
+        __dirname,
+        "tests/mocks/expoModulesCoreMock.ts",
       "expo-navigation-bar": path.resolve(
         __dirname,
         "tests/mocks/expoNavigationBarMock.ts",

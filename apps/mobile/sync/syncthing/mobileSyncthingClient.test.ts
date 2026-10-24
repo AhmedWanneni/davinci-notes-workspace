@@ -97,4 +97,18 @@ describe("mobileSyncthingClient", () => {
     const url = getSyncthingQrUrl(id);
     expect(url).toBe("http://127.0.0.1:8384/qr/?text=ABC-123");
   });
+
+  it("formats raw java.net.ConnectException to a friendly message", async () => {
+    global.fetch = vi
+      .fn()
+      .mockRejectedValue(
+        new Error(
+          "fetch failed java.net.ConnectException: Failed to connect /127.0.0.1:8384",
+        ),
+      );
+
+    await expect(mobileSyncthingStatus("test-key")).rejects.toThrow(
+      "Syncthing is stopped or unreachable on localhost. Start Syncthing to continue.",
+    );
+  });
 });

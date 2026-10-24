@@ -42,12 +42,10 @@ impl TraySettingsState {
 }
 
 pub fn get_tray_click_action_from_state_or_disk(app: &AppHandle) -> String {
-  if let Some(state) = app.try_state::<TraySettingsState>() {
-    if let Ok(guard) = state.left_click_action.lock() {
-      return guard.clone();
-    }
-  }
-  load_saved_tray_click_action(app)
+  app
+    .try_state::<TraySettingsState>()
+    .and_then(|s| s.left_click_action.lock().ok().map(|g| g.clone()))
+    .unwrap_or_else(|| load_saved_tray_click_action(app))
 }
 
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
@@ -229,6 +227,9 @@ pub fn trigger_clean_quit(app: &AppHandle) {
   }
   if let Some(watcher) = app.try_state::<VaultWatcher>() {
     watcher.stop();
+  }
+  if let Some(mgr) = app.try_state::<crate::syncthing::SyncthingManager>() {
+    mgr.shutdown_on_exit(app);
   }
   if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
     if window.emit(CLEAN_QUIT_EVENT, ()).is_err() {

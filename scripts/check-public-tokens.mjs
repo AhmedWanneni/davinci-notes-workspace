@@ -92,6 +92,11 @@ export const ALLOWLIST = [
       "QR quiet zone requires pure white background for scanner contrast in dark mode.",
   },
   {
+    file: "apps/desktop/src/components/SyncthingPanel/SyncthingQrPairingSection.module.scss",
+    pattern: "#fff",
+    justification: "QR quiet zone requires pure white background for scanner contrast in dark mode.",
+  },
+  {
     file: "packages/design-system/components/Dialog/Dialog.module.scss",
     pattern: "rgb(0 0 0 / 35%)",
     justification:

@@ -9,9 +9,20 @@ const meta: Meta<typeof SyncthingPanel> = {
 export default meta;
 type Story = StoryObj<typeof SyncthingPanel>;
 
+const baseActions = {
+  autoStart: false,
+  setAutoStart: () => {},
+  start: async () => {},
+  stop: async () => {},
+  restart: async () => {},
+  refresh: async () => {},
+  lastLogs: null,
+};
+
 export const Running: Story = {
   args: {
     customStatus: {
+      ...baseActions,
       status: "running",
       version: "v2.1.6",
       guiAddress: "127.0.0.1:8384",
@@ -25,26 +36,49 @@ export const Running: Story = {
       isLoading: false,
       pendingDevices: [],
       pendingFolders: [],
-      refresh: async () => {},
     },
   },
 };
 
-export const NotRunning: Story = {
+export const Stopped: Story = {
   args: {
     customStatus: {
-      status: "not-running",
+      ...baseActions,
+      status: "stopped",
       version: "",
       guiAddress: "127.0.0.1:8384",
       deviceId: "",
       deviceName: "",
       uptime: 0,
       qrDataUrl: null,
-      errorMessage: "Connection refused",
+      errorMessage: null,
       isLoading: false,
       pendingDevices: [],
       pendingFolders: [],
-      refresh: async () => {},
+    },
+  },
+};
+
+export const Crashed: Story = {
+  args: {
+    customStatus: {
+      ...baseActions,
+      status: "crashed",
+      version: "v2.1.6",
+      guiAddress: "127.0.0.1:8384",
+      deviceId: "",
+      deviceName: "",
+      uptime: 0,
+      qrDataUrl: null,
+      errorMessage: "Process exited with code 1",
+      lastLogs: [
+        "[main] Syncthing v2.1.6 starting",
+        "[main] Fatal error: port 8384 already in use",
+        "[main] Exiting with code 1",
+      ],
+      isLoading: false,
+      pendingDevices: [],
+      pendingFolders: [],
     },
   },
 };
@@ -52,6 +86,7 @@ export const NotRunning: Story = {
 export const NotInstalled: Story = {
   args: {
     customStatus: {
+      ...baseActions,
       status: "not-installed",
       version: "",
       guiAddress: "",
@@ -59,11 +94,10 @@ export const NotInstalled: Story = {
       deviceName: "",
       uptime: 0,
       qrDataUrl: null,
-      errorMessage: "config.xml not found",
+      errorMessage: "binary not found",
       isLoading: false,
       pendingDevices: [],
       pendingFolders: [],
-      refresh: async () => {},
     },
   },
 };
@@ -71,6 +105,7 @@ export const NotInstalled: Story = {
 export const KeyProblem: Story = {
   args: {
     customStatus: {
+      ...baseActions,
       status: "bad-key",
       version: "v2.1.6",
       guiAddress: "127.0.0.1:8384",
@@ -82,7 +117,6 @@ export const KeyProblem: Story = {
       isLoading: false,
       pendingDevices: [],
       pendingFolders: [],
-      refresh: async () => {},
     },
   },
 };

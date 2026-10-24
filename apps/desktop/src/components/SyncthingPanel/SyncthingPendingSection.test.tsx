@@ -1,10 +1,26 @@
 // @vitest-environment jsdom
 import React from "react";
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { SyncthingPendingSection } from "./SyncthingPendingSection";
+import * as commands from "./syncthingCommands";
+
+vi.mock("./syncthingCommands", () => ({
+  syncthingAcceptDevice: vi.fn().mockResolvedValue(undefined),
+  syncthingDismissPendingDevice: vi.fn().mockResolvedValue(undefined),
+  syncthingShareVaultFolder: vi.fn().mockResolvedValue("davinci-123"),
+  syncthingAcceptFolder: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe("SyncthingPendingSection", () => {
+  const mockDevId =
+    "DEV1-AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG";
+  const mockDevName = "Galaxy Phone (482910)";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("renders nothing when there are no pending devices or folders", () => {
     const { container } = render(
       <SyncthingPendingSection
@@ -16,26 +32,143 @@ describe("SyncthingPendingSection", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders pending devices with Accept and Ignore actions", () => {
+  it("highlights one-tap accept when device name carries active pairing code", async () => {
+    const onUpdated = vi.fn().mockResolvedValue(undefined);
     render(
       <SyncthingPendingSection
         pendingDevices={[
           {
-            deviceId:
-              "DEV1-AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG",
-            name: "Galaxy Phone",
+            deviceId: mockDevId,
+            name: mockDevName,
             address: "10.0.0.5:22000",
             time: "2026-10-17T16:00:00Z",
           },
         ]}
         pendingFolders={[]}
+        activePairingCode="482910"
+        isPairingExpired={false}
+        onUpdated={onUpdated}
+      />,
+    );
+
+    expect(screen.getByText("Code verified (482910)")).toBeDefined();
+    const acceptBtn = screen.getByRole("button", {
+      name: `Accept device ${mockDevName}`,
+    });
+    expect(acceptBtn.textContent).toContain("Accept & Share");
+
+    fireEvent.click(acceptBtn);
+    await waitFor(() => {
+      expect(commands.syncthingAcceptDevice).toHaveBeenCalledWith(mockDevId);
+      expect(commands.syncthingShareVaultFolder).toHaveBeenCalledWith(
+        mockDevId,
+      );
+      expect(onUpdated).toHaveBeenCalled();
+    });
+  });
+
+  it("shows warning and requires explicit confirm when device code is missing or wrong", async () => {
+    const onUpdated = vi.fn().mockResolvedValue(undefined);
+    render(
+      <SyncthingPendingSection
+        pendingDevices={[
+          {
+            deviceId: mockDevId,
+            name: "Unknown Pixel",
+            address: "10.0.0.5:22000",
+            time: "2026-10-17T16:00:00Z",
+          },
+        ]}
+        pendingFolders={[]}
+        activePairingCode="482910"
+        isPairingExpired={false}
+        onUpdated={onUpdated}
+      />,
+    );
+
+    expect(screen.getByText("Unverified code")).toBeDefined();
+    expect(
+      screen.getByText("Device name does not contain the active pairing code."),
+    ).toBeDefined();
+
+    const acceptBtn = screen.getByRole("button", {
+      name: "Accept device Unknown Pixel",
+    });
+    fireEvent.click(acceptBtn);
+
+    expect(commands.syncthingAcceptDevice).not.toHaveBeenCalled();
+    expect(screen.getByText("Accept unverified device?")).toBeDefined();
+
+    const confirmBtn = screen.getByRole("button", {
+      name: "Confirm accept Unknown Pixel",
+    });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(commands.syncthingAcceptDevice).toHaveBeenCalledWith(mockDevId);
+      expect(commands.syncthingShareVaultFolder).toHaveBeenCalledWith(
+        mockDevId,
+      );
+      expect(onUpdated).toHaveBeenCalled();
+    });
+  });
+
+  it("shows expired warning and does not highlight when pairing window is expired", () => {
+    render(
+      <SyncthingPendingSection
+        pendingDevices={[
+          {
+            deviceId: mockDevId,
+            name: mockDevName,
+            address: "10.0.0.5:22000",
+            time: "2026-10-17T16:00:00Z",
+          },
+        ]}
+        pendingFolders={[]}
+        activePairingCode="482910"
+        isPairingExpired={true}
         onUpdated={vi.fn()}
       />,
     );
 
-    expect(screen.getByText("Incoming Requests")).toBeDefined();
-    expect(screen.getByText("Galaxy Phone")).toBeDefined();
-    expect(screen.getByLabelText(/Accept device Galaxy Phone/)).toBeDefined();
-    expect(screen.getByLabelText(/Ignore device Galaxy Phone/)).toBeDefined();
+    expect(screen.getByText("Pairing window expired")).toBeDefined();
+    const acceptBtn = screen.getByRole("button", {
+      name: `Accept device ${mockDevName}`,
+    });
+    expect(acceptBtn.textContent).toContain("Accept");
+  });
+
+  it("declines a device request without sharing vault or adding device", async () => {
+    const onUpdated = vi.fn().mockResolvedValue(undefined);
+    render(
+      <SyncthingPendingSection
+        pendingDevices={[
+          {
+            deviceId: mockDevId,
+            name: mockDevName,
+            address: "10.0.0.5:22000",
+            time: "2026-10-17T16:00:00Z",
+          },
+        ]}
+        pendingFolders={[]}
+        activePairingCode="482910"
+        isPairingExpired={false}
+        onUpdated={onUpdated}
+      />,
+    );
+
+    const ignoreBtn = screen.getByRole("button", {
+      name: `Ignore device ${mockDevName}`,
+    });
+    fireEvent.click(ignoreBtn);
+
+    await waitFor(() => {
+      expect(commands.syncthingDismissPendingDevice).toHaveBeenCalledWith(
+        mockDevId,
+      );
+      expect(commands.syncthingAcceptDevice).not.toHaveBeenCalled();
+      expect(commands.syncthingShareVaultFolder).not.toHaveBeenCalled();
+      expect(onUpdated).toHaveBeenCalled();
+    });
   });
 });

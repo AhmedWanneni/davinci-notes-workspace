@@ -18,12 +18,42 @@ describe("SyncthingPanel Component", () => {
     pendingDevices: [],
     pendingFolders: [],
     errorMessage: null,
+    lastLogs: null,
     isLoading: false,
+    autoStart: false,
+    setAutoStart: vi.fn(),
+    start: vi.fn(),
+    stop: vi.fn(),
+    restart: vi.fn(),
     refresh: vi.fn(),
   };
 
-  it("renders Running state with device info and QR code", () => {
-    render(<SyncthingPanel customStatus={baseStatus} />);
+  const basePairing = {
+    pairingCode: "482910",
+    pairingPayload: {
+      v: 1 as const,
+      id: "C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE",
+      name: "My MacBook",
+      folderId: "davinci-123",
+      folderLabel: "Vault",
+      code: "482910",
+    },
+    qrDataUrl:
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    secondsLeft: 280,
+    isExpired: false,
+    isGenerating: false,
+    rotateCode: vi.fn(),
+  };
+
+  it("renders Running state with raw device ID, Stop button, and pairing QR code", () => {
+    const stopMock = vi.fn();
+    render(
+      <SyncthingPanel
+        customStatus={{ ...baseStatus, stop: stopMock }}
+        customPairing={basePairing}
+      />,
+    );
 
     expect(screen.getByText("Running")).toBeDefined();
     expect(
@@ -36,100 +66,77 @@ describe("SyncthingPanel Component", () => {
       ),
     ).toBeDefined();
 
-    const qrImage = screen.getByTestId("syncthing-qr-image");
-    expect(qrImage).toBeDefined();
-    expect(qrImage.getAttribute("src")).toBe(baseStatus.qrDataUrl);
+    const stopBtn = screen.getByLabelText("Stop Syncthing");
+    expect(stopBtn).toBeDefined();
+    fireEvent.click(stopBtn);
+    expect(stopMock).toHaveBeenCalledTimes(1);
+
+    expect(screen.getByTestId("syncthing-qr-image")).toBeDefined();
+    expect(screen.getByText("Waiting for phone...")).toBeDefined();
+    expect(screen.getByTestId("pairing-code").textContent).toContain(
+      "Code: 482 910",
+    );
   });
 
-  it("renders Add Device and Share Vault sections when running", () => {
-    render(<SyncthingPanel customStatus={baseStatus} />);
-    expect(screen.getByText("Add Remote Device")).toBeDefined();
-    expect(screen.getByText("Share Active Vault")).toBeDefined();
-  });
-
-  it("renders incoming pending devices and folders when present", () => {
-    const withPending: SyncthingStatusState = {
+  it("renders Stopped state with Start button and no terminal message", () => {
+    const startMock = vi.fn();
+    const stoppedStatus: SyncthingStatusState = {
       ...baseStatus,
-      pendingDevices: [
-        {
-          deviceId:
-            "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH",
-          name: "Phone Peer",
-          address: "192.168.1.100:22000",
-          time: "2026-10-17T16:00:00Z",
-        },
-      ],
-      pendingFolders: [
-        {
-          folderId: "vault-offer-1",
-          label: "Team Notes",
-          offeredBy:
-            "AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH",
-          time: "2026-10-17T16:05:00Z",
-        },
-      ],
-    };
-
-    render(<SyncthingPanel customStatus={withPending} />);
-    expect(screen.getByText("Incoming Requests")).toBeDefined();
-    expect(screen.getByText("Phone Peer")).toBeDefined();
-    expect(screen.getByText("Team Notes")).toBeDefined();
-    expect(screen.getByText("Accept")).toBeDefined();
-    expect(screen.getByText("Ignore")).toBeDefined();
-    expect(screen.getByText("Accept Folder Offer")).toBeDefined();
-  });
-
-  it("renders Not running state with fix hint", () => {
-    const notRunningStatus: SyncthingStatusState = {
-      ...baseStatus,
-      status: "not-running",
-      qrDataUrl: null,
-    };
-
-    render(<SyncthingPanel customStatus={notRunningStatus} />);
-
-    expect(screen.getByText("Not running")).toBeDefined();
-    expect(
-      screen.getByText(
-        "Start Syncthing from your terminal or application launcher to enable sync.",
-      ),
-    ).toBeDefined();
-    expect(screen.queryByTestId("syncthing-qr-image")).toBeNull();
-  });
-
-  it("renders Not installed state with fix hint", () => {
-    const notInstalledStatus: SyncthingStatusState = {
-      ...baseStatus,
-      status: "not-installed",
+      status: "stopped",
       deviceId: "",
       qrDataUrl: null,
+      start: startMock,
     };
 
-    render(<SyncthingPanel customStatus={notInstalledStatus} />);
+    render(<SyncthingPanel customStatus={stoppedStatus} />);
 
-    expect(screen.getByText("Not installed")).toBeDefined();
-    expect(
-      screen.getByText(
-        "Install Syncthing from syncthing.net or via your package manager.",
-      ),
-    ).toBeDefined();
+    expect(screen.getByText("Stopped")).toBeDefined();
+    expect(screen.queryByText(/Start Syncthing from your terminal/)).toBeNull();
+    expect(screen.getByText(/Click Start to begin/)).toBeDefined();
+
+    const startBtn = screen.getByLabelText("Start Syncthing");
+    expect(startBtn).toBeDefined();
+    fireEvent.click(startBtn);
+    expect(startMock).toHaveBeenCalledTimes(1);
   });
 
-  it("renders Key problem state with fix hint", () => {
-    const badKeyStatus: SyncthingStatusState = {
+  it("renders Crashed state with Retry button and process logs", () => {
+    const startMock = vi.fn();
+    const crashedStatus: SyncthingStatusState = {
       ...baseStatus,
-      status: "bad-key",
-      qrDataUrl: null,
+      status: "crashed",
+      errorMessage: "Process exited with code 1",
+      lastLogs: ["[main] failed to start listener", "[main] exiting"],
+      start: startMock,
     };
 
-    render(<SyncthingPanel customStatus={badKeyStatus} />);
+    render(<SyncthingPanel customStatus={crashedStatus} />);
 
-    expect(screen.getByText("Key problem")).toBeDefined();
-    expect(
-      screen.getByText(
-        "Check your API key in Syncthing GUI (Settings → General → API Key).",
-      ),
-    ).toBeDefined();
+    expect(screen.getByText("Crashed")).toBeDefined();
+    expect(screen.getByText("Process exited with code 1")).toBeDefined();
+    expect(screen.getByTestId("syncthing-logs")).toBeDefined();
+    expect(screen.getByText(/failed to start listener/)).toBeDefined();
+
+    const retryBtn = screen.getByLabelText("Retry Start");
+    fireEvent.click(retryBtn);
+    expect(startMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("toggles auto-start preference", () => {
+    const setAutoStartMock = vi.fn();
+    render(
+      <SyncthingPanel
+        customStatus={{
+          ...baseStatus,
+          autoStart: false,
+          setAutoStart: setAutoStartMock,
+        }}
+      />,
+    );
+
+    const checkbox = screen.getByRole("checkbox");
+    fireEvent.click(checkbox);
+    expect(setAutoStartMock).toHaveBeenCalledWith(true);
   });
 
   it("copies device ID to clipboard and shows feedback", async () => {

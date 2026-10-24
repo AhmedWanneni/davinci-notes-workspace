@@ -127,17 +127,17 @@ export const Button = React.forwardRef<
             {icon}
           </View>
         ) : null}
-        {typeof children === "string" || typeof children === "number" ? (
+        {React.isValidElement(children) ? (
+          children
+        ) : (
           <Text
             size={textSize}
             weight="medium"
             color={textColor}
             className="select-none"
           >
-            {String(children)}
+            {children}
           </Text>
-        ) : (
-          children
         )}
       </Pressable>
     );

@@ -116,7 +116,11 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0124](adr/0124-sync-settings-asymmetric-framing-and-mode-isolation.md) | Sync settings UI: asymmetric framing for Drive vs Folder, opt-in default, isolated per-mode configuration panels | Accepted |
 | [0125](adr/0125-comprehensive-sync-architecture-closeout.md) | Comprehensive Sync Architecture Closeout across Phases 0–7: zero backend, appDataFolder Drive sync, node-diff3 text merge, atomic canvas/binary conflict copies, watcher burst pre-fetch, asymmetric UI | Accepted |
 | [0198](adr/0198-syncthing-local-rest-api-and-keychain-security.md) | Syncthing local REST API integration: automatic config discovery, OS keychain fallback, native loopback confinement, and 0 KB QR proxy | Accepted |
+| [0199](adr/0199-syncthing-binary-bundling-and-lifecycle-management.md) | Syncthing binary bundling, 0-dependency process lifecycle, config isolation, random port allocation, and crash recovery | Accepted |
+| [0200](adr/0200-syncthing-qr-pairing-payload-and-one-tap-confirmation.md) | Syncthing QR pairing URI payload, 5-minute code window rotation, one-tap accept, and auto-vault sharing | Accepted |
+| [0201](adr/0201-expo-mobile-scan-to-sync-orchestration.md) | Expo mobile "Scan to sync" orchestration, strict QR payload validation, SAF storage check, and selective folder pairing | Accepted |
 | [0113](adr/0113-attachment-settings-validation.md) | Specified folders validate/create at first use; invalid subfolder drafts stay local with inline validation | Accepted |
+
 
 
 
@@ -309,6 +313,12 @@ the list.
 | [0196](adr/0196-mobile-vault-storage-and-flow-remediation.md) | Mobile vault storage and flow remediation: object-based fs seam, atomic overwrite, and UI hardening | Accepted |
 | [0197](adr/0197-mobile-note-identity-and-rename-safety.md) | Stable note identity via NoteStore, single-pass atomic write, and safe collision-free rename | Accepted |
 | [0198](adr/0198-syncthing-desktop-mobile-sync-verification-and-conflict-isolation.md) | Syncthing desktop-mobile sync verification, non-destructive conflict routing, and transfer isolation | Accepted |
+<<<<<<< HEAD
+| [0199](adr/0199-syncthing-binary-bundling-and-lifecycle-management.md) | Syncthing binary bundling, port isolation, keychain API key, and graceful desktop lifecycle | Accepted |
+| [0200](adr/0200-syncthing-qr-pairing-payload-and-one-tap-confirmation.md) | Syncthing QR pairing payload URI, 5-minute rotation window, and one-tap confirm | Accepted |
+| [0201](adr/0201-expo-mobile-scan-to-sync-orchestration.md) | Expo mobile scan-to-sync orchestration, camera permission fallback, and payload validation | Accepted |
+| [0202](adr/0202-embedded-android-syncthing-and-foreground-service.md) | Embedded Android Syncthing daemon, jniLibs W^X bypass, dataSync foreground service, and keyless native proxy | Accepted |
+=======
 | [0204](adr/0204-mobile-theme-token-surface-and-dimensions.md) | Mobile theme token surface and layout dimensions contract | Accepted |
 | [0205](adr/0205-mobile-obsidian-parity-navigation-shell.md) | Mobile Obsidian-parity navigation shell, slide-out drawer, and leaf switcher | Accepted |
 | [0206](adr/0206-mobile-dynamic-theme-lifecycle-and-webview-bridge.md) | Mobile dynamic theme lifecycle, React context provider, and webview postMessage bridge | Accepted |
@@ -338,3 +348,4 @@ the list.
 | [0204](adr/0204-davinci-cli-architecture-and-quick-capture.md) | DaVinci Notes CLI architecture: standalone Rust binary (`apps/cli`), zero-SQLite v1, 5-tier vault discovery, and atomic quick capture | Accepted |
 | [0205](adr/0205-external-editor-resolution-and-handoff.md) | External editor resolution chain (flag -> config -> $VISUAL -> $EDITOR -> nvim/vim/vi), shell-words parsing, terminal handoff, and file refresh | Accepted |
 | [0206](adr/0206-in-process-vim-mode-evaluation.md) | In-process Vim mode evaluation: retention of external handoff, rejection of edtui/tui-textarea, and feature-gating future embedded Neovim | Proposed |
+>>>>>>> main

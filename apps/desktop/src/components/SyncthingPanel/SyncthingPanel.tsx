@@ -1,13 +1,10 @@
 import React, { useState } from "react";
-import { Badge, Button, Typography } from "@app/design-system";
-import {
-  ArrowClockwise,
-  Check,
-  Copy,
-  Desktop,
-  QrCode,
-} from "@phosphor-icons/react";
-import { useSyncthingStatus, type SyncthingState } from "./useSyncthingStatus";
+import { Button, Typography } from "@app/design-system";
+import { Check, Copy, Desktop } from "@phosphor-icons/react";
+import { useSyncthingStatus } from "./useSyncthingStatus";
+import { useSyncthingPairing } from "./useSyncthingPairing";
+import { SyncthingStatusBanner } from "./SyncthingStatusBanner";
+import { SyncthingQrPairingSection } from "./SyncthingQrPairingSection";
 import { SyncthingAddDeviceSection } from "./SyncthingAddDeviceSection";
 import { SyncthingPendingSection } from "./SyncthingPendingSection";
 import { SyncthingSyncCheckSection } from "./SyncthingSyncCheckSection";
@@ -15,47 +12,14 @@ import { SyncthingVaultShareSection } from "./SyncthingVaultShareSection";
 import styles from "./SyncthingPanel.module.scss";
 
 export interface SyncthingPanelProps {
-  /** Optional custom status hook override for testing or storybook */
   customStatus?: ReturnType<typeof useSyncthingStatus>;
+  customPairing?: ReturnType<typeof useSyncthingPairing>;
 }
 
-function getStatusBadge(status: SyncthingState) {
-  switch (status) {
-    case "running":
-      return <Badge variant="success">Running</Badge>;
-    case "not-running":
-      return <Badge variant="warning">Not running</Badge>;
-    case "not-installed":
-      return <Badge variant="neutral">Not installed</Badge>;
-    case "bad-key":
-      return <Badge variant="error">Key problem</Badge>;
-    case "loading":
-    default:
-      return <Badge variant="neutral">Checking...</Badge>;
-  }
-}
-
-function getStatusHint(
-  status: SyncthingState,
-  version: string,
-  guiAddress: string,
-) {
-  switch (status) {
-    case "running":
-      return `Syncthing is active on ${guiAddress || "127.0.0.1:8384"}${version ? ` (${version})` : ""}.`;
-    case "not-running":
-      return "Start Syncthing from your terminal or application launcher to enable sync.";
-    case "not-installed":
-      return "Install Syncthing from syncthing.net or via your package manager.";
-    case "bad-key":
-      return "Check your API key in Syncthing GUI (Settings → General → API Key).";
-    case "loading":
-    default:
-      return "Querying local Syncthing daemon...";
-  }
-}
-
-export function SyncthingPanel({ customStatus }: SyncthingPanelProps) {
+export function SyncthingPanel({
+  customStatus,
+  customPairing,
+}: SyncthingPanelProps) {
   const hookStatus = useSyncthingStatus(!customStatus);
   const {
     status,
@@ -66,9 +30,30 @@ export function SyncthingPanel({ customStatus }: SyncthingPanelProps) {
     qrDataUrl,
     pendingDevices,
     pendingFolders,
+    errorMessage,
+    lastLogs,
     isLoading,
+    autoStart,
+    setAutoStart,
+    start,
+    stop,
+    restart,
     refresh,
   } = customStatus || hookStatus;
+
+  const hookPairing = useSyncthingPairing(
+    status === "running",
+    deviceId,
+    deviceName,
+  );
+  const {
+    pairingCode,
+    qrDataUrl: pairingQrUrl,
+    secondsLeft,
+    isExpired,
+    isGenerating,
+    rotateCode,
+  } = customPairing || hookPairing;
 
   const [copied, setCopied] = useState(false);
 
@@ -79,7 +64,6 @@ export function SyncthingPanel({ customStatus }: SyncthingPanelProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard fallback
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -87,36 +71,23 @@ export function SyncthingPanel({ customStatus }: SyncthingPanelProps) {
 
   return (
     <div className={styles["syncthing-panel"]} data-testid="syncthing-panel">
-      {/* 1. Status Banner */}
-      <div className={styles["syncthing-panel__status-banner"]}>
-        <div className={styles["syncthing-panel__status-info"]}>
-          <div className={styles["syncthing-panel__badge-row"]}>
-            <Typography variant="h3" size="sm">
-              Syncthing Daemon
-            </Typography>
-            {getStatusBadge(status)}
-          </div>
-          <p className={styles["syncthing-panel__hint"]}>
-            {getStatusHint(status, version, guiAddress)}
-          </p>
-        </div>
+      {/* 1. Status Banner & Controls */}
+      <SyncthingStatusBanner
+        status={status}
+        version={version}
+        guiAddress={guiAddress}
+        errorMessage={errorMessage}
+        lastLogs={lastLogs}
+        isLoading={isLoading}
+        autoStart={autoStart}
+        setAutoStart={setAutoStart}
+        onStart={() => void start()}
+        onStop={() => void stop()}
+        onRestart={() => void restart()}
+        onRefresh={() => void refresh()}
+      />
 
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => void refresh()}
-          disabled={isLoading}
-          aria-label="Refresh Syncthing status"
-        >
-          <ArrowClockwise
-            size={14}
-            className={isLoading ? styles["is-spinning"] : ""}
-          />
-          Refresh
-        </Button>
-      </div>
-
-      {/* 2. Device Information Card (Monospace Block + Copy) */}
+      {/* 2. Raw Device ID Card (Always visible with Copy button for generic clients/paste) */}
       {Boolean(deviceId) && (
         <div className={styles["syncthing-panel__card"]}>
           <div className={styles["syncthing-panel__card-header"]}>
@@ -156,39 +127,25 @@ export function SyncthingPanel({ customStatus }: SyncthingPanelProps) {
         </div>
       )}
 
-      {/* 3. QR Code Section (Large QR + White Quiet Zone) */}
-      {Boolean(qrDataUrl) && (
-        <div className={styles["syncthing-panel__qr-section"]}>
-          <div className={styles["syncthing-panel__card-header"]}>
-            <div className={styles["syncthing-panel__device-title"]}>
-              <QrCode size={16} />
-              <Typography variant="h4" size="sm">
-                Scan to Connect Device
-              </Typography>
-            </div>
-          </div>
-
-          <div className={styles["syncthing-panel__qr-quiet-zone"]}>
-            <img
-              src={qrDataUrl!}
-              alt={`Syncthing QR code for ${deviceId}`}
-              className={styles["syncthing-panel__qr-image"]}
-              data-testid="syncthing-qr-image"
-            />
-          </div>
-
-          <p className={styles["syncthing-panel__qr-caption"]}>
-            Scan from your phone camera or the Syncthing mobile app to pair with
-            this device.
-          </p>
-        </div>
+      {/* 3. Pairing QR Code with Countdown Window & Code Rotation */}
+      {status === "running" && (
+        <SyncthingQrPairingSection
+          qrDataUrl={pairingQrUrl || qrDataUrl}
+          pairingCode={pairingCode}
+          secondsLeft={secondsLeft}
+          isExpired={isExpired}
+          isGenerating={isGenerating}
+          onRotateCode={rotateCode}
+        />
       )}
 
-      {/* 4. Incoming Pending Requests (Devices + Folders) */}
+      {/* 4. Incoming Pending Requests (Devices + Folders) with Code Matching */}
       {status === "running" && (
         <SyncthingPendingSection
           pendingDevices={pendingDevices}
           pendingFolders={pendingFolders}
+          activePairingCode={pairingCode}
+          isPairingExpired={isExpired}
           onUpdated={refresh}
         />
       )}

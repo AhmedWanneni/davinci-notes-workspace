@@ -4,6 +4,144 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+<<<<<<< HEAD
+**Mobile Text Rendering & Syncthing Connection Error Resolutions (complete)**
+Resolved runtime React Native text rendering errors and sanitized raw Java socket exceptions in the mobile app:
+1. **React Native Text Rendering Crash (`Text strings must be rendered within a <Text> component`)**:
+   - *Root Cause 1*: In `ScanToSyncConfirmSheet.tsx`, `<Badge variant="accent">Code: {payload.code}</Badge>` caused JSX to pass an array `["Code: ", payload.code]` to `Badge.tsx`. `Badge.tsx` was checking `typeof children === "string" || typeof children === "number"`, which evaluated to `false` for arrays (`typeof [] === "object"`), returning raw non-element children directly inside `<View>`.
+   - *Fix 1*: Updated `Badge.tsx` and `Button.tsx` to check `React.isValidElement(children)`. Any non-element child (arrays, interpolated strings, numbers) is now safely wrapped in a `<Text>` primitive with inherited styling. Also updated `ScanToSyncConfirmSheet.tsx` to use explicit template string `{`Code: ${payload.code}`}`.
+   - *Root Cause 2*: Ternary / short-circuit expressions `{condition && <Component />}` where condition is an empty string (`""`) evaluated to `""`, leaking bare strings into React Native `<View>`. Standardized conditional renderings across `ScanToSyncProgressView.tsx` and `MobileSyncthingPanel.tsx` to use clean ternaries (`condition ? <Component /> : null`).
+2. **Raw Socket Exception Sanitization (`ConnectException: Failed to connect /127.0.0.1:8384`)**:
+   - *Root Cause*: When running in Expo Go or an environment where custom native modules (`apps/mobile/modules/expo-syncthing`) are unbuilt, `EmbeddedSyncthingBridge.isAvailable()` is false. Subsequent requests to port 8384 when no daemon is running threw unhandled Android OkHttp `java.net.ConnectException: Failed to connect /127.0.0.1:8384` directly onto the user's screen.
+   - *Fix 1*: Added pre-flight daemon detection in `useScanToSync.ts` via `mobileSyncthingDetect()`. When the native bridge is unavailable and no daemon is running, it halts cleanly before network dispatch with an actionable instruction explaining that a development build (`npx expo run:android`) or active daemon on port 8384 is required.
+   - *Fix 2*: Added socket error interceptor in `mobileSyncthingClient.ts` that catches `ConnectException`, `ECONNREFUSED`, and `Failed to connect`, transforming raw low-level traces into clean, human-readable status feedback.
+3. **Verification**:
+   - Vitest suite: all 11 test files (57 passed, 4 skipped) passing (`pnpm --filter @app/mobile test sync/`).
+   - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+   - ESLint: 0 errors (`pnpm --filter @app/mobile lint`).
+   - All touched files verified under the 250 line limit.
+
+---
+
+**Mobile Syncthing Automated In-App Configuration on QR Scan & "Sync Now" Button Fix (complete)**
+Automated all Syncthing configuration inside the mobile app upon scanning the pairing QR code and eliminated permanent disabling of the "Sync Now" button:
+1. **Automated In-App Configuration (Zero Phone Instructions)**:
+   - Completely removed external phone instruction screens (`ScanToSyncSetupGuide.tsx`) that asked users to install Syncthing-Fork, open settings, or copy API keys.
+   - Simplified `ScanToSyncStep` to `"scanner" | "confirm" | "progress"`. "Scan to sync" now opens immediately in camera scanner mode.
+   - Automatically starts the embedded Syncthing daemon in the background (`EmbeddedSyncthingBridge.start()`) whenever the scan modal opens or upon confirmation.
+   - Automatically sets the local device announcement name with the verification code (`<phone>-<code>`), registers the desktop peer, resolves the local vault path (`Paths.document.uri/vault` or active sandbox vault), and auto-accepts the offered folder upon approval.
+   - Triggers an immediate folder rescan via `/rest/db/scan` as soon as the folder is accepted.
+2. **"Sync Now" Button Disabled Logic Fix (`SyncSettingsPanel.tsx`)**:
+   - Resolved the bug where the "Sync Now" button was permanently disabled (`disabled={... || !isAuthenticated}`) when syncing via Syncthing or offline without Google Drive OAuth.
+   - Updated `handleSyncPress` to detect active sync engines: triggers Google Drive sync pass if authenticated and Syncthing immediate folder rescan via `mobileSyncthingTriggerScan` if running or embedded.
+   - The button now disables only during active syncing/busy states and properly re-enables once finished ("stops being disabled").
+   - Added friendly inline feedback if neither Google Drive nor Syncthing is active, explaining how to enable either engine.
+   - Added a dedicated "Sync Now" trigger in `MobileSyncthingPanel` when running.
+3. **Native Proxy Allowlist Update (`SyncthingRestAllowlist.kt`)**:
+   - Added `"/rest/db/scan"` to `ALLOWED_PREFIXES` so that manual "Sync Now" and automated pairing trigger calls pass through the native Kotlin HTTP proxy without security exceptions.
+4. **Verification & Testing (`scanToSyncAutoConfig.test.ts`, `SyncSettingsPanel.test.tsx`)**:
+   - All 56 sync tests passing across 11 test files (`pnpm --filter @app/mobile test sync/`).
+   - TypeScript typecheck passed with 0 errors (`pnpm --filter @app/mobile typecheck`).
+   - ESLint passed with 0 errors (`pnpm --filter @app/mobile lint`).
+   - All files strictly under 250 lines (soft cap 150-200 lines).
+
+---
+
+**Embedded Android Syncthing Daemon & Zero-Friction Scan-to-Sync (complete)**
+Embedded the Syncthing daemon directly inside the Expo mobile app (`apps/mobile/`), eliminating external app dependencies (no Syncthing-Fork required) and removing the prerequisite screen from the default onboarding flow:
+1. **Decisions & Architectural Tradeoffs Addressed**:
+   - *Vault Location*: Selected Option 1 (App-private storage `context.filesDir`). Both daemon and editor access files directly via local POSIX I/O with zero SAF overhead. Eliminates `MANAGE_EXTERNAL_STORAGE` Google Play rejection risk.
+   - *ABIs to Ship*: Packaged `arm64-v8a` (production devices: 26.24 MB uncompressed / 10.86 MB compressed) and `x86_64` (emulators/Chromebooks: 28.01 MB uncompressed / 11.53 MB compressed). Omitted armeabi-v7a (saving ~24 MB). AAB ABI splits ensure users download only their device slice (~10.8 MB download delta).
+   - *API Architecture*: Native Kotlin loopback HTTP proxy (`request(method, path, body)`) with strict prefix allowlist (`/rest/system/*`, `/rest/config/*`, `/rest/cluster/pending/*`, `/rest/db/completion`, `/rest/events`). Blocks dangerous paths (`/rest/system/shutdown`, `/rest/system/restart`). API key generated with `SecureRandom` on first boot, stored in private app prefs, and kept exclusively in native memory. Never reaches JS, logs, or error strings. No cleartext-HTTP network security config required.
+   - *Binary Provenance & Licensing*: Official pinned v2.1.6.0 release binaries verified via SHA-256 (`fetchAndroidSyncthing.mjs`). MPL-2.0 notice placed in `apps/mobile/LICENSES.md`.
+2. **Android 10+ W^X Execution Restriction Bypass**:
+   - Packaged executables as `jniLibs/<abi>/libsyncthing.so` with `useLegacyPackaging true`.
+   - Android Package Manager extracts the binary into `applicationInfo.nativeLibraryDir` with `r-xr-xr-x` permissions, executing cleanly without SELinux denials.
+3. **Android 14/15 Foreground Service Lifecycle (`SyncthingForegroundService.kt`)**:
+   - Declares `android:foregroundServiceType="dataSync"` and runs with persistent notification.
+   - Checks `POST_NOTIFICATIONS` runtime permission on Android 13+.
+   - Implements 3-strike crash loop backoff (halts restart if >= 3 crashes within 60s).
+   - Handles Android 15 cumulative 6-hour background quota through idle daemon stop and user-configurable `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` in-app exemption prompt.
+4. **User-Configurable Run Conditions (`SyncthingRunConditionsView.tsx`)**:
+   - UI toggles for Wi-Fi only, only while charging, and sync in background.
+   - In-app battery optimization exemption request with clear rationale.
+5. **Zero-Friction Scan-to-Sync Integration (`useScanToSync.ts`, `useMobileSyncthing.ts`, `MobileSyncthingPanel.tsx`)**:
+   - When embedded daemon is supported, "Scan to sync" opens directly in `"scanner"` mode, completely removing the "open or install Syncthing-Fork" and API key friction from the default flow.
+   - `handleConfirm` auto-starts the embedded daemon in background and pairs devices and folders seamlessly.
+   - Generates and displays offline QR code via native `getQrDataUri` using base64 data URIs.
+6. **Full Verification Passed (`verifyEmbeddedSyncthing.mjs` & Test Suite)**:
+   - Verified binary SHA-256 and 64-bit ELF PIE validity on both ABIs.
+   - Verified allowlist enforcement and API key zero-leakage.
+   - Verified 49 unit tests in `apps/mobile/sync/syncthing/` passing, 0 type errors, 0 ESLint errors. All files strictly under 250 lines (soft cap 150-200 lines).
+   - Documented in ADR-0202 and indexed in `DECISIONS.md`.
+
+---
+
+---
+
+**Syncthing QR Pairing Payload & One-Tap Confirmation (complete)**
+
+Replaced raw Device ID QR code with versioned compact pairing payload URI (`davincinotes://pair?d=<base64url>`) and streamlined connection acceptance:
+1. **Compact Pairing Payload Schema & Encoder (`@app/syncthing-api/pairing.ts`)**:
+   - Schema: `{ v: 1, id: <deviceId>, name: <deviceName>, folderId: <vault folder id>, folderLabel: <vault name>, code: <6-digit random code> }`.
+   - Compact RFC 4648 URL-safe base64 encoding without padding wrapped in `davincinotes://pair?d=<base64url>`.
+2. **Vault Pre-Registration in Rust Backend**:
+   - Added `syncthing_ensure_vault_registered` in Rust. Registers active vault with `.stignore` rules applied and `devices: [{ deviceID: my_id }]`. Never shares with unconfirmed peers upfront.
+   - Enhanced `syncthing_qr_png` to accept optional `text: Option<String>` query param with RFC 3986 percent encoding fallback to device ID.
+3. **Preservation of Raw Device ID**:
+   - Monospace Device ID card remains permanently visible with Copy button for generic Syncthing clients and manual text paste.
+4. **5-Minute Pairing Window & Rotation (`useSyncthingPairing.ts`, `SyncthingQrPairingSection.tsx`)**:
+   - Displays "Waiting for phone..." with live countdown timer (`05:00`). Rotates to a new random 6-digit code and refreshes QR when window expires.
+5. **Pending Connection Handling & One-Tap Confirmation (`SyncthingPendingSection.tsx`, `SyncthingPendingDeviceRow.tsx`)**:
+   - Matching code: Prominent highlighted "Accept & Share" button with verified badge.
+   - Missing/wrong code: Warning banner + explicit confirmation step ("Accept unverified device?").
+   - Expired window: Expired badge, not highlighted.
+   - Accept automatically shares active vault folder via `syncthingShareVaultFolder`.
+   - Decline safely invokes `syncthingDismissPendingDevice`: 0 devices added, 0 folders shared.
+   - Flagged decision: Recommended and adopted always one-tap confirm (never auto-accept) for defense-in-depth against LAN eavesdroppers.
+6. **Full Verification Suite Passed**:
+   - Verification 1: OpenCV generic QR scanner decoded exact PNG image and extracted identical JSON payload.
+   - Verification 2: All 4 matching/warning states verified.
+   - Verification 3: Declined request verified 0 added devices and 0 shared folders.
+   - All 128 Vitest test suites (499 tests) and all 20 Cargo tests pass; ESLint 0 errors; all files under line caps.
+   - Documented in ADR-0200 and indexed in `DECISIONS.md`.
+
+---
+
+**Syncthing Binary Bundling & Process Lifecycle Management (complete)**
+Shipped official Syncthing v2.1.6 binary bundling and full process lifecycle management in Rust (`std::process` / `tokio`) with zero new runtime dependencies:
+1. **Official Release Binary Build Step**:
+   - `apps/desktop/scripts/fetchSyncthing.mjs` fetches official v2.1.6 archive per target triple, verifies SHA-256 against published checksums, extracts binary, and installs to `src-tauri/binaries/syncthing-<target-triple>[.exe]` per Tauri `externalBin` specs.
+   - Pinned v2.1.6, added MPL-2.0 notice and attribution to `LICENSES.md` and `apps/desktop/LICENSES.md`.
+2. **Process & Config Isolation**:
+   - Runs with isolated `--home=<app_data>/syncthing`, dynamic random localhost port (`127.0.0.1:<port>`), `--no-browser`, `--no-upgrade`, `--no-restart`, `--log-file=-`, and `STNORESTART=1` / `STNOUPGRADE=1`.
+   - Automatically strips any generated default folders from `config.xml` to guarantee 0 default sync folders.
+3. **API Key Generation & Redaction**:
+   - Generates 32-character random alphanumeric key on first run, passes strictly via `--gui-apikey`, stores in OS Keychain with 0600 `.api_key` fallback file.
+   - Redacted from all webview IPC structs, logs, stdout/stderr streams, and error strings.
+4. **Lifecycle Control & Crash Recovery**:
+   - `syncthing_start()`, `syncthing_stop()`, `syncthing_restart()`, `syncthing_lifecycle_status()`, and `syncthing://status` events.
+   - Lazy startup: only starts when sync is enabled, never on app boot.
+   - Graceful REST shutdown with SIGKILL fallback; hooks window close and clean quit.
+   - Orphan recovery: `syncthing.pid` file + port check finds and reuses responsive orphan or kills stale process without duplicate spawn. Windows `CREATE_NO_WINDOW` and Job Object kill-on-close.
+   - Crash loop guard: backs off and halts after 3 crashes in 60s, keeping last 40 lines in ring buffer for UI display.
+5. **UI & Empty State Refresh**:
+   - `SyncthingPanel.tsx` updated: removed "start from terminal" copy, added status indicator, Start/Stop/Restart buttons, "Start Syncthing automatically when sync is on" toggle, and crash log drawer.
+6. **All 7 Verification Requirements Tested & Passing**:
+   - Test 1 (Fresh machine): Starts on dynamic port, valid 56-char Device ID, 0 default folders.
+   - Test 2 (Port 8384 clash guard): Runs simultaneously with external Syncthing on 8384; distinct Device IDs.
+   - Test 3 (Clean quit): REST shutdown terminates child cleanly; 0 lingering processes.
+   - Test 4 (Force-kill orphan recovery): Recovers running orphan without duplicate process.
+   - Test 5 (Corrupt config): Catches invalid XML failure cleanly with error output; recovers upon valid config.
+   - Test 6 (API key secrecy): Forced HTTP 403 error and log streams verified 0 occurrences of secret key.
+   - Test 7 (Installer size): DMG size before bundling: ~10 MB; DMG size after bundling: 21 MB (only ~11 MB net compressed addition).
+7. **ADR & Code Quality**:
+   - Documented in ADR-0199 and indexed in `DECISIONS.md`.
+   - All 20 Syncthing Cargo tests pass; all 18 Vitest tests pass; ESLint passes with 0 errors; all files under 250 lines.
+
+---
+
+=======
 ## Last Session — Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass (FINAL PHASE OF WEB CLIPPER)
 
 **Scope:** Complete the final phase (Phase 8) of `plans/web-clipper/web-clipper-feature-plan.md` — multi-target packaging scripts & zipped artifacts for Chrome, Edge, and Firefox; security and permission audit (minimal permissions, zero eval/new-Function, zero remote CDN scripts); zero Cargo dependency overhead verification; ADR status promotion (ADR-0173 through ADR-0180 Accepted); comprehensive user documentation (`docs/web-clipper.md`); store listing copy & permission justifications (`apps/web-clipper/STORE_LISTINGS.md`); and full test matrix verification.
@@ -1062,6 +1200,7 @@ session) — see the plan §12.
   - `calendarClient.ts`: Lightweight, zero-dependency `fetch` REST client for `listCalendars` and `listEvents` (supporting `syncToken` delta queries and error typing for 401 Auth Expired, 410 SyncToken Expired, and 4xx/5xx).
   - All 13 unit tests pass; 0 ESLint boundaries/typecheck errors; all files under 160 lines (enforcing soft cap 200).
 
+>>>>>>> main
 **Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (complete)**
 Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem:
 1. **Scenario 1 — Desktop -> Phone CRUD (PASS, 6,562ms)**:

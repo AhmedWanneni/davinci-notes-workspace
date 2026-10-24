@@ -36,6 +36,32 @@ pub struct SyncthingPendingFolder {
   pub time: String,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum SyncthingLifecycleState {
+  Starting,
+  Running,
+  Stopped,
+  Crashed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncthingLifecycleStatus {
+  pub state: SyncthingLifecycleState,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub reason: Option<String>,
+  #[serde(rename = "guiAddress", skip_serializing_if = "Option::is_none")]
+  pub gui_address: Option<String>,
+  #[serde(rename = "deviceId", skip_serializing_if = "Option::is_none")]
+  pub device_id: Option<String>,
+  #[serde(rename = "deviceName", skip_serializing_if = "Option::is_none")]
+  pub device_name: Option<String>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub version: Option<String>,
+  #[serde(rename = "lastLogs", skip_serializing_if = "Option::is_none")]
+  pub last_logs: Option<Vec<String>>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SyncthingError {
   NotInstalled,
@@ -128,4 +154,27 @@ pub fn to_base64(bytes: &[u8]) -> String {
     }
   }
   result
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SyncthingVaultFolderInfo {
+  #[serde(rename = "folderId")]
+  pub folder_id: String,
+  #[serde(rename = "folderLabel")]
+  pub folder_label: String,
+}
+
+pub fn percent_encode(s: &str) -> String {
+  let mut encoded = String::with_capacity(s.len() * 3);
+  for byte in s.bytes() {
+    match byte {
+      b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+        encoded.push(byte as char);
+      }
+      _ => {
+        encoded.push_str(&format!("%{:02X}", byte));
+      }
+    }
+  }
+  encoded
 }
