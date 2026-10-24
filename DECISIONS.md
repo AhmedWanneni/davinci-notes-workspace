@@ -268,6 +268,29 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0183](adr/0183-rust-reminder-scheduler-and-notifications.md) | Rust reminder scheduler, device-local notification state, and background lifecycle | Accepted |
 | [0184](adr/0184-reminder-recurrence-syntax-and-completion-model.md) | Reminder recurrence syntax, due-date anchoring, and in-place completion model | Accepted |
 
+## Web Clipper (planned)
+
+Draft ADRs for the Web Clipper feature. All are **Proposed** — they need owner
+input on the open decisions before implementation is considered settled. Phase 1
+(`packages/clipper-core`), Phase 2a (the `apps/web-clipper` capture → payload
+pipeline), Phase 2b (the React popup on the design system) and Phase 3 part 1 (the
+Rust receiver core — validation, auth, loopback listener, webview handshake; the
+listener is inert until a later Settings UI calls `clipper_enable`) are already
+implemented against these drafts; none is accepted until the owner answers the open
+decisions. Plan: `web-clipper-feature-plan.md`. See ADR-0173 ("Open decisions") for
+the list.
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0173](adr/0173-clipper-transport-extension-to-desktop.md) | Clipper transport: clip payload over loopback with a per-install keychain token (loopback-only bind, exact-Host/Origin checks, 2 MiB cap). **Phase 0 verification: the deep-link leg is deferred** — `tauri-plugin-deep-link` needs Rust ≥ 1.90 against the declared `1.77.2` (2.4.10 is the last 1.77.2-compatible release) and macOS schemes are install-time only, for a launch convenience ADR-0178's queue already covers; loopback-only + manual pairing is the path built. Native Messaging deferred. **Phase 3 part 3 built the extension half**: `postClipToDesktop` posts the payload with the bearer token, maps every refusal to the app's own error vocabulary and never throws; the port+token live in one `clipper.pairing` storage entry read as unpaired when malformed; the extension holds its only host permission, `http://127.0.0.1/*`, so the app needs no CORS handling; the extension's new options page shows and edits the pairing | Accepted |
+| [0174](adr/0174-clipper-content-extraction-and-markdown-libraries.md) | Content extraction + HTML→Markdown: Defuddle **core** (MIT, `useAsync:false`, synchronous `parse()`) + Turndown/turndown-plugin-gfm — measured 99.6 KB gzip vs 218 KB for `defuddle/full`, because core has no Markdown converter; Readability+Turndown (~16 KB gzip) is the fallback | Accepted |
+| [0175](adr/0175-clipper-extension-framework-and-core-package.md) | Extension at `apps/web-clipper` built with WXT (MV3, Chromium first); shared pure-TS `packages/clipper-core`; new `clipper-core`/`web-clipper` boundaries elements | Accepted |
+| [0176](adr/0176-clipper-template-engine-execution-split.md) | Template engine split: extension resolves page variables and renders body/properties; desktop resolves vault context, behavior and paths; templates are data only (no eval); one `ClipPayload` schema | Accepted |
+| [0177](adr/0177-clipper-vault-write-path.md) | Clipped notes write through the canonical vault write path — Rust authenticates/validates then the main webview calls `createNoteInVault` for `create` and `appendToNoteInVault(path, body, position)` for append/prepend (which reuses `writeAndIndexNote`, so the clip gets atomicity, the disk tracker, dirty-clearing, `withDbLock`/`withDbTransaction` indexing and history — serialized by `queuePerPath`); no extension-side or Rust-side direct write. Implemented in Phase 3 part 2: `create` takes a numeric suffix rather than overwriting, appends carry the body only (never a second frontmatter block), a `top` insert lands after any leading frontmatter, the note's EOL is preserved and the seam becomes one blank line, an open note's buffer wins and a missing note is created — and an unexpected write failure is reported as `app-busy` so ADR-0178's queue retries it. No cold-start buffer: a clip arriving before the webview listens is `app-busy` too | Accepted |
+| [0178](adr/0178-clipper-closed-app-queue.md) | Closed-app clips queue in extension storage (bounded to 200 clips / 5 MiB / 30-day expiry, oldest-first eviction) and drain event-driven (no timers) on startup, install, popup open, and user action. Desktop dedupe ledger (`davinci-clipper-ledger.json`, 500 entries) rejects duplicates on `clipId` or identical `(contentHash, relativePath)` | Accepted |
+| [0179](adr/0179-clipper-popup-data-flow.md) | Popup data flow: preparation (`prepareClipContext`: page+mode) split from rendering (`renderClipPayload`: template) so a template change does not re-extract, with the one-shot compositions deleted; edit fields show a raw `ClipDraft` while the written `ClipPayload` is the sanitised result; list-valued properties shown but not editable; `contentHash` untouched by edits | Accepted |
+| [0180](adr/0180-clipper-receiver-validation-and-lifecycle.md) | Receiver core: the desktop **re-validates and rejects** rather than re-sanitising (a `folder`/`noteName` that is not already the fixed point of `safeName`/`normalizeFolder` is `invalid-path`); 413/`too-large` for size/count breaches vs 422/`invalid-path`/`invalid-payload` for shape; `Host` must be exactly `127.0.0.1:<port>` and a present `Origin` must be an extension origin (token is the real boundary, no CORS headers); the listener is inert until enabled and stops by waking `accept()` with one throwaway connection (no poll); Rust asks the webview and blocks on a 20 s `clipId`-keyed handshake; `constant_time_eq` + `getrandom` are re-used from the existing tree (zero binary delta) | Accepted |
+
 ## Mobile Shell
 
 | ADR | Decision | Status |

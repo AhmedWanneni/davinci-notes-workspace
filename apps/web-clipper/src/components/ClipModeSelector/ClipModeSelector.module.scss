@@ -1,0 +1,22 @@
+.mode-selector {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mode-selector__option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+
+  &[data-disabled="true"] {
+    opacity: 0.6;
+  }
+}
+
+.mode-selector__label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  cursor: pointer;
+}

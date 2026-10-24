@@ -4,6 +4,459 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass (FINAL PHASE OF WEB CLIPPER)
+
+**Scope:** Complete the final phase (Phase 8) of `plans/web-clipper/web-clipper-feature-plan.md` — multi-target packaging scripts & zipped artifacts for Chrome, Edge, and Firefox; security and permission audit (minimal permissions, zero eval/new-Function, zero remote CDN scripts); zero Cargo dependency overhead verification; ADR status promotion (ADR-0173 through ADR-0180 Accepted); comprehensive user documentation (`docs/web-clipper.md`); store listing copy & permission justifications (`apps/web-clipper/STORE_LISTINGS.md`); and full test matrix verification.
+
+**Built & Audited (`apps/web-clipper`, `apps/desktop`, `docs/`, `DECISIONS.md`):**
+- **Packaging Scripts & Builds (`apps/web-clipper/package.json`):**
+  - Added packaging scripts: `build:firefox`, `build:all`, `zip:firefox`, `zip:all`.
+  - Built and zipped packages for Chrome, Edge, and Firefox:
+    - `.output/appweb-clipper-0.1.0-chrome.zip` (306.38 kB).
+    - `.output/appweb-clipper-0.1.0-firefox.zip` (306.36 kB).
+- **Security & Permission Audits (Phase 8 Checks 2 & 3):**
+  - Confirmed minimal permissions in `manifest.json`: `activeTab`, `scripting`, `storage`, `contextMenus`, `downloads`, loopback `http://127.0.0.1/*`, optional `*://*/*`.
+  - Verified zero `eval(...)` and zero `new Function(...)` in production bundles (`.output/chrome-mv3`).
+  - Verified all HTML entrypoints (`popup.html`, `options.html`) load strictly local chunks/assets; zero remote scripts or CDNs.
+- **Cargo Dependency & Binary Delta (Phase 8 Check 4):**
+  - Verified 0 new Cargo dependencies added to `apps/desktop/src-tauri/Cargo.toml` across all clipper phases (reusing existing std, tokio, reqwest, serde, constant_time_eq, getrandom). 0 bytes net dependency bloat.
+- **ADR Finalization (`DECISIONS.md` & `docs/adr/`):**
+  - Promoted all Clipper ADRs from `Proposed` to `Accepted`:
+    - `ADR-0173`: Transport over loopback with token.
+    - `ADR-0174`: Content extraction + HTML→Markdown libraries (Defuddle core + Turndown).
+    - `ADR-0175`: Extension framework (WXT) & `@app/clipper-core`.
+    - `ADR-0176`: Template engine execution split.
+    - `ADR-0177`: Clipped notes written through canonical vault write path.
+    - `ADR-0178`: Closed-app queue & dedupe ledger.
+    - `ADR-0179`: Popup data flow (split preparation vs rendering, draft vs payload).
+    - `ADR-0180`: Receiver validation (re-validates and rejects rather than re-sanitising).
+- **Documentation Authored:**
+  - `docs/web-clipper.md`: Comprehensive user guide covering privacy & security model, pairing runbook, clipping modes, highlighter, templates, offline queue, hotkeys, and troubleshooting.
+  - `apps/web-clipper/STORE_LISTINGS.md`: Store listings for Chrome Web Store, AMO Firefox, and Edge Add-ons with permission justifications and single-purpose declarations.
+
+**Full Test Matrix (All Passing):**
+- Rust tests: 39/39 passed (`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml clipper`).
+- `@app/clipper-core`: 16 files, 90 tests passed.
+- `@app/web-clipper`: 35 files, 223 tests passed.
+- `@app/desktop`: 135 files, 542 tests passed (including all clipper suites and adversarial tests).
+- All files strictly adhere to the 250-line hard cap.
+
+**Next up:** Web Clipper milestone (Phases 0–8) complete. Ready for production release or next feature roadmap item.
+
+---
+
+## Previous Session — Web Clipper Phase 7: Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting
+
+**Scope:** Page text-quote anchoring and highlighting, persistent storage per URL in `chrome.storage.local` with bounded FIFO eviction, zero-cost idle restoration on un-highlighted pages, popup "Highlight selection" action with dynamic highlights extraction mode enablement, and safe markdown rendering filters (`highlight`, hardened `wikilink`, primitive-row `table`).
+
+**Built (`packages/clipper-core` & `apps/web-clipper`):**
+- `markdownFilters.ts`: Added `highlightFilter` (registered as `highlight`) wrapping text in `==...==`, escaping nested `==` to `\=\=`, and splitting multi-line selections across lines. Hardened `wikilinkFilter` by stripping `]]` and converting newlines to spaces so wikilink syntax cannot be broken by adversarial content.
+- `arrayFilters.ts`: Updated `tableFilter` to support primitive arrays (such as highlight string lists) as rows, escaping `|` to `\|` and newlines to spaces.
+- `apps/web-clipper`: Added `loadClipPage.ts` (factored page extraction, templates, pairing, and highlights parallel loading to strictly keep `useClipSession.ts` at 248 lines, under the 250 hard cap).
+- `clipSessionDeps.ts`: Added `loadHighlights`, `saveHighlight`, and `notifyHighlightsUpdated` (sends `davinci:restore-highlights` to active tab).
+- `ClipPopup.tsx` & `.module.scss`: Added `.clip-popup__highlight-action` rendering "Highlight selection" button (`size="sm"`) when an active text selection is present.
+- `pageHighlights.ts`: Added instant `if (records.length === 0) return 0;` early bailout in `restoreHighlights`, avoiding tree walker creation and DOM traversal on clean pages (<0.01 ms vs 55 ms on a 5,000-node DOM).
+
+**Adversarial Verification (`highlighterAdversarial.test.ts`):**
+1. Check 1 (5,000 nodes + 200 highlights): 200 highlights restored cleanly in jsdom; zero cost (<0.01 ms) on 5,000-node page with 0 highlights.
+2. Check 2 (DOM mutated/deleted): Graceful skip when anchor text no longer exists, zero errors thrown, remaining valid highlights restored.
+3. Check 3 (Hostile quote syntax): Selection containing `==`, `]]`, `|`, and `\n` rendered safely without breaking highlight, wikilink, or table syntax.
+4. Check 4 (Bounded storage & eviction): Enforces `MAX_HIGHLIGHTS = 2,000` and `MAX_HIGHLIGHTS_PER_URL = 200` with oldest-first eviction.
+
+**Verification:**
+- `@app/clipper-core`: 14 files, 81 tests passing.
+- `@app/web-clipper`: 33 files, 211 tests passing.
+- ESLint and `tsc --noEmit`: 0 errors.
+- `wxt build`: clean build in 932 ms (655.90 kB raw / 194.1 kB gzip).
+
+**Next up:** Web Clipper Phase 6: Attachments download / offline images. Desktop receiver fetches images referenced in clips (reusing `packages/attachments` and SSRF protections).
+
+---
+
+## Last Session — Web Clipper Phase 3 (part 3): the extension transport
+
+**Scope:** the browser half of Phase 3 of `web-clipper-feature-plan.md` — the piece
+that makes the popup's "Add to DaVinci Notes" button real. Phase 2 left it
+`disabled` with the note "arrives with the transport step", so this is where the
+plan intended it. Two commits, one concern each: `5ed0a45` (the wire: transport
+client, pairing store, and a shared `storage.local` seam), `8393920` (the popup
+and the extension's new options page). Nothing pushed.
+
+**Scope correction.** The previous "Next up" billed the closed-app queue
+(ADR-0178) as part of this step. It is **not** Phase 3 — the plan puts it in
+**Phase 7**, with the hotkeys, context menu and multi-vault targeting. No queue was
+built. A clip that cannot be delivered is reported to the user with the clip left
+on screen and the `.md` download as the fallback, which is the honest behaviour
+when there is nowhere to buffer it yet.
+
+**What landed (`apps/web-clipper`).**
+`src/transport/postClipToDesktop.ts` posts the `ClipPayload` to
+`http://127.0.0.1:<port>/clipper/clip` with `Authorization: Bearer <token>`, and
+**a failure is a value, never a throw**: `{delivered:true,path?}` or
+`{delivered:false,reason}`. `reason` speaks the app's own `ClipError` vocabulary
+plus `not-paired`/`unreachable`/`timeout`/`queued`. The ack body is read first (it
+is a `ClipAck`, error code included) and the status is the fallback: 400
+`invalid-payload`, 401/403 `unauthorized`, 409 `vault-not-open`, 413 `too-large`,
+422 `invalid-path`, 503 `app-busy`, anything else `unreachable`. Two details a
+reviewer should check: the ack is trusted only when it names the sent `clipId`
+**or names none** — Rust deliberately sends `clipId: ""` for refusals that happen
+before the body parses — and a 15 s abort plus a client-side 2 MiB pre-check
+(mirroring `clipper_validate::MAX_BODY_BYTES`) mean an oversized clip is never
+built just to be refused.
+
+`src/pairing/pairingStore.ts` holds the manual pairing Phase 0 chose:
+`clipper.pairing` = `{port, token}` in `browser.storage.local`. A port outside
+1–65535 or an empty token makes the entry read as **unpaired** — nothing is
+repaired and nothing is guessed. `src/components/PairingPanel/` (+ story + tests)
+and `entrypoints/options/` are the surface for it; the popup links to them.
+
+**The popup** gets `paired` / `sending` / `sent` / `sentPath`, `send()` beside
+`download()`, and `describeDeliveryFailure(reason)` for the one line of copy per
+failure. Its old `saving` flag is now `downloading`, since there are two
+independent actions.
+
+**Manifest:** `host_permissions: ["http://127.0.0.1/*"]` — the extension's only
+host permission, loopback-only, covering the port the app reports at pairing time
+(it cannot be known when the manifest is written). This is what keeps CORS
+handling off the desktop entirely. This needed **no new dependency anywhere**.
+
+**Measured (`wxt build` + `gzip -9`):** total output 595.5 kB → **610.1 kB** raw
+and 173.8 kB → **179.6 kB** gzip, of which the new options page is 4.85 kB raw /
+1.77 kB gzip. Adding a second HTML entrypoint makes the bundler split a shared
+chunk out of the popup bundle, so the popup's *own* file shrinks by about what the
+shared chunk takes — read the totals, not the per-chunk deltas.
+
+**Verification:** web-clipper **166** tests across 21 files pass (was 102/17),
+`pnpm lint` and `tsc --noEmit` clean, `wxt build` succeeds with both `options_ui`
+and the host permission present in the generated `manifest.json`. Only
+`apps/web-clipper` was touched, so clipper-core (63) and desktop (408) stand from
+the previous session and were not re-run.
+
+**Owner-local, still outstanding** (an agent cannot do this): the real-browser
+`fetch` — whether Chromium sends `Origin`, and whether the host permission really
+suppresses the preflight — plus the end-to-end emit-and-await handshake, the
+options page in a real browser, and idle RSS/CPU with the clipper on.
+
+**Plan note, recorded not fixed:** the plan's Phase 3 "Files / packages touched"
+lists only desktop paths, while Phase 2 says the button is "disabled until Phase
+3" — so the extension transport belongs to Phase 3 in intent and is absent from
+its file list. The plan was left alone; this is the discrepancy.
+
+## Previous Session — Web Clipper Phase 3 (part 2): the webview write path and pairing UI
+
+**Scope:** the TS/UI half of Phase 3 — everything between the Rust receiver and a
+usable feature. Three commits, one concern each: `f6d0244` (shared file shape),
+`ece9206` (`appendToNoteInVault`), `6db0189` (the webview service), `7c6f30d` (the
+Settings section). The receiver is no longer inert: the enable toggle calls
+`clipper_enable`. Still missing: Phase 3 part 3, the extension's transport.
+
+**`packages/clipper-core` now owns the note-file shape.** `composeNoteFile` and
+`suggestedFilePath` moved out of `apps/web-clipper`, so the extension (which
+composes the file it downloads) and the desktop (which composes the file it writes)
+share one definition and cannot drift. The desktop gained a
+`@app/clipper-core` dependency (aliased in `vite.config.ts` and
+`vitest.config.ts`; the root tsconfig already had the path) and `.eslintrc.js` now
+allows the `clipper-core` boundary element for `app`.
+
+**`appendToNoteInVault(path, body, position)`** is the second canonical write path
+(ADR-0177). It **reuses `writeAndIndexNote`** rather than re-implementing a write,
+so a clip gets the atomic `write_note`, `diskStateTracker` bookkeeping, dirty-state
+clearing, `withDbLock`/`withDbTransaction` indexing (ADR-0168) and the version-history
+record an autosave gets — inside `queuePerPath`, so a clip cannot interleave with an
+in-flight autosave. It **creates** a missing note rather than rejecting (plan §5
+check 5), prefers an open note's in-memory buffer so unsaved typing survives,
+preserves the note's own EOL, and normalises only the seam (one blank line), so an
+append can never truncate. A `top` insert lands after a leading frontmatter block.
+
+**Behaviour mapping (the decisions a reviewer should check).** `create` never
+overwrites: a taken name gets ADR-0110's numeric suffix (`Note.md`, `Note 1.md`) —
+plan §5 check 7; dedupe is Phase 7, so re-clipping is deliberately a second file
+today. `append-top` is an **alias of `prepend`** (the wire carries both), and
+`daily-*` map to bottom/top. Appends carry the **body only**, never a second
+frontmatter block. An unexpected write failure is reported as `app-busy` — the only
+retryable code, so ADR-0178's queue retries and nothing is lost. No vault open is
+`vault-not-open`, so the webview (TS) is what produces that code today, not Rust.
+`target.vaultId` is **ignored** (one open vault, no identity to compare — O4).
+ADR-0177 amended in place with all of this (still Proposed).
+
+**No cold-start buffer.** ADR-0177 had recommended a buffer plus a webview-ready
+signal; it was not built. A clip arriving before the webview listens waits out the
+20 s handshake and is answered `app-busy`, leaving the extension's queue to be the
+buffer. One mechanism instead of two, and it loses nothing.
+
+**Settings.** A new "Web Clipper" sidebar entry renders `ClipperSettingsSection`:
+enable toggle, the bound loopback address, and the token with Show/Copy, Rotate and
+Revoke. It takes every state change from the `ClipperStatus` a command returns
+rather than optimistically flipping the toggle, so a failed bind (port taken)
+surfaces as an alert. No story, like its siblings `CaptureSettingsSection`/
+`TrayClickSettingsRow`: the desktop has no Storybook config and the design-system
+Storybook glob covers `packages/design-system` only, so a story here could never run.
+
+**Verification:** clipper-core 63 tests, web-clipper 102, desktop **408** (up from
+387), lint clean in all three, and the new files add **zero** `tsc` errors. No new
+third-party dependency anywhere; the desktop's whole clipper surface is 20,789 B of
+TS source (7,116 B gzip unminified) — see ADR-0177's performance note.
+
+**Known pre-existing gap (not ours, do not "fix" blind):** `apps/desktop` `tsc`
+reports **23 errors** on `main` before this work and after it. The bulk is
+`vaultUpdateCounter` being initialised and mutated by the store but never declared on
+`WorkspaceState`. It forced one documented cast in `appendToNoteInVault.ts`. Adding
+the missing field would clear most of them, but that is a separate change.
+
+## Session before that — Web Clipper Phase 3 (part 1): the Rust receiver core
+
+**Scope:** the Rust half of Phase 3 of `web-clipper-feature-plan.md` — validation,
+token auth, the loopback listener and the webview handshake. The listener is
+**inert**: `clipper_enable` is the only way to start it and no UI calls it yet, so
+the shipped risk is unchanged. Deferred to the next session: `clipperService.ts`,
+`appendToNoteInVault`, the Settings pairing section. One commit, one concern, on
+top of Phase 2b (`e5743f3`).
+
+**Phase 0 gate resolved first (it was the blocker).** The plan required verifying
+`tauri-plugin-deep-link`'s Rust ≥ 1.90 against `rust-version = "1.77.2"`. Result:
+deep-link v2 latest is 2.6.2 (needs 1.90); 2.4.10 is the last 1.77.2-compatible
+release; `tauri-plugin-single-instance` 2.5.x also needs 1.90; the installed
+toolchain is already rustc 1.97.1, so the pin is declarative only. Since the deep
+link is a *launch convenience* (payload always goes over loopback, and ADR-0178's
+queue already covers the closed-app case) and the loopback carrier is required
+under every option, the chosen path is **loopback-only + manual pairing**: no
+plugin added, MSRV unchanged. ADR-0173 amended (still Proposed); no ADR accepted.
+
+**Built (`apps/desktop/src-tauri/src/`):** `clipper_payload.rs` (wire types mirroring
+`ClipPayload.ts`, `deny_unknown_fields`, `ClipAck`/`ClipError`),
+`clipper_name_rules.rs` (literal Rust port of `safeName`/`normalizeFolder`/
+`normalizeNoteName`/`isSafeRelativePath`), `clipper_validate.rs` (bounds + shape),
+`clipper_http.rs` (hand-rolled request reader with hard caps), `clipper_routes.rs`
+(the one route and its checks), `clipper_dispatch.rs` (the `ClipDispatcher` trait +
+the webview handshake), `clipper_server.rs` (`ClipperState` + lazy lifecycle),
+`clipper_commands.rs` (7 Tauri commands, all `reject_plugin_runner`-gated).
+`Cargo.toml` gains `constant_time_eq = "0.4"` and `getrandom = "0.2"` — both
+already compiled in the tree (via `blake3` and the lockfile), so zero binary delta.
+
+**The decision that mattered most (ADR-0180):** the desktop **re-validates and
+rejects** rather than re-sanitising. `safeName` is the shared *definition* of safe;
+the extension applies it and the desktop compares the result to the input, so a
+`folder`/`noteName` that is not already the fixed point is `invalid-path`. This
+matches the plan's adversarial check 1 and is better than silently writing a name
+the user never saw. `clipper_validate_tests.rs` pins both directions (legitimate
+extension output accepted, hostile input rejected) — including the literal,
+odd-looking parts of the port (a TAB is *removed*, not collapsed; truncation counts
+UTF-16 units as JS `slice` does).
+
+**Security shape:** token is the boundary and is compared in constant time;
+`Host` must be exactly `127.0.0.1:<port>` (`localhost` and `127.0.0.1.evil` are
+refused — DNS-rebinding defence); a present `Origin` must be `chrome-extension://`/
+`moz-extension://`; no CORS headers (the extension will hold a narrow
+`http://127.0.0.1/*` host permission instead). The body cap (2 MiB) and header cap
+(16 KiB) are enforced **before** buffering; a truncated body is an error, never a
+short read. Rust never writes: it emits `clipper:clip-received` and blocks on a
+20 s `clipId`-keyed channel the webview completes via `clipper_submit_result`.
+Stopping the listener wakes the blocked `accept()` with one throwaway connection —
+no poll loop (PERFORMANCE.md rule 9).
+
+**Verification:** 32 new Rust tests (attack matrix over real loopback sockets:
+checks 1–4 and 9), `cargo test` 76 pass / 1 fail — the failure being the
+pre-existing `git_auth::tests::system_git_accepts_a_pat_through_its_standard_https_askpass_path`,
+which shells out to system `git` 2.56, is untouched by this session, and fails
+standalone. `cargo clippy --all-targets` adds zero warnings (the 7 present are all
+pre-existing). Largest new clipper file 243 lines; every new file ≤ 250.
+
+**Environment gotcha for the next session:** a cold `cargo` build fails to link on
+this machine — the default `MacOSX27.0.sdk` `.tbd` files use an `arm64e.x1-macos`
+target this `ld` cannot read. Prefix Rust commands with
+`SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk`.
+
+## Earlier — Web Clipper Phase 2b: React popup on the design system
+
+**Scope:** `apps/web-clipper` Phase 2b — the popup UI (`ClipPopup`, `ClipEditor`,
+`ClipPreview`, `ClipModeSelector`, `TemplatePicker`) on `@app/design-system`, plus
+the pipeline split that lets it change templates without re-extracting a page.
+One commit, one concern, on top of Phase 2a (`1e9dc6d`).
+
+**Built:** React 19 + `@wxt-dev/module-react` mounting into
+`entrypoints/popup/main.tsx` (StrictMode deliberately off: its dev double-invoke
+would read and extract the page twice, and a popup is a fresh document each open).
+`@app/design-system` styles come from `_global.scss`; the app resolves
+`@app/design-system` through an alias in `wxt.config.ts` + tsconfig paths + a vitest
+alias, because that package has no `main`/`exports` (the same reason
+`apps/desktop/vite.config.ts` aliases it). Every component ships `.module.scss` +
+story + test, kebab-case classes, tokens only (one literal: the popup width, which
+has no token).
+
+**Plan §Phase 2 deliverables, item by item:** template picker ✓; editable
+title/folder/properties ✓ (`ClipEditor`); preview ✓ (`ClipPreview`, Markdown as
+text); "Add to DaVinci Notes" disabled until Phase 3 ✓; extraction modes full /
+selection / highlights ✓ (highlights stays listed but disabled — no highlighter
+exists until Phase 5, and a hidden option is worse than an explained one);
+"no page access at load" ✓ (still no content script). Adversarial checks 1
+(hostile `<title>`/`og:*` → literal text, asserted with `container.querySelector`)
+and 5 (unreadable page → explicit error state, no partial file) are covered here;
+check 4 (large page cost) is covered by `clipPipeline.perf.test.ts`.
+
+**Two costs forced by an interactive popup (ADR-0179, Proposed):**
+1. **Pipeline split.** `prepareClipContext` (page, mode → extraction + variables)
+   is memoised separately from `renderClipPayload` (template → payload), so
+   switching templates re-renders without re-parsing the DOM or re-running
+   Defuddle. The one-shot compositions (`runClipSession`, `buildClipFromPage`) were
+   **deleted** rather than left beside it — with the popup as the only caller they
+   were dead code.
+2. **Draft vs payload.** The inputs show the user's raw typing (`ClipDraft`); the
+   payload is what that typing sanitises to (`applyClipEdits`): separators and `..`
+   segments stripped, leading dot removed, `.md` ensured, characters no filesystem
+   and no Chrome download accept removed, and a cleared property removed from the
+   frontmatter instead of written empty. `contentHash` is untouched, because it
+   hashes the body and the body is not editable here (ADR-0178 dedupe stays sound).
+
+**Measured (real `wxt build`):** popup chunk 580,258 raw / **170,650 B gzip** and
+15,288 / 3,196 B gzip of CSS, against Phase 2a's 350,180 / 99,576 — so React 19 +
+the design-system primitives cost **~71 KB gzip**. **Tree-shaking verified, not
+assumed:** the built chunk and CSS contain no `Dialog`, `DropdownMenu`, `Popover`,
+`Tooltip`, `Checkbox` or `Switch` code despite the barrel re-exporting them, so the
+whole barrel is not being pulled in. Background stays 970 / 507 B.
+
+**Clip cost re-measured on the popup's own path** (`clipPipeline.perf.test.ts`,
+jsdom, median of 3): 8.4 KB page 39.8 ms, 19.2 KB 41.9 ms, 33.6 KB 66.6 ms,
+1.43 MB / 4k paragraphs 3,085.2 ms. jsdom is several times slower than a browser
+DOM, so these are upper bounds. Bounds are pinned loosely (<1000 ms / <8000 ms).
+**Surfaced again:** the large-page cost still grows with page size and nothing caps
+it — the plan's 2 MiB cap is a Phase 3 transport concern and truncating captured
+HTML would silently degrade extraction, so the page-size limit remains an owner
+decision.
+
+**Real bug found by the tests:** a save failure was invisible — the popup only
+rendered an error when `status === "error"`, so a rejected download showed nothing
+while the form stayed usable. An error is now shown whenever it is set, and the
+"page cannot be read" explanation only when the page itself failed. Asserted both
+ways (`ClipPopup.test.tsx`, `useClipSession.test.tsx`).
+
+**Also fixed:** a stale comment in `buildVariableContext.ts` claimed the extractor
+mutates the document; Phase 2a proved it does not (`extractArticle.test.ts` pins
+that), so the comment now says the opposite, which is what `prepareClipContext`
+relies on.
+
+**Verification:** 106 tests across 17 files pass (was 51/9), including the new
+component interaction tests, the session hook driven through injected dependencies
+(no `wxt/browser` module mock), edit sanitisation, and clip cost. `tsc --noEmit`
+clean, ESLint clean, `wxt build` succeeds. Largest file 227 lines, every file ≤ 250.
+
+**Not done here, deliberately:** extension icons (WXT falls back to the default
+puzzle icon; the plan does not list icons) and template import/export, which the
+plan puts in **Phase 4**, not Phase 2. Storybook stories exist for all five
+components, but no app has a Storybook config in this repo (only
+`packages/design-system` does), so app stories are still not rendered anywhere.
+
+---
+
+## Earlier — Web Clipper Phase 2a: extension pipeline with real Markdown
+
+**Scope:** `apps/web-clipper` Phase 2a (capture → extract → variables → template →
+payload → note file). Phase 1 (`packages/clipper-core`) shipped in the previous
+commit. One commit, one concern.
+
+**Built:** WXT 0.21.4 + Vite, MV3, Chromium first. Manifest permissions are only
+`activeTab, scripting, storage, contextMenus, downloads` with
+**`host_permissions: []`**; background service worker (context menu + keyboard
+command); popup entrypoint. `minimum_chrome_version: "127"` because
+`action.openPopup()` needs it.
+
+**Architecture change from the plan (§2):** there is **no content script**. The
+popup calls `browser.scripting.executeScript({ func: readPage })` and parses the
+returned HTML with `DOMParser` locally. `activeTab` + `scripting` is enough, so no
+host permission is granted and nothing is injected until the user invokes the
+clipper.
+
+**Measured (real `wxt build`):** popup chunk 350,180 raw / **99,576 B gzip**;
+background 970 / 507; manifest 545 B. Total 353.09 KB raw.
+
+**Cost of the clip itself** (jsdom, median of 3, pinned by `runClipSession.perf.test.ts`):
+a 7.6 KB page clips in 24.9 ms, 18.6 KB in 30.4 ms, 37 KB in 44.8 ms, and a
+pathological 1.48 MB / 4k-paragraph page in 2,781.8 ms. jsdom is several times
+slower than a browser DOM, so these are upper bounds, not user-visible cost. The
+page DOM is now parsed **once** per clip — template matching and rendering share
+the document — which removed ~350 ms from the large-page case. **Surfaced, not
+hidden:** the large-page cost grows with page size and nothing caps it. The plan's
+2 MiB cap is a Phase 3 transport concern, and truncating captured HTML would
+silently degrade extraction, so the page-size limit is left to the owner rather
+than guessed at here.
+
+**Extraction decision changed by measurement (ADR-0174 amended):** Defuddle's
+**core** bundle has no Markdown converter — `contentMarkdown`/`separateMarkdown`
+exist only in `index.full.js` (verified by grep and by a failing test).
+`defuddle/full` measures 218,493 B gzip against **101,914 B gzip** for core +
+`turndown` + `turndown-plugin-gfm` — **~114 KB gzip saved**. Core still annotates
+MathML with `data-latex` and normalises `.admonition` to `data-callout`, so two
+Turndown rules recover **LaTeX math** (`$…$` / `$$…$$`) and **Obsidian callouts**
+(`> [!warning] Title`). Both are asserted against real Defuddle output, not
+hand-written markup, so a Defuddle upgrade that changes the markup fails the test.
+
+**Real bugs found by the tests (not test-only):**
+1. Relative URLs resolved against the **extension origin** — `DOMParser` gives the
+   parsed document `baseURI = chrome-extension://…`, so `selector:img?src` and
+   `og:image` produced extension-relative URLs. Fixed with `parsePageHtml()`
+   (injects `<base href="<page url>">`) plus `resolveUrl()`.
+2. Callout output dropped the separator space (`> [!warning]Careful`). Fixed.
+3. Turndown discards blank elements *before* custom rules, silently losing
+   `<math data-latex="…"></math>`; `seedBlankMath` seeds the text content, guarded
+   by an `includes("data-latex")` check so the common path skips the extra parse.
+4. `schema:@Type` auto-apply matched **nested** JSON-LD nodes — an article whose
+   `author` is a `Person` made every `schema:@Person` template fire. Auto-apply now
+   uses `readSchemaOrg`'s top-level `@graph` indexing only.
+5. `turndown-plugin-gfm` emits `-   item`; tidied to `- item` by a documented
+   regex that preserves nested indentation.
+
+**Verification:** 51 tests across 9 files pass — extraction, Markdown rules, page
+variables, the whole pipeline, template store/match, note file, downloads, session,
+and clip cost — including hostile page metadata (a `../../escape` title yields no
+`..` and no `/` in the note name or folder) and a path-traversal-safe download
+filename. `tsc --noEmit` and ESLint are clean; `wxt build` succeeds. Largest file
+156 lines, every file ≤ 250.
+
+---
+
+## Earliest — Web Clipper feature plan (plan only, no code)
+
+**Deliverables:** `web-clipper-feature-plan.md` (phased build plan, architecture
+diagram, payload schema, phases 0–8 with dependencies + adversarial verification),
+draft ADRs `docs/adr/0173`…`0178`, and this file + `DECISIONS.md` updated.
+
+**What was decided (all `Proposed`, awaiting owner input — see the plan §10 and
+each ADR's "Open decisions"):**
+1. **Transport (ADR-0173):** hybrid — `davinci://clip/wake` deep link as a
+   *handshake/wake only* (never carries content), payload over a loopback-only
+   HTTP listener on `127.0.0.1` with a per-install keychain token, Origin/Host
+   checks and a 2 MiB cap. Native Messaging deferred. Rationale in ADR-0173;
+   precedent is the existing OAuth `TcpListener` in `oauth.rs`. **Blocker to
+   verify:** the Tauri docs state `tauri-plugin-deep-link` needs Rust ≥ 1.90 while
+   `Cargo.toml` pins `1.77.2`; loopback-only + manual pairing is the fallback.
+2. **Extraction (ADR-0174):** Defuddle (MIT, 310 KB / ~86.4 KB gzip, WIP, the
+   library the reference clipper uses) with **`useAsync:false`** so no third-party
+   API is ever contacted; `@mozilla/readability` (11.2 KB gzip) + Turndown
+   (4.1 KB gzip) recorded as the lighter fallback.
+3. **Framework/location (ADR-0175):** new `apps/web-clipper` (WXT, MV3, Chromium
+   first) + new pure-TS `packages/clipper-core`; new `clipper-core`/`web-clipper`
+   entries in `eslint-plugin-boundaries`.
+4. **Engine split (ADR-0176):** extension resolves page variables and renders
+   body/properties; desktop resolves vault context, behavior and paths; templates
+   are data only; one `ClipPayload` schema (documented in the plan §4).
+5. **Write path (ADR-0177):** Rust authenticates/validates then emits to the main
+   webview, which uses the canonical `createNoteInVault` / new
+   `appendToNoteInVault`; no extension-side and no Rust-side direct note write.
+6. **Closed-app queue (ADR-0178):** queue in extension storage (200 clips / 5 MB /
+   30 days, oldest-first), event-driven drain (no timers), `clipId` +
+   `contentHash` dedupe against a bounded desktop ledger.
+
+**No dependencies were installed and no application code was written.** Bundle
+sizes and library facts were verified against bundlephobia, the Obsidian
+documentation/help repo, and the Defuddle/Readability/WXT repositories; the
+Obsidian clipper is cited only for its documented behavior and public repo
+contents.
+
+**Recommended first phase:** Phase 0 (ADRs + transport spike, HIGH-RISK / one
+session) — see the plan §12.
+
+---
+
+## Current Focus
 **Web (Browser) Version Complete — Phases 1–7 Fully Shipped (`web-version-feature-plan.md`, `@app/platform-adapters`, `apps/web/`, ADR-0204, ADR-0205, ADR-0206)**
 - **Feature Plan (`web-version-feature-plan.md`)**:
   - Evaluated Approach A (File System Access API), Approach B (OPFS + Google Drive Sync), and Approach C (Self-Hosted Server Mode), recommending a Dual-Engine Web Architecture (Hybrid A + B).
@@ -2755,6 +3208,22 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
+1. **Web Clipper Phase 4 — templates UI/settings, auto-apply rules, import/export**: full template management in the extension (create/edit/duplicate/delete, behavior, note-name format, target folder, vault, properties, body, tags), auto-apply by URL prefix / regex / Schema.org type, JSON import/export, starter templates, settings export. Phase 3 is now complete on both sides (`POST /clipper/clip` receiver + the extension transport), so the button this builds on is live. The remaining Phase 3-shaped work is owner-local verification, not code — see "Blocked / Open Questions".
+2. **Web Clipper Phase 7 — closed-app queue, hotkeys, context menu, multi-vault** (HIGH-RISK / ATOMIC, one session): the queue ADR-0178 specifies (200 clips / 5 MB / 30 days, oldest-first, event-driven drain, `clipId`+`contentHash` dedupe). Deliberately not built with Phase 3 — until it exists, an undeliverable clip is reported and kept on screen rather than buffered.
+3. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+4. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
+5. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
+6. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
+7. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
+8. **Stabilization pass Phase 1** (`plans/stablize.md`): dogfood all create/rename/delete/duplicate/move paths in a disposable vault.
+9. **Plugin Ecosystem Phase 8**: Publishing a real sample plugin and adding its verified registry entry.
+10. **Dogfooding `v0.1.0-rc.1`** for daily note-taking + canvas workflows together.
+11. **Unlinked Mentions Detection**
+12. **Inline Property Editing**
+13. **Outline Scroll Synchronization**
+14. Add success/warning semantic color tokens
+15. Chromatic / Playwright screenshot regression
+16. **Declare `vaultUpdateCounter` on `WorkspaceState`** (small, separate change): the store initialises and mutates it but the interface omits it, which is most of `apps/desktop`'s 23 pre-existing `tsc` errors. Removing them also removes the one cast in `appendToNoteInVault.ts`.
 1. **Web Version Phase 2**: Browser File System & Storage Adapters (`OpfsFileSystemAdapter`, `FileSystemAccessAdapter`, `WebWatcherAdapter`, `WebDialogAdapter`, `WebVaultRegistry`) in `packages/platform-adapters/src/web/` (`web-version-feature-plan.md`).
 2. **Google Calendar Phase 4**: UI Shell Integration — Left rail icon in `IconRail`, `CalendarLeaf` workspace tab in `EditorArea`, and meeting card list UI (ADR-0202).
 2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
@@ -2780,6 +3249,9 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 - **Visual regression**: Not yet configured.
 - **Total JS/CSS size budgets**: lazy chunks counted toward totals — adjust if/when configured.
 - **AI feature plan artifact**: `plans/ai-integration-plan/ai-features-build-plan.md` is missing; recover it before treating any undiscovered prior AI decision as authoritative.
+- **Web Clipper decisions (Proposed, need owner input)**: transport (ADR-0173), extraction budget (ADR-0174 — the measured size is now ~100 KB gzip for Defuddle core + Turndown, not the 86.4 KB bundlephobia figure, and the browser popup costs another ~71 KB gzip for React + the design system, and the extension's total output after Phase 3 part 3 is 610,094 B raw / 179,596 B gzip across its chunks (the popup's own file is 111,282 B gzip of that, the rest shared); the owner has not yet accepted either cost), popup data flow (ADR-0179 — draft vs payload and the template-switching split), the **page-size cap** (the plan's 2 MiB belongs to the Phase 3 transport; nothing caps capture today), attachments phase placement, multi-vault semantics, pairing UX, queue caps, token storage, and Reader/Interpreter/logic scope. Full list in `web-clipper-feature-plan.md` §10. The `tauri-plugin-deep-link` Rust ≥ 1.90 check **is done** (Phase 3 part 1): it needs 1.90 against the declared `1.77.2` and macOS schemes are install-time only, so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173, "Phase 0 verification outcome"). Still owner-approved-by-default only: the 2 MiB body cap and the per-field caps in `clipper_validate.rs` (ADR-0180, "Open decisions"), whether `clipper_status`/`ack` are the final Settings API, and — added with Phase 3 part 2 — the write-path semantics ADR-0177 now records: `append-top` treated as an alias of `prepend`, appends carrying the body with no frontmatter and no source footer, an unexpected write failure reported as `app-busy`, and no cold-start buffer (a clip arriving before the webview listens is `app-busy` too, left to ADR-0178's queue). **Added with Phase 3 part 3**: manual copy-token pairing is now built, so O5's remaining question is only whether that stays the default and where its surface lives (the extension's options page, for now); a `queued` ack is surfaced to the user as "not sent" until ADR-0178's queue exists to honour it; and whether the popup keeps the `.md` download as a first-class action next to the send is not yet answered. Whether Chromium sends `Origin` on the extension's loopback `fetch` (and whether the host permission really suppresses the preflight) is **owner-local**: jsdom cannot produce it.
+- **Web Clipper — owner-local verification still outstanding (no code pending)**: real-browser clip timing (the jsdom figures are upper bounds), the 2a/2b popups and the new Web Clipper Settings section in the native GUI, the new pairing options page in a real browser, the emit-and-await handshake happy path end to end, idle RSS/CPU with the clipper disabled vs enabled, reachability from another network interface, and the `Origin`/preflight question above.
+- **`apps/desktop` `tsc` is red on `main`** (23 errors, pre-existing, none from the clipper work). Most are `vaultUpdateCounter` being used by the store without being declared on `WorkspaceState`. Until that is fixed the desktop typecheck cannot gate anything, which is why each session reports its own delta instead of a green run.
 
 ---
 

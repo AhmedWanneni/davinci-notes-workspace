@@ -20,6 +20,7 @@ import {
   Eye,
   MagnifyingGlass,
   CopySimple,
+  Globe,
   ListBullets,
 } from "@phosphor-icons/react";
 import { Typography } from "@app/design-system";
@@ -60,26 +61,93 @@ export const SETTINGS_SIDEBAR_ITEMS: SettingsSidebarItem[] = [
   { id: "general", label: "General", icon: Gear, category: "options" },
   { id: "appearance", label: "Appearance", icon: Palette, category: "options" },
   { id: "interface", label: "Interface", icon: Desktop, category: "options" },
-  { id: "editor", label: "Editor", icon: PencilSimpleLine, category: "options" },
-  { id: "files", label: "Files and links", icon: FolderSimple, category: "options" },
+  {
+    id: "editor",
+    label: "Editor",
+    icon: PencilSimpleLine,
+    category: "options",
+  },
+  {
+    id: "files",
+    label: "Files and links",
+    icon: FolderSimple,
+    category: "options",
+  },
   { id: "hotkeys", label: "Hotkeys", icon: Command, category: "options" },
   { id: "keychain", label: "Keychain", icon: Key, category: "options" },
   { id: "sync", label: "Sync & Backup", icon: CloudArrowUp, category: "options" },
   { id: "calendar", label: "Google Calendar", icon: CalendarCheck, category: "options" },
   { id: "ai", label: "AI Assistant", icon: Sparkle, category: "options" },
-  { id: "plugins", label: "Community plugins", icon: PuzzlePiece, category: "options" },
+  { id: "web-clipper", label: "Web Clipper", icon: Globe, category: "options" },
+  {
+    id: "plugins",
+    label: "Community plugins",
+    icon: PuzzlePiece,
+    category: "options",
+  },
+  {
+    id: "plugins",
+    label: "Community plugins",
+    icon: PuzzlePiece,
+    category: "options",
+  },
   { id: "logs", label: "Logs", icon: ListBullets, category: "options" },
 
   // Core Plugins
-  { id: "backlinks", label: "Backlinks", icon: TreeStructure, category: "core-plugins" },
-  { id: "canvas", label: "Canvas", icon: SquaresFour, category: "core-plugins" },
-  { id: "command-palette", label: "Command palette", icon: TerminalWindow, category: "core-plugins" },
-  { id: "daily-notes", label: "Daily notes", icon: CalendarBlank, category: "core-plugins" },
-  { id: "file-recovery", label: "File recovery", icon: ClockCounterClockwise, category: "core-plugins" },
-  { id: "note-composer", label: "Note composer", icon: Compass, category: "core-plugins" },
-  { id: "page-preview", label: "Page preview", icon: Eye, category: "core-plugins" },
-  { id: "quick-switcher", label: "Quick switcher", icon: MagnifyingGlass, category: "core-plugins" },
-  { id: "templates", label: "Templates", icon: CopySimple, category: "core-plugins" },
+  {
+    id: "backlinks",
+    label: "Backlinks",
+    icon: TreeStructure,
+    category: "core-plugins",
+  },
+  {
+    id: "canvas",
+    label: "Canvas",
+    icon: SquaresFour,
+    category: "core-plugins",
+  },
+  {
+    id: "command-palette",
+    label: "Command palette",
+    icon: TerminalWindow,
+    category: "core-plugins",
+  },
+  {
+    id: "daily-notes",
+    label: "Daily notes",
+    icon: CalendarBlank,
+    category: "core-plugins",
+  },
+  {
+    id: "file-recovery",
+    label: "File recovery",
+    icon: ClockCounterClockwise,
+    category: "core-plugins",
+  },
+  {
+    id: "note-composer",
+    label: "Note composer",
+    icon: Compass,
+    category: "core-plugins",
+  },
+  {
+    id: "page-preview",
+    label: "Page preview",
+    icon: Eye,
+    category: "core-plugins",
+  },
+  {
+    id: "quick-switcher",
+    label: "Quick switcher",
+    icon: MagnifyingGlass,
+    category: "core-plugins",
+  },
+  {
+    id: "templates",
+    label: "Templates",
+    icon: CopySimple,
+    category: "core-plugins",
+  },
 ];
 
 interface SettingsSidebarProps {
@@ -159,18 +227,16 @@ export function SettingsSidebar({
     (item) => item.category === "core-plugins" && filterItem(item),
   );
   const filteredCommunityTabs = communityPluginTabs
-    .filter((tab) =>
-      !normalizedQuery || tab.title.toLowerCase().includes(normalizedQuery),
+    .filter(
+      (tab) =>
+        !normalizedQuery || tab.title.toLowerCase().includes(normalizedQuery),
     )
     .map((tab) => ({ id: tab.id, label: tab.title, icon: PuzzlePiece }));
 
   return (
     <aside className={styles["settings-sidebar"]}>
       <div className={styles["settings-search-wrapper"]}>
-        <MagnifyingGlass
-          size={16}
-          className={styles["settings-search-icon"]}
-        />
+        <MagnifyingGlass size={16} className={styles["settings-search-icon"]} />
         <input
           type="text"
           value={searchQuery}

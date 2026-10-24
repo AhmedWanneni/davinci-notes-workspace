@@ -1,0 +1,36 @@
+{
+  "id": "article",
+  "name": "Article",
+  "behavior": "create",
+  "noteNameFormat": "{{title|safe_name}}",
+  "folder": "Clippings",
+  "properties": [
+    {
+      "name": "author",
+      "value": "{{author}}"
+    },
+    {
+      "name": "published",
+      "value": "{{published|date:\"YYYY-MM-DD\"}}"
+    },
+    {
+      "name": "description",
+      "value": "{{description}}"
+    },
+    {
+      "name": "source",
+      "value": "{{url}}"
+    },
+    {
+      "name": "site",
+      "value": "{{site}}"
+    },
+    {
+      "name": "created",
+      "value": "{{date|date:\"YYYY-MM-DD\"}}"
+    }
+  ],
+  "tags": ["clippings"],
+  "body": "{{content}}\n\n---\n\nSource: [{{title}}]({{url}})",
+  "triggers": ["schema:@Article", "schema:@NewsArticle", "schema:@BlogPosting"]
+}

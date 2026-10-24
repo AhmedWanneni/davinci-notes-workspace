@@ -6,6 +6,10 @@ export {
 } from "./VaultIndexer";
 export { createFolderInVault } from "./createFolderInVault";
 export { createNoteInVault } from "./createNoteInVault";
+export {
+  appendToNoteInVault,
+  type ClipInsertPosition,
+} from "./appendToNoteInVault";
 export { deleteNoteInVault } from "./deleteNoteInVault";
 export { deleteFolderInVault } from "./deleteFolderInVault";
 export { duplicateNoteInVault } from "./duplicateNoteInVault";
@@ -17,7 +21,10 @@ export { renameFolderInVault } from "./renameFolderInVault";
 export { renameNoteInVault } from "./renameNoteInVault";
 export { resolveUniqueNotePath } from "./resolveUniqueNotePath";
 export { getSetting, setSetting } from "./settingsCommands";
-export { writeAttachmentToVault } from "./writeAttachment";
+export {
+  computeVaultRelativeLink,
+  writeAttachmentToVault,
+} from "./writeAttachment";
 export {
   closeVaultIndexDb,
   countIndexedNotes,

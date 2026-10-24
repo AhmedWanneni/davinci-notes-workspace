@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { openVaultFromPicker } from "../../vault";
-import type { ThemeDiscoveryError, ThemeLifecycleManager, ThemeRecord } from "../../themes";
+import type {
+  ThemeDiscoveryError,
+  ThemeLifecycleManager,
+  ThemeRecord,
+} from "../../themes";
 import type { SyncMode } from "../SyncSettingsPanel";
 import { SettingsSidebar, type SettingsTabId } from "./SettingsSidebar";
 import { GeneralSettingsTab } from "./GeneralSettingsTab";
@@ -10,6 +14,7 @@ import { AppearanceSettingsTab } from "./AppearanceSettingsTab";
 import { FilesLinksSettingsTab } from "./FilesLinksSettingsTab";
 import { SyncSettingsTab } from "./SyncSettingsTab";
 import { PluginsSettingsTab } from "./PluginsSettingsTab";
+import { ClipperSettingsSection } from "./ClipperSettingsSection";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
 import { LogsSettingsTab } from "./LogsSettingsTab";
@@ -98,13 +103,17 @@ export function SettingsDialog({
     }
   };
 
-  const vaultName = vaultPath ? vaultPath.split(/[/\\]/).filter(Boolean).pop() || "Vault" : "Vault";
+  const vaultName = vaultPath
+    ? vaultPath.split(/[/\\]/).filter(Boolean).pop() || "Vault"
+    : "Vault";
   const windowTitle = `Settings - ${vaultName} - Davinci Notes 0.1.0`;
 
   return (
     <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className={styles["settings-dialog-overlay"]} />
+        <DialogPrimitive.Overlay
+          className={styles["settings-dialog-overlay"]}
+        />
         <DialogPrimitive.Content
           className={styles["settings-dialog-root"]}
           aria-label="Settings"
@@ -117,8 +126,12 @@ export function SettingsDialog({
                 onClick={() => onOpenChange(false)}
                 aria-label="Close settings"
               />
-              <span className={`${styles["traffic-dot"]} ${styles["traffic-dot--minimize"]}`} />
-              <span className={`${styles["traffic-dot"]} ${styles["traffic-dot--maximize"]}`} />
+              <span
+                className={`${styles["traffic-dot"]} ${styles["traffic-dot--minimize"]}`}
+              />
+              <span
+                className={`${styles["traffic-dot"]} ${styles["traffic-dot--maximize"]}`}
+              />
             </div>
             <div className={styles["settings-window-title"]}>{windowTitle}</div>
             <div className={styles["settings-header-spacer"]} />
@@ -193,6 +206,7 @@ export function SettingsDialog({
                 <PluginsSettingsTab vaultPath={vaultPath} />
               )}
 
+              {activeTab === "web-clipper" && <ClipperSettingsSection />}
               {activeTab === "logs" && <LogsSettingsTab log={log} />}
 
               {![
@@ -204,10 +218,15 @@ export function SettingsDialog({
                 "calendar",
                 "ai",
                 "plugins",
+                "web-clipper",
                 "logs",
               ].includes(activeTab) && (
                 <div className={styles["settings-tab-content"]}>
-                  <SettingsCard title={activeTab.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}>
+                  <SettingsCard
+                    title={activeTab
+                      .replace(/-/g, " ")
+                      .replace(/\b\w/g, (c) => c.toUpperCase())}
+                  >
                     <SettingsRow
                       title="Plugin Options"
                       description={`Configure settings for the ${activeTab} feature.`}
@@ -230,4 +249,3 @@ export function SettingsDialog({
     </DialogPrimitive.Root>
   );
 }
-

@@ -105,6 +105,10 @@ export default defineConfig({
         replacement: path.join(repoRoot, "packages/core-types/index.ts"),
       },
       {
+        find: "@app/clipper-core",
+        replacement: path.join(repoRoot, "packages/clipper-core/index.ts"),
+      },
+      {
         find: "@app/canvas",
         replacement: path.join(repoRoot, "packages/canvas/index.ts"),
       },

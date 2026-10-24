@@ -1,0 +1,36 @@
+{
+  "id": "movie",
+  "name": "Movie",
+  "behavior": "create",
+  "noteNameFormat": "{{title|safe_name}}",
+  "folder": "Clippings/References",
+  "properties": [
+    {
+      "name": "director",
+      "value": "{{schema:Movie:director}}"
+    },
+    {
+      "name": "genre",
+      "value": "{{schema:Movie:genre|join:\", \"}}"
+    },
+    {
+      "name": "released",
+      "value": "{{schema:Movie:datePublished|date:\"YYYY-MM-DD\"}}"
+    },
+    {
+      "name": "rating",
+      "value": "{{schema:Movie:aggregateRating.ratingValue}}"
+    },
+    {
+      "name": "source",
+      "value": "{{url}}"
+    },
+    {
+      "name": "created",
+      "value": "{{date|date:\"YYYY-MM-DD\"}}"
+    }
+  ],
+  "tags": ["clippings", "reference"],
+  "body": "# {{title}}\n\n{{description}}\n\n{{content}}",
+  "triggers": ["schema:@Movie"]
+}

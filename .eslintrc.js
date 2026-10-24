@@ -17,6 +17,7 @@ module.exports = {
     "boundaries/ignore": ["**/*.scss", "**/*.css", "**/*.json", "**/*.sql"],
     "boundaries/elements": [
       { type: "core-types", pattern: "packages/core-types/**/*", mode: "full" },
+      { type: "clipper-core", pattern: "packages/clipper-core/**/*", mode: "full" },
       { type: "design-tokens", pattern: "packages/design-tokens/**/*", mode: "full" },
       { type: "design-system", pattern: "packages/design-system/**/*", mode: "full" },
       { type: "canvas", pattern: "packages/canvas/**/*", mode: "full" },
@@ -28,6 +29,8 @@ module.exports = {
       { type: "theme-api", pattern: "packages/theme-api/**/*", mode: "full" },
       { type: "ai-api", pattern: "packages/ai-api/**/*", mode: "full" },
       { type: "ai-runtime", pattern: "packages/ai-runtime/**/*", mode: "full" },
+      { type: "web-clipper", pattern: "apps/web-clipper/**/*", mode: "full" },
+      { type: "app", pattern: "apps/**/*", mode: "full" },
       { type: "attachments", pattern: "packages/attachments/**/*", mode: "full" },
       { type: "sanitize", pattern: "packages/sanitize/**/*", mode: "full" },
       { type: "syncthing-api", pattern: "packages/syncthing-api/**/*", mode: "full" },
@@ -46,6 +49,7 @@ module.exports = {
         default: "disallow",
         rules: [
           { from: "core-types", allow: ["core-types"] },
+          { from: "clipper-core", allow: ["clipper-core"] },
           { from: "design-tokens", allow: ["design-tokens"] },
           { from: "indexer", allow: ["core-types", "indexer"] },
           { from: "sync-client", allow: ["core-types", "sync-client"] },
@@ -62,6 +66,8 @@ module.exports = {
           { from: "theme-api", allow: ["theme-api"] },
           { from: "ai-api", allow: ["ai-api"] },
           { from: "ai-runtime", allow: ["ai-api", "ai-runtime"] },
+          { from: "app", allow: ["clipper-core", "core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "plugin-api", "plugin-runtime", "theme-api", "ai-api", "ai-runtime", "attachments", "sanitize", "syncthing-api", "app"] },
+          { from: "web-clipper", allow: ["clipper-core", "design-system", "web-clipper"] },
           {
             from: "app-desktop",
             allow: [
