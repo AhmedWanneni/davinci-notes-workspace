@@ -1,0 +1,188 @@
+.logseq-hero-section {
+  padding: 60px 0 80px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-title {
+  margin: 0 0 36px;
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--logseq-text-title);
+  word-break: break-word;
+}
+.hero-title strong {
+  font-weight: 700;
+  color: var(--logseq-text-title);
+}
+
+.hero-stage {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  height: 480px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 36px;
+  overflow: hidden;
+}
+
+.hero-glow-backdrop {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(0, 196, 204, 0.16) 0%, rgba(3, 23, 29, 0) 70%);
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.hero-portrait-frame {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-portrait-img {
+  height: 100%;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.7));
+  mask-image: radial-gradient(ellipse at center, black 65%, transparent 95%);
+}
+
+.hero-floating-cards {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.card-float {
+  position: absolute;
+  background-color: rgba(10, 41, 50, 0.88);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--logseq-border-light);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: var(--logseq-text-title);
+  text-align: left;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.card-float mark { background: transparent; color: var(--logseq-cyan); font-weight: 500; }
+
+.card-agenda {
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 320px;
+}
+.card-agenda-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.status-indicator { width: 7px; height: 7px; border-radius: 50%; background-color: var(--logseq-mint); }
+.tag-now {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--logseq-cyan);
+  background: rgba(0, 196, 204, 0.15);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.card-agenda-sub { font-size: 0.75rem; color: var(--logseq-text-muted); }
+
+.card-person {
+  top: 130px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 170px;
+}
+.avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-person-info, .card-book-info { display: flex; flex-direction: column; gap: 2px; }
+.card-person-info small, .card-book-info small { font-size: 0.7rem; color: var(--logseq-text-muted); }
+.card-person-info .faint, .card-book-info .faint { color: var(--logseq-text-faint); }
+
+.card-book {
+  top: 130px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 180px;
+}
+.book-cover-badge {
+  width: 34px;
+  height: 44px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #03171d;
+  font-size: 0.55rem;
+  font-weight: 800;
+  line-height: 1.1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-radius: 3px;
+}
+
+.card-bottom-note {
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 290px;
+}
+
+.hero-connector-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-cta-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 680px) {
+  .hero-title { font-size: clamp(1.8rem, 7vw, 2.8rem); }
+  .hero-stage { height: 380px; }
+  .card-person { left: 8px; transform: scale(0.78); transform-origin: left center; }
+  .card-book { right: 8px; transform: scale(0.78); transform-origin: right center; }
+  .card-agenda { top: 12px; transform: translateX(-50%) scale(0.85); max-width: 92%; }
+  .card-bottom-note { bottom: 16px; transform: translateX(-50%) scale(0.85); max-width: 92%; }
+}
+
+@media (max-width: 440px) {
+  .hero-title { font-size: clamp(1.5rem, 6.5vw, 2.2rem); }
+  .card-person, .card-book, .hero-connector-lines { display: none; }
+  .card-agenda { width: 90%; min-width: 0; }
+  .card-bottom-note { width: 90%; min-width: 0; }
+}

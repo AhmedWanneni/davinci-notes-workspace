@@ -1,0 +1,119 @@
+---
+const specimens = [
+  {
+    num: 'SPECIMEN I',
+    kicker: 'FILESYSTEM SOVEREIGNTY',
+    title: 'Plain Markdown on disk. Never a proprietary blob.',
+    body: 'Your vault is an ordinary folder of `.md` and `.canvas` files. Edit them simultaneously in Vim, VS Code, or scripts—DaVinci’s debounced watcher and save-time conflict guard reconcile external changes without data loss.',
+    meta: 'ADR-0004 · Canonical H1 ↔ Filename Sync · Atomic Temp-Move Writes',
+    schematic: 'files',
+  },
+  {
+    num: 'SPECIMEN II',
+    kicker: 'SUB-MILLISECOND GRAPH & SEARCH',
+    title: 'SQLite + FTS5 BM25 ranking with zero cloud latency.',
+    body: 'Every `[[wikilink]]`, `#hierarchical/tag`, and frontmatter property is indexed locally in WAL-mode SQLite. Run boolean operator queries (`tag:#physics -archive "wave equation"`) across 5,000 notes in under 2 milliseconds.',
+    meta: 'ADR-0005 · ADR-0080 · 50-Item Batched Indexer · Universal withDbLock',
+    schematic: 'sqlite',
+  },
+  {
+    num: 'SPECIMEN III',
+    kicker: 'PEER-TO-PEER CONVERGENCE',
+    title: 'Syncthing P2P & encrypted Drive sync—no subscription server.',
+    body: 'Pair Desktop and Android directly by scanning a QR code from the built-in Syncthing panel, complete with a 5-point live round-trip self-test and automatic `.stignore` isolation for local database state.',
+    meta: 'ADR-0116 · ADR-0198 · 3-Way diff3 Merge · Zero Owned Backend',
+    schematic: 'sync',
+  },
+  {
+    num: 'SPECIMEN IV',
+    kicker: 'POLYMATH INSTRUMENTATION',
+    title: 'CodeMirror 6, LaTeX math, Mermaid, Calendar & Vim.',
+    body: 'Cursor-gated live preview hides Markdown syntax until your cursor enters the line. Render inline KaTeX formulas, Mermaid diagrams, JSON Canvas boards, and one-click Google Calendar meeting notes—all lazy-loaded so startup stays instant.',
+    meta: 'ADR-0073 · ADR-0074 · ADR-0126 · ADR-0199 · 0 KB Initial Bundle Cost',
+    schematic: 'polymath',
+  },
+];
+---
+
+<section class="anatomy-section" id="anatomy" aria-labelledby="anatomy-heading">
+  <div class="swiss-shell">
+    <div class="section-header-grid">
+      <div>
+        <p class="kicker-index">02 / ANATOMY OF A LOCAL VAULT · ARCHITECTURAL SPECIMENS</p>
+        <h2 id="anatomy-heading" class="display-section">
+          Engineered like an instrument,<br />
+          <em>not a rental subscription.</em>
+        </h2>
+      </div>
+      <p class="editorial-lead section-sublead">
+        Most note apps trap your writing inside a remote Postgres database wrapped
+        in a 250 MB Electron browser. DaVinci Notes is built from first principles
+        for longevity, speed, and complete user ownership.
+      </p>
+    </div>
+
+    <div class="specimen-grid">
+      {specimens.map((item) => (
+        <article class="specimen-card">
+          <div class="specimen-top">
+            <span class="specimen-number mono-label">{item.num}</span>
+            <span class="specimen-kicker mono-label">{item.kicker}</span>
+          </div>
+
+          <div class="specimen-diagram" aria-hidden="true">
+            {item.schematic === 'files' && (
+              <svg viewBox="0 0 320 76" fill="none" class="specimen-svg">
+                <rect x="8" y="14" width="84" height="48" stroke="currentColor" stroke-width="1.2" />
+                <text x="18" y="36" font-family="'IBM Plex Mono', monospace" font-size="9" fill="currentColor">note.md</text>
+                <text x="18" y="50" font-family="'IBM Plex Mono', monospace" font-size="8" fill="var(--accent-terracotta)">UTF-8 plain</text>
+                <line x1="92" y1="38" x2="152" y2="38" stroke="var(--accent-terracotta)" stroke-width="1.2" stroke-dasharray="3 3" />
+                <rect x="152" y="14" width="156" height="48" stroke="var(--accent-terracotta)" stroke-width="1.2" />
+                <text x="164" y="35" font-family="'IBM Plex Mono', monospace" font-size="9" fill="currentColor">.name.nonce.tmp</text>
+                <text x="164" y="50" font-family="'IBM Plex Mono', monospace" font-size="8" fill="var(--text-muted)">Atomic REPLACE_EXISTING</text>
+              </svg>
+            )}
+            {item.schematic === 'sqlite' && (
+              <svg viewBox="0 0 320 76" fill="none" class="specimen-svg">
+                <circle cx="42" cy="38" r="22" stroke="var(--accent-terracotta)" stroke-width="1.3" />
+                <text x="27" y="41" font-family="'IBM Plex Mono', monospace" font-size="9" fill="currentColor">FTS5</text>
+                <line x1="64" y1="38" x2="126" y2="22" stroke="currentColor" stroke-width="1" />
+                <line x1="64" y1="38" x2="126" y2="54" stroke="currentColor" stroke-width="1" />
+                <rect x="126" y="10" width="180" height="22" stroke="currentColor" stroke-width="1" />
+                <text x="136" y="24" font-family="'IBM Plex Mono', monospace" font-size="8" fill="currentColor">bm25(notes_fts) · &lt;1.8ms</text>
+                <rect x="126" y="42" width="180" height="22" stroke="currentColor" stroke-width="1" />
+                <text x="136" y="56" font-family="'IBM Plex Mono', monospace" font-size="8" fill="var(--accent-terracotta)">links (source → target)</text>
+              </svg>
+            )}
+            {item.schematic === 'sync' && (
+              <svg viewBox="0 0 320 76" fill="none" class="specimen-svg">
+                <rect x="10" y="16" width="88" height="44" stroke="currentColor" stroke-width="1.2" />
+                <text x="20" y="41" font-family="'IBM Plex Mono', monospace" font-size="9" fill="currentColor">Desktop</text>
+                <path d="M98 30 L218 30 M218 46 L98 46" stroke="var(--accent-terracotta)" stroke-width="1.3" />
+                <text x="116" y="24" font-family="'IBM Plex Mono', monospace" font-size="8" fill="var(--accent-terracotta)">BLAKE3 / TLS P2P</text>
+                <rect x="218" y="16" width="88" height="44" stroke="currentColor" stroke-width="1.2" />
+                <text x="232" y="41" font-family="'IBM Plex Mono', monospace" font-size="9" fill="currentColor">Android</text>
+              </svg>
+            )}
+            {item.schematic === 'polymath' && (
+              <svg viewBox="0 0 320 76" fill="none" class="specimen-svg">
+                <rect x="10" y="14" width="90" height="48" stroke="currentColor" stroke-width="1.2" />
+                <text x="20" y="36" font-family="Georgia, serif" font-style="italic" font-size="13" fill="var(--accent-terracotta)">∫ f(x)dx</text>
+                <text x="20" y="52" font-family="'IBM Plex Mono', monospace" font-size="7" fill="var(--text-muted)">Lazy KaTeX</text>
+                <rect x="114" y="14" width="90" height="48" stroke="currentColor" stroke-width="1.2" />
+                <text x="124" y="36" font-family="'IBM Plex Mono', monospace" font-size="9" fill="currentColor">.canvas 1.0</text>
+                <text x="124" y="52" font-family="'IBM Plex Mono', monospace" font-size="7" fill="var(--text-muted)">Viewport Culled</text>
+                <rect x="218" y="14" width="90" height="48" stroke="currentColor" stroke-width="1.2" />
+                <text x="228" y="36" font-family="'IBM Plex Mono', monospace" font-size="9" fill="currentColor">:wq (Vim)</text>
+                <text x="228" y="52" font-family="'IBM Plex Mono', monospace" font-size="7" fill="var(--text-muted)">Dynamic Chunk</text>
+              </svg>
+            )}
+          </div>
+
+          <h3 class="specimen-title">{item.title}</h3>
+          <p class="specimen-body">{item.body}</p>
+          <div class="specimen-footer mono-label">{item.meta}</div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

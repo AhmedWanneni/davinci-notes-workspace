@@ -1,0 +1,77 @@
+---
+import type { HeroThought } from '../../data/heroThoughts';
+import MathFormulas from './MathFormulas.astro';
+import LeonardoSketches from './LeonardoSketches.astro';
+
+interface Props {
+  thought: HeroThought;
+  index: number;
+}
+
+const { thought, index } = Astro.props;
+---
+
+<button
+  type="button"
+  class:list={[
+    'thought-node',
+    `is-kind-${thought.kind}`,
+    { 'is-desktop-only': !thought.mobileVisible },
+  ]}
+  data-thought-id={thought.id}
+  data-thought-index={index}
+  data-theta={thought.thetaDeg}
+  data-phi={thought.phiDeg}
+  data-radius={thought.radiusScale}
+  data-links={thought.linksTo.join(',')}
+  data-mobile={thought.mobileVisible ? 'true' : 'false'}
+  data-title={thought.title}
+  data-kind={thought.kind.toUpperCase()}
+  data-markdown={thought.fullMarkdown}
+  data-href={thought.sectionHref}
+  data-section-label={thought.sectionLabel}
+  style={`--static-x: ${thought.staticX}%; --static-y: ${thought.staticY}%;`}
+  aria-label={`${thought.kind}: ${thought.title} — ${thought.excerpt}. Click to inspect note and connected links.`}
+  aria-expanded="false"
+  aria-controls="thought-inspector"
+>
+  <span class="node-anchor-dot" aria-hidden="true"></span>
+
+  {thought.kind === 'note' && (
+    <span class="node-card-inner">
+      <span class="node-card-header">
+        <span class="node-file-icon" aria-hidden="true">▤</span>
+        <strong class="node-title">{thought.title}</strong>
+      </span>
+      <span class="node-excerpt">{thought.excerpt}</span>
+    </span>
+  )}
+
+  {thought.kind === 'wikilink' && (
+    <span class="node-chip-inner is-wikilink">
+      <strong class="node-chip-code">{thought.title}</strong>
+      <small class="node-chip-meta">{thought.excerpt}</small>
+    </span>
+  )}
+
+  {thought.kind === 'tag' && (
+    <span class="node-chip-inner is-tag">
+      <strong class="node-chip-code">{thought.title}</strong>
+      <small class="node-chip-meta">{thought.excerpt}</small>
+    </span>
+  )}
+
+  {thought.kind === 'math' && thought.mathId && (
+    <span class="node-math-inner">
+      <MathFormulas formulaId={thought.mathId} />
+      <small class="node-math-caption">{thought.title}</small>
+    </span>
+  )}
+
+  {thought.kind === 'sketch' && thought.sketchId && (
+    <span class="node-sketch-inner">
+      <LeonardoSketches sketchId={thought.sketchId} />
+      <small class="node-sketch-caption">{thought.title}</small>
+    </span>
+  )}
+</button>
