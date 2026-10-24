@@ -4,35 +4,38 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — RemindersDialog UI & Spacing Redesign
+## Last Session — Align App Colors & Borders with Obsidian Default Light Theme
 
-**Scope:** Overhaul `RemindersDialog` and its subcomponents to fit the app's Swiss/editorial design system with refined spacing, typography, borders, and interaction states.
+**Scope:** Match the exact background, border, and typography colors of the app with Obsidian's default light theme, diagnose what caused color deviations, and preserve the original app layout and all borders with Obsidian-matching `#e4e4e4` border colors.
+
+**Root Cause Analysis:**
+1. **Built-in `light-a` Theme Inversion (`packages/builtin-themes/light-a/theme.css`)**:
+   - `light-a` was defined with GitHub Primer light palette values (`--color-bg-primary: #fafafa`, `--color-bg-primary-alt: #f2f2f2`, `--color-text-normal: #1f2328`, `--color-border-subtle: #d8dee4`, `--color-interactive-accent: #0969da`) instead of Obsidian's palette (`#ffffff`, `#f6f6f6`, `#222222`, `#e4e4e4`, `#7f6df2`).
+   - When restored from `localStorage` (`restoreCachedBuiltinTheme()`) or initialized via `initThemes(vaultPath)` in `App.tsx`, it overrode root tokens with muddy off-white/gray values.
+2. **Built-in Theme Stale Cache in `ThemeLifecycleManager.ts`**:
+   - `initialize()` reused previously injected `cachedStyle` from `localStorage` without re-reading the theme file from `loadStyles()`, preventing theme CSS updates from taking effect across reloads.
 
 **Changes:**
-1. **Window Frame & Dialog Header (`RemindersDialog.tsx`, `RemindersDialog.module.scss`)**:
-   - Built a dedicated, integrated dialog title bar with bell icon affordance, total reminder count tag, and crisp close button aligned to grid boundaries.
-   - Preserved accessible `DialogPrimitive.Title` for screen readers while eliminating unpadded Radix header collisions.
-   - Sized dialog container to `640px` with constrained max dimensions (`min(640px, calc(100vw - 32px))`, `560px` height) and `border-radius: var(--border-radius-lg)`.
-2. **Refined Navigation & Tab Controls (`RemindersDialog.module.scss`)**:
-   - Refactored category tabs (Overdue, Today, Upcoming, All) with clean hover/active border treatments (`var(--border-radius-sm)` per "no pill badges" rule).
-   - Dynamic error status badge and text coloring on Overdue tab when overdue reminders exist (`var(--color-bg-status-error)`).
-   - Added persistent footer summary with item counts per active view and keyboard shortcut indicator (`Esc to close`).
-3. **Restructured Reminder Rows & Micro-Typography (`ReminderRowItem.tsx`, `ReminderRowItem.module.scss`)**:
-   - Two-row information architecture per reminder item: prominent task text on line 1; metadata line with due time chip (`Clock`), note location badge (`FileText` + line reference), and snoozed indicator.
-   - Overdue items visually accented via `border-left: var(--border-width-thick) solid var(--color-border-status-error)` with offset padding compensation to prevent horizontal jitter.
-   - Fixed row height to `64px` with box-sizing matching `@tanstack/react-virtual` estimate (`estimateSize: () => 64`) for fluid scrolling.
-   - Micro-action buttons for "Done" (with green hover status) and "Snooze" dropdown with automatic click-outside and `Escape` dismiss handlers.
-4. **Separation of Concerns & Modularity (`RemindersList.module.scss`, `RemindersDialog.stories.tsx`)**:
-   - Extracted virtual list and empty state styles into dedicated `RemindersList.module.scss` (52 lines), keeping all files strictly below the 250 line hard cap.
-   - Added complete Storybook stories covering `RemindersDialog` and all `ReminderRowItem` states (UpcomingToday, Overdue, Snoozed, Completed).
-   - All tests (`RemindersDialog.test.tsx`) pass cleanly, Stylelint passes with 0 warnings, ESLint passes with 0 warnings.
+1. **Theme Realignment (`packages/builtin-themes/light-a/theme.css`)**:
+   - Realigned all `light-a` tokens to match Obsidian's default light theme:
+     - Editor & active tab background: `#fff` (`--color-bg-primary`)
+     - Sidebar, icon rail, tab strip chrome: `#f6f6f6` (`--color-bg-primary-alt`, `--color-bg-secondary`)
+     - Text colors: `#222` (`--color-text-normal`), `#5c5c5c` (`--color-text-muted`), `#ababab` (`--color-text-faint`)
+     - Subtle & Normal borders: `#e4e4e4` (`--color-border-subtle`), `#d4d4d4` (`--color-border-normal`)
+     - Accent: `#7f6df2` (`--color-interactive-accent`)
+2. **Theme Lifecycle Cache Refresh (`ThemeLifecycleManager.ts`)**:
+   - Ensured built-in themes re-activate via `loadStyles()` on `initialize()` to keep cached styles in sync with definition files.
+3. **Preserved App Layout & All Borders**:
+   - Kept all existing layout structures and borders intact (`_sidebar.scss`, `_icon-rail.scss`, `_tabs.scss`, `_status-bar.scss`, `_window-controls.scss`).
+   - Every border utilizes `var(--color-border-subtle)`, which now evaluates to Obsidian's `#e4e4e4`.
+   - Restored status bar right pill container, icon rail right divider, sidebar header bottom border, and original tab strip / window controls styling.
 
 ---
 
 ## Next Up
 
-1. Test reminder notifications and toast integration in desktop environment.
-2. Consider adding bulk complete/dismiss action for overdue reminders if requested.
+1. Validate dark theme equivalents across Obsidian default dark palette.
+2. Test theme switching responsiveness across mobile and desktop.
 
 ---
 

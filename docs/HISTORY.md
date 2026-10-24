@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-24: Align App Colors & Borders with Obsidian Default Light Theme
+
+- **Root Cause Diagnosis**:
+  - `packages/builtin-themes/light-a/theme.css` was defined with GitHub Primer light palette values (`#fafafa`, `#f2f2f2`, `#1f2328`, `#d8dee4`), which overrode the canonical Obsidian tokens upon load or restoration from `localStorage`.
+  - `ThemeLifecycleManager.ts` cached the injected theme stylesheet in `localStorage` without re-evaluating the theme definitions on `initialize()`.
+- **Obsidian Color Realignment (`theme.css`)**:
+  - Realigned all `light-a` tokens to match Obsidian's default light theme precisely:
+    - Editor & active tab background: `#fff` (`--color-bg-primary`)
+    - Sidebar, icon rail, tab strip chrome: `#f6f6f6` (`--color-bg-primary-alt`, `--color-bg-secondary`)
+    - Typography: `#222` (`--color-text-normal`), `#5c5c5c` (`--color-text-muted`), `#ababab` (`--color-text-faint`)
+    - Subtle & Normal borders: `#e4e4e4` (`--color-border-subtle`), `#d4d4d4` (`--color-border-normal`)
+    - Interactive Accent: `#7f6df2` (`--color-interactive-accent`)
+- **Preserved App Layout & All Borders**:
+  - Kept all original layout elements, panel divisions, and borders intact (`_sidebar.scss`, `_icon-rail.scss`, `_tabs.scss`, `_status-bar.scss`, `_window-controls.scss`).
+  - Restored icon rail divider border (`border-right`), sidebar header border (`border-bottom`), and status bar pill box container.
+  - Border colors softened to Obsidian's `#e4e4e4` via `--color-border-subtle`.
+- **Validation**:
+  - All style files passed Stylelint with 0 errors.
+  - All tests (`ThemeLifecycleManager`, `AppTabs`, `AppSidebar`, `IconRail`, `StatusBar`) passed cleanly.
+  - All files strictly under the 250-line hard cap.
+
+---
+
 ### 2026-10-24: Obsidian-Style GraphView Redesign
 
 - **Obsidian Visual Fidelity & Styling (`_graph-view.scss`)**:
