@@ -101,8 +101,12 @@ describe("insertRegistry", () => {
     const result = item?.build({ selectedText: "" });
     expect(result?.block).toBe(true);
     expect(result?.text).toContain("kanban-plugin: board");
+    expect(result?.text).toContain("# Kanban Board");
     expect(result?.text).toContain("## To Do");
     expect(result?.text).toContain("## Doing");
     expect(result?.text).toContain("## Done");
+
+    const customResult = item?.build({ selectedText: "Sprint 42" });
+    expect(customResult?.text).toContain("# Sprint 42");
   });
 });

@@ -3,14 +3,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2, 8px);
-  padding: var(--space-2, 8px) var(--space-3, 12px);
+  padding: 10px 12px;
   background: var(--color-bg-primary, #ffffff);
   border: 1px solid var(--color-border-subtle, #e4e4e4);
-  border-radius: var(--border-radius-sm, 4px);
+  border-radius: 6px;
   cursor: grab;
   user-select: none;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
 
   &:hover {
     border-color: var(--color-border-normal, #d4d4d4);
@@ -21,15 +21,17 @@
   }
 
   &.is-completed {
-    opacity: 0.65;
+    opacity: 0.6;
 
     .card-title {
       text-decoration: line-through;
+      color: var(--color-text-muted, #5c5c5c);
     }
   }
 
   &.is-dragging {
-    opacity: 0.4;
+    opacity: 0.35;
+    border-style: dashed;
   }
 }
 
@@ -41,15 +43,17 @@
 }
 
 .card-checkbox {
-  margin-top: 3px;
+  margin-top: 2px;
   cursor: pointer;
   accent-color: var(--color-interactive-accent, #cd47ab);
+  width: 15px;
+  height: 15px;
 }
 
 .card-title {
   flex: 1;
   font-size: var(--type-scale-sm, 0.875rem);
-  line-height: var(--type-leading-normal, 1.5);
+  line-height: var(--type-leading-normal, 1.45);
   color: var(--color-text-normal, #222222);
   word-break: break-word;
 }
@@ -59,12 +63,14 @@
   background: none;
   border: none;
   color: var(--color-text-muted, #5c5c5c);
-  padding: 2px 4px;
+  padding: 3px;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: 4px;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
-    color: var(--color-text-normal, #222222);
+    color: var(--color-text-error, #e55353);
     background: var(--color-bg-hover, rgba(0, 0, 0, 0.05));
   }
 }

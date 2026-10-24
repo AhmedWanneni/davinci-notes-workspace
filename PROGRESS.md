@@ -4,16 +4,19 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Kanban Board View (Obsidian Kanban Plugin Parity)
+## Last Session — Kanban Board View (Obsidian Kanban Plugin Parity) & UI Polish
 
 **Scope:**
 1. **Model (`@app/kanban`)**:
    - Implemented lossless round-trip parser (`parseBoard`) and serializer (`serializeBoard`) for Obsidian Kanban markdown notes (`kanban-plugin: board`).
    - Line-preserving board model preserving all unknown content byte-for-byte (H1/H3/H4+ headings, opaque `%% ... %%` comment settings blocks, `*** \n ## Archive`, date tokens `@{...}`, tags, wikilinks, CRLF / LF line endings, blank lines, and frontmatter keys/order).
-   - Minimal diff line splicing for operations: `addCard`, `editCard`, `toggleCardComplete`, `deleteCard`, `moveCard`, `reorderCard`, `addLane`, `renameLane`, `deleteLane`, and `reorderLane`.
+   - Minimal diff line splicing for operations: `addCard`, `editCard`, `toggleCardComplete`, `deleteCard`, `moveCard`, `reorderCard`, `addLane`, `renameLane`, `deleteLane`, `reorderLane`, and `setLaneColor`.
    - Pure TypeScript, zero DOM dependencies, 0 new npm packages added.
 2. **View (React + Design System)**:
-   - Lazy-loaded `KanbanView` matching Obsidian's flat design system aesthetic (no box shadows, borders for depth, clean typography).
+   - Lazy-loaded `KanbanView` matching Obsidian's flat design system aesthetic (no box shadows, borders for depth, clean typography, 8px rounded lanes, 6px cards).
+   - Column Color Customization: Integrated `KanbanLaneColorPicker` with 8 preset swatches (App Accent `#cd47ab`, Blue, Teal, Green, Yellow, Orange, Red, Default) that sets a top border accent bar on columns, serialized into Obsidian-standard `%% kanban:settings` block.
+   - Simple Board Title: Displays clean H1 header on the board extracted from `# Title` preamble (or note file stem), automatically added when creating new boards.
+   - Removed Properties by Default: Hidden `<PropertiesBlock>` from Kanban board view, and added `kanban-plugin` to `HIDDEN_FRONTMATTER_KEYS` in `PropertiesBlock.tsx`.
    - Rich inline markdown renderer (`renderInlineMarkdown`) supporting wikilinks (`[[target|alias]]`), tags (`#tag`), bold (`**bold**`), strikethrough (`~~strike~~`), inline code (`` `code` ``), standard markdown links (`[text](url)`), and `@date` tokens. Wikilinks cleanly hook into vault note navigation.
    - Dual-mode header toggle: seamlessly switch between "Open as markdown" and "Open as board" via the tab header action button without losing context.
    - Smooth native HTML5 drag-and-drop for reordering cards within lanes, moving cards across lanes, and reordering lanes (reusing the drag-and-drop pattern from the file tree, 0 drag library dependencies).
@@ -25,24 +28,23 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Simultaneous markdown / board open guard: atomic state updates ensure markdown editor and board view never overwrite each other.
 4. **Insert Item & Indexer Integration**:
    - Registered `"Kanban board"` item in `InsertRegistry.ts` (under `Code and data` group) with a modal board title dialog (`kanban-creator`).
-   - Creates a new note with YAML frontmatter (`kanban-plugin: board`) and 3 starter lanes (`To Do`, `Doing`, `Done`) in the current vault directory, immediately opening it in Kanban view.
+   - Creates a new note with YAML frontmatter (`kanban-plugin: board`), `# <Title>`, and 3 starter lanes (`To Do`, `Doing`, `Done`) in the current vault directory, immediately opening it in Kanban view.
    - Verified indexer compatibility: task cards' wikilinks and tags are indexed identically to standard markdown notes into the vault graph and backlinks without requiring any schema changes.
 
 **Deferred:**
 - Embedding a board inside a note (```kanban block)
 - Date and time pickers
-- Lane colors
 - Tag colors
 - Archive handling
 - "New note from card"
 - Property-based database views
 
 **Verification**:
-- 43 tests passing in `@app/kanban` across 6 test suites (`roundTrip.test.ts`, `minimalDiffs.test.ts`, `adversarial.test.ts`, `KanbanView.test.tsx`, `writeBackAndConflict.test.tsx`, `kanbanBenchmark.test.ts`).
-- 5,000-card benchmark parses in ~5.7ms and serializes in ~4.9ms.
+- 50 tests passing in `@app/kanban` across 7 test suites (`roundTrip.test.ts`, `minimalDiffs.test.ts`, `adversarial.test.ts`, `columnColorAndTitle.test.tsx`, `KanbanView.test.tsx`, `writeBackAndConflict.test.tsx`, `kanbanBenchmark.test.ts`).
+- 5,000-card benchmark parses in ~6.3ms and serializes in ~1.4ms.
 - 0 bytes added to initial desktop bundle (lazy-loaded as `@app/kanban` Rollup dynamic chunk).
 - Production web build passing (`pnpm --filter @app/desktop build:web`).
-- All insert registry and indexer tests passing.
+- All insert registry, properties, and indexer tests passing.
 
 ---
 

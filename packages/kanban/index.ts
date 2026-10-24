@@ -15,6 +15,7 @@ export {
   renameLane,
   deleteLane,
   reorderLanes,
+  setLaneColor,
 } from "./laneOperations";
 export { computeLineDiff } from "./lineDiff";
 export type { LineDiffChange } from "./lineDiff";

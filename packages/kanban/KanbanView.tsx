@@ -3,7 +3,7 @@ import type { KanbanBoard } from "./kanbanTypes";
 import { parseBoard } from "./parseBoard";
 import { serializeBoard } from "./serializeBoard";
 import { editCard, toggleCard, addCard, deleteCard } from "./cardOperations";
-import { addLane, renameLane, deleteLane } from "./laneOperations";
+import { addLane, renameLane, deleteLane, setLaneColor } from "./laneOperations";
 import { KanbanLaneComponent } from "./KanbanLaneComponent";
 import { useKanbanKeyboardNav } from "./useKanbanKeyboardNav";
 import { useKanbanDragDrop } from "./useKanbanDragDrop";
@@ -112,6 +112,13 @@ export function KanbanView({
     [commitBoard],
   );
 
+  const handleSetLaneColor = useCallback(
+    (laneId: string, color?: string) => {
+      commitBoard(setLaneColor({ ...boardRef.current }, laneId, color));
+    },
+    [commitBoard],
+  );
+
   const handleCreateLaneSubmit = () => {
     const clean = newLaneTitle.trim();
     if (clean) {
@@ -132,6 +139,8 @@ export function KanbanView({
     onStartEditCard: handleStartEditCard,
   });
 
+  const boardTitle = getBoardTitle(board.preambleLines, path);
+
   return (
     <div
       className={styles["kanban-view"]}
@@ -140,6 +149,10 @@ export function KanbanView({
       role="region"
       aria-label="Kanban board"
     >
+      <div className={styles["board-header"]}>
+        <h1 className={styles["board-title"]}>{boardTitle}</h1>
+      </div>
+
       <div className={styles["kanban-board"]}>
         {board.lanes.map((lane) => (
           <KanbanLaneComponent
@@ -150,6 +163,7 @@ export function KanbanView({
             editingCardDraft={editingDraft}
             onRenameLane={handleRenameLane}
             onDeleteLane={handleDeleteLane}
+            onSetLaneColor={handleSetLaneColor}
             onAddCard={handleAddCard}
             onToggleComplete={handleToggleComplete}
             onStartEditCard={handleStartEditCard}
@@ -211,4 +225,13 @@ export function KanbanView({
       </div>
     </div>
   );
+}
+
+function getBoardTitle(preambleLines: string[], filePath: string): string {
+  for (const line of preambleLines) {
+    const match = line.match(/^# (?!#)\s*(.*)$/);
+    if (match && match[1].trim()) return match[1].trim();
+  }
+  const leaf = filePath.split("/").pop() || "";
+  return leaf.replace(/\.md$/, "");
 }

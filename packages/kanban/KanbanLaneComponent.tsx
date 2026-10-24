@@ -1,6 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, type CSSProperties } from "react";
 import type { KanbanLane } from "./kanbanTypes";
 import { KanbanCardComponent } from "./KanbanCardComponent";
+import { KanbanLaneColorPicker } from "./KanbanLaneColorPicker";
+import { PencilIcon, TrashIcon } from "./KanbanIcons";
 import type { InlineRenderOptions } from "./renderInlineMarkdown";
 import styles from "./KanbanLaneComponent.module.scss";
 
@@ -11,6 +13,7 @@ export interface KanbanLaneProps extends InlineRenderOptions {
   editingCardDraft?: string;
   onRenameLane: (laneId: string, newTitle: string) => void;
   onDeleteLane: (laneId: string) => void;
+  onSetLaneColor?: (laneId: string, color?: string) => void;
   onAddCard: (laneId: string, title: string) => void;
   onToggleComplete: (cardId: string) => void;
   onStartEditCard: (cardId: string, currentTitle: string) => void;
@@ -24,27 +27,14 @@ export interface KanbanLaneProps extends InlineRenderOptions {
   onDropOnCard: (e: React.DragEvent, targetLaneId: string, targetCardId: string) => void;
 }
 
-export function KanbanLaneComponent({
-  lane,
-  focusedCardId,
-  editingCardId,
-  editingCardDraft,
-  onRenameLane,
-  onDeleteLane,
-  onAddCard,
-  onToggleComplete,
-  onStartEditCard,
-  onSaveEditCard,
-  onCancelEditCard,
-  onDeleteCard,
-  onCardClick,
-  onCardDragStart,
-  onLaneDragStart,
-  onDropOnLane,
-  onDropOnCard,
-  onLinkClick,
-  onTagClick,
-}: KanbanLaneProps) {
+export function KanbanLaneComponent(props: KanbanLaneProps) {
+  const {
+    lane, focusedCardId, editingCardId, editingCardDraft,
+    onRenameLane, onDeleteLane, onSetLaneColor, onAddCard,
+    onToggleComplete, onStartEditCard, onSaveEditCard, onCancelEditCard,
+    onDeleteCard, onCardClick, onCardDragStart, onLaneDragStart,
+    onDropOnLane, onDropOnCard, onLinkClick, onTagClick,
+  } = props;
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameDraft, setRenameDraft] = useState(lane.title);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -61,16 +51,12 @@ export function KanbanLaneComponent({
   }, [isRenaming]);
 
   useEffect(() => {
-    if (isAddingCard) {
-      addCardInputRef.current?.focus();
-    }
+    if (isAddingCard) addCardInputRef.current?.focus();
   }, [isAddingCard]);
 
   const handleRenameSubmit = () => {
     const clean = renameDraft.trim();
-    if (clean && clean !== lane.title) {
-      onRenameLane(lane.id, clean);
-    }
+    if (clean && clean !== lane.title) onRenameLane(lane.id, clean);
     setIsRenaming(false);
   };
 
@@ -97,6 +83,9 @@ export function KanbanLaneComponent({
     <div
       className={styles["kanban-lane"]}
       data-lane-id={lane.id}
+      style={
+        lane.color ? ({ "--lane-color": lane.color } as CSSProperties) : undefined
+      }
       onDragOver={(e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
@@ -138,6 +127,10 @@ export function KanbanLaneComponent({
         </div>
 
         <div className={styles["lane-actions"]}>
+          <KanbanLaneColorPicker
+            currentColor={lane.color}
+            onColorChange={(color) => onSetLaneColor?.(lane.id, color)}
+          />
           <button
             type="button"
             className={styles["lane-action-button"]}
@@ -145,7 +138,7 @@ export function KanbanLaneComponent({
             aria-label="Rename lane"
             title="Rename lane"
           >
-            ✎
+            <PencilIcon size={13} />
           </button>
           <button
             type="button"
@@ -154,7 +147,7 @@ export function KanbanLaneComponent({
             aria-label="Delete lane"
             title="Delete lane"
           >
-            ✕
+            <TrashIcon size={13} />
           </button>
         </div>
       </div>

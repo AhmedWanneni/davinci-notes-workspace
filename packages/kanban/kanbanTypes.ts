@@ -11,6 +11,7 @@ export interface KanbanCard {
 export interface KanbanLane {
   id: string;
   title: string;
+  color?: string;
   headingLine: string;
   preLines: string[];
   cards: KanbanCard[];

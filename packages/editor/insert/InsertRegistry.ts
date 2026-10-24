@@ -139,10 +139,12 @@ export const insertRegistry: readonly InsertItem[] = [
         return null;
       },
     },
-    build: () =>
-      block(
-        "---\nkanban-plugin: board\n---\n\n## To Do\n\n## Doing\n\n## Done\n",
-      ),
+    build: (context) => {
+      const title = context?.selectedText?.trim() || "Kanban Board";
+      return block(
+        `---\nkanban-plugin: board\n---\n\n# ${title}\n\n## To Do\n\n## Doing\n\n## Done\n`,
+      );
+    },
   },
   {
     id: "table",

@@ -149,6 +149,13 @@ export function parseBoard(text: string): KanbanBoard {
     }
   }
 
+  const laneColors = extractLaneColors(epilogueLines);
+  for (const lane of lanes) {
+    if (laneColors[lane.title]) {
+      lane.color = laneColors[lane.title];
+    }
+  }
+
   return {
     preambleLines,
     lanes,
@@ -158,6 +165,26 @@ export function parseBoard(text: string): KanbanBoard {
     rawText: text,
     isModified: false,
   };
+}
+
+function extractLaneColors(epilogueLines: string[]): Record<string, string> {
+  const text = epilogueLines.join("\n");
+  const match = text.match(/%%\s*kanban:settings\s*([\s\S]*?)%%/);
+  if (!match) return {};
+  const rawBody = match[1].replace(/```(?:json)?|```/g, "").trim();
+  try {
+    const parsed = JSON.parse(rawBody);
+    if (
+      parsed &&
+      typeof parsed["lane-colors"] === "object" &&
+      parsed["lane-colors"] !== null
+    ) {
+      return parsed["lane-colors"] as Record<string, string>;
+    }
+  } catch {
+    // Graceful fallback for invalid JSON in settings
+  }
+  return {};
 }
 
 function hasSubsequentIndentedLine(

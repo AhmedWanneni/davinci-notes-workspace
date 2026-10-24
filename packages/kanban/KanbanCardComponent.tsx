@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import type { KanbanCard } from "./kanbanTypes";
 import { renderInlineMarkdown, type InlineRenderOptions } from "./renderInlineMarkdown";
+import { TrashIcon } from "./KanbanIcons";
 import styles from "./KanbanCardComponent.module.scss";
 
 export interface KanbanCardProps extends InlineRenderOptions {
@@ -121,7 +122,7 @@ export function KanbanCardComponent({
             aria-label="Delete card"
             title="Delete card"
           >
-            ✕
+            <TrashIcon size={12} />
           </button>
         )}
       </div>

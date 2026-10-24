@@ -352,12 +352,15 @@ export function EditorArea({
                   const stem = cleanName.endsWith(".md")
                     ? cleanName
                     : `${cleanName}.md`;
+                  const title = cleanName.endsWith(".md")
+                    ? cleanName.slice(0, -3)
+                    : cleanName;
                   const folder =
                     activeNotePath && activeNotePath.includes("/")
                       ? activeNotePath.slice(0, activeNotePath.lastIndexOf("/"))
                       : "";
                   const newPath = folder ? `${folder}/${stem}` : stem;
-                  const starter = `---\nkanban-plugin: board\n---\n\n## To Do\n\n## Doing\n\n## Done\n`;
+                  const starter = `---\nkanban-plugin: board\n---\n\n# ${title}\n\n## To Do\n\n## Doing\n\n## Done\n`;
                   cancelInsertDialog(insertDialogRequest);
                   void createNoteInVault(newPath, starter).then(() => {
                     void openNote(newPath);
@@ -437,10 +440,6 @@ export function EditorArea({
             ) : null}
             <div className="editor-area__header">
               {!coverUrl && noteHeader}
-              <PropertiesBlock
-                frontmatter={frontmatter}
-                onLinkClick={onLinkClick}
-              />
             </div>
             {hasConflict && activeNotePath && (
               <EditorConflictBanner
