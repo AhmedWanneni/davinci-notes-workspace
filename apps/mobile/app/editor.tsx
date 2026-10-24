@@ -3,12 +3,14 @@ import { View, AppState, BackHandler, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { NavigationBar } from "expo-navigation-bar";
-import { useImmersiveNavigationBar, useImmersiveMode } from "../settings";
+import { useImmersiveNavigationBar } from "../settings";
 import EditorDom from "../components/EditorDom";
 import { FormattingToolbar } from "../components/FormattingToolbar";
 import { EditorConflictBanner } from "../components/EditorConflictBanner";
 import { EditorSaveErrorBanner } from "../components/EditorSaveErrorBanner";
 import { EditorHeader } from "../components/EditorHeader";
+import { EditorPreviewView } from "../components/EditorPreviewView";
+import { buildEditorInjectedScript } from "../components/editorInjectedScript";
 import { Text } from "../components/primitives";
 import {
   useNotePath,
@@ -23,19 +25,24 @@ import { useTheme } from "../theme";
 export default function EditorScreen(): React.ReactElement {
   const insets = useSafeAreaInsets();
   const { tokens, themeCss } = useTheme();
-  const { isImmersiveMode } = useImmersiveMode();
   useImmersiveNavigationBar();
   const {
     path: initialPath,
     noteId,
     preset,
     autoFocus,
+    mode: initialMode,
   } = useLocalSearchParams<{
     path?: string;
     noteId?: string;
     preset?: string;
     autoFocus?: string;
+    mode?: "edit" | "preview";
   }>();
+
+  const [viewMode, setViewMode] = useState<"edit" | "preview">(
+    initialMode === "edit" || preset === "new" ? "edit" : "preview",
+  );
 
   const storePath = useNotePath(noteId, initialPath ?? "Untitled.md");
   const {
@@ -125,14 +132,14 @@ export default function EditorScreen(): React.ReactElement {
         paddingBottom: insets.bottom,
       }}
     >
-      {Platform.OS === "android" && isImmersiveMode ? (
-        <NavigationBar hidden={true} />
-      ) : null}
+      {Platform.OS === "android" ? <NavigationBar hidden={true} /> : null}
       <EditorHeader
         title={title}
         payloadBytes={lastPayloadBytes}
         saveStatus={saveStatus}
         onBack={handleBack}
+        mode={viewMode}
+        onToggleMode={(next) => setViewMode(next)}
       />
 
       {loadError ? (
@@ -155,7 +162,22 @@ export default function EditorScreen(): React.ReactElement {
       ) : null}
 
       <View style={{ flex: 1, width: "100%" }}>
-        {isLoaded ? (
+        {viewMode === "preview" ? (
+          <EditorPreviewView
+            content={content}
+            title={title}
+            onEditPress={() => setViewMode("edit")}
+            onWikilinkPress={(target) =>
+              router.push({
+                pathname: "/editor",
+                params: { path: `${target}.md`, mode: "preview" },
+              })
+            }
+            onTagPress={(tag) =>
+              router.push({ pathname: "/(tabs)/search", params: { q: tag } })
+            }
+          />
+        ) : isLoaded ? (
           <EditorDom
             key={`${noteId ?? activePath}-${loadCounter}`}
             dom={{
@@ -163,34 +185,11 @@ export default function EditorScreen(): React.ReactElement {
               matchContents: false,
               scrollEnabled: true,
               focusable: true,
-              injectedJavaScriptBeforeContentLoaded: `
-                window.ReactNativeWebView = window.ReactNativeWebView || {};
-                if (typeof window.ReactNativeWebView.injectedObjectJson !== 'function') {
-                  window.ReactNativeWebView.injectedObjectJson = function() {
-                    return JSON.stringify({
-                      EXPO_DOM_HOST_OS: 'android',
-                      initialProps: {
-                        names: ['onDocChanged', 'onFlushAck', 'onMetricsUpdate'],
-                        props: {
-                          initialContent: ${JSON.stringify(encodePayload(content))},
-                          notePath: ${JSON.stringify(activePath)},
-                          themeCss: ${JSON.stringify(themeCss ?? "")}
-                        }
-                      }
-                    });
-                  };
-                }
-                window.$$EXPO_DOM_HOST_OS = window.$$EXPO_DOM_HOST_OS || 'android';
-                window.$$EXPO_INITIAL_PROPS = window.$$EXPO_INITIAL_PROPS || {
-                  names: ['onDocChanged', 'onFlushAck', 'onMetricsUpdate'],
-                  props: {
-                    initialContent: ${JSON.stringify(encodePayload(content))},
-                    notePath: ${JSON.stringify(activePath)},
-                    themeCss: ${JSON.stringify(themeCss ?? "")}
-                  }
-                };
-                true;
-              `,
+              injectedJavaScriptBeforeContentLoaded: buildEditorInjectedScript(
+                content,
+                activePath,
+                themeCss ?? "",
+              ),
               containerStyle: { flex: 1, width: "100%", height: "100%" },
               style: { flex: 1, width: "100%", height: "100%" },
             }}
@@ -199,6 +198,7 @@ export default function EditorScreen(): React.ReactElement {
             themeCss={themeCss}
             onDocChanged={handleDocChanged}
             onFlushAck={handleFlushAck}
+            onMetricsUpdate={() => {}}
             actionTrigger={actionTrigger}
             focusTrigger={focusTrigger}
             flushTrigger={flushTrigger}
@@ -214,15 +214,21 @@ export default function EditorScreen(): React.ReactElement {
         ) : null}
       </View>
 
-      <FormattingToolbar
-        onAction={(action) => {
-          if (action === "camera" || action === "photo" || action === "audio") {
-            void handleMediaAction(action);
-          } else {
-            setActionTrigger({ id: Date.now(), action });
-          }
-        }}
-      />
+      {viewMode === "edit" ? (
+        <FormattingToolbar
+          onAction={(action) => {
+            if (
+              action === "camera" ||
+              action === "photo" ||
+              action === "audio"
+            ) {
+              void handleMediaAction(action);
+            } else {
+              setActionTrigger({ id: Date.now(), action });
+            }
+          }}
+        />
+      ) : null}
     </View>
   );
 }

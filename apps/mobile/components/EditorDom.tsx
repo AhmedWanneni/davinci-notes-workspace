@@ -56,14 +56,13 @@ export default function EditorDom({
   const [_isReady, setIsReady] = useState(false);
 
   const onDocChangedRef = useRef(onDocChanged);
-  useEffect(() => {
-    onDocChangedRef.current = onDocChanged;
-  }, [onDocChanged]);
+  onDocChangedRef.current = onDocChanged;
 
   const onFlushAckRef = useRef(onFlushAck);
-  useEffect(() => {
-    onFlushAckRef.current = onFlushAck;
-  }, [onFlushAck]);
+  onFlushAckRef.current = onFlushAck;
+
+  const lastActionIdRef = useRef<number | null>(null);
+  const lastInsertIdRef = useRef<number | null>(null);
 
   // Debounced bridge emitter (750ms) - only crosses on debounce or explicit flush
   const bridgeRef = useRef(
@@ -81,8 +80,12 @@ export default function EditorDom({
       if (update.docChanged) {
         changeCountRef.current += 1;
         const now = performance.now();
-        if (lastKeystrokeTime > 0) {
-          onMetricsUpdate?.(now - lastKeystrokeTime);
+        if (lastKeystrokeTime > 0 && typeof onMetricsUpdate === "function") {
+          try {
+            onMetricsUpdate(now - lastKeystrokeTime);
+          } catch {
+            /* ignore */
+          }
         }
         lastKeystrokeTime = now;
 
@@ -180,7 +183,12 @@ export default function EditorDom({
 
   // Execute toolbar actions
   useEffect(() => {
-    if (viewRef.current && actionTrigger) {
+    if (
+      viewRef.current &&
+      actionTrigger &&
+      actionTrigger.id !== lastActionIdRef.current
+    ) {
+      lastActionIdRef.current = actionTrigger.id;
       executeToolbarAction(viewRef.current, actionTrigger.action);
     }
   }, [actionTrigger]);
@@ -202,7 +210,12 @@ export default function EditorDom({
 
   // Insert arbitrary markdown text at cursor (for camera, photo, voice embeds)
   useEffect(() => {
-    if (viewRef.current && insertTrigger) {
+    if (
+      viewRef.current &&
+      insertTrigger &&
+      insertTrigger.id !== lastInsertIdRef.current
+    ) {
+      lastInsertIdRef.current = insertTrigger.id;
       const textToInsert = decodePayload(insertTrigger.text);
       const { from, to } = viewRef.current.state.selection.main;
       viewRef.current.dispatch({

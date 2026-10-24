@@ -4,6 +4,69 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Toolbar Action Infinite Print Loop Fix (Complete)**
+- **Root-Cause Analysis**:
+  - In `EditorDom.tsx`, `useEffect` listening to `[actionTrigger]` re-executed whenever `actionTrigger` changed reference.
+  - When a toolbar action (e.g. "heading" or "bold") modified the document, CodeMirror triggered `onDocChanged`, which updated `content` state in `editor.tsx`.
+  - Re-rendering `editor.tsx` passed re-serialized `actionTrigger` down to `EditorDom` across the bridge, producing a new object reference in the WebView and causing `useEffect([actionTrigger])` to re-execute indefinitely in an infinite insertion loop.
+- **Resolution**:
+  - Introduced `lastActionIdRef` and `lastInsertIdRef` in `apps/mobile/components/EditorDom.tsx`.
+  - Guarded toolbar action execution with `actionTrigger.id !== lastActionIdRef.current` and insert trigger with `insertTrigger.id !== lastInsertIdRef.current`, ensuring actions execute exactly once per user tap regardless of parent re-renders.
+  - Fixed `onMetricsUpdate` crash by passing a no-op handler and making RPC name registration conditional.
+- **Verification**:
+  - Added unit test in `tests/folderAndEditorExperience.test.tsx` verifying action idempotency across re-renders.
+  - Test suites: `tests/folderAndEditorExperience.test.tsx` (8/8 passed), `tests/mobileEditor.test.ts` (6/6 passed), `tests/immersiveMode.test.ts` (4/4 passed).
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `EditorDom.tsx`: 248 lines (< 250 cap), `editor.tsx`: 236 lines.
+
+---
+
+**Unified Direct File Access into Editor Preview/Edit & Unconditional Navigation Bar Hiding (Complete)**
+- **Direct File Access to Unified Preview/Edit Screen**:
+  - Tapping any note in `FilesScreen`, `SearchScreen`, `VaultDrawerContent`, or wikilinks now opens `/editor` directly (`mode: "preview"`).
+  - Users are directly on the preview/edit screen without having to navigate to a reader screen first and then push a new editor screen each time.
+  - Tapping "Edit" in the header pill `[ Edit | Preview ]` or within the preview document switches directly to CodeMirror editing on the **same screen** with zero navigation stack push.
+  - Tapping "Preview" switches back to live Markdown preview on the same screen.
+  - `apps/mobile/app/note.tsx` automatically redirects/replaces with `/editor?mode=preview`, ensuring any legacy routes or deep links land on the unified screen.
+- **Expo Navigation Bar Hiding**:
+  - Hides the Android system navigation bar unconditionally on mount in `apps/mobile/app/editor.tsx` (`<NavigationBar hidden={true} />`) and in `useImmersiveNavigationBar()` (`NavigationBar.setHidden(true)` and `setVisibilityAsync("hidden")`).
+  - Automatically re-asserts hiding when software keyboard dismisses and when returning from app background, and cleanly restores on unmount.
+  - Default `cachedImmersiveMode` updated to `true` (enabled).
+- **Verification**:
+  - Vitest test suites: `tests/folderAndEditorExperience.test.tsx` (7/7 passed), `tests/immersiveMode.test.ts` (4/4 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed), `components/shell/shell.test.tsx` (4/4 passed), `components/shell/FileActionSheet.test.tsx` (2/2 passed), `components/shell/NoteActionSheet.test.tsx` (2/2 passed), `components/FormattingToolbar.test.tsx` (2/2 passed). Total: 24/24 passed.
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `editor.tsx`: 235 lines, `note.tsx`: 17 lines, `index.tsx`: 233 lines, `search.tsx`: 231 lines.
+
+---
+
+**Sidebar Folder Expansion & Navigation, In-Editor Same-Page Preview/Edit, and Add Folder Fixes (Complete)**
+- **Sidebar Folder Opening & Interactive Expansion**:
+  - Replaced non-interactive `<View>` folder rows in `VaultDrawerContent.tsx` with interactive, collapsible `DrawerFolderItem.tsx`.
+  - Added expand/collapse chevron toggling (`CaretRight` / `CaretDown`) so folders can be opened directly within the sidebar tree.
+  - When expanded, notes nested inside that specific folder are displayed and can be clicked to open directly.
+  - Added `onSelectFolder` callback in `VaultDrawerContent` so tapping the folder navigates into that folder within `FilesScreen` (`(tabs)/index.tsx`).
+- **Same-Page Preview and Edit for Editor**:
+  - Implemented seamless dual-mode state (`mode: "edit" | "preview"`) in `apps/mobile/app/editor.tsx`.
+  - Updated `EditorHeader.tsx` with a segmented token-bound `[ Edit | Preview ]` pill selector.
+  - Created `EditorPreviewView.tsx`: dynamically parses live editor markdown content via `parseMarkdownDocument(content)` into AST and renders `NoteReaderView` right on the same page without navigating or losing scroll/cursor context.
+  - Switch between editing in CodeMirror and reading in Markdown preview instantaneously with zero routing latency.
+  - Extracted `editorInjectedScript.ts` to keep `editor.tsx` well under the 250-line hard cap (227 lines).
+- **Add Folder Fixes Across App**:
+  - **Modal Collision Prevention**: Fixed React Native modal dismissal race condition between `NavigationDrawer` and `NewFolderSheet` by introducing safe coordinated dismissal timing.
+  - **Create Action Sheet Integration**: Added "New Folder" item (`FolderPlus`) to `CreateActionSheet.tsx` so users can create folders directly from the central tab bar action button.
+  - **`NewFolderSheet.tsx` Validation & Error Handling**: Added empty-string validation, slash/backslash rejection, and friendly inline error messages.
+  - **Note & Tab Screens**: Added `NewFolderSheet` support to `note.tsx` and `(tabs)/_layout.tsx` so users can add folders from anywhere in the app.
+- **Verification**:
+  - New test suite: `tests/folderAndEditorExperience.test.tsx` (7/7 tests passed).
+  - Shell and navigation tests: `tests/immersiveMode.test.ts` (4/4 passed), `components/shell/shell.test.tsx` (4/4 passed), `components/shell/FileActionSheet.test.tsx` (2/2 passed), `components/shell/NoteActionSheet.test.tsx` (2/2 passed), `components/FormattingToolbar.test.tsx` (2/2 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed).
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Strict line limit compliance: All modified and new files under 250 lines (`editor.tsx`: 227, `note.tsx`: 227, `index.tsx`: 233, `VaultDrawerContent.tsx`: 203, `_layout.tsx`: 188).
+
+---
+
 **Android Immersive Mode, Tab Bar Hiding & Safe-Area Preservation (Complete)**
 - **Android Immersive Navigation Bar & Restoration**:
   - Integrated `expo-navigation-bar` (SDK 57) for declarative and imperative system navigation bar controls.

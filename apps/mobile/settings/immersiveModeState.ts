@@ -4,7 +4,7 @@ import { NavigationBar, setVisibilityAsync } from "expo-navigation-bar";
 import { getVaultIndexDb, withDbLock } from "../database";
 
 const SETTINGS_KEY = "ui.immersive_mode";
-let cachedImmersiveMode = false;
+let cachedImmersiveMode = true;
 let isLoaded = false;
 
 const listeners = new Set<() => void>();
@@ -36,7 +36,7 @@ export async function loadImmersiveModeFromDb(): Promise<boolean> {
     if (rows.length > 0 && rows[0]?.value !== undefined) {
       cachedImmersiveMode = rows[0].value === "1";
     } else {
-      cachedImmersiveMode = false;
+      cachedImmersiveMode = true;
     }
     isLoaded = true;
     notifyListeners();
@@ -99,10 +99,8 @@ function applyNavigationBarVisibility(hidden: boolean): void {
 }
 
 export function useImmersiveNavigationBar(): void {
-  const { isImmersiveMode } = useImmersiveMode();
-
   useEffect(() => {
-    if (Platform.OS !== "android" || !isImmersiveMode) return;
+    if (Platform.OS !== "android") return;
 
     // 1. Hide on screen mount
     applyNavigationBarVisibility(true);
@@ -125,5 +123,5 @@ export function useImmersiveNavigationBar(): void {
       // Restore navigation bar on unmount
       applyNavigationBarVisibility(false);
     };
-  }, [isImmersiveMode]);
+  }, []);
 }

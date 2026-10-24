@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, ScrollView, Pressable } from "react-native";
 import {
   Calendar,
@@ -6,11 +6,11 @@ import {
   GitFork,
   Gear,
   FolderPlus,
-  FolderSimple,
   FileText,
 } from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
+import { DrawerFolderItem } from "./DrawerFolderItem";
 
 export interface VaultDrawerContentProps {
   vaultName: string;
@@ -20,6 +20,7 @@ export interface VaultDrawerContentProps {
   notes: string[];
   onOpenVaultSwitcher: () => void;
   onSelectNote: (path: string) => void;
+  onSelectFolder?: (folder: string) => void;
   onOpenDailyNote: () => void;
   onOpenTags: () => void;
   onOpenGraph: () => void;
@@ -35,6 +36,7 @@ export function VaultDrawerContent({
   notes,
   onOpenVaultSwitcher,
   onSelectNote,
+  onSelectFolder,
   onOpenDailyNote,
   onOpenTags,
   onOpenGraph,
@@ -42,6 +44,20 @@ export function VaultDrawerContent({
   onCreateFolder,
 }: VaultDrawerContentProps): React.ReactElement {
   const { tokens } = useTheme();
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
+  );
+
+  const toggleFolder = (folder: string) => {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(folder)) next.delete(folder);
+      else next.add(folder);
+      return next;
+    });
+  };
+
+  const topLevelNotes = notes.filter((n) => !n.includes("/"));
 
   return (
     <View className="flex-1 justify-between">
@@ -117,48 +133,52 @@ export function VaultDrawerContent({
           </Pressable>
         </View>
 
-        {/* Folders List */}
-        {folders.map((folder) => (
-          <View
-            key={folder}
-            className="flex-row items-center gap-2 px-3 py-2 rounded-lg active:bg-bg-hover min-h-[40px]"
-          >
-            <FolderSimple size={18} color={tokens.color.interactive.accent} />
-            <Text
-              variant="body"
-              color="normal"
-              numberOfLines={1}
-              className="flex-1"
-            >
-              {folder}
-            </Text>
-          </View>
-        ))}
+        {/* Folders List with Expansion */}
+        {folders.map((folder) => {
+          const depth = folder.split("/").length - 1;
+          const displayName = folder.split("/").pop() ?? folder;
+          const folderNotes = notes.filter((n) => {
+            if (!n.startsWith(`${folder}/`)) return false;
+            const remaining = n.slice(folder.length + 1);
+            return !remaining.includes("/");
+          });
+
+          return (
+            <DrawerFolderItem
+              key={folder}
+              folder={folder}
+              displayName={displayName}
+              depth={depth}
+              isExpanded={expandedFolders.has(folder)}
+              notes={folderNotes}
+              onToggleExpand={() => toggleFolder(folder)}
+              onSelectFolder={onSelectFolder}
+              onSelectNote={onSelectNote}
+            />
+          );
+        })}
 
         {/* Top-Level Notes */}
-        {notes
-          .filter((n) => !n.includes("/"))
-          .slice(0, 30)
-          .map((note) => {
-            const stem = note.replace(/\.md$/i, "");
-            return (
-              <Pressable
-                key={note}
-                onPress={() => onSelectNote(note)}
-                className="flex-row items-center gap-2 px-3 py-2 rounded-lg active:bg-bg-hover min-h-[40px]"
+        {topLevelNotes.slice(0, 30).map((note) => {
+          const stem = note.replace(/\.md$/i, "");
+          return (
+            <Pressable
+              key={note}
+              onPress={() => onSelectNote(note)}
+              className="flex-row items-center gap-2 px-3 py-2 rounded-lg active:bg-bg-hover min-h-[40px]"
+            >
+              <FileText size={18} color={tokens.color.text.muted} />
+              <Text
+                variant="body"
+                color="normal"
+                numberOfLines={1}
+                className="flex-1"
               >
-                <FileText size={18} color={tokens.color.text.muted} />
-                <Text
-                  variant="body"
-                  color="normal"
-                  numberOfLines={1}
-                  className="flex-1"
-                >
-                  {stem}
-                </Text>
-              </Pressable>
-            );
-          })}
+                {stem}
+              </Text>
+            </Pressable>
+          );
+        })}
       </ScrollView>
 
       {/* Footer */}

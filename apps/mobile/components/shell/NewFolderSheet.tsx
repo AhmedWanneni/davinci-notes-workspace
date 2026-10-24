@@ -15,35 +15,65 @@ export function NewFolderSheet({
 }: NewFolderSheetProps): React.ReactElement {
   const [folderName, setFolderName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleClose = () => {
+    setError(null);
+    setFolderName("");
+    onClose();
+  };
 
   const handleCreate = async () => {
     const trimmed = folderName.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setError("Folder name cannot be empty.");
+      return;
+    }
+    if (trimmed.includes("/") || trimmed.includes("\\")) {
+      setError("Folder name cannot contain slashes.");
+      return;
+    }
+
     setIsSubmitting(true);
+    setError(null);
     try {
       await onCreateFolder(trimmed);
       setFolderName("");
       onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create folder.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="New Folder">
+    <Sheet visible={visible} onClose={handleClose} title="New Folder">
       <View className="gap-3">
         <Text variant="body" color="muted">
           Enter a name for the new folder:
         </Text>
         <Input
           value={folderName}
-          onChangeText={setFolderName}
+          onChangeText={(val) => {
+            setFolderName(val);
+            if (error) setError(null);
+          }}
           placeholder="Folder name"
           autoFocus
           onSubmitEditing={() => void handleCreate()}
         />
+        {error ? (
+          <Text variant="caption" color="error">
+            {error}
+          </Text>
+        ) : null}
         <View className="flex-row gap-2 justify-end mt-2">
-          <Button variant="secondary" onPress={onClose} disabled={isSubmitting}>
+          <Button
+            variant="secondary"
+            onPress={handleClose}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
           <Button
@@ -51,7 +81,7 @@ export function NewFolderSheet({
             onPress={() => void handleCreate()}
             disabled={!folderName.trim() || isSubmitting}
           >
-            Create
+            {isSubmitting ? "Creating..." : "Create"}
           </Button>
         </View>
       </View>

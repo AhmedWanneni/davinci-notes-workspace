@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { View, FlatList } from "react-native";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import {
   SortAscending,
   SortDescending,
@@ -35,6 +35,7 @@ import { deriveVisibleItems } from "../../vault/folderViewHelpers";
 
 export default function FilesScreen(): React.ReactElement {
   const router = useRouter();
+  const { folder: routeFolder } = useLocalSearchParams<{ folder?: string }>();
   const { tokens } = useTheme();
   const [isSwitcherVisible, setIsSwitcherVisible] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -60,9 +61,16 @@ export default function FilesScreen(): React.ReactElement {
     handleRenameNote,
   } = useFilesScreenState();
 
+  useEffect(() => {
+    if (typeof routeFolder === "string") setCurrentFolder(routeFolder);
+  }, [routeFolder, setCurrentFolder]);
+
   const handleOpenNote = (path: string) => {
     const noteId = defaultNoteStore.register(path);
-    router.push({ pathname: "/note", params: { path, noteId } });
+    router.push({
+      pathname: "/editor",
+      params: { path, noteId, mode: "preview" },
+    });
   };
 
   useFocusEffect(
@@ -223,6 +231,10 @@ export default function FilesScreen(): React.ReactElement {
             setDrawerVisible(false);
             handleOpenNote(note);
           }}
+          onSelectFolder={(folder) => {
+            setDrawerVisible(false);
+            setCurrentFolder(folder);
+          }}
           onOpenDailyNote={() => {
             setDrawerVisible(false);
             router.push("/daily-note-action");
@@ -241,7 +253,7 @@ export default function FilesScreen(): React.ReactElement {
           }}
           onCreateFolder={() => {
             setDrawerVisible(false);
-            setNewFolderVisible(true);
+            setTimeout(() => setNewFolderVisible(true), 250);
           }}
         />
       </NavigationDrawer>

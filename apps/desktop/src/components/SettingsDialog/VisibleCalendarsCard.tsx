@@ -26,7 +26,10 @@ export function VisibleCalendarsCard({
               <div className={styles["calendar-info"]}>
                 <div
                   className={styles["calendar-color-dot"]}
-                  style={{ backgroundColor: cal.backgroundColor || "#4285F4" }}
+                  style={{
+                    backgroundColor:
+                      cal.backgroundColor || "var(--color-interactive-accent)",
+                  }}
                 />
                 <span className={styles["calendar-title"]}>{cal.summary}</span>
                 {cal.primary && (

@@ -60,8 +60,8 @@ export function useNoteReaderState(activePath: string, currentNoteId: string) {
       if (res.isResolved && res.resolvedPath) {
         const targetId = defaultNoteStore.register(res.resolvedPath);
         router.push({
-          pathname: "/note",
-          params: { path: res.resolvedPath, noteId: targetId },
+          pathname: "/editor",
+          params: { path: res.resolvedPath, noteId: targetId, mode: "preview" },
         });
       } else {
         setUnresolvedTarget(res.targetStem);

@@ -126,8 +126,8 @@ export default function SearchScreen(): React.ReactElement {
   const handleOpenNote = (notePath: string) => {
     const targetId = defaultNoteStore.register(notePath);
     router.push({
-      pathname: "/note",
-      params: { path: notePath, noteId: targetId },
+      pathname: "/editor",
+      params: { path: notePath, noteId: targetId, mode: "preview" },
     });
   };
 

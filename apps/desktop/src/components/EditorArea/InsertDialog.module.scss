@@ -16,25 +16,25 @@
 }
 
 .insert-dialog-header {
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-4) var(--space-4);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
 .insert-dialog-title {
   margin: 0;
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
+  font-size: var(--type-scale-base);
+  font-weight: var(--type-weight-medium);
+  color: var(--color-text-normal);
 }
 
 .insert-dialog-description {
   margin: var(--space-1) 0 0;
-  font-size: var(--font-size-xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
 }
 
 .insert-dialog-body {
-  padding: var(--space-5);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
@@ -51,19 +51,19 @@
   background: none;
   border: none;
   padding: var(--space-1) var(--space-3);
-  font-size: var(--font-size-xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
   cursor: pointer;
   border-radius: var(--border-radius-sm);
 
   &:hover {
-    color: var(--color-text-primary);
+    color: var(--color-text-normal);
   }
 
   &.is-active {
-    color: var(--color-text-primary);
+    color: var(--color-text-normal);
     background-color: var(--color-bg-secondary);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--type-weight-medium);
   }
 }
 
@@ -74,12 +74,12 @@
   background-color: var(--color-bg-secondary);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-sm);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+  color: var(--color-text-normal);
+  font-size: var(--type-scale-sm);
   outline: none;
 
   &:focus {
-    border-color: var(--color-border-strong);
+    border-color: var(--color-border-focus);
   }
 }
 
@@ -98,32 +98,32 @@
   background-color: var(--color-bg-secondary);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-sm);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+  color: var(--color-text-normal);
+  font-size: var(--type-scale-sm);
   cursor: pointer;
 
   &:hover {
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-bg-hover);
   }
 }
 
 .insert-dialog-file-chosen {
-  font-size: var(--font-size-xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
   word-break: break-all;
 }
 
 .insert-dialog-error {
   padding: var(--space-2) var(--space-3);
-  background-color: var(--color-bg-error-subtle);
-  border: var(--border-width-thin) solid var(--color-border-error);
+  background-color: var(--color-bg-status-error);
+  border: var(--border-width-thin) solid var(--color-border-status-error);
   border-radius: var(--border-radius-sm);
   color: var(--color-text-error);
-  font-size: var(--font-size-xs);
+  font-size: var(--type-scale-xs);
 }
 
 .insert-dialog-footer {
-  padding: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-4);
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
@@ -136,26 +136,26 @@
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-sm);
   padding: var(--space-2) var(--space-4);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-xs);
+  color: var(--color-text-normal);
+  font-size: var(--type-scale-xs);
   cursor: pointer;
 
   &:hover {
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-bg-hover);
   }
 }
 
 .insert-dialog-btn-confirm {
   background-color: var(--color-bg-primary);
-  border: var(--border-width-thin) solid var(--color-border-strong);
+  border: var(--border-width-thin) solid var(--color-border-normal);
   border-radius: var(--border-radius-sm);
   padding: var(--space-2) var(--space-4);
-  color: var(--color-text-primary);
-  font-weight: var(--font-weight-medium);
-  font-size: var(--font-size-xs);
+  color: var(--color-text-normal);
+  font-weight: var(--type-weight-medium);
+  font-size: var(--type-scale-xs);
   cursor: pointer;
 
   &:hover {
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-bg-hover);
   }
 }

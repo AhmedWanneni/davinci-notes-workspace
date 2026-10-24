@@ -7,4 +7,5 @@ export * from "./LeafSelectorPill";
 export * from "./FileActionSheet";
 export * from "./CreateActionSheet";
 export * from "./VaultDrawerContent";
+export * from "./DrawerFolderItem";
 export * from "./NewFolderSheet";

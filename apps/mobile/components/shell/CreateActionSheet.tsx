@@ -3,6 +3,7 @@ import { View, Pressable, ScrollView } from "react-native";
 import {
   FilePlus,
   Calendar,
+  FolderPlus,
   Camera,
   Image as ImageIcon,
   Microphone,
@@ -15,6 +16,7 @@ export interface CreateActionSheetProps {
   onClose: () => void;
   onNewNote: () => void;
   onDailyNote: () => void;
+  onNewFolder?: () => void;
   onTakePhoto: () => void;
   onPickImage: () => void;
   onRecordAudio: () => void;
@@ -25,6 +27,7 @@ export function CreateActionSheet({
   onClose,
   onNewNote,
   onDailyNote,
+  onNewFolder,
   onTakePhoto,
   onPickImage,
   onRecordAudio,
@@ -72,6 +75,27 @@ export function CreateActionSheet({
               </Text>
             </View>
           </Pressable>
+          {onNewFolder ? (
+            <Pressable
+              onPress={() => {
+                onClose();
+                onNewFolder();
+              }}
+              className="flex-row items-center gap-3 px-4 py-3 min-h-[44px] border-t active:bg-bg-hover"
+              style={{ borderTopColor: tokens.color.border.subtle }}
+              accessibilityRole="button"
+            >
+              <FolderPlus size={20} color={tokens.color.interactive.accent} />
+              <View className="flex-1">
+                <Text variant="body" color="normal" weight="semibold">
+                  New Folder
+                </Text>
+                <Text variant="caption" color="muted">
+                  Create a new folder in vault
+                </Text>
+              </View>
+            </Pressable>
+          ) : null}
         </SheetGroup>
 
         <SheetGroup>

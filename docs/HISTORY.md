@@ -4,6 +4,72 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-20: Toolbar Action Infinite Print Loop Fix
+
+- **Root-Cause Analysis**:
+  - In `EditorDom.tsx`, `useEffect` listening to `[actionTrigger]` re-executed whenever `actionTrigger` changed reference.
+  - When a toolbar action (e.g. "heading" or "bold") modified the document, CodeMirror triggered `onDocChanged`, which updated `content` state in `editor.tsx`.
+  - Re-rendering `editor.tsx` passed re-serialized `actionTrigger` down to `EditorDom` across the bridge, producing a new object reference in the WebView and causing `useEffect([actionTrigger])` to re-execute indefinitely in an infinite insertion loop.
+- **Resolution**:
+  - Introduced `lastActionIdRef` and `lastInsertIdRef` in `apps/mobile/components/EditorDom.tsx`.
+  - Guarded toolbar action execution with `actionTrigger.id !== lastActionIdRef.current` and insert trigger with `insertTrigger.id !== lastInsertIdRef.current`, ensuring actions execute exactly once per user tap regardless of parent re-renders.
+  - Fixed `onMetricsUpdate` crash by passing a no-op handler and making RPC name registration conditional.
+- **Verification**:
+  - Added unit test in `tests/folderAndEditorExperience.test.tsx` verifying action idempotency across re-renders.
+  - Test suites: `tests/folderAndEditorExperience.test.tsx` (8/8 passed), `tests/mobileEditor.test.ts` (6/6 passed), `tests/immersiveMode.test.ts` (4/4 passed).
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `EditorDom.tsx`: 248 lines (< 250 cap), `editor.tsx`: 236 lines.
+
+---
+
+### 2026-10-20: Unified Direct File Access into Editor Preview/Edit & Unconditional Navigation Bar Hiding
+
+- **Direct File Access to Unified Preview/Edit Screen**:
+  - Tapping any note in `FilesScreen`, `SearchScreen`, `VaultDrawerContent`, or wikilinks now opens `/editor` directly (`mode: "preview"`).
+  - Users are directly on the preview/edit screen without having to navigate to a reader screen first and then push a new editor screen each time.
+  - Tapping "Edit" in the header pill `[ Edit | Preview ]` or within the preview document switches directly to CodeMirror editing on the **same screen** with zero navigation stack push.
+  - Tapping "Preview" switches back to live Markdown preview on the same screen.
+  - `apps/mobile/app/note.tsx` automatically redirects/replaces with `/editor?mode=preview`, ensuring any legacy routes or deep links land on the unified screen.
+- **Expo Navigation Bar Hiding**:
+  - Hides the Android system navigation bar unconditionally on mount in `apps/mobile/app/editor.tsx` (`<NavigationBar hidden={true} />`) and in `useImmersiveNavigationBar()` (`NavigationBar.setHidden(true)` and `setVisibilityAsync("hidden")`).
+  - Automatically re-asserts hiding when software keyboard dismisses and when returning from app background, and cleanly restores on unmount.
+  - Default `cachedImmersiveMode` updated to `true` (enabled).
+- **Verification**:
+  - Vitest test suites: `tests/folderAndEditorExperience.test.tsx` (7/7 passed), `tests/immersiveMode.test.ts` (4/4 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed), `components/shell/shell.test.tsx` (4/4 passed), `components/shell/FileActionSheet.test.tsx` (2/2 passed), `components/shell/NoteActionSheet.test.tsx` (2/2 passed), `components/FormattingToolbar.test.tsx` (2/2 passed). Total: 24/24 passed.
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `editor.tsx`: 235 lines, `note.tsx`: 17 lines, `index.tsx`: 233 lines, `search.tsx`: 231 lines.
+
+---
+
+### 2026-10-20: Sidebar Folder Expansion, In-Editor Preview/Edit Dual Mode, and Add Folder Fixes
+
+- **Sidebar Folder Opening & Interactive Expansion**:
+  - Identified that folders in `VaultDrawerContent.tsx` were static non-interactive `<View>` elements with no `onPress` or expansion mechanism, preventing folder navigation and hiding notes inside folders.
+  - Built `DrawerFolderItem.tsx` with expandable/collapsible chevron controls (`CaretRight` / `CaretDown`), folder note count tags, and nested note rendering with visual indentation.
+  - Tapping folder chevron toggles expansion to reveal notes inside that folder. Tapping notes opens them directly.
+  - Tapping folder label invokes `onSelectFolder` to navigate `FilesScreen` directly into that folder.
+- **Same-Page Preview and Edit for Editor**:
+  - Implemented dual-mode editing/previewing on the same screen in `apps/mobile/app/editor.tsx` (`mode: "edit" | "preview"`).
+  - Updated `EditorHeader.tsx` to include an accessible segmented control pill `[ Edit | Preview ]`.
+  - Created `EditorPreviewView.tsx`: takes live editor `content`, parses markdown into an AST using `parseMarkdownDocument(content)`, and renders `NoteReaderView` right on the same page.
+  - Extracted `editorInjectedScript.ts` to keep `editor.tsx` under the 250-line limit (227 lines).
+  - Tapping "Edit" or "Preview" switches the view instantly with zero route transitions and zero latency.
+- **Add Folder Fixes Across App**:
+  - Fixed modal collision between `NavigationDrawer` and `NewFolderSheet` by introducing safe coordinated dismissal delay.
+  - Added "New Folder" item (`FolderPlus`) to `CreateActionSheet.tsx` so users can add folders from the central tab bar action button.
+  - Enhanced `NewFolderSheet.tsx` with input validation (checks for empty string and forbidden slash characters) and friendly inline error feedback.
+  - Added `NewFolderSheet` support to `note.tsx` and `(tabs)/_layout.tsx` so folder creation works vault-wide.
+- **Verification**:
+  - `tests/folderAndEditorExperience.test.tsx` (7/7 passed).
+  - Shell and navigation suite (17/17 passed).
+  - Typecheck: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors (`pnpm --filter @app/mobile lint`).
+  - Strict compliance with file size cap (< 250 lines).
+
+---
+
 ### 2026-10-20: Android Immersive Mode, Tab Bar Hiding & Safe-Area Preservation
 
 - **Android Immersive Navigation Bar & Restoration**:

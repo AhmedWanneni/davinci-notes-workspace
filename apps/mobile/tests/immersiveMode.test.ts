@@ -14,9 +14,9 @@ describe("Immersive Mode & Navigation Bar Verification", () => {
     await db.runAsync("DELETE FROM settings WHERE key = 'ui.immersive_mode'");
   });
 
-  it("1. Default setting is off (false)", async () => {
+  it("1. Default setting is on (true)", async () => {
     await loadImmersiveModeFromDb();
-    expect(getImmersiveModeSnapshot()).toBe(false);
+    expect(getImmersiveModeSnapshot()).toBe(true);
   });
 
   it("2. Toggling immersive mode notifies subscribers and persists to DB", async () => {

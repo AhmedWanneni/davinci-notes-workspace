@@ -9,7 +9,7 @@ import {
   generateUniqueNotePath,
   defaultNoteStore,
 } from "../../vault";
-import { CreateActionSheet } from "../../components/shell";
+import { CreateActionSheet, NewFolderSheet } from "../../components/shell";
 import { useMediaCaptureActions } from "../../capture";
 
 export default function TabLayout(): React.ReactElement {
@@ -17,6 +17,14 @@ export default function TabLayout(): React.ReactElement {
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
+  const [newFolderVisible, setNewFolderVisible] = useState(false);
+
+  const handleCreateFolder = async (folderName: string) => {
+    const { adapter } = await defaultVaultManager.getActiveAdapter();
+    if (adapter) {
+      await adapter.createFolder(folderName);
+    }
+  };
 
   const handleNewNote = async () => {
     try {
@@ -161,9 +169,19 @@ export default function TabLayout(): React.ReactElement {
         onClose={() => setCreateSheetVisible(false)}
         onNewNote={handleNewNote}
         onDailyNote={handleDailyNote}
+        onNewFolder={() => {
+          setCreateSheetVisible(false);
+          setTimeout(() => setNewFolderVisible(true), 250);
+        }}
         onTakePhoto={() => void handleMediaAction("camera")}
         onPickImage={() => void handleMediaAction("photo")}
         onRecordAudio={() => void handleMediaAction("audio")}
+      />
+
+      <NewFolderSheet
+        visible={newFolderVisible}
+        onClose={() => setNewFolderVisible(false)}
+        onCreateFolder={handleCreateFolder}
       />
     </>
   );
