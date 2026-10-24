@@ -299,3 +299,11 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0201](adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md) | Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization | Accepted |
 | [0202](adr/0202-calendar-ui-shell-and-obsidian-leaf-integration.md) | Calendar UI shell: IconRail entry, lazy-loaded Obsidian CalendarLeaf, and mutually exclusive navigation state | Accepted |
 | [0203](adr/0203-calendar-reminder-alerts-and-tray-integration.md) | Calendar reminder alerts (5-minute heads-up) and menu-bar system tray upcoming meeting integration | Accepted |
+
+## CLI & Terminal
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0204](adr/0204-davinci-cli-architecture-and-quick-capture.md) | DaVinci Notes CLI architecture: standalone Rust binary (`apps/cli`), zero-SQLite v1, 5-tier vault discovery, and atomic quick capture | Accepted |
+| [0205](adr/0205-external-editor-resolution-and-handoff.md) | External editor resolution chain (flag -> config -> $VISUAL -> $EDITOR -> nvim/vim/vi), shell-words parsing, terminal handoff, and file refresh | Accepted |
+| [0206](adr/0206-in-process-vim-mode-evaluation.md) | In-process Vim mode evaluation: retention of external handoff, rejection of edtui/tui-textarea, and feature-gating future embedded Neovim | Proposed |

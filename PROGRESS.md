@@ -4,6 +4,191 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**DaVinci Notes CLI / TUI ("dn") — Dynamic Vim Cursor Styles (Block in Normal, Beam/Bar in Insert, Underline in Command) Complete**
+- **Dynamic Terminal Cursor Styling (`terminal_guard.rs`, `tui_app.rs`)**:
+  - Integrated DECSCUSR cursor styling via `crossterm::cursor::SetCursorStyle`:
+    - **Insert mode**: Switches cursor dynamically to thin vertical beam/bar (`SetCursorStyle::SteadyBar`).
+    - **Normal mode**: Switches cursor to solid rectangular block (`SetCursorStyle::SteadyBlock`).
+    - **Command mode**: Switches cursor to underscore (`SetCursorStyle::SteadyUnderScore`).
+    - **Sidebar / Non-editor panes**: Retains steady block cursor.
+    - **Terminal Cleanup / Exit**: `TerminalGuard::restore_terminal()` executes `SetCursorStyle::DefaultUserShape` so the user's terminal emulator restores its native default cursor on exit, panic, or external editor handoff.
+- **Verification**:
+  - Added unit test `test_update_cursor_style_does_not_panic`.
+  - All 50 unit and integration tests passing (`pnpm --filter @app/cli test`).
+  - Zero clippy warnings with `-D warnings`.
+  - Source files kept under strict limits: `terminal_guard.rs` (91 lines), `tui_app.rs` (54 lines) — well below 150-200 line soft cap and 250 hard cap.
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Vim Motion Numeric Counts (4J, 4x, 4dd, 4yy, 4w, 4j, 4k) & Redo Stack (Ctrl+R) Complete**
+- **Numeric Count Prefix Engine (`vim_ops.rs`, `tui_state.rs`, `vim_motions.rs`)**:
+  - Implemented Vim standard numeric count prefix accumulation (`state.count_prefix`) for digits `'1'..='9'` and subsequent `'0'..='9'` (with standalone `'0'` remaining line-start).
+  - Wired count multiplier across all Vim operations and motions:
+    - Line joining (`4J`): Joins $N$ lines into one line via `join_n_lines` (e.g. `4J` joins 4 lines).
+    - Deletion (`4x`, `4X`): Deletes $N$ characters forward/backward in a single atomic undoable slice (`delete_forwards_n`, `delete_backwards_n`).
+    - Operator counts (`4dd`, `4yy`, `4dw`, `4yw`, `4cw`, `4cc`): Deletes/yanks/changes $N$ lines or words in one operation.
+    - Motion counts (`4j`, `4k`, `4h`, `4l`, `4w`, `4b`, `4e`): Moves $N$ lines, characters, or words.
+    - Line jump counts (`12G`, `12gg`): Jumps directly to line $N$.
+    - Paste & Undo counts (`4p`, `4P`, `4u`): Pastes or undoes $N$ times.
+  - Added full Redo stack (`EditorBuffer::redo_stack`) triggered via `Ctrl+R` in Normal mode.
+  - Live count visual indicator: displays pending count prefix in editor footer mode line (e.g. `-- NORMAL -- (4)`).
+  - Pressing <kbd>Esc</kbd> cancels any pending count prefix or pending operator.
+- **Verification**:
+  - Added integration test `test_vim_counts_and_4j` verifying `4J`, `4x`, `u`, and `Ctrl+R` redo.
+  - All 49 unit and integration tests passing (`pnpm --filter @app/cli test`); 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 248 lines (under 250 hard cap).
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Native Vim/Neovim External Handoff, Config Resolution, and In-Process Vim Mode Evaluation (ADR-0205, ADR-0206) Complete**
+- **Root-Cause Resolution & Native Vim Handoff (`external_editor.rs`, `editor_resolver.rs`, `command_parser.rs`, `tui_events.rs`, `tui_state.rs`)**:
+  - Diagnosed root causes:
+    1. Default `editor_mode` was set to `EditorMode::Builtin`, so pressing <kbd>Enter</kbd> or clicking notes focused the internal Ratatui rope buffer instead of running real Vim, keeping the user in the mini-editor without access to their `.vimrc`.
+    2. Fallback resolution blindly prioritized `nvim` over `vim`. On systems with `~/.vimrc`, Neovim does not load `.vimrc`, bypassing the user's Vim mappings and settings.
+    3. Missing `--` caused filenames with leading dashes (`-note.md`) to be parsed as editor flags; naive `split_whitespace()` broke quoted commands like `EDITOR="nvim -c 'set wrap'"`.
+  - Fixed default mode: switched `editor_mode` default to `EditorMode::External` so pressing <kbd>Enter</kbd>, double-clicking, clicking the right preview pane, or pressing <kbd>e</kbd>/<kbd>i</kbd> immediately runs real Vim.
+  - Fixed config resolution: if `~/.vimrc` exists in `$HOME`, automatically prioritizes `vim` so that user's `.vimrc` (line numbers, `nmap j gj`, `nnoremap K :m .-2<CR>==`) is natively loaded directly by Vim itself. If `init.lua` exists without `.vimrc`, prioritizes `nvim`. Explicit `$EDITOR`/`$VISUAL` or `--editor` flags always take precedence.
+  - Added clean terminal handoff: leaves alternate screen and disables raw mode before child process spawn with inherited stdio; restores TUI and resynchronizes terminal dimensions upon exit.
+  - Subcommands: `dn edit <name>`, `dn open <name> --editor <cmd> --editor-args <args>`, and `dn config`.
+- **In-Process Vim Mode Evaluation (Part B, `docs/cli-vim-mode-eval.md`, ADR-0206)**:
+  - Researched and evaluated all 4 options: `edtui` (rejected for missing features/heavy `syntect`), `tui-textarea` (rejected for lack of modal engine), `nvim --embed` (evaluated for full fidelity; proposed behind optional `embedded-nvim` feature flag), and built-in rope buffer (retained as lightweight default).
+  - Authored comprehensive evaluation in `docs/cli-vim-mode-eval.md` and proposed ADR-0206 with status "Proposed".
+- **Performance Budget & SQLite Verification**:
+  - Quick capture cold start re-measured with `hyperfine` on release binary: mean **8.9 ms** (min 4.9 ms, max 87.5 ms, 437 runs), strictly beating the < 15.00 ms budget.
+  - Zero SQLite call sites verified via `rg "rusqlite|vault-index.db"` (no SQLite connection or locks touched).
+  - All 48 unit and integration tests passing (`pnpm --filter @app/cli test`).
+  - All source files strictly under 209 lines (soft cap 150-200, hard cap 250).
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Full Vim Editing Suite (dd, yy, p, P, dw, yw, cw, cc, r, J, ~) Complete**
+- **Vim Operator & Motion Engine (`vim_motions.rs`, `vim_ops.rs`)**:
+  - Implemented multi-key operator state machine (`PendingOp`) supporting classic two-key Vim idioms:
+    - Line operations: `dd` (delete/cut line into register), `yy` (yank/copy line), `cc` (change line).
+    - Word operations: `dw` (delete word), `yw` (yank word), `cw` (change word), `w` / `b` / `e` (word navigation).
+    - Line-end operations: `D` / `d$` (delete to end of line), `C` / `c$` (change to end of line), `Y` (yank line).
+    - Register & Paste: `p` (paste line below or char after cursor), `P` (paste line above or char before cursor).
+    - Character operations: `x` (delete char), `s` (substitute char), `r<char>` (replace char under cursor), `~` (toggle case).
+    - Line joining: `J` (join next line into current line with single space).
+  - All operations integrate with `EditorBuffer` rope structure and full undo history (`u`).
+- **Verification**:
+  - 42 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 200 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Vim Command Mode (:q, :q!, :wq, :w) & Note-Level Focus Control Complete**
+- **Vim Command Mode & Focus Control (`vim_command.rs`, `tui_events.rs`, `tui_view.rs`)**:
+  - Typing `:` enters Vim Command mode with live command prompt (`:<cmd>█`) in the editor footer.
+  - `:w` / `Ctrl+S`: Saves file atomically to disk and stays in editor.
+  - `:q` / `q`: Closes note and switches focus back to the left sidebar (file tree) instead of quitting the application. Blocks quit if unsaved edits exist (`E37: No write since last change (add ! to override)`).
+  - `:q!`: Force closes note, discards unsaved edits by reloading disk content, and switches focus back to sidebar.
+  - `:wq` / `:qw` / `:x`: Saves file and switches focus back to sidebar.
+  - Quitting the entire application is reserved for pressing `q` when focused on the sidebar or running `:qa`/`:wqa`.
+- **Verification**:
+  - 41 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 200 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Phase 6: Packaging, Shell Completions & Documentation Complete**
+- **Packaging & Crate Metadata (`Cargo.toml`)**:
+  - Configured crate metadata with MIT license, repository, keywords, and description.
+  - Retained compact footprint: 604 KB standalone release binary with zero SQLite/Webview bloat.
+- **Shell Completions Engine (`main.rs`, `phase6_completions_tests.rs`)**:
+  - Integrated `clap_complete` supporting bash, zsh, fish, powershell, and elvish (`dn completions <shell>`).
+  - Added unit test asserting valid completion script generation with custom options and commands across all shells.
+- **CLI Documentation (`apps/cli/README.md`)**:
+  - Authored comprehensive guide detailing architecture, quick capture usage, TUI navigation, built-in modeless editor, search engine, shell completions, and performance benchmarks.
+- **Verification**:
+  - 35 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 186 lines.
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Phase 5: Fast In-Memory Content Search & Watcher Complete**
+- **Zero-SQLite Content Search (`search_engine.rs`, `main.rs`)**:
+  - Implemented `dn find <query>` full-text search across all vault Markdown files using `WalkDir` without touching SQLite or index locks.
+  - Returns file path, line numbers, and formatted line snippets.
+  - Automatically filters hidden files/directories (`.git`, `.trash`, `.obsidian`, etc.).
+  - Benchmarked search response time on 100 notes: executed in < 10 ms (strictly beating the < 100 ms budget).
+- **External Change Awareness (`vault_watcher.rs`, `tui_app.rs`)**:
+  - Integrated `notify` filesystem watcher into TUI event loop.
+  - Automatically detects when external files are created, modified, or deleted by the desktop app or sync clients, and re-renders tree and preview without UI freezes.
+- **Verification**:
+  - 34 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 186 lines.
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Phase 4: Built-in Modeless Editor Complete**
+- **Rope Text Buffer (`builtin_editor_buffer.rs`)**:
+  - Implemented high-performance text buffer using `Rope` (`ropey`), supporting $O(\log N)$ character insertions, deletions, and line-to-char mappings.
+  - Benchmarked large-note typing latency on a 10,000-line note: keystroke insertion executes in < 15 µs (strictly beating the < 2 ms budget).
+  - Built-in full undo stack recording character diffs.
+- **Modeless Terminal Editor (`builtin_editor.rs`)**:
+  - Nano/micro-style modeless editing (no Vim modes) with arrow key navigation, Home/End, Backspace, Delete, and Tab (2 spaces).
+  - Shortcuts: `Ctrl+S` (atomic save), `Ctrl+Q` (quit), `Ctrl+Z` (undo).
+  - Mouse click-to-place cursor on line/column and scroll wheel viewport scrolling.
+  - Conflict detection: checks file `mtime` at save time against opening `initial_mtime`; alerts if external desktop or sync changes occurred.
+- **Verification**:
+  - 30 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 190 lines.
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Phase 3: External Editor Mode ($EDITOR) Complete**
+- **$EDITOR Integration & Suspension (`external_editor.rs`)**:
+  - Resolves `$VISUAL` -> `$EDITOR` -> `nano`/`vi` (Windows `notepad`).
+  - Cleanly suspends TUI raw mode and alternate screen, executes editor child process, and resumes TUI upon exit.
+  - Snapshotting: records `mtime` and content byte comparison before/after execution to detect external conflicts and disk changes.
+- **Note Lifecycle Operations & Subcommands (`note_ops.rs`, `main.rs`)**:
+  - `dn open <name>`: opens best matching note in `$EDITOR` via fuzzy matching (`SkimMatcherV2`).
+  - `dn new <name>`: creates a new note with formatted `# Heading` and collision guard.
+  - `dn ls [folder]`: lists vault/folder contents with formatted byte sizes.
+  - `dn cat <name>`: prints note content to stdout.
+  - In-TUI operations: `'e'` or `Enter` on file opens in `$EDITOR`, `'d'` moves file to `.trash/` and updates tree.
+- **Verification**:
+  - 27 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Phase 2: Read-Only TUI File Tree Complete**
+- **Terminal Safety & Panic Protection (`terminal_guard.rs`)**:
+  - Encapsulated raw mode, alternate screen (`EnterAlternateScreen`), and mouse capture (`EnableMouseCapture`) inside RAII `TerminalGuard`.
+  - Installed global panic hook ensuring terminal state (cursor, cooked mode, screen) is fully restored even on unexpected panics or signals before stack unwinding.
+- **Lazy Hierarchical Tree & Navigation (`tui_tree.rs`, `tui_state.rs`, `tui_view.rs`)**:
+  - Dired/Obsidian-style file tree with lazy directory loading: only direct children of expanded folders are read from disk.
+  - Benchmarked first frame on 10,000-note vault: rendered in < 1 ms (strictly beating the < 50 ms budget).
+  - Keyboard navigation (`hjkl` / arrows / Tab / Enter / Space) and full mouse click selection / scroll wheel support.
+  - Real-time search-as-you-type fuzzy filter bar (`/`) using `SkimMatcherV2` (`fuzzy-matcher`).
+  - Side-by-side read-only note preview pane with automatic Markdown scroll and folder statistics.
+- **Verification**:
+  - 21 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
+**DaVinci Notes CLI / TUI ("dn") — Phase 1: Walking Skeleton & Quick Capture Complete (ADR-0204)**
+- **Architecture & Roadmap (`docs/cli-feature-plan.md`, ADR-0204)**:
+  - Established a 6-phase plan for `dn` terminal companion to the desktop app.
+  - Recorded ADR-0204 defining independent Rust crate in `apps/cli`, zero-SQLite v1 access, 5-tier vault discovery, and atomic file safety.
+  - Indexed ADR-0204 in `DECISIONS.md`.
+- **Lightweight Standalone Rust Binary (`apps/cli/`)**:
+  - Independent static binary (`dn`), 604 KB release size, zero Tauri/Webview/rusqlite runtime bloat.
+  - Vault discovery precedence: `--vault <path>` -> `DN_VAULT` env -> cwd upwards traversal (`.obsidian`, `vault-index.db`, `.davinci`) -> `~/.config/davinci/config.toml` -> desktop app's `davinci-recent-vaults.json`.
+  - Default quick capture in `<vault>/Quick Notes/Quick note YYYY-MM-DD HH-mm-ss.md` without synthetic `# Heading` (preventing rename loops with ADR-0060).
+  - Identical-second collisions automatically disambiguated with numeric suffixes (`... HH-mm-ss 1.md`).
+  - `--daily` / `-d` flag appends `- [YYYY-MM-DD HH:mm:ss] text` to today's daily note (`YYYY-MM-DD.md`) with automatic header creation.
+  - `--note` / `-n` flag appends/creates in custom note with relative path sanitization and path traversal (`..`) rejection.
+  - Positional argument capture (`dn "buy milk"`) and stdin piping (`echo "idea" | dn`) support with multi-line and Unicode preservation.
+  - Crash-safe atomic write engine: hidden `.dn-tmp-...` in target folder, `file.sync_all()` (`fsync`), atomic `std::fs::rename`, and `TempFileGuard` drop guard cleaning orphan files on termination.
+- **Verification & Performance Budget**:
+  - Cold-start execution benchmark across 50 runs: mean **6.68 ms**, p95 **7.40 ms**, max **7.88 ms** (strictly beating the < 15.00 ms budget).
+  - `rg` audit confirms zero SQLite calls or imports in `apps/cli/`.
+  - 15 unit and integration tests passing across `src/lib.rs` and `tests/phase1_capture_tests.rs`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines (adhering to 150-200 line soft cap).
 **Toolbar Action Infinite Print Loop Fix (Complete)**
 - **Root-Cause Analysis**:
   - In `EditorDom.tsx`, `useEffect` listening to `[actionTrigger]` re-executed whenever `actionTrigger` changed reference.
@@ -2545,9 +2730,8 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
-1. **Google Calendar Phase 4**: UI Shell Integration — Left rail icon in `IconRail`, `CalendarLeaf` workspace tab in `EditorArea`, and meeting card list UI (ADR-0202).
-2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
-3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
+1. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+2. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.
 5. **Resolve AI Phase 5 blockers**: add real provider/key transport and consent-state persistence; extend vector storage with chunk text/source resolution before ask-your-vault or Phase 6 settings.
 6. **Manual Re-Test of OAuth Sign-In**: Execute interactive OAuth sign-in flow and verify consent display shows both `drive.file` and `drive.appdata` permissions, token presence in OS keychain, refresh/restart persistence, and sign-out deletion.
