@@ -2,6 +2,35 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Obsidian Kanban Plugin Parity Board View Implementation
+
+- **Model (`@app/kanban`)**:
+  - Created new `@app/kanban` package adhering to modular ESLint boundary rules and 0 new external dependencies.
+  - Implemented lossless round-trip parsing (`parseBoard.ts`) and serialization (`serializeBoard.ts`) for notes with `kanban-plugin: board` frontmatter.
+  - Preserved unknown content byte-for-byte, including H1/H3/H4+ headings, opaque `%% ... %%` comment settings blocks, `*** \n ## Archive`, date tokens `@{...}`, tags, wikilinks, CRLF / LF line endings, blank lines, and frontmatter keys/order.
+  - Implemented line-preserving minimal diff operations (`cardOperations.ts`, `laneOperations.ts`, `lineDiff.ts`) that splice only affected lines for card additions, inline edits, completion toggles, deletions, moves, lane additions, renames, deletions, and lane reordering.
+  - Documented format specifications, ADR-0170 write-back guards, and line splicing in `docs/adr/0208-obsidian-kanban-format-and-lossless-writeback.md`.
+- **View (React + Design System)**:
+  - Built lazy-loaded `KanbanView.tsx` matching Obsidian's flat aesthetic with zero box shadows, depth via borders, and typography-first styling.
+  - Built `renderInlineMarkdown.tsx` supporting wikilinks (`[[target|alias]]`), tags (`#tag`), bold (`**bold**`), strikethrough (`~~strike~~`), inline code (`` `code` ``), standard markdown links, and `@date` tokens.
+  - Built native HTML5 drag-and-drop system (`useKanbanDragDrop.ts`) for cards and lanes, mirroring the file tree's drag-and-drop implementation without adding external drag libraries.
+  - Built full keyboard navigation (`useKanbanKeyboardNav.ts`): arrow navigation across cards/lanes, inline editing (Enter saves, Shift+Enter multi-line, Esc cancels), Space completion toggle, Delete card.
+  - Integrated dual-mode header toggle in `EditorArea.tsx` ("Open as markdown" / "Open as board") and dedicated `KanbanIcon` in `AppTabs.tsx`.
+- **Write-Back & External Change Handling (ADR-0170 & ADR-0208)**:
+  - Configured 750ms debounced autosave queue with deep equality diff checks.
+  - Protected active card edits against external file changes by using deterministic stable card IDs (`makeCardId`), ensuring in-progress user drafts remain open while external changes update other cards.
+  - Implemented graceful fallback: invalid/corrupt board notes open in standard markdown view with an alert banner without overwriting or destroying data.
+- **Insert Registry & Vault Indexing**:
+  - Added `"Kanban board"` insert item in `InsertRegistry.ts` (group `"Code and data"`) with a name prompt dialog (`kanban-creator`).
+  - Creates starter template with YAML frontmatter and 3 starter lanes (`To Do`, `Doing`, `Done`) in current folder and opens board immediately.
+  - Tested `@app/indexer` integration in `packages/indexer/kanbanIndexing.test.ts`, confirming all card wikilinks resolve to note backlinks without indexer schema modifications.
+- **Validation**:
+  - 43 tests passing in `@app/kanban` across 6 test suites (`roundTrip.test.ts`, `minimalDiffs.test.ts`, `adversarial.test.ts`, `KanbanView.test.tsx`, `writeBackAndConflict.test.tsx`, `kanbanBenchmark.test.ts`).
+  - 5,000-card benchmark parses in ~5.7ms and serializes in ~4.9ms.
+  - 0 bytes added to initial desktop bundle (lazy-loaded as `@app/kanban` Rollup dynamic chunk).
+  - Production web build passing (`pnpm --filter @app/desktop build:web`).
+  - All insert registry and indexer tests passing.
+
 ### 2026-10-24: Obsidian Canvas UI Parity, Resize & Persistence Resolutions
 
 - **Canvas Persistence & Autosave Wiring (`EditorArea.tsx` & `useCanvasPersistence.ts`)**:

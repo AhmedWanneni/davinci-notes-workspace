@@ -113,6 +113,10 @@ export default defineConfig({
         replacement: path.join(repoRoot, "packages/canvas/index.ts"),
       },
       {
+        find: "@app/kanban",
+        replacement: path.join(repoRoot, "packages/kanban/index.ts"),
+      },
+      {
         find: "@app/attachments",
         replacement: path.join(repoRoot, "packages/attachments/index.ts"),
       },

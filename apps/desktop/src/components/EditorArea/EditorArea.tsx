@@ -345,9 +345,27 @@ export function EditorArea({
           <Suspense fallback={null}>
             <LazyInsertDialog
               request={insertDialogRequest}
-              onConfirm={(input) =>
-                completeInsertDialog(insertDialogRequest, input)
-              }
+              onConfirm={(input) => {
+                if (insertDialogRequest.item.id === "kanban-board") {
+                  const rawName = (input.name as string)?.trim() || "Kanban";
+                  const cleanName = rawName.replace(/[<>:"/\\|?*]/g, "");
+                  const stem = cleanName.endsWith(".md")
+                    ? cleanName
+                    : `${cleanName}.md`;
+                  const folder =
+                    activeNotePath && activeNotePath.includes("/")
+                      ? activeNotePath.slice(0, activeNotePath.lastIndexOf("/"))
+                      : "";
+                  const newPath = folder ? `${folder}/${stem}` : stem;
+                  const starter = `---\nkanban-plugin: board\n---\n\n## To Do\n\n## Doing\n\n## Done\n`;
+                  cancelInsertDialog(insertDialogRequest);
+                  void createNoteInVault(newPath, starter).then(() => {
+                    void openNote(newPath);
+                  });
+                } else {
+                  completeInsertDialog(insertDialogRequest, input);
+                }
+              }}
               onCancel={() => cancelInsertDialog(insertDialogRequest)}
               onPickLocalFile={handlePickLocalImage}
             />

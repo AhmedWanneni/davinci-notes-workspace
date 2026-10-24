@@ -38,7 +38,12 @@ export interface InsertDialogInput {
 export interface InsertDialogSpec {
   title: string;
   description?: string;
-  kind: "media-url" | "image-sources" | "note-picker" | "reminder-picker";
+  kind:
+    | "media-url"
+    | "image-sources"
+    | "note-picker"
+    | "reminder-picker"
+    | "kanban-creator";
   placeholder?: string;
   confirmLabel?: string;
   validate?: (input: InsertDialogInput) => string | null;

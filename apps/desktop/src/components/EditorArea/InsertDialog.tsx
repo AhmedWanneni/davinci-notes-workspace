@@ -93,6 +93,74 @@ export function InsertDialog({
     );
   }
 
+  if (dialogSpec.kind === "kanban-creator") {
+    return (
+      <Dialog
+        open={Boolean(request)}
+        onOpenChange={(open) => !open && onCancel()}
+      >
+        <DialogContent
+          className={styles["insert-dialog-root"]}
+          showCloseButton={false}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const val = url.trim();
+              if (!val) {
+                setError("Please enter a board name.");
+                return;
+              }
+              onConfirm({ name: val });
+            }}
+          >
+            <div className={styles["insert-dialog-header"]}>
+              <h2 className={styles["insert-dialog-title"]}>
+                {dialogSpec.title}
+              </h2>
+              {dialogSpec.description && (
+                <p className={styles["insert-dialog-description"]}>
+                  {dialogSpec.description}
+                </p>
+              )}
+            </div>
+            <div className={styles["insert-dialog-body"]}>
+              <input
+                ref={inputRef}
+                type="text"
+                className={styles["insert-dialog-input"]}
+                placeholder="Board title..."
+                value={url}
+                onChange={(e) => {
+                  setUrl(e.target.value);
+                  setError(null);
+                }}
+              />
+              {error && (
+                <p className={styles["insert-dialog-error"]}>{error}</p>
+              )}
+            </div>
+            <div className={styles["insert-dialog-footer"]}>
+              <button
+                type="button"
+                className={styles["insert-dialog-btn-cancel"]}
+                onClick={onCancel}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className={styles["insert-dialog-btn-confirm"]}
+              >
+                {dialogSpec.confirmLabel || "Create Board"}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 

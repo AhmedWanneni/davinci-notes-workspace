@@ -4,7 +4,56 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Obsidian Canvas UI Parity, Resize & Persistence Resolutions
+## Last Session — Kanban Board View (Obsidian Kanban Plugin Parity)
+
+**Scope:**
+1. **Model (`@app/kanban`)**:
+   - Implemented lossless round-trip parser (`parseBoard`) and serializer (`serializeBoard`) for Obsidian Kanban markdown notes (`kanban-plugin: board`).
+   - Line-preserving board model preserving all unknown content byte-for-byte (H1/H3/H4+ headings, opaque `%% ... %%` comment settings blocks, `*** \n ## Archive`, date tokens `@{...}`, tags, wikilinks, CRLF / LF line endings, blank lines, and frontmatter keys/order).
+   - Minimal diff line splicing for operations: `addCard`, `editCard`, `toggleCardComplete`, `deleteCard`, `moveCard`, `reorderCard`, `addLane`, `renameLane`, `deleteLane`, and `reorderLane`.
+   - Pure TypeScript, zero DOM dependencies, 0 new npm packages added.
+2. **View (React + Design System)**:
+   - Lazy-loaded `KanbanView` matching Obsidian's flat design system aesthetic (no box shadows, borders for depth, clean typography).
+   - Rich inline markdown renderer (`renderInlineMarkdown`) supporting wikilinks (`[[target|alias]]`), tags (`#tag`), bold (`**bold**`), strikethrough (`~~strike~~`), inline code (`` `code` ``), standard markdown links (`[text](url)`), and `@date` tokens. Wikilinks cleanly hook into vault note navigation.
+   - Dual-mode header toggle: seamlessly switch between "Open as markdown" and "Open as board" via the tab header action button without losing context.
+   - Smooth native HTML5 drag-and-drop for reordering cards within lanes, moving cards across lanes, and reordering lanes (reusing the drag-and-drop pattern from the file tree, 0 drag library dependencies).
+   - Full keyboard navigation: arrow keys navigate cards and lanes, Enter edits a card inline (Enter saves, Shift+Enter multi-line, Esc cancels), Space toggles task completion, Delete removes a card.
+   - Safe parsing fallback: malformed board frontmatter opens in standard markdown mode with an informative banner without modifying or rewriting the note file.
+3. **Write-Back & External Change Guard (ADR-0170 & ADR-0208)**:
+   - Routes board writes through the ADR-0170 save queue with a 750ms debounce and deep equality guard to avoid redundant disk writes.
+   - External file changes (e.g. from Obsidian or external text editors) reload the board live without clobbering active card draft inputs by preserving stable card identity slugs across reparses.
+   - Simultaneous markdown / board open guard: atomic state updates ensure markdown editor and board view never overwrite each other.
+4. **Insert Item & Indexer Integration**:
+   - Registered `"Kanban board"` item in `InsertRegistry.ts` (under `Code and data` group) with a modal board title dialog (`kanban-creator`).
+   - Creates a new note with YAML frontmatter (`kanban-plugin: board`) and 3 starter lanes (`To Do`, `Doing`, `Done`) in the current vault directory, immediately opening it in Kanban view.
+   - Verified indexer compatibility: task cards' wikilinks and tags are indexed identically to standard markdown notes into the vault graph and backlinks without requiring any schema changes.
+
+**Deferred:**
+- Embedding a board inside a note (```kanban block)
+- Date and time pickers
+- Lane colors
+- Tag colors
+- Archive handling
+- "New note from card"
+- Property-based database views
+
+**Verification**:
+- 43 tests passing in `@app/kanban` across 6 test suites (`roundTrip.test.ts`, `minimalDiffs.test.ts`, `adversarial.test.ts`, `KanbanView.test.tsx`, `writeBackAndConflict.test.tsx`, `kanbanBenchmark.test.ts`).
+- 5,000-card benchmark parses in ~5.7ms and serializes in ~4.9ms.
+- 0 bytes added to initial desktop bundle (lazy-loaded as `@app/kanban` Rollup dynamic chunk).
+- Production web build passing (`pnpm --filter @app/desktop build:web`).
+- All insert registry and indexer tests passing.
+
+---
+
+## Next Up
+
+1. Validate visual appearance and drag interaction across dark and light themes in production desktop and mobile builds.
+2. Test canvas drag-and-drop of vault notes and images in live desktop app.
+
+---
+
+## Previous Session — Obsidian Canvas UI Parity, Resize & Persistence Resolutions
 
 **Scope:**
 1. **Canvas Persistence & Autosave Wiring (`EditorArea.tsx` & `useCanvasPersistence.ts`)**:

@@ -123,6 +123,28 @@ export const insertRegistry: readonly InsertItem[] = [
     build: (context) => block(`\`\`\`ts\n${field(context, "// code")}\n\`\`\``),
   },
   {
+    id: "kanban-board",
+    group: "Code and data",
+    label: "Kanban board",
+    icon: "Table",
+    keywords: ["kanban", "board", "lane", "todo", "task", "card", "agile", "data"],
+    dialog: {
+      kind: "kanban-creator",
+      title: "New Kanban Board",
+      description: "Enter a title for the new kanban board note.",
+      confirmLabel: "Create Board",
+      validate: (input) => {
+        const name = (input.name as string)?.trim();
+        if (!name) return "Please enter a board name.";
+        return null;
+      },
+    },
+    build: () =>
+      block(
+        "---\nkanban-plugin: board\n---\n\n## To Do\n\n## Doing\n\n## Done\n",
+      ),
+  },
+  {
     id: "table",
     group: "Code and data",
     label: "Table",

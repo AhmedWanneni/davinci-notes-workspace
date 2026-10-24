@@ -3,7 +3,7 @@ import { findInsertItem, insertRegistry } from "./InsertRegistry";
 
 describe("insertRegistry", () => {
   it("contains all insert items including Links, Media, and Diagrams", () => {
-    expect(insertRegistry).toHaveLength(41);
+    expect(insertRegistry).toHaveLength(42);
     expect(insertRegistry.map((item) => item.group)).toEqual(
       expect.arrayContaining([
         "Basics",
@@ -88,5 +88,21 @@ describe("insertRegistry", () => {
     expect(findInsertItem("footnote")?.build({ selectedText: "" }).text).toBe(
       "[^${1:1}]\n\n[^${1:1}]: ${2:Footnote}",
     );
+  });
+
+  it("builds kanban-board item with dialog and starter template", () => {
+    const item = findInsertItem("kanban-board");
+    expect(item).toBeDefined();
+    expect(item?.group).toBe("Code and data");
+    expect(item?.dialog?.kind).toBe("kanban-creator");
+    expect(item?.dialog?.validate?.({})).toBe("Please enter a board name.");
+    expect(item?.dialog?.validate?.({ name: "Sprint" })).toBeNull();
+
+    const result = item?.build({ selectedText: "" });
+    expect(result?.block).toBe(true);
+    expect(result?.text).toContain("kanban-plugin: board");
+    expect(result?.text).toContain("## To Do");
+    expect(result?.text).toContain("## Doing");
+    expect(result?.text).toContain("## Done");
   });
 });
