@@ -4,37 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Obsidian-Style GraphView Redesign
+## Last Session — RemindersDialog UI & Spacing Redesign
 
-**Scope:** Realign `apps/desktop/src/components/GraphView` to mirror the authentic Obsidian Graph View design provided in reference screenshots.
+**Scope:** Overhaul `RemindersDialog` and its subcomponents to fit the app's Swiss/editorial design system with refined spacing, typography, borders, and interaction states.
 
 **Changes:**
-1. **Obsidian Visual Fidelity & Styling (`_graph-view.scss`)**:
-   - Transformed nodes from outlined donut circles into clean, solid-filled charcoal dots (`fill: var(--color-text-muted)`).
-   - Removed borders from node circles (`stroke: none`).
-   - Scaled node radius dynamically based on degree/connectivity (`4px` for isolated nodes up to `9px` for hub nodes like `Start Here`).
-   - Replaced heavy 4-way CSS text-shadows with native SVG stroke text halos (`paint-order: stroke fill; stroke: var(--color-bg-primary); stroke-width: 3px`) for crisp, legible labels over edges.
-   - Reduced edge line thickness to hair-thin `1px` with subtle `0.45` opacity.
-2. **Interactive Hover Highlighting (`GraphRenderer.tsx`, `useGraphSimulation.ts`)**:
-   - Hovering any node highlights the node and its immediate 1-hop neighbors and connected edges.
-   - Automatically dims all unconnected nodes, labels, and edges to `0.15` / `0.08` opacity.
-   - Performed via direct SVG class toggling in D3 pointer handlers for zero-overhead, 60fps performance without React re-renders.
-3. **Organic Clustered Physics Simulation (`useGraphSimulation.ts`)**:
-   - Added centering gravitational forces (`forceX(0).strength(0.04)` and `forceY(0).strength(0.04)`), creating the signature Obsidian layout where connected clusters occupy the core and isolated/orphan notes form an organic, dispersed elliptical cloud around them.
-   - Implemented phyllotaxis spiral coordinate seeding to eliminate initial popping.
-   - Tuned repulsive charge to `-75` with `distanceMax(350)` and velocity decay to `0.4`.
-4. **Minimal Floating Controls (`GraphControls.tsx`)**:
-   - Replaced bulky bottom-right button with a compact, floating toolbar in the top-right corner containing Zoom In, Zoom Out, Reset View, and Local/Global mode toggle.
-5. **Architectural Compliance & Testing**:
-   - Split responsibilities across single-concern files under 165 lines: `GraphView.tsx` (135 lines), `GraphRenderer.tsx` (158 lines), `useGraphSimulation.ts` (161 lines), `GraphControls.tsx` (50 lines), and `_graph-view.scss` (128 lines).
-   - Added unit test suite in `GraphView.test.tsx` (5 passing tests). All tests pass with 0 ESLint warnings.
+1. **Window Frame & Dialog Header (`RemindersDialog.tsx`, `RemindersDialog.module.scss`)**:
+   - Built a dedicated, integrated dialog title bar with bell icon affordance, total reminder count tag, and crisp close button aligned to grid boundaries.
+   - Preserved accessible `DialogPrimitive.Title` for screen readers while eliminating unpadded Radix header collisions.
+   - Sized dialog container to `640px` with constrained max dimensions (`min(640px, calc(100vw - 32px))`, `560px` height) and `border-radius: var(--border-radius-lg)`.
+2. **Refined Navigation & Tab Controls (`RemindersDialog.module.scss`)**:
+   - Refactored category tabs (Overdue, Today, Upcoming, All) with clean hover/active border treatments (`var(--border-radius-sm)` per "no pill badges" rule).
+   - Dynamic error status badge and text coloring on Overdue tab when overdue reminders exist (`var(--color-bg-status-error)`).
+   - Added persistent footer summary with item counts per active view and keyboard shortcut indicator (`Esc to close`).
+3. **Restructured Reminder Rows & Micro-Typography (`ReminderRowItem.tsx`, `ReminderRowItem.module.scss`)**:
+   - Two-row information architecture per reminder item: prominent task text on line 1; metadata line with due time chip (`Clock`), note location badge (`FileText` + line reference), and snoozed indicator.
+   - Overdue items visually accented via `border-left: var(--border-width-thick) solid var(--color-border-status-error)` with offset padding compensation to prevent horizontal jitter.
+   - Fixed row height to `64px` with box-sizing matching `@tanstack/react-virtual` estimate (`estimateSize: () => 64`) for fluid scrolling.
+   - Micro-action buttons for "Done" (with green hover status) and "Snooze" dropdown with automatic click-outside and `Escape` dismiss handlers.
+4. **Separation of Concerns & Modularity (`RemindersList.module.scss`, `RemindersDialog.stories.tsx`)**:
+   - Extracted virtual list and empty state styles into dedicated `RemindersList.module.scss` (52 lines), keeping all files strictly below the 250 line hard cap.
+   - Added complete Storybook stories covering `RemindersDialog` and all `ReminderRowItem` states (UpcomingToday, Overdue, Snoozed, Completed).
+   - All tests (`RemindersDialog.test.tsx`) pass cleanly, Stylelint passes with 0 warnings, ESLint passes with 0 warnings.
 
 ---
 
 ## Next Up
 
-1. Test graph view interaction on real desktop vaults with 100+ files.
-2. Consider adding color groups or filter tags if requested.
+1. Test reminder notifications and toast integration in desktop environment.
+2. Consider adding bulk complete/dismiss action for overdue reminders if requested.
 
 ---
 

@@ -67,3 +67,22 @@ export const Snoozed: Story = {
     },
   },
 };
+
+export const Completed: Story = {
+  args: {
+    item: {
+      id: 4,
+      reminderKey: "key-4",
+      notePath: "Personal/Health.md",
+      line: 8,
+      dueAtUtc: new Date(Date.now() - 1800 * 1000).toISOString(),
+      tz: "UTC",
+      text: "Drink morning water & vitamins",
+      done: true,
+      status: null,
+      snoozeUntilUtc: null,
+      effectiveDueUtc: new Date(Date.now() - 1800 * 1000).toISOString(),
+      category: "today",
+    },
+  },
+};

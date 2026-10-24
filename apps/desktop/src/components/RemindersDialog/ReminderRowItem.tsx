@@ -1,5 +1,11 @@
-import React, { useState } from "react";
-import { Clock, Check, CaretDown } from "@phosphor-icons/react";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Clock,
+  Check,
+  CaretDown,
+  FileText,
+  ClockCountdown,
+} from "@phosphor-icons/react";
 import type { ReminderViewItem } from "../../vault/remindersViewQueries";
 import type { SnoozePreset } from "../../vault/reminderSnoozeActions";
 import styles from "./ReminderRowItem.module.scss";
@@ -10,6 +16,12 @@ export interface ReminderRowItemProps {
   onToggleDone: (item: ReminderViewItem, done: boolean) => void;
   onSnooze: (item: ReminderViewItem, preset: SnoozePreset) => void;
 }
+
+const SNOOZE_PRESETS: Array<{ preset: SnoozePreset; label: string }> = [
+  { preset: "10m", label: "10 minutes" },
+  { preset: "1h", label: "1 hour" },
+  { preset: "tomorrow", label: "Tomorrow morning" },
+];
 
 function formatDueLabel(effectiveUtc: string): string {
   const date = new Date(effectiveUtc);
@@ -51,6 +63,28 @@ export function ReminderRowItem({
   onSnooze,
 }: ReminderRowItemProps) {
   const [snoozeMenuOpen, setSnoozeMenuOpen] = useState(false);
+  const snoozeRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!snoozeMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (snoozeRef.current && !snoozeRef.current.contains(e.target as Node)) {
+        setSnoozeMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSnoozeMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [snoozeMenuOpen]);
+
   const noteTitle =
     item.notePath.replace(/\.md$/i, "").split("/").pop() ?? item.notePath;
   const dueLabel = formatDueLabel(item.effectiveDueUtc);
@@ -59,7 +93,9 @@ export function ReminderRowItem({
 
   return (
     <div
-      className={`${styles.row} ${isOverdue ? styles["row--overdue"] : ""}`}
+      className={`${styles.row} ${isOverdue ? styles["row--overdue"] : ""} ${
+        isSnoozed ? styles["row--snoozed"] : ""
+      } ${item.done ? styles["row--done"] : ""}`}
       data-category={item.category}
     >
       <div className={styles["row__checkbox-wrap"]}>
@@ -74,87 +110,79 @@ export function ReminderRowItem({
 
       <div className={styles.row__body}>
         <div className={styles.row__title}>
-          <span className={styles.row__text}>{item.text}</span>
-          <button
-            type="button"
-            className={styles["row__note-link"]}
-            onClick={() => onNavigate(item.notePath, item.line)}
-            title={`Open ${item.notePath} at line ${item.line}`}
-          >
-            {noteTitle}
-            <span className={styles.row__line}>:L{item.line}</span>
-          </button>
+          <span className={styles.row__text} title={item.text}>
+            {item.text}
+          </span>
         </div>
 
         <div className={styles.row__meta}>
           <span
             className={`${styles.row__chip} ${
               isOverdue ? styles["row__chip--overdue"] : ""
-            }`}
+            } ${isSnoozed ? styles["row__chip--snoozed"] : ""}`}
           >
-            <Clock size={12} />
-            <span>{dueLabel}</span>
+            {isSnoozed ? (
+              <ClockCountdown size={12} />
+            ) : (
+              <Clock size={12} weight={isOverdue ? "bold" : "regular"} />
+            )}
+            <span>{isSnoozed ? `Snoozed (${dueLabel})` : dueLabel}</span>
           </span>
-          {isSnoozed && (
-            <span className={styles["row__chip--snoozed"]}>Snoozed</span>
-          )}
+
+          <button
+            type="button"
+            className={styles["row__note-link"]}
+            onClick={() => onNavigate(item.notePath, item.line)}
+            title={`Open ${item.notePath} at line ${item.line}`}
+          >
+            <FileText size={12} />
+            <span>{noteTitle}</span>
+            <span className={styles.row__line}>:L{item.line}</span>
+          </button>
         </div>
       </div>
 
       <div className={styles.row__actions}>
         <button
           type="button"
-          className={styles.row__btn}
+          className={`${styles.row__btn} ${styles["row__btn--done"]}`}
           onClick={() => onToggleDone(item, true)}
           title="Mark complete"
         >
-          <Check size={14} />
+          <Check size={13} weight="bold" />
           <span>Done</span>
         </button>
 
-        <div className={styles.row__snooze}>
+        <div className={styles.row__snooze} ref={snoozeRef}>
           <button
             type="button"
-            className={styles.row__btn}
+            className={`${styles.row__btn} ${
+              snoozeMenuOpen ? styles["row__btn--active"] : ""
+            }`}
             onClick={() => setSnoozeMenuOpen((v) => !v)}
             title="Snooze reminder"
+            aria-expanded={snoozeMenuOpen}
           >
             <span>Snooze</span>
-            <CaretDown size={12} />
+            <CaretDown size={11} weight="bold" />
           </button>
 
           {snoozeMenuOpen && (
-            <div className={styles["row__snooze-menu"]}>
-              <button
-                type="button"
-                className={styles["row__snooze-item"]}
-                onClick={() => {
-                  setSnoozeMenuOpen(false);
-                  onSnooze(item, "10m");
-                }}
-              >
-                10 minutes
-              </button>
-              <button
-                type="button"
-                className={styles["row__snooze-item"]}
-                onClick={() => {
-                  setSnoozeMenuOpen(false);
-                  onSnooze(item, "1h");
-                }}
-              >
-                1 hour
-              </button>
-              <button
-                type="button"
-                className={styles["row__snooze-item"]}
-                onClick={() => {
-                  setSnoozeMenuOpen(false);
-                  onSnooze(item, "tomorrow");
-                }}
-              >
-                Tomorrow morning
-              </button>
+            <div className={styles["row__snooze-menu"]} role="menu">
+              {SNOOZE_PRESETS.map(({ preset, label }) => (
+                <button
+                  key={preset}
+                  type="button"
+                  role="menuitem"
+                  className={styles["row__snooze-item"]}
+                  onClick={() => {
+                    setSnoozeMenuOpen(false);
+                    onSnooze(item, preset);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
           )}
         </div>

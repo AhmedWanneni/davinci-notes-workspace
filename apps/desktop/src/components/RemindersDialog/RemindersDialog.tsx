@@ -1,10 +1,12 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dialog, DialogContent } from "@app/design-system";
 import {
   Bell,
   WarningCircle,
   CalendarCheck,
   CalendarPlus,
+  X,
 } from "@phosphor-icons/react";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { getVaultIndexDb } from "../../vault/sqliteIndex";
@@ -29,6 +31,17 @@ export interface RemindersDialogProps {
 }
 
 type TabKey = "missed" | "today" | "upcoming" | "all";
+
+const TABS: Array<{
+  key: TabKey;
+  label: string;
+  icon: React.ComponentType<{ size: number }>;
+}> = [
+  { key: "missed", label: "Overdue", icon: WarningCircle },
+  { key: "today", label: "Today", icon: CalendarCheck },
+  { key: "upcoming", label: "Upcoming", icon: CalendarPlus },
+  { key: "all", label: "All", icon: Bell },
+];
 
 export function RemindersDialog({
   isOpen,
@@ -104,83 +117,65 @@ export function RemindersDialog({
     [onSelectNote, onOpenChange],
   );
 
-  const currentItems =
-    activeTab === "all"
-      ? data.all
-      : activeTab === "missed"
-        ? data.missed
-        : activeTab === "today"
-          ? data.today
-          : data.upcoming;
+  const currentItems = data[activeTab] ?? [];
+
+  const footerSummary = useMemo(() => {
+    const count = currentItems.length;
+    if (activeTab === "missed") return `${count} overdue`;
+    if (activeTab === "today") return `${count} due today`;
+    if (activeTab === "upcoming") return `${count} upcoming`;
+    return `${count} total reminders`;
+  }, [activeTab, currentItems.length]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={styles.dialog}
-        title="Reminders"
-        showCloseButton={true}
-      >
+      <DialogContent className={styles.dialog} showCloseButton={false}>
+        <DialogPrimitive.Title className={styles["dialog-title-accessible"]}>
+          Reminders
+        </DialogPrimitive.Title>
+
+        <div className={styles.header}>
+          <div className={styles["header-left"]}>
+            <span className={styles["header-icon-wrap"]}>
+              <Bell size={16} weight="bold" />
+            </span>
+            <h2 className={styles["header-title"]}>Reminders</h2>
+            <span className={styles["header-count"]}>{data.all.length}</span>
+          </div>
+          <button
+            type="button"
+            className={styles["header-close"]}
+            onClick={() => onOpenChange(false)}
+            aria-label="Close reminders dialog"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
         <div className={styles.tabs} role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "missed"}
-            className={`${styles.tab} ${
-              data.missed.length > 0 ? styles["tab--has-missed"] : ""
-            } ${activeTab === "missed" ? styles["tab--active"] : ""}`}
-            onClick={() => setActiveTab("missed")}
-          >
-            <WarningCircle size={14} />
-            <span>Overdue</span>
-            <span className={styles.badge}>{data.missed.length}</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "today"}
-            className={`${styles.tab} ${
-              activeTab === "today" ? styles["tab--active"] : ""
-            }`}
-            onClick={() => setActiveTab("today")}
-          >
-            <CalendarCheck size={14} />
-            <span>Today</span>
-            <span className={styles.badge}>{data.today.length}</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "upcoming"}
-            className={`${styles.tab} ${
-              activeTab === "upcoming" ? styles["tab--active"] : ""
-            }`}
-            onClick={() => setActiveTab("upcoming")}
-          >
-            <CalendarPlus size={14} />
-            <span>Upcoming</span>
-            <span className={styles.badge}>{data.upcoming.length}</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "all"}
-            className={`${styles.tab} ${
-              activeTab === "all" ? styles["tab--active"] : ""
-            }`}
-            onClick={() => setActiveTab("all")}
-          >
-            <Bell size={14} />
-            <span>All</span>
-            <span className={styles.badge}>{data.all.length}</span>
-          </button>
+          {TABS.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === key}
+              className={`${styles.tab} ${
+                key === "missed" && data.missed.length > 0
+                  ? styles["tab--has-missed"]
+                  : ""
+              } ${activeTab === key ? styles["tab--active"] : ""}`}
+              onClick={() => setActiveTab(key)}
+            >
+              <Icon size={14} />
+              <span>{label}</span>
+              <span className={styles.badge}>{data[key].length}</span>
+            </button>
+          ))}
         </div>
 
         <div className={styles.content}>
           {loading && data.all.length === 0 ? (
-            <div className={styles.empty}>Loading reminders...</div>
+            <div className={styles.loading}>Loading reminders...</div>
           ) : (
             <RemindersList
               items={currentItems}
@@ -189,6 +184,13 @@ export function RemindersDialog({
               onSnooze={handleSnooze}
             />
           )}
+        </div>
+
+        <div className={styles.footer}>
+          <div className={styles["footer-summary"]}>{footerSummary}</div>
+          <div className={styles["footer-hints"]}>
+            <kbd className={styles.kbd}>Esc</kbd> to close
+          </div>
         </div>
       </DialogContent>
     </Dialog>
