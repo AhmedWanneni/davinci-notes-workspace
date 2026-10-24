@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
+import { useTheme } from "../theme";
 import { Text } from "../components/primitives";
 import { defaultVaultManager } from "../vault";
 import { ensureDailyNote } from "../capture/dailyNoteService";
@@ -11,6 +12,7 @@ import { ensureDailyNote } from "../capture/dailyNoteService";
  */
 export default function DailyNoteActionScreen(): React.ReactElement {
   const router = useRouter();
+  const { tokens } = useTheme();
 
   useEffect(() => {
     let mounted = true;
@@ -33,7 +35,10 @@ export default function DailyNoteActionScreen(): React.ReactElement {
   }, [router]);
 
   return (
-    <View className="flex-1 bg-bg-primary items-center justify-center">
+    <View
+      className="flex-1 items-center justify-center"
+      style={{ backgroundColor: tokens.color.bg.primary }}
+    >
       <Text variant="caption" color="muted">
         Opening today's note...
       </Text>

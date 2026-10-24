@@ -1,0 +1,54 @@
+---
+/**
+ * Anatomical cross-hatched forehead cut cavity.
+ * Coordinates are locked to the 1051x1496 portrait aspect ratio:
+ * Forehead cut spans x=[620..825] (59.0%..78.5%), y=[192..174] (12.8%..11.6%).
+ * Pure cutout with NO background behind the figure: just the woman and rock.
+ */
+---
+
+<!-- Anatomical Skull-Cut Interior Cavity (Sits at z-index: 18 between base and lifted crown) -->
+<svg
+  class="skull-cut-cavity"
+  viewBox="0 0 1051 1496"
+  fill="none"
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <pattern id="codex-hatch" width="8" height="8" patternTransform="rotate(32 0 0)" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="var(--skull-cavity-stroke)" stroke-width="1.3" opacity="0.65" />
+    </pattern>
+  </defs>
+
+  <!-- Recessed Cranial Opening Disc Revealed When Crown Opens -->
+  <g class="skull-cavity-group">
+    <path
+      d="M620 192 C675 162, 765 150, 825 174 C775 194, 680 204, 620 192 Z"
+      fill="var(--skull-cavity-bg)"
+      stroke="var(--accent-terracotta)"
+      stroke-width="2"
+    />
+    <path
+      d="M622 191 C675 144, 768 134, 823 173 C775 192, 680 202, 622 191 Z"
+      fill="url(#codex-hatch)"
+    />
+    <!-- Subtle Gyri / Botanical Codex Filaments Emerging from Cut -->
+    <path
+      d="M658 184 Q685 156 712 178 M712 178 Q742 148 772 172 M686 186 Q724 136 756 176"
+      stroke="var(--accent-terracotta)"
+      stroke-width="1.6"
+      stroke-linecap="round"
+    />
+    <!-- Emergence Axis Stem -->
+    <line
+      x1="722"
+      y1="178"
+      x2="708"
+      y2="92"
+      stroke="var(--accent-vermilion)"
+      stroke-width="1.2"
+      stroke-dasharray="3 4"
+    />
+  </g>
+</svg>

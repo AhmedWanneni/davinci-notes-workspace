@@ -6,6 +6,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { Text } from "./Text";
+import { useTheme } from "../../theme";
 
 export interface ListItemProps {
   title: string | React.ReactNode;
@@ -41,14 +42,20 @@ export const ListItem = React.forwardRef<
     },
     ref,
   ) => {
+    const { tokens } = useTheme();
+
     const containerClasses = [
-      "flex-row items-center justify-between min-h-[48px] px-4 py-3 border-b border-border-subtle",
-      selected ? "bg-bg-hover" : "bg-transparent",
-      disabled ? "opacity-50 pointer-events-none" : "active:bg-bg-hover",
+      "flex-row items-center justify-between min-h-[48px] px-4 py-3 border-b",
+      disabled ? "opacity-50 pointer-events-none" : "",
       className,
     ]
       .filter(Boolean)
       .join(" ");
+
+    const dynamicStyle: ViewStyle = {
+      borderBottomColor: tokens.color.border.subtle,
+      backgroundColor: selected ? tokens.color.bg.hover : "transparent",
+    };
 
     return (
       <Pressable
@@ -59,7 +66,7 @@ export const ListItem = React.forwardRef<
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         className={containerClasses}
-        style={style}
+        style={[dynamicStyle, style]}
       >
         <View className="flex-row items-center flex-1 mr-3">
           {left ? <View className="mr-3 flex-shrink-0">{left}</View> : null}
@@ -78,7 +85,8 @@ export const ListItem = React.forwardRef<
             )}
             {subtitle ? (
               <View className="mt-0.5">
-                {typeof subtitle === "string" || typeof subtitle === "number" ? (
+                {typeof subtitle === "string" ||
+                typeof subtitle === "number" ? (
                   <Text variant="caption" color="muted" numberOfLines={1}>
                     {String(subtitle)}
                   </Text>

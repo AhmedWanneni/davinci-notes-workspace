@@ -58,6 +58,10 @@ export default defineConfig({
         __dirname,
         "tests/mocks/expoSplashScreenMock.ts",
       ),
+      "expo-navigation-bar": path.resolve(
+        __dirname,
+        "tests/mocks/expoNavigationBarMock.ts",
+      ),
       "react-native": "react-native-web",
     },
   },

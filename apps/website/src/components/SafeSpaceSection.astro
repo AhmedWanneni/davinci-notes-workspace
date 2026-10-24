@@ -1,0 +1,35 @@
+---
+import './SafeSpaceSection.css';
+
+const trustItems = [
+  { icon: '⌨️', title: 'Open source', desc: 'Free forever for personal use' },
+  { icon: '🛡️', title: 'Privacy first', desc: 'You own your data locally forever' },
+  { icon: '📱', title: 'Mobile apps', desc: 'Available for iOS & Android' },
+  { icon: '📝', title: 'Markdown files', desc: 'Open your notes in other tools' },
+  { icon: '👥', title: 'Strong community', desc: '2,012 users online currently' },
+  { icon: '🌐', title: 'Localization', desc: 'Translated in many languages' },
+  { icon: '🧩', title: '150+ Plugins', desc: 'Extend functionality to your needs' },
+  { icon: '🎨', title: '30+ Themes', desc: 'Customize look and feel' },
+];
+---
+
+<section class="logseq-safespace-section" id="privacy">
+  <div class="logseq-container">
+    <h2 class="safespace-title">
+      <strong>A safe space</strong> for your thoughts.
+    </h2>
+    <p class="safespace-sub">
+      Designed to store your <strong>interests, questions, ideas, favorite quotes, reminders, reading and meeting notes</strong> easily and future-proof:
+    </p>
+
+    <div class="safespace-grid">
+      {trustItems.map((item) => (
+        <div class="safespace-card">
+          <div class="card-icon">{item.icon}</div>
+          <h3 class="card-title">{item.title}</h3>
+          <p class="card-desc">{item.desc}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

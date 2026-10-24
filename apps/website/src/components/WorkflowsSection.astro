@@ -1,0 +1,80 @@
+---
+import './WorkflowsSection.css';
+
+const tabs = [
+  { id: 'relationships', label: 'Relationships', icon: '👥' },
+  { id: 'daily-plan', label: 'Daily Plan', icon: '🗓️' },
+  { id: 'journaling', label: 'Journaling', icon: '📖' },
+  { id: 'data-control', label: 'Data Control', icon: '🔒' },
+];
+---
+
+<section class="logseq-workflows-section" id="workflows">
+  <div class="logseq-container">
+    <!-- 4 Tabs -->
+    <div class="workflow-tab-bar" role="tablist">
+      {tabs.map((tab, idx) => (
+        <button
+          type="button"
+          role="tab"
+          class:list={['wf-tab-btn', { 'is-active': idx === 0 }]}
+          data-wf-tab={tab.id}
+          aria-selected={idx === 0 ? 'true' : 'false'}
+        >
+          <span class="wf-tab-icon">{tab.icon}</span>
+          <span>{tab.label}</span>
+        </button>
+      ))}
+    </div>
+
+    <!-- Headline -->
+    <h3 class="workflows-headline">
+      <strong>Communicate better.</strong> Stay on top of your relationships, conversations, and meetings.
+    </h3>
+
+    <!-- Split Visual Grid -->
+    <div class="workflows-split-grid">
+      <!-- Contact & Meeting Log Card -->
+      <div class="contact-log-card">
+        <div class="avatar-ring-row">
+          <div class="avatar-bubble av-1">JA</div>
+          <div class="avatar-bubble av-2">LM</div>
+          <div class="avatar-bubble av-3">TC</div>
+          <div class="avatar-bubble av-4">SR</div>
+          <div class="avatar-bubble av-5">EK</div>
+        </div>
+
+        <div class="log-timeline">
+          <div class="log-group">
+            <div class="log-group-label">Today</div>
+            <div class="log-entry">• Quick prep with <mark>[[Jessica]]</mark> on architecture RFC</div>
+          </div>
+          <div class="log-group">
+            <div class="log-group-label">Yesterday</div>
+            <div class="log-entry">• Sync meeting with <mark>[[Jessica]]</mark> and <mark>[[Linda]]</mark></div>
+          </div>
+          <div class="log-group">
+            <div class="log-group-label">Last Week</div>
+            <div class="log-entry">• Reviewed client deliverables with <mark>[[Tom Chen]]</mark></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testimonial Quote Card -->
+      <div class="testimonial-card">
+        <div class="testimonial-bar" aria-hidden="true"></div>
+        <blockquote>
+          "I mostly use it for work: keeping <strong>daily notes & meeting notes</strong>. It's the <strong>best solution I've found to managing my tasks</strong> (and I only use a fraction of the features there)."
+        </blockquote>
+        <div class="testimonial-footer">
+          <div class="author-info">
+            User Feedback by <strong>oskr</strong>
+          </div>
+          <a href="https://discord.com" target="_blank" rel="noreferrer" class="source-badge">
+            Via Discord ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,164 @@
+/* ==========================================================================
+   DAVINCI NOTES — ORBITAL THOUGHT NODE VARIANTS (VIVID BURGUNDY & WHEAT)
+   Zero box-shadows, zero drop-shadows. Pure organic borders and ink lines.
+   ========================================================================== */
+
+.orbit-cloud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.thought-node {
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  pointer-events: auto;
+  padding: 0;
+  text-align: left;
+  color: var(--palette-nude);
+  transform: translate3d(-50%, -50%, 0) scale(var(--node-scale, 1));
+  opacity: var(--node-opacity, 0.94);
+  z-index: var(--z-orbit-front);
+  will-change: transform, opacity, left, top;
+  transition: border-color 140ms ease, background-color 140ms ease;
+  box-shadow: none !important;
+}
+
+.thought-node.is-behind-head { z-index: var(--z-orbit-back); }
+.thought-node.is-near-head { z-index: var(--z-orbit-near); }
+.thought-node.is-dimmed { opacity: 0.16 !important; }
+
+.thought-node.is-highlighted > span:not(.node-anchor-dot),
+.thought-node.is-selected > span:not(.node-anchor-dot),
+.thought-node:hover > span:not(.node-anchor-dot),
+.thought-node:focus-visible > span:not(.node-anchor-dot) {
+  border-color: var(--palette-nude) !important;
+  background-color: var(--palette-burgundy) !important;
+}
+
+.node-anchor-dot {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 6px;
+  height: 6px;
+  background-color: var(--palette-rose-smoke);
+  border-radius: 50%;
+}
+
+/* Variant 1: Markdown Note Card (Organic Hand-Drawn Inked Box) */
+.node-card-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 184px;
+  padding: 9px 12px;
+  background-color: #240b20;
+  border: 1.5px solid var(--palette-rose-smoke);
+  border-radius: var(--radius-hand-drawn-subtle);
+  box-shadow: none !important;
+  transition: all 140ms ease;
+}
+
+.node-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--palette-nude);
+}
+
+.node-file-icon { color: var(--palette-rose-smoke); }
+.node-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.node-excerpt {
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--palette-rose-smoke);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Variant 2: Wikilink and Tag Chips (Organic Hand-Drawn Pill) */
+.node-chip-inner {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 12px;
+  background-color: #300f2a;
+  border: 1.5px solid var(--palette-rose-smoke);
+  border-radius: var(--radius-hand-drawn-subtle);
+  box-shadow: none !important;
+  transition: all 140ms ease;
+}
+
+.node-chip-code {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--palette-nude);
+}
+.node-chip-inner.is-wikilink .node-chip-code { color: var(--palette-nude); }
+.node-chip-inner.is-tag .node-chip-code { color: var(--palette-rose-smoke); }
+.node-chip-meta {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--palette-rose-smoke);
+  opacity: 0.85;
+}
+
+/* Variant 3: Pre-Rendered LaTeX Mathematical Formulas */
+.node-math-inner {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 14px 5px;
+  background-color: #200a1c;
+  border: 1.5px solid var(--palette-rose-smoke);
+  border-radius: var(--radius-hand-drawn-subtle);
+  color: var(--palette-nude);
+  box-shadow: none !important;
+  transition: all 140ms ease;
+}
+.math-svg { display: block; max-height: 38px; width: auto; color: var(--palette-nude); }
+.node-math-caption {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--palette-rose-smoke);
+  margin-top: 2px;
+}
+
+/* Variant 4: Pre-Rendered Leonardo DaVinci Notebook Sketches */
+.node-sketch-inner {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 12px 5px;
+  background-color: #200a1c;
+  border: 1.5px solid var(--palette-rose-smoke);
+  border-radius: var(--radius-hand-drawn-subtle);
+  color: var(--palette-nude);
+  box-shadow: none !important;
+  transition: all 140ms ease;
+}
+.sketch-svg { display: block; max-height: 64px; width: auto; color: var(--palette-nude); }
+.node-sketch-caption {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--palette-rose-smoke);
+  margin-top: 3px;
+}
+
+@media (max-width: 767px) {
+  .thought-node.is-desktop-only { display: none !important; }
+  .node-card-inner {
+    width: 140px;
+    padding: 6px 8px;
+  }
+}

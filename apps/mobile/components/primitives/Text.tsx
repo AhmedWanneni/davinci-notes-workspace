@@ -4,6 +4,7 @@ import {
   type TextProps as RNTextProps,
   type TextStyle,
 } from "react-native";
+import { useTheme } from "../../theme";
 
 export interface TextProps extends Omit<RNTextProps, "style"> {
   variant?: "h1" | "h2" | "h3" | "h4" | "text" | "editor" | "body" | "caption";
@@ -75,6 +76,25 @@ export const Text = React.forwardRef<RNText, TextProps>(
     },
     ref,
   ) => {
+    const { tokens } = useTheme();
+
+    const colorMap: Record<NonNullable<TextProps["color"]>, string> = {
+      normal: tokens.color.text.normal,
+      muted: tokens.color.text.muted,
+      faint: tokens.color.text.faint,
+      accent: tokens.color.interactive.accent,
+      "on-accent": tokens.color.text["on-accent"],
+      error: tokens.color.text.error,
+      success: tokens.color.text.success,
+      warning: tokens.color.text.warning,
+    };
+
+    const resolvedColor = color
+      ? colorMap[color]
+      : variant === "caption"
+        ? tokens.color.text.muted
+        : tokens.color.text.normal;
+
     const classList = [
       VARIANT_STYLES[variant] || VARIANT_STYLES.text,
       size && SIZE_STYLES[size],
@@ -86,7 +106,12 @@ export const Text = React.forwardRef<RNText, TextProps>(
       .join(" ");
 
     return (
-      <RNText ref={ref} className={classList} style={style} {...props}>
+      <RNText
+        ref={ref}
+        className={classList}
+        style={[{ color: resolvedColor }, style]}
+        {...props}
+      >
         {children}
       </RNText>
     );

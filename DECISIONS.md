@@ -183,6 +183,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0016](adr/0016-commit-style-dictionary-output.md) | `.gitignore`: Style Dictionary `tokens/dist/` committed | Accepted |
 | [0163](adr/0163-public-theme-scrim-token.md) | Public `--color-bg-scrim` token for modal/dialog backdrops; no strong-border token | Accepted |
 | [0165](adr/0165-built-in-theme-loading-and-precedence.md) | Lazy built-in theme CSS, app-level restore cache, and built-in-wins ID policy | Accepted |
+| [0204](adr/0204-mobile-theme-token-surface-and-dimensions.md) | Mobile theme token surface and layout dimensions | Accepted |
 
 ## Release & Delivery
 
@@ -285,6 +286,10 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0196](adr/0196-mobile-vault-storage-and-flow-remediation.md) | Mobile vault storage and flow remediation: object-based fs seam, atomic overwrite, and UI hardening | Accepted |
 | [0197](adr/0197-mobile-note-identity-and-rename-safety.md) | Stable note identity via NoteStore, single-pass atomic write, and safe collision-free rename | Accepted |
 | [0198](adr/0198-syncthing-desktop-mobile-sync-verification-and-conflict-isolation.md) | Syncthing desktop-mobile sync verification, non-destructive conflict routing, and transfer isolation | Accepted |
+| [0204](adr/0204-mobile-theme-token-surface-and-dimensions.md) | Mobile theme token surface and layout dimensions contract | Accepted |
+| [0205](adr/0205-mobile-obsidian-parity-navigation-shell.md) | Mobile Obsidian-parity navigation shell, slide-out drawer, and leaf switcher | Accepted |
+| [0206](adr/0206-mobile-dynamic-theme-lifecycle-and-webview-bridge.md) | Mobile dynamic theme lifecycle, React context provider, and webview postMessage bridge | Accepted |
+| [0207](adr/0207-mobile-information-architecture-and-navigation.md) | Mobile information architecture, minimalist navigation, and universal sheet pattern | Proposed |
 
 ## Google Integrations
 
@@ -303,3 +308,10 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0205](adr/0205-hybrid-browser-vault-storage-and-web-sqlite.md) | Hybrid browser vault storage (File System Access API + OPFS fallback) and multi-tab `navigator.locks` + `withWebDbLock` SQLite serialization | Accepted |
 | [0206](adr/0206-browser-plugin-iframe-sandbox.md) | Browser plugin sandboxing via null-origin `<iframe sandbox="allow-scripts">` and MessageChannel RPC | Accepted |
 
+## CLI & Terminal
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0204](adr/0204-davinci-cli-architecture-and-quick-capture.md) | DaVinci Notes CLI architecture: standalone Rust binary (`apps/cli`), zero-SQLite v1, 5-tier vault discovery, and atomic quick capture | Accepted |
+| [0205](adr/0205-external-editor-resolution-and-handoff.md) | External editor resolution chain (flag -> config -> $VISUAL -> $EDITOR -> nvim/vim/vi), shell-words parsing, terminal handoff, and file refresh | Accepted |
+| [0206](adr/0206-in-process-vim-mode-evaluation.md) | In-process Vim mode evaluation: retention of external handoff, rejection of edtui/tui-textarea, and feature-gating future embedded Neovim | Proposed |

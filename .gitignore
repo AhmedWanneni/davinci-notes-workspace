@@ -37,6 +37,8 @@ out/
 # -----------------------------------------------------------------------------
 # Binary app crates: Cargo.lock is committed (do not ignore).
 apps/*/src-tauri/target/
+apps/cli/target/
+target/
 
 # Tauri mobile generated native projects — regenerated via tauri ios/android init.
 apps/*/src-tauri/gen/

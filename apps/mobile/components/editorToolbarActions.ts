@@ -53,6 +53,56 @@ export function executeToolbarAction(
       });
       break;
     }
+    case "heading": {
+      const line = view.state.doc.lineAt(from);
+      const insert = "### ";
+      view.dispatch({
+        changes: { from: line.from, to: line.from, insert },
+        selection: { anchor: from + insert.length },
+        scrollIntoView: true,
+      });
+      break;
+    }
+    case "bold": {
+      const text = view.state.sliceDoc(from, to) || "bold";
+      const insert = `**${text}**`;
+      view.dispatch({
+        changes: { from, to, insert },
+        selection: { anchor: from + 2, head: from + insert.length - 2 },
+        scrollIntoView: true,
+      });
+      break;
+    }
+    case "italic": {
+      const text = view.state.sliceDoc(from, to) || "italic";
+      const insert = `*${text}*`;
+      view.dispatch({
+        changes: { from, to, insert },
+        selection: { anchor: from + 1, head: from + insert.length - 1 },
+        scrollIntoView: true,
+      });
+      break;
+    }
+    case "strikethrough": {
+      const text = view.state.sliceDoc(from, to) || "text";
+      const insert = `~~${text}~~`;
+      view.dispatch({
+        changes: { from, to, insert },
+        selection: { anchor: from + 2, head: from + insert.length - 2 },
+        scrollIntoView: true,
+      });
+      break;
+    }
+    case "code": {
+      const text = view.state.sliceDoc(from, to) || "code";
+      const insert = `\`${text}\``;
+      view.dispatch({
+        changes: { from, to, insert },
+        selection: { anchor: from + 1, head: from + insert.length - 1 },
+        scrollIntoView: true,
+      });
+      break;
+    }
     case "indent": {
       indentMore(view);
       break;
