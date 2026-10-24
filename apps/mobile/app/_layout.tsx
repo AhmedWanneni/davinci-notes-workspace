@@ -2,11 +2,12 @@ import "../global.css";
 import React, { useEffect } from "react";
 import { View } from "react-native";
 import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Text, Button } from "../components/primitives";
 import { defaultVaultManager } from "../vault/vaultManager";
+import { MobileThemeProvider, useTheme } from "../theme";
+import { loadImmersiveModeFromDb } from "../settings";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -36,11 +37,54 @@ export function ErrorBoundary({
   );
 }
 
+function RootNavigator(): React.ReactElement {
+  const { tokens } = useTheme();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: tokens.color.bg.primary,
+        },
+      }}
+    >
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="note"
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
+        name="editor"
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
+        name="settings"
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
+        name="gallery"
+        options={{
+          animation: "slide_from_bottom",
+          presentation: "modal",
+        }}
+      />
+    </Stack>
+  );
+}
+
 export default function RootLayout(): React.ReactElement {
   useEffect(() => {
     async function hideSplashAfterInitialShell() {
       try {
         await defaultVaultManager.getRegistry().catch(() => {});
+        await loadImmersiveModeFromDb().catch(() => {});
       } finally {
         await SplashScreen.hideAsync().catch(() => {});
       }
@@ -49,43 +93,10 @@ export default function RootLayout(): React.ReactElement {
   }, []);
 
   return (
-    <>
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: {
-            backgroundColor: darkColorTokens.bg.primary,
-          },
-        }}
-      >
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="note"
-          options={{
-            animation: "slide_from_right",
-          }}
-        />
-        <Stack.Screen
-          name="editor"
-          options={{
-            animation: "slide_from_right",
-          }}
-        />
-        <Stack.Screen
-          name="settings"
-          options={{
-            animation: "slide_from_right",
-          }}
-        />
-        <Stack.Screen
-          name="gallery"
-          options={{
-            animation: "slide_from_bottom",
-            presentation: "modal",
-          }}
-        />
-      </Stack>
-    </>
+    <SafeAreaProvider>
+      <MobileThemeProvider>
+        <RootNavigator />
+      </MobileThemeProvider>
+    </SafeAreaProvider>
   );
 }

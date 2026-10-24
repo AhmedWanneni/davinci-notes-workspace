@@ -1,6 +1,8 @@
 import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Text } from "../components/primitives/Text";
+import type { NativeThemeTokens } from "../theme/themeTypes";
+import { darkBTokens } from "../theme/builtinThemeTokens";
 import type { SyncProgress, SyncStatus } from "./types";
 
 export interface SyncStatusBadgeProps {
@@ -9,6 +11,7 @@ export interface SyncStatusBadgeProps {
   lastSyncedAt?: number | null;
   pendingChangesCount?: number;
   onPress?: () => void;
+  tokens?: NativeThemeTokens;
 }
 
 function formatRelativeTime(timestamp?: number | null): string {
@@ -27,6 +30,7 @@ export const SyncStatusBadge: React.FC<SyncStatusBadgeProps> = ({
   lastSyncedAt,
   pendingChangesCount = 0,
   onPress,
+  tokens = darkBTokens,
 }) => {
   let label = formatRelativeTime(lastSyncedAt);
   let dotColorClass = "bg-accent-success";
@@ -86,7 +90,11 @@ export const SyncStatusBadge: React.FC<SyncStatusBadgeProps> = ({
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
-      className="flex-row items-center px-2 py-1 rounded bg-bg-surface border border-border-default"
+      className="flex-row items-center px-2 py-1 rounded border"
+      style={{
+        backgroundColor: tokens.color.bg.hover,
+        borderColor: tokens.color.border.subtle,
+      }}
       accessibilityRole="button"
       accessibilityLabel={`Sync status: ${label}`}
     >

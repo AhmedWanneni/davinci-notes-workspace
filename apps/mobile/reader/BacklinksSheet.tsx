@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, ScrollView, Pressable } from "react-native";
 import { Link, Eye } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Badge, Sheet, Text } from "../components/primitives";
 import type { MentionItem } from "./backlinksQuery";
 
@@ -22,6 +22,7 @@ export function BacklinksSheet({
   loading = false,
   onSelectNote,
 }: BacklinksSheetProps): React.ReactElement {
+  const { tokens } = useTheme();
   const [tab, setTab] = useState<"linked" | "unlinked">("linked");
 
   const activeItems = tab === "linked" ? linked : unlinked;
@@ -29,14 +30,21 @@ export function BacklinksSheet({
   return (
     <Sheet visible={visible} onClose={onClose} title="Mentions & Backlinks">
       {/* Tabs */}
-      <View className="flex-row border-b border-border-subtle mb-3">
+      <View
+        className="flex-row border-b mb-3"
+        style={{ borderBottomColor: tokens.color.border.subtle }}
+      >
         <Pressable
           onPress={() => setTab("linked")}
-          className={`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 min-h-[44px] border-b-2 ${
-            tab === "linked"
-              ? "border-accent bg-bg-hover/30"
-              : "border-transparent"
-          }`}
+          className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 min-h-[44px] border-b-2"
+          style={{
+            borderBottomColor:
+              tab === "linked"
+                ? tokens.color.interactive.accent
+                : "transparent",
+            backgroundColor:
+              tab === "linked" ? tokens.color.bg.hover : "transparent",
+          }}
           accessibilityRole="tab"
           accessibilityLabel="Linked mentions tab"
         >
@@ -44,8 +52,8 @@ export function BacklinksSheet({
             size={16}
             color={
               tab === "linked"
-                ? darkColorTokens.text.accent
-                : darkColorTokens.text.muted
+                ? tokens.color.interactive.accent
+                : tokens.color.text.muted
             }
           />
           <Text
@@ -59,11 +67,15 @@ export function BacklinksSheet({
 
         <Pressable
           onPress={() => setTab("unlinked")}
-          className={`flex-1 flex-row items-center justify-center gap-1.5 py-2.5 min-h-[44px] border-b-2 ${
-            tab === "unlinked"
-              ? "border-accent bg-bg-hover/30"
-              : "border-transparent"
-          }`}
+          className="flex-1 flex-row items-center justify-center gap-1.5 py-2.5 min-h-[44px] border-b-2"
+          style={{
+            borderBottomColor:
+              tab === "unlinked"
+                ? tokens.color.interactive.accent
+                : "transparent",
+            backgroundColor:
+              tab === "unlinked" ? tokens.color.bg.hover : "transparent",
+          }}
           accessibilityRole="tab"
           accessibilityLabel="Unlinked mentions tab"
         >
@@ -71,8 +83,8 @@ export function BacklinksSheet({
             size={16}
             color={
               tab === "unlinked"
-                ? darkColorTokens.text.accent
-                : darkColorTokens.text.muted
+                ? tokens.color.interactive.accent
+                : tokens.color.text.muted
             }
           />
           <Text
@@ -109,7 +121,11 @@ export function BacklinksSheet({
                 onSelectNote(item.sourcePath);
                 onClose();
               }}
-              className="p-3 mb-2 min-h-[44px] rounded-md border border-border-subtle bg-bg-primary-alt active:bg-bg-hover"
+              className="p-3 mb-2 min-h-[44px] rounded-md border active:bg-bg-hover"
+              style={{
+                backgroundColor: tokens.color.bg["primary-alt"],
+                borderColor: tokens.color.border.subtle,
+              }}
               accessibilityRole="button"
               accessibilityLabel={`Navigate to note ${item.sourceTitle}`}
             >

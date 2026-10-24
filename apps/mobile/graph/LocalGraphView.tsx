@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { View, TouchableOpacity } from "react-native";
 import Svg, { Line, Circle, Text as SvgText, G } from "react-native-svg";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Text } from "../components/primitives/Text";
 import { Badge } from "../components/primitives/Badge";
 import {
@@ -23,6 +23,7 @@ export const LocalGraphView: React.FC<LocalGraphViewProps> = ({
   width = 360,
   height = 360,
 }) => {
+  const { tokens } = useTheme();
   const [depth, setDepth] = useState<number>(1);
   const [data, setData] = useState<LocalGraphData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -111,7 +112,7 @@ export const LocalGraphView: React.FC<LocalGraphViewProps> = ({
                   y1={src.y}
                   x2={tgt.x}
                   y2={tgt.y}
-                  stroke={darkColorTokens.border.normal}
+                  stroke={tokens.color.border.normal}
                   strokeWidth={1.5}
                 />
               );
@@ -131,10 +132,10 @@ export const LocalGraphView: React.FC<LocalGraphViewProps> = ({
                   r={node.isCenter ? 10 : 6}
                   fill={
                     node.isCenter
-                      ? darkColorTokens.interactive.accent
-                      : darkColorTokens.text.muted
+                      ? tokens.color.interactive.accent
+                      : tokens.color.text.muted
                   }
-                  stroke={darkColorTokens.bg.primary}
+                  stroke={tokens.color.bg.primary}
                   strokeWidth={2}
                 />
                 <SvgText
@@ -143,8 +144,8 @@ export const LocalGraphView: React.FC<LocalGraphViewProps> = ({
                   fontSize={10}
                   fill={
                     node.isCenter
-                      ? darkColorTokens.text.normal
-                      : darkColorTokens.text.muted
+                      ? tokens.color.text.normal
+                      : tokens.color.text.muted
                   }
                   textAnchor="middle"
                   fontWeight={node.isCenter ? "bold" : "normal"}

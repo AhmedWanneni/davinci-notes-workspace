@@ -1,7 +1,7 @@
 .calendar-settings-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2, 8px);
+  gap: var(--space-2);
   width: 100%;
 }
 
@@ -9,16 +9,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2, 8px) var(--space-3, 12px);
-  border: 1px solid var(--color-border-subtle, #333333);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--color-bg-surface, #1e1e1e);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-bg-primary);
 }
 
 .calendar-info {
   display: flex;
   align-items: center;
-  gap: var(--space-2, 8px);
+  gap: var(--space-2);
 }
 
 .calendar-color-dot {
@@ -29,45 +29,45 @@
 }
 
 .calendar-title {
-  font-size: var(--font-size-sm, 13px);
-  color: var(--color-text-primary, #ffffff);
+  font-size: var(--type-scale-sm);
+  color: var(--color-text-normal);
 }
 
 .calendar-primary-badge {
   font-size: 10px;
   padding: 1px 6px;
   border-radius: 3px;
-  border: 1px solid var(--color-border-subtle, #444);
-  color: var(--color-text-muted, #888);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-muted);
   text-transform: uppercase;
 }
 
 .settings-select {
-  padding: var(--space-1, 4px) var(--space-2, 8px);
-  font-size: var(--font-size-sm, 13px);
-  border: 1px solid var(--color-border-subtle, #333);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--color-bg-base, #161616);
-  color: var(--color-text-primary, #ffffff);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--type-scale-sm);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-bg-primary-alt);
+  color: var(--color-text-normal);
 }
 
 .settings-input {
-  padding: var(--space-1, 4px) var(--space-2, 8px);
-  font-size: var(--font-size-sm, 13px);
-  border: 1px solid var(--color-border-subtle, #333);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--color-bg-base, #161616);
-  color: var(--color-text-primary, #ffffff);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--type-scale-sm);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-bg-primary-alt);
+  color: var(--color-text-normal);
   width: 180px;
 }
 
 .settings-input-wide {
-  padding: var(--space-1, 4px) var(--space-2, 8px);
-  font-size: var(--font-size-sm, 13px);
-  border: 1px solid var(--color-border-subtle, #333);
-  border-radius: var(--radius-sm, 4px);
-  background: var(--color-bg-base, #161616);
-  color: var(--color-text-primary, #ffffff);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--type-scale-sm);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-bg-primary-alt);
+  color: var(--color-text-normal);
   width: 100%;
   max-width: 320px;
 }
@@ -76,13 +76,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-2, 8px) var(--space-3, 12px);
-  margin-bottom: var(--space-3, 12px);
-  border: 1px solid var(--color-text-error, #f87171);
-  background: var(--color-bg-secondary, #222);
-  border-radius: var(--radius-sm, 4px);
-  color: var(--color-text-error, #fca5a5);
-  font-size: var(--font-size-sm, 13px);
-  gap: var(--space-2, 8px);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  border: var(--border-width-thin) solid var(--color-text-error);
+  background: var(--color-bg-secondary);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-error);
+  font-size: var(--type-scale-sm);
+  gap: var(--space-2);
 }
-

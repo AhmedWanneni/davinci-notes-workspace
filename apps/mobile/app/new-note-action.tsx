@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { View } from "react-native";
 import { useRouter } from "expo-router";
+import { useTheme } from "../theme";
 import { Text } from "../components/primitives";
 
 /**
@@ -9,6 +10,7 @@ import { Text } from "../components/primitives";
  */
 export default function NewNoteActionScreen(): React.ReactElement {
   const router = useRouter();
+  const { tokens } = useTheme();
 
   useEffect(() => {
     // Navigate straight to editor with "new" preset and keyboard focused
@@ -19,7 +21,10 @@ export default function NewNoteActionScreen(): React.ReactElement {
   }, [router]);
 
   return (
-    <View className="flex-1 bg-bg-primary items-center justify-center">
+    <View
+      className="flex-1 items-center justify-center"
+      style={{ backgroundColor: tokens.color.bg.primary }}
+    >
       <Text variant="caption" color="muted">
         Opening new note...
       </Text>

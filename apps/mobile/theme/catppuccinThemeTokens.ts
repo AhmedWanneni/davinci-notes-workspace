@@ -1,0 +1,118 @@
+import {
+  borderRadiusTokens,
+  borderWidthTokens,
+  spacingTokens,
+  typographyTokens,
+  iconSizeTokens,
+} from "@app/design-tokens";
+import type { NativeThemeTokens, MobileLayoutTokens } from "./themeTypes";
+
+export const defaultMobileLayout: MobileLayoutTokens = {
+  capsuleRadius: "9999px",
+  sheetGroupRadius: "12px",
+  touchTarget: 44,
+};
+
+export const catppuccinFrappeTokens: NativeThemeTokens = {
+  id: "catppuccin-frappe",
+  name: "Catppuccin Frappé",
+  isDark: true,
+  color: {
+    bg: {
+      primary: "#303446",
+      "primary-alt": "#292c3c",
+      secondary: "#414559",
+      "secondary-alt": "#292c3c",
+      scrim: "rgb(35 38 52 / 68%)",
+      "status-accent": "rgb(202 158 230 / 16%)",
+      "status-success": "rgb(166 209 137 / 16%)",
+      "status-warning": "rgb(229 200 144 / 16%)",
+      "status-error": "rgb(231 130 132 / 16%)",
+      hover: "rgb(198 208 245 / 7%)",
+      active: "rgb(198 208 245 / 12%)",
+    },
+    text: {
+      normal: "#c6d0f5",
+      muted: "#b5bfe2",
+      faint: "#949cbb",
+      accent: "#babbf1",
+      "on-accent": "#232634",
+      error: "#e78284",
+      success: "#a6d189",
+      warning: "#e5c890",
+    },
+    border: {
+      subtle: "#51576d",
+      normal: "#626880",
+      focus: "#babbf1",
+      "status-accent": "rgb(202 158 230 / 38%)",
+      "status-success": "rgb(166 209 137 / 38%)",
+      "status-warning": "rgb(229 200 144 / 38%)",
+      "status-error": "rgb(231 130 132 / 38%)",
+    },
+    interactive: {
+      accent: "#ca9ee6",
+      "accent-hover": "#babbf1",
+      "accent-active": "#ca9ee6",
+    },
+    shadow: "rgb(35 38 52)",
+  },
+  radius: borderRadiusTokens,
+  borderWidth: borderWidthTokens,
+  space: spacingTokens,
+  typography: typographyTokens,
+  iconSize: iconSizeTokens,
+  layout: defaultMobileLayout,
+};
+
+export const catppuccinLatteTokens: NativeThemeTokens = {
+  id: "catppuccin-latte",
+  name: "Catppuccin Latte",
+  isDark: false,
+  color: {
+    bg: {
+      primary: "#eff1f5",
+      "primary-alt": "#e6e9ef",
+      secondary: "#ffffff",
+      "secondary-alt": "#e6e9ef",
+      scrim: "rgb(76 79 105 / 30%)",
+      "status-accent": "rgb(136 57 239 / 12%)",
+      "status-success": "rgb(64 160 43 / 12%)",
+      "status-warning": "rgb(223 142 29 / 14%)",
+      "status-error": "rgb(210 15 57 / 12%)",
+      hover: "rgb(76 79 105 / 7%)",
+      active: "rgb(76 79 105 / 12%)",
+    },
+    text: {
+      normal: "#4c4f69",
+      muted: "#5c5f77",
+      faint: "#7c7f93",
+      accent: "#8839ef",
+      "on-accent": "#ffffff",
+      error: "#d20f39",
+      success: "#40a02b",
+      warning: "#df8e1d",
+    },
+    border: {
+      subtle: "#ccd0da",
+      normal: "#acb0be",
+      focus: "#8839ef",
+      "status-accent": "rgb(136 57 239 / 35%)",
+      "status-success": "rgb(64 160 43 / 35%)",
+      "status-warning": "rgb(223 142 29 / 38%)",
+      "status-error": "rgb(210 15 57 / 35%)",
+    },
+    interactive: {
+      accent: "#8839ef",
+      "accent-hover": "#7287fd",
+      "accent-active": "#8839ef",
+    },
+    shadow: "rgb(76 79 105)",
+  },
+  radius: borderRadiusTokens,
+  borderWidth: borderWidthTokens,
+  space: spacingTokens,
+  typography: typographyTokens,
+  iconSize: iconSizeTokens,
+  layout: defaultMobileLayout,
+};

@@ -21,3 +21,4 @@ export * from "./uniqueNoteName";
 export * from "./useEditorNoteLoader";
 export * from "./useEditorSaveManager";
 export * from "./saveQueue";
+export * from "./useFilesScreenState";

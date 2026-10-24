@@ -83,13 +83,16 @@ export function parseMarkdownDocument(content: string): ParsedMarkdownDocument {
     }
 
     // 5. Checklist tasks (- [ ] or - [x])
-    const taskMatch = line.match(/^(\s*[-*+]\s+\[([ xX])\])\s+(.+)$/);
+    const taskMatch = line.match(/^(\s*)[-*+]\s+\[([ xX])\]\s+(.+)$/);
     if (taskMatch) {
+      const leadingSpaces = taskMatch[1].length;
+      const depth = Math.floor(leadingSpaces / 2);
       const checked = taskMatch[2].toLowerCase() === "x";
       const text = taskMatch[3];
       blocks.push({
         type: "task",
         checked,
+        depth,
         inlines: parseInlineNodes(text),
       });
       continue;
@@ -98,12 +101,15 @@ export function parseMarkdownDocument(content: string): ParsedMarkdownDocument {
     // 6. Lists (ordered or unordered)
     const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.+)$/);
     if (listMatch) {
+      const leadingSpaces = listMatch[1].length;
+      const depth = Math.floor(leadingSpaces / 2);
       const isOrdered = /^\d+\./.test(listMatch[2]);
       const index = isOrdered ? parseInt(listMatch[2], 10) : undefined;
       const text = listMatch[3];
       blocks.push({
         type: "list-item",
         ordered: isOrdered,
+        depth,
         index,
         inlines: parseInlineNodes(text),
       });

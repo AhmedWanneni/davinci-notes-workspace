@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, AppState, BackHandler } from "react-native";
+import { View, AppState, BackHandler, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import { NavigationBar } from "expo-navigation-bar";
+import { useImmersiveNavigationBar } from "../settings";
 import EditorDom from "../components/EditorDom";
 import { FormattingToolbar } from "../components/FormattingToolbar";
 import { EditorConflictBanner } from "../components/EditorConflictBanner";
 import { EditorSaveErrorBanner } from "../components/EditorSaveErrorBanner";
 import { EditorHeader } from "../components/EditorHeader";
+import { EditorPreviewView } from "../components/EditorPreviewView";
+import { buildEditorInjectedScript } from "../components/editorInjectedScript";
 import { Text } from "../components/primitives";
 import {
   useNotePath,
@@ -17,20 +20,29 @@ import {
 import { useMediaCaptureActions } from "../capture";
 import type { ToolbarActionType } from "../src/bridgeProtocol";
 import { encodePayload } from "../src/base64Payload";
+import { useTheme } from "../theme";
 
 export default function EditorScreen(): React.ReactElement {
   const insets = useSafeAreaInsets();
+  const { tokens, themeCss } = useTheme();
+  useImmersiveNavigationBar();
   const {
     path: initialPath,
     noteId,
     preset,
     autoFocus,
+    mode: initialMode,
   } = useLocalSearchParams<{
     path?: string;
     noteId?: string;
     preset?: string;
     autoFocus?: string;
+    mode?: "edit" | "preview";
   }>();
+
+  const [viewMode, setViewMode] = useState<"edit" | "preview">(
+    initialMode === "edit" || preset === "new" ? "edit" : "preview",
+  );
 
   const storePath = useNotePath(noteId, initialPath ?? "Untitled.md");
   const {
@@ -112,15 +124,22 @@ export default function EditorScreen(): React.ReactElement {
 
   return (
     <View
-      className="flex-1 bg-bg-primary"
-      style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }}
+      className="flex-1"
+      style={{
+        flex: 1,
+        backgroundColor: tokens.color.bg.primary,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+      }}
     >
-      <StatusBar style="light" />
+      {Platform.OS === "android" ? <NavigationBar hidden={true} /> : null}
       <EditorHeader
         title={title}
         payloadBytes={lastPayloadBytes}
         saveStatus={saveStatus}
         onBack={handleBack}
+        mode={viewMode}
+        onToggleMode={(next) => setViewMode(next)}
       />
 
       {loadError ? (
@@ -143,7 +162,22 @@ export default function EditorScreen(): React.ReactElement {
       ) : null}
 
       <View style={{ flex: 1, width: "100%" }}>
-        {isLoaded ? (
+        {viewMode === "preview" ? (
+          <EditorPreviewView
+            content={content}
+            title={title}
+            onEditPress={() => setViewMode("edit")}
+            onWikilinkPress={(target) =>
+              router.push({
+                pathname: "/editor",
+                params: { path: `${target}.md`, mode: "preview" },
+              })
+            }
+            onTagPress={(tag) =>
+              router.push({ pathname: "/(tabs)/search", params: { q: tag } })
+            }
+          />
+        ) : isLoaded ? (
           <EditorDom
             key={`${noteId ?? activePath}-${loadCounter}`}
             dom={{
@@ -151,15 +185,20 @@ export default function EditorScreen(): React.ReactElement {
               matchContents: false,
               scrollEnabled: true,
               focusable: true,
-              injectedJavaScriptBeforeContentLoaded:
-                "window.$$EXPO_DOM_HOST_OS = 'android'; true;",
+              injectedJavaScriptBeforeContentLoaded: buildEditorInjectedScript(
+                content,
+                activePath,
+                themeCss ?? "",
+              ),
               containerStyle: { flex: 1, width: "100%", height: "100%" },
               style: { flex: 1, width: "100%", height: "100%" },
             }}
             initialContent={encodePayload(content)}
             notePath={activePath}
+            themeCss={themeCss}
             onDocChanged={handleDocChanged}
             onFlushAck={handleFlushAck}
+            onMetricsUpdate={() => {}}
             actionTrigger={actionTrigger}
             focusTrigger={focusTrigger}
             flushTrigger={flushTrigger}
@@ -175,15 +214,21 @@ export default function EditorScreen(): React.ReactElement {
         ) : null}
       </View>
 
-      <FormattingToolbar
-        onAction={(action) => {
-          if (action === "camera" || action === "photo" || action === "audio") {
-            void handleMediaAction(action);
-          } else {
-            setActionTrigger({ id: Date.now(), action });
-          }
-        }}
-      />
+      {viewMode === "edit" ? (
+        <FormattingToolbar
+          onAction={(action) => {
+            if (
+              action === "camera" ||
+              action === "photo" ||
+              action === "audio"
+            ) {
+              void handleMediaAction(action);
+            } else {
+              setActionTrigger({ id: Date.now(), action });
+            }
+          }}
+        />
+      ) : null}
     </View>
   );
 }

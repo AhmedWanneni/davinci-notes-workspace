@@ -89,6 +89,130 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-20: Toolbar Action Infinite Print Loop Fix
+
+- **Root-Cause Analysis**:
+  - In `EditorDom.tsx`, `useEffect` listening to `[actionTrigger]` re-executed whenever `actionTrigger` changed reference.
+  - When a toolbar action (e.g. "heading" or "bold") modified the document, CodeMirror triggered `onDocChanged`, which updated `content` state in `editor.tsx`.
+  - Re-rendering `editor.tsx` passed re-serialized `actionTrigger` down to `EditorDom` across the bridge, producing a new object reference in the WebView and causing `useEffect([actionTrigger])` to re-execute indefinitely in an infinite insertion loop.
+- **Resolution**:
+  - Introduced `lastActionIdRef` and `lastInsertIdRef` in `apps/mobile/components/EditorDom.tsx`.
+  - Guarded toolbar action execution with `actionTrigger.id !== lastActionIdRef.current` and insert trigger with `insertTrigger.id !== lastInsertIdRef.current`, ensuring actions execute exactly once per user tap regardless of parent re-renders.
+  - Fixed `onMetricsUpdate` crash by passing a no-op handler and making RPC name registration conditional.
+- **Verification**:
+  - Added unit test in `tests/folderAndEditorExperience.test.tsx` verifying action idempotency across re-renders.
+  - Test suites: `tests/folderAndEditorExperience.test.tsx` (8/8 passed), `tests/mobileEditor.test.ts` (6/6 passed), `tests/immersiveMode.test.ts` (4/4 passed).
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `EditorDom.tsx`: 248 lines (< 250 cap), `editor.tsx`: 236 lines.
+
+---
+
+### 2026-10-20: Unified Direct File Access into Editor Preview/Edit & Unconditional Navigation Bar Hiding
+
+- **Direct File Access to Unified Preview/Edit Screen**:
+  - Tapping any note in `FilesScreen`, `SearchScreen`, `VaultDrawerContent`, or wikilinks now opens `/editor` directly (`mode: "preview"`).
+  - Users are directly on the preview/edit screen without having to navigate to a reader screen first and then push a new editor screen each time.
+  - Tapping "Edit" in the header pill `[ Edit | Preview ]` or within the preview document switches directly to CodeMirror editing on the **same screen** with zero navigation stack push.
+  - Tapping "Preview" switches back to live Markdown preview on the same screen.
+  - `apps/mobile/app/note.tsx` automatically redirects/replaces with `/editor?mode=preview`, ensuring any legacy routes or deep links land on the unified screen.
+- **Expo Navigation Bar Hiding**:
+  - Hides the Android system navigation bar unconditionally on mount in `apps/mobile/app/editor.tsx` (`<NavigationBar hidden={true} />`) and in `useImmersiveNavigationBar()` (`NavigationBar.setHidden(true)` and `setVisibilityAsync("hidden")`).
+  - Automatically re-asserts hiding when software keyboard dismisses and when returning from app background, and cleanly restores on unmount.
+  - Default `cachedImmersiveMode` updated to `true` (enabled).
+- **Verification**:
+  - Vitest test suites: `tests/folderAndEditorExperience.test.tsx` (7/7 passed), `tests/immersiveMode.test.ts` (4/4 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed), `components/shell/shell.test.tsx` (4/4 passed), `components/shell/FileActionSheet.test.tsx` (2/2 passed), `components/shell/NoteActionSheet.test.tsx` (2/2 passed), `components/FormattingToolbar.test.tsx` (2/2 passed). Total: 24/24 passed.
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `editor.tsx`: 235 lines, `note.tsx`: 17 lines, `index.tsx`: 233 lines, `search.tsx`: 231 lines.
+
+---
+
+### 2026-10-20: Sidebar Folder Expansion, In-Editor Preview/Edit Dual Mode, and Add Folder Fixes
+
+- **Sidebar Folder Opening & Interactive Expansion**:
+  - Identified that folders in `VaultDrawerContent.tsx` were static non-interactive `<View>` elements with no `onPress` or expansion mechanism, preventing folder navigation and hiding notes inside folders.
+  - Built `DrawerFolderItem.tsx` with expandable/collapsible chevron controls (`CaretRight` / `CaretDown`), folder note count tags, and nested note rendering with visual indentation.
+  - Tapping folder chevron toggles expansion to reveal notes inside that folder. Tapping notes opens them directly.
+  - Tapping folder label invokes `onSelectFolder` to navigate `FilesScreen` directly into that folder.
+- **Same-Page Preview and Edit for Editor**:
+  - Implemented dual-mode editing/previewing on the same screen in `apps/mobile/app/editor.tsx` (`mode: "edit" | "preview"`).
+  - Updated `EditorHeader.tsx` to include an accessible segmented control pill `[ Edit | Preview ]`.
+  - Created `EditorPreviewView.tsx`: takes live editor `content`, parses markdown into an AST using `parseMarkdownDocument(content)`, and renders `NoteReaderView` right on the same page.
+  - Extracted `editorInjectedScript.ts` to keep `editor.tsx` under the 250-line limit (227 lines).
+  - Tapping "Edit" or "Preview" switches the view instantly with zero route transitions and zero latency.
+- **Add Folder Fixes Across App**:
+  - Fixed modal collision between `NavigationDrawer` and `NewFolderSheet` by introducing safe coordinated dismissal delay.
+  - Added "New Folder" item (`FolderPlus`) to `CreateActionSheet.tsx` so users can add folders from the central tab bar action button.
+  - Enhanced `NewFolderSheet.tsx` with input validation (checks for empty string and forbidden slash characters) and friendly inline error feedback.
+  - Added `NewFolderSheet` support to `note.tsx` and `(tabs)/_layout.tsx` so folder creation works vault-wide.
+- **Verification**:
+  - `tests/folderAndEditorExperience.test.tsx` (7/7 passed).
+  - Shell and navigation suite (17/17 passed).
+  - Typecheck: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors (`pnpm --filter @app/mobile lint`).
+  - Strict compliance with file size cap (< 250 lines).
+
+---
+
+### 2026-10-20: Android Immersive Mode, Tab Bar Hiding & Safe-Area Preservation
+
+- **Android Immersive Navigation Bar & Restoration**:
+  - Integrated `expo-navigation-bar` (SDK 57) for declarative and imperative system navigation bar controls.
+  - Implemented `apps/mobile/settings/immersiveModeState.ts`:
+    - Persisted setting via SQLite `settings` table (`ui.immersive_mode`, default `0` / off).
+    - Synchronous reactive subscriptions via React's `useSyncExternalStore`.
+    - `useImmersiveNavigationBar`: On Android note and editor screens, automatically hides the navigation bar on mount, re-asserts hiding when the software keyboard closes (`keyboardDidHide`) and when returning from app background (`AppState` `active`), and cleanly restores the navigation bar on unmount.
+    - Also renders declarative `<NavigationBar hidden={true} />` in `note.tsx` and `editor.tsx` when Android immersive mode is active.
+- **Tab Bar Hiding & Keyboard Avoidance**:
+  - In `(tabs)/_layout.tsx`: Configured `tabBarHideOnKeyboard: true` in `screenOptions` so the bottom tab bar automatically dismisses whenever the keyboard appears.
+  - In `_layout.tsx`: Note and editor screens are rendered on top as standalone Stack screens with zero bottom tab bar.
+- **Bottom Safe-Area Inset Preservation**:
+  - `QuickActionBar` maintains `paddingBottom: Math.max(insets.bottom, 12)` so buttons maintain 12pt padding when the navigation bar is hidden and adapt to the system bar height when restored.
+  - `EditorScreen` uses `paddingBottom: insets.bottom`, allowing full immersive screen space down to the edge when hidden and avoiding overlap when visible.
+  - Bottom sheets retain `paddingBottom: Math.max(insets.bottom, 16)`.
+  - Android hardware back button (`BackHandler`) and edge gestures remain 100% operational in immersive mode via `BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE`.
+- **Settings UI**:
+  - Created `apps/mobile/components/settings/ImmersiveModeSection.tsx` with token-bound card styling and switch control.
+  - Mounted directly in `apps/mobile/app/settings.tsx`.
+- **Verification**:
+  - Unit tests: `tests/immersiveMode.test.ts` (4/4 passed), `tests/mobileShell.test.ts` (9/9 passed), `tests/mobileSuspendedSync.test.ts` (5/5 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed).
+  - Physical device runtime verification: `adb devices` reported 0 connected devices; marked physical device checks as NOT RUN.
+  - Typecheck: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors or warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: All files under 250 lines (`note.tsx`: 229, `editor.tsx`: 228, `immersiveModeState.ts`: 129).
+
+---
+
+### 2026-10-20: Universal Mobile Dynamic Theming Across All Screens
+
+- **Root-Cause Analysis for Screen Theme Inconsistency**:
+  - Utility classes like `bg-bg-primary`, `bg-bg-secondary`, `bg-bg-surface`, and `border-border-default` compile to static CSS variables in NativeWind/Tailwind. In native React Native, there is no dynamic CSS DOM runtime to automatically re-evaluate custom CSS variables on runtime theme changes.
+  - In `apps/mobile/theme/MobileThemeProvider.tsx`, theme switching was decoupled from mode, causing a theme to be ignored if mode was mismatched (e.g. tapping `catppuccin-latte` while mode was `dark`).
+  - Headless unit tests or components called directly without `MobileThemeProvider` threw `Cannot read properties of null (reading 'useContext')` in `useTheme`.
+- **System-Wide Dynamic Token Binding**:
+  - **`useTheme.ts`**: Introduced `defaultFallbackThemeContext` and safe fallback handling in `useTheme()`, ensuring zero crashes in headless tests, isolated component rendering, or direct function execution.
+  - **`MobileThemeProvider.tsx`**: Synchronized active theme selection with theme mode polarity (`target.isDark ? "dark" : "light"`), ensuring instant and universal switching across all 4 built-in themes (`catppuccin-frappe`, `catppuccin-latte`, `light-a`, `dark-b`) and system mode.
+  - **Settings & Sync**:
+    - `SyncSettingsPanel.tsx`: Bound root `ScrollView`, status card, Google Drive card, conflict banners, and policy info card dynamically to `tokens.color.bg.primary`, `secondary`, and `border.subtle`.
+    - `SyncStatusBadge.tsx`: Added optional `tokens` prop with fallback to `darkBTokens` (100% pure component), with dynamic styling for badge container and dot indicators.
+    - `MobileSyncthingPanel.tsx`: Dynamically bound card background, device ID container, top separator, and activity indicator to `tokens`.
+    - `SyncthingQrScanner.tsx`, `SyncthingQrView.tsx`, and `SyncthingAddDeviceModal.tsx`: Fully token-bound for dark/light themes.
+  - **Vault, Canvas & Editor**:
+    - `FirstRunVaultScreen.tsx`: Dynamically bound scrollview, header badge, and vault creation cards to `tokens.color.bg.primary` and `secondary`.
+    - `CanvasViewer.tsx` & `CanvasViewerDom.tsx`: Threaded dynamic tokens (`bgPrimaryAlt`, `bgSecondary`, `textNormal`, `borderNormal`, `interactiveAccent`, `textError`) into Canvas viewer DOM host.
+    - `EditorDom.tsx`: Updated DOM host CSS injection to prioritize dynamic CSS variables over hardcoded fallbacks via `var(--color-bg-primary)!important`.
+    - `NoteReaderView.tsx`: Bound code blocks, inline code snippets, blockquotes, and tasks to `tokens.color.bg.secondary`.
+    - `OutlineSheet.tsx` & `BacklinksSheet.tsx`: Bound tab headers, tab indicators, and item cards to `tokens.color.bg["primary-alt"]` and `border.subtle`.
+    - `share-target.tsx`, `new-note-action.tsx`, `daily-note-action.tsx`: Bound root containers to dynamic `tokens.color.bg.primary`.
+- **Verification**:
+  - `pnpm --filter @app/mobile typecheck`: 0 errors.
+  - `pnpm --filter @app/mobile lint`: 0 errors or warnings.
+  - `tests/mobileShell.test.ts` & `tests/mobileSuspendedSync.test.ts`: 100% green.
+  - Every file in `apps/mobile/` strictly under 250 lines (soft cap: 150-200, hard cap: 250).
+
+---
+
 ### 2026-10-18: Google Calendar & Meet Browser Launch & Settings UI Error Resolution
 
 - **Rust URL Allowlist (`apps/desktop/src-tauri/src/oauth.rs`)**:

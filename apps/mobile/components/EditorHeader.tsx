@@ -1,7 +1,7 @@
 import React from "react";
-import { View } from "react-native";
+import { View, Pressable } from "react-native";
 import { ArrowLeft } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { IconButton, Text } from "./primitives";
 
 export interface EditorHeaderProps {
@@ -9,6 +9,8 @@ export interface EditorHeaderProps {
   payloadBytes: number;
   saveStatus?: "saved" | "saving" | "unsaved" | "error";
   onBack: () => void;
+  mode?: "edit" | "preview";
+  onToggleMode?: (nextMode: "edit" | "preview") => void;
 }
 
 export function EditorHeader({
@@ -16,7 +18,11 @@ export function EditorHeader({
   payloadBytes,
   saveStatus = "saved",
   onBack,
+  mode = "edit",
+  onToggleMode,
 }: EditorHeaderProps): React.ReactElement {
+  const { tokens } = useTheme();
+
   const statusLabel =
     saveStatus === "saving"
       ? "Saving..."
@@ -31,16 +37,22 @@ export function EditorHeader({
   const statusColor = saveStatus === "error" ? "error" : "muted";
 
   return (
-    <View className="h-[44px] flex-row items-center justify-between px-3 bg-bg-primary-alt border-b border-border-subtle">
+    <View
+      className="h-[44px] flex-row items-center justify-between px-3 border-b"
+      style={{
+        backgroundColor: tokens.color.bg["primary-alt"],
+        borderBottomColor: tokens.color.border.subtle,
+      }}
+    >
       <IconButton
         icon={
           <ArrowLeft
             size={20}
-            color={darkColorTokens.text.normal}
+            color={tokens.color.text.normal}
             weight="regular"
           />
         }
-        accessibilityLabel="Back to reading mode"
+        accessibilityLabel="Back to files"
         size="sm"
         onPress={onBack}
       />
@@ -53,6 +65,73 @@ export function EditorHeader({
       >
         {title}
       </Text>
+
+      {onToggleMode ? (
+        <View
+          className="flex-row rounded-lg p-0.5 mr-2"
+          style={{
+            backgroundColor: tokens.color.bg.secondary,
+            borderWidth: 1,
+            borderColor: tokens.color.border.subtle,
+          }}
+        >
+          <Pressable
+            onPress={() => onToggleMode("edit")}
+            className="px-2.5 py-1 rounded-md"
+            style={{
+              backgroundColor:
+                mode === "edit"
+                  ? tokens.color.interactive.accent
+                  : "transparent",
+            }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: mode === "edit" }}
+            accessibilityLabel="Edit mode"
+          >
+            <Text
+              variant="caption"
+              weight={mode === "edit" ? "bold" : "regular"}
+              style={{
+                color:
+                  mode === "edit"
+                    ? tokens.color.text["on-accent"]
+                    : tokens.color.text.muted,
+                fontSize: 11,
+              }}
+            >
+              Edit
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => onToggleMode("preview")}
+            className="px-2.5 py-1 rounded-md"
+            style={{
+              backgroundColor:
+                mode === "preview"
+                  ? tokens.color.interactive.accent
+                  : "transparent",
+            }}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: mode === "preview" }}
+            accessibilityLabel="Preview mode"
+          >
+            <Text
+              variant="caption"
+              weight={mode === "preview" ? "bold" : "regular"}
+              style={{
+                color:
+                  mode === "preview"
+                    ? tokens.color.text["on-accent"]
+                    : tokens.color.text.muted,
+                fontSize: 11,
+              }}
+            >
+              Preview
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <Text variant="caption" color={statusColor}>
         {statusLabel}
       </Text>

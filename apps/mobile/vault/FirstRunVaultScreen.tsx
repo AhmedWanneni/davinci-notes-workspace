@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, ScrollView } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { FolderPlus, FolderSimple, BookBookmark } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Text, Input, Button, Divider, Badge } from "../components/primitives";
 import { defaultVaultManager } from "./vaultManager";
 
@@ -13,6 +13,7 @@ export interface FirstRunVaultScreenProps {
 export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
   onVaultReady,
 }) => {
+  const { tokens } = useTheme();
   const [vaultName, setVaultName] = useState("Personal Vault");
   const [isCreating, setIsCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -68,13 +69,20 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
 
   return (
     <ScrollView
-      className="flex-1 bg-bg-primary"
+      className="flex-1"
+      style={{ backgroundColor: tokens.color.bg.primary }}
       contentContainerClassName="px-6 py-8"
       contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
     >
       <View className="mb-8 items-center">
-        <View className="w-14 h-14 rounded-base bg-bg-secondary border border-border-normal items-center justify-center mb-4">
-          <BookBookmark size={32} color={darkColorTokens.text.accent} />
+        <View
+          className="w-14 h-14 rounded-base border items-center justify-center mb-4"
+          style={{
+            backgroundColor: tokens.color.bg.secondary,
+            borderColor: tokens.color.border.normal,
+          }}
+        >
+          <BookBookmark size={32} color={tokens.color.interactive.accent} />
         </View>
         <Text variant="h1" color="normal" className="text-center mb-2">
           DaVinci Notes
@@ -85,7 +93,13 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
         </Text>
       </View>
 
-      <View className="bg-bg-secondary rounded-card border border-border-normal p-5 mb-6">
+      <View
+        className="rounded-card border p-5 mb-6"
+        style={{
+          backgroundColor: tokens.color.bg.secondary,
+          borderColor: tokens.color.border.normal,
+        }}
+      >
         <Text variant="h3" color="normal" className="mb-2">
           Create New Vault
         </Text>
@@ -107,9 +121,7 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
           size="md"
           onPress={handleCreateSandbox}
           disabled={isCreating}
-          icon={
-            <FolderPlus size={18} color={darkColorTokens.text["on-accent"]} />
-          }
+          icon={<FolderPlus size={18} color={tokens.color.text["on-accent"]} />}
         >
           {isCreating ? "Creating..." : "Create Vault"}
         </Button>
@@ -124,9 +136,13 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
       </View>
 
       <View
-        className={`bg-bg-secondary rounded-card border border-border-normal p-5 mb-6 ${
+        className={`rounded-card border p-5 mb-6 ${
           isExpoGo ? "opacity-75" : ""
         }`}
+        style={{
+          backgroundColor: tokens.color.bg.secondary,
+          borderColor: tokens.color.border.normal,
+        }}
       >
         <View className="flex-row items-center justify-between mb-2">
           <Text variant="h3" color={isExpoGo ? "muted" : "normal"}>
@@ -149,9 +165,7 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
             <FolderSimple
               size={18}
               color={
-                isExpoGo
-                  ? darkColorTokens.text.muted
-                  : darkColorTokens.text.normal
+                isExpoGo ? tokens.color.text.muted : tokens.color.text.normal
               }
             />
           }
@@ -161,7 +175,13 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
       </View>
 
       {errorMessage ? (
-        <View className="p-4 rounded-base bg-bg-secondary border border-border-status-error mb-4">
+        <View
+          className="p-4 rounded-base border mb-4"
+          style={{
+            backgroundColor: tokens.color.bg.secondary,
+            borderColor: tokens.color.border["status-error"],
+          }}
+        >
           <Text variant="body" color="error">
             {errorMessage}
           </Text>

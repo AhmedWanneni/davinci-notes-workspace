@@ -183,6 +183,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0016](adr/0016-commit-style-dictionary-output.md) | `.gitignore`: Style Dictionary `tokens/dist/` committed | Accepted |
 | [0163](adr/0163-public-theme-scrim-token.md) | Public `--color-bg-scrim` token for modal/dialog backdrops; no strong-border token | Accepted |
 | [0165](adr/0165-built-in-theme-loading-and-precedence.md) | Lazy built-in theme CSS, app-level restore cache, and built-in-wins ID policy | Accepted |
+| [0204](adr/0204-mobile-theme-token-surface-and-dimensions.md) | Mobile theme token surface and layout dimensions | Accepted |
 
 ## Release & Delivery
 
@@ -285,6 +286,10 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0196](adr/0196-mobile-vault-storage-and-flow-remediation.md) | Mobile vault storage and flow remediation: object-based fs seam, atomic overwrite, and UI hardening | Accepted |
 | [0197](adr/0197-mobile-note-identity-and-rename-safety.md) | Stable note identity via NoteStore, single-pass atomic write, and safe collision-free rename | Accepted |
 | [0198](adr/0198-syncthing-desktop-mobile-sync-verification-and-conflict-isolation.md) | Syncthing desktop-mobile sync verification, non-destructive conflict routing, and transfer isolation | Accepted |
+| [0204](adr/0204-mobile-theme-token-surface-and-dimensions.md) | Mobile theme token surface and layout dimensions contract | Accepted |
+| [0205](adr/0205-mobile-obsidian-parity-navigation-shell.md) | Mobile Obsidian-parity navigation shell, slide-out drawer, and leaf switcher | Accepted |
+| [0206](adr/0206-mobile-dynamic-theme-lifecycle-and-webview-bridge.md) | Mobile dynamic theme lifecycle, React context provider, and webview postMessage bridge | Accepted |
+| [0207](adr/0207-mobile-information-architecture-and-navigation.md) | Mobile information architecture, minimalist navigation, and universal sheet pattern | Proposed |
 
 ## Google Integrations
 
