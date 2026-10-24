@@ -1,0 +1,10 @@
+export { createDesktopPlatformAdapters } from "./createDesktopPlatformAdapters";
+export { TauriDialogAdapter } from "./TauriDialogAdapter";
+export { TauriExternalUrlAdapter } from "./TauriExternalUrlAdapter";
+export { TauriFileSystemAdapter } from "./TauriFileSystemAdapter";
+export { TauriNotificationAdapter } from "./TauriNotificationAdapter";
+export { TauriSecretStoreAdapter } from "./TauriSecretStoreAdapter";
+export { TauriSqliteAdapter } from "./TauriSqliteAdapter";
+export { TauriVaultRegistryAdapter } from "./TauriVaultRegistryAdapter";
+export { TauriWatcherAdapter } from "./TauriWatcherAdapter";
+export { TauriWindowControlsAdapter } from "./TauriWindowControlsAdapter";
