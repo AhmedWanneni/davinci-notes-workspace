@@ -1,9 +1,13 @@
 import type { KanbanBoard, KanbanLane, KanbanCard } from "./kanbanTypes";
 
-let idCounter = 0;
-function generateId(prefix: string): string {
-  idCounter += 1;
-  return `${prefix}-${Date.now()}-${idCounter}`;
+function makeLaneId(laneIndex: number, title: string): string {
+  const slug = title.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 24);
+  return `lane-${laneIndex}-${slug || "lane"}`;
+}
+
+function makeCardId(laneIndex: number, cardIndex: number, title: string): string {
+  const slug = title.toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 24);
+  return `card-${laneIndex}-${cardIndex}-${slug || "card"}`;
 }
 
 const CARD_REGEX = /^- \[([- xX])\] ?(.*)$/;
@@ -107,7 +111,7 @@ export function parseBoard(text: string): KanbanBoard {
           }
 
           cards.push({
-            id: generateId("card"),
+            id: makeCardId(lanes.length, cards.length, cardTitle),
             title: cardTitle,
             body: bodyLines.join(lineEnding),
             completed,
@@ -127,7 +131,7 @@ export function parseBoard(text: string): KanbanBoard {
       }
 
       lanes.push({
-        id: generateId("lane"),
+        id: makeLaneId(lanes.length, title),
         title,
         headingLine,
         preLines,

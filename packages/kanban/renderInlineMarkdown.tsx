@@ -6,7 +6,7 @@ export interface InlineRenderOptions {
 }
 
 const INLINE_TOKEN_REGEX =
-  /(\[\[(?<wikiTarget>[^|\]]+)(?:\|(?<wikiAlias>[^\]]+))?\]\]|\[(?<mdText>[^\]]+)\]\((?<mdUrl>[^)]+)\)|(?<=^|\s)(?<tag>#[a-zA-Z0-9_\-\/]+)|\*\*(?<bold>[^*]+)\*\*|(?<!\*)\*(?<italic>[^*]+)\*(?!\*)|~~(?<strike>[^~]+)~~|`(?<code>[^`]+)`|(?<dateToken>@\{[^}]+\}))/g;
+  /(\[\[(?<wikiTarget>[^|\]]+)(?:\|(?<wikiAlias>[^\]]+))?\]\]|\[(?<mdText>[^\]]+)\]\((?<mdUrl>[^)]+)\)|(?<=^|\s)(?<tag>#[a-zA-Z0-9_\-/]+)|\*\*(?<bold>[^*]+)\*\*|(?<!\*)\*(?<italic>[^*]+)\*(?!\*)|~~(?<strike>[^~]+)~~|`(?<code>[^`]+)`|(?<dateToken>@\{[^}]+\}))/g;
 
 export function renderInlineMarkdown(
   text: string,
