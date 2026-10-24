@@ -123,42 +123,6 @@ export function AppTabs({
               }}
               title={path}
             >
-              {isActive && (
-                <>
-                  <svg
-                    className="app-tabs__tab-curve app-tabs__tab-curve--left"
-                    viewBox="0 0 6 6"
-                    width="6"
-                    height="6"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M 6,0 A 6,6 0 0,0 0,6 L 6,6 Z"
-                      className="app-tabs__tab-curve-fill"
-                    />
-                    <path
-                      d="M 6,0 A 6,6 0 0,0 0,6"
-                      className="app-tabs__tab-curve-stroke"
-                    />
-                  </svg>
-                  <svg
-                    className="app-tabs__tab-curve app-tabs__tab-curve--right"
-                    viewBox="0 0 6 6"
-                    width="6"
-                    height="6"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M 0,0 A 6,6 0 0,1 6,6 L 0,6 Z"
-                      className="app-tabs__tab-curve-fill"
-                    />
-                    <path
-                      d="M 0,0 A 6,6 0 0,1 6,6"
-                      className="app-tabs__tab-curve-stroke"
-                    />
-                  </svg>
-                </>
-              )}
               <span className="app-tabs__tab-icon" aria-hidden="true">
                 {isCanvas ? (
                   <FrameCorners size={13} weight="regular" />

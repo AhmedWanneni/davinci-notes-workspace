@@ -11,7 +11,6 @@ import { loadEditorFont } from "./fonts/editorFontRegistry";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTabs } from "./components/AppTabs";
 import { EditorArea } from "./components/EditorArea";
-import { IconRail } from "./components/IconRail";
 import { RightSidebar } from "./components/RightSidebar";
 import { PluginViewLeaf } from "./components/PluginViewLeaf";
 import { StatusBar } from "./components/StatusBar";
@@ -612,23 +611,7 @@ export function App() {
       data-right-collapsed={!isRightSidebarOpen || undefined}
     >
       <div className="app-shell__body">
-        <IconRail
-          isLeftSidebarOpen={isLeftSidebarOpen}
-          isGlobalGraphOpen={isGlobalGraphOpen}
-          isCalendarOpen={isCalendarOpen}
-          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
-          onOpenSearch={() => {
-            setSearchInitialQuery("");
-            setIsSearchOpen(true);
-          }}
-          onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
-          onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
-          onOpenSettings={handleOpenSettings}
-          onCloseVault={() => setVaultPath(null)}
-          onDailyNotes={handleDailyNotes}
-          onCreateCanvas={handleCreateCanvas}
-          onOpenReminders={() => setIsRemindersOpen(true)}
-        />
+     
 
         <AppSidebar
           vaultName={vaultName}
@@ -651,6 +634,13 @@ export function App() {
             setIsSearchOpen(true);
           }}
           onOpenTags={() => setIsTagsOpen(true)}
+          isGlobalGraphOpen={isGlobalGraphOpen}
+          isCalendarOpen={isCalendarOpen}
+          onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
+          onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
+          onCloseVault={() => setVaultPath(null)}
+          onDailyNotes={handleDailyNotes}
+          onOpenReminders={() => setIsRemindersOpen(true)}
           onCreateNote={handleCreateNote}
           onCreateFolder={handleCreateFolder}
           onCreateCanvas={handleCreateCanvas}

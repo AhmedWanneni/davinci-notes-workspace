@@ -54,12 +54,13 @@ describe("AppSidebar", () => {
     );
 
     expect(screen.getByLabelText("File Explorer")).toBeDefined();
-    expect(screen.getByLabelText("Files")).toBeDefined();
-    expect(screen.getByLabelText("Search")).toBeDefined();
+    expect(screen.getAllByLabelText("Files").length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText("Search").length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Bookmarks")).toBeDefined();
     expect(screen.getByRole("button", { name: /vault-1/i })).toBeDefined();
-    expect(screen.getByLabelText("Settings")).toBeDefined();
+    expect(screen.getAllByLabelText("Settings").length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Help")).toBeDefined();
+    expect(screen.getByLabelText("Primary navigation")).toBeDefined();
   });
 
   it("handles collapsed state and shows/hides resizer", () => {

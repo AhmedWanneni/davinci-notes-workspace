@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { AppSidebarHeader } from "./AppSidebarHeader";
 import { FileTree } from "../FileTree";
+import { IconRail } from "../IconRail";
 import { VaultSwitcher } from "../VaultSwitcher";
 import { useSidebarResize } from "./useSidebarResize";
 
@@ -20,6 +21,13 @@ export interface AppSidebarProps {
   onToggleLeftSidebar?: () => void;
   onOpenSearch?: () => void;
   onOpenTags?: () => void;
+  isGlobalGraphOpen?: boolean;
+  isCalendarOpen?: boolean;
+  onOpenGlobalGraph?: () => void;
+  onOpenCalendar?: () => void;
+  onCloseVault?: () => void;
+  onDailyNotes?: () => void;
+  onOpenReminders?: () => void;
   onCreateNote: (parentFolder?: string) => void | Promise<unknown>;
   onCreateFolder: (parentFolder?: string) => Promise<string | null>;
   onCreateCanvas?: () => void;
@@ -61,8 +69,16 @@ export function AppSidebar({
   onToggleLeftSidebar,
   onOpenSearch,
   onOpenTags,
+  isGlobalGraphOpen,
+  isCalendarOpen,
+  onOpenGlobalGraph,
+  onOpenCalendar,
+  onCloseVault,
+  onDailyNotes,
+  onOpenReminders,
   onCreateNote,
   onCreateFolder,
+  onCreateCanvas,
   onNoteClick,
   onRenameNote,
   onRenameFolder,
@@ -127,6 +143,20 @@ export function AppSidebar({
       />
 
       <div className="app-sidebar__content">
+        <IconRail
+          isLeftSidebarOpen={!isCollapsed}
+          isGlobalGraphOpen={isGlobalGraphOpen}
+          isCalendarOpen={isCalendarOpen}
+          onToggleLeftSidebar={onToggleLeftSidebar ?? (() => {})}
+          onOpenSearch={onOpenSearch ?? (() => {})}
+          onOpenGlobalGraph={onOpenGlobalGraph ?? (() => {})}
+          onOpenCalendar={onOpenCalendar}
+          onOpenSettings={onOpenSettings ?? (() => {})}
+          onCloseVault={onCloseVault ?? (() => {})}
+          onDailyNotes={onDailyNotes}
+          onCreateCanvas={onCreateCanvas}
+          onOpenReminders={onOpenReminders}
+        />
         {navigation}
         <FileTree
           filePaths={allNotePaths}
