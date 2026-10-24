@@ -7,7 +7,10 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 import { WindowControls } from "../WindowControls";
 import { TabListDropdown } from "./TabListDropdown";
 
@@ -204,10 +207,8 @@ export function AppTabs({
           className="app-tabs__drag-region"
           data-tauri-drag-region
           onDoubleClick={() => {
-            try {
-              void getCurrentWindow().toggleMaximize();
-            } catch {
-              // Non-Tauri browser environment
+            if (hasPlatformAdapters()) {
+              void getPlatformAdapters().windowControls.maximize();
             }
           }}
         />

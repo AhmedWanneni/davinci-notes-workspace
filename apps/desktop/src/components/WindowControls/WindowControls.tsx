@@ -1,11 +1,32 @@
 import { Minus, Square, X } from "@phosphor-icons/react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 
 interface WindowControlsProps {
   variant?: "default" | "mac";
 }
 
 export function WindowControls({ variant = "default" }: WindowControlsProps) {
+  const handleClose = () => {
+    if (hasPlatformAdapters()) {
+      void getPlatformAdapters().windowControls.close();
+    }
+  };
+
+  const handleMinimize = () => {
+    if (hasPlatformAdapters()) {
+      void getPlatformAdapters().windowControls.minimize();
+    }
+  };
+
+  const handleMaximize = () => {
+    if (hasPlatformAdapters()) {
+      void getPlatformAdapters().windowControls.maximize();
+    }
+  };
+
   return (
     <div
       className={`window-controls window-controls--${variant}`}
@@ -14,7 +35,7 @@ export function WindowControls({ variant = "default" }: WindowControlsProps) {
       <button
         type="button"
         className="window-controls__button window-controls__button--close"
-        onClick={() => void getCurrentWindow().close()}
+        onClick={handleClose}
         aria-label="Close window"
       >
         <X size={14} weight="bold" />
@@ -22,7 +43,7 @@ export function WindowControls({ variant = "default" }: WindowControlsProps) {
       <button
         type="button"
         className="window-controls__button"
-        onClick={() => void getCurrentWindow().minimize()}
+        onClick={handleMinimize}
         aria-label="Minimize window"
       >
         <Minus size={14} weight="bold" />
@@ -30,7 +51,7 @@ export function WindowControls({ variant = "default" }: WindowControlsProps) {
       <button
         type="button"
         className="window-controls__button"
-        onClick={() => void getCurrentWindow().toggleMaximize()}
+        onClick={handleMaximize}
         aria-label="Maximize or restore window"
       >
         <Square size={12} weight="regular" />

@@ -1,4 +1,7 @@
-import { invoke } from "@tauri-apps/api/core";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 
 export interface CalendarOAuthToken {
   accessToken: string;
@@ -17,7 +20,9 @@ export interface CalendarTokenStore {
 export function createCalendarTokenStore(): CalendarTokenStore {
   return {
     load: async () => {
-      const raw = await invoke<string | null>("load_calendar_token");
+      if (!hasPlatformAdapters()) return null;
+      const raw =
+        await getPlatformAdapters().secrets.getSecret("google_calendar");
       if (!raw) return null;
       try {
         return JSON.parse(raw) as CalendarOAuthToken;
@@ -26,10 +31,15 @@ export function createCalendarTokenStore(): CalendarTokenStore {
       }
     },
     save: async (token: CalendarOAuthToken) => {
-      await invoke("save_calendar_token", { token: JSON.stringify(token) });
+      if (!hasPlatformAdapters()) return;
+      await getPlatformAdapters().secrets.setSecret(
+        "google_calendar",
+        JSON.stringify(token),
+      );
     },
     clear: async () => {
-      await invoke("clear_calendar_token");
+      if (!hasPlatformAdapters()) return;
+      await getPlatformAdapters().secrets.clearSecret("google_calendar");
     },
   };
 }

@@ -1,16 +1,35 @@
-import { exists, mkdir, writeFile } from "@tauri-apps/plugin-fs";
 import {
   writeAttachment,
   type AttachmentData,
+  type AttachmentFileSystem,
 } from "@app/attachments";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 
-const tauriFileSystem = {
-  exists,
-  mkdir: (path: string) => mkdir(path, { recursive: true }),
-  writeFile,
+const platformFileSystem: AttachmentFileSystem = {
+  exists: (path: string) => {
+    if (hasPlatformAdapters()) {
+      return getPlatformAdapters().fs.exists(path);
+    }
+    return Promise.resolve(false);
+  },
+  mkdir: (path: string) => {
+    if (hasPlatformAdapters()) {
+      return getPlatformAdapters().fs.mkdir(path);
+    }
+    return Promise.resolve();
+  },
+  writeFile: (path: string, data: Uint8Array) => {
+    if (hasPlatformAdapters()) {
+      return getPlatformAdapters().fs.writeFile(path, data);
+    }
+    return Promise.resolve();
+  },
 };
 
-/** Desktop native-fs entry point; targetFolder must come from Phase 1's resolver. */
+/** Platform-agnostic attachment writer entry point; targetFolder must come from Phase 1's resolver. */
 export function writeAttachmentToVault(
   vaultPath: string,
   targetFolder: string,
@@ -18,7 +37,7 @@ export function writeAttachmentToVault(
   data: AttachmentData,
 ): Promise<string> {
   return writeAttachment(
-    tauriFileSystem,
+    platformFileSystem,
     vaultPath,
     targetFolder,
     desiredFilename,

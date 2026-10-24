@@ -4,6 +4,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+**Web (Browser) Version Complete — Phases 1–7 Fully Shipped (`web-version-feature-plan.md`, `@app/platform-adapters`, `apps/web/`, ADR-0204, ADR-0205, ADR-0206)**
+- **Feature Plan (`web-version-feature-plan.md`)**:
+  - Evaluated Approach A (File System Access API), Approach B (OPFS + Google Drive Sync), and Approach C (Self-Hosted Server Mode), recommending a Dual-Engine Web Architecture (Hybrid A + B).
+  - Audited all 49 source files and 18 test files in `apps/desktop/src/` (0 in `packages/*`) and defined the 7-phase build plan, performance budgets (`<= 210 KB` gzip initial JS), security/CSP rules, and multi-tab SQLite concurrency strategy.
+- **Phase 1: Platform Adapter Package & Desktop Extraction (`packages/platform-adapters`, `apps/desktop/src/adapters/`, ADR-0204)**:
+  - Created `@app/platform-adapters` with contracts: `FileSystemAdapter`, `WatcherAdapter`, `SqliteAdapter`, `DialogAdapter`, `SecretStoreAdapter`, `WindowControlsAdapter`, `ExternalUrlAdapter`, `NotificationAdapter`, `VaultRegistryAdapter`, and `PlatformContext`.
+  - Implemented `Tauri*Adapter` classes in `apps/desktop/src/adapters/` and decoupled desktop UI/feature workflows (`WindowControls`, `useWindowFullscreen`, `AppSidebarHeader`, `AppTabs`, `CalendarLeaf`, `confirmTreeDelete`, `runTreeRename`, `insertLocalImage`, `writeAttachment`, `useEditorMediaHandlers`, `desktopAISecretStore`, `calendarTokenStore`, `pickVaultFolder`, `desktopGitPatStore`, `installPluginArchive`, `installThemeArchive`, `GitRemoteSetupPanel`).
+  - Verified all 138 desktop test files (545 tests) pass with 0 lint/typecheck errors.
+- **Phase 2: Browser File System & Storage Adapters (`packages/platform-adapters/src/web/`, ADR-0205)**:
+  - Implemented `OpfsFileSystemAdapter`, `FileSystemAccessAdapter` (with permission state check & re-prompting), `WebWatcherAdapter` (400ms debounce matching Rust watcher), `WebDialogAdapter`, `WebSecretStoreAdapter`, `WebVaultRegistryAdapter`, `WebWindowControlsAdapter`, `WebExternalUrlAdapter`, `WebNotificationAdapter`, and `validateVaultPath` (`normalizeVaultPath`).
+  - Verified via 6 adversarial tests in `webAdapters.test.ts` (nested folder + 500 KB file read/write, path traversal guard, 50-note folder rename, 10-event watcher debounce, FSA permission re-prompt, URL protocol safety).
+- **Phase 3: Browser SQLite Indexer & Search Engine (`WebSqliteAdapter.ts`, `tabLockCoordinator.ts`, `packages/indexer/migrations.ts`, ADR-0205)**:
+  - Exported shared `VAULT_INDEX_MIGRATIONS` (v1–v8) from `@app/indexer`.
+  - Implemented `withWebDbLock` combining an in-tab FIFO promise queue with `navigator.locks` multi-tab exclusive locking (`davinci-vault-db-lock:<vaultId>`).
+  - Implemented `WebSqliteAdapter` supporting relational CRUD, transaction snapshot rollback, re-entrant `inTransaction` lock safety, and FTS5 BM25 ranking (`1.0` title, `0.75` tags, `0.5` body).
+  - Verified via 4 adversarial tests in `WebSqliteAdapter.test.ts` (migrations v1–v8 catalog check, 25 concurrent reads/writes serialized in order, transaction rollback on mid-flight error, FTS5 BM25 ordering).
+- **Phase 4 & Phase 7: Web Application Shell, PWA, Degradation Notices & Vault Archive (`apps/web/`)**:
+  - Created `apps/web/` (`@app/web`) with Vite config, strict CSP (`index.html`), PWA `manifest.webmanifest`, offline cache-first Service Worker (`sw.js`), `VaultChooserModal`, `FeatureNoticeBanner`, and `vaultArchive` lossless export/import.
+  - Production build verified via `pnpm --filter @app/web build`: initial JS gzipped is **98.88 KB** (`38.59 KB` app + `60.29 KB` vendor-react), well under the `210 KB` gzipped budget.
+- **Phase 5: Cloud Vault Sync Integration (`packages/sync-client/webManifestSource.ts`)**:
+  - Implemented `computeHexDigest`, `createWebManifestSource` (incremental mtime/size cache + Web Crypto `SHA-256`), and `createWebPkceProvider` with 0 KB external dependency overhead.
+  - Verified via 5 adversarial tests in `webSyncIntegration.test.ts` (digest parity on empty/unicode/1MB binary, incremental skip, 3-way `node-diff3` clean merge on Line 2 vs Line 18, hard conflict copy generation on Line 5, PKCE S256 challenge).
+- **Phase 6: Browser Plugin Host & Sandboxing (`packages/plugin-runtime/IframePluginHost.ts`, ADR-0206)**:
+  - Implemented `IframePluginHost` enforcing `sandbox="allow-scripts"` (opaque `null` origin without `allow-same-origin`), unconditional `shell.*` blocking, manifest-gated `network.fetch` with protocol validation, and `editor.*` / declarative view mediation.
+  - Verified via 4 adversarial tests in `IframePluginHost.test.ts`.
 **DaVinci Notes CLI / TUI ("dn") — Dynamic Vim Cursor Styles (Block in Normal, Beam/Bar in Insert, Underline in Command) Complete**
 - **Dynamic Terminal Cursor Styling (`terminal_guard.rs`, `tui_app.rs`)**:
   - Integrated DECSCUSR cursor styling via `crossterm::cursor::SetCursorStyle`:
@@ -2730,6 +2755,10 @@ The subsystem has provider transport, embeddings, vector storage, semantic searc
 
 ## Next Up (in order)
 
+1. **Web Version Phase 2**: Browser File System & Storage Adapters (`OpfsFileSystemAdapter`, `FileSystemAccessAdapter`, `WebWatcherAdapter`, `WebDialogAdapter`, `WebVaultRegistry`) in `packages/platform-adapters/src/web/` (`web-version-feature-plan.md`).
+2. **Google Calendar Phase 4**: UI Shell Integration — Left rail icon in `IconRail`, `CalendarLeaf` workspace tab in `EditorArea`, and meeting card list UI (ADR-0202).
+2. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
+3. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 1. **Editor styling tokens Phase 3**: Consume the approved `--editor-obsidian-*` tokens without redefining the legacy editor token set.
 2. **Tray Phase 3**: Dynamic menu items (recent notes list, active note name, vault status).
 4. **Git Versioning Phase 2**: add local history/diff UI and safe restore against the real local Git log; no remotes.

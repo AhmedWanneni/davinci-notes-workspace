@@ -1,6 +1,6 @@
-import { mkdir, remove, writeFile } from "@tauri-apps/plugin-fs";
 import { validateThemeManifest, type ThemeManifest } from "@app/theme-api";
 import { checkAppCompatibility } from "@app/plugin-api";
+import { getPlatformAdapters } from "@app/platform-adapters";
 import type { ResolvedPluginRelease } from "../plugins/pluginRegistry";
 import { unzipPluginArchive } from "../plugins/unzipPlugin";
 
@@ -51,30 +51,31 @@ export async function installThemeArchive(
     throw new Error(compatibility.reason ?? "Theme is incompatible");
   if (!entries.some((entry) => entry.path === manifest.styles))
     throw new Error(`Theme archive is missing ${manifest.styles}`);
+  const { fs } = getPlatformAdapters();
   const root = `${vaultPath}/.davinci/themes`;
   const target = `${root}/${manifest.id}`;
   const staging = `${root}/.install-${manifest.id}`;
-  await remove(staging, { recursive: true }).catch(() => undefined);
-  await mkdir(staging, { recursive: true });
+  await fs.remove(staging).catch(() => undefined);
+  await fs.mkdir(staging);
   try {
     for (const entry of entries) {
       if (entry.path.includes("..") || entry.path.startsWith("/"))
         throw new Error(`Unsafe archive path: ${entry.path}`);
       const destination = `${staging}/${entry.path}`;
       const parent = destination.slice(0, destination.lastIndexOf("/"));
-      if (parent) await mkdir(parent, { recursive: true });
-      await writeFile(destination, entry.data);
+      if (parent) await fs.mkdir(parent);
+      await fs.writeFile(destination, entry.data);
     }
-    await remove(target, { recursive: true }).catch(() => undefined);
-    await mkdir(target, { recursive: true });
+    await fs.remove(target).catch(() => undefined);
+    await fs.mkdir(target);
     for (const entry of entries) {
       const destination = `${target}/${entry.path}`;
       const parent = destination.slice(0, destination.lastIndexOf("/"));
-      if (parent) await mkdir(parent, { recursive: true });
-      await writeFile(destination, entry.data);
+      if (parent) await fs.mkdir(parent);
+      await fs.writeFile(destination, entry.data);
     }
   } finally {
-    await remove(staging, { recursive: true }).catch(() => undefined);
+    await fs.remove(staging).catch(() => undefined);
   }
   return manifest;
 }
@@ -84,5 +85,7 @@ export async function uninstallTheme(
   themeId: string,
 ): Promise<void> {
   safeThemeId(themeId);
-  await remove(`${vaultPath}/.davinci/themes/${themeId}`, { recursive: true });
+  await getPlatformAdapters().fs.remove(
+    `${vaultPath}/.davinci/themes/${themeId}`,
+  );
 }

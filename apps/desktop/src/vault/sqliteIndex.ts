@@ -1,4 +1,6 @@
 import type { Note } from "@app/core-types";
+import { VAULT_INDEX_MIGRATIONS } from "@app/indexer";
+import { getPlatformAdapters, isWebPlatformMode } from "@app/platform-adapters";
 import Database from "@tauri-apps/plugin-sql";
 import { clearFtsRows, removeFtsRows, replaceFtsRows } from "./sqliteFtsIndex";
 import {
@@ -49,6 +51,18 @@ export async function withDbTransaction<T>(
 }
 
 export async function getVaultIndexDb(): Promise<Database> {
+  if (isWebPlatformMode()) {
+    if (!dbPromise) {
+      dbPromise = (async () => {
+        const sqlite = getPlatformAdapters().sqlite;
+        for (const migration of VAULT_INDEX_MIGRATIONS) {
+          await sqlite.execute(migration.sql);
+        }
+        return sqlite as unknown as Database;
+      })();
+    }
+    return dbPromise;
+  }
   if (!dbPromise) {
     dbPromise = Database.load(VAULT_INDEX_DB).then(async (db) => {
       await withDbLock(async () => {

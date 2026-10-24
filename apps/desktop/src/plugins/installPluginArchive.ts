@@ -1,9 +1,9 @@
-import { mkdir, remove, writeFile } from "@tauri-apps/plugin-fs";
 import {
   checkAppCompatibility,
   validatePluginManifest,
   type PluginManifest,
 } from "@app/plugin-api";
+import { getPlatformAdapters } from "@app/platform-adapters";
 import type { ResolvedPluginRelease } from "./pluginRegistry";
 import { unzipPluginArchive } from "./unzipPlugin";
 
@@ -67,30 +67,31 @@ async function writePluginFiles(
   entries: Awaited<ReturnType<typeof unzipPluginArchive>>,
   manifest: PluginManifest,
 ): Promise<PluginManifest> {
+  const { fs } = getPlatformAdapters();
   const root = `${vaultPath}/.davinci/plugins`;
   const target = `${root}/${manifest.id}`;
   const staging = `${root}/.install-${manifest.id}`;
-  await remove(staging, { recursive: true }).catch(() => undefined);
-  await mkdir(staging, { recursive: true });
+  await fs.remove(staging).catch(() => undefined);
+  await fs.mkdir(staging);
   try {
     for (const entry of entries) {
       if (entry.path.includes("..") || entry.path.startsWith("/"))
         throw new Error(`Unsafe archive path: ${entry.path}`);
       const destination = `${staging}/${entry.path}`;
       const parent = destination.slice(0, destination.lastIndexOf("/"));
-      if (parent) await mkdir(parent, { recursive: true });
-      await writeFile(destination, entry.data);
+      if (parent) await fs.mkdir(parent);
+      await fs.writeFile(destination, entry.data);
     }
-    await remove(target, { recursive: true }).catch(() => undefined);
-    await mkdir(target, { recursive: true });
+    await fs.remove(target).catch(() => undefined);
+    await fs.mkdir(target);
     for (const entry of entries) {
       const destination = `${target}/${entry.path}`;
       const parent = destination.slice(0, destination.lastIndexOf("/"));
-      if (parent) await mkdir(parent, { recursive: true });
-      await writeFile(destination, entry.data);
+      if (parent) await fs.mkdir(parent);
+      await fs.writeFile(destination, entry.data);
     }
   } finally {
-    await remove(staging, { recursive: true }).catch(() => undefined);
+    await fs.remove(staging).catch(() => undefined);
   }
   return manifest;
 }
@@ -100,7 +101,7 @@ export async function uninstallPlugin(
   pluginId: string,
 ): Promise<void> {
   safePluginId(pluginId);
-  await remove(`${vaultPath}/.davinci/plugins/${pluginId}`, {
-    recursive: true,
-  });
+  await getPlatformAdapters().fs.remove(
+    `${vaultPath}/.davinci/plugins/${pluginId}`,
+  );
 }

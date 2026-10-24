@@ -21,3 +21,15 @@ export function restoreLocalGitVersion(
 ): Promise<string> {
   return invoke("restore_local_git_version", { path, revision });
 }
+
+export interface GitRemoteValidation {
+  remoteState: "empty" | "nonempty";
+}
+
+export function validateGitRemote(params: {
+  remoteUrl: string;
+  token: string;
+  username: string | null;
+}): Promise<GitRemoteValidation> {
+  return invoke<GitRemoteValidation>("validate_git_remote", params);
+}

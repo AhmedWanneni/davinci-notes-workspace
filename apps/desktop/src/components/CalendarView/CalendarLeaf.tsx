@@ -8,7 +8,10 @@ import {
   X,
   WarningCircle,
 } from "@phosphor-icons/react";
-import { invoke } from "@tauri-apps/api/core";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 import { getEventsFromDb } from "../../calendar/sqliteCalendarStore";
 import { createOrOpenMeetingNote } from "../../calendar/createMeetingNote";
 import { DayAgendaView } from "./DayAgendaView";
@@ -29,7 +32,9 @@ export function CalendarLeaf({
   onSync,
   eventsOverride,
 }: CalendarLeafProps) {
-  const [events, setEvents] = useState<NormalizedCalendarEvent[]>(eventsOverride ?? []);
+  const [events, setEvents] = useState<NormalizedCalendarEvent[]>(
+    eventsOverride ?? [],
+  );
   const [isLoading, setIsLoading] = useState(!eventsOverride);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +74,11 @@ export function CalendarLeaf({
   };
 
   const handleJoinMeet = (url: string) => {
-    void invoke("open_external_url", { url }).catch((err) => {
+    const openPromise = hasPlatformAdapters()
+      ? getPlatformAdapters().externalUrl.openUrl(url)
+      : Promise.resolve(window.open(url, "_blank", "noopener,noreferrer"));
+
+    void openPromise.catch((err) => {
       console.error("Failed to open meeting url:", err);
       setError(err instanceof Error ? err.message : String(err));
     });
@@ -107,7 +116,12 @@ export function CalendarLeaf({
             <CalendarCheck size={20} weight="regular" />
           </div>
           <div>
-            <Typography variant="h2" size="sm" weight="semibold" className={styles["calendar-leaf__heading"]}>
+            <Typography
+              variant="h2"
+              size="sm"
+              weight="semibold"
+              className={styles["calendar-leaf__heading"]}
+            >
               Calendar & Meetings
             </Typography>
             <Typography variant="text" size="xs" color="muted">
@@ -158,7 +172,10 @@ export function CalendarLeaf({
       </header>
 
       {error && (
-        <div className={styles["calendar-leaf__error"]} data-testid="calendar-leaf-error">
+        <div
+          className={styles["calendar-leaf__error"]}
+          data-testid="calendar-leaf-error"
+        >
           <WarningCircle size={16} weight="fill" />
           <span>{error}</span>
         </div>
@@ -166,7 +183,10 @@ export function CalendarLeaf({
 
       <main className={styles["calendar-leaf__body"]}>
         {isLoading ? (
-          <div className={styles["agenda-empty"]} data-testid="calendar-loading">
+          <div
+            className={styles["agenda-empty"]}
+            data-testid="calendar-loading"
+          >
             <Typography variant="text" size="sm" color="muted">
               Loading calendar events...
             </Typography>
