@@ -348,4 +348,9 @@ the list.
 | [0204](adr/0204-davinci-cli-architecture-and-quick-capture.md) | DaVinci Notes CLI architecture: standalone Rust binary (`apps/cli`), zero-SQLite v1, 5-tier vault discovery, and atomic quick capture | Accepted |
 | [0205](adr/0205-external-editor-resolution-and-handoff.md) | External editor resolution chain (flag -> config -> $VISUAL -> $EDITOR -> nvim/vim/vi), shell-words parsing, terminal handoff, and file refresh | Accepted |
 | [0206](adr/0206-in-process-vim-mode-evaluation.md) | In-process Vim mode evaluation: retention of external handoff, rejection of edtui/tui-textarea, and feature-gating future embedded Neovim | Proposed |
->>>>>>> main
+
+## Kanban
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0208](adr/0208-obsidian-kanban-format-and-lossless-writeback.md) | Obsidian Kanban format compatibility, line-preserving round-trip, and minimal-diff write-back | Accepted |
