@@ -6,6 +6,8 @@ import {
   restoreCachedBuiltinTheme,
   applyAccentColor,
   loadSavedAccentColor,
+  applyCursorColor,
+  loadSavedCursorColor,
   type ThemeDiscoveryError,
   type ThemeRecord,
 } from "../themes";
@@ -38,6 +40,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
     );
     await manager.initialize();
     applyAccentColor(loadSavedAccentColor());
+    applyCursorColor(loadSavedCursorColor());
     set({
       themeManager: manager,
       themes: manager.getThemes(),
@@ -48,8 +51,10 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   activateTheme: async (themeId) => {
     await get().themeManager?.activateTheme(themeId);
     applyAccentColor(loadSavedAccentColor());
+    applyCursorColor(loadSavedCursorColor());
   },
 }));
 
 restoreCachedBuiltinTheme();
 applyAccentColor(loadSavedAccentColor());
+applyCursorColor(loadSavedCursorColor());

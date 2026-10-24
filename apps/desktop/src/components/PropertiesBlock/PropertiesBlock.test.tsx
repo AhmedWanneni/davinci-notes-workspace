@@ -38,4 +38,15 @@ describe("PropertiesBlock", () => {
     const html = renderToString(<PropertiesBlock frontmatter={{}} />);
     expect(html).toBe("");
   });
+
+  it("filters out cover and banner properties", () => {
+    const frontmatter = {
+      cover: "https://example.com/cover.jpg",
+      cover_y: 50,
+      banner: "https://example.com/banner.jpg",
+      icon: "📚",
+    };
+    const html = renderToString(<PropertiesBlock frontmatter={frontmatter} />);
+    expect(html).toBe("");
+  });
 });

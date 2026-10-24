@@ -117,12 +117,24 @@ function renderPropertyValue(
   return <span className="properties-block__text">{String(value)}</span>;
 }
 
+const HIDDEN_FRONTMATTER_KEYS = new Set([
+  "cover",
+  "banner",
+  "cover_y",
+  "banner_y",
+  "coverY",
+  "bannerY",
+  "icon",
+]);
+
 export function PropertiesBlock({
   frontmatter,
   onLinkClick,
 }: PropertiesBlockProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  const entries = Object.entries(frontmatter);
+  const entries = Object.entries(frontmatter).filter(
+    ([key]) => !HIDDEN_FRONTMATTER_KEYS.has(key),
+  );
   const propertyCount = entries.length;
 
   if (propertyCount === 0) {

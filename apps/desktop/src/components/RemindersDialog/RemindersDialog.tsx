@@ -6,6 +6,7 @@ import {
   WarningCircle,
   CalendarCheck,
   CalendarPlus,
+  Plus,
   X,
 } from "@phosphor-icons/react";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
@@ -22,6 +23,7 @@ import {
 } from "../../vault/reminderSnoozeActions";
 import { markReminderDoneInVault } from "../../vault/reminderTaskActions";
 import { RemindersList } from "./RemindersList";
+import { AddReminderForm } from "./AddReminderForm";
 import styles from "./RemindersDialog.module.scss";
 
 export interface RemindersDialogProps {
@@ -49,6 +51,7 @@ export function RemindersDialog({
   onSelectNote,
 }: RemindersDialogProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("today");
+  const [isAdding, setIsAdding] = useState(false);
   const [data, setData] = useState<RemindersViewResult>({
     missed: [],
     today: [],
@@ -57,6 +60,7 @@ export function RemindersDialog({
   });
   const [loading, setLoading] = useState(false);
 
+  const activePath = useWorkspaceStore((state) => state.activePath);
   const vaultUpdateCounter = useWorkspaceStore(
     (state) => state.vaultUpdateCounter,
   );
@@ -142,15 +146,37 @@ export function RemindersDialog({
             <h2 className={styles["header-title"]}>Reminders</h2>
             <span className={styles["header-count"]}>{data.all.length}</span>
           </div>
-          <button
-            type="button"
-            className={styles["header-close"]}
-            onClick={() => onOpenChange(false)}
-            aria-label="Close reminders dialog"
-          >
-            <X size={14} />
-          </button>
+          <div className={styles["header-right"]}>
+            <button
+              type="button"
+              className={styles["header-add-btn"]}
+              onClick={() => setIsAdding((prev) => !prev)}
+              aria-label="Add a reminder"
+            >
+              <Plus size={12} weight="bold" />
+              <span>Add a reminder</span>
+            </button>
+            <button
+              type="button"
+              className={styles["header-close"]}
+              onClick={() => onOpenChange(false)}
+              aria-label="Close reminders dialog"
+            >
+              <X size={14} />
+            </button>
+          </div>
         </div>
+
+        {isAdding && (
+          <AddReminderForm
+            onAdded={() => {
+              setIsAdding(false);
+              void loadReminders();
+            }}
+            onCancel={() => setIsAdding(false)}
+            defaultNotePath={activePath}
+          />
+        )}
 
         <div className={styles.tabs} role="tablist">
           {TABS.map(({ key, label, icon: Icon }) => (

@@ -61,33 +61,55 @@ export function AISettingsPanel() {
       </SettingsRow>
 
       {state.provider === "ollama" ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", padding: "var(--space-3) 0" }}>
-          <Input value={ollama.baseUrl} onChange={(event) => setOllama({ ...ollama, baseUrl: event.target.value })} aria-label="Ollama server address" />
-          <Input value={ollama.embeddingModel} onChange={(event) => setOllama({ ...ollama, embeddingModel: event.target.value })} aria-label="Ollama embedding model" />
-          <Input value={ollama.chatModel} onChange={(event) => setOllama({ ...ollama, chatModel: event.target.value })} aria-label="Ollama chat model" />
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", padding: "var(--space-2) 0" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+            <Typography variant="text" size="xs" color="muted">Server URL</Typography>
+            <Input size="sm" value={ollama.baseUrl} onChange={(event) => setOllama({ ...ollama, baseUrl: event.target.value })} aria-label="Ollama server address" />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+              <Typography variant="text" size="xs" color="muted">Embedding Model</Typography>
+              <Input size="sm" value={ollama.embeddingModel} onChange={(event) => setOllama({ ...ollama, embeddingModel: event.target.value })} aria-label="Ollama embedding model" />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+              <Typography variant="text" size="xs" color="muted">Chat Model</Typography>
+              <Input size="sm" value={ollama.chatModel} onChange={(event) => setOllama({ ...ollama, chatModel: event.target.value })} aria-label="Ollama chat model" />
+            </div>
+          </div>
           {!/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i.test(ollama.baseUrl.trim()) && (
             <Typography variant="text" size="xs" color="error">This is a remote Ollama server; enabled note data may leave this device. Use localhost for local-only processing.</Typography>
           )}
-          <Button onClick={() => void saveOllama()}>Test and save Ollama</Button>
+          <div>
+            <Button size="sm" onClick={() => void saveOllama()}>Test and save Ollama</Button>
+          </div>
           {state.status === "failed" && (
             <Typography variant="text" size="xs" color="error">Ollama is unavailable or the configured model is missing. Start Ollama and check the address and model names.</Typography>
           )}
         </div>
       ) : (
-        <SettingsRow
-          title="Connection"
-          description={`Connect and authenticate with ${providerNames[state.provider]}.`}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)", padding: "var(--space-3) 0", borderBottom: "var(--border-width-thin) solid var(--color-border-subtle)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+            <Typography variant="text" size="sm" weight="medium">Connection</Typography>
+            <Typography variant="text" size="xs" color="muted">Connect and authenticate with {providerNames[state.provider]}.</Typography>
+          </div>
           {state.provider === "openrouter" && (
-            <div style={{ display: "flex", gap: "var(--space-2)", marginRight: "var(--space-2)" }}>
-              <Input value={openrouter.embeddingModel} onChange={(event) => setOpenrouter({ ...openrouter, embeddingModel: event.target.value })} aria-label="OpenRouter embedding model" />
-              <Input value={openrouter.chatModel} onChange={(event) => setOpenrouter({ ...openrouter, chatModel: event.target.value })} aria-label="OpenRouter chat model" />
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-2)" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+                <Typography variant="text" size="xs" color="muted">Embedding Model</Typography>
+                <Input size="sm" value={openrouter.embeddingModel} onChange={(event) => setOpenrouter({ ...openrouter, embeddingModel: event.target.value })} aria-label="OpenRouter embedding model" />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-1)" }}>
+                <Typography variant="text" size="xs" color="muted">Chat Model</Typography>
+                <Input size="sm" value={openrouter.chatModel} onChange={(event) => setOpenrouter({ ...openrouter, chatModel: event.target.value })} aria-label="OpenRouter chat model" />
+              </div>
             </div>
           )}
-          <Button onClick={() => void connect()}>
-            {state.status === "ready" ? `Reconnect ${providerNames[state.provider]}` : `Connect ${providerNames[state.provider]}`}
-          </Button>
-        </SettingsRow>
+          <div>
+            <Button size="sm" onClick={() => void connect()}>
+              {state.status === "ready" ? `Reconnect ${providerNames[state.provider]}` : `Connect ${providerNames[state.provider]}`}
+            </Button>
+          </div>
+        </div>
       )}
 
       {state.status === "failed" && state.provider !== "ollama" && (

@@ -5,57 +5,13 @@ import {
   MAX_EDITOR_FONT_SIZE,
   MIN_EDITOR_FONT_SIZE,
   validateAndSanitizeCustomFont,
-  type EditorFont,
 } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
+import { CursorColorSetting } from "./CursorColorSetting";
+import { FONT_GROUPS } from "./editorFontGroups";
 import styles from "./SettingsDialog.module.scss";
-
-interface FontOption {
-  value: EditorFont;
-  label: string;
-}
-
-interface FontGroup {
-  label?: string;
-  options: FontOption[];
-}
-
-const FONT_GROUPS: FontGroup[] = [
-  {
-    options: [{ value: "system", label: "System default" }],
-  },
-  {
-    label: "Sans",
-    options: [
-      { value: "inter", label: "Inter" },
-      { value: "ibm-plex-sans", label: "IBM Plex Sans" },
-    ],
-  },
-  {
-    label: "Serif",
-    options: [
-      { value: "literata", label: "Literata" },
-      { value: "source-serif-4", label: "Source Serif 4" },
-    ],
-  },
-  {
-    label: "Monospace",
-    options: [{ value: "jetbrains-mono", label: "JetBrains Mono" }],
-  },
-  {
-    label: "Display",
-    options: [
-      { value: "montserrat", label: "Montserrat" },
-      { value: "raleway", label: "Raleway" },
-    ],
-  },
-  {
-    label: "Custom",
-    options: [{ value: "custom", label: "Custom font" }],
-  },
-];
 
 export function EditorSettingsTab() {
   const editorFont = useWorkspaceStore((state) => state.editorFont);
@@ -241,6 +197,8 @@ export function EditorSettingsTab() {
             aria-label="Use monospace font in vim mode"
           />
         </SettingsRow>
+
+        <CursorColorSetting />
       </SettingsCard>
     </div>
   );

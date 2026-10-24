@@ -1,8 +1,9 @@
+import type { QuickCaptureMode } from "./QuickCaptureHeader";
 import { QuickCaptureHints } from "./QuickCaptureHints";
 import styles from "./QuickCapture.module.scss";
 
 export interface QuickCaptureFooterProps {
-  mode: "capture" | "search";
+  mode: QuickCaptureMode;
   canSave: boolean;
   onSave: () => void;
   onDismiss: () => void;

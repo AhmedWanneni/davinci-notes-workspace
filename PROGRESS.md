@@ -4,44 +4,75 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — UI & Design Refinement: Unboxed Settings (AI & Sync), Deduplicated Plugins, Right Sidebar Polish, Compact Tabs Dropdown, Refined Rename Input, Lighter Button Hover & Expanded .5rem Border-Radius, Unboxed Reminders Dialog & 320px Sidebar
+## Last Session — Obsidian Canvas UI Parity, Resize & Persistence Resolutions
 
-**Scope:** Implement 8 user-directed design refinements across the desktop shell:
-1. **Unboxed Settings (AI & Sync Panels)**:
-   - `AISettingsPanel.tsx`: Refactored to clean `SettingsRow` components with consistent margins, no raw grey card containers.
-   - `SyncSettingsPanel.module.scss`: Unboxed `.sync-settings__status-banner` and `.sync-settings__card` (transparent backgrounds, bottom dividers only).
-   - `SyncthingPanel.module.scss`: Unboxed `.syncthing-panel__status-banner`, `.syncthing-panel__card`, `.syncthing-panel__device-block`, `.syncthing-panel__qr-section`, and `.syncthing-panel__logs-card`.
-2. **Deduplicated Community Plugins in Settings**:
-   - `SettingsSidebar.tsx`: Removed redundant duplicate `id: "plugins"` entry from `SETTINGS_SIDEBAR_ITEMS`, bringing file length down to 206 lines.
-3. **Right Sidebar Content Styling**:
-   - `_sidebar.scss`: Expanded `.app-right-sidebar` width to 280px (min-width 260px), added content padding, rounded section headers (`border-radius: .5rem; margin: var(--space-1) var(--space-2)`), and refined empty states.
-   - `_backlinks-panel.scss`, `_version-history.scss`, `_note-outline.scss`: Unboxed cards and history items, replaced hard borders with transparent subtle hover states, applied `border-radius: .5rem;`.
-4. **Compact Tab Dropdown**:
-   - `_tab-list-dropdown.scss`: Made `.app-tabs__dropdown-content` compact (`min-width: 160px; max-width: 240px; max-height: 280px`) with compact item padding (`4px var(--space-2)`).
-5. **Left Sidebar Rename Input & Context Menu**:
-   - `_file-tree.scss`: Sleek rename box (`height: 20px`, `font-size: 0.75rem`, `padding: 1px 4px`), compact context menu (`min-width: 140px`, `font-size: var(--type-scale-xs)`).
-6. **Button Hover & Radius Polish**:
-   - Lightened button hover opacity across `packages/design-tokens/src/colors.ts` (`rgba(0, 0, 0, 0.035)` light, `rgba(255, 255, 255, 0.04)` dark), `light-a` (`theme.css`), and `dark-b` (`theme.css`).
-   - Increased button border radius to `.5rem` across `Button.module.scss`, `_icon-rail.scss`, `_sidebar.scss`, `_tabs.scss`, `VaultSwitcher.module.scss`, `SettingsDialog.module.scss`, `RemindersDialog.module.scss`, and `ReminderRowItem.module.scss`.
-7. **Unboxed Reminders Dialog**:
-   - `RemindersDialog.module.scss`: Unboxed tabs header and footer (no grey box strip, clean primary background with bottom divider), updated active tab with `var(--color-text-accent)` and `var(--color-bg-hover)`.
-   - `ReminderRowItem.module.scss`: Unboxed chips and action buttons with `border-radius: .5rem;` and transparent backgrounds.
-8. **Expanded Left Sidebar Width**:
-   - `useSidebarResize.ts`: Increased `initialWidth` from 280 to 320, `minWidth` from 220 to 240.
-   - `_sidebar.scss`: Updated `.app-sidebar` to `width: 320px; min-width: 240px;`.
+**Scope:**
+1. **Canvas Persistence & Autosave Wiring (`EditorArea.tsx` & `useCanvasPersistence.ts`)**:
+   - Fixed `<LazyCanvasView>` props in `EditorArea.tsx` by passing `path={activeNotePath}` (fixing the misnamed `canvasPath`), `initialContent={content}`, `onContentChange={updateNoteContent}`, and `onPickLocalImage={handlePickLocalImage}`.
+   - Fixed path transitions and cache synchronization in `useCanvasPersistence.ts` so switching notes and reopening canvases cleanly hydrates nodes and edges.
+2. **Node Position & Size Snapping Fix (`handleResizeEnd`)**:
+   - Resolved the bug where node resizing ignored the `ResizeParams` arguments from `NodeResizer` across `TextCardNode.tsx`, `FileCardNode.tsx`, `LinkCardNode.tsx`, and `GroupCardNode.tsx`.
+   - Now captures `params.width`, `params.height`, `params.x`, and `params.y`, applying canvas grid snapping and triggering immediate layout persistence.
+   - Fixed `getNodeWidth` and `getNodeHeight` in `groupBounds.ts` so nullish coalescing does not evaluate `0` as truthy when style is missing.
+3. **Card Dimension Proportions Adjusted (Compact Sizing)**:
+   - Reduced default and minimum box sizes in `canvasConstants.ts` and `groupBounds.ts` to match Obsidian's compact layout:
+     - Text cards: 216×72 px default (down from 250×120), 60×36 px min (down from 80×48).
+     - File cards: 288×216 px default (down from 400×320), 120×80 px min (down from 200×120).
+     - Group cards: 360×264 px default (down from 480×360), 96×72 px min.
+     - Link cards: 312×216 px default (down from 480×360), 120×80 px min.
+   - Styled `FileCardNode.module.scss` header to be compact (11px uppercase bold muted title, transparent background, 4px 8px padding).
+4. **Obsidian Canvas UI Parity**:
+   - **Bottom Floating Dock (`CanvasBottomDock.tsx`)**: 3-button dock matching Obsidian Canvas: Note Card (search/pick notes from vault), Text Card (creates card at center), and Media Card (native image picker / file upload).
+   - **Right Floating Navigation Toolbar (`CanvasNavToolbar.tsx`)**: Vertical toolbar featuring Settings, Zoom In (+), Reset Zoom (100%), Zoom to Fit, Zoom Out (-), Undo (Cmd+Z), Redo (Cmd+Shift+Z), and Help.
+   - **Contextual Card Action Bar (`CanvasCardActionBar.tsx`)**: Floating toolbar positioned above selected cards offering Delete (`TrashSimple`), Color Palette (`Palette` with 6 Obsidian presets), Zoom to Card (`CornersOut`), and Edit (`PencilSimple`).
+   - **History & Undo/Redo Engine (`useCanvasHistory.ts`)**: In-memory snapshot stack for canvas state with keyboard shortcut integration.
+   - **Visual Styling**: Card border radius set to 10px, clean white/primary card background, and 2px purple accent selection border.
+   - **Modular Refactoring (`CanvasFlowArea.tsx`, `useCanvasEditorContextValue.ts`)**: Modularized subcomponents to keep all files strictly under the 250-line cap (all between 77 and 233 lines).
 
 **Verification**:
-- All desktop tests passing: `themes`, `AppTabs`, `SearchDialog`, `VaultSwitcher`, `AppSidebar`, `RemindersDialog`, `SyncSettingsPanel`, `SyncthingPanel`, `SettingsDialog`.
-- Design tokens and design system tests passing.
-- Mobile theme tests passing.
-- All modified files strictly conform to the 250-line hard cap (e.g. `_sidebar.scss`: 247, `_file-tree.scss`: 248, `SettingsSidebar.tsx`: 206, `sqliteIndex.test.ts`: 243).
+- All 29 test files (185 tests) in `@app/canvas` passing (`pnpm --filter @app/canvas test`).
+- All 159 test files (644 tests) in `@app/desktop` passing (`pnpm --filter @app/desktop test`).
+- Typecheck clean with 0 errors (`pnpm --filter @app/canvas typecheck`).
+- ESLint clean with 0 errors (`pnpm --filter @app/canvas lint`).
+- Production Web build verified (`pnpm --filter @app/desktop build:web`).
 
 ---
 
 ## Next Up
 
-1. Validate visual appearance across dark and light themes in production desktop and mobile builds.
-2. Mobile end-to-end sync validation with embedded Syncthing daemon.
+1. Test canvas drag-and-drop of vault notes and images in live desktop app.
+2. Validate visual appearance across dark and light themes in production desktop and mobile builds.
+
+---
+
+## Previous Session — Decouple Cover and Icon Metadata from Editor Markdown Content
+
+**Scope:**
+1. **Decoupled Cover Storage (`.davinci/covers.json`)**:
+   - Created `noteCoverStorage.ts` to manage and persist cover URLs and Y-positions in `.davinci/covers.json` instead of writing them into markdown file frontmatter.
+   - Updated `useNoteCoverImage.ts` so setting, changing, repositioning, and removing covers never modifies markdown text.
+2. **Decoupled Icon Storage (`.davinci/icons.json`)**:
+   - Refactored `treeIconStorage.ts` so all icons (including markdown notes) are persisted in `.davinci/icons.json`.
+   - Removed `persistMarkdownIcon` — selecting emojis in the file tree never modifies note files or writes `icon:` frontmatter.
+3. **Clean Editor Content & Automatic Stripping**:
+   - Created `stripNoteMetadata.ts` to remove any `cover:`, `cover_y:`, `banner:`, `banner_y:`, and `icon:` from frontmatter.
+   - Cleaned editor input so the text area never shows or adds these lines, automatically cleaning legacy files.
+   - Added `icon` to hidden keys in `PropertiesBlock.tsx`.
+
+**Verification**:
+- 34 unit tests across 8 test files passing.
+- Production Web build verified (`pnpm --filter @app/desktop build:web`).
+
+---
+
+## Next Up
+
+1. Test cover banners with local vault images and custom URLs in live desktop app.
+2. Validate visual appearance across dark and light themes in production desktop and mobile builds.
+
+---
+
+## Previous Session — Saving Dot Light Grey & Size Polish, QuickCapture Reminder Bottom Organization
 
 ---
 

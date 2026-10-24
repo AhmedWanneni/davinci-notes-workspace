@@ -183,6 +183,7 @@ export function AppSidebar({
       </div>
 
       <VaultSwitcher
+        isCollapsed={isCollapsed}
         vaultName={vaultName}
         vaultPath={vaultPath ?? null}
         onSwitchVault={onSwitchVault ?? (() => {})}

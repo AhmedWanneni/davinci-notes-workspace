@@ -2,6 +2,173 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-24: Obsidian Canvas UI Parity, Resize & Persistence Resolutions
+
+- **Canvas Persistence & Autosave Wiring (`EditorArea.tsx` & `useCanvasPersistence.ts`)**:
+  - Replaced incorrect `canvasPath={activeNotePath}` in `EditorArea.tsx` with canonical `path={activeNotePath}`.
+  - Passed `initialContent={content}` and `onContentChange={updateNoteContent}` to `<LazyCanvasView>`.
+  - Passed `onPickLocalImage={handlePickLocalImage}` to enable native dialog image picking.
+  - Synchronized `lastPathRef` and `lastSerializedRef` in `useCanvasPersistence.ts` to ensure clean hydration and prevent state conflicts across note switches.
+- **Node Position & Size Snapping Fix (`handleResizeEnd`)**:
+  - Captured `params: ResizeParams` (`width`, `height`, `x`, `y`) emitted by `NodeResizer` on `onResizeEnd` in `TextCardNode.tsx`, `FileCardNode.tsx`, `LinkCardNode.tsx`, and `GroupCardNode.tsx`.
+  - Snapped both dimensions and positions to `CANVAS_SNAP_GRID` and immediately dispatched `onLayoutChange()`.
+  - Fixed `getNodeWidth` and `getNodeHeight` in `groupBounds.ts` to prevent nullish coalescing from returning `0` when style width is missing.
+- **Card Dimension Proportions Adjusted (Compact Sizing)**:
+  - Reduced default and minimum box sizes in `canvasConstants.ts` and `groupBounds.ts` to match Obsidian's compact layout:
+    - Text cards: 216×72 px default (down from 250×120), 60×36 px min (down from 80×48).
+    - File cards: 288×216 px default (down from 400×320), 120×80 px min (down from 200×120).
+    - Group cards: 360×264 px default (down from 480×360), 96×72 px min.
+    - Link cards: 312×216 px default (down from 480×360), 120×80 px min.
+  - Styled `FileCardNode.module.scss` header to be compact (11px uppercase bold muted title, transparent background, 4px 8px padding).
+- **Obsidian Canvas UI Parity**:
+  - **Bottom Floating Dock (`CanvasBottomDock.tsx`)**: 3-button dock matching Obsidian Canvas: Note Card (search/pick notes from vault), Text Card (creates card at center), and Media Card (native image picker / file upload).
+  - **Right Floating Navigation Toolbar (`CanvasNavToolbar.tsx`)**: Vertical toolbar featuring Settings, Zoom In (+), Reset Zoom (100%), Zoom to Fit, Zoom Out (-), Undo (Cmd+Z), Redo (Cmd+Shift+Z), and Help.
+  - **Contextual Card Action Bar (`CanvasCardActionBar.tsx`)**: Floating toolbar positioned above selected cards offering Delete (`TrashSimple`), Color Palette (`Palette` with 6 Obsidian presets), Zoom to Card (`CornersOut`), and Edit (`PencilSimple`).
+  - **History & Undo/Redo Engine (`useCanvasHistory.ts`)**: In-memory snapshot stack for canvas state with keyboard shortcut integration.
+  - **Visual Styling**: Card border radius set to 10px, clean white/primary card background, and 2px purple accent selection border.
+  - **Modular Architecture**: Extracted `CanvasFlowArea.tsx` and `useCanvasEditorContextValue.ts` ensuring all files strictly respect the 250-line hard cap (77–233 lines).
+- **Validation**:
+  - All 29 test files (185 tests) in `@app/canvas` passing.
+  - All 159 test files (644 tests) in `@app/desktop` passing.
+  - Typecheck clean with 0 errors (`pnpm --filter @app/canvas typecheck`).
+  - ESLint clean with 0 errors (`pnpm --filter @app/canvas lint`).
+  - Production Web build verified (`pnpm --filter @app/desktop build:web`).
+
+### 2026-10-24: Decouple Cover and Icon Metadata from Editor Markdown Content
+
+- **Decoupled Cover Storage (`.davinci/covers.json`)**:
+  - Created `noteCoverStorage.ts` to manage and persist cover URLs and Y-positions in `.davinci/covers.json` instead of writing them into markdown file frontmatter.
+  - Updated `useNoteCoverImage.ts` so setting, changing, repositioning, and removing covers never modifies markdown text.
+- **Decoupled Icon Storage (`.davinci/icons.json`)**:
+  - Refactored `treeIconStorage.ts` so all icons (including markdown notes) are persisted in `.davinci/icons.json`.
+  - Removed `persistMarkdownIcon` — selecting emojis in the file tree never modifies note files or writes `icon:` frontmatter.
+- **Clean Editor Content & Automatic Stripping**:
+  - Created `stripNoteMetadata.ts` to remove any `cover:`, `cover_y:`, `banner:`, `banner_y:`, and `icon:` from frontmatter.
+  - Cleaned editor input so the text area never shows or adds these lines, automatically cleaning legacy files.
+  - Added `icon` to hidden keys in `PropertiesBlock.tsx`.
+- **Validation**:
+  - 34 unit tests across 8 test files passing.
+  - Production Web build verified (`pnpm --filter @app/desktop build:web`).
+
+---
+
+### 2026-10-24: Note Cover Banner & Hover Overlay Note Header
+
+- **Cover Banner with Hover Overlay Header**:
+  - When a note has a cover image, the standard `editor-area__note-header` is hidden from document flow.
+  - Hovering the cover banner reveals the note header overlaid at the top with a subtle dark gradient and backdrop blur (`backdrop-filter: blur(4px)`).
+  - Note title is rendered in white with subtle shadow; action buttons are translucent white with bright hover effects for legibility over any cover image.
+  - Keeps header visible during menu interaction or focus (`data-visible="true"` or `:focus-within`).
+  - When no cover image is set, `editor-area__note-header` renders in the normal position above properties.
+- **Note Cover Banner Component (`NoteCoverImage.tsx` + `NoteCoverImage.module.scss`)**:
+  - Full-width banner placed at the top of the note view (directly below tabs, above note title & content).
+  - Configurable vertical focal point (`objectPosition: "center <y>%"`, default 50%).
+  - Hover action pill with **Change cover**, **Reposition**, and **Remove**.
+  - Interactive reposition mode: vertical pointer drag with relative motion tracking, **Save position**, and **Cancel**.
+- **Cover Image Picker Modal (`CoverImagePickerModal.tsx` + `CoverImagePickerModal.module.scss`)**:
+  - 3 clean tabs:
+    1. **Gallery**: Curated presets including *Alice in Wonderland* classic illustration (matching user screenshot), *Vintage Library*, *Starry Night*, *The Great Wave*, *Misty Mountains*, and abstract gradients (`coverPresets.ts`).
+    2. **Upload**: Select local image file via `pickImageFile()`, auto-copied into vault attachments folder.
+    3. **Link**: Paste any web/Unsplash URL with instant live preview.
+  - Direct **Remove Cover** action button in the footer.
+- **YAML Frontmatter Persistence & Properties Block**:
+  - Pure helper `updateNoteCoverContent.ts` updates or inserts `cover` and `cover_y` while preserving unrelated YAML keys, comments, and structure.
+  - Supports Obsidian Banners syntax interoperably (`banner`, `banner_y`).
+  - Filtered out `cover`, `banner`, `cover_y`, `banner_y` from `PropertiesBlock.tsx` to prevent duplicate raw text property display.
+  - Added "Add cover image" button in `EditorArea.tsx` note header.
+- **Validation**:
+  - 21 unit tests across 5 test files passing (`updateNoteCoverContent.test.ts`, `CoverImagePickerModal.test.tsx`, `NoteCoverImage.test.tsx`, `useNoteCoverImage.test.ts`, `PropertiesBlock.test.tsx`).
+  - Production Web build verified (`pnpm --filter @app/desktop build:web`).
+
+---
+
+### 2026-10-24: Saving Dot Light Grey & Size Polish, QuickCapture Reminder Bottom Organization
+
+- **Saving Dot (Dirty Indicator) in Tabs & Sidebar**:
+  - In `_tabs.scss` and `_file-tree.scss`, increased the dirty dot diameter from 6px to 8px (`width: 8px; height: 8px`).
+  - Changed color from accent (`var(--color-text-accent)`) to light grey (`var(--color-text-muted)`).
+- **QuickCapture Reminder Bottom Actions Organization**:
+  - In `QuickCaptureReminder.tsx` and `QuickCaptureReminder.module.scss`, restructured the bottom actions into a dedicated toolbar with top divider: keyboard hints (`⌘S Save`, `Esc Cancel`) on the left, and secondary `Cancel` + primary `Save reminder` on the right.
+  - In `QuickCapture.tsx`, conditioned `<QuickCaptureFooter>` to only render when `mode !== "reminder"`, eliminating redundant stacked Quit buttons.
+- **Validation**:
+  - 80 unit tests across 19 test files passing (`QuickCapture`, `QuickCaptureReminder`, `AppTabs`, `FileTree`).
+  - Web build verified (`pnpm --filter @app/desktop build:web`).
+  - All modified files strictly adhere to the 250-line hard cap (`QuickCapture.tsx`: 242, `QuickCaptureReminder.tsx`: 195, `_tabs.scss`: 248, `_file-tree.scss`: 248).
+
+---
+
+### 2026-10-24: Vim Cursor Black Default & Settings, Editor Properties Light Grey Box, Reminders "Add a reminder", QuickCapture Reminder Section
+
+- **Vim Cursor Default Black & Cursor Color in Settings**:
+  - In `packages/editor/theme/editorTheme.ts`, styled `.cm-fat-cursor` so it overrides `@replit/codemirror-vim`'s pink default (`#ff9696`) with `backgroundColor: "var(--color-editor-cursor, #000000) !important"` and text color `var(--color-bg-primary, #ffffff) !important`.
+  - Created `CursorColorSetting.tsx` providing presets (Default, Black, Accent, White, Neon Green, Amber), custom color picker, and Reset button.
+  - Colocated `<CursorColorSetting />` in both `AppearanceSettingsTab.tsx` and `EditorSettingsTab.tsx`.
+- **Editor Properties Sizes, Compatibility & Light Grey Background**:
+  - In `_properties-block.scss`, set `background-color: var(--color-bg-primary-alt)` (light grey surface in light theme), border `var(--color-border-subtle)`, and `border-radius: var(--border-radius-lg)`.
+  - Inset margins to match `.cm-content` padding (`margin: var(--space-2) var(--space-8); padding: var(--space-2) var(--space-3);`).
+  - Standardized row sizes (`grid-template-columns: 120px 1fr; padding: 4px var(--space-2)`), count badge, and "+ Add property" action.
+- **"Add a reminder" in Reminders Dialog**:
+  - In `RemindersDialog.tsx`, added "+ Add a reminder" button in the header.
+  - Created `AddReminderForm.tsx` & `AddReminderForm.module.scss` with reminder task title, date presets (Today, Tomorrow, Next week), date & time picker, note destination (defaulting to current note or `Reminders.md`), and save actions using `appendToNoteInVault`.
+- **Reminder Section in QuickCapture**:
+  - In `QuickCaptureHeader.tsx`, added a dedicated `Reminder` tab (`mode: "capture" | "reminder" | "search"`).
+  - Created `QuickCaptureReminder.tsx` & `QuickCaptureReminder.module.scss` with task title input, date presets, date & time picker, and folder/note destination.
+  - Updated `QuickCapture.tsx`, `QuickCaptureFooter.tsx`, and `QuickCaptureHints.tsx`.
+- **Validation**:
+  - 40 unit tests passing (`PropertiesBlock`, `RemindersDialog`, `QuickCapture`, `QuickCaptureReminder`, `cursorColor`).
+  - Web build verified (`pnpm --filter @app/desktop build:web`).
+  - All modified files strictly adhere to 250-line caps.
+
+---
+
+### 2026-10-24: Design Refinement: Popups, Version History Spacing, Git VC Settings, AI Connection Column, Borderless Properties
+
+- **Smaller Popups Border-Radius & Adjusted Padding**:
+  - Aligned all dropdowns and popups with `SearchDialog` style (`var(--border-radius-lg)` container, `var(--border-radius-md)` items, subtle shadow, clean padding).
+  - Updated `DropdownMenu.module.scss`, `Popover.module.scss`, `VaultSwitcher.module.scss`, `_tab-list-dropdown.scss`, `_file-tree.scss` context menu, and reminder `ReminderRowItem.module.scss` snooze menu.
+- **Version History Content Spaces**:
+  - In `_version-history.scss`, added `padding: var(--space-2) var(--space-3); gap: var(--space-3);`.
+  - In `VersionHistoryPanel.tsx`, structured history list items with vertical layout and 2px gap, added `.version-history__item--selected` with border highlight, expanded diff viewer to 240px max-height with code styling, and separated restore actions into `.version-history__details`.
+- **Git Version Control in Settings**:
+  - Created `GitRemoteSetupPanel.module.scss` and refactored `GitRemoteSetupPanel.tsx`: removed redundant heading inside `SettingsCard`, added field labels for Repository URL, Username, and Personal Access Token, set all inputs and action button to `size="sm"`, and aligned helper links with consistent spacing.
+- **AI Assistance Connection Layout**:
+  - In `AISettingsPanel.tsx`, shifted connection controls into a vertical column layout: header description, 2-column grid for OpenRouter model inputs with labels and `size="sm"`, and small connect button below.
+- **Borderless & Lighter Editor Properties Block**:
+  - In `_properties-block.scss`, removed outer border and background (`border: none; background-color: transparent; border-radius: 0;`), removed top dividers, and muted key and text colors (`var(--color-text-muted)`).
+- **Validation**:
+  - 14 targeted unit tests passing (`PropertiesBlock`, `VersionHistoryPanel`, `cursorColor`, `VaultSwitcher`).
+  - Web build verified (`pnpm --filter @app/desktop build:web`).
+  - All modified files strictly adhere to 250-line caps.
+
+---
+
+### 2026-10-24: UI & Design Refinement: Collapsed Sidebar Vault Chooser, Settings Inputs & AI Layout Polish, Tab Dropdown Active Color, Editor Cursor Color Options & Subtle Popup Elevation
+
+- **Collapsed Sidebar Vault Chooser with Icons**:
+  - Maintained `.vault-switcher` visibility at 40px width in `_sidebar.scss` when `[data-collapsed="true"]`.
+  - Added `isCollapsed` prop support to `VaultSwitcher.tsx`, rendering a sleek folder icon button with a tooltip ("Vault: {effectiveName}") that pops open to the right (`side="right" align="end"`).
+  - Decorated every vault entry in the dropdown list with an icon (`Folder` with fill weight when active).
+- **Settings Inputs & Gaps Polish**:
+  - Reduced input and select control heights to 28px (`height: 28px; font-size: var(--type-scale-xs); border-radius: 0.8rem;`) in `SettingsDialog.module.scss`.
+- **Tab Dropdown Active Title Color**:
+  - In `_tab-list-dropdown.scss`, kept active tab text in `var(--color-text-normal)` so only the checkmark icon is colored with `var(--color-text-accent)`.
+- **Editor Default Cursor & Cursor Color Setting**:
+  - In `packages/editor/theme/editorTheme.ts`, set `.cm-cursor`, `.cm-dropCursor`, and `.cm-content` to `var(--color-editor-cursor, var(--color-text-normal))`, guaranteeing standard app text color cursor in both dark and light modes by default.
+  - Added `apps/desktop/src/themes/cursorColor.ts` and `cursorColor.test.ts` for dynamic CSS variable application and `localStorage` persistence.
+  - Added interactive Cursor Color selector in `AppearanceSettingsTab.tsx` with presets, native color picker, and reset button.
+  - Synced `useThemeStore.ts` to restore and reapply saved cursor color on theme changes and initialization.
+- **AI Assistance Layout & Compact Buttons**:
+  - Applied `size="sm"` to all inputs and buttons in `AISettingsPanel.tsx`.
+  - Styled Ollama server and model configuration forms with clean field labels, two-column grid alignments, and comfortable vertical spacing.
+- **Subtle Popup Background & Elevation Shadows**:
+  - Refined dropdowns and popups across `DropdownMenu.module.scss`, `Popover.module.scss`, `VaultSwitcher.module.scss`, `_tab-list-dropdown.scss`, `_file-tree.scss` context menu, `ReminderRowItem.module.scss` snooze menu, `_search-dialog.scss`, `RemindersDialog.module.scss`, and `SettingsDialog.module.scss`.
+  - Applied crisp backgrounds (`var(--color-bg-primary)`), subtle borders (`var(--border-width-thin) solid var(--color-border-subtle)`), and gentle depth shadows (`box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.08)` / dialog shadow `0 16px 48px rgba(0, 0, 0, 0.22)`).
+- **Validation**:
+  - 22 theme tests passing, 54 component tests passing.
+  - All files strictly adhere to the 250-line hard cap.
+
+---
+
 ### 2026-10-24: UI & Design Refinement: Unboxed Settings (AI & Sync), Deduplicated Plugins, Right Sidebar Polish, Compact Tabs Dropdown, Refined Rename Input, Lighter Button Hover & Expanded .5rem Border-Radius, Unboxed Reminders Dialog & 320px Sidebar
 
 - **Unboxed Settings (AI & Sync Panels)**:

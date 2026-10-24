@@ -4,14 +4,23 @@
   min-width: 12rem;
   max-width: 20rem;
   overflow: hidden;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg);
   border: var(--border-width-thin) solid var(--color-border-subtle);
-  background-color: var(--color-bg-primary-alt);
-  padding: var(--space-3);
+  background-color: var(--color-bg-primary);
+  padding: var(--space-2);
   color: var(--color-text-normal);
   font-family: var(--font-ui);
   font-size: var(--type-scale-sm);
   line-height: var(--type-leading-normal);
+  box-shadow:
+    0 8px 24px rgb(0 0 0 / 14%),
+    0 2px 6px rgb(0 0 0 / 8%);
+
+  @supports (color: color-mix(in srgb, black, transparent)) {
+    box-shadow:
+      0 8px 24px color-mix(in srgb, var(--color-shadow) 18%, transparent),
+      0 2px 6px color-mix(in srgb, var(--color-shadow) 10%, transparent);
+  }
   z-index: 50;
   animation-duration: var(--motion-duration-fast);
   animation-timing-function: var(--motion-ease-standard);

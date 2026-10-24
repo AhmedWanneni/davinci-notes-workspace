@@ -4,7 +4,8 @@ import { listen } from "@tauri-apps/api/event";
 import type { SearchResult } from "@app/indexer";
 import { QuickCaptureDestination } from "./QuickCaptureDestination";
 import { QuickCaptureFooter } from "./QuickCaptureFooter";
-import { QuickCaptureHeader } from "./QuickCaptureHeader";
+import { QuickCaptureHeader, type QuickCaptureMode } from "./QuickCaptureHeader";
+import { QuickCaptureReminder } from "./QuickCaptureReminder";
 import { QuickSearchList } from "./QuickSearchList";
 import { useCaptureKeybindings } from "./useCaptureKeybindings";
 import { useCaptureTheme } from "./useCaptureTheme";
@@ -23,7 +24,7 @@ export interface QuickCaptureProps {
   ) => Promise<void> | void;
   onDismiss?: () => Promise<void> | void;
   onOpenNote?: (path: string) => Promise<void> | void;
-  initialMode?: "capture" | "search";
+  initialMode?: QuickCaptureMode;
   searchFn?: (query: string) => Promise<SearchResult[]>;
 }
 
@@ -38,7 +39,7 @@ export function QuickCapture(props: QuickCaptureProps) {
     initialMode = "capture",
     searchFn,
   } = props;
-  const [mode, setMode] = useState<"capture" | "search">(initialMode);
+  const [mode, setMode] = useState<QuickCaptureMode>(initialMode);
   const [text, setText] = useState("");
   const [filename, setFilename] = useState("");
   const [folder, setFolder] = useState("");
@@ -64,15 +65,8 @@ export function QuickCapture(props: QuickCaptureProps) {
     void listen("davinci-capture-focus", () => {
       restoreCachedBuiltinTheme();
       focusActive();
-    })
-      .then((fn) => {
-        unlisten = fn;
-      })
-      .catch(() => {});
-
-    return () => {
-      unlisten?.();
-    };
+    }).then((fn) => { unlisten = fn; }).catch(() => {});
+    return () => { unlisten?.(); };
   }, [mode]);
 
   const handleDismiss = async () => {
@@ -84,21 +78,21 @@ export function QuickCapture(props: QuickCaptureProps) {
     else void invoke("quick_capture_dismiss").catch(() => {});
   };
 
-  const handleSave = async (content: string) => {
+  const handleSave = async (
+    content: string,
+    overrideFilename?: string,
+    overrideFolder?: string,
+  ) => {
     const trimmed = content.trim();
     if (!trimmed) {
       await handleDismiss();
       return;
     }
-    const clearInputs = () => {
-      setText("");
-      setFilename("");
-      setFolder("");
-    };
+    const clearInputs = () => { setText(""); setFilename(""); setFolder(""); };
     setErrorMessage(null);
     try {
-      const fName = filename.trim() || undefined;
-      const fDir = folder.trim() || undefined;
+      const fName = (overrideFilename ?? filename).trim() || undefined;
+      const fDir = (overrideFolder ?? folder).trim() || undefined;
       if (onSave) {
         if (fName || fDir) await onSave(content, fName, fDir);
         else await onSave(content);
@@ -106,11 +100,7 @@ export function QuickCapture(props: QuickCaptureProps) {
       } else {
         const res = await invoke<{ path: string; isAppend: boolean }>(
           "quick_capture_save",
-          {
-            text: content,
-            filename: fName ?? null,
-            folder: fDir ?? null,
-          },
+          { text: content, filename: fName ?? null, folder: fDir ?? null },
         );
         setSavedDestination(res.path);
         setTimeout(() => {
@@ -149,9 +139,7 @@ export function QuickCapture(props: QuickCaptureProps) {
   return (
     <div
       className={styles["quick-capture-container"]}
-      onMouseDown={() =>
-        void invoke("quick_capture_bring_to_front").catch(() => {})
-      }
+      onMouseDown={() => { void invoke("quick_capture_bring_to_front").catch(() => {}); }}
     >
       <QuickCaptureHeader
         mode={mode}
@@ -194,6 +182,15 @@ export function QuickCapture(props: QuickCaptureProps) {
             nameInputRef={nameInputRef}
           />
         </>
+      ) : mode === "reminder" ? (
+        <QuickCaptureReminder
+          onSaveReminder={(reminderText, fName, fDir) =>
+            handleSave(reminderText, fName, fDir)
+          }
+          onDismiss={() => void handleDismiss()}
+          folder={folder}
+          onFolderChange={setFolder}
+        />
       ) : (
         <div className={styles["quick-search-body"]}>
           <Input
@@ -232,12 +229,14 @@ export function QuickCapture(props: QuickCaptureProps) {
         </div>
       )}
 
-      <QuickCaptureFooter
-        mode={mode}
-        canSave={text.trim().length > 0}
-        onSave={() => void handleSave(text)}
-        onDismiss={() => void handleDismiss()}
-      />
+      {mode !== "reminder" && (
+        <QuickCaptureFooter
+          mode={mode}
+          canSave={text.trim().length > 0}
+          onSave={() => void handleSave(text)}
+          onDismiss={() => void handleDismiss()}
+        />
+      )}
     </div>
   );
 }

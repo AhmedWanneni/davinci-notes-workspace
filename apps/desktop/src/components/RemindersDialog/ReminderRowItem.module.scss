@@ -204,8 +204,9 @@
       z-index: 50;
       min-width: 150px;
       background-color: var(--color-bg-primary);
-      border: var(--border-width-thin) solid var(--color-border-normal);
-      border-radius: .5rem;
+      border: var(--border-width-thin) solid var(--color-border-subtle);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.08);
       display: flex;
       flex-direction: column;
       padding: var(--space-1);
@@ -225,7 +226,7 @@
       background: transparent;
       border: none;
       cursor: pointer;
-      border-radius: 0.6rem;
+      border-radius: var(--border-radius-md);
       transition: all var(--motion-duration-fast);
 
       &:hover {

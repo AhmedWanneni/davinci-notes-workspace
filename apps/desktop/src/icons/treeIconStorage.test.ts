@@ -68,10 +68,10 @@ describe("tree icon storage", () => {
     storeState.dirtyNotes = new Set();
   });
 
-  it("keeps only non-markdown paths in the vault icon map", () => {
+  it("keeps all paths in the vault icon map", () => {
     expect(
       mappedIconsOnly({ "note.md": "🚀", folder: "📁", "board.canvas": "🎨" }),
-    ).toEqual({ folder: "📁", "board.canvas": "🎨" });
+    ).toEqual({ "note.md": "🚀", folder: "📁", "board.canvas": "🎨" });
   });
 
   it("reads valid emoji icons from indexed frontmatter", () => {
@@ -102,28 +102,20 @@ describe("tree icon storage", () => {
     });
   });
 
-  it("writes markdown icons into frontmatter and the index", async () => {
-    readNote.mockResolvedValue({
-      path: "note.md",
-      content: "# Note\n",
-      mtime: 1,
-    });
-    getVaultIndexDb.mockResolvedValue({});
-
+  it("writes markdown icons to .davinci/icons.json without touching markdown note", async () => {
     await persistTreeIcon("note.md", "🚀", {});
 
     expect(writeNote).toHaveBeenCalledWith(
-      "note.md",
-      '---\nicon: "🚀"\n---\n# Note\n',
+      ICONS_JSON_PATH,
+      '{\n  "note.md": "🚀"\n}\n',
     );
-    expect(persistNote).toHaveBeenCalledOnce();
   });
 
   it("writes folder icons to .davinci/icons.json", async () => {
     await persistTreeIcon("projects", "📁", { "note.md": "🚀" });
     expect(writeNote).toHaveBeenCalledWith(
       ICONS_JSON_PATH,
-      '{\n  "projects": "📁"\n}\n',
+      '{\n  "note.md": "🚀",\n  "projects": "📁"\n}\n',
     );
   });
 });

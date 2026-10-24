@@ -4,6 +4,7 @@ import { detectGitRemoteProvider } from "../../git/GitRemoteProvider";
 import { desktopGitPatStore } from "../../git/desktopGitPatStore";
 import { saveCurrentVaultGitRemoteConfig } from "../../git/GitRemoteConfig";
 import { validateGitRemote } from "../../git/localGitHistory";
+import styles from "./GitRemoteSetupPanel.module.scss";
 
 const messages: Record<string, string> = {
   "malformed-url": "Enter a complete HTTPS repository URL.",
@@ -55,52 +56,93 @@ export function GitRemoteSetupPanel() {
   };
 
   return (
-    <section className="settings-dialog__section">
-      <Typography variant="h3" size="sm">
-        Git remote backup
-      </Typography>
+    <div className={styles["git-remote-panel"]}>
       <Typography variant="text" size="xs" color="muted">
-        Paste an HTTPS repository URL and a repository-scoped token. No provider
-        account connection is needed.
+        Paste an HTTPS repository URL and a repository-scoped token to configure
+        remote backup.
       </Typography>
-      <Input
-        aria-label="Git repository URL"
-        value={url}
-        onChange={(event) => setUrl(event.target.value)}
-        placeholder="https://git.example.com/team/notes.git"
-      />
-      <Typography variant="text" size="xs" color="muted">
-        {provider.tokenHelp}
-      </Typography>
-      {provider.helpUrl && (
-        <a href={provider.helpUrl} target="_blank" rel="noreferrer">
-          Create a token on {provider.host}
-        </a>
+
+      <div className={styles["git-remote-panel__field"]}>
+        <Typography variant="text" size="xs" color="muted" weight="medium">
+          Repository URL
+        </Typography>
+        <Input
+          size="sm"
+          aria-label="Git repository URL"
+          value={url}
+          onChange={(event) => setUrl(event.target.value)}
+          placeholder="https://github.com/user/notes.git"
+        />
+      </div>
+
+      <div className={styles["git-remote-panel__field"]}>
+        <Typography variant="text" size="xs" color="muted" weight="medium">
+          Username (optional)
+        </Typography>
+        <Input
+          size="sm"
+          aria-label="Git username"
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          placeholder="Git username (only if required by server)"
+        />
+      </div>
+
+      <div className={styles["git-remote-panel__field"]}>
+        <Typography variant="text" size="xs" color="muted" weight="medium">
+          Personal Access Token
+        </Typography>
+        <Input
+          size="sm"
+          aria-label="Personal access token"
+          type="password"
+          value={token}
+          onChange={(event) => setToken(event.target.value)}
+          placeholder="Personal access token"
+        />
+      </div>
+
+      {(provider.tokenHelp || provider.helpUrl) && (
+        <div className={styles["git-remote-panel__token-help"]}>
+          {provider.tokenHelp && (
+            <Typography variant="text" size="xs" color="muted">
+              {provider.tokenHelp}
+            </Typography>
+          )}
+          {provider.helpUrl && (
+            <a
+              href={provider.helpUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={styles["git-remote-panel__link"]}
+            >
+              Create a token on {provider.host} ↗
+            </a>
+          )}
+        </div>
       )}
-      <Input
-        aria-label="Git username"
-        value={username}
-        onChange={(event) => setUsername(event.target.value)}
-        placeholder="Git username (only if your server requires it)"
-      />
-      <Input
-        aria-label="Personal access token"
-        type="password"
-        value={token}
-        onChange={(event) => setToken(event.target.value)}
-      />
-      <Button
-        variant="primary"
-        onClick={() => void connect()}
-        disabled={!url || !token}
-      >
-        Validate and connect
-      </Button>
+
+      <div className={styles["git-remote-panel__actions"]}>
+        <Button
+          size="sm"
+          variant="primary"
+          onClick={() => void connect()}
+          disabled={!url || !token}
+        >
+          Validate and connect
+        </Button>
+      </div>
+
       {status && (
-        <Typography variant="text" size="xs" color="muted" role="status">
+        <Typography
+          variant="text"
+          size="xs"
+          color={status.startsWith("Connected") ? "muted" : "error"}
+          role="status"
+        >
           {status}
         </Typography>
       )}
-    </section>
+    </div>
   );
 }

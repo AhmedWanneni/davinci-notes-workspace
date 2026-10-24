@@ -13,6 +13,7 @@ import {
 import { ThemeBrowser } from "../ThemeBrowser";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
+import { CursorColorSetting } from "./CursorColorSetting";
 import styles from "./SettingsDialog.module.scss";
 
 interface AppearanceSettingsTabProps {
@@ -94,6 +95,8 @@ export function AppearanceSettingsTab({
             )}
           </div>
         </SettingsRow>
+
+        <CursorColorSetting />
       </SettingsCard>
 
       <SettingsCard title="Themes">

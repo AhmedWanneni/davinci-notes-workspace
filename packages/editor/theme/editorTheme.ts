@@ -25,14 +25,31 @@ export const editorTheme = EditorView.theme({
   ".cm-content": {
     padding:
       "var(--space-6) var(--space-8) var(--editor-content-padding-bottom)",
+    caretColor: "var(--color-editor-cursor, var(--color-text-normal))",
   },
   ".cm-line": {
     paddingLeft: "var(--editor-obsidian-content-line-padding-inline)",
     paddingRight: "var(--editor-obsidian-content-line-padding-inline)",
   },
   ".cm-cursor": {
-    borderLeftColor: "var(--color-text-accent)",
+    borderLeftColor: "var(--color-editor-cursor, var(--color-text-normal))",
     borderLeftWidth: "2px",
+  },
+  ".cm-dropCursor": {
+    borderLeftColor: "var(--color-editor-cursor, var(--color-text-normal))",
+    borderLeftWidth: "2px",
+  },
+  ".cm-fat-cursor": {
+    position: "absolute",
+    backgroundColor: "var(--color-editor-cursor, #000000) !important",
+    color: "var(--color-bg-primary, #ffffff) !important",
+    border: "none",
+    whiteSpace: "pre",
+  },
+  "&:not(.cm-focused) .cm-fat-cursor": {
+    backgroundColor: "transparent !important",
+    outline: "solid 1px var(--color-editor-cursor, #000000) !important",
+    color: "inherit !important",
   },
   "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection":
     {

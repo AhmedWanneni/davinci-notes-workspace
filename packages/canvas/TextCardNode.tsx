@@ -22,6 +22,9 @@ import {
   snapToGrid,
 } from "./canvasConstants";
 import { useCanvasEditor } from "./CanvasEditorContext";
+import { CanvasCardActionBar } from "./CanvasCardActionBar";
+import { getCanvasEdgeColorCss } from "./canvasEdgeConstants";
+import type { CanvasColor } from "./CanvasColor";
 import styles from "./TextCardNode.module.scss";
 
 export interface TextCardNodeData {
@@ -32,12 +35,29 @@ export interface TextCardNodeData {
 }
 
 function TextCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
-  const { setNodes } = useReactFlow();
-  const { onNodeTextChange, onLayoutChange } = useCanvasEditor();
+  const { setNodes, fitView } = useReactFlow();
+  const { onNodeTextChange, onLayoutChange, onDeleteNode, onNodeColorChange } =
+    useCanvasEditor();
   const text = typeof data.text === "string" ? data.text : "";
+  const color = typeof data.color === "string" ? data.color : undefined;
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(text);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleZoomTo = useCallback(() => {
+    void fitView({ nodes: [{ id }], duration: 300, padding: 0.3 });
+  }, [fitView, id]);
+
+  const handleDelete = useCallback(() => {
+    onDeleteNode?.(id);
+  }, [id, onDeleteNode]);
+
+  const handleColorChange = useCallback(
+    (nextColor?: string) => {
+      onNodeColorChange?.(id, nextColor as CanvasColor);
+    },
+    [id, onNodeColorChange],
+  );
 
   useEffect(() => {
     if (!isEditing) setDraft(text);
@@ -76,28 +96,46 @@ function TextCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
     [text],
   );
 
-  const handleResizeEnd = useCallback(() => {
-    setNodes((nodes) => {
-      const next = nodes.map((node) => {
-        if (node.id !== id) return node;
-        const width =
-          typeof node.style?.width === "number" ? node.style.width : 250;
-        const height =
-          typeof node.style?.height === "number" ? node.style.height : 120;
-        const [, gridY] = CANVAS_SNAP_GRID;
-        return {
-          ...node,
-          style: {
-            ...node.style,
-            width: snapToGrid(width, CANVAS_SNAP_GRID[0]),
-            height: snapToGrid(height, gridY),
-          },
-        };
+  const handleResizeEnd = useCallback(
+    (
+      _event: unknown,
+      params: { x: number; y: number; width: number; height: number },
+    ) => {
+      setNodes((nodes) => {
+        const next = nodes.map((node) => {
+          if (node.id !== id) return node;
+          const width = Number.isFinite(params.width)
+            ? params.width
+            : typeof node.style?.width === "number"
+              ? node.style.width
+              : 250;
+          const height = Number.isFinite(params.height)
+            ? params.height
+            : typeof node.style?.height === "number"
+              ? node.style.height
+              : 120;
+          const posX = Number.isFinite(params.x) ? params.x : node.position.x;
+          const posY = Number.isFinite(params.y) ? params.y : node.position.y;
+          const [gridX, gridY] = CANVAS_SNAP_GRID;
+          return {
+            ...node,
+            position: {
+              x: snapToGrid(posX, gridX),
+              y: snapToGrid(posY, gridY),
+            },
+            style: {
+              ...node.style,
+              width: snapToGrid(width, gridX),
+              height: snapToGrid(height, gridY),
+            },
+          };
+        });
+        queueMicrotask(onLayoutChange);
+        return next;
       });
-      queueMicrotask(onLayoutChange);
-      return next;
-    });
-  }, [id, onLayoutChange, setNodes]);
+    },
+    [id, onLayoutChange, setNodes],
+  );
 
   const cardClass = [
     styles["text-card"],
@@ -115,8 +153,19 @@ function TextCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
     .filter(Boolean)
     .join(" ");
 
+  const cardBorderColor = color
+    ? getCanvasEdgeColorCss(color as CanvasColor)
+    : undefined;
+
   return (
     <div className={wrapperClass}>
+      <CanvasCardActionBar
+        selected={Boolean(selected && !isEditing)}
+        onDelete={handleDelete}
+        onColorChange={handleColorChange}
+        onZoomTo={handleZoomTo}
+        onEdit={() => setIsEditing(true)}
+      />
       <NodeResizer
         isVisible={selected && !isEditing}
         minWidth={MIN_TEXT_CARD_WIDTH}
@@ -147,7 +196,11 @@ function TextCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
         id="left"
         className={styles["text-card__handle"]}
       />
-      <div className={cardClass} data-testid={`text-card-${id}`}>
+      <div
+        className={cardClass}
+        style={cardBorderColor ? { borderColor: cardBorderColor } : undefined}
+        data-testid={`text-card-${id}`}
+      >
         {isEditing ? (
           <textarea
             ref={textareaRef}

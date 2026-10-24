@@ -15,6 +15,7 @@ import {
   CaretRight,
   DotsThree,
   FileText,
+  Image as ImageIcon,
 } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
@@ -24,6 +25,15 @@ import { readNote, createNoteInVault } from "../../vault";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
 import { EditorConflictBanner } from "./EditorConflictBanner";
 import { useEditorMediaHandlers } from "./useEditorMediaHandlers";
+import { NoteCoverImage } from "./NoteCoverImage";
+import { useNoteCoverImage } from "./useNoteCoverImage";
+import { stripNoteMetadata } from "./stripNoteMetadata";
+
+const LazyCoverImagePickerModal = lazy(() =>
+  import("./CoverImagePickerModal").then((m) => ({
+    default: m.CoverImagePickerModal,
+  })),
+);
 
 const LazyCanvasView = lazy(() =>
   import("@app/canvas").then((m) => ({
@@ -111,10 +121,28 @@ export function EditorArea({
     handleSaveMediaFile,
   } = useEditorMediaHandlers(activeNotePath);
 
-  const { frontmatter } = useMemo(
-    () => (activeNotePath ? parseFrontmatter(content) : { frontmatter: {} }),
-    [activeNotePath, content],
+  const cleanedContent = useMemo(
+    () => stripNoteMetadata(content),
+    [content],
   );
+
+  const { frontmatter } = useMemo(
+    () =>
+      activeNotePath
+        ? parseFrontmatter(cleanedContent)
+        : { frontmatter: {} },
+    [activeNotePath, cleanedContent],
+  );
+
+  const {
+    coverUrl,
+    coverY,
+    isCoverPickerOpen,
+    setIsCoverPickerOpen,
+    handleSetCover,
+    handleRemoveCover,
+    handleSaveCoverPosition,
+  } = useNoteCoverImage(activeNotePath, content, frontmatter, updateNoteContent);
 
   const displayTitle = useMemo(() => {
     if (!activeNotePath) return "";
@@ -162,6 +190,114 @@ export function EditorArea({
     ? conflictNotes.has(activeNotePath)
     : false;
 
+  const noteHeader = (
+    <div
+      className={`editor-area__note-header${coverUrl ? " editor-area__note-header--overlay" : ""}`}
+      data-tauri-drag-region
+      data-visible={isInsertMenuOpen || undefined}
+    >
+      <div className="editor-area__note-header-actions">
+        <button
+          type="button"
+          className="editor-area__note-header-button"
+          aria-label="Go back"
+          disabled={noteHistory.index <= 0}
+          onClick={() => void goBack()}
+        >
+          <CaretLeft size={16} weight="regular" />
+        </button>
+        <button
+          type="button"
+          className="editor-area__note-header-button"
+          aria-label="Go forward"
+          disabled={noteHistory.index >= noteHistory.paths.length - 1}
+          onClick={() => void goForward()}
+        >
+          <CaretRight size={16} weight="regular" />
+        </button>
+      </div>
+      <span
+        className="editor-area__note-header-title"
+        data-tauri-drag-region
+        title={displayTitle}
+      >
+        {displayTitle}
+      </span>
+      <div className="editor-area__note-header-actions">
+        <button
+          type="button"
+          className="editor-area__note-header-button"
+          aria-label={coverUrl ? "Change cover image" : "Add cover image"}
+          title={coverUrl ? "Change cover image" : "Add cover image"}
+          onClick={() => setIsCoverPickerOpen(true)}
+        >
+          <ImageIcon size={16} weight="regular" />
+        </button>
+        <button
+          type="button"
+          className="editor-area__note-header-button"
+          aria-label="Insert"
+          aria-expanded={isInsertMenuOpen}
+          onClick={(event) => {
+            const view = editorViewRef.current;
+            if (!view) return;
+            insertSelectionRef.current = view.state.selection;
+            setInsertAnchor(
+              event.currentTarget.getBoundingClientRect(),
+            );
+            setIsInsertMenuOpen(true);
+          }}
+        >
+          <DotsThree size={16} weight="regular" />
+        </button>
+        {isCoverPickerOpen && (
+          <Suspense fallback={null}>
+            <LazyCoverImagePickerModal
+              currentCover={coverUrl}
+              onSelectCover={handleSetCover}
+              onRemoveCover={coverUrl ? handleRemoveCover : undefined}
+              onPickLocalFile={handlePickLocalImage}
+              onClose={() => setIsCoverPickerOpen(false)}
+            />
+          </Suspense>
+        )}
+        {isInsertMenuOpen &&
+          insertAnchor &&
+          editorViewRef.current &&
+          insertSelectionRef.current && (
+            <Suspense fallback={null}>
+              <LazyInsertMenu
+                anchor={insertAnchor}
+                selection={insertSelectionRef.current}
+                view={editorViewRef.current}
+                onClose={() => setIsInsertMenuOpen(false)}
+              />
+            </Suspense>
+          )}
+        {insertDialogRequest && (
+          <Suspense fallback={null}>
+            <LazyInsertDialog
+              request={insertDialogRequest}
+              onConfirm={(input) =>
+                completeInsertDialog(insertDialogRequest, input)
+              }
+              onCancel={() => cancelInsertDialog(insertDialogRequest)}
+              onPickLocalFile={handlePickLocalImage}
+            />
+          </Suspense>
+        )}
+        {editingReminder && (
+          <Suspense fallback={null}>
+            <LazyReminderEditModal
+              reminder={editingReminder}
+              onClose={() => setEditingReminder(null)}
+            />
+          </Suspense>
+        )}
+      </div>
+    </div>
+  );
+
   useEffect(() => {
     editorViewRef.current?.requestMeasure();
     editorViewRef.current?.focus();
@@ -187,7 +323,9 @@ export function EditorArea({
             }
           >
             <LazyCanvasView
-              canvasPath={activeNotePath}
+              path={activeNotePath}
+              initialContent={content}
+              onContentChange={updateNoteContent}
               allNotePaths={allNotePaths}
               notesContent={notesContent}
               readNoteContent={handleReadNote}
@@ -195,92 +333,25 @@ export function EditorArea({
               onCreateNote={handleCreateNote}
               resolveMediaUrl={handleResolveMediaUrl}
               onSaveMediaFile={handleSaveMediaFile}
+              onPickLocalImage={handlePickLocalImage}
             />
           </Suspense>
         ) : (
           <div className="editor-area__container">
+            {coverUrl ? (
+              <NoteCoverImage
+                coverUrl={coverUrl}
+                coverY={coverY}
+                resolveMediaUrl={handleResolveMediaUrl}
+                onChangeCover={() => setIsCoverPickerOpen(true)}
+                onRemoveCover={handleRemoveCover}
+                onSavePosition={handleSaveCoverPosition}
+              >
+                {noteHeader}
+              </NoteCoverImage>
+            ) : null}
             <div className="editor-area__header">
-              <div className="editor-area__note-header" data-tauri-drag-region>
-                <div className="editor-area__note-header-actions">
-                  <button
-                    type="button"
-                    className="editor-area__note-header-button"
-                    aria-label="Go back"
-                    disabled={noteHistory.index <= 0}
-                    onClick={() => void goBack()}
-                  >
-                    <CaretLeft size={16} weight="regular" />
-                  </button>
-                  <button
-                    type="button"
-                    className="editor-area__note-header-button"
-                    aria-label="Go forward"
-                    disabled={noteHistory.index >= noteHistory.paths.length - 1}
-                    onClick={() => void goForward()}
-                  >
-                    <CaretRight size={16} weight="regular" />
-                  </button>
-                </div>
-                <span
-                  className="editor-area__note-header-title"
-                  data-tauri-drag-region
-                  title={displayTitle}
-                >
-                  {displayTitle}
-                </span>
-                <div className="editor-area__note-header-actions">
-                  <button
-                    type="button"
-                    className="editor-area__note-header-button"
-                    aria-label="Insert"
-                    aria-expanded={isInsertMenuOpen}
-                    onClick={(event) => {
-                      const view = editorViewRef.current;
-                      if (!view) return;
-                      insertSelectionRef.current = view.state.selection;
-                      setInsertAnchor(
-                        event.currentTarget.getBoundingClientRect(),
-                      );
-                      setIsInsertMenuOpen(true);
-                    }}
-                  >
-                    <DotsThree size={16} weight="regular" />
-                  </button>
-                  {isInsertMenuOpen &&
-                    insertAnchor &&
-                    editorViewRef.current &&
-                    insertSelectionRef.current && (
-                      <Suspense fallback={null}>
-                        <LazyInsertMenu
-                          anchor={insertAnchor}
-                          selection={insertSelectionRef.current}
-                          view={editorViewRef.current}
-                          onClose={() => setIsInsertMenuOpen(false)}
-                        />
-                      </Suspense>
-                    )}
-                  {insertDialogRequest && (
-                    <Suspense fallback={null}>
-                      <LazyInsertDialog
-                        request={insertDialogRequest}
-                        onConfirm={(input) =>
-                          completeInsertDialog(insertDialogRequest, input)
-                        }
-                        onCancel={() => cancelInsertDialog(insertDialogRequest)}
-                        onPickLocalFile={handlePickLocalImage}
-                      />
-                    </Suspense>
-                  )}
-                  {editingReminder && (
-                    <Suspense fallback={null}>
-                      <LazyReminderEditModal
-                        reminder={editingReminder}
-                        onClose={() => setEditingReminder(null)}
-                      />
-                    </Suspense>
-                  )}
-                </div>
-              </div>
+              {!coverUrl && noteHeader}
               <PropertiesBlock
                 frontmatter={frontmatter}
                 onLinkClick={onLinkClick}
@@ -302,7 +373,7 @@ export function EditorArea({
             <div className="editor-area__body">
               <Editor
                 key={activeNotePath}
-                value={content}
+                value={cleanedContent}
                 onChange={(newVal) => updateNoteContent(activeNotePath, newVal)}
                 notePaths={allNotePaths}
                 sourcePath={activeNotePath}

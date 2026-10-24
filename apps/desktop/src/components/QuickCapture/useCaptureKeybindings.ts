@@ -1,8 +1,9 @@
 import type { KeyboardEvent, RefObject } from "react";
 import type { SearchResult } from "@app/indexer";
+import type { QuickCaptureMode } from "./QuickCaptureHeader";
 
 export interface UseCaptureKeybindingsOptions {
-  setMode: (mode: "capture" | "search") => void;
+  setMode: (mode: QuickCaptureMode) => void;
   text: string;
   onSave: (content: string) => void;
   onDismiss: () => void;

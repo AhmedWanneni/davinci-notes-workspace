@@ -29,6 +29,54 @@
   align-items: center;
   min-height: 38px;
   border-bottom: none;
+
+  &--overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 15;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0.2) 60%,
+      transparent 100%
+    );
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+
+    .editor-area__note-header-title {
+      color: #ffffff;
+      font-weight: var(--type-weight-medium);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    }
+
+    .editor-area__note-header-button {
+      color: rgba(255, 255, 255, 0.85);
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+      }
+
+      &:focus-visible {
+        outline: var(--border-width-thin) solid rgba(255, 255, 255, 0.8);
+        outline-offset: -1px;
+      }
+
+      &:disabled {
+        color: rgba(255, 255, 255, 0.35);
+      }
+    }
+
+    &[data-visible="true"],
+    &:focus-within {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
 }
 
 .editor-area__note-header-actions {

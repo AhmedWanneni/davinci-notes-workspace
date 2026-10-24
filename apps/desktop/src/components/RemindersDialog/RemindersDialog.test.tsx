@@ -185,4 +185,20 @@ describe("RemindersDialog component", () => {
       expect.any(String),
     );
   });
+
+  it("opens add reminder form when Add a reminder button is clicked", async () => {
+    render(
+      <RemindersDialog
+        isOpen={true}
+        onOpenChange={vi.fn()}
+        onSelectNote={vi.fn()}
+      />,
+    );
+
+    const addBtn = screen.getByRole("button", { name: "Add a reminder" });
+    fireEvent.click(addBtn);
+
+    expect(screen.getByRole("form", { name: "Add a reminder" })).toBeDefined();
+    expect(screen.getByLabelText("Reminder Task Title")).toBeDefined();
+  });
 });

@@ -186,4 +186,22 @@ describe("VaultSwitcher", () => {
     fireEvent.click(screen.getByText("View vault logs…"));
     expect(onOpenLogs).toHaveBeenCalledTimes(1);
   });
+
+  it("renders collapsed trigger when isCollapsed is true", () => {
+    render(
+      <VaultSwitcher
+        isCollapsed
+        vaultName="Active Vault"
+        vaultPath="/vaults/active"
+        onSwitchVault={onSwitchVault}
+        onOpenFolderPicker={onOpenFolderPicker}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /Current vault: Active Vault/i,
+    });
+    expect(trigger.getAttribute("data-collapsed")).toBe("true");
+    expect(screen.queryByText("Active Vault")).toBeNull();
+  });
 });

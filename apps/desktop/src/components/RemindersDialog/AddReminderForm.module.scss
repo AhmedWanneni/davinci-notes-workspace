@@ -1,0 +1,48 @@
+.add-reminder-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-bg-primary-alt);
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.add-reminder-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.add-reminder-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.add-reminder-form__presets {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.add-reminder-form__preset-btn {
+  background: transparent;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  padding: 2px var(--space-2);
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--motion-duration-fast);
+
+  &:hover {
+    color: var(--color-text-normal);
+    background-color: var(--color-bg-hover);
+  }
+}
+
+.add-reminder-form__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
