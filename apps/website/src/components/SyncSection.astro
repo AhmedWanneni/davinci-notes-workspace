@@ -1,0 +1,59 @@
+---
+import './SyncSection.css';
+---
+
+<section class="logseq-sync-section" id="sync">
+  <div class="logseq-container">
+    <div class="sync-split-layout">
+      <!-- Left Explanation -->
+      <div class="sync-text-col">
+        <div class="sync-badge-header">
+          <div class="sync-cloud-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+            </svg>
+          </div>
+          <div class="sync-label-group">
+            <span>Davinci Sync</span>
+            <span class="badge-beta">BETA</span>
+          </div>
+        </div>
+
+        <h3>
+          <strong>Always up-to-date notes</strong> between all your devices.
+        </h3>
+        <p>
+          With encrypted file syncing, you'll always have your notes <strong>backed up and securely available in real-time</strong> on any device.
+        </p>
+      </div>
+
+      <!-- Right Sync Status Mockup Card -->
+      <div class="sync-mockup-card">
+        <div class="sync-card-status">
+          <span class="sync-pulse-dot" aria-hidden="true"></span>
+          <span>Currently syncing your graph...</span>
+        </div>
+
+        <div class="sync-progress-meta">
+          <span>Processed <strong>1 of 2 files</strong></span>
+          <span>1 min left</span>
+        </div>
+
+        <div class="sync-track-bar">
+          <div class="sync-fill-bar"></div>
+        </div>
+
+        <div class="syncing-files-list">
+          <div class="sync-file-row">
+            <span>assets/image_165658236694.png</span>
+            <span class="file-percent">12% ↻</span>
+          </div>
+          <div class="sync-file-row">
+            <span>journals/2022_07_01.md</span>
+            <span class="file-status-done">✓ synced</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

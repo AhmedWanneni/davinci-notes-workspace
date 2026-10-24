@@ -1,0 +1,103 @@
+/* ==========================================================================
+   DAVINCI NOTES — EDITORIAL DESIGN TOKENS
+   Deep Atmospheric Base Background: #150612 (Midnight Wine / Black Burgundy)
+   Palette:
+     - BURGUNDY:   #4B1D3F
+     - WHEAT/NUDE: #F5E8D0 / #E8D9C1
+     - ROSE SMOKE: #D8A7B1
+     - MIDNIGHT:   #150612
+   Strictly flat surfaces: 0 box-shadows, 0 drop-shadows. Organic / hand-drawn.
+   ========================================================================== */
+
+:root {
+  /* Core Reference Swatches */
+  --palette-burgundy: #4b1d3f;
+  --palette-nude: #f5e8d0;
+  --palette-wheat: #f5e8d0;
+  --palette-rose-smoke: #d8a7b1;
+  --palette-off-black: #150612;
+  --palette-midnight-wine: #150612;
+
+  /* Surfaces (Unified #150612 background with harmonious elevated planes) */
+  --bg-canvas: #150612;
+  --bg-hero-stage: #150612;
+  --bg-surface: #220b1e;
+  --bg-elevated: #2e1029;
+  --bg-inset: #11040f;
+  --bg-burgundy: #4b1d3f;
+  --bg-nude: #f5e8d0;
+  --bg-rose-smoke: #d8a7b1;
+
+  /* Typography Colors (High contrast AAA readability against #150612) */
+  --text-primary: #f5e8d0;
+  --text-on-hero: #f5e8d0;
+  --text-secondary: #d8a7b1;
+  --text-muted: #c4a5af;
+  --text-faint: #8e6d78;
+  --text-on-accent: #f5e8d0;
+  --text-on-light: #150612;
+
+  /* Accent Pigments */
+  --accent-terracotta: #d8a7b1;
+  --accent-vermilion: #b8435d;
+  --accent-burgundy: #4b1d3f;
+  --accent-rose: #d8a7b1;
+  --accent-nude: #f5e8d0;
+
+  /* Hairline & Organic Hand-Drawn Borders (Harmonized rose smoke & wheat hairlines) */
+  --border-hairline: rgba(216, 167, 177, 0.22);
+  --border-strong: #d8a7b1;
+  --border-accent: #f5e8d0;
+  --border-burgundy: #4b1d3f;
+  --border-on-hero: rgba(216, 167, 177, 0.25);
+
+  /* Organic Hand-Drawn Border Radii */
+  --radius-hand-drawn: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  --radius-hand-drawn-subtle: 180px 10px 160px 10px / 10px 160px 10px 180px;
+
+  /* Orbital Graph Tokens */
+  --orbit-edge-idle: rgba(216, 167, 177, 0.42);
+  --orbit-edge-active: #f5e8d0;
+  --orbit-node-bg: #240b20;
+  --orbit-node-bg-near: #4b1d3f;
+  --orbit-chip-bg: #300f2a;
+  --skull-cavity-bg: #2c0c27;
+  --skull-cavity-stroke: #d8a7b1;
+
+  /* Font Stacks */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Space Grotesk", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Fluid Type Scale */
+  --text-xs: 0.6875rem;
+  --text-sm: 0.78125rem;
+  --text-base: clamp(0.9375rem, 1vw, 1.05rem);
+  --text-lg: clamp(1.125rem, 1.35vw, 1.35rem);
+  --text-xl: clamp(1.5rem, 2.2vw, 2.15rem);
+  --text-2xl: clamp(2.1rem, 4.4vw, 4.25rem);
+  --text-hero: clamp(2.35rem, 6.2vw, 6.15rem);
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --space-9: 6.5rem;
+  --container-max: 1380px;
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+
+  /* Z-Index Layer Stack */
+  --z-orbit-back: 10;
+  --z-portrait-base: 15;
+  --z-skull-cavity: 18;
+  --z-orbit-front: 22;
+  --z-portrait-crown: 25;
+  --z-orbit-near: 30;
+  --z-inspector: 40;
+  --z-nav: 50;
+}

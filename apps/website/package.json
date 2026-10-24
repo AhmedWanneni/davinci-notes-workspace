@@ -8,7 +8,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "lint": "astro build",
-    "test": "echo 'No website unit tests configured'"
+    "test": "node --experimental-strip-types --test src/scripts/orbitMath.test.ts"
   },
   "dependencies": {
     "astro": "^7.4.0"

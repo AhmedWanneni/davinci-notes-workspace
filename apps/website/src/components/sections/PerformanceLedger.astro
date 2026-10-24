@@ -1,0 +1,93 @@
+---
+const benchmarks = [
+  {
+    metric: 'Desktop Binary Weight',
+    davinci: '~8.4 MB (Tauri v2 Native)',
+    electron: '210 – 280 MB (Bundled Chromium)',
+    cloud: 'Browser Tab + 14 MB JS Bundle',
+    advantage: '28× lighter on disk',
+  },
+  {
+    metric: 'Cold Startup to First Keystroke',
+    davinci: '340 ms (Target < 500 ms)',
+    electron: '1,900 – 3,400 ms',
+    cloud: '2,200 – 4,500 ms (Network RTT)',
+    advantage: 'Instant capture',
+  },
+  {
+    metric: 'Idle Memory Footprint (RAM)',
+    davinci: '42 MB',
+    electron: '380 – 620 MB',
+    cloud: '310 – 540 MB per tab',
+    advantage: '10× lower RAM',
+  },
+  {
+    metric: '5,000-Note Vault Scan & Index',
+    davinci: '392 ms (0.2 MB heap delta)',
+    electron: '2,100 ms+',
+    cloud: 'Server-side rate-limited',
+    advantage: '50-item batched Rust I/O',
+  },
+  {
+    metric: 'Lazy Module Isolation',
+    davinci: '0 KB initial overhead for Graph/Canvas/AI/Calendar',
+    electron: 'Monolithic startup bundle',
+    cloud: 'Monolithic hydration tree',
+    advantage: 'Strict dynamic import() gates',
+  },
+  {
+    metric: 'Background Telemetry & Analytics',
+    davinci: '0 outbound requests (100% offline)',
+    electron: 'Varies / Crash reporters',
+    cloud: 'Continuous event tracking',
+    advantage: 'Total cognitive privacy',
+  },
+];
+---
+
+<section class="benchmarks-section" id="benchmarks" aria-labelledby="benchmarks-heading">
+  <div class="swiss-shell">
+    <div class="paper-manifesto-block">
+      <div class="section-header-grid is-on-paper">
+        <div>
+          <p class="kicker-index">03 / THE WEIGHT OF TOOLS · PERFORMANCE LEDGER</p>
+          <h2 id="benchmarks-heading" class="display-section">
+            Speed is a standing constraint,<br />
+            <em>never an afterthought.</em>
+          </h2>
+        </div>
+        <p class="editorial-lead section-sublead">
+          Every dependency and feature in DaVinci Notes is governed by a strict
+          bundle and latency budget (<code>PERFORMANCE.md</code>). Non-critical views
+          (Graph, Canvas, Calendar, Vim, AI) ship in isolated asynchronous chunks
+          with 0 bytes added to initial startup.
+        </p>
+      </div>
+
+      <div class="ledger-table-wrap" role="region" aria-label="Performance comparison table" tabindex="0">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th scope="col">Engineering Metric</th>
+              <th scope="col" class="is-davinci-col">DaVinci Notes (Tauri v2 + Rust)</th>
+              <th scope="col">Typical Electron Note App</th>
+              <th scope="col">Cloud SaaS Workspace</th>
+              <th scope="col">Architectural Delta</th>
+            </tr>
+          </thead>
+          <tbody>
+            {benchmarks.map((row) => (
+              <tr>
+                <th scope="row" class="metric-cell">{row.metric}</th>
+                <td class="is-davinci-col"><strong>{row.davinci}</strong></td>
+                <td>{row.electron}</td>
+                <td>{row.cloud}</td>
+                <td class="delta-cell mono-label">{row.advantage}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>

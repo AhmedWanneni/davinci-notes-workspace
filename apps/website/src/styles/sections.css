@@ -1,0 +1,135 @@
+/* ==========================================================================
+   DAVINCI NOTES — SECTIONS 02 (ANATOMY), 03 (LEDGER) & 04 (ACQUIRE)
+   ========================================================================== */
+
+.anatomy-section, .benchmarks-section, .acquire-section {
+  border-bottom: 1px solid var(--border-hairline);
+  padding-bottom: var(--space-8);
+}
+
+.specimen-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-left: 1px solid var(--border-hairline);
+  border-top: 1px solid var(--border-hairline);
+  margin-top: var(--space-6);
+}
+
+.specimen-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-right: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--border-hairline);
+  background-color: var(--bg-surface);
+}
+
+.specimen-top { display: flex; justify-content: space-between; padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-hairline); }
+.specimen-number { color: var(--accent-terracotta); font-weight: 500; }
+.specimen-kicker { color: var(--text-muted); }
+
+.specimen-diagram {
+  margin: var(--space-4) 0;
+  padding: var(--space-3);
+  background-color: var(--bg-inset);
+  border: 1px solid var(--border-hairline);
+}
+
+.specimen-svg { width: 100%; height: auto; display: block; }
+.specimen-title { margin: 0 0 var(--space-3); font-family: var(--font-display); font-size: 1.85rem; font-weight: 600; line-height: 1.08; }
+.specimen-body { margin: 0 0 var(--space-4); font-size: 0.92rem; line-height: 1.55; color: var(--text-secondary); }
+.specimen-footer { padding-top: var(--space-3); border-top: 1px solid var(--border-hairline); color: var(--text-muted); }
+
+/* Section 03: Performance Benchmark Ledger */
+.ledger-table-wrap { margin-top: var(--space-6); overflow-x: auto; border: 1px solid var(--border-strong); }
+.ledger-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+
+.ledger-table th, .ledger-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-hairline);
+  border-right: 1px solid var(--border-hairline);
+}
+
+.ledger-table thead th {
+  background-color: var(--bg-inset);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.ledger-table .is-davinci-col { background-color: var(--bg-elevated); color: var(--accent-terracotta); }
+.metric-cell { font-weight: 500; color: var(--text-primary); }
+.delta-cell { color: var(--accent-gold); }
+
+/* Section 04: Acquire & Platform Grid */
+.acquire-header { padding: var(--space-7) 0 var(--space-5); text-align: left; }
+.acquire-lead { margin-top: var(--space-4); max-width: 52ch; }
+.platform-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-top: var(--space-5); }
+
+.platform-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-5);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.platform-card.is-primary-os, .platform-card:hover {
+  border-color: var(--accent-terracotta);
+  background-color: var(--bg-elevated);
+}
+
+.platform-card-top { display: flex; align-items: center; justify-content: space-between; }
+.platform-name { font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; }
+.platform-badge { padding: 2px 6px; border: 1px solid var(--border-hairline); color: var(--text-muted); }
+.platform-arch { margin: var(--space-2) 0 var(--space-4); font-size: 0.82rem; color: var(--text-secondary); }
+
+.platform-file {
+  padding: var(--space-2);
+  background-color: var(--bg-inset);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.platform-card-foot { display: flex; justify-content: space-between; margin-top: var(--space-4); padding-top: var(--space-3); border-top: 1px solid var(--border-hairline); }
+.platform-dl-cta { color: var(--accent-terracotta); font-weight: 600; }
+
+.checksum-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-inset);
+  border: 1px solid var(--border-hairline);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.2fr;
+  gap: var(--space-5);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-6);
+  align-items: center;
+}
+
+.footer-tagline { margin: var(--space-2) 0 0; font-size: 0.82rem; color: var(--text-secondary); }
+.footer-links-col { display: flex; flex-wrap: wrap; gap: var(--space-4); color: var(--text-secondary); }
+.footer-colophon p { margin: 4px 0; color: var(--text-muted); }
+
+@media (max-width: 960px) {
+  .specimen-grid { grid-template-columns: 1fr; }
+  .platform-grid { grid-template-columns: repeat(2, 1fr); }
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) { .platform-grid { grid-template-columns: 1fr; } }
