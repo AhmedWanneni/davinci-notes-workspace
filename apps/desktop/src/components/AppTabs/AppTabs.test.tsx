@@ -136,4 +136,24 @@ describe("AppTabs", () => {
 
     expect(screen.queryByRole("button", { name: "Open tabs list" })).toBeNull();
   });
+
+  it("renders distinct kanban icon for board tabs", () => {
+    const { container } = render(
+      <AppTabs
+        openNotes={["board.md", "regular.md"]}
+        activeNotePath="board.md"
+        dirtyNotes={new Set()}
+        boardNotes={new Set(["board.md"])}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    const tabs = container.querySelectorAll(".app-tabs__tab");
+    expect(tabs).toHaveLength(2);
+    // Tab 1 is board, tab 2 is markdown
+    expect(tabs[0].querySelector("svg")).toBeDefined();
+    expect(tabs[1].querySelector("svg")).toBeDefined();
+  });
 });

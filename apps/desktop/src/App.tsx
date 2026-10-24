@@ -3,6 +3,7 @@ import React, {
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -139,6 +140,17 @@ export function App() {
   const activeContent = activeNotePath
     ? (notesContent[activeNotePath] ?? "")
     : "";
+
+  const boardNotes = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of openNotes) {
+      const c = notesContent[p];
+      if (c && /(?:^|\n)\s*kanban-plugin\s*:\s*["']?board["']?\s*(?:\r?\n|$)/.test(c)) {
+        set.add(p);
+      }
+    }
+    return set;
+  }, [openNotes, notesContent]);
 
   const loadSettings = useWorkspaceStore((state) => state.loadSettings);
   const openNote = useWorkspaceStore((state) => state.openNote);
@@ -671,6 +683,7 @@ export function App() {
             activeNotePath={activeNotePath}
             dirtyNotes={dirtyNotes}
             conflictNotes={conflictNotes}
+            boardNotes={boardNotes}
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
             onCloseAllNotes={() => void closeAllNotes()}

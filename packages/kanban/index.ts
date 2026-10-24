@@ -18,3 +18,7 @@ export {
 } from "./laneOperations";
 export { computeLineDiff } from "./lineDiff";
 export type { LineDiffChange } from "./lineDiff";
+export { KanbanView } from "./KanbanView";
+export type { KanbanViewProps } from "./KanbanView";
+export { renderInlineMarkdown } from "./renderInlineMarkdown";
+export type { InlineRenderOptions } from "./renderInlineMarkdown";

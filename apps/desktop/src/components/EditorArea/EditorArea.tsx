@@ -16,6 +16,7 @@ import {
   DotsThree,
   FileText,
   Image as ImageIcon,
+  Kanban as KanbanIcon,
 } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
@@ -38,6 +39,11 @@ const LazyCoverImagePickerModal = lazy(() =>
 const LazyCanvasView = lazy(() =>
   import("@app/canvas").then((m) => ({
     default: m.CanvasView,
+  })),
+);
+const LazyKanbanView = lazy(() =>
+  import("@app/kanban").then((m) => ({
+    default: m.KanbanView,
   })),
 );
 const LazyInsertMenu = lazy(() =>
@@ -154,6 +160,46 @@ export function EditorArea({
     );
   }, [activeNotePath]);
 
+  const isBoardNote = useMemo(() => {
+    return Boolean(
+      frontmatter &&
+        (frontmatter as Record<string, unknown>)["kanban-plugin"] === "board",
+    );
+  }, [frontmatter]);
+
+  const [noteViewModes, setNoteViewModes] = useState<
+    Record<string, "board" | "markdown">
+  >({});
+  const currentViewMode = activeNotePath
+    ? (noteViewModes[activeNotePath] ?? (isBoardNote ? "board" : "markdown"))
+    : "markdown";
+  const isKanbanActive = isBoardNote && currentViewMode === "board";
+
+  const [boardParseError, setBoardParseError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isBoardNote && content) {
+      void import("@app/kanban")
+        .then(({ parseBoard }) => {
+          try {
+            parseBoard(content);
+            setBoardParseError(null);
+          } catch {
+            setBoardParseError(
+              "This note has kanban-plugin: board but could not be parsed safely. Opened as Markdown.",
+            );
+          }
+        })
+        .catch(() => {
+          setBoardParseError(
+            "Failed to load kanban module. Opened as Markdown.",
+          );
+        });
+    } else {
+      setBoardParseError(null);
+    }
+  }, [isBoardNote, content]);
+
   const handleReadNote = useCallback(async (path: string) => {
     const file = await readNote(path);
     return file.content;
@@ -224,6 +270,27 @@ export function EditorArea({
         {displayTitle}
       </span>
       <div className="editor-area__note-header-actions">
+        {isBoardNote && (
+          <button
+            type="button"
+            className="editor-area__note-header-button"
+            aria-label={isKanbanActive ? "Open as markdown" : "Open as board"}
+            title={isKanbanActive ? "Open as markdown" : "Open as board"}
+            onClick={() => {
+              if (!activeNotePath) return;
+              setNoteViewModes((prev) => ({
+                ...prev,
+                [activeNotePath]: isKanbanActive ? "markdown" : "board",
+              }));
+            }}
+          >
+            {isKanbanActive ? (
+              <FileText size={16} weight="regular" />
+            ) : (
+              <KanbanIcon size={16} weight="regular" />
+            )}
+          </button>
+        )}
         <button
           type="button"
           className="editor-area__note-header-button"
@@ -336,7 +403,7 @@ export function EditorArea({
               onPickLocalImage={handlePickLocalImage}
             />
           </Suspense>
-        ) : (
+        ) : isKanbanActive && !boardParseError ? (
           <div className="editor-area__container">
             {coverUrl ? (
               <NoteCoverImage
@@ -359,6 +426,82 @@ export function EditorArea({
             </div>
             {hasConflict && activeNotePath && (
               <EditorConflictBanner
+                path={activeNotePath}
+                onKeepMine={() =>
+                  void resolveConflict(activeNotePath, "keep_mine")
+                }
+                onUseDisk={() =>
+                  void resolveConflict(activeNotePath, "use_disk")
+                }
+                onSaveCopy={() =>
+                  void resolveConflict(activeNotePath, "save_copy")
+                }
+              />
+            )}
+            <div
+              className="editor-area__body"
+              style={{ display: "flex", flex: 1, minHeight: 0 }}
+            >
+              <Suspense
+                fallback={
+                  <div
+                    className="kanban-view-loading"
+                    style={{
+                      padding: "16px",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    Loading kanban board...
+                  </div>
+                }
+              >
+                <LazyKanbanView
+                  path={activeNotePath}
+                  initialContent={content}
+                  onContentChange={updateNoteContent}
+                  onLinkClick={onLinkClick}
+                  onTagClick={onTagClick}
+                />
+              </Suspense>
+            </div>
+          </div>
+        ) : (
+          <div className="editor-area__container">
+            {boardParseError && (
+              <div
+                style={{
+                  padding: "8px 16px",
+                  background: "var(--color-bg-status-warning, #fff8e1)",
+                  borderBottom: "1px solid var(--color-border-subtle, #e4e4e4)",
+                  color: "var(--color-text-normal, #222222)",
+                  fontSize: "0.875rem",
+                }}
+              >
+                ⚠️ {boardParseError}
+              </div>
+            )}
+            {coverUrl ? (
+              <NoteCoverImage
+                coverUrl={coverUrl}
+                coverY={coverY}
+                resolveMediaUrl={handleResolveMediaUrl}
+                onChangeCover={() => setIsCoverPickerOpen(true)}
+                onRemoveCover={handleRemoveCover}
+                onSavePosition={handleSaveCoverPosition}
+              >
+                {noteHeader}
+              </NoteCoverImage>
+            ) : null}
+            <div className="editor-area__header">
+              {!coverUrl && noteHeader}
+              <PropertiesBlock
+                frontmatter={frontmatter}
+                onLinkClick={onLinkClick}
+              />
+            </div>
+            {hasConflict && activeNotePath && (
+              <EditorConflictBanner
+                path={activeNotePath}
                 onKeepMine={() =>
                   void resolveConflict(activeNotePath, "keep_mine")
                 }
