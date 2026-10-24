@@ -1,0 +1,28 @@
+.clip-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.clip-editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.clip-editor__label {
+  display: block;
+}
+
+.clip-editor__properties {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.clip-editor__legend {
+  padding: 0;
+}

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { formatDeviceIdGroups } from "@app/syncthing-api";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../../theme";
 import { Badge, Button, Text } from "../../components/primitives";
 import { VaultManager } from "../../vault/vaultManager";
 import { useMobileSyncthing } from "./useMobileSyncthing";
@@ -42,6 +42,7 @@ export const MobileSyncthingPanel: React.FC = () => {
     dismissFolder,
   } = useMobileSyncthing();
 
+  const { tokens } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [addDeviceVisible, setAddDeviceVisible] = useState(false);
   const [scanToSyncVisible, setScanToSyncVisible] = useState(false);
@@ -74,7 +75,13 @@ export const MobileSyncthingPanel: React.FC = () => {
   );
 
   return (
-    <View className="p-4 rounded-lg border border-border-normal bg-bg-secondary mb-6">
+    <View
+      className="p-4 rounded-lg border mb-6"
+      style={{
+        backgroundColor: tokens.color.bg.secondary,
+        borderColor: tokens.color.border.normal,
+      }}
+    >
       {/* Header and status */}
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-2">
@@ -121,7 +128,13 @@ export const MobileSyncthingPanel: React.FC = () => {
           <Text size="xs" color="muted" weight="medium" className="mb-1">
             This Device ID (scan from desktop to pair):
           </Text>
-          <View className="p-3 rounded border border-border-subtle bg-bg-base mb-2">
+          <View
+            className="p-3 rounded border mb-2"
+            style={{
+              backgroundColor: tokens.color.bg.primary,
+              borderColor: tokens.color.border.subtle,
+            }}
+          >
             <Text
               size="xs"
               color="normal"
@@ -152,57 +165,10 @@ export const MobileSyncthingPanel: React.FC = () => {
       {isEmbedded ? <SyncthingRunConditionsView /> : null}
 
       {/* Action controls */}
-      <View className="flex-row gap-2 pt-3 mt-3 border-t border-border-subtle">
-        <Button
-          variant="primary"
-          size="sm"
-          onPress={async () => {
-            if (status !== "running" && startService) {
-              await startService();
-            }
-            setScanToSyncVisible(true);
-          }}
-          disabled={isLoading}
-          className="flex-1"
-        >
-          Scan to Sync
-        </Button>
-
-        {status === "running" ? (
-          <Button
-            variant="secondary"
-            size="sm"
-            onPress={async () => {
-              const key = (await getSyncthingApiKey()) || "";
-              await mobileSyncthingTriggerScan(key);
-              await refresh();
-            }}
-            disabled={isLoading}
-          >
-            Sync Now
-          </Button>
-        ) : isEmbedded ? (
-          <Button
-            variant="secondary"
-            size="sm"
-            onPress={startService}
-            disabled={isLoading}
-          >
-            Start
-          </Button>
-        ) : null}
-
-        {isEmbedded && status === "running" ? (
-          <Button
-            variant="secondary"
-            size="sm"
-            onPress={stopService}
-            disabled={isLoading}
-          >
-            Stop
-          </Button>
-        ) : null}
-
+      <View
+        className="flex-row gap-2 pt-2 border-t"
+        style={{ borderTopColor: tokens.color.border.subtle }}
+      >
         <Button
           variant="secondary"
           size="sm"
@@ -210,10 +176,7 @@ export const MobileSyncthingPanel: React.FC = () => {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator
-              size="small"
-              color={darkColorTokens.text.normal}
-            />
+            <ActivityIndicator size="small" color={tokens.color.text.normal} />
           ) : (
             "Refresh"
           )}

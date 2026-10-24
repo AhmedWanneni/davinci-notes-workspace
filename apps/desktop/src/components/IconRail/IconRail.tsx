@@ -3,6 +3,7 @@ import {
   MagnifyingGlass,
   ShareNetwork,
   CalendarBlank,
+  CalendarCheck,
   FrameCorners,
   Bell,
   Gear,
@@ -20,7 +21,9 @@ export interface IconRailProps {
   onDailyNotes?: () => void;
   onCreateCanvas?: () => void;
   onOpenReminders?: () => void;
+  onOpenCalendar?: () => void;
   isGlobalGraphOpen?: boolean;
+  isCalendarOpen?: boolean;
 }
 
 export function IconRail({
@@ -33,7 +36,9 @@ export function IconRail({
   onDailyNotes,
   onCreateCanvas,
   onOpenReminders,
+  onOpenCalendar,
   isGlobalGraphOpen,
+  isCalendarOpen,
 }: IconRailProps) {
   return (
     <nav className="icon-rail" aria-label="Primary navigation">
@@ -89,6 +94,20 @@ export function IconRail({
             <CalendarBlank size={18} weight="regular" />
           </button>
         </Tooltip>
+
+        {onOpenCalendar && (
+          <Tooltip content="Calendar & Meetings" contentProps={{ side: "right" }}>
+            <button
+              type="button"
+              className="icon-rail__btn"
+              data-active={isCalendarOpen || undefined}
+              onClick={onOpenCalendar}
+              aria-label="Calendar"
+            >
+              <CalendarCheck size={18} weight="regular" />
+            </button>
+          </Tooltip>
+        )}
 
         {onCreateCanvas && (
           <Tooltip content="New canvas" contentProps={{ side: "right" }}>

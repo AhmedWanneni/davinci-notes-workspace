@@ -1,11 +1,8 @@
 import React, { Suspense, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import {
-  formatDeviceIdGroups,
-  parseScannedDeviceId,
-} from "@app/syncthing-api";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { formatDeviceIdGroups, parseScannedDeviceId } from "@app/syncthing-api";
+import { useTheme } from "../../theme";
 import { Sheet, Button, Input, Text } from "../../components/primitives";
 
 const LazyScanner = React.lazy(() => import("./SyncthingQrScanner"));
@@ -16,11 +13,10 @@ export interface SyncthingAddDeviceModalProps {
   onAddDevice: (id: string, name: string) => Promise<void>;
 }
 
-export const SyncthingAddDeviceModal: React.FC<SyncthingAddDeviceModalProps> = ({
-  visible,
-  onClose,
-  onAddDevice,
-}) => {
+export const SyncthingAddDeviceModal: React.FC<
+  SyncthingAddDeviceModalProps
+> = ({ visible, onClose, onAddDevice }) => {
+  const { tokens } = useTheme();
   const [tab, setTab] = useState<"scan" | "paste">("scan");
   const [scannedId, setScannedId] = useState("");
   const [pastedId, setPastedId] = useState("");
@@ -49,7 +45,8 @@ export const SyncthingAddDeviceModal: React.FC<SyncthingAddDeviceModalProps> = (
     const parsed = parseScannedDeviceId(rawText);
     if (!parsed.valid) {
       setErrorMessage(
-        parsed.error || "The scanned QR code is not a valid Syncthing Device ID.",
+        parsed.error ||
+          "The scanned QR code is not a valid Syncthing Device ID.",
       );
       return;
     }
@@ -64,7 +61,9 @@ export const SyncthingAddDeviceModal: React.FC<SyncthingAddDeviceModalProps> = (
     if (!text) return;
     const parsed = parseScannedDeviceId(text);
     if (!parsed.valid) {
-      setErrorMessage(parsed.error || "Clipboard does not contain a valid Device ID.");
+      setErrorMessage(
+        parsed.error || "Clipboard does not contain a valid Device ID.",
+      );
       return;
     }
     setPastedId(parsed.deviceId);
@@ -183,7 +182,7 @@ export const SyncthingAddDeviceModal: React.FC<SyncthingAddDeviceModalProps> = (
                 <View className="h-[240px] items-center justify-center">
                   <ActivityIndicator
                     size="small"
-                    color={darkColorTokens.text.accent}
+                    color={tokens.color.interactive.accent}
                   />
                   <Text size="xs" color="muted" className="mt-2">
                     Loading camera...

@@ -1,0 +1,93 @@
+---
+import './LogseqHero.css';
+---
+
+<section class="logseq-hero-section" id="hero">
+  <div class="logseq-container hero-inner">
+    <h1 class="hero-title">
+      Connect your notes,<br />
+      <strong>increase understanding.</strong>
+    </h1>
+
+    <div class="hero-stage">
+      <!-- Glow ambient background behind the figure -->
+      <div class="hero-glow-backdrop" aria-hidden="true"></div>
+
+      <!-- Keep the image: The classical woman in terracotta drape seated on grey rocks -->
+      <div class="hero-portrait-frame">
+        <img
+          src="/images/hero/muse-base-768.webp"
+          alt="Classical thinker seated on stone in warm terracotta drape"
+          class="hero-portrait-img"
+          width="540"
+          height="769"
+          fetchpriority="high"
+        />
+      </div>
+
+      <!-- Floating interconnected Logseq-style note cards -->
+      <div class="hero-floating-cards" aria-hidden="true">
+        <!-- Top Agenda Card -->
+        <div class="card-float card-agenda">
+          <div class="card-agenda-head">
+            <span class="status-indicator"></span>
+            <span class="tag-now">NOW</span>
+            <span>Meeting with <mark>[[Jessica]]</mark></span>
+          </div>
+          <div class="card-agenda-sub">
+            <span>• She mentioned her current read: <mark>[[Book/Intertwingled]]</mark></span>
+          </div>
+        </div>
+
+        <!-- Left Person Card -->
+        <div class="card-float card-person">
+          <div class="avatar-circle">JA</div>
+          <div class="card-person-info">
+            <strong>Jessica</strong>
+            <small>👤 Person</small>
+            <small class="faint">Jessica Albert</small>
+          </div>
+        </div>
+
+        <!-- Right Book Card -->
+        <div class="card-float card-book">
+          <div class="book-cover-badge">
+            <span>INTER<br />TWIN<br />GLED</span>
+          </div>
+          <div class="card-book-info">
+            <strong>Intertwingled</strong>
+            <small>📖 Book</small>
+            <small class="faint">Peter Morville</small>
+          </div>
+        </div>
+
+        <!-- Bottom Wikilink Note Card -->
+        <div class="card-float card-bottom-note">
+          <span>• My notes on <mark>[[Book / Intertwingled]]</mark>:</span>
+        </div>
+
+        <!-- Subtle Hairline Connecting Lines -->
+        <svg class="hero-connector-lines" viewBox="0 0 600 360" fill="none">
+          <line x1="280" y1="65" x2="190" y2="155" stroke="var(--logseq-cyan)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.6" />
+          <line x1="320" y1="65" x2="410" y2="155" stroke="var(--logseq-cyan)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.6" />
+          <line x1="190" y1="210" x2="300" y2="295" stroke="var(--logseq-cyan)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.6" />
+          <line x1="410" y1="210" x2="300" y2="295" stroke="var(--logseq-cyan)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.6" />
+        </svg>
+      </div>
+    </div>
+
+    <!-- Download & Exploration CTAs matching Logseq -->
+    <div class="hero-cta-actions">
+      <a href="#download" class="btn-logseq-primary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        <span>Download for Desktop</span>
+        <span class="btn-arrow" aria-hidden="true">⌵</span>
+      </a>
+      <a href="#features" class="btn-logseq-secondary">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+        <span>Web app</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </div>
+  </div>
+</section>

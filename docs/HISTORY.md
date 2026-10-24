@@ -2,9 +2,644 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-19: Marketing Site Unified Midnight Background (#150612) & Harmonized Wine Styling
+
+- **Unified Section Canvas Background (`#150612`)**:
+  - Set the background of **every section** (`HeroSection`, `RoleSection`, `CommunitySection`, `ThoughtsStage`, `WorkflowsSection`, `SafeSpaceSection`, `SyncSection`, `ClosingSection`, and `SiteNav`) strictly to `#150612`.
+  - Replaced alternating `--logseq-bg-alt` with `--logseq-bg: #150612`, eliminating disjointed grey sections while preserving section hierarchy via subtle, organic 1.5px hairline dividers (`rgba(216, 167, 177, 0.22)`).
+  - Updated `<meta name="theme-color" content="#150612" />` and the SVG favicon background to match the unified canvas.
+- **Harmonized Elevated Wine Surfaces & High-Contrast Typography**:
+  - Elevated surfaces updated to deep wine tones: `#220B1E` (`--logseq-card`), `#2E1029` (`--logseq-card-hover`), `#4B1D3F` (`--logseq-card-active`), and `#1B0717` (`--logseq-card-dark`).
+  - Text colors paired for maximum contrast and readability: luminous Wheat (`#F5E8D0`, 15.6:1 WCAG AAA contrast) for titles and body, and Rose Smoke (`#D8A7B1`, 8.6:1 contrast) for secondary accents and metadata.
+  - Mockup code windows, sticky notes, and timeline cards updated to blend naturally into the `#150612` field.
+- **Strict Compliance & Verification**:
+  - All files strictly under 237 lines (hard cap 250).
+  - Production static build succeeds in 349ms (`pnpm --filter @app/website build`).
+  - Desktop (1440px) and mobile (375px) screenshots captured and visually verified with zero horizontal overflow and zero box-shadows.
+
 ---
 
-### 2026-10-18: Mobile Text Rendering & Syncthing Connection Error Resolutions
+### 2026-10-19: Marketing Site Centered Hero & Vivid Burgundy/Wheat Redesign
+
+- **Centered, Un-Compacted Hero Structure (`HeroSection.astro`, `hero.css`)**:
+  - Eliminated the cramped two-column layout, telemetry bar, and sidebar inspector card.
+  - Centered monumental display typography (*"Connect your notes, increase understanding."*) with comfortable, airy line spacing.
+  - Placed the classical woman and rock cutout prominently in the center of the hero stage with zero background behind her, dissolving naturally into the Off-Black canvas.
+  - Positioned high-contrast CTA buttons (`Download for Desktop ⌵`, `Explore Features ↗`) centered directly below the rocks.
+- **Vivid Palette & Rich Content (`heroThoughts.ts`, `hero-nodes.css`, `tokens.css`)**:
+  - Vivid ("vif") contrast using Burgundy (`#4B1D3F`), luminous Wheat/Nude (`#E8D9C1`, `#F5E8D0`), Rose Smoke (`#D8A7B1`), and deep Off-Black (`#1B1B1B`).
+  - Enriched thought content featuring authentic polymath notes (`Meeting with [[Luca Pacioli]]`, `[[De Divina Proportione]]`, `Icosahedron Study`, `On Fleeting Ideas.md`, `#local-first/sqlite`, `Euler's Identity`, `Codex Atlanticus f.846`).
+  - 360-degree interactive 3D thought cloud encircling her head with weighted drag/swipe inertia, dynamic anchor positioning, and active hairline connectors.
+  - Absolute zero shadows project-wide with organic hand-drawn borders.
+- **Strict Compliance & Verification**:
+  - All files strictly under 238 lines (hard cap 250).
+  - Production static build succeeds in 251ms (`pnpm --filter @app/website build`).
+  - Visually verified via headless Chrome screenshots at desktop (1440px) and mobile (375px) with 0 horizontal overflow.
+
+---
+
+- **Design System & Layout Architecture (`apps/website/src/`)**:
+  - Implemented the complete dark petrol / deep slate teal design system from logseq.com (`--logseq-bg: #03171d`, `--logseq-card: #0a2932`, `--logseq-cyan: #00c4cc`, `--logseq-border: #133c47`).
+  - Retained the classical woman cutout (`muse-base-768.webp` in terracotta drape) as the centerpiece with soft cyan radial backdrop illumination and interconnected floating cards overlay (`Meeting with [[Jessica]]`, `Jessica` person card, `Intertwingled` book card, wikilink note badge, and dashed cyan connectors).
+  - Built all 8 full sections from logseq.com into modular components strictly complying with `AGENTS.md` line caps:
+    1. `SiteNav.astro`: Logo mark, `Home`, `Downloads`, `Community ↗`, `Privacy ↗`, `GitHub ↗`, and responsive `Download for Desktop ⌵` CTA button.
+    2. `LogseqHero.astro` + `LogseqHero.css`: Headline (*"Connect your notes, increase understanding."*), classical figure centerpiece, floating interconnected cards, and dual CTAs (`Download for Desktop ⌵`, `Web app ↗`).
+    3. `RoleSection.astro` + `RoleSection.css`: *"Today, everyone is a researcher"*, capability badges, 5 role tabs (`Students`, `Academics`, `Writers`, `Project Managers`, `Developers`), live editor outline window mockup with 3 feature pillars (`Review notes`, `Memorize facts`, `Outline essays`), and beginner tip carousel card with outline snippet.
+    4. `CommunitySection.astro`: Discord card with pulsing green indicator (`2,012 users online currently`) and Forum card.
+    5. `ThoughtsStage.astro` + `ThoughtsStage.css`: Center *"thoughts?"* typography surrounded by floating clutter items (YouTube, Tweet, mobile device, notebook, sticky note, PDF, search omnibar) and transformation statement.
+    6. `WorkflowsSection.astro` + `WorkflowsSection.css`: 4 tabs (`Relationships`, `Daily Plan`, `Journaling`, `Data Control`), headline, meeting timeline log with avatar ring, and user feedback testimonial card.
+    7. `SafeSpaceSection.astro` + `SafeSpaceSection.css`: *"A safe space for your thoughts"* 8-card trust grid (`Open source`, `Privacy first`, `Mobile apps`, `Markdown files`, `Strong community`, `Localization`, `150+ Plugins`, `30+ Themes`).
+    8. `SyncSection.astro` + `SyncSection.css`: Davinci Sync BETA badge with real-time file sync progress indicator card.
+    9. `ClosingSection.astro` + `ClosingSection.css`: *"Think faster, think better!"* final call-to-action glow card.
+    10. `SiteFooter.astro`: Davinci Notes brand, copyright, navigation links, GitHub/Twitter icons, and ProductHunt badge.
+- **Verification**:
+  - Every component and stylesheet is strictly $\le 220$ lines (adhering to 150-200 soft cap, 250 hard cap).
+  - Production build in 215ms via `pnpm --filter @app/website build`.
+  - Visual verification with headless Chrome on desktop 1440px, mobile 375px, and adversarial 320px viewport with zero horizontal overflow.
+
+---
+
+### 2026-10-18: Marketing Site Redesign & "The Opened Mind" Interactive Hero
+
+- **Design Tokens & Dual-Palette Architecture (`apps/website/src/styles/tokens.css`, `typography.css`, `global.css`)**:
+  - Implemented Direction A (*"Nocturnal Obsidian Codex"*, default `#121110` dark ink + `#d97754` terracotta drape + ultramarine/vermilion collage backing blocks) with live switchable support for Direction B (*"Salon Ultramarine & Archival Paper"*, `#1c22a8` field + `#f2ece1` ivory rag paper).
+  - Editorial typography pairing: `Cormorant Garamond` (display headlines), `Space Grotesk` (Swiss UI / body), and `IBM Plex Mono` (code / wikilinks / notes), with metric-matched font fallbacks ensuring CLS = 0.
+  - Zero box-shadows, zero gradients, zero glassmorphism, zero pill badges, and zero-cost static SVG noise grain overlay (`body::after`).
+- **Anatomical Cutout Pipeline & Pre-Rendered Vector Assets (`apps/website/public/images/hero/`)**:
+  - Sliced classical portrait into registration-locked `muse-base` and `muse-crown` layers along the 14° forehead cut line, with complete alpha de-fringing and painted cross-section rims.
+  - Exported responsive multi-density formats (`480w`, `768w`, `1120w`) in AVIF, WebP, and PNG (`39.3 KB` total on mobile, `80.6 KB` on desktop).
+  - Pre-rendered inline SVG math formulas (Euler's Identity, Fourier Transform, Wave Equation) and Leonardo notebook studies (Icosahedron, Ornithopter rib, Proportional compass) with 0 KB runtime LaTeX cost.
+- **3D Orbital Projection Engine & Accessibility (`orbitMath.ts`, `orbitController.ts`, `orbitInspector.ts`)**:
+  - Pure TypeScript 3D projection controller with zero external npm dependencies (`3.1 KB` gzipped JS).
+  - 360-degree pointer/touch drag rotation with weighted velocity inertia and subtle hover parallax.
+  - Depth cues via scale, opacity, and dynamic z-occlusion (nodes physically pass behind her head at `z < -16` and in front of her lifted crown at `z > 28`).
+  - Active backlink highlighting with animated SVG hairline graph connections.
+  - Fly-Forward Note Inspector Card with connected thought jumping, plus a semantic `<details>` plain-text index drawer for screen readers and no-JS fallback.
+  - Scroll-driven entrance: cranium lifts on scroll while thoughts emerge from the cross-hatched red cavity and funnel downward into the Section 01 Workbench frame.
+- **Editorial Full-Page Narrative (`WorkbenchSection`, `AnatomySection`, `PerformanceLedger`, `DownloadManifesto`)**:
+  - Section 01: Three-pane live vault blueprint (File Tree, CodeMirror 6 live-preview with 4 workflow tabs, and Local Graph).
+  - Section 02: Four-specimen Swiss architectural index (Plain `.md` endurance, SQLite FTS5 BM25 search, Syncthing P2P sync, polymath tools).
+  - Section 03: Performance Ledger comparing Tauri v2 vs Electron vs Cloud SaaS across startup, binary weight, and memory.
+  - Section 04: Platform download grid, SHA-256 release checksum bar, and colophon.
+- **Verification & Compliance**:
+  - All unit tests pass in `orbitMath.test.ts`.
+  - Static production build passes in 229ms (`pnpm --filter @app/website build`).
+  - Verified across desktop 1440px, mobile 375px, and true 320px emulation (`scrollWidth === clientWidth === 320`).
+  - Every single file in `apps/website/src/` strictly respects `AGENTS.md` line limits ($\le 218$ lines).
+
+---
+
+### 2026-10-20: Toolbar Action Infinite Print Loop Fix
+
+- **Root-Cause Analysis**:
+  - In `EditorDom.tsx`, `useEffect` listening to `[actionTrigger]` re-executed whenever `actionTrigger` changed reference.
+  - When a toolbar action (e.g. "heading" or "bold") modified the document, CodeMirror triggered `onDocChanged`, which updated `content` state in `editor.tsx`.
+  - Re-rendering `editor.tsx` passed re-serialized `actionTrigger` down to `EditorDom` across the bridge, producing a new object reference in the WebView and causing `useEffect([actionTrigger])` to re-execute indefinitely in an infinite insertion loop.
+- **Resolution**:
+  - Introduced `lastActionIdRef` and `lastInsertIdRef` in `apps/mobile/components/EditorDom.tsx`.
+  - Guarded toolbar action execution with `actionTrigger.id !== lastActionIdRef.current` and insert trigger with `insertTrigger.id !== lastInsertIdRef.current`, ensuring actions execute exactly once per user tap regardless of parent re-renders.
+  - Fixed `onMetricsUpdate` crash by passing a no-op handler and making RPC name registration conditional.
+- **Verification**:
+  - Added unit test in `tests/folderAndEditorExperience.test.tsx` verifying action idempotency across re-renders.
+  - Test suites: `tests/folderAndEditorExperience.test.tsx` (8/8 passed), `tests/mobileEditor.test.ts` (6/6 passed), `tests/immersiveMode.test.ts` (4/4 passed).
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `EditorDom.tsx`: 248 lines (< 250 cap), `editor.tsx`: 236 lines.
+
+---
+
+### 2026-10-20: Unified Direct File Access into Editor Preview/Edit & Unconditional Navigation Bar Hiding
+
+- **Direct File Access to Unified Preview/Edit Screen**:
+  - Tapping any note in `FilesScreen`, `SearchScreen`, `VaultDrawerContent`, or wikilinks now opens `/editor` directly (`mode: "preview"`).
+  - Users are directly on the preview/edit screen without having to navigate to a reader screen first and then push a new editor screen each time.
+  - Tapping "Edit" in the header pill `[ Edit | Preview ]` or within the preview document switches directly to CodeMirror editing on the **same screen** with zero navigation stack push.
+  - Tapping "Preview" switches back to live Markdown preview on the same screen.
+  - `apps/mobile/app/note.tsx` automatically redirects/replaces with `/editor?mode=preview`, ensuring any legacy routes or deep links land on the unified screen.
+- **Expo Navigation Bar Hiding**:
+  - Hides the Android system navigation bar unconditionally on mount in `apps/mobile/app/editor.tsx` (`<NavigationBar hidden={true} />`) and in `useImmersiveNavigationBar()` (`NavigationBar.setHidden(true)` and `setVisibilityAsync("hidden")`).
+  - Automatically re-asserts hiding when software keyboard dismisses and when returning from app background, and cleanly restores on unmount.
+  - Default `cachedImmersiveMode` updated to `true` (enabled).
+- **Verification**:
+  - Vitest test suites: `tests/folderAndEditorExperience.test.tsx` (7/7 passed), `tests/immersiveMode.test.ts` (4/4 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed), `components/shell/shell.test.tsx` (4/4 passed), `components/shell/FileActionSheet.test.tsx` (2/2 passed), `components/shell/NoteActionSheet.test.tsx` (2/2 passed), `components/FormattingToolbar.test.tsx` (2/2 passed). Total: 24/24 passed.
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `editor.tsx`: 235 lines, `note.tsx`: 17 lines, `index.tsx`: 233 lines, `search.tsx`: 231 lines.
+
+---
+
+### 2026-10-20: Sidebar Folder Expansion, In-Editor Preview/Edit Dual Mode, and Add Folder Fixes
+
+- **Sidebar Folder Opening & Interactive Expansion**:
+  - Identified that folders in `VaultDrawerContent.tsx` were static non-interactive `<View>` elements with no `onPress` or expansion mechanism, preventing folder navigation and hiding notes inside folders.
+  - Built `DrawerFolderItem.tsx` with expandable/collapsible chevron controls (`CaretRight` / `CaretDown`), folder note count tags, and nested note rendering with visual indentation.
+  - Tapping folder chevron toggles expansion to reveal notes inside that folder. Tapping notes opens them directly.
+  - Tapping folder label invokes `onSelectFolder` to navigate `FilesScreen` directly into that folder.
+- **Same-Page Preview and Edit for Editor**:
+  - Implemented dual-mode editing/previewing on the same screen in `apps/mobile/app/editor.tsx` (`mode: "edit" | "preview"`).
+  - Updated `EditorHeader.tsx` to include an accessible segmented control pill `[ Edit | Preview ]`.
+  - Created `EditorPreviewView.tsx`: takes live editor `content`, parses markdown into an AST using `parseMarkdownDocument(content)`, and renders `NoteReaderView` right on the same page.
+  - Extracted `editorInjectedScript.ts` to keep `editor.tsx` under the 250-line limit (227 lines).
+  - Tapping "Edit" or "Preview" switches the view instantly with zero route transitions and zero latency.
+- **Add Folder Fixes Across App**:
+  - Fixed modal collision between `NavigationDrawer` and `NewFolderSheet` by introducing safe coordinated dismissal delay.
+  - Added "New Folder" item (`FolderPlus`) to `CreateActionSheet.tsx` so users can add folders from the central tab bar action button.
+  - Enhanced `NewFolderSheet.tsx` with input validation (checks for empty string and forbidden slash characters) and friendly inline error feedback.
+  - Added `NewFolderSheet` support to `note.tsx` and `(tabs)/_layout.tsx` so folder creation works vault-wide.
+- **Verification**:
+  - `tests/folderAndEditorExperience.test.tsx` (7/7 passed).
+  - Shell and navigation suite (17/17 passed).
+  - Typecheck: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors (`pnpm --filter @app/mobile lint`).
+  - Strict compliance with file size cap (< 250 lines).
+
+---
+
+### 2026-10-20: Android Immersive Mode, Tab Bar Hiding & Safe-Area Preservation
+
+- **Android Immersive Navigation Bar & Restoration**:
+  - Integrated `expo-navigation-bar` (SDK 57) for declarative and imperative system navigation bar controls.
+  - Implemented `apps/mobile/settings/immersiveModeState.ts`:
+    - Persisted setting via SQLite `settings` table (`ui.immersive_mode`, default `0` / off).
+    - Synchronous reactive subscriptions via React's `useSyncExternalStore`.
+    - `useImmersiveNavigationBar`: On Android note and editor screens, automatically hides the navigation bar on mount, re-asserts hiding when the software keyboard closes (`keyboardDidHide`) and when returning from app background (`AppState` `active`), and cleanly restores the navigation bar on unmount.
+    - Also renders declarative `<NavigationBar hidden={true} />` in `note.tsx` and `editor.tsx` when Android immersive mode is active.
+- **Tab Bar Hiding & Keyboard Avoidance**:
+  - In `(tabs)/_layout.tsx`: Configured `tabBarHideOnKeyboard: true` in `screenOptions` so the bottom tab bar automatically dismisses whenever the keyboard appears.
+  - In `_layout.tsx`: Note and editor screens are rendered on top as standalone Stack screens with zero bottom tab bar.
+- **Bottom Safe-Area Inset Preservation**:
+  - `QuickActionBar` maintains `paddingBottom: Math.max(insets.bottom, 12)` so buttons maintain 12pt padding when the navigation bar is hidden and adapt to the system bar height when restored.
+  - `EditorScreen` uses `paddingBottom: insets.bottom`, allowing full immersive screen space down to the edge when hidden and avoiding overlap when visible.
+  - Bottom sheets retain `paddingBottom: Math.max(insets.bottom, 16)`.
+  - Android hardware back button (`BackHandler`) and edge gestures remain 100% operational in immersive mode via `BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE`.
+- **Settings UI**:
+  - Created `apps/mobile/components/settings/ImmersiveModeSection.tsx` with token-bound card styling and switch control.
+  - Mounted directly in `apps/mobile/app/settings.tsx`.
+- **Verification**:
+  - Unit tests: `tests/immersiveMode.test.ts` (4/4 passed), `tests/mobileShell.test.ts` (9/9 passed), `tests/mobileSuspendedSync.test.ts` (5/5 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed).
+  - Physical device runtime verification: `adb devices` reported 0 connected devices; marked physical device checks as NOT RUN.
+  - Typecheck: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors or warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: All files under 250 lines (`note.tsx`: 229, `editor.tsx`: 228, `immersiveModeState.ts`: 129).
+
+---
+
+### 2026-10-20: Universal Mobile Dynamic Theming Across All Screens
+
+- **Root-Cause Analysis for Screen Theme Inconsistency**:
+  - Utility classes like `bg-bg-primary`, `bg-bg-secondary`, `bg-bg-surface`, and `border-border-default` compile to static CSS variables in NativeWind/Tailwind. In native React Native, there is no dynamic CSS DOM runtime to automatically re-evaluate custom CSS variables on runtime theme changes.
+  - In `apps/mobile/theme/MobileThemeProvider.tsx`, theme switching was decoupled from mode, causing a theme to be ignored if mode was mismatched (e.g. tapping `catppuccin-latte` while mode was `dark`).
+  - Headless unit tests or components called directly without `MobileThemeProvider` threw `Cannot read properties of null (reading 'useContext')` in `useTheme`.
+- **System-Wide Dynamic Token Binding**:
+  - **`useTheme.ts`**: Introduced `defaultFallbackThemeContext` and safe fallback handling in `useTheme()`, ensuring zero crashes in headless tests, isolated component rendering, or direct function execution.
+  - **`MobileThemeProvider.tsx`**: Synchronized active theme selection with theme mode polarity (`target.isDark ? "dark" : "light"`), ensuring instant and universal switching across all 4 built-in themes (`catppuccin-frappe`, `catppuccin-latte`, `light-a`, `dark-b`) and system mode.
+  - **Settings & Sync**:
+    - `SyncSettingsPanel.tsx`: Bound root `ScrollView`, status card, Google Drive card, conflict banners, and policy info card dynamically to `tokens.color.bg.primary`, `secondary`, and `border.subtle`.
+    - `SyncStatusBadge.tsx`: Added optional `tokens` prop with fallback to `darkBTokens` (100% pure component), with dynamic styling for badge container and dot indicators.
+    - `MobileSyncthingPanel.tsx`: Dynamically bound card background, device ID container, top separator, and activity indicator to `tokens`.
+    - `SyncthingQrScanner.tsx`, `SyncthingQrView.tsx`, and `SyncthingAddDeviceModal.tsx`: Fully token-bound for dark/light themes.
+  - **Vault, Canvas & Editor**:
+    - `FirstRunVaultScreen.tsx`: Dynamically bound scrollview, header badge, and vault creation cards to `tokens.color.bg.primary` and `secondary`.
+    - `CanvasViewer.tsx` & `CanvasViewerDom.tsx`: Threaded dynamic tokens (`bgPrimaryAlt`, `bgSecondary`, `textNormal`, `borderNormal`, `interactiveAccent`, `textError`) into Canvas viewer DOM host.
+    - `EditorDom.tsx`: Updated DOM host CSS injection to prioritize dynamic CSS variables over hardcoded fallbacks via `var(--color-bg-primary)!important`.
+    - `NoteReaderView.tsx`: Bound code blocks, inline code snippets, blockquotes, and tasks to `tokens.color.bg.secondary`.
+    - `OutlineSheet.tsx` & `BacklinksSheet.tsx`: Bound tab headers, tab indicators, and item cards to `tokens.color.bg["primary-alt"]` and `border.subtle`.
+    - `share-target.tsx`, `new-note-action.tsx`, `daily-note-action.tsx`: Bound root containers to dynamic `tokens.color.bg.primary`.
+- **Verification**:
+  - `pnpm --filter @app/mobile typecheck`: 0 errors.
+  - `pnpm --filter @app/mobile lint`: 0 errors or warnings.
+  - `tests/mobileShell.test.ts` & `tests/mobileSuspendedSync.test.ts`: 100% green.
+  - Every file in `apps/mobile/` strictly under 250 lines (soft cap: 150-200, hard cap: 250).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Dynamic Vim Cursor Styles (Block in Normal, Beam/Bar in Insert, Underline in Command)
+
+- **Dynamic Terminal Cursor Styling (`terminal_guard.rs`, `tui_app.rs`)**:
+  - Implemented terminal DECSCUSR cursor shape switching via `crossterm::cursor::SetCursorStyle`:
+    - **Insert mode**: Cursor dynamically switches to thin vertical beam/bar (`SetCursorStyle::SteadyBar`).
+    - **Normal mode**: Cursor switches to solid rectangular block (`SetCursorStyle::SteadyBlock`).
+    - **Command mode**: Cursor switches to horizontal underline (`SetCursorStyle::SteadyUnderScore`).
+    - **Sidebar / Non-editor panes**: Maintains solid block cursor.
+    - **Terminal Cleanup & Safe Handoff**: `TerminalGuard::restore_terminal()` executes `SetCursorStyle::DefaultUserShape` so the terminal emulator restores the user's native cursor shape when exiting the app, handling panics, or handing off to an external editor.
+- **Verification**:
+  - Unit test `test_update_cursor_style_does_not_panic` passing.
+  - All 50 tests passing (`pnpm --filter @app/cli test`).
+  - Strict line caps respected: `terminal_guard.rs` (91 lines), `tui_app.rs` (54 lines) (well below 150-200 line soft cap and 250 hard cap).
+  - Clippy clean (0 warnings with `-D warnings`).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Motion Numeric Counts (4J, 4x, 4dd, 4yy, 4w, 4j, 4k) & Redo Stack (Ctrl+R)
+
+- **Numeric Count Prefix Engine (`vim_ops.rs`, `tui_state.rs`, `vim_motions.rs`)**:
+  - Implemented Vim standard numeric count prefix accumulation (`state.count_prefix`) for digits `'1'..='9'` and subsequent `'0'..='9'` (with standalone `'0'` remaining line-start).
+  - Wired count multiplier across all Vim operations and motions:
+    - Line joining (`4J`): Joins $N$ lines into one line via `join_n_lines` (e.g. `4J` joins 4 lines).
+    - Deletion (`4x`, `4X`): Deletes $N$ characters forward/backward in a single atomic undoable slice (`delete_forwards_n`, `delete_backwards_n`).
+    - Operator counts (`4dd`, `4yy`, `4dw`, `4yw`, `4cw`, `4cc`): Deletes/yanks/changes $N$ lines or words in one operation.
+    - Motion counts (`4j`, `4k`, `4h`, `4l`, `4w`, `4b`, `4e`): Moves $N$ lines, characters, or words.
+    - Line jump counts (`12G`, `12gg`): Jumps directly to line $N$.
+    - Paste & Undo counts (`4p`, `4P`, `4u`): Pastes or undoes $N$ times.
+  - Added full Redo stack (`EditorBuffer::redo_stack`) triggered via `Ctrl+R` in Normal mode.
+  - Live count visual indicator: displays pending count prefix in editor footer mode line (e.g. `-- NORMAL -- (4)`).
+  - Pressing <kbd>Esc</kbd> cancels any pending count prefix or pending operator.
+- **Verification**:
+  - Added integration test `test_vim_counts_and_4j` verifying `4J`, `4x`, `u`, and `Ctrl+R` redo.
+  - All 49 unit and integration tests passing (`pnpm --filter @app/cli test`); 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 248 lines (under 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Native Vim/Neovim External Handoff, Config Resolution, and In-Process Vim Mode Evaluation (ADR-0205, ADR-0206)
+
+- **Root-Cause Diagnosis & Empirical Findings**:
+  - Found that default `editor_mode` was set to `EditorMode::Builtin`, so opening notes in the TUI entered the built-in Ratatui rope buffer instead of running real Vim, keeping the user in the mini-editor without access to their `.vimrc`.
+  - Found that fallback resolution blindly prioritized `nvim` over `vim`. On systems with `~/.vimrc`, Neovim does not load `.vimrc`, bypassing the user's Vim mappings and settings.
+  - Found naive `split_whitespace()` split quoted editor arguments like `EDITOR="nvim -c 'set wrap'"` into broken arguments.
+  - Found missing `--` caused notes with leading dashes (`-note.md`) to be parsed as editor command-line options.
+- **Implementation & Architecture (ADR-0205)**:
+  - Switched default `editor_mode` to `EditorMode::External`: pressing <kbd>Enter</kbd>, double-clicking, clicking the right preview pane, or pressing <kbd>e</kbd>/<kbd>i</kbd> immediately runs real Vim natively.
+  - Config-aware fallback: if `~/.vimrc` exists in `$HOME`, automatically prioritizes `vim` so that the user's `.vimrc` (line numbers, `nmap j gj`, `nnoremap K :m .-2<CR>==`) is natively loaded directly by Vim itself. If `init.lua` exists without `.vimrc`, prioritizes `nvim`.
+  - 5-tier resolution precedence: `--editor` flag -> `[editor] command/args` config -> `$VISUAL` -> `$EDITOR` -> config-aware `vim`/`nvim`/`vi`.
+  - Zero-dependency POSIX quote parser (`command_parser::parse_shell_words`).
+  - Terminal handoff: `TerminalGuard::restore_terminal()` leaves alternate screen and disables raw mode before child process spawn with inherited stdio (`isatty == 1`); `TerminalGuard::reenter_terminal()` restores TUI and `terminal.clear()` handles terminal resize (`SIGWINCH`) upon return.
+  - Safe `--` argument placed immediately prior to note path.
+  - Post-exit targeted file refresh: checks `mtime`, file size, and content hash; reloads only that file in TUI without full-vault rescan.
+  - Subcommands: `dn edit <name>`, `dn open <name> --editor <cmd> --editor-args <args>`, and `dn config`.
+- **In-Process Vim Mode Evaluation (ADR-0206, `docs/cli-vim-mode-eval.md`)**:
+  - Researched 4 options: `edtui`, `tui-textarea`, `nvim --embed` (`nvim-rs`), and built-in rope buffer.
+  - Recommended retaining external handoff (ADR-0205) as primary, keeping rope buffer as built-in default, and proposing future embedded Neovim behind an optional `embedded-nvim` Cargo feature flag so quick capture startup budget is never compromised.
+- **Verification**:
+  - Hyperfine benchmark on quick capture: mean **8.9 ms** (min 4.9 ms, max 87.5 ms, 437 runs) beating < 15.00 ms budget.
+  - Zero SQLite call sites verified (`vault-index.db` is never opened).
+  - All 48 unit and integration tests passing (`pnpm --filter @app/cli test`).
+  - All source files strictly under 209 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Full Vim Editing Suite (dd, yy, p, P, dw, yw, cw, cc, r, J, ~)
+
+- **Vim Operator & Motion Engine (`vim_motions.rs`, `vim_ops.rs`)**:
+  - Implemented multi-key operator state machine (`PendingOp`) supporting classic two-key Vim idioms:
+    - Line operations: `dd` (delete/cut line into register), `yy` (yank/copy line), `cc` (change line).
+    - Word operations: `dw` (delete word), `yw` (yank word), `cw` (change word), `w` / `b` / `e` (word navigation).
+    - Line-end operations: `D` / `d$` (delete to end of line), `C` / `c$` (change to end of line), `Y` (yank line).
+    - Register & Paste: `p` (paste line below or char after cursor), `P` (paste line above or char before cursor).
+    - Character operations: `x` (delete char), `s` (substitute char), `r<char>` (replace char under cursor), `~` (toggle case).
+    - Line joining: `J` (join next line into current line with single space).
+  - All operations integrate with `EditorBuffer` rope structure and full undo history (`u`).
+- **Verification**:
+  - 42 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 200 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Command Mode (:q, :q!, :wq, :w) & Note-Level Focus Control
+
+- **Vim Command Mode & Focus Control (`vim_command.rs`, `tui_events.rs`, `tui_view.rs`)**:
+  - Typing `:` enters Vim Command mode with live command prompt (`:<cmd>█`) in the editor footer.
+  - `:w` / `Ctrl+S`: Saves file atomically to disk and stays in editor.
+  - `:q` / `q`: Closes note and switches focus back to the left sidebar (file tree) instead of quitting the application. Blocks quit if unsaved edits exist (`E37: No write since last change (add ! to override)`).
+  - `:q!`: Force closes note, discards unsaved edits by reloading disk content, and switches focus back to sidebar.
+  - `:wq` / `:qw` / `:x`: Saves file and switches focus back to sidebar.
+  - Quitting the entire application is reserved for pressing `q` when focused on the sidebar or running `:qa`/`:wqa`.
+- **Verification**:
+  - 41 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 200 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — In-App Vim Editor with Persistent Sidebar & Fullscreen Toggle
+
+- **Persistent Sidebar Navigation (`tui_events.rs`, `tui_state.rs`)**:
+  - Pressing `Enter` or clicking on a file opens the note directly into the active right-pane editor while keeping the left file tree sidebar visible on screen.
+  - Automatically auto-saves modified files on note switch without lost edits.
+  - Slices directory items by scroll offset so large trees scroll with the selection.
+- **In-App Vim Mode Editing (`tui_events.rs`, `tui_view.rs`)**:
+  - Full modal in-place editing in the right pane: Normal mode (`h`/`j`/`k`/`l`, `0`/`$`, `x`, `u`, `g`/`G`, `Ctrl+D`/`Ctrl+U`), Insert mode (`i`, `a`, `A`, `I`, `o`, `O`), `Esc` to return to Normal mode.
+  - Real-time line numbering, cursor tracking with terminal position sync, and mode indicators (`-- NORMAL --` / `-- INSERT --`).
+  - `Ctrl+S` atomic save with `atomic_write_new` and status confirmation.
+- **On-Demand Fullscreen Toggle (`tui_view.rs`, `tui_state.rs`)**:
+  - Pressing `f` or `F`, or clicking `[f] Fullscreen` expands the editor to 100% terminal width.
+  - Pressing `f`, `Esc`, or clicking `[f] Split` restores the dual-pane view with the sidebar.
+- **Verification**:
+  - 40 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 197 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Integration, Fullscreen Mode & Interactive TUI UX
+
+- **Click to View & Focus (`tui_events.rs`, `tui_state.rs`)**:
+  - Clicking any file in the tree selects and immediately renders its formatted content in the right pane preview.
+  - Slices visible items by scroll offset so large directory trees scroll smoothly with the selection.
+- **Vim Editing Integration (`external_editor.rs`, `tui_events.rs`)**:
+  - Double-clicking a file, pressing `v` or `Enter`, or clicking `[v] Edit with Vim` launches real `vim` (or `nvim`/`vi`) full-screen.
+  - Automatically reloads modified content into the right preview pane upon exit and displays status feedback (`✔ Saved changes to <file>`).
+  - Added Vim scroll keybindings in the preview pane (`j`/`k`, `g`/`G` for top/bottom, `Ctrl+D`/`Ctrl+U` for half-page scroll).
+- **Fullscreen Preview Toggle (`tui_view.rs`, `tui_state.rs`)**:
+  - Pressing `f` or `F`, or clicking `[f] Fullscreen` expands the note reader to 100% terminal width.
+  - Pressing `f`, `Esc`, or clicking `[f] Split` restores the standard 35/65 split view.
+- **Verification**:
+  - 39 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 199 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 6: Packaging, Shell Completions & Documentation
+
+- **Packaging & Crate Metadata (`Cargo.toml`)**:
+  - Configured crate metadata with MIT license, repository, keywords, and description.
+  - Retained compact footprint: 604 KB standalone release binary with zero SQLite/Webview bloat.
+- **Shell Completions Engine (`main.rs`, `phase6_completions_tests.rs`)**:
+  - Integrated `clap_complete` supporting bash, zsh, fish, powershell, and elvish (`dn completions <shell>`).
+  - Added unit test asserting valid completion script generation with custom options and commands across all shells.
+- **CLI Documentation (`apps/cli/README.md`)**:
+  - Authored comprehensive guide detailing architecture, quick capture usage, TUI navigation, built-in modeless editor, search engine, shell completions, and performance benchmarks.
+- **Verification**:
+  - 35 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 186 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 5: Fast In-Memory Content Search & Watcher
+
+- **Zero-SQLite Content Search (`search_engine.rs`, `main.rs`)**:
+  - Implemented `dn find <query>` full-text search across all vault Markdown files using `WalkDir` without touching SQLite or index locks.
+  - Returns file path, line numbers, and formatted line snippets.
+  - Automatically filters hidden files/directories (`.git`, `.trash`, `.obsidian`, etc.).
+  - Benchmarked search response time on 100 notes: executed in < 10 ms (strictly beating the < 100 ms budget).
+- **External Change Awareness (`vault_watcher.rs`, `tui_app.rs`)**:
+  - Integrated `notify` filesystem watcher into TUI event loop.
+  - Automatically detects when external files are created, modified, or deleted by the desktop app or sync clients, and re-renders tree and preview without UI freezes.
+- **Verification**:
+  - 34 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 186 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 4: Built-in Modeless Editor
+
+- **Rope Text Buffer (`builtin_editor_buffer.rs`)**:
+  - Implemented high-performance text buffer using `Rope` (`ropey`), supporting $O(\log N)$ character insertions, deletions, and line-to-char mappings.
+  - Benchmarked large-note typing latency on a 10,000-line note: keystroke insertion executes in < 15 µs (strictly beating the < 2 ms budget).
+  - Built-in full undo stack recording character diffs.
+- **Modeless Terminal Editor (`builtin_editor.rs`)**:
+  - Nano/micro-style modeless editing (no Vim modes) with arrow key navigation, Home/End, Backspace, Delete, and Tab (2 spaces).
+  - Shortcuts: `Ctrl+S` (atomic save), `Ctrl+Q` (quit), `Ctrl+Z` (undo).
+  - Mouse click-to-place cursor on line/column and scroll wheel viewport scrolling.
+  - Conflict detection: checks file `mtime` at save time against opening `initial_mtime`; alerts if external desktop or sync changes occurred.
+- **Verification**:
+  - 30 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 190 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 3: External Editor Mode ($EDITOR)
+
+- **$EDITOR Integration & Suspension (`external_editor.rs`)**:
+  - Resolves `$VISUAL` -> `$EDITOR` -> `nano`/`vi` (Windows `notepad`).
+  - Cleanly suspends TUI raw mode and alternate screen, executes editor child process, and resumes TUI upon exit.
+  - Snapshotting: records `mtime` and content byte comparison before/after execution to detect external conflicts and disk changes.
+- **Note Lifecycle Operations & Subcommands (`note_ops.rs`, `main.rs`)**:
+  - `dn open <name>`: opens best matching note in `$EDITOR` via fuzzy matching (`SkimMatcherV2`).
+  - `dn new <name>`: creates a new note with formatted `# Heading` and collision guard.
+  - `dn ls [folder]`: lists vault/folder contents with formatted byte sizes.
+  - `dn cat <name>`: prints note content to stdout.
+  - In-TUI operations: `'e'` or `Enter` on file opens in `$EDITOR`, `'d'` moves file to `.trash/` and updates tree.
+- **Verification**:
+  - 27 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 2: Read-Only TUI File Tree
+
+- **Terminal Safety & Panic Protection (`terminal_guard.rs`)**:
+  - Encapsulated raw mode, alternate screen (`EnterAlternateScreen`), and mouse capture (`EnableMouseCapture`) inside RAII `TerminalGuard`.
+  - Installed global panic hook ensuring terminal state (cursor, cooked mode, screen) is fully restored even on unexpected panics or signals before stack unwinding.
+- **Lazy Hierarchical Tree & Navigation (`tui_tree.rs`, `tui_state.rs`, `tui_view.rs`)**:
+  - Dired/Obsidian-style file tree with lazy directory loading: only direct children of expanded folders are read from disk.
+  - Benchmarked first frame on 10,000-note vault: rendered in < 1 ms (strictly beating the < 50 ms budget).
+  - Keyboard navigation (`hjkl` / arrows / Tab / Enter / Space) and full mouse click selection / scroll wheel support.
+  - Real-time search-as-you-type fuzzy filter bar (`/`) using `SkimMatcherV2` (`fuzzy-matcher`).
+  - Side-by-side read-only note preview pane with automatic Markdown scroll and folder statistics.
+- **Verification**:
+  - 21 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 1: Walking Skeleton & Quick Capture (ADR-0204)
+
+- **Architecture & Roadmap (`docs/cli-feature-plan.md`, ADR-0204)**:
+  - Authored comprehensive 6-phase build plan in `docs/cli-feature-plan.md`.
+  - Authored and accepted **ADR-0204** (`docs/adr/0204-davinci-cli-architecture-and-quick-capture.md`): Defined standalone `apps/cli` Rust crate producing binary `dn`, zero-SQLite v1 access (leaving index ownership with desktop `VaultWatcher`), 5-tier vault discovery, and crash-safe atomic writing.
+  - Indexed ADR-0204 in `DECISIONS.md`.
+- **Standalone Fast Rust Binary (`apps/cli/`)**:
+  - Independent static binary (`dn`), 604 KB release size, zero Tauri/Webview/rusqlite runtime bloat.
+  - 5-tier vault discovery precedence: `--vault <path>` -> `DN_VAULT` env -> cwd upwards traversal (`.obsidian`, `vault-index.db`, `.davinci`) -> `~/.config/davinci/config.toml` -> desktop app's `davinci-recent-vaults.json`.
+  - Default standalone capture creates `<vault>/Quick Notes/Quick note YYYY-MM-DD HH-mm-ss.md` without synthetic heading (aligned with ADR-0180 and preventing ADR-0060 rename loops).
+  - Identical-second collisions automatically disambiguated with numeric suffixes (`... HH-mm-ss 1.md`).
+  - `--daily` / `-d` flag appends `- [YYYY-MM-DD HH:mm:ss] text` to today's daily note (`YYYY-MM-DD.md`) with automatic `# YYYY-MM-DD` header creation if missing.
+  - `--note` / `-n` flag appends/creates in custom note with relative path sanitization and path traversal (`..`) rejection.
+  - Positional argument capture (`dn "buy milk"`) and stdin piping (`echo "idea" | dn`) support with multi-line and Unicode preservation.
+  - Crash-safe atomic write engine: hidden `.dn-tmp-...` in target folder, `file.sync_all()` (`fsync`), atomic `std::fs::rename`, and `TempFileGuard` drop guard cleaning orphan files on abnormal termination.
+- **Verification & Performance Budget**:
+  - Cold-start execution benchmark across 50 runs: mean **6.68 ms**, p95 **7.40 ms**, max **7.88 ms** (strictly beating the < 15.00 ms budget).
+  - `rg` audit confirms zero SQLite calls or imports in `apps/cli/`.
+  - 15 unit and integration tests passing across `src/lib.rs` and `tests/phase1_capture_tests.rs`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines (adhering to 150-200 line soft cap).
+
+---
+
+### 2026-10-22: Web (Browser) Version — Feature Plan & Phases 1–7 Complete (`web-version-feature-plan.md`, `@app/platform-adapters`, `apps/web/`, ADR-0204, ADR-0205, ADR-0206)
+
+- **Feature Plan (`web-version-feature-plan.md`)**:
+  - Evaluated Approach A (File System Access API), Approach B (OPFS + Google Drive Sync), and Approach C (Self-Hosted Server Mode), recommending a Dual-Engine Web Architecture (Hybrid A + B).
+  - Audited all 49 source files and 18 test files in `apps/desktop/src/` (0 in `packages/*`) and defined the 7-phase build plan, performance budgets (`<= 210 KB` gzip initial JS), security/CSP rules, and multi-tab SQLite concurrency strategy.
+- **Phase 1: Platform Adapter Package & Desktop Extraction (`packages/platform-adapters`, `apps/desktop/src/adapters/`, ADR-0204)**:
+  - Created `@app/platform-adapters` with contracts: `FileSystemAdapter`, `WatcherAdapter`, `SqliteAdapter`, `DialogAdapter`, `SecretStoreAdapter`, `WindowControlsAdapter`, `ExternalUrlAdapter`, `NotificationAdapter`, `VaultRegistryAdapter`, and `PlatformContext`.
+  - Implemented `Tauri*Adapter` classes in `apps/desktop/src/adapters/` and decoupled desktop UI/feature workflows. Verified 138/138 desktop test files (545 tests) pass.
+- **Phase 2: Browser File System & Storage Adapters (`packages/platform-adapters/src/web/`, ADR-0205)**:
+  - Implemented `OpfsFileSystemAdapter`, `FileSystemAccessAdapter`, `WebWatcherAdapter` (400ms debounce), `WebDialogAdapter`, `WebSecretStoreAdapter`, `WebVaultRegistryAdapter`, `WebWindowControlsAdapter`, `WebExternalUrlAdapter`, `WebNotificationAdapter`, and `validateVaultPath`.
+- **Phase 3: Browser SQLite Indexer & Search Engine (`WebSqliteAdapter.ts`, `tabLockCoordinator.ts`, `packages/indexer/migrations.ts`, ADR-0205)**:
+  - Exported shared `VAULT_INDEX_MIGRATIONS` (v1–v8) from `@app/indexer`.
+  - Implemented `withWebDbLock` (`navigator.locks` + FIFO queue) and `WebSqliteAdapter` with FTS5 BM25 ranking (`1.0` title, `0.75` tags, `0.5` body) and transaction rollback.
+- **Phase 4 & Phase 7: Web Application Shell, PWA, Degradation Notices & Vault Archive (`apps/web/`)**:
+  - Created `apps/web/` (`@app/web`) with Vite config, strict CSP (`index.html`), PWA `manifest.webmanifest`, offline Service Worker (`sw.js`), `VaultChooserModal`, `FeatureNoticeBanner`, and `vaultArchive` lossless export/import. Initial gzipped JS bundle: **98.88 KB** (budget `<= 210 KB`).
+- **Phase 5: Cloud Vault Sync Integration (`packages/sync-client/webManifestSource.ts`)**:
+  - Implemented `computeHexDigest`, `createWebManifestSource`, and `createWebPkceProvider` using native Web Crypto `SHA-256`. Verified 3-way `node-diff3` clean merge and conflict copy generation.
+- **Phase 6: Browser Plugin Host & Sandboxing (`packages/plugin-runtime/IframePluginHost.ts`, ADR-0206)**:
+  - Implemented `IframePluginHost` with `sandbox="allow-scripts"` (opaque `null` origin), unconditional `shell.*` rejection, and manifest-gated `network.fetch`.
+
+---
+
+### 2026-10-18: Google Calendar & Meet Browser Launch & Settings UI Error Resolution
+
+- **Rust URL Allowlist (`apps/desktop/src-tauri/src/oauth.rs`)**:
+  - Broadened `open_external_url` allowlist to validate and permit Google Meet URLs (`https://meet.google.com/`, `http://meet.google.com/`) alongside Google OAuth authorization URLs (`https://accounts.google.com/`).
+  - Added unit tests in `oauth.rs` for `is_allowed_external_url`, verifying rejection of untrusted schemes/domains and acceptance of accounts/meet URLs.
+- **Dynamic Client ID & Error Surfacing (`calendarAuthConfig.ts`, `desktopCalendarAuth.ts`)**:
+  - Implemented dynamic Client ID resolution and fallback from SQLite setting `calendar.clientId` to allow zero-terminal setup without needing to rebuild or manually create `.env`.
+  - Added `clientId?: string` field to `CalendarOAuthToken` and stored on login so token refresh/revocation retains the client ID.
+  - Documented `VITE_GOOGLE_CLIENT_ID` in `apps/desktop/.env.example` and `vite-env.d.ts`.
+- **UI Error Banners & Component Splitting (`GoogleCalendarSettingsTab.tsx`, `GoogleAccountCard.tsx`, `CalendarPreferencesCard.tsx`)**:
+  - Refactored `GoogleCalendarSettingsTab.tsx` into modular components (`GoogleAccountCard.tsx`, `CalendarPreferencesCard.tsx`, `VisibleCalendarsCard.tsx`), keeping all files strictly under 195 lines (adhering to 150-200 soft cap).
+  - Surfaced actionable error alerts (`role="alert"`, `data-testid="calendar-settings-error"`) whenever OAuth or network requests fail instead of silently logging to `console.error`.
+  - Added an OAuth Client ID text input in `GoogleAccountCard` linked to SQLite `calendar.clientId`.
+  - Wired meeting link failures in `CalendarLeaf.tsx` to surface directly in the leaf's error banner.
+- **Testing & Verification**:
+  - Added Storybook stories and unit tests for `GoogleAccountCard` and `CalendarPreferencesCard`.
+  - All 44 calendar-related tests pass across `@app/google-calendar-api` and `@app/desktop`; Rust tests pass; `build:web` passes cleanly.
+
+---
+
+### 2026-10-18: Google Calendar & Google Meet Integration — Phase 8: Hardening, Resiliency & Bundle Audit
+
+- **Phase 8 Hardening, Offline Resiliency & Bundle Audit (`calendarHardening.test.ts`)**:
+  - Offline Resiliency: Verified that network errors (`Failed to fetch`) fail gracefully without corrupting local SQLite event tables or resetting valid sync tokens.
+  - Automatic 410 Recovery: Verified that `GoogleSyncTokenExpiredError` (HTTP 410 Gone) automatically clears the expired sync token and falls back to a clean full 7-day query.
+  - Auth Expiry: Verified that 401 Unauthorized (`GoogleAuthExpiredError`) cleanly bubbles to trigger re-authorization without crashing the view.
+  - Timezone & All-Day Handling: Verified that UTC ISO start/end values are stored without loss and that all-day events format cleanly without date shifts across midnight boundaries.
+  - Bundle Splitting: Production build verified via `pnpm build:web`; all calendar components (`CalendarLeaf`, `GoogleCalendarSettingsTab`) are isolated in separate asynchronous chunks (~10 KB) with 0 KB impact on the main initial bundle.
+  - Test Suite: 53 tests passing across `@app/google-calendar-api` and desktop calendar suites; 0 ESLint errors; `cargo check` dev profile in 0.71s.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 7: Reminders & System Tray Integration (ADR-0203)
+
+- **Meeting Reminder Alerts & Tray Bridge (`apps/desktop/src/calendar/calendarReminderBridge.ts`)**:
+  - Implemented `getUpcomingMeetingAlerts`: evaluates local SQLite-cached events for 5-minute heads-up (`5min` stage) and meeting start alerts (`now` stage) with in-memory deduplication (`notifiedKeys`).
+  - Implemented `formatUpcomingMeetingsForTray`: formats up to 3 upcoming meetings within 12 hours with video meeting indicator (`📹`) or calendar indicator (`📅`) and formatted local start time (`HH:MM`).
+  - Implemented `startMeetingReminderScheduler`: periodic 30s background check decoupled from network requests and rate limits, with clean unlisten/teardown.
+  - Colocated 6 Vitest unit tests in `calendarReminderBridge.test.ts`. File strictly under 135 lines.
+- **Architectural Decision Record**:
+  - Authored and accepted **ADR-0203** (`docs/adr/0203-calendar-reminder-alerts-and-tray-integration.md`) and indexed in `DECISIONS.md`.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 6: Settings Section: Calendar Selection, Refresh Interval & Account Management
+
+- **Google Calendar Settings Tab (`apps/desktop/src/components/SettingsDialog/GoogleCalendarSettingsTab.tsx`)**:
+  - Account Card: Connected / Disconnected status, "Connect Google Calendar" PKCE trigger, and "Disconnect" action with token revocation and SQLite cache purge.
+  - Visible Calendars (`VisibleCalendarsCard.tsx`): Renders user's calendars with primary badges, color chips, and active visibility checkboxes linked to `updateCalendarSelectedInDb`.
+  - Preferences: Configurable sync cadence (5m, 15m, 30m, manual), custom meeting notes destination folder (`calendar.meetingsFolder`), and declined events filter toggle (`calendar.showDeclined`) persisted in SQLite `settings` table.
+- **Settings Navigation & Shell Integration (`SettingsSidebar.tsx`, `SettingsDialog.tsx`)**:
+  - Registered `calendar` tab under "options" in `SettingsSidebar` with `CalendarCheck` Phosphor icon.
+  - Lazy-loaded via `React.lazy()` and `Suspense` inside `SettingsDialog` with zero startup bundle overhead.
+  - Colocated Storybook story and 4 Vitest unit tests passing (13 total across SettingsDialog and tab). All files strictly under 235 lines.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 5: Meeting Note Creation & Daily Note Linking
+
+- **Meeting Note Formatting & Template Engine (`apps/desktop/src/calendar/meetingNoteGenerator.ts`)**:
+  - Implemented `generateMeetingNoteMarkdown`: generates clean YAML frontmatter (`title`, `date`, `time`, `calendar_event_id`, `meet_url`, `tags: [meeting]`), event title, date wikilink to daily note (`[[YYYY-MM-DD]]`), video meeting link, formatted attendees (`- Name (email)`), and standard sections (`## Agenda`, `## Discussion & Notes`, `## Action Items`).
+  - Added robust filename sanitization `sanitizeMeetingFileName` stripping invalid filesystem characters (`/ \ : * ? " < > |`), and relative path generator `buildMeetingNotePath`.
+  - Added frontmatter regex event-id detector `isEventNoteMatch` and non-destructive daily note link updater `linkMeetingInDailyNote` (8 unit tests passing).
+- **Meeting Note Vault Creation & Idempotency Guard (`apps/desktop/src/calendar/createMeetingNote.ts`)**:
+  - `createOrOpenMeetingNote`: checks memory `notesContent` and target path on disk for existing notes matching `calendar_event_id`. If matched, immediately focuses and opens existing note tab without duplicates.
+  - Automatically handles filename collisions with incremental suffix `(1)`.
+  - Atomically writes to vault via `createNoteInVault`, links back in active Daily Note under `## Meetings`, closes the calendar view, and activates the new note tab.
+  - Wired into `CalendarLeaf.tsx` via `handleCreateNote` (3 unit tests passing; all files under 185 lines).
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 4: Calendar UI Shell & Obsidian Leaf Integration (ADR-0202)
+
+- **Left Icon Rail Entry Point (`apps/desktop/src/components/IconRail/`)**:
+  - Integrated `CalendarCheck` icon (`@phosphor-icons/react`) with tooltip "Calendar & Meetings" and active state indicator when `isCalendarOpen` is true.
+  - Colocated Storybook stories (`CalendarActive`) and unit tests in `IconRail.test.tsx` (5 tests passing).
+- **Workspace State Management (`apps/desktop/src/state/`)**:
+  - Extended `useWorkspaceStore` and `createNoteNavigationActions` with `isCalendarOpen` and `setIsCalendarOpen`.
+  - Enforced mutual exclusivity: opening the calendar closes the global graph, and opening notes (`openNote`, `setActiveNote`) or graph resets `isCalendarOpen` to false (14 unit tests passing).
+- **Lazy-Loaded Calendar Leaf & UI Components (`apps/desktop/src/components/CalendarView/`)**:
+  - Modular sub-components: `MeetJoinButton` (direct video link launch), `EventCard` (attendees preview, status, time, and quick note action), `DayAgendaView` (Happening Now vs Today groups, empty states), and `CalendarLeaf` (header, refresh spinner, settings shortcut).
+  - Strict lazy-loading via `React.lazy()` in `App.tsx` wrapped in `Suspense` with zero initial startup JS impact.
+  - Pure editorial design tokens, no box-shadows/gradients, CSS Modules (`CalendarView.module.scss`).
+  - All files strictly under 180 lines (soft cap 200). 4 Vitest unit tests and Storybook stories passing.
+- **Architectural Decision Record**:
+  - Authored and accepted **ADR-0202** (`docs/adr/0202-calendar-ui-shell-and-obsidian-leaf-integration.md`) and indexed in `DECISIONS.md`.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 3: SQLite Cache, syncToken & Sync Engine (ADR-0201)
+
+- **SQLite Schema Migration 8 (`apps/desktop/src-tauri/src/db.rs`)**:
+  - Registered Migration 8 creating `google_calendars`, `google_calendar_events`, and `google_calendar_sync_state` tables and indices on `start_iso`, `calendar_id`, and `status`. Verified `cargo check` dev profile in 2.29s.
+- **SQLite Calendar Store (`apps/desktop/src/calendar/sqliteCalendarStore.ts`)**:
+  - Implemented `saveCalendarsToDb`, `getCalendarsFromDb`, `updateCalendarSelectedInDb`, `saveEventsToDb`, `getEventsFromDb`, `getCalendarSyncToken`, `saveCalendarSyncToken`, and `purgeCalendarCache`.
+  - All operations serialized via universal `withDbLock` promise queue; batch writes wrapped in `withDbTransaction`.
+- **Calendar Sync Engine (`apps/desktop/src/calendar/calendarSyncEngine.ts`)**:
+  - Background polling engine with configurable timer (default 15m) and `syncNow` manual trigger.
+  - Queries selected calendars with `syncToken` for incremental changes; automatically handles `GoogleSyncTokenExpiredError` (HTTP 410 Gone) by falling back to full 7-day resync.
+  - All 10 calendar unit tests pass in Vitest; 0 ESLint errors; all files under 188 lines.
+- **Architectural Decision Record**:
+  - Authored and accepted **ADR-0201** (`docs/adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md`) and indexed in `DECISIONS.md`.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 2: Desktop OAuth Loopback & OS Keychain Storage
+
+- **Rust Backend Commands (`apps/desktop/src-tauri/`)**:
+  - Implemented `save_calendar_token`, `load_calendar_token`, and `clear_calendar_token` in `oauth.rs` using `keyring::Entry::new("com.davinci.notes.calendar-oauth", "default")`.
+  - Registered commands in `lib.rs` inside the `tauri::generate_handler!` invocation with `reject_plugin_runner` security guard.
+  - Verified compilation via `cargo check` (`dev` profile passed in 40.38s).
+- **Desktop Authentication Adapter (`apps/desktop/src/calendar/`)**:
+  - `calendarAuthConfig.ts`: Resolves `VITE_GOOGLE_CLIENT_ID` with fallback to `VITE_GOOGLE_DRIVE_CLIENT_ID` and declares sensitive read-only calendar scopes (`calendar.events.readonly`, `calendar.calendarlist.readonly`).
+  - `calendarPkce.ts`: Web Crypto PKCE verifier, challenge (`SHA-256`), and state generator with base64url encoding.
+  - `calendarTokenStore.ts`: Tauri IPC token store adapter for OS keychain credentials.
+  - `desktopCalendarAuth.ts`: End-to-end loopback listener auth (`signInToCalendar`), silent token refresh with 60s expiration margin, and Google revocation endpoint call (`disconnectCalendar`).
+- **Monorepo Integration & Testing**:
+  - Added `@app/google-calendar-api` workspace dependency to `apps/desktop/package.json`, `vite.config.ts`, and `vitest.config.ts`.
+  - Added 7 comprehensive unit tests in `desktopCalendarAuth.test.ts` covering unauthenticated errors, active token bypass, silent expiry refresh, `invalid_grant` store clearing, token revocation on disconnect, and state verification. All 7 tests pass; 0 ESLint errors; all files under 190 lines.
+
+---
+
+### 2026-10-18: Google Calendar & Google Meet Integration — Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`)
+
+- **Feature Planning & Architecture**:
+  - Documented complete phased build plan in `plans/google-calendar-feature-plan.md`.
+  - Authored and accepted **ADR-0199** (`docs/adr/0199-google-calendar-oauth-architecture-and-scope-isolation.md`): Established sensitive-scope read-only architecture (`calendar.events.readonly`, `calendar.calendarlist.readonly`), dedicated OS keychain service (`com.davinci.notes.calendar-oauth`) isolated from Drive sync, and zero-SDK direct REST client boundary.
+  - Registered ADR-0199 in `DECISIONS.md`.
+- **Shared Package Implementation (`packages/google-calendar-api/`)**:
+  - Built pure TypeScript package with 0 external runtime dependencies.
+  - `calendarTypes.ts`: Full domain modeling for calendars, raw API events, normalized events, attendees, and delta query options.
+  - `parseMeetLink.ts`: Robust Meet link extraction with priority order: `hangoutLink` -> `conferenceData.entryPoints` (video) -> regex fallback in `location` / `description`, with URL protocol sanitization.
+  - `calendarClient.ts`: Lightweight, zero-dependency `fetch` REST client for `listCalendars` and `listEvents` (supporting `syncToken` delta queries and error typing for 401 Auth Expired, 410 SyncToken Expired, and 4xx/5xx).
+- **Monorepo Wiring & Verification**:
+  - Wired `@app/google-calendar-api` in root `tsconfig.json` paths and `.eslintrc.js` boundaries rules.
+  - 13/13 Vitest tests pass across `parseMeetLink.test.ts` and `calendarClient.test.ts`.
+  - Typecheck passes cleanly; 0 ESLint errors; all files under 160 lines (enforcing soft cap 200).
+
+---
+
+## Session Log
+
+| Date | Focus | Outcome |
+|---|---|---|
+| 2026-10-18 | Web Clipper Phase 8 — Packaging, store listings, docs, and hardening pass | Completed the final phase (Phase 8) of the 9-phase Web Clipper milestone (Phases 0–8). Added packaging scripts in `apps/web-clipper/package.json` (`build:firefox`, `build:all`, `zip:firefox`, `zip:all`) producing `.output/appweb-clipper-0.1.0-chrome.zip` (306.38 kB) and `.output/appweb-clipper-0.1.0-firefox.zip` (306.36 kB). Conducted security and permission audit: confirmed minimal permissions (`activeTab`, `scripting`, `storage`, `contextMenus`, `downloads`, loopback `http://127.0.0.1/*`, optional `*://*/*`); verified zero `eval(...)` and zero `new Function(...)` across all output bundles; confirmed strictly local asset loading (0 remote CDNs/scripts). Verified 0 new Cargo dependencies in `apps/desktop/src-tauri/Cargo.toml` with zero runtime bloat. Finalized and accepted all 8 Web Clipper ADRs (ADR-0173 through ADR-0180) in `DECISIONS.md` and `docs/adr/`. Wrote comprehensive user documentation in `docs/web-clipper.md` and store listing copy with permission justifications in `apps/web-clipper/STORE_LISTINGS.md`. Full test matrix passing: 39 Rust tests, 90 clipper-core tests, 223 web-clipper tests, and 542 desktop tests. All files under 250 lines. |
+| 2026-10-18 | Web Clipper Phase 7 — Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting | Implemented Phase 7 closed-app queuing, persistent ring buffer dedupe ledger, hotkeys, and multi-vault guard. Added `ClipQueueEntry` and bounds (`MAX_QUEUE_ENTRIES = 200`, `MAX_QUEUE_BYTES = 5 MiB`, 30-day age cap) in `packages/clipper-core`. Built persistent dedupe ledger (`davinci-clipper-ledger.json`, 500 entries) in desktop Rust with `clipper_check_duplicate` and `clipper_record_written`. Added multi-vault guard (`vault-not-open`) and dedupe check in `applyClipToVault.ts`. Built bounded extension queue in `apps/web-clipper/src/queue/clipQueue.ts` with oldest-first eviction and event-driven startup/install drain. Registered manifest shortcut commands (`Alt+Shift+C`, `Alt+Shift+S`, `Alt+Shift+H`). Added headless quick-clip runner in `quickClipTab.ts` with graceful restricted URL handling (`chrome://`). Added offline queue notice and sync controls to popup and options. Verified all 7 Phase 7 adversarial checks. All 39 Rust tests, 90 clipper-core tests, 223 web-clipper tests, and 32 desktop clipper tests passing; all files strictly under line caps. |
+| 2026-10-17 | Web Clipper Phase 6 — Attachment download, offline images, and SSRF protection | Implemented Phase 6 image attachments download pipeline and offline vault storage. Added `downloadImages` boolean flag to `ClipTemplate` and TemplateEditor general settings. Added `extractImageAttachments`, `deriveSuggestedImageName`, and `rewriteMarkdownImageLinks` in `packages/clipper-core`. Built `clipper_fetch_attachment` in Rust with strict SSRF validation (`is_disallowed_ip` blocking loopback, link-local, carrier-grade NAT, private LAN, metadata IPs, bracketed IPv6, and localhost), max 5 redirects with SSRF check on each hop, 1 MiB per-image cap, and content sniffing checks rejecting HTML/scripts. Built `processClipAttachments` in desktop applying `MAX_CLIP_ATTACHMENTS = 50` and `MAX_TOTAL_ATTACHMENT_BYTES = 20 * 1024 * 1024` (20 MiB), writing to vault via `writeAttachmentToVault`, generating vault-relative links, and rewriting markdown note body with graceful partial-success fallback. All 4 Rust tests, 88 clipper-core tests, 212 web-clipper tests, and 26 desktop clipper/adversarial tests passing; all files strictly under line caps. |
+| 2026-10-17 | Web Clipper Phase 5 — Highlighter, safe markdown rendering, and popup integration | Built page text-quote anchoring and highlighting in apps/web-clipper with persistent storage in chrome.storage.local (bounded FIFO eviction: MAX_HIGHLIGHTS = 2,000, MAX_HIGHLIGHTS_PER_URL = 200). Added "Highlight selection" action to ClipPopup with dynamic highlights extraction mode enablement when stored highlights exist. Optimized restoreHighlights with instant 0-highlight early bailout (<0.01 ms vs 55 ms on 5,000-node DOM). Added highlight markdown filter (==...== escaping nested == to \=\= and multiline support), hardened wikilinkFilter against hostile ]] injections, and updated tableFilter for primitive row arrays. Passed all 4 Phase 5 adversarial checks. All 81 clipper-core and 211 web-clipper tests passing; 0 lint / 0 tsc errors. |
+| 2026-10-17 | Web Clipper Phase 4 part 1 — template library settings | Completed options-page template management: stored-order list (which defines first-match auto-apply precedence), isolated draft editor for all template fields, create/duplicate/delete/restore, and bounded JSON import/export. Imports are capped at 1 MiB before parsing, require a non-empty array, validate every entry atomically, reject duplicate IDs and literal absolute/traversal/backslash folders, and preserve the current library on failure; exports preserve list order. No dependency or background work was added. web-clipper 198 tests / 29 files, lint, typecheck and production build pass; full extension 630.29 kB raw / 186,008 B gzip. Remaining Phase 4 settings export and real-browser options acceptance are separately scoped. |
+| 2026-10-17 | Web Clipper Phase 3 part 3 — the extension transport | Completed the browser half of Phase 3 in two commits: the transport wire (`5ed0a45`) and the popup + options wiring (`8393920`). `postClipToDesktop` posts the `ClipPayload` to `http://127.0.0.1:<port>/clipper/clip` with `Authorization: Bearer <token>` and **never throws** — a failure is a value (`{delivered:false,reason}`) in the app's own error vocabulary plus `not-paired`/`unreachable`/`timeout`/`queued`. The ack body is read first and the status is the fallback (400 `invalid-payload`, 401/403 `unauthorized`, 409 `vault-not-open`, 413 `too-large`, 422 `invalid-path`, 503 `app-busy`, anything else `unreachable`); the ack is trusted only when it names the sent `clipId` **or names none**, because Rust deliberately sends `clipId: ""` for refusals that happen before the body parses; 15 s abort plus a client-side 2 MiB pre-check mirroring `clipper_validate::MAX_BODY_BYTES`. `pairingStore` holds the manual copy-token pairing (`clipper.pairing`; a malformed entry reads as unpaired — nothing repaired, nothing guessed), and the extension's new options page + `PairingPanel` (story + tests) are its surface. The popup's "Add to DaVinci Notes" is live and gated on pairing, reports the path the app wrote, and otherwise shows `describeDeliveryFailure(reason)` while keeping the clip for a retry or a `.md` download; its `saving` flag became `downloading`. The manifest gains its only host permission, `http://127.0.0.1/*`, which is what keeps CORS handling off the desktop. **Scope corrected:** the closed-app queue is Phase 7, not part of Phase 3, and was not built — an undeliverable clip is reported and kept on screen, never buffered where nothing can drain it. No new dependency anywhere. Total extension output 595.5 kB → 610.1 kB raw / 173.8 kB → 179.6 kB gzip (the new options page is 4.85 kB raw / 1.77 kB gzip; read the totals, because a second HTML entrypoint splits a shared chunk out of the popup bundle). web-clipper **166** tests / 21 files (was 102/17), `pnpm lint` and `tsc --noEmit` clean, `wxt build` clean with `options_ui` and the host permission present in the generated manifest; only `apps/web-clipper` was touched, so clipper-core (63) and desktop (408) were not re-run. Real-browser `Origin`/preflight behaviour and the end-to-end handshake remain owner-local. |
+| 2026-10-17 | Web Clipper Phase 3 part 2 — the webview write path and pairing UI | Completed the TS/UI half of Phase 3 in four commits. Moved `composeNoteFile`/`suggestedFilePath` into `packages/clipper-core` so the extension and the desktop compose one file shape (the desktop gained a `@app/clipper-core` dependency plus an `app`→`clipper-core` ESLint boundary allowance). Added `appendToNoteInVault(path, body, position)`, which reuses `writeAndIndexNote` — atomic write, disk tracker, dirty clearing, `withDbLock`/`withDbTransaction` indexing and history — inside `queuePerPath`: it creates a missing note rather than rejecting (plan §5 check 5), prefers an open note's in-memory buffer, preserves the note's EOL and normalises only the seam to one blank line so an append can never truncate, and lands a `top` insert after any leading frontmatter. Wired the receiver: `useClipperService` (one lifetime subscription) → `handleClipReceived` (always acks, even a rejection, because Rust waits 20 s) → `applyClipToVault`, whose total behaviour map gives `create` a numeric suffix instead of overwriting (check 7), treats `append-top` as an alias of `prepend`, sends appends the body only (never a second frontmatter block), reports an unexpected write failure as `app-busy` (the only retryable code, so ADR-0178's queue retries and nothing is lost) and `vault-not-open` when no vault is open; `target.vaultId` is ignored (O4). No cold-start buffer: a clip arriving before the webview listens waits out the 20 s handshake and is `app-busy` too. Added the "Web Clipper" Settings section (enable toggle, bound address, Show/Copy/Rotate/Revoke, with state taken from each command's returned `ClipperStatus` so a failed bind surfaces as an alert rather than a toggle that flips back). ADR-0177 amended in place with all of it. clipper-core 63 tests, web-clipper 102, desktop 408 (from 387); lint clean in all three; no new third-party dependency (the desktop's clipper surface is 20,789 B of TS source, 7,116 B gzip unminified); zero new `tsc` errors — the desktop's 23 are pre-existing, mostly `vaultUpdateCounter` missing from `WorkspaceState`. |
+| 2026-10-17 | Web Clipper Phase 3 part 1 — Rust receiver core | Ran the Phase 0 gate first: `tauri-plugin-deep-link` v2 latest (2.6.2) needs Rust ≥ 1.90 against the declared `rust-version = "1.77.2"` (2.4.10 is the last 1.77.2-compatible release), and macOS schemes are install-time only — so the deep link stays deferred and the transport is loopback-only + manual pairing (ADR-0173 amended, still Proposed). Built the desktop receiver as a complete, tested, **inert** unit (14 new `clipper_*.rs` files): `ClipPayload`-mirroring wire types with `deny_unknown_fields`, a literal Rust port of `safeName`/`normalizeFolder`/`normalizeNoteName`, bounds+shape validation, a capped hand-rolled request reader, the one loopback route with exact-`Host`/`Origin`/constant-time-token checks, and the emit-and-await webview handshake. Key decision (ADR-0180): the desktop **re-validates and rejects** rather than re-sanitising — a name that is not the fixed point of `safeName` is `invalid-path`. `constant_time_eq` + `getrandom` reused from the existing tree (zero binary delta); no HTTP framework, no CORS headers. `clipper_enable` is the only way to start the listener and no UI calls it yet. 32 new Rust tests (attack matrix 1–4/9 over real loopback sockets); `cargo test` 76 pass / 1 pre-existing `git_auth` failure; clippy adds zero warnings. |
+| 2026-10-17 | Web Clipper Phase 2b — React popup on the design system | Replaced the unstyled plain-TS popup with React 19 + `@wxt-dev/module-react` on `@app/design-system` (`ClipPopup`, `ClipEditor`, `ClipPreview`, `ClipModeSelector`, `TemplatePicker`; each with `.module.scss` + story + tests). Split the pipeline so `prepareClipContext` (page+mode) is memoised apart from `renderClipPayload` (template) — a template change no longer re-extracts a page — and deleted the now-callerless one-shot compositions. Edit fields show a raw `ClipDraft` while the written payload is sanitised (`applyClipEdits`: separators/`..` stripped, `.md` ensured, cleared property removed); `contentHash` untouched because the body is not editable. Recorded ADR-0179 (Proposed). Popup chunk 580,258 B raw / 170,650 B gzip (React + design system ≈ +71 KB gzip over Phase 2a); tree-shaking of the design-system barrel verified by grepping the built chunk. 106 tests / 17 files pass; `tsc`, ESLint and `wxt build` clean. |
+| 2026-10-17 | Web Clipper Phase 2a — extension capture/extraction pipeline | WXT 0.21.4 + MV3 with no content script (`activeTab` + `scripting`, `host_permissions: []`); Defuddle core + Turndown+turndown-plugin-gfm (101,914 B gzip vs 218,493 for `defuddle/full`, ~114 KB gzip saved) with LaTeX-math and callout recovery; real bugs fixed (extension-origin relative URLs, callout separator, blank `<math>` dropped by Turndown, nested-JSON-LD auto-apply, `-   ` list markers). Popup chunk 350,180 B raw / 99,576 B gzip; 51 tests / 9 files pass. |
+| 2026-10-17 | Web Clipper feature plan (plan only) | Produced `web-clipper-feature-plan.md` (architecture diagram, `ClipPayload` schema, phases 0–8 with dependency/size costs and adversarial verification steps) plus six draft ADRs (0173 transport hybrid; 0174 Defuddle vs Readability+Turndown with measured gzip sizes; 0175 WXT + `packages/clipper-core`; 0176 template-engine split; 0177 canonical vault write path; 0178 closed-app queue with dedupe). All Proposed, pending owner input; no code and no dependencies added. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 5 (Fast In-Memory Content Search & Watcher) | Built `dn find <query>` full-text search across all vault markdown files using `WalkDir` with zero SQLite access. Verified search response < 10 ms on 100 notes (budget < 100 ms). Integrated `notify` filesystem watcher into TUI event loop for real-time external change detection and tree/preview reload. 34 tests pass; 0 clippy warnings; all files under 186 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 4 (Built-in Modeless Editor) | Built modeless terminal editor backed by Rope data structure (`ropey`). Verified < 15 µs keystroke latency and < 15 µs undo on 10k-line note (budget < 2 ms). Implemented arrow navigation, Home/End, Backspace, Delete, Tab, Ctrl+S save with external mtime conflict detection, Ctrl+Q quit, Ctrl+Z undo, and mouse click cursor placement. 30 tests pass; 0 clippy warnings; all files under 190 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 3 (External Editor Mode & Note Operations) | Implemented external editor integration ($EDITOR/$VISUAL/nano/vi) with clean TUI suspension/restoration and pre/post mtime conflict detection. Built note CRUD operations (new note with heading, safe rename with collision check, delete to .trash/) and CLI subcommands (`dn open <name>`, `dn new <name>`, `dn ls [folder]`, `dn cat <name>`). 27 tests pass; 0 clippy warnings; all files under 175 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 2 (Read-Only TUI File Tree) | Built Ratatui + crossterm TUI file browser with TerminalGuard RAII panic protection. Implemented lazy directory loading (first frame < 1 ms on 10k-note vault), keyboard (hjkl/arrows/Enter/Tab) and mouse click/scroll navigation, real-time search-as-you-type fuzzy filter bar with fuzzy-matcher, and side-by-side note preview pane. 21 tests pass; 0 clippy warnings; all files under 175 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 1 (Walking Skeleton & Quick Capture, ADR-0204) | Built independent 604 KB Rust CLI binary at `apps/cli` (`dn`). Implemented 5-tier vault discovery, ADR-0180 compliant quick capture in `Quick Notes/`, collision suffix disambiguation, daily note append (`--daily`), custom note append (`--note`), and crash-safe atomic write engine with drop cleanup. Zero SQLite access. Cold-start benchmarked at 6.68 ms mean (budget < 15 ms). 15 tests pass; 0 clippy warnings; all files under 175 lines. Recorded ADR-0204 and `docs/cli-feature-plan.md`. |
+| 2026-10-19 | Marketing Site Burgundy/Nude/Rose Smoke Palette, Zero Shadows & Interactive Hero | Derived and implemented strict 4-color palette (Burgundy #4B1D3F, Nude #E8D9C1, Rose Smoke #D8A7B1, Off Black #1B1B1B) with organic hand-drawn borders and zero shadows project-wide. Restored 360-degree interactive 3D rotating thought cloud around the woman and rock cutout with zero background behind the figure. Restyled all 8 sections for visual cohesion. Static build succeeds in 397ms; verified across desktop, 375px mobile, and 320px adversarial test. |
+| 2026-10-18 | Google Calendar Integration Phase 3 (SQLite Cache, syncToken & Sync Engine, ADR-0201) | Added Migration 8 in `vault-index.db` creating calendar, event, and sync state tables. Built `sqliteCalendarStore` wrapping all operations in universal `withDbLock` promise queue. Built `CalendarSyncEngine` with incremental `syncToken` delta polling and automatic HTTP 410 full-sync recovery. 10/10 Vitest tests pass; 0 ESLint errors; all files under 188 lines. |
+| 2026-10-18 | Google Calendar Integration Phase 2 (Desktop PKCE & OS Keychain Auth) | Implemented desktop OAuth PKCE loopback authentication, silent token refresh with 60s expiration margin, disconnect/revocation, and OS keychain token storage under `com.davinci.notes.calendar-oauth` via Rust `keyring` commands. Added 7 unit tests; 0 ESLint errors; all files under 190 lines. |
+| 2026-10-18 | Google Calendar Integration Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`) | Shipped Phase 0 (ADR-0199 OAuth scope isolation, sensitive-scope policy, OS keychain separation) and Phase 1 (created `@app/google-calendar-api` shared package with zero external SDKs, Meet link parser, and `syncToken`-ready REST client). 13/13 Vitest tests pass; 0 ESLint / 0 typecheck errors; all files under 160 lines. |
 
 - Resolved React Native text rendering crash (`Text strings must be rendered within a <Text> component`):
   - Fixed `Badge.tsx` and `Button.tsx` primitive components to check `React.isValidElement(children)`. In React Native JSX, templated expressions like `<Badge>Code: {code}</Badge>` pass children as an array (`["Code: ", code]`), which caused `typeof children === "string" || typeof children === "number"` to fail and returned raw strings/arrays directly into `<View>`. Now any non-element child (arrays, strings, numbers) is automatically wrapped in `<Text>`.
@@ -126,6 +761,11 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 | 2026-10-18 | Syncthing QR Pairing Payload and One-Tap Confirmation (ADR-0200) | Replaced raw Device ID QR with versioned compact pairing payload URI (`davincinotes://pair?d=<base64url>`) encoding device ID, name, vault folder ID/label, and 6-digit ephemeral code. Vault pre-registered in Syncthing without unconfirmed peer sharing. Raw Device ID preserved with Copy button. 5-minute countdown window with automatic code rotation. Highlighted one-tap Accept & Share for matching code; warning + explicit confirmation for unverified/expired code. Flagged decision: adopted always one-tap confirm over auto-accept for LAN safety. Verified via generic OpenCV scanner decode, device matching states, and decline safety. |
 
 | 2026-10-18 | Syncthing Binary Bundling and Process Lifecycle Management (ADR-0199) | Bundled official Syncthing v2.1.6 binary into desktop build and managed full process lifecycle directly from Rust (`std::process` / `tokio`) with zero new dependencies. Dynamic localhost port, isolated home dir, 0 default folders, random API key in OS keychain with 0600 fallback, redacted from all logs. Orphan process recovery, graceful shutdown, crash loop guard, and empty-state UI refresh. All 7 verification checks passed. Net installer increase only ~11 MB compressed (21 MB DMG). |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 5 (Fast In-Memory Content Search & Watcher) | Built `dn find <query>` full-text search across all vault markdown files using `WalkDir` with zero SQLite access. Verified search response < 10 ms on 100 notes (budget < 100 ms). Integrated `notify` filesystem watcher into TUI event loop for real-time external change detection and tree/preview reload. 34 tests pass; 0 clippy warnings; all files under 186 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 4 (Built-in Modeless Editor) | Built modeless terminal editor backed by Rope data structure (`ropey`). Verified < 15 µs keystroke latency and < 15 µs undo on 10k-line note (budget < 2 ms). Implemented arrow navigation, Home/End, Backspace, Delete, Tab, Ctrl+S save with external mtime conflict detection, Ctrl+Q quit, Ctrl+Z undo, and mouse click cursor placement. 30 tests pass; 0 clippy warnings; all files under 190 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 3 (External Editor Mode & Note Operations) | Implemented external editor integration ($EDITOR/$VISUAL/nano/vi) with clean TUI suspension/restoration and pre/post mtime conflict detection. Built note CRUD operations (new note with heading, safe rename with collision check, delete to .trash/) and CLI subcommands (`dn open <name>`, `dn new <name>`, `dn ls [folder]`, `dn cat <name>`). 27 tests pass; 0 clippy warnings; all files under 175 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 2 (Read-Only TUI File Tree) | Built Ratatui + crossterm TUI file browser with TerminalGuard RAII panic protection. Implemented lazy directory loading (first frame < 1 ms on 10k-note vault), keyboard (hjkl/arrows/Enter/Tab) and mouse click/scroll navigation, real-time search-as-you-type fuzzy filter bar with fuzzy-matcher, and side-by-side note preview pane. 21 tests pass; 0 clippy warnings; all files under 175 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 1 (Walking Skeleton & Quick Capture, ADR-0204) | Built independent 604 KB Rust CLI binary at `apps/cli` (`dn`). Implemented 5-tier vault discovery, ADR-0180 compliant quick capture in `Quick Notes/`, collision suffix disambiguation, daily note append (`--daily`), custom note append (`--note`), and crash-safe atomic write engine with drop cleanup. Zero SQLite access. Cold-start benchmarked at 6.68 ms mean (budget < 15 ms). 15 tests pass; 0 clippy warnings; all files under 175 lines. Recorded ADR-0204 and `docs/cli-feature-plan.md`. |
 | 2026-10-17 | Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (ADR-0198) | Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem. Scenarios passed: (1) Desktop -> Phone CRUD (6562ms), (2) Phone -> Desktop CRUD (5549ms), (3) Round-trip mtime stability (12537ms; 0 loops/rewrites), (4) Offline concurrent edits with *.sync-conflict-* generation and zero data loss (3432ms), (5) Edit vs delete & rename vs edit resolution (8363ms), (6) Syncthing .tmp file transfer isolation (2ms), (7) Background mobile rescan upon reopening (1519ms), (8) 5,000-note vault scale benchmark (642ms; 392ms write, 0.2 MB heap delta, no UI freeze), (9) Clean unpair & re-pair via REST API (33ms), (10) Convergence hash match across vaults (100% SHA-256 match, 3778ms). Root-caused and resolved note index pollution by routing conflict files to `VaultScanResult.conflicts` and excluding them from `ctx.notes` in `vaultScanner.ts` (mobile) and `VaultIndexer.ts` (desktop). Recorded ADR-0198. All unit and integration tests passing; ESLint 0 errors. |
 | 2026-10-17 | Mobile Syncthing Device Pairing, QR Code Scanning & Safe Vault Acceptance (`apps/mobile/`) | Implemented mobile-side device pairing and vault folder acceptance. Added `expo-camera@~57.0.6` barcode scanning in `SyncthingQrScanner.tsx` lazily loaded on demand via `React.lazy()`. Requested camera permission only when scanner mounts, with fallback to manual paste flow upon permission denial. Implemented `parseScannedDeviceId` validating 56-character Device IDs and rejecting random payloads with descriptive errors. Enforced explicit confirmation step showing parsed Device ID and name field (zero auto-accepting from QR). Added `SyncthingPendingSection.tsx` listing incoming device requests (Accept/Ignore) and pending vault folder offers. Implemented `folderAccessChecker.ts` explicitly verifying folder read, list, and atomic write probe capabilities before folder acceptance (SAF permission required) and warning if directory is non-empty. Added connected peers badge from `/rest/system/connections`. All 32 mobile Syncthing tests pass; 0 ESLint / 0 typecheck errors. |
 | 2026-10-17 | Mobile Syncthing-Fork Settings, QR Code & Device ID Integration (`apps/mobile/`, `packages/syncthing-api/`) | Shipped Settings -> Sync -> Syncthing panel connecting to local Syncthing-Fork instance on Android. Created shared TypeScript package `packages/syncthing-api` containing pure types (`SyncthingState`, `SyncthingDetectResult`, `SyncthingStatusResult`, etc.) and pure parsers (`normalizeDeviceId`, `isValidDeviceIdFormat`, `formatDeviceIdGroups`, `redactApiKey`, `sanitizeError`), reused by desktop and mobile. Configured narrowest Android network security config via Expo config plugin `withLocalhostNetworkSecurity` permitting cleartext HTTP strictly on `127.0.0.1` and `localhost` with zero blanket `usesCleartextTraffic`. Implemented secure API key storage in `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`) with zero logging and zero plain storage. Built `MobileSyncthingPanel` displaying status badge (Running / Not running / Key problem), formatted monospace Device ID with Copy button (`expo-clipboard`), and high-contrast QR code with white quiet zone reusing Syncthing's `/qr` proxy (0 KB external QR library overhead). All 21 unit and integration tests passing; 0 ESLint / 0 typecheck errors. |
@@ -159,6 +799,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 | 2026-10-11 | Editor styling tokens — Phase 5 | Implemented Editor Font Size and Font Family settings with curated options (System UI, Serif, Monospace, Montserrat, Raleway), custom font support, and live re-measurement. Added ADR-0173. Zero remote font requests using self-hosted @fontsource-variable WOFF2 assets with font-display: swap. Input sanitization prevents CSS injection. Font sizes scale 12–24px (default 16px) with reset. Caret lands accurately at wrapped line ends. All 97 editor and 384 desktop unit tests pass with zero public token violations. |
 | 2026-10-11 | Editor styling tokens — Phase 4 | Implemented element-cursor-gated reveal/dimming for Markdown markers and hanging indent / nested styling for lists using Phase 2 tokens. Bounded decoration computation, 0px line-height shifts, and preserved raw Markdown for active lists. |
 | 2026-10-11 | Editor styling tokens — Phase 3 | Applied Phase 2 Obsidian-parity tokens to CodeMirror 6 theme and highlight styles (`editorHighlightStyle.ts`, `editorTheme.ts`); mapped H1-H6 typography to `--editor-obsidian-heading-h{1-6}-*`, unified body line-height to `--editor-obsidian-body-line-height` (1.5), updated content bottom padding to `--editor-content-padding-bottom`, and added line inline padding `--editor-obsidian-content-line-padding-inline`. Maintained full-width content without arbitrary max-width constraints. Allowlisted tokens in `check-public-tokens.mjs`. All 73 editor unit tests and 377 desktop unit tests pass with zero public token violations. |
+>>>>>>> main
 | 2026-10-11 | Editor styling tokens — Phase 2 | Added 30 editor-prefixed Obsidian-parity tokens in a separate `editor.obsidian` namespace; generated CSS, SCSS, and TypeScript outputs. All existing token source values and generated token values were preserved. Design-system build and typecheck passed; `packages/editor` was not modified. |
 | 2026-10-11 | Tray Phase 4b — Click-to-capture popover with left-click setting | Implemented ADR-0172 (supersedes Phase 1 click decision): left-click on tray icon toggles Quick Capture popover anchored under the tray icon; right-click opens the native menu; pure Rust positioning in tray_position.rs clamps strictly to monitor work area with Retina DPI and multi-monitor support; eliminated blur/toggle race via 350ms timestamp debounce; in-memory draft text preserved across blur, dismiss, and Escape; live configurable "Menu bar icon click" setting ("Open quick capture" vs "Open menu") with existing-user fallback to "menu". 45 Rust tests and 373 frontend tests pass with 0 lint errors. |
 | 2026-10-11 | Tray Phase 5 — Quick Search from the capture window | Implemented Option C (ADR-0171): granted scoped SQL permissions (`sql:default`, `sql:allow-execute`) to `capabilities/capture.json` so the capture window queries `vault-index.db` directly via `@tauri-apps/plugin-sql` and the canonical `@app/indexer` search engine (`executeSearchQuery` / `parseSearchQuery`). Reuses exact same BM25 ranking and query syntax without IPC proxy lag or main webview coupling. Queries are debounced by 150ms with sequence token cancellation and WAL concurrency (`journal_mode=WAL`, `busy_timeout=5000`). Up/Down keys navigate, Enter opens note via native `open_note_from_capture` with strict vault-root path confinement, and Tab toggles modes while preserving typed capture text. All 39 Rust unit tests and 370 frontend unit tests (102 test suites) pass with 0 lint errors. Capture bundle grew by only 1.43 KB gzip (8.14 KB raw / 2.57 KB gzip). |
@@ -261,6 +902,125 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 | 2026-09-01 | Testing and Integration — Move Note Feature | Fixed the failing `buildTags` test in `@app/indexer`, added `moveNoteInVault.test.ts`, and confirmed the `moveNoteFromTree` action is implemented in `createNoteCrudActions`, integrated into the workspace store, and wired in the `FileTree` D&D drop handler. Full workspace test suite passes. |
 
 ## Detailed Session Notes
+
+### 2026-10-18 — Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass
+
+- **Packaging Tooling & Multi-Browser Builds (`apps/web-clipper/package.json`):**
+  - Added packaging npm scripts: `build:firefox` (`wxt build -b firefox`), `build:all`, `zip:firefox` (`wxt zip -b firefox`), and `zip:all`.
+  - Built and generated multi-browser zip artifacts:
+    - `.output/appweb-clipper-0.1.0-chrome.zip` (306.38 kB).
+    - `.output/appweb-clipper-0.1.0-firefox.zip` (306.36 kB).
+- **Security & Permission Audits (Phase 8 Checks 2 & 3):**
+  - Confirmed minimal permission manifest: `activeTab`, `scripting`, `storage`, `contextMenus`, `downloads`, loopback `http://127.0.0.1/*`, optional `*://*/*`.
+  - Confirmed that broad host permissions are strictly optional and only prompted if user chooses to clip without `activeTab`.
+  - Audited output bundles (`.output/chrome-mv3`): verified 0 instances of `eval(...)` and 0 instances of `new Function(...)`.
+  - Confirmed zero remote scripts or CDNs: all HTML entrypoints (`popup.html`, `options.html`) load strictly local chunks/assets.
+- **Desktop Overhead Measurement (Phase 8 Check 4):**
+  - Verified 0 new Cargo dependencies added to `apps/desktop/src-tauri/Cargo.toml` across all clipper phases (reused existing `std`, `tokio`, `reqwest`, `serde`, `constant_time_eq`, `getrandom`).
+  - Desktop binary delta: zero net dependency bloat.
+- **Finalized Architecture Decision Records (`DECISIONS.md` & `docs/adr/`):**
+  - Updated all Clipper ADRs from `Proposed` to `Accepted`:
+    - `ADR-0173`: Transport over loopback with token.
+    - `ADR-0174`: Content extraction + HTML→Markdown libraries (Defuddle core + Turndown).
+    - `ADR-0175`: Extension framework (WXT) & `@app/clipper-core`.
+    - `ADR-0176`: Template engine execution split.
+    - `ADR-0177`: Clipped notes written through canonical vault write path.
+    - `ADR-0178`: Closed-app queue & dedupe ledger.
+    - `ADR-0179`: Popup data flow (split preparation vs rendering, draft vs payload).
+    - `ADR-0180`: Receiver validation (re-validates and rejects rather than re-sanitising).
+- **Comprehensive Documentation Authored:**
+  - `docs/web-clipper.md`: User documentation detailing local-first privacy model, zero cloud dependencies, one-time loopback pairing runbook, capture modes (article, full page, selection, highlights), highlighter workflow, template customization, offline queue behavior, and keyboard shortcuts.
+  - `apps/web-clipper/STORE_LISTINGS.md`: Production store listings for Chrome Web Store, Mozilla Add-ons (AMO), and Microsoft Edge Add-ons, including full descriptions, permission justifications, and single-purpose declarations.
+- **Adversarial Hardening Pass:**
+  - Re-verified complete attack matrix: SSRF protections, loopback host validation, body size caps, content-type sniffing protection, hostile path traversal rejection, offline deduplication, and zero-polling event-driven drain.
+  - Test suites: 39 Rust tests, 90 clipper-core tests, 223 web-clipper tests, 542 desktop tests all passing.
+  - Hard cap adherence: all files strictly under 250 lines.
+
+### 2026-10-18 — Web Clipper Phase 7: Closed-app queuing, dedupe ledger, hotkeys, and multi-vault targeting
+
+- Added `ClipQueueEntry` interface and queue bound constants in `packages/clipper-core/ClipQueue.ts`:
+  - `MAX_QUEUE_ENTRIES = 200`: oldest-first FIFO eviction when exceeded.
+  - `MAX_QUEUE_BYTES = 5 * 1024 * 1024`: 5 MiB total serialized payload storage limit.
+  - `MAX_QUEUE_AGE_MS = 30 * 24 * 60 * 60 * 1000`: 30-day age expiration pruning.
+  - `isQueueEntryExpired(entry, now)` utility.
+- Built persistent desktop ring buffer dedupe ledger in `apps/desktop/src-tauri/src/clipper_ledger.rs`:
+  - Ring buffer ledger serialized to `davinci-clipper-ledger.json` in `app_config_dir` capped at `MAX_LEDGER_ENTRIES = 500`.
+  - Added Tauri commands `clipper_check_duplicate` (matches by exact `clip_id` or identical `(content_hash, relative_path)`) and `clipper_record_written`.
+- Updated desktop vault writing in `apps/desktop/src/clipper/applyClipToVault.ts`:
+  - Multi-vault check: if `target.vaultId` is specified and does not match the active vault, returns `vault-not-open` without touching the vault.
+  - Dedupe check: calls `clipper_check_duplicate` before planning note write, rejecting duplicate deliveries with `duplicate` and returning the previously written path.
+  - Records successfully written clips in ledger via `clipper_record_written`.
+- Built extension offline queue in `apps/web-clipper/src/queue/clipQueue.ts`:
+  - `loadQueuedClips`, `enqueueClip`, `dequeueClip`, `clearQueue`.
+  - `drainQueue`: event-driven sequential drain attempting delivery for each queued clip, removing successfully written clips and duplicate entries, and halting on `unreachable`, `timeout`, `vault-not-open`, or `app-busy`.
+- Registered manifest keyboard shortcuts in `apps/web-clipper/wxt.config.ts`:
+  - `_execute_action` (`Alt+Shift+C`): opens clipper popup.
+  - `quick_clip` (`Alt+Shift+S`): headless quick-clip using active page and matching template.
+  - `toggle_highlighter` (`Alt+Shift+H`): toggles highlighter mode.
+- Implemented headless quick clip runner in `apps/web-clipper/src/clip/quickClipTab.ts`:
+  - Reads active tab, extracts content, matches template, and sends to desktop.
+  - Bails gracefully without throwing or hanging on restricted browser schemes (`chrome://`, `about:`, `edge://`) or CSP injection limits.
+  - Automatically enqueues into offline storage when desktop is unreachable or closed.
+- Wired startup and install event drains in `apps/web-clipper/entrypoints/background.ts`:
+  - Drains queue on `browser.runtime.onStartup` and `browser.runtime.onInstalled`. Zero polling intervals (`setInterval`).
+- Added popup and options queue integration:
+  - Extracted `useClipEdits.ts` and `useClipQueueSync.ts` to keep `useClipSession.ts` strictly under line caps (232 lines).
+  - Added offline queue count notice and "Sync now" button in `ClipPopup.tsx`.
+  - Added "Offline queue" section in `PairingPanel.tsx` with "Sync queue" and "Clear queue" controls.
+- Ran all 7 Phase 7 adversarial tests:
+  - Check 1: Enqueued clip delivered on launch written once and recorded in ledger.
+  - Check 2: Duplicate clip replay rejected with `duplicate` and previous path, no duplicate file.
+  - Check 3: Mid-write crash returns `app-busy`, omitted from dedupe ledger, retried on next drain.
+  - Check 4: Queue bounds (200 clips, 5 MiB, 30 days) evict oldest entries with visible count.
+  - Check 5: Multi-vault mismatch returns `vault-not-open`, preserved in queue, not written to wrong vault.
+  - Check 6: Zero continuous polling confirmed (event-driven only).
+  - Check 7: Quick clip on `chrome://` pages exits cleanly without hanging.
+
+### 2026-10-17 — Web Clipper Phase 6: Attachment download, offline images, and SSRF protection
+
+- Added `downloadImages?: boolean` flag to `ClipTemplate` and template schema validation in `packages/clipper-core`.
+- Built `attachmentExtractor.ts` in `packages/clipper-core` containing:
+  - `extractImageAttachments`: extracts image URLs from markdown `![alt](url)` and HTML `<img src="url">`, normalizes URLs, ensures HTTP/HTTPS protocol, and dedupes references.
+  - `deriveSuggestedImageName`: safely derives filenames preserving image extensions while stripping path traversal and invalid characters.
+  - `rewriteMarkdownImageLinks`: replaces remote image URLs with local vault-relative paths.
+- Updated `apps/web-clipper`:
+  - `renderClipPayload.ts`: extracts attachments into `payload.attachments` when `template.downloadImages` is enabled.
+  - `TemplateEditor.tsx` / `TemplateGeneralFields.tsx`: extracted general template fields to keep files <150 lines, and added "Save images to vault" toggle (`Toggle` from `@app/design-system`).
+- Built native attachment fetching in `apps/desktop/src-tauri/src/clipper_attachments.rs`:
+  - Command `clipper_fetch_attachment` gated by `reject_plugin_runner`.
+  - Strict SSRF protections (`is_disallowed_ip` rejecting loopback, link-local, carrier-grade NAT, private LAN, AWS/cloud metadata IPs, bracketed IPv6, and localhost).
+  - Maximum 5 redirects with SSRF re-check on each redirect target.
+  - 10-second timeout, 1 MiB per-image cap.
+  - Content sniffing check (`validate_image_content`) rejecting HTML (`<!DOCTYPE`, `<html`, `<head`, `<body`) and script tags, validating magic bytes for PNG, JPEG, GIF, WebP, SVG, BMP, ICO.
+- Built TypeScript attachment pipeline in `apps/desktop/src/clipper/clipperAttachments.ts`:
+  - `processClipAttachments`: enforces `MAX_CLIP_ATTACHMENTS = 50` and `MAX_TOTAL_ATTACHMENT_BYTES = 20 * 1024 * 1024` (20 MiB).
+  - Writes images to vault using existing `writeAttachmentToVault` (handling folder routing and numeric suffix collision resolution, ADR-0110).
+  - Rewrites markdown body with local vault-relative links.
+  - Partial success: failed downloads log a warning and preserve the original URL in the note.
+- Integrated `processClipAttachments` in `applyClipToVault.ts`.
+- Verified all 6 Phase 6 adversarial checks in `clipper_attachments_tests.rs` and `clipperAttachmentsAdversarial.test.ts`.
+
+### 2026-10-17 — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration
+
+- Built page text-quote anchoring and highlighting in `apps/web-clipper` with persistent storage in `chrome.storage.local` with bounded FIFO eviction (`MAX_HIGHLIGHTS = 2,000`, `MAX_HIGHLIGHTS_PER_URL = 200`).
+- Added "Highlight selection" action to `ClipPopup` with dynamic highlights extraction mode enablement when stored highlights exist for the page.
+- Optimized `restoreHighlights` with instant 0-highlight early bailout (<0.01 ms vs 55 ms on 5,000-node DOM).
+- Added `highlightFilter` markdown filter (`==...==` escaping nested `==` to `\=\=` and multiline support), hardened `wikilinkFilter` against hostile `]]` injections, and updated `tableFilter` for primitive row arrays.
+- Passed all 4 Phase 5 adversarial checks.
+
+### 2026-10-17 — Web Clipper Phase 4 part 1: template library settings
+
+- Added a draft-based options-page template library with stored-order selection,
+  complete template editing, immediate create/duplicate/delete/restore actions,
+  and explicit validation on save. A failed storage write is visible and does not
+  falsely clear the draft.
+- Added dependency-free JSON transfer. Imports are capped at 1 MiB before parse,
+  accept only a non-empty validated array, reject duplicate IDs and literal
+  escape-style folders, and replace storage only after the whole file is valid.
+  Exports retain stored order because that order decides auto-apply precedence.
+- Added component SCSS/stories/tests and pure transfer tests. `pnpm --filter
+  @app/web-clipper test` passed 198 tests across 29 files; lint, typecheck and
+  production build passed. No dependency or background work was added.
 
 ### 2026-10-16 — Mobile Expo SDK Pin & Dependency Alignment (ADR-0194)
 - **Diagnosed and Resolved Metro Startup Failure**:
@@ -601,6 +1361,7 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 - Re-measurement trigger: Calls `document.fonts.load(...)` with `allSettled` and CodeMirror `view.requestMeasure()` so line heights, selections, and caret positioning update accurately. Verified 0px displacement at end of wrapped lines.
 - Persistence: Stored in SQLite `settings` table via `createEditorSettings.ts` using `withDbLock` (`editorFont`, `editorCustomFont`, `editorFontSize`).
 - Added unit tests in `editorSettings.test.ts`, `editorFontRegistry.test.ts`, and `editorSettingsStore.test.ts`. All 97 editor and 384 desktop unit tests pass cleanly.
+>>>>>>> main
 
 ### 2026-10-11 — Editor styling tokens: Phase 2
 
@@ -3939,3 +4700,631 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 
 
 
+
+---
+
+### 2026-10-17: Web Clipper feature plan (plan only — no application code)
+
+- **Scope**: A planning-only session for a Web Clipper browser extension that
+  saves web pages (or selections/highlights) into the vault as Markdown notes,
+  adapted to this stack. Deliverables were the plan, draft ADRs, and index
+  updates. No packages, no code, no dependencies.
+- **Reading order followed**: `AGENTS.md`, `DECISIONS.md` (index), `PERFORMANCE.md`,
+  `PROGRESS.md`, then only the feature-relevant ADRs (vault/file I/O, attachments,
+  tags, properties/frontmatter, Tauri shell, sync, capture).
+- **Research (not invented)**: Obsidian Web Clipper docs (help site + the
+  `obsidianmd/obsidian-help` "Obsidian Web Clipper" directory) and its public repo
+  (`obsidianmd/obsidian-clipper`, MIT, v1.7.1) were used for documented behavior
+  only. Documented delivery relies on the `obsidian://` URI plus the clipboard,
+  with a "Legacy mode" that passes content via URI and is explicitly
+  character-limited — cited as evidence that a deep-link-only payload is unsafe
+  for full articles. Bundle sizes came from bundlephobia: Defuddle 0.19.5
+  310,010 B / 86,406 B gzip (2 deps), `@mozilla/readability` 0.6.0 33,781 B /
+  11,196 B gzip (0 deps), `turndown` 7.2.4 10,781 B / 4,094 B gzip, plus
+  `turndown-plugin-gfm` 2,062 B / 952 B gzip. Licenses verified: Defuddle MIT
+  (LICENSE file), Readability Apache-2.0 (README license section), Turndown MIT.
+  WXT verified at v0.21.4, MIT, Chromium/Firefox/Edge/Safari, MV2+MV3, Vite-based.
+- **Codebase facts used**: existing OAuth loopback `TcpListener` in
+  `apps/desktop/src-tauri/src/oauth.rs` (precedent for the recommended transport);
+  `resolve_in_vault` confinement + atomic `write_note` in `fs.rs`; the canonical
+  `createNoteInVault` write path (ADR-0058) and `withDbLock`/`withDbTransaction`
+  discipline (ADR-0168); attachments model (ADR-0109/0110/0112/0113/0115);
+  boundary elements in `.eslintrc.js`; `tauri.conf.json` `csp: null`; Cargo
+  `rust-version = "1.77.2"` vs the Tauri docs' stated deep-link requirement of
+  Rust ≥ 1.90.
+- **Decisions drafted (all `Proposed`, owner input required)**:
+  - ADR-0173 transport: hybrid deep-link wake/handshake + loopback payload with a
+    per-install keychain token, loopback-only bind, Origin/Host checks, 2 MiB cap;
+    Native Messaging deferred; loopback-only + manual pairing is the documented
+    fallback if deep links are blocked by the Rust version.
+  - ADR-0174 extraction: Defuddle with `useAsync:false` (never contact the
+    FxTwitter fallback API); Readability+Turndown recorded as the ~17 KB gzip
+    alternative.
+  - ADR-0175: `apps/web-clipper` (WXT, MV3, Chromium first) + pure-TS
+    `packages/clipper-core`; new `clipper-core`/`web-clipper` boundary elements.
+  - ADR-0176: extension resolves page variables and renders body/properties;
+    desktop resolves vault context/behavior/paths; templates are data only; one
+    `ClipPayload` schema.
+  - ADR-0177: Rust authenticates/validates, main webview writes via the canonical
+    path; no extension-side or Rust-side direct note write.
+  - ADR-0178: bounded extension-side queue (200 clips / 5 MB / 30 days,
+    oldest-first) drained on events (no timers) with `clipId`+`contentHash` dedupe
+    against a bounded desktop ledger.
+- **Plan**: `web-clipper-feature-plan.md` — goals/non-goals, stated assumptions,
+  a Mermaid architecture diagram, the payload/ack schema, phases 0–8 each with
+  scope, files/packages touched, dependency size costs, and explicit adversarial
+  verification steps (path traversal with actual-result reporting, 5 MiB payloads,
+  closed-app queue then launch, dedupe replay, SSRF for Phase 6, idle-cost and
+  no-polling assertions). Phase 0 (ADRs + transport spike), Phase 3 (desktop
+  receiver) and Phase 7 (queue/hotkeys/multi-vault) are marked HIGH-RISK / must
+  stay in one session; the verbatim DB rule ("Any step that touches
+  vault-index.db must follow the standing withDbLock/WAL concurrency rules.") is
+  carried in every DB-touching phase.
+- **Not done (explicitly)**: no `apps/web-clipper`, no `packages/clipper-core`, no
+  Rust receiver code, no dependency installs. Nothing was marked Accepted;
+  no accepted ADR was edited.
+
+### 2026-10-17: Web Clipper Phase 2a — extension pipeline producing real Markdown
+
+- **Scope**: `apps/web-clipper` Phase 2a only — capture, extraction, page
+  variables, template matching, payload building, note-file composition and
+  download. Phase 1 (`packages/clipper-core`, template engine + filters + safe
+  names + starter templates, 59 tests) was the previous commit. One commit, one
+  concern.
+- **Architecture change from the plan (§2)**: the plan specified a content
+  script. This phase uses **no content script**. The popup calls
+  `browser.scripting.executeScript({ target, func: readPage })`, which needs only
+  `activeTab` + `scripting`, and parses the returned HTML with `DOMParser` in the
+  popup. `host_permissions` stays `[]` and nothing is injected until the user
+  invokes the clipper. Manifest permissions: `activeTab, scripting, storage,
+  contextMenus, downloads`. `minimum_chrome_version` raised to `"127"` because
+  `chrome.action.openPopup()` only left developer preview there; declaring 116
+  would advertise a capability the extension does not have.
+- **Libraries and measured cost**. The ADR-0174 premise was re-tested and turned
+  out to be wrong for the installed version. `defuddle/dist/index.js` (core) has
+  **no** `contentMarkdown` and **no** `separateMarkdown` — both exist only in
+  `index.full.js`. Measured with esbuild (`--bundle --minify --format=esm
+  --platform=browser`) and `gzip -9`: core 332,378 B raw / 97,372 B gzip; `full`
+  764,343 B raw / 218,493 B gzip; core + `turndown` + `turndown-plugin-gfm`
+  345,614 B raw / 101,914 B gzip. Real `wxt build` output: popup chunk 350,180 B
+  raw / **99,576 B gzip**, background 970 B / 507 B gzip, manifest 545 B.
+  ADR-0174 was amended (it is still `Proposed`, so amending is allowed): the
+  decision moved from Option A (full Defuddle, the original recommendation) to
+  **Option C (core Defuddle + Turndown)**, saving ~114 KB gzip, with the earlier
+  gating condition now verified. `DECISIONS.md` row and `PROGRESS.md` updated to
+  the measured figure; O2 restated as ~100 KB gzip vs ~16 KB gzip for the
+  Readability fallback.
+- **Math and callouts recovered without the full bundle**. Core still annotates
+  MathML with `data-latex` and normalises `.admonition` into a
+  `data-callout`/`.callout` tree — verified by reading the real output, e.g.
+  `<math xmlns="…MathML" display="inline" data-latex="x+1">` and
+  `<div data-callout="warning" class="callout"><div class="callout-title"><div
+  class="callout-title-inner">Careful</div></div><p>Admonition body.</p></div>`.
+  Two Turndown rules in `src/extraction/htmlToMarkdown.ts` therefore produce
+  `$x+1$` / `$$\na=2\n$$` and `> [!warning] Careful`, and an end-to-end test
+  asserts those exact strings from real Defuddle output, so a Defuddle upgrade
+  that changes the markup fails in CI instead of silently degrading notes.
+- **Real bugs the tests found** (each fixed, not worked around):
+  1. **Relative URLs resolved against the extension origin.** A document produced
+     by `DOMParser` in the popup has `baseURI === chrome-extension://…`, so
+     `selector:img.hero?src` and `og:image` yielded extension-relative URLs that
+     would have been written into notes as broken links. Fixed by
+     `src/page/parsePageHtml.ts` (injects `<base href="<page url>">` before
+     parsing) plus `src/page/resolveUrl.ts`, applied to URL-valued attributes and
+     to the `image`/`favicon` presets.
+  2. **Callout separator space lost.** `> [!warning]Careful` was produced whenever
+     a callout had a title but no fold marker. Fixed; both folded and unfolded
+     shapes are now pinned.
+  3. **Turndown drops blank elements before consulting custom rules**, which
+     silently discarded `<math data-latex="…"></math>` with no children.
+     `seedBlankMath()` seeds the text content, guarded by an
+     `html.includes("data-latex")` check so the common path skips the extra parse.
+  4. **`schema:@Type` auto-apply matched nested JSON-LD.** A regex over
+     `@type` collected nested nodes, so an article whose `author` is a `Person`
+     would fire every `schema:@Person` template. Auto-apply now uses
+     `readSchemaOrg`'s top-level/`@graph` indexing, which deliberately does not
+     recurse into nested objects.
+  5. **`turndown-plugin-gfm` emits `-   item`** (three spaces). Tidied to
+     `- item` by a documented regex that preserves the leading indentation of
+     nested lines, so nesting still renders.
+  6. `turndown-plugin-gfm` ships no types and has no `@types` package (the install
+     attempt failed against the registry), so `types/turndown-plugin-gfm.d.ts`
+     declares only the five exports used, and `tsconfig.json` includes `types/**`.
+- **Boundaries/lint**: `apps/web-clipper/.eslintrc.cjs` extends the root config.
+  `boundaries/no-private` was turned off for this app's own files: `web-clipper`
+  is an element nested inside the broader `app` element, so intra-app imports
+  were reported as another element's privates. The meaningful boundary — the
+  extension may import only `@app/clipper-core` (and later
+  `@app/design-system`) — is still enforced by `boundaries/element-types`. This
+  mirrors the root config's existing targeted override for test files.
+- **Repo hygiene**: `.gitignore` now ignores `**/.wxt/` and `**/.output/` (WXT
+  generates both; neither matched the existing `dist/`, `build/`, `out/` rules);
+  `turbo.json` build outputs gained `.output/**`.
+- **Cost of the clip measured and one duplicate removed.** `runClipSession` used
+  to parse the page DOM twice — once to read the Schema.org types for template
+  matching, once inside `buildClipFromPage`. The document is now parsed exactly
+  once and shared (`parsePageHtml` → `schemaTypesOf` → `buildClipFromPage`), which
+  removed ~350 ms from the large-page case. Measured in jsdom (median of 3, pinned
+  by `src/popup/runClipSession.perf.test.ts` with loose bounds because jsdom is
+  several times slower than a browser DOM): 7.6 KB page 24.9 ms, 18.6 KB 30.4 ms,
+  37 KB 44.8 ms, 1.48 MB / 4k-paragraph page 2,781.8 ms. The large-page cost is
+  surfaced rather than hidden: it grows with page size, nothing caps it, and the
+  plan's 2 MiB cap belongs to the Phase 3 transport. Truncating captured HTML
+  would silently degrade extraction quality, so the page-size limit is left as an
+  owner decision instead of being guessed.
+- **Verification**: 51 tests in 9 files pass — `extractArticle` (metadata,
+  Markdown, non-mutation of the caller's document, math/callout recovery),
+  `htmlToMarkdown` (GFM blocks, math, both callout shapes, script/style removal),
+  `pageVariables` (meta, selectors, Schema.org, `schemaTypesOf` top-level-only
+  behaviour, presets, `fullHtml` cap), `buildClipFromPage` (payload shape, schema
+  variables, the injected `markdown` filter, selection mode, highlights mode,
+  hostile-page path safety), `templateStore` + `matchTemplate` (validation,
+  eviction of invalid entries, schema/prefix/regex triggers, first-match-wins),
+  `composeNoteFile` (frontmatter round-trip and injection containment),
+  `downloadNoteFile`, `runClipSession` (auto-apply, fallback, explicit mode
+  override), and the clip-cost bounds. `tsc --noEmit` clean, ESLint clean,
+  `wxt build` succeeds. Largest file 156 lines; every file under the 250 hard cap.
+  A prior failing assertion set (Markdown not produced, script stripping) was
+  resolved by the implementation change rather than by weakening the test.
+- **Not done (explicitly)**: no React popup (Phase 2b), no `@app/design-system` in
+  the extension, no icons, no Storybook config for the app, no desktop receiver,
+  no transport, no Rust code, no queue, no `webextension-polyfill` (Firefox is not
+  a target yet). No ADR was marked Accepted and no accepted ADR was edited.
+
+### 2026-10-17: Web Clipper Phase 2b — React popup on the design system
+
+- **Scope**: `apps/web-clipper` Phase 2b only — the popup UI on
+  `@app/design-system`, plus the pipeline split that an interactive popup needs.
+  Phase 2a (`1e9dc6d`) was the previous commit. One commit, one concern.
+- **Dependencies added (with cost)**: `react` / `react-dom` 19.2.8,
+  `@app/design-system` (workspace), `@wxt-dev/module-react`, `sass`,
+  `@testing-library/react` + `jest-dom`, `@types/react(-dom)`, `@storybook/react`
+  (types only, so the app's stories are typechecked). Measured: the popup chunk
+  went from 350,180 B raw / 99,576 B gzip (Phase 2a) to **580,258 B raw / 170,650 B
+  gzip**, plus 15,288 / 3,196 B gzip of CSS — **+71 KB gzip for React 19 + the
+  design-system primitives**. `background.js` stays 970 / 507 B.
+- **Tree-shaking verified rather than assumed**: `@app/design-system/index.ts`
+  re-exports Dialog, DropdownMenu, Popover, Tooltip, Checkbox, Toggle, Divider and
+  more. Grepping the built chunk and CSS shows zero occurrences of Dialog,
+  DropdownMenu, Popover, Tooltip, Checkbox or Switch — only Button, Radio and Badge
+  styles survive. The package declares `sideEffects: ["**/*.scss", "**/*.css"]`, so
+  unused component CSS goes with the unused component code.
+- **Pipeline split (ADR-0179)**: `prepareClipContext` (page, DOM, mode → snapshot,
+  extraction, variables, Schema.org index) is memoised on `(document, mode)`;
+  `renderClipPayload` (context + template → `ClipPayload`) is memoised on the
+  template. Switching templates therefore re-renders without re-parsing the DOM or
+  re-running Defuddle. **`runClipSession` and `buildClipFromPage` were deleted**
+  rather than left beside the split: with the popup as the only caller they had no
+  callers at all, and their coverage was retargeted (`renderClipPayload.test.ts`
+  keeps every Phase 2a assertion through the split API; `defaultClipMode` moved to
+  its own module and test). The single-parse property from Phase 2a is preserved:
+  the hook calls `parsePageHtml` exactly once per clip.
+- **Draft vs payload (ADR-0179)**: the inputs render `ClipDraft`
+  (`buildClipDraft`: the rendered clip with the user's raw typing laid over it), so
+  typing is never rewritten under the caret. `applyClipEdits` produces the written
+  payload: separators and `..` segments dropped, leading dot removed, `.md`
+  ensured, characters no filesystem or Chrome download accepts removed
+  (`[<>:"|?*\p{Cc}]`), and a property the user clears removed from the frontmatter
+  rather than written as an empty value. List-valued properties are displayed but
+  not editable — a text field would have to guess whether a comma is a separator,
+  and a silently misread frontmatter value is worse than a read-only one.
+  `contentHash` is deliberately not recomputed: it hashes the body (ADR-0178
+  dedupe path) and the body is not editable here. Pinned by
+  `applyClipEdits.test.ts` (including "does not modify the clip it was given").
+- **Testability**: the session hook takes its outside world as
+  `ClipSessionDeps` (`readCapture`, `loadTemplates`, `saveNote`, `now`,
+  `newClipId`) instead of importing `wxt/browser`, so the whole popup flow is
+  testable without module mocking, and Phase 3 can swap `saveNote` for the desktop
+  transport without touching the popup. The hook reads deps through a ref and runs
+  its effect once, so a re-created deps object cannot trigger a second page read.
+- **Real bug the tests found**: a failed save was invisible. The popup rendered an
+  error only when `status === "error"`, so a rejected download showed nothing while
+  the form stayed usable. An error is now shown whenever one is set, and the
+  "browser settings pages cannot be clipped" explanation only when the page itself
+  failed; asserted in `ClipPopup.test.tsx` and `useClipSession.test.tsx` (which
+  also asserts the clip survives the failure so it can be retried).
+- **Existing bug fixed in passing**: a stale comment in
+  `src/page/buildVariableContext.ts` claimed the extractor mutates the document.
+  Phase 2a proved the opposite (`extractArticle.test.ts` pins it), and
+  `prepareClipContext` depends on the opposite, so the comment was corrected.
+- **Clip cost re-measured on the popup's actual path**
+  (`src/clip/clipPipeline.perf.test.ts`, jsdom, median of 3 on a loaded machine):
+  8.4 KB page 39.8 ms, 19.2 KB 41.9 ms, 33.6 KB 66.6 ms, 1.43 MB / 4k paragraphs
+  3,085.2 ms. Bounds stay deliberately loose (<1000 ms / <8000 ms) because jsdom is
+  several times slower than a browser DOM; these are upper bounds.
+- **Verification**: 106 tests across 17 files pass (Phase 2a had 51 across 9),
+  including hostile page metadata rendered as literal text (`container.querySelector`
+  proves no `<script>`/`<img>` is created), the error states for unreadable pages,
+  edit sanitisation and traversal refusal, and the clip-cost bounds. `tsc --noEmit`
+  clean, ESLint clean, `wxt build` succeeds. Largest file `useClipSession.ts` at 227
+  lines; every file ≤ 250. WXT/`wxt prepare` must run before `tsc`/`vitest`
+  (tsconfig extends `.wxt/tsconfig.json`).
+- **Not done (explicitly)**: no extension icons (WXT falls back to the default
+  puzzle icon; the plan does not list icons); no template import/export — the plan
+  puts that in Phase 4, not Phase 2; no app Storybook config (no app in this repo
+  has one — only `packages/design-system` renders stories — so the five components'
+  stories are written and typechecked but not rendered anywhere); no desktop
+  receiver, transport, Rust, or queue. No ADR was marked Accepted and no accepted
+  ADR was edited.
+- **Owner-local verification still outstanding**: real-browser clip timing (the
+  jsdom figures are upper bounds) and native GUI checks of the popup.
+
+### 2026-10-17: Web Clipper Phase 3 part 1 — the Rust receiver core
+
+- **Scope**: the Rust half of Phase 3 of `web-clipper-feature-plan.md` — validation,
+  token auth, the loopback listener and the webview handshake — in
+  `apps/desktop/src-tauri/src/`. Deliberately **one commit, one concern**: the TS
+  half (`clipperService.ts`, `appendToNoteInVault`, Settings pairing UI) and the
+  extension transport are deferred to the next sessions, because the security work
+  (validation, auth, request parsing) is independent of the write path and is where
+  almost all of the attack surface is. The listener is **inert**: `clipper_enable`
+  is the only way to start it and no UI calls it yet, so the shipped risk is
+  unchanged.
+- **Phase 0 gate run first (it was the blocker on the plan).** The plan required
+  verifying `tauri-plugin-deep-link` before committing to the recommended hybrid
+  transport. Findings, from the crates.io manifest and the local toolchain rather
+  than assumption:
+
+  | Fact | Result |
+  |---|---|
+  | Declared MSRV | `apps/desktop/src-tauri/Cargo.toml`: `rust-version = "1.77.2"` |
+  | Installed toolchain | `rustc 1.97.1` (aarch64-apple-darwin) — the pin is declarative, not enforced locally |
+  | `tauri-plugin-deep-link` v2 latest | **2.6.2, `rust-version = "1.90"`** |
+  | Last deep-link release fitting `1.77.2` | **2.4.10** |
+  | `tauri-plugin-single-instance` v2 latest | 2.5.4, needs 1.90 (2.5.0–2.5.4 all do) |
+  | Newest deep-link overall | `3.0.0-alpha.3`, needs 1.95 (Tauri 3 line) |
+  | `keyring = "3.6.2"` | already in the tree (OAuth precedent) |
+  | Loopback precedent | `apps/desktop/src-tauri/src/oauth.rs` |
+
+  Conclusion: taking the deep link costs either a declared MSRV bump (1.77.2 →
+  1.90 across the workspace) or a pin to the older 2.4.10 line, plus the
+  documented macOS bundled-app/install-time-scheme caveat — in exchange for a
+  launch convenience that ADR-0178's queue already makes non-critical (a clip
+  taken while the app is closed is queued and drained on next open; no clip is
+  lost either way). The loopback carrier is required under *every* option, so it
+  was built first. **Chosen: loopback-only + manual pairing.** No plugin added;
+  the declared MSRV is unchanged; the deep-link leg stays open for a later
+  session. ADR-0173 was amended (still Proposed — no accepted ADR was edited).
+- **The decision that mattered most — re-validate and *reject*, never
+  re-sanitise (ADR-0180).** `packages/clipper-core/safeName.ts` turns untrusted
+  text into a safe path segment and the extension already applies it, so a
+  payload's `target.folder` and `target.noteName` arrive normalised. The desktop
+  runs the *same* rules in Rust (`clipper_name_rules.rs`) and compares the result
+  to the input: equal → accept; not equal → **reject with `invalid-path`**.
+  Re-sanitising would silently write a *different* name than the user saw, and a
+  clip whose names are not already normalised is either a bug or an attack. This
+  matches the plan's adversarial check 1 (`noteName = "../../etc/x"` → rejected,
+  nothing written). Because the extension's own output is the fixed point of the
+  normalisation, legitimate clips always pass — pinned in both directions by
+  `clipper_validate_tests.rs`. The Rust port is deliberately literal, including
+  the odd-looking parts: `stripControlCharacters` **removes** a TAB (0x09 ≤ 0x1f)
+  rather than collapsing it, so `"a\tb"` → `"ab"`; truncation counts UTF-16 units
+  as JS `slice` does. One deliberate divergence: `safeName` applies Unicode NFC
+  and Rust's std cannot, so the Rust side is NFC-agnostic — composition cannot
+  introduce a path separator, so a non-NFC but otherwise safe name is accepted
+  and still cannot escape the vault; a normalisation crate would be a new
+  dependency for no security gain.
+- **Status/error mapping** (small deviation from the plan, which lists
+  400/413 for an oversized properties map): **413/`too-large`** for any size or
+  count breach (body, header block, property count, tag count,
+  highlight/attachment count, field length); **422/`invalid-path`** for a path
+  that is not already-normalised and vault-confined; **422/`invalid-payload`**
+  for anything else malformed or hostile (version, mode, behaviour, empty ids,
+  reserved property names, control characters); 403 for a bad `Host`/`Origin`,
+  401 for a bad token, 404/405 for the wrong route/method, 400 for unparseable
+  JSON, 409 for `vault-not-open`, 503 for `app-busy`.
+- **Host/Origin are hardening; the token is the boundary.** `Host` must be
+  **exactly** `127.0.0.1:<port>` — `localhost` and `127.0.0.1.evil` are refused,
+  which is the DNS-rebinding defence. A present `Origin` must be
+  `chrome-extension://`/`moz-extension://`; an absent `Origin` is allowed and
+  falls through to the token check, because a browser `fetch` may omit it while
+  `curl` never sends it — and `Origin` is forgeable by a non-browser client
+  anyway, so it can only ever be defence in depth. **No CORS headers are
+  emitted**: the extension is expected to hold a narrow `http://127.0.0.1/*`
+  host permission instead (an extension-side change, next session).
+- **Caps and hostile input.** The 2 MiB body cap and 16 KiB header cap are
+  enforced **before** buffering; a truncated body is an error, never a short
+  read. An oversized request may be answered with a connection reset rather than
+  the 413 body, because the server refuses to drain hostile input rather than
+  buffering it — the extension treats a reset as a failed attempt and keeps the
+  clip queued. Documented, not worked around.
+- **Lazy lifecycle, no polling (PERFORMANCE.md rule 9).** Nothing binds until
+  `clipper_enable` runs, so the disabled cost is zero — no socket, no thread.
+  Binding prefers port `47912` (below the ephemeral range, so not recycled) and
+  falls back to an ephemeral port; the actual bound port is reported to the UI for
+  pairing. `accept()` blocks; stopping sets a flag and wakes the thread with
+  **one throwaway connection** rather than polling a timeout. Token rotation
+  swaps the token the listener compares against in memory, so a revoked token
+  stops working immediately with no keychain read per request (adversarial check
+  9).
+- **Rust never writes (ADR-0177 Option 2).** Per the plan, the write path stays
+  canonical: the listener emits `clipper:clip-received` to the main window and
+  blocks on a channel keyed by `clipId`, which the webview completes through
+  `clipper_submit_result`, so the HTTP response carries the *real* outcome rather
+  than an optimistic one. The wait is bounded (20 s); on timeout the response is
+  `app-busy` and the clip stays in the extension queue, so a timeout is never data
+  loss. The handshake sits behind a `ClipDispatcher` trait, which is what lets the
+  attack matrix run against a recording dispatcher instead of a webview.
+- **Dependencies: two already-vendored crates, no new dependency class.**
+  `constant_time_eq = "0.4"` (0.4.2, already compiled via `blake3`) replaces a
+  hand-rolled comparison a compiler is free to optimise into an early exit;
+  `getrandom = "0.2"` (0.2.17, already in the lockfile) supplies the token's 256
+  bits of OS randomness. Both resolve to versions already built, so the binary
+  delta is **zero**. No HTTP framework (`std::net::TcpListener`), no URL parser
+  (the reader is ~90 lines and enforces caps the `oauth.rs` reader does not).
+- **File split (250-line hard cap).** The plan named three Rust files; the cap
+  and one-responsibility-per-file produced nine: `clipper_payload.rs` (wire types
+  mirroring `ClipPayload.ts`, `deny_unknown_fields` on every struct, `ClipAck`/
+  `ClipError`), `clipper_name_rules.rs` (the `safeName` port),
+  `clipper_validate.rs` (bounds + shape), `clipper_http.rs` (capped read/write),
+  `clipper_routes.rs` (the one route and its checks), `clipper_dispatch.rs`
+  (emit-and-await), `clipper_server.rs` (state + lifecycle), `clipper_auth.rs`
+  (token trait + keychain), `clipper_commands.rs` (the seven Tauri commands).
+  Largest new clipper file 243 lines; every new file ≤ 250 (two pre-existing
+  files, `fs.rs` and `watcher.rs`, were already over the cap and are untouched).
+  Tests live in four `*_tests.rs` files plus a shared `clipper_test_harness.rs`.
+- **`ClipAckStatus` deliberately has no `duplicate`** — the shipped TS type is
+  `written | queued | rejected`, so the Rust mirror matches it; `duplicate` is an
+  error code whose semantics belong to Phase 7 (ADR-0178). `Queued`,
+  `Duplicate` and `VaultNotOpen` carry `#[allow(dead_code)]` with comments
+  explaining which phase produces them.
+- **Verification**: 32 new Rust tests, all passing — the attack matrix (plan §5
+  checks 1–4 and 9) exercises the real route handler over real loopback sockets
+  with a recording dispatcher. Full suite **76 pass / 1 fail**; the failure is the
+  pre-existing, environmental
+  `git_auth::tests::system_git_accepts_a_pat_through_its_standard_https_askpass_path`
+  (shells out to system `git` 2.56, fails standalone, file untouched). Zero new
+  clippy warnings (the 7 warnings present are all pre-existing).
+- **Not covered by tests, and named as such in code**: the emit-and-await
+  handshake's happy path needs a live webview; the idle RSS/CPU delta and
+  "unreachable from the LAN" need a running GUI and a second host — all
+  owner-local.
+- **Environment gotcha recorded for the next session**: a cold `cargo` build
+  fails to link on this machine — the default `MacOSX27.0.sdk` `.tbd` files use
+  an `arm64e.x1-macos` target this `ld` cannot read. Prefix Rust commands with
+  `SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk`.
+- **Not done (explicitly)**: no `clipperService.ts`, no `appendToNoteInVault`, no
+  Settings UI (so no way to enable the clipper), no extension transport, no
+  `http://127.0.0.1/*` host permission, no queue. No ADR accepted; ADR-0173
+  amended in place because it is still Proposed, ADR-0180 added for the new
+  receiver decisions.
+
+### 2026-10-17: Web Clipper Phase 3 part 2 — the webview write path and the pairing UI
+
+- **Scope**: the TS/UI half of Phase 3 — everything between the Rust receiver
+  (part 1) and a feature a user can actually switch on. Split into **four commits,
+  each one concern**, which is a deliberate departure from the plan's "one
+  session, one commit" for quite a different reason than part 1's: a mechanical
+  refactor, a new vault helper, the receiver wiring and a Settings section are
+  separately reviewable and a reviewer should be able to reject any one of them
+  without unwinding the others.
+  - `f6d0244` `refactor(clipper-core)`: share the note-file assembly.
+  - `ece9206` `feat(clipper)`: `appendToNoteInVault`.
+  - `6db0189` `feat(clipper)`: serve received clips from the webview.
+  - `7c6f30d` `feat(clipper)`: the Web Clipper settings section.
+- **`packages/clipper-core` now owns the note-file shape.** `composeNoteFile` and
+  `suggestedFilePath` lived in `apps/web-clipper/src/clip/composeNoteFile.ts`.
+  ADR-0176 said the file the extension downloads and the note the vault receives
+  "are identical", which two copies can only promise, not guarantee — so the shape
+  (frontmatter block, then body, and the folder/name join) moved to the package
+  both sides already depend on, with its four tests. The extension's
+  `useClipSession` now imports them from `@app/clipper-core`. Test counts moved
+  with the tests (clipper-core 59 → 63, web-clipper 106 → 102), which is the
+  observable proof nothing else changed.
+- **`appendToNoteInVault(path, clipBody, position)` reuses `writeAndIndexNote`**
+  rather than assembling its own write. That is the whole point of ADR-0177
+  Option 2, and it is worth being explicit about what it buys: the atomic
+  `write_note` IPC, `diskStateTracker` bookkeeping (so the save-time guard of
+  ADR-0170 does not treat our own write as an external change), clearing the path
+  from `dirtyNotes`, background indexing through `withDbLock` +
+  `withDbTransaction` (ADR-0168) and the version-history record. It runs inside
+  `queuePerPath`, so a clip cannot interleave with an in-flight autosave for the
+  same note — without that, an autosave already in the promise queue could land
+  *after* the append and revert it.
+- **Append semantics, decided (ADR-0177's open question, now recorded):**
+  - bottom = end of file; top = after a leading frontmatter block, detected by a
+    small pure scanner, so a prepend can never split a note's properties.
+  - A missing target is **created**, not rejected (plan §5 check 5). There is
+    nothing to truncate, and a clip that survived the extension must survive the
+    desktop.
+  - An **open** note's in-memory buffer wins over the on-disk copy, so unsaved
+    typing is not silently reverted by a clip.
+  - The note's own line ending is preserved, and only the *seam* is normalised —
+    trailing/leading runs of line breaks collapse to exactly one blank line. Every
+    other character of the existing note survives, which is how "never truncates"
+    is actually enforced rather than merely intended.
+- **The behaviour map is total by construction.** `BEHAVIOR_ACTIONS` is a
+  `Record<ClipBehavior, …>`, so adding a behaviour to the wire type without
+  deciding what it does is a compile error. `create` never overwrites: a taken
+  name gets ADR-0110's numeric suffix (`Note.md`, `Note 1.md`, `Note 2.md`) —
+  plan §5 check 7; dedupe is Phase 7 (ADR-0178), so re-clipping a page is
+  deliberately a second file today. `append-top` is an **alias of `prepend`**
+  (the wire carries both, both mean "insert above the body"), and
+  `daily-append`/`daily-prepend` map to bottom/top — they differ only in the note
+  name their template renders. Appends carry the **body only**: a second
+  `---…---` block in the middle of a note is literal text, not properties.
+- **Failure mapping.** An unexpected write failure becomes `app-busy`, the only
+  *retryable* code on the wire. That choice is deliberate: the extension keeps a
+  non-`written` clip queued (ADR-0178) and retries it, so reporting `app-busy`
+  cannot lose a clip, whereas a code the extension treats as terminal could. No
+  vault open is `vault-not-open` — which means the webview (TS) is now what
+  produces that code, not Rust (Rust's `ClipError::VaultNotOpen` stays
+  `#[allow(dead_code)]` and its comment about "no Rust code produces them" remains
+  literally true). `target.vaultId` is **ignored**: the desktop has exactly one
+  open vault and no identity to compare against, so honouring a vault id is O4's
+  problem, not something to fake here.
+- **The handshake is completed, not assumed.** `handleClipReceived` sends the ack
+  for a rejection just as much as for a success, because Rust blocks for 20 s and
+  a missing ack would surface as `app-busy` anyway. A failed `invoke` (the window
+  may have closed, so nothing is waiting any more) is logged, never thrown: the
+  clip is still queued on the extension side.
+- **No cold-start buffer.** ADR-0177 had recommended a small buffer plus a
+  webview-ready signal. It was not built, and that is a decision rather than an
+  omission: a clip that arrives before the main webview is listening now waits out
+  the 20 s handshake and is answered `app-busy`, leaving ADR-0178's queue to be
+  the buffer. One mechanism instead of two, and it loses nothing. Recorded in
+  ADR-0177 so the next session does not "restore" it by accident.
+- **Settings.** A new "Web Clipper" sidebar entry renders
+  `ClipperSettingsSection`: enable toggle, the bound loopback address, and the
+  pairing token with Show / Copy / Rotate / Revoke. It takes every state change
+  from the `ClipperStatus` the command returns instead of optimistically flipping
+  its own toggle, so a failed bind (the port is already taken) surfaces as an
+  alert rather than a switch that silently snaps back. No story, matching its
+  siblings `CaptureSettingsSection`/`TrayClickSettingsRow`: `@app/desktop` has no
+  Storybook config and the design-system Storybook glob covers
+  `packages/design-system` only, so a story here could never run.
+- **Two lint/build surprises, both handled rather than worked around:**
+  - The `boundaries` ESLint plugin rejected `app → clipper-core` outright. The
+    fix is a one-line allow added to `.eslintrc.js`'s `app` rule: the desktop
+    consumes the shared wire contract by design (ADR-0176), so this is a boundary
+    that should be open. (The first attempt also reformatted the whole file via a
+    manual `prettier` run; that unrelated churn was reverted and the commit kept
+    to the single line.)
+  - `SettingsSidebar.tsx` and `SettingsDialog.tsx` are not prettier-clean on
+    `main`, and `lint-staged` runs `prettier --write` on every staged `.ts/.tsx`.
+    Touching them therefore reformats them, unavoidably, inside the commit. Worth
+    knowing before blaming the diff.
+- **Verification.** clipper-core 63 tests, web-clipper 102, desktop **408** (from
+  387), lint clean in all three packages. `pnpm install` was needed for the new
+  workspace dependency; it also normalised a stale `@app/design-system`
+  specifier in `pnpm-lock.yaml` to match its manifest. No new third-party
+  dependency anywhere: the desktop's entire clipper surface is 20,789 B of TS
+  source across seven files (7,116 B gzip *unminified, comments included*), so the
+  minified delta is smaller and no size budget changes (recorded in ADR-0177).
+- **Pre-existing problem, not ours, deliberately not fixed here:**
+  `apps/desktop` `tsc --noEmit` reports **23 errors on `main`** and still 23 after
+  this work — verified by stashing. The bulk is `vaultUpdateCounter` being
+  initialised (line 78) and mutated by the store but never declared on
+  `WorkspaceState`, which breaks every caller that needs a `WorkspaceSaveContext`.
+  It forced exactly one documented cast in `appendToNoteInVault.ts` (passing the
+  store's `setState` as the canonical writer's updater). Adding the missing field
+  would clear most of the 23, but mixing that into a clipper commit is precisely
+  the scope-mixing AGENTS.md warns against; it is listed as its own next-up item.
+- **Not done (explicitly)**: no extension transport, no `http://127.0.0.1/*` host
+  permission, no closed-app queue (ADR-0178), no real-browser or native-GUI
+  verification (owner-local). No ADR accepted; ADR-0177 amended in place because
+  it is still Proposed, and its open decisions now carry the four write-path
+  semantics this session had to choose.
+
+### 2026-10-17: Web Clipper Phase 3 part 3 — the extension transport
+
+- **Scope**: the browser half of Phase 3 of `web-clipper-feature-plan.md`. Phase 2
+  shipped the popup with "Add to DaVinci Notes" `disabled` and the note "arrives
+  with the transport step", so this is the commit that step named. Two commits,
+  one concern each: `5ed0a45` (the wire) and `8393920` (the popup and the
+  extension's options page). Nothing pushed.
+- **Scope correction, recorded rather than silently dropped.** The previous
+  session's "Next up" listed the closed-app queue (ADR-0178) as part of this
+  step. The plan puts that queue in **Phase 7** (with hotkeys, context menu and
+  multi-vault targeting), so no queue was built. Until it exists, a clip that
+  cannot be delivered is reported to the user with the clip left on screen and
+  the `.md` download as the fallback — not buffered somewhere that cannot drain.
+  ADR-0178's Status and `DECISIONS.md` now say so explicitly.
+- **The wire** (`src/transport/postClipToDesktop.ts`). `POST
+  http://127.0.0.1:<port>/clipper/clip`, `Content-Type: application/json`,
+  `Authorization: Bearer <token>`, body = the rendered `ClipPayload`. The
+  signature returns `{delivered:true,path?}` or `{delivered:false,reason}` and
+  **never throws**, because every failure here has a user-facing explanation and
+  the popup must keep the clip rather than unwind. `reason` speaks the app's own
+  `ClipError` vocabulary plus `not-paired`/`unreachable`/`timeout`/`queued`.
+  - The ack **body is authoritative** and the status is the fallback: Rust
+    answers every refusal with a serialised `ClipAck`, including the ones with no
+    clip id, so the reader binds the JSON first and only then maps 400 →
+    `invalid-payload`, 401/403 → `unauthorized`, 409 → `vault-not-open`, 413 →
+    `too-large`, 422 → `invalid-path`, 503 → `app-busy`, anything else (404, 405,
+    other 5xx) → `unreachable` — a 404/405 means whatever holds the port is not
+    our route.
+  - **Correlation allows an empty id.** An ack is trusted only when it names the
+    `clipId` that was sent *or names none*, because Rust deliberately sends
+    `clipId: ""` for refusals that happen before the payload parses (bad token,
+    bad host, oversized body). A reply naming a *different* clip is not evidence
+    this clip was written, and is reported `unreachable`.
+  - **Two ceilings.** A 15 s abort (`CLIPPER_REQUEST_TIMEOUT_MS`) so a stranger
+    holding the port cannot hang the popup, and a client-side 2 MiB pre-check
+    (mirroring `clipper_validate::MAX_BODY_BYTES`) so an oversized clip is never
+    built only to be refused.
+  - A `queued` ack is surfaced as **not sent** rather than as success: Rust
+    cannot send it today, and treating it as delivered before ADR-0178's queue
+    exists would be a lie the user acts on.
+- **Pairing** (`src/pairing/pairingStore.ts`, ADR-0173). Manual copy-token
+  pairing — the option Phase 0 chose: `clipper.pairing` = `{port, token}` in
+  `browser.storage.local`. A port outside 1–65535, a non-integer port, an empty
+  token, or a hand-edited shape makes the entry read as **unpaired**; nothing is
+  repaired and nothing is guessed, because a guessed token would only produce a
+  401 later. `clearPairing` writes `null` rather than removing the key, since the
+  `get`/`set` seam needs no third method and the reader cannot tell the
+  difference.
+- **Pairing's surface** is the extension's new options page
+  (`entrypoints/options/`), rendered by `PairingPanel` — a design-system
+  component with `.module.scss`, a story (unpaired / paired / invalid / failed /
+  loading) and an interaction test, per AGENTS.md. It shows the port and token
+  back, validates the port with `parsePort`, and offers Save and Forget. The
+  popup links to it (`browser.runtime.openOptionsPage`) when it is unpaired.
+- **The popup** (`useClipSession`, `ClipPopup`) gained `paired`, `sending`,
+  `sent`, `sentPath`, `send()` beside `download()`, and
+  `describeDeliveryFailure(reason)` — a total `Record` of one line per reason, so
+  a new failure cannot reach the user as a blank message. Its old `saving` flag
+  is now `downloading`, since there are two independent actions.
+- **Manifest**: `host_permissions: ["http://127.0.0.1/*"]` — the extension's only
+  host permission. It has to be a pattern rather than a port because the app
+  reports its bound port at pairing time (47912 preferred, ephemeral fallback).
+  This is also what keeps CORS handling off the desktop: with the host
+  permission, Chromium exempts the request from CORS. **No new dependency
+  anywhere.**
+- **Measured** (`wxt build` + `gzip -9` on `.output/chrome-mv3`): total output
+  595.5 kB → **610.1 kB** raw, 173.8 kB → **179.6 kB** gzip. The new options page
+  is 4.85 kB raw / 1.77 kB gzip of that. Adding a second HTML entrypoint makes the
+  bundler split a shared chunk out of the popup bundle (the popup's *own* file
+  drops from 580,254 B to 387,646 B raw while a 196,836 B shared chunk appears),
+  so the totals are the number that means anything here.
+- **One deliberate refactor inside the first commit**: the `StorageArea` seam
+  moved out of `templates/templateStore.ts` into `src/storage/storageArea.ts`, so
+  the template store and the pairing store depend on a seam rather than on each
+  other. Three files, mechanical.
+- **Verification.** web-clipper **166** tests across 21 files pass (was 102/17);
+  `pnpm lint` and `tsc --noEmit` clean; `wxt build` succeeds with both `options_ui`
+  and `host_permissions` present in the generated `manifest.json`. Only
+  `apps/web-clipper` was touched this session, so clipper-core (63) and desktop
+  (408) stand from the previous session and were not re-run. No Rust, no
+  migration, no `vault-index.db` access anywhere in this change.
+- **Owner-local, still outstanding** (an agent cannot produce these): the
+  real-browser `fetch` — whether Chromium sends `Origin` and whether the host
+  permission really suppresses the preflight; the end-to-end emit-and-await
+  handshake happy path; the options page in a real browser; idle RSS/CPU with the
+  clipper on; and reachability from another network interface.
+- **Not done, deliberately**: the closed-app queue (Phase 7), extension icons
+  (WXT still falls back to the default puzzle icon), and an app-level Storybook
+  config (so app stories still render nowhere, as with Phase 2b).
+- **Plan note, recorded not fixed**: the plan's Phase 3 "Files / packages touched"
+  lists only desktop paths even though Phase 2 says the button is "disabled until
+  Phase 3". The extension transport belongs to Phase 3 in intent and is missing
+  from that list; the plan file was left alone.
+
+---
+
+## 2026-10-17 — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration
+
+- **Scope:** Completed Phase 5 of `web-clipper-feature-plan.md` — page text-quote anchoring and highlighting, persistent storage per URL in `chrome.storage.local` with bounded FIFO eviction, zero-cost idle restoration on un-highlighted pages, popup "Highlight selection" action with dynamic highlights extraction mode enablement, and safe markdown rendering filters (`highlight`, hardened `wikilink`, primitive-row `table`).
+- **Core Markdown Filters & Formatting (`packages/clipper-core`):**
+  - `markdownFilters.ts`: Added `highlightFilter` (registered in `DEFAULT_FILTERS` as `highlight`) wrapping text in `==...==`, escaping internal `==` to `\=\=`, and splitting multi-line text across lines. Hardened `wikilinkFilter` against adversarial inputs by stripping `]]` and converting newlines to spaces so wikilink syntax cannot be broken.
+  - `arrayFilters.ts`: Updated `tableFilter` to support primitive array items (such as string highlight lists) as rows, correctly escaping `|` to `\|` and newlines to spaces.
+  - `filterRegistry.ts` & `index.ts`: Registered and re-exported `highlightFilter`.
+  - `filters.test.ts`: Added unit tests for `highlight`, hardened `wikilink`, and `table` filters.
+- **Popup Session & Highlight Wiring (`apps/web-clipper`):**
+  - `clipSessionDeps.ts`: Added `loadHighlights`, `saveHighlight`, and `notifyHighlightsUpdated` (sends `davinci:restore-highlights` to active tab).
+  - `loadClipPage.ts`: Factored out module loading templates, pairing, capture, and highlights in parallel + exported `createHighlightRecord`. Kept `useClipSession.ts` at 248 lines (strictly under the 250 hard cap).
+  - `useClipSession.ts`: Refactored to use `loadClipPage`, enabling `highlights` mode in `disabledModes` only when stored highlights exist, wiring `canHighlightSelection` and `highlightSelection()`, passing highlights to `prepareClipContext`.
+  - `ClipPopup.tsx` & `ClipPopup.module.scss`: Added `clip-popup__highlight-action` rendering "Highlight selection" button (`size="sm"`) when selection is present.
+  - `ClipPopup.test.tsx`: Added test verifying "Highlight selection" button click dispatches `controller.highlightSelection`.
+- **Highlighter Optimization & Zero Idle Cost:**
+  - `pageHighlights.ts`: Added instant `if (records.length === 0) return 0;` early exit in `restoreHighlights` to prevent traversing 5,000 DOM nodes when 0 highlights exist (reduced idle cost from 55 ms to <0.01 ms).
+- **Adversarial Verification (`highlighterAdversarial.test.ts`):**
+  - Check 1: 200 highlights over 5,000 DOM nodes in jsdom; zero cost (<0.01 ms) on 0 highlights.
+  - Check 2: Graceful skip when anchor text deleted / DOM changed.
+  - Check 3: Clipping with `mode: "highlights"` and hostile quote containing `==`, `]]`, `|`, and `\n` without breaking highlight, wikilink, or table syntax.
+  - Check 4: Oldest-first eviction honoring `MAX_HIGHLIGHTS` (2,000) and `MAX_HIGHLIGHTS_PER_URL` (200).
+- **Verification:**
+  - `@app/clipper-core`: 14 files, 81 tests passing.
+  - `@app/web-clipper`: 33 files, 211 tests passing.
+  - ESLint and `tsc --noEmit`: 0 errors.
+  - `wxt build`: clean build in 932 ms (655.90 kB raw / 194.1 kB gzip).

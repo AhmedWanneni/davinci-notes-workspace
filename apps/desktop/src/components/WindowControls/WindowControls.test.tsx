@@ -1,19 +1,27 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setPlatformAdapters } from "@app/platform-adapters";
 import { WindowControls } from "./WindowControls";
 
-const windowApi = vi.hoisted(() => ({
-  close: vi.fn(),
-  minimize: vi.fn(),
-  toggleMaximize: vi.fn(),
-}));
-
-vi.mock("@tauri-apps/api/window", () => ({
-  getCurrentWindow: () => windowApi,
+const windowControlsMock = vi.hoisted(() => ({
+  supported: true,
+  close: vi.fn().mockResolvedValue(undefined),
+  minimize: vi.fn().mockResolvedValue(undefined),
+  maximize: vi.fn().mockResolvedValue(undefined),
+  toggleFullscreen: vi.fn().mockResolvedValue(undefined),
+  isFullscreen: vi.fn().mockResolvedValue(false),
+  startDragging: vi.fn(),
 }));
 
 describe("WindowControls", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setPlatformAdapters({
+      windowControls: windowControlsMock,
+    });
+  });
+
   it("calls the native window operations", () => {
     render(<WindowControls />);
 
@@ -23,8 +31,8 @@ describe("WindowControls", () => {
     );
     fireEvent.click(screen.getByRole("button", { name: "Close window" }));
 
-    expect(windowApi.minimize).toHaveBeenCalledOnce();
-    expect(windowApi.toggleMaximize).toHaveBeenCalledOnce();
-    expect(windowApi.close).toHaveBeenCalledOnce();
+    expect(windowControlsMock.minimize).toHaveBeenCalledOnce();
+    expect(windowControlsMock.maximize).toHaveBeenCalledOnce();
+    expect(windowControlsMock.close).toHaveBeenCalledOnce();
   });
 });

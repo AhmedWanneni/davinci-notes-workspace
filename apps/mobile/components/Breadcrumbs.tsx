@@ -1,7 +1,7 @@
 import React from "react";
 import { View, ScrollView, Pressable } from "react-native";
 import { CaretRight, HardDrive } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Text } from "./primitives";
 
 export interface BreadcrumbsProps {
@@ -13,12 +13,19 @@ export function Breadcrumbs({
   currentFolder,
   onNavigate,
 }: BreadcrumbsProps): React.ReactElement {
+  const { tokens } = useTheme();
   const segments = currentFolder
     ? currentFolder.split("/").filter(Boolean)
     : [];
 
   return (
-    <View className="px-4 py-2 bg-bg-primary-alt border-b border-border-subtle flex-row items-center">
+    <View
+      className="px-4 py-2 border-b flex-row items-center"
+      style={{
+        backgroundColor: tokens.color.bg["primary-alt"],
+        borderBottomColor: tokens.color.border.subtle,
+      }}
+    >
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -34,7 +41,7 @@ export function Breadcrumbs({
         >
           <HardDrive
             size={15}
-            color={darkColorTokens.text.accent}
+            color={tokens.color.interactive.accent}
             weight="regular"
           />
           <Text
@@ -54,7 +61,7 @@ export function Breadcrumbs({
           return (
             <React.Fragment key={pathUpTo}>
               <View className="px-1 items-center justify-center">
-                <CaretRight size={12} color={darkColorTokens.text.muted} />
+                <CaretRight size={12} color={tokens.color.text.muted} />
               </View>
               <Pressable
                 onPress={() => onNavigate(pathUpTo)}

@@ -11,6 +11,7 @@
       "@app/canvas": ["packages/canvas/index.ts"],
       "@app/attachments": ["packages/attachments/index.ts"],
       "@app/core-types": ["packages/core-types/index.ts"],
+      "@app/clipper-core": ["packages/clipper-core/index.ts"],
       "@app/design-system": ["packages/design-system/index.ts"],
       "@app/design-tokens": ["packages/design-tokens/src/index.ts"],
       "@app/design-tokens/*": ["packages/design-tokens/*"],
@@ -24,7 +25,9 @@
       "@app/ai-embeddings": ["packages/ai-embeddings/index.ts"],
       "@app/ai-qa": ["packages/ai-qa/index.ts"],
       "@app/sync-client": ["packages/sync-client/index.ts"],
-      "@app/syncthing-api": ["packages/syncthing-api/index.ts"]
+      "@app/syncthing-api": ["packages/syncthing-api/index.ts"],
+      "@app/google-calendar-api": ["packages/google-calendar-api/index.ts"],
+      "@app/platform-adapters": ["packages/platform-adapters/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist"]

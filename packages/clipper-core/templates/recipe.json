@@ -1,0 +1,36 @@
+{
+  "id": "recipe",
+  "name": "Recipe",
+  "behavior": "create",
+  "noteNameFormat": "{{title|safe_name}}",
+  "folder": "Clippings/Recipes",
+  "properties": [
+    {
+      "name": "cuisine",
+      "value": "{{schema:Recipe:recipeCuisine}}"
+    },
+    {
+      "name": "prep_time",
+      "value": "{{schema:Recipe:prepTime}}"
+    },
+    {
+      "name": "cook_time",
+      "value": "{{schema:Recipe:cookTime}}"
+    },
+    {
+      "name": "servings",
+      "value": "{{schema:Recipe:recipeYield}}"
+    },
+    {
+      "name": "source",
+      "value": "{{url}}"
+    },
+    {
+      "name": "created",
+      "value": "{{date|date:\"YYYY-MM-DD\"}}"
+    }
+  ],
+  "tags": ["clippings", "recipe"],
+  "body": "# {{title}}\n\n{{content}}\n\n## Ingredients\n\n{{schema:Recipe:recipeIngredient|list}}\n\n## Instructions\n\n{{schema:Recipe:recipeInstructions|list}}",
+  "triggers": ["schema:@Recipe"]
+}

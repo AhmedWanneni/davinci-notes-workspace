@@ -1,5 +1,6 @@
 import React from "react";
 import { View, type ViewStyle } from "react-native";
+import { useTheme } from "../../theme";
 import { Text } from "./Text";
 
 export interface BadgeProps {
@@ -9,14 +10,6 @@ export interface BadgeProps {
   className?: string;
   style?: ViewStyle;
 }
-
-const VARIANT_CONTAINER: Record<string, string> = {
-  neutral: "bg-bg-hover border-border-normal",
-  accent: "bg-bg-status-accent border-border-status-accent",
-  success: "bg-bg-status-success border-border-status-success",
-  warning: "bg-bg-status-warning border-border-status-warning",
-  error: "bg-bg-status-error border-border-status-error",
-};
 
 const VARIANT_TEXT: Record<
   string,
@@ -36,18 +29,42 @@ export const Badge: React.FC<BadgeProps> = ({
   className = "",
   style,
 }) => {
+  const { tokens } = useTheme();
+
   const containerClasses = [
     "inline-flex flex-row items-center px-1.5 py-0.5 rounded-[4px] border self-start",
-    VARIANT_CONTAINER[variant] || VARIANT_CONTAINER.neutral,
     className,
   ]
     .filter(Boolean)
     .join(" ");
 
+  const dynamicStyles: ViewStyle = {
+    backgroundColor:
+      variant === "accent"
+        ? tokens.color.bg["status-accent"]
+        : variant === "success"
+          ? tokens.color.bg["status-success"]
+          : variant === "warning"
+            ? tokens.color.bg["status-warning"]
+            : variant === "error"
+              ? tokens.color.bg["status-error"]
+              : tokens.color.bg.hover,
+    borderColor:
+      variant === "accent"
+        ? tokens.color.border["status-accent"]
+        : variant === "success"
+          ? tokens.color.border["status-success"]
+          : variant === "warning"
+            ? tokens.color.border["status-warning"]
+            : variant === "error"
+              ? tokens.color.border["status-error"]
+              : tokens.color.border.normal,
+  };
+
   const textColor = VARIANT_TEXT[variant] || "muted";
 
   return (
-    <View className={containerClasses} style={style}>
+    <View className={containerClasses} style={[dynamicStyles, style]}>
       {icon ? <View className="mr-1 flex-shrink-0">{icon}</View> : null}
       {React.isValidElement(children) ? (
         children

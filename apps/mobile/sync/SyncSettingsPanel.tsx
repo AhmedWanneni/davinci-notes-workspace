@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, ScrollView } from "react-native";
+import { useTheme } from "../theme";
 import { Button, Text, Divider } from "../components/primitives";
 import type { MobileSyncEngine } from "./mobileSyncEngine";
 import { useSyncStatus } from "./useSyncStatus";
@@ -20,6 +21,7 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
   engine,
   clientId = "davinci-mobile-client",
 }) => {
+  const { tokens } = useTheme();
   const {
     status,
     progress,
@@ -79,7 +81,10 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
   };
 
   return (
-    <ScrollView className="flex-1 bg-bg-base p-4">
+    <ScrollView
+      className="flex-1 p-4"
+      style={{ backgroundColor: tokens.color.bg.primary }}
+    >
       <View className="mb-6">
         <Text variant="h2" weight="semibold" className="mb-1">
           Sync Settings
@@ -90,7 +95,13 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
       </View>
 
       {/* Sync Status Banner */}
-      <View className="p-4 rounded border border-border-default bg-bg-surface mb-6">
+      <View
+        className="p-4 rounded border mb-6"
+        style={{
+          backgroundColor: tokens.color.bg.secondary,
+          borderColor: tokens.color.border.subtle,
+        }}
+      >
         <View className="flex-row items-center justify-between mb-3">
           <Text variant="body" weight="medium">
             Status
@@ -100,12 +111,20 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
             progress={progress}
             lastSyncedAt={lastSyncedAt}
             onPress={handleSyncPress}
+            tokens={tokens}
           />
         </View>
 
         {errorMessage ? (
-          <View className="p-3 rounded bg-accent-danger/10 border border-accent-danger/20 mb-3">
-            <Text variant="caption" className="text-accent-danger">
+          <View
+            className="p-3 rounded mb-3"
+            style={{
+              backgroundColor: tokens.color.bg["status-error"],
+              borderColor: tokens.color.border["status-error"],
+              borderWidth: 1,
+            }}
+          >
+            <Text variant="caption" style={{ color: tokens.color.text.error }}>
               {errorMessage}
             </Text>
           </View>
@@ -129,7 +148,13 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
       </View>
 
       {/* Google Drive Connection */}
-      <View className="p-4 rounded border border-border-default bg-bg-surface mb-6">
+      <View
+        className="p-4 rounded border mb-6"
+        style={{
+          backgroundColor: tokens.color.bg.secondary,
+          borderColor: tokens.color.border.subtle,
+        }}
+      >
         <Text variant="body" weight="medium" className="mb-1">
           Google Drive Account
         </Text>
@@ -152,22 +177,34 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
 
       {/* Conflicts section if detected */}
       {conflicts.length > 0 ? (
-        <View className="p-4 rounded border border-accent-warning/30 bg-accent-warning/10 mb-6">
+        <View
+          className="p-4 rounded mb-6"
+          style={{
+            backgroundColor: tokens.color.bg["status-warning"],
+            borderColor: tokens.color.border["status-warning"],
+            borderWidth: 1,
+          }}
+        >
           <Text
             variant="body"
             weight="semibold"
-            className="text-accent-warning mb-2"
+            className="mb-2"
+            style={{ color: tokens.color.text.warning }}
           >
             Conflicting Files ({conflicts.length})
           </Text>
-          <Text variant="caption" className="text-fg-secondary mb-3">
+          <Text variant="caption" className="mb-3" color="muted">
             These files were modified both locally and on another device. In
             accordance with zero-data-loss policy, they have been left
             untouched.
           </Text>
 
           {conflicts.map((c) => (
-            <View key={c.path} className="py-2 border-b border-border-default">
+            <View
+              key={c.path}
+              className="py-2 border-b"
+              style={{ borderBottomColor: tokens.color.border.subtle }}
+            >
               <Text variant="caption" weight="medium">
                 {c.path}
               </Text>
@@ -182,7 +219,13 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
       <Divider className="my-4" />
 
       {/* Policy information */}
-      <View className="p-4 rounded border border-border-default bg-bg-surface">
+      <View
+        className="p-4 rounded border"
+        style={{
+          backgroundColor: tokens.color.bg.secondary,
+          borderColor: tokens.color.border.subtle,
+        }}
+      >
         <Text variant="caption" weight="medium" className="mb-1">
           Data & Battery Policies
         </Text>

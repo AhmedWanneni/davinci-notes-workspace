@@ -1,18 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setPlatformAdapters } from "@app/platform-adapters";
+import { confirmTreeDelete } from "./confirmTreeDelete";
 
 const confirmMock = vi.fn();
-const messageMock = vi.fn();
-
-vi.mock("@tauri-apps/plugin-dialog", () => ({
-  confirm: (...args: unknown[]) => confirmMock(...args),
-  message: (...args: unknown[]) => messageMock(...args),
-}));
-
-import { confirmTreeDelete } from "./confirmTreeDelete";
+const alertMock = vi.fn();
 
 describe("confirmTreeDelete", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setPlatformAdapters({
+      dialog: {
+        confirm: confirmMock,
+        alert: alertMock,
+        pickVaultFolder: vi.fn(),
+        pickImageFile: vi.fn(),
+      },
+    });
   });
 
   it("does not delete when the native confirmation is cancelled", async () => {
@@ -31,9 +34,9 @@ describe("confirmTreeDelete", () => {
     await confirmTreeDelete("projects", true, remove);
 
     expect(remove).toHaveBeenCalledOnce();
-    expect(messageMock).toHaveBeenCalledWith(
+    expect(alertMock).toHaveBeenCalledWith(
       expect.stringContaining("Could not delete"),
-      expect.objectContaining({ kind: "error" }),
+      "Delete failed",
     );
   });
 });

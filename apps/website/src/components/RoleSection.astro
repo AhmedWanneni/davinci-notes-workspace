@@ -1,0 +1,110 @@
+---
+import './RoleSection.css';
+
+const roles = [
+  { id: 'students', label: 'Students', icon: '🏆' },
+  { id: 'academics', label: 'Academics', icon: '🏛️' },
+  { id: 'writers', label: 'Writers', icon: '✒️' },
+  { id: 'pms', label: 'Project Managers', icon: '📅' },
+  { id: 'devs', label: 'Developers', icon: '💻' },
+];
+---
+
+<section class="logseq-role-section" id="features">
+  <div class="logseq-container">
+    <h2 class="role-section-title">Today, everyone is a <strong>researcher</strong></h2>
+
+    <!-- 3 Top Capability Indicators -->
+    <div class="capability-pills">
+      <div class="cap-pill">
+        <span class="cap-icon">◫</span>
+        <span class="cap-text">Task Management</span>
+      </div>
+      <div class="cap-pill">
+        <span class="cap-icon">📄</span>
+        <span class="cap-text">PDF Annotations</span>
+      </div>
+      <div class="cap-pill">
+        <span class="cap-icon">⚡</span>
+        <span class="cap-text">Flashcards</span>
+      </div>
+    </div>
+
+    <!-- 5 Role Tabs -->
+    <div class="role-tab-bar" role="tablist">
+      {roles.map((role, idx) => (
+        <button
+          type="button"
+          role="tab"
+          class:list={['role-tab-btn', { 'is-active': idx === 0 }]}
+          data-role-tab={role.id}
+          aria-selected={idx === 0 ? 'true' : 'false'}
+        >
+          <span class="role-tab-icon">{role.icon}</span>
+          <span class="role-tab-name">{role.label}</span>
+        </button>
+      ))}
+    </div>
+
+    <!-- Central Editor Showcase -->
+    <div class="role-editor-showcase">
+      <div class="editor-window-mockup">
+        <div class="mockup-header">
+          <div class="mockup-dots"><span></span><span></span><span></span></div>
+          <span class="mockup-title">research / literature-review.md</span>
+        </div>
+        <div class="mockup-body">
+          <div class="code-line">• <strong>[[Zettelkasten Method]]</strong> <span class="tag">#methodology</span></div>
+          <div class="code-line indent-1">• Synthesized from [[Niklas Luhmann]] archive</div>
+          <div class="code-line indent-2">• Atomic thoughts linked via bidirectional <mark>[[wikilinks]]</mark></div>
+          <div class="code-line indent-2">• Query: <code>&#123;&#123;query (and (tag research) (not done))&#125;&#125;</code></div>
+          <div class="code-line indent-1">• Scheduled review with <mark>[[Jessica]]</mark></div>
+        </div>
+      </div>
+
+      <!-- 3 Feature Pillars -->
+      <div class="feature-pillars-grid">
+        <div class="pillar-item">
+          <div class="pillar-icon">🔄</div>
+          <h4>Review notes</h4>
+          <p>Capture, structure, and review all of your notes with ease using Linked References, Queries, and Search.</p>
+        </div>
+        <div class="pillar-item">
+          <div class="pillar-icon">🧠</div>
+          <h4>Memorize facts</h4>
+          <p>Remember facts and insights using the Flashcards feature and spaced repetition built directly into your notes.</p>
+        </div>
+        <div class="pillar-item">
+          <div class="pillar-icon">📝</div>
+          <h4>Outline essays</h4>
+          <p>Organize your thoughts and ideas, and quickly turn them into clean outlines using Block References.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Beginner Tip Card -->
+    <div class="beginner-card-wrapper">
+      <div class="beginner-tip-card">
+        <div class="tip-left">
+          <span class="tip-badge">⚡ BEGINNER</span>
+          <h3>Get in the habit of writing thoughts down every day.</h3>
+          <p>Tip 1: Think in sections, use indentation.</p>
+          <div class="tip-carousel-nav">
+            <button type="button" aria-label="Previous tip" class="btn-tip-arrow">‹</button>
+            <div class="carousel-dots"><span class="is-active"></span><span></span><span></span></div>
+            <button type="button" aria-label="Next tip" class="btn-tip-arrow">›</button>
+          </div>
+        </div>
+        <div class="tip-right">
+          <div class="outline-snippet">
+            <div>• Met with <mark>[[Jessica]]</mark></div>
+            <div class="indent">• She mentioned her current read: <mark>[[Book / Intertwingled]]</mark></div>
+            <div class="indent">• <span class="tag-now">NOW</span> Write Outline for Chapter 1 of my <mark>[[Thesis]]</mark></div>
+            <div class="indent-2">• Use feedback of my professor</div>
+            <div class="indent-2">• Write it out as fast as possible, review later</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

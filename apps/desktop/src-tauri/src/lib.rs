@@ -4,6 +4,17 @@ mod capture_commands;
 mod capture_format;
 mod capture_validation;
 mod capture_writer;
+mod clipper_attachments;
+mod clipper_auth;
+mod clipper_commands;
+mod clipper_dispatch;
+mod clipper_http;
+mod clipper_ledger;
+mod clipper_name_rules;
+mod clipper_payload;
+mod clipper_routes;
+mod clipper_server;
+mod clipper_validate;
 #[cfg(test)]
 mod capture_tests;
 #[cfg(test)]
@@ -42,6 +53,20 @@ mod tray_position;
 mod fs_tests;
 #[cfg(test)]
 mod tray_tests;
+#[cfg(test)]
+mod clipper_attachments_tests;
+#[cfg(test)]
+mod clipper_ledger_tests;
+#[cfg(test)]
+mod clipper_auth_tests;
+#[cfg(test)]
+mod clipper_target_tests;
+#[cfg(test)]
+mod clipper_test_harness;
+#[cfg(test)]
+mod clipper_transport_tests;
+#[cfg(test)]
+mod clipper_validate_tests;
 mod watcher;
 
 use state::VaultState;
@@ -63,6 +88,7 @@ pub fn run() {
     .manage(VaultState::new())
     .manage(VaultWatcher::new())
     .manage(oauth::OAuthListenerState::default())
+    .manage(clipper_server::ClipperState::new())
     .manage(plugin_webview::PluginProbeState::default())
     .manage(plugin_network::PluginNetworkClient::new().expect("plugin network client must initialize"))
     .manage(syncthing::SyncthingManager::new())
@@ -104,6 +130,19 @@ pub fn run() {
       oauth::save_drive_token,
       oauth::load_drive_token,
       oauth::clear_drive_token,
+      clipper_commands::clipper_enable,
+      clipper_commands::clipper_disable,
+      clipper_commands::clipper_status,
+      clipper_commands::clipper_reveal_token,
+      clipper_commands::clipper_rotate_token,
+      clipper_commands::clipper_revoke_token,
+      clipper_commands::clipper_submit_result,
+      clipper_attachments::clipper_fetch_attachment,
+      clipper_ledger::clipper_check_duplicate,
+      clipper_ledger::clipper_record_written,
+      oauth::save_calendar_token,
+      oauth::load_calendar_token,
+      oauth::clear_calendar_token,
       ai_auth::save_ai_key,
       ai_auth::load_ai_key,
       ai_auth::clear_ai_key,

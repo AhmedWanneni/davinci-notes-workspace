@@ -23,6 +23,10 @@ export default defineConfig({
       react: path.join(__dirname, "node_modules/react"),
       "react-dom": path.join(__dirname, "node_modules/react-dom"),
       "@app/core-types": path.join(repoRoot, "packages/core-types/index.ts"),
+      "@app/clipper-core": path.join(
+        repoRoot,
+        "packages/clipper-core/index.ts",
+      ),
       "@app/editor": path.join(repoRoot, "packages/editor/index.ts"),
       "@app/indexer": path.join(repoRoot, "packages/indexer/index.ts"),
       "@app/sync-client": path.join(repoRoot, "packages/sync-client/index.ts"),
@@ -35,6 +39,7 @@ export default defineConfig({
       "@app/ai-api": path.join(repoRoot, "packages/ai-api/index.ts"),
       "@app/ai-runtime": path.join(repoRoot, "packages/ai-runtime/index.ts"),
       "@app/syncthing-api": path.join(repoRoot, "packages/syncthing-api/index.ts"),
+      "@app/google-calendar-api": path.join(repoRoot, "packages/google-calendar-api/index.ts"),
     },
   },
   test: {

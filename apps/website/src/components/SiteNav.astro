@@ -1,0 +1,123 @@
+---
+---
+
+<header class="logseq-nav-header">
+  <div class="logseq-container nav-inner">
+    <div class="nav-left">
+      <a href="/" class="nav-brand">
+        <span class="nav-brand-icon">✦</span>
+        <span class="nav-brand-name">davinci<strong>notes</strong></span>
+      </a>
+      <nav class="nav-menu" aria-label="Main menu">
+        <a href="#top" class="nav-item is-active">Home</a>
+        <a href="#download" class="nav-item">Downloads</a>
+      </nav>
+    </div>
+
+    <div class="nav-right">
+      <div class="nav-external-links">
+        <a href="#community" class="nav-item">Community ↗</a>
+        <a href="#privacy" class="nav-item">Privacy ↗</a>
+        <a href="https://github.com" target="_blank" rel="noreferrer" class="nav-item">GitHub ↗</a>
+      </div>
+      <a href="#download" class="btn-logseq-primary btn-nav-cta">
+        <span>Download<span class="hide-mobile"> for Desktop</span></span>
+        <span class="btn-arrow" aria-hidden="true">⌵</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .logseq-nav-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: rgba(21, 6, 18, 0.94);
+    backdrop-filter: blur(8px);
+    box-shadow: none !important;
+  }
+
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .nav-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--logseq-text-title);
+  }
+
+  .nav-brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    background-color: var(--logseq-teal);
+    color: var(--logseq-mint);
+    border: 1px solid var(--logseq-border-glow);
+    border-radius: var(--radius-hand-drawn-subtle);
+    font-size: 0.85rem;
+  }
+
+  .nav-brand-name strong {
+    color: var(--logseq-cyan);
+    font-weight: 800;
+  }
+
+  .nav-menu, .nav-external-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .nav-item {
+    font-size: 0.875rem;
+    color: var(--logseq-text-muted);
+    transition: color 150ms ease;
+  }
+
+  .nav-item:hover, .nav-item.is-active {
+    color: var(--logseq-text-title);
+  }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .btn-nav-cta {
+    padding: 0.5rem 1.1rem;
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 860px) {
+    .nav-menu, .nav-external-links {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .btn-nav-cta {
+      padding: 0.45rem 0.8rem;
+      font-size: 0.76rem;
+    }
+    .hide-mobile {
+      display: none;
+    }
+  }
+</style>

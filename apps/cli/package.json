@@ -1,0 +1,11 @@
+{
+  "name": "@app/cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DaVinci Notes CLI and TUI companion",
+  "scripts": {
+    "build": "SDKROOT=${SDKROOT:-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk} cargo build --release",
+    "test": "SDKROOT=${SDKROOT:-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk} cargo test",
+    "lint": "SDKROOT=${SDKROOT:-/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk} cargo clippy -- -D warnings"
+  }
+}

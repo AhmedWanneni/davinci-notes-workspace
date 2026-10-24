@@ -1,0 +1,18 @@
+{
+  "name": "@app/clipper-core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "echo 'dev @app/clipper-core'",
+    "lint": "eslint . --ext .ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build-storybook": "echo 'build-storybook not applicable for @app/clipper-core'"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.10"
+  }
+}

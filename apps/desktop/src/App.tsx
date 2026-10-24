@@ -39,10 +39,16 @@ import {
 } from "./ai/citationNavigation";
 import { loadAIStartupGate } from "./ai/loadAIStartupGate";
 import { useTrayMenuActions, useWindowFullscreen } from "./window";
+import { useClipperService } from "./clipper";
 
 const LazyGlobalGraphLeaf = React.lazy(() =>
   import("./components/GlobalGraphLeaf").then((m) => ({
     default: m.GlobalGraphLeaf,
+  })),
+);
+const LazyCalendarLeaf = React.lazy(() =>
+  import("./components/CalendarView").then((m) => ({
+    default: m.CalendarLeaf,
   })),
 );
 const LazySettingsDialog = React.lazy(() =>
@@ -84,6 +90,10 @@ export function App() {
   );
   const setIsGlobalGraphOpen = useWorkspaceStore(
     (state) => state.setIsGlobalGraphOpen,
+  );
+  const isCalendarOpen = useWorkspaceStore((state) => state.isCalendarOpen);
+  const setIsCalendarOpen = useWorkspaceStore(
+    (state) => state.setIsCalendarOpen,
   );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] =
@@ -200,6 +210,9 @@ export function App() {
     onDailyNotes: handleDailyNotes,
     onOpenVault: openPicker,
   });
+
+  // Serve clips the loopback listener hands to this window (ADR-0177).
+  useClipperService();
 
   const initPlugins = usePluginStore((state) => state.initPlugins);
   const pluginCommands = usePluginStore((state) => state.commands);
@@ -602,12 +615,14 @@ export function App() {
         <IconRail
           isLeftSidebarOpen={isLeftSidebarOpen}
           isGlobalGraphOpen={isGlobalGraphOpen}
+          isCalendarOpen={isCalendarOpen}
           onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
           onOpenSearch={() => {
             setSearchInitialQuery("");
             setIsSearchOpen(true);
           }}
-          onOpenGlobalGraph={() => setIsGlobalGraphOpen((prev) => !prev)}
+          onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
+          onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
           onOpenSettings={handleOpenSettings}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
@@ -677,7 +692,14 @@ export function App() {
             isMac={isMac}
             showWindowControls={!isLeftSidebarOpen}
           />
-          {isGlobalGraphOpen ? (
+          {isCalendarOpen ? (
+            <Suspense fallback={null}>
+              <LazyCalendarLeaf
+                onClose={() => setIsCalendarOpen(false)}
+                onOpenSettings={handleOpenSettings}
+              />
+            </Suspense>
+          ) : isGlobalGraphOpen ? (
             <Suspense fallback={null}>
               <LazyGlobalGraphLeaf
                 graph={graph}

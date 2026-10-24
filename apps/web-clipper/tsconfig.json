@@ -1,0 +1,22 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "noUncheckedIndexedAccess": false,
+    "paths": {
+      "@/*": ["./*"],
+      "~/*": ["./*"],
+      "@app/clipper-core": ["../../packages/clipper-core/index.ts"],
+      "@app/design-system": ["../../packages/design-system/index.ts"],
+      "@app/design-system/styles/*": ["../../packages/design-system/styles/*"]
+    }
+  },
+  "include": ["entrypoints/**/*", "src/**/*", "types/**/*", "wxt.config.ts"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    ".output",
+    ".wxt",
+    "node_modules"
+  ]
+}

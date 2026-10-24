@@ -98,6 +98,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       graph: initialGraph,
       tagIndex,
       isGlobalGraphOpen: false,
+      isCalendarOpen: false,
       vaultUpdateCounter: get().vaultUpdateCounter + 1,
     });
   },

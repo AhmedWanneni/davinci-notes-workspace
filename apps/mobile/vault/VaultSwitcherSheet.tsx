@@ -2,14 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { View, ScrollView, Alert } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { Plus, FolderSimple } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
-import {
-  Sheet,
-  Button,
-  Text,
-  Input,
-  Divider,
-} from "../components/primitives";
+import { useTheme } from "../theme";
+import { Sheet, Button, Text, Input, Divider } from "../components/primitives";
 import { defaultVaultManager } from "./vaultManager";
 import type { RegisteredVault } from "./vaultRegistryTypes";
 import { VaultSwitcherItem } from "./VaultSwitcherItem";
@@ -25,6 +19,7 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
   onClose,
   onVaultChanged,
 }) => {
+  const { tokens } = useTheme();
   const [vaults, setVaults] = useState<readonly RegisteredVault[]>([]);
   const [activeUri, setActiveUri] = useState<string | null>(null);
   const [showCreateInput, setShowCreateInput] = useState(false);
@@ -189,7 +184,7 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
               variant="secondary"
               size="sm"
               className="flex-1"
-              icon={<Plus size={16} color={darkColorTokens.text.normal} />}
+              icon={<Plus size={16} color={tokens.color.text.normal} />}
               onPress={() => setShowCreateInput(true)}
             >
               New Vault
@@ -198,7 +193,7 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
               variant="secondary"
               size="sm"
               className="flex-1"
-              icon={<FolderSimple size={16} color={darkColorTokens.text.normal} />}
+              icon={<FolderSimple size={16} color={tokens.color.text.normal} />}
               onPress={handleOpenFolder}
             >
               Open Folder

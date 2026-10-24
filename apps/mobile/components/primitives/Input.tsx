@@ -5,7 +5,7 @@ import {
   type TextInputProps as RNTextInputProps,
   type TextStyle,
 } from "react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../../theme";
 
 export interface InputProps extends Omit<RNTextInputProps, "style"> {
   variant?: "default" | "error";
@@ -39,19 +39,18 @@ export const Input = React.forwardRef<RNTextInput, InputProps>(
     },
     ref,
   ) => {
+    const { tokens } = useTheme();
     const [isFocused, setIsFocused] = useState(false);
-
     const isError = variant === "error";
 
-    const borderColorClass = isError
-      ? "border-border-status-error"
+    const borderColor = isError
+      ? tokens.color.border["status-error"]
       : isFocused
-        ? "border-border-focus"
-        : "border-border-normal";
+        ? tokens.color.border.focus
+        : tokens.color.border.normal;
 
     const containerClasses = [
-      "flex-row items-center rounded-md border bg-bg-secondary min-h-[44px]",
-      borderColorClass,
+      "flex-row items-center rounded-md border min-h-[44px]",
       SIZE_CONTAINER[size] || SIZE_CONTAINER.md,
       disabled ? "opacity-50 pointer-events-none" : "",
       className,
@@ -60,14 +59,20 @@ export const Input = React.forwardRef<RNTextInput, InputProps>(
       .join(" ");
 
     return (
-      <View className={containerClasses}>
+      <View
+        className={containerClasses}
+        style={{
+          backgroundColor: tokens.color.bg.secondary,
+          borderColor,
+        }}
+      >
         {prefix ? <View className="mr-2 flex-shrink-0">{prefix}</View> : null}
         <RNTextInput
           ref={ref}
           editable={!disabled}
-          placeholderTextColor={darkColorTokens.text.faint}
-          className="flex-1 text-sm text-text-normal h-full py-0"
-          style={style}
+          placeholderTextColor={tokens.color.text.faint}
+          className="flex-1 text-sm h-full py-0"
+          style={[{ color: tokens.color.text.normal }, style]}
           onFocus={(e) => {
             setIsFocused(true);
             onFocus?.(e);

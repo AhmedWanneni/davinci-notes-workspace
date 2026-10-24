@@ -3,7 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import { Text } from "../components/primitives/Text";
 import { Badge } from "../components/primitives/Badge";
 import type { MobileVaultStorageAdapter } from "../vault";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import {
   parseCanvasWithCycleDetection,
   type CanvasDocument,
@@ -20,6 +20,7 @@ export const CanvasViewer: React.FC<CanvasViewerProps> = ({
   canvasPath,
   adapter,
 }) => {
+  const { tokens } = useTheme();
   const [document, setDocument] = useState<CanvasDocument | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,10 +60,13 @@ export const CanvasViewer: React.FC<CanvasViewerProps> = ({
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-primary">
+      <View
+        className="flex-1 items-center justify-center"
+        style={{ backgroundColor: tokens.color.bg.primary }}
+      >
         <ActivityIndicator
           size="small"
-          color={darkColorTokens.interactive.accent}
+          color={tokens.color.interactive.accent}
         />
         <Text variant="caption" color="muted" className="mt-2">
           Loading canvas...
@@ -73,7 +77,10 @@ export const CanvasViewer: React.FC<CanvasViewerProps> = ({
 
   if (error || !document) {
     return (
-      <View className="flex-1 items-center justify-center bg-bg-primary p-4">
+      <View
+        className="flex-1 items-center justify-center p-4"
+        style={{ backgroundColor: tokens.color.bg.primary }}
+      >
         <Text variant="body" color="error">
           Failed to load canvas: {error ?? "Invalid canvas format"}
         </Text>
@@ -82,9 +89,18 @@ export const CanvasViewer: React.FC<CanvasViewerProps> = ({
   }
 
   return (
-    <View className="flex-1 bg-bg-primary">
+    <View
+      className="flex-1"
+      style={{ backgroundColor: tokens.color.bg.primary }}
+    >
       {document.hasCycle ? (
-        <View className="p-2 bg-accent-warning/10 border-b border-accent-warning flex-row items-center justify-between">
+        <View
+          className="p-2 border-b flex-row items-center justify-between"
+          style={{
+            backgroundColor: tokens.color.bg["status-warning"],
+            borderBottomColor: tokens.color.border["status-warning"],
+          }}
+        >
           <Text variant="caption" color="warning">
             Circular canvas embed detected and neutralized
           </Text>
@@ -95,6 +111,15 @@ export const CanvasViewer: React.FC<CanvasViewerProps> = ({
         <CanvasViewerDom
           dom={{ useExpoDOMWebView: false }}
           document={document}
+          themeTokens={{
+            bgPrimaryAlt: tokens.color.bg["primary-alt"],
+            bgSecondary: tokens.color.bg.secondary,
+            textNormal: tokens.color.text.normal,
+            textMuted: tokens.color.text.muted,
+            borderNormal: tokens.color.border.normal,
+            interactiveAccent: tokens.color.interactive.accent,
+            textError: tokens.color.text.error,
+          }}
         />
       </View>
     </View>

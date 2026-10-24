@@ -1,23 +1,17 @@
 import type { AttachmentSettings } from "@app/attachments";
 import { resolveAttachmentFolder } from "@app/attachments";
-import { writeAttachmentToVault } from "../../vault";
+import { computeVaultRelativeLink, writeAttachmentToVault } from "../../vault";
+
+export { computeVaultRelativeLink };
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 
 export interface InsertLocalImageOptions {
   vaultPath: string;
   activeNotePath: string | null;
   attachmentSettings: AttachmentSettings;
-}
-
-export function computeVaultRelativeLink(
-  vaultPath: string,
-  writtenPath: string,
-): string {
-  const vaultPrefix = `${vaultPath.replaceAll("\\", "/").replace(/\/+$/u, "")}/`;
-  const normalizedWritten = writtenPath.replaceAll("\\", "/");
-  const linkTarget = normalizedWritten.startsWith(vaultPrefix)
-    ? normalizedWritten.slice(vaultPrefix.length)
-    : normalizedWritten;
-  return linkTarget;
 }
 
 /**
@@ -47,33 +41,16 @@ export async function copyImageFileToVault(
 }
 
 /**
- * Lazy-loads the Tauri file dialog, prompts the user to select an image,
+ * Prompts the user to select an image via the platform dialog adapter,
  * reads the bytes, and copies the image to the vault attachments folder.
  */
 export async function insertLocalImage(
   options: InsertLocalImageOptions,
 ): Promise<string | null> {
-  const { open } = await import("@tauri-apps/plugin-dialog");
-  const selected = await open({
-    multiple: false,
-    directory: false,
-    title: "Select image",
-    filters: [
-      {
-        name: "Image",
-        extensions: ["png", "jpg", "jpeg", "gif", "webp", "svg"],
-      },
-    ],
-  });
+  if (!hasPlatformAdapters()) return null;
 
-  if (!selected || Array.isArray(selected)) return null;
+  const picked = await getPlatformAdapters().dialog.pickImageFile();
+  if (!picked) return null;
 
-  const filePath = selected as string;
-  const filename =
-    filePath.replaceAll("\\", "/").split("/").pop() ?? "image.png";
-
-  const { readFile } = await import("@tauri-apps/plugin-fs");
-  const bytes = await readFile(filePath);
-
-  return copyImageFileToVault(options, filename, bytes);
+  return copyImageFileToVault(options, picked.name, picked.data);
 }

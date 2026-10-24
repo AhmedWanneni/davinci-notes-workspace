@@ -11,7 +11,8 @@ use tauri::{State, WebviewWindow};
 
 use crate::command_auth::reject_plugin_runner;
 
-const SERVICE: &str = "com.davinci.notes.drive-oauth";
+const DRIVE_SERVICE: &str = "com.davinci.notes.drive-oauth";
+const CALENDAR_SERVICE: &str = "com.davinci.notes.calendar-oauth";
 const ACCOUNT: &str = "default";
 
 #[derive(Default)]
@@ -29,11 +30,17 @@ pub struct LoopbackEndpoint {
   pub redirect_uri: String,
 }
 
+pub fn is_allowed_external_url(url: &str) -> bool {
+  url.starts_with("https://accounts.google.com/")
+    || url.starts_with("https://meet.google.com/")
+    || url.starts_with("http://meet.google.com/")
+}
+
 #[tauri::command]
 pub async fn open_external_url(window: WebviewWindow, url: String) -> Result<(), String> {
   reject_plugin_runner(&window)?;
-  if !url.starts_with("https://accounts.google.com/") {
-    return Err("refusing to open an unexpected authorization URL".to_string());
+  if !is_allowed_external_url(&url) {
+    return Err("refusing to open an unexpected authorization or meeting URL".to_string());
   }
   tauri::async_runtime::spawn_blocking(move || {
     #[cfg(target_os = "macos")]
@@ -119,7 +126,7 @@ fn percent_decode(value: &str) -> Result<String, String> {
 
 #[cfg(test)]
 mod tests {
-  use super::parse_callback;
+  use super::{is_allowed_external_url, parse_callback};
 
   #[test]
   fn accepts_google_desktop_loopback_root() {
@@ -132,19 +139,28 @@ mod tests {
   fn rejects_non_root_callback_path() {
     assert!(parse_callback("GET /oauth/callback?code=abc HTTP/1.1").is_err());
   }
+
+  #[test]
+  fn validates_allowed_external_urls() {
+    assert!(is_allowed_external_url("https://accounts.google.com/o/oauth2/v2/auth?client_id=123"));
+    assert!(is_allowed_external_url("https://meet.google.com/abc-defg-hij"));
+    assert!(is_allowed_external_url("http://meet.google.com/abc-defg-hij"));
+    assert!(!is_allowed_external_url("https://evil.com/phishing"));
+    assert!(!is_allowed_external_url("javascript:alert(1)"));
+  }
 }
 
 #[tauri::command]
 pub fn save_drive_token(window: WebviewWindow, token: String) -> Result<(), String> {
   reject_plugin_runner(&window)?;
-  Entry::new(SERVICE, ACCOUNT).map_err(|error| error.to_string())?
+  Entry::new(DRIVE_SERVICE, ACCOUNT).map_err(|error| error.to_string())?
     .set_password(&token).map_err(|error| error.to_string())
 }
 
 #[tauri::command]
 pub fn load_drive_token(window: WebviewWindow) -> Result<Option<String>, String> {
   reject_plugin_runner(&window)?;
-  match Entry::new(SERVICE, ACCOUNT).map_err(|error| error.to_string())?.get_password() {
+  match Entry::new(DRIVE_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.get_password() {
     Ok(token) => Ok(Some(token)),
     Err(keyring::Error::NoEntry) => Ok(None),
     Err(error) => Err(error.to_string()),
@@ -154,7 +170,33 @@ pub fn load_drive_token(window: WebviewWindow) -> Result<Option<String>, String>
 #[tauri::command]
 pub fn clear_drive_token(window: WebviewWindow) -> Result<(), String> {
   reject_plugin_runner(&window)?;
-  match Entry::new(SERVICE, ACCOUNT).map_err(|error| error.to_string())?.delete_credential() {
+  match Entry::new(DRIVE_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.delete_credential() {
+    Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+    Err(error) => Err(error.to_string()),
+  }
+}
+
+#[tauri::command]
+pub fn save_calendar_token(window: WebviewWindow, token: String) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+  Entry::new(CALENDAR_SERVICE, ACCOUNT).map_err(|error| error.to_string())?
+    .set_password(&token).map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+pub fn load_calendar_token(window: WebviewWindow) -> Result<Option<String>, String> {
+  reject_plugin_runner(&window)?;
+  match Entry::new(CALENDAR_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.get_password() {
+    Ok(token) => Ok(Some(token)),
+    Err(keyring::Error::NoEntry) => Ok(None),
+    Err(error) => Err(error.to_string()),
+  }
+}
+
+#[tauri::command]
+pub fn clear_calendar_token(window: WebviewWindow) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+  match Entry::new(CALENDAR_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.delete_credential() {
     Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
     Err(error) => Err(error.to_string()),
   }

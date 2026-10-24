@@ -19,10 +19,11 @@ export type BlockNode =
   | { type: "paragraph"; inlines: InlineNode[] }
   | { type: "blockquote"; inlines: InlineNode[] }
   | { type: "codeblock"; code: string; language?: string }
-  | { type: "task"; checked: boolean; inlines: InlineNode[] }
+  | { type: "task"; checked: boolean; depth?: number; inlines: InlineNode[] }
   | {
       type: "list-item";
       ordered: boolean;
+      depth?: number;
       index?: number;
       inlines: InlineNode[];
     }

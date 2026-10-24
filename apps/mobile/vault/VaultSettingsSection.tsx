@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { View } from "react-native";
 import { Folder, CaretRight } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Text, Button, ListItem } from "../components/primitives";
 import { defaultVaultManager } from "./vaultManager";
 import { VaultSwitcherSheet } from "./VaultSwitcherSheet";
@@ -14,6 +14,7 @@ export interface VaultSettingsSectionProps {
 export const VaultSettingsSection: React.FC<VaultSettingsSectionProps> = ({
   onVaultChanged,
 }) => {
+  const { tokens } = useTheme();
   const [vaultInfo, setVaultInfo] = useState<VaultInfo | null>(null);
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
 
@@ -32,10 +33,16 @@ export const VaultSettingsSection: React.FC<VaultSettingsSectionProps> = ({
   };
 
   return (
-    <View className="mb-6 p-4 rounded-card border border-border-normal bg-bg-secondary">
+    <View
+      className="mb-6 p-4 rounded-card border"
+      style={{
+        backgroundColor: tokens.color.bg.secondary,
+        borderColor: tokens.color.border.normal,
+      }}
+    >
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center gap-2">
-          <Folder size={18} color={darkColorTokens.text.accent} />
+          <Folder size={18} color={tokens.color.interactive.accent} />
           <Text variant="h3" color="normal">
             Vault
           </Text>
@@ -47,7 +54,7 @@ export const VaultSettingsSection: React.FC<VaultSettingsSectionProps> = ({
         subtitle={
           vaultInfo?.mode === "sandbox" ? "App Sandbox" : "External Folder"
         }
-        right={<CaretRight size={16} color={darkColorTokens.text.muted} />}
+        right={<CaretRight size={16} color={tokens.color.text.muted} />}
         onPress={() => setIsSwitcherOpen(true)}
       />
 

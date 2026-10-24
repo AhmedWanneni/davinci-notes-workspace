@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Text } from "../components/primitives";
 import { defaultVaultManager, defaultNoteStore } from "../vault";
 import { captureItem, fetchUrlMetadata, type CapturedItem } from "../capture";
@@ -12,6 +12,7 @@ import { captureItem, fetchUrlMetadata, type CapturedItem } from "../capture";
  */
 export default function ShareTargetScreen(): React.ReactElement {
   const router = useRouter();
+  const { tokens } = useTheme();
   const params = useLocalSearchParams<{
     text?: string;
     url?: string;
@@ -85,8 +86,11 @@ export default function ShareTargetScreen(): React.ReactElement {
   }, [params, router]);
 
   return (
-    <View className="flex-1 bg-bg-primary items-center justify-center p-6">
-      <ActivityIndicator size="small" color={darkColorTokens.text.accent} />
+    <View
+      className="flex-1 items-center justify-center p-6"
+      style={{ backgroundColor: tokens.color.bg.primary }}
+    >
+      <ActivityIndicator size="small" color={tokens.color.interactive.accent} />
       <Text variant="body" color="normal" className="mt-4 text-center">
         {status}
       </Text>

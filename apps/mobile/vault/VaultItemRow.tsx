@@ -1,6 +1,6 @@
 import React from "react";
 import { Folder, FileText, PushPin } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { ListItem } from "../components/primitives";
 import type { RowItem } from "./folderViewHelpers";
 
@@ -19,13 +19,15 @@ export const VaultItemRow: React.FC<VaultItemRowProps> = ({
   onPressNote,
   onLongPressNote,
 }) => {
+  const { tokens } = useTheme();
+
   if (item.type === "folder") {
     const folderName = item.path.split("/").pop() ?? item.path;
     return (
       <ListItem
         title={folderName}
         subtitle="Folder"
-        left={<Folder size={20} color={darkColorTokens.text.muted} />}
+        left={<Folder size={20} color={tokens.color.text.muted} />}
         onPress={() => onPressFolder(item.path)}
       />
     );
@@ -36,12 +38,12 @@ export const VaultItemRow: React.FC<VaultItemRowProps> = ({
     <ListItem
       title={noteName}
       subtitle="Markdown note"
-      left={<FileText size={20} color={darkColorTokens.text.accent} />}
+      left={<FileText size={20} color={tokens.color.interactive.accent} />}
       right={
         isPinned ? (
           <PushPin
             size={16}
-            color={darkColorTokens.text.accent}
+            color={tokens.color.interactive.accent}
             weight="fill"
           />
         ) : undefined

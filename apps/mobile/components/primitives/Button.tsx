@@ -6,6 +6,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { mobileTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../../theme";
 import { Text } from "./Text";
 
 export interface ButtonProps {
@@ -59,6 +60,7 @@ export const Button = React.forwardRef<
     },
     ref,
   ) => {
+    const { tokens } = useTheme();
     const isSmOrIcon = size === "sm" || size === "icon";
     const hitSlopValue = isSmOrIcon
       ? {
@@ -79,6 +81,29 @@ export const Button = React.forwardRef<
       .filter(Boolean)
       .join(" ");
 
+    const dynamicStyles: ViewStyle = {
+      minHeight: 44,
+      ...(variant === "primary"
+        ? {
+            backgroundColor: tokens.color.interactive.accent,
+            borderColor: "transparent",
+          }
+        : variant === "secondary"
+          ? {
+              backgroundColor: "transparent",
+              borderColor: tokens.color.border.normal,
+            }
+          : variant === "danger"
+            ? {
+                backgroundColor: "transparent",
+                borderColor: tokens.color.border["status-error"],
+              }
+            : {
+                backgroundColor: "transparent",
+                borderColor: "transparent",
+              }),
+    };
+
     const textColor = VARIANT_TEXT_COLOR[variant] || "normal";
     const textSize = size === "lg" ? "lg" : size === "sm" ? "sm" : "base";
 
@@ -91,7 +116,7 @@ export const Button = React.forwardRef<
         accessibilityLabel={accessibilityLabel}
         hitSlop={hitSlopValue}
         className={containerClasses}
-        style={style}
+        style={[dynamicStyles, style]}
       >
         {icon ? (
           <View
