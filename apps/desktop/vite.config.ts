@@ -17,6 +17,27 @@ const magentaThemePath = path.join(
   "scripts/theme-verification/magenta-public-tokens.css",
 );
 
+const readFixtureTree = (rootDir: string) => {
+  const folders: string[] = [];
+  const files: Array<{ path: string; content: string }> = [];
+  const walk = (dir: string, relPrefix: string) => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name.startsWith(".")) continue;
+      const rel = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        folders.push(rel);
+        walk(full, rel);
+      } else if (/\.(md|canvas)$/i.test(entry.name)) {
+        files.push({ path: rel, content: fs.readFileSync(full, "utf8") });
+      }
+    }
+  };
+  walk(rootDir, "");
+  return { folders, files };
+};
+
 const themeVerificationPlugin = {
   name: "theme-verification-stylesheet",
   configureServer(server: {
@@ -24,7 +45,7 @@ const themeVerificationPlugin = {
       use: (
         path: string,
         handler: (
-          request: unknown,
+          request: { url?: string },
           response: {
             setHeader: (name: string, value: string) => void;
             end: (body: string) => void;
@@ -40,6 +61,12 @@ const themeVerificationPlugin = {
         response.end(fs.readFileSync(magentaThemePath, "utf8"));
       },
     );
+    server.middlewares.use("/_dev/fixture-vault", (request, response) => {
+      const isLarge = request.url?.includes("size=large");
+      const targetDir = isLarge ? largeFixtureVaultPath : fixtureVaultPath;
+      response.setHeader("Content-Type", "application/json; charset=utf-8");
+      response.end(JSON.stringify(readFixtureTree(targetDir)));
+    });
   },
 };
 
@@ -131,7 +158,14 @@ export default defineConfig({
       },
       {
         find: "@app/google-calendar-api",
-        replacement: path.join(repoRoot, "packages/google-calendar-api/index.ts"),
+        replacement: path.join(
+          repoRoot,
+          "packages/google-calendar-api/index.ts",
+        ),
+      },
+      {
+        find: "@app/platform-adapters",
+        replacement: path.join(repoRoot, "packages/platform-adapters/index.ts"),
       },
     ],
   },

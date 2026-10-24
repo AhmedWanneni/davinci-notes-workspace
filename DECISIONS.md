@@ -294,3 +294,12 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0201](adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md) | Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization | Accepted |
 | [0202](adr/0202-calendar-ui-shell-and-obsidian-leaf-integration.md) | Calendar UI shell: IconRail entry, lazy-loaded Obsidian CalendarLeaf, and mutually exclusive navigation state | Accepted |
 | [0203](adr/0203-calendar-reminder-alerts-and-tray-integration.md) | Calendar reminder alerts (5-minute heads-up) and menu-bar system tray upcoming meeting integration | Accepted |
+
+## Web Shell
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0204](adr/0204-platform-adapter-layer-and-boundary-enforcement.md) | Platform adapter layer (`@app/platform-adapters`) and `eslint-plugin-boundaries` enforcement across desktop and web | Accepted |
+| [0205](adr/0205-hybrid-browser-vault-storage-and-web-sqlite.md) | Hybrid browser vault storage (File System Access API + OPFS fallback) and multi-tab `navigator.locks` + `withWebDbLock` SQLite serialization | Accepted |
+| [0206](adr/0206-browser-plugin-iframe-sandbox.md) | Browser plugin sandboxing via null-origin `<iframe sandbox="allow-scripts">` and MessageChannel RPC | Accepted |
+

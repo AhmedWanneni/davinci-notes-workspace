@@ -78,3 +78,9 @@ export type {
   TextConflictKind,
   TextConflictResult,
 } from "./conflictResolver";
+export {
+  computeHexDigest,
+  createWebManifestSource,
+  createWebPkceProvider,
+} from "./webManifestSource";
+export type { WebVaultFileReader } from "./webManifestSource";

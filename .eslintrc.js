@@ -32,8 +32,10 @@ module.exports = {
       { type: "sanitize", pattern: "packages/sanitize/**/*", mode: "full" },
       { type: "syncthing-api", pattern: "packages/syncthing-api/**/*", mode: "full" },
       { type: "google-calendar-api", pattern: "packages/google-calendar-api/**/*", mode: "full" },
+      { type: "platform-adapters", pattern: "packages/platform-adapters/**/*", mode: "full" },
       { type: "app-desktop", pattern: "apps/desktop/**/*", mode: "full" },
       { type: "app-mobile", pattern: "apps/mobile/**/*", mode: "full" },
+      { type: "app-web", pattern: "apps/web/**/*", mode: "full" },
       { type: "service", pattern: "services/**/*", mode: "full" }
     ]
   },
@@ -54,6 +56,7 @@ module.exports = {
           { from: "sanitize", allow: ["sanitize"] },
           { from: "syncthing-api", allow: ["core-types", "syncthing-api"] },
           { from: "google-calendar-api", allow: ["core-types", "google-calendar-api"] },
+          { from: "platform-adapters", allow: ["core-types", "platform-adapters"] },
           { from: "plugin-api", allow: ["core-types", "plugin-api"] },
           { from: "plugin-runtime", allow: ["core-types", "plugin-api", "plugin-runtime"] },
           { from: "theme-api", allow: ["theme-api"] },
@@ -78,6 +81,7 @@ module.exports = {
               "sanitize",
               "syncthing-api",
               "google-calendar-api",
+              "platform-adapters",
               "app-desktop"
             ]
           },
@@ -99,7 +103,32 @@ module.exports = {
               "sanitize",
               "syncthing-api",
               "google-calendar-api",
+              "platform-adapters",
               "app-mobile"
+            ]
+          },
+          {
+            from: "app-web",
+            allow: [
+              "core-types",
+              "design-tokens",
+              "design-system",
+              "indexer",
+              "sync-client",
+              "editor",
+              "canvas",
+              "plugin-api",
+              "plugin-runtime",
+              "theme-api",
+              "ai-api",
+              "ai-runtime",
+              "attachments",
+              "sanitize",
+              "syncthing-api",
+              "google-calendar-api",
+              "platform-adapters",
+              "app-desktop",
+              "app-web"
             ]
           },
           { from: "service", allow: ["core-types", "indexer", "sync-client", "service"] }
@@ -117,7 +146,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["packages/editor/**/*.{ts,tsx}", "apps/mobile/**/*.{ts,tsx}"],
+      files: ["packages/editor/**/*.{ts,tsx}", "apps/mobile/**/*.{ts,tsx}", "apps/web/**/*.{ts,tsx}"],
       rules: { "boundaries/no-private": "off" }
     },
     {

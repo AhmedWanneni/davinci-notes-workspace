@@ -5,7 +5,10 @@ import {
   SidebarSimple,
 } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 import { WindowControls } from "../WindowControls";
 
 export interface AppSidebarHeaderProps {
@@ -69,7 +72,11 @@ export function AppSidebarHeader({
       <div
         className="app-sidebar__drag-region"
         data-tauri-drag-region
-        onDoubleClick={() => void getCurrentWindow().toggleMaximize()}
+        onDoubleClick={() => {
+          if (hasPlatformAdapters()) {
+            void getPlatformAdapters().windowControls.maximize();
+          }
+        }}
       />
       <div className="app-sidebar__header-actions">
         {onToggleLeftSidebar && (

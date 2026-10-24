@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { getPlatformAdapters, isWebPlatformMode } from "@app/platform-adapters";
 
 export interface RecentVaultEntry {
   path: string;
@@ -8,6 +9,9 @@ export interface RecentVaultEntry {
 }
 
 export async function getRecentVaults(): Promise<RecentVaultEntry[]> {
+  if (isWebPlatformMode()) {
+    return getPlatformAdapters().vaultRegistry.getRecentVaults();
+  }
   try {
     return await invoke<RecentVaultEntry[]>("get_recent_vaults");
   } catch (error) {
@@ -19,6 +23,12 @@ export async function getRecentVaults(): Promise<RecentVaultEntry[]> {
 export async function recordRecentVault(
   path: string,
 ): Promise<RecentVaultEntry[]> {
+  if (isWebPlatformMode()) {
+    const name = path.split(/[/\\]/).pop() || path;
+    const registry = getPlatformAdapters().vaultRegistry;
+    await registry.recordRecentVault(path, name);
+    return registry.getRecentVaults();
+  }
   try {
     return await invoke<RecentVaultEntry[]>("record_recent_vault", { path });
   } catch (error) {
@@ -30,6 +40,11 @@ export async function recordRecentVault(
 export async function removeRecentVault(
   path: string,
 ): Promise<RecentVaultEntry[]> {
+  if (isWebPlatformMode()) {
+    const registry = getPlatformAdapters().vaultRegistry;
+    await registry.removeRecentVault(path);
+    return registry.getRecentVaults();
+  }
   try {
     return await invoke<RecentVaultEntry[]>("remove_recent_vault", { path });
   } catch (error) {
@@ -39,6 +54,9 @@ export async function removeRecentVault(
 }
 
 export async function checkVaultExists(path: string): Promise<boolean> {
+  if (isWebPlatformMode()) {
+    return getPlatformAdapters().vaultRegistry.checkVaultExists(path);
+  }
   try {
     return await invoke<boolean>("check_vault_exists", { path });
   } catch {
@@ -52,6 +70,9 @@ export async function checkVaultExists(path: string): Promise<boolean> {
  * If none exist or all paths are missing/unreadable, returns null.
  */
 export async function getAutoOpenVault(): Promise<RecentVaultEntry | null> {
+  if (isWebPlatformMode()) {
+    return null;
+  }
   const recent = await getRecentVaults();
   for (const entry of recent) {
     if (entry.exists !== false) {

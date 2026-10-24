@@ -1,12 +1,23 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { setPlatformAdapters } from "@app/platform-adapters";
+import { TauriDialogAdapter } from "../adapters/TauriDialogAdapter";
 
-const openDialog = vi.fn();
+const openDialog = vi.hoisted(() => vi.fn());
 
 vi.mock("@tauri-apps/plugin-dialog", () => ({
   open: openDialog,
+  confirm: vi.fn(),
+  message: vi.fn(),
 }));
 
 describe("pickVaultFolder", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setPlatformAdapters({
+      dialog: new TauriDialogAdapter(),
+    });
+  });
+
   it("returns null when the dialog is cancelled", async () => {
     openDialog.mockResolvedValue(null);
     const { pickVaultFolder } = await import("./pickVaultFolder");

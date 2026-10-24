@@ -1,7 +1,10 @@
 import { useCallback } from "react";
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { pastedFileName } from "@app/editor";
 import { resolveAttachmentFolder } from "@app/attachments";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 import { writeAttachmentToVault, writeBinaryFile } from "../../vault";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
@@ -54,7 +57,10 @@ export function useEditorMediaHandlers(activeNotePath: string | null) {
         ? `${vaultPath.replace(/\/+$/, "")}/${filePath.replace(/^\/+/, "")}`
         : filePath;
       try {
-        return convertFileSrc(absolutePath);
+        if (hasPlatformAdapters()) {
+          return getPlatformAdapters().fs.resolveFileUrl(absolutePath);
+        }
+        return filePath;
       } catch {
         return filePath;
       }
