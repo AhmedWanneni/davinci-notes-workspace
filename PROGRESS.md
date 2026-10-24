@@ -227,6 +227,73 @@ Updated at the end of every session. Read this first, before touching code. Full
   - Verified malicious `@import` and remote `url()` neutralization.
   - Verified rapid 30x theme switching completes in $<50\text{ms}$ without memory leaks or dropped state.
   - All 10 redesign test suites passing (36 tests); 0 ESLint errors; 0 TypeScript errors; every file strictly under line caps ($\le 225$ lines).
+**Marketing Site Unified Midnight Background (#150612) & Harmonized Wine Styling (complete)**
+- **Unified Section Canvas Background (`#150612`)**:
+  - Set the background of **every section** (`HeroSection`, `RoleSection`, `CommunitySection`, `ThoughtsStage`, `WorkflowsSection`, `SafeSpaceSection`, `SyncSection`, `ClosingSection`, and `SiteNav`) strictly to `#150612`.
+  - Replaced alternating `--logseq-bg-alt` with `--logseq-bg: #150612`, eliminating disjointed grey sections while preserving section hierarchy via subtle, organic 1.5px hairline dividers (`rgba(216, 167, 177, 0.22)`).
+  - Updated `<meta name="theme-color" content="#150612" />` and the SVG favicon background to match the unified canvas.
+- **Harmonized Elevated Wine Surfaces & High-Contrast Typography**:
+  - Elevated surfaces updated to deep wine tones: `#220B1E` (`--logseq-card`), `#2E1029` (`--logseq-card-hover`), `#4B1D3F` (`--logseq-card-active`), and `#1B0717` (`--logseq-card-dark`).
+  - Text colors paired for maximum contrast and readability: luminous Wheat (`#F5E8D0`, 15.6:1 WCAG AAA contrast) for titles and body, and Rose Smoke (`#D8A7B1`, 8.6:1 contrast) for secondary accents and metadata.
+  - Mockup code windows, sticky notes, and timeline cards updated to blend naturally into the `#150612` field.
+- **Strict Compliance & Verification**:
+  - All files strictly under 237 lines (hard cap 250).
+  - Production static build succeeds in 349ms (`pnpm --filter @app/website build`).
+  - Desktop (1440px) and mobile (375px) screenshots captured and visually verified with zero horizontal overflow and zero box-shadows.
+
+---
+
+**Marketing Site Burgundy/Wheat Redesign & Centered Interactive Hero (complete)**
+- **Centered, Un-Compacted Hero Structure (`HeroSection.astro`, `hero.css`)**:
+  - Eliminated the cramped two-column layout, telemetry bar, and sidebar inspector card.
+  - Centered monumental display typography (*"Connect your notes, increase understanding."*) with comfortable, airy line spacing.
+  - Placed the classical woman and rock cutout prominently in the center of the hero stage with zero background behind her, dissolving naturally into the Off-Black canvas.
+  - Positioned high-contrast CTA buttons (`Download for Desktop ⌵`, `Explore Features ↗`) centered directly below the rocks.
+- **Vivid Palette & Rich Content (`heroThoughts.ts`, `hero-nodes.css`, `tokens.css`)**:
+  - Vivid ("vif") contrast using Burgundy (`#4B1D3F`), luminous Wheat/Nude (`#E8D9C1`, `#F5E8D0`), Rose Smoke (`#D8A7B1`), and deep Off-Black (`#1B1B1B`).
+  - Enriched thought content featuring authentic polymath notes:
+    - `Meeting with [[Luca Pacioli]]`
+    - `[[De Divina Proportione]]`
+    - `Icosahedron Study`
+    - `On Fleeting Ideas.md`
+    - `#local-first/sqlite`
+    - `Euler's Identity` ($e^{i\pi} + 1 = 0$)
+    - `Codex Atlanticus f.846`
+  - 360-degree interactive 3D thought cloud encircling her head with weighted drag/swipe inertia, dynamic anchor positioning, and active hairline connectors.
+  - Absolute zero shadows project-wide with organic hand-drawn borders.
+- **Strict Compliance & Verification**:
+  - All files strictly under 238 lines (hard cap 250).
+  - Production static build succeeds in 251ms (`pnpm --filter @app/website build`).
+  - Visually verified via headless Chrome screenshots at desktop (1440px) and mobile (375px) with 0 horizontal overflow.
+
+---
+
+**Marketing Site Redesign & "The Opened Mind" Interactive Hero (complete)**
+- **Design Tokens & Dual-Palette Architecture (`tokens.css`, `typography.css`)**:
+  - Implemented Direction A (*"Nocturnal Obsidian Codex"*, default `#121110` dark ink + `#d97754` terracotta drape + ultramarine/vermilion collage backing blocks) with live switchable support for Direction B (*"Salon Ultramarine & Archival Paper"*, `#1c22a8` field + `#f2ece1` ivory rag paper).
+  - Editorial typography pairing: `Cormorant Garamond` (display headlines), `Space Grotesk` (Swiss UI / body), and `IBM Plex Mono` (code / wikilinks / notes), with metric-matched font fallbacks ensuring CLS = 0.
+  - Zero box-shadows, zero gradients, zero glassmorphism, zero pill badges, and zero-cost static SVG noise grain overlay (`body::after`).
+- **Anatomical Cutout Pipeline & Pre-Rendered Vector Assets (`apps/website/public/images/hero/`)**:
+  - Sliced classical portrait into registration-locked `muse-base` and `muse-crown` layers along the 14° forehead cut line, with complete alpha de-fringing and painted cross-section rims.
+  - Exported responsive multi-density formats (`480w`, `768w`, `1120w`) in AVIF, WebP, and PNG (`39.3 KB` total on mobile, `80.6 KB` on desktop).
+  - Pre-rendered inline SVG math formulas (Euler's Identity, Fourier Transform, Wave Equation) and Leonardo notebook studies (Icosahedron, Ornithopter rib, Proportional compass) with 0 KB runtime LaTeX cost.
+- **3D Orbital Projection Engine & Accessibility (`orbitMath.ts`, `orbitController.ts`, `orbitInspector.ts`)**:
+  - Pure TypeScript 3D projection controller with zero external npm dependencies (`3.1 KB` gzipped JS).
+  - 360-degree pointer/touch drag rotation with weighted velocity inertia and subtle hover parallax.
+  - Depth cues via scale, opacity, and dynamic z-occlusion (nodes physically pass behind her head at `z < -16` and in front of her lifted crown at `z > 28`).
+  - Active backlink highlighting with animated SVG hairline graph connections.
+  - Fly-Forward Note Inspector Card with connected thought jumping, plus a semantic `<details>` plain-text index drawer for screen readers and no-JS fallback.
+  - Scroll-driven entrance: cranium lifts on scroll while thoughts emerge from the cross-hatched red cavity and funnel downward into the Section 01 Workbench frame.
+- **Editorial Full-Page Narrative (`WorkbenchSection`, `AnatomySection`, `PerformanceLedger`, `DownloadManifesto`)**:
+  - Section 01: Three-pane live vault blueprint (File Tree, CodeMirror 6 live-preview with 4 workflow tabs, and Local Graph).
+  - Section 02: Four-specimen Swiss architectural index (Plain `.md` endurance, SQLite FTS5 BM25 search, Syncthing P2P sync, polymath tools).
+  - Section 03: Performance Ledger comparing Tauri v2 vs Electron vs Cloud SaaS across startup, binary weight, and memory.
+  - Section 04: Platform download grid, SHA-256 release checksum bar, and colophon.
+- **Verification & Compliance**:
+  - All unit tests pass in `orbitMath.test.ts`.
+  - Static production build passes in 229ms (`pnpm --filter @app/website build`).
+  - Verified across desktop 1440px, mobile 375px, and true 320px emulation (`scrollWidth === clientWidth === 320`).
+  - Every single file in `apps/website/src/` strictly respects `AGENTS.md` line limits ($\le 218$ lines).
 
 ---
 
