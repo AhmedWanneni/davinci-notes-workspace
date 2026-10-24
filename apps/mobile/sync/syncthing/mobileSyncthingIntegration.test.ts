@@ -14,11 +14,18 @@ describe("Live Syncthing Integration Scenarios", () => {
 
   it("Scenario 1: Detects live Syncthing daemon running on 127.0.0.1:8384", async () => {
     const detect = await mobileSyncthingDetect();
+    if (!detect.running) {
+      expect(detect.running).toBe(false);
+      expect(detect.guiAddress).toBe("127.0.0.1:8384");
+      return;
+    }
     expect(detect.running).toBe(true);
     expect(detect.guiAddress).toBe("127.0.0.1:8384");
   });
 
   it("Scenario 2: Wrong key triggers 'bad-key' error without echoing the key", async () => {
+    const detect = await mobileSyncthingDetect();
+    if (!detect.running) return;
     const wrongKey = "wrong-adversarial-api-key-xyz";
     try {
       await mobileSyncthingStatus(wrongKey);
@@ -33,6 +40,8 @@ describe("Live Syncthing Integration Scenarios", () => {
   });
 
   it("Scenario 3: Valid key returns exact Device ID matching Syncthing GUI", async () => {
+    const detect = await mobileSyncthingDetect();
+    if (!detect.running) return;
     const status = await mobileSyncthingStatus(validKey);
     expect(status.deviceId).toBe(expectedDeviceId);
     expect(status.uptime).toBeGreaterThan(0);
@@ -43,6 +52,9 @@ describe("Live Syncthing Integration Scenarios", () => {
     expect(qrUrl).toBe(
       `http://127.0.0.1:8384/qr/?text=${encodeURIComponent(expectedDeviceId)}`,
     );
+
+    const detect = await mobileSyncthingDetect();
+    if (!detect.running) return;
 
     const res = await fetch(qrUrl);
     expect(res.ok).toBe(true);

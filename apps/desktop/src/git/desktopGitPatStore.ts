@@ -1,10 +1,20 @@
-import { invoke } from "@tauri-apps/api/core";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 
-/** PATs cross only Tauri IPC and the OS keyring; remote SQLite config never contains them. */
+/** PATs cross only the platform secret store boundary; remote SQLite config never contains them. */
 export const desktopGitPatStore = {
   load: (remoteUrl: string) =>
-    invoke<string | null>("load_git_pat", { remoteUrl }),
+    hasPlatformAdapters()
+      ? getPlatformAdapters().secrets.getSecret(`git_pat:${remoteUrl}`)
+      : Promise.resolve(null),
   save: (remoteUrl: string, token: string) =>
-    invoke("save_git_pat", { remoteUrl, token }),
-  clear: (remoteUrl: string) => invoke("clear_git_pat", { remoteUrl }),
+    hasPlatformAdapters()
+      ? getPlatformAdapters().secrets.setSecret(`git_pat:${remoteUrl}`, token)
+      : Promise.resolve(),
+  clear: (remoteUrl: string) =>
+    hasPlatformAdapters()
+      ? getPlatformAdapters().secrets.clearSecret(`git_pat:${remoteUrl}`)
+      : Promise.resolve(),
 };

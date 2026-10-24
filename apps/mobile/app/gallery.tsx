@@ -8,7 +8,7 @@ import {
   MagnifyingGlass,
   Sparkle,
 } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import {
   Badge,
   Button,
@@ -28,6 +28,7 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
   }
 
   const router = useRouter();
+  const { tokens } = useTheme();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
@@ -39,7 +40,7 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
           icon={
             <ArrowLeft
               size={20}
-              color={darkColorTokens.text.normal}
+              color={tokens.color.text.normal}
               weight="regular"
             />
           }
@@ -90,9 +91,7 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         <View className="gap-2 mb-6">
           <Button
             variant="primary"
-            icon={
-              <Sparkle size={18} color={darkColorTokens.text["on-accent"]} />
-            }
+            icon={<Sparkle size={18} color={tokens.color.text["on-accent"]} />}
           >
             Primary Action
           </Button>
@@ -123,19 +122,19 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         </Text>
         <View className="flex-row gap-3 mb-6 items-center">
           <IconButton
-            icon={<FileText size={20} color={darkColorTokens.text.normal} />}
+            icon={<FileText size={20} color={tokens.color.text.normal} />}
             accessibilityLabel="File"
             variant="ghost"
           />
           <IconButton
             icon={
-              <MagnifyingGlass size={20} color={darkColorTokens.text.normal} />
+              <MagnifyingGlass size={20} color={tokens.color.text.normal} />
             }
             accessibilityLabel="Search"
             variant="secondary"
           />
           <IconButton
-            icon={<Check size={20} color={darkColorTokens.text["on-accent"]} />}
+            icon={<Check size={20} color={tokens.color.text["on-accent"]} />}
             accessibilityLabel="Check"
             variant="primary"
           />
@@ -173,7 +172,7 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
             value={inputValue}
             onChangeText={setInputValue}
             prefix={
-              <MagnifyingGlass size={18} color={darkColorTokens.text.muted} />
+              <MagnifyingGlass size={18} color={tokens.color.text.muted} />
             }
           />
           <Input
@@ -210,14 +209,16 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
           <ListItem
             title="Standard List Item"
             subtitle="Subtitle secondary description"
-            left={<FileText size={20} color={darkColorTokens.text.accent} />}
+            left={
+              <FileText size={20} color={tokens.color.interactive.accent} />
+            }
             right={<Badge variant="neutral">New</Badge>}
           />
           <ListItem
             title="Selected State Item"
             subtitle="Highlighted active background"
             selected
-            right={<Check size={18} color={darkColorTokens.text.accent} />}
+            right={<Check size={18} color={tokens.color.interactive.accent} />}
           />
         </View>
 

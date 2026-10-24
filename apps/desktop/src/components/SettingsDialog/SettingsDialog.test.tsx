@@ -121,4 +121,13 @@ describe("SettingsDialog", () => {
     expect(screen.getByText("Vault Activity Logs")).toBeDefined();
     expect(screen.getByText("Single log entry")).toBeDefined();
   });
+
+  it("navigates to Google Calendar tab when clicked", async () => {
+    render(<SettingsDialog {...defaultProps} />);
+
+    const calBtn = screen.getByRole("button", { name: "Google Calendar" });
+    fireEvent.click(calBtn);
+
+    expect(await screen.findByText(/Loading Calendar Settings|Google Account/)).toBeDefined();
+  });
 });

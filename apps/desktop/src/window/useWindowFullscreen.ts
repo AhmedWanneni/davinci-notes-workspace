@@ -1,14 +1,23 @@
 import { useEffect } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 
 export function useWindowFullscreen() {
   useEffect(() => {
     let isMounted = true;
 
     const syncFullscreenAttribute = async () => {
-      const isFullscreen = await getCurrentWindow()
-        .isFullscreen()
-        .catch(() => false);
+      let isFullscreen = false;
+      if (hasPlatformAdapters()) {
+        isFullscreen = await getPlatformAdapters()
+          .windowControls.isFullscreen()
+          .catch(() => false);
+      } else if (typeof document !== "undefined") {
+        isFullscreen = Boolean(document.fullscreenElement);
+      }
+
       if (isMounted) {
         document.documentElement.toggleAttribute(
           "data-fullscreen",

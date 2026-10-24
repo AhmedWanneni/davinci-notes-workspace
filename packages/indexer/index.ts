@@ -51,3 +51,5 @@ export type {
   RecurrenceRule,
   AdvancedOccurrenceResult,
 } from "./recurrenceRule";
+export { VAULT_INDEX_MIGRATIONS } from "./migrations";
+export type { IndexMigration } from "./migrations";

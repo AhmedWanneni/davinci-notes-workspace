@@ -5,6 +5,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { mobileTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../../theme";
 
 export interface IconButtonProps {
   icon: React.ReactNode;
@@ -47,6 +48,7 @@ export const IconButton = React.forwardRef<
     },
     ref,
   ) => {
+    const { tokens } = useTheme();
     const isSm = size === "sm";
     const hitSlopValue = isSm
       ? {
@@ -57,8 +59,13 @@ export const IconButton = React.forwardRef<
         }
       : undefined;
 
+    const minSizeClass = isSm
+      ? "min-h-[36px] min-w-[36px]"
+      : "min-h-[44px] min-w-[44px]";
+
     const containerClasses = [
-      "items-center justify-center rounded-md border min-h-[44px] min-w-[44px]",
+      "items-center justify-center rounded-md",
+      minSizeClass,
       VARIANT_CONTAINER[variant] || VARIANT_CONTAINER.ghost,
       SIZE_CONTAINER[size] || SIZE_CONTAINER.md,
       disabled ? "opacity-50 pointer-events-none" : "",
@@ -66,6 +73,32 @@ export const IconButton = React.forwardRef<
     ]
       .filter(Boolean)
       .join(" ");
+
+    const dynamicStyles: ViewStyle = {
+      ...(variant === "primary"
+        ? {
+            backgroundColor: tokens.color.interactive.accent,
+            borderColor: "transparent",
+            borderWidth: 0,
+          }
+        : variant === "secondary"
+          ? {
+              backgroundColor: "transparent",
+              borderColor: tokens.color.border.normal,
+              borderWidth: 1,
+            }
+          : variant === "danger"
+            ? {
+                backgroundColor: "transparent",
+                borderColor: tokens.color.border["status-error"],
+                borderWidth: 1,
+              }
+            : {
+                backgroundColor: "transparent",
+                borderColor: "transparent",
+                borderWidth: 0,
+              }),
+    };
 
     return (
       <Pressable
@@ -76,7 +109,7 @@ export const IconButton = React.forwardRef<
         accessibilityLabel={accessibilityLabel}
         hitSlop={hitSlopValue}
         className={containerClasses}
-        style={style}
+        style={[dynamicStyles, style]}
       >
         {icon}
       </Pressable>

@@ -26,6 +26,12 @@ const LazyAISettingsPanel = React.lazy(() =>
   })),
 );
 
+const LazyGoogleCalendarSettingsTab = React.lazy(() =>
+  import("./GoogleCalendarSettingsTab").then((module) => ({
+    default: module.GoogleCalendarSettingsTab,
+  })),
+);
+
 export interface SettingsDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -180,6 +186,14 @@ export function SettingsDialog({
                 />
               )}
 
+              {activeTab === "calendar" && (
+                <div className={styles["settings-tab-content"]}>
+                  <React.Suspense fallback={<div>Loading Calendar Settings...</div>}>
+                    <LazyGoogleCalendarSettingsTab />
+                  </React.Suspense>
+                </div>
+              )}
+
               {activeTab === "ai" && (
                 <div className={styles["settings-tab-content"]}>
                   <React.Suspense fallback={<div>Loading AI Settings...</div>}>
@@ -201,6 +215,7 @@ export function SettingsDialog({
                 "editor",
                 "files",
                 "sync",
+                "calendar",
                 "ai",
                 "plugins",
                 "web-clipper",

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { isWebPlatformMode } from "@app/platform-adapters";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import { getRecentNotes, type TrayRecentNote } from "./recentNotes";
 
@@ -30,6 +31,7 @@ export function useTrayMenuActions({
 
   // Sync recent notes to native tray on store updates
   useEffect(() => {
+    if (isWebPlatformMode()) return;
     const syncToTray = () => {
       if (syncTimerRef.current) {
         clearTimeout(syncTimerRef.current);
@@ -112,6 +114,7 @@ export function useTrayMenuActions({
 
   // Listen for native tray events
   useEffect(() => {
+    if (isWebPlatformMode()) return;
     let disposed = false;
     let unlistenNewNote: (() => void) | undefined;
     let unlistenDailyNote: (() => void) | undefined;

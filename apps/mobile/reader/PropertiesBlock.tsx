@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Pressable } from "react-native";
 import { CaretDown, CaretRight, Tag as TagIcon } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Badge, Text } from "../components/primitives";
 
 export interface PropertiesBlockProps {
@@ -13,6 +13,7 @@ export function PropertiesBlock({
   properties,
   onTagPress,
 }: PropertiesBlockProps): React.ReactElement | null {
+  const { tokens } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
 
   if (!properties || Object.keys(properties).length === 0) {
@@ -22,11 +23,21 @@ export function PropertiesBlock({
   const entries = Object.entries(properties);
 
   return (
-    <View className="mb-6 rounded-md border border-border-normal bg-bg-secondary overflow-hidden">
+    <View
+      className="mb-6 rounded-md border overflow-hidden"
+      style={{
+        backgroundColor: tokens.color.bg.secondary,
+        borderColor: tokens.color.border.normal,
+      }}
+    >
       {/* Header */}
       <Pressable
         onPress={() => setCollapsed(!collapsed)}
-        className="flex-row items-center justify-between px-3 py-2 min-h-[44px] bg-bg-primary-alt border-b border-border-subtle"
+        className="flex-row items-center justify-between px-3 py-2 min-h-[44px] border-b"
+        style={{
+          backgroundColor: tokens.color.bg["primary-alt"],
+          borderBottomColor: tokens.color.border.subtle,
+        }}
         accessibilityRole="button"
         accessibilityLabel="Toggle properties"
       >
@@ -34,9 +45,9 @@ export function PropertiesBlock({
           PROPERTIES ({entries.length})
         </Text>
         {collapsed ? (
-          <CaretRight size={14} color={darkColorTokens.text.muted} />
+          <CaretRight size={14} color={tokens.color.text.muted} />
         ) : (
-          <CaretDown size={14} color={darkColorTokens.text.muted} />
+          <CaretDown size={14} color={tokens.color.text.muted} />
         )}
       </Pressable>
 
@@ -51,7 +62,7 @@ export function PropertiesBlock({
                   className="flex-row items-center flex-wrap gap-1.5 py-1"
                 >
                   <View className="flex-row items-center gap-1 mr-2">
-                    <TagIcon size={14} color={darkColorTokens.text.muted} />
+                    <TagIcon size={14} color={tokens.color.text.muted} />
                     <Text variant="caption" color="muted">
                       {key}:
                     </Text>

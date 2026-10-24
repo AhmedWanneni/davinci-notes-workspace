@@ -14,6 +14,7 @@ import {
   SquaresFour,
   TerminalWindow,
   CalendarBlank,
+  CalendarCheck,
   ClockCounterClockwise,
   Compass,
   Eye,
@@ -74,12 +75,8 @@ export const SETTINGS_SIDEBAR_ITEMS: SettingsSidebarItem[] = [
   },
   { id: "hotkeys", label: "Hotkeys", icon: Command, category: "options" },
   { id: "keychain", label: "Keychain", icon: Key, category: "options" },
-  {
-    id: "sync",
-    label: "Sync & Backup",
-    icon: CloudArrowUp,
-    category: "options",
-  },
+  { id: "sync", label: "Sync & Backup", icon: CloudArrowUp, category: "options" },
+  { id: "calendar", label: "Google Calendar", icon: CalendarCheck, category: "options" },
   { id: "ai", label: "AI Assistant", icon: Sparkle, category: "options" },
   { id: "web-clipper", label: "Web Clipper", icon: Globe, category: "options" },
   {

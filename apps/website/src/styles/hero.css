@@ -1,0 +1,217 @@
+/* ==========================================================================
+   DAVINCI NOTES — CENTERED HERO STAGE & 3D ORBIT (UN-COMPACTED & VIVID)
+   Palette: BURGUNDY, NUDE/WHEAT, ROSE SMOKE, OFF BLACK
+   Zero background behind portrait: just the woman seated on rock in center.
+   Zero shadows: pure borders, organic radii, and contrast.
+   ========================================================================== */
+
+.hero-stage {
+  position: relative;
+  background-color: var(--palette-off-black);
+  color: var(--palette-nude);
+  border-bottom: 1.5px solid var(--border-hairline);
+  padding: 60px 0 80px;
+  overflow: hidden;
+  --crown-open-progress: 0.78;
+}
+
+.hero-centered-container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-header-centered {
+  max-width: 860px;
+  margin: 0 auto 76px;
+}
+
+.display-hero {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 6.2vw, 4.8rem);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--palette-nude);
+  margin: 0 0 16px;
+  letter-spacing: -0.02em;
+}
+
+.display-hero em {
+  font-style: italic;
+  font-weight: 600;
+  color: var(--palette-rose-smoke);
+}
+
+.hero-lead {
+  font-family: var(--font-sans);
+  font-size: clamp(1rem, 1.8vw, 1.18rem);
+  line-height: 1.6;
+  color: var(--palette-rose-smoke);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.wikilink-token {
+  color: var(--palette-nude);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  border-bottom: 1px dashed var(--palette-rose-smoke);
+}
+
+/* Centerpiece Orbital Stage */
+.orbit-stage {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  height: 620px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+  margin: 0 auto 24px;
+}
+
+.orbit-stage:active {
+  cursor: grabbing;
+}
+
+.orbit-hud-hint {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-orbit-near);
+  padding: 5px 14px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-hand-drawn-subtle);
+  background-color: var(--palette-off-black);
+  color: var(--palette-rose-smoke);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Portrait Figure: Pure Cutout of Woman & Rock with ZERO background */
+.portrait-assembly {
+  position: relative;
+  width: min(88%, 460px);
+  aspect-ratio: 1051 / 1496;
+  pointer-events: none;
+  margin: 0 auto;
+  -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 86%, transparent 100%);
+}
+
+.portrait-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.portrait-layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: none;
+  box-shadow: none;
+}
+
+.portrait-base {
+  z-index: var(--z-portrait-base);
+}
+
+.portrait-crown {
+  z-index: var(--z-portrait-crown);
+  transform: translate3d(
+      calc(var(--crown-open-progress, 0.78) * 8px + var(--parallax-x, 0px)),
+      calc(var(--crown-open-progress, 0.78) * -38px + var(--parallax-y, 0px)),
+      0
+    )
+    rotate(calc(var(--crown-open-progress, 0.78) * 4deg));
+  transform-origin: 76% 14%;
+  will-change: transform;
+}
+
+.skull-cut-cavity {
+  position: absolute;
+  bottom: 0px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(88%, 460px);
+  aspect-ratio: 1051 / 1496;
+  z-index: var(--z-skull-cavity);
+  pointer-events: none;
+  opacity: var(--crown-open-progress, 0.78);
+}
+
+/* Hand-Drawn SVG Connector Graph Edges */
+.orbit-edges-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.orbit-edge-line {
+  stroke: var(--orbit-edge-idle);
+  stroke-width: 1.25;
+  stroke-dasharray: 4 3;
+  opacity: 0.65;
+  transition: stroke 150ms ease, opacity 150ms ease;
+}
+
+.orbit-edge-line.is-active {
+  stroke: var(--palette-nude);
+  stroke-width: 2;
+  stroke-dasharray: none;
+  opacity: 1;
+}
+
+.orbit-edge-line.is-dimmed {
+  opacity: 0.12;
+}
+
+/* Hero Centered Call to Actions */
+.hero-cta-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  z-index: 35;
+  position: relative;
+  margin-top: 28px;
+}
+
+/* Accessible Screen-Reader Class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .hero-stage { padding: 40px 0 60px; }
+  .orbit-stage { height: 480px; margin-bottom: 24px; }
+  .portrait-assembly { width: 92%; margin-bottom: -40px; }
+  .skull-cut-cavity { bottom: -40px; width: 92%; }
+  .display-hero { font-size: clamp(2.2rem, 7.5vw, 3.2rem); }
+}

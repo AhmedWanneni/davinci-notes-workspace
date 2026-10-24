@@ -14,7 +14,7 @@ export const noteEmbedTheme = EditorView.theme({
     alignItems: "center",
     padding: "var(--space-1) var(--space-3)",
     borderBottom: "var(--border-width-thin) solid var(--color-border-subtle)",
-    backgroundColor: "var(--color-bg-tertiary)",
+    backgroundColor: "var(--color-bg-secondary-alt)",
     fontSize: "var(--type-scale-xs)",
     color: "var(--color-text-muted)",
   },
@@ -43,8 +43,8 @@ export const noteEmbedTheme = EditorView.theme({
   },
   ".cm-note-embed-circular": {
     color: "var(--color-text-warning)",
-    borderColor: "var(--color-border-warning)",
-    backgroundColor: "var(--color-bg-warning-subtle)",
+    borderColor: "var(--color-border-status-warning)",
+    backgroundColor: "var(--color-bg-status-warning)",
   },
   ".cm-note-embed-placeholder": {
     color: "var(--color-text-muted)",

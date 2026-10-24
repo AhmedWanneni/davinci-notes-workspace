@@ -1,16 +1,14 @@
-import { open } from "@tauri-apps/plugin-dialog";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 
-/** Non-blocking folder picker — must run in the webview, not Rust (avoids UI freeze). */
+/** Non-blocking folder picker via platform dialog adapter. */
 export async function pickVaultFolder(): Promise<string | null> {
-  const selected = await open({
-    directory: true,
-    multiple: false,
-    title: "Open vault folder",
-  });
-
-  if (selected === null) {
+  if (!hasPlatformAdapters()) {
     return null;
   }
 
-  return Array.isArray(selected) ? (selected[0] ?? null) : selected;
+  const picked = await getPlatformAdapters().dialog.pickVaultFolder();
+  return picked ? picked.path : null;
 }

@@ -46,6 +46,11 @@ const LazyGlobalGraphLeaf = React.lazy(() =>
     default: m.GlobalGraphLeaf,
   })),
 );
+const LazyCalendarLeaf = React.lazy(() =>
+  import("./components/CalendarView").then((m) => ({
+    default: m.CalendarLeaf,
+  })),
+);
 const LazySettingsDialog = React.lazy(() =>
   import("./components/SettingsDialog").then((m) => ({
     default: m.SettingsDialog,
@@ -85,6 +90,10 @@ export function App() {
   );
   const setIsGlobalGraphOpen = useWorkspaceStore(
     (state) => state.setIsGlobalGraphOpen,
+  );
+  const isCalendarOpen = useWorkspaceStore((state) => state.isCalendarOpen);
+  const setIsCalendarOpen = useWorkspaceStore(
+    (state) => state.setIsCalendarOpen,
   );
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settingsInitialTab, setSettingsInitialTab] =
@@ -606,12 +615,14 @@ export function App() {
         <IconRail
           isLeftSidebarOpen={isLeftSidebarOpen}
           isGlobalGraphOpen={isGlobalGraphOpen}
+          isCalendarOpen={isCalendarOpen}
           onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
           onOpenSearch={() => {
             setSearchInitialQuery("");
             setIsSearchOpen(true);
           }}
-          onOpenGlobalGraph={() => setIsGlobalGraphOpen((prev) => !prev)}
+          onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
+          onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
           onOpenSettings={handleOpenSettings}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
@@ -681,7 +692,14 @@ export function App() {
             isMac={isMac}
             showWindowControls={!isLeftSidebarOpen}
           />
-          {isGlobalGraphOpen ? (
+          {isCalendarOpen ? (
+            <Suspense fallback={null}>
+              <LazyCalendarLeaf
+                onClose={() => setIsCalendarOpen(false)}
+                onOpenSettings={handleOpenSettings}
+              />
+            </Suspense>
+          ) : isGlobalGraphOpen ? (
             <Suspense fallback={null}>
               <LazyGlobalGraphLeaf
                 graph={graph}

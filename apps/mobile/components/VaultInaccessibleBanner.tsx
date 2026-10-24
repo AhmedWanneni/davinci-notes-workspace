@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 import { WarningCircle } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../theme";
 import { Button, Text } from "./primitives";
 
 export interface VaultInaccessibleBannerProps {
@@ -13,10 +13,12 @@ export function VaultInaccessibleBanner({
   error,
   onRecover,
 }: VaultInaccessibleBannerProps): React.ReactElement {
+  const { tokens } = useTheme();
+
   return (
     <View className="m-4 p-4 border border-border-normal bg-bg-secondary rounded-md">
       <View className="flex-row items-center gap-2 mb-2">
-        <WarningCircle size={20} color={darkColorTokens.text.error} />
+        <WarningCircle size={20} color={tokens.color.text.error} />
         <Text variant="h3" color="error">
           Vault Inaccessible
         </Text>

@@ -2,6 +2,618 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-19: Marketing Site Unified Midnight Background (#150612) & Harmonized Wine Styling
+
+- **Unified Section Canvas Background (`#150612`)**:
+  - Set the background of **every section** (`HeroSection`, `RoleSection`, `CommunitySection`, `ThoughtsStage`, `WorkflowsSection`, `SafeSpaceSection`, `SyncSection`, `ClosingSection`, and `SiteNav`) strictly to `#150612`.
+  - Replaced alternating `--logseq-bg-alt` with `--logseq-bg: #150612`, eliminating disjointed grey sections while preserving section hierarchy via subtle, organic 1.5px hairline dividers (`rgba(216, 167, 177, 0.22)`).
+  - Updated `<meta name="theme-color" content="#150612" />` and the SVG favicon background to match the unified canvas.
+- **Harmonized Elevated Wine Surfaces & High-Contrast Typography**:
+  - Elevated surfaces updated to deep wine tones: `#220B1E` (`--logseq-card`), `#2E1029` (`--logseq-card-hover`), `#4B1D3F` (`--logseq-card-active`), and `#1B0717` (`--logseq-card-dark`).
+  - Text colors paired for maximum contrast and readability: luminous Wheat (`#F5E8D0`, 15.6:1 WCAG AAA contrast) for titles and body, and Rose Smoke (`#D8A7B1`, 8.6:1 contrast) for secondary accents and metadata.
+  - Mockup code windows, sticky notes, and timeline cards updated to blend naturally into the `#150612` field.
+- **Strict Compliance & Verification**:
+  - All files strictly under 237 lines (hard cap 250).
+  - Production static build succeeds in 349ms (`pnpm --filter @app/website build`).
+  - Desktop (1440px) and mobile (375px) screenshots captured and visually verified with zero horizontal overflow and zero box-shadows.
+
+---
+
+### 2026-10-19: Marketing Site Centered Hero & Vivid Burgundy/Wheat Redesign
+
+- **Centered, Un-Compacted Hero Structure (`HeroSection.astro`, `hero.css`)**:
+  - Eliminated the cramped two-column layout, telemetry bar, and sidebar inspector card.
+  - Centered monumental display typography (*"Connect your notes, increase understanding."*) with comfortable, airy line spacing.
+  - Placed the classical woman and rock cutout prominently in the center of the hero stage with zero background behind her, dissolving naturally into the Off-Black canvas.
+  - Positioned high-contrast CTA buttons (`Download for Desktop ⌵`, `Explore Features ↗`) centered directly below the rocks.
+- **Vivid Palette & Rich Content (`heroThoughts.ts`, `hero-nodes.css`, `tokens.css`)**:
+  - Vivid ("vif") contrast using Burgundy (`#4B1D3F`), luminous Wheat/Nude (`#E8D9C1`, `#F5E8D0`), Rose Smoke (`#D8A7B1`), and deep Off-Black (`#1B1B1B`).
+  - Enriched thought content featuring authentic polymath notes (`Meeting with [[Luca Pacioli]]`, `[[De Divina Proportione]]`, `Icosahedron Study`, `On Fleeting Ideas.md`, `#local-first/sqlite`, `Euler's Identity`, `Codex Atlanticus f.846`).
+  - 360-degree interactive 3D thought cloud encircling her head with weighted drag/swipe inertia, dynamic anchor positioning, and active hairline connectors.
+  - Absolute zero shadows project-wide with organic hand-drawn borders.
+- **Strict Compliance & Verification**:
+  - All files strictly under 238 lines (hard cap 250).
+  - Production static build succeeds in 251ms (`pnpm --filter @app/website build`).
+  - Visually verified via headless Chrome screenshots at desktop (1440px) and mobile (375px) with 0 horizontal overflow.
+
+---
+
+- **Design System & Layout Architecture (`apps/website/src/`)**:
+  - Implemented the complete dark petrol / deep slate teal design system from logseq.com (`--logseq-bg: #03171d`, `--logseq-card: #0a2932`, `--logseq-cyan: #00c4cc`, `--logseq-border: #133c47`).
+  - Retained the classical woman cutout (`muse-base-768.webp` in terracotta drape) as the centerpiece with soft cyan radial backdrop illumination and interconnected floating cards overlay (`Meeting with [[Jessica]]`, `Jessica` person card, `Intertwingled` book card, wikilink note badge, and dashed cyan connectors).
+  - Built all 8 full sections from logseq.com into modular components strictly complying with `AGENTS.md` line caps:
+    1. `SiteNav.astro`: Logo mark, `Home`, `Downloads`, `Community ↗`, `Privacy ↗`, `GitHub ↗`, and responsive `Download for Desktop ⌵` CTA button.
+    2. `LogseqHero.astro` + `LogseqHero.css`: Headline (*"Connect your notes, increase understanding."*), classical figure centerpiece, floating interconnected cards, and dual CTAs (`Download for Desktop ⌵`, `Web app ↗`).
+    3. `RoleSection.astro` + `RoleSection.css`: *"Today, everyone is a researcher"*, capability badges, 5 role tabs (`Students`, `Academics`, `Writers`, `Project Managers`, `Developers`), live editor outline window mockup with 3 feature pillars (`Review notes`, `Memorize facts`, `Outline essays`), and beginner tip carousel card with outline snippet.
+    4. `CommunitySection.astro`: Discord card with pulsing green indicator (`2,012 users online currently`) and Forum card.
+    5. `ThoughtsStage.astro` + `ThoughtsStage.css`: Center *"thoughts?"* typography surrounded by floating clutter items (YouTube, Tweet, mobile device, notebook, sticky note, PDF, search omnibar) and transformation statement.
+    6. `WorkflowsSection.astro` + `WorkflowsSection.css`: 4 tabs (`Relationships`, `Daily Plan`, `Journaling`, `Data Control`), headline, meeting timeline log with avatar ring, and user feedback testimonial card.
+    7. `SafeSpaceSection.astro` + `SafeSpaceSection.css`: *"A safe space for your thoughts"* 8-card trust grid (`Open source`, `Privacy first`, `Mobile apps`, `Markdown files`, `Strong community`, `Localization`, `150+ Plugins`, `30+ Themes`).
+    8. `SyncSection.astro` + `SyncSection.css`: Davinci Sync BETA badge with real-time file sync progress indicator card.
+    9. `ClosingSection.astro` + `ClosingSection.css`: *"Think faster, think better!"* final call-to-action glow card.
+    10. `SiteFooter.astro`: Davinci Notes brand, copyright, navigation links, GitHub/Twitter icons, and ProductHunt badge.
+- **Verification**:
+  - Every component and stylesheet is strictly $\le 220$ lines (adhering to 150-200 soft cap, 250 hard cap).
+  - Production build in 215ms via `pnpm --filter @app/website build`.
+  - Visual verification with headless Chrome on desktop 1440px, mobile 375px, and adversarial 320px viewport with zero horizontal overflow.
+
+---
+
+### 2026-10-18: Marketing Site Redesign & "The Opened Mind" Interactive Hero
+
+- **Design Tokens & Dual-Palette Architecture (`apps/website/src/styles/tokens.css`, `typography.css`, `global.css`)**:
+  - Implemented Direction A (*"Nocturnal Obsidian Codex"*, default `#121110` dark ink + `#d97754` terracotta drape + ultramarine/vermilion collage backing blocks) with live switchable support for Direction B (*"Salon Ultramarine & Archival Paper"*, `#1c22a8` field + `#f2ece1` ivory rag paper).
+  - Editorial typography pairing: `Cormorant Garamond` (display headlines), `Space Grotesk` (Swiss UI / body), and `IBM Plex Mono` (code / wikilinks / notes), with metric-matched font fallbacks ensuring CLS = 0.
+  - Zero box-shadows, zero gradients, zero glassmorphism, zero pill badges, and zero-cost static SVG noise grain overlay (`body::after`).
+- **Anatomical Cutout Pipeline & Pre-Rendered Vector Assets (`apps/website/public/images/hero/`)**:
+  - Sliced classical portrait into registration-locked `muse-base` and `muse-crown` layers along the 14° forehead cut line, with complete alpha de-fringing and painted cross-section rims.
+  - Exported responsive multi-density formats (`480w`, `768w`, `1120w`) in AVIF, WebP, and PNG (`39.3 KB` total on mobile, `80.6 KB` on desktop).
+  - Pre-rendered inline SVG math formulas (Euler's Identity, Fourier Transform, Wave Equation) and Leonardo notebook studies (Icosahedron, Ornithopter rib, Proportional compass) with 0 KB runtime LaTeX cost.
+- **3D Orbital Projection Engine & Accessibility (`orbitMath.ts`, `orbitController.ts`, `orbitInspector.ts`)**:
+  - Pure TypeScript 3D projection controller with zero external npm dependencies (`3.1 KB` gzipped JS).
+  - 360-degree pointer/touch drag rotation with weighted velocity inertia and subtle hover parallax.
+  - Depth cues via scale, opacity, and dynamic z-occlusion (nodes physically pass behind her head at `z < -16` and in front of her lifted crown at `z > 28`).
+  - Active backlink highlighting with animated SVG hairline graph connections.
+  - Fly-Forward Note Inspector Card with connected thought jumping, plus a semantic `<details>` plain-text index drawer for screen readers and no-JS fallback.
+  - Scroll-driven entrance: cranium lifts on scroll while thoughts emerge from the cross-hatched red cavity and funnel downward into the Section 01 Workbench frame.
+- **Editorial Full-Page Narrative (`WorkbenchSection`, `AnatomySection`, `PerformanceLedger`, `DownloadManifesto`)**:
+  - Section 01: Three-pane live vault blueprint (File Tree, CodeMirror 6 live-preview with 4 workflow tabs, and Local Graph).
+  - Section 02: Four-specimen Swiss architectural index (Plain `.md` endurance, SQLite FTS5 BM25 search, Syncthing P2P sync, polymath tools).
+  - Section 03: Performance Ledger comparing Tauri v2 vs Electron vs Cloud SaaS across startup, binary weight, and memory.
+  - Section 04: Platform download grid, SHA-256 release checksum bar, and colophon.
+- **Verification & Compliance**:
+  - All unit tests pass in `orbitMath.test.ts`.
+  - Static production build passes in 229ms (`pnpm --filter @app/website build`).
+  - Verified across desktop 1440px, mobile 375px, and true 320px emulation (`scrollWidth === clientWidth === 320`).
+  - Every single file in `apps/website/src/` strictly respects `AGENTS.md` line limits ($\le 218$ lines).
+
+---
+
+### 2026-10-20: Toolbar Action Infinite Print Loop Fix
+
+- **Root-Cause Analysis**:
+  - In `EditorDom.tsx`, `useEffect` listening to `[actionTrigger]` re-executed whenever `actionTrigger` changed reference.
+  - When a toolbar action (e.g. "heading" or "bold") modified the document, CodeMirror triggered `onDocChanged`, which updated `content` state in `editor.tsx`.
+  - Re-rendering `editor.tsx` passed re-serialized `actionTrigger` down to `EditorDom` across the bridge, producing a new object reference in the WebView and causing `useEffect([actionTrigger])` to re-execute indefinitely in an infinite insertion loop.
+- **Resolution**:
+  - Introduced `lastActionIdRef` and `lastInsertIdRef` in `apps/mobile/components/EditorDom.tsx`.
+  - Guarded toolbar action execution with `actionTrigger.id !== lastActionIdRef.current` and insert trigger with `insertTrigger.id !== lastInsertIdRef.current`, ensuring actions execute exactly once per user tap regardless of parent re-renders.
+  - Fixed `onMetricsUpdate` crash by passing a no-op handler and making RPC name registration conditional.
+- **Verification**:
+  - Added unit test in `tests/folderAndEditorExperience.test.tsx` verifying action idempotency across re-renders.
+  - Test suites: `tests/folderAndEditorExperience.test.tsx` (8/8 passed), `tests/mobileEditor.test.ts` (6/6 passed), `tests/immersiveMode.test.ts` (4/4 passed).
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `EditorDom.tsx`: 248 lines (< 250 cap), `editor.tsx`: 236 lines.
+
+---
+
+### 2026-10-20: Unified Direct File Access into Editor Preview/Edit & Unconditional Navigation Bar Hiding
+
+- **Direct File Access to Unified Preview/Edit Screen**:
+  - Tapping any note in `FilesScreen`, `SearchScreen`, `VaultDrawerContent`, or wikilinks now opens `/editor` directly (`mode: "preview"`).
+  - Users are directly on the preview/edit screen without having to navigate to a reader screen first and then push a new editor screen each time.
+  - Tapping "Edit" in the header pill `[ Edit | Preview ]` or within the preview document switches directly to CodeMirror editing on the **same screen** with zero navigation stack push.
+  - Tapping "Preview" switches back to live Markdown preview on the same screen.
+  - `apps/mobile/app/note.tsx` automatically redirects/replaces with `/editor?mode=preview`, ensuring any legacy routes or deep links land on the unified screen.
+- **Expo Navigation Bar Hiding**:
+  - Hides the Android system navigation bar unconditionally on mount in `apps/mobile/app/editor.tsx` (`<NavigationBar hidden={true} />`) and in `useImmersiveNavigationBar()` (`NavigationBar.setHidden(true)` and `setVisibilityAsync("hidden")`).
+  - Automatically re-asserts hiding when software keyboard dismisses and when returning from app background, and cleanly restores on unmount.
+  - Default `cachedImmersiveMode` updated to `true` (enabled).
+- **Verification**:
+  - Vitest test suites: `tests/folderAndEditorExperience.test.tsx` (7/7 passed), `tests/immersiveMode.test.ts` (4/4 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed), `components/shell/shell.test.tsx` (4/4 passed), `components/shell/FileActionSheet.test.tsx` (2/2 passed), `components/shell/NoteActionSheet.test.tsx` (2/2 passed), `components/FormattingToolbar.test.tsx` (2/2 passed). Total: 24/24 passed.
+  - TypeScript: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors, 0 warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: `editor.tsx`: 235 lines, `note.tsx`: 17 lines, `index.tsx`: 233 lines, `search.tsx`: 231 lines.
+
+---
+
+### 2026-10-20: Sidebar Folder Expansion, In-Editor Preview/Edit Dual Mode, and Add Folder Fixes
+
+- **Sidebar Folder Opening & Interactive Expansion**:
+  - Identified that folders in `VaultDrawerContent.tsx` were static non-interactive `<View>` elements with no `onPress` or expansion mechanism, preventing folder navigation and hiding notes inside folders.
+  - Built `DrawerFolderItem.tsx` with expandable/collapsible chevron controls (`CaretRight` / `CaretDown`), folder note count tags, and nested note rendering with visual indentation.
+  - Tapping folder chevron toggles expansion to reveal notes inside that folder. Tapping notes opens them directly.
+  - Tapping folder label invokes `onSelectFolder` to navigate `FilesScreen` directly into that folder.
+- **Same-Page Preview and Edit for Editor**:
+  - Implemented dual-mode editing/previewing on the same screen in `apps/mobile/app/editor.tsx` (`mode: "edit" | "preview"`).
+  - Updated `EditorHeader.tsx` to include an accessible segmented control pill `[ Edit | Preview ]`.
+  - Created `EditorPreviewView.tsx`: takes live editor `content`, parses markdown into an AST using `parseMarkdownDocument(content)`, and renders `NoteReaderView` right on the same page.
+  - Extracted `editorInjectedScript.ts` to keep `editor.tsx` under the 250-line limit (227 lines).
+  - Tapping "Edit" or "Preview" switches the view instantly with zero route transitions and zero latency.
+- **Add Folder Fixes Across App**:
+  - Fixed modal collision between `NavigationDrawer` and `NewFolderSheet` by introducing safe coordinated dismissal delay.
+  - Added "New Folder" item (`FolderPlus`) to `CreateActionSheet.tsx` so users can add folders from the central tab bar action button.
+  - Enhanced `NewFolderSheet.tsx` with input validation (checks for empty string and forbidden slash characters) and friendly inline error feedback.
+  - Added `NewFolderSheet` support to `note.tsx` and `(tabs)/_layout.tsx` so folder creation works vault-wide.
+- **Verification**:
+  - `tests/folderAndEditorExperience.test.tsx` (7/7 passed).
+  - Shell and navigation suite (17/17 passed).
+  - Typecheck: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors (`pnpm --filter @app/mobile lint`).
+  - Strict compliance with file size cap (< 250 lines).
+
+---
+
+### 2026-10-20: Android Immersive Mode, Tab Bar Hiding & Safe-Area Preservation
+
+- **Android Immersive Navigation Bar & Restoration**:
+  - Integrated `expo-navigation-bar` (SDK 57) for declarative and imperative system navigation bar controls.
+  - Implemented `apps/mobile/settings/immersiveModeState.ts`:
+    - Persisted setting via SQLite `settings` table (`ui.immersive_mode`, default `0` / off).
+    - Synchronous reactive subscriptions via React's `useSyncExternalStore`.
+    - `useImmersiveNavigationBar`: On Android note and editor screens, automatically hides the navigation bar on mount, re-asserts hiding when the software keyboard closes (`keyboardDidHide`) and when returning from app background (`AppState` `active`), and cleanly restores the navigation bar on unmount.
+    - Also renders declarative `<NavigationBar hidden={true} />` in `note.tsx` and `editor.tsx` when Android immersive mode is active.
+- **Tab Bar Hiding & Keyboard Avoidance**:
+  - In `(tabs)/_layout.tsx`: Configured `tabBarHideOnKeyboard: true` in `screenOptions` so the bottom tab bar automatically dismisses whenever the keyboard appears.
+  - In `_layout.tsx`: Note and editor screens are rendered on top as standalone Stack screens with zero bottom tab bar.
+- **Bottom Safe-Area Inset Preservation**:
+  - `QuickActionBar` maintains `paddingBottom: Math.max(insets.bottom, 12)` so buttons maintain 12pt padding when the navigation bar is hidden and adapt to the system bar height when restored.
+  - `EditorScreen` uses `paddingBottom: insets.bottom`, allowing full immersive screen space down to the edge when hidden and avoiding overlap when visible.
+  - Bottom sheets retain `paddingBottom: Math.max(insets.bottom, 16)`.
+  - Android hardware back button (`BackHandler`) and edge gestures remain 100% operational in immersive mode via `BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE`.
+- **Settings UI**:
+  - Created `apps/mobile/components/settings/ImmersiveModeSection.tsx` with token-bound card styling and switch control.
+  - Mounted directly in `apps/mobile/app/settings.tsx`.
+- **Verification**:
+  - Unit tests: `tests/immersiveMode.test.ts` (4/4 passed), `tests/mobileShell.test.ts` (9/9 passed), `tests/mobileSuspendedSync.test.ts` (5/5 passed), `tests/navigationOverhaul.test.tsx` (3/3 passed).
+  - Physical device runtime verification: `adb devices` reported 0 connected devices; marked physical device checks as NOT RUN.
+  - Typecheck: 0 errors (`pnpm --filter @app/mobile typecheck`).
+  - Linter: 0 errors or warnings (`pnpm --filter @app/mobile lint`).
+  - Line count limits: All files under 250 lines (`note.tsx`: 229, `editor.tsx`: 228, `immersiveModeState.ts`: 129).
+
+---
+
+### 2026-10-20: Universal Mobile Dynamic Theming Across All Screens
+
+- **Root-Cause Analysis for Screen Theme Inconsistency**:
+  - Utility classes like `bg-bg-primary`, `bg-bg-secondary`, `bg-bg-surface`, and `border-border-default` compile to static CSS variables in NativeWind/Tailwind. In native React Native, there is no dynamic CSS DOM runtime to automatically re-evaluate custom CSS variables on runtime theme changes.
+  - In `apps/mobile/theme/MobileThemeProvider.tsx`, theme switching was decoupled from mode, causing a theme to be ignored if mode was mismatched (e.g. tapping `catppuccin-latte` while mode was `dark`).
+  - Headless unit tests or components called directly without `MobileThemeProvider` threw `Cannot read properties of null (reading 'useContext')` in `useTheme`.
+- **System-Wide Dynamic Token Binding**:
+  - **`useTheme.ts`**: Introduced `defaultFallbackThemeContext` and safe fallback handling in `useTheme()`, ensuring zero crashes in headless tests, isolated component rendering, or direct function execution.
+  - **`MobileThemeProvider.tsx`**: Synchronized active theme selection with theme mode polarity (`target.isDark ? "dark" : "light"`), ensuring instant and universal switching across all 4 built-in themes (`catppuccin-frappe`, `catppuccin-latte`, `light-a`, `dark-b`) and system mode.
+  - **Settings & Sync**:
+    - `SyncSettingsPanel.tsx`: Bound root `ScrollView`, status card, Google Drive card, conflict banners, and policy info card dynamically to `tokens.color.bg.primary`, `secondary`, and `border.subtle`.
+    - `SyncStatusBadge.tsx`: Added optional `tokens` prop with fallback to `darkBTokens` (100% pure component), with dynamic styling for badge container and dot indicators.
+    - `MobileSyncthingPanel.tsx`: Dynamically bound card background, device ID container, top separator, and activity indicator to `tokens`.
+    - `SyncthingQrScanner.tsx`, `SyncthingQrView.tsx`, and `SyncthingAddDeviceModal.tsx`: Fully token-bound for dark/light themes.
+  - **Vault, Canvas & Editor**:
+    - `FirstRunVaultScreen.tsx`: Dynamically bound scrollview, header badge, and vault creation cards to `tokens.color.bg.primary` and `secondary`.
+    - `CanvasViewer.tsx` & `CanvasViewerDom.tsx`: Threaded dynamic tokens (`bgPrimaryAlt`, `bgSecondary`, `textNormal`, `borderNormal`, `interactiveAccent`, `textError`) into Canvas viewer DOM host.
+    - `EditorDom.tsx`: Updated DOM host CSS injection to prioritize dynamic CSS variables over hardcoded fallbacks via `var(--color-bg-primary)!important`.
+    - `NoteReaderView.tsx`: Bound code blocks, inline code snippets, blockquotes, and tasks to `tokens.color.bg.secondary`.
+    - `OutlineSheet.tsx` & `BacklinksSheet.tsx`: Bound tab headers, tab indicators, and item cards to `tokens.color.bg["primary-alt"]` and `border.subtle`.
+    - `share-target.tsx`, `new-note-action.tsx`, `daily-note-action.tsx`: Bound root containers to dynamic `tokens.color.bg.primary`.
+- **Verification**:
+  - `pnpm --filter @app/mobile typecheck`: 0 errors.
+  - `pnpm --filter @app/mobile lint`: 0 errors or warnings.
+  - `tests/mobileShell.test.ts` & `tests/mobileSuspendedSync.test.ts`: 100% green.
+  - Every file in `apps/mobile/` strictly under 250 lines (soft cap: 150-200, hard cap: 250).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Dynamic Vim Cursor Styles (Block in Normal, Beam/Bar in Insert, Underline in Command)
+
+- **Dynamic Terminal Cursor Styling (`terminal_guard.rs`, `tui_app.rs`)**:
+  - Implemented terminal DECSCUSR cursor shape switching via `crossterm::cursor::SetCursorStyle`:
+    - **Insert mode**: Cursor dynamically switches to thin vertical beam/bar (`SetCursorStyle::SteadyBar`).
+    - **Normal mode**: Cursor switches to solid rectangular block (`SetCursorStyle::SteadyBlock`).
+    - **Command mode**: Cursor switches to horizontal underline (`SetCursorStyle::SteadyUnderScore`).
+    - **Sidebar / Non-editor panes**: Maintains solid block cursor.
+    - **Terminal Cleanup & Safe Handoff**: `TerminalGuard::restore_terminal()` executes `SetCursorStyle::DefaultUserShape` so the terminal emulator restores the user's native cursor shape when exiting the app, handling panics, or handing off to an external editor.
+- **Verification**:
+  - Unit test `test_update_cursor_style_does_not_panic` passing.
+  - All 50 tests passing (`pnpm --filter @app/cli test`).
+  - Strict line caps respected: `terminal_guard.rs` (91 lines), `tui_app.rs` (54 lines) (well below 150-200 line soft cap and 250 hard cap).
+  - Clippy clean (0 warnings with `-D warnings`).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Motion Numeric Counts (4J, 4x, 4dd, 4yy, 4w, 4j, 4k) & Redo Stack (Ctrl+R)
+
+- **Numeric Count Prefix Engine (`vim_ops.rs`, `tui_state.rs`, `vim_motions.rs`)**:
+  - Implemented Vim standard numeric count prefix accumulation (`state.count_prefix`) for digits `'1'..='9'` and subsequent `'0'..='9'` (with standalone `'0'` remaining line-start).
+  - Wired count multiplier across all Vim operations and motions:
+    - Line joining (`4J`): Joins $N$ lines into one line via `join_n_lines` (e.g. `4J` joins 4 lines).
+    - Deletion (`4x`, `4X`): Deletes $N$ characters forward/backward in a single atomic undoable slice (`delete_forwards_n`, `delete_backwards_n`).
+    - Operator counts (`4dd`, `4yy`, `4dw`, `4yw`, `4cw`, `4cc`): Deletes/yanks/changes $N$ lines or words in one operation.
+    - Motion counts (`4j`, `4k`, `4h`, `4l`, `4w`, `4b`, `4e`): Moves $N$ lines, characters, or words.
+    - Line jump counts (`12G`, `12gg`): Jumps directly to line $N$.
+    - Paste & Undo counts (`4p`, `4P`, `4u`): Pastes or undoes $N$ times.
+  - Added full Redo stack (`EditorBuffer::redo_stack`) triggered via `Ctrl+R` in Normal mode.
+  - Live count visual indicator: displays pending count prefix in editor footer mode line (e.g. `-- NORMAL -- (4)`).
+  - Pressing <kbd>Esc</kbd> cancels any pending count prefix or pending operator.
+- **Verification**:
+  - Added integration test `test_vim_counts_and_4j` verifying `4J`, `4x`, `u`, and `Ctrl+R` redo.
+  - All 49 unit and integration tests passing (`pnpm --filter @app/cli test`); 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 248 lines (under 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Native Vim/Neovim External Handoff, Config Resolution, and In-Process Vim Mode Evaluation (ADR-0205, ADR-0206)
+
+- **Root-Cause Diagnosis & Empirical Findings**:
+  - Found that default `editor_mode` was set to `EditorMode::Builtin`, so opening notes in the TUI entered the built-in Ratatui rope buffer instead of running real Vim, keeping the user in the mini-editor without access to their `.vimrc`.
+  - Found that fallback resolution blindly prioritized `nvim` over `vim`. On systems with `~/.vimrc`, Neovim does not load `.vimrc`, bypassing the user's Vim mappings and settings.
+  - Found naive `split_whitespace()` split quoted editor arguments like `EDITOR="nvim -c 'set wrap'"` into broken arguments.
+  - Found missing `--` caused notes with leading dashes (`-note.md`) to be parsed as editor command-line options.
+- **Implementation & Architecture (ADR-0205)**:
+  - Switched default `editor_mode` to `EditorMode::External`: pressing <kbd>Enter</kbd>, double-clicking, clicking the right preview pane, or pressing <kbd>e</kbd>/<kbd>i</kbd> immediately runs real Vim natively.
+  - Config-aware fallback: if `~/.vimrc` exists in `$HOME`, automatically prioritizes `vim` so that the user's `.vimrc` (line numbers, `nmap j gj`, `nnoremap K :m .-2<CR>==`) is natively loaded directly by Vim itself. If `init.lua` exists without `.vimrc`, prioritizes `nvim`.
+  - 5-tier resolution precedence: `--editor` flag -> `[editor] command/args` config -> `$VISUAL` -> `$EDITOR` -> config-aware `vim`/`nvim`/`vi`.
+  - Zero-dependency POSIX quote parser (`command_parser::parse_shell_words`).
+  - Terminal handoff: `TerminalGuard::restore_terminal()` leaves alternate screen and disables raw mode before child process spawn with inherited stdio (`isatty == 1`); `TerminalGuard::reenter_terminal()` restores TUI and `terminal.clear()` handles terminal resize (`SIGWINCH`) upon return.
+  - Safe `--` argument placed immediately prior to note path.
+  - Post-exit targeted file refresh: checks `mtime`, file size, and content hash; reloads only that file in TUI without full-vault rescan.
+  - Subcommands: `dn edit <name>`, `dn open <name> --editor <cmd> --editor-args <args>`, and `dn config`.
+- **In-Process Vim Mode Evaluation (ADR-0206, `docs/cli-vim-mode-eval.md`)**:
+  - Researched 4 options: `edtui`, `tui-textarea`, `nvim --embed` (`nvim-rs`), and built-in rope buffer.
+  - Recommended retaining external handoff (ADR-0205) as primary, keeping rope buffer as built-in default, and proposing future embedded Neovim behind an optional `embedded-nvim` Cargo feature flag so quick capture startup budget is never compromised.
+- **Verification**:
+  - Hyperfine benchmark on quick capture: mean **8.9 ms** (min 4.9 ms, max 87.5 ms, 437 runs) beating < 15.00 ms budget.
+  - Zero SQLite call sites verified (`vault-index.db` is never opened).
+  - All 48 unit and integration tests passing (`pnpm --filter @app/cli test`).
+  - All source files strictly under 209 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Full Vim Editing Suite (dd, yy, p, P, dw, yw, cw, cc, r, J, ~)
+
+- **Vim Operator & Motion Engine (`vim_motions.rs`, `vim_ops.rs`)**:
+  - Implemented multi-key operator state machine (`PendingOp`) supporting classic two-key Vim idioms:
+    - Line operations: `dd` (delete/cut line into register), `yy` (yank/copy line), `cc` (change line).
+    - Word operations: `dw` (delete word), `yw` (yank word), `cw` (change word), `w` / `b` / `e` (word navigation).
+    - Line-end operations: `D` / `d$` (delete to end of line), `C` / `c$` (change to end of line), `Y` (yank line).
+    - Register & Paste: `p` (paste line below or char after cursor), `P` (paste line above or char before cursor).
+    - Character operations: `x` (delete char), `s` (substitute char), `r<char>` (replace char under cursor), `~` (toggle case).
+    - Line joining: `J` (join next line into current line with single space).
+  - All operations integrate with `EditorBuffer` rope structure and full undo history (`u`).
+- **Verification**:
+  - 42 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 200 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Command Mode (:q, :q!, :wq, :w) & Note-Level Focus Control
+
+- **Vim Command Mode & Focus Control (`vim_command.rs`, `tui_events.rs`, `tui_view.rs`)**:
+  - Typing `:` enters Vim Command mode with live command prompt (`:<cmd>█`) in the editor footer.
+  - `:w` / `Ctrl+S`: Saves file atomically to disk and stays in editor.
+  - `:q` / `q`: Closes note and switches focus back to the left sidebar (file tree) instead of quitting the application. Blocks quit if unsaved edits exist (`E37: No write since last change (add ! to override)`).
+  - `:q!`: Force closes note, discards unsaved edits by reloading disk content, and switches focus back to sidebar.
+  - `:wq` / `:qw` / `:x`: Saves file and switches focus back to sidebar.
+  - Quitting the entire application is reserved for pressing `q` when focused on the sidebar or running `:qa`/`:wqa`.
+- **Verification**:
+  - 41 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 200 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — In-App Vim Editor with Persistent Sidebar & Fullscreen Toggle
+
+- **Persistent Sidebar Navigation (`tui_events.rs`, `tui_state.rs`)**:
+  - Pressing `Enter` or clicking on a file opens the note directly into the active right-pane editor while keeping the left file tree sidebar visible on screen.
+  - Automatically auto-saves modified files on note switch without lost edits.
+  - Slices directory items by scroll offset so large trees scroll with the selection.
+- **In-App Vim Mode Editing (`tui_events.rs`, `tui_view.rs`)**:
+  - Full modal in-place editing in the right pane: Normal mode (`h`/`j`/`k`/`l`, `0`/`$`, `x`, `u`, `g`/`G`, `Ctrl+D`/`Ctrl+U`), Insert mode (`i`, `a`, `A`, `I`, `o`, `O`), `Esc` to return to Normal mode.
+  - Real-time line numbering, cursor tracking with terminal position sync, and mode indicators (`-- NORMAL --` / `-- INSERT --`).
+  - `Ctrl+S` atomic save with `atomic_write_new` and status confirmation.
+- **On-Demand Fullscreen Toggle (`tui_view.rs`, `tui_state.rs`)**:
+  - Pressing `f` or `F`, or clicking `[f] Fullscreen` expands the editor to 100% terminal width.
+  - Pressing `f`, `Esc`, or clicking `[f] Split` restores the dual-pane view with the sidebar.
+- **Verification**:
+  - 40 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 197 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Integration, Fullscreen Mode & Interactive TUI UX
+
+- **Click to View & Focus (`tui_events.rs`, `tui_state.rs`)**:
+  - Clicking any file in the tree selects and immediately renders its formatted content in the right pane preview.
+  - Slices visible items by scroll offset so large directory trees scroll smoothly with the selection.
+- **Vim Editing Integration (`external_editor.rs`, `tui_events.rs`)**:
+  - Double-clicking a file, pressing `v` or `Enter`, or clicking `[v] Edit with Vim` launches real `vim` (or `nvim`/`vi`) full-screen.
+  - Automatically reloads modified content into the right preview pane upon exit and displays status feedback (`✔ Saved changes to <file>`).
+  - Added Vim scroll keybindings in the preview pane (`j`/`k`, `g`/`G` for top/bottom, `Ctrl+D`/`Ctrl+U` for half-page scroll).
+- **Fullscreen Preview Toggle (`tui_view.rs`, `tui_state.rs`)**:
+  - Pressing `f` or `F`, or clicking `[f] Fullscreen` expands the note reader to 100% terminal width.
+  - Pressing `f`, `Esc`, or clicking `[f] Split` restores the standard 35/65 split view.
+- **Verification**:
+  - 39 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 199 lines (under 200 soft cap and 250 hard cap).
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 6: Packaging, Shell Completions & Documentation
+
+- **Packaging & Crate Metadata (`Cargo.toml`)**:
+  - Configured crate metadata with MIT license, repository, keywords, and description.
+  - Retained compact footprint: 604 KB standalone release binary with zero SQLite/Webview bloat.
+- **Shell Completions Engine (`main.rs`, `phase6_completions_tests.rs`)**:
+  - Integrated `clap_complete` supporting bash, zsh, fish, powershell, and elvish (`dn completions <shell>`).
+  - Added unit test asserting valid completion script generation with custom options and commands across all shells.
+- **CLI Documentation (`apps/cli/README.md`)**:
+  - Authored comprehensive guide detailing architecture, quick capture usage, TUI navigation, built-in modeless editor, search engine, shell completions, and performance benchmarks.
+- **Verification**:
+  - 35 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 186 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 5: Fast In-Memory Content Search & Watcher
+
+- **Zero-SQLite Content Search (`search_engine.rs`, `main.rs`)**:
+  - Implemented `dn find <query>` full-text search across all vault Markdown files using `WalkDir` without touching SQLite or index locks.
+  - Returns file path, line numbers, and formatted line snippets.
+  - Automatically filters hidden files/directories (`.git`, `.trash`, `.obsidian`, etc.).
+  - Benchmarked search response time on 100 notes: executed in < 10 ms (strictly beating the < 100 ms budget).
+- **External Change Awareness (`vault_watcher.rs`, `tui_app.rs`)**:
+  - Integrated `notify` filesystem watcher into TUI event loop.
+  - Automatically detects when external files are created, modified, or deleted by the desktop app or sync clients, and re-renders tree and preview without UI freezes.
+- **Verification**:
+  - 34 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 186 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 4: Built-in Modeless Editor
+
+- **Rope Text Buffer (`builtin_editor_buffer.rs`)**:
+  - Implemented high-performance text buffer using `Rope` (`ropey`), supporting $O(\log N)$ character insertions, deletions, and line-to-char mappings.
+  - Benchmarked large-note typing latency on a 10,000-line note: keystroke insertion executes in < 15 µs (strictly beating the < 2 ms budget).
+  - Built-in full undo stack recording character diffs.
+- **Modeless Terminal Editor (`builtin_editor.rs`)**:
+  - Nano/micro-style modeless editing (no Vim modes) with arrow key navigation, Home/End, Backspace, Delete, and Tab (2 spaces).
+  - Shortcuts: `Ctrl+S` (atomic save), `Ctrl+Q` (quit), `Ctrl+Z` (undo).
+  - Mouse click-to-place cursor on line/column and scroll wheel viewport scrolling.
+  - Conflict detection: checks file `mtime` at save time against opening `initial_mtime`; alerts if external desktop or sync changes occurred.
+- **Verification**:
+  - 30 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 190 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 3: External Editor Mode ($EDITOR)
+
+- **$EDITOR Integration & Suspension (`external_editor.rs`)**:
+  - Resolves `$VISUAL` -> `$EDITOR` -> `nano`/`vi` (Windows `notepad`).
+  - Cleanly suspends TUI raw mode and alternate screen, executes editor child process, and resumes TUI upon exit.
+  - Snapshotting: records `mtime` and content byte comparison before/after execution to detect external conflicts and disk changes.
+- **Note Lifecycle Operations & Subcommands (`note_ops.rs`, `main.rs`)**:
+  - `dn open <name>`: opens best matching note in `$EDITOR` via fuzzy matching (`SkimMatcherV2`).
+  - `dn new <name>`: creates a new note with formatted `# Heading` and collision guard.
+  - `dn ls [folder]`: lists vault/folder contents with formatted byte sizes.
+  - `dn cat <name>`: prints note content to stdout.
+  - In-TUI operations: `'e'` or `Enter` on file opens in `$EDITOR`, `'d'` moves file to `.trash/` and updates tree.
+- **Verification**:
+  - 27 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 2: Read-Only TUI File Tree
+
+- **Terminal Safety & Panic Protection (`terminal_guard.rs`)**:
+  - Encapsulated raw mode, alternate screen (`EnterAlternateScreen`), and mouse capture (`EnableMouseCapture`) inside RAII `TerminalGuard`.
+  - Installed global panic hook ensuring terminal state (cursor, cooked mode, screen) is fully restored even on unexpected panics or signals before stack unwinding.
+- **Lazy Hierarchical Tree & Navigation (`tui_tree.rs`, `tui_state.rs`, `tui_view.rs`)**:
+  - Dired/Obsidian-style file tree with lazy directory loading: only direct children of expanded folders are read from disk.
+  - Benchmarked first frame on 10,000-note vault: rendered in < 1 ms (strictly beating the < 50 ms budget).
+  - Keyboard navigation (`hjkl` / arrows / Tab / Enter / Space) and full mouse click selection / scroll wheel support.
+  - Real-time search-as-you-type fuzzy filter bar (`/`) using `SkimMatcherV2` (`fuzzy-matcher`).
+  - Side-by-side read-only note preview pane with automatic Markdown scroll and folder statistics.
+- **Verification**:
+  - 21 unit and integration tests passing across `apps/cli`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines.
+
+---
+
+### 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Phase 1: Walking Skeleton & Quick Capture (ADR-0204)
+
+- **Architecture & Roadmap (`docs/cli-feature-plan.md`, ADR-0204)**:
+  - Authored comprehensive 6-phase build plan in `docs/cli-feature-plan.md`.
+  - Authored and accepted **ADR-0204** (`docs/adr/0204-davinci-cli-architecture-and-quick-capture.md`): Defined standalone `apps/cli` Rust crate producing binary `dn`, zero-SQLite v1 access (leaving index ownership with desktop `VaultWatcher`), 5-tier vault discovery, and crash-safe atomic writing.
+  - Indexed ADR-0204 in `DECISIONS.md`.
+- **Standalone Fast Rust Binary (`apps/cli/`)**:
+  - Independent static binary (`dn`), 604 KB release size, zero Tauri/Webview/rusqlite runtime bloat.
+  - 5-tier vault discovery precedence: `--vault <path>` -> `DN_VAULT` env -> cwd upwards traversal (`.obsidian`, `vault-index.db`, `.davinci`) -> `~/.config/davinci/config.toml` -> desktop app's `davinci-recent-vaults.json`.
+  - Default standalone capture creates `<vault>/Quick Notes/Quick note YYYY-MM-DD HH-mm-ss.md` without synthetic heading (aligned with ADR-0180 and preventing ADR-0060 rename loops).
+  - Identical-second collisions automatically disambiguated with numeric suffixes (`... HH-mm-ss 1.md`).
+  - `--daily` / `-d` flag appends `- [YYYY-MM-DD HH:mm:ss] text` to today's daily note (`YYYY-MM-DD.md`) with automatic `# YYYY-MM-DD` header creation if missing.
+  - `--note` / `-n` flag appends/creates in custom note with relative path sanitization and path traversal (`..`) rejection.
+  - Positional argument capture (`dn "buy milk"`) and stdin piping (`echo "idea" | dn`) support with multi-line and Unicode preservation.
+  - Crash-safe atomic write engine: hidden `.dn-tmp-...` in target folder, `file.sync_all()` (`fsync`), atomic `std::fs::rename`, and `TempFileGuard` drop guard cleaning orphan files on abnormal termination.
+- **Verification & Performance Budget**:
+  - Cold-start execution benchmark across 50 runs: mean **6.68 ms**, p95 **7.40 ms**, max **7.88 ms** (strictly beating the < 15.00 ms budget).
+  - `rg` audit confirms zero SQLite calls or imports in `apps/cli/`.
+  - 15 unit and integration tests passing across `src/lib.rs` and `tests/phase1_capture_tests.rs`; 0 clippy warnings (`-D warnings`).
+  - All source files strictly under 175 lines (adhering to 150-200 line soft cap).
+
+---
+
+### 2026-10-22: Web (Browser) Version — Feature Plan & Phases 1–7 Complete (`web-version-feature-plan.md`, `@app/platform-adapters`, `apps/web/`, ADR-0204, ADR-0205, ADR-0206)
+
+- **Feature Plan (`web-version-feature-plan.md`)**:
+  - Evaluated Approach A (File System Access API), Approach B (OPFS + Google Drive Sync), and Approach C (Self-Hosted Server Mode), recommending a Dual-Engine Web Architecture (Hybrid A + B).
+  - Audited all 49 source files and 18 test files in `apps/desktop/src/` (0 in `packages/*`) and defined the 7-phase build plan, performance budgets (`<= 210 KB` gzip initial JS), security/CSP rules, and multi-tab SQLite concurrency strategy.
+- **Phase 1: Platform Adapter Package & Desktop Extraction (`packages/platform-adapters`, `apps/desktop/src/adapters/`, ADR-0204)**:
+  - Created `@app/platform-adapters` with contracts: `FileSystemAdapter`, `WatcherAdapter`, `SqliteAdapter`, `DialogAdapter`, `SecretStoreAdapter`, `WindowControlsAdapter`, `ExternalUrlAdapter`, `NotificationAdapter`, `VaultRegistryAdapter`, and `PlatformContext`.
+  - Implemented `Tauri*Adapter` classes in `apps/desktop/src/adapters/` and decoupled desktop UI/feature workflows. Verified 138/138 desktop test files (545 tests) pass.
+- **Phase 2: Browser File System & Storage Adapters (`packages/platform-adapters/src/web/`, ADR-0205)**:
+  - Implemented `OpfsFileSystemAdapter`, `FileSystemAccessAdapter`, `WebWatcherAdapter` (400ms debounce), `WebDialogAdapter`, `WebSecretStoreAdapter`, `WebVaultRegistryAdapter`, `WebWindowControlsAdapter`, `WebExternalUrlAdapter`, `WebNotificationAdapter`, and `validateVaultPath`.
+- **Phase 3: Browser SQLite Indexer & Search Engine (`WebSqliteAdapter.ts`, `tabLockCoordinator.ts`, `packages/indexer/migrations.ts`, ADR-0205)**:
+  - Exported shared `VAULT_INDEX_MIGRATIONS` (v1–v8) from `@app/indexer`.
+  - Implemented `withWebDbLock` (`navigator.locks` + FIFO queue) and `WebSqliteAdapter` with FTS5 BM25 ranking (`1.0` title, `0.75` tags, `0.5` body) and transaction rollback.
+- **Phase 4 & Phase 7: Web Application Shell, PWA, Degradation Notices & Vault Archive (`apps/web/`)**:
+  - Created `apps/web/` (`@app/web`) with Vite config, strict CSP (`index.html`), PWA `manifest.webmanifest`, offline Service Worker (`sw.js`), `VaultChooserModal`, `FeatureNoticeBanner`, and `vaultArchive` lossless export/import. Initial gzipped JS bundle: **98.88 KB** (budget `<= 210 KB`).
+- **Phase 5: Cloud Vault Sync Integration (`packages/sync-client/webManifestSource.ts`)**:
+  - Implemented `computeHexDigest`, `createWebManifestSource`, and `createWebPkceProvider` using native Web Crypto `SHA-256`. Verified 3-way `node-diff3` clean merge and conflict copy generation.
+- **Phase 6: Browser Plugin Host & Sandboxing (`packages/plugin-runtime/IframePluginHost.ts`, ADR-0206)**:
+  - Implemented `IframePluginHost` with `sandbox="allow-scripts"` (opaque `null` origin), unconditional `shell.*` rejection, and manifest-gated `network.fetch`.
+
+---
+
+### 2026-10-18: Google Calendar & Meet Browser Launch & Settings UI Error Resolution
+
+- **Rust URL Allowlist (`apps/desktop/src-tauri/src/oauth.rs`)**:
+  - Broadened `open_external_url` allowlist to validate and permit Google Meet URLs (`https://meet.google.com/`, `http://meet.google.com/`) alongside Google OAuth authorization URLs (`https://accounts.google.com/`).
+  - Added unit tests in `oauth.rs` for `is_allowed_external_url`, verifying rejection of untrusted schemes/domains and acceptance of accounts/meet URLs.
+- **Dynamic Client ID & Error Surfacing (`calendarAuthConfig.ts`, `desktopCalendarAuth.ts`)**:
+  - Implemented dynamic Client ID resolution and fallback from SQLite setting `calendar.clientId` to allow zero-terminal setup without needing to rebuild or manually create `.env`.
+  - Added `clientId?: string` field to `CalendarOAuthToken` and stored on login so token refresh/revocation retains the client ID.
+  - Documented `VITE_GOOGLE_CLIENT_ID` in `apps/desktop/.env.example` and `vite-env.d.ts`.
+- **UI Error Banners & Component Splitting (`GoogleCalendarSettingsTab.tsx`, `GoogleAccountCard.tsx`, `CalendarPreferencesCard.tsx`)**:
+  - Refactored `GoogleCalendarSettingsTab.tsx` into modular components (`GoogleAccountCard.tsx`, `CalendarPreferencesCard.tsx`, `VisibleCalendarsCard.tsx`), keeping all files strictly under 195 lines (adhering to 150-200 soft cap).
+  - Surfaced actionable error alerts (`role="alert"`, `data-testid="calendar-settings-error"`) whenever OAuth or network requests fail instead of silently logging to `console.error`.
+  - Added an OAuth Client ID text input in `GoogleAccountCard` linked to SQLite `calendar.clientId`.
+  - Wired meeting link failures in `CalendarLeaf.tsx` to surface directly in the leaf's error banner.
+- **Testing & Verification**:
+  - Added Storybook stories and unit tests for `GoogleAccountCard` and `CalendarPreferencesCard`.
+  - All 44 calendar-related tests pass across `@app/google-calendar-api` and `@app/desktop`; Rust tests pass; `build:web` passes cleanly.
+
+---
+
+### 2026-10-18: Google Calendar & Google Meet Integration — Phase 8: Hardening, Resiliency & Bundle Audit
+
+- **Phase 8 Hardening, Offline Resiliency & Bundle Audit (`calendarHardening.test.ts`)**:
+  - Offline Resiliency: Verified that network errors (`Failed to fetch`) fail gracefully without corrupting local SQLite event tables or resetting valid sync tokens.
+  - Automatic 410 Recovery: Verified that `GoogleSyncTokenExpiredError` (HTTP 410 Gone) automatically clears the expired sync token and falls back to a clean full 7-day query.
+  - Auth Expiry: Verified that 401 Unauthorized (`GoogleAuthExpiredError`) cleanly bubbles to trigger re-authorization without crashing the view.
+  - Timezone & All-Day Handling: Verified that UTC ISO start/end values are stored without loss and that all-day events format cleanly without date shifts across midnight boundaries.
+  - Bundle Splitting: Production build verified via `pnpm build:web`; all calendar components (`CalendarLeaf`, `GoogleCalendarSettingsTab`) are isolated in separate asynchronous chunks (~10 KB) with 0 KB impact on the main initial bundle.
+  - Test Suite: 53 tests passing across `@app/google-calendar-api` and desktop calendar suites; 0 ESLint errors; `cargo check` dev profile in 0.71s.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 7: Reminders & System Tray Integration (ADR-0203)
+
+- **Meeting Reminder Alerts & Tray Bridge (`apps/desktop/src/calendar/calendarReminderBridge.ts`)**:
+  - Implemented `getUpcomingMeetingAlerts`: evaluates local SQLite-cached events for 5-minute heads-up (`5min` stage) and meeting start alerts (`now` stage) with in-memory deduplication (`notifiedKeys`).
+  - Implemented `formatUpcomingMeetingsForTray`: formats up to 3 upcoming meetings within 12 hours with video meeting indicator (`📹`) or calendar indicator (`📅`) and formatted local start time (`HH:MM`).
+  - Implemented `startMeetingReminderScheduler`: periodic 30s background check decoupled from network requests and rate limits, with clean unlisten/teardown.
+  - Colocated 6 Vitest unit tests in `calendarReminderBridge.test.ts`. File strictly under 135 lines.
+- **Architectural Decision Record**:
+  - Authored and accepted **ADR-0203** (`docs/adr/0203-calendar-reminder-alerts-and-tray-integration.md`) and indexed in `DECISIONS.md`.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 6: Settings Section: Calendar Selection, Refresh Interval & Account Management
+
+- **Google Calendar Settings Tab (`apps/desktop/src/components/SettingsDialog/GoogleCalendarSettingsTab.tsx`)**:
+  - Account Card: Connected / Disconnected status, "Connect Google Calendar" PKCE trigger, and "Disconnect" action with token revocation and SQLite cache purge.
+  - Visible Calendars (`VisibleCalendarsCard.tsx`): Renders user's calendars with primary badges, color chips, and active visibility checkboxes linked to `updateCalendarSelectedInDb`.
+  - Preferences: Configurable sync cadence (5m, 15m, 30m, manual), custom meeting notes destination folder (`calendar.meetingsFolder`), and declined events filter toggle (`calendar.showDeclined`) persisted in SQLite `settings` table.
+- **Settings Navigation & Shell Integration (`SettingsSidebar.tsx`, `SettingsDialog.tsx`)**:
+  - Registered `calendar` tab under "options" in `SettingsSidebar` with `CalendarCheck` Phosphor icon.
+  - Lazy-loaded via `React.lazy()` and `Suspense` inside `SettingsDialog` with zero startup bundle overhead.
+  - Colocated Storybook story and 4 Vitest unit tests passing (13 total across SettingsDialog and tab). All files strictly under 235 lines.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 5: Meeting Note Creation & Daily Note Linking
+
+- **Meeting Note Formatting & Template Engine (`apps/desktop/src/calendar/meetingNoteGenerator.ts`)**:
+  - Implemented `generateMeetingNoteMarkdown`: generates clean YAML frontmatter (`title`, `date`, `time`, `calendar_event_id`, `meet_url`, `tags: [meeting]`), event title, date wikilink to daily note (`[[YYYY-MM-DD]]`), video meeting link, formatted attendees (`- Name (email)`), and standard sections (`## Agenda`, `## Discussion & Notes`, `## Action Items`).
+  - Added robust filename sanitization `sanitizeMeetingFileName` stripping invalid filesystem characters (`/ \ : * ? " < > |`), and relative path generator `buildMeetingNotePath`.
+  - Added frontmatter regex event-id detector `isEventNoteMatch` and non-destructive daily note link updater `linkMeetingInDailyNote` (8 unit tests passing).
+- **Meeting Note Vault Creation & Idempotency Guard (`apps/desktop/src/calendar/createMeetingNote.ts`)**:
+  - `createOrOpenMeetingNote`: checks memory `notesContent` and target path on disk for existing notes matching `calendar_event_id`. If matched, immediately focuses and opens existing note tab without duplicates.
+  - Automatically handles filename collisions with incremental suffix `(1)`.
+  - Atomically writes to vault via `createNoteInVault`, links back in active Daily Note under `## Meetings`, closes the calendar view, and activates the new note tab.
+  - Wired into `CalendarLeaf.tsx` via `handleCreateNote` (3 unit tests passing; all files under 185 lines).
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 4: Calendar UI Shell & Obsidian Leaf Integration (ADR-0202)
+
+- **Left Icon Rail Entry Point (`apps/desktop/src/components/IconRail/`)**:
+  - Integrated `CalendarCheck` icon (`@phosphor-icons/react`) with tooltip "Calendar & Meetings" and active state indicator when `isCalendarOpen` is true.
+  - Colocated Storybook stories (`CalendarActive`) and unit tests in `IconRail.test.tsx` (5 tests passing).
+- **Workspace State Management (`apps/desktop/src/state/`)**:
+  - Extended `useWorkspaceStore` and `createNoteNavigationActions` with `isCalendarOpen` and `setIsCalendarOpen`.
+  - Enforced mutual exclusivity: opening the calendar closes the global graph, and opening notes (`openNote`, `setActiveNote`) or graph resets `isCalendarOpen` to false (14 unit tests passing).
+- **Lazy-Loaded Calendar Leaf & UI Components (`apps/desktop/src/components/CalendarView/`)**:
+  - Modular sub-components: `MeetJoinButton` (direct video link launch), `EventCard` (attendees preview, status, time, and quick note action), `DayAgendaView` (Happening Now vs Today groups, empty states), and `CalendarLeaf` (header, refresh spinner, settings shortcut).
+  - Strict lazy-loading via `React.lazy()` in `App.tsx` wrapped in `Suspense` with zero initial startup JS impact.
+  - Pure editorial design tokens, no box-shadows/gradients, CSS Modules (`CalendarView.module.scss`).
+  - All files strictly under 180 lines (soft cap 200). 4 Vitest unit tests and Storybook stories passing.
+- **Architectural Decision Record**:
+  - Authored and accepted **ADR-0202** (`docs/adr/0202-calendar-ui-shell-and-obsidian-leaf-integration.md`) and indexed in `DECISIONS.md`.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 3: SQLite Cache, syncToken & Sync Engine (ADR-0201)
+
+- **SQLite Schema Migration 8 (`apps/desktop/src-tauri/src/db.rs`)**:
+  - Registered Migration 8 creating `google_calendars`, `google_calendar_events`, and `google_calendar_sync_state` tables and indices on `start_iso`, `calendar_id`, and `status`. Verified `cargo check` dev profile in 2.29s.
+- **SQLite Calendar Store (`apps/desktop/src/calendar/sqliteCalendarStore.ts`)**:
+  - Implemented `saveCalendarsToDb`, `getCalendarsFromDb`, `updateCalendarSelectedInDb`, `saveEventsToDb`, `getEventsFromDb`, `getCalendarSyncToken`, `saveCalendarSyncToken`, and `purgeCalendarCache`.
+  - All operations serialized via universal `withDbLock` promise queue; batch writes wrapped in `withDbTransaction`.
+- **Calendar Sync Engine (`apps/desktop/src/calendar/calendarSyncEngine.ts`)**:
+  - Background polling engine with configurable timer (default 15m) and `syncNow` manual trigger.
+  - Queries selected calendars with `syncToken` for incremental changes; automatically handles `GoogleSyncTokenExpiredError` (HTTP 410 Gone) by falling back to full 7-day resync.
+  - All 10 calendar unit tests pass in Vitest; 0 ESLint errors; all files under 188 lines.
+- **Architectural Decision Record**:
+  - Authored and accepted **ADR-0201** (`docs/adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md`) and indexed in `DECISIONS.md`.
+
+---
+
+### 2026-10-18: Google Calendar Integration — Phase 2: Desktop OAuth Loopback & OS Keychain Storage
+
+- **Rust Backend Commands (`apps/desktop/src-tauri/`)**:
+  - Implemented `save_calendar_token`, `load_calendar_token`, and `clear_calendar_token` in `oauth.rs` using `keyring::Entry::new("com.davinci.notes.calendar-oauth", "default")`.
+  - Registered commands in `lib.rs` inside the `tauri::generate_handler!` invocation with `reject_plugin_runner` security guard.
+  - Verified compilation via `cargo check` (`dev` profile passed in 40.38s).
+- **Desktop Authentication Adapter (`apps/desktop/src/calendar/`)**:
+  - `calendarAuthConfig.ts`: Resolves `VITE_GOOGLE_CLIENT_ID` with fallback to `VITE_GOOGLE_DRIVE_CLIENT_ID` and declares sensitive read-only calendar scopes (`calendar.events.readonly`, `calendar.calendarlist.readonly`).
+  - `calendarPkce.ts`: Web Crypto PKCE verifier, challenge (`SHA-256`), and state generator with base64url encoding.
+  - `calendarTokenStore.ts`: Tauri IPC token store adapter for OS keychain credentials.
+  - `desktopCalendarAuth.ts`: End-to-end loopback listener auth (`signInToCalendar`), silent token refresh with 60s expiration margin, and Google revocation endpoint call (`disconnectCalendar`).
+- **Monorepo Integration & Testing**:
+  - Added `@app/google-calendar-api` workspace dependency to `apps/desktop/package.json`, `vite.config.ts`, and `vitest.config.ts`.
+  - Added 7 comprehensive unit tests in `desktopCalendarAuth.test.ts` covering unauthenticated errors, active token bypass, silent expiry refresh, `invalid_grant` store clearing, token revocation on disconnect, and state verification. All 7 tests pass; 0 ESLint errors; all files under 190 lines.
+
+---
+
+### 2026-10-18: Google Calendar & Google Meet Integration — Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`)
+
+- **Feature Planning & Architecture**:
+  - Documented complete phased build plan in `plans/google-calendar-feature-plan.md`.
+  - Authored and accepted **ADR-0199** (`docs/adr/0199-google-calendar-oauth-architecture-and-scope-isolation.md`): Established sensitive-scope read-only architecture (`calendar.events.readonly`, `calendar.calendarlist.readonly`), dedicated OS keychain service (`com.davinci.notes.calendar-oauth`) isolated from Drive sync, and zero-SDK direct REST client boundary.
+  - Registered ADR-0199 in `DECISIONS.md`.
+- **Shared Package Implementation (`packages/google-calendar-api/`)**:
+  - Built pure TypeScript package with 0 external runtime dependencies.
+  - `calendarTypes.ts`: Full domain modeling for calendars, raw API events, normalized events, attendees, and delta query options.
+  - `parseMeetLink.ts`: Robust Meet link extraction with priority order: `hangoutLink` -> `conferenceData.entryPoints` (video) -> regex fallback in `location` / `description`, with URL protocol sanitization.
+  - `calendarClient.ts`: Lightweight, zero-dependency `fetch` REST client for `listCalendars` and `listEvents` (supporting `syncToken` delta queries and error typing for 401 Auth Expired, 410 SyncToken Expired, and 4xx/5xx).
+- **Monorepo Wiring & Verification**:
+  - Wired `@app/google-calendar-api` in root `tsconfig.json` paths and `.eslintrc.js` boundaries rules.
+  - 13/13 Vitest tests pass across `parseMeetLink.test.ts` and `calendarClient.test.ts`.
+  - Typecheck passes cleanly; 0 ESLint errors; all files under 160 lines (enforcing soft cap 200).
+
 ---
 
 ## Session Log
@@ -19,6 +631,35 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 | 2026-10-17 | Web Clipper Phase 2b — React popup on the design system | Replaced the unstyled plain-TS popup with React 19 + `@wxt-dev/module-react` on `@app/design-system` (`ClipPopup`, `ClipEditor`, `ClipPreview`, `ClipModeSelector`, `TemplatePicker`; each with `.module.scss` + story + tests). Split the pipeline so `prepareClipContext` (page+mode) is memoised apart from `renderClipPayload` (template) — a template change no longer re-extracts a page — and deleted the now-callerless one-shot compositions. Edit fields show a raw `ClipDraft` while the written payload is sanitised (`applyClipEdits`: separators/`..` stripped, `.md` ensured, cleared property removed); `contentHash` untouched because the body is not editable. Recorded ADR-0179 (Proposed). Popup chunk 580,258 B raw / 170,650 B gzip (React + design system ≈ +71 KB gzip over Phase 2a); tree-shaking of the design-system barrel verified by grepping the built chunk. 106 tests / 17 files pass; `tsc`, ESLint and `wxt build` clean. |
 | 2026-10-17 | Web Clipper Phase 2a — extension capture/extraction pipeline | WXT 0.21.4 + MV3 with no content script (`activeTab` + `scripting`, `host_permissions: []`); Defuddle core + Turndown+turndown-plugin-gfm (101,914 B gzip vs 218,493 for `defuddle/full`, ~114 KB gzip saved) with LaTeX-math and callout recovery; real bugs fixed (extension-origin relative URLs, callout separator, blank `<math>` dropped by Turndown, nested-JSON-LD auto-apply, `-   ` list markers). Popup chunk 350,180 B raw / 99,576 B gzip; 51 tests / 9 files pass. |
 | 2026-10-17 | Web Clipper feature plan (plan only) | Produced `web-clipper-feature-plan.md` (architecture diagram, `ClipPayload` schema, phases 0–8 with dependency/size costs and adversarial verification steps) plus six draft ADRs (0173 transport hybrid; 0174 Defuddle vs Readability+Turndown with measured gzip sizes; 0175 WXT + `packages/clipper-core`; 0176 template-engine split; 0177 canonical vault write path; 0178 closed-app queue with dedupe). All Proposed, pending owner input; no code and no dependencies added. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 5 (Fast In-Memory Content Search & Watcher) | Built `dn find <query>` full-text search across all vault markdown files using `WalkDir` with zero SQLite access. Verified search response < 10 ms on 100 notes (budget < 100 ms). Integrated `notify` filesystem watcher into TUI event loop for real-time external change detection and tree/preview reload. 34 tests pass; 0 clippy warnings; all files under 186 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 4 (Built-in Modeless Editor) | Built modeless terminal editor backed by Rope data structure (`ropey`). Verified < 15 µs keystroke latency and < 15 µs undo on 10k-line note (budget < 2 ms). Implemented arrow navigation, Home/End, Backspace, Delete, Tab, Ctrl+S save with external mtime conflict detection, Ctrl+Q quit, Ctrl+Z undo, and mouse click cursor placement. 30 tests pass; 0 clippy warnings; all files under 190 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 3 (External Editor Mode & Note Operations) | Implemented external editor integration ($EDITOR/$VISUAL/nano/vi) with clean TUI suspension/restoration and pre/post mtime conflict detection. Built note CRUD operations (new note with heading, safe rename with collision check, delete to .trash/) and CLI subcommands (`dn open <name>`, `dn new <name>`, `dn ls [folder]`, `dn cat <name>`). 27 tests pass; 0 clippy warnings; all files under 175 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 2 (Read-Only TUI File Tree) | Built Ratatui + crossterm TUI file browser with TerminalGuard RAII panic protection. Implemented lazy directory loading (first frame < 1 ms on 10k-note vault), keyboard (hjkl/arrows/Enter/Tab) and mouse click/scroll navigation, real-time search-as-you-type fuzzy filter bar with fuzzy-matcher, and side-by-side note preview pane. 21 tests pass; 0 clippy warnings; all files under 175 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 1 (Walking Skeleton & Quick Capture, ADR-0204) | Built independent 604 KB Rust CLI binary at `apps/cli` (`dn`). Implemented 5-tier vault discovery, ADR-0180 compliant quick capture in `Quick Notes/`, collision suffix disambiguation, daily note append (`--daily`), custom note append (`--note`), and crash-safe atomic write engine with drop cleanup. Zero SQLite access. Cold-start benchmarked at 6.68 ms mean (budget < 15 ms). 15 tests pass; 0 clippy warnings; all files under 175 lines. Recorded ADR-0204 and `docs/cli-feature-plan.md`. |
+| 2026-10-19 | Marketing Site Burgundy/Nude/Rose Smoke Palette, Zero Shadows & Interactive Hero | Derived and implemented strict 4-color palette (Burgundy #4B1D3F, Nude #E8D9C1, Rose Smoke #D8A7B1, Off Black #1B1B1B) with organic hand-drawn borders and zero shadows project-wide. Restored 360-degree interactive 3D rotating thought cloud around the woman and rock cutout with zero background behind the figure. Restyled all 8 sections for visual cohesion. Static build succeeds in 397ms; verified across desktop, 375px mobile, and 320px adversarial test. |
+| 2026-10-18 | Google Calendar Integration Phase 3 (SQLite Cache, syncToken & Sync Engine, ADR-0201) | Added Migration 8 in `vault-index.db` creating calendar, event, and sync state tables. Built `sqliteCalendarStore` wrapping all operations in universal `withDbLock` promise queue. Built `CalendarSyncEngine` with incremental `syncToken` delta polling and automatic HTTP 410 full-sync recovery. 10/10 Vitest tests pass; 0 ESLint errors; all files under 188 lines. |
+| 2026-10-18 | Google Calendar Integration Phase 2 (Desktop PKCE & OS Keychain Auth) | Implemented desktop OAuth PKCE loopback authentication, silent token refresh with 60s expiration margin, disconnect/revocation, and OS keychain token storage under `com.davinci.notes.calendar-oauth` via Rust `keyring` commands. Added 7 unit tests; 0 ESLint errors; all files under 190 lines. |
+| 2026-10-18 | Google Calendar Integration Phases 0 & 1 (ADR-0199, `@app/google-calendar-api`) | Shipped Phase 0 (ADR-0199 OAuth scope isolation, sensitive-scope policy, OS keychain separation) and Phase 1 (created `@app/google-calendar-api` shared package with zero external SDKs, Meet link parser, and `syncToken`-ready REST client). 13/13 Vitest tests pass; 0 ESLint / 0 typecheck errors; all files under 160 lines. |
+
+- Added `apps/website`, a static Astro 7.4.0 application with scripts for local development, production builds, previewing, and validation.
+- Created an editorial, responsive Davinci landing page inspired by Logseq's calm, privacy-first positioning without copying its layout or assets.
+- The page presents local-first notes, nested blocks, graph connections, and an in-app workspace preview. It uses a custom inline Da Vinci-study SVG instead of external imagery, adding no image weight or runtime JavaScript.
+- Verification: `pnpm --filter @app/website build` completes successfully and generates the static `/index.html` route.
+- Poster-style revision: reworked the hero with large overlapping red type, warm grey paper, exhibition labels, and an optimized local copy of Marco Dente's public-domain *Equestrian Statue of Marcus Aurelius* from The Met. The asset is 416 KB and credited in the footer.
+- Product-page revision: replaced the poster composition with a long-form product narrative modeled on the supplied reference's information architecture: centered hero, audience tabs, preview cards, community/story section, relationship workspace, safe-storage grid, sync feature, and final CTA. Kept the existing Davinci grey/red palette and static, zero-framework runtime.
+- Layout scale revision: enlarged desktop display typography, navigation, cards, product previews, section spacing, and sync/relationship panels, while defining a separate compact mobile scale.
+
+---
+
+## Session Log
+
+| Date | Focus | Outcome |
+|---|---|---|
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 5 (Fast In-Memory Content Search & Watcher) | Built `dn find <query>` full-text search across all vault markdown files using `WalkDir` with zero SQLite access. Verified search response < 10 ms on 100 notes (budget < 100 ms). Integrated `notify` filesystem watcher into TUI event loop for real-time external change detection and tree/preview reload. 34 tests pass; 0 clippy warnings; all files under 186 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 4 (Built-in Modeless Editor) | Built modeless terminal editor backed by Rope data structure (`ropey`). Verified < 15 µs keystroke latency and < 15 µs undo on 10k-line note (budget < 2 ms). Implemented arrow navigation, Home/End, Backspace, Delete, Tab, Ctrl+S save with external mtime conflict detection, Ctrl+Q quit, Ctrl+Z undo, and mouse click cursor placement. 30 tests pass; 0 clippy warnings; all files under 190 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 3 (External Editor Mode & Note Operations) | Implemented external editor integration ($EDITOR/$VISUAL/nano/vi) with clean TUI suspension/restoration and pre/post mtime conflict detection. Built note CRUD operations (new note with heading, safe rename with collision check, delete to .trash/) and CLI subcommands (`dn open <name>`, `dn new <name>`, `dn ls [folder]`, `dn cat <name>`). 27 tests pass; 0 clippy warnings; all files under 175 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 2 (Read-Only TUI File Tree) | Built Ratatui + crossterm TUI file browser with TerminalGuard RAII panic protection. Implemented lazy directory loading (first frame < 1 ms on 10k-note vault), keyboard (hjkl/arrows/Enter/Tab) and mouse click/scroll navigation, real-time search-as-you-type fuzzy filter bar with fuzzy-matcher, and side-by-side note preview pane. 21 tests pass; 0 clippy warnings; all files under 175 lines. |
+| 2026-10-22 | DaVinci Notes CLI / TUI ("dn") — Phase 1 (Walking Skeleton & Quick Capture, ADR-0204) | Built independent 604 KB Rust CLI binary at `apps/cli` (`dn`). Implemented 5-tier vault discovery, ADR-0180 compliant quick capture in `Quick Notes/`, collision suffix disambiguation, daily note append (`--daily`), custom note append (`--note`), and crash-safe atomic write engine with drop cleanup. Zero SQLite access. Cold-start benchmarked at 6.68 ms mean (budget < 15 ms). 15 tests pass; 0 clippy warnings; all files under 175 lines. Recorded ADR-0204 and `docs/cli-feature-plan.md`. |
 | 2026-10-17 | Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (ADR-0198) | Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem. Scenarios passed: (1) Desktop -> Phone CRUD (6562ms), (2) Phone -> Desktop CRUD (5549ms), (3) Round-trip mtime stability (12537ms; 0 loops/rewrites), (4) Offline concurrent edits with *.sync-conflict-* generation and zero data loss (3432ms), (5) Edit vs delete & rename vs edit resolution (8363ms), (6) Syncthing .tmp file transfer isolation (2ms), (7) Background mobile rescan upon reopening (1519ms), (8) 5,000-note vault scale benchmark (642ms; 392ms write, 0.2 MB heap delta, no UI freeze), (9) Clean unpair & re-pair via REST API (33ms), (10) Convergence hash match across vaults (100% SHA-256 match, 3778ms). Root-caused and resolved note index pollution by routing conflict files to `VaultScanResult.conflicts` and excluding them from `ctx.notes` in `vaultScanner.ts` (mobile) and `VaultIndexer.ts` (desktop). Recorded ADR-0198. All unit and integration tests passing; ESLint 0 errors. |
 | 2026-10-17 | Mobile Syncthing Device Pairing, QR Code Scanning & Safe Vault Acceptance (`apps/mobile/`) | Implemented mobile-side device pairing and vault folder acceptance. Added `expo-camera@~57.0.6` barcode scanning in `SyncthingQrScanner.tsx` lazily loaded on demand via `React.lazy()`. Requested camera permission only when scanner mounts, with fallback to manual paste flow upon permission denial. Implemented `parseScannedDeviceId` validating 56-character Device IDs and rejecting random payloads with descriptive errors. Enforced explicit confirmation step showing parsed Device ID and name field (zero auto-accepting from QR). Added `SyncthingPendingSection.tsx` listing incoming device requests (Accept/Ignore) and pending vault folder offers. Implemented `folderAccessChecker.ts` explicitly verifying folder read, list, and atomic write probe capabilities before folder acceptance (SAF permission required) and warning if directory is non-empty. Added connected peers badge from `/rest/system/connections`. All 32 mobile Syncthing tests pass; 0 ESLint / 0 typecheck errors. |
 | 2026-10-17 | Mobile Syncthing-Fork Settings, QR Code & Device ID Integration (`apps/mobile/`, `packages/syncthing-api/`) | Shipped Settings -> Sync -> Syncthing panel connecting to local Syncthing-Fork instance on Android. Created shared TypeScript package `packages/syncthing-api` containing pure types (`SyncthingState`, `SyncthingDetectResult`, `SyncthingStatusResult`, etc.) and pure parsers (`normalizeDeviceId`, `isValidDeviceIdFormat`, `formatDeviceIdGroups`, `redactApiKey`, `sanitizeError`), reused by desktop and mobile. Configured narrowest Android network security config via Expo config plugin `withLocalhostNetworkSecurity` permitting cleartext HTTP strictly on `127.0.0.1` and `localhost` with zero blanket `usesCleartextTraffic`. Implemented secure API key storage in `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`) with zero logging and zero plain storage. Built `MobileSyncthingPanel` displaying status badge (Running / Not running / Key problem), formatted monospace Device ID with Copy button (`expo-clipboard`), and high-contrast QR code with white quiet zone reusing Syncthing's `/qr` proxy (0 KB external QR library overhead). All 21 unit and integration tests passing; 0 ESLint / 0 typecheck errors. |

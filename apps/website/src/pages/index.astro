@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import HeroSection from '../components/hero/HeroSection.astro';
+import RoleSection from '../components/RoleSection.astro';
+import CommunitySection from '../components/CommunitySection.astro';
+import ThoughtsStage from '../components/ThoughtsStage.astro';
+import WorkflowsSection from '../components/WorkflowsSection.astro';
+import SafeSpaceSection from '../components/SafeSpaceSection.astro';
+import SyncSection from '../components/SyncSection.astro';
+import ClosingSection from '../components/ClosingSection.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+---
+
+<BaseLayout
+  title="DaVinci Notes — Connect your notes, increase understanding."
+  description="A local-first, privacy-focused open source note-taking and knowledge base application. Connect your thoughts with linked references, graph views, and flashcards."
+>
+  <SiteNav />
+
+  <main id="top">
+    <HeroSection />
+    <RoleSection />
+    <CommunitySection />
+    <ThoughtsStage />
+    <WorkflowsSection />
+    <SafeSpaceSection />
+    <SyncSection />
+    <ClosingSection />
+  </main>
+
+  <SiteFooter />
+
+  <script>
+    import { mountHeroOrbit } from '../scripts/orbitController';
+
+    // Mount 360-degree interactive thought orbit
+    mountHeroOrbit();
+
+    // Role Tab Switching
+    const roleTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-role-tab]'));
+    roleTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        roleTabs.forEach((t) => {
+          t.classList.remove('is-active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('is-active');
+        tab.setAttribute('aria-selected', 'true');
+      });
+    });
+
+    // Workflow Tab Switching
+    const wfTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-wf-tab]'));
+    wfTabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        wfTabs.forEach((t) => {
+          t.classList.remove('is-active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        tab.classList.add('is-active');
+        tab.setAttribute('aria-selected', 'true');
+      });
+    });
+  </script>
+</BaseLayout>

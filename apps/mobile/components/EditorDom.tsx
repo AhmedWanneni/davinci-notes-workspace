@@ -38,7 +38,7 @@ export interface EditorDomProps {
 }
 
 export default function EditorDom({
-  initialContent,
+  initialContent = "",
   notePath,
   onDocChanged,
   onFlushAck,
@@ -56,14 +56,13 @@ export default function EditorDom({
   const [_isReady, setIsReady] = useState(false);
 
   const onDocChangedRef = useRef(onDocChanged);
-  useEffect(() => {
-    onDocChangedRef.current = onDocChanged;
-  }, [onDocChanged]);
+  onDocChangedRef.current = onDocChanged;
 
   const onFlushAckRef = useRef(onFlushAck);
-  useEffect(() => {
-    onFlushAckRef.current = onFlushAck;
-  }, [onFlushAck]);
+  onFlushAckRef.current = onFlushAck;
+
+  const lastActionIdRef = useRef<number | null>(null);
+  const lastInsertIdRef = useRef<number | null>(null);
 
   // Debounced bridge emitter (750ms) - only crosses on debounce or explicit flush
   const bridgeRef = useRef(
@@ -81,8 +80,12 @@ export default function EditorDom({
       if (update.docChanged) {
         changeCountRef.current += 1;
         const now = performance.now();
-        if (lastKeystrokeTime > 0) {
-          onMetricsUpdate?.(now - lastKeystrokeTime);
+        if (lastKeystrokeTime > 0 && typeof onMetricsUpdate === "function") {
+          try {
+            onMetricsUpdate(now - lastKeystrokeTime);
+          } catch {
+            /* ignore */
+          }
         }
         lastKeystrokeTime = now;
 
@@ -103,7 +106,7 @@ export default function EditorDom({
       }
     });
 
-    const docText = decodePayload(initialContent);
+    const docText = decodePayload(initialContent || "");
     const extensions = createMobileEditorExtensions([changeListener]);
     const state = EditorState.create({ doc: docText, extensions });
     const view = new EditorView({ state, parent: containerRef.current });
@@ -162,7 +165,7 @@ export default function EditorDom({
     const v = viewRef.current;
     if (!v) return;
     const currentDoc = v.state.doc.toString();
-    const newDoc = decodePayload(initialContent);
+    const newDoc = decodePayload(initialContent || "");
     if (newDoc !== currentDoc) {
       v.dispatch({
         changes: { from: 0, to: currentDoc.length, insert: newDoc },
@@ -180,7 +183,12 @@ export default function EditorDom({
 
   // Execute toolbar actions
   useEffect(() => {
-    if (viewRef.current && actionTrigger) {
+    if (
+      viewRef.current &&
+      actionTrigger &&
+      actionTrigger.id !== lastActionIdRef.current
+    ) {
+      lastActionIdRef.current = actionTrigger.id;
       executeToolbarAction(viewRef.current, actionTrigger.action);
     }
   }, [actionTrigger]);
@@ -202,7 +210,12 @@ export default function EditorDom({
 
   // Insert arbitrary markdown text at cursor (for camera, photo, voice embeds)
   useEffect(() => {
-    if (viewRef.current && insertTrigger) {
+    if (
+      viewRef.current &&
+      insertTrigger &&
+      insertTrigger.id !== lastInsertIdRef.current
+    ) {
+      lastInsertIdRef.current = insertTrigger.id;
       const textToInsert = decodePayload(insertTrigger.text);
       const { from, to } = viewRef.current.state.selection.main;
       viewRef.current.dispatch({
@@ -215,7 +228,9 @@ export default function EditorDom({
 
   // Apply reset & theme CSS to DOM container
   useEffect(() => {
-    let styleEl = document.getElementById("davinci-mobile-theme") as HTMLStyleElement | null;
+    let styleEl = document.getElementById(
+      "davinci-mobile-theme",
+    ) as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.id = "davinci-mobile-theme";
@@ -223,12 +238,12 @@ export default function EditorDom({
     }
     const vars = `:root{--color-bg-primary:${darkColorTokens.bg.primary};--color-text-normal:${darkColorTokens.text.normal};--color-text-muted:${darkColorTokens.text.muted};--color-text-accent:${darkColorTokens.interactive.accent};--color-bg-active:rgba(255,255,255,0.1);--font-editor:monospace,sans-serif;--editor-font-size:16px;--editor-obsidian-body-line-height:1.5;--editor-content-padding-bottom:300px;--space-6:16px;--space-8:16px;--border-width-thin:1px;}`;
     const reset =
-      "html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:" +
+      "html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:var(--color-bg-primary," +
       darkColorTokens.bg.primary +
-      "!important;color:" +
+      ")!important;color:var(--color-text-normal," +
       darkColorTokens.text.normal +
-      "!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}";
-    styleEl.textContent = `${vars}\n${reset}\n${themeCss ?? ""}`;
+      ")!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}";
+    styleEl.textContent = `${vars}\n${themeCss ?? ""}\n${reset}`;
   }, [themeCss]);
 
   return (

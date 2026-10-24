@@ -1,0 +1,237 @@
+/* ==========================================================================
+   ROLE / RESEARCH SECTION (ORGANIC & HAND-DRAWN, NO SHADOWS)
+   Palette: BURGUNDY, NUDE, ROSE SMOKE, OFF BLACK
+   ========================================================================== */
+
+.logseq-role-section {
+  padding: 80px 0 100px;
+  background-color: var(--logseq-bg);
+  border-top: 1.5px solid var(--logseq-border);
+  border-bottom: 1.5px solid var(--logseq-border);
+  text-align: center;
+}
+
+.role-section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 4.8vw, 3.6rem);
+  font-weight: 400;
+  color: var(--logseq-text-title);
+  margin: 0 0 36px;
+  letter-spacing: -0.02em;
+}
+.role-section-title strong {
+  font-weight: 600;
+  font-style: italic;
+  color: var(--logseq-cyan);
+}
+
+.capability-pills {
+  display: flex;
+  justify-content: center;
+  gap: 36px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+.cap-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--logseq-text-muted);
+  font-size: 0.95rem;
+  font-family: var(--font-mono);
+}
+.cap-icon {
+  font-size: 1.15rem;
+  color: var(--logseq-cyan);
+}
+
+.role-tab-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  max-width: 920px;
+  margin: 0 auto 50px;
+}
+.role-tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background-color: var(--logseq-card);
+  border: 1.5px solid var(--logseq-border);
+  border-radius: var(--radius-hand-drawn-subtle);
+  color: var(--logseq-text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: none !important;
+  transition: all 140ms ease;
+}
+.role-tab-btn:hover {
+  background-color: var(--logseq-card-hover);
+  border-color: var(--logseq-border-light);
+  color: var(--logseq-text-title);
+}
+.role-tab-btn.is-active {
+  background-color: var(--logseq-card-active);
+  border-color: var(--logseq-cyan);
+  color: var(--logseq-text-title);
+}
+.role-tab-icon { font-size: 1.4rem; }
+
+.role-editor-showcase {
+  max-width: 920px;
+  margin: 0 auto 60px;
+}
+.editor-window-mockup {
+  background-color: var(--logseq-card-dark);
+  border: 1.5px solid var(--logseq-border-light);
+  border-radius: var(--radius-hand-drawn-subtle);
+  text-align: left;
+  margin-bottom: 40px;
+  overflow: hidden;
+  box-shadow: none !important;
+}
+.mockup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background-color: #12040f;
+  border-bottom: 1.5px solid var(--logseq-border);
+}
+.mockup-dots { display: flex; gap: 6px; }
+.mockup-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--logseq-border-light);
+}
+.mockup-title {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--logseq-text-muted);
+}
+.mockup-body {
+  padding: 24px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+.code-line mark { background: transparent; color: var(--logseq-cyan); font-weight: 600; }
+.code-line .tag { color: var(--logseq-yellow); }
+.indent-1 { padding-left: 20px; }
+.indent-2 { padding-left: 40px; }
+
+.feature-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  text-align: left;
+}
+.pillar-icon { font-size: 1.5rem; margin-bottom: 12px; }
+.pillar-item h4 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--logseq-text-title);
+}
+.pillar-item p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--logseq-text-muted);
+}
+
+.beginner-card-wrapper { max-width: 920px; margin: 0 auto; }
+.beginner-tip-card {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 32px;
+  background: var(--logseq-card-hover);
+  border: 1.5px solid var(--logseq-border-light);
+  border-radius: var(--radius-hand-drawn-subtle);
+  padding: 36px;
+  text-align: left;
+  box-shadow: none !important;
+}
+.tip-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  background-color: rgba(216, 167, 177, 0.2);
+  color: var(--logseq-cyan);
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--logseq-border-light);
+  border-radius: var(--radius-hand-drawn-subtle);
+  margin-bottom: 14px;
+}
+.tip-left h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  line-height: 1.25;
+  color: var(--logseq-text-title);
+}
+.tip-left p {
+  margin: 0 0 20px;
+  font-size: 0.85rem;
+  color: var(--logseq-text-muted);
+}
+.tip-carousel-nav { display: flex; align-items: center; gap: 12px; }
+.btn-tip-arrow {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--logseq-border-light);
+  color: var(--logseq-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+.carousel-dots { display: flex; gap: 6px; }
+.carousel-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--logseq-border-light);
+}
+.carousel-dots span.is-active { background-color: var(--logseq-cyan); }
+
+.outline-snippet {
+  background-color: var(--logseq-card-dark);
+  border: 1.5px solid var(--logseq-border);
+  border-radius: var(--radius-hand-drawn-subtle);
+  padding: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+.outline-snippet mark { background: transparent; color: var(--logseq-cyan); }
+.outline-snippet .indent { padding-left: 18px; }
+.outline-snippet .indent-2 { padding-left: 36px; }
+.tag-now {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--logseq-cyan);
+  background: rgba(216, 167, 177, 0.2);
+  border: 1px solid rgba(216, 167, 177, 0.4);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+@media (max-width: 860px) {
+  .role-tab-bar { grid-template-columns: repeat(2, 1fr); }
+  .feature-pillars-grid { grid-template-columns: 1fr; gap: 24px; }
+  .beginner-tip-card { grid-template-columns: 1fr; }
+  .mockup-body, .outline-snippet { overflow-x: auto; }
+}
+
+@media (max-width: 480px) {
+  .role-tab-bar { grid-template-columns: 1fr; }
+  .capability-pills { gap: 16px; }
+  .beginner-tip-card { padding: 20px; }
+}

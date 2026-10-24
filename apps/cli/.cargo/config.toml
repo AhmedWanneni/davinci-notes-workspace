@@ -1,0 +1,5 @@
+[build]
+rustflags = ["-C", "link-arg=-isysroot", "-C", "link-arg=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"]
+
+[env]
+SDKROOT = "/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk"
