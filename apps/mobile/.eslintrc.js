@@ -50,7 +50,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["**/*Dom.tsx"],
+      files: ["**/*Dom.tsx", "theme/**", "themes/**"],
       rules: {
         "no-restricted-syntax": "off",
       },

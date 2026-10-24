@@ -11,12 +11,12 @@
   background-color: var(--color-bg-secondary);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-sm);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+  color: var(--color-text-normal);
+  font-size: var(--type-scale-sm);
   outline: none;
 
   &:focus {
-    border-color: var(--color-border-strong);
+    border-color: var(--color-border-focus);
   }
 }
 
@@ -44,28 +44,28 @@
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   text-align: left;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-primary);
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-normal);
 
   &:hover,
   &.is-active {
-    background-color: var(--color-bg-tertiary);
+    background-color: var(--color-bg-hover);
   }
 }
 
 .note-picker-title {
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--type-weight-medium);
 }
 
 .note-picker-detail {
-  font-size: var(--font-size-xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
 }
 
 .note-picker-empty {
   padding: var(--space-3);
   text-align: center;
-  font-size: var(--font-size-xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
   font-style: italic;
 }
@@ -74,7 +74,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--font-size-xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
   padding-bottom: var(--space-2);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
@@ -86,7 +86,7 @@
   color: var(--color-text-accent);
   cursor: pointer;
   padding: 0;
-  font-size: var(--font-size-xs);
+  font-size: var(--type-scale-xs);
 
   &:hover {
     text-decoration: underline;

@@ -1,5 +1,6 @@
 import React from "react";
 import { View, type ViewStyle } from "react-native";
+import { useTheme } from "../../theme";
 
 export interface DividerProps {
   orientation?: "horizontal" | "vertical";
@@ -14,16 +15,18 @@ export const Divider: React.FC<DividerProps> = ({
   className = "",
   style,
 }) => {
+  const { tokens } = useTheme();
   const isHorizontal = orientation === "horizontal";
-  const borderClass =
-    variant === "strong" ? "bg-border-normal" : "bg-border-subtle";
-
   const dimensionClass = isHorizontal ? "w-full h-[1px]" : "h-full w-[1px]";
+  const backgroundColor =
+    variant === "strong"
+      ? tokens.color.border.normal
+      : tokens.color.border.subtle;
 
   return (
     <View
-      className={`${dimensionClass} ${borderClass} ${className}`}
-      style={style}
+      className={`${dimensionClass} ${className}`}
+      style={[{ backgroundColor }, style]}
     />
   );
 };

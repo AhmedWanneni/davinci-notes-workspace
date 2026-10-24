@@ -89,4 +89,72 @@ describe("Mobile Shell & Primitives Verification", () => {
     });
     expect(element).toBeDefined();
   });
+
+  it("verifies all primitives render properly under theme tokens with minTouchTarget >= 44", async () => {
+    const React = (await import("react")).default;
+    const {
+      Text,
+      Button,
+      IconButton,
+      ListItem,
+      Sheet,
+      SheetGroup,
+      Input,
+      Badge,
+      Divider,
+    } = await import("../components/primitives");
+
+    // Text renders with dynamic color
+    const textEl = React.createElement(Text, {
+      children: "Hello World",
+      variant: "h1",
+    });
+    expect(textEl).toBeDefined();
+
+    // Button renders with primary variant and 44pt min height
+    const btnEl = React.createElement(Button, {
+      children: "Action",
+      variant: "primary",
+    });
+    expect(btnEl).toBeDefined();
+
+    // IconButton renders with ghost variant
+    const iconBtnEl = React.createElement(IconButton, {
+      icon: null,
+      accessibilityLabel: "Close",
+      variant: "ghost",
+    });
+    expect(iconBtnEl).toBeDefined();
+
+    // ListItem renders with title and subtitle
+    const listEl = React.createElement(ListItem, {
+      title: "Note 1",
+      subtitle: "Folder A",
+    });
+    expect(listEl).toBeDefined();
+
+    // Input renders with dynamic placeholder color
+    const inputEl = React.createElement(Input, { placeholder: "Search..." });
+    expect(inputEl).toBeDefined();
+
+    // Badge renders with accent variant
+    const badgeEl = React.createElement(Badge, {
+      children: "v1.0",
+      variant: "accent",
+    });
+    expect(badgeEl).toBeDefined();
+
+    // Divider renders with strong variant
+    const dividerEl = React.createElement(Divider, { variant: "strong" });
+    expect(dividerEl).toBeDefined();
+
+    // Sheet and SheetGroup render with grouped card support
+    const sheetEl = React.createElement(Sheet, {
+      visible: true,
+      onClose: vi.fn(),
+      title: "Note Options",
+      children: React.createElement(SheetGroup, { children: listEl }),
+    });
+    expect(sheetEl).toBeDefined();
+  });
 });

@@ -1,0 +1,178 @@
+---
+const workflows = [
+  {
+    id: 'research',
+    num: '01',
+    label: 'Research & Math',
+    file: 'research / On Fleeting Ideas.md',
+    frontmatter: 'tags: [epistemology, local-first]\nupdated: 2026-10-18T22:14',
+    title: '# On Fleeting Ideas',
+    body: 'An idea unlinked is a memory waiting to vanish. When a note is stored as plain Markdown on disk, it outlives the software that wrote it.\n\nSee [[zettelkasten]] and the harmonic identity:\n\n$$e^{i\\pi} + 1 = 0$$\n\nEvery connection is indexed in local WAL-mode SQLite (`vault-index.db`) in under 2ms.',
+    backlinks: [
+      { source: 'Anatomia Mentis.md', snippet: '...why [[On Fleeting Ideas]] requires <380ms capture...' },
+      { source: 'De Divina Proportione.canvas', snippet: '...embedded card linking [[On Fleeting Ideas]]...' },
+    ],
+  },
+  {
+    id: 'calendar',
+    num: '02',
+    label: 'Daily & Calendar',
+    file: 'daily / 2026-10-18.md',
+    frontmatter: 'calendar_event_id: evt_99481a\nmeet_url: https://meet.google.com/abc-defg-hij',
+    title: '# Daily Lab Log — Oct 18',
+    body: '- [x] Verify 5,000-note vault scan in 392ms (0.2 MB heap delta)\n- [x] Link [[Architecture Review]] from Google Calendar agenda leaf\n- [ ] Draft ADR-0204 on spatial graph projection\n\n## Meetings\n- 14:00 · [[Studio Critique — Tessica]] (📹 Join Meet)',
+    backlinks: [
+      { source: 'Studio Critique — Tessica.md', snippet: '...created from CalendarLeaf on [[2026-10-18]]...' },
+      { source: 'Vault Sync Topology.md', snippet: '...verified round-trip check in [[2026-10-18]]...' },
+    ],
+  },
+  {
+    id: 'sync',
+    num: '03',
+    label: 'Syncthing P2P',
+    file: 'systems / Vault Sync Topology.md',
+    frontmatter: 'sync_mode: syncthing-rest\npeer_status: connected (1,795ms round-trip)',
+    title: '# Vault Sync Topology',
+    body: 'Zero owned backend. Pair Desktop and Android directly via QR scan over local Syncthing REST (`127.0.0.1:8384`) or encrypted Google Drive `appDataFolder`.\n\nPer-device index state (`vault-index.db*`, `.davinci/workspace.json`) is automatically isolated in `.stignore`.',
+    backlinks: [
+      { source: 'Anatomia Mentis.md', snippet: '...peer convergence verified in [[Vault Sync Topology]]...' },
+    ],
+  },
+  {
+    id: 'canvas',
+    num: '04',
+    label: 'JSON Canvas 1.0',
+    file: 'boards / De Divina Proportione.canvas',
+    frontmatter: 'format: JSON Canvas 1.0\nnodes: 18 · edges: 14 · cycle-safe depth: 3',
+    title: '# Spatial Research Board (.canvas)',
+    body: 'Arrange live CodeMirror 6 note embeds, PDFs, LaTeX equations, and Leonardo sketches on an infinite, viewport-culled 2D plane.\n\nStored strictly as open-spec `.canvas` JSON files alongside your `.md` notes.',
+    backlinks: [
+      { source: 'On Fleeting Ideas.md', snippet: '...spatialized inside [[De Divina Proportione.canvas]]...' },
+    ],
+  },
+];
+---
+
+<section class="workbench-section" id="workbench" aria-labelledby="workbench-heading">
+  <div class="swiss-shell">
+    <!-- Scroll Convergence Funnel Header -->
+    <div class="convergence-funnel" aria-hidden="true">
+      <div class="funnel-stem"></div>
+      <span class="funnel-tag">↓ ORBITAL THOUGHTS CONVERGE INTO PLAIN FILES ON DISK ↓</span>
+    </div>
+
+    <div class="section-header-grid">
+      <div>
+        <p class="kicker-index">01 / THE WORKBENCH · LIVE VAULT BLUEPRINT</p>
+        <h2 id="workbench-heading" class="display-section">
+          From orbital chaos to<br />
+          <em>structured local clarity.</em>
+        </h2>
+      </div>
+      <p class="editorial-lead section-sublead">
+        Scroll past the mind and every floating card, formula, and sketch locks
+        into DaVinci’s three-pane Obsidian-grade workspace. Inspect four real
+        workflows below:
+      </p>
+    </div>
+
+    <!-- Interactive Workflow Selector Tabs -->
+    <div class="workbench-tabs" role="tablist" aria-label="Vault workflow demonstrations">
+      {workflows.map((wf, index) => (
+        <button
+          type="button"
+          role="tab"
+          class:list={['workbench-tab', { 'is-active': index === 0 }]}
+          aria-selected={index === 0 ? 'true' : 'false'}
+          aria-controls={`wf-panel-${wf.id}`}
+          id={`wf-tab-${wf.id}`}
+          data-wf-target={wf.id}
+        >
+          <span class="tab-num">{wf.num}</span>
+          <strong class="tab-label">{wf.label}</strong>
+          <small class="tab-file">{wf.file}</small>
+        </button>
+      ))}
+    </div>
+
+    <!-- 3-Pane Application Blueprint Frame -->
+    <div class="app-blueprint-frame">
+      <div class="blueprint-titlebar">
+        <div class="window-dots" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="window-path mono-label">~/Vaults/Codex-Atlanticus — Tauri v2 (8.4 MB · WAL SQLite)</div>
+        <div class="window-status mono-label">● SYNCTHING: 1 PEER CONNECTED</div>
+      </div>
+
+      <div class="blueprint-panes">
+        <!-- Left Pane: Virtualized File Tree -->
+        <aside class="pane-file-tree" aria-label="Vault file tree preview">
+          <div class="pane-header mono-label">FILES · 5,000 NOTES</div>
+          <ul class="tree-list mono-label">
+            <li class="tree-folder">▼ research/</li>
+            <li class="tree-item is-active" data-tree-wf="research">▤ On Fleeting Ideas.md</li>
+            <li class="tree-item">▤ Anatomia Mentis.md</li>
+            <li class="tree-folder">▼ daily/</li>
+            <li class="tree-item" data-tree-wf="calendar">📅 2026-10-18.md</li>
+            <li class="tree-folder">▼ systems/</li>
+            <li class="tree-item" data-tree-wf="sync">⇄ Vault Sync Topology.md</li>
+            <li class="tree-folder">▼ boards/</li>
+            <li class="tree-item" data-tree-wf="canvas">◫ De Divina Proportione.canvas</li>
+          </ul>
+          <div class="pane-footer mono-label">
+            <span>FTS5 Index: 0.8ms</span>
+          </div>
+        </aside>
+
+        <!-- Center Pane: CodeMirror 6 Live Preview Panels -->
+        <div class="pane-editor">
+          {workflows.map((wf, index) => (
+            <div
+              id={`wf-panel-${wf.id}`}
+              role="tabpanel"
+              aria-labelledby={`wf-tab-${wf.id}`}
+              class:list={['editor-panel', { 'is-active': index === 0 }]}
+              data-wf-panel={wf.id}
+            >
+              <div class="editor-breadcrumb mono-label">{wf.file}</div>
+              <pre class="editor-frontmatter mono-label">---{"\n"}{wf.frontmatter}{"\n"}---</pre>
+              <h3 class="editor-h1">{wf.title}</h3>
+              <div class="editor-body">{wf.body}</div>
+            </div>
+          ))}
+        </div>
+
+        <!-- Right Pane: Local Graph & Backlinks Inspector -->
+        <aside class="pane-backlinks" aria-label="Local graph and backlinks">
+          <div class="pane-header mono-label">LOCAL GRAPH & BACKLINKS</div>
+          <div class="mini-graph-box" aria-hidden="true">
+            <svg viewBox="0 0 220 130" class="mini-graph-svg">
+              <line x1="110" y1="65" x2="45" y2="30" stroke="var(--accent-terracotta)" stroke-width="1.2" />
+              <line x1="110" y1="65" x2="178" y2="36" stroke="var(--accent-terracotta)" stroke-width="1.2" />
+              <line x1="110" y1="65" x2="62" y2="104" stroke="var(--border-strong)" stroke-width="1" />
+              <line x1="110" y1="65" x2="168" y2="98" stroke="var(--border-strong)" stroke-width="1" />
+              <circle cx="110" cy="65" r="6" fill="var(--accent-vermilion)" />
+              <circle cx="45" cy="30" r="4" fill="var(--accent-terracotta)" />
+              <circle cx="178" cy="36" r="4" fill="var(--accent-terracotta)" />
+              <circle cx="62" cy="104" r="3.5" fill="var(--text-secondary)" />
+              <circle cx="168" cy="98" r="3.5" fill="var(--text-secondary)" />
+              <text x="82" y="84" font-family="'IBM Plex Mono', monospace" font-size="8" fill="var(--text-primary)">ACTIVE NOTE</text>
+            </svg>
+          </div>
+          <div class="backlinks-list">
+            <div class="pane-Subheader mono-label">LINKED MENTIONS</div>
+            <div class="backlink-card">
+              <strong class="mono-label">Anatomia Mentis.md</strong>
+              <p>...why [[On Fleeting Ideas]] requires &lt;380ms cold capture...</p>
+            </div>
+            <div class="backlink-card">
+              <strong class="mono-label">Vault Sync Topology.md</strong>
+              <p>...BLAKE3 manifest hash verified across desktop &amp; mobile...</p>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,94 @@
+---
+const platforms = [
+  {
+    os: 'macOS',
+    arch: 'Universal / Apple Silicon & Intel',
+    format: 'DaVinci-Notes-0.9.0-universal.dmg',
+    size: '8.4 MB',
+    badge: 'macOS 12+',
+  },
+  {
+    os: 'Windows',
+    arch: 'x64 & ARM64 Native Installer',
+    format: 'DaVinci-Notes-0.9.0-x64-setup.msi',
+    size: '6.9 MB',
+    badge: 'Win 10/11',
+  },
+  {
+    os: 'Linux',
+    arch: 'AppImage & Debian Package',
+    format: 'davinci-notes_0.9.0_amd64.AppImage',
+    size: '9.1 MB',
+    badge: 'glibc 2.31+',
+  },
+  {
+    os: 'Android',
+    arch: 'ARM64 APK · Syncthing & SAF Ready',
+    format: 'davinci-notes-mobile-0.9.0.apk',
+    size: '14.2 MB',
+    badge: 'Android 10+',
+  },
+];
+---
+
+<section class="acquire-section" id="acquire" aria-labelledby="acquire-heading">
+  <div class="swiss-shell">
+    <div class="acquire-header">
+      <p class="kicker-index">04 / ACQUIRE THE INSTRUMENT · OPEN & LOCAL FOREVER</p>
+      <h2 id="acquire-heading" class="display-hero acquire-title">
+        Own your mind’s<br />
+        <em>entire archive.</em>
+      </h2>
+      <p class="editorial-lead acquire-lead">
+        No account creation. No onboarding paywall. Point DaVinci Notes at any
+        folder of Markdown files on your machine and start thinking.
+      </p>
+    </div>
+
+    <div class="platform-grid">
+      {platforms.map((p, idx) => (
+        <a
+          href={`#download-${p.os.toLowerCase()}`}
+          class:list={['platform-card', { 'is-primary-os': idx === 0 }]}
+        >
+          <div class="platform-card-top">
+            <strong class="platform-name">{p.os}</strong>
+            <span class="platform-badge mono-label">{p.badge}</span>
+          </div>
+          <p class="platform-arch">{p.arch}</p>
+          <div class="platform-file mono-label">{p.format}</div>
+          <div class="platform-card-foot">
+            <span class="mono-label">{p.size}</span>
+            <span class="platform-dl-cta mono-label">Download ↓</span>
+          </div>
+        </a>
+      ))}
+    </div>
+
+    <div class="checksum-bar mono-label">
+      <span>SHA-256 (v0.9.0-rc): <code>e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</code></span>
+      <span>LICENSE: MIT / LOCAL-FIRST MANIFESTO</span>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="swiss-shell footer-grid">
+    <div class="footer-brand-col">
+      <a class="brand-mark" href="#top">davinci<span>.notes</span></a>
+      <p class="footer-tagline">
+        A local-first notebook for notes, formulas, sketches, and connected thought.
+      </p>
+    </div>
+    <div class="footer-links-col mono-label">
+      <a href="#top">00 / The Opened Mind</a>
+      <a href="#workbench">01 / Workbench</a>
+      <a href="#anatomy">02 / Vault Anatomy</a>
+      <a href="#benchmarks">03 / Benchmarks</a>
+    </div>
+    <div class="footer-colophon mono-label">
+      <p>Set in Cormorant Garamond, Space Grotesk &amp; IBM Plex Mono.</p>
+      <p>© 2026 DaVinci Notes · Zero Telemetry · Built with Tauri v2 &amp; Astro.</p>
+    </div>
+  </div>
+</footer>

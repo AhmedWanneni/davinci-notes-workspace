@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { View, FlatList } from "react-native";
 import { useRouter } from "expo-router";
 import { Tag as TagIcon, Hash } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { useTheme } from "../../theme";
 import { Badge, ListItem, Text } from "../../components/primitives";
 import { ScreenLayout } from "../../components/layout";
 import { defaultVaultIndexer } from "../../indexer";
@@ -19,6 +19,7 @@ export interface DisplayTag {
 
 export default function TagsScreen(): React.ReactElement {
   const router = useRouter();
+  const { tokens } = useTheme();
   const [tagList, setTagList] = useState<DisplayTag[]>([]);
 
   const loadTags = useCallback(async () => {
@@ -90,7 +91,13 @@ export default function TagsScreen(): React.ReactElement {
 
   return (
     <ScreenLayout title="Tags">
-      <View className="px-4 py-2 bg-bg-primary-alt border-b border-border-subtle flex-row justify-between items-center">
+      <View
+        className="px-4 py-2 border-b flex-row justify-between items-center"
+        style={{
+          backgroundColor: tokens.color.bg["primary-alt"],
+          borderBottomColor: tokens.color.border.subtle,
+        }}
+      >
         <Text variant="caption" color="muted">
           ALL VAULT TAGS ({tagList.length})
         </Text>
@@ -116,17 +123,19 @@ export default function TagsScreen(): React.ReactElement {
                   >
                     {item.display}
                   </Text>
-                  {item.isNested ? <Badge variant="neutral">nested</Badge> : null}
+                  {item.isNested ? (
+                    <Badge variant="neutral">nested</Badge>
+                  ) : null}
                 </View>
               }
               subtitle={`${item.count} ${item.count === 1 ? "note" : "notes"}`}
               left={
                 item.isNested ? (
-                  <Hash size={18} color={darkColorTokens.text.muted} />
+                  <Hash size={18} color={tokens.color.text.muted} />
                 ) : (
                   <TagIcon
                     size={20}
-                    color={darkColorTokens.text.accent}
+                    color={tokens.color.interactive.accent}
                     weight="regular"
                   />
                 )

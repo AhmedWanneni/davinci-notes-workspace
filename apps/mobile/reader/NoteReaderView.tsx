@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Pressable, ScrollView } from "react-native";
-import { CheckSquare, Square } from "phosphor-react-native";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { Check } from "phosphor-react-native";
+import { useTheme } from "../theme";
 import { Badge, Divider, Text } from "../components/primitives";
 import { PropertiesBlock } from "./PropertiesBlock";
 import type {
@@ -12,6 +12,7 @@ import type {
 
 export interface NoteReaderViewProps {
   document: ParsedMarkdownDocument;
+  title?: string;
   onWikilinkPress: (target: string, displayText?: string) => void;
   onTagPress: (tag: string) => void;
   onEditPress?: () => void;
@@ -20,11 +21,14 @@ export interface NoteReaderViewProps {
 
 export function NoteReaderView({
   document,
+  title,
   onWikilinkPress,
   onTagPress,
   onEditPress,
   scrollViewRef,
 }: NoteReaderViewProps): React.ReactElement {
+  const { tokens } = useTheme();
+
   const renderInline = (node: InlineNode, idx: number): React.ReactNode => {
     switch (node.type) {
       case "bold":
@@ -41,11 +45,7 @@ export function NoteReaderView({
         );
       case "strike":
         return (
-          <Text
-            key={idx}
-            variant="body"
-            className="line-through text-text-muted"
-          >
+          <Text key={idx} variant="body" color="muted" className="line-through">
             {node.text}
           </Text>
         );
@@ -54,7 +54,9 @@ export function NoteReaderView({
           <Text
             key={idx}
             variant="body"
-            className="font-mono bg-bg-secondary px-1 text-accent"
+            color="accent"
+            className="font-mono px-1 rounded"
+            style={{ backgroundColor: tokens.color.bg.secondary }}
           >
             {node.text}
           </Text>
@@ -66,7 +68,6 @@ export function NoteReaderView({
             variant="body"
             weight="medium"
             color="accent"
-            className="underline"
             onPress={() => onWikilinkPress(node.target, node.displayText)}
           >
             {node.displayText || node.target}
@@ -74,15 +75,29 @@ export function NoteReaderView({
         );
       case "tag":
         return (
-          <Text
+          <Pressable
             key={idx}
-            variant="body"
-            color="accent"
-            className="font-medium"
             onPress={() => onTagPress(node.tag)}
+            style={{
+              backgroundColor: tokens.color.bg["status-accent"],
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 12,
+              marginRight: 8,
+              marginVertical: 4,
+              alignSelf: "flex-start",
+            }}
           >
-            {node.tag}
-          </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: "500",
+                color: tokens.color.interactive.accent,
+              }}
+            >
+              {node.tag}
+            </Text>
+          </Pressable>
         );
       case "link":
         return (
@@ -103,14 +118,10 @@ export function NoteReaderView({
   const renderBlock = (block: BlockNode, idx: number): React.ReactNode => {
     switch (block.type) {
       case "heading": {
-        const variantMap: Record<number, "h1" | "h2" | "h3"> = {
-          1: "h1",
-          2: "h2",
-          3: "h3",
-        };
-        const variant = variantMap[block.level] || "h3";
+        const variant =
+          block.level === 1 ? "h1" : block.level === 2 ? "h2" : "h3";
         return (
-          <View key={idx} className="mt-5 mb-2">
+          <View key={idx} className="mt-4 mb-2">
             <Text variant={variant} weight="bold" color="normal">
               {block.inlines.map(renderInline)}
             </Text>
@@ -121,9 +132,15 @@ export function NoteReaderView({
         return (
           <View
             key={idx}
-            className="my-3 pl-3 border-l-2 border-accent bg-bg-primary-alt/40 py-1"
+            style={{
+              marginVertical: 8,
+              borderLeftWidth: 2,
+              borderLeftColor: tokens.color.interactive.accent,
+              paddingLeft: 12,
+              paddingVertical: 4,
+            }}
           >
-            <Text variant="body" color="muted" className="italic">
+            <Text variant="body" color="normal">
               {block.inlines.map(renderInline)}
             </Text>
           </View>
@@ -132,7 +149,11 @@ export function NoteReaderView({
         return (
           <View
             key={idx}
-            className="my-3 p-3 rounded-md border border-border-normal bg-bg-secondary"
+            className="my-3 p-3 rounded-md border"
+            style={{
+              backgroundColor: tokens.color.bg.secondary,
+              borderColor: tokens.color.border.normal,
+            }}
           >
             {block.language ? (
               <View className="mb-1 self-start">
@@ -142,7 +163,8 @@ export function NoteReaderView({
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <Text
                 variant="body"
-                className="font-mono text-sm leading-relaxed text-text-normal"
+                className="font-mono text-sm leading-relaxed"
+                color="normal"
               >
                 {block.code}
               </Text>
@@ -151,18 +173,42 @@ export function NoteReaderView({
         );
       case "task":
         return (
-          <View key={idx} className="flex-row items-center my-1.5 gap-2">
+          <View
+            key={idx}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginVertical: 4,
+              gap: 8,
+              paddingLeft: (block.depth ?? 0) * 16,
+            }}
+          >
             {block.checked ? (
-              <CheckSquare
-                size={18}
-                color={darkColorTokens.text.accent}
-                weight="fill"
-              />
+              <View
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 4,
+                  backgroundColor: tokens.color.interactive.accent,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Check
+                  size={12}
+                  color={tokens.color.text["on-accent"]}
+                  weight="bold"
+                />
+              </View>
             ) : (
-              <Square
-                size={18}
-                color={darkColorTokens.text.muted}
-                weight="regular"
+              <View
+                style={{
+                  width: 16,
+                  height: 16,
+                  borderRadius: 4,
+                  borderWidth: 1.5,
+                  borderColor: tokens.color.border.normal,
+                }}
               />
             )}
             <View className="flex-1 flex-row flex-wrap">
@@ -172,8 +218,17 @@ export function NoteReaderView({
         );
       case "list-item":
         return (
-          <View key={idx} className="flex-row items-start my-1 gap-2 pl-2">
-            <Text variant="body" color="muted" className="w-5">
+          <View
+            key={idx}
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              marginVertical: 4,
+              gap: 8,
+              paddingLeft: 4 + (block.depth ?? 0) * 16,
+            }}
+          >
+            <Text variant="body" color="muted" style={{ width: 16 }}>
               {block.ordered ? `${block.index}.` : "•"}
             </Text>
             <View className="flex-1 flex-row flex-wrap">
@@ -197,6 +252,11 @@ export function NoteReaderView({
     }
   };
 
+  const hasMatchingFirstHeading =
+    document.blocks.length > 0 &&
+    document.blocks[0].type === "heading" &&
+    document.blocks[0].level === 1;
+
   return (
     <ScrollView
       ref={scrollViewRef}
@@ -205,13 +265,23 @@ export function NoteReaderView({
       contentContainerStyle={{ paddingBottom: 48 }}
     >
       <Pressable onPress={onEditPress} style={{ flex: 1, minHeight: 450 }}>
-        {/* Properties / Frontmatter */}
+        {title && !hasMatchingFirstHeading ? (
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: "700",
+              color: tokens.color.text.normal,
+              lineHeight: 32,
+              marginBottom: 12,
+            }}
+          >
+            {title}
+          </Text>
+        ) : null}
         <PropertiesBlock
           properties={document.frontmatterData}
           onTagPress={onTagPress}
         />
-
-        {/* Content Blocks */}
         {document.blocks.map(renderBlock)}
       </Pressable>
     </ScrollView>

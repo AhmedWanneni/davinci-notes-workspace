@@ -1,5 +1,6 @@
 import React from "react";
 import { View, ScrollView, Pressable } from "react-native";
+import { useTheme } from "../theme";
 import { Text, Sheet } from "../components/primitives";
 import type { OutlineHeading } from "./markdownAst";
 
@@ -16,6 +17,7 @@ export function OutlineSheet({
   outline,
   onSelectHeading,
 }: OutlineSheetProps): React.ReactElement {
+  const { tokens } = useTheme();
   const getIndentClass = (level: number): string => {
     switch (level) {
       case 1:
@@ -50,9 +52,10 @@ export function OutlineSheet({
                 onSelectHeading(heading);
                 onClose();
               }}
-              className={`py-2.5 pr-3 min-h-[44px] border-b border-border-subtle/50 flex-row items-center ${getIndentClass(
+              className={`py-2.5 pr-3 min-h-[44px] border-b flex-row items-center ${getIndentClass(
                 heading.level,
               )} active:bg-bg-hover`}
+              style={{ borderBottomColor: tokens.color.border.subtle }}
               accessibilityRole="button"
               accessibilityLabel={`Heading level ${heading.level}: ${heading.text}`}
             >

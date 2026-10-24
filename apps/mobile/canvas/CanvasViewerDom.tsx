@@ -13,12 +13,33 @@ export interface CanvasViewerDomProps {
   };
   document: CanvasDocument;
   initialScale?: number;
+  themeTokens?: {
+    bgPrimaryAlt?: string;
+    bgSecondary?: string;
+    textNormal?: string;
+    textMuted?: string;
+    borderNormal?: string;
+    interactiveAccent?: string;
+    textError?: string;
+  };
 }
 
 export default function CanvasViewerDom({
   document,
   initialScale = 1,
+  themeTokens,
 }: CanvasViewerDomProps): React.ReactElement {
+  const colors = {
+    bgPrimaryAlt:
+      themeTokens?.bgPrimaryAlt ?? darkColorTokens.bg["primary-alt"],
+    bgSecondary: themeTokens?.bgSecondary ?? darkColorTokens.bg.secondary,
+    textNormal: themeTokens?.textNormal ?? darkColorTokens.text.normal,
+    textMuted: themeTokens?.textMuted ?? darkColorTokens.text.muted,
+    borderNormal: themeTokens?.borderNormal ?? darkColorTokens.border.normal,
+    interactiveAccent:
+      themeTokens?.interactiveAccent ?? darkColorTokens.interactive.accent,
+    textError: themeTokens?.textError ?? darkColorTokens.text.error,
+  };
   const [scale, setScale] = useState(initialScale);
   const [offset, setOffset] = useState({ x: 100, y: 100 });
   const isDraggingRef = useRef(false);
@@ -54,7 +75,7 @@ export default function CanvasViewerDom({
         width: "100%",
         height: "100%",
         overflow: "hidden",
-        backgroundColor: darkColorTokens.bg["primary-alt"],
+        backgroundColor: colors.bgPrimaryAlt,
         position: "relative",
         userSelect: "none",
         touchAction: "none",
@@ -74,9 +95,9 @@ export default function CanvasViewerDom({
         <button
           onClick={() => setScale((s) => Math.min(3, s + 0.2))}
           style={{
-            background: darkColorTokens.bg.secondary,
-            color: darkColorTokens.text.normal,
-            border: `1px solid ${darkColorTokens.border.normal}`,
+            background: colors.bgSecondary,
+            color: colors.textNormal,
+            border: `1px solid ${colors.borderNormal}`,
             padding: "6px 12px",
             borderRadius: 4,
           }}
@@ -86,9 +107,9 @@ export default function CanvasViewerDom({
         <button
           onClick={() => setScale((s) => Math.max(0.3, s - 0.2))}
           style={{
-            background: darkColorTokens.bg.secondary,
-            color: darkColorTokens.text.normal,
-            border: `1px solid ${darkColorTokens.border.normal}`,
+            background: colors.bgSecondary,
+            color: colors.textNormal,
+            border: `1px solid ${colors.borderNormal}`,
             padding: "6px 12px",
             borderRadius: 4,
           }}
@@ -101,9 +122,9 @@ export default function CanvasViewerDom({
             setOffset({ x: 100, y: 100 });
           }}
           style={{
-            background: darkColorTokens.bg.secondary,
-            color: darkColorTokens.text.normal,
-            border: `1px solid ${darkColorTokens.border.normal}`,
+            background: colors.bgSecondary,
+            color: colors.textNormal,
+            border: `1px solid ${colors.borderNormal}`,
             padding: "6px 12px",
             borderRadius: 4,
           }}
@@ -148,7 +169,7 @@ export default function CanvasViewerDom({
                 y1={y1}
                 x2={x2}
                 y2={y2}
-                stroke={darkColorTokens.border.normal}
+                stroke={colors.borderNormal}
                 strokeWidth={2}
                 strokeDasharray={edge.label ? "4 4" : undefined}
               />
@@ -167,18 +188,14 @@ export default function CanvasViewerDom({
               width: node.width,
               height: node.height,
               backgroundColor:
-                node.type === "group"
-                  ? "transparent"
-                  : darkColorTokens.bg.secondary,
+                node.type === "group" ? "transparent" : colors.bgSecondary,
               border: node.isCycle
-                ? `2px dashed ${darkColorTokens.text.error}`
-                : `1px solid ${darkColorTokens.border.normal}`,
+                ? `2px dashed ${colors.textError}`
+                : `1px solid ${colors.borderNormal}`,
               borderRadius: 6,
               padding: 8,
               boxSizing: "border-box",
-              color: node.isCycle
-                ? darkColorTokens.text.error
-                : darkColorTokens.text.normal,
+              color: node.isCycle ? colors.textError : colors.textNormal,
               overflow: "hidden",
               fontSize: 13,
               fontFamily: "system-ui, sans-serif",
@@ -196,7 +213,7 @@ export default function CanvasViewerDom({
                 <div
                   style={{
                     fontWeight: "bold",
-                    color: darkColorTokens.interactive.accent,
+                    color: colors.interactiveAccent,
                     marginBottom: 4,
                   }}
                 >
@@ -214,7 +231,7 @@ export default function CanvasViewerDom({
             )}
             {node.type === "link" && (
               <div>
-                <span style={{ color: darkColorTokens.interactive.accent }}>
+                <span style={{ color: colors.interactiveAccent }}>
                   🔗 {node.url}
                 </span>
               </div>
