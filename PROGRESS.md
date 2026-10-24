@@ -4,7 +4,24 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-<<<<<<< HEAD
+## Last Session — SearchDialog Open Files & Visual Alignment
+
+**Scope:** When opening `SearchDialog`, show up to 5 current opened files, align styling to the modal search design with compact padding, borderless input, circular close button, and navigation footer.
+
+**Changes:**
+1. **Initial Open Files in SearchDialog (`SearchDialog.tsx`, `_search-dialog.scss`, `App.tsx`)**:
+   - Configured `SearchDialog` to immediately display up to 5 current opened files from `openNotes` when opened with an empty query.
+   - Designed row header with clean left-aligned note title and subtle right-aligned path indicator.
+   - Replaced bulky magnifying glass with borderless input (`placeholder="Select a command..."`).
+   - Added circular charcoal close button with white bold X.
+   - Refined padding and margins (`padding: var(--space-2) var(--space-3)`) for a compact, well-adjusted UI.
+   - Added keyboard navigation footer: `↑↓ to navigate   ↵ to use   esc to dismiss`.
+2. **Verification & Tests**:
+   - Added test in `SearchDialog.test.tsx` verifying that up to 5 current opened files are rendered when opened with empty query.
+   - All 15 test suites (59 unit tests) pass across `SearchDialog`, `CommandPalette`, and `FileTree`.
+   - All touched files remain under the 250-line cap (`SearchDialog.tsx` at 244 lines, `_search-dialog.scss` at 176 lines).
+
+
 **Mobile Text Rendering & Syncthing Connection Error Resolutions (complete)**
 Resolved runtime React Native text rendering errors and sanitized raw Java socket exceptions in the mobile app:
 1. **React Native Text Rendering Crash (`Text strings must be rendered within a <Text> component`)**:
@@ -141,7 +158,8 @@ Shipped official Syncthing v2.1.6 binary bundling and full process lifecycle man
 
 ---
 
-=======
+
+---
 ## Last Session — Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass (FINAL PHASE OF WEB CLIPPER)
 
 **Scope:** Complete the final phase (Phase 8) of `plans/web-clipper/web-clipper-feature-plan.md` — multi-target packaging scripts & zipped artifacts for Chrome, Edge, and Firefox; security and permission audit (minimal permissions, zero eval/new-Function, zero remote CDN scripts); zero Cargo dependency overhead verification; ADR status promotion (ADR-0173 through ADR-0180 Accepted); comprehensive user documentation (`docs/web-clipper.md`); store listing copy & permission justifications (`apps/web-clipper/STORE_LISTINGS.md`); and full test matrix verification.
@@ -1199,8 +1217,6 @@ session) — see the plan §12.
   - `parseMeetLink.ts`: Robust Meet link extraction with priority order: `hangoutLink` -> `conferenceData.entryPoints` (video) -> regex fallback in `location` / `description`, with URL protocol sanitization.
   - `calendarClient.ts`: Lightweight, zero-dependency `fetch` REST client for `listCalendars` and `listEvents` (supporting `syncToken` delta queries and error typing for 401 Auth Expired, 410 SyncToken Expired, and 4xx/5xx).
   - All 13 unit tests pass; 0 ESLint boundaries/typecheck errors; all files under 160 lines (enforcing soft cap 200).
-
->>>>>>> main
 **Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (complete)**
 Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem:
 1. **Scenario 1 — Desktop -> Phone CRUD (PASS, 6,562ms)**:

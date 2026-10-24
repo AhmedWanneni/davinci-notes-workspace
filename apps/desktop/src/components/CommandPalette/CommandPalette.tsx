@@ -2,13 +2,14 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import type { EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { Dialog, DialogContent } from "@app/design-system";
-import fuzzysort from "fuzzysort";
-import { FileText, Gear } from "@phosphor-icons/react";
-import { insertRegistry, runInsertItem, useRecentInsertIds } from "@app/editor";
+import { X } from "@phosphor-icons/react";
+import { useRecentInsertIds } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { EmptyState } from "../EmptyState";
 import type { RegisteredPluginCommand } from "@app/plugin-runtime";
 import { buildPaletteCommands } from "./buildPaletteCommands";
+import { executePaletteCommand } from "./executePaletteCommand";
+import { usePaletteResults } from "./usePaletteResults";
 
 export interface CommandPaletteProps {
   isOpen: boolean;
@@ -94,57 +95,26 @@ export function CommandPalette({
     ],
   );
 
-  const results = useMemo(() => {
-    if (!query) {
-      const sorted = [...preparedTargets].sort(
-        (a, b) => b.recencyScore - a.recencyScore,
-      );
-      return sorted.slice(0, 20).map((t) => ({
-        obj: t,
-        highlightedTitle: t.title,
-      }));
-    }
-
-    const searchResults = fuzzysort.go(query, preparedTargets, {
-      key: "title",
-      limit: 20,
-    });
-
-    return searchResults.map((result) => ({
-      obj: result.obj,
-      highlightedTitle:
-        result.highlight(
-          '<mark class="command-palette__highlight">',
-          "</mark>",
-        ) || result.obj.title,
-    }));
-  }, [query, preparedTargets]);
+  const results = usePaletteResults(query, preparedTargets);
 
   const runCommand = (id?: string) => {
-    if (!id) return;
-    if (id === "action:disable-vim") void setUseVimMode(false);
-    if (id === "action:settings") onOpenSettings?.();
-    if (id === "action:logs") onOpenLogs?.();
-    if (id === "action:tags") onOpenTags?.();
-    if (id === "action:reminders") onOpenReminders?.();
-    if (id === "action:save-version") onSaveVersionNow?.();
-    if (id === "action:drive-sign-in") onDriveSignIn?.();
-    if (id === "action:drive-disconnect") onDriveDisconnect?.();
-    if (id === "action:drive-refresh") onDriveRefresh?.();
-    if (id.startsWith("insert:")) {
-      const itemId = id.slice(7);
-      const item = insertRegistry.find((entry) => entry.id === itemId);
-      if (item && editorView && editorView.state.facet(EditorView.editable)) {
-        const selection =
-          editorSelectionRef.current ?? editorView.state.selection;
-        runInsertItem(editorView, item, selection);
-        onInsertSuccess?.(item.id);
-        editorView.focus();
-      }
-    }
-    const pluginId = id.startsWith("plugin:") ? id.slice(7) : undefined;
-    const command = pluginCommands.find((item) => item.id === pluginId);
-    if (command) onInvokePluginCommand?.(command.id);
+    executePaletteCommand({
+      id,
+      setUseVimMode,
+      onOpenSettings,
+      onOpenLogs,
+      onOpenTags,
+      onOpenReminders,
+      onSaveVersionNow,
+      onDriveSignIn,
+      onDriveDisconnect,
+      onDriveRefresh,
+      editorView,
+      editorSelection: editorSelectionRef.current,
+      onInsertSuccess,
+      pluginCommands,
+      onInvokePluginCommand,
+    });
   };
 
   useEffect(() => {
@@ -153,9 +123,15 @@ export function CommandPalette({
 
   const handleClose = () => {
     onOpenChange(false);
-    if (editorView) {
-      editorView.focus();
-    }
+    if (editorView) editorView.focus();
+  };
+
+  const scrollSelectedIntoView = (index: number) => {
+    if (!listRef.current) return;
+    const items = listRef.current.children;
+    const targetIndex = (index + results.length) % results.length;
+    const item = items[targetIndex] as HTMLElement;
+    if (item) item.scrollIntoView({ block: "nearest" });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -174,27 +150,14 @@ export function CommandPalette({
       if (results.length > 0) {
         const selected = results[selectedIndex];
         if (selected) {
-          if (selected.obj.isCommand) {
-            runCommand(selected.obj.id);
-          } else if (selected.obj.path) {
-            onSelectNote(selected.obj.path);
-          }
+          if (selected.obj.isCommand) runCommand(selected.obj.id);
+          else if (selected.obj.path) onSelectNote(selected.obj.path);
           handleClose();
         }
       } else if (query.trim() !== "") {
         onSelectNote(query.trim());
         handleClose();
       }
-    }
-  };
-
-  const scrollSelectedIntoView = (index: number) => {
-    if (!listRef.current) return;
-    const items = listRef.current.children;
-    const targetIndex = (index + results.length) % results.length;
-    const item = items[targetIndex] as HTMLElement;
-    if (item) {
-      item.scrollIntoView({ block: "nearest" });
     }
   };
 
@@ -214,17 +177,26 @@ export function CommandPalette({
           <input
             ref={inputRef}
             className="command-palette__input"
-            placeholder="Type to search or create..."
+            placeholder="Select a command..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
+            aria-label="Search commands"
           />
+          <button
+            type="button"
+            className="command-palette__close"
+            onClick={handleClose}
+            aria-label="Close command palette"
+          >
+            <X size={10} weight="bold" />
+          </button>
         </div>
         <ul
           className="command-palette__list"
           ref={listRef}
           role="listbox"
-          aria-label="Quick switcher results"
+          aria-label="Command palette results"
         >
           {results.map((result, index) => {
             const isSelected = index === selectedIndex;
@@ -238,29 +210,14 @@ export function CommandPalette({
                 data-selected={isSelected || undefined}
                 className="command-palette__item"
                 onClick={() => {
-                  if (isCommand) {
-                    runCommand(result.obj.id);
-                  } else if (result.obj.path) {
-                    onSelectNote(result.obj.path);
-                  }
+                  if (isCommand) runCommand(result.obj.id);
+                  else if (result.obj.path) onSelectNote(result.obj.path);
                   handleClose();
                 }}
                 onMouseEnter={() => setSelectedIndex(index)}
               >
-                {isCommand ? (
-                  <Gear
-                    size={18}
-                    className="command-palette__icon"
-                    weight="regular"
-                  />
-                ) : (
-                  <FileText
-                    size={18}
-                    className="command-palette__icon"
-                    weight="regular"
-                  />
-                )}
                 <span
+                  className="command-palette__item-title"
                   dangerouslySetInnerHTML={{
                     __html: result.highlightedTitle,
                   }}
@@ -277,6 +234,11 @@ export function CommandPalette({
             </li>
           )}
         </ul>
+        <div className="command-palette__footer">
+          <span>↑↓ to navigate</span>
+          <span>↵ to use</span>
+          <span>esc to dismiss</span>
+        </div>
       </DialogContent>
     </Dialog>
   );

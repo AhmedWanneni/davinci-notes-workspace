@@ -749,6 +749,7 @@ export function App() {
             isOpen={isSearchOpen}
             onOpenChange={setIsSearchOpen}
             initialQuery={searchInitialQuery}
+            openNotes={openNotes}
             onSearch={async (query) => {
               const db = await getVaultIndexDb();
               return withDbLock(() =>

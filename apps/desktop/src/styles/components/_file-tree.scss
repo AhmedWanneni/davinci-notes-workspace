@@ -11,6 +11,8 @@
   flex: 1;
   overflow: hidden auto;
   width: 100%;
+  padding: var(--space-1) var(--space-2);
+  box-sizing: border-box;
 
   &[data-drop-root="true"] {
     outline: var(--border-width-thin) solid var(--color-border-focus);
@@ -27,8 +29,8 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--type-scale-sm);
+  border-radius: var(--border-radius-lg);
+  font-size: 0.8rem;
   color: var(--color-text-muted);
   box-sizing: border-box;
   padding-right: var(--space-2);
@@ -60,7 +62,6 @@
   &--active {
     background-color: var(--color-bg-active);
     color: var(--color-text-normal);
-    font-weight: var(--type-weight-medium);
   }
 }
 
@@ -68,8 +69,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--icon-size-sm);
-  height: var(--icon-size-sm);
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   flex-shrink: 0;
   margin-right: var(--space-1);
   padding: 0;
@@ -85,8 +86,22 @@
   }
 }
 
-.file-tree__caret {
+.file-tree__chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  flex-shrink: 0;
+  margin-right: var(--space-1);
+}
+
+.file-tree__folder-icon {
   color: var(--color-text-muted);
+}
+
+.file-tree__caret {
+  color: var(--color-text-faint);
 }
 
 .file-tree__file-icon {
@@ -105,6 +120,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.8rem;
+  color: inherit;
 }
 
 .file-tree__rename-input {
@@ -205,8 +222,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--icon-size-sm);
-  height: var(--icon-size-sm);
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
   flex-shrink: 0;
   color: var(--color-text-muted);
 }

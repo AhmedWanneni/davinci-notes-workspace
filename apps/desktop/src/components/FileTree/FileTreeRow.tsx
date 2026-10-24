@@ -2,6 +2,8 @@ import {
   CaretDown,
   CaretRight,
   FileText,
+  Folder,
+  FolderOpen,
   FrameCorners,
   Image,
   Video,
@@ -38,15 +40,15 @@ interface FileTreeRowProps {
 
 function fileIcon(name: string) {
   if (name.endsWith(".canvas")) {
-    return <FrameCorners size={14} className="file-tree__file-icon" />;
+    return <FrameCorners size={16} className="file-tree__file-icon" />;
   }
   if (/\.(png|jpe?g|gif|svg|webp|bmp|ico|avif)$/i.test(name)) {
-    return <Image size={14} className="file-tree__file-icon" />;
+    return <Image size={16} className="file-tree__file-icon" />;
   }
   if (/\.(mp4|webm|og[gv]|mov|mkv|m4v)$/i.test(name)) {
-    return <Video size={14} className="file-tree__file-icon" />;
+    return <Video size={16} className="file-tree__file-icon" />;
   }
-  return <FileText size={14} className="file-tree__file-icon" />;
+  return <FileText size={16} className="file-tree__file-icon" />;
 }
 
 export function FileTreeRow({
@@ -148,6 +150,13 @@ export function FileTreeRow({
       onContextMenu={onContextMenu}
       onDoubleClick={onDoubleClick}
     >
+      <span className="file-tree__chevron" aria-hidden="true">
+        {isFile ? null : isExpanded ? (
+          <CaretDown size={12} weight="bold" className="file-tree__caret" />
+        ) : (
+          <CaretRight size={12} weight="bold" className="file-tree__caret" />
+        )}
+      </span>
       <button
         type="button"
         className="file-tree__icon"
@@ -164,9 +173,9 @@ export function FileTreeRow({
         ) : isFile ? (
           fileIcon(item.node.name)
         ) : isExpanded ? (
-          <CaretDown size={14} weight="bold" className="file-tree__caret" />
+          <FolderOpen size={16} className="file-tree__folder-icon" />
         ) : (
-          <CaretRight size={14} weight="bold" className="file-tree__caret" />
+          <Folder size={16} className="file-tree__folder-icon" />
         )}
       </button>
       <span className="file-tree__title" title={item.node.name}>

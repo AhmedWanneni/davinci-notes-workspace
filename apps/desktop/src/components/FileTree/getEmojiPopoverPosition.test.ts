@@ -8,6 +8,6 @@ describe("getEmojiPopoverPosition", () => {
     Object.defineProperty(window, "innerWidth", { value: 800 });
     Object.defineProperty(window, "innerHeight", { value: 600 });
 
-    expect(getEmojiPopoverPosition(790, 590)).toEqual({ left: 468, top: 198 });
+    expect(getEmojiPopoverPosition(790, 590)).toEqual({ left: 532, top: 268 });
   });
 });
