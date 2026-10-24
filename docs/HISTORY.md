@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-24: Obsidian-Style GraphView Redesign
+
+- **Obsidian Visual Fidelity & Styling (`_graph-view.scss`)**:
+  - Replaced stroked doughnut circles with solid-filled charcoal circular dots (`fill: var(--color-text-muted)`).
+  - Scaled node radius dynamically based on connectivity/degree (4px for isolated nodes up to 9px for high-degree hubs).
+  - Replaced clumsy CSS text-shadows with native SVG stroke text halos (`paint-order: stroke fill; stroke: var(--color-bg-primary); stroke-width: 3px`) for clean readability over crossing edges.
+  - Refined edge line styling to 1px with subtle 0.45 opacity.
+- **Interactive Highlighting & D3 Pointer Handling (`GraphRenderer.tsx`, `useGraphSimulation.ts`)**:
+  - Hovering a node highlights that node and all directly connected 1-hop neighbor nodes and edges.
+  - Non-connected elements automatically fade to 0.15 / 0.08 opacity.
+  - Implemented via direct SVG class manipulation inside D3 events to maintain 60fps frame rate without React re-renders.
+- **Centering Gravitational Physics Simulation (`useGraphSimulation.ts`)**:
+  - Added centering gravity forces `forceX(0).strength(0.04)` and `forceY(0).strength(0.04)` alongside charge `-75` and collision damping.
+  - Produces the signature Obsidian layout where connected clusters group in the center and isolated nodes form a dispersed elliptical perimeter.
+  - Seeded initial positions with phyllotaxis spiral distribution to prevent initial coordinate stacking.
+- **Minimal Floating Controls (`GraphControls.tsx`)**:
+  - Replaced bulky bottom-right button with a compact, floating toolbar in the top-right corner with Zoom In, Zoom Out, Reset View, and Mode toggle.
+- **Line Caps & Unit Testing**:
+  - All files strictly under 165 lines (cap 250): `GraphView.tsx` (135 lines), `GraphRenderer.tsx` (158 lines), `useGraphSimulation.ts` (161 lines), `GraphControls.tsx` (50 lines), `_graph-view.scss` (128 lines).
+  - Added unit test suite in `GraphView.test.tsx` (5 passing tests).
+
+---
+
 ### 2026-10-19: Marketing Site Unified Midnight Background (#150612) & Harmonized Wine Styling
 
 - **Unified Section Canvas Background (`#150612`)**:
