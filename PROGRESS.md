@@ -4,7 +4,25 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard
+## Last Session — AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop (ADR-0215)
+
+**Scope:**
+1. **Wiki Engine (`packages/ai-agent/wikiEngine.ts`)**:
+   - Defined `wiki_synthesize_topic` and `wiki_update_index` tool specifications.
+   - Implemented `generateWikiTopicMarkdown` producing structured evergreen pages with `type: wiki-topic` frontmatter, overview, `[[Wikilinks]]` concepts, and source citations.
+   - Implemented `generateWikiIndexMarkdown` generating categorized Map of Content index in `Wiki/Index.md`.
+2. **Path & Containment Safety**:
+   - Implemented `buildWikiTopicPath` with strict `validateVaultRelativePath` ensuring topic names cannot contain `/`, `\`, or traversal characters (`..`).
+3. **Architecture Record**: Authored ADR-0215 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 37/37 tests passing in `@app/ai-agent` (`wikiEngine.test.ts`, `shortcutsEngine.test.ts`, etc.).
+- Adversarial tests: verified traversal rejection on topic synthesis, wikilink format generation, and categorized index generation.
+- All files strictly ≤ 145 lines (hard cap 250).
+
+---
+
+## Previous Session — AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard
 
 **Scope:**
 1. **Shortcuts Engine (`packages/ai-agent/shortcutsEngine.ts`)**:
@@ -192,9 +210,9 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Next Up
 
-1. **AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop**.
-2. AI Agent Phase 8: Web Search Tool & Untrusted Web Content Ingestion [HIGH RISK].
-3. AI Agent Phase 9: Google Calendar Two-Way Sync (Write Scope Upgrade & Task Sync).
+1. **AI Agent Phase 8: Web Search Tool & Untrusted Web Content Ingestion [HIGH RISK]**.
+2. AI Agent Phase 9: Google Calendar Two-Way Sync (Write Scope Upgrade & Task Sync).
+3. AI Agent Phase 10: Scheduled Tasks Engine & Background Execution Lifecycle.
 
 ---
 

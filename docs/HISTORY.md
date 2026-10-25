@@ -2,6 +2,23 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop (ADR-0215)
+
+- **Wiki Engine (`packages/ai-agent/wikiEngine.ts`)**:
+  - Defined `wiki_synthesize_topic` and `wiki_update_index` tool specifications.
+  - Implemented `generateWikiTopicMarkdown` producing structured evergreen pages with `type: wiki-topic` frontmatter, overview, `[[Wikilinks]]` concepts, and source citations.
+  - Implemented `generateWikiIndexMarkdown` generating categorized Map of Content index in `Wiki/Index.md`.
+- **Path & Containment Safety**:
+  - Implemented `buildWikiTopicPath` with strict `validateVaultRelativePath` ensuring topic names cannot contain `/`, `\`, or traversal characters (`..`).
+- **Architectural Record**:
+  - Authored `docs/adr/0215-llm-wiki-synthesis-and-moc-architecture.md` and indexed in `DECISIONS.md`.
+- **Verification**:
+  - 37/37 tests passing in `@app/ai-agent` (`wikiEngine.test.ts`, `shortcutsEngine.test.ts`, etc.).
+  - Adversarial tests: verified traversal rejection on topic synthesis, wikilink format generation, and categorized index generation.
+  - All files strictly ≤ 145 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard
 
 - **Shortcuts Engine (`packages/ai-agent/shortcutsEngine.ts`)**:
