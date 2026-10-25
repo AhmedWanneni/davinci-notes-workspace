@@ -2,13 +2,15 @@ import type { AgentToolDefinition } from "@app/ai-api";
 
 export const CREATE_NOTE_TOOL: AgentToolDefinition = {
   name: "create_note",
-  description: "Create a new note in the vault with optional markdown content",
+  description:
+    "Create a new note or file in the vault with optional markdown content",
   parameters: {
     type: "object",
     properties: {
       path: {
         type: "string",
-        description: "Vault path (e.g. 'Summaries/Weekly.md')",
+        description:
+          "Vault path of the note/file (e.g. 'Summaries/Weekly.md' or 'sisi.md')",
       },
       content: { type: "string", description: "Markdown text content" },
     },
@@ -18,7 +20,8 @@ export const CREATE_NOTE_TOOL: AgentToolDefinition = {
 
 export const CREATE_FOLDER_TOOL: AgentToolDefinition = {
   name: "create_folder",
-  description: "Create a new folder or directory in the vault",
+  description:
+    "Create a new folder or directory in the vault (for directories only, NOT for files)",
   parameters: {
     type: "object",
     properties: {

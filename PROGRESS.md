@@ -4,7 +4,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Intercept & Execute Conversational Action Claims (Llama 3 Fallback Intent Recovery)
+## Last Session — Disambiguate "File" as Note Creation & Fix Ollama Empty Multi-Turn Response
+
+**Scope:**
+1. **Disambiguate "File" Requests to Note Creation (`conversationalToolFallback.ts`, `vaultMutationTools.ts`, `vaultMutationToolDefs.ts`)**:
+   - Resolved issue where user instruction `create a file named sisi` was mistaken for a folder or rejected.
+   - Expanded note intent matching to treat `file`, `document`, `doc`, `page`, and `note` identically, mapping directly to `create_note` with `.md` extension.
+   - Clarified tool descriptions in `vaultMutationToolDefs.ts` so LLMs distinguish `create_note` (for notes and files) from `create_folder` (directories only, never files).
+   - Added aliases in `planMutation` (`create_file`, `write_file`, `new_file`).
+2. **Fix Ollama Multi-Turn Empty Response & Invalid Chat Error (`ollamaTransport.ts`, `ollamaToolFallback.ts`, `useAgentExecution.ts`)**:
+   - Resolved `Error: Ollama chat response was invalid` occurring when multi-turn history with `role: "tool"` was fed back into non-tool models like `llama3`.
+   - In `buildOllamaChatPayload`, mapped `role: "tool"` messages to standard user messages (`[Tool Result: ...]: ...`) and populated placeholder assistant content (`[Action: called ...]`) so Jinja chat templates for standard models do not crash or emit empty strings.
+   - In `ollamaTransport.ts`, gracefully handled empty completions by returning a default confirmation instead of throwing an invalid-request error.
+   - In `useAgentExecution.ts`, provided fallback confirmation when mutations have executed.
+3. **Line Cap Compliance (`AGENTS.md`)**:
+   - Refactored `buildOllamaChatPayload` to `ollamaToolFallback.ts`, keeping `ollamaTransport.ts` at 217 lines and `useAgentExecution.ts` at 235 lines (both well under 250 hard cap).
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (6 test files, 29 tests passing).
+- `pnpm --filter @app/ai-agent test` (12 test files, 62 tests passing).
+- `pnpm --filter @app/desktop test AgentConversationalRecovery.test.tsx AgentSettingsSync.test.tsx AgentDock.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (20/20 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.23s with 0 errors.
+
+---
+
+## Previous Session — Intercept & Execute Conversational Action Claims (Llama 3 Fallback Intent Recovery)
 
 **Scope:**
 1. **Conversational Action Recovery Engine (`packages/ai-runtime/conversationalToolFallback.ts`)**:

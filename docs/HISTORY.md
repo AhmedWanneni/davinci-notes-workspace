@@ -2,6 +2,26 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Disambiguate "File" as Note Creation & Fix Ollama Empty Multi-Turn Response
+
+- **Disambiguate "File" Requests to Note Creation (`conversationalToolFallback.ts`, `vaultMutationTools.ts`, `vaultMutationToolDefs.ts`)**:
+  - Resolved issue where user instruction `create a file named sisi` was mistaken for a folder or rejected.
+  - Expanded note intent matching to treat `file`, `document`, `doc`, `page`, and `note` identically, mapping directly to `create_note` with `.md` extension.
+  - Clarified tool descriptions in `vaultMutationToolDefs.ts` so LLMs distinguish `create_note` (for notes and files) from `create_folder` (directories only, never files).
+  - Added aliases in `planMutation` (`create_file`, `write_file`, `new_file`).
+- **Fix Ollama Multi-Turn Empty Response & Invalid Chat Error (`ollamaTransport.ts`, `ollamaToolFallback.ts`, `useAgentExecution.ts`)**:
+  - Resolved `Error: Ollama chat response was invalid` occurring when multi-turn history with `role: "tool"` was fed back into non-tool models like `llama3`.
+  - In `buildOllamaChatPayload`, mapped `role: "tool"` messages to standard user messages (`[Tool Result: ...]: ...`) and populated placeholder assistant content (`[Action: called ...]`) so Jinja chat templates for standard models do not crash or emit empty strings.
+  - In `ollamaTransport.ts`, gracefully handled empty completions by returning a default confirmation instead of throwing an invalid-request error.
+  - In `useAgentExecution.ts`, provided fallback confirmation when mutations have executed.
+- **Verification**:
+  - `pnpm --filter @app/ai-runtime test` (6 test files, 29 tests passing).
+  - `pnpm --filter @app/ai-agent test` (12 test files, 62 tests passing).
+  - `pnpm --filter @app/desktop test AgentConversationalRecovery.test.tsx AgentSettingsSync.test.tsx AgentDock.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (20/20 tests passing).
+  - `pnpm --filter @app/desktop build:web` succeeded in 8.23s with 0 errors.
+
+---
+
 ### 2026-10-25: Intercept & Execute Conversational Action Claims (Llama 3 Fallback Intent Recovery)
 
 - **Conversational Action Recovery Engine (`packages/ai-runtime/conversationalToolFallback.ts`)**:

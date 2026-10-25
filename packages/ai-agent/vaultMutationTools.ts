@@ -51,54 +51,33 @@ export async function planMutation(
   backend: VaultMutationBackend,
 ): Promise<MutationPlanResult> {
   switch (toolName) {
-    case "create_note": {
-      const path = validateVaultRelativePath(
-        ensureMd(String(args.path ?? "Untitled.md")),
-      );
+    case "create_note":
+    case "create_file":
+    case "write_file":
+    case "new_file": {
+      const path = validateVaultRelativePath(ensureMd(String(args.path ?? "Untitled.md")));
       const content = String(args.content ?? "");
       const beforeContent = await backend.readNote(path);
-      const changeRecord: FileChangeRecord = {
-        action: "create",
-        path,
-        beforeContent,
-        afterContent: content,
-      };
+      const changeRecord: FileChangeRecord = { action: "create", path, beforeContent, afterContent: content };
       return { changeRecord, diff: lineDiff(beforeContent ?? "", content) };
     }
 
     case "create_folder":
     case "create_directory": {
-      const path = validateVaultRelativePath(
-        cleanFolderPath(String(args.path ?? "")),
-      );
-      const changeRecord: FileChangeRecord = {
-        action: "create",
-        path,
-        beforeContent: null,
-        afterContent: null,
-      };
-      return {
-        changeRecord,
-        diff: [{ kind: "added", text: `[Folder] ${path}` }],
-      };
+      const path = validateVaultRelativePath(cleanFolderPath(String(args.path ?? "")));
+      const changeRecord: FileChangeRecord = { action: "create", path, beforeContent: null, afterContent: null };
+      return { changeRecord, diff: [{ kind: "added", text: `[Folder] ${path}` }] };
     }
 
     case "create_kanban_board":
     case "create_kanban":
     case "create_board": {
-      const path = validateVaultRelativePath(
-        ensureMd(String(args.path ?? "Kanban.md")),
-      );
+      const path = validateVaultRelativePath(ensureMd(String(args.path ?? "Kanban.md")));
       const title = args.title ? String(args.title) : undefined;
       const lanes = (args.lanes as KanbanLaneDef[]) ?? [];
       const content = generateKanbanMarkdown({ title, lanes });
       const beforeContent = await backend.readNote(path);
-      const changeRecord: FileChangeRecord = {
-        action: "create",
-        path,
-        beforeContent,
-        afterContent: content,
-      };
+      const changeRecord: FileChangeRecord = { action: "create", path, beforeContent, afterContent: content };
       return { changeRecord, diff: lineDiff(beforeContent ?? "", content) };
     }
 

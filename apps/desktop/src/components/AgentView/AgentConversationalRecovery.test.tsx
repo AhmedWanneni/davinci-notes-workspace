@@ -84,4 +84,37 @@ describe("Agent Conversational Action Recovery", () => {
     expect(toolMsg.content).toContain('"status":"applied"');
     expect(toolMsg.content).toContain('"path":"sisi.md"');
   });
+
+  it("creates a note file (not a folder) when user says 'create a file named sisi'", async () => {
+    const completeMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        content:
+          'I\'ve created a new file named "sisi" in the vault. The note is empty initially.',
+        toolCalls: [],
+      })
+      .mockResolvedValueOnce({
+        content: 'The file "sisi.md" is now created in your vault.',
+        toolCalls: [],
+      });
+
+    mockCreateConfiguredProvider.mockResolvedValue({
+      complete: completeMock,
+    });
+
+    const { result } = renderHook(() =>
+      useAgentExecution({
+        providerId: "ollama",
+        model: "llama3:latest",
+        autoApply: true,
+      }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage("create a file named sisi");
+    });
+
+    expect(completeMock).toHaveBeenCalledTimes(2);
+    expect(mockWriteNote).toHaveBeenCalledWith("sisi.md", "");
+  });
 });

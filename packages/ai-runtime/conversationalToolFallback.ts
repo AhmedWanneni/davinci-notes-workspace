@@ -30,10 +30,11 @@ export function extractConversationalToolCall(
   const text = assistantText.trim();
   if (!text) return null;
 
-  // 1. Note creation match in assistant text
+  // 1. Note / file creation match in assistant text
   const notePrefix =
-    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?note\s+(?:named|called|titled\s+)?/i;
-  const createdNotePrefix = /(?:^|\n)(?:Created|Added)\s+(?:a\s+)?(?:new\s+)?note\s+(?:named|called|titled\s+)?/i;
+    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page)\s+(?:named|called|titled\s+)?/i;
+  const createdNotePrefix =
+    /(?:^|\n)(?:Created|Added)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page)\s+(?:named|called|titled\s+)?/i;
 
   if (notePrefix.test(text) || createdNotePrefix.test(text)) {
     const after = text.replace(notePrefix, "").replace(createdNotePrefix, "");
@@ -112,13 +113,15 @@ export function extractConversationalToolCall(
     }
   }
 
-  // 5. Fallback from user prompt if assistant confirmed
+  // 5. Fallback from user prompt if assistant confirmed or attempted action
   if (
     userPrompt &&
-    /(?:sure|i(?:'ll| will)|okay|done|creating|right away)/i.test(text)
+    /(?:sure|i(?:'ll| will)|okay|done|creating|created|right away|empty initially)/i.test(
+      text,
+    )
   ) {
     const userNote =
-      /(?:create|make|add|new)\s+(?:a\s+)?note(?:\s+(?:named|called|titled))?\s+["'‘“]?([a-zA-Z0-9_\-/\.]+)["'’”]?/i.exec(
+      /(?:create|make|add|new)\s+(?:a\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s+["'‘“]?([a-zA-Z0-9_\-/\.]+)["'’”]?/i.exec(
         userPrompt,
       );
     if (userNote && userNote[1]) {

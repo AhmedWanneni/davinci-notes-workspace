@@ -156,10 +156,15 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
               });
             }
           } else {
+            const replyContent =
+              res.content ||
+              (hasExecutedMutation
+                ? "The requested note has been created in your vault."
+                : "Done.");
             const assistantMsg: ChatMessageItem = {
               id: `msg_a_${Date.now()}`,
               role: "assistant",
-              content: res.content,
+              content: replyContent,
               timestamp: Date.now(),
             };
             setMessages((prev) => [...prev, assistantMsg]);
@@ -170,15 +175,13 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
         if (!finalResponseReceived && workingHistory.length > 0) {
           const lastMsg = workingHistory[workingHistory.length - 1];
-          if (lastMsg.role === "assistant" && lastMsg.content) {
+          const text = lastMsg.role === "assistant" && lastMsg.content
+            ? lastMsg.content
+            : hasExecutedMutation ? "The requested note has been created in your vault." : "";
+          if (text) {
             setMessages((prev) => [
               ...prev,
-              {
-                id: `msg_a_${Date.now()}`,
-                role: "assistant",
-                content: lastMsg.content,
-                timestamp: Date.now(),
-              },
+              { id: `msg_a_${Date.now()}`, role: "assistant", content: text, timestamp: Date.now() },
             ]);
           }
         }
@@ -197,18 +200,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
         setIsStreaming(false);
       }
     },
-    [
-      autoApply,
-      handleApplyChange,
-      inspectionBackend,
-      messages,
-      mutationBackend,
-      options?.model,
-      options?.providerId,
-      options?.vaultName,
-      options?.webSearchEnabled,
-      webSearchBackend,
-    ],
+    [autoApply, handleApplyChange, inspectionBackend, messages, mutationBackend, options, webSearchBackend],
   );
 
   const abortExecution = useCallback(() => {

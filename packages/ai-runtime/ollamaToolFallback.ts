@@ -1,4 +1,4 @@
-import type { AgentToolCall, AgentToolDefinition } from "@app/ai-api";
+import type { AgentToolCall, AgentToolDefinition, ChatRequest } from "@app/ai-api";
 import { extractConversationalToolCall } from "./conversationalToolFallback.js";
 
 export function formatOllamaToolSystemPrompt(
@@ -104,4 +104,56 @@ export function isToolSupportError(err: unknown): boolean {
     typeof (err as { message: unknown }).message === "string" &&
     (err as { message: string }).message.toLowerCase().includes("does not support tools")
   );
+}
+
+export function buildOllamaChatPayload(
+  request: ChatRequest,
+  chatModel?: string,
+  stream = false,
+) {
+  const hasTools = Boolean(request.tools && request.tools.length > 0);
+  const messages = request.messages.map((m) => {
+    if (m.role === "system" && hasTools && request.tools) {
+      return {
+        role: "system",
+        content: formatOllamaToolSystemPrompt(m.content, request.tools),
+      };
+    }
+    if (m.role === "tool") {
+      return {
+        role: "user",
+        content: `[Tool Result: ${m.name ?? "tool"}]: ${m.content}`,
+      };
+    }
+    if (
+      m.role === "assistant" &&
+      !m.content &&
+      m.toolCalls &&
+      m.toolCalls.length > 0
+    ) {
+      return {
+        role: "assistant",
+        content: `[Action: called ${m.toolCalls[0].name}]`,
+      };
+    }
+    return { role: m.role, content: m.content || "" };
+  });
+
+  if (
+    hasTools &&
+    !messages.some((m) => m.role === "system") &&
+    request.tools
+  ) {
+    messages.unshift({
+      role: "system",
+      content: formatOllamaToolSystemPrompt("", request.tools),
+    });
+  }
+
+  return {
+    model: chatModel,
+    messages,
+    stream,
+    ...(hasTools ? { tools: request.tools } : {}),
+  };
 }

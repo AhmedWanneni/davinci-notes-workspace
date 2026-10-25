@@ -8,8 +8,8 @@ import {
   type EmbeddingResponse,
 } from "@app/ai-api";
 import {
+  buildOllamaChatPayload,
   extractOllamaFallbackToolCall,
-  formatOllamaToolSystemPrompt,
   parseOllamaToolCalls,
   isToolSupportError,
   type RawOllamaToolCall,
@@ -80,7 +80,7 @@ export class OllamaTransport {
   }
 
   async complete(request: ChatRequest): Promise<ChatResponse> {
-    const payload = this.buildChatPayload(request, false);
+    const payload = buildOllamaChatPayload(request, this.options.chatModel, false);
     let body: OllamaBody;
     try {
       body = (await this.post("/api/chat", payload)) as OllamaBody;
@@ -104,10 +104,10 @@ export class OllamaTransport {
     }
 
     if (!content && toolCalls.length === 0) {
-      throw new AIProviderError(
-        "invalid-request",
-        "Ollama chat response was invalid",
-      );
+      return {
+        content: "Done.",
+        model: body?.model ?? this.options.chatModel,
+      };
     }
 
     return {
@@ -118,7 +118,7 @@ export class OllamaTransport {
   }
 
   async *completeStream(request: ChatRequest): AsyncIterable<ChatStreamChunk> {
-    const payload = this.buildChatPayload(request, true);
+    const payload = buildOllamaChatPayload(request, this.options.chatModel, true);
     let response: Response;
     try {
       response = await this.rawPost("/api/chat", payload);
@@ -173,37 +173,6 @@ export class OllamaTransport {
     } finally {
       reader.releaseLock();
     }
-  }
-
-  private buildChatPayload(request: ChatRequest, stream: boolean) {
-    const hasTools = Boolean(request.tools && request.tools.length > 0);
-    const messages = request.messages.map((m) => {
-      if (m.role === "system" && hasTools && request.tools) {
-        return {
-          role: "system",
-          content: formatOllamaToolSystemPrompt(m.content, request.tools),
-        };
-      }
-      return { role: m.role, content: m.content };
-    });
-
-    if (
-      hasTools &&
-      !messages.some((m) => m.role === "system") &&
-      request.tools
-    ) {
-      messages.unshift({
-        role: "system",
-        content: formatOllamaToolSystemPrompt("", request.tools),
-      });
-    }
-
-    return {
-      model: this.options.chatModel,
-      messages,
-      stream,
-      ...(hasTools ? { tools: request.tools } : {}),
-    };
   }
 
   private async rawPost(path: string, payload: unknown): Promise<Response> {

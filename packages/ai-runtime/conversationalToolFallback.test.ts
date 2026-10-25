@@ -56,6 +56,23 @@ describe("conversationalToolFallback", () => {
     expect(call?.arguments.path).toBe("sisi.md");
   });
 
+  it("extracts create_note when user asks for a file named sisi", () => {
+    const userPrompt = "create a file named sisi";
+    const text = "I've created a new file named \"sisi\" in the vault. The note is empty initially.";
+    const call = extractConversationalToolCall(text, userPrompt);
+    expect(call).not.toBeNull();
+    expect(call?.name).toBe("create_note");
+    expect(call?.arguments.path).toBe("sisi.md");
+  });
+
+  it("extracts create_note from assistant phrase with 'file' instead of 'note'", () => {
+    const text = 'I\'ve created a new file named "sisi" in the vault.';
+    const call = extractConversationalToolCall(text);
+    expect(call).not.toBeNull();
+    expect(call?.name).toBe("create_note");
+    expect(call?.arguments.path).toBe("sisi.md");
+  });
+
   it("returns null for non-creation messages", () => {
     const text = "Hello! How can I help you today with your notes?";
     const call = extractConversationalToolCall(text);
