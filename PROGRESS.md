@@ -4,7 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Phase 10: Scheduled Tasks Engine & Background Execution Lifecycle (ADR-0218)
+## Last Session — Icon Rail Access Icons for AI Agent & Ask Your Vault
+
+**Scope:**
+1. **IconRail Component Updates (`apps/desktop/src/components/IconRail/IconRail.tsx`)**:
+   - Added `Sparkle` icon button for "AI Agent" (opens dedicated `davinci://agent` tab).
+   - Added `ChatCircleDots` icon button for "Ask Your Vault" (opens contextual Q&A panel).
+   - Added active state tracking (`isAgentOpen`, `isAskVaultOpen`).
+2. **AppSidebar & App Shell Plumbing**:
+   - Added `isAgentOpen`, `onOpenAgent`, `isAskVaultOpen`, and `onOpenAskVault` to `AppSidebarProps` and forwarded down to `IconRail`.
+   - Wired `App.tsx` handlers to toggle `isRightSidebarOpen` on Ask Vault click and open `AGENT_TAB_ID` on AI Agent click.
+3. **Tests & Stories**:
+   - Added interaction tests in `IconRail.test.tsx` verifying click events and active data attribute bindings.
+   - Updated Storybook stories with default AI handlers.
+
+**Verification:**
+- 7/7 tests passing in `IconRail.test.tsx`.
+- 2/2 tests passing in `AppSidebar.test.tsx`.
+- All files strictly ≤ 230 lines (hard cap 250).
+
+---
+
+## Next Up: Completed
+
+- Icon rail navigation now directly accesses all AI modalities.
+
+---
+
+## Previous Session — AI Agent Phase 10: Scheduled Tasks Engine & Background Execution Lifecycle (ADR-0218)
 
 **Scope:**
 1. **Scheduled Tasks Engine (`packages/ai-agent/scheduleEngine.ts`)**:

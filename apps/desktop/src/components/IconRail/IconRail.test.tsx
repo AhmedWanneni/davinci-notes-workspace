@@ -101,4 +101,64 @@ describe("IconRail", () => {
     const activeCalBtn = screen.getByLabelText("Calendar");
     expect(activeCalBtn.getAttribute("data-active")).toBe("true");
   });
+
+  it("renders AI agent button, triggers onOpenAgent, and reflects isAgentOpen", () => {
+    const onOpenAgent = vi.fn();
+    const { rerender } = renderIconRail({ onOpenAgent, isAgentOpen: false });
+
+    const agentBtn = screen.getByLabelText("AI Agent");
+    expect(agentBtn).toBeDefined();
+    expect(agentBtn.getAttribute("data-active")).toBeNull();
+
+    fireEvent.click(agentBtn);
+    expect(onOpenAgent).toHaveBeenCalledOnce();
+
+    rerender(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={false}
+          onToggleLeftSidebar={vi.fn()}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          onOpenAgent={onOpenAgent}
+          isAgentOpen={true}
+        />
+      </TooltipProvider>,
+    );
+
+    const activeAgentBtn = screen.getByLabelText("AI Agent");
+    expect(activeAgentBtn.getAttribute("data-active")).toBe("true");
+  });
+
+  it("renders Ask Your Vault button, triggers onOpenAskVault, and reflects isAskVaultOpen", () => {
+    const onOpenAskVault = vi.fn();
+    const { rerender } = renderIconRail({ onOpenAskVault, isAskVaultOpen: false });
+
+    const askBtn = screen.getByLabelText("Ask Your Vault");
+    expect(askBtn).toBeDefined();
+    expect(askBtn.getAttribute("data-active")).toBeNull();
+
+    fireEvent.click(askBtn);
+    expect(onOpenAskVault).toHaveBeenCalledOnce();
+
+    rerender(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={false}
+          onToggleLeftSidebar={vi.fn()}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          onOpenAskVault={onOpenAskVault}
+          isAskVaultOpen={true}
+        />
+      </TooltipProvider>,
+    );
+
+    const activeAskBtn = screen.getByLabelText("Ask Your Vault");
+    expect(activeAskBtn.getAttribute("data-active")).toBe("true");
+  });
 });

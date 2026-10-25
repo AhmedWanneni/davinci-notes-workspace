@@ -685,10 +685,12 @@ export function App() {
           isCalendarOpen={isCalendarOpen}
           isBookmarksOpen={activeNotePath === BOOKMARKS_TAB_ID}
           isAgentOpen={activeNotePath === AGENT_TAB_ID}
+          isAskVaultOpen={isRightSidebarOpen}
           onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
           onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
           onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
           onOpenAgent={() => void openNote(AGENT_TAB_ID)}
+          onOpenAskVault={() => setIsRightSidebarOpen((prev) => !prev)}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
           onOpenReminders={() => setIsRemindersOpen(true)}

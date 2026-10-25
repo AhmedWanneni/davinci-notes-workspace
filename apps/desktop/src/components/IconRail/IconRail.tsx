@@ -10,6 +10,7 @@ import {
   Gear,
   SignOut,
   Sparkle,
+  ChatCircleDots,
 } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
 
@@ -26,10 +27,12 @@ export interface IconRailProps {
   onOpenCalendar?: () => void;
   onOpenBookmarks?: () => void;
   onOpenAgent?: () => void;
+  onOpenAskVault?: () => void;
   isGlobalGraphOpen?: boolean;
   isCalendarOpen?: boolean;
   isBookmarksOpen?: boolean;
   isAgentOpen?: boolean;
+  isAskVaultOpen?: boolean;
 }
 
 export function IconRail({
@@ -45,10 +48,12 @@ export function IconRail({
   onOpenCalendar,
   onOpenBookmarks,
   onOpenAgent,
+  onOpenAskVault,
   isGlobalGraphOpen,
   isCalendarOpen,
   isBookmarksOpen,
   isAgentOpen,
+  isAskVaultOpen,
 }: IconRailProps) {
   return (
     <nav className="icon-rail" aria-label="Primary navigation">
@@ -97,6 +102,23 @@ export function IconRail({
               <Sparkle
                 size={18}
                 weight={isAgentOpen ? "fill" : "regular"}
+              />
+            </button>
+          </Tooltip>
+        )}
+
+        {onOpenAskVault && (
+          <Tooltip content="Ask Your Vault" contentProps={{ side: "right" }}>
+            <button
+              type="button"
+              className="icon-rail__btn"
+              data-active={isAskVaultOpen || undefined}
+              onClick={onOpenAskVault}
+              aria-label="Ask Your Vault"
+            >
+              <ChatCircleDots
+                size={18}
+                weight={isAskVaultOpen ? "fill" : "regular"}
               />
             </button>
           </Tooltip>
