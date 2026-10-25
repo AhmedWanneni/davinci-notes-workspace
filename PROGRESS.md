@@ -4,7 +4,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop (ADR-0215)
+## Last Session — AI Agent Phase 8: Web Search Tool & Untrusted Web Boundary (ADR-0216)
+
+**Scope:**
+1. **Web Search Tool (`packages/ai-agent/webSearchTool.ts`)**:
+   - Defined `web_search` tool specification with `query` and `limit` arguments.
+   - Zero-dependency HTML snippet cleaner `cleanHtmlToText` removing scripts, styles, and tags without heavy DOM/parsing dependencies.
+   - Out-of-the-box DuckDuckGo HTML parser (`parseDuckDuckGoHtml`) providing zero-key, zero-backend search grounding.
+2. **Untrusted Envelope Boundary**:
+   - Encapsulated all external web search snippets inside `<untrusted_web_data source_url="...">` defense envelopes.
+   - Escaped breakout sequences (`</untrusted_web_data>`) to prevent prompt injection hijacking of agent tool calls.
+3. **Architecture Record**: Authored ADR-0216 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 42/42 tests passing in `@app/ai-agent` (`webSearchTool.test.ts`, `wikiEngine.test.ts`, etc.).
+- Adversarial tests: verified injection breakout escaping (`</untrusted_web_data>` -> `&lt;/untrusted_web_data&gt;`) preventing override of vault operations.
+- All files strictly ≤ 95 lines (hard cap 250).
+
+---
+
+## Next Up: AI Agent Phase 9 & Phase 10
+
+- **Phase 9**: Google Calendar Two-Way Sync Integration (ADR-0217).
+- **Phase 10**: Background Scheduled Tasks & Execution Lifecycle (ADR-0218).
+
+---
+
+## Previous Session — AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop (ADR-0215)
 
 **Scope:**
 1. **Wiki Engine (`packages/ai-agent/wikiEngine.ts`)**:

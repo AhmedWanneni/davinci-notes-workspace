@@ -2,6 +2,24 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: AI Agent Phase 8: Web Search Tool & Untrusted Web Boundary (ADR-0216)
+
+- **Web Search Tool (`packages/ai-agent/webSearchTool.ts`)**:
+  - Defined `web_search` tool specification with `query` and `limit` arguments.
+  - Zero-dependency HTML snippet cleaner `cleanHtmlToText` removing scripts, styles, and tags without heavy DOM/parsing dependencies.
+  - Out-of-the-box DuckDuckGo HTML parser (`parseDuckDuckGoHtml`) providing zero-key, zero-backend search grounding.
+- **Untrusted Envelope Boundary**:
+  - Encapsulated all external web search snippets inside `<untrusted_web_data source_url="...">` defense envelopes.
+  - Escaped breakout sequences (`</untrusted_web_data>`) to prevent prompt injection hijacking of agent tool calls.
+- **Architectural Record**:
+  - Authored `docs/adr/0216-web-search-grounding-and-untrusted-content.md` and indexed in `DECISIONS.md`.
+- **Verification**:
+  - 42/42 tests passing in `@app/ai-agent` (`webSearchTool.test.ts`, `wikiEngine.test.ts`, etc.).
+  - Adversarial tests: verified injection breakout escaping (`</untrusted_web_data>` -> `&lt;/untrusted_web_data&gt;`) preventing override of vault operations.
+  - All files strictly ≤ 95 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop (ADR-0215)
 
 - **Wiki Engine (`packages/ai-agent/wikiEngine.ts`)**:
