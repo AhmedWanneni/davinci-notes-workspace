@@ -381,4 +381,5 @@ the list.
 | [0218](adr/0218-agent-shortcuts-and-scheduled-tasks-engine.md) | Agent Shortcuts and Scheduled Tasks Engine with Catch-Up Review | Accepted |
 | [0219](adr/0219-zero-dependency-schema-validator-for-prompt-understanding.md) | Zero-Dependency Schema Validator for Prompt Understanding in `@app/ai-agent` | Accepted |
 | [0220](adr/0220-prompt-understanding-pipeline-architecture.md) | Prompt Understanding Pipeline Architecture & Multi-Stage Execution | Accepted |
+| [0222](adr/0222-scoped-intent-prompts-and-tool-gating.md) | Scoped Intent Prompts and Tool Gating for Weak Models in `@app/ai-agent` | Accepted |
 

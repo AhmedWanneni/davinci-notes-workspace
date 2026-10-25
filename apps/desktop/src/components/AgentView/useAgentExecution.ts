@@ -1,5 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { executeRewriteStep, type StructuredUserRequest } from "@app/ai-agent";
+import {
+  executeRewriteStep,
+  routeIntent,
+  getScopedSystemPrompt,
+  getScopedTools,
+  isAgentIntent,
+  WEB_SEARCH_TOOL,
+  type AgentIntent,
+  type StructuredUserRequest,
+} from "@app/ai-agent";
 import {
   createDesktopInspectionBackend,
   createDesktopMutationBackend,
@@ -92,13 +101,35 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           (state.vaultPath
             ? state.vaultPath.split(/[/\\]/).pop() || "Vault"
             : "Vault");
-        const systemPrompt = buildAgentSystemPrompt({
-          vaultName: vName,
-          allNotePaths: state.allNotePaths ?? [],
-          allFolderPaths: state.allFolderPaths ?? [],
-        });
 
-        const activeTools = prepareActiveTools(options?.webSearchEnabled);
+        let systemPrompt: string;
+        let activeTools = prepareActiveTools(options?.webSearchEnabled);
+
+        if (options?.rewriteEnabled) {
+          const rawIntent = structuredRequest?.intent || "";
+          const resolvedIntent: AgentIntent = isAgentIntent(rawIntent)
+            ? rawIntent
+            : await routeIntent(promptText, async (p) => {
+                const r = await provider.complete({
+                  messages: [{ role: "user", content: p }],
+                });
+                return r.content || "";
+              });
+
+          systemPrompt = getScopedSystemPrompt(resolvedIntent, vName);
+          const scopedTools = getScopedTools(resolvedIntent);
+          activeTools =
+            options?.webSearchEnabled && resolvedIntent !== "chat"
+              ? [...scopedTools, WEB_SEARCH_TOOL]
+              : scopedTools;
+        } else {
+          systemPrompt = buildAgentSystemPrompt({
+            vaultName: vName,
+            allNotePaths: state.allNotePaths ?? [],
+            allFolderPaths: state.allFolderPaths ?? [],
+          });
+        }
+
         const workingHistory = buildAgentWorkingHistory(
           systemPrompt,
           nextMessages,
