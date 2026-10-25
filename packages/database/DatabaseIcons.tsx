@@ -1,10 +1,19 @@
 import React from "react";
 
-export function TextTIcon({ size = 14 }: { size?: number }) {
+export function AaTextIcon({ size = 14 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor">
-      <path d="M208,56V88a8,8,0,0,1-16,0V64H136V192h24a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16h24V64H64V88a8,8,0,0,1-16,0V56a8,8,0,0,1,8-8H200A8,8,0,0,1,208,56Z" />
-    </svg>
+    <span
+      style={{
+        fontSize: `${size}px`,
+        fontWeight: 600,
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        lineHeight: 1,
+        display: "inline-flex",
+        alignItems: "center",
+      }}
+    >
+      Aa
+    </span>
   );
 }
 
@@ -16,10 +25,10 @@ export function HashIcon({ size = 14 }: { size?: number }) {
   );
 }
 
-export function TagIcon({ size = 14 }: { size?: number }) {
+export function ListBulletsIcon({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor">
-      <path d="M243.31,136,144,36.69A15.86,15.86,0,0,0,132.69,32H40a8,8,0,0,0-8,8v92.69A15.86,15.86,0,0,0,36.69,144L136,243.31a16,16,0,0,0,22.63,0l84.68-84.68A16,16,0,0,0,243.31,136ZM147.31,232,48,132.69V48h84.69L232,147.31ZM96,84A12,12,0,1,1,84,72,12,12,0,0,1,96,84Z" />
+      <path d="M80,64a8,8,0,0,1,8-8H216a8,8,0,0,1,0,16H88A8,8,0,0,1,80,64Zm136,56H88a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Zm0,64H88a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16ZM44,52A12,12,0,1,0,56,64,12,12,0,0,0,44,52Zm0,64A12,12,0,1,0,56,128,12,12,0,0,0,44,116Zm0,64A12,12,0,1,0,56,192,12,12,0,0,0,44,180Z" />
     </svg>
   );
 }
@@ -36,6 +45,22 @@ export function CalendarBlankIcon({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor">
       <path d="M208,40H184V24a8,8,0,0,0-16,0V40H88V24a8,8,0,0,0-16,0V40H48A16,16,0,0,0,32,56V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V56A16,16,0,0,0,208,40Zm0,168H48V96H208v112Zm0-128H48V56H72V72a8,8,0,0,0,16,0V56h80V72a8,8,0,0,0,16,0V56h24Z" />
+    </svg>
+  );
+}
+
+export function FilePageIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor">
+      <path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM152,44l44,44H152ZM200,216H56V40h80V96a8,8,0,0,0,8,8h56V216Z" />
+    </svg>
+  );
+}
+
+export function TableViewIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor">
+      <path d="M224,48H32A16,16,0,0,0,16,64V192a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V64A16,16,0,0,0,224,48ZM32,64H88V104H32Zm72,0h56v40H104Zm120,0v40H176V64ZM32,120H88v72H32Zm72,72V120h56v72Zm120,0H176V120h48Z" />
     </svg>
   );
 }
@@ -68,6 +93,22 @@ export function PlusIcon({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor">
       <path d="M224,128a8,8,0,0,1-8,8H136v80a8,8,0,0,1-16,0V136H40a8,8,0,0,1,0-16h80V40a8,8,0,0,1,16,0v80h80A8,8,0,0,1,224,128Z" />
+    </svg>
+  );
+}
+
+export function CaretDownIcon({ size = 10 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor">
+      <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,48,88H208a8,8,0,0,1,5.66,13.66Z" />
+    </svg>
+  );
+}
+
+export function SidebarOpenIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 256 256" fill="currentColor">
+      <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40ZM40,56H88V200H40ZM216,200H104V56H216V200Z" />
     </svg>
   );
 }

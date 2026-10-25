@@ -1,9 +1,9 @@
 import React, { useRef, useCallback } from "react";
 import type { DatabaseColumn } from "./databaseTypes";
 import {
-  TextTIcon,
+  AaTextIcon,
   HashIcon,
-  TagIcon,
+  ListBulletsIcon,
   CheckSquareIcon,
   CalendarBlankIcon,
   DotsThreeIcon,
@@ -22,14 +22,14 @@ export function getColumnIcon(type: DatabaseColumn["type"]) {
     case "number":
       return <HashIcon size={14} />;
     case "select":
-      return <TagIcon size={14} />;
+      return <ListBulletsIcon size={14} />;
     case "checkbox":
       return <CheckSquareIcon size={14} />;
     case "date":
       return <CalendarBlankIcon size={14} />;
     case "text":
     default:
-      return <TextTIcon size={14} />;
+      return <AaTextIcon size={13} />;
   }
 }
 

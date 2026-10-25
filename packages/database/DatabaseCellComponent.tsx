@@ -9,7 +9,12 @@ import {
   renderInlineMarkdown,
   type InlineRenderOptions,
 } from "./renderInlineMarkdown";
-import { WarningCircleIcon } from "./DatabaseIcons";
+import {
+  WarningCircleIcon,
+  FilePageIcon,
+  SidebarOpenIcon,
+} from "./DatabaseIcons";
+import { getSelectPillStyle } from "./databaseColors";
 import styles from "./DatabaseCellComponent.module.scss";
 
 export interface DatabaseCellProps extends InlineRenderOptions {
@@ -28,6 +33,7 @@ export interface DatabaseCellProps extends InlineRenderOptions {
 export function DatabaseCellComponent({
   value,
   column,
+  colIndex,
   isFocused,
   isEditing,
   onSave,
@@ -43,9 +49,7 @@ export function DatabaseCellComponent({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!isEditing) {
-      setDraft(value);
-    }
+    if (!isEditing) setDraft(value);
   }, [value, isEditing]);
 
   useEffect(() => {
@@ -58,10 +62,7 @@ export function DatabaseCellComponent({
   useEffect(() => {
     if (!isSelectOpen) return;
     const handleOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsSelectOpen(false);
       }
     };
@@ -69,10 +70,7 @@ export function DatabaseCellComponent({
     return () => document.removeEventListener("mousedown", handleOutside);
   }, [isSelectOpen]);
 
-  const validation = useMemo(
-    () => validateCellValue(value, column),
-    [value, column],
-  );
+  const validation = useMemo(() => validateCellValue(value, column), [value, column]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -85,16 +83,10 @@ export function DatabaseCellComponent({
     }
   };
 
-  const handleBlur = () => {
-    if (isEditing) {
-      onSave(draft);
-    }
-  };
-
   if (isEditing) {
     return (
       <div
-        className={`${styles["database-cell"]} ${styles["is-focused"]}`}
+        className={`${styles["database-cell"]} ${styles["is-editing"]}`}
         onClick={onClick}
       >
         <input
@@ -110,13 +102,12 @@ export function DatabaseCellComponent({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
+          onBlur={() => onSave(draft)}
         />
       </div>
     );
   }
 
-  // Render Checkbox
   if (column.type === "checkbox") {
     const isChecked = parseCheckboxValue(value);
     return (
@@ -138,20 +129,11 @@ export function DatabaseCellComponent({
     );
   }
 
-  // Render Select Pill
   if (column.type === "select") {
     const option = column.options?.find(
       (o) => o.value.toLowerCase() === value.trim().toLowerCase(),
     );
-    const colorStyle = option?.color
-      ? {
-          backgroundColor: `var(--color-status-${option.color}, rgba(0,0,0,0.06))`,
-          color: "var(--color-text-normal, #222222)",
-        }
-      : {
-          backgroundColor: "var(--color-bg-secondary, #f2f2f2)",
-          color: "var(--color-text-muted, #666666)",
-        };
+    const colorStyle = getSelectPillStyle(option?.color);
 
     return (
       <div
@@ -166,7 +148,7 @@ export function DatabaseCellComponent({
             {value.trim()}
           </span>
         ) : (
-          <span style={{ color: "var(--color-text-faint, #ccc)" }}>Empty</span>
+          <span style={{ color: "var(--color-text-faint, #a0a0a0)" }} />
         )}
 
         {!validation.isValid && (
@@ -192,14 +174,11 @@ export function DatabaseCellComponent({
                 }}
               >
                 <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    backgroundColor: `var(--color-status-${opt.color}, #cd47ab)`,
-                  }}
-                />
-                <span>{opt.value}</span>
+                  className={styles["select-pill"]}
+                  style={getSelectPillStyle(opt.color)}
+                >
+                  {opt.value}
+                </span>
               </button>
             ))}
             <button
@@ -218,7 +197,6 @@ export function DatabaseCellComponent({
     );
   }
 
-  // Render Default Text / Number / Date
   return (
     <div
       className={`${styles["database-cell"]}${column.type === "number" ? ` ${styles["is-number"]}` : ""}${isFocused ? ` ${styles["is-focused"]}` : ""}${!validation.isValid ? ` ${styles["has-warning"]}` : ""}`}
@@ -228,7 +206,26 @@ export function DatabaseCellComponent({
       <div
         className={`${styles["cell-content"]}${column.type === "number" ? ` ${styles["is-number"]}` : ""}`}
       >
-        {renderInlineMarkdown(value, { onLinkClick, onTagClick })}
+        {colIndex === 0 && (
+          <span className={styles["page-icon"]}>
+            <FilePageIcon size={14} />
+          </span>
+        )}
+        <span>{renderInlineMarkdown(value, { onLinkClick, onTagClick })}</span>
+        {colIndex === 0 && value.trim() && (
+          <button
+            type="button"
+            className={styles["open-btn"]}
+            onClick={(e) => {
+              e.stopPropagation();
+              onLinkClick?.(value.trim());
+            }}
+            title="Open page"
+          >
+            <SidebarOpenIcon size={11} />
+            <span>OPEN</span>
+          </button>
+        )}
       </div>
       {!validation.isValid && (
         <span className={styles["warning-icon"]} title={validation.warning}>

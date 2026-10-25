@@ -4,7 +4,8 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon,
   ArrowsDownUpIcon,
-  PlusIcon,
+  TableViewIcon,
+  CaretDownIcon,
 } from "./DatabaseIcons";
 import styles from "./DatabaseToolbar.module.scss";
 
@@ -39,68 +40,19 @@ export function DatabaseToolbar({
   return (
     <div className={styles["database-toolbar"]}>
       <div className={styles["toolbar-left"]}>
-        <div className={styles["search-container"]}>
-          <MagnifyingGlassIcon size={14} />
-          <input
-            type="text"
-            className={styles["search-input"]}
-            placeholder="Search rows..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
+        <div className={styles["view-tab-pill"]}>
+          <TableViewIcon size={14} />
+          <span>Table</span>
         </div>
+      </div>
 
-        <div className={styles["popover-container"]}>
-          <button
-            type="button"
-            className={`${styles["toolbar-btn"]}${sortCol ? ` ${styles["is-active"]}` : ""}`}
-            onClick={() => setShowSortMenu(!showSortMenu)}
-          >
-            <ArrowsDownUpIcon size={14} />
-            <span>Sort{sortCol ? `: ${sortCol}` : ""}</span>
-          </button>
-
-          {showSortMenu && (
-            <div className={styles["popover-dropdown"]}>
-              <div className={styles["popover-row"]}>
-                <label>Column:</label>
-                <select
-                  value={sortCol || ""}
-                  onChange={(e) =>
-                    onSortChange(e.target.value || null, sortOrder)
-                  }
-                >
-                  <option value="">(None)</option>
-                  {columns.map((col) => (
-                    <option key={col.name} value={col.name}>
-                      {col.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {sortCol && (
-                <div className={styles["popover-row"]}>
-                  <label>Order:</label>
-                  <select
-                    value={sortOrder}
-                    onChange={(e) =>
-                      onSortChange(sortCol, e.target.value as "asc" | "desc")
-                    }
-                  >
-                    <option value="asc">Ascending</option>
-                    <option value="desc">Descending</option>
-                  </select>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
+      <div className={styles["toolbar-right"]}>
         <div className={styles["popover-container"]}>
           <button
             type="button"
             className={`${styles["toolbar-btn"]}${filterCol ? ` ${styles["is-active"]}` : ""}`}
             onClick={() => setShowFilterMenu(!showFilterMenu)}
+            title="Filter rows"
           >
             <FunnelIcon size={14} />
             <span>Filter{filterCol ? `: ${filterCol}` : ""}</span>
@@ -144,16 +96,75 @@ export function DatabaseToolbar({
             </div>
           )}
         </div>
-      </div>
 
-      <button
-        type="button"
-        className={styles["new-row-btn"]}
-        onClick={onAddRow}
-      >
-        <PlusIcon size={14} />
-        <span>New</span>
-      </button>
+        <div className={styles["popover-container"]}>
+          <button
+            type="button"
+            className={`${styles["toolbar-btn"]}${sortCol ? ` ${styles["is-active"]}` : ""}`}
+            onClick={() => setShowSortMenu(!showSortMenu)}
+            title="Sort rows"
+          >
+            <ArrowsDownUpIcon size={14} />
+            <span>Sort{sortCol ? `: ${sortCol}` : ""}</span>
+          </button>
+
+          {showSortMenu && (
+            <div className={styles["popover-dropdown"]}>
+              <div className={styles["popover-row"]}>
+                <label>Column:</label>
+                <select
+                  value={sortCol || ""}
+                  onChange={(e) =>
+                    onSortChange(e.target.value || null, sortOrder)
+                  }
+                >
+                  <option value="">(None)</option>
+                  {columns.map((col) => (
+                    <option key={col.name} value={col.name}>
+                      {col.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {sortCol && (
+                <div className={styles["popover-row"]}>
+                  <label>Order:</label>
+                  <select
+                    value={sortOrder}
+                    onChange={(e) =>
+                      onSortChange(sortCol, e.target.value as "asc" | "desc")
+                    }
+                  >
+                    <option value="asc">Ascending</option>
+                    <option value="desc">Descending</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className={styles["search-container"]}>
+          <MagnifyingGlassIcon size={14} />
+          <input
+            type="text"
+            className={styles["search-input"]}
+            placeholder="Search rows..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
+
+        <button
+          type="button"
+          className={styles["new-row-btn"]}
+          onClick={onAddRow}
+          aria-label="New row"
+        >
+          <span>New</span>
+          <CaretDownIcon size={10} />
+        </button>
+      </div>
     </div>
   );
 }

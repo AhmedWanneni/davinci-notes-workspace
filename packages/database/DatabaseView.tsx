@@ -1,21 +1,13 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { DatabaseColumn } from "./databaseTypes";
 import { parseDatabase } from "./parseDatabase";
-import { serializeDatabase } from "./serializeDatabase";
-import { editCell } from "./cellOperations";
-import { addRow, deleteRow, duplicateRow } from "./rowOperations";
-import {
-  addColumn,
-  renameColumn,
-  deleteColumn,
-  changeColumnType,
-} from "./columnOperations";
 import { DatabaseHeaderCell } from "./DatabaseHeaderCell";
 import { DatabaseRowComponent } from "./DatabaseRowComponent";
 import { DatabaseToolbar } from "./DatabaseToolbar";
 import { DatabaseColumnModal } from "./DatabaseColumnModal";
 import { useDatabaseKeyboardNav } from "./useDatabaseKeyboardNav";
+import { useDatabaseOperations } from "./useDatabaseOperations";
 import { filterAndSortRows } from "./databaseViewHelpers";
 import { PlusIcon } from "./DatabaseIcons";
 import styles from "./DatabaseView.module.scss";
@@ -89,70 +81,12 @@ export function DatabaseView({
     overscan: 10,
   });
 
-  const handleCellSave = useCallback(
-    (rowId: string, colIdx: number, val: string) => {
-      setEditingCellId(null);
-      if (!model) return;
-      const updated = editCell(model, rowId, colIdx, val);
-      onChange(serializeDatabase(updated));
-    },
-    [model, onChange],
-  );
-
-  const handleAddRow = useCallback(() => {
-    if (!model) return;
-    onChange(serializeDatabase(addRow(model)));
-  }, [model, onChange]);
-
-  const handleDuplicateRow = useCallback(
-    (rowId: string) => {
-      if (!model) return;
-      onChange(serializeDatabase(duplicateRow(model, rowId)));
-    },
-    [model, onChange],
-  );
-
-  const handleDeleteRow = useCallback(
-    (rowId: string) => {
-      if (!model) return;
-      onChange(serializeDatabase(deleteRow(model, rowId)));
-    },
-    [model, onChange],
-  );
-
-  const handleAddColumn = useCallback(() => {
-    if (!model) return;
-    const name = `Column ${model.columns.length + 1}`;
-    onChange(serializeDatabase(addColumn(model, name, "text")));
-  }, [model, onChange]);
-
-  const handleSaveColumn = useCallback(
-    (updated: DatabaseColumn) => {
-      if (!model || !modalCol) return;
-      const old = modalCol.col;
-      let next = model;
-      if (old.name !== updated.name)
-        next = renameColumn(next, old.name, updated.name);
-      if (old.type !== updated.type || old.options !== updated.options) {
-        next = changeColumnType(
-          next,
-          updated.name,
-          updated.type,
-          updated.options,
-        );
-      }
-      onChange(serializeDatabase(next));
-    },
-    [model, modalCol, onChange],
-  );
-
-  const handleDeleteColumn = useCallback(
-    (name: string) => {
-      if (!model) return;
-      onChange(serializeDatabase(deleteColumn(model, name)));
-    },
-    [model, onChange],
-  );
+  const ops = useDatabaseOperations({
+    model,
+    modalCol,
+    onChange,
+    setEditingCellId,
+  });
 
   if (!model) {
     return (
@@ -192,7 +126,7 @@ export function DatabaseView({
           setFilterCol(col);
           setFilterVal(val);
         }}
-        onAddRow={handleAddRow}
+        onAddRow={ops.handleAddRow}
       />
 
       <div className={styles["table-scroll-container"]} ref={parentRef}>
@@ -212,10 +146,11 @@ export function DatabaseView({
           <button
             type="button"
             className={styles["add-col-btn"]}
-            onClick={handleAddColumn}
+            onClick={ops.handleAddColumn}
+            title="Add column"
+            aria-label="Add column"
           >
             <PlusIcon size={14} />
-            <span>Add column</span>
           </button>
         </div>
 
@@ -252,15 +187,15 @@ export function DatabaseView({
                     setEditingCellId({ rowId: row.id, colIdx });
                   }}
                   onCellSave={(colIdx, val) =>
-                    handleCellSave(row.id, colIdx, val)
+                    ops.handleCellSave(row.id, colIdx, val)
                   }
                   onCellCancel={() => {
                     nav.stopEditing();
                     setEditingCellId(null);
                   }}
                   onLinkClick={onOpenNote}
-                  onDuplicateRow={() => handleDuplicateRow(row.id)}
-                  onDeleteRow={() => handleDeleteRow(row.id)}
+                  onDuplicateRow={() => ops.handleDuplicateRow(row.id)}
+                  onDeleteRow={() => ops.handleDeleteRow(row.id)}
                 />
               </div>
             );
@@ -275,8 +210,8 @@ export function DatabaseView({
           rows={model.rows}
           isOpen={true}
           onClose={() => setModalCol(null)}
-          onSave={handleSaveColumn}
-          onDelete={handleDeleteColumn}
+          onSave={ops.handleSaveColumn}
+          onDelete={ops.handleDeleteColumn}
         />
       )}
     </div>
