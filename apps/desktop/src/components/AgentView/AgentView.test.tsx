@@ -5,6 +5,7 @@ import { AgentView } from "./AgentView";
 import { AgentMessageBubble } from "./AgentMessageBubble";
 import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentHistoryDrawer } from "./AgentHistoryDrawer";
+import { AgentShortcutsBar } from "./AgentShortcutsBar";
 import type { ChatMessageItem, StagedChangeItem } from "./agentTypes";
 
 vi.mock("./desktopAgentBridge", () => ({
@@ -21,13 +22,17 @@ vi.mock("./desktopAgentBridge", () => ({
 }));
 
 vi.mock("../../ai/AISubsystem", () => ({
-  loadSelectedProvider: vi.fn().mockResolvedValue("ollama"),
+  loadSelectedProvider: vi.fn().mockResolvedValue("gemini"),
+  loadAIProviderStatus: vi.fn().mockResolvedValue("ready"),
   createConfiguredProvider: vi.fn().mockResolvedValue({
     complete: vi.fn().mockResolvedValue({
       content: "I have reviewed your vault.",
       toolCalls: [],
     }),
   }),
+  saveSelectedProvider: vi.fn().mockResolvedValue(undefined),
+  validateAndSaveProviderKey: vi.fn().mockResolvedValue(undefined),
+  saveOllamaConfig: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("../../vault/vaultCommands", () => ({
@@ -36,12 +41,34 @@ vi.mock("../../vault/vaultCommands", () => ({
 }));
 
 describe("AgentView Components", () => {
-  it("renders empty state when there are no messages", async () => {
+  it("renders empty state and shortcuts bar when configured with no messages", async () => {
     await act(async () => {
       render(<AgentView />);
     });
     expect(screen.getByText("Talk to your vault")).toBeTruthy();
+    expect(screen.getByText("Shortcuts:")).toBeTruthy();
+    expect(screen.getByText("Weekly Review")).toBeTruthy();
     expect(screen.getByPlaceholderText(/Ask a question or request changes/i)).toBeTruthy();
+  });
+
+  it("triggers shortcut on click", () => {
+    const onTrigger = vi.fn();
+    render(
+      <AgentShortcutsBar
+        shortcuts={[
+          {
+            id: "sc-1",
+            title: "Quick Summary",
+            prompt: "Summarize this note",
+          },
+        ]}
+        onTriggerShortcut={onTrigger}
+      />,
+    );
+
+    expect(screen.getByText("Quick Summary")).toBeTruthy();
+    fireEvent.click(screen.getByText("Quick Summary"));
+    expect(onTrigger).toHaveBeenCalledWith(expect.objectContaining({ id: "sc-1" }));
   });
 
   it("renders user and assistant message bubbles with tools", () => {

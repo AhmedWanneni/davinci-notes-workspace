@@ -7,3 +7,4 @@ export * from "./lineDiff.js";
 export * from "./databaseNoteGenerator.js";
 export * from "./taskListGenerator.js";
 export * from "./vaultMutationTools.js";
+export * from "./shortcutsEngine.js";

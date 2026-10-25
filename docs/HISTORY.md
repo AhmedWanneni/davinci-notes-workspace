@@ -2,6 +2,23 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard
+
+- **Shortcuts Engine (`packages/ai-agent/shortcutsEngine.ts`)**:
+  - Designed `<vault>/.davinci/agent/shortcuts.json` schema and default starter shortcuts ("Weekly Review", "Extract Action Items", "Organize Notes", "Create Database Table").
+  - Implemented template variable substitution (`{activeNote}`, `{folder}`, `{today}`).
+- **Shortcuts Bar UI (`apps/desktop/src/components/AgentView/AgentShortcutsBar.tsx`)**:
+  - Lightweight quick-action toolbar above chat input enabling one-click shortcut execution.
+- **Non-Technical Onboarding Wizard (`apps/desktop/src/components/AgentView/AgentOnboardingCard.tsx`)**:
+  - Friendly 3-step setup card for unconfigured providers (Google Gemini free key link, OpenRouter, Local Ollama auto-connect).
+  - Validates connection live with clear, friendly error and success indicators before entering chat.
+- **Verification**:
+  - 33/33 tests passing in `@app/ai-agent` (`shortcutsEngine.test.ts`, `vaultMutationTools.test.ts`, etc.).
+  - 5/5 tests passing in `AgentView.test.tsx` including empty state shortcuts rendering and click execution.
+  - All files strictly ≤ 201 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (ADR-0214)
 
 - **Dedicated Virtual Tab (`davinci://agent`)**:

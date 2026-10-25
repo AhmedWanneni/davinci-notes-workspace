@@ -4,7 +4,26 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (ADR-0214)
+## Last Session — AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard
+
+**Scope:**
+1. **Shortcuts Engine (`packages/ai-agent/shortcutsEngine.ts`)**:
+   - Designed `<vault>/.davinci/agent/shortcuts.json` schema and default starter shortcuts ("Weekly Review", "Extract Action Items", "Organize Notes", "Create Database Table").
+   - Implemented template variable substitution (`{activeNote}`, `{folder}`, `{today}`).
+2. **Shortcuts Bar UI (`apps/desktop/src/components/AgentView/AgentShortcutsBar.tsx`)**:
+   - Lightweight quick-action toolbar above chat input enabling one-click shortcut execution.
+3. **Non-Technical Onboarding Wizard (`apps/desktop/src/components/AgentView/AgentOnboardingCard.tsx`)**:
+   - Friendly 3-step setup card for unconfigured providers (Google Gemini free key link, OpenRouter, Local Ollama auto-connect).
+   - Validates connection live with clear, friendly error and success indicators before entering chat.
+
+**Verification:**
+- 33/33 tests passing in `@app/ai-agent` (`shortcutsEngine.test.ts`, `vaultMutationTools.test.ts`, etc.).
+- 5/5 tests passing in `AgentView.test.tsx` including empty state shortcuts rendering and click execution.
+- All files strictly ≤ 201 lines (hard cap 250).
+
+---
+
+## Previous Session — AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (ADR-0214)
 
 **Scope:**
 1. **Dedicated Virtual Tab (`davinci://agent`)**:
@@ -173,9 +192,9 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Next Up
 
-1. **AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard**.
-2. AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop.
-3. AI Agent Phase 8: Web Search Tool & Untrusted Web Content Ingestion [HIGH RISK].
+1. **AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop**.
+2. AI Agent Phase 8: Web Search Tool & Untrusted Web Content Ingestion [HIGH RISK].
+3. AI Agent Phase 9: Google Calendar Two-Way Sync (Write Scope Upgrade & Task Sync).
 
 ---
 

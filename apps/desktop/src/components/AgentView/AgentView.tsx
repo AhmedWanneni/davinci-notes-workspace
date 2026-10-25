@@ -1,11 +1,20 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button, Typography } from "@app/design-system";
 import { Sparkle, Clock } from "@phosphor-icons/react";
+import {
+  parseShortcuts,
+  type AgentShortcut,
+  SHORTCUTS_FILE_PATH,
+} from "@app/ai-agent";
 import { AgentMessageBubble } from "./AgentMessageBubble";
 import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentChatInput } from "./AgentChatInput";
 import { AgentHistoryDrawer } from "./AgentHistoryDrawer";
+import { AgentShortcutsBar } from "./AgentShortcutsBar";
+import { AgentOnboardingCard } from "./AgentOnboardingCard";
 import { useAgentExecution } from "./useAgentExecution";
+import { loadAIProviderStatus, loadSelectedProvider } from "../../ai/AISubsystem";
+import { readNote } from "../../vault/vaultCommands";
 import "./AgentView.module.scss";
 
 export function AgentView() {
@@ -26,11 +35,34 @@ export function AgentView() {
     sendMessage,
   } = useAgentExecution();
 
+  const [isConfigured, setIsConfigured] = useState(true);
+  const [shortcuts, setShortcuts] = useState<AgentShortcut[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const checkProviderConfig = useCallback(async () => {
+    try {
+      const providerId = await loadSelectedProvider();
+      const status = await loadAIProviderStatus(providerId);
+      setIsConfigured(status === "ready");
+    } catch {
+      setIsConfigured(false);
+    }
+  }, []);
+
+  const loadShortcuts = useCallback(async () => {
+    try {
+      const file = await readNote(SHORTCUTS_FILE_PATH);
+      setShortcuts(parseShortcuts(file.content).shortcuts);
+    } catch {
+      setShortcuts(parseShortcuts(null).shortcuts);
+    }
+  }, []);
 
   useEffect(() => {
     void loadLedger();
-  }, [loadLedger]);
+    void checkProviderConfig();
+    void loadShortcuts();
+  }, [checkProviderConfig, loadLedger, loadShortcuts]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
@@ -57,7 +89,9 @@ export function AgentView() {
         </header>
 
         <div className="agent-view__messages">
-          {messages.length === 0 ? (
+          {!isConfigured && messages.length === 0 ? (
+            <AgentOnboardingCard onConfigured={() => setIsConfigured(true)} />
+          ) : messages.length === 0 ? (
             <div className="agent-view__empty">
               <Sparkle size={32} weight="duotone" />
               <Typography variant="text" size="sm" weight="medium">
@@ -82,12 +116,21 @@ export function AgentView() {
           />
         )}
 
-        <AgentChatInput
-          onSend={sendMessage}
-          isStreaming={isStreaming}
-          autoApply={autoApply}
-          onToggleAutoApply={setAutoApply}
-        />
+        {isConfigured && (
+          <div className="agent-view__controls">
+            <AgentShortcutsBar
+              shortcuts={shortcuts}
+              onTriggerShortcut={(sc) => void sendMessage(sc.prompt)}
+              disabled={isStreaming}
+            />
+            <AgentChatInput
+              onSend={sendMessage}
+              isStreaming={isStreaming}
+              autoApply={autoApply}
+              onToggleAutoApply={setAutoApply}
+            />
+          </div>
+        )}
       </div>
 
       <AgentHistoryDrawer
