@@ -17,6 +17,7 @@ import {
   FileText,
   Image as ImageIcon,
   Kanban as KanbanIcon,
+  Table as TableIcon,
 } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
@@ -44,6 +45,11 @@ const LazyCanvasView = lazy(() =>
 const LazyKanbanView = lazy(() =>
   import("@app/kanban").then((m) => ({
     default: m.KanbanView,
+  })),
+);
+const LazyDatabaseView = lazy(() =>
+  import("@app/database").then((m) => ({
+    default: m.DatabaseView,
   })),
 );
 const LazyInsertMenu = lazy(() =>
@@ -127,16 +133,11 @@ export function EditorArea({
     handleSaveMediaFile,
   } = useEditorMediaHandlers(activeNotePath);
 
-  const cleanedContent = useMemo(
-    () => stripNoteMetadata(content),
-    [content],
-  );
+  const cleanedContent = useMemo(() => stripNoteMetadata(content), [content]);
 
   const { frontmatter } = useMemo(
     () =>
-      activeNotePath
-        ? parseFrontmatter(cleanedContent)
-        : { frontmatter: {} },
+      activeNotePath ? parseFrontmatter(cleanedContent) : { frontmatter: {} },
     [activeNotePath, cleanedContent],
   );
 
@@ -148,7 +149,12 @@ export function EditorArea({
     handleSetCover,
     handleRemoveCover,
     handleSaveCoverPosition,
-  } = useNoteCoverImage(activeNotePath, content, frontmatter, updateNoteContent);
+  } = useNoteCoverImage(
+    activeNotePath,
+    content,
+    frontmatter,
+    updateNoteContent,
+  );
 
   const displayTitle = useMemo(() => {
     if (!activeNotePath) return "";
@@ -163,19 +169,58 @@ export function EditorArea({
   const isBoardNote = useMemo(() => {
     return Boolean(
       frontmatter &&
-        (frontmatter as Record<string, unknown>)["kanban-plugin"] === "board",
+      (frontmatter as Record<string, unknown>)["kanban-plugin"] === "board",
+    );
+  }, [frontmatter]);
+
+  const isDatabaseNote = useMemo(() => {
+    return Boolean(
+      frontmatter &&
+      (frontmatter as Record<string, unknown>)["database"] === "table",
     );
   }, [frontmatter]);
 
   const [noteViewModes, setNoteViewModes] = useState<
-    Record<string, "board" | "markdown">
+    Record<string, "board" | "table" | "markdown">
   >({});
+  const defaultMode = isBoardNote
+    ? "board"
+    : isDatabaseNote
+      ? "table"
+      : "markdown";
   const currentViewMode = activeNotePath
-    ? (noteViewModes[activeNotePath] ?? (isBoardNote ? "board" : "markdown"))
+    ? (noteViewModes[activeNotePath] ?? defaultMode)
     : "markdown";
   const isKanbanActive = isBoardNote && currentViewMode === "board";
+  const isDatabaseActive = isDatabaseNote && currentViewMode === "table";
 
   const [boardParseError, setBoardParseError] = useState<string | null>(null);
+  const [databaseParseError, setDatabaseParseError] = useState<string | null>(
+    null,
+  );
+
+  useEffect(() => {
+    if (isDatabaseNote && content) {
+      void import("@app/database")
+        .then(({ parseDatabase }) => {
+          try {
+            parseDatabase(content);
+            setDatabaseParseError(null);
+          } catch {
+            setDatabaseParseError(
+              "This note has database: table but could not be parsed safely. Opened as Markdown.",
+            );
+          }
+        })
+        .catch(() => {
+          setDatabaseParseError(
+            "Failed to load database module. Opened as Markdown.",
+          );
+        });
+    } else {
+      setDatabaseParseError(null);
+    }
+  }, [isDatabaseNote, content]);
 
   useEffect(() => {
     if (isBoardNote && content) {
@@ -291,6 +336,27 @@ export function EditorArea({
             )}
           </button>
         )}
+        {isDatabaseNote && (
+          <button
+            type="button"
+            className="editor-area__note-header-button"
+            aria-label={isDatabaseActive ? "Open as markdown" : "Open as table"}
+            title={isDatabaseActive ? "Open as markdown" : "Open as table"}
+            onClick={() => {
+              if (!activeNotePath) return;
+              setNoteViewModes((prev) => ({
+                ...prev,
+                [activeNotePath]: isDatabaseActive ? "markdown" : "table",
+              }));
+            }}
+          >
+            {isDatabaseActive ? (
+              <FileText size={16} weight="regular" />
+            ) : (
+              <TableIcon size={16} weight="regular" />
+            )}
+          </button>
+        )}
         <button
           type="button"
           className="editor-area__note-header-button"
@@ -309,9 +375,7 @@ export function EditorArea({
             const view = editorViewRef.current;
             if (!view) return;
             insertSelectionRef.current = view.state.selection;
-            setInsertAnchor(
-              event.currentTarget.getBoundingClientRect(),
-            );
+            setInsertAnchor(event.currentTarget.getBoundingClientRect());
             setIsInsertMenuOpen(true);
           }}
         >
@@ -438,9 +502,7 @@ export function EditorArea({
                 {noteHeader}
               </NoteCoverImage>
             ) : null}
-            <div className="editor-area__header">
-              {!coverUrl && noteHeader}
-            </div>
+            <div className="editor-area__header">{!coverUrl && noteHeader}</div>
             {hasConflict && activeNotePath && (
               <EditorConflictBanner
                 path={activeNotePath}
@@ -482,6 +544,72 @@ export function EditorArea({
               </Suspense>
             </div>
           </div>
+        ) : isDatabaseActive && !databaseParseError ? (
+          <div className="editor-area__container">
+            {coverUrl ? (
+              <NoteCoverImage
+                coverUrl={coverUrl}
+                coverY={coverY}
+                resolveMediaUrl={handleResolveMediaUrl}
+                onChangeCover={() => setIsCoverPickerOpen(true)}
+                onRemoveCover={handleRemoveCover}
+                onSavePosition={handleSaveCoverPosition}
+              >
+                {noteHeader}
+              </NoteCoverImage>
+            ) : null}
+            <div className="editor-area__header">{!coverUrl && noteHeader}</div>
+            {hasConflict && activeNotePath && (
+              <EditorConflictBanner
+                path={activeNotePath}
+                onKeepMine={() =>
+                  void resolveConflict(activeNotePath, "keep_mine")
+                }
+                onUseDisk={() =>
+                  void resolveConflict(activeNotePath, "use_disk")
+                }
+                onSaveCopy={() =>
+                  void resolveConflict(activeNotePath, "save_copy")
+                }
+              />
+            )}
+            <div
+              className="editor-area__body"
+              style={{ display: "flex", flex: 1, minHeight: 0 }}
+            >
+              <Suspense
+                fallback={
+                  <div
+                    className="database-view-loading"
+                    style={{
+                      padding: "16px",
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    Loading database table...
+                  </div>
+                }
+              >
+                <LazyDatabaseView
+                  filePath={activeNotePath}
+                  content={content}
+                  onChange={(newContent) => {
+                    if (activeNotePath) {
+                      updateNoteContent(activeNotePath, newContent);
+                    }
+                  }}
+                  onOpenNote={onLinkClick}
+                  onOpenAsMarkdown={() => {
+                    if (!activeNotePath) return;
+                    setNoteViewModes((prev) => ({
+                      ...prev,
+                      [activeNotePath]: "markdown",
+                    }));
+                  }}
+                />
+              </Suspense>
+            </div>
+          </div>
         ) : (
           <div className="editor-area__container">
             {boardParseError && (
@@ -495,6 +623,19 @@ export function EditorArea({
                 }}
               >
                 ⚠️ {boardParseError}
+              </div>
+            )}
+            {databaseParseError && (
+              <div
+                style={{
+                  padding: "8px 16px",
+                  background: "var(--color-bg-status-warning, #fff8e1)",
+                  borderBottom: "1px solid var(--color-border-subtle, #e4e4e4)",
+                  color: "var(--color-text-normal, #222222)",
+                  fontSize: "0.875rem",
+                }}
+              >
+                ⚠️ {databaseParseError}
               </div>
             )}
             {coverUrl ? (

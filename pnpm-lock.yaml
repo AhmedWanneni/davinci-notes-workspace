@@ -792,6 +792,9 @@ importers:
       '@app/design-system':
         specifier: workspace:*
         version: link:../design-system
+      '@tanstack/react-virtual':
+        specifier: ^3.14.9
+        version: 3.14.22(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       yaml:
         specifier: ^2.9.0
         version: 2.9.1

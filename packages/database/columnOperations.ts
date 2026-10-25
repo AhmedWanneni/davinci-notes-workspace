@@ -1,4 +1,9 @@
-import type { DatabaseModel, DatabaseColumn, ColumnType, SelectOption } from "./databaseTypes";
+import type {
+  DatabaseModel,
+  DatabaseColumn,
+  ColumnType,
+  SelectOption,
+} from "./databaseTypes";
 import { serializeRowCells } from "./tableParser";
 import {
   updateFrontmatterColumns,
@@ -51,7 +56,9 @@ export function renameColumn(
   model.tableColumnNames[idx] = cleanNew;
   model.tableHeaderLine = serializeRowCells(model.tableColumnNames);
 
-  const col = model.columns.find((c) => c.name.toLowerCase() === oldName.toLowerCase());
+  const col = model.columns.find(
+    (c) => c.name.toLowerCase() === oldName.toLowerCase(),
+  );
   if (col) {
     col.name = cleanNew;
   }
@@ -67,8 +74,14 @@ export function renameColumn(
 
 export function deleteColumn(
   model: DatabaseModel,
-  colIndex: number,
+  target: number | string,
 ): DatabaseModel {
+  const colIndex =
+    typeof target === "number"
+      ? target
+      : model.tableColumnNames.findIndex(
+          (n) => n.toLowerCase() === target.toLowerCase(),
+        );
   if (colIndex < 0 || colIndex >= model.tableColumnNames.length) return model;
 
   const colName = model.tableColumnNames[colIndex];
@@ -104,7 +117,9 @@ export function reorderColumns(
 ): DatabaseModel {
   if (newOrderIndices.length !== model.tableColumnNames.length) return model;
 
-  model.tableColumnNames = newOrderIndices.map((i) => model.tableColumnNames[i]);
+  model.tableColumnNames = newOrderIndices.map(
+    (i) => model.tableColumnNames[i],
+  );
   model.tableHeaderLine = serializeRowCells(model.tableColumnNames);
 
   const nextCols: DatabaseColumn[] = [];
@@ -116,7 +131,9 @@ export function reorderColumns(
   model.columns = nextCols;
 
   for (const row of model.rows) {
-    row.cells = newOrderIndices.map((i) => (i < row.cells.length ? row.cells[i] : ""));
+    row.cells = newOrderIndices.map((i) =>
+      i < row.cells.length ? row.cells[i] : "",
+    );
     row.rawLine = serializeRowCells(row.cells);
   }
 
@@ -134,7 +151,9 @@ export function changeColumnType(
   newType: ColumnType,
   options?: SelectOption[],
 ): DatabaseModel {
-  const col = model.columns.find((c) => c.name.toLowerCase() === colName.toLowerCase());
+  const col = model.columns.find(
+    (c) => c.name.toLowerCase() === colName.toLowerCase(),
+  );
   if (col) {
     col.type = newType;
     col.options = options;

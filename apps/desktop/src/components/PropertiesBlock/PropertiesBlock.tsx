@@ -126,6 +126,8 @@ const HIDDEN_FRONTMATTER_KEYS = new Set([
   "bannerY",
   "icon",
   "kanban-plugin",
+  "database",
+  "columns",
 ]);
 
 export function PropertiesBlock({

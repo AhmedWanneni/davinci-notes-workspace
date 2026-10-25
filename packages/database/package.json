@@ -13,6 +13,7 @@
   "dependencies": {
     "@app/core-types": "workspace:*",
     "@app/design-system": "workspace:*",
+    "@tanstack/react-virtual": "^3.14.9",
     "yaml": "^2.9.0"
   },
   "peerDependencies": {

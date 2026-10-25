@@ -156,4 +156,23 @@ describe("AppTabs", () => {
     expect(tabs[0].querySelector("svg")).toBeDefined();
     expect(tabs[1].querySelector("svg")).toBeDefined();
   });
+
+  it("renders distinct table icon for database tabs", () => {
+    const { container } = render(
+      <AppTabs
+        openNotes={["db.md", "regular.md"]}
+        activeNotePath="db.md"
+        dirtyNotes={new Set()}
+        databaseNotes={new Set(["db.md"])}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    const tabs = container.querySelectorAll(".app-tabs__tab");
+    expect(tabs).toHaveLength(2);
+    expect(tabs[0].querySelector("svg")).toBeDefined();
+    expect(tabs[1].querySelector("svg")).toBeDefined();
+  });
 });

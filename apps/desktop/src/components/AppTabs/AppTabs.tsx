@@ -5,6 +5,7 @@ import {
   FileText,
   FrameCorners,
   Kanban as KanbanIcon,
+  Table as TableIcon,
   X,
 } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
@@ -21,6 +22,7 @@ export interface AppTabsProps {
   dirtyNotes: Set<string>;
   conflictNotes?: Map<string, string>;
   boardNotes?: Set<string>;
+  databaseNotes?: Set<string>;
   onSelectNote: (path: string) => void;
   onCloseNote: (path: string) => void;
   onCloseAllNotes?: () => void;
@@ -39,6 +41,7 @@ export function AppTabs({
   dirtyNotes,
   conflictNotes,
   boardNotes,
+  databaseNotes,
   onSelectNote,
   onCloseNote,
   onCloseAllNotes,
@@ -101,6 +104,7 @@ export function AppTabs({
         {openNotes.map((path) => {
           const isCanvas = path.endsWith(".canvas");
           const isBoard = boardNotes?.has(path);
+          const isDatabase = databaseNotes?.has(path);
           const displayTitle =
             path
               .replace(/\.(md|canvas)$/i, "")
@@ -132,6 +136,8 @@ export function AppTabs({
                   <FrameCorners size={13} weight="regular" />
                 ) : isBoard ? (
                   <KanbanIcon size={13} weight="regular" />
+                ) : isDatabase ? (
+                  <TableIcon size={13} weight="regular" />
                 ) : (
                   <FileText size={13} weight="regular" />
                 )}

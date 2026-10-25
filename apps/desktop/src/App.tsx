@@ -145,7 +145,24 @@ export function App() {
     const set = new Set<string>();
     for (const p of openNotes) {
       const c = notesContent[p];
-      if (c && /(?:^|\n)\s*kanban-plugin\s*:\s*["']?board["']?\s*(?:\r?\n|$)/.test(c)) {
+      if (
+        c &&
+        /(?:^|\n)\s*kanban-plugin\s*:\s*["']?board["']?\s*(?:\r?\n|$)/.test(c)
+      ) {
+        set.add(p);
+      }
+    }
+    return set;
+  }, [openNotes, notesContent]);
+
+  const databaseNotes = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of openNotes) {
+      const c = notesContent[p];
+      if (
+        c &&
+        /(?:^|\n)\s*database\s*:\s*["']?table["']?\s*(?:\r?\n|$)/.test(c)
+      ) {
         set.add(p);
       }
     }
@@ -623,8 +640,6 @@ export function App() {
       data-right-collapsed={!isRightSidebarOpen || undefined}
     >
       <div className="app-shell__body">
-     
-
         <AppSidebar
           vaultName={vaultName}
           vaultPath={vaultPath}
@@ -684,6 +699,7 @@ export function App() {
             dirtyNotes={dirtyNotes}
             conflictNotes={conflictNotes}
             boardNotes={boardNotes}
+            databaseNotes={databaseNotes}
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
             onCloseAllNotes={() => void closeAllNotes()}
