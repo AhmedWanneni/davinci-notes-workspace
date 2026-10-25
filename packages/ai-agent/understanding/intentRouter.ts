@@ -21,6 +21,10 @@ const REGEX_ORGANIZE =
   /\b(organize|sort|tidy|clean\s*up|rearrange)\b/i;
 const REGEX_MOVE =
   /\b(move|rename|relocate)\b.*\b(note|file|folder|to)\b/i;
+const REGEX_ORGANIZE_FILES =
+  /\b(put|move|place|organize|relocate|shift|transfer)\b.*\b(files?|notes?|docs?|everything|them|it)\b.*\b(in|into|under|to)\b/i;
+const REGEX_FOLDER_AND_PUT =
+  /\b(create|make)\b.*\b(folder|dir|directory)\b.*\b(put|move|place|relocate|transfer)\b/i;
 const REGEX_READ =
   /\b(read|open|show|view|display|check|inspect|look\s*at)\b.*\b(note|file|document)\b/i;
 const REGEX_SEARCH =
@@ -33,13 +37,18 @@ export function classifyIntentFast(text: string): AgentIntent | null {
   if (!trimmed) return "chat";
   if (REGEX_CHAT.test(trimmed)) return "chat";
 
-  // Check create before edit
-  if (REGEX_CREATE.test(trimmed)) return "create_note";
-
-  // Check organize/move before general edit
-  if (REGEX_MOVE.test(trimmed) || REGEX_ORGANIZE.test(trimmed)) {
+  // Check organize/move before create so "create folder and put files in it" routes to organize
+  if (
+    REGEX_MOVE.test(trimmed) ||
+    REGEX_ORGANIZE.test(trimmed) ||
+    REGEX_ORGANIZE_FILES.test(trimmed) ||
+    REGEX_FOLDER_AND_PUT.test(trimmed)
+  ) {
     return "organize";
   }
+
+  // Check create
+  if (REGEX_CREATE.test(trimmed)) return "create_note";
 
   // Check read before search
   if (REGEX_READ.test(trimmed)) return "read_note";

@@ -1,10 +1,12 @@
 import type { AgentToolCall } from "@app/ai-api";
+import { isConversationalMeta } from "./conversationalMeta.js";
+export { isConversationalMeta };
 
 const INVALID_WORDS = new Set([
   "having", "hacing", "with", "about", "for", "in", "on", "at", "to", "from",
   "of", "by", "containing", "listing", "including", "summarizing", "called",
   "named", "titled", "that", "which", "a", "an", "the", "some", "all", "any",
-  "and", "or", "but", "this", "my", "your",
+  "and", "or", "but", "this", "my", "your", "it", "them",
 ]);
 
 function cleanPath(raw: string, isFolder = false): string {
@@ -16,28 +18,6 @@ function cleanPath(raw: string, isFolder = false): string {
     cleaned = `${cleaned}.md`;
   }
   return cleaned;
-}
-
-export function isConversationalMeta(text: string): boolean {
-  if (!text) return true;
-  const lower = text.toLowerCase();
-  return (
-    lower.includes("staged-for-approval") ||
-    lower.includes("staged for approval") ||
-    lower.includes("pending approval") ||
-    lower.includes("confirm or modify") ||
-    lower.includes("staged for review") ||
-    lower.includes("staged for your confirmation") ||
-    lower.includes("please provide") ||
-    lower.includes("what are the") ||
-    lower.includes("what books") ||
-    lower.includes("i'll need to know") ||
-    lower.includes("could you provide") ||
-    lower.includes("can you provide") ||
-    lower.includes("do you want me to") ||
-    lower.includes("would you like me to") ||
-    lower.includes("to proceed, i'll need")
-  );
 }
 
 function extractCodeBlock(text: string): string {
@@ -84,6 +64,47 @@ function matchEntityName(pattern: RegExp, text: string): string | null {
   const raw = (match[1] || match[2] || "").trim();
   if (!raw || INVALID_WORDS.has(raw.toLowerCase())) return null;
   return raw;
+}
+
+function extractMoveToolCalls(
+  prompt: string,
+  text: string,
+  folderName: string | null,
+): AgentToolCall[] {
+  const calls: AgentToolCall[] = [];
+  const combined = `${prompt} ${text}`.trim();
+  const addMove = (from: string, to: string) => {
+    if (!calls.some((c) => c.arguments.fromPath === from && c.arguments.toPath === to)) {
+      calls.push({ id: `call_conv_move_${Date.now()}_${calls.length}`, name: "move_note", arguments: { fromPath: from, toPath: to } });
+    }
+  };
+
+  const explicitPattern =
+    /(?:move|moved|put|place|placed|relocate)\s+(?:the\s+)?(?:note|file\s+)?["'‘“]?([a-zA-Z0-9_\-\.]+\.md|[a-zA-Z0-9_\-]+)["'’”]?\s+(?:in|into|to|under)\s+(?:the\s+)?(?:folder|directory\s+)?["'‘“]?([a-zA-Z0-9_\-/\.]+)["'’”]?/gi;
+  let match: RegExpExecArray | null;
+  while ((match = explicitPattern.exec(combined)) !== null) {
+    const rawFrom = match[1]?.trim().replace(/^["'‘“]+|["'’”\.\,\!]+$/g, "");
+    const rawDest = match[2]?.trim().replace(/^["'‘“]+|["'’”\.\,\!]+$/g, "");
+    if (rawFrom && rawDest && !INVALID_WORDS.has(rawFrom.toLowerCase()) && !INVALID_WORDS.has(rawDest.toLowerCase())) {
+      const fromPath = cleanPath(rawFrom);
+      const destClean = cleanPath(rawDest, true);
+      const toPath = destClean.endsWith(".md") ? destClean : `${destClean}/${fromPath.split("/").pop()}`;
+      addMove(fromPath, toPath);
+    }
+  }
+
+  if (calls.length === 0 && folderName) {
+    const putInItPattern =
+      /(?:put|move|place|relocate)\s+(?:the\s+)?(?:note|file\s+)?["'‘“]?([a-zA-Z0-9_\-\.]+\.md|[a-zA-Z0-9_\-]+)["'’”]?\s+(?:in|into|under|to)\s+(?:it|the\s+folder|the\s+directory)/i;
+    const itMatch = putInItPattern.exec(combined);
+    const rawItFrom = itMatch?.[1]?.trim().replace(/^["'‘“]+|["'’”\.\,\!]+$/g, "");
+    if (rawItFrom && !INVALID_WORDS.has(rawItFrom.toLowerCase())) {
+      const fromPath = cleanPath(rawItFrom);
+      const toPath = `${folderName}/${fromPath.split("/").pop()}`;
+      addMove(fromPath, toPath);
+    }
+  }
+  return calls;
 }
 
 /**
@@ -134,6 +155,13 @@ export function extractConversationalToolCalls(
       name: "web_search",
       arguments: { query },
     });
+  }
+
+  // Check for move/put existing files into folder
+  const moveCalls = extractMoveToolCalls(prompt, text, folderName);
+  if (moveCalls.length > 0) {
+    results.push(...moveCalls);
+    return results;
   }
 
 

@@ -134,7 +134,11 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
                 return r.content || "";
               });
 
-          systemPrompt = getScopedSystemPrompt(resolvedIntent, vName);
+          systemPrompt = getScopedSystemPrompt(
+            resolvedIntent,
+            vName,
+            state.allNotePaths?.slice(0, 50),
+          );
           const scopedTools = getScopedTools(resolvedIntent);
           activeTools =
             options?.webSearchEnabled && resolvedIntent !== "chat"

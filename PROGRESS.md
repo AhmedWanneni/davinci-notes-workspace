@@ -4,7 +4,30 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Action Organization, Nested Folder Placement & Guard Against Conversational Meta Text
+## Last Session — Organizing Existing Files into Folders & Enhanced Action Management
+
+**Scope:**
+1. **Intent Routing for Organizing & Moving Existing Files (`intentRouter.ts`)**:
+   - Added `REGEX_ORGANIZE_FILES` and `REGEX_FOLDER_AND_PUT` rules so requests like *"create a folder named books and put ideas.md in it"* or *"put the files in a folder named work"* classify as `"organize"` instead of pure note creation.
+   - Evaluated organize/relocation patterns before simple create rules.
+2. **Existing Vault Notes Context Injection (`organizePrompt.ts`, `createNotePrompt.ts`, `prompts/index.ts`, `useAgentExecution.ts`)**:
+   - Upgraded `buildOrganizePrompt` and `buildCreateNotePrompt` to accept `existingNotes?: string[]`.
+   - Injected current vault note paths directly into the scoped system prompt (`EXISTING NOTES IN VAULT: [...]`), giving weak models visibility into what files exist to organize.
+   - Added `MOVE_NOTE_TOOL` and `LIST_VAULT_TREE_TOOL` to `create_note` tools as safety fallbacks.
+3. **Conversational Action Recovery for `move_note` (`conversationalToolFallback.ts`, `conversationalMeta.ts`)**:
+   - Extracted `isConversationalMeta` to `conversationalMeta.ts` to maintain file length compliance.
+   - Built `extractMoveToolCalls`: recognizes explicit moves and compound folder creation with file relocation (*"create a folder named books and put ideas.md in it"* $\rightarrow$ `create_folder("books")` + `move_note("ideas.md", "books/ideas.md")`).
+   - Cleaned destination paths in `executeAgentStepTool.ts` and preserved ADR-0221 destructive confirmation gate for staged moves.
+4. **Verification & Testing**:
+   - Colocated unit tests in `packages/ai-agent/understanding/intentRouter.test.ts` (10/10 passing).
+   - Colocated unit tests in `packages/ai-runtime/conversationalToolFallback.test.ts` (14/14 passing).
+   - Integration test `apps/desktop/src/components/AgentView/AgentOrganizeAndMove.test.tsx` (1/1 passing).
+   - `@app/ai-agent` 17/17 test files (92/92 tests), `@app/ai-runtime` 6/6 test files (34/34 tests) passing.
+   - All files strictly under 250-line hard cap (`AGENTS.md`).
+
+---
+
+## Previous Session — Action Organization, Nested Folder Placement & Guard Against Conversational Meta Text
 
 **Scope:**
 1. **Action Organization & Multi-Step Compound Execution (`conversationalToolFallback.ts`, `createNotePrompt.ts`)**:

@@ -129,6 +129,20 @@ export async function executeAgentStepTool(
   }
 
   if (isMutation) {
+    if (tc.name === "move_note") {
+      let fromPath = String(tc.arguments.fromPath ?? "").trim();
+      let toPath = String(tc.arguments.toPath ?? "").trim();
+      if (fromPath && !fromPath.toLowerCase().endsWith(".md")) {
+        fromPath = `${fromPath}.md`;
+        tc.arguments.fromPath = fromPath;
+      }
+      if (toPath && (toPath.endsWith("/") || !toPath.toLowerCase().endsWith(".md"))) {
+        const base = fromPath ? fromPath.split("/").pop() || "note.md" : "note.md";
+        toPath = `${toPath.replace(/\/+$/, "")}/${base}`;
+        tc.arguments.toPath = toPath;
+      }
+    }
+
     if (tc.name === "create_note") {
       let pathArg = String(tc.arguments.path ?? "").trim();
       if (!pathArg.includes("/") && ctx.workingHistory) {

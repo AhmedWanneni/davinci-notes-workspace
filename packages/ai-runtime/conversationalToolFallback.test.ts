@@ -126,4 +126,25 @@ What are the theatre books you'd like to add to the note?`;
     const call = extractConversationalToolCall(text);
     expect(call).toBeNull();
   });
+
+  it("extracts move_note and create_folder when user asks to put existing file into folder", () => {
+    const userPrompt = "create a folder named books and put ideas.md in it";
+    const text = "Sure! I will create the folder and move ideas.md into it.";
+    const calls = extractConversationalToolCalls(text, userPrompt);
+    expect(calls.length).toBe(2);
+    expect(calls[0].name).toBe("create_folder");
+    expect(calls[0].arguments.path).toBe("books");
+    expect(calls[1].name).toBe("move_note");
+    expect(calls[1].arguments.fromPath).toBe("ideas.md");
+    expect(calls[1].arguments.toPath).toBe("books/ideas.md");
+  });
+
+  it("extracts move_note from assistant phrase", () => {
+    const text = 'I have moved "old.md" to "Archive/old.md".';
+    const call = extractConversationalToolCall(text);
+    expect(call).not.toBeNull();
+    expect(call?.name).toBe("move_note");
+    expect(call?.arguments.fromPath).toBe("old.md");
+    expect(call?.arguments.toPath).toBe("Archive/old.md");
+  });
 });

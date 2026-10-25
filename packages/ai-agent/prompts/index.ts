@@ -42,6 +42,7 @@ export {
 export function getScopedSystemPrompt(
   intent: AgentIntent,
   vaultName: string,
+  existingNotes?: string[],
 ): string {
   switch (intent) {
     case "search_vault":
@@ -49,11 +50,11 @@ export function getScopedSystemPrompt(
     case "read_note":
       return buildReadNotePrompt(vaultName);
     case "create_note":
-      return buildCreateNotePrompt(vaultName);
+      return buildCreateNotePrompt(vaultName, existingNotes);
     case "edit_note":
       return buildEditNotePrompt(vaultName);
     case "organize":
-      return buildOrganizePrompt(vaultName);
+      return buildOrganizePrompt(vaultName, existingNotes);
     case "chat":
       return buildChatPrompt(vaultName);
   }
@@ -69,6 +70,8 @@ export function getScopedTools(intent: AgentIntent): AgentToolDefinition[] {
       return [
         CREATE_NOTE_TOOL,
         CREATE_FOLDER_TOOL,
+        MOVE_NOTE_TOOL,
+        LIST_VAULT_TREE_TOOL,
         CREATE_KANBAN_BOARD_TOOL,
         CREATE_DATABASE_TABLE_TOOL,
         CREATE_TODO_LIST_TOOL,

@@ -26,6 +26,9 @@ describe("intentRouter", () => {
       expect(classifyIntentFast("move note old.md to Archive/")).toBe("organize");
       expect(classifyIntentFast("organize my notes by category")).toBe("organize");
       expect(classifyIntentFast("rename note drafts to final")).toBe("organize");
+      expect(classifyIntentFast("create a folder named books and put the files in it")).toBe("organize");
+      expect(classifyIntentFast("put the files in a folder named work")).toBe("organize");
+      expect(classifyIntentFast("create folder archive and move old notes into it")).toBe("organize");
     });
 
     it("classifies search_vault requests", () => {
