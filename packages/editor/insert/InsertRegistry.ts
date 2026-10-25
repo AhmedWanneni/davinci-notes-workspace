@@ -147,6 +147,27 @@ export const insertRegistry: readonly InsertItem[] = [
     },
   },
   {
+    id: "database-table",
+    group: "Code and data",
+    label: "Database table",
+    icon: "Table",
+    keywords: ["database", "table", "notion", "grid", "data", "columns"],
+    dialog: {
+      kind: "database-creator",
+      title: "New Database Table",
+      description: "Enter a title for the new database note.",
+      confirmLabel: "Create Table",
+      validate: (input) =>
+        (input.name as string)?.trim() ? null : "Please enter a table name.",
+    },
+    build: (context) => {
+      const title = context?.selectedText?.trim() || "Database Table";
+      return block(
+        `---\ndatabase: table\ncolumns:\n  - name: Name\n    type: text\n  - name: Status\n    type: select\n    options:\n      - { value: Todo, color: blue }\n      - { value: In Progress, color: orange }\n      - { value: Done, color: green }\n  - name: Done\n    type: checkbox\n---\n\n| Name | Status | Done |\n|---|---|---|\n| ${title} | Todo | false |\n`,
+      );
+    },
+  },
+  {
     id: "table",
     group: "Code and data",
     label: "Table",

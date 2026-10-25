@@ -2,6 +2,39 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Markdown Database Table View (Stored in One Note — Option A)
+
+- **Model (`@app/database`)**:
+  - Created new `@app/database` package following modular ESLint boundary rules, pure TypeScript, 0 DOM dependencies, 0 new external dependencies.
+  - Implemented lossless round-trip parsing (`parseDatabase.ts`) and serialization (`serializeDatabase.ts`) for single-note markdown database tables (`database: table`).
+  - Preserved unknown preamble (H1, text, notes) before the first pipe table and epilogue after the table byte-for-byte.
+  - Comment-preserving YAML frontmatter AST updates using `yaml.parseDocument` for columns and select options.
+  - Single-line cell constraint with HTML `<br>` for preserved line breaks; pipe escaping `\|`.
+  - Typed columns supported: `text`, `number` (right-aligned), `select` (options with design-system colors), `checkbox` (stores `true`/`false`, accepts `x`/`X`/`[x]`, writes back original form), `date` (ISO YYYY-MM-DD). Values not matching column type are displayed as-is with subtle warning indicator and NEVER dropped or silently rewritten.
+  - Line-preserving minimal diff operations (`cellOperations.ts`, `rowOperations.ts`, `columnOperations.ts`) that splice only affected lines for cell edits, checkbox toggles, row additions, deletions, duplicates, column additions, renames, deletions, reordering, and type conversions.
+  - Documented format specifications, ADR-0170 write-back guards, and line splicing in `docs/adr/0209-markdown-database-table-format-and-lossless-writeback.md`.
+- **View (React + Design System)**:
+  - Built lazy-loaded `DatabaseView.tsx` matching Obsidian/Notion flat aesthetic (borders for depth, design-system tokens, Phosphor icons).
+  - In-memory view toolbar: filter by column, sort by column (asc/desc), instant search across rows, "New" row button. View state kept in memory in v1 to avoid cyclic file write churn.
+  - Full keyboard navigation (`useDatabaseKeyboardNav`): arrow keys navigate cells, Enter starts inline edit, Esc cancels, Tab navigates to next cell.
+  - Row virtualization using `@tanstack/react-virtual` for 60fps performance on 5,000+ rows with sticky headers and column resizing handles.
+  - Rich inline markdown rendering (`renderInlineMarkdown`) supporting wikilinks (`[[Note]]`), tags (`#tag`), bold (`**text**`), code (`` `code` ``), strikethrough (`~~text~~`), line breaks (`<br>`). First cell wikilink opens vault notes.
+  - Header column configuration modal (`DatabaseColumnModal`): rename column, change type (with type-mismatch warnings), manage select options and colors (`red`, `orange`, `yellow`, `green`, `blue`, `purple`, `pink`, `gray`), delete column.
+  - Safe parsing fallback: malformed database notes open as standard markdown with a notice banner, never corrupting or rewriting the file.
+  - Dual-mode header toggle: "Open as markdown" / "Open as table" toggle in note header; tab icon displays `TableIcon` for database notes.
+- **Write-Back & External-Change Guard (ADR-0170 & ADR-0209)**:
+  - All writes route through the ADR-0170 save queue (`updateNoteContent`) with 750ms debounce and atomic disk persistence.
+  - Active cell draft preservation: user typing in an active cell is preserved when external changes reload the table from disk, using stable row IDs.
+- **Insert Item & Indexer Integration**:
+  - Added `"Database table"` item to `InsertRegistry.ts` (Code and data group) with modal naming dialog (`database-creator`).
+  - Verified indexer compatibility (`databaseIndexing.test.ts`): wikilinks in table cells index normally into vault graph and backlinks without changing indexer schema.
+- **Validation**:
+  - 41 unit and adversarial tests passing in `@app/database` across 7 test suites.
+  - 5,000-row benchmark parses in ~11ms and serializes in ~1.2ms.
+  - 0 bytes added to initial desktop bundle (lazy-loaded as `@app/database` dynamic chunk).
+  - Production web build passing (`pnpm --filter @app/desktop build:web`).
+  - All insert registry, properties, and indexer tests passing.
+
 ### 2026-10-25: Obsidian Kanban Plugin Parity Board View Implementation
 
 - **Model (`@app/kanban`)**:

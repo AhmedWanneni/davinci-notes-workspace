@@ -429,6 +429,22 @@ export function EditorArea({
                   void createNoteInVault(newPath, starter).then(() => {
                     void openNote(newPath);
                   });
+                } else if (insertDialogRequest.item.id === "database-table") {
+                  const rawName = (input.name as string)?.trim() || "Database Table";
+                  const cleanName = rawName.replace(/[<>:"/\\|?*]/g, "");
+                  const stem = cleanName.endsWith(".md")
+                    ? cleanName
+                    : `${cleanName}.md`;
+                  const folder =
+                    activeNotePath && activeNotePath.includes("/")
+                      ? activeNotePath.slice(0, activeNotePath.lastIndexOf("/"))
+                      : "";
+                  const newPath = folder ? `${folder}/${stem}` : stem;
+                  const starter = `---\ndatabase: table\ncolumns:\n  - name: Name\n    type: text\n  - name: Status\n    type: select\n    options:\n      - { value: Todo, color: blue }\n      - { value: In Progress, color: orange }\n      - { value: Done, color: green }\n  - name: Done\n    type: checkbox\n---\n\n| Name | Status | Done |\n|---|---|---|\n|  | Todo | false |\n`;
+                  cancelInsertDialog(insertDialogRequest);
+                  void createNoteInVault(newPath, starter).then(() => {
+                    void openNote(newPath);
+                  });
                 } else {
                   completeInsertDialog(insertDialogRequest, input);
                 }

@@ -4,7 +4,60 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Kanban Board View (Obsidian Kanban Plugin Parity) & UI Polish
+## Last Session — Database Table View (Stored in One Markdown Note — Option A)
+
+**Scope:**
+1. **Model (`@app/database`)**:
+   - Implemented lossless round-trip parser (`parseDatabase`) and serializer (`serializeDatabase`) for single-note markdown database tables (`database: table`).
+   - Line-preserving table model: preserves all unknown preamble (H1, text, notes) before the first pipe table and epilogue after the table byte-for-byte.
+   - Comment-preserving YAML frontmatter AST updates using `yaml.parseDocument` for columns and select options.
+   - Single-line cell constraint with HTML `<br>` for preserved line breaks; pipe escaping `\|`.
+   - Typed columns supported: `text`, `number` (right-aligned), `select` (options with design-system colors), `checkbox` (stores `true`/`false`, accepts `x`/`X`/`[x]`, writes back original form), `date` (ISO YYYY-MM-DD). Values not matching column type are displayed as-is with subtle warning indicator and NEVER dropped or silently rewritten.
+   - Minimal diff line-splicing operations: `editCell`, `toggleCheckboxCell`, `addRow`, `deleteRow`, `duplicateRow`, `addColumn`, `renameColumn`, `deleteColumn`, `reorderColumns`, `changeColumnType`.
+   - Pure TypeScript, 0 DOM dependencies, 0 new external dependencies.
+2. **View (React + Design System)**:
+   - Lazy-loaded `DatabaseView` matching Obsidian/Notion flat aesthetic (borders for depth, design-system tokens, Phosphor icons).
+   - In-memory view toolbar: filter by column, sort by column (asc/desc), instant search across rows, "New" row button. View state kept in memory in v1 to avoid cyclic file write churn.
+   - Full keyboard navigation (`useDatabaseKeyboardNav`): arrow keys navigate cells, Enter starts inline edit, Esc cancels, Tab navigates to next cell.
+   - Row virtualization using `@tanstack/react-virtual` for 60fps performance on 5,000+ rows with sticky headers and column resizing handles.
+   - Rich inline markdown rendering (`renderInlineMarkdown`) supporting wikilinks (`[[Note]]`), tags (`#tag`), bold (`**text**`), code (`` `code` ``), strikethrough (`~~text~~`), line breaks (`<br>`). First cell wikilink opens vault notes.
+   - Header column configuration modal (`DatabaseColumnModal`): rename column, change type (with type-mismatch warnings), manage select options and colors (`red`, `orange`, `yellow`, `green`, `blue`, `purple`, `pink`, `gray`), delete column.
+   - Safe parsing fallback: malformed database notes open as standard markdown with a notice banner, never corrupting or rewriting the file.
+   - Dual-mode header toggle: "Open as markdown" / "Open as table" toggle in note header; tab icon displays `TableIcon` for database notes.
+3. **Write-Back & External-Change Guard (ADR-0170 & ADR-0209)**:
+   - All writes route through the ADR-0170 save queue (`updateNoteContent`) with 750ms debounce and atomic disk persistence.
+   - Active cell draft preservation: user typing in an active cell is preserved when external changes reload the table from disk, using stable row IDs.
+4. **Insert Item & Indexer Integration**:
+   - Added `"Database table"` item to `InsertRegistry.ts` (Code and data group) with modal naming dialog (`database-creator`).
+   - Verified indexer compatibility (`databaseIndexing.test.ts`): wikilinks in table cells index normally into vault graph and backlinks without changing indexer schema.
+
+**Deferred:**
+- Embedding a table inside a note (```database block)
+- Multi-select column type
+- Formulas and footer calculations
+- Relations and rollup columns
+- Board, calendar, and gallery views
+- CSV import and export
+- Persisted view state in note frontmatter
+- One-note-per-row databases (Option B)
+
+**Verification**:
+- 41 unit and adversarial tests passing in `@app/database` across 7 test suites.
+- 5,000-row benchmark parses in ~11ms and serializes in ~1.2ms.
+- 0 bytes added to initial desktop bundle (lazy-loaded as `@app/database` dynamic chunk).
+- Production web build passing (`pnpm --filter @app/desktop build:web`).
+- All insert registry, properties, and indexer tests passing.
+
+---
+
+## Next Up
+
+1. Validate visual appearance and table keyboard navigation across dark and light themes in production desktop and mobile builds.
+2. Test database table editing with external sync updates in live desktop app.
+
+---
+
+## Previous Session — Kanban Board View (Obsidian Kanban Plugin Parity) & UI Polish
 
 **Scope:**
 1. **Model (`@app/kanban`)**:

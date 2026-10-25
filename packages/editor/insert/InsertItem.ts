@@ -43,7 +43,8 @@ export interface InsertDialogSpec {
     | "image-sources"
     | "note-picker"
     | "reminder-picker"
-    | "kanban-creator";
+    | "kanban-creator"
+    | "database-creator";
   placeholder?: string;
   confirmLabel?: string;
   validate?: (input: InsertDialogInput) => string | null;

@@ -93,7 +93,11 @@ export function InsertDialog({
     );
   }
 
-  if (dialogSpec.kind === "kanban-creator") {
+  if (
+    dialogSpec.kind === "kanban-creator" ||
+    dialogSpec.kind === "database-creator"
+  ) {
+    const isDatabase = dialogSpec.kind === "database-creator";
     return (
       <Dialog
         open={Boolean(request)}
@@ -108,7 +112,11 @@ export function InsertDialog({
               e.preventDefault();
               const val = url.trim();
               if (!val) {
-                setError("Please enter a board name.");
+                setError(
+                  isDatabase
+                    ? "Please enter a table name."
+                    : "Please enter a board name.",
+                );
                 return;
               }
               onConfirm({ name: val });
@@ -129,7 +137,10 @@ export function InsertDialog({
                 ref={inputRef}
                 type="text"
                 className={styles["insert-dialog-input"]}
-                placeholder="Board title..."
+                placeholder={
+                  dialogSpec.placeholder ||
+                  (isDatabase ? "Table title..." : "Board title...")
+                }
                 value={url}
                 onChange={(e) => {
                   setUrl(e.target.value);
@@ -152,7 +163,8 @@ export function InsertDialog({
                 type="submit"
                 className={styles["insert-dialog-btn-confirm"]}
               >
-                {dialogSpec.confirmLabel || "Create Board"}
+                {dialogSpec.confirmLabel ||
+                  (isDatabase ? "Create Table" : "Create Board")}
               </button>
             </div>
           </form>
