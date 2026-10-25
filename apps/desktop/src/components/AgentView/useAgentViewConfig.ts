@@ -24,6 +24,7 @@ export function useAgentViewConfig() {
   const [currentModel, setCurrentModel] = useState("gemini-2.0-flash");
   const [webSearchEnabled, setWebSearchEnabled] = useState(true);
   const [autoApply, setAutoApply] = useState(true);
+  const [rewriteEnabled, setRewriteEnabled] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConversationsOpen, setIsConversationsOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState(true);
@@ -52,6 +53,7 @@ export function useAgentViewConfig() {
       const prefs = await loadAgentPreferences();
       setAutoApply(prefs.autoApply);
       setWebSearchEnabled(prefs.webSearchEnabled);
+      setRewriteEnabled(prefs.rewriteEnabled);
       const status = await loadAIProviderStatus(providerId);
       const ready = status === "ready";
       setIsConfigured(ready);
@@ -106,6 +108,11 @@ export function useAgentViewConfig() {
     await saveAgentPreference("webSearchEnabled", enabled);
   }, []);
 
+  const handleToggleRewrite = useCallback(async (enabled: boolean) => {
+    setRewriteEnabled(enabled);
+    await saveAgentPreference("rewriteEnabled", enabled);
+  }, []);
+
   return {
     currentProvider,
     setCurrentProvider,
@@ -115,6 +122,8 @@ export function useAgentViewConfig() {
     handleToggleWebSearch,
     autoApply,
     handleToggleAutoApply,
+    rewriteEnabled,
+    handleToggleRewrite,
     isSettingsOpen,
     setIsSettingsOpen,
     isConversationsOpen,

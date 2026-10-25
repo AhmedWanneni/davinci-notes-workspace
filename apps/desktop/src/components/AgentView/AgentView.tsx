@@ -27,6 +27,8 @@ export function AgentView() {
     handleToggleWebSearch,
     autoApply,
     handleToggleAutoApply,
+    rewriteEnabled,
+    handleToggleRewrite,
     isSettingsOpen,
     setIsSettingsOpen,
     isConversationsOpen,
@@ -61,6 +63,7 @@ export function AgentView() {
     model: currentModel,
     webSearchEnabled,
     autoApply,
+    rewriteEnabled,
     vaultName,
   });
 
@@ -220,6 +223,8 @@ export function AgentView() {
         onToggleWebSearch={handleToggleWebSearch}
         autoApply={autoApply}
         onToggleAutoApply={handleToggleAutoApply}
+        rewriteEnabled={rewriteEnabled}
+        onToggleRewrite={handleToggleRewrite}
       />
 
       <AgentHistoryDrawer

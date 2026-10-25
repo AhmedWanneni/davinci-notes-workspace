@@ -1,28 +1,24 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { ChatMessage } from "@app/ai-api";
-import { VAULT_MUTATION_TOOLS } from "@app/ai-agent";
-import { extractConversationalToolCalls } from "@app/ai-runtime";
+import { executeRewriteStep, type StructuredUserRequest } from "@app/ai-agent";
 import {
   createDesktopInspectionBackend,
   createDesktopMutationBackend,
   createDesktopWebSearchBackend,
-} from "./desktopAgentBridge";
+} from "./desktopAgentBridge.js";
 import {
   createConfiguredProvider,
   loadSelectedProvider,
   type AIProviderId,
-} from "../../ai/AISubsystem";
-import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import { useAgentLedger } from "./useAgentLedger";
+} from "../../ai/AISubsystem.js";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore.js";
+import { useAgentLedger } from "./useAgentLedger.js";
 import {
   buildAgentSystemPrompt,
   buildAgentWorkingHistory,
-} from "./agentSystemPrompt";
-import {
-  executeAgentStepTool,
-  prepareActiveTools,
-} from "./executeAgentStepTool";
-import type { ChatMessageItem, StagedChangeItem } from "./agentTypes";
+} from "./agentSystemPrompt.js";
+import { prepareActiveTools } from "./executeAgentStepTool.js";
+import { runAgentStepLoop } from "./agentStepLoop.js";
+import type { ChatMessageItem, StagedChangeItem } from "./agentTypes.js";
 
 export interface UseAgentExecutionOptions {
   providerId?: AIProviderId;
@@ -30,15 +26,16 @@ export interface UseAgentExecutionOptions {
   webSearchEnabled?: boolean;
   autoApply?: boolean;
   vaultName?: string;
+  rewriteEnabled?: boolean;
 }
-
-const MAX_AGENT_STEPS = 5;
 
 export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [stagedChanges, setStagedChanges] = useState<StagedChangeItem[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [autoApply, setAutoApply] = useState(options?.autoApply ?? true);
+  const [lastStructuredRequest, setLastStructuredRequest] =
+    useState<StructuredUserRequest | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -75,6 +72,20 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           options?.model,
         );
 
+        let structuredRequest: StructuredUserRequest | null = null;
+        if (options?.rewriteEnabled) {
+          structuredRequest = await executeRewriteStep(
+            promptText,
+            async (prompt) => {
+              const res = await provider.complete({
+                messages: [{ role: "user", content: prompt }],
+              });
+              return res.content || "";
+            },
+          );
+          setLastStructuredRequest(structuredRequest);
+        }
+
         const state = useWorkspaceStore.getState();
         const vName =
           options?.vaultName ??
@@ -93,98 +104,24 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           nextMessages,
         );
 
-        let finalResponseReceived = false;
-        let hasExecutedMutation = false;
-
-        for (let step = 0; step < MAX_AGENT_STEPS; step++) {
-          if (abortRef.current?.signal.aborted) break;
-
-          const res = await provider.complete({
-            messages: workingHistory,
-            tools: activeTools,
-          });
-
-          let effectiveToolCalls = res.toolCalls;
-          if (
-            (!effectiveToolCalls || effectiveToolCalls.length === 0) &&
-            !hasExecutedMutation &&
-            res.content
-          ) {
-            const fallbackCalls = extractConversationalToolCalls(
-              res.content,
-              promptText,
-            );
-            if (fallbackCalls.length > 0) {
-              effectiveToolCalls = fallbackCalls;
-            }
-          }
-
-          if (effectiveToolCalls && effectiveToolCalls.length > 0) {
-            workingHistory.push({
-              role: "assistant",
-              content: res.content || "",
-              toolCalls: effectiveToolCalls,
-            });
-
-            for (const tc of effectiveToolCalls) {
-              const toolResult = await executeAgentStepTool(tc, {
-                webSearchEnabled: options?.webSearchEnabled,
-                autoApply,
-                webSearchBackend,
-                mutationBackend,
-                inspectionBackend,
-                allNotePaths: state.allNotePaths ?? [],
-                handleApplyChange,
-                setStagedChanges,
-              });
-
-              if (
-                VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name) ||
-                tc.name.startsWith("create_")
-              ) {
-                hasExecutedMutation = true;
-              }
-
-              workingHistory.push({
-                role: "tool",
-                name: tc.name,
-                toolCallId: tc.id,
-                content:
-                  typeof toolResult === "string"
-                    ? toolResult
-                    : JSON.stringify(toolResult),
-              });
-            }
-          } else {
-            const replyContent =
-              res.content ||
-              (hasExecutedMutation
-                ? "The requested note has been created in your vault."
-                : "Done.");
-            const assistantMsg: ChatMessageItem = {
-              id: `msg_a_${Date.now()}`,
-              role: "assistant",
-              content: replyContent,
-              timestamp: Date.now(),
-            };
-            setMessages((prev) => [...prev, assistantMsg]);
-            finalResponseReceived = true;
-            break;
-          }
-        }
-
-        if (!finalResponseReceived && workingHistory.length > 0) {
-          const lastMsg = workingHistory[workingHistory.length - 1];
-          const text = lastMsg.role === "assistant" && lastMsg.content
-            ? lastMsg.content
-            : hasExecutedMutation ? "The requested note has been created in your vault." : "";
-          if (text) {
-            setMessages((prev) => [
-              ...prev,
-              { id: `msg_a_${Date.now()}`, role: "assistant", content: text, timestamp: Date.now() },
-            ]);
-          }
-        }
+        await runAgentStepLoop({
+          provider,
+          workingHistory,
+          activeTools,
+          promptText,
+          abortSignal: abortRef.current?.signal,
+          onAssistantMessage: (msg) => setMessages((prev) => [...prev, msg]),
+          stepContext: {
+            webSearchEnabled: options?.webSearchEnabled,
+            autoApply,
+            webSearchBackend,
+            mutationBackend,
+            inspectionBackend,
+            allNotePaths: state.allNotePaths ?? [],
+            handleApplyChange,
+            setStagedChanges,
+          },
+        });
       } catch (err) {
         setMessages((prev) => [
           ...prev,
@@ -200,7 +137,15 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
         setIsStreaming(false);
       }
     },
-    [autoApply, handleApplyChange, inspectionBackend, messages, mutationBackend, options, webSearchBackend],
+    [
+      autoApply,
+      handleApplyChange,
+      inspectionBackend,
+      messages,
+      mutationBackend,
+      options,
+      webSearchBackend,
+    ],
   );
 
   const abortExecution = useCallback(() => {
@@ -212,6 +157,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const clearMessages = useCallback(() => {
     setMessages([]);
     setStagedChanges([]);
+    setLastStructuredRequest(null);
   }, []);
 
   const handleBatchApply = useCallback(async () => {
@@ -225,6 +171,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
     isStreaming,
     autoApply,
     setAutoApply,
+    lastStructuredRequest,
     ...ledgerMethods,
     handleApplyAllChanges: handleBatchApply,
     sendMessage,

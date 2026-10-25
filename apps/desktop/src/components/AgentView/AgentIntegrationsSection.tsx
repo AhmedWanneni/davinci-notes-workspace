@@ -1,4 +1,4 @@
-import { Globe, CalendarCheck, Sparkle } from "@phosphor-icons/react";
+import { Globe, CalendarCheck, Sparkle, ChatText } from "@phosphor-icons/react";
 import { Typography } from "@app/design-system";
 
 export interface AgentIntegrationsSectionProps {
@@ -6,6 +6,8 @@ export interface AgentIntegrationsSectionProps {
   onToggleWebSearch: (enabled: boolean) => void;
   autoApply: boolean;
   onToggleAutoApply: (enabled: boolean) => void;
+  rewriteEnabled?: boolean;
+  onToggleRewrite?: (enabled: boolean) => void;
 }
 
 export function AgentIntegrationsSection({
@@ -13,12 +15,36 @@ export function AgentIntegrationsSection({
   onToggleWebSearch,
   autoApply,
   onToggleAutoApply,
+  rewriteEnabled = true,
+  onToggleRewrite,
 }: AgentIntegrationsSectionProps) {
   return (
     <section className="agent-settings-panel__section">
       <Typography variant="text" size="xs" weight="semibold" color="muted">
         INTEGRATIONS & CAPABILITIES
       </Typography>
+
+      <div className="agent-settings-panel__toggle-row">
+        <div className="agent-settings-panel__toggle-info">
+          <ChatText size={16} />
+          <div>
+            <div className="agent-settings-panel__toggle-title">
+              Prompt Understanding Pipeline
+            </div>
+            <div className="agent-settings-panel__toggle-desc">
+              Rewrite messy requests into structured goals
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          className={`agent-settings-panel__switch${rewriteEnabled ? " is-on" : ""}`}
+          onClick={() => onToggleRewrite?.(!rewriteEnabled)}
+          aria-label="Toggle prompt understanding"
+        >
+          <div className="agent-settings-panel__switch-knob" />
+        </button>
+      </div>
 
       <div className="agent-settings-panel__toggle-row">
         <div className="agent-settings-panel__toggle-info">

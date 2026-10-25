@@ -379,4 +379,6 @@ the list.
 | [0216](adr/0216-web-search-grounding-and-untrusted-content.md) | Web Search Grounding and Untrusted Content Boundaries in `@app/ai-agent` | Accepted |
 | [0217](adr/0217-google-calendar-write-scope-upgrade.md) | Google Calendar Write Scope Upgrade and Task Sync in `@app/ai-agent` | Accepted |
 | [0218](adr/0218-agent-shortcuts-and-scheduled-tasks-engine.md) | Agent Shortcuts and Scheduled Tasks Engine with Catch-Up Review | Accepted |
+| [0219](adr/0219-zero-dependency-schema-validator-for-prompt-understanding.md) | Zero-Dependency Schema Validator for Prompt Understanding in `@app/ai-agent` | Accepted |
+| [0220](adr/0220-prompt-understanding-pipeline-architecture.md) | Prompt Understanding Pipeline Architecture & Multi-Stage Execution | Accepted |
 

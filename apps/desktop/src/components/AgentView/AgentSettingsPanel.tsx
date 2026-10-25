@@ -24,6 +24,8 @@ export interface AgentSettingsPanelProps {
   onToggleWebSearch: (enabled: boolean) => void;
   autoApply: boolean;
   onToggleAutoApply: (enabled: boolean) => void;
+  rewriteEnabled?: boolean;
+  onToggleRewrite?: (enabled: boolean) => void;
 }
 
 const PROVIDERS = [
@@ -43,6 +45,8 @@ export function AgentSettingsPanel({
   onToggleWebSearch,
   autoApply,
   onToggleAutoApply,
+  rewriteEnabled,
+  onToggleRewrite,
 }: AgentSettingsPanelProps) {
   const [selectedProvider, setSelectedProvider] = useState<AIProviderId>(currentProvider);
   const [selectedModel, setSelectedModel] = useState(
@@ -235,6 +239,8 @@ export function AgentSettingsPanel({
           onToggleWebSearch={onToggleWebSearch}
           autoApply={autoApply}
           onToggleAutoApply={onToggleAutoApply}
+          rewriteEnabled={rewriteEnabled}
+          onToggleRewrite={onToggleRewrite}
         />
       </div>
     </aside>

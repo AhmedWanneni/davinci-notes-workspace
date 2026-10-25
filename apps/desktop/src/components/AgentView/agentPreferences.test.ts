@@ -22,6 +22,7 @@ describe("agentPreferences", () => {
     expect(prefs).toEqual({
       autoApply: true,
       webSearchEnabled: true,
+      rewriteEnabled: true,
     });
   });
 
@@ -29,6 +30,7 @@ describe("agentPreferences", () => {
     mockGetSetting.mockImplementation((_db, key) => {
       if (key === "ai.agent.autoApply") return Promise.resolve("false");
       if (key === "ai.agent.webSearchEnabled") return Promise.resolve("false");
+      if (key === "ai.agent.rewriteEnabled") return Promise.resolve("false");
       return Promise.resolve(null);
     });
 
@@ -36,10 +38,11 @@ describe("agentPreferences", () => {
     expect(prefs).toEqual({
       autoApply: false,
       webSearchEnabled: false,
+      rewriteEnabled: false,
     });
   });
 
-  it("saves autoApply and webSearchEnabled preferences to sqlite", async () => {
+  it("saves autoApply, webSearchEnabled, and rewriteEnabled preferences to sqlite", async () => {
     await saveAgentPreference("autoApply", true);
     expect(mockSetSetting).toHaveBeenCalledWith(
       {},
@@ -52,6 +55,13 @@ describe("agentPreferences", () => {
       {},
       "ai.agent.webSearchEnabled",
       "false",
+    );
+
+    await saveAgentPreference("rewriteEnabled", true);
+    expect(mockSetSetting).toHaveBeenCalledWith(
+      {},
+      "ai.agent.rewriteEnabled",
+      "true",
     );
   });
 });
