@@ -354,3 +354,9 @@ the list.
 | ADR | Decision | Status |
 |---|---|---|
 | [0208](adr/0208-obsidian-kanban-format-and-lossless-writeback.md) | Obsidian Kanban format compatibility, line-preserving round-trip, and minimal-diff write-back | Accepted |
+
+## Database Table
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0209](adr/0209-markdown-database-table-format-and-lossless-writeback.md) | Markdown database table format compatibility, lossless line-preserving round-trip, and minimal-diff row splicing | Accepted |

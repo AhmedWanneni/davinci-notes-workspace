@@ -19,6 +19,7 @@
     "@app/attachments": "workspace:*",
     "@app/canvas": "workspace:*",
     "@app/kanban": "workspace:*",
+    "@app/database": "workspace:*",
     "@app/clipper-core": "workspace:*",
     "@app/core-types": "workspace:*",
     "@app/design-system": "workspace:*",
