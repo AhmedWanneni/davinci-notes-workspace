@@ -6,6 +6,7 @@ import {
   executeInspectionTool,
   executeWebSearchTool,
   planMutation,
+  validateAgentAction,
   type VaultInspectionBackend,
   type VaultMutationBackend,
   type WebSearchBackend,
@@ -33,6 +34,16 @@ export async function executeAgentStepTool(
   tc: AgentToolCall,
   ctx: ExecuteAgentStepContext,
 ): Promise<unknown> {
+  const validation = validateAgentAction(tc.name, tc.arguments);
+  if (!validation.success) {
+    return {
+      status: "rejected",
+      error: `Rejected action: ${validation.error}`,
+    };
+  }
+
+  const { isDestructive } = validation.data;
+
   const isMutation =
     VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name) ||
     tc.name.startsWith("create_");
@@ -49,6 +60,18 @@ export async function executeAgentStepTool(
       plan,
       status: "pending",
     };
+
+    // Destructive actions ALWAYS require user confirmation in the UI even if autoApply is enabled
+    if (isDestructive) {
+      ctx.setStagedChanges((prev) => [...prev, stagedItem]);
+      return {
+        status: "confirmation_required",
+        action: tc.name,
+        path: plan.changeRecord.path,
+        message: `Action "${tc.name}" on "${plan.changeRecord.path}" is destructive and requires user confirmation. Staged for review.`,
+      };
+    }
+
     if (ctx.autoApply) {
       await ctx.handleApplyChange(stagedItem);
       return {
