@@ -4,7 +4,28 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools
+## Last Session — AI Agent Phase 4: Vault Mutation Tools & Staged Diff Generator
+
+**Scope:**
+1. **Mutation Tools (`packages/ai-agent/vaultMutationTools.ts`)**:
+   - Defined `create_note`, `edit_note`, `append_to_note`, `move_note`, `delete_note`, `create_database_table`, and `create_todo_list` tools.
+   - Implemented `planMutation` computing before/after content, `FileChangeRecord`, and visual line diffs (`DiffLine[]`) via pure `lineDiff.ts`.
+   - Implemented `applyPlannedMutation` delegating approved mutations to `VaultMutationBackend`.
+2. **Specialized Format Generators**:
+   - `databaseNoteGenerator.ts`: Generates structured markdown notes with `database: table` frontmatter, column types, and delimited pipe rows compatible with `@app/database`.
+   - `taskListGenerator.ts`: Generates task checklists with ISO due dates converted to `(@YYYY-MM-DD HH:mm)` reminder tokens compatible with `@app/indexer/parseReminders`.
+3. **Safety & Containment**:
+   - Path validation enforcing `validateVaultRelativePath` on all file mutation targets.
+
+**Verification:**
+- 30/30 tests passing in `@app/ai-agent` (`vaultMutationTools.test.ts`, `vaultInspectionTools.test.ts`, `safetyJail.test.ts`, `untrustedContentGuard.test.ts`, `changeLedger.test.ts`).
+- Adversarial tests: verified path traversal rejection on note creation, exact diff line changes on edits, database table formatting, and reminder token generation.
+- Typecheck passed with zero errors in `@app/ai-agent`.
+- All files strictly ≤ 231 lines (hard cap 250).
+
+---
+
+## Previous Session — AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools
 
 **Scope:**
 1. **Tool Declarations (`packages/ai-agent/vaultInspectionTools.ts`)**:
@@ -128,9 +149,9 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Next Up
 
-1. **AI Agent Phase 4: Vault Mutation Tools & Staged Diff Generator**.
-2. AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (`davinci://agent`).
-3. AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard.
+1. **AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (`davinci://agent`)**.
+2. AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard.
+3. AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop.
 
 ---
 

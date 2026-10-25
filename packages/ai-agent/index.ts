@@ -3,3 +3,7 @@ export * from "./untrustedContentGuard.js";
 export * from "./changeLedgerTypes.js";
 export * from "./changeLedger.js";
 export * from "./vaultInspectionTools.js";
+export * from "./lineDiff.js";
+export * from "./databaseNoteGenerator.js";
+export * from "./taskListGenerator.js";
+export * from "./vaultMutationTools.js";
