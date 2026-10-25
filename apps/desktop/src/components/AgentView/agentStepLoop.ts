@@ -1,4 +1,9 @@
-import type { AIProvider, AgentToolDefinition, ChatMessage } from "@app/ai-api";
+import type {
+  AIProvider,
+  AgentToolCall,
+  AgentToolDefinition,
+  ChatMessage,
+} from "@app/ai-api";
 import { VAULT_MUTATION_TOOLS } from "@app/ai-agent";
 import { extractConversationalToolCalls } from "@app/ai-runtime";
 import {
@@ -16,6 +21,7 @@ export interface AgentStepLoopOptions {
   abortSignal?: AbortSignal | null;
   maxSteps?: number;
   onAssistantMessage: (msg: ChatMessageItem) => void;
+  onAssistantChunk?: (chunk: string) => void;
 }
 
 export async function runAgentStepLoop(
@@ -30,6 +36,7 @@ export async function runAgentStepLoop(
     abortSignal,
     maxSteps = 5,
     onAssistantMessage,
+    onAssistantChunk,
   } = opts;
 
   let finalResponseReceived = false;
@@ -38,19 +45,83 @@ export async function runAgentStepLoop(
   for (let step = 0; step < maxSteps; step++) {
     if (abortSignal?.aborted) break;
 
-    const res = await provider.complete({
-      messages: workingHistory,
-      tools: activeTools,
-    });
+    let content = "";
+    let effectiveToolCalls: AgentToolCall[] | undefined;
 
-    let effectiveToolCalls = res.toolCalls;
+    if (typeof provider.completeStream === "function") {
+      try {
+        const stream = provider.completeStream({
+          messages: workingHistory,
+          tools: activeTools,
+        });
+        const toolCallBuilders: Record<
+          number,
+          { id?: string; name?: string; args: string }
+        > = {};
+
+        for await (const chunk of stream) {
+          if (abortSignal?.aborted) break;
+          if (chunk.delta.content) {
+            content += chunk.delta.content;
+            onAssistantChunk?.(chunk.delta.content);
+            await new Promise((r) => setTimeout(r, 0));
+          }
+          if (chunk.delta.toolCalls) {
+            for (const tc of chunk.delta.toolCalls) {
+              const b = toolCallBuilders[tc.index] ?? {
+                id: tc.id,
+                name: tc.name,
+                args: "",
+              };
+              if (tc.id) b.id = tc.id;
+              if (tc.name) b.name = tc.name;
+              if (tc.argumentsDelta) b.args += tc.argumentsDelta;
+              toolCallBuilders[tc.index] = b;
+            }
+          }
+        }
+
+        const streamedCalls = Object.values(toolCallBuilders)
+          .map((b, idx) => {
+            let parsedArgs: Record<string, unknown> = {};
+            try {
+              parsedArgs = JSON.parse(b.args);
+            } catch {
+              // ignore partial args
+            }
+            return {
+              id: b.id || `call_${Date.now()}_${idx}`,
+              name: b.name || "",
+              arguments: parsedArgs,
+            };
+          })
+          .filter((tc) => Boolean(tc.name));
+
+        if (streamedCalls.length > 0) effectiveToolCalls = streamedCalls;
+      } catch {
+        const res = await provider.complete({
+          messages: workingHistory,
+          tools: activeTools,
+        });
+        content = res.content || "";
+        effectiveToolCalls = res.toolCalls;
+      }
+    } else {
+      const res = await provider.complete({
+        messages: workingHistory,
+        tools: activeTools,
+      });
+      content = res.content || "";
+      effectiveToolCalls = res.toolCalls;
+    }
+
     if (
       (!effectiveToolCalls || effectiveToolCalls.length === 0) &&
       !hasExecutedMutation &&
-      res.content
+      content
     ) {
       const fallbackCalls = extractConversationalToolCalls(
-        res.content,
+        content,
         promptText,
       );
       if (fallbackCalls.length > 0) {
@@ -61,7 +132,7 @@ export async function runAgentStepLoop(
     if (effectiveToolCalls && effectiveToolCalls.length > 0) {
       workingHistory.push({
         role: "assistant",
-        content: res.content || "",
+        content: content || "",
         toolCalls: effectiveToolCalls,
       });
 
@@ -90,7 +161,7 @@ export async function runAgentStepLoop(
       }
     } else {
       const replyContent =
-        res.content ||
+        content ||
         (hasExecutedMutation
           ? "The requested note has been created in your vault."
           : "Done.");

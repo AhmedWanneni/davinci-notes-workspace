@@ -110,6 +110,7 @@ export function buildOllamaChatPayload(
   request: ChatRequest,
   chatModel?: string,
   stream = false,
+  includeNativeTools = true,
 ) {
   const hasTools = Boolean(request.tools && request.tools.length > 0);
   const messages = request.messages.map((m) => {
@@ -154,6 +155,6 @@ export function buildOllamaChatPayload(
     model: chatModel,
     messages,
     stream,
-    ...(hasTools ? { tools: request.tools } : {}),
+    ...(hasTools && includeNativeTools ? { tools: request.tools } : {}),
   };
 }

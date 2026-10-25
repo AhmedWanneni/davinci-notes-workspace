@@ -1,16 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import {
   executeRewriteStep,
-  routeIntent,
-  getScopedSystemPrompt,
-  getScopedTools,
-  isAgentIntent,
   shouldClarifyRequest,
-  AGENT_MEMORY_PATH,
-  parseMemoryData,
-  formatMemoryPrompt,
-  WEB_SEARCH_TOOL,
-  type AgentIntent,
   type StructuredUserRequest,
 } from "@app/ai-agent";
 import {
@@ -25,11 +16,8 @@ import {
 } from "../../ai/AISubsystem.js";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore.js";
 import { useAgentLedger } from "./useAgentLedger.js";
-import {
-  buildAgentSystemPrompt,
-  buildAgentWorkingHistory,
-} from "./agentSystemPrompt.js";
-import { prepareActiveTools } from "./executeAgentStepTool.js";
+import { buildAgentWorkingHistory } from "./agentSystemPrompt.js";
+import { resolveExecutionPromptAndTools } from "./agentPromptResolver.js";
 import { runAgentStepLoop } from "./agentStepLoop.js";
 import type { ChatMessageItem, StagedChangeItem } from "./agentTypes.js";
 
@@ -114,56 +102,24 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
         }
 
         const state = useWorkspaceStore.getState();
-        const vName =
-          options?.vaultName ??
-          (state.vaultPath
-            ? state.vaultPath.split(/[/\\]/).pop() || "Vault"
-            : "Vault");
-
-        let systemPrompt: string;
-        let activeTools = prepareActiveTools(options?.webSearchEnabled);
-
-        if (options?.rewriteEnabled) {
-          const rawIntent = structuredRequest?.intent || "";
-          const resolvedIntent: AgentIntent = isAgentIntent(rawIntent)
-            ? rawIntent
-            : await routeIntent(promptText, async (p) => {
-                const r = await provider.complete({
-                  messages: [{ role: "user", content: p }],
-                });
-                return r.content || "";
-              });
-
-          systemPrompt = getScopedSystemPrompt(
-            resolvedIntent,
-            vName,
-            state.allNotePaths?.slice(0, 50),
-          );
-          const scopedTools = getScopedTools(resolvedIntent);
-          activeTools =
-            options?.webSearchEnabled && resolvedIntent !== "chat"
-              ? [...scopedTools, WEB_SEARCH_TOOL]
-              : scopedTools;
-        } else {
-          systemPrompt = buildAgentSystemPrompt({
-            vaultName: vName,
+        const { systemPrompt, activeTools } =
+          await resolveExecutionPromptAndTools({
+            options,
+            structuredRequest,
+            provider,
+            promptText,
+            vaultPath: state.vaultPath,
             allNotePaths: state.allNotePaths ?? [],
             allFolderPaths: state.allFolderPaths ?? [],
+            mutationBackend,
           });
-        }
-
-        try {
-          const rawMem = await mutationBackend.readNote(AGENT_MEMORY_PATH);
-          const memText = formatMemoryPrompt(parseMemoryData(rawMem));
-          if (memText) systemPrompt = `${systemPrompt}\n\n${memText}`;
-        } catch {
-          // memory not initialized yet
-        }
 
         const workingHistory = buildAgentWorkingHistory(
           systemPrompt,
           nextMessages,
         );
+
+        const assistantMsgId = `msg_a_${Date.now() + 1}`;
 
         await runAgentStepLoop({
           provider,
@@ -171,7 +127,34 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           activeTools,
           promptText,
           abortSignal: abortRef.current?.signal,
-          onAssistantMessage: (msg) => setMessages((prev) => [...prev, msg]),
+          onAssistantChunk: (chunk: string) => {
+            setMessages((prev) => {
+              const existing = prev.find((m) => m.id === assistantMsgId);
+              if (existing) {
+                return prev.map((m) =>
+                  m.id === assistantMsgId
+                    ? { ...m, content: m.content + chunk, isStreaming: true }
+                    : m,
+                );
+              }
+              return [
+                ...prev,
+                {
+                  id: assistantMsgId,
+                  role: "assistant",
+                  content: chunk,
+                  isStreaming: true,
+                  timestamp: Date.now(),
+                },
+              ];
+            });
+          },
+          onAssistantMessage: (msg) => {
+            setMessages((prev) => {
+              const filtered = prev.filter((m) => m.id !== assistantMsgId);
+              return [...filtered, { ...msg, isStreaming: false }];
+            });
+          },
           stepContext: {
             webSearchEnabled: options?.webSearchEnabled,
             autoApply,

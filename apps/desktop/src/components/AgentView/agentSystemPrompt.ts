@@ -7,15 +7,33 @@ export interface AgentSystemPromptOptions {
   allFolderPaths: string[];
 }
 
+export const MAX_WORKING_HISTORY_MESSAGES = 8;
+export const MAX_TOOL_CONTENT_LENGTH = 1000;
+
+function truncateContent(content?: string): string {
+  if (!content) return "";
+  if (content.length <= MAX_TOOL_CONTENT_LENGTH) return content;
+  return `${content.slice(0, MAX_TOOL_CONTENT_LENGTH)}\n...[truncated for memory optimization]`;
+}
+
 export function buildAgentWorkingHistory(
   systemPrompt: string,
   messages: ChatMessageItem[],
 ): ChatMessage[] {
+  // Prune history to sliding window of recent messages per PERFORMANCE.md Rule 3
+  const boundedMessages =
+    messages.length > MAX_WORKING_HISTORY_MESSAGES
+      ? messages.slice(-MAX_WORKING_HISTORY_MESSAGES)
+      : messages;
+
   return [
     { role: "system", content: systemPrompt },
-    ...messages.map((m) => ({
+    ...boundedMessages.map((m) => ({
       role: m.role,
-      content: m.content,
+      content:
+        m.role === "tool" || m.toolCalls?.length
+          ? truncateContent(m.content)
+          : m.content || "",
       toolCalls: m.toolCalls,
       toolCallId: m.toolCallId,
       name: m.name,
@@ -27,7 +45,7 @@ export function buildAgentSystemPrompt(
   options: AgentSystemPromptOptions,
 ): string {
   const { vaultName, allNotePaths, allFolderPaths } = options;
-  const sampleNotes = allNotePaths.slice(0, 40);
+  const sampleNotes = allNotePaths.slice(0, 15);
   const remainingCount = allNotePaths.length - sampleNotes.length;
 
   const notesList =

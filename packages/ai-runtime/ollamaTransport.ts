@@ -36,6 +36,7 @@ interface OllamaBody {
 export const DEFAULT_OLLAMA_URL = "http://localhost:11434";
 
 export class OllamaTransport {
+  private static readonly toolSupportCache = new Map<string, boolean>();
   private readonly fetchImpl: typeof fetch;
   private readonly options: Required<Omit<OllamaTransportOptions, "fetchImpl">>;
 
@@ -80,12 +81,18 @@ export class OllamaTransport {
   }
 
   async complete(request: ChatRequest): Promise<ChatResponse> {
-    const payload = buildOllamaChatPayload(request, this.options.chatModel, false);
+    const model = this.options.chatModel;
+    const supportsNativeTools = OllamaTransport.toolSupportCache.get(model) !== false;
+    const payload = buildOllamaChatPayload(request, model, false, supportsNativeTools);
     let body: OllamaBody;
     try {
       body = (await this.post("/api/chat", payload)) as OllamaBody;
+      if (payload.tools) {
+        OllamaTransport.toolSupportCache.set(model, true);
+      }
     } catch (err) {
       if (payload.tools && isToolSupportError(err)) {
+        OllamaTransport.toolSupportCache.set(model, false);
         const fallback = { ...payload };
         delete fallback.tools;
         body = (await this.post("/api/chat", fallback)) as OllamaBody;
@@ -118,12 +125,18 @@ export class OllamaTransport {
   }
 
   async *completeStream(request: ChatRequest): AsyncIterable<ChatStreamChunk> {
-    const payload = buildOllamaChatPayload(request, this.options.chatModel, true);
+    const model = this.options.chatModel;
+    const supportsNativeTools = OllamaTransport.toolSupportCache.get(model) !== false;
+    const payload = buildOllamaChatPayload(request, model, true, supportsNativeTools);
     let response: Response;
     try {
       response = await this.rawPost("/api/chat", payload);
+      if (payload.tools) {
+        OllamaTransport.toolSupportCache.set(model, true);
+      }
     } catch (err) {
       if (payload.tools && isToolSupportError(err)) {
+        OllamaTransport.toolSupportCache.set(model, false);
         const fallback = { ...payload };
         delete fallback.tools;
         response = await this.rawPost("/api/chat", fallback);

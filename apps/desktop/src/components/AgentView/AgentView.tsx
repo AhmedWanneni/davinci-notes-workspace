@@ -82,6 +82,7 @@ export function AgentView() {
 
   const { missedSchedules, dismissMissed } = useAgentSchedules();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastLoadedConvIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     void loadLedger();
@@ -91,9 +92,12 @@ export function AgentView() {
     messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
   }, [messages]);
 
+  // Only load conversation messages when switching conversations to prevent infinite effect loops
   useEffect(() => {
-    if (activeConversation)
+    if (activeConversation && activeConversation.id !== lastLoadedConvIdRef.current) {
+      lastLoadedConvIdRef.current = activeConversation.id;
       setMessages(activeConversation.messages as ChatMessageItem[]);
+    }
   }, [activeConversation, setMessages]);
 
   useEffect(() => {

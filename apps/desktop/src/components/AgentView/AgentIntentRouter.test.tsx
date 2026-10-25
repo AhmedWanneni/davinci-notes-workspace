@@ -94,7 +94,7 @@ describe("Agent Intent Router Integration", () => {
     // Verify 2nd call used the scoped create_note system prompt and tools
     const mainCallPayload = mockComplete.mock.calls[1][0];
     const systemPrompt = mainCallPayload.messages[0].content;
-    expect(systemPrompt).toContain("creating new notes and content");
+    expect(systemPrompt).toContain("creating notes, folders, and content");
     expect(systemPrompt).not.toContain("FULL, DEFAULT, UNRESTRICTED PERMISSION");
 
     const toolNames = mainCallPayload.tools.map((t: { name: string }) => t.name);

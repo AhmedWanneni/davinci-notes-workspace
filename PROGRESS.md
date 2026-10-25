@@ -4,7 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Organizing Existing Files into Folders & Enhanced Action Management
+## Last Session — AI Agent Performance Optimization & Memory Footprint Reduction
+
+**Scope:**
+1. **Bounded Working History & Payload Pruning (`agentSystemPrompt.ts`)**:
+   - Limited conversation history sent to local LLMs to the last 8 messages (`MAX_WORKING_HISTORY_MESSAGES = 8`) in `buildAgentWorkingHistory`.
+   - Truncated large tool results to 1000 characters (`MAX_TOOL_CONTENT_LENGTH = 1000`) with `...[truncated for memory optimization]`, preventing attention computation and KV cache explosion in RAM/VRAM during web searches or large note inspections.
+   - Capped sampled vault note paths in system prompts to 15 entries.
+   - Added unit tests in `apps/desktop/src/components/AgentView/agentSystemPrompt.test.ts` (3/3 passing).
+2. **Debounced Disk Writes & Render Loop Elimination (`AgentView.tsx`, `useAgentConversations.ts`)**:
+   - Added `lastLoadedConvIdRef` in `AgentView.tsx` to stop recursive `setMessages` effect triggers when `activeConversation` updates.
+   - Added 1000ms debounce timer to `persistData` in `useAgentConversations.ts` so rapid conversational updates are batched into a single disk write instead of thrashing disk I/O on every step.
+3. **Real-Time Streaming Step Loop & Thread Yielding (`agentStepLoop.ts`, `useAgentExecution.ts`)**:
+   - Upgraded `runAgentStepLoop` to stream LLM responses via `provider.completeStream`, parsing delta chunks and tool call fragments in real-time.
+   - Yielded browser control between stream chunks via microtask scheduling, eliminating UI freezing during generation.
+   - Extracted prompt and tool resolution to `agentPromptResolver.ts` to keep `useAgentExecution.ts` strictly within line caps.
+4. **Ollama Transport Tool Schema Caching (`packages/ai-runtime`)**:
+   - Added `toolSupportCache` to `OllamaTransport` to remember whether models support native tool calling, eliminating redundant HTTP 400 error roundtrips.
+   - Added `includeNativeTools` flag to `buildOllamaChatPayload` to avoid passing duplicate native tool schemas when the model does not support them.
+5. **Verification & Testing**:
+   - All 17 test suites in `@app/ai-agent` (92/92 tests) pass.
+   - All 6 test suites in `@app/ai-runtime` (34/34 tests) pass.
+   - All 16 test suites in `@app/desktop` (42/42 tests) pass.
+   - Production build `pnpm --filter @app/desktop build:web` succeeds cleanly in 9.38s with 0 errors.
+   - All files strictly under 250-line hard cap (`AGENTS.md`).
+
+---
+
+## Previous Session — Organizing Existing Files into Folders & Enhanced Action Management
 
 **Scope:**
 1. **Intent Routing for Organizing & Moving Existing Files (`intentRouter.ts`)**:

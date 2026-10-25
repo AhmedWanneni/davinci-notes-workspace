@@ -47,14 +47,43 @@ export function useAgentConversations() {
     }
   }, []);
 
-  const persistData = useCallback(async (nextData: AgentConversationsData) => {
-    setData(nextData);
-    try {
-      await writeNote(AGENT_CONVERSATIONS_PATH, serializeConversationsData(nextData));
-    } catch (e) {
-      console.warn("[agent] Failed to save conversations:", e);
-    }
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, []);
+
+  const persistData = useCallback(
+    async (nextData: AgentConversationsData, immediate = false) => {
+      setData(nextData);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      const doWrite = async () => {
+        try {
+          await writeNote(
+            AGENT_CONVERSATIONS_PATH,
+            serializeConversationsData(nextData),
+          );
+        } catch (e) {
+          console.warn("[agent] Failed to save conversations:", e);
+        }
+      };
+      if (immediate) {
+        await doWrite();
+      } else {
+        debounceTimerRef.current = setTimeout(() => {
+          void doWrite();
+        }, 1000);
+      }
+    },
+    [],
+  );
 
   const createNewConversation = useCallback(
     async (title = "New Chat", projectId?: string | null) => {
@@ -67,10 +96,10 @@ export function useAgentConversations() {
         messages: [],
       };
       const updated = addOrUpdateConversation(dataRef.current, newConv);
-      await persistData(updated);
+      await persistData(updated, true);
       return newConv;
     },
-    [persistData]
+    [persistData],
   );
 
   const selectConversation = useCallback(
@@ -79,9 +108,9 @@ export function useAgentConversations() {
         ...dataRef.current,
         activeConversationId: id,
       };
-      await persistData(updated);
+      await persistData(updated, true);
     },
-    [persistData]
+    [persistData],
   );
 
   const saveActiveMessages = useCallback(
