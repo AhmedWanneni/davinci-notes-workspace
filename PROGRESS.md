@@ -4,7 +4,41 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Bookmarks Feature (Storage, Lifecycle, UI, Dedicated Tab & Polish)
+## Last Session — AI Agent Phase 1: Tool Calling Abstraction & Streaming Runtime (ADR-0211)
+
+**Scope:**
+1. **API Abstraction (`packages/ai-api`)**:
+   - Defined `AgentToolDefinition`, `AgentToolCall`, `AgentToolResult`, `ToolParameterSchema`, and `ChatStreamChunk` in `packages/ai-api/agentTypes.ts`.
+   - Extended `ChatMessage` with `role: "tool"` and `toolCalls`, and `AIProvider` with `"tools"` and `"streaming"` capabilities and `completeStream?()`.
+2. **Streaming & Tool Transports (`packages/ai-runtime`)**:
+   - Implemented zero-dependency Server-Sent Events parser (`sseStream.ts`) for chunked streaming.
+   - Upgraded `cloudTransport.ts` (OpenAI / OpenRouter) to support tool parameters, tool call extraction, and SSE streaming.
+   - Upgraded `geminiTransport.ts` to support function declarations, function calling responses, and `:streamGenerateContent?alt=sse`.
+   - Upgraded `ollamaTransport.ts` to support native tools plus schema-guided prompt injection and JSON repair fallback (`ollamaToolFallback.ts`) for local models lacking native tool endpoints.
+   - Delegated `completeStream()` and exposed capabilities in `providerImplementations.ts`.
+3. **Architecture Record**: Authored ADR-0211 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 19/19 tests passing in `@app/ai-runtime` (`agentToolsAndStreaming.test.ts`, `ollamaToolFallback.test.ts`, `sseStream.test.ts`, `cloudTransport.test.ts`, `providerTransports.test.ts`).
+- 2/2 tests passing in `@app/ai-api`.
+- Verified typechecking with zero errors in `@app/ai-api` and `@app/ai-runtime`.
+- Verified all file line counts strictly below the 250 hard cap (all ≤ 208 lines).
+
+---
+
+## Previous Session — AI Agent Feature Planning (agent-feature-plan.md)
+
+**Scope:**
+1. Completed comprehensive architectural assessment and gap analysis of existing AI, search, vault mutation, versioning, calendar, reminder, and database subsystems.
+2. Authored phased implementation plan: `agent-feature-plan.md` covering architecture, package boundaries (`@app/ai-api`, `@app/ai-runtime`, `@app/ai-agent`, `apps/desktop/src/agent`), 10-phase build order with adversarial verification, 8 proposed ADRs (ADR-0211 to ADR-0218), safety jail, change ledger (`.davinci/agent/history.json`), and risk register.
+3. Identified critical decisions and assumptions: review-first staging vs auto-apply, web search provider strategy, Google Calendar write scope upgrade (`calendar.events`), Wiki folder convention, and unattended scheduled task catch-up policy.
+
+**Verification:**
+- Verified file existence, markdown formatting, and alignment with `AGENTS.md`, `PERFORMANCE.md`, and ADR-0168 (`withDbLock`).
+
+---
+
+## Previous Session — Bookmarks Feature (Storage, Lifecycle, UI, Dedicated Tab & Polish)
 
 **Scope:**
 1. **Data Layer (`apps/desktop/src/bookmarks/`)**:
@@ -51,9 +85,9 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Next Up
 
-1. Mobile UI parity for Bookmarks (using shared `.davinci/bookmarks.json` storage).
-2. Validate visual appearance and keyboard navigation across dark and light themes in production desktop and mobile builds.
-3. Test database table editing with external sync updates in live desktop app.
+1. **AI Agent Phase 2: Agent Safety Core, Change Ledger & Transaction Rollback (`@app/ai-agent`)** [HIGH RISK].
+2. AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools (FTS5 + Semantic + Path routing).
+3. AI Agent Phase 4: Vault Mutation Tools & Staged Diff Generator.
 
 ---
 

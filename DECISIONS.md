@@ -367,3 +367,9 @@ the list.
 |---|---|---|
 | [0210](adr/0210-bookmarks-storage-identity-and-lifecycle.md) | Bookmarks storage in `.davinci/bookmarks.json`, path-based identity, union-by-path sync merge, and lazy-loaded tab leaf | Accepted |
 
+## AI Agent
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0211](adr/0211-modality-neutral-tool-calling-and-streaming.md) | Modality-neutral Tool Calling Abstraction & Streaming Runtime in `@app/ai-api` and `@app/ai-runtime` | Accepted |
+

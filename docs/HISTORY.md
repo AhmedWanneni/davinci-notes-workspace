@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: AI Agent Phase 1: Tool Calling Abstraction & Streaming Runtime (ADR-0211)
+
+- **API Abstraction (`packages/ai-api`)**:
+  - Authored `packages/ai-api/agentTypes.ts` defining `AgentToolDefinition`, `AgentToolCall`, `AgentToolResult`, `ToolParameterSchema`, and `ChatStreamChunk`.
+  - Extended `ChatMessage` with `role: "tool"` and `toolCalls`, and `AIProvider` with `"tools"` and `"streaming"` capabilities and `completeStream?()`.
+- **Zero-Dependency Streaming (`packages/ai-runtime`)**:
+  - Implemented `parseSseStream` in `packages/ai-runtime/sseStream.ts` using native `ReadableStream` and `TextDecoder` to parse Server-Sent Events with zero external dependencies.
+- **Provider Transports**:
+  - **OpenAI / OpenRouter (`cloudTransport.ts`)**: Upgraded to support tool declarations (`tools`), parse assistant tool calls (`tool_calls`), handle `role: "tool"` message history, and yield SSE stream chunks.
+  - **Google Gemini (`geminiTransport.ts`)**: Upgraded to format `tools: [{ functionDeclarations }]`, parse `functionCall` candidate parts, format `functionResponse` for tool results, and stream via `:streamGenerateContent?alt=sse`.
+  - **Local Ollama (`ollamaTransport.ts`)**: Upgraded to pass native tools and inject schema-guided instructions into system prompt via `formatOllamaToolSystemPrompt` with JSON extraction and repair fallback (`extractOllamaFallbackToolCall` in `ollamaToolFallback.ts`) for local models lacking native tool endpoints.
+  - Exposed capabilities in `providerImplementations.ts`.
+- **Architectural Record**:
+  - Authored `docs/adr/0211-modality-neutral-tool-calling-and-streaming.md` and indexed in `DECISIONS.md`.
+- **Verification**:
+  - 19/19 tests passing in `@app/ai-runtime` (`agentToolsAndStreaming.test.ts`, `ollamaToolFallback.test.ts`, `sseStream.test.ts`, `cloudTransport.test.ts`, `providerTransports.test.ts`).
+  - 2/2 tests passing in `@app/ai-api`.
+  - 8/8 tests passing in `apps/desktop/src/ai`.
+  - Typecheck passed with 0 errors across `@app/ai-api` and `@app/ai-runtime`.
+  - File lines all bounded ≤ 208 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: Bookmarks Feature (Storage, Lifecycle, UI, Dedicated Tab & Polish)
 
 - **Storage & Architecture (`ADR-0210`)**:
