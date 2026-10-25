@@ -5,6 +5,7 @@ import {
   getScopedSystemPrompt,
   getScopedTools,
   isAgentIntent,
+  shouldClarifyRequest,
   WEB_SEARCH_TOOL,
   type AgentIntent,
   type StructuredUserRequest,
@@ -93,6 +94,20 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
             },
           );
           setLastStructuredRequest(structuredRequest);
+
+          const clarification = shouldClarifyRequest(structuredRequest);
+          if (clarification.needsClarification && clarification.question) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `msg_a_${Date.now()}`,
+                role: "assistant",
+                content: clarification.question!,
+                timestamp: Date.now(),
+              },
+            ]);
+            return;
+          }
         }
 
         const state = useWorkspaceStore.getState();
