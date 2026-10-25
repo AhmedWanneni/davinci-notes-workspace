@@ -12,7 +12,7 @@ import {
   withDbLock,
 } from "../../vault";
 import { readNote, writeNote } from "../../vault/vaultCommands";
-import { searchFtsNotes } from "../../vault/sqliteFtsIndex";
+import { executeSearchQuery, parseSearchQuery, type SearchResult } from "@app/indexer";
 import { createLocalGitVersion } from "../../git/createLocalGitVersion";
 
 export function createDesktopInspectionBackend(): VaultInspectionBackend {
@@ -44,13 +44,16 @@ export function createDesktopInspectionBackend(): VaultInspectionBackend {
     async searchFts(query: string, folder?: string, limit = 8): Promise<SearchResultItem[]> {
       try {
         const db = await getVaultIndexDb();
-        const results = await withDbLock(() => searchFtsNotes(db, query, limit * 2));
+        const state = useWorkspaceStore.getState();
+        const tagIndex = state.tagIndex ?? new Map();
+        const parsed = parseSearchQuery(query);
+        const results = await withDbLock(() => executeSearchQuery(db, tagIndex, parsed));
         const filtered = folder
-          ? results.filter((r) => r.path.startsWith(folder.endsWith("/") ? folder : `${folder}/`))
+          ? results.filter((r: SearchResult) => r.path.startsWith(folder.endsWith("/") ? folder : `${folder}/`))
           : results;
-        return filtered.slice(0, limit).map((r) => ({
+        return filtered.slice(0, limit).map((r: SearchResult) => ({
           path: r.path,
-          snippet: r.snippet,
+          snippet: r.snippet ?? "",
         }));
       } catch (e) {
         console.warn("[agent-bridge] FTS search fallback:", e);
@@ -60,7 +63,7 @@ export function createDesktopInspectionBackend(): VaultInspectionBackend {
 
     async getStructure() {
       const state = useWorkspaceStore.getState();
-      const tags = state.tagIndex ? Array.from(state.tagIndex.keys()) : [];
+      const tags: string[] = state.tagIndex ? Array.from(state.tagIndex.keys()) : [];
       return {
         folders: state.allFolderPaths,
         tags,

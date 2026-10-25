@@ -36,7 +36,7 @@ export function AgentDiffViewer({
             changeRecord.action === "create"
               ? "success"
               : changeRecord.action === "delete"
-                ? "danger"
+                ? "error"
                 : "neutral";
 
           return (
@@ -47,7 +47,7 @@ export function AgentDiffViewer({
                   <Typography variant="text" size="xs" weight="medium">
                     {changeRecord.path}
                   </Typography>
-                  <Badge variant={badgeVariant} size="sm">
+                  <Badge variant={badgeVariant}>
                     {changeRecord.action.toUpperCase()}
                   </Badge>
                 </div>

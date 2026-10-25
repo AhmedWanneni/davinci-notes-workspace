@@ -31,6 +31,8 @@ export interface EventAttendee {
   organizer?: boolean;
 }
 
+export type CalendarEventAttendee = EventAttendee;
+
 export interface EventDateTime {
   dateTime?: string;
   date?: string;

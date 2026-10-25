@@ -76,7 +76,7 @@ export function AgentView() {
         <header className="agent-view__header">
           <div className="agent-view__title-group">
             <Sparkle size={18} weight="fill" />
-            <Typography variant="text" size="md" weight="semibold">
+            <Typography variant="text" size="base" weight="semibold">
               AI Vault Agent
             </Typography>
           </div>
@@ -98,7 +98,7 @@ export function AgentView() {
             <div className="agent-view__banner-actions">
               <Button
                 variant="secondary"
-                size="xs"
+                size="sm"
                 onClick={() => {
                   const task = missedSchedules[0];
                   dismissMissed();
@@ -107,7 +107,7 @@ export function AgentView() {
               >
                 Run Now
               </Button>
-              <Button variant="ghost" size="xs" onClick={dismissMissed}>
+              <Button variant="ghost" size="sm" onClick={dismissMissed}>
                 Dismiss
               </Button>
             </div>

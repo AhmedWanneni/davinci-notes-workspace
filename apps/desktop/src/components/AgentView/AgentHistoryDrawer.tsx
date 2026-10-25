@@ -51,7 +51,7 @@ export function AgentHistoryDrawer({
                   {tx.prompt}
                 </Typography>
                 {tx.undone ? (
-                  <Badge variant="neutral" size="sm">
+                  <Badge variant="neutral">
                     UNDONE
                   </Badge>
                 ) : (
