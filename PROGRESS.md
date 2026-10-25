@@ -4,7 +4,43 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Compound Multi-Step Action Fallback & Stop-Word Note Naming Disambiguation
+## Last Session — Prompt Understanding Pipeline for Weak Models
+
+**Scope:**
+1. **Step 1: Rewrite Step with Zero-Dependency Schema Validation (`rewriteSchema.ts`, `rewritePrompt.ts`, `executeRewriteStep.ts`, ADR-0219, ADR-0220)**:
+   - Built pure-TS schema validator validating `{ goal, intent, target, constraints, ambiguities }` without external packages (0 KB bundle delta).
+   - Designed short dedicated rewrite prompt. Automatically retries once on malformed output, falling back gracefully to the raw user message with `intent: "chat"`.
+   - Exposed setting toggle `ai.agent.rewriteEnabled` in settings and preferences (defaulting to enabled).
+2. **Step 2: Intent Router & Scoped Prompt Architecture (`intentRouter.ts`, `packages/ai-agent/prompts/`, ADR-0222)**:
+   - High-speed keyword/regex heuristics (`classifyIntentFast`) classify clear requests into 6 fixed intents (`search_vault`, `read_note`, `create_note`, `edit_note`, `organize`, `chat`) with 0 model calls and 0 ms latency.
+   - Ambiguous queries fall back to a minimal intent classification prompt (`INTENT_MODEL_PROMPT`).
+   - Replaced monolithic prompt with 6 isolated, short system prompts (<15 lines each) and gated active tools strictly to the active intent.
+3. **Step 3: Constrained Actions & Destructive Confirmation Gate (`actionValidator.ts`, `executeAgentStepTool.ts`, ADR-0221)**:
+   - Fixed allowlist of 13 approved actions with strict parameter schema validation. Unknown actions are rejected and never executed.
+   - Destructive actions (`delete_note`, `edit_note` overwriting content, `move_note`) require explicit user confirmation in the UI even when `autoApply` is enabled.
+4. **Step 4: Clarification Rule (`clarificationEngine.ts`, `useAgentExecution.ts`)**:
+   - Evaluates whether the request has non-empty ambiguities or a missing target for target-dependent intents.
+   - When triggered, asks exactly ONE clarifying question per turn without invoking tools or running the ReAct loop.
+5. **Line Cap Compliance & Architecture Integrity (`AGENTS.md`)**:
+   - Extracted `agentStepLoop.ts` to keep `useAgentExecution.ts` clean at 228 lines (hard cap 250).
+   - All modules in `@app/ai-agent` remain pure TypeScript with zero DOM dependencies.
+
+**Verification:**
+- `@app/ai-agent`: 16 test files, 87/87 tests passing.
+- `@app/desktop`: 177 test files, 723/723 tests passing.
+- `AgentAdversarialVerification.test.tsx`: 6/6 adversarial cases passing with real logged outputs.
+- `pnpm --filter @app/desktop build:web` succeeded in 8.41s with 0 errors.
+
+---
+
+## Next Up — Phase 2: Enhanced Context & Planning
+1. **Few-Shot Examples**: Add curated, editable few-shot example banks to `packages/ai-agent/prompts/` to steer small models on edge-case phrasing.
+2. **FTS5 Context Retrieval**: Automatically augment the scoped prompt with top-3 FTS5 snippet matches when relevant.
+3. **Optional Stronger-Model Planner**: Allow routing complex, multi-goal requests through a secondary stronger model when configured.
+
+---
+
+## Previous Session — Compound Multi-Step Action Fallback & Stop-Word Note Naming Disambiguation
 
 **Scope:**
 1. **Compound Multi-Step Intent Extraction (`conversationalToolFallback.ts`, `useAgentExecution.ts`)**:
