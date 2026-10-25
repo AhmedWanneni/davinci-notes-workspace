@@ -2,6 +2,41 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Bookmarks Feature (Storage, Lifecycle, UI, Dedicated Tab & Polish)
+
+- **Storage & Architecture (`ADR-0210`)**:
+  - Implemented `.davinci/bookmarks.json` inside the vault as the single source of truth for bookmarks.
+  - Set-by-path merge engine (`mergeBookmarkSets`) with latest `addedAt` timestamp resolving conflicts for cross-device sync (Google Drive / Syncthing).
+  - Debounced atomic writes (400ms) with synchronous flush on tab close, vault switch, and window unload.
+  - Corrupt JSON / schema mismatch safe fallbacks returning valid empty state without clobbering disk data.
+- **Lifecycle Integration**:
+  - Integrated with `renameNoteInVault` and `renameFolderInVault`: renames accurately remap bookmarks while preserving original `addedAt`.
+  - Integrated with `deleteNoteInVault` and `deleteFolderInVault`: deletions flag bookmarks as `missing: true` rather than silently dropping them.
+  - External watcher integration in `useVaultWatcherSubscription`: file renames remap bookmarks, external deletions set `missing: true`, file creations clear `missing: false`, and incoming changes to `.davinci/bookmarks.json` are cleanly merged.
+- **Add/Remove UI**:
+  - Unified `useBookmarks()` hook for all consumers.
+  - Editor header: bookmark toggle button with active fill state and tooltip.
+  - File tree context menu: "Bookmark note" / "Remove bookmark" action with `BookmarkSimple` Phosphor icon.
+  - File tree row: discreet bookmark glyph on bookmarked notes.
+  - Command palette: "Bookmark current note" (`Mod+D` shortcut) and "Open Bookmarks" commands.
+  - Global shortcut: `Mod+D` (Cmd+D / Ctrl+D) toggles bookmark for active note.
+- **Dedicated Bookmarks Page (`BookmarksView`)**:
+  - Single dedicated tab (`davinci://bookmarks`), accessible via `BookmarkSimple` on the icon rail (active when open). Clicking reuses existing tab without duplicates.
+  - Header with count badge, real-time search filter (`/` shortcut), and sort options (Recently added, Name A-Z, Last modified).
+  - Rows display custom note emoji (or document icon), note title, muted folder path, 1-2 line content preview snippet from index, added date, and hover remove button.
+  - Keyboard navigation (`useBookmarkKeyboardNav`): Arrow Up/Down, Enter to open, Cmd/Ctrl-Enter or middle click for new tab, Delete to remove, `/` to focus filter.
+  - Polished Obsidian-style aesthetic with design tokens only, no gradients or box shadows, CUBE CSS layers.
+  - List virtualization above 200 items using `@tanstack/react-virtual`.
+  - Lazy-loaded dynamic import chunk (0 impact on app startup time).
+- **Session Restore & Safety**:
+  - Added `davinci://bookmarks` virtual tab handling in `createNoteNavigationActions.ts` (safe from disk reads, autosave clobbering, or H1-sync renames).
+  - Preserved `davinci://bookmarks` across vault reload and app restarts in `vaultSwitchOrchestrator.ts`.
+  - 0 new runtime dependencies added.
+- **Validation**:
+  - 44/44 unit, lifecycle, integration, and benchmark tests passing across 7 suites (`src/bookmarks/`, `BookmarksView/`, `vaultSwitchOrchestrator.test.ts`).
+  - 1,000-item benchmark: parse in 1.1ms, serialize in 1.4ms, filter/sort in 0.9ms, merge in 0.8ms.
+  - Production web bundle build successful (`pnpm --filter @app/desktop build:web`), `BookmarksView` properly split into separate lazy chunk.
+
 ### 2026-10-25: Markdown Database Table View (Stored in One Note — Option A)
 
 - **Model (`@app/database`)**:

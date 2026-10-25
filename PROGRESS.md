@@ -4,7 +4,60 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Database Table View (Stored in One Markdown Note — Option A)
+## Last Session — Bookmarks Feature (Storage, Lifecycle, UI, Dedicated Tab & Polish)
+
+**Scope:**
+1. **Data Layer (`apps/desktop/src/bookmarks/`)**:
+   - Implemented `.davinci/bookmarks.json` vault storage as the single source of truth (ADR-0210).
+   - Set-by-path merge engine (`mergeBookmarkSets`) with latest `addedAt` timestamp resolving conflicts for cross-device sync (Google Drive / Syncthing).
+   - Debounced atomic writes (400ms) with synchronous flush on tab close, vault switch, and window unload.
+   - Corrupt JSON / schema mismatch safe fallbacks.
+2. **Lifecycle Management**:
+   - Integrated with `renameNoteInVault` and `renameFolderInVault`: renames accurately remap bookmarks while preserving `addedAt`.
+   - Integrated with `deleteNoteInVault` and `deleteFolderInVault`: deletions flag bookmarks as `missing: true` rather than silently dropping them.
+   - External watcher integration in `useVaultWatcherSubscription`: renames remap bookmarks, external deletions set `missing: true`, file creations clear `missing: false`, and incoming changes to `.davinci/bookmarks.json` are cleanly merged.
+3. **Add/Remove UI**:
+   - Implemented unified `useBookmarks()` hook.
+   - Editor header: bookmark toggle button with active fill state and tooltip.
+   - File tree context menu: "Bookmark note" / "Remove bookmark" action with `BookmarkSimple` Phosphor icon.
+   - File tree row: discreet bookmark glyph on bookmarked notes.
+   - Command palette: "Bookmark current note" (`Mod+D` shortcut) and "Open Bookmarks" commands.
+   - Global shortcut: `Mod+D` (Cmd+D / Ctrl+D) toggles bookmark for active note.
+4. **Dedicated Bookmarks Page (`BookmarksView`)**:
+   - Single dedicated tab (`davinci://bookmarks`), accessible via `BookmarkSimple` on the icon rail (active when open). Clicking reuses existing tab without duplicates.
+   - Header with count badge, real-time search filter (`/` shortcut), and sort options (Recently added, Name A-Z, Last modified).
+   - Rows display custom note emoji (or document icon), note title, muted folder path, 1-2 line content preview snippet from index, added date, and hover remove button.
+   - Keyboard navigation (`useBookmarkKeyboardNav`): Arrow Up/Down, Enter to open, Cmd/Ctrl-Enter or middle click for new tab, Delete to remove, `/` to focus filter.
+   - Polished Obsidian-style aesthetic with design tokens only, no gradients or box shadows, CUBE CSS layers.
+   - List virtualization above 200 items using `@tanstack/react-virtual`.
+   - Lazy-loaded dynamic import chunk (0 impact on app startup time).
+5. **Session Restore & Safety**:
+   - Added `davinci://bookmarks` virtual tab handling in `createNoteNavigationActions.ts` (safe from disk reads, autosave clobbering, or H1-sync renames).
+   - Preserved `davinci://bookmarks` across vault reload and app restarts in `vaultSwitchOrchestrator.ts`.
+   - 0 new runtime dependencies added.
+
+**Deferred:**
+- Bookmark folders/groups and custom tags
+- Bookmarking headings, block references, or saved searches
+- Mobile UI implementation (data schema is shared and sync-compatible)
+- Drag-and-drop manual reordering of bookmarks
+
+**Verification:**
+- 44/44 unit, lifecycle, integration, and benchmark tests passing across 7 suites (`src/bookmarks/`, `BookmarksView/`, `vaultSwitchOrchestrator.test.ts`).
+- 1,000-item benchmark: parse in 1.1ms, serialize in 1.4ms, filter/sort in 0.9ms, merge in 0.8ms.
+- Production web bundle build successful (`pnpm --filter @app/desktop build:web`), `BookmarksView` properly split into separate lazy chunk.
+
+---
+
+## Next Up
+
+1. Mobile UI parity for Bookmarks (using shared `.davinci/bookmarks.json` storage).
+2. Validate visual appearance and keyboard navigation across dark and light themes in production desktop and mobile builds.
+3. Test database table editing with external sync updates in live desktop app.
+
+---
+
+## Previous Session — Database Table View (Stored in One Markdown Note — Option A)
 
 **Scope:**
 1. **Model (`@app/database`)**:
