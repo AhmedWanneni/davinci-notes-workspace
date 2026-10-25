@@ -168,4 +168,61 @@ describe("Agent Settings & Runtime Sync", () => {
     );
     expect(hasWebSearch).toBe(false);
   });
+
+  it("autonomously executes inspection tool calls and feeds results back to model", async () => {
+    const completeMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        content: "",
+        toolCalls: [
+          {
+            id: "call_read_1",
+            name: "read_note",
+            arguments: { path: "Notes/Tasks.md" },
+          },
+        ],
+      })
+      .mockResolvedValueOnce({
+        content:
+          "Here is your summary of accomplishments: You finished design, and need to write tests.",
+        toolCalls: [],
+      });
+
+    mockCreateConfiguredProvider.mockResolvedValue({
+      complete: completeMock,
+    });
+
+    const { result } = renderHook(() =>
+      useAgentExecution({
+        providerId: "ollama",
+        model: "llama3:latest",
+        vaultName: "my-vault",
+      }),
+    );
+
+    await act(async () => {
+      await result.current.sendMessage("Review my notes and generate a summary");
+    });
+
+    expect(completeMock).toHaveBeenCalledTimes(2);
+
+    const firstCallMessages = completeMock.mock.calls[0][0].messages;
+    expect(firstCallMessages[0].role).toBe("system");
+    expect(firstCallMessages[0].content).toContain("FULL, DEFAULT, UNRESTRICTED PERMISSION");
+    expect(firstCallMessages[0].content).toContain("my-vault");
+
+    const secondCallMessages = completeMock.mock.calls[1][0].messages;
+    const toolMsg = secondCallMessages.find(
+      (m: { role: string }) => m.role === "tool",
+    );
+    expect(toolMsg).toBeDefined();
+    expect(toolMsg.name).toBe("read_note");
+
+    const assistantMsg = result.current.messages.find(
+      (m) => m.role === "assistant",
+    );
+    expect(assistantMsg?.content).toContain(
+      "Here is your summary of accomplishments",
+    );
+  });
 });

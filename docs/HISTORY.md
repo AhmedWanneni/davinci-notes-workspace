@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Full Default Vault Access & Autonomous Multi-Turn Inspection Loop
+
+- **Default Vault Permissions & Context Injected System Prompt (`agentSystemPrompt.ts`)**:
+  - Built authoritative agent system prompt explicitly granting the agent full, unrestricted default permission to read, inspect, search, and edit notes in the user's active vault.
+  - Instructs the agent to NEVER ask the user for permission, confirmation, or file paths.
+  - Embeds the active vault's note paths and taxonomy directly into the initial system context so the model knows what notes exist and inspects them immediately.
+- **Autonomous Multi-Turn Agent Loop (`useAgentExecution.ts`)**:
+  - Implemented a multi-turn agent loop (up to 5 steps) where inspection tools (`read_note`, `search_vault`, `list_vault_tree`, `web_search`) and mutation tools are executed, and their real outputs are fed back to the model as role `"tool"` messages.
+  - Handles placeholder arguments (e.g. `"Your_Note_Path"`) by providing guidance and the list of available notes back to the model.
+  - Enables models to read notes, extract accomplishments and action items, and provide the complete response autonomously in a single user turn.
+- **Embedded JSON Fallback Tool Extraction (`packages/ai-runtime/ollamaToolFallback.ts`)**:
+  - Enhanced `extractOllamaFallbackToolCall` to extract JSON tool calls even when surrounded by conversational text.
+- **Verification**:
+  - 20/20 tests passing in `@app/ai-runtime`.
+  - 18/18 tests passing in `@app/desktop` agent suite.
+  - All files strictly ≤ 238 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: Fix Ollama 'Does Not Support Tools' Error & Dynamically Surface Installed Ollama Models
 
 - **Graceful Ollama Tool Recovery (`packages/ai-runtime/ollamaTransport.ts`, `ollamaToolFallback.ts`)**:

@@ -37,6 +37,9 @@ export function AgentView() {
     handleModelSelect,
   } = useAgentViewConfig();
 
+  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
+  const vaultName = vaultPath ? vaultPath.split(/[/\\]/).pop() || "davinci-notes" : "davinci-notes";
+
   const {
     messages,
     stagedChanges,
@@ -58,6 +61,7 @@ export function AgentView() {
     model: currentModel,
     webSearchEnabled,
     autoApply,
+    vaultName,
   });
 
   const {
@@ -73,10 +77,6 @@ export function AgentView() {
     assignConversationProject,
   } = useAgentConversations();
 
-  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
-  const vaultName = vaultPath
-    ? vaultPath.split(/[/\\]/).pop() || "davinci-notes"
-    : "davinci-notes";
   const { missedSchedules, dismissMissed } = useAgentSchedules();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 

@@ -18,7 +18,9 @@ import {
   loadSelectedProvider,
   type AIProviderId,
 } from "../../ai/AISubsystem";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { useAgentLedger } from "./useAgentLedger";
+import { buildAgentSystemPrompt } from "./agentSystemPrompt";
 import type { ChatMessageItem, StagedChangeItem } from "./agentTypes";
 
 export interface UseAgentExecutionOptions {
@@ -26,7 +28,10 @@ export interface UseAgentExecutionOptions {
   model?: string;
   webSearchEnabled?: boolean;
   autoApply?: boolean;
+  vaultName?: string;
 }
+
+const MAX_AGENT_STEPS = 5;
 
 export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
@@ -62,70 +67,114 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
       setIsStreaming(true);
 
       try {
-        const providerId =
-          options?.providerId ?? (await loadSelectedProvider());
-        const provider = await createConfiguredProvider(
-          providerId,
-          options?.model,
-        );
+        const providerId = options?.providerId ?? (await loadSelectedProvider());
+        const provider = await createConfiguredProvider(providerId, options?.model);
 
-        const chatHistory: ChatMessage[] = nextMessages.map((m) => ({
-          role: m.role,
-          content: m.content,
-          toolCalls: m.toolCalls,
-        }));
-
-        const activeTools = options?.webSearchEnabled
-          ? [
-              ...VAULT_INSPECTION_TOOLS,
-              ...VAULT_MUTATION_TOOLS,
-              WEB_SEARCH_TOOL,
-            ]
-          : [...VAULT_INSPECTION_TOOLS, ...VAULT_MUTATION_TOOLS];
-
-        const res = await provider.complete({
-          messages: chatHistory,
-          tools: activeTools,
+        const state = useWorkspaceStore.getState();
+        const vName =
+          options?.vaultName ??
+          (state.vaultPath ? state.vaultPath.split(/[/\\]/).pop() || "Vault" : "Vault");
+        const systemPrompt = buildAgentSystemPrompt({
+          vaultName: vName,
+          allNotePaths: state.allNotePaths ?? [],
+          allFolderPaths: state.allFolderPaths ?? [],
         });
 
-        const assistantMsg: ChatMessageItem = {
-          id: `msg_a_${Date.now()}`,
-          role: "assistant",
-          content: res.content,
-          toolCalls: res.toolCalls,
-          timestamp: Date.now(),
-        };
+        const activeTools = options?.webSearchEnabled
+          ? [...VAULT_INSPECTION_TOOLS, ...VAULT_MUTATION_TOOLS, WEB_SEARCH_TOOL]
+          : [...VAULT_INSPECTION_TOOLS, ...VAULT_MUTATION_TOOLS];
 
-        setMessages((prev) => [...prev, assistantMsg]);
+        const workingHistory: ChatMessage[] = [
+          { role: "system", content: systemPrompt },
+          ...nextMessages.map((m) => ({
+            role: m.role,
+            content: m.content,
+            toolCalls: m.toolCalls,
+            toolCallId: m.toolCallId,
+            name: m.name,
+          })),
+        ];
 
-        if (res.toolCalls && res.toolCalls.length > 0) {
-          for (const tc of res.toolCalls) {
-            if (tc.name === "web_search" && options?.webSearchEnabled) {
-              await executeWebSearchTool(tc.arguments, webSearchBackend);
-            } else if (VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name)) {
-              const plan = await planMutation(
-                tc.name,
-                tc.arguments,
-                mutationBackend,
-              );
-              const stagedItem: StagedChangeItem = {
-                id: `staged_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                toolName: tc.name,
-                plan,
-                status: "pending",
-              };
-              if (autoApply) {
-                await handleApplyChange(stagedItem);
+        let finalResponseReceived = false;
+
+        for (let step = 0; step < MAX_AGENT_STEPS; step++) {
+          if (abortRef.current?.signal.aborted) break;
+
+          const res = await provider.complete({
+            messages: workingHistory,
+            tools: activeTools,
+          });
+
+          if (res.toolCalls && res.toolCalls.length > 0) {
+            workingHistory.push({
+              role: "assistant",
+              content: res.content || "",
+              toolCalls: res.toolCalls,
+            });
+
+            for (const tc of res.toolCalls) {
+              let toolResult: unknown;
+              if (tc.name === "web_search" && options?.webSearchEnabled) {
+                toolResult = await executeWebSearchTool(tc.arguments, webSearchBackend);
+              } else if (VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name)) {
+                const plan = await planMutation(tc.name, tc.arguments, mutationBackend);
+                const stagedItem: StagedChangeItem = {
+                  id: `staged_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                  toolName: tc.name,
+                  plan,
+                  status: "pending",
+                };
+                if (autoApply) {
+                  await handleApplyChange(stagedItem);
+                  toolResult = { status: "applied", action: tc.name, path: tc.arguments.path };
+                } else {
+                  setStagedChanges((prev) => [...prev, stagedItem]);
+                  toolResult = { status: "staged_for_approval", action: tc.name, path: tc.arguments.path };
+                }
               } else {
-                setStagedChanges((prev) => [...prev, stagedItem]);
+                const pathArg = String(tc.arguments.path ?? "").trim();
+                if ((pathArg === "Your_Note_Path" || !pathArg) && tc.name === "read_note") {
+                  toolResult = {
+                    error: "Please specify a real note path from the vault.",
+                    availableNotes: (state.allNotePaths ?? []).slice(0, 10),
+                  };
+                } else {
+                  toolResult = await executeInspectionTool(tc.name, tc.arguments, inspectionBackend);
+                }
               }
-            } else {
-              await executeInspectionTool(
-                tc.name,
-                tc.arguments,
-                inspectionBackend,
-              );
+
+              workingHistory.push({
+                role: "tool",
+                name: tc.name,
+                toolCallId: tc.id,
+                content: typeof toolResult === "string" ? toolResult : JSON.stringify(toolResult),
+              });
             }
+          } else {
+            const assistantMsg: ChatMessageItem = {
+              id: `msg_a_${Date.now()}`,
+              role: "assistant",
+              content: res.content,
+              timestamp: Date.now(),
+            };
+            setMessages((prev) => [...prev, assistantMsg]);
+            finalResponseReceived = true;
+            break;
+          }
+        }
+
+        if (!finalResponseReceived && workingHistory.length > 0) {
+          const lastMsg = workingHistory[workingHistory.length - 1];
+          if (lastMsg.role === "assistant" && lastMsg.content) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: `msg_a_${Date.now()}`,
+                role: "assistant",
+                content: lastMsg.content,
+                timestamp: Date.now(),
+              },
+            ]);
           }
         }
       } catch (err) {
@@ -151,6 +200,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
       mutationBackend,
       options?.model,
       options?.providerId,
+      options?.vaultName,
       options?.webSearchEnabled,
       webSearchBackend,
     ],

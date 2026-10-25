@@ -4,7 +4,28 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Ollama 'Does Not Support Tools' Error & Dynamically Surface Installed Ollama Models
+## Last Session — Full Default Vault Access & Autonomous Multi-Turn Inspection Loop
+
+**Scope:**
+1. **Default Vault Permissions & Context Injected System Prompt (`agentSystemPrompt.ts`)**:
+   - Built authoritative agent system prompt explicitly granting the agent full, unrestricted default permission to read, inspect, search, and edit notes in the user's active vault.
+   - Instructs the agent to NEVER ask the user for permission, confirmation, or file paths.
+   - Embeds the active vault's note paths and taxonomy directly into the initial system context so the model knows what notes exist and inspects them immediately.
+2. **Autonomous Multi-Turn Agent Loop (`useAgentExecution.ts`)**:
+   - Implemented a multi-turn agent loop (up to 5 steps) where inspection tools (`read_note`, `search_vault`, `list_vault_tree`, `web_search`) and mutation tools are executed, and their real outputs are fed back to the model as role `"tool"` messages.
+   - Handles placeholder arguments (e.g. `"Your_Note_Path"`) by providing guidance and the list of available notes back to the model.
+   - Enables models to read notes, extract accomplishments and action items, and provide the complete response autonomously in a single user turn.
+3. **Embedded JSON Fallback Tool Extraction (`packages/ai-runtime/ollamaToolFallback.ts`)**:
+   - Enhanced `extractOllamaFallbackToolCall` to extract JSON tool calls even when surrounded by conversational text.
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (20/20 tests passing).
+- `pnpm --filter @app/desktop test AgentDock.test.tsx AgentSettingsSync.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (18/18 tests passing).
+- All files strictly ≤ 238 lines (hard cap 250).
+
+---
+
+## Previous Session — Fix Ollama 'Does Not Support Tools' Error & Dynamically Surface Installed Ollama Models
 
 **Scope:**
 1. **Graceful Ollama Tool Recovery (`packages/ai-runtime/ollamaTransport.ts`, `ollamaToolFallback.ts`)**:

@@ -33,10 +33,16 @@ export function extractOllamaFallbackToolCall(
 ): AgentToolCall | null {
   const trimmed = text.trim();
   const jsonMatch = /```(?:json)?\s*([\s\S]*?)\s*```/.exec(trimmed);
-  const rawJson = jsonMatch ? jsonMatch[1].trim() : trimmed;
+  let rawJson = jsonMatch ? jsonMatch[1].trim() : trimmed;
 
   if (!rawJson.startsWith("{") || !rawJson.endsWith("}")) {
-    return null;
+    const embeddedMatch =
+      /\{[\s\S]*?"(?:tool|name)"\s*:\s*"[^"]+"[\s\S]*?\}/.exec(trimmed);
+    if (embeddedMatch) {
+      rawJson = embeddedMatch[0].trim();
+    } else {
+      return null;
+    }
   }
 
   try {
