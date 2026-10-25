@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { extractConversationalToolCall } from "./conversationalToolFallback.js";
+import {
+  extractConversationalToolCall,
+  extractConversationalToolCalls,
+} from "./conversationalToolFallback.js";
 
 describe("conversationalToolFallback", () => {
   it("extracts create_note from exact user prompt phrase", () => {
@@ -77,5 +80,37 @@ describe("conversationalToolFallback", () => {
     const text = "Hello! How can I help you today with your notes?";
     const call = extractConversationalToolCall(text);
     expect(call).toBeNull();
+  });
+
+  it("handles compound folder and web search request without creating note named having", () => {
+    const userPrompt =
+      "create a folder named books and search for books in internet and under that folder create note hacing the list of the books.";
+    const text =
+      "Sure! I will create a folder named books and search the internet for books.";
+    const calls = extractConversationalToolCalls(text, userPrompt);
+
+    expect(calls.length).toBe(2);
+    expect(calls[0].name).toBe("create_folder");
+    expect(calls[0].arguments.path).toBe("books");
+
+    expect(calls[1].name).toBe("web_search");
+    expect(calls[1].arguments.query).toBe("books");
+
+    // Ensure none of the calls create a note named 'having' or 'hacing'
+    expect(calls.some((c) => String(c.arguments.path).includes("having"))).toBe(
+      false,
+    );
+    expect(calls.some((c) => String(c.arguments.path).includes("hacing"))).toBe(
+      false,
+    );
+  });
+
+  it("derives note name from topic when prompt says 'create note having the list of the books'", () => {
+    const userPrompt = "create note having the list of the books";
+    const text = "Sure! I'll create that note for you.";
+    const call = extractConversationalToolCall(text, userPrompt);
+    expect(call).not.toBeNull();
+    expect(call?.name).toBe("create_note");
+    expect(call?.arguments.path).toBe("books.md");
   });
 });

@@ -4,7 +4,30 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Disambiguate "File" as Note Creation & Fix Ollama Empty Multi-Turn Response
+## Last Session — Compound Multi-Step Action Fallback & Stop-Word Note Naming Disambiguation
+
+**Scope:**
+1. **Compound Multi-Step Intent Extraction (`conversationalToolFallback.ts`, `useAgentExecution.ts`)**:
+   - Resolved issue where compound instructions (e.g., "create a folder named books and search for books in internet and under that folder create note hacing the list of the books") resulted in a note mistakenly named `having.md` and omitted folder creation / web search.
+   - Built `extractConversationalToolCalls` returning an ordered sequence of synthesized tool calls (`create_folder`, `web_search`, `create_note`).
+   - Allowed multi-tool batching during conversational recovery so the folder is created, web search is performed, and results are passed to the next turn to generate note content in the target folder.
+2. **Stop-Word & Preposition Filtering in Name Extraction (`conversationalToolFallback.ts`)**:
+   - Added `INVALID_WORDS` exclusion list preventing prepositions, verbs, and stop-words (`having`, `hacing`, `containing`, `with`, `about`, `for`, `listing`, `the`, `a`) from being extracted as note or folder names.
+   - Built `deriveNoteNameFromTopic` to identify actual topics from prepositional phrases (e.g. `having the list of the books` -> `Books.md` under `books/Books.md`).
+3. **Execution Loop & Test Suite (`useAgentExecution.ts`, `AgentConversationalRecovery.test.tsx`, `conversationalToolFallback.test.ts`)**:
+   - Integrated `extractConversationalToolCalls` in `useAgentExecution.ts` to sequentially execute and apply multiple synthesized tool actions.
+   - Added end-to-end multi-turn test simulating folder creation, web search, and note creation under the subfolder with strict assertions that no stop-word note is created.
+   - Maintained all files under the 250-line hard cap (`useAgentExecution.ts` at 235 lines, `conversationalToolFallback.ts` at 194 lines).
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (6 test files, 31 tests passing).
+- `pnpm --filter @app/ai-agent test` (12 test files, 62 tests passing).
+- `pnpm --filter @app/desktop test AgentConversationalRecovery.test.tsx AgentSettingsSync.test.tsx AgentDock.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (6 test files, 21 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.87s with 0 errors.
+
+---
+
+## Previous Session — Disambiguate "File" as Note Creation & Fix Ollama Empty Multi-Turn Response
 
 **Scope:**
 1. **Disambiguate "File" Requests to Note Creation (`conversationalToolFallback.ts`, `vaultMutationTools.ts`, `vaultMutationToolDefs.ts`)**:

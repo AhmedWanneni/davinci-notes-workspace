@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { ChatMessage } from "@app/ai-api";
 import { VAULT_MUTATION_TOOLS } from "@app/ai-agent";
-import { extractConversationalToolCall } from "@app/ai-runtime";
+import { extractConversationalToolCalls } from "@app/ai-runtime";
 import {
   createDesktopInspectionBackend,
   createDesktopMutationBackend,
@@ -110,12 +110,12 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
             !hasExecutedMutation &&
             res.content
           ) {
-            const fallbackCall = extractConversationalToolCall(
+            const fallbackCalls = extractConversationalToolCalls(
               res.content,
               promptText,
             );
-            if (fallbackCall) {
-              effectiveToolCalls = [fallbackCall];
+            if (fallbackCalls.length > 0) {
+              effectiveToolCalls = fallbackCalls;
             }
           }
 

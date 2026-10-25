@@ -11,4 +11,7 @@ export {
   extractOllamaFallbackToolCall,
   formatOllamaToolSystemPrompt,
 } from "./ollamaToolFallback.js";
-export { extractConversationalToolCall } from "./conversationalToolFallback.js";
+export {
+  extractConversationalToolCall,
+  extractConversationalToolCalls,
+} from "./conversationalToolFallback.js";

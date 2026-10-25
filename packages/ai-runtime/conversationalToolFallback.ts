@@ -1,5 +1,41 @@
 import type { AgentToolCall } from "@app/ai-api";
 
+const INVALID_WORDS = new Set([
+  "having",
+  "hacing",
+  "with",
+  "about",
+  "for",
+  "in",
+  "on",
+  "at",
+  "to",
+  "from",
+  "of",
+  "by",
+  "containing",
+  "listing",
+  "including",
+  "summarizing",
+  "called",
+  "named",
+  "titled",
+  "that",
+  "which",
+  "a",
+  "an",
+  "the",
+  "some",
+  "all",
+  "any",
+  "and",
+  "or",
+  "but",
+  "this",
+  "my",
+  "your",
+]);
+
 function cleanPath(raw: string, isFolder = false): string {
   let cleaned = raw
     .trim()
@@ -16,137 +52,143 @@ function extractCodeBlock(text: string): string {
   return codeBlockMatch ? codeBlockMatch[1] : "";
 }
 
-const NAME_PATTERN =
-  /(?:["'‘“]([^"'’”\n\r]+)["'’”]|(?:named|called|titled)?\s*([a-zA-Z0-9_\-/\.]+)(?:\s+(?:in|with|for|at|under)\b|\.|$|\s))/i;
+function deriveNoteNameFromTopic(prompt: string): string | null {
+  const match =
+    /(?:having|hacing|with|containing|about|for|listing)\s+(?:the\s+|a\s+)?(?:list\s+of\s+(?:the\s+|a\s+)?)?([a-zA-Z0-9_\-]+)/i.exec(
+      prompt,
+    );
+  if (match && match[1] && !INVALID_WORDS.has(match[1].toLowerCase())) {
+    return cleanPath(match[1]);
+  }
+  return null;
+}
+
+function matchEntityName(pattern: RegExp, text: string): string | null {
+  const match = pattern.exec(text);
+  if (!match) return null;
+  const raw = (match[1] || match[2] || "").trim();
+  if (!raw || INVALID_WORDS.has(raw.toLowerCase())) return null;
+  return raw;
+}
 
 /**
- * Recovers intent when conversational models hallucinate having performed
- * a vault action (e.g. "I've created a new note named 'sisi'...") without emitting a tool call.
+ * Recovers one or more tool calls when models output conversational text
+ * instead of executing structured tool JSON.
  */
+export function extractConversationalToolCalls(
+  assistantText: string,
+  userPrompt?: string,
+): AgentToolCall[] {
+  const text = assistantText.trim();
+  const prompt = userPrompt?.trim() || "";
+  const results: AgentToolCall[] = [];
+
+  // Check for folder creation in prompt or text
+  const folderPromptPattern =
+    /(?:create|make|add|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+  const folderTextPattern =
+    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:folder|directory)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+
+  const rawFolder =
+    matchEntityName(folderPromptPattern, prompt) ||
+    matchEntityName(folderTextPattern, text);
+
+  let folderName: string | null = null;
+  if (rawFolder) {
+    folderName = cleanPath(rawFolder, true);
+    results.push({
+      id: `call_conv_folder_${Date.now()}`,
+      name: "create_folder",
+      arguments: { path: folderName },
+    });
+  }
+
+  // Check for web search in prompt
+  const searchMatch =
+    /(?:search(?:\s+for)?|look\s+up|find)\s+([^,\n\r]+?)\s+(?:in|on|using|from)\s+(?:the\s+)?(?:internet|web|google|duckduckgo)/i.exec(
+      prompt,
+    );
+  if (searchMatch && searchMatch[1]) {
+    const query = searchMatch[1].trim();
+    results.push({
+      id: `call_conv_search_${Date.now()}`,
+      name: "web_search",
+      arguments: { query },
+    });
+  }
+
+  // If compound request with search and folder, return them so step 0 executes them
+  if (results.length > 0 && searchMatch) {
+    return results;
+  }
+
+  // Check for note/file creation in assistant text
+  const noteTextPattern =
+    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+  const rawNoteInText = matchEntityName(noteTextPattern, text);
+
+  if (rawNoteInText) {
+    const path = cleanPath(rawNoteInText);
+    const content = extractCodeBlock(text);
+    results.push({
+      id: `call_conv_note_${Date.now()}`,
+      name: "create_note",
+      arguments: { path, content },
+    });
+    return results;
+  }
+
+  // Check for Kanban
+  const kanbanPattern =
+    /(?:create|make|add|new|I(?:'ve| have)?\s+created)\s+(?:a\s+)?(?:kanban(?:\s+board)?|board)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+  const rawKanban =
+    matchEntityName(kanbanPattern, text) || matchEntityName(kanbanPattern, prompt);
+  if (rawKanban) {
+    results.push({
+      id: `call_conv_kanban_${Date.now()}`,
+      name: "create_kanban_board",
+      arguments: { path: cleanPath(rawKanban), title: rawKanban.replace(/\.md$/i, "") },
+    });
+    return results;
+  }
+
+  // Check for Database
+  const dbPattern =
+    /(?:create|make|add|new|I(?:'ve| have)?\s+created)\s+(?:a\s+)?(?:database(?:\s+table)?|table)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+  const rawDb =
+    matchEntityName(dbPattern, text) || matchEntityName(dbPattern, prompt);
+  if (rawDb) {
+    results.push({
+      id: `call_conv_db_${Date.now()}`,
+      name: "create_database_table",
+      arguments: { path: cleanPath(rawDb), title: rawDb.replace(/\.md$/i, "") },
+    });
+    return results;
+  }
+
+  // Fallback single note creation from user prompt
+  const userNotePattern =
+    /(?:create|make|add|new)\s+(?:a\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+  const rawUserNote = matchEntityName(userNotePattern, prompt);
+
+  let noteTarget = rawUserNote ? cleanPath(rawUserNote) : deriveNoteNameFromTopic(prompt);
+
+  if (noteTarget) {
+    const fullPath = folderName ? `${folderName}/${noteTarget}` : noteTarget;
+    results.push({
+      id: `call_conv_note_${Date.now()}`,
+      name: "create_note",
+      arguments: { path: fullPath, content: extractCodeBlock(text) },
+    });
+  }
+
+  return results;
+}
+
 export function extractConversationalToolCall(
   assistantText: string,
   userPrompt?: string,
 ): AgentToolCall | null {
-  const text = assistantText.trim();
-  if (!text) return null;
-
-  // 1. Note / file creation match in assistant text
-  const notePrefix =
-    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page)\s+(?:named|called|titled\s+)?/i;
-  const createdNotePrefix =
-    /(?:^|\n)(?:Created|Added)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page)\s+(?:named|called|titled\s+)?/i;
-
-  if (notePrefix.test(text) || createdNotePrefix.test(text)) {
-    const after = text.replace(notePrefix, "").replace(createdNotePrefix, "");
-    const match = NAME_PATTERN.exec(after);
-    const raw = match ? match[1] || match[2] : null;
-    if (raw) {
-      const path = cleanPath(raw);
-      const content = extractCodeBlock(text);
-      return {
-        id: `call_conv_${Date.now()}`,
-        name: "create_note",
-        arguments: { path, content },
-      };
-    }
-  }
-
-  // 2. Folder creation match in assistant text
-  const folderPrefix =
-    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:folder|directory)\s+(?:named|called|titled\s+)?/i;
-  const createdFolderPrefix =
-    /(?:^|\n)(?:Created|Added)\s+(?:a\s+)?(?:new\s+)?(?:folder|directory)\s+(?:named|called|titled\s+)?/i;
-
-  if (folderPrefix.test(text) || createdFolderPrefix.test(text)) {
-    const after = text.replace(folderPrefix, "").replace(createdFolderPrefix, "");
-    const match = NAME_PATTERN.exec(after);
-    const raw = match ? match[1] || match[2] : null;
-    if (raw) {
-      const path = cleanPath(raw, true);
-      return {
-        id: `call_conv_${Date.now()}`,
-        name: "create_folder",
-        arguments: { path },
-      };
-    }
-  }
-
-  // 3. Kanban board creation match in assistant text
-  const kanbanPrefix =
-    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:kanban(?:\s+board)?|board)\s+(?:named|called|titled\s+)?/i;
-  const createdKanbanPrefix =
-    /(?:^|\n)(?:Created|Added)\s+(?:a\s+)?(?:new\s+)?(?:kanban(?:\s+board)?|board)\s+(?:named|called|titled\s+)?/i;
-
-  if (kanbanPrefix.test(text) || createdKanbanPrefix.test(text)) {
-    const after = text.replace(kanbanPrefix, "").replace(createdKanbanPrefix, "");
-    const match = NAME_PATTERN.exec(after);
-    const raw = match ? match[1] || match[2] : null;
-    if (raw) {
-      const title = raw.replace(/\.md$/i, "");
-      const path = cleanPath(raw);
-      return {
-        id: `call_conv_${Date.now()}`,
-        name: "create_kanban_board",
-        arguments: { path, title },
-      };
-    }
-  }
-
-  // 4. Database creation match in assistant text
-  const dbPrefix =
-    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:database(?:\s+table)?|table)\s+(?:named|called|titled\s+)?/i;
-  const createdDbPrefix =
-    /(?:^|\n)(?:Created|Added)\s+(?:a\s+)?(?:new\s+)?(?:database(?:\s+table)?|table)\s+(?:named|called|titled\s+)?/i;
-
-  if (dbPrefix.test(text) || createdDbPrefix.test(text)) {
-    const after = text.replace(dbPrefix, "").replace(createdDbPrefix, "");
-    const match = NAME_PATTERN.exec(after);
-    const raw = match ? match[1] || match[2] : null;
-    if (raw) {
-      const title = raw.replace(/\.md$/i, "");
-      const path = cleanPath(raw);
-      return {
-        id: `call_conv_${Date.now()}`,
-        name: "create_database_table",
-        arguments: { path, title },
-      };
-    }
-  }
-
-  // 5. Fallback from user prompt if assistant confirmed or attempted action
-  if (
-    userPrompt &&
-    /(?:sure|i(?:'ll| will)|okay|done|creating|created|right away|empty initially)/i.test(
-      text,
-    )
-  ) {
-    const userNote =
-      /(?:create|make|add|new)\s+(?:a\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s+["'‘“]?([a-zA-Z0-9_\-/\.]+)["'’”]?/i.exec(
-        userPrompt,
-      );
-    if (userNote && userNote[1]) {
-      return {
-        id: `call_conv_${Date.now()}`,
-        name: "create_note",
-        arguments: {
-          path: cleanPath(userNote[1]),
-          content: extractCodeBlock(text),
-        },
-      };
-    }
-
-    const userFolder =
-      /(?:create|make|add|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:named|called|titled))?\s+["'‘“]?([a-zA-Z0-9_\-/\.]+)["'’”]?/i.exec(
-        userPrompt,
-      );
-    if (userFolder && userFolder[1]) {
-      return {
-        id: `call_conv_${Date.now()}`,
-        name: "create_folder",
-        arguments: { path: cleanPath(userFolder[1], true) },
-      };
-    }
-  }
-
-  return null;
+  const calls = extractConversationalToolCalls(assistantText, userPrompt);
+  return calls.length > 0 ? calls[0] : null;
 }
