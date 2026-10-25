@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.json",
-  "compilerOptions": { "rootDir": ".", "outDir": "dist", "types": ["vitest"] },
+  "compilerOptions": { "outDir": "dist", "types": [] },
   "include": ["*.ts"]
 }

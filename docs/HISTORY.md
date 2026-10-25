@@ -2,6 +2,24 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools
+
+- **Tool Declarations (`packages/ai-agent/vaultInspectionTools.ts`)**:
+  - Defined `list_vault_tree`, `read_note`, `search_vault`, and `get_vault_structure` tool specifications with JSON schemas.
+  - Designed modality-neutral `VaultInspectionBackend` decoupling pure execution from platform-specific Tauri/filesystem/SQLite storage.
+- **Execution & Concurrency Safety**:
+  - All paths strictly validated through `validateVaultRelativePath` (`SafetyJail`).
+  - Read note responses enclosed in `<untrusted_vault_data>` envelope tags.
+  - Hybrid search engine cleanly merging exact-match SQLite FTS5 hits with conceptual cosine similarity vector embeddings without duplicates.
+  - Bounded listings preventing context window exhaustion or memory bloat.
+- **Verification**:
+  - 22/22 tests passing in `@app/ai-agent` (`vaultInspectionTools.test.ts`, `safetyJail.test.ts`, `untrustedContentGuard.test.ts`, `changeLedger.test.ts`).
+  - Adversarial path traversal attempt on `read_note` rejected with `SafetyJailError`.
+  - Typecheck passed with zero errors in `@app/ai-agent`.
+  - All files strictly ≤ 156 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: AI Agent Phase 2: Agent Safety Core, Change Ledger & Transaction Rollback (ADR-0212, ADR-0213)
 
 - **Safety Jail (`packages/ai-agent/safetyJail.ts`)**:
