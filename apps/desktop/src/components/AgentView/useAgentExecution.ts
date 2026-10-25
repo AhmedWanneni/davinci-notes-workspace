@@ -228,5 +228,6 @@ export function useAgentExecution() {
     sendMessage,
     abortExecution,
     clearMessages,
+    setMessages,
   };
 }

@@ -4,7 +4,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix CSS Module Bundling Issue for AgentView
+## Last Session — Conversation Surfing & Project Organization for AI Agent
+
+**Scope:**
+1. **Local-First Conversation & Project Store (`packages/ai-agent/conversationStore.ts`, `conversationTypes.ts`)**:
+   - Persisted at `.davinci/agent/conversations.json` within the active vault.
+   - Pure functions to create, parse, serialize, add, delete, and move conversations into user-defined projects.
+   - Comprehensive test suite in `conversationStore.test.ts` (5/5 tests passing).
+2. **Conversation & Projects Drawer (`AgentConversationsDrawer.tsx`)**:
+   - Interactive slide-out drawer accessible from the top header (`Chats (N)`) and dock context chips.
+   - Search bar to filter conversations by query across titles and messages.
+   - Project chips (`All`, `General`, custom projects) with conversation count badges and on-the-fly project creation.
+   - Quick action menu on each conversation item to reassign to any project, rename, or delete.
+3. **App Integration & Auto-Persistence (`useAgentConversations.ts`, `AgentView.tsx`, `AgentChatInput.tsx`)**:
+   - Auto-titles fresh conversations based on the first prompt.
+   - Synchronizes active conversation messages into `AgentView` stream and auto-persists updates.
+   - Displays the active project directly in the dock context chips (`🏷️ {projectName}`).
+   - Extracted `AgentHeader.tsx` and `AgentMissedBanner.tsx` to maintain clean single responsibility and ensure all files remain strictly under 245 lines.
+
+**Verification:**
+- `pnpm --filter @app/ai-agent test conversationStore.test.ts` (5/5 tests passing).
+- `pnpm --filter @app/desktop test AgentView.test.tsx AgentDock.test.tsx AgentConversations.test.tsx` (11/11 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.45s with 0 errors.
+- All files strictly ≤ 243 lines (hard cap 250).
+
+---
+
+## Previous Session — Fix CSS Module Bundling Issue for AgentView
 
 **Scope:**
 1. **Root Cause Analysis**:

@@ -21,12 +21,14 @@ export interface AgentChatInputProps {
   autoApply: boolean;
   onToggleAutoApply: (enabled: boolean) => void;
   vaultName: string;
+  projectName?: string;
   currentProvider: AIProviderId;
   currentModel: string;
   onSelectModel: (model: string, provider: AIProviderId) => void;
   webSearchEnabled: boolean;
   onToggleWebSearch: (enabled: boolean) => void;
   onOpenSettings: () => void;
+  onOpenConversations?: () => void;
   disabled?: boolean;
 }
 
@@ -37,12 +39,14 @@ export function AgentChatInput({
   autoApply,
   onToggleAutoApply,
   vaultName,
+  projectName,
   currentProvider,
   currentModel,
   onSelectModel,
   webSearchEnabled,
   onToggleWebSearch,
   onOpenSettings,
+  onOpenConversations,
   disabled,
 }: AgentChatInputProps) {
   const [input, setInput] = useState("");
@@ -69,6 +73,16 @@ export function AgentChatInput({
           <Folder size={13} weight="bold" />
           <span>{vaultName}</span>
         </div>
+        {projectName && (
+          <button
+            type="button"
+            className="agent-chat-dock__chip agent-chat-dock__chip--interactive"
+            onClick={onOpenConversations}
+            title={`Active Project: ${projectName}. Click to browse conversations.`}
+          >
+            <span>{projectName}</span>
+          </button>
+        )}
         <button
           type="button"
           className="agent-chat-dock__chip agent-chat-dock__chip--interactive"

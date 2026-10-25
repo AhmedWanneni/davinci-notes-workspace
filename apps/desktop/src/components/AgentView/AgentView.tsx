@@ -1,20 +1,23 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button, Typography } from "@app/design-system";
-import { Sparkle, Clock, Plus, Sliders } from "@phosphor-icons/react";
 import {
   parseShortcuts,
   type AgentShortcut,
   SHORTCUTS_FILE_PATH,
 } from "@app/ai-agent";
+import { AgentHeader } from "./AgentHeader";
+import { AgentMissedBanner } from "./AgentMissedBanner";
 import { AgentMessageBubble } from "./AgentMessageBubble";
 import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentChatInput } from "./AgentChatInput";
 import { AgentHistoryDrawer } from "./AgentHistoryDrawer";
+import { AgentConversationsDrawer } from "./AgentConversationsDrawer";
 import { AgentShortcutsBar } from "./AgentShortcutsBar";
 import { AgentStarterPrompts } from "./AgentStarterPrompts";
 import { AgentSettingsPanel } from "./AgentSettingsPanel";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentSchedules } from "./useAgentSchedules";
+import { useAgentConversations } from "./useAgentConversations";
 import {
   loadAIProviderStatus,
   loadSelectedProvider,
@@ -23,6 +26,7 @@ import {
 } from "../../ai/AISubsystem";
 import { readNote } from "../../vault/vaultCommands";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import type { ChatMessageItem } from "./agentTypes";
 import "./AgentView.scss";
 
 export function AgentView() {
@@ -43,7 +47,21 @@ export function AgentView() {
     sendMessage,
     abortExecution,
     clearMessages,
+    setMessages,
   } = useAgentExecution();
+
+  const {
+    conversations,
+    projects,
+    activeConversation,
+    activeConversationId,
+    createNewConversation,
+    selectConversation,
+    saveActiveMessages,
+    removeConversation,
+    addProject,
+    assignConversationProject,
+  } = useAgentConversations();
 
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
   const vaultName = vaultPath ? vaultPath.split(/[/\\]/).pop() || "davinci-notes" : "davinci-notes";
@@ -52,6 +70,7 @@ export function AgentView() {
   const [currentModel, setCurrentModel] = useState("gemini-2.0-flash");
   const [webSearchEnabled, setWebSearchEnabled] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isConversationsOpen, setIsConversationsOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState(true);
   const [shortcuts, setShortcuts] = useState<AgentShortcut[]>([]);
   const { missedSchedules, dismissMissed } = useAgentSchedules();
@@ -66,9 +85,7 @@ export function AgentView() {
       const status = await loadAIProviderStatus(providerId);
       const ready = status === "ready";
       setIsConfigured(ready);
-      if (!ready) {
-        setIsSettingsOpen(true);
-      }
+      if (!ready) setIsSettingsOpen(true);
     } catch {
       setIsConfigured(false);
       setIsSettingsOpen(true);
@@ -94,69 +111,47 @@ export function AgentView() {
     messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
   }, [messages]);
 
+  // Sync active conversation messages
+  useEffect(() => {
+    if (activeConversation) setMessages(activeConversation.messages as ChatMessageItem[]);
+  }, [activeConversation, setMessages]);
+
+  // Auto-persist messages on updates
+  useEffect(() => {
+    if (messages.length > 0) void saveActiveMessages(messages);
+  }, [messages, saveActiveMessages]);
+
+  const activeProject = projects.find((p) => p.id === activeConversation?.projectId);
+
   return (
     <div className="agent-view" role="main" aria-label="AI Vault Agent">
       <div className="agent-view__main">
-        {/* Top Header */}
-        <header className="agent-view__header">
-          <div className="agent-view__title-group">
-            <Sparkle size={18} weight="fill" />
-            <Typography variant="text" size="base" weight="semibold">
-              AI Vault Agent
-            </Typography>
-          </div>
-          <div className="agent-view__header-actions">
-            {messages.length > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearMessages}
-                aria-label="Start new conversation"
-              >
-                <Plus size={14} weight="bold" /> New Chat
-              </Button>
-            )}
-            <Button
-              variant={isSettingsOpen ? "primary" : "ghost"}
-              size="sm"
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              aria-label="Toggle agent settings"
-            >
-              <Sliders size={14} /> Settings
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-              aria-label="Toggle change history"
-            >
-              <Clock size={14} /> History ({ledger.transactions.length})
-            </Button>
-          </div>
-        </header>
+        <AgentHeader
+          hasMessages={messages.length > 0}
+          onNewChat={() => {
+            void createNewConversation("New Chat", activeConversation?.projectId);
+            clearMessages();
+          }}
+          isSettingsOpen={isSettingsOpen}
+          onToggleSettings={() => setIsSettingsOpen(!isSettingsOpen)}
+          isConversationsOpen={isConversationsOpen}
+          onToggleConversations={() => setIsConversationsOpen(!isConversationsOpen)}
+          conversationsCount={conversations.length}
+          isHistoryOpen={isHistoryOpen}
+          onToggleHistory={() => setIsHistoryOpen(!isHistoryOpen)}
+          historyCount={ledger.transactions.length}
+        />
 
         {missedSchedules.length > 0 && (
-          <div className="agent-view__missed-banner" role="alert">
-            <Typography variant="text" size="xs">
-              Missed scheduled task: "{missedSchedules[0].title}"
-            </Typography>
-            <div className="agent-view__banner-actions">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  const task = missedSchedules[0];
-                  dismissMissed();
-                  void sendMessage(task.prompt);
-                }}
-              >
-                Run Now
-              </Button>
-              <Button variant="ghost" size="sm" onClick={dismissMissed}>
-                Dismiss
-              </Button>
-            </div>
-          </div>
+          <AgentMissedBanner
+            task={missedSchedules[0]}
+            onRunNow={() => {
+              const task = missedSchedules[0];
+              dismissMissed();
+              void sendMessage(task.prompt);
+            }}
+            onDismiss={dismissMissed}
+          />
         )}
 
         {/* Conversation Stream & Empty State */}
@@ -174,7 +169,6 @@ export function AgentView() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Staged Changes Diff Viewer */}
         {stagedChanges.length > 0 && (
           <AgentDiffViewer
             stagedItems={stagedChanges}
@@ -184,7 +178,6 @@ export function AgentView() {
           />
         )}
 
-        {/* Floating Input Dock matching screenshot */}
         <div className="agent-view__controls">
           <AgentShortcutsBar
             shortcuts={shortcuts}
@@ -198,6 +191,7 @@ export function AgentView() {
             autoApply={autoApply}
             onToggleAutoApply={setAutoApply}
             vaultName={vaultName}
+            projectName={activeProject?.name}
             currentProvider={currentProvider}
             currentModel={currentModel}
             onSelectModel={(model, provider) => {
@@ -207,27 +201,36 @@ export function AgentView() {
             webSearchEnabled={webSearchEnabled}
             onToggleWebSearch={setWebSearchEnabled}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenConversations={() => setIsConversationsOpen(true)}
             disabled={!isConfigured && !currentModel}
           />
         </div>
       </div>
 
-      {/* On-page Settings Panel */}
+      <AgentConversationsDrawer
+        isOpen={isConversationsOpen}
+        onClose={() => setIsConversationsOpen(false)}
+        conversations={conversations}
+        projects={projects}
+        activeConversationId={activeConversationId}
+        onSelectConversation={(id) => { void selectConversation(id); setIsConversationsOpen(false); }}
+        onNewConversation={(projId) => { void createNewConversation("New Chat", projId); clearMessages(); setIsConversationsOpen(false); }}
+        onDeleteConversation={(id) => void removeConversation(id)}
+        onAddProject={(name) => void addProject(name)}
+        onAssignProject={(cId, pId) => void assignConversationProject(cId, pId)}
+      />
+
       <AgentSettingsPanel
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         currentProvider={currentProvider}
-        onProviderChanged={(p) => {
-          setCurrentProvider(p);
-          setIsConfigured(true);
-        }}
+        onProviderChanged={(p) => { setCurrentProvider(p); setIsConfigured(true); }}
         webSearchEnabled={webSearchEnabled}
         onToggleWebSearch={setWebSearchEnabled}
         autoApply={autoApply}
         onToggleAutoApply={setAutoApply}
       />
 
-      {/* History Drawer */}
       <AgentHistoryDrawer
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
