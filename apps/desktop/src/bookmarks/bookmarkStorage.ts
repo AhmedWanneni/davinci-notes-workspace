@@ -101,5 +101,10 @@ export async function loadBookmarksFile(): Promise<BookmarksData> {
 
 export async function saveBookmarksFile(data: BookmarksData): Promise<void> {
   const content = serializeBookmarks(data);
-  await withVaultWatchSuppressed(() => writeNote(BOOKMARKS_JSON_PATH, content));
+  if (typeof writeNote !== "function") return;
+  if (typeof withVaultWatchSuppressed === "function") {
+    await withVaultWatchSuppressed(() => writeNote(BOOKMARKS_JSON_PATH, content));
+  } else {
+    await writeNote(BOOKMARKS_JSON_PATH, content);
+  }
 }

@@ -12,6 +12,7 @@ import { listFolders, listNotes, openVault } from "./vaultCommands";
 import { deactivateVaultWatcher } from "./vaultWatchSession";
 import { diskStateTracker } from "./diskStateTracker";
 import { recordRecentVault } from "./recentVaultsRegistry";
+import { BOOKMARKS_TAB_ID, useBookmarkStore } from "../bookmarks";
 
 let switchLock: Promise<boolean> = Promise.resolve(true);
 let switchingInProgress = false;
@@ -29,6 +30,7 @@ async function teardownActiveVault(): Promise<string | null> {
 
   // 1. Flush/save any dirty editor content
   await state.saveAllDirty();
+  await useBookmarkStore.getState().flushSave();
 
   // Save session state to vault-index.db before closing
   try {
@@ -52,6 +54,7 @@ async function teardownActiveVault(): Promise<string | null> {
 
   // 4. Reset in-memory state
   diskStateTracker.clear();
+  useBookmarkStore.getState().reset();
   useWorkspaceStore.setState({
     openNotes: [],
     activeNotePath: null,
@@ -77,11 +80,16 @@ async function restoreVaultSession(paths: string[]): Promise<void> {
 
     if (rawOpen) {
       const openNotes = JSON.parse(rawOpen) as string[];
-      const validOpen = openNotes.filter((p) => paths.includes(p));
+      const validOpen = openNotes.filter(
+        (p) => paths.includes(p) || p === BOOKMARKS_TAB_ID,
+      );
       for (const note of validOpen) {
         await useWorkspaceStore.getState().openNote(note);
       }
-      if (activeNote && paths.includes(activeNote)) {
+      if (
+        activeNote &&
+        (paths.includes(activeNote) || activeNote === BOOKMARKS_TAB_ID)
+      ) {
         await useWorkspaceStore.getState().setActiveNote(activeNote);
       }
     }
@@ -110,6 +118,7 @@ async function mountVault(targetPath: string): Promise<{
     .initializeVault(paths, folders, fullGraph, tagIndex);
 
   await restoreVaultSession(paths);
+  await useBookmarkStore.getState().loadBookmarks();
 
   // 6. Update recent-vaults registry
   await recordRecentVault(canonicalPath);
