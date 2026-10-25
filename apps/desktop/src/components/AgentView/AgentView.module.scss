@@ -35,13 +35,20 @@
   color: var(--color-text-accent);
 }
 
+.agent-view__header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .agent-view__missed-banner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--space-2) var(--space-6);
   background-color: var(--color-bg-status-warning);
-  border-bottom: var(--border-width-thin) solid var(--color-border-status-warning);
+  border-bottom: var(--border-width-thin) solid
+    var(--color-border-status-warning);
   color: var(--color-text-normal);
   flex-shrink: 0;
 }
@@ -66,17 +73,60 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  max-width: 32rem;
-  margin: 0 auto;
+  margin: auto;
+  max-width: 42rem;
+  width: 100%;
   text-align: center;
   gap: var(--space-3);
-  color: var(--color-text-muted);
+  padding: var(--space-6) var(--space-4);
 }
 
-.agent-view__empty-icon {
+.agent-view__empty-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--color-bg-status-accent);
   color: var(--color-text-accent);
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.agent-view__starter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  width: 100%;
+  margin-top: var(--space-4);
+}
+
+.agent-view__starter-card {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  background-color: var(--color-bg-secondary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  cursor: pointer;
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    border-color: var(--color-border-focus);
+    background-color: var(--color-bg-hover);
+  }
+}
+
+.agent-view__starter-title {
+  font-weight: var(--type-weight-semibold);
+  font-size: var(--type-scale-sm);
+  color: var(--color-text-normal);
+}
+
+.agent-view__starter-desc {
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+  margin-top: var(--space-1);
+  line-height: var(--type-leading-tight);
 }
 
 .agent-message {
@@ -100,7 +150,7 @@
 
 .agent-message--assistant {
   align-self: flex-start;
-  padding: var(--space-2) 0;
+  padding: var(--space-1) 0;
 }
 
 .agent-message__header {
@@ -110,18 +160,136 @@
   gap: var(--space-2);
 }
 
+.agent-message__author {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.agent-message__author-icon {
+  color: var(--color-text-accent);
+}
+
 .agent-message__body {
   color: var(--color-text-normal);
   font-size: var(--type-scale-sm);
-  white-space: pre-wrap;
-  word-break: break-word;
+}
+
+.agent-message__cursor {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  background-color: var(--color-text-accent);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: agent-cursor-blink 800ms infinite ease-in-out;
+}
+
+@keyframes agent-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.agent-markdown-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--type-scale-sm);
+  line-height: var(--type-leading-relaxed);
+}
+
+.agent-md-heading {
+  color: var(--color-text-normal);
+  font-weight: var(--type-weight-semibold);
+  margin: var(--space-2) 0 var(--space-1);
+
+  &--h1 {
+    font-size: var(--type-scale-lg);
+  }
+  &--h2 {
+    font-size: var(--type-scale-base);
+  }
+  &--h3 {
+    font-size: var(--type-scale-sm);
+  }
+}
+
+.agent-md-paragraph {
+  margin: 0;
+  color: var(--color-text-normal);
+}
+
+.agent-md-list {
+  margin: 0;
+  padding-left: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.agent-md-list-item {
+  color: var(--color-text-normal);
+}
+
+.agent-md-code {
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
+  background-color: var(--color-bg-secondary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  padding: 1px var(--space-1);
+}
+
+.agent-md-codeblock {
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  background-color: var(--color-bg-primary-alt);
+  margin: var(--space-2) 0;
+}
+
+.agent-md-codeblock__lang {
+  padding: 2px var(--space-3);
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+  text-transform: uppercase;
+  font-family: var(--font-editor);
+}
+
+.agent-md-codeblock__pre {
+  margin: 0;
+  padding: var(--space-3);
+  overflow-x: auto;
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
+  line-height: var(--type-leading-normal);
+}
+
+.agent-md-wikilink {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-text-accent);
+  font-weight: var(--type-weight-medium);
+  cursor: pointer;
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--color-interactive-accent-hover);
+  }
 }
 
 .agent-message__tools {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin-top: var(--space-1);
+  margin-top: var(--space-2);
 }
 
 .agent-tool-card {
@@ -130,7 +298,8 @@
   border-radius: var(--border-radius-md);
   padding: var(--space-2) var(--space-3);
   font-size: var(--type-scale-xs);
-  transition: border-color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition: border-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
 
   &[data-error] {
     border-color: var(--color-border-status-error);
@@ -347,7 +516,8 @@
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-lg);
   padding: var(--space-2) var(--space-3);
-  transition: border-color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition: border-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
 
   &:focus-within {
     border-color: var(--color-border-focus);

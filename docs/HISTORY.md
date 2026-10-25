@@ -2,6 +2,28 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Elegant Conversation Experience, Rich Markdown & Starter Grid for AI Agent
+
+- **Lightweight Markdown & Wikilink Rendering (`AgentMarkdownContent.tsx`)**:
+  - Built a 151-line, zero-dependency streaming markdown renderer supporting headers (`h1`–`h3`), bullet lists, bold text, inline code, syntax-highlighted codeblocks with copy header, and clickable `[[wikilinks]]`.
+  - Adheres to `PERFORMANCE.md` with zero runtime parser bundle footprint.
+- **Elevated Conversation Layout (`AgentMessageBubble.tsx`, `AgentView.module.scss`)**:
+  - Replaced card borders on assistant responses with fluid, typography-driven editorial prose.
+  - Added pulsing cursor (`.agent-message__cursor`) during streaming turns.
+  - Replaced raw tool JSON dumps with concise, human-readable action badges (`Read "..."`, `Search vault for "..."`) and `<details>` parameter inspector.
+- **Empty State Starter Grid & Session Actions (`AgentView.tsx`, `AgentChatInput.tsx`)**:
+  - Added interactive 2x2 starter prompts grid (`STARTER_PROMPTS`) for instant discovery and one-click execution.
+  - Added "New Chat" session reset button when conversations are active.
+  - Integrated execution cancellation (`onCancel={abortExecution}`) into `AgentChatInput` and `useAgentExecution.ts`.
+- **Design Token Conformance**:
+  - 100% token compliant (`--type-scale-*`, `--color-bg-status-*`, `--font-editor`), zero hardcoded hex/px values.
+- **Verification**:
+  - `pnpm --filter @app/desktop test AgentView.test.tsx` (5/5 tests passing).
+  - `pnpm --filter @app/desktop build:web` succeeded with 0 errors.
+  - All files strictly ≤ 224 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: Design System Audit & Elegant Agent UI Refinement
 
 - **Design System Token Audit (`AgentView.module.scss`)**:

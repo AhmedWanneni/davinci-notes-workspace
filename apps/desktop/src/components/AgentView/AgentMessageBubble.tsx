@@ -1,28 +1,46 @@
 import { Typography } from "@app/design-system";
-import { Wrench, CheckCircle, WarningCircle } from "@phosphor-icons/react";
+import {
+  Wrench,
+  CheckCircle,
+  WarningCircle,
+  Sparkle,
+} from "@phosphor-icons/react";
+import { AgentMarkdownContent } from "./AgentMarkdownContent";
 import type { ChatMessageItem } from "./agentTypes";
 
 export interface AgentMessageBubbleProps {
   message: ChatMessageItem;
+  onNavigateNote?: (notePath: string) => void;
 }
 
-function formatToolCallSummary(name: string, args: Record<string, unknown>): string {
+function formatToolCallSummary(
+  name: string,
+  args: Record<string, unknown>,
+): string {
   if (name === "read_note" && args.path) return `Read "${args.path}"`;
-  if (name === "search_vault" && args.query) return `Search vault for "${args.query}"`;
+  if (name === "search_vault" && args.query)
+    return `Search vault for "${args.query}"`;
   if (name === "create_note" && args.path) return `Create note "${args.path}"`;
   if (name === "edit_note" && args.path) return `Edit note "${args.path}"`;
   if (name === "delete_note" && args.path) return `Delete note "${args.path}"`;
-  if (name === "move_note" && args.fromPath && args.toPath) return `Move "${args.fromPath}" → "${args.toPath}"`;
+  if (name === "move_note" && args.fromPath && args.toPath)
+    return `Move "${args.fromPath}" → "${args.toPath}"`;
   if (name === "web_search" && args.query) return `Web search: "${args.query}"`;
   if (name === "calendar_list_events") return "Check calendar events";
-  if (name === "calendar_create_event" && args.summary) return `Add calendar event: "${args.summary}"`;
-  if (name === "calendar_sync_tasks") return "Export task reminders to Calendar";
-  if (name === "wiki_synthesize_topic" && args.topic) return `Synthesize wiki topic: "${args.topic}"`;
+  if (name === "calendar_create_event" && args.summary)
+    return `Add calendar event: "${args.summary}"`;
+  if (name === "calendar_sync_tasks")
+    return "Export task reminders to Calendar";
+  if (name === "wiki_synthesize_topic" && args.topic)
+    return `Synthesize wiki topic: "${args.topic}"`;
   if (name === "wiki_update_index") return "Update Wiki Index (MOC)";
   return name;
 }
 
-export function AgentMessageBubble({ message }: AgentMessageBubbleProps) {
+export function AgentMessageBubble({
+  message,
+  onNavigateNote,
+}: AgentMessageBubbleProps) {
   const isUser = message.role === "user";
 
   return (
@@ -31,47 +49,93 @@ export function AgentMessageBubble({ message }: AgentMessageBubbleProps) {
       data-streaming={message.isStreaming || undefined}
     >
       <div className="agent-message__header">
-        <Typography variant="text" size="xs" weight="medium" color="muted">
-          {isUser ? "You" : "DaVinci Agent"}
-        </Typography>
+        <div className="agent-message__author">
+          {!isUser && (
+            <Sparkle
+              size={13}
+              weight="fill"
+              className="agent-message__author-icon"
+            />
+          )}
+          <Typography
+            variant="text"
+            size="xs"
+            weight="medium"
+            color={isUser ? "muted" : "normal"}
+          >
+            {isUser ? "You" : "DaVinci Agent"}
+          </Typography>
+        </div>
         <Typography variant="text" size="xs" color="muted">
-          {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          {new Date(message.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </Typography>
       </div>
 
       {message.content && (
         <div className="agent-message__body">
-          <Typography variant="text" size="sm">
-            {message.content}
-          </Typography>
+          {isUser ? (
+            <Typography variant="text" size="sm">
+              {message.content}
+            </Typography>
+          ) : (
+            <AgentMarkdownContent
+              content={message.content}
+              onNavigateNote={onNavigateNote}
+            />
+          )}
+          {message.isStreaming && (
+            <span className="agent-message__cursor" aria-hidden="true" />
+          )}
         </div>
       )}
 
       {message.toolCalls && message.toolCalls.length > 0 && (
         <div className="agent-message__tools">
           {message.toolCalls.map((tc) => {
-            const result = message.toolResults?.find((r) => r.toolCallId === tc.id);
+            const result = message.toolResults?.find(
+              (r) => r.toolCallId === tc.id,
+            );
             const isError = result?.isError;
             return (
-              <details key={tc.id} className="agent-tool-card" data-error={isError || undefined}>
+              <details
+                key={tc.id}
+                className="agent-tool-card"
+                data-error={isError || undefined}
+              >
                 <summary className="agent-tool-card__header">
                   <span className="agent-tool-card__icon" aria-hidden="true">
                     <Wrench size={13} weight="bold" />
                   </span>
                   <span className="agent-tool-card__name">
-                    {formatToolCallSummary(tc.name, (tc.arguments ?? {}) as Record<string, unknown>)}
+                    {formatToolCallSummary(
+                      tc.name,
+                      (tc.arguments ?? {}) as Record<string, unknown>,
+                    )}
                   </span>
                   {result && (
                     <span className="agent-tool-card__status">
                       {isError ? (
-                        <WarningCircle size={13} weight="fill" className="agent-tool-card__icon--error" />
+                        <WarningCircle
+                          size={13}
+                          weight="fill"
+                          className="agent-tool-card__icon--error"
+                        />
                       ) : (
-                        <CheckCircle size={13} weight="fill" className="agent-tool-card__icon--success" />
+                        <CheckCircle
+                          size={13}
+                          weight="fill"
+                          className="agent-tool-card__icon--success"
+                        />
                       )}
                     </span>
                   )}
                 </summary>
-                <pre className="agent-tool-card__args">{JSON.stringify(tc.arguments, null, 2)}</pre>
+                <pre className="agent-tool-card__args">
+                  {JSON.stringify(tc.arguments, null, 2)}
+                </pre>
               </details>
             );
           })}

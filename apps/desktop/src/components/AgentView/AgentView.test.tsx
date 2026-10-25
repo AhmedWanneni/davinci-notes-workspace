@@ -45,10 +45,14 @@ describe("AgentView Components", () => {
     await act(async () => {
       render(<AgentView />);
     });
-    expect(screen.getByText("Talk to your vault")).toBeTruthy();
+    expect(
+      screen.getByText("What would you like to explore or create?"),
+    ).toBeTruthy();
     expect(screen.getByText("Shortcuts:")).toBeTruthy();
     expect(screen.getByText("Weekly Review")).toBeTruthy();
-    expect(screen.getByPlaceholderText(/Ask a question or request changes/i)).toBeTruthy();
+    expect(
+      screen.getByPlaceholderText(/Ask a question or request changes/i),
+    ).toBeTruthy();
   });
 
   it("triggers shortcut on click", () => {
@@ -68,7 +72,9 @@ describe("AgentView Components", () => {
 
     expect(screen.getByText("Quick Summary")).toBeTruthy();
     fireEvent.click(screen.getByText("Quick Summary"));
-    expect(onTrigger).toHaveBeenCalledWith(expect.objectContaining({ id: "sc-1" }));
+    expect(onTrigger).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "sc-1" }),
+    );
   });
 
   it("renders user and assistant message bubbles with tools", () => {

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button, Typography } from "@app/design-system";
-import { Sparkle, Clock } from "@phosphor-icons/react";
+import { Sparkle, Clock, Plus } from "@phosphor-icons/react";
 import {
   parseShortcuts,
   type AgentShortcut,
@@ -14,9 +14,39 @@ import { AgentShortcutsBar } from "./AgentShortcutsBar";
 import { AgentOnboardingCard } from "./AgentOnboardingCard";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentSchedules } from "./useAgentSchedules";
-import { loadAIProviderStatus, loadSelectedProvider } from "../../ai/AISubsystem";
+import {
+  loadAIProviderStatus,
+  loadSelectedProvider,
+} from "../../ai/AISubsystem";
 import { readNote } from "../../vault/vaultCommands";
 import "./AgentView.module.scss";
+
+const STARTER_PROMPTS = [
+  {
+    title: "Weekly Summary",
+    desc: "Review this week's notes and decisions",
+    prompt:
+      "Summarize the notes created or edited this week, highlighting key decisions and action items.",
+  },
+  {
+    title: "Action Items & Tasks",
+    desc: "Extract uncompleted task checklists",
+    prompt:
+      "Scan notes in my vault for uncompleted task checklist items and list them by priority.",
+  },
+  {
+    title: "Create Wiki Topic",
+    desc: "Synthesize notes into an evergreen page",
+    prompt:
+      "Synthesize notes in my vault into an evergreen topic note with [[Wikilinks]].",
+  },
+  {
+    title: "Database Table",
+    desc: "Create a structured markdown table",
+    prompt:
+      "Create a structured database table note summarizing my current active projects.",
+  },
+];
 
 export function AgentView() {
   const {
@@ -34,6 +64,8 @@ export function AgentView() {
     handleRejectChange,
     handleApplyAllChanges,
     sendMessage,
+    abortExecution,
+    clearMessages,
   } = useAgentExecution();
 
   const [isConfigured, setIsConfigured] = useState(true);
@@ -80,20 +112,33 @@ export function AgentView() {
               AI Vault Agent
             </Typography>
           </div>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-            aria-label="Toggle change history"
-          >
-            <Clock size={14} /> History ({ledger.transactions.length})
-          </Button>
+          <div className="agent-view__header-actions">
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearMessages}
+                aria-label="Start new conversation"
+              >
+                <Plus size={14} weight="bold" /> New Chat
+              </Button>
+            )}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsHistoryOpen(!isHistoryOpen)}
+              aria-label="Toggle change history"
+            >
+              <Clock size={14} /> History ({ledger.transactions.length})
+            </Button>
+          </div>
         </header>
 
         {missedSchedules.length > 0 && (
           <div className="agent-view__missed-banner" role="alert">
             <Typography variant="text" size="xs">
-              Missed scheduled task while DaVinci Notes was closed: "{missedSchedules[0].title}"
+              Missed scheduled task while DaVinci Notes was closed: "
+              {missedSchedules[0].title}"
             </Typography>
             <div className="agent-view__banner-actions">
               <Button
@@ -119,16 +164,35 @@ export function AgentView() {
             <AgentOnboardingCard onConfigured={() => setIsConfigured(true)} />
           ) : messages.length === 0 ? (
             <div className="agent-view__empty">
-              <Sparkle size={36} weight="duotone" className="agent-view__empty-icon" />
+              <div className="agent-view__empty-badge">
+                <Sparkle size={26} weight="fill" />
+              </div>
               <Typography variant="text" size="base" weight="semibold">
-                Talk to your vault
+                What would you like to explore or create?
               </Typography>
               <Typography variant="text" size="xs" color="muted">
-                Ask questions, summarize topics, create to-do lists, or organize notes across folders.
+                Your AI companion can query notes, synthesize topics, generate
+                databases, or organize folders.
               </Typography>
+
+              <div className="agent-view__starter-grid">
+                {STARTER_PROMPTS.map((sp, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="agent-view__starter-card"
+                    onClick={() => void sendMessage(sp.prompt)}
+                  >
+                    <div className="agent-view__starter-title">{sp.title}</div>
+                    <div className="agent-view__starter-desc">{sp.desc}</div>
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
-            messages.map((msg) => <AgentMessageBubble key={msg.id} message={msg} />)
+            messages.map((msg) => (
+              <AgentMessageBubble key={msg.id} message={msg} />
+            ))
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -151,6 +215,7 @@ export function AgentView() {
             />
             <AgentChatInput
               onSend={sendMessage}
+              onCancel={abortExecution}
               isStreaming={isStreaming}
               autoApply={autoApply}
               onToggleAutoApply={setAutoApply}
