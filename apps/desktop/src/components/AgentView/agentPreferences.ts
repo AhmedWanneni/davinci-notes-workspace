@@ -21,12 +21,12 @@ export async function loadAgentPreferences(): Promise<AgentPreferences> {
       webSearch: await getSetting(db, SETTING_WEB_SEARCH),
     }));
     return {
-      autoApply: autoApply === "true",
+      autoApply: autoApply !== "false", // default to true
       webSearchEnabled: webSearch !== "false", // default to true
     };
   } catch {
     return {
-      autoApply: false,
+      autoApply: true,
       webSearchEnabled: true,
     };
   }

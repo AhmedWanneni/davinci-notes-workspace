@@ -9,12 +9,13 @@ import {
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import {
   createNoteInVault,
+  deleteFolderInVault,
   deleteNoteInVault,
   renameNoteInVault,
   getVaultIndexDb,
   withDbLock,
 } from "../../vault";
-import { readNote, writeNote } from "../../vault/vaultCommands";
+import { createFolder, readNote, writeNote } from "../../vault/vaultCommands";
 import {
   executeSearchQuery,
   parseSearchQuery,
@@ -106,6 +107,21 @@ export function createDesktopMutationBackend(): VaultMutationBackend {
     },
 
     async writeNote(path: string, content: string): Promise<void> {
+      const parts = path.split("/");
+      if (parts.length > 1) {
+        const folderPath = parts.slice(0, -1).join("/");
+        const st = useWorkspaceStore.getState();
+        if (!st.allFolderPaths.includes(folderPath)) {
+          try {
+            await createFolder(folderPath);
+          } catch {
+            // folder may already exist
+          }
+          const updated = [...st.allFolderPaths, folderPath].sort();
+          st.updateAllFolderPaths(updated);
+        }
+      }
+
       const state = useWorkspaceStore.getState();
       if (state.allNotePaths.includes(path)) {
         await writeNote(path, content);
@@ -120,6 +136,28 @@ export function createDesktopMutationBackend(): VaultMutationBackend {
       } catch {
         // Git versioning is optional
       }
+      try {
+        await useWorkspaceStore.getState().openNote(path);
+      } catch {
+        // Best effort tab opening
+      }
+    },
+
+    async createFolder(path: string): Promise<void> {
+      const cleanPath = path.trim().replace(/^\/+|\/+$/g, "");
+      if (!cleanPath) return;
+      await createFolder(cleanPath);
+      const state = useWorkspaceStore.getState();
+      if (!state.allFolderPaths.includes(cleanPath)) {
+        const updated = [...state.allFolderPaths, cleanPath].sort();
+        state.updateAllFolderPaths(updated);
+      }
+    },
+
+    async deleteFolder(path: string): Promise<void> {
+      const cleanPath = path.trim().replace(/^\/+|\/+$/g, "");
+      if (!cleanPath) return;
+      await deleteFolderInVault(cleanPath);
     },
 
     async deleteNote(path: string): Promise<void> {

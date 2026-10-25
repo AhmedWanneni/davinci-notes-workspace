@@ -20,21 +20,21 @@ describe("agentPreferences", () => {
     mockGetSetting.mockResolvedValue(null);
     const prefs = await loadAgentPreferences();
     expect(prefs).toEqual({
-      autoApply: false,
+      autoApply: true,
       webSearchEnabled: true,
     });
   });
 
   it("loads stored values when set in database", async () => {
     mockGetSetting.mockImplementation((_db, key) => {
-      if (key === "ai.agent.autoApply") return Promise.resolve("true");
+      if (key === "ai.agent.autoApply") return Promise.resolve("false");
       if (key === "ai.agent.webSearchEnabled") return Promise.resolve("false");
       return Promise.resolve(null);
     });
 
     const prefs = await loadAgentPreferences();
     expect(prefs).toEqual({
-      autoApply: true,
+      autoApply: false,
       webSearchEnabled: false,
     });
   });

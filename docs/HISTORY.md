@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Direct Vault Creation of Folders, Notes, Kanban Boards, and Database Tables
+
+- **Direct Vault Mutation Tools (`vaultMutationToolDefs.ts`, `vaultMutationTools.ts`)**:
+  - Added `create_folder` tool definition allowing the agent to create folders and directories in the user's vault.
+  - Added `create_kanban_board` tool definition (`kanbanNoteGenerator.ts`) producing Obsidian-compatible Kanban markdown notes (`kanban-plugin: board`) with customizable lanes and cards.
+  - Enhanced `create_database_table` to supply sensible default columns when the model omits them, and recognized common aliases (`create_database`, `create_database_note`, `create_directory`, `create_kanban`, `create_board`).
+  - Automatically ensured `.md` extension is appended to note-creating tool calls when omitted by the model.
+- **Desktop Vault Mutation Bridge (`desktopAgentBridge.ts`)**:
+  - Implemented `createFolder` and `deleteFolder` on `createDesktopMutationBackend`.
+  - In `writeNote`, automatically ensures parent directory path exists in `allFolderPaths` so new folders immediately appear in the workspace file tree.
+  - Automatically opens newly created/modified notes in the workspace tabs so the user sees the note immediately.
+- **Auto-Apply by Default (`agentPreferences.ts`, `useAgentViewConfig.ts`)**:
+  - Changed default `autoApply` from `false` to `true` (`autoApply !== "false"`), ensuring agent creations and edits are immediately written to disk and indexed in SQLite (while preserving full history tracking in `.davinci/agent/history.json` and 1-click rollback).
+- **Agent System Prompt Guidance (`agentSystemPrompt.ts`)**:
+  - Explicitly instructed the agent to call the real creation tools (`create_note`, `create_folder`, `create_kanban_board`, `create_database_table`) instead of asking the user or outputting markdown code blocks.
+- **Verification**:
+  - `pnpm --filter @app/ai-agent test` (12 test suites, 62 tests passing).
+  - `pnpm --filter @app/desktop test` (171 test files, 707 tests passing).
+  - `pnpm --filter @app/desktop build:web` succeeded in 8.49s with 0 errors.
+  - All files strictly ≤ 241 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: Full Default Vault Access & Autonomous Multi-Turn Inspection Loop
 
 - **Default Vault Permissions & Context Injected System Prompt (`agentSystemPrompt.ts`)**:

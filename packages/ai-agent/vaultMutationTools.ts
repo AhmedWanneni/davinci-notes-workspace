@@ -1,15 +1,28 @@
-import type { AgentToolDefinition } from "@app/ai-api";
 import { validateVaultRelativePath } from "./safetyJail.js";
 import { lineDiff, type DiffLine } from "./lineDiff.js";
 import type { FileChangeRecord } from "./changeLedgerTypes.js";
-import { generateDatabaseMarkdown, type DatabaseColumnDef } from "./databaseNoteGenerator.js";
-import { generateTaskListMarkdown, type TaskItemDef } from "./taskListGenerator.js";
+import {
+  generateDatabaseMarkdown,
+  type DatabaseColumnDef,
+} from "./databaseNoteGenerator.js";
+import {
+  generateTaskListMarkdown,
+  type TaskItemDef,
+} from "./taskListGenerator.js";
+import {
+  generateKanbanMarkdown,
+  type KanbanLaneDef,
+} from "./kanbanNoteGenerator.js";
+
+export * from "./vaultMutationToolDefs.js";
 
 export interface VaultMutationBackend {
   readNote(path: string): Promise<string | null>;
   writeNote(path: string, content: string): Promise<void>;
   deleteNote(path: string): Promise<void>;
   moveNote(fromPath: string, toPath: string): Promise<void>;
+  createFolder?(path: string): Promise<void>;
+  deleteFolder?(path: string): Promise<void>;
 }
 
 export interface MutationPlanResult {
@@ -17,114 +30,19 @@ export interface MutationPlanResult {
   diff: DiffLine[];
 }
 
-export const CREATE_NOTE_TOOL: AgentToolDefinition = {
-  name: "create_note",
-  description: "Create a new note in the vault with optional markdown content",
-  parameters: {
-    type: "object",
-    properties: {
-      path: { type: "string", description: "Vault path (e.g. 'Summaries/Weekly.md')" },
-      content: { type: "string", description: "Markdown text content" },
-    },
-    required: ["path"],
-  },
-};
+function ensureMd(path: string): string {
+  const clean = path.trim().replace(/^\/+|\/+$/g, "");
+  return clean.toLowerCase().endsWith(".md") ? clean : `${clean}.md`;
+}
 
-export const EDIT_NOTE_TOOL: AgentToolDefinition = {
-  name: "edit_note",
-  description: "Replace the full content of an existing note in the vault",
-  parameters: {
-    type: "object",
-    properties: {
-      path: { type: "string", description: "Vault path of note to edit" },
-      content: { type: "string", description: "New full markdown content" },
-    },
-    required: ["path", "content"],
-  },
-};
+function cleanFolderPath(path: string): string {
+  return path.trim().replace(/^\/+|\/+$/g, "");
+}
 
-export const APPEND_TO_NOTE_TOOL: AgentToolDefinition = {
-  name: "append_to_note",
-  description: "Append or prepend content into an existing note",
-  parameters: {
-    type: "object",
-    properties: {
-      path: { type: "string", description: "Vault path of note" },
-      content: { type: "string", description: "Text to insert" },
-      position: { type: "string", enum: ["bottom", "top"], description: "Insert position (default: 'bottom')" },
-    },
-    required: ["path", "content"],
-  },
-};
-
-export const MOVE_NOTE_TOOL: AgentToolDefinition = {
-  name: "move_note",
-  description: "Move or rename a note in the vault",
-  parameters: {
-    type: "object",
-    properties: {
-      fromPath: { type: "string", description: "Current note path" },
-      toPath: { type: "string", description: "New destination path" },
-    },
-    required: ["fromPath", "toPath"],
-  },
-};
-
-export const DELETE_NOTE_TOOL: AgentToolDefinition = {
-  name: "delete_note",
-  description: "Delete a note from the vault",
-  parameters: {
-    type: "object",
-    properties: {
-      path: { type: "string", description: "Vault path of note to delete" },
-    },
-    required: ["path"],
-  },
-};
-
-export const CREATE_DATABASE_TABLE_TOOL: AgentToolDefinition = {
-  name: "create_database_table",
-  description: "Create a structured Markdown database note with typed columns and rows",
-  parameters: {
-    type: "object",
-    properties: {
-      path: { type: "string", description: "Vault path (e.g. 'Finance/Invoices.md')" },
-      title: { type: "string", description: "Optional note heading title" },
-      columns: {
-        type: "array",
-        description: "List of columns: { name: string, type: 'text' | 'number' | 'select' | 'checkbox' | 'date', options?: string[] }",
-      },
-      rows: { type: "array", description: "List of row records mapping column names to values" },
-    },
-    required: ["path", "columns"],
-  },
-};
-
-export const CREATE_TODO_LIST_TOOL: AgentToolDefinition = {
-  name: "create_todo_list",
-  description: "Create a note with tasks and optional date/time reminder tokens",
-  parameters: {
-    type: "object",
-    properties: {
-      path: { type: "string", description: "Vault path (e.g. 'Daily/Todos.md')" },
-      title: { type: "string", description: "Note title" },
-      tasks: {
-        type: "array",
-        description: "List of task items: { text: string, done?: boolean, dueAtUtc?: string, recurrence?: string }",
-      },
-    },
-    required: ["path", "tasks"],
-  },
-};
-
-export const VAULT_MUTATION_TOOLS: AgentToolDefinition[] = [
-  CREATE_NOTE_TOOL,
-  EDIT_NOTE_TOOL,
-  APPEND_TO_NOTE_TOOL,
-  MOVE_NOTE_TOOL,
-  DELETE_NOTE_TOOL,
-  CREATE_DATABASE_TABLE_TOOL,
-  CREATE_TODO_LIST_TOOL,
+const DEFAULT_DB_COLS: DatabaseColumnDef[] = [
+  { name: "Name", type: "text" },
+  { name: "Status", type: "select", options: ["To Do", "In Progress", "Done"] },
+  { name: "Date", type: "date" },
 ];
 
 export async function planMutation(
@@ -134,10 +52,53 @@ export async function planMutation(
 ): Promise<MutationPlanResult> {
   switch (toolName) {
     case "create_note": {
-      const path = validateVaultRelativePath(String(args.path ?? ""));
+      const path = validateVaultRelativePath(
+        ensureMd(String(args.path ?? "Untitled.md")),
+      );
       const content = String(args.content ?? "");
       const beforeContent = await backend.readNote(path);
-      const changeRecord: FileChangeRecord = { action: "create", path, beforeContent, afterContent: content };
+      const changeRecord: FileChangeRecord = {
+        action: "create",
+        path,
+        beforeContent,
+        afterContent: content,
+      };
+      return { changeRecord, diff: lineDiff(beforeContent ?? "", content) };
+    }
+
+    case "create_folder":
+    case "create_directory": {
+      const path = validateVaultRelativePath(
+        cleanFolderPath(String(args.path ?? "")),
+      );
+      const changeRecord: FileChangeRecord = {
+        action: "create",
+        path,
+        beforeContent: null,
+        afterContent: null,
+      };
+      return {
+        changeRecord,
+        diff: [{ kind: "added", text: `[Folder] ${path}` }],
+      };
+    }
+
+    case "create_kanban_board":
+    case "create_kanban":
+    case "create_board": {
+      const path = validateVaultRelativePath(
+        ensureMd(String(args.path ?? "Kanban.md")),
+      );
+      const title = args.title ? String(args.title) : undefined;
+      const lanes = (args.lanes as KanbanLaneDef[]) ?? [];
+      const content = generateKanbanMarkdown({ title, lanes });
+      const beforeContent = await backend.readNote(path);
+      const changeRecord: FileChangeRecord = {
+        action: "create",
+        path,
+        beforeContent,
+        afterContent: content,
+      };
       return { changeRecord, diff: lineDiff(beforeContent ?? "", content) };
     }
 
@@ -145,7 +106,12 @@ export async function planMutation(
       const path = validateVaultRelativePath(String(args.path ?? ""));
       const content = String(args.content ?? "");
       const beforeContent = await backend.readNote(path);
-      const changeRecord: FileChangeRecord = { action: "modify", path, beforeContent, afterContent: content };
+      const changeRecord: FileChangeRecord = {
+        action: "modify",
+        path,
+        beforeContent,
+        afterContent: content,
+      };
       return { changeRecord, diff: lineDiff(beforeContent ?? "", content) };
     }
 
@@ -154,10 +120,20 @@ export async function planMutation(
       const textToAppend = String(args.content ?? "");
       const pos = args.position === "top" ? "top" : "bottom";
       const beforeContent = (await backend.readNote(path)) ?? "";
-      const afterContent = pos === "bottom"
-        ? (beforeContent ? `${beforeContent.trimEnd()}\n\n${textToAppend}\n` : `${textToAppend}\n`)
-        : (beforeContent ? `${textToAppend}\n\n${beforeContent.trimStart()}` : `${textToAppend}\n`);
-      const changeRecord: FileChangeRecord = { action: "modify", path, beforeContent, afterContent };
+      const afterContent =
+        pos === "bottom"
+          ? beforeContent
+            ? `${beforeContent.trimEnd()}\n\n${textToAppend}\n`
+            : `${textToAppend}\n`
+          : beforeContent
+            ? `${textToAppend}\n\n${beforeContent.trimStart()}`
+            : `${textToAppend}\n`;
+      const changeRecord: FileChangeRecord = {
+        action: "modify",
+        path,
+        beforeContent,
+        afterContent,
+      };
       return { changeRecord, diff: lineDiff(beforeContent, afterContent) };
     }
 
@@ -172,34 +148,65 @@ export async function planMutation(
         beforeContent: content,
         afterContent: content,
       };
-      return { changeRecord, diff: [{ kind: "unchanged", text: `Move ${fromPath} -> ${toPath}` }] };
+      return {
+        changeRecord,
+        diff: [{ kind: "unchanged", text: `Move ${fromPath} -> ${toPath}` }],
+      };
     }
 
     case "delete_note": {
       const path = validateVaultRelativePath(String(args.path ?? ""));
       const beforeContent = await backend.readNote(path);
-      const changeRecord: FileChangeRecord = { action: "delete", path, beforeContent, afterContent: null };
+      const changeRecord: FileChangeRecord = {
+        action: "delete",
+        path,
+        beforeContent,
+        afterContent: null,
+      };
       return { changeRecord, diff: lineDiff(beforeContent ?? "", "") };
     }
 
-    case "create_database_table": {
-      const path = validateVaultRelativePath(String(args.path ?? ""));
-      const columns = (args.columns as DatabaseColumnDef[]) ?? [];
-      const rows = (args.rows as Array<Record<string, unknown>>) ?? [];
+    case "create_database_table":
+    case "create_database":
+    case "create_database_note": {
+      const path = validateVaultRelativePath(
+        ensureMd(String(args.path ?? "Database.md")),
+      );
+      const passedCols = args.columns as DatabaseColumnDef[] | undefined;
+      const columns =
+        Array.isArray(passedCols) && passedCols.length > 0
+          ? passedCols
+          : DEFAULT_DB_COLS;
+      const rows =
+        (args.rows as Array<
+          Record<string, string | number | boolean | null | undefined>
+        >) ?? [];
       const title = args.title ? String(args.title) : undefined;
-      const content = generateDatabaseMarkdown({ title, columns, rows: rows as any });
+      const content = generateDatabaseMarkdown({ title, columns, rows });
       const beforeContent = await backend.readNote(path);
-      const changeRecord: FileChangeRecord = { action: "create", path, beforeContent, afterContent: content };
+      const changeRecord: FileChangeRecord = {
+        action: "create",
+        path,
+        beforeContent,
+        afterContent: content,
+      };
       return { changeRecord, diff: lineDiff(beforeContent ?? "", content) };
     }
 
     case "create_todo_list": {
-      const path = validateVaultRelativePath(String(args.path ?? ""));
+      const path = validateVaultRelativePath(
+        ensureMd(String(args.path ?? "Todos.md")),
+      );
       const tasks = (args.tasks as TaskItemDef[]) ?? [];
       const title = args.title ? String(args.title) : undefined;
       const content = generateTaskListMarkdown({ title, tasks });
       const beforeContent = await backend.readNote(path);
-      const changeRecord: FileChangeRecord = { action: "create", path, beforeContent, afterContent: content };
+      const changeRecord: FileChangeRecord = {
+        action: "create",
+        path,
+        beforeContent,
+        afterContent: content,
+      };
       return { changeRecord, diff: lineDiff(beforeContent ?? "", content) };
     }
 
@@ -215,11 +222,19 @@ export async function applyPlannedMutation(
   switch (change.action) {
     case "create":
     case "modify":
-      await backend.writeNote(change.path, change.afterContent ?? "");
+      if (change.afterContent === null && backend.createFolder) {
+        await backend.createFolder(change.path);
+      } else {
+        await backend.writeNote(change.path, change.afterContent ?? "");
+      }
       break;
 
     case "delete":
-      await backend.deleteNote(change.path);
+      if (change.beforeContent === null && backend.deleteFolder) {
+        await backend.deleteFolder(change.path);
+      } else {
+        await backend.deleteNote(change.path);
+      }
       break;
 
     case "move":

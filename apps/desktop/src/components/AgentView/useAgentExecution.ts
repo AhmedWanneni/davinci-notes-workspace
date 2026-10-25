@@ -67,13 +67,19 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
       setIsStreaming(true);
 
       try {
-        const providerId = options?.providerId ?? (await loadSelectedProvider());
-        const provider = await createConfiguredProvider(providerId, options?.model);
+        const providerId =
+          options?.providerId ?? (await loadSelectedProvider());
+        const provider = await createConfiguredProvider(
+          providerId,
+          options?.model,
+        );
 
         const state = useWorkspaceStore.getState();
         const vName =
           options?.vaultName ??
-          (state.vaultPath ? state.vaultPath.split(/[/\\]/).pop() || "Vault" : "Vault");
+          (state.vaultPath
+            ? state.vaultPath.split(/[/\\]/).pop() || "Vault"
+            : "Vault");
         const systemPrompt = buildAgentSystemPrompt({
           vaultName: vName,
           allNotePaths: state.allNotePaths ?? [],
@@ -81,7 +87,11 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
         });
 
         const activeTools = options?.webSearchEnabled
-          ? [...VAULT_INSPECTION_TOOLS, ...VAULT_MUTATION_TOOLS, WEB_SEARCH_TOOL]
+          ? [
+              ...VAULT_INSPECTION_TOOLS,
+              ...VAULT_MUTATION_TOOLS,
+              WEB_SEARCH_TOOL,
+            ]
           : [...VAULT_INSPECTION_TOOLS, ...VAULT_MUTATION_TOOLS];
 
         const workingHistory: ChatMessage[] = [
@@ -114,10 +124,20 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
             for (const tc of res.toolCalls) {
               let toolResult: unknown;
+              const isMutation =
+                VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name) ||
+                tc.name.startsWith("create_");
               if (tc.name === "web_search" && options?.webSearchEnabled) {
-                toolResult = await executeWebSearchTool(tc.arguments, webSearchBackend);
-              } else if (VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name)) {
-                const plan = await planMutation(tc.name, tc.arguments, mutationBackend);
+                toolResult = await executeWebSearchTool(
+                  tc.arguments,
+                  webSearchBackend,
+                );
+              } else if (isMutation) {
+                const plan = await planMutation(
+                  tc.name,
+                  tc.arguments,
+                  mutationBackend,
+                );
                 const stagedItem: StagedChangeItem = {
                   id: `staged_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
                   toolName: tc.name,
@@ -126,20 +146,35 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
                 };
                 if (autoApply) {
                   await handleApplyChange(stagedItem);
-                  toolResult = { status: "applied", action: tc.name, path: tc.arguments.path };
+                  toolResult = {
+                    status: "applied",
+                    action: tc.name,
+                    path: plan.changeRecord.path,
+                  };
                 } else {
                   setStagedChanges((prev) => [...prev, stagedItem]);
-                  toolResult = { status: "staged_for_approval", action: tc.name, path: tc.arguments.path };
+                  toolResult = {
+                    status: "staged_for_approval",
+                    action: tc.name,
+                    path: plan.changeRecord.path,
+                  };
                 }
               } else {
                 const pathArg = String(tc.arguments.path ?? "").trim();
-                if ((pathArg === "Your_Note_Path" || !pathArg) && tc.name === "read_note") {
+                if (
+                  (pathArg === "Your_Note_Path" || !pathArg) &&
+                  tc.name === "read_note"
+                ) {
                   toolResult = {
                     error: "Please specify a real note path from the vault.",
                     availableNotes: (state.allNotePaths ?? []).slice(0, 10),
                   };
                 } else {
-                  toolResult = await executeInspectionTool(tc.name, tc.arguments, inspectionBackend);
+                  toolResult = await executeInspectionTool(
+                    tc.name,
+                    tc.arguments,
+                    inspectionBackend,
+                  );
                 }
               }
 
@@ -147,7 +182,10 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
                 role: "tool",
                 name: tc.name,
                 toolCallId: tc.id,
-                content: typeof toolResult === "string" ? toolResult : JSON.stringify(toolResult),
+                content:
+                  typeof toolResult === "string"
+                    ? toolResult
+                    : JSON.stringify(toolResult),
               });
             }
           } else {

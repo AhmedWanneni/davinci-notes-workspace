@@ -23,7 +23,7 @@ export function useAgentViewConfig() {
     useState<AIProviderId>("gemini");
   const [currentModel, setCurrentModel] = useState("gemini-2.0-flash");
   const [webSearchEnabled, setWebSearchEnabled] = useState(true);
-  const [autoApply, setAutoApply] = useState(false);
+  const [autoApply, setAutoApply] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConversationsOpen, setIsConversationsOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState(true);
@@ -39,7 +39,9 @@ export function useAgentViewConfig() {
         const installed = await fetchOllamaModels();
         if (installed.length > 0 && !installed.includes(activeChatModel)) {
           const match = installed.find(
-            (m) => m.startsWith(activeChatModel) || activeChatModel.startsWith(m.split(":")[0]),
+            (m) =>
+              m.startsWith(activeChatModel) ||
+              activeChatModel.startsWith(m.split(":")[0]),
           );
           activeChatModel = match ?? installed[0];
           const url = await loadOllamaBaseUrl();
