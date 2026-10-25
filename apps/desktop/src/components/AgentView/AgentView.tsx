@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button, Typography } from "@app/design-system";
-import { Sparkle, Clock, Plus } from "@phosphor-icons/react";
+import { Sparkle, Clock, Plus, Sliders } from "@phosphor-icons/react";
 import {
   parseShortcuts,
   type AgentShortcut,
@@ -11,42 +11,19 @@ import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentChatInput } from "./AgentChatInput";
 import { AgentHistoryDrawer } from "./AgentHistoryDrawer";
 import { AgentShortcutsBar } from "./AgentShortcutsBar";
-import { AgentOnboardingCard } from "./AgentOnboardingCard";
+import { AgentStarterPrompts } from "./AgentStarterPrompts";
+import { AgentSettingsPanel } from "./AgentSettingsPanel";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentSchedules } from "./useAgentSchedules";
 import {
   loadAIProviderStatus,
   loadSelectedProvider,
+  loadProviderModels,
+  type AIProviderId,
 } from "../../ai/AISubsystem";
 import { readNote } from "../../vault/vaultCommands";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import "./AgentView.module.scss";
-
-const STARTER_PROMPTS = [
-  {
-    title: "Weekly Summary",
-    desc: "Review this week's notes and decisions",
-    prompt:
-      "Summarize the notes created or edited this week, highlighting key decisions and action items.",
-  },
-  {
-    title: "Action Items & Tasks",
-    desc: "Extract uncompleted task checklists",
-    prompt:
-      "Scan notes in my vault for uncompleted task checklist items and list them by priority.",
-  },
-  {
-    title: "Create Wiki Topic",
-    desc: "Synthesize notes into an evergreen page",
-    prompt:
-      "Synthesize notes in my vault into an evergreen topic note with [[Wikilinks]].",
-  },
-  {
-    title: "Database Table",
-    desc: "Create a structured markdown table",
-    prompt:
-      "Create a structured database table note summarizing my current active projects.",
-  },
-];
 
 export function AgentView() {
   const {
@@ -68,6 +45,13 @@ export function AgentView() {
     clearMessages,
   } = useAgentExecution();
 
+  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
+  const vaultName = vaultPath ? vaultPath.split(/[/\\]/).pop() || "davinci-notes" : "davinci-notes";
+
+  const [currentProvider, setCurrentProvider] = useState<AIProviderId>("gemini");
+  const [currentModel, setCurrentModel] = useState("gemini-2.0-flash");
+  const [webSearchEnabled, setWebSearchEnabled] = useState(true);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState(true);
   const [shortcuts, setShortcuts] = useState<AgentShortcut[]>([]);
   const { missedSchedules, dismissMissed } = useAgentSchedules();
@@ -76,10 +60,18 @@ export function AgentView() {
   const checkProviderConfig = useCallback(async () => {
     try {
       const providerId = await loadSelectedProvider();
+      setCurrentProvider(providerId);
+      const models = await loadProviderModels(providerId);
+      setCurrentModel(models.chatModel);
       const status = await loadAIProviderStatus(providerId);
-      setIsConfigured(status === "ready");
+      const ready = status === "ready";
+      setIsConfigured(ready);
+      if (!ready) {
+        setIsSettingsOpen(true);
+      }
     } catch {
       setIsConfigured(false);
+      setIsSettingsOpen(true);
     }
   }, []);
 
@@ -105,6 +97,7 @@ export function AgentView() {
   return (
     <div className="agent-view" role="main" aria-label="AI Vault Agent">
       <div className="agent-view__main">
+        {/* Top Header */}
         <header className="agent-view__header">
           <div className="agent-view__title-group">
             <Sparkle size={18} weight="fill" />
@@ -124,6 +117,14 @@ export function AgentView() {
               </Button>
             )}
             <Button
+              variant={isSettingsOpen ? "primary" : "ghost"}
+              size="sm"
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              aria-label="Toggle agent settings"
+            >
+              <Sliders size={14} /> Settings
+            </Button>
+            <Button
               variant="secondary"
               size="sm"
               onClick={() => setIsHistoryOpen(!isHistoryOpen)}
@@ -137,8 +138,7 @@ export function AgentView() {
         {missedSchedules.length > 0 && (
           <div className="agent-view__missed-banner" role="alert">
             <Typography variant="text" size="xs">
-              Missed scheduled task while DaVinci Notes was closed: "
-              {missedSchedules[0].title}"
+              Missed scheduled task: "{missedSchedules[0].title}"
             </Typography>
             <div className="agent-view__banner-actions">
               <Button
@@ -159,36 +159,13 @@ export function AgentView() {
           </div>
         )}
 
+        {/* Conversation Stream & Empty State */}
         <div className="agent-view__messages">
-          {!isConfigured && messages.length === 0 ? (
-            <AgentOnboardingCard onConfigured={() => setIsConfigured(true)} />
-          ) : messages.length === 0 ? (
-            <div className="agent-view__empty">
-              <div className="agent-view__empty-badge">
-                <Sparkle size={26} weight="fill" />
-              </div>
-              <Typography variant="text" size="base" weight="semibold">
-                What would you like to explore or create?
-              </Typography>
-              <Typography variant="text" size="xs" color="muted">
-                Your AI companion can query notes, synthesize topics, generate
-                databases, or organize folders.
-              </Typography>
-
-              <div className="agent-view__starter-grid">
-                {STARTER_PROMPTS.map((sp, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    className="agent-view__starter-card"
-                    onClick={() => void sendMessage(sp.prompt)}
-                  >
-                    <div className="agent-view__starter-title">{sp.title}</div>
-                    <div className="agent-view__starter-desc">{sp.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
+          {messages.length === 0 ? (
+            <AgentStarterPrompts
+              vaultName={vaultName}
+              onSelectPrompt={(prompt) => void sendMessage(prompt)}
+            />
           ) : (
             messages.map((msg) => (
               <AgentMessageBubble key={msg.id} message={msg} />
@@ -197,6 +174,7 @@ export function AgentView() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Staged Changes Diff Viewer */}
         {stagedChanges.length > 0 && (
           <AgentDiffViewer
             stagedItems={stagedChanges}
@@ -206,24 +184,50 @@ export function AgentView() {
           />
         )}
 
-        {isConfigured && (
-          <div className="agent-view__controls">
-            <AgentShortcutsBar
-              shortcuts={shortcuts}
-              onTriggerShortcut={(sc) => void sendMessage(sc.prompt)}
-              disabled={isStreaming}
-            />
-            <AgentChatInput
-              onSend={sendMessage}
-              onCancel={abortExecution}
-              isStreaming={isStreaming}
-              autoApply={autoApply}
-              onToggleAutoApply={setAutoApply}
-            />
-          </div>
-        )}
+        {/* Floating Input Dock matching screenshot */}
+        <div className="agent-view__controls">
+          <AgentShortcutsBar
+            shortcuts={shortcuts}
+            onTriggerShortcut={(sc) => void sendMessage(sc.prompt)}
+            disabled={isStreaming}
+          />
+          <AgentChatInput
+            onSend={sendMessage}
+            onCancel={abortExecution}
+            isStreaming={isStreaming}
+            autoApply={autoApply}
+            onToggleAutoApply={setAutoApply}
+            vaultName={vaultName}
+            currentProvider={currentProvider}
+            currentModel={currentModel}
+            onSelectModel={(model, provider) => {
+              setCurrentModel(model);
+              setCurrentProvider(provider);
+            }}
+            webSearchEnabled={webSearchEnabled}
+            onToggleWebSearch={setWebSearchEnabled}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            disabled={!isConfigured && !currentModel}
+          />
+        </div>
       </div>
 
+      {/* On-page Settings Panel */}
+      <AgentSettingsPanel
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentProvider={currentProvider}
+        onProviderChanged={(p) => {
+          setCurrentProvider(p);
+          setIsConfigured(true);
+        }}
+        webSearchEnabled={webSearchEnabled}
+        onToggleWebSearch={setWebSearchEnabled}
+        autoApply={autoApply}
+        onToggleAutoApply={setAutoApply}
+      />
+
+      {/* History Drawer */}
       <AgentHistoryDrawer
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}

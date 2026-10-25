@@ -4,7 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Elegant Conversation Experience, Rich Markdown & Starter Grid for AI Agent
+## Last Session — Unified Agent UI: Screenshot-Matched Floating Dock, Context Chips, Selects & On-Page Settings
+
+**Scope:**
+1. **Screenshot-Matched Floating Dock (`AgentChatInput.tsx`, `AgentModelSelect.tsx`)**:
+   - Attached Context Chip Bar directly above the input card showing active vault (`📁 {vaultName}`), active AI model/provider (`💻 {model}`), and Settings quick-access (`⚙️ Settings`).
+   - Sleek pill button for execution approval: `✋ Ask for approval` (staged review) vs `⚡ Auto-apply` (direct execution) with instant toggle.
+   - Elegant Model & Provider Select dropdown matching the reference design (`{model} ⌄`), allowing instant switching between Gemini, Ollama, and OpenRouter without leaving the chat.
+   - Circular action button: accent blue with ArrowUp `↑` for sending, and animated red circle with Stop square when generating.
+2. **On-Page Integrated Settings (`AgentSettingsPanel.tsx`)**:
+   - Integrated full settings panel directly on the same page as the conversation.
+   - Supports selecting providers (Gemini, Local Ollama, OpenRouter), testing credentials/URLs, toggling Web Search, viewing Google Calendar status, and switching execution modes.
+3. **User-Friendly Capabilities Showcase (`AgentStarterPrompts.tsx`, `AgentCapabilitiesPopover.tsx`)**:
+   - Hero header: Outline brain icon + `What should we build in <vaultName>?` with dotted underline styling matching screenshot.
+   - Grouped capability cards:
+     - 📝 Create & Draft (summaries, action lists, tables)
+     - 🗂️ Organize & Route (sort inbox into topics)
+     - 🧠 Knowledge Wiki (synthesize evergreen pages with `[[Wikilinks]]`)
+     - 🌐 Web & Research (cross-reference internet queries)
+     - 📅 Automation & Calendar (recurring tasks & Google Calendar)
+   - Integrated `+` button in the dock that opens a categorized popover to quickly insert prompt templates.
+
+**Verification:**
+- `pnpm --filter @app/desktop test AgentView.test.tsx AgentDock.test.tsx` (9/9 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.97s with 0 errors.
+- All files strictly ≤ 239 lines (hard cap 250).
+
+---
+
+## Previous Session — Elegant Conversation Experience, Rich Markdown & Starter Grid for AI Agent
 
 **Scope:**
 1. **Lightweight Markdown & Wikilink Rendering (`AgentMarkdownContent.tsx`)**:
