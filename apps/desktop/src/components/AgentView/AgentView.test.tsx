@@ -19,11 +19,21 @@ vi.mock("./desktopAgentBridge", () => ({
     deleteNote: vi.fn().mockResolvedValue(undefined),
     moveNote: vi.fn().mockResolvedValue(undefined),
   }),
+  createDesktopWebSearchBackend: () => ({
+    search: vi.fn().mockResolvedValue([]),
+  }),
 }));
 
 vi.mock("../../ai/AISubsystem", () => ({
   loadSelectedProvider: vi.fn().mockResolvedValue("gemini"),
   loadAIProviderStatus: vi.fn().mockResolvedValue("ready"),
+  loadProviderModels: vi
+    .fn()
+    .mockResolvedValue({
+      embeddingModel: "gemini-embedding-001",
+      chatModel: "gemini-2.0-flash",
+    }),
+  loadOllamaBaseUrl: vi.fn().mockResolvedValue("http://localhost:11434"),
   createConfiguredProvider: vi.fn().mockResolvedValue({
     complete: vi.fn().mockResolvedValue({
       content: "I have reviewed your vault.",
@@ -31,6 +41,7 @@ vi.mock("../../ai/AISubsystem", () => ({
     }),
   }),
   saveSelectedProvider: vi.fn().mockResolvedValue(undefined),
+  saveProviderModels: vi.fn().mockResolvedValue(undefined),
   validateAndSaveProviderKey: vi.fn().mockResolvedValue(undefined),
   saveOllamaConfig: vi.fn().mockResolvedValue(undefined),
 }));

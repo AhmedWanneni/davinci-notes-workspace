@@ -1,7 +1,10 @@
-import type {
-  SearchResultItem,
-  VaultInspectionBackend,
-  VaultMutationBackend,
+import {
+  type SearchResultItem,
+  type VaultInspectionBackend,
+  type VaultMutationBackend,
+  type WebSearchBackend,
+  type WebSearchResultItem,
+  parseDuckDuckGoHtml,
 } from "@app/ai-agent";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import {
@@ -12,7 +15,11 @@ import {
   withDbLock,
 } from "../../vault";
 import { readNote, writeNote } from "../../vault/vaultCommands";
-import { executeSearchQuery, parseSearchQuery, type SearchResult } from "@app/indexer";
+import {
+  executeSearchQuery,
+  parseSearchQuery,
+  type SearchResult,
+} from "@app/indexer";
 import { createLocalGitVersion } from "../../git/createLocalGitVersion";
 
 export function createDesktopInspectionBackend(): VaultInspectionBackend {
@@ -41,15 +48,23 @@ export function createDesktopInspectionBackend(): VaultInspectionBackend {
       return file.content;
     },
 
-    async searchFts(query: string, folder?: string, limit = 8): Promise<SearchResultItem[]> {
+    async searchFts(
+      query: string,
+      folder?: string,
+      limit = 8,
+    ): Promise<SearchResultItem[]> {
       try {
         const db = await getVaultIndexDb();
         const state = useWorkspaceStore.getState();
         const tagIndex = state.tagIndex ?? new Map();
         const parsed = parseSearchQuery(query);
-        const results = await withDbLock(() => executeSearchQuery(db, tagIndex, parsed));
+        const results = await withDbLock(() =>
+          executeSearchQuery(db, tagIndex, parsed),
+        );
         const filtered = folder
-          ? results.filter((r: SearchResult) => r.path.startsWith(folder.endsWith("/") ? folder : `${folder}/`))
+          ? results.filter((r: SearchResult) =>
+              r.path.startsWith(folder.endsWith("/") ? folder : `${folder}/`),
+            )
           : results;
         return filtered.slice(0, limit).map((r: SearchResult) => ({
           path: r.path,
@@ -63,7 +78,9 @@ export function createDesktopInspectionBackend(): VaultInspectionBackend {
 
     async getStructure() {
       const state = useWorkspaceStore.getState();
-      const tags: string[] = state.tagIndex ? Array.from(state.tagIndex.keys()) : [];
+      const tags: string[] = state.tagIndex
+        ? Array.from(state.tagIndex.keys())
+        : [];
       return {
         folders: state.allFolderPaths,
         tags,
@@ -120,6 +137,32 @@ export function createDesktopMutationBackend(): VaultMutationBackend {
         await createLocalGitVersion([fromPath, toPath], false);
       } catch {
         // Git versioning is optional
+      }
+    },
+  };
+}
+
+export function createDesktopWebSearchBackend(): WebSearchBackend {
+  return {
+    async search(query: string, limit = 5): Promise<WebSearchResultItem[]> {
+      try {
+        const encoded = encodeURIComponent(query);
+        const res = await fetch(
+          `https://html.duckduckgo.com/html/?q=${encoded}`,
+          {
+            headers: {
+              "User-Agent":
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            },
+          },
+        );
+        if (!res.ok)
+          throw new Error(`Search request failed with status ${res.status}`);
+        const html = await res.text();
+        return parseDuckDuckGoHtml(html).slice(0, limit);
+      } catch (err) {
+        console.warn("[agent-bridge] Web search offline or error:", err);
+        return [];
       }
     },
   };

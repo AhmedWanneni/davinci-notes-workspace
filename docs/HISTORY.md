@@ -2,6 +2,27 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Synchronize All AI Agent Settings (Model, Provider, Capabilities) in Real Time
+
+- **Real-Time Model & Provider Persistence (`apps/desktop/src/ai/AISubsystem.ts`, `useAgentViewConfig.ts`)**:
+  - Enhanced `createConfiguredProvider(providerId, overrideChatModel)` to accept an explicit chat model and instantiate cloud/local transports (`GeminiTransport`, `OllamaTransport`, `OpenAICompatibleTransport`) with the user's selected model.
+  - Connected model selection in both the floating dock dropdown (`AgentModelSelect`) and settings panel to write to SQLite via `saveSelectedProvider`, `saveProviderModels`, and `saveOllamaConfig` immediately.
+- **Settings Panel Model Selection & Synchronization (`AgentSettingsPanel.tsx`, `agentModelConstants.ts`)**:
+  - Added an `Active Model` selector dynamically tailored to the chosen provider (Gemini 2.0 Flash / 1.5 Pro / 1.5 Flash, Ollama gemma3 / llama3 / mistral / qwen2.5-coder, OpenRouter GPT-4o Mini / Claude 3.5 Haiku / Claude 3.5 Sonnet).
+  - Clicking "Test & Save Connection" saves all credentials and active model selections, propagating changes directly to `onProviderChanged` and `onModelChanged`.
+- **Preferences & Capabilities Persistence (`agentPreferences.ts`, `AgentIntegrationsSection.tsx`)**:
+  - Created `agentPreferences.ts` to persist `autoApply` (`ai.agent.autoApply`) and `webSearchEnabled` (`ai.agent.webSearchEnabled`) in SQLite.
+  - Linked toggle switches across both `AgentSettingsPanel` and floating dock chips (`AgentChatInput`).
+- **Execution Engine Runtime Tooling (`useAgentExecution.ts`, `desktopAgentBridge.ts`, `useAgentLedger.ts`)**:
+  - Plumbed `webSearchEnabled` to dynamically register `WEB_SEARCH_TOOL` from `@app/ai-agent` into `provider.complete({ tools: activeTools })`.
+  - Implemented `createDesktopWebSearchBackend()` using DuckDuckGo parser for defensive web snippets.
+  - Extracted change ledger operations into `useAgentLedger.ts` and view configuration into `useAgentViewConfig.ts` to maintain single responsibility and guarantee all files remain strictly under 220 lines (hard cap 250).
+- **Verification**:
+  - 17/17 tests passing across `agentPreferences.test.ts`, `AgentSettingsSync.test.tsx`, `AgentView.test.tsx`, `AgentDock.test.tsx`, and `AgentConversations.test.tsx`.
+  - Production web build succeeded with 0 errors.
+
+---
+
 ### 2026-10-25: Fix Tab Close Button Not Working on Notes
 
 - **Root Cause**:

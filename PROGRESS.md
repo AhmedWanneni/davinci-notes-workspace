@@ -4,7 +4,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Tab Close Button Not Working on Notes
+## Last Session — Synchronize All AI Agent Settings (Model, Provider, Capabilities) in Real Time
+
+**Scope:**
+1. **Real-Time Model & Provider Persistence (`apps/desktop/src/ai/AISubsystem.ts`, `useAgentViewConfig.ts`)**:
+   - `createConfiguredProvider(providerId, overrideChatModel)` updated to accept dynamic model overrides and configure transport instances (`GeminiTransport`, `OllamaTransport`, `OpenAICompatibleTransport`) with the active model.
+   - Handled both floating dock dropdown (`AgentModelSelect`) and settings panel selections by persisting `saveSelectedProvider`, `saveProviderModels`, and `saveOllamaConfig` to SQLite immediately.
+2. **Settings Panel Model Selection & Synchronization (`AgentSettingsPanel.tsx`, `agentModelConstants.ts`)**:
+   - Added interactive `Active Model` selector dynamically populated with popular models for each provider (Gemini 2.0 Flash/1.5 Pro, Ollama gemma3/llama3/mistral/qwen, OpenRouter GPT-4o Mini/Claude 3.5 Haiku/Sonnet).
+   - "Test & Save Connection" saves provider, model, API keys, and endpoint, and updates runtime agent state immediately via `onProviderChanged` and `onModelChanged`.
+3. **Preferences & Capabilities Persistence (`agentPreferences.ts`, `AgentIntegrationsSection.tsx`)**:
+   - Created `agentPreferences.ts` to persist `autoApply` (`ai.agent.autoApply`) and `webSearchEnabled` (`ai.agent.webSearchEnabled`) in SQLite.
+   - Synchronized toggle switches between `AgentSettingsPanel` and floating dock chips (`AgentChatInput`).
+4. **Execution Engine Runtime Tooling (`useAgentExecution.ts`, `desktopAgentBridge.ts`, `useAgentLedger.ts`)**:
+   - Plumbed `webSearchEnabled` to dynamically register `WEB_SEARCH_TOOL` from `@app/ai-agent` into `provider.complete({ tools: activeTools })`.
+   - Implemented `createDesktopWebSearchBackend()` using DuckDuckGo parser for defensive web snippets.
+   - Extracted change ledger logic into `useAgentLedger.ts` and view configuration into `useAgentViewConfig.ts` to maintain single responsibility and ensure all files remain strictly under 220 lines (hard cap 250).
+
+**Verification:**
+- `pnpm --filter @app/desktop test agentPreferences.test.ts AgentSettingsSync.test.tsx AgentView.test.tsx AgentDock.test.tsx AgentConversations.test.tsx` (17/17 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.49s with 0 errors.
+- All modified and new files strictly ≤ 219 lines (hard cap 250).
+
+---
+
+## Previous Session — Fix Tab Close Button Not Working on Notes
 
 **Scope:**
 1. **Root Cause Analysis**:

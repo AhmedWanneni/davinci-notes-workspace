@@ -1,26 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Input, Typography } from "@app/design-system";
 import {
   Sparkle,
   X,
   CheckCircle,
   WarningCircle,
-  Globe,
-  CalendarCheck,
   Cpu,
 } from "@phosphor-icons/react";
 import {
   saveSelectedProvider,
   validateAndSaveProviderKey,
   saveOllamaConfig,
+  saveProviderModels,
+  loadProviderModels,
   type AIProviderId,
 } from "../../ai/AISubsystem";
+import { PROVIDER_POPULAR_MODELS } from "./agentModelConstants";
+import { AgentIntegrationsSection } from "./AgentIntegrationsSection";
 
 export interface AgentSettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   currentProvider: AIProviderId;
   onProviderChanged: (provider: AIProviderId) => void;
+  currentModel?: string;
+  onModelChanged?: (model: string) => void;
   webSearchEnabled: boolean;
   onToggleWebSearch: (enabled: boolean) => void;
   autoApply: boolean;
@@ -32,46 +36,94 @@ export function AgentSettingsPanel({
   onClose,
   currentProvider,
   onProviderChanged,
+  currentModel,
+  onModelChanged,
   webSearchEnabled,
   onToggleWebSearch,
   autoApply,
   onToggleAutoApply,
 }: AgentSettingsPanelProps) {
-  const [selectedProvider, setSelectedProvider] = useState<AIProviderId>(currentProvider);
+  const [selectedProvider, setSelectedProvider] =
+    useState<AIProviderId>(currentProvider);
+  const [selectedModel, setSelectedModel] = useState(
+    currentModel ||
+      PROVIDER_POPULAR_MODELS[currentProvider]?.[0] ||
+      "gemini-2.0-flash",
+  );
   const [apiKey, setApiKey] = useState("");
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434");
   const [isTesting, setIsTesting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  useEffect(() => {
+    setSelectedProvider(currentProvider);
+  }, [currentProvider]);
+
+  useEffect(() => {
+    if (currentModel) setSelectedModel(currentModel);
+  }, [currentModel]);
 
   if (!isOpen) return null;
+
+  const handleProviderSelect = (p: AIProviderId) => {
+    setSelectedProvider(p);
+    setFeedback(null);
+    const defaults = PROVIDER_POPULAR_MODELS[p] ?? [];
+    if (!defaults.includes(selectedModel)) {
+      setSelectedModel(defaults[0] ?? "");
+    }
+  };
 
   const handleSaveAndTest = async () => {
     setIsTesting(true);
     setFeedback(null);
     try {
       await saveSelectedProvider(selectedProvider);
+      const activeModel =
+        selectedModel.trim() || PROVIDER_POPULAR_MODELS[selectedProvider][0];
       if (selectedProvider === "ollama") {
-        await saveOllamaConfig(ollamaUrl, "embeddinggemma", "gemma3");
+        await saveOllamaConfig(ollamaUrl, "embeddinggemma", activeModel);
       } else {
-        if (!apiKey.trim()) {
-          throw new Error("Please enter your API key to test connection.");
+        const models = await loadProviderModels(selectedProvider);
+        await saveProviderModels(
+          selectedProvider,
+          models.embeddingModel,
+          activeModel,
+        );
+        if (apiKey.trim()) {
+          await validateAndSaveProviderKey(selectedProvider, apiKey.trim());
         }
-        await validateAndSaveProviderKey(selectedProvider, apiKey.trim());
       }
       onProviderChanged(selectedProvider);
-      setFeedback({ type: "success", text: "Successfully connected and saved!" });
+      onModelChanged?.(activeModel);
+      setFeedback({
+        type: "success",
+        text: "Successfully connected and saved!",
+      });
     } catch (err) {
       setFeedback({
         type: "error",
-        text: err instanceof Error ? err.message : "Connection failed. Please check your credentials.",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Connection failed. Please check your credentials.",
       });
     } finally {
       setIsTesting(false);
     }
   };
 
+  const availableModels = PROVIDER_POPULAR_MODELS[selectedProvider] ?? [];
+
   return (
-    <aside className="agent-settings-panel" role="region" aria-label="Agent Configuration">
+    <aside
+      className="agent-settings-panel"
+      role="region"
+      aria-label="Agent Configuration"
+    >
       <div className="agent-settings-panel__header">
         <div className="agent-settings-panel__title-group">
           <Sparkle size={18} weight="fill" />
@@ -90,7 +142,6 @@ export function AgentSettingsPanel({
       </div>
 
       <div className="agent-settings-panel__body">
-        {/* Provider Selection */}
         <section className="agent-settings-panel__section">
           <Typography variant="text" size="xs" weight="semibold" color="muted">
             AI PROVIDER
@@ -99,35 +150,64 @@ export function AgentSettingsPanel({
             <button
               type="button"
               className={`agent-settings-panel__provider-btn${selectedProvider === "gemini" ? " is-active" : ""}`}
-              onClick={() => { setSelectedProvider("gemini"); setFeedback(null); }}
+              onClick={() => handleProviderSelect("gemini")}
             >
-              <span className="agent-settings-panel__provider-name">Google Gemini</span>
-              <span className="agent-settings-panel__provider-sub">Fast, generous free tier</span>
+              <span className="agent-settings-panel__provider-name">
+                Google Gemini
+              </span>
+              <span className="agent-settings-panel__provider-sub">
+                Fast, generous free tier
+              </span>
             </button>
             <button
               type="button"
               className={`agent-settings-panel__provider-btn${selectedProvider === "ollama" ? " is-active" : ""}`}
-              onClick={() => { setSelectedProvider("ollama"); setFeedback(null); }}
+              onClick={() => handleProviderSelect("ollama")}
             >
-              <span className="agent-settings-panel__provider-name">Local Ollama</span>
-              <span className="agent-settings-panel__provider-sub">100% offline & private</span>
+              <span className="agent-settings-panel__provider-name">
+                Local Ollama
+              </span>
+              <span className="agent-settings-panel__provider-sub">
+                100% offline & private
+              </span>
             </button>
             <button
               type="button"
               className={`agent-settings-panel__provider-btn${selectedProvider === "openrouter" ? " is-active" : ""}`}
-              onClick={() => { setSelectedProvider("openrouter"); setFeedback(null); }}
+              onClick={() => handleProviderSelect("openrouter")}
             >
-              <span className="agent-settings-panel__provider-name">OpenRouter</span>
-              <span className="agent-settings-panel__provider-sub">Claude, GPT-4, Llama</span>
+              <span className="agent-settings-panel__provider-name">
+                OpenRouter
+              </span>
+              <span className="agent-settings-panel__provider-sub">
+                Claude, GPT-4, Llama
+              </span>
             </button>
           </div>
         </section>
 
-        {/* Credentials / URL */}
+        <section className="agent-settings-panel__section">
+          <label className="agent-settings-panel__label">Active Model</label>
+          <select
+            className="agent-settings-panel__select"
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+            aria-label="Select AI Model"
+          >
+            {availableModels.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </section>
+
         <section className="agent-settings-panel__section">
           {selectedProvider === "ollama" ? (
             <div>
-              <label className="agent-settings-panel__label">Ollama Server Endpoint</label>
+              <label className="agent-settings-panel__label">
+                Ollama Server Endpoint
+              </label>
               <Input
                 value={ollamaUrl}
                 onChange={(e) => setOllamaUrl(e.target.value)}
@@ -151,7 +231,11 @@ export function AgentSettingsPanel({
               className={`agent-settings-panel__alert agent-settings-panel__alert--${feedback.type}`}
               role="alert"
             >
-              {feedback.type === "success" ? <CheckCircle size={15} /> : <WarningCircle size={15} />}
+              {feedback.type === "success" ? (
+                <CheckCircle size={15} />
+              ) : (
+                <WarningCircle size={15} />
+              )}
               <span>{feedback.text}</span>
             </div>
           )}
@@ -168,61 +252,12 @@ export function AgentSettingsPanel({
           </Button>
         </section>
 
-        {/* Capabilities Toggles */}
-        <section className="agent-settings-panel__section">
-          <Typography variant="text" size="xs" weight="semibold" color="muted">
-            INTEGRATIONS & CAPABILITIES
-          </Typography>
-
-          <div className="agent-settings-panel__toggle-row">
-            <div className="agent-settings-panel__toggle-info">
-              <Globe size={16} />
-              <div>
-                <div className="agent-settings-panel__toggle-title">Web Search</div>
-                <div className="agent-settings-panel__toggle-desc">Allow agent to research queries online</div>
-              </div>
-            </div>
-            <button
-              type="button"
-              className={`agent-settings-panel__switch${webSearchEnabled ? " is-on" : ""}`}
-              onClick={() => onToggleWebSearch(!webSearchEnabled)}
-              aria-label="Toggle web search"
-            >
-              <div className="agent-settings-panel__switch-knob" />
-            </button>
-          </div>
-
-          <div className="agent-settings-panel__toggle-row">
-            <div className="agent-settings-panel__toggle-info">
-              <CalendarCheck size={16} />
-              <div>
-                <div className="agent-settings-panel__toggle-title">Google Calendar</div>
-                <div className="agent-settings-panel__toggle-desc">Sync tasks and meeting notes</div>
-              </div>
-            </div>
-            <Typography variant="text" size="xs" color="muted">
-              Connected
-            </Typography>
-          </div>
-
-          <div className="agent-settings-panel__toggle-row">
-            <div className="agent-settings-panel__toggle-info">
-              <Sparkle size={16} />
-              <div>
-                <div className="agent-settings-panel__toggle-title">Auto-apply Vault Changes</div>
-                <div className="agent-settings-panel__toggle-desc">Directly write files instead of staging diffs</div>
-              </div>
-            </div>
-            <button
-              type="button"
-              className={`agent-settings-panel__switch${autoApply ? " is-on" : ""}`}
-              onClick={() => onToggleAutoApply(!autoApply)}
-              aria-label="Toggle auto-apply"
-            >
-              <div className="agent-settings-panel__switch-knob" />
-            </button>
-          </div>
-        </section>
+        <AgentIntegrationsSection
+          webSearchEnabled={webSearchEnabled}
+          onToggleWebSearch={onToggleWebSearch}
+          autoApply={autoApply}
+          onToggleAutoApply={onToggleAutoApply}
+        />
       </div>
     </aside>
   );

@@ -87,7 +87,7 @@
   justify-content: center;
   width: 56px;
   height: 56px;
-  border-radius: var(--border-radius-full);
+  border-radius: 9999px;
   background-color: var(--color-bg-secondary);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   color: var(--color-text-accent);
@@ -271,6 +271,7 @@
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
@@ -292,9 +293,11 @@
   &--h1 {
     font-size: var(--type-scale-lg);
   }
+
   &--h2 {
     font-size: var(--type-scale-base);
   }
+
   &--h3 {
     font-size: var(--type-scale-sm);
   }
@@ -727,7 +730,7 @@
   align-items: center;
   gap: 5px;
   padding: 4px var(--space-3);
-  border-radius: var(--border-radius-full);
+  border-radius: 9999px;
   border: var(--border-width-thin) solid var(--color-border-subtle);
   background-color: transparent;
   color: var(--color-text-muted);
@@ -755,14 +758,14 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: var(--border-radius-full);
+  border-radius: 9999px;
   border: none;
   cursor: pointer;
   transition: all var(--motion-duration-fast) var(--motion-ease-standard);
 
   &--send {
     background-color: var(--color-interactive-accent);
-    color: var(--color-text-inverted);
+    color: var(--color-text-on-accent);
 
     &:hover:not(:disabled) {
       background-color: var(--color-interactive-accent-hover);
@@ -1069,6 +1072,23 @@
   display: block;
 }
 
+.agent-settings-panel__select {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg-primary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-normal);
+  font-size: var(--type-scale-sm);
+  outline: none;
+  cursor: pointer;
+  margin-bottom: var(--space-2);
+
+  &:focus {
+    border-color: var(--color-border-focus);
+  }
+}
+
 .agent-settings-panel__alert {
   padding: var(--space-2);
   border-radius: var(--border-radius-sm);
@@ -1119,7 +1139,7 @@
 .agent-settings-panel__switch {
   width: 34px;
   height: 20px;
-  border-radius: var(--border-radius-full);
+  border-radius: 9999px;
   border: var(--border-width-thin) solid var(--color-border-subtle);
   background-color: var(--color-bg-secondary);
   cursor: pointer;
@@ -1133,7 +1153,7 @@
 
     .agent-settings-panel__switch-knob {
       transform: translateX(14px);
-      background-color: var(--color-text-inverted);
+      background-color: var(--color-text-on-accent);
     }
   }
 }
@@ -1533,7 +1553,7 @@
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  border-radius: var(--border-radius-full);
+  border-radius: 9999px;
   border: var(--border-width-thin) solid var(--color-border-subtle);
   background: var(--color-bg-primary);
   font-size: var(--type-scale-xs);
@@ -1666,7 +1686,6 @@
   display: flex;
   flex-direction: column;
   min-width: 130px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .agent-conv-item__menu-label {

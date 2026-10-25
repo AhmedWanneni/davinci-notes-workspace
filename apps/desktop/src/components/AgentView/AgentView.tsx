@@ -1,10 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import { Button, Typography } from "@app/design-system";
-import {
-  parseShortcuts,
-  type AgentShortcut,
-  SHORTCUTS_FILE_PATH,
-} from "@app/ai-agent";
+import { useEffect, useRef } from "react";
 import { AgentHeader } from "./AgentHeader";
 import { AgentMissedBanner } from "./AgentMissedBanner";
 import { AgentMessageBubble } from "./AgentMessageBubble";
@@ -18,24 +12,35 @@ import { AgentSettingsPanel } from "./AgentSettingsPanel";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentSchedules } from "./useAgentSchedules";
 import { useAgentConversations } from "./useAgentConversations";
-import {
-  loadAIProviderStatus,
-  loadSelectedProvider,
-  loadProviderModels,
-  type AIProviderId,
-} from "../../ai/AISubsystem";
-import { readNote } from "../../vault/vaultCommands";
+import { useAgentViewConfig } from "./useAgentViewConfig";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import type { ChatMessageItem } from "./agentTypes";
 import "./AgentView.scss";
 
 export function AgentView() {
   const {
+    currentProvider,
+    setCurrentProvider,
+    currentModel,
+    setCurrentModel,
+    webSearchEnabled,
+    handleToggleWebSearch,
+    autoApply,
+    handleToggleAutoApply,
+    isSettingsOpen,
+    setIsSettingsOpen,
+    isConversationsOpen,
+    setIsConversationsOpen,
+    isConfigured,
+    setIsConfigured,
+    shortcuts,
+    handleModelSelect,
+  } = useAgentViewConfig();
+
+  const {
     messages,
     stagedChanges,
     isStreaming,
-    autoApply,
-    setAutoApply,
     ledger,
     isHistoryOpen,
     setIsHistoryOpen,
@@ -48,7 +53,12 @@ export function AgentView() {
     abortExecution,
     clearMessages,
     setMessages,
-  } = useAgentExecution();
+  } = useAgentExecution({
+    providerId: currentProvider,
+    model: currentModel,
+    webSearchEnabled,
+    autoApply,
+  });
 
   const {
     conversations,
@@ -64,64 +74,32 @@ export function AgentView() {
   } = useAgentConversations();
 
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
-  const vaultName = vaultPath ? vaultPath.split(/[/\\]/).pop() || "davinci-notes" : "davinci-notes";
-
-  const [currentProvider, setCurrentProvider] = useState<AIProviderId>("gemini");
-  const [currentModel, setCurrentModel] = useState("gemini-2.0-flash");
-  const [webSearchEnabled, setWebSearchEnabled] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isConversationsOpen, setIsConversationsOpen] = useState(false);
-  const [isConfigured, setIsConfigured] = useState(true);
-  const [shortcuts, setShortcuts] = useState<AgentShortcut[]>([]);
+  const vaultName = vaultPath
+    ? vaultPath.split(/[/\\]/).pop() || "davinci-notes"
+    : "davinci-notes";
   const { missedSchedules, dismissMissed } = useAgentSchedules();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const checkProviderConfig = useCallback(async () => {
-    try {
-      const providerId = await loadSelectedProvider();
-      setCurrentProvider(providerId);
-      const models = await loadProviderModels(providerId);
-      setCurrentModel(models.chatModel);
-      const status = await loadAIProviderStatus(providerId);
-      const ready = status === "ready";
-      setIsConfigured(ready);
-      if (!ready) setIsSettingsOpen(true);
-    } catch {
-      setIsConfigured(false);
-      setIsSettingsOpen(true);
-    }
-  }, []);
-
-  const loadShortcuts = useCallback(async () => {
-    try {
-      const file = await readNote(SHORTCUTS_FILE_PATH);
-      setShortcuts(parseShortcuts(file.content).shortcuts);
-    } catch {
-      setShortcuts(parseShortcuts(null).shortcuts);
-    }
-  }, []);
-
   useEffect(() => {
     void loadLedger();
-    void checkProviderConfig();
-    void loadShortcuts();
-  }, [checkProviderConfig, loadLedger, loadShortcuts]);
+  }, [loadLedger]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
   }, [messages]);
 
-  // Sync active conversation messages
   useEffect(() => {
-    if (activeConversation) setMessages(activeConversation.messages as ChatMessageItem[]);
+    if (activeConversation)
+      setMessages(activeConversation.messages as ChatMessageItem[]);
   }, [activeConversation, setMessages]);
 
-  // Auto-persist messages on updates
   useEffect(() => {
     if (messages.length > 0) void saveActiveMessages(messages);
   }, [messages, saveActiveMessages]);
 
-  const activeProject = projects.find((p) => p.id === activeConversation?.projectId);
+  const activeProject = projects.find(
+    (p) => p.id === activeConversation?.projectId,
+  );
 
   return (
     <div className="agent-view" role="main" aria-label="AI Vault Agent">
@@ -129,13 +107,18 @@ export function AgentView() {
         <AgentHeader
           hasMessages={messages.length > 0}
           onNewChat={() => {
-            void createNewConversation("New Chat", activeConversation?.projectId);
+            void createNewConversation(
+              "New Chat",
+              activeConversation?.projectId,
+            );
             clearMessages();
           }}
           isSettingsOpen={isSettingsOpen}
           onToggleSettings={() => setIsSettingsOpen(!isSettingsOpen)}
           isConversationsOpen={isConversationsOpen}
-          onToggleConversations={() => setIsConversationsOpen(!isConversationsOpen)}
+          onToggleConversations={() =>
+            setIsConversationsOpen(!isConversationsOpen)
+          }
           conversationsCount={conversations.length}
           isHistoryOpen={isHistoryOpen}
           onToggleHistory={() => setIsHistoryOpen(!isHistoryOpen)}
@@ -154,7 +137,6 @@ export function AgentView() {
           />
         )}
 
-        {/* Conversation Stream & Empty State */}
         <div className="agent-view__messages">
           {messages.length === 0 ? (
             <AgentStarterPrompts
@@ -189,17 +171,14 @@ export function AgentView() {
             onCancel={abortExecution}
             isStreaming={isStreaming}
             autoApply={autoApply}
-            onToggleAutoApply={setAutoApply}
+            onToggleAutoApply={handleToggleAutoApply}
             vaultName={vaultName}
             projectName={activeProject?.name}
             currentProvider={currentProvider}
             currentModel={currentModel}
-            onSelectModel={(model, provider) => {
-              setCurrentModel(model);
-              setCurrentProvider(provider);
-            }}
+            onSelectModel={handleModelSelect}
             webSearchEnabled={webSearchEnabled}
-            onToggleWebSearch={setWebSearchEnabled}
+            onToggleWebSearch={handleToggleWebSearch}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenConversations={() => setIsConversationsOpen(true)}
             disabled={!isConfigured && !currentModel}
@@ -213,8 +192,15 @@ export function AgentView() {
         conversations={conversations}
         projects={projects}
         activeConversationId={activeConversationId}
-        onSelectConversation={(id) => { void selectConversation(id); setIsConversationsOpen(false); }}
-        onNewConversation={(projId) => { void createNewConversation("New Chat", projId); clearMessages(); setIsConversationsOpen(false); }}
+        onSelectConversation={(id) => {
+          void selectConversation(id);
+          setIsConversationsOpen(false);
+        }}
+        onNewConversation={(projId) => {
+          void createNewConversation("New Chat", projId);
+          clearMessages();
+          setIsConversationsOpen(false);
+        }}
         onDeleteConversation={(id) => void removeConversation(id)}
         onAddProject={(name) => void addProject(name)}
         onAssignProject={(cId, pId) => void assignConversationProject(cId, pId)}
@@ -224,11 +210,16 @@ export function AgentView() {
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         currentProvider={currentProvider}
-        onProviderChanged={(p) => { setCurrentProvider(p); setIsConfigured(true); }}
+        onProviderChanged={(p) => {
+          setCurrentProvider(p);
+          setIsConfigured(true);
+        }}
+        currentModel={currentModel}
+        onModelChanged={(m) => setCurrentModel(m)}
         webSearchEnabled={webSearchEnabled}
-        onToggleWebSearch={setWebSearchEnabled}
+        onToggleWebSearch={handleToggleWebSearch}
         autoApply={autoApply}
-        onToggleAutoApply={setAutoApply}
+        onToggleAutoApply={handleToggleAutoApply}
       />
 
       <AgentHistoryDrawer
