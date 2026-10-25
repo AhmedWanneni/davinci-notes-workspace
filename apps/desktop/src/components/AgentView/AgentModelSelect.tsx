@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { CaretDown, Check, Gear } from "@phosphor-icons/react";
-import type { AIProviderId } from "../../ai/AISubsystem";
+import { fetchOllamaModels, type AIProviderId } from "../../ai/AISubsystem";
 
 export interface AgentModelOption {
   id: string;
@@ -8,11 +8,9 @@ export interface AgentModelOption {
   providerId: AIProviderId;
 }
 
-export const POPULAR_MODELS: AgentModelOption[] = [
+export const BASE_POPULAR_MODELS: AgentModelOption[] = [
   { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash", providerId: "gemini" },
   { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro", providerId: "gemini" },
-  { id: "gemma3", label: "Ollama: gemma3 (Local)", providerId: "ollama" },
-  { id: "llama3", label: "Ollama: llama3 (Local)", providerId: "ollama" },
   { id: "openai/gpt-4o-mini", label: "OpenRouter: GPT-4o Mini", providerId: "openrouter" },
   { id: "anthropic/claude-3.5-haiku", label: "OpenRouter: Claude 3.5 Haiku", providerId: "openrouter" },
 ];
@@ -33,7 +31,14 @@ export function AgentModelSelect({
   disabled,
 }: AgentModelSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [installedOllamaModels, setInstalledOllamaModels] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    void fetchOllamaModels().then((models) => {
+      if (models.length > 0) setInstalledOllamaModels(models);
+    });
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -46,10 +51,38 @@ export function AgentModelSelect({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  const activeOption = POPULAR_MODELS.find(
-    (m) => m.id === currentModel || (m.providerId === currentProvider && m.id.includes(currentModel))
+  const modelOptions = useMemo(() => {
+    const ollamaOpts: AgentModelOption[] =
+      installedOllamaModels.length > 0
+        ? installedOllamaModels.map((m) => ({
+            id: m,
+            label: `Ollama: ${m} (Local)`,
+            providerId: "ollama",
+          }))
+        : [
+            { id: "gemma3", label: "Ollama: gemma3 (Local)", providerId: "ollama" },
+            { id: "llama3", label: "Ollama: llama3 (Local)", providerId: "ollama" },
+          ];
+    return [
+      BASE_POPULAR_MODELS[0],
+      BASE_POPULAR_MODELS[1],
+      ...ollamaOpts,
+      BASE_POPULAR_MODELS[2],
+      BASE_POPULAR_MODELS[3],
+    ];
+  }, [installedOllamaModels]);
+
+  const activeOption = modelOptions.find(
+    (m) =>
+      m.id === currentModel ||
+      (m.providerId === currentProvider &&
+        (m.id === currentModel || m.id.startsWith(currentModel) || currentModel.startsWith(m.id))),
   );
-  const displayLabel = activeOption ? activeOption.label : currentModel || "Model";
+  const displayLabel = activeOption
+    ? activeOption.label
+    : currentModel
+      ? `${currentProvider === "ollama" ? "Ollama: " : ""}${currentModel}`
+      : "Model";
 
   return (
     <div className="agent-model-select" ref={containerRef}>
@@ -68,7 +101,7 @@ export function AgentModelSelect({
       {isOpen && (
         <div className="agent-model-select__menu" role="listbox">
           <div className="agent-model-select__options">
-            {POPULAR_MODELS.map((opt) => {
+            {modelOptions.map((opt) => {
               const isSelected = opt.id === currentModel || opt.label === displayLabel;
               return (
                 <button

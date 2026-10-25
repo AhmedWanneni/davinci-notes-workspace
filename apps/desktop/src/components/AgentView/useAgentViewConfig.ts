@@ -9,6 +9,7 @@ import {
   loadSelectedProvider,
   loadProviderModels,
   loadOllamaBaseUrl,
+  fetchOllamaModels,
   saveSelectedProvider,
   saveProviderModels,
   saveOllamaConfig,
@@ -33,7 +34,19 @@ export function useAgentViewConfig() {
       const providerId = await loadSelectedProvider();
       setCurrentProvider(providerId);
       const models = await loadProviderModels(providerId);
-      setCurrentModel(models.chatModel);
+      let activeChatModel = models.chatModel;
+      if (providerId === "ollama") {
+        const installed = await fetchOllamaModels();
+        if (installed.length > 0 && !installed.includes(activeChatModel)) {
+          const match = installed.find(
+            (m) => m.startsWith(activeChatModel) || activeChatModel.startsWith(m.split(":")[0]),
+          );
+          activeChatModel = match ?? installed[0];
+          const url = await loadOllamaBaseUrl();
+          await saveOllamaConfig(url, models.embeddingModel, activeChatModel);
+        }
+      }
+      setCurrentModel(activeChatModel);
       const prefs = await loadAgentPreferences();
       setAutoApply(prefs.autoApply);
       setWebSearchEnabled(prefs.webSearchEnabled);

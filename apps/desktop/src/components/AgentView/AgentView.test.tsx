@@ -34,6 +34,7 @@ vi.mock("../../ai/AISubsystem", () => ({
       chatModel: "gemini-2.0-flash",
     }),
   loadOllamaBaseUrl: vi.fn().mockResolvedValue("http://localhost:11434"),
+  fetchOllamaModels: vi.fn().mockResolvedValue(["llama3:latest"]),
   createConfiguredProvider: vi.fn().mockResolvedValue({
     complete: vi.fn().mockResolvedValue({
       content: "I have reviewed your vault.",

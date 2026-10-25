@@ -69,3 +69,28 @@ export function extractOllamaFallbackToolCall(
     return null;
   }
 }
+
+export interface RawOllamaToolCall {
+  function?: { name: string; arguments: Record<string, unknown> };
+}
+
+export function parseOllamaToolCalls(raw?: RawOllamaToolCall[]): AgentToolCall[] {
+  if (!raw) return [];
+  return raw
+    .filter((item) => item.function?.name)
+    .map((item, idx) => ({
+      id: `call_ollama_${Date.now()}_${idx}`,
+      name: item.function!.name,
+      arguments: item.function!.arguments ?? {},
+    }));
+}
+
+export function isToolSupportError(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "message" in err &&
+    typeof (err as { message: unknown }).message === "string" &&
+    (err as { message: string }).message.toLowerCase().includes("does not support tools")
+  );
+}

@@ -108,6 +108,20 @@ export async function loadOllamaBaseUrl(): Promise<string> {
   return value ?? DEFAULT_OLLAMA_BASE_URL;
 }
 
+export async function fetchOllamaModels(baseUrl?: string): Promise<string[]> {
+  try {
+    const url = (baseUrl ?? (await loadOllamaBaseUrl())).replace(/\/$/, "");
+    const res = await fetch(`${url}/api/tags`);
+    if (!res.ok) return [];
+    const data = (await res.json()) as { models?: Array<{ name?: string }> };
+    return Array.isArray(data.models)
+      ? data.models.map((m) => m.name ?? "").filter(Boolean)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function saveProviderModels(
   providerId: AIProviderId,
   embeddingModel: string,

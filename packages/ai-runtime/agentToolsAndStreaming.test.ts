@@ -128,4 +128,52 @@ describe("Tool Calling and Streaming Transports", () => {
     expect(res.toolCalls?.[0].name).toBe("read_note");
     expect(res.toolCalls?.[0].arguments).toEqual({ path: "Notes/Ideas.md" });
   });
+
+  it("Ollama gracefully recovers when model does not support native tools", async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            error:
+              "registry.ollama.ai/library/llama3:latest does not support tools",
+          }),
+          { status: 400, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            message: {
+              role: "assistant",
+              content:
+                '```json\n{"tool": "read_note", "arguments": {"path": "Notes/Fallback.md"}}\n```',
+            },
+            done: true,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+
+    const transport = new OllamaTransport({
+      fetchImpl,
+      chatModel: "llama3:latest",
+    });
+    const res = await transport.complete({
+      messages: [{ role: "user", content: "read fallback" }],
+      tools: testTools,
+    });
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    const firstBody = JSON.parse(fetchImpl.mock.calls[0][1].body);
+    expect(firstBody.tools).toBeDefined();
+    const secondBody = JSON.parse(fetchImpl.mock.calls[1][1].body);
+    expect(secondBody.tools).toBeUndefined();
+
+    expect(res.toolCalls).toHaveLength(1);
+    expect(res.toolCalls?.[0].name).toBe("read_note");
+    expect(res.toolCalls?.[0].arguments).toEqual({
+      path: "Notes/Fallback.md",
+    });
+  });
 });

@@ -10,6 +10,9 @@ import {
 import {
   extractOllamaFallbackToolCall,
   formatOllamaToolSystemPrompt,
+  parseOllamaToolCalls,
+  isToolSupportError,
+  type RawOllamaToolCall,
 } from "./ollamaToolFallback.js";
 
 export interface OllamaTransportOptions {
@@ -17,10 +20,6 @@ export interface OllamaTransportOptions {
   embeddingModel?: string;
   chatModel?: string;
   fetchImpl?: typeof fetch;
-}
-
-interface RawOllamaToolCall {
-  function?: { name: string; arguments: Record<string, unknown> };
 }
 
 interface OllamaBody {
@@ -49,6 +48,19 @@ export class OllamaTransport {
     };
   }
 
+  async listModels(): Promise<string[]> {
+    try {
+      const res = await this.fetchImpl(`${this.options.baseUrl}/api/tags`);
+      if (!res.ok) return [];
+      const data = (await res.json()) as { models?: Array<{ name?: string }> };
+      return Array.isArray(data.models)
+        ? data.models.map((m) => m.name ?? "").filter(Boolean)
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
   async embed(request: EmbeddingRequest): Promise<EmbeddingResponse> {
     const body = await this.post("/api/embed", {
       model: this.options.embeddingModel,
@@ -69,7 +81,18 @@ export class OllamaTransport {
 
   async complete(request: ChatRequest): Promise<ChatResponse> {
     const payload = this.buildChatPayload(request, false);
-    const body = (await this.post("/api/chat", payload)) as OllamaBody;
+    let body: OllamaBody;
+    try {
+      body = (await this.post("/api/chat", payload)) as OllamaBody;
+    } catch (err) {
+      if (payload.tools && isToolSupportError(err)) {
+        const fallback = { ...payload };
+        delete fallback.tools;
+        body = (await this.post("/api/chat", fallback)) as OllamaBody;
+      } else {
+        throw err;
+      }
+    }
     const content = body.message?.content ?? "";
     let toolCalls = parseOllamaToolCalls(body.message?.tool_calls);
 
@@ -96,7 +119,18 @@ export class OllamaTransport {
 
   async *completeStream(request: ChatRequest): AsyncIterable<ChatStreamChunk> {
     const payload = this.buildChatPayload(request, true);
-    const response = await this.rawPost("/api/chat", payload);
+    let response: Response;
+    try {
+      response = await this.rawPost("/api/chat", payload);
+    } catch (err) {
+      if (payload.tools && isToolSupportError(err)) {
+        const fallback = { ...payload };
+        delete fallback.tools;
+        response = await this.rawPost("/api/chat", fallback);
+      } else {
+        throw err;
+      }
+    }
     if (!response.body) return;
 
     const reader = response.body.getReader();
@@ -197,18 +231,13 @@ export class OllamaTransport {
       throw new AIProviderError(
         "local-server-unavailable",
         `Ollama model or endpoint was not found: ${message}`,
-        {
-          retryable: false,
-          requiresReauthentication: false,
-        },
+        { retryable: false, requiresReauthentication: false },
       );
     }
     throw new AIProviderError(
       response.status >= 500 ? "unavailable" : "invalid-request",
       message,
-      {
-        requiresReauthentication: false,
-      },
+      { requiresReauthentication: false },
     );
   }
 
@@ -216,15 +245,4 @@ export class OllamaTransport {
     const response = await this.rawPost(path, payload);
     return response.json().catch(() => null);
   }
-}
-
-function parseOllamaToolCalls(raw?: RawOllamaToolCall[]): AgentToolCall[] {
-  if (!raw) return [];
-  return raw
-    .filter((item) => item.function?.name)
-    .map((item, idx) => ({
-      id: `call_ollama_${Date.now()}_${idx}`,
-      name: item.function!.name,
-      arguments: item.function!.arguments ?? {},
-    }));
 }

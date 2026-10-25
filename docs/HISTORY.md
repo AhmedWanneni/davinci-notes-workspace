@@ -2,6 +2,24 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Fix Ollama 'Does Not Support Tools' Error & Dynamically Surface Installed Ollama Models
+
+- **Graceful Ollama Tool Recovery (`packages/ai-runtime/ollamaTransport.ts`, `ollamaToolFallback.ts`)**:
+  - Addressed Ollama HTTP 400 error (`registry.ollama.ai/library/llama3:latest does not support tools`) when models lack native tool calling metadata.
+  - When Ollama returns a `does not support tools` error, `OllamaTransport` catches it and immediately retries the request without native `tools`, relying on the injected JSON system prompt instructions and `extractOllamaFallbackToolCall` to parse tool calls seamlessly.
+  - Added unit test in `agentToolsAndStreaming.test.ts` verifying automatic recovery.
+- **Dynamic Ollama Model Discovery (`AISubsystem.ts`, `AgentModelSelect.tsx`, `AgentSettingsPanel.tsx`, `useAgentViewConfig.ts`)**:
+  - Added `fetchOllamaModels(baseUrl)` querying Ollama's local `/api/tags` endpoint (`ollama list` parity).
+  - In floating dock dropdown (`AgentModelSelect`), dynamically lists all installed models (e.g. `Ollama: llama3:latest (Local)`).
+  - In `AgentSettingsPanel`, populates the Active Model selector with the user's real Ollama models.
+  - In `useAgentViewConfig.ts`, automatically aligns stored models with tagged installed models (`llama3` -> `llama3:latest`) on startup.
+- **Verification**:
+  - 20/20 tests passing in `@app/ai-runtime`.
+  - 17/17 tests passing in `@app/desktop` agent suite.
+  - Production web build succeeded with 0 errors.
+
+---
+
 ### 2026-10-25: Synchronize All AI Agent Settings (Model, Provider, Capabilities) in Real Time
 
 - **Real-Time Model & Provider Persistence (`apps/desktop/src/ai/AISubsystem.ts`, `useAgentViewConfig.ts`)**:

@@ -19,6 +19,7 @@ vi.mock("../../ai/AISubsystem", () => ({
     chatModel: "gemini-2.0-flash",
   }),
   loadOllamaBaseUrl: vi.fn().mockResolvedValue("http://localhost:11434"),
+  fetchOllamaModels: vi.fn().mockResolvedValue(["llama3:latest"]),
   createConfiguredProvider: (...args: unknown[]) =>
     mockCreateConfiguredProvider(...args),
   saveSelectedProvider: (...args: unknown[]) =>
@@ -80,11 +81,14 @@ describe("Agent Settings & Runtime Sync", () => {
 
     // Switch to Local Ollama
     const ollamaBtn = screen.getByText("Local Ollama");
-    fireEvent.click(ollamaBtn);
+    await act(async () => {
+      fireEvent.click(ollamaBtn);
+    });
 
     // Change model select
     const select = screen.getByLabelText("Select AI Model");
-    fireEvent.change(select, { target: { value: "llama3" } });
+    expect(screen.getByText("llama3:latest")).toBeTruthy();
+    fireEvent.change(select, { target: { value: "llama3:latest" } });
 
     // Test & Save Connection
     const saveBtn = screen.getByText("Test & Save Connection");
@@ -96,10 +100,10 @@ describe("Agent Settings & Runtime Sync", () => {
     expect(mockSaveOllamaConfig).toHaveBeenCalledWith(
       "http://localhost:11434",
       "embeddinggemma",
-      "llama3",
+      "llama3:latest",
     );
     expect(onProviderChanged).toHaveBeenCalledWith("ollama");
-    expect(onModelChanged).toHaveBeenCalledWith("llama3");
+    expect(onModelChanged).toHaveBeenCalledWith("llama3:latest");
     expect(screen.getByText("Successfully connected and saved!")).toBeTruthy();
   });
 

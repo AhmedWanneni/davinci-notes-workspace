@@ -4,7 +4,28 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Synchronize All AI Agent Settings (Model, Provider, Capabilities) in Real Time
+## Last Session — Fix Ollama 'Does Not Support Tools' Error & Dynamically Surface Installed Ollama Models
+
+**Scope:**
+1. **Graceful Ollama Tool Recovery (`packages/ai-runtime/ollamaTransport.ts`, `ollamaToolFallback.ts`)**:
+   - Addressed Ollama HTTP 400 error (`registry.ollama.ai/library/llama3:latest does not support tools`) when models lack native tool calling metadata.
+   - When Ollama returns a `does not support tools` error, `OllamaTransport` catches it and immediately retries the request without native `tools`, relying on the injected JSON system prompt instructions and `extractOllamaFallbackToolCall` to parse tool calls seamlessly.
+   - Added unit test in `agentToolsAndStreaming.test.ts` verifying automatic recovery.
+2. **Dynamic Ollama Model Discovery (`AISubsystem.ts`, `AgentModelSelect.tsx`, `AgentSettingsPanel.tsx`, `useAgentViewConfig.ts`)**:
+   - Added `fetchOllamaModels(baseUrl)` querying Ollama's local `/api/tags` endpoint (`ollama list` parity).
+   - In floating dock dropdown (`AgentModelSelect`), dynamically lists all installed models (e.g. `Ollama: llama3:latest (Local)`).
+   - In `AgentSettingsPanel`, populates the Active Model selector with the user's real Ollama models.
+   - In `useAgentViewConfig.ts`, automatically aligns stored models with tagged installed models (`llama3` -> `llama3:latest`) on startup.
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (20/20 tests passing).
+- `pnpm --filter @app/desktop test AgentDock.test.tsx AgentSettingsSync.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (17/17 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 9.85s with 0 errors.
+- All files strictly ≤ 248 lines (hard cap 250).
+
+---
+
+## Previous Session — Synchronize All AI Agent Settings (Model, Provider, Capabilities) in Real Time
 
 **Scope:**
 1. **Real-Time Model & Provider Persistence (`apps/desktop/src/ai/AISubsystem.ts`, `useAgentViewConfig.ts`)**:
