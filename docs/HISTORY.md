@@ -2,6 +2,19 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Fix CSS Module Bundling Issue for AgentView
+
+- **Root Cause**:
+  - `AgentView.module.scss` was imported via side-effect `import "./AgentView.module.scss"` with standard class strings (`className="agent-view"`). Vite tree-shook away the CSS module from the bundle because no named exports or CSS module keys were consumed.
+- **Resolution**:
+  - Renamed `AgentView.module.scss` to `AgentView.scss` and updated `AgentView.tsx` to `import "./AgentView.scss"`.
+  - Confirmed all `.agent-view*`, `.agent-chat-dock*`, `.agent-settings-panel*` classes are now bundled into `dist/assets/main-*.css`.
+- **Verification**:
+  - 9/9 tests passing in `AgentView.test.tsx` and `AgentDock.test.tsx`.
+  - Web build succeeded with 0 errors.
+
+---
+
 ### 2026-10-25: Unified Agent UI: Screenshot-Matched Floating Dock, Context Chips, Selects & On-Page Settings
 
 - **Screenshot-Matched Floating Dock (`AgentChatInput.tsx`, `AgentModelSelect.tsx`)**:

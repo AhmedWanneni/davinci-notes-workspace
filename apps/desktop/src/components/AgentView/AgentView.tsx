@@ -23,7 +23,7 @@ import {
 } from "../../ai/AISubsystem";
 import { readNote } from "../../vault/vaultCommands";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import "./AgentView.module.scss";
+import "./AgentView.scss";
 
 export function AgentView() {
   const {

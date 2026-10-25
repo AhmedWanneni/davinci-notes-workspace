@@ -4,7 +4,24 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Unified Agent UI: Screenshot-Matched Floating Dock, Context Chips, Selects & On-Page Settings
+## Last Session — Fix CSS Module Bundling Issue for AgentView
+
+**Scope:**
+1. **Root Cause Analysis**:
+   - `AgentView.module.scss` was imported via side-effect `import "./AgentView.module.scss"` while using plain BEM class strings (`className="agent-view"`).
+   - In Vite/Rollup, side-effect imports of `.module.scss` files without imported object properties (`import styles from ...`) are treated as unused CSS modules and tree-shaken away completely from the production CSS bundle.
+2. **Resolution**:
+   - Renamed `AgentView.module.scss` to `AgentView.scss` and updated `AgentView.tsx` to `import "./AgentView.scss"`.
+   - Verified that Vite compiles all `.agent-view*`, `.agent-chat*`, `.agent-settings*`, and `.agent-model*` selectors into `main-*.css` without mangling or dropping.
+
+**Verification:**
+- Verified `.agent-view`, `.agent-chat-dock`, `.agent-settings-panel` are present in `dist/assets/main-*.css`.
+- 9/9 unit tests passing across `AgentView.test.tsx` and `AgentDock.test.tsx`.
+- `pnpm --filter @app/desktop build:web` succeeded in 9.61s with 0 errors.
+
+---
+
+## Previous Session — Unified Agent UI: Screenshot-Matched Floating Dock, Context Chips, Selects & On-Page Settings
 
 **Scope:**
 1. **Screenshot-Matched Floating Dock (`AgentChatInput.tsx`, `AgentModelSelect.tsx`)**:
