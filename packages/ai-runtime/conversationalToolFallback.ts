@@ -49,7 +49,23 @@ function cleanPath(raw: string, isFolder = false): string {
 
 function extractCodeBlock(text: string): string {
   const codeBlockMatch = /```(?:markdown|md)?\s*\n([\s\S]*?)\n```/.exec(text);
-  return codeBlockMatch ? codeBlockMatch[1] : "";
+  if (codeBlockMatch) return codeBlockMatch[1].trim();
+
+  // If no code block, extract substantive content (e.g. lists, summaries, paragraphs)
+  // Strip conversational meta phrases like "I've created a note..."
+  const stripped = text
+    .replace(
+      /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page|folder)[^.\n]*[.\n]?/gi,
+      "",
+    )
+    .replace(
+      /(?:The\s+)?(?:note|file)\s+is\s+(?:currently\s+|initially\s+)?empty[^.\n]*[.\n]?/gi,
+      "",
+    )
+    .replace(/Here (?:is|are) (?:the|your)[^:\n]*:?/gi, "")
+    .trim();
+
+  return stripped;
 }
 
 function deriveNoteNameFromTopic(prompt: string): string | null {

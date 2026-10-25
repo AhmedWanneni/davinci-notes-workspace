@@ -32,6 +32,7 @@ describe("vaultMutationTools", () => {
       "delete_note",
       "create_database_table",
       "create_todo_list",
+      "save_memory",
     ]);
   });
 

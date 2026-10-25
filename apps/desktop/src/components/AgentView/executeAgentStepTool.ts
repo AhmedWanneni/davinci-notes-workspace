@@ -1,4 +1,4 @@
-import type { AgentToolCall } from "@app/ai-api";
+import type { AgentToolCall, ChatMessage } from "@app/ai-api";
 import {
   VAULT_INSPECTION_TOOLS,
   VAULT_MUTATION_TOOLS,
@@ -7,6 +7,11 @@ import {
   executeWebSearchTool,
   planMutation,
   validateAgentAction,
+  AGENT_MEMORY_PATH,
+  parseMemoryData,
+  serializeMemoryData,
+  addMemoryEntry,
+  type AgentMemoryEntry,
   type VaultInspectionBackend,
   type VaultMutationBackend,
   type WebSearchBackend,
@@ -22,6 +27,50 @@ export interface ExecuteAgentStepContext {
   allNotePaths: string[];
   handleApplyChange: (item: StagedChangeItem) => Promise<void>;
   setStagedChanges: React.Dispatch<React.SetStateAction<StagedChangeItem[]>>;
+  workingHistory?: ChatMessage[];
+}
+
+export function formatFallbackContentFromHistory(
+  path: string,
+  history?: ChatMessage[],
+): string {
+  if (!history || history.length === 0) return "";
+  for (let i = history.length - 1; i >= 0; i--) {
+    const msg = history[i];
+    if (msg.role === "tool" && msg.content && typeof msg.content === "string") {
+      try {
+        const parsed = JSON.parse(msg.content);
+        const list = Array.isArray(parsed)
+          ? parsed
+          : Array.isArray(parsed?.results)
+            ? parsed.results
+            : null;
+        if (list && list.length > 0) {
+          const title = path.split("/").pop()?.replace(/\.md$/i, "") || "Notes";
+          const lines = [`# ${title}\n`];
+          for (const item of list) {
+            if (item.title) {
+              lines.push(`## ${item.title}`);
+              const desc =
+                item.snippet ||
+                item.content?.replace(/<[^>]+>/g, "").trim() ||
+                "";
+              if (desc) lines.push(desc);
+              if (item.url) lines.push(`\n[Source](${item.url})`);
+              lines.push("");
+            } else if (item.path && item.snippet) {
+              lines.push(`- [[${item.path}]]: ${item.snippet}`);
+            }
+          }
+          return lines.join("\n").trim();
+        }
+      } catch {
+        const title = path.split("/").pop()?.replace(/\.md$/i, "") || "Notes";
+        return `# ${title}\n\n${msg.content}`.trim();
+      }
+    }
+  }
+  return "";
 }
 
 export function prepareActiveTools(webSearchEnabled?: boolean) {
@@ -44,6 +93,32 @@ export async function executeAgentStepTool(
 
   const { isDestructive } = validation.data;
 
+  if (tc.name === "save_memory") {
+    const rawContent = String(tc.arguments.content ?? "").trim();
+    const cat =
+      (tc.arguments.category as AgentMemoryEntry["category"]) ?? "general";
+    if (rawContent) {
+      try {
+        const rawJson = await ctx.mutationBackend.readNote(AGENT_MEMORY_PATH);
+        const data = parseMemoryData(rawJson);
+        const { data: nextData } = addMemoryEntry(data, rawContent, cat);
+        await ctx.mutationBackend.writeNote(
+          AGENT_MEMORY_PATH,
+          serializeMemoryData(nextData),
+        );
+        return {
+          status: "saved",
+          fact: rawContent,
+          message: `Saved to memory: "${rawContent}"`,
+        };
+      } catch (err) {
+        return {
+          error: `Failed to save memory: ${err instanceof Error ? err.message : String(err)}`,
+        };
+      }
+    }
+  }
+
   const isMutation =
     VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name) ||
     tc.name.startsWith("create_");
@@ -53,6 +128,20 @@ export async function executeAgentStepTool(
   }
 
   if (isMutation) {
+    if (
+      tc.name === "create_note" &&
+      !String(tc.arguments.content ?? "").trim() &&
+      ctx.workingHistory
+    ) {
+      const fallback = formatFallbackContentFromHistory(
+        String(tc.arguments.path ?? ""),
+        ctx.workingHistory,
+      );
+      if (fallback) {
+        tc.arguments.content = fallback;
+      }
+    }
+
     const plan = await planMutation(tc.name, tc.arguments, ctx.mutationBackend);
     const stagedItem: StagedChangeItem = {
       id: `staged_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,

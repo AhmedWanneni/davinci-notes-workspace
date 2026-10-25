@@ -160,6 +160,28 @@ export const CREATE_TODO_LIST_TOOL: AgentToolDefinition = {
   },
 };
 
+export const SAVE_MEMORY_TOOL: AgentToolDefinition = {
+  name: "save_memory",
+  description:
+    "Store an important fact, user preference, project detail, or learned context into long-term memory",
+  parameters: {
+    type: "object",
+    properties: {
+      content: {
+        type: "string",
+        description:
+          "The fact, preference, or context to remember across conversations",
+      },
+      category: {
+        type: "string",
+        enum: ["preference", "fact", "project", "general"],
+        description: "Category of the memory (default: general)",
+      },
+    },
+    required: ["content"],
+  },
+};
+
 export const VAULT_MUTATION_TOOLS: AgentToolDefinition[] = [
   CREATE_NOTE_TOOL,
   CREATE_FOLDER_TOOL,
@@ -170,4 +192,5 @@ export const VAULT_MUTATION_TOOLS: AgentToolDefinition[] = [
   DELETE_NOTE_TOOL,
   CREATE_DATABASE_TABLE_TOOL,
   CREATE_TODO_LIST_TOOL,
+  SAVE_MEMORY_TOOL,
 ];

@@ -6,6 +6,9 @@ import {
   getScopedTools,
   isAgentIntent,
   shouldClarifyRequest,
+  AGENT_MEMORY_PATH,
+  parseMemoryData,
+  formatMemoryPrompt,
   WEB_SEARCH_TOOL,
   type AgentIntent,
   type StructuredUserRequest,
@@ -143,6 +146,14 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
             allNotePaths: state.allNotePaths ?? [],
             allFolderPaths: state.allFolderPaths ?? [],
           });
+        }
+
+        try {
+          const rawMem = await mutationBackend.readNote(AGENT_MEMORY_PATH);
+          const memText = formatMemoryPrompt(parseMemoryData(rawMem));
+          if (memText) systemPrompt = `${systemPrompt}\n\n${memText}`;
+        } catch {
+          // memory not initialized yet
         }
 
         const workingHistory = buildAgentWorkingHistory(

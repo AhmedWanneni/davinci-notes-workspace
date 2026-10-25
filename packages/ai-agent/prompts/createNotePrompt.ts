@@ -9,6 +9,7 @@ export function buildCreateNotePrompt(vaultName: string): string {
     `  * create_kanban_board for Kanban boards`,
     `  * create_database_table for tabular databases`,
     `  * create_todo_list for checklists with optional reminder tokens`,
+    `- CRITICAL FOR CONTENT: When creating a note from web search results, vault research, lists, or user instructions, you MUST include the full formatted markdown content in the "content" parameter. NEVER create a blank or empty note when information was retrieved or requested.`,
     `- Ensure note filenames end in .md and have clean paths.`,
     `- Never describe creating a note conversationally without invoking the tool.`,
   ].join("\n");

@@ -2,6 +2,28 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Search Content Note Population, Chat Persistence & Agent Long-Term Memory
+
+- **Search Content Population in Created Notes (`formatFallbackContentFromHistory`, `createNotePrompt.ts`, `conversationalToolFallback.ts`)**:
+  - Addressed user feedback where asking the agent to search the web or vault and save findings to a note created an empty note or dropped the search findings.
+  - Enhanced `createNotePrompt` to explicitly forbid empty content and require full markdown synthesis.
+  - Built automatic synthesis fallback in `executeAgentStepTool.ts` (`formatFallbackContentFromHistory`) that inspects previous `web_search` and `search_vault` outputs in `workingHistory` when a model emits empty `content: ""`.
+  - Enhanced `extractCodeBlock` in `conversationalToolFallback.ts` to extract substantive search text/lists even when models omit triple-backtick markdown blocks, while stripping empty-state meta phrasing.
+- **Preserve Agent Chat on Note Creation & Tab Switching (`desktopAgentBridge.ts`, `useAgentConversations.ts`)**:
+  - Removed disruptive `openNote(path)` call from `desktopAgentBridge.ts:writeNote` so creating or accepting a note does not switch tabs away from `davinci://agent`, keeping the chat open.
+  - Enhanced `useAgentConversations.ts`: automatically creates/activates conversation on first message if none is selected, restores the active/latest conversation on mount, and persists messages to `.davinci/agent/conversations.json` so conversation history is never lost when navigating away and returning.
+- **Agent Long-Term Memory System (`agentMemory.ts`, `save_memory` tool, `useAgentExecution.ts`)**:
+  - Created `packages/ai-agent/memory/agentMemory.ts` with zero dependencies to store user preferences, facts, and persistent context in `.davinci/agent/memory.json`.
+  - Added `save_memory` tool to `VAULT_MUTATION_TOOLS` and `ALLOWED_AGENT_ACTIONS`.
+  - Wired long-term memory retrieval into `useAgentExecution.ts`: reads memory on each execution turn and injects formatted memory context into system prompts.
+- **Verification**:
+  - Colocated unit tests `packages/ai-agent/memory/agentMemory.test.ts` (5/5 passing).
+  - Colocated integration tests `apps/desktop/src/components/AgentView/AgentSearchAndMemory.test.tsx` (2/2 passing).
+  - `@app/ai-agent` 17/17 test files (92/92 tests), `@app/ai-runtime` 6/6 test files (31/31 tests) passing.
+  - All touched files remain strictly under 250 lines (`AGENTS.md`).
+
+---
+
 ### 2026-10-25: Prompt Understanding Pipeline for Weak Models
 
 - **Step 1: Rewrite Step with Zero-Dependency Schema Validation (`rewriteSchema.ts`, `rewritePrompt.ts`, `executeRewriteStep.ts`, ADR-0219, ADR-0220)**:

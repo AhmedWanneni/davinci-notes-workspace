@@ -136,11 +136,6 @@ export function createDesktopMutationBackend(): VaultMutationBackend {
       } catch {
         // Git versioning is optional
       }
-      try {
-        await useWorkspaceStore.getState().openNote(path);
-      } catch {
-        // Best effort tab opening
-      }
     },
 
     async createFolder(path: string): Promise<void> {

@@ -28,7 +28,16 @@ export function useAgentConversations() {
   const loadConversations = useCallback(async () => {
     try {
       const file = await readNote(AGENT_CONVERSATIONS_PATH);
-      const parsed = parseConversationsData(file.content);
+      let parsed = parseConversationsData(file.content);
+      if (
+        (!parsed.activeConversationId ||
+          !parsed.conversations.some(
+            (c) => c.id === parsed.activeConversationId,
+          )) &&
+        parsed.conversations.length > 0
+      ) {
+        parsed = { ...parsed, activeConversationId: parsed.conversations[0].id };
+      }
       setData(parsed);
       return parsed;
     } catch {
@@ -77,11 +86,26 @@ export function useAgentConversations() {
 
   const saveActiveMessages = useCallback(
     async (messages: ChatMessageItem[]) => {
-      const activeId = dataRef.current.activeConversationId;
-      if (!activeId) return;
+      let currentData = dataRef.current;
+      let activeId = currentData.activeConversationId;
+      let conv = activeId
+        ? currentData.conversations.find((c) => c.id === activeId)
+        : undefined;
 
-      const conv = dataRef.current.conversations.find((c) => c.id === activeId);
-      if (!conv) return;
+      // Auto-create a conversation if none exists so messages are never lost on navigation
+      if (!conv) {
+        const newConv: AgentConversation = {
+          id: `conv_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          title: "New Chat",
+          projectId: null,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          messages: [],
+        };
+        currentData = addOrUpdateConversation(currentData, newConv);
+        activeId = newConv.id;
+        conv = newConv;
+      }
 
       // Auto-title from first user message if still untitled or default
       let title = conv.title;
@@ -107,10 +131,13 @@ export function useAgentConversations() {
         })),
       };
 
-      const nextData = addOrUpdateConversation(dataRef.current, updatedConv);
+      const nextData = {
+        ...addOrUpdateConversation(currentData, updatedConv),
+        activeConversationId: activeId,
+      };
       await persistData(nextData);
     },
-    [persistData]
+    [persistData],
   );
 
   const removeConversation = useCallback(

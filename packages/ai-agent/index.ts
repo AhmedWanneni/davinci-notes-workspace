@@ -16,5 +16,6 @@ export * from "./calendarTools.js";
 export * from "./scheduleEngine.js";
 export * from "./conversationTypes.js";
 export * from "./conversationStore.js";
+export * from "./memory/index.js";
 export * from "./prompts/index.js";
 export * from "./understanding/index.js";

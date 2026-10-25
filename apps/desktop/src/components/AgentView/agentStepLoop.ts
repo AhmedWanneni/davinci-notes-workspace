@@ -66,7 +66,10 @@ export async function runAgentStepLoop(
       });
 
       for (const tc of effectiveToolCalls) {
-        const toolResult = await executeAgentStepTool(tc, stepContext);
+        const toolResult = await executeAgentStepTool(tc, {
+          ...stepContext,
+          workingHistory,
+        });
 
         if (
           VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name) ||

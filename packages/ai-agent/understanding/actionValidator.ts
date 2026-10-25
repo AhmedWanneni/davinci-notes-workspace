@@ -14,6 +14,7 @@ export const ALLOWED_AGENT_ACTIONS = [
   "move_note",
   "delete_note",
   "web_search",
+  "save_memory",
 ] as const;
 
 export type AllowedAgentAction = (typeof ALLOWED_AGENT_ACTIONS)[number];
@@ -143,6 +144,15 @@ export function validateAgentAction(
         return {
           success: false,
           error: `Action "${name}" requires a non-empty string "query".`,
+        };
+      }
+      break;
+    }
+    case "save_memory": {
+      if (typeof record.content !== "string" || !record.content.trim()) {
+        return {
+          success: false,
+          error: `Action "${name}" requires a non-empty string "content".`,
         };
       }
       break;

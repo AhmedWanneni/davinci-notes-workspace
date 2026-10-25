@@ -13,6 +13,7 @@ import {
   CREATE_TODO_LIST_TOOL,
   EDIT_NOTE_TOOL,
   MOVE_NOTE_TOOL,
+  SAVE_MEMORY_TOOL,
 } from "../vaultMutationToolDefs.js";
 import { buildSearchVaultPrompt } from "./searchVaultPrompt.js";
 import { buildReadNotePrompt } from "./readNotePrompt.js";
@@ -71,17 +72,20 @@ export function getScopedTools(intent: AgentIntent): AgentToolDefinition[] {
         CREATE_KANBAN_BOARD_TOOL,
         CREATE_DATABASE_TABLE_TOOL,
         CREATE_TODO_LIST_TOOL,
+        SEARCH_VAULT_TOOL,
+        SAVE_MEMORY_TOOL,
       ];
     case "edit_note":
-      return [READ_NOTE_TOOL, EDIT_NOTE_TOOL, APPEND_TO_NOTE_TOOL];
+      return [READ_NOTE_TOOL, EDIT_NOTE_TOOL, APPEND_TO_NOTE_TOOL, SAVE_MEMORY_TOOL];
     case "organize":
       return [
         LIST_VAULT_TREE_TOOL,
         MOVE_NOTE_TOOL,
         CREATE_FOLDER_TOOL,
         READ_NOTE_TOOL,
+        SAVE_MEMORY_TOOL,
       ];
     case "chat":
-      return [];
+      return [SAVE_MEMORY_TOOL];
   }
 }
