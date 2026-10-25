@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (ADR-0214)
+
+- **Dedicated Virtual Tab (`davinci://agent`)**:
+  - Registered `davinci://agent` in `AppTabs.tsx`, `IconRail.tsx`, and `App.tsx` with `Sparkle` icon and seamless tab navigation.
+  - Lazy dynamic chunk loading via `LazyAgentView` ensuring 0 KB initial bundle startup cost.
+- **User Interface (`apps/desktop/src/components/AgentView/`)**:
+  - `AgentView.tsx`: Main view coordinating chat, staged review, and history drawer.
+  - `AgentMessageBubble.tsx`: Renders conversational turns, timestamps, and collapsible tool execution status cards.
+  - `AgentDiffViewer.tsx`: Interactive diff cards displaying added/removed lines with Accept / Reject and Accept All buttons.
+  - `AgentHistoryDrawer.tsx`: History drawer displaying recorded transactions with one-click Undo / rollback.
+  - `AgentChatInput.tsx`: Auto-apply toggle and multi-line prompt textarea with keyboard shortcut support.
+  - `AgentView.module.scss`: Polished CUBE CSS styling using design tokens only, depth via borders.
+- **Desktop Bridge & Execution**:
+  - Implemented `desktopAgentBridge.ts` wiring `VaultInspectionBackend` and `VaultMutationBackend` to canonical `createNoteInVault`, `readNote`, `withDbLock` FTS5 search, and optional Git versioning.
+- **Architectural Record**:
+  - Authored `docs/adr/0214-dedicated-agent-tab-and-lazy-mounting.md` and indexed in `DECISIONS.md`.
+- **Verification**:
+  - 4/4 component tests passing in `AgentView.test.tsx` (empty state, message bubble with tool cards, diff review with accept/reject, history drawer with rollback).
+  - Storybook story created in `AgentView.stories.tsx`.
+  - Typecheck passed with zero errors. All files strictly ≤ 201 lines (hard cap 250).
+
+---
+
 ### 2026-10-25: AI Agent Phase 4: Vault Mutation Tools & Staged Diff Generator
 
 - **Mutation Tools (`packages/ai-agent/vaultMutationTools.ts`)**:

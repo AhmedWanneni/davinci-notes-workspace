@@ -63,6 +63,12 @@ const LazyBookmarksView = React.lazy(() =>
     default: m.BookmarksView,
   })),
 );
+import { AGENT_TAB_ID } from "./components/AgentView";
+const LazyAgentView = React.lazy(() =>
+  import("./components/AgentView").then((m) => ({
+    default: m.AgentView,
+  })),
+);
 const LazyCommandPalette = React.lazy(() =>
   import("./components/CommandPalette").then((m) => ({
     default: m.CommandPalette,
@@ -678,9 +684,11 @@ export function App() {
           isGlobalGraphOpen={isGlobalGraphOpen}
           isCalendarOpen={isCalendarOpen}
           isBookmarksOpen={activeNotePath === BOOKMARKS_TAB_ID}
+          isAgentOpen={activeNotePath === AGENT_TAB_ID}
           onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
           onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
           onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
+          onOpenAgent={() => void openNote(AGENT_TAB_ID)}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
           onOpenReminders={() => setIsRemindersOpen(true)}
@@ -738,6 +746,10 @@ export function App() {
                   }
                 }}
               />
+            </Suspense>
+          ) : activeNotePath === AGENT_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyAgentView />
             </Suspense>
           ) : isCalendarOpen ? (
             <Suspense fallback={null}>

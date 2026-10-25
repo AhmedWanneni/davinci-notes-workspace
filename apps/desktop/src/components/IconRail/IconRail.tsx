@@ -9,6 +9,7 @@ import {
   Bell,
   Gear,
   SignOut,
+  Sparkle,
 } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
 
@@ -24,9 +25,11 @@ export interface IconRailProps {
   onOpenReminders?: () => void;
   onOpenCalendar?: () => void;
   onOpenBookmarks?: () => void;
+  onOpenAgent?: () => void;
   isGlobalGraphOpen?: boolean;
   isCalendarOpen?: boolean;
   isBookmarksOpen?: boolean;
+  isAgentOpen?: boolean;
 }
 
 export function IconRail({
@@ -41,9 +44,11 @@ export function IconRail({
   onOpenReminders,
   onOpenCalendar,
   onOpenBookmarks,
+  onOpenAgent,
   isGlobalGraphOpen,
   isCalendarOpen,
   isBookmarksOpen,
+  isAgentOpen,
 }: IconRailProps) {
   return (
     <nav className="icon-rail" aria-label="Primary navigation">
@@ -75,6 +80,23 @@ export function IconRail({
               <BookmarkSimple
                 size={18}
                 weight={isBookmarksOpen ? "fill" : "regular"}
+              />
+            </button>
+          </Tooltip>
+        )}
+
+        {onOpenAgent && (
+          <Tooltip content="AI Agent" contentProps={{ side: "right" }}>
+            <button
+              type="button"
+              className="icon-rail__btn"
+              data-active={isAgentOpen || undefined}
+              onClick={onOpenAgent}
+              aria-label="AI Agent"
+            >
+              <Sparkle
+                size={18}
+                weight={isAgentOpen ? "fill" : "regular"}
               />
             </button>
           </Tooltip>

@@ -16,6 +16,8 @@
     "build-storybook": "echo 'build-storybook not applicable for @app/desktop'"
   },
   "dependencies": {
+    "@app/ai-agent": "workspace:*",
+    "@app/ai-api": "workspace:*",
     "@app/attachments": "workspace:*",
     "@app/canvas": "workspace:*",
     "@app/kanban": "workspace:*",

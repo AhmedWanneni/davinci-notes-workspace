@@ -3,6 +3,7 @@ import {
   BookmarkSimple,
   Plus,
   SidebarSimple,
+  Sparkle,
   FileText,
   FrameCorners,
   Kanban as KanbanIcon,
@@ -17,6 +18,7 @@ import {
 import { WindowControls } from "../WindowControls";
 import { TabListDropdown } from "./TabListDropdown";
 import { BOOKMARKS_TAB_ID } from "../../bookmarks";
+import { AGENT_TAB_ID } from "../AgentView";
 
 export interface AppTabsProps {
   openNotes: string[];
@@ -105,18 +107,22 @@ export function AppTabs({
       <div className="app-tabs__strip" ref={tabStripRef}>
         {openNotes.map((path) => {
           const isBookmarksTab = path === BOOKMARKS_TAB_ID;
+          const isAgentTab = path === AGENT_TAB_ID;
+          const isVirtual = isBookmarksTab || isAgentTab;
           const isCanvas = path.endsWith(".canvas");
           const isBoard = boardNotes?.has(path);
           const isDatabase = databaseNotes?.has(path);
           const displayTitle = isBookmarksTab
             ? "Bookmarks"
-            : path
-                .replace(/\.(md|canvas)$/i, "")
-                .split("/")
-                .pop() ?? path;
+            : isAgentTab
+              ? "AI Agent"
+              : path
+                  .replace(/\.(md|canvas)$/i, "")
+                  .split("/")
+                  .pop() ?? path;
           const isActive = activeNotePath === path;
-          const isDirty = !isBookmarksTab && dirtyNotes.has(path);
-          const hasConflict = !isBookmarksTab && (conflictNotes?.has(path) ?? false);
+          const isDirty = !isVirtual && dirtyNotes.has(path);
+          const hasConflict = !isVirtual && (conflictNotes?.has(path) ?? false);
           return (
             <div
               key={path}
@@ -138,6 +144,8 @@ export function AppTabs({
               <span className="app-tabs__tab-icon" aria-hidden="true">
                 {isBookmarksTab ? (
                   <BookmarkSimple size={13} weight="regular" />
+                ) : isAgentTab ? (
+                  <Sparkle size={13} weight="fill" />
                 ) : isCanvas ? (
                   <FrameCorners size={13} weight="regular" />
                 ) : isBoard ? (

@@ -67,6 +67,12 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@app/ai-agent':
+        specifier: workspace:*
+        version: link:../../packages/ai-agent
+      '@app/ai-api':
+        specifier: workspace:*
+        version: link:../../packages/ai-api
       '@app/attachments':
         specifier: workspace:*
         version: link:../../packages/attachments
