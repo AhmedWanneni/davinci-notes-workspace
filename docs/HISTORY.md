@@ -2,6 +2,28 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: AI Agent Phase 2: Agent Safety Core, Change Ledger & Transaction Rollback (ADR-0212, ADR-0213)
+
+- **Safety Jail (`packages/ai-agent/safetyJail.ts`)**:
+  - Implemented strict path normalisation and validation preventing absolute paths, traversal (`..`), null bytes, Windows reserved device names (`CON`, `PRN`), and hidden system files.
+  - Enforced vault root boundary, blocking `.git/`, `.trash/`, and `.davinci/` private configs while permitting `.davinci/agent/`.
+- **Untrusted Content Boundary (`packages/ai-agent/untrustedContentGuard.ts`)**:
+  - Enclosed vault notes in `<untrusted_vault_data note_path="...">` and web search results in `<untrusted_web_data source_url="...">`.
+  - Escaped breakout tags and injected anti-injection system prompt preventing prompt injections from commanding tool calls or arbitrary file edits.
+- **Change Ledger & Transaction Rollback (`packages/ai-agent/changeLedger.ts`)**:
+  - Implemented append-only change ledger in `.davinci/agent/history.json` tracking `beforeContent` and `afterContent` for creates, modifies, deletes, and moves (bounded to 100 transactions).
+  - Implemented `computeRollbackOperations` inverting actions in LIFO order with atomic file restoration.
+  - Resilient parsing handling missing, empty, or corrupted JSON gracefully.
+- **Architectural Records**:
+  - Authored `docs/adr/0212-agent-safety-jail-and-untrusted-boundary.md` and `docs/adr/0213-vault-change-ledger-and-transaction-rollback.md` and indexed in `DECISIONS.md`.
+- **Verification**:
+  - 17/17 tests passing in `@app/ai-agent` (`safetyJail.test.ts`, `untrustedContentGuard.test.ts`, `changeLedger.test.ts`).
+  - Adversarial tests passed: path traversals (`../../etc/passwd`), null bytes, Windows device names, prompt injection XML breakouts, and multi-file transaction rollback.
+  - Typecheck passed with zero errors in `@app/ai-agent`.
+  - All files strictly ≤ 128 lines (well below the 250 hard cap).
+
+---
+
 ### 2026-10-25: AI Agent Phase 1: Tool Calling Abstraction & Streaming Runtime (ADR-0211)
 
 - **API Abstraction (`packages/ai-api`)**:

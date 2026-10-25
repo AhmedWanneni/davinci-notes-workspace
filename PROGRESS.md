@@ -4,7 +4,30 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Phase 1: Tool Calling Abstraction & Streaming Runtime (ADR-0211)
+## Last Session — AI Agent Phase 2: Agent Safety Core, Change Ledger & Transaction Rollback (ADR-0212, ADR-0213)
+
+**Scope:**
+1. **Safety Jail (`packages/ai-agent/safetyJail.ts`)**:
+   - Implemented strict path normalisation and validation preventing absolute paths, traversal (`..`), null bytes, Windows reserved device names (`CON`, `PRN`), and hidden system files.
+   - Enforced vault root boundary, blocking `.git/`, `.trash/`, and `.davinci/` private configs while permitting `.davinci/agent/`.
+2. **Untrusted Content Boundary (`packages/ai-agent/untrustedContentGuard.ts`)**:
+   - Enclosed vault notes in `<untrusted_vault_data>` and web search results in `<untrusted_web_data>`.
+   - Escaped breakout tags and injected anti-injection system prompt preventing prompt injections from commanding tool calls or arbitrary file edits.
+3. **Change Ledger & Transaction Rollback (`packages/ai-agent/changeLedger.ts`)**:
+   - Implemented append-only change ledger in `.davinci/agent/history.json` tracking `beforeContent` and `afterContent` for creates, modifies, deletes, and moves (bounded to 100 transactions).
+   - Implemented `computeRollbackOperations` inverting actions in LIFO order with atomic file restoration.
+   - Resilient parsing handling missing, empty, or corrupted JSON gracefully.
+4. **Architecture Records**: Authored ADR-0212 and ADR-0213 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 17/17 tests passing in `@app/ai-agent` (`safetyJail.test.ts`, `untrustedContentGuard.test.ts`, `changeLedger.test.ts`).
+- Adversarial tests passed: path traversals (`../../etc/passwd`), null bytes, Windows device names, prompt injection XML breakouts, and multi-file transaction rollback.
+- Typecheck passed with zero errors in `@app/ai-agent`.
+- All files strictly ≤ 128 lines (well below the 250 hard cap).
+
+---
+
+## Previous Session — AI Agent Phase 1: Tool Calling Abstraction & Streaming Runtime (ADR-0211)
 
 **Scope:**
 1. **API Abstraction (`packages/ai-api`)**:
@@ -85,9 +108,9 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Next Up
 
-1. **AI Agent Phase 2: Agent Safety Core, Change Ledger & Transaction Rollback (`@app/ai-agent`)** [HIGH RISK].
-2. AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools (FTS5 + Semantic + Path routing).
-3. AI Agent Phase 4: Vault Mutation Tools & Staged Diff Generator.
+1. **AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools (FTS5 + Semantic + Path routing)**.
+2. AI Agent Phase 4: Vault Mutation Tools & Staged Diff Generator.
+3. AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (`davinci://agent`).
 
 ---
 

@@ -372,4 +372,6 @@ the list.
 | ADR | Decision | Status |
 |---|---|---|
 | [0211](adr/0211-modality-neutral-tool-calling-and-streaming.md) | Modality-neutral Tool Calling Abstraction & Streaming Runtime in `@app/ai-api` and `@app/ai-runtime` | Accepted |
+| [0212](adr/0212-agent-safety-jail-and-untrusted-boundary.md) | Agent Safety Jail, Untrusted Data Boundary & Anti-Injection Architecture in `@app/ai-agent` | Accepted |
+| [0213](adr/0213-vault-change-ledger-and-transaction-rollback.md) | Vault Change Ledger (`.davinci/agent/history.json`) and Transaction Rollback | Accepted |
 
