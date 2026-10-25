@@ -1,7 +1,26 @@
+import type { ChatMessage } from "@app/ai-api";
+import type { ChatMessageItem } from "./agentTypes";
+
 export interface AgentSystemPromptOptions {
   vaultName: string;
   allNotePaths: string[];
   allFolderPaths: string[];
+}
+
+export function buildAgentWorkingHistory(
+  systemPrompt: string,
+  messages: ChatMessageItem[],
+): ChatMessage[] {
+  return [
+    { role: "system", content: systemPrompt },
+    ...messages.map((m) => ({
+      role: m.role,
+      content: m.content,
+      toolCalls: m.toolCalls,
+      toolCallId: m.toolCallId,
+      name: m.name,
+    })),
+  ];
 }
 
 export function buildAgentSystemPrompt(

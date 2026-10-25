@@ -1,4 +1,5 @@
 import type { AgentToolCall, AgentToolDefinition } from "@app/ai-api";
+import { extractConversationalToolCall } from "./conversationalToolFallback.js";
 
 export function formatOllamaToolSystemPrompt(
   existingSystemPrompt: string,
@@ -12,15 +13,19 @@ export function formatOllamaToolSystemPrompt(
 
   const guidance = [
     existingSystemPrompt.trim(),
+    "MANDATORY TOOL EXECUTION INSTRUCTIONS:",
     "You have access to the following tools:",
     "```json",
     JSON.stringify(toolDescriptions, null, 2),
     "```",
-    "If you decide to invoke a tool, you MUST respond ONLY with a JSON object in this exact format:",
+    "CRITICAL RULES:",
+    "1. You CANNOT create, edit, delete, or inspect notes/folders with conversational text. Talking about creating a note does NOT create it.",
+    "2. If asked to create, edit, delete, or inspect notes or folders, NEVER say 'I have created...', 'I created...', or describe doing it.",
+    "3. You MUST respond ONLY with a JSON object calling the appropriate tool:",
     "```json",
     '{"tool": "tool_name", "arguments": {"param1": "value1"}}',
     "```",
-    "Do not include any other markdown or commentary when invoking a tool.",
+    "4. Do not output any conversational text or markdown outside of the JSON tool call.",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -41,7 +46,7 @@ export function extractOllamaFallbackToolCall(
     if (embeddedMatch) {
       rawJson = embeddedMatch[0].trim();
     } else {
-      return null;
+      return extractConversationalToolCall(trimmed);
     }
   }
 
@@ -65,14 +70,14 @@ export function extractOllamaFallbackToolCall(
           ? parsed.parameters
           : {};
 
-    if (!name) return null;
+    if (!name) return extractConversationalToolCall(trimmed);
     return {
       id: `call_ollama_${Date.now()}`,
       name,
       arguments: args as Record<string, unknown>,
     };
   } catch {
-    return null;
+    return extractConversationalToolCall(trimmed);
   }
 }
 

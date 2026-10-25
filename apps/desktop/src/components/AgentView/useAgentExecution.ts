@@ -1,13 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { ChatMessage } from "@app/ai-api";
-import {
-  VAULT_INSPECTION_TOOLS,
-  VAULT_MUTATION_TOOLS,
-  WEB_SEARCH_TOOL,
-  executeInspectionTool,
-  executeWebSearchTool,
-  planMutation,
-} from "@app/ai-agent";
+import { VAULT_MUTATION_TOOLS } from "@app/ai-agent";
+import { extractConversationalToolCall } from "@app/ai-runtime";
 import {
   createDesktopInspectionBackend,
   createDesktopMutationBackend,
@@ -20,7 +14,14 @@ import {
 } from "../../ai/AISubsystem";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { useAgentLedger } from "./useAgentLedger";
-import { buildAgentSystemPrompt } from "./agentSystemPrompt";
+import {
+  buildAgentSystemPrompt,
+  buildAgentWorkingHistory,
+} from "./agentSystemPrompt";
+import {
+  executeAgentStepTool,
+  prepareActiveTools,
+} from "./executeAgentStepTool";
 import type { ChatMessageItem, StagedChangeItem } from "./agentTypes";
 
 export interface UseAgentExecutionOptions {
@@ -37,7 +38,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [stagedChanges, setStagedChanges] = useState<StagedChangeItem[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [autoApply, setAutoApply] = useState(options?.autoApply ?? false);
+  const [autoApply, setAutoApply] = useState(options?.autoApply ?? true);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -86,26 +87,14 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           allFolderPaths: state.allFolderPaths ?? [],
         });
 
-        const activeTools = options?.webSearchEnabled
-          ? [
-              ...VAULT_INSPECTION_TOOLS,
-              ...VAULT_MUTATION_TOOLS,
-              WEB_SEARCH_TOOL,
-            ]
-          : [...VAULT_INSPECTION_TOOLS, ...VAULT_MUTATION_TOOLS];
-
-        const workingHistory: ChatMessage[] = [
-          { role: "system", content: systemPrompt },
-          ...nextMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-            toolCalls: m.toolCalls,
-            toolCallId: m.toolCallId,
-            name: m.name,
-          })),
-        ];
+        const activeTools = prepareActiveTools(options?.webSearchEnabled);
+        const workingHistory = buildAgentWorkingHistory(
+          systemPrompt,
+          nextMessages,
+        );
 
         let finalResponseReceived = false;
+        let hasExecutedMutation = false;
 
         for (let step = 0; step < MAX_AGENT_STEPS; step++) {
           if (abortRef.current?.signal.aborted) break;
@@ -115,67 +104,45 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
             tools: activeTools,
           });
 
-          if (res.toolCalls && res.toolCalls.length > 0) {
+          let effectiveToolCalls = res.toolCalls;
+          if (
+            (!effectiveToolCalls || effectiveToolCalls.length === 0) &&
+            !hasExecutedMutation &&
+            res.content
+          ) {
+            const fallbackCall = extractConversationalToolCall(
+              res.content,
+              promptText,
+            );
+            if (fallbackCall) {
+              effectiveToolCalls = [fallbackCall];
+            }
+          }
+
+          if (effectiveToolCalls && effectiveToolCalls.length > 0) {
             workingHistory.push({
               role: "assistant",
               content: res.content || "",
-              toolCalls: res.toolCalls,
+              toolCalls: effectiveToolCalls,
             });
 
-            for (const tc of res.toolCalls) {
-              let toolResult: unknown;
-              const isMutation =
+            for (const tc of effectiveToolCalls) {
+              const toolResult = await executeAgentStepTool(tc, {
+                webSearchEnabled: options?.webSearchEnabled,
+                autoApply,
+                webSearchBackend,
+                mutationBackend,
+                inspectionBackend,
+                allNotePaths: state.allNotePaths ?? [],
+                handleApplyChange,
+                setStagedChanges,
+              });
+
+              if (
                 VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name) ||
-                tc.name.startsWith("create_");
-              if (tc.name === "web_search" && options?.webSearchEnabled) {
-                toolResult = await executeWebSearchTool(
-                  tc.arguments,
-                  webSearchBackend,
-                );
-              } else if (isMutation) {
-                const plan = await planMutation(
-                  tc.name,
-                  tc.arguments,
-                  mutationBackend,
-                );
-                const stagedItem: StagedChangeItem = {
-                  id: `staged_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                  toolName: tc.name,
-                  plan,
-                  status: "pending",
-                };
-                if (autoApply) {
-                  await handleApplyChange(stagedItem);
-                  toolResult = {
-                    status: "applied",
-                    action: tc.name,
-                    path: plan.changeRecord.path,
-                  };
-                } else {
-                  setStagedChanges((prev) => [...prev, stagedItem]);
-                  toolResult = {
-                    status: "staged_for_approval",
-                    action: tc.name,
-                    path: plan.changeRecord.path,
-                  };
-                }
-              } else {
-                const pathArg = String(tc.arguments.path ?? "").trim();
-                if (
-                  (pathArg === "Your_Note_Path" || !pathArg) &&
-                  tc.name === "read_note"
-                ) {
-                  toolResult = {
-                    error: "Please specify a real note path from the vault.",
-                    availableNotes: (state.allNotePaths ?? []).slice(0, 10),
-                  };
-                } else {
-                  toolResult = await executeInspectionTool(
-                    tc.name,
-                    tc.arguments,
-                    inspectionBackend,
-                  );
-                }
+                tc.name.startsWith("create_")
+              ) {
+                hasExecutedMutation = true;
               }
 
               workingHistory.push({

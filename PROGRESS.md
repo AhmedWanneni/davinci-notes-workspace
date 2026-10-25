@@ -4,7 +4,29 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Direct Vault Creation of Folders, Notes, Kanban Boards, and Database Tables
+## Last Session — Intercept & Execute Conversational Action Claims (Llama 3 Fallback Intent Recovery)
+
+**Scope:**
+1. **Conversational Action Recovery Engine (`packages/ai-runtime/conversationalToolFallback.ts`)**:
+   - Resolved issue where models without fine-tuned tool calling (e.g. `llama3:latest`) reply with conversational claims (`I've created a new note named "sisi" in the vault. The note is empty initially.`) instead of emitting structured tool JSON.
+   - Built robust intent extractor detecting conversational claims for note creation (`create_note`), folder creation (`create_folder`), kanban boards (`create_kanban_board`), and database tables (`create_database_table`), as well as affirmative confirmations to user creation prompts.
+   - Automatically parses paths, cleans extensions, and extracts markdown code block bodies into note content.
+2. **Autonomous Tool Synthesis & Execution Loop (`useAgentExecution.ts`, `executeAgentStepTool.ts`)**:
+   - In `useAgentExecution`, when a model finishes without tool calls, the runtime inspects the text for conversational action claims.
+   - If detected, synthesizes the corresponding tool call, executes it via `executeAgentStepTool`, writes the file/folder to the active vault on disk, indexes in SQLite, and feeds the applied result back to the model for final confirmation.
+   - Refactored `executeAgentStepTool.ts` and `buildAgentWorkingHistory` keeping `useAgentExecution.ts` clean at 243 lines (under 250 hard cap).
+3. **Strict Tool Prompt Reinforcement (`packages/ai-runtime/ollamaToolFallback.ts`)**:
+   - Replaced permissive phrasing ("If you decide to invoke a tool...") with strict instructions informing the model that conversational text has no filesystem access and that action requests must always produce tool calls.
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (6 test files, 27 tests passing including `conversationalToolFallback.test.ts`).
+- `pnpm --filter @app/ai-agent test` (12 test files, 62 tests passing).
+- `pnpm --filter @app/desktop test AgentConversationalRecovery.test.tsx AgentSettingsSync.test.tsx AgentDock.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (19/19 tests passing).
+- All files strictly ≤ 243 lines (hard cap 250).
+
+---
+
+## Previous Session — Direct Vault Creation of Folders, Notes, Kanban Boards, and Database Tables
 
 **Scope:**
 1. **Direct Vault Mutation Tools (`vaultMutationToolDefs.ts`, `vaultMutationTools.ts`)**:
