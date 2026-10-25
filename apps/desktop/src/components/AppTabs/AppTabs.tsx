@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  BookmarkSimple,
   Plus,
   SidebarSimple,
   FileText,
@@ -15,6 +16,7 @@ import {
 } from "@app/platform-adapters";
 import { WindowControls } from "../WindowControls";
 import { TabListDropdown } from "./TabListDropdown";
+import { BOOKMARKS_TAB_ID } from "../../bookmarks";
 
 export interface AppTabsProps {
   openNotes: string[];
@@ -102,17 +104,19 @@ export function AppTabs({
 
       <div className="app-tabs__strip" ref={tabStripRef}>
         {openNotes.map((path) => {
+          const isBookmarksTab = path === BOOKMARKS_TAB_ID;
           const isCanvas = path.endsWith(".canvas");
           const isBoard = boardNotes?.has(path);
           const isDatabase = databaseNotes?.has(path);
-          const displayTitle =
-            path
-              .replace(/\.(md|canvas)$/i, "")
-              .split("/")
-              .pop() ?? path;
+          const displayTitle = isBookmarksTab
+            ? "Bookmarks"
+            : path
+                .replace(/\.(md|canvas)$/i, "")
+                .split("/")
+                .pop() ?? path;
           const isActive = activeNotePath === path;
-          const isDirty = dirtyNotes.has(path);
-          const hasConflict = conflictNotes?.has(path) ?? false;
+          const isDirty = !isBookmarksTab && dirtyNotes.has(path);
+          const hasConflict = !isBookmarksTab && (conflictNotes?.has(path) ?? false);
           return (
             <div
               key={path}
@@ -132,7 +136,9 @@ export function AppTabs({
               title={path}
             >
               <span className="app-tabs__tab-icon" aria-hidden="true">
-                {isCanvas ? (
+                {isBookmarksTab ? (
+                  <BookmarkSimple size={13} weight="regular" />
+                ) : isCanvas ? (
                   <FrameCorners size={13} weight="regular" />
                 ) : isBoard ? (
                   <KanbanIcon size={13} weight="regular" />

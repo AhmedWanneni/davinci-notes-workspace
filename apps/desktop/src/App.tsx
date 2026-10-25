@@ -58,6 +58,11 @@ const LazySettingsDialog = React.lazy(() =>
 );
 import type { SettingsTabId } from "./components/SettingsDialog";
 import { BOOKMARKS_TAB_ID, useBookmarks } from "./bookmarks";
+const LazyBookmarksView = React.lazy(() =>
+  import("./components/BookmarksView").then((m) => ({
+    default: m.BookmarksView,
+  })),
+);
 const LazyCommandPalette = React.lazy(() =>
   import("./components/CommandPalette").then((m) => ({
     default: m.CommandPalette,
@@ -672,8 +677,10 @@ export function App() {
           onOpenTags={() => setIsTagsOpen(true)}
           isGlobalGraphOpen={isGlobalGraphOpen}
           isCalendarOpen={isCalendarOpen}
+          isBookmarksOpen={activeNotePath === BOOKMARKS_TAB_ID}
           onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
           onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
+          onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
           onOpenReminders={() => setIsRemindersOpen(true)}
@@ -720,7 +727,19 @@ export function App() {
             isMac={isMac}
             showWindowControls={!isLeftSidebarOpen}
           />
-          {isCalendarOpen ? (
+          {activeNotePath === BOOKMARKS_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyBookmarksView
+                onOpenNote={(path, newTab) => {
+                  if (newTab) {
+                    void openNote(path);
+                  } else {
+                    void openNote(path);
+                  }
+                }}
+              />
+            </Suspense>
+          ) : isCalendarOpen ? (
             <Suspense fallback={null}>
               <LazyCalendarLeaf
                 onClose={() => setIsCalendarOpen(false)}

@@ -1,4 +1,5 @@
 import {
+  BookmarkSimple,
   Files,
   MagnifyingGlass,
   ShareNetwork,
@@ -22,8 +23,10 @@ export interface IconRailProps {
   onCreateCanvas?: () => void;
   onOpenReminders?: () => void;
   onOpenCalendar?: () => void;
+  onOpenBookmarks?: () => void;
   isGlobalGraphOpen?: boolean;
   isCalendarOpen?: boolean;
+  isBookmarksOpen?: boolean;
 }
 
 export function IconRail({
@@ -37,8 +40,10 @@ export function IconRail({
   onCreateCanvas,
   onOpenReminders,
   onOpenCalendar,
+  onOpenBookmarks,
   isGlobalGraphOpen,
   isCalendarOpen,
+  isBookmarksOpen,
 }: IconRailProps) {
   return (
     <nav className="icon-rail" aria-label="Primary navigation">
@@ -57,6 +62,23 @@ export function IconRail({
             <Files size={18} weight="regular" />
           </button>
         </Tooltip>
+
+        {onOpenBookmarks && (
+          <Tooltip content="Bookmarks" contentProps={{ side: "right" }}>
+            <button
+              type="button"
+              className="icon-rail__btn"
+              data-active={isBookmarksOpen || undefined}
+              onClick={onOpenBookmarks}
+              aria-label="Bookmarks"
+            >
+              <BookmarkSimple
+                size={18}
+                weight={isBookmarksOpen ? "fill" : "regular"}
+              />
+            </button>
+          </Tooltip>
+        )}
 
         <Tooltip
           content="Search note content (Cmd+P / Cmd+Shift+F)"
