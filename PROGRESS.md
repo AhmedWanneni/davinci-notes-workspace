@@ -4,7 +4,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Icon Rail Access Icons for AI Agent & Ask Your Vault
+## Last Session — Design System Audit & Elegant Agent UI Refinement
+
+**Scope:**
+1. **Design System Token Audit (`AgentView.module.scss`)**:
+   - Replaced broken tokens (`--type-size-*`, `--color-bg-tertiary`, `--color-bg-danger`, `--color-text-danger`) with canonical design tokens (`--type-scale-*`, `--color-bg-status-error`, `--color-bg-status-success`, `--color-bg-status-warning`, `--color-bg-status-accent`).
+   - Removed all hardcoded hex codes (`#fff8e1`, `#ffe082`) and arbitrary pixel offsets, adhering strictly to `tokens/` single source of truth.
+2. **Editorial Swiss-Style Layout**:
+   - Centered 48rem reading column matching DaVinci Notes's typography-driven aesthetic.
+   - Refined `AgentMessageBubble`: User prompts styled as subtle, rounded message cards; assistant responses formatted as clean editorial prose.
+   - Replaced raw JSON tool dumps with human-readable action summaries (`Read "path"`, `Search vault for "query"`) and clean expandable `<details>` disclosure elements.
+   - Unified `AgentChatInput` with integrated auto-apply switch and action button inside a floating card container.
+   - Polished `AgentOnboardingCard`, `AgentShortcutsBar`, and `AgentDiffViewer` with subtle borders (`--color-border-subtle`) and status tints.
+
+**Verification:**
+- Vite web build (`pnpm build:web`) succeeded with 0 errors.
+- 5/5 tests passing in `AgentView.test.tsx`.
+- All files strictly ≤ 181 lines (hard cap 250).
+
+---
+
+## Previous Session — Icon Rail Access Icons for AI Agent & Ask Your Vault
 
 **Scope:**
 1. **IconRail Component Updates (`apps/desktop/src/components/IconRail/IconRail.tsx`)**:

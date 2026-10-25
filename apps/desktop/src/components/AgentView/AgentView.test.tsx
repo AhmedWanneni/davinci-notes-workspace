@@ -98,7 +98,7 @@ describe("AgentView Components", () => {
 
     render(<AgentMessageBubble message={assistantMsg} />);
     expect(screen.getByText("Here is your summary.")).toBeTruthy();
-    expect(screen.getByText("read_note")).toBeTruthy();
+    expect(screen.getByText(/Read "Notes\/Project\.md"/)).toBeTruthy();
   });
 
   it("renders staged diff viewer with accept and reject buttons", () => {

@@ -119,8 +119,8 @@ export function AgentView() {
             <AgentOnboardingCard onConfigured={() => setIsConfigured(true)} />
           ) : messages.length === 0 ? (
             <div className="agent-view__empty">
-              <Sparkle size={32} weight="duotone" />
-              <Typography variant="text" size="sm" weight="medium">
+              <Sparkle size={36} weight="duotone" className="agent-view__empty-icon" />
+              <Typography variant="text" size="base" weight="semibold">
                 Talk to your vault
               </Typography>
               <Typography variant="text" size="xs" color="muted">
