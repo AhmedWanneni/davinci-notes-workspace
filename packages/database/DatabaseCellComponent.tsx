@@ -43,8 +43,10 @@ export function DatabaseCellComponent({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setDraft(value);
-  }, [value]);
+    if (!isEditing) {
+      setDraft(value);
+    }
+  }, [value, isEditing]);
 
   useEffect(() => {
     if (isEditing) {

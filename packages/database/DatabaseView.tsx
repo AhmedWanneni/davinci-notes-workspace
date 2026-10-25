@@ -52,6 +52,10 @@ export function DatabaseView({
     col: DatabaseColumn;
     idx: number;
   } | null>(null);
+  const [editingCellId, setEditingCellId] = useState<{
+    rowId: string;
+    colIdx: number;
+  } | null>(null);
 
   const displayRows = useMemo(() => {
     if (!model) return [];
@@ -69,6 +73,12 @@ export function DatabaseView({
   const nav = useDatabaseKeyboardNav({
     rowCount: displayRows.length,
     colCount: model?.columns.length ?? 0,
+    onStartEdit: (coord) => {
+      const targetRow = displayRows[coord.row];
+      if (targetRow) {
+        setEditingCellId({ rowId: targetRow.id, colIdx: coord.col });
+      }
+    },
   });
 
   const parentRef = useRef<HTMLDivElement>(null);
@@ -81,6 +91,7 @@ export function DatabaseView({
 
   const handleCellSave = useCallback(
     (rowId: string, colIdx: number, val: string) => {
+      setEditingCellId(null);
       if (!model) return;
       const updated = editCell(model, rowId, colIdx, val);
       onChange(serializeDatabase(updated));
@@ -232,17 +243,21 @@ export function DatabaseView({
                   columns={model.columns}
                   columnWidths={columnWidths}
                   focusedCell={nav.focusedCell}
-                  editingCell={nav.editingCell}
+                  editingCellId={editingCellId}
                   onCellClick={(colIdx) =>
                     nav.setFocusedCell({ row: virtualRow.index, col: colIdx })
                   }
-                  onCellStartEdit={(colIdx) =>
-                    nav.startEditing({ row: virtualRow.index, col: colIdx })
-                  }
+                  onCellStartEdit={(colIdx) => {
+                    nav.startEditing({ row: virtualRow.index, col: colIdx });
+                    setEditingCellId({ rowId: row.id, colIdx });
+                  }}
                   onCellSave={(colIdx, val) =>
                     handleCellSave(row.id, colIdx, val)
                   }
-                  onCellCancel={nav.stopEditing}
+                  onCellCancel={() => {
+                    nav.stopEditing();
+                    setEditingCellId(null);
+                  }}
                   onLinkClick={onOpenNote}
                   onDuplicateRow={() => handleDuplicateRow(row.id)}
                   onDeleteRow={() => handleDeleteRow(row.id)}

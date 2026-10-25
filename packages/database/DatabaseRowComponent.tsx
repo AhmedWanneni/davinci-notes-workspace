@@ -11,7 +11,7 @@ export interface DatabaseRowComponentProps {
   columns: DatabaseColumn[];
   columnWidths: Record<string, number>;
   focusedCell: CellCoord | null;
-  editingCell: CellCoord | null;
+  editingCellId?: { rowId: string; colIdx: number } | null;
   onCellClick: (colIdx: number) => void;
   onCellStartEdit: (colIdx: number) => void;
   onCellSave: (colIdx: number, val: string) => void;
@@ -28,7 +28,7 @@ export function DatabaseRowComponent({
   columns,
   columnWidths,
   focusedCell,
-  editingCell,
+  editingCellId,
   onCellClick,
   onCellStartEdit,
   onCellSave,
@@ -86,7 +86,7 @@ export function DatabaseRowComponent({
         const isFocused =
           focusedCell?.row === rowIndex && focusedCell?.col === colIdx;
         const isEditing =
-          editingCell?.row === rowIndex && editingCell?.col === colIdx;
+          editingCellId?.rowId === row.id && editingCellId?.colIdx === colIdx;
         const width = columnWidths[col.name] ?? 160;
 
         return (
