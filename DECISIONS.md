@@ -360,3 +360,10 @@ the list.
 | ADR | Decision | Status |
 |---|---|---|
 | [0209](adr/0209-markdown-database-table-format-and-lossless-writeback.md) | Markdown database table format compatibility, lossless line-preserving round-trip, and minimal-diff row splicing | Accepted |
+
+## Bookmarks
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0210](adr/0210-bookmarks-storage-identity-and-lifecycle.md) | Bookmarks storage in `.davinci/bookmarks.json`, path-based identity, union-by-path sync merge, and lazy-loaded tab leaf | Accepted |
+
