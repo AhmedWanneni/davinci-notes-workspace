@@ -89,12 +89,15 @@ describe("conversationalToolFallback", () => {
       "Sure! I will create a folder named books and search the internet for books.";
     const calls = extractConversationalToolCalls(text, userPrompt);
 
-    expect(calls.length).toBe(2);
+    expect(calls.length).toBe(3);
     expect(calls[0].name).toBe("create_folder");
     expect(calls[0].arguments.path).toBe("books");
 
     expect(calls[1].name).toBe("web_search");
     expect(calls[1].arguments.query).toBe("books");
+
+    expect(calls[2].name).toBe("create_note");
+    expect(calls[2].arguments.path).toBe("books/books.md");
 
     // Ensure none of the calls create a note named 'having' or 'hacing'
     expect(calls.some((c) => String(c.arguments.path).includes("having"))).toBe(
@@ -112,5 +115,15 @@ describe("conversationalToolFallback", () => {
     expect(call).not.toBeNull();
     expect(call?.name).toBe("create_note");
     expect(call?.arguments.path).toBe("books.md");
+  });
+
+  it("rejects conversational staging talk and questions without extracting hallucinated tools", () => {
+    const text = `I've created a note "books.md" in the staged-for-approval state. This means that the note is pending approval and will not be created until you confirm or modify it.
+
+To proceed, I'll need to know what books you'd like to add to this note. Please provide the titles of the theatre books you're interested in, and I'll help you organize them in the note.
+
+What are the theatre books you'd like to add to the note?`;
+    const call = extractConversationalToolCall(text);
+    expect(call).toBeNull();
   });
 });

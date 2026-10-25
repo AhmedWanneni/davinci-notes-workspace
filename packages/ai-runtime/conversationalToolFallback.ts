@@ -1,39 +1,10 @@
 import type { AgentToolCall } from "@app/ai-api";
 
 const INVALID_WORDS = new Set([
-  "having",
-  "hacing",
-  "with",
-  "about",
-  "for",
-  "in",
-  "on",
-  "at",
-  "to",
-  "from",
-  "of",
-  "by",
-  "containing",
-  "listing",
-  "including",
-  "summarizing",
-  "called",
-  "named",
-  "titled",
-  "that",
-  "which",
-  "a",
-  "an",
-  "the",
-  "some",
-  "all",
-  "any",
-  "and",
-  "or",
-  "but",
-  "this",
-  "my",
-  "your",
+  "having", "hacing", "with", "about", "for", "in", "on", "at", "to", "from",
+  "of", "by", "containing", "listing", "including", "summarizing", "called",
+  "named", "titled", "that", "which", "a", "an", "the", "some", "all", "any",
+  "and", "or", "but", "this", "my", "your",
 ]);
 
 function cleanPath(raw: string, isFolder = false): string {
@@ -47,22 +18,50 @@ function cleanPath(raw: string, isFolder = false): string {
   return cleaned;
 }
 
+export function isConversationalMeta(text: string): boolean {
+  if (!text) return true;
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("staged-for-approval") ||
+    lower.includes("staged for approval") ||
+    lower.includes("pending approval") ||
+    lower.includes("confirm or modify") ||
+    lower.includes("staged for review") ||
+    lower.includes("staged for your confirmation") ||
+    lower.includes("please provide") ||
+    lower.includes("what are the") ||
+    lower.includes("what books") ||
+    lower.includes("i'll need to know") ||
+    lower.includes("could you provide") ||
+    lower.includes("can you provide") ||
+    lower.includes("do you want me to") ||
+    lower.includes("would you like me to") ||
+    lower.includes("to proceed, i'll need")
+  );
+}
+
 function extractCodeBlock(text: string): string {
   const codeBlockMatch = /```(?:markdown|md)?\s*\n([\s\S]*?)\n```/.exec(text);
   if (codeBlockMatch) return codeBlockMatch[1].trim();
 
-  // If no code block, extract substantive content (e.g. lists, summaries, paragraphs)
-  // Strip conversational meta phrases like "I've created a note..."
+  // If text is conversational chatter, questions, or approval notices, it's not note content
+  if (isConversationalMeta(text)) return "";
+
+  // Only consider text as substantive content if it contains markdown structure
+  const hasMarkdownStructure =
+    /(?:^|\n)\s*(?:#{1,6}\s|[-*+]\s|\d+\.\s|\||- \[[ x]\])/.test(text);
+  if (!hasMarkdownStructure) return "";
+
   const stripped = text
     .replace(
-      /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page|folder)[^.\n]*[.\n]?/gi,
+      /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page|folder)[^\n]*\n?/gi,
       "",
     )
     .replace(
-      /(?:The\s+)?(?:note|file)\s+is\s+(?:currently\s+|initially\s+)?empty[^.\n]*[.\n]?/gi,
+      /(?:The\s+)?(?:note|file)\s+is\s+(?:currently\s+|initially\s+)?empty[^\n]*\n?/gi,
       "",
     )
-    .replace(/Here (?:is|are) (?:the|your)[^:\n]*:?/gi, "")
+    .replace(/Here (?:is|are) (?:the|your)[^:\n]*:?\n?/gi, "")
     .trim();
 
   return stripped;
@@ -99,6 +98,10 @@ export function extractConversationalToolCalls(
   const prompt = userPrompt?.trim() || "";
   const results: AgentToolCall[] = [];
 
+  if (isConversationalMeta(text) && !prompt) {
+    return results;
+  }
+
   // Check for folder creation in prompt or text
   const folderPromptPattern =
     /(?:create|make|add|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
@@ -133,18 +136,20 @@ export function extractConversationalToolCalls(
     });
   }
 
-  // If compound request with search and folder, return them so step 0 executes them
-  if (results.length > 0 && searchMatch) {
-    return results;
-  }
 
-  // Check for note/file creation in assistant text
+  // Check for note/file creation in assistant text (only if not conversational meta)
   const noteTextPattern =
     /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
-  const rawNoteInText = matchEntityName(noteTextPattern, text);
+  const rawNoteInText = isConversationalMeta(text)
+    ? null
+    : matchEntityName(noteTextPattern, text);
 
   if (rawNoteInText) {
-    const path = cleanPath(rawNoteInText);
+    const rawNoteClean = cleanPath(rawNoteInText);
+    const path =
+      folderName && !rawNoteClean.includes("/")
+        ? `${folderName}/${rawNoteClean}`
+        : rawNoteClean;
     const content = extractCodeBlock(text);
     results.push({
       id: `call_conv_note_${Date.now()}`,

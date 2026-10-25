@@ -1,4 +1,5 @@
 import type { AgentToolCall, ChatMessage } from "@app/ai-api";
+import { isConversationalMeta } from "@app/ai-runtime";
 import {
   VAULT_INSPECTION_TOOLS,
   VAULT_MUTATION_TOOLS,
@@ -128,17 +129,31 @@ export async function executeAgentStepTool(
   }
 
   if (isMutation) {
-    if (
-      tc.name === "create_note" &&
-      !String(tc.arguments.content ?? "").trim() &&
-      ctx.workingHistory
-    ) {
-      const fallback = formatFallbackContentFromHistory(
-        String(tc.arguments.path ?? ""),
-        ctx.workingHistory,
-      );
-      if (fallback) {
-        tc.arguments.content = fallback;
+    if (tc.name === "create_note") {
+      let pathArg = String(tc.arguments.path ?? "").trim();
+      if (!pathArg.includes("/") && ctx.workingHistory) {
+        for (let i = ctx.workingHistory.length - 1; i >= 0; i--) {
+          const msg = ctx.workingHistory[i];
+          if (msg.role === "assistant" && msg.toolCalls) {
+            const folderCall = msg.toolCalls.find((c) => c.name === "create_folder");
+            const folderPath = String(folderCall?.arguments?.path ?? "").trim();
+            if (folderPath) {
+              pathArg = `${folderPath}/${pathArg}`;
+              tc.arguments.path = pathArg;
+              break;
+            }
+          }
+        }
+      }
+
+      const contentArg = String(tc.arguments.content ?? "").trim();
+      const isMeta = isConversationalMeta(contentArg);
+      if ((!contentArg || isMeta) && ctx.workingHistory) {
+        const fallback = formatFallbackContentFromHistory(
+          pathArg,
+          ctx.workingHistory,
+        );
+        tc.arguments.content = fallback || "";
       }
     }
 

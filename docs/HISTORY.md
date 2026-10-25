@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Action Organization, Nested Folder Placement & Guard Against Conversational Meta Text
+
+- **Action Organization & Multi-Step Compound Execution (`conversationalToolFallback.ts`, `createNotePrompt.ts`)**:
+  - Resolved issue where compound instructions ("create a folder named books and search for theatre books in internet and under that folder create note having the list of the books") severed note creation or left notes outside the parent directory.
+  - Structured multi-step execution order in `createNotePrompt.ts`: 1) `create_folder` FIRST for parent directories, 2) `web_search`/`search_vault` to gather real factual data, 3) `create_note` nested inside the folder.
+  - Allowed all three sequenced calls (`create_folder` -> `web_search` -> `create_note`) in `extractConversationalToolCalls` so notes are automatically created inside the target folder (`books/theatre_books.md`).
+- **Elimination of Conversational Meta Chatter in Note Bodies (`isConversationalMeta`, `extractCodeBlock`, `executeAgentStepTool.ts`)**:
+  - Fixed regex dot bug in `extractCodeBlock` where filenames ending in `.md` were truncated at the dot, leaving `md" in the staged-for-approval state...` as the note content.
+  - Added `isConversationalMeta`: identifies and suppresses approval status notices (`staged-for-approval`, `pending approval`) and user questions (`What are the theatre books...`, `Please provide...`).
+  - In `executeAgentStepTool.ts`: inspects `content`; if it contains conversational meta chatter or lacks real factual data, replaces it with synthesized search results from `workingHistory` or clears it so conversational rambling is never saved into the user's note.
+  - Automatically prefixes `create_note` paths with parent folders created earlier in `workingHistory`.
+- **Verification**:
+  - Added `packages/ai-runtime/conversationalToolFallback.test.ts` adversarial test verifying rejection of staging chatter and question text.
+  - Added `apps/desktop/src/components/AgentView/AgentOrganizeAndContent.test.tsx` verifying multi-step folder + search + note execution and sanitization.
+  - All 17 tests in `@app/ai-agent`, 32 tests in `@app/ai-runtime`, and desktop test suite pass.
+  - All files strictly under 250-line hard cap.
+
+---
+
 ### 2026-10-25: Search Content Note Population, Chat Persistence & Agent Long-Term Memory
 
 - **Search Content Population in Created Notes (`formatFallbackContentFromHistory`, `createNotePrompt.ts`, `conversationalToolFallback.ts`)**:

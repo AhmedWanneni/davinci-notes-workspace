@@ -14,4 +14,5 @@ export {
 export {
   extractConversationalToolCall,
   extractConversationalToolCalls,
+  isConversationalMeta,
 } from "./conversationalToolFallback.js";
