@@ -12,6 +12,7 @@ import {
 } from "./sqliteIndex";
 import { deleteFolder } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
+import { useBookmarkStore } from "../bookmarks/bookmarkStore";
 
 export type DeleteFolderResult =
   | { ok: true }
@@ -109,6 +110,8 @@ export async function deleteFolderInVault(
     useWorkspaceStore.setState({
       graph: currentGraph,
     });
+
+    useBookmarkStore.getState().markFolderMissing(normalized);
 
     return { ok: true };
   });

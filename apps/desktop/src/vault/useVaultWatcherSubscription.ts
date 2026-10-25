@@ -16,6 +16,11 @@ import {
   queryFullGraphIndex,
 } from "./index";
 import { clearSaveTimer } from "../state/saveTimers";
+import {
+  BOOKMARKS_JSON_PATH,
+  parseBookmarks,
+  useBookmarkStore,
+} from "../bookmarks";
 
 export interface VaultWatcherSubscriptionOptions {
   append: (line: string) => void;
@@ -162,6 +167,27 @@ export function useVaultWatcherSubscription({
         updateAllPaths(paths);
         updateAllFolderPaths(folders);
         incrementVaultUpdateCounter();
+
+        if (batch.changed.includes(BOOKMARKS_JSON_PATH)) {
+          try {
+            const bFile = await readNote(BOOKMARKS_JSON_PATH);
+            const parsed = parseBookmarks(bFile.content);
+            useBookmarkStore.getState().mergeExternalBookmarks(parsed.bookmarks);
+          } catch {
+            // Ignore missing/unreadable file
+          }
+        }
+        for (const { from, to } of renamed) {
+          useBookmarkStore.getState().remapPath(from, to);
+        }
+        for (const path of removedPaths) {
+          if (!renamedFrom.has(path)) {
+            useBookmarkStore.getState().markMissing(path);
+          }
+        }
+        for (const path of batch.changed) {
+          useBookmarkStore.getState().clearMissing(path);
+        }
         try {
           const db = await getVaultIndexDb();
           const fullGraph = await withDbLock(() => queryFullGraphIndex(db));
