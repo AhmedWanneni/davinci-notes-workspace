@@ -13,6 +13,7 @@ import { AgentHistoryDrawer } from "./AgentHistoryDrawer";
 import { AgentShortcutsBar } from "./AgentShortcutsBar";
 import { AgentOnboardingCard } from "./AgentOnboardingCard";
 import { useAgentExecution } from "./useAgentExecution";
+import { useAgentSchedules } from "./useAgentSchedules";
 import { loadAIProviderStatus, loadSelectedProvider } from "../../ai/AISubsystem";
 import { readNote } from "../../vault/vaultCommands";
 import "./AgentView.module.scss";
@@ -37,6 +38,7 @@ export function AgentView() {
 
   const [isConfigured, setIsConfigured] = useState(true);
   const [shortcuts, setShortcuts] = useState<AgentShortcut[]>([]);
+  const { missedSchedules, dismissMissed } = useAgentSchedules();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const checkProviderConfig = useCallback(async () => {
@@ -87,6 +89,30 @@ export function AgentView() {
             <Clock size={14} /> History ({ledger.transactions.length})
           </Button>
         </header>
+
+        {missedSchedules.length > 0 && (
+          <div className="agent-view__missed-banner" role="alert">
+            <Typography variant="text" size="xs">
+              Missed scheduled task while DaVinci Notes was closed: "{missedSchedules[0].title}"
+            </Typography>
+            <div className="agent-view__banner-actions">
+              <Button
+                variant="secondary"
+                size="xs"
+                onClick={() => {
+                  const task = missedSchedules[0];
+                  dismissMissed();
+                  void sendMessage(task.prompt);
+                }}
+              >
+                Run Now
+              </Button>
+              <Button variant="ghost" size="xs" onClick={dismissMissed}>
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="agent-view__messages">
           {!isConfigured && messages.length === 0 ? (

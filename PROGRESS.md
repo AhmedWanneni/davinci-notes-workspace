@@ -4,7 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Phase 9: Google Calendar Two-Way Sync Integration (ADR-0217)
+## Last Session — AI Agent Phase 10: Scheduled Tasks Engine & Background Execution Lifecycle (ADR-0218)
+
+**Scope:**
+1. **Scheduled Tasks Engine (`packages/ai-agent/scheduleEngine.ts`)**:
+   - Designed schema for `<vault>/.davinci/agent/schedules.json` supporting daily, weekly, and interval recurrences.
+   - Designed `<vault>/.davinci/agent/schedule_runs.json` execution history log bounded to 50 entries.
+   - Built recurrence calculators: `computeNextRun`, `isScheduleDue`, and `advanceScheduleAfterRun`.
+2. **Review-First & Catch-Up Lifecycle**:
+   - Implemented `evaluatePendingSchedules` separating immediate tasks from tasks missed while the app was closed (> 1 hour overdue).
+   - Hooked `useAgentSchedules` into desktop UI with catch-up review banner and 60-second ticker.
+   - Enforced safety guarantee: scheduled tasks missed while unattended prompt the user for approval rather than silently altering notes in the background.
+3. **Architecture Record**: Authored ADR-0218 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 53/53 tests passing in `@app/ai-agent` (`scheduleEngine.test.ts`, etc.).
+- 6/6 tests passing in `AgentView.test.tsx` and `useAgentSchedules.test.ts`.
+- Adversarial test: simulated clock jumping past schedule; confirmed task marked as missed and surfaced for user review instead of unattended silent mutation.
+- All files strictly ≤ 170 lines (hard cap 250).
+
+---
+
+## Next Up: AI Agent Full Implementation Complete
+
+- All 10 phases from `agent-feature-plan.md` are implemented and verified.
+- Run workspace validation passes (lint, typecheck, tests).
+
+---
+
+## Previous Session — AI Agent Phase 9: Google Calendar Two-Way Sync Integration (ADR-0217)
 
 **Scope:**
 1. **Google Calendar API Client Extensions (`packages/google-calendar-api`)**:

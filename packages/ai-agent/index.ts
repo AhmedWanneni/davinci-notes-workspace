@@ -11,3 +11,4 @@ export * from "./shortcutsEngine.js";
 export * from "./wikiEngine.js";
 export * from "./webSearchTool.js";
 export * from "./calendarTools.js";
+export * from "./scheduleEngine.js";
