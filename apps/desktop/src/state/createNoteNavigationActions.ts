@@ -125,19 +125,24 @@ export function createNoteNavigationActions(
     },
 
     closeNote: async (path: string) => {
+      let effectivePath = path;
       if (!path.startsWith("davinci://")) {
         if (saveTimers[path]) {
           clearTimeout(saveTimers[path]);
           delete saveTimers[path];
         }
-        const effectivePath = await flushH1DrivenRename(path);
-        await get().saveNoteNow(effectivePath);
+        try {
+          effectivePath = await flushH1DrivenRename(path);
+          await get().saveNoteNow(effectivePath);
+        } catch (e) {
+          console.warn("[closeNote] Failed to save/rename before close:", e);
+        }
       }
 
       const { openNotes, activeNotePath, notesContent, conflictNotes } = get();
-      const nextOpenNotes = openNotes.filter((p) => p !== path);
+      const nextOpenNotes = openNotes.filter((p) => p !== path && p !== effectivePath);
       let nextActivePath = activeNotePath;
-      if (activeNotePath === effectivePath) {
+      if (activeNotePath === path || activeNotePath === effectivePath) {
         nextActivePath =
           nextOpenNotes.length > 0
             ? nextOpenNotes[nextOpenNotes.length - 1]
@@ -145,9 +150,12 @@ export function createNoteNavigationActions(
       }
 
       const nextNotesContent = { ...notesContent };
+      delete nextNotesContent[path];
       delete nextNotesContent[effectivePath];
       const nextConflict = new Map(conflictNotes);
+      nextConflict.delete(path);
       nextConflict.delete(effectivePath);
+      diskStateTracker.remove(path);
       diskStateTracker.remove(effectivePath);
 
       set({

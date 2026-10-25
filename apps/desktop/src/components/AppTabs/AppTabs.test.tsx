@@ -175,4 +175,23 @@ describe("AppTabs", () => {
     expect(tabs[0].querySelector("svg")).toBeDefined();
     expect(tabs[1].querySelector("svg")).toBeDefined();
   });
+
+  it("calls onCloseNote when clicking the close button on a tab", () => {
+    const onCloseNote = vi.fn();
+    render(
+      <AppTabs
+        openNotes={["notes/new-note.md"]}
+        activeNotePath="notes/new-note.md"
+        dirtyNotes={new Set()}
+        onSelectNote={vi.fn()}
+        onCloseNote={onCloseNote}
+        isMac={false}
+      />,
+    );
+
+    const closeBtn = screen.getByRole("button", { name: "Close new-note" });
+    fireEvent.click(closeBtn);
+    expect(onCloseNote).toHaveBeenCalledOnce();
+    expect(onCloseNote).toHaveBeenCalledWith("notes/new-note.md");
+  });
 });

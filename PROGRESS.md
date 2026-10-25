@@ -4,7 +4,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Conversation Surfing & Project Organization for AI Agent
+## Last Session — Fix Tab Close Button Not Working on Notes
+
+**Scope:**
+1. **Root Cause Analysis**:
+   - In `createNoteNavigationActions.ts:closeNote`, `effectivePath` was declared with `const` inside the `if (!path.startsWith("davinci://"))` block. Any reference to `effectivePath` outside that block threw a runtime `ReferenceError: effectivePath is not defined`, aborting `closeNote` before updating `openNotes` or `activeNotePath`.
+   - Additionally, if `flushH1DrivenRename` or `saveNoteNow` rejected/failed during close, the entire function aborted without closing the tab.
+2. **Resolution (`createNoteNavigationActions.ts`)**:
+   - Declared `let effectivePath = path;` in the outer scope of `closeNote`.
+   - Wrapped the pre-close flush and save operations in a `try...catch` block to ensure the tab ALWAYS closes and state cleans up even if background file save encounters issues.
+   - Filtered both `path` and `effectivePath` from `openNotes`, `notesContent`, `conflictNotes`, and `diskStateTracker`.
+   - Isolated `AppTabs.tsx` from `AgentView` bundle graph by importing `AGENT_TAB_ID` directly from `AgentView/agentTypes`.
+   - Added unit test in `AppTabs.test.tsx` verifying tab close button click triggers `onCloseNote(path)`.
+
+**Verification:**
+- `pnpm --filter @app/desktop test AppTabs.test.tsx useWorkspaceStore.test.ts` (21/21 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.66s with 0 errors.
+- All modified files strictly ≤ 236 lines (hard cap 250).
+
+---
+
+## Previous Session — Conversation Surfing & Project Organization for AI Agent
 
 **Scope:**
 1. **Local-First Conversation & Project Store (`packages/ai-agent/conversationStore.ts`, `conversationTypes.ts`)**:

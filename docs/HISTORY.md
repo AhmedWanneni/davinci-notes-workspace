@@ -2,6 +2,21 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-25: Fix Tab Close Button Not Working on Notes
+
+- **Root Cause**:
+  - In `createNoteNavigationActions.ts:closeNote`, `effectivePath` was declared with block-scoped `const` inside an `if` block. Outside that block, `effectivePath` caused a runtime `ReferenceError: effectivePath is not defined`, crashing `closeNote` whenever the close button was clicked.
+- **Resolution**:
+  - Declared `let effectivePath = path;` in `closeNote`'s outer scope.
+  - Wrapped pre-close disk save/rename in `try...catch` so tab closure and state cleanup are guaranteed even if disk I/O throws.
+  - Filtered both `path` and `effectivePath` from `openNotes`, `notesContent`, `conflictNotes`, and `diskStateTracker`.
+  - Pointed `AGENT_TAB_ID` in `AppTabs.tsx` to `agentTypes` to avoid transitive dependency on `AgentView`.
+- **Verification**:
+  - 21/21 tests passing across `AppTabs.test.tsx` and `useWorkspaceStore.test.ts`.
+  - Web build succeeded with 0 errors.
+
+---
+
 ### 2026-10-25: Conversation Surfing & Project Organization for AI Agent
 
 - **Local-First Conversation & Project Store (`packages/ai-agent/conversationStore.ts`, `conversationTypes.ts`)**:

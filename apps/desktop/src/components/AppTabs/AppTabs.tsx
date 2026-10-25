@@ -18,7 +18,7 @@ import {
 import { WindowControls } from "../WindowControls";
 import { TabListDropdown } from "./TabListDropdown";
 import { BOOKMARKS_TAB_ID } from "../../bookmarks";
-import { AGENT_TAB_ID } from "../AgentView";
+import { AGENT_TAB_ID } from "../AgentView/agentTypes";
 
 export interface AppTabsProps {
   openNotes: string[];

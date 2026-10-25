@@ -1,8 +1,8 @@
 import { Button, Typography } from "@app/design-system";
-import type { AgentScheduleTask } from "@app/ai-agent";
+import type { AgentSchedule } from "@app/ai-agent";
 
 export interface AgentMissedBannerProps {
-  task: AgentScheduleTask;
+  task: AgentSchedule;
   onRunNow: () => void;
   onDismiss: () => void;
 }
