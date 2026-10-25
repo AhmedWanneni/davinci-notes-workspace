@@ -18,7 +18,12 @@ export const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
 ] as const;
 
-export function getCalendarOAuthConfig(customClientId?: string) {
+export const CALENDAR_WRITE_SCOPES = [
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+] as const;
+
+export function getCalendarOAuthConfig(customClientId?: string, writeAccess = false) {
   const effectiveClientId = customClientId?.trim() || getCalendarClientId();
   if (!effectiveClientId) {
     throw new Error(
@@ -30,6 +35,6 @@ export function getCalendarOAuthConfig(customClientId?: string) {
     authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
     tokenEndpoint: "https://oauth2.googleapis.com/token",
     revocationEndpoint: "https://oauth2.googleapis.com/revoke",
-    scopes: CALENDAR_SCOPES,
+    scopes: writeAccess ? CALENDAR_WRITE_SCOPES : CALENDAR_SCOPES,
   } as const;
 }

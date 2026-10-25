@@ -9,7 +9,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@app/ai-api": "workspace:*"
+    "@app/ai-api": "workspace:*",
+    "@app/google-calendar-api": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

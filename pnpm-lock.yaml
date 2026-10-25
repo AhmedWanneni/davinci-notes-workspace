@@ -665,6 +665,9 @@ importers:
       '@app/ai-api':
         specifier: workspace:*
         version: link:../ai-api
+      '@app/google-calendar-api':
+        specifier: workspace:*
+        version: link:../google-calendar-api
     devDependencies:
       typescript:
         specifier: ^5.4.0

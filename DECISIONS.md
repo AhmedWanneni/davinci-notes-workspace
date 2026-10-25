@@ -377,4 +377,5 @@ the list.
 | [0214](adr/0214-dedicated-agent-tab-and-lazy-mounting.md) | Dedicated Agent Tab (`davinci://agent`) and Lazy Subsystem Mounting | Accepted |
 | [0215](adr/0215-llm-wiki-synthesis-and-moc-architecture.md) | LLM-Wiki Synthesis Engine and Map of Content (MOC) Architecture | Accepted |
 | [0216](adr/0216-web-search-grounding-and-untrusted-content.md) | Web Search Grounding and Untrusted Content Boundaries in `@app/ai-agent` | Accepted |
+| [0217](adr/0217-google-calendar-write-scope-upgrade.md) | Google Calendar Write Scope Upgrade and Task Sync in `@app/ai-agent` | Accepted |
 

@@ -10,3 +10,4 @@ export * from "./vaultMutationTools.js";
 export * from "./shortcutsEngine.js";
 export * from "./wikiEngine.js";
 export * from "./webSearchTool.js";
+export * from "./calendarTools.js";

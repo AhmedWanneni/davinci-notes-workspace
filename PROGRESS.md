@@ -4,7 +4,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Phase 8: Web Search Tool & Untrusted Web Boundary (ADR-0216)
+## Last Session — AI Agent Phase 9: Google Calendar Two-Way Sync Integration (ADR-0217)
+
+**Scope:**
+1. **Google Calendar API Client Extensions (`packages/google-calendar-api`)**:
+   - Added `createEvent` and `updateEvent` to `GoogleCalendarClient` returning `NormalizedCalendarEvent`.
+   - Added `CreateCalendarEventInput` and `UpdateCalendarEventInput` schemas.
+   - Added incremental write scope `CALENDAR_WRITE_SCOPES` (`https://www.googleapis.com/auth/calendar.events`) in `calendarAuthConfig.ts`.
+2. **Agent Calendar Tools (`packages/ai-agent/calendarTools.ts`)**:
+   - Implemented `calendar_list_events`, `calendar_create_event`, and `calendar_sync_tasks`.
+   - Built `extractTaskReminders` parsing markdown checklist reminder tokens (`- [ ] Task (@YYYY-MM-DD HH:mm)`).
+3. **Architecture Record**: Authored ADR-0217 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 47/47 tests passing in `@app/ai-agent` (`calendarTools.test.ts`, etc.).
+- 15/15 tests passing in `@app/google-calendar-api` (`calendarClient.test.ts`, etc.).
+- Verified ISO datetime validation and multi-task reminder extraction.
+- All files strictly ≤ 207 lines (hard cap 250).
+
+---
+
+## Next Up: AI Agent Phase 10
+
+- **Phase 10**: Background Scheduled Tasks & Execution Lifecycle (ADR-0218).
+
+---
+
+## Previous Session — AI Agent Phase 8: Web Search Tool & Untrusted Web Boundary (ADR-0216)
 
 **Scope:**
 1. **Web Search Tool (`packages/ai-agent/webSearchTool.ts`)**:

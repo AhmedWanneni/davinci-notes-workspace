@@ -81,3 +81,20 @@ export interface ListEventsResult {
   nextPageToken?: string;
   nextSyncToken?: string;
 }
+
+export interface CreateCalendarEventInput {
+  summary: string;
+  description?: string;
+  location?: string;
+  start: { dateTime: string; timeZone?: string } | { date: string };
+  end: { dateTime: string; timeZone?: string } | { date: string };
+}
+
+export interface UpdateCalendarEventInput {
+  summary?: string;
+  description?: string;
+  location?: string;
+  start?: { dateTime: string; timeZone?: string } | { date: string };
+  end?: { dateTime: string; timeZone?: string } | { date: string };
+  status?: "confirmed" | "tentative" | "cancelled";
+}

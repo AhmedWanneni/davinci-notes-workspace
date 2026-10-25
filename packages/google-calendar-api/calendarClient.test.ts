@@ -153,4 +153,70 @@ describe("GoogleCalendarClient", () => {
       GoogleCalendarApiError,
     );
   });
+
+  it("createEvent sends POST and returns normalized created event", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: "created-evt-1",
+        summary: "Weekly Planning",
+        start: { dateTime: "2026-10-26T09:00:00Z" },
+        end: { dateTime: "2026-10-26T10:00:00Z" },
+        status: "confirmed",
+      }),
+    } as Response);
+
+    const client = new GoogleCalendarClient({ fetchFn: mockFetch });
+    const res = await client.createEvent("mock-token", "primary", {
+      summary: "Weekly Planning",
+      start: { dateTime: "2026-10-26T09:00:00Z" },
+      end: { dateTime: "2026-10-26T10:00:00Z" },
+    });
+
+    expect(res.id).toBe("created-evt-1");
+    expect(res.title).toBe("Weekly Planning");
+    expect(res.startIso).toBe("2026-10-26T09:00:00Z");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer mock-token" }),
+        body: JSON.stringify({
+          summary: "Weekly Planning",
+          start: { dateTime: "2026-10-26T09:00:00Z" },
+          end: { dateTime: "2026-10-26T10:00:00Z" },
+        }),
+      }),
+    );
+  });
+
+  it("updateEvent sends PATCH and returns updated event", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: "evt-123",
+        summary: "Updated Title",
+        start: { dateTime: "2026-10-26T14:00:00Z" },
+        end: { dateTime: "2026-10-26T15:00:00Z" },
+        status: "confirmed",
+      }),
+    } as Response);
+
+    const client = new GoogleCalendarClient({ fetchFn: mockFetch });
+    const res = await client.updateEvent("mock-token", "primary", "evt-123", {
+      summary: "Updated Title",
+    });
+
+    expect(res.id).toBe("evt-123");
+    expect(res.title).toBe("Updated Title");
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events/evt-123",
+      expect.objectContaining({
+        method: "PATCH",
+        headers: expect.objectContaining({ Authorization: "Bearer mock-token" }),
+      }),
+    );
+  });
 });

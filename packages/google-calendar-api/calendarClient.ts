@@ -1,9 +1,11 @@
 import type {
   CalendarListItem,
+  CreateCalendarEventInput,
   GoogleCalendarApiEvent,
   ListEventsOptions,
   ListEventsResult,
   NormalizedCalendarEvent,
+  UpdateCalendarEventInput,
 } from "./calendarTypes";
 import { parseMeetLink } from "./parseMeetLink";
 
@@ -148,5 +150,58 @@ export class GoogleCalendarClient {
       nextPageToken: data.nextPageToken,
       nextSyncToken: data.nextSyncToken,
     };
+  }
+
+  async createEvent(
+    accessToken: string,
+    calendarId = "primary",
+    event: CreateCalendarEventInput,
+  ): Promise<NormalizedCalendarEvent> {
+    const url = `${this.baseUrl}/calendars/${encodeURIComponent(calendarId)}/events`;
+    const response = await this.fetchFn(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(event),
+    });
+
+    if (response.status === 401) throw new GoogleAuthExpiredError();
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new GoogleCalendarApiError(response.status, `Failed to create event: ${text}`);
+    }
+
+    const data = (await response.json()) as GoogleCalendarApiEvent;
+    return normalizeEvent(calendarId, data);
+  }
+
+  async updateEvent(
+    accessToken: string,
+    calendarId = "primary",
+    eventId: string,
+    patch: UpdateCalendarEventInput,
+  ): Promise<NormalizedCalendarEvent> {
+    const url = `${this.baseUrl}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`;
+    const response = await this.fetchFn(url, {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(patch),
+    });
+
+    if (response.status === 401) throw new GoogleAuthExpiredError();
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new GoogleCalendarApiError(response.status, `Failed to update event: ${text}`);
+    }
+
+    const data = (await response.json()) as GoogleCalendarApiEvent;
+    return normalizeEvent(calendarId, data);
   }
 }
