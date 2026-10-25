@@ -11,6 +11,7 @@ import {
 import type { EditorView } from "@codemirror/view";
 import { Editor, type EditorPluginAdapter } from "@app/editor";
 import {
+  BookmarkSimple,
   CaretLeft,
   CaretRight,
   DotsThree,
@@ -30,6 +31,7 @@ import { useEditorMediaHandlers } from "./useEditorMediaHandlers";
 import { NoteCoverImage } from "./NoteCoverImage";
 import { useNoteCoverImage } from "./useNoteCoverImage";
 import { stripNoteMetadata } from "./stripNoteMetadata";
+import { useBookmarks } from "../../bookmarks";
 
 const LazyCoverImagePickerModal = lazy(() =>
   import("./CoverImagePickerModal").then((m) => ({
@@ -155,6 +157,9 @@ export function EditorArea({
     frontmatter,
     updateNoteContent,
   );
+
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const isNoteBookmarked = isBookmarked(activeNotePath);
 
   const displayTitle = useMemo(() => {
     if (!activeNotePath) return "";
@@ -366,6 +371,21 @@ export function EditorArea({
         >
           <ImageIcon size={16} weight="regular" />
         </button>
+        {activeNotePath && (
+          <button
+            type="button"
+            className="editor-area__note-header-button"
+            aria-label={isNoteBookmarked ? "Remove bookmark" : "Bookmark note"}
+            title={isNoteBookmarked ? "Remove bookmark" : "Bookmark note"}
+            data-active={isNoteBookmarked || undefined}
+            onClick={() => void toggleBookmark(activeNotePath)}
+          >
+            <BookmarkSimple
+              size={16}
+              weight={isNoteBookmarked ? "fill" : "regular"}
+            />
+          </button>
+        )}
         <button
           type="button"
           className="editor-area__note-header-button"

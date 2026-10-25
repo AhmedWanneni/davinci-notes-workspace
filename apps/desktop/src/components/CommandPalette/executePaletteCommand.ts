@@ -11,6 +11,8 @@ export interface ExecutePaletteCommandOptions {
   onOpenTags?: () => void;
   onOpenReminders?: () => void;
   onSaveVersionNow?: () => void;
+  onToggleBookmark?: () => void;
+  onOpenBookmarks?: () => void;
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
@@ -29,6 +31,8 @@ export function executePaletteCommand({
   onOpenTags,
   onOpenReminders,
   onSaveVersionNow,
+  onToggleBookmark,
+  onOpenBookmarks,
   onDriveSignIn,
   onDriveDisconnect,
   onDriveRefresh,
@@ -45,6 +49,8 @@ export function executePaletteCommand({
   if (id === "action:tags") onOpenTags?.();
   if (id === "action:reminders") onOpenReminders?.();
   if (id === "action:save-version") onSaveVersionNow?.();
+  if (id === "action:toggle-bookmark") onToggleBookmark?.();
+  if (id === "action:open-bookmarks") onOpenBookmarks?.();
   if (id === "action:drive-sign-in") onDriveSignIn?.();
   if (id === "action:drive-disconnect") onDriveDisconnect?.();
   if (id === "action:drive-refresh") onDriveRefresh?.();

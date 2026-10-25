@@ -1,5 +1,6 @@
 import { FileTreeContextMenu } from "./FileTreeContextMenu";
 import { FileTreeEmojiPopover } from "./FileTreeEmojiPopover";
+import { useBookmarks } from "../../bookmarks";
 import type {
   FileTreeContextMenuState,
   FileTreeIconTarget,
@@ -32,6 +33,7 @@ export function FileTreeOverlays({
   onCloseIconPicker,
   onSetIcon,
 }: FileTreeOverlaysProps) {
+  const { isBookmarked, toggleBookmark } = useBookmarks();
   return (
     <>
       {contextMenu && (
@@ -48,6 +50,12 @@ export function FileTreeOverlays({
           onDuplicateNote={onDuplicateNote}
           onDeleteNote={(path) => void onConfirmDelete(path, false)}
           onDeleteFolder={(path) => void onConfirmDelete(path, true)}
+          isBookmarked={
+            contextMenu.targetType === "file"
+              ? isBookmarked(contextMenu.targetPath)
+              : false
+          }
+          onToggleBookmark={(path) => void toggleBookmark(path)}
           onClose={onCloseContextMenu}
         />
       )}

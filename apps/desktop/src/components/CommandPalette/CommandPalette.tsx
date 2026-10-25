@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from "@app/design-system";
 import { X } from "@phosphor-icons/react";
 import { useRecentInsertIds } from "@app/editor";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import { useBookmarks } from "../../bookmarks";
 import { EmptyState } from "../EmptyState";
 import type { RegisteredPluginCommand } from "@app/plugin-runtime";
 import { buildPaletteCommands } from "./buildPaletteCommands";
@@ -23,6 +24,8 @@ export interface CommandPaletteProps {
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
   onSaveVersionNow?: () => void;
+  onToggleBookmark?: () => void;
+  onOpenBookmarks?: () => void;
   pluginCommands?: RegisteredPluginCommand[];
   onInvokePluginCommand?: (id: string) => void;
   editorView?: EditorView | null;
@@ -42,6 +45,8 @@ export function CommandPalette({
   onDriveDisconnect,
   onDriveRefresh,
   onSaveVersionNow,
+  onToggleBookmark,
+  onOpenBookmarks,
   pluginCommands = [],
   onInvokePluginCommand,
   editorView,
@@ -50,8 +55,11 @@ export function CommandPalette({
 }: CommandPaletteProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const openNotes = useWorkspaceStore((state) => state.openNotes);
+  const activeNotePath = useWorkspaceStore((state) => state.activeNotePath);
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
   const setUseVimMode = useWorkspaceStore((state) => state.setUseVimMode);
+  const { isBookmarked } = useBookmarks();
+  const isCurrentBookmarked = isBookmarked(activeNotePath);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,6 +92,8 @@ export function CommandPalette({
         pluginCommands,
         isEditableEditor,
         recentInsertIds: effectiveRecentIds,
+        hasActiveNote: Boolean(activeNotePath),
+        isBookmarked: isCurrentBookmarked,
       }),
     [
       allNotePaths,
@@ -92,6 +102,8 @@ export function CommandPalette({
       pluginCommands,
       isEditableEditor,
       effectiveRecentIds,
+      activeNotePath,
+      isCurrentBookmarked,
     ],
   );
 
@@ -106,6 +118,8 @@ export function CommandPalette({
       onOpenTags,
       onOpenReminders,
       onSaveVersionNow,
+      onToggleBookmark,
+      onOpenBookmarks,
       onDriveSignIn,
       onDriveDisconnect,
       onDriveRefresh,

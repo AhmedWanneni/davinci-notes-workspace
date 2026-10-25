@@ -16,6 +16,8 @@ export interface FileTreeContextMenuProps {
   onDuplicateNote?: (path: string) => void;
   onDeleteNote?: (path: string) => void;
   onDeleteFolder?: (path: string) => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: (path: string) => void;
   onClose: () => void;
 }
 
@@ -32,6 +34,8 @@ export function FileTreeContextMenu({
   onDuplicateNote,
   onDeleteNote,
   onDeleteFolder,
+  isBookmarked,
+  onToggleBookmark,
   onClose,
 }: FileTreeContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -94,6 +98,19 @@ export function FileTreeContextMenu({
               }}
             >
               <span>Duplicate</span>
+            </button>
+          )}
+          {onToggleBookmark && (
+            <button
+              type="button"
+              className="file-tree__context-menu-item"
+              role="menuitem"
+              onClick={() => {
+                onToggleBookmark(targetPath);
+                onClose();
+              }}
+            >
+              <span>{isBookmarked ? "Remove bookmark" : "Bookmark note"}</span>
             </button>
           )}
           {onDeleteNote && (

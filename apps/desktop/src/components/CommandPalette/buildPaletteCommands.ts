@@ -16,6 +16,8 @@ export interface BuildPaletteCommandsOptions {
   pluginCommands: readonly RegisteredPluginCommand[];
   isEditableEditor: boolean;
   recentInsertIds?: readonly string[];
+  hasActiveNote?: boolean;
+  isBookmarked?: boolean;
 }
 
 export function buildPaletteCommands({
@@ -25,6 +27,8 @@ export function buildPaletteCommands({
   pluginCommands,
   isEditableEditor,
   recentInsertIds = [],
+  hasActiveNote,
+  isBookmarked,
 }: BuildPaletteCommandsOptions): PaletteTarget[] {
   const targets: PaletteTarget[] = allNotePaths.map((path) => {
     const title = path.replace(/\.md$/i, "").split(/[/\\]/).pop() ?? path;
@@ -40,6 +44,22 @@ export function buildPaletteCommands({
       recencyScore: 600,
     });
   }
+
+  if (hasActiveNote) {
+    targets.push({
+      isCommand: true,
+      id: "action:toggle-bookmark",
+      title: isBookmarked ? "Remove bookmark from current note" : "Bookmark current note",
+      recencyScore: 550,
+    });
+  }
+
+  targets.push({
+    isCommand: true,
+    id: "action:open-bookmarks",
+    title: "Open Bookmarks",
+    recencyScore: 420,
+  });
 
   targets.push({
     isCommand: true,

@@ -1,4 +1,5 @@
 import {
+  BookmarkSimple,
   CaretDown,
   CaretRight,
   FileText,
@@ -18,6 +19,7 @@ interface FileTreeRowProps {
   height: number;
   isActive: boolean;
   isDirty: boolean;
+  isBookmarked?: boolean;
   icon?: string;
   isDragging?: boolean;
   isDropTarget?: boolean;
@@ -57,6 +59,7 @@ export function FileTreeRow({
   height,
   isActive,
   isDirty,
+  isBookmarked,
   icon,
   isDragging,
   isDropTarget,
@@ -201,6 +204,22 @@ export function FileTreeRow({
           displayTitle
         )}
       </span>
+      {isBookmarked && (
+        <span
+          className="file-tree__bookmark-glyph"
+          title="Bookmarked"
+          aria-label="Bookmarked"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            opacity: 0.7,
+            marginLeft: "var(--space-1)",
+            color: "var(--color-accent, #cd47ab)",
+          }}
+        >
+          <BookmarkSimple size={12} weight="fill" />
+        </span>
+      )}
       {isConflict && <span className="file-tree__conflict-chip">Conflict</span>}
       {isDirty && <span className="file-tree__dirty-dot" />}
     </div>

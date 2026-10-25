@@ -64,6 +64,19 @@ export function createNoteNavigationActions(
 
     openNote: async (path: string) => {
       const { notesContent, openNotes } = get();
+      if (path.startsWith("davinci://")) {
+        const nextOpenNotes = openNotes.includes(path)
+          ? openNotes
+          : [...openNotes, path];
+        await get().setActiveNote(path);
+        set((state) => ({
+          openNotes: nextOpenNotes,
+          noteHistory: pushNoteHistory(state.noteHistory, path),
+          isGlobalGraphOpen: false,
+          isCalendarOpen: false,
+        }));
+        return;
+      }
       if (notesContent[path] === undefined) {
         try {
           const file = await readNote(path);
@@ -94,7 +107,11 @@ export function createNoteNavigationActions(
 
     setActiveNote: async (path: string) => {
       const { activeNotePath, dirtyNotes } = get();
-      if (activeNotePath && activeNotePath !== path) {
+      if (
+        activeNotePath &&
+        activeNotePath !== path &&
+        !activeNotePath.startsWith("davinci://")
+      ) {
         if (saveTimers[activeNotePath]) {
           clearTimeout(saveTimers[activeNotePath]);
           delete saveTimers[activeNotePath];
@@ -108,15 +125,17 @@ export function createNoteNavigationActions(
     },
 
     closeNote: async (path: string) => {
-      if (saveTimers[path]) {
-        clearTimeout(saveTimers[path]);
-        delete saveTimers[path];
+      if (!path.startsWith("davinci://")) {
+        if (saveTimers[path]) {
+          clearTimeout(saveTimers[path]);
+          delete saveTimers[path];
+        }
+        const effectivePath = await flushH1DrivenRename(path);
+        await get().saveNoteNow(effectivePath);
       }
-      const effectivePath = await flushH1DrivenRename(path);
-      await get().saveNoteNow(effectivePath);
 
       const { openNotes, activeNotePath, notesContent, conflictNotes } = get();
-      const nextOpenNotes = openNotes.filter((p) => p !== effectivePath);
+      const nextOpenNotes = openNotes.filter((p) => p !== path);
       let nextActivePath = activeNotePath;
       if (activeNotePath === effectivePath) {
         nextActivePath =

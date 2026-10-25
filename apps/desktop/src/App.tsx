@@ -57,6 +57,7 @@ const LazySettingsDialog = React.lazy(() =>
   })),
 );
 import type { SettingsTabId } from "./components/SettingsDialog";
+import { BOOKMARKS_TAB_ID, useBookmarks } from "./bookmarks";
 const LazyCommandPalette = React.lazy(() =>
   import("./components/CommandPalette").then((m) => ({
     default: m.CommandPalette,
@@ -129,6 +130,7 @@ export function App() {
   const openNotes = useWorkspaceStore((state) => state.openNotes);
   const dirtyNotes = useWorkspaceStore((state) => state.dirtyNotes);
   const saveVersionNow = useWorkspaceStore((state) => state.saveVersionNow);
+  const { toggleBookmark } = useBookmarks();
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
@@ -453,6 +455,13 @@ export function App() {
         e.preventDefault();
         setSearchInitialQuery("");
         setIsSearchOpen((prev) => !prev);
+      }
+      if (isMod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "d") {
+        const active = activeNoteRef.current;
+        if (active && !active.startsWith("davinci://")) {
+          e.preventDefault();
+          void toggleBookmark(active);
+        }
       }
     };
     window.addEventListener("keydown", handleGlobalKeyDown);
@@ -845,6 +854,12 @@ export function App() {
             onSaveVersionNow={() => {
               if (activeNotePath) void saveVersionNow(activeNotePath);
             }}
+            onToggleBookmark={() => {
+              if (activeNotePath && !activeNotePath.startsWith("davinci://")) {
+                void toggleBookmark(activeNotePath);
+              }
+            }}
+            onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
             onDriveSignIn={() => void handleDriveSignIn()}
             onDriveRefresh={() => void handleDriveRefresh()}
             onDriveDisconnect={() => void handleDriveDisconnect()}
