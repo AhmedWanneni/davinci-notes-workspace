@@ -4,7 +4,257 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Performance Optimization & Memory Footprint Reduction
+## Last Session — Fix Reminder In-App Notification Toast ("Done" & "Close" Buttons Non-Responsive)
+
+**Scope:**
+1. **Root Cause Analysis**:
+   - **Stacking Context & Dialog Backdrop Interception**: When adding a reminder in `RemindersDialog` (`AddReminderForm`), a reminder due now/past immediately emitted `davinci-reminders-due`. `ReminderNotificationToast` was rendered directly inside `#root` (`z-index: 1000`). Radix `<DialogContent>` was portaled to `document.body > [data-radix-portal]` with `z-index: 1000` and rendered full-screen overlay backdrop (`position: fixed; inset: 0;`). As `[data-radix-portal]` was mounted after `#root`, clicks on the toast hit the dialog backdrop instead of the toast's Close and Done buttons.
+   - **Radix Modal DismissableLayer Suppression**: When `RemindersDialog` (`modal={true}`) was open, Radix's DismissableLayer intercepted pointerdown events outside `DialogContent` and cancelled outside element interaction.
+   - **Data Contract Snake/Camel Mismatch**: Rust `PendingReminder` derived `serde::Serialize` without `rename_all = "camelCase"`, emitting `note_path`, `due_at_utc`, and `reminder_key`. Frontend `ActiveToastReminder` expected camelCase (`notePath`, etc.). In `handleDone`, `current.notePath` was `undefined`, causing `markReminderDoneInVault` to reject with an unhandled exception and preventing `handleDismiss()` from executing.
+2. **React Portal & High Stacking Priority**:
+   - `ReminderNotificationToast.tsx`: Portaled to `document.body` via `createPortal`, raised `z-index: 10000`, added `pointer-events: auto`, and stamped `data-reminder-toast="true"`.
+3. **Radix Dialog Content Outside Interaction Bypass**:
+   - Updated `packages/design-system/components/Dialog/Dialog.tsx`: Added `onPointerDownOutside` and `onInteractOutside` guards to check `(target as HTMLElement)?.closest?.("[data-reminder-toast]")`. If true, calls `e.preventDefault()`, preventing Radix from suppressing clicks on toast buttons or dismissing the underlying dialog.
+4. **Rust Serde & Universal Normalization**:
+   - Updated `apps/desktop/src-tauri/src/reminder_db.rs`: Added `#[serde(rename_all = "camelCase")]` to `PendingReminder`.
+   - Created `normalizeToastReminder.ts`: Robust normalization supporting both `snake_case` and `camelCase` input payloads and deduplicating incoming reminders.
+   - Handled `handleDone`, `handleSnooze`, and `handleDismiss` in `ReminderNotificationToast.tsx` with `try/catch/finally` so toasts are always dismissed without freezing.
+5. **Testing & Verification**:
+   - Colocated `normalizeToastReminder.test.ts` (4 unit tests passing).
+   - Colocated `ReminderNotificationToast.test.tsx` (7 unit tests passing: snake_case/camelCase payloads, Done button, Close button, rejection fallback, snooze presets, note navigation).
+   - Added `Dialog.test.tsx` unit test verifying reminder toast interaction bypass.
+   - All 12 desktop reminder test suites (61 tests) and all 8 Rust reminder tests pass.
+   - All files strictly under 150-200 line cap.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Boxless Diagram Rendering with Hover Hint & Code Mode (Removed Visual Editor)
+
+**Scope:**
+1. **Removed Visual Editor**:
+   - Completely removed the visual diagram editor modal, step manager, popovers, and AST parsers per user instruction.
+   - Cleaned up deleted files: `mermaidVisualEditorModal.ts`, `mermaidVisualEditorSteps.ts`, `mermaidNodeEditPopover.ts`, `mermaidModalTheme.ts`, `mermaidDiagramParser.ts`, and `mermaidDiagramParser.test.ts`.
+2. **Boxless Clean Diagram Rendering**:
+   - Diagrams render naturally without borders, container cards, or background boxes (`.cm-mermaid-diagram` with transparent background and no border).
+   - Preserved Obsidian-style internal links (`class A internal-link;`).
+3. **Subtle Hover Hint (`mermaidHoverHint.ts`)**:
+   - Completely invisible by default (`opacity: 0`), appearing smoothly only when hovering over the diagram (`:hover`).
+   - Clean floating pill button: `[ 💻 Edit code ]`.
+4. **Code Editing & Seamless Toggle**:
+   - Clicking `[ 💻 Edit code ]` switches the block into CodeMirror fenced source mode with `[ 👁️ View Diagram ]` header widget (`mermaidToolbarWidget.ts`).
+   - Clicking `[ 👁️ View Diagram ]` immediately restores the rendered diagram view.
+   - Moving the cursor through the note keeps diagrams rendered visually without auto-collapsing.
+5. **Codebase Structure & Line Caps**:
+   - All files strictly modular and well below the 150-200 line soft cap:
+     - `mermaidTheme.ts`: 115 lines
+     - `mermaidWidget.ts`: 110 lines
+     - `mermaidExtension.ts`: 124 lines
+     - `mermaidHoverHint.ts`: 25 lines
+     - `mermaidToolbarWidget.ts`: 31 lines
+     - `mermaidSvgInteractions.ts`: 17 lines
+6. **Verification & Testing**:
+   - All 4 tests in `apps/desktop/src/state/mermaidExtension.test.tsx` passing.
+   - All 239 tests in `@app/editor` passing.
+   - Desktop production build (`pnpm --filter @app/desktop build:web`) succeeded with exit code 0 in 9.96s.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — AI Selection Comment & Inline Edit/Amend Widget (SearchDialog Style & Click-Away)
+
+**Scope:**
+1. **Root Cause Diagnosis of Single-Row Table Collapse**:
+   - Identified why inserted tables rendered on a single horizontal row (`Header 1 | Header 2 | :--- | :--- | Cell 1 | Cell 2`): `@lezer/markdown` was initialized without the `Table` parser extension (`markdown({ extensions: [Strikethrough, highlightExtension] })`), causing Lezer to parse Markdown tables as a generic `Paragraph` AST node.
+   - Because `softLineBreakExtension` replaces newlines inside `Paragraph` nodes with space widgets when `strictLineBreaks` is active or in `MarkdownView`, all table rows (`\n`) were being replaced with spaces and collapsed into a single visual line of 6 cells.
+2. **Grammar & Line Break Safeguards (`createEditorExtensions.ts`, `MarkdownView.tsx`, `lineBreakExtension.ts`, `packages/editor/index.ts`)**:
+   - Included `Table` from `@lezer/markdown` in `createEditorExtensions.ts` and `MarkdownView.tsx`, properly parsing tables as `Table`, `TableHeader`, and `TableRow` AST elements.
+   - Exported `Table` from `packages/editor/index.ts` for clean shared imports across the repository without extra sub-dependencies.
+   - Added guards to `isParagraphBreak` in `lineBreakExtension.ts` explicitly ignoring `Table`, `TableHeader`, `TableRow`, `TableCell`, and `TableDelimiter` AST nodes, and added `!line.text.trim().startsWith("|")` to `addSoftLineBreaks` so table rows can never be collapsed into paragraphs.
+3. **Padded Block Table Insertion (`tableSnippetGenerator.ts`, `EditorFormattingToolbarButtons.tsx`, `EditorInsertTray.tsx`)**:
+   - Added `insertTableAtCursor(view, cols, rows)` guaranteeing safe block-level before/after newlines and automatically placing the cursor inside the first header cell.
+   - Replaced ad-hoc raw dispatches in `EditorFormattingToolbarButtons.tsx` and `EditorInsertTray.tsx` with `insertTableAtCursor`.
+4. **Verification & Testing**:
+   - Added unit test in `tableEditing.test.tsx` verifying that `softLineBreakExtension` never collapses table rows, preserving distinct header, separator, and body rows.
+   - Added unit test for `insertTableAtCursor` testing block padding and cursor positioning.
+   - All 5 table test suites (28 tests) and all 35 `@app/editor` test suites (239 tests) pass.
+   - Production web build (`pnpm --filter @app/desktop build:web`) succeeded in 9.57s.
+   - All modified files remain strictly under the 250-line hard cap (most under 195 lines).
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — In-Editor Table Rendering & In-Place Cell Editing Fix
+
+**Scope:**
+1. **Empty Cell Crash Fix (`tableExtension.ts`, `tableParser.ts`)**:
+   - Diagnosed root cause of broken table rendering: empty cells (`| |` or `||`) previously had whitespace stripped to a 0-length range (`cell.from === cell.to`), causing CodeMirror to throw `RangeError: Mark decorations may not be empty` and crashing the `tableExtension` ViewPlugin on table load or insertion.
+   - Introduced `EmptyCellWidget` (a dedicated CodeMirror `WidgetType` rendering `<span class="cm-table-cell cm-table-cell-empty">&nbsp;</span>`) for zero-length cells, and preserved non-empty whitespace cell ranges for `Decoration.mark`.
+2. **Table Rendering & Trailing Space Tolerance (`tableParser.ts`)**:
+   - Fixed regex alignment parsing in `separatorAlignment` to `.trim()` cell contents before matching `---` and `:---`.
+   - Prevented spurious extra cell creation when a table row has trailing spaces after the final pipe (`| A | B | `).
+   - Supported 1-column tables (`separator.cells.length >= 1`).
+   - Escaped wikilink pipes (`[[Target|Alias]]`), inline code pipes, and backslash-escaped pipes (`\|`) so table column splitting never misidentifies internal pipes as column dividers.
+3. **In-Place Cell Editing & Styling Polish (`tableTheme.ts`)**:
+   - Removed `fontSize: 0` on `.cm-table-row` which was previously collapsing caret height and causing typed text to appear invisible or jump.
+   - Styled `.cm-table-cell` with `display: inline-flex`, `minHeight: 32px`, `whiteSpace: pre-wrap`, and cell borders, ensuring both filled and empty cells have clear click targets, proper caret placement, and live editable text.
+   - Hidden `.cm-table-delimiter` with fixed `width: 0`, `overflow: hidden`, and `opacity: 0` so cursor navigation never causes cell widths to jump.
+4. **Modularity & Architecture (`tableParser.ts`, `tableContextMenu.ts`, `tableExtension.ts`)**:
+   - Split table logic into modular files under 170 lines each, strictly satisfying `AGENTS.md` (soft cap 150–200, hard cap 250).
+5. **Testing & Verification**:
+   - Added `tableEditing.test.tsx` testing empty cell widget rendering, typing into empty cells, editing values in filled cells, and single-column tables.
+   - All 5 table test suites (24 tests) and all 35 `@app/editor` test suites (239 tests) passing cleanly.
+   - Production web build (`pnpm --filter @app/desktop build:web`) succeeds with 0 errors.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Interactive Draggable Table Grid Picker & In-Editor Rendering Polish
+
+**Scope:**
+1. **Interactive Draggable Table Grid Picker (`TableGridPicker.tsx`, `TableGridPicker.module.scss`, `tableSnippetGenerator.ts`)**:
+   - Built a Google Docs-style interactive 2D grid matrix of squares ($8 \times 8$).
+   - Hover and drag dynamically highlights the selected rectangular area and displays real-time dimensions (e.g., `3 x 4`, `5 x 2`).
+   - Clicking or releasing drag immediately inserts a clean, properly formatted Markdown table into CodeMirror and positions cursor inside the first header cell.
+   - Wired into `EditorFormattingToolbarButtons.tsx` as a popover on the Table button, with outside-click dismissal.
+   - Embedded into `EditorInsertTray.tsx` under the Tables category for direct custom table sizing alongside quick presets.
+2. **In-Editor Table Rendering Polish (`tableTheme.ts`)**:
+   - Replaced flat $0\text{px}$ vertical padding with comfortable cell padding (`var(--space-2) var(--space-3)`).
+   - Added row bottom borders (`1px solid var(--color-border-subtle)`) and subtle hover row highlights.
+   - Added a distinctive header background (`var(--color-bg-secondary)`), bold text, and a strong header divider border (`2px solid var(--color-border-strong)`).
+3. **Rendered Sections & Insert UI Enhancements (`mermaidTheme.ts`, `markdownAnnotationTheme.ts`, `EditorInsertTray.module.scss`)**:
+   - Wrapped rendered Mermaid diagrams in bounded card containers with subtle border, surface background, and rounded corners.
+   - Added comfortable vertical breathing room and soft background tint for blockquotes and callouts.
+   - Polished category tab spacing and section labels in `EditorInsertTray`.
+4. **Verification & Testing**:
+   - Unit tests added and passing in `TableGridPicker.test.tsx` and `tableSnippetGenerator.test.ts`.
+   - Storybook stories created in `TableGridPicker.stories.tsx`.
+   - All 35 test files (239 tests) in `@app/editor` pass cleanly.
+   - Production web build (`pnpm --filter @app/desktop build:web`) succeeds with 0 errors.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Vim Mode dd Reversion Fix, Structured Insert Tray, and Image Resize Affordances
+
+**Scope:**
+1. **Interactive Drag Handles & Live Dimension Badge (`imageResizeOverlay.ts`)**:
+   - Added right-border (`col-resize`) and bottom-right corner (`nwse-resize`) drag handles visible on image hover/selection.
+   - Smooth 60fps drag resizing with automatic natural aspect ratio preservation and boundary clamping ($80\text{px} \le \text{width} \le \text{containerWidth}$).
+   - Live monospace dimension badge displayed during drag indicating current pixel width.
+2. **Floating Quick Preset Toolbar (`imageResizeOverlay.ts`, `imageTheme.ts`)**:
+   - Floating action toolbar on hover with instant presets (`25%`, `50%`, `100%`) and `Reset` button (to restore natural size).
+3. **Pure Markdown Syntax Updating (`imageResizeSyntax.ts`)**:
+   - Pure parser/updater modifying Wikilink (`![[target|width]]`) and Markdown (`![alt|width](url)`) syntax on drag release or preset click.
+   - Preserves custom alt titles and existing path stems. Removes dimension part on `Reset`.
+4. **Theme Modularization & Line Cap Compliance (`imageTheme.ts`, `editorTheme.ts`)**:
+   - Extracted image embed, placeholder, and resize styles to `imageTheme.ts`, reducing `editorTheme.ts` from 292 down to 234 lines (under 250 hard cap).
+   - Styled with design tokens, border depth, and kebab-case classes.
+5. **Verification & Testing**:
+   - Added unit test suite `packages/editor/embeds/imageResizeSyntax.test.ts` (9/9 passing).
+   - Added unit test suite `packages/editor/embeds/imageResizeOverlay.test.ts` (4/4 passing).
+   - All 35 test files in `@app/editor` (236/236 tests) pass cleanly.
+   - All 14 test files in `@app/desktop` `EditorArea` (53/53 tests) pass cleanly.
+   - `pnpm --filter @app/desktop build:web` succeeds in 11.21s with 0 errors.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Vault `images` Folder Routing & CodeMirror Image Rendering Fix
+
+**Scope:**
+1. **Automatic Vault `images` Folder Creation & Routing (`useEditorMediaHandlers.ts`, `writeAttachment.ts`)**:
+   - In `useEditorMediaHandlers.ts`: automatically detects image files by MIME type (`image/*`) or extension (`png|jpg|jpeg|gif|webp|svg|bmp|ico|avif`).
+   - Checks if an `images` folder exists in the active vault (`allFolderPaths`).
+   - If missing, invokes `createFolder("images")` and updates `allFolderPaths` in `useWorkspaceStore`.
+   - Writes the image into `images/<filename>` using `writeAttachmentToVault`.
+   - Adds the new image path (`images/<filename>`) to `allNotePaths` and returns `![[images/<filename>]]`.
+2. **CodeMirror Image Rendering Fix & Asset Protocol Permission (`tauri.conf.json`, `embedImageExtension.ts`, `createEditorExtensions.ts`, `Editor.tsx`)**:
+   - Configured `app.security.assetProtocol: { enable: true, scope: ["**"] }` in `apps/desktop/src-tauri/tauri.conf.json`, allowing WKWebView to serve local vault media over `asset://localhost/...` without HTTP 403 Forbidden.
+   - Wrapped `embedImageExtension` in an Editor `Compartment` (`embedImageCompartmentRef`) in `createEditorExtensions.ts` and `Editor.tsx`, reconfiguring it dynamically whenever `notePaths` or `resolveMediaUrl` changes so dropped images immediately render without requiring an editor remount.
+   - Handled absolute vs. relative paths in `handleResolveMediaUrl` to prevent double-prefixing vault paths.
+   - Added descriptive logging to `image.onerror` and expanded image format detection regex.
+3. **Verification & Testing**:
+   - Added unit test suite `apps/desktop/src/components/EditorArea/useEditorMediaHandlers.test.ts` (3/3 passing) verifying folder creation, already-existing folder handling, and media URL resolution.
+   - All 33 test files in `@app/editor` (223/223 tests) pass cleanly.
+   - All 181 test files in `@app/desktop` (730/730 tests) pass cleanly.
+   - `pnpm --filter @app/desktop build:web` builds cleanly with 0 errors.
+   - All touched files strictly satisfy `AGENTS.md` line caps ($\le 250$ lines).
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Drag & Drop Images, Slash Command Menu & Editor Row Layout
+
+**Scope:**
+1. **Desktop Drag & Drop Image Import & Immediate Display (`packages/editor/clipboard`, `packages/editor/embeds`, `apps/desktop/src/components/EditorArea`, `apps/desktop/src/vault`)**:
+   - Fixed WebKit/Tauri `dragover` security trap where `dataTransfer.files` is empty during dragover; inspected `dataTransfer.types.includes("Files")` to call `preventDefault()` and set `dropEffect = "copy"`.
+   - Fixed `Attachment write-failed` error in `writeAttachmentToVault` (`writeAttachment.ts`): replaced `@tauri-apps/plugin-fs` calls (which failed because the user's vault path is outside the default capability sandbox scope) with native Rust commands `writeBinaryFile`, `statNote`, and `createFolder`, which operate with full native OS permissions to the active vault.
+   - In `useEditorMediaHandlers.ts`: immediately updated `allNotePaths` in `useWorkspaceStore` after saving attachment to disk so `embedImageExtension` resolves and displays the image without delay or missing image placeholders.
+   - In `embedImageExtension.ts`: resolved direct image paths with image extensions directly via `resolveMediaUrl(target)` when path is present.
+   - In `pasteAttachment.ts`: cleanly isolated image markdown onto its own row when dropped, advancing cursor to after the inserted block.
+2. **Screenshot-Matched Slash Command Menu (`packages/editor/insert`, `packages/editor/theme`)**:
+   - Fixed CodeMirror autocompletion compartment bug in `Editor.tsx` where dynamic prop changes dropped `slashMenuSource`.
+   - Structured slash options into clear sections: `"Suggested"` (`AI Meeting Notes`, `HTML · Embeds [New]`), `"Basic blocks"` (`Text`, `Heading 1` `#`, `Heading 2` `##`, `Heading 3` `###`, `Bullet list` `-`, `Numbered list` `1.`, `Task list` `[]`, `Quote` `>`, `Divider` `---`), `"Media & Embeds"`, `"Advanced & Data"`, and `"Actions"` (`Close menu` `esc`).
+   - Built zero-dependency SVG icon system in `slashIcons.ts` and wired `addToOptions` in `SlashMenu.ts` for custom icon prefix, `New` badge, and right-aligned shortcut hint details.
+   - Styled `.cm-tooltip-autocomplete` and slash menu options in `slashMenuTheme.ts` using design tokens and border depth (non-gradient, non-shadow Swiss aesthetic).
+3. **Editor Row Layout & Elimination of "2 Lines in a Row" (`packages/editor/live-preview`, `packages/editor/theme`)**:
+   - Gated `softLineBreakExtension` in `Editor.tsx` behind `strictLineBreaks` (default false), eliminating automatic collapse of consecutive paragraph lines into a single row.
+   - Ensured block image embeds (`.cm-file-image-embed` and `.cm-image-embed`) render with `display: block; max-width: 100%;` on dedicated rows.
+4. **Codebase Modularization & Hard Cap Compliance (`AGENTS.md`)**:
+   - Refactored `Editor.tsx` from 392 lines down to 206 lines by extracting `createEditorExtensions.ts` and `useVimModeSync.ts`.
+   - Refactored `InsertRegistry.ts` from 246 lines down to 159 lines by extracting `basicItems.ts`.
+   - All 11 created and touched files strictly under 206 lines (hard cap 250, soft cap 150–200).
+5. **Verification & Testing**:
+   - All 33 test files in `@app/editor` (223/223 tests) pass cleanly.
+   - All 13 test files in `@app/desktop` `EditorArea` (50/50 tests) pass cleanly.
+   - `pnpm --filter @app/desktop build:web` succeeds cleanly in 11.07s with 0 errors.
+
+---
+
+## Previous Session — AI Agent Performance Optimization & Memory Footprint Reduction
 
 **Scope:**
 1. **Bounded Working History & Payload Pruning (`agentSystemPrompt.ts`)**:

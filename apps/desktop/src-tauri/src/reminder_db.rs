@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct PendingReminder {
   pub id: i64,
   pub reminder_key: String,
