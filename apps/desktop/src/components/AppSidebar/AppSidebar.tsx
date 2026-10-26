@@ -54,7 +54,10 @@ export interface AppSidebarProps {
   onSwitchVault?: (path: string) => void;
   onOpenFolderPicker?: () => void;
   onCreateNewVault?: () => void;
+  onOpenVaultFromDrive?: () => void;
+  onSyncVault?: () => void;
   onOpenSettings?: () => void;
+  onOpenSyncSettings?: () => void;
   onOpenHelp?: () => void;
   onOpenLogs?: () => void;
 }
@@ -108,7 +111,10 @@ export function AppSidebar({
   onSwitchVault,
   onOpenFolderPicker,
   onCreateNewVault,
+  onOpenVaultFromDrive,
+  onSyncVault,
   onOpenSettings,
+  onOpenSyncSettings,
   onOpenHelp,
   onOpenLogs,
 }: AppSidebarProps) {
@@ -152,6 +158,7 @@ export function AppSidebar({
         onOpenSearch={onOpenSearch}
         onOpenTags={onOpenTags}
         onToggleLeftSidebar={onToggleLeftSidebar}
+        onOpenSyncSettings={onOpenSyncSettings ?? onOpenSettings}
       />
 
       <div className="app-sidebar__content">
@@ -207,6 +214,8 @@ export function AppSidebar({
         onSwitchVault={onSwitchVault ?? (() => {})}
         onOpenFolderPicker={onOpenFolderPicker ?? (() => {})}
         onCreateNewVault={onCreateNewVault}
+        onOpenVaultFromDrive={onOpenVaultFromDrive}
+        onSyncVault={onSyncVault}
         onOpenSettings={onOpenSettings}
         onOpenHelp={onOpenHelp}
         onOpenLogs={onOpenLogs}
@@ -222,4 +231,3 @@ export function AppSidebar({
     </aside>
   );
 }
-

@@ -2,6 +2,27 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-26: Blank Page Fix & Top Bar Sync Indicator Placement
+
+- **Root Cause Analysis & Resolution**:
+  - Investigated user report of a "blank page when open the app".
+  - Diagnosed that static circular imports existed between `vault/index.ts -> useWorkspaceStore.ts -> vaultCommands.ts -> desktopSyncEngine.ts -> useDriveSyncStore.ts -> SyncStatusButton.tsx -> EditorArea.tsx -> App.tsx -> vault/index.ts`.
+  - Under Vite ESM dev mode and HMR, circular dependency graphs between components, stores, and backend engines caused undefined module bindings during component evaluation, resulting in uncaught React render errors and an unhandled blank white screen.
+  - Refactored `useDriveSyncStore.ts` to dynamically import `desktopSyncEngine` (`const { runDesktopDriveSync } = await import("./desktopSyncEngine");`) inside the async `syncNow()` handler, cleanly severing the synchronous import loop.
+  - Replaced barrel circular imports (`import { ... } from "./index"`) in `useVaultWatcherSubscription.ts` with direct imports (`./sqliteIndex`, `./VaultIndexer`, `./vaultCommands`, `./vaultWatchCoordinator`, etc.).
+- **Added Crash Guard (`AppErrorBoundary`)**:
+  - Implemented `AppErrorBoundary.tsx` (<100 lines) providing a resilient fallback view displaying the actual error and a "Reload Application" button.
+  - Wrapped root in `main.tsx` so unhandled exceptions never result in a blank white page.
+  - Colocated unit tests in `AppErrorBoundary.test.tsx` (3 tests pass).
+- **Top Bar Sync Status Placement**:
+  - Integrated `SyncStatusButton` into `AppSidebarHeader.tsx` directly next to the `Bookmarks` button in the top navigation bar (`Files` | `Search` | `Bookmarks` | `[SyncStatus]`), styled consistently with `.app-sidebar__nav-btn`.
+  - Preserved note-level `SyncStatusButton` in `EditorArea.tsx` next to the note bookmark button.
+- **Verification**:
+  - All 204 Vitest test files in `@app/desktop` pass (836/836 tests).
+  - Web production build (`pnpm build:web`) completed successfully with 0 errors.
+
+---
+
 ### 2026-10-26: Fix Reminder In-App Notification Toast ("Done" & "Close" Buttons Non-Responsive)
 
 - **Root Cause Diagnosis**:

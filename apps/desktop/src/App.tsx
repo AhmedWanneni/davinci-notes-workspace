@@ -19,12 +19,7 @@ import { VaultWelcomeView } from "./components/VaultWelcomeView";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import { usePluginStore } from "./state/usePluginStore";
 import { useThemeStore } from "./state/useThemeStore";
-import {
-  getDriveAccessToken,
-  openDriveAuthorizationUrl,
-  signInToDrive,
-  signOutOfDrive,
-} from "./sync/desktopDriveAuth";
+import { useDriveSyncStore } from "./sync";
 import {
   getVaultIndexDb,
   openAndIndexVault,
@@ -85,6 +80,12 @@ const LazyTagsDialog = React.lazy(() =>
 const LazyRemindersDialog = React.lazy(() =>
   import("./components/RemindersDialog").then((m) => ({
     default: m.RemindersDialog,
+  })),
+);
+import { isImagePath } from "./components/ImagePreview/imagePreviewUtils";
+const LazyImagePreviewLeaf = React.lazy(() =>
+  import("./components/ImagePreview/ImagePreviewLeaf").then((m) => ({
+    default: m.ImagePreviewLeaf,
   })),
 );
 import { ReminderNotificationToast } from "./components/RemindersDialog";
@@ -220,6 +221,8 @@ export function App() {
     isLoadingVault,
     vaultError,
     setVaultError,
+    recentVaults,
+    handleRemoveRecentVault,
     graph,
     loadVaultByMethod,
     createNewNote,
@@ -227,6 +230,7 @@ export function App() {
     createNewCanvas,
     handleLinkClick,
     switchVaultTo,
+    createNewVault,
     openFixture,
     openLargeFixture,
     openPicker,
@@ -587,38 +591,43 @@ export function App() {
     }
   };
 
-  const handleDriveSignIn = async () => {
-    try {
-      await signInToDrive(openDriveAuthorizationUrl);
-      window.alert("Drive sign-in complete.");
-    } catch (error) {
-      window.alert(
-        `Drive sign-in failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  };
+  const isDriveSignedIn = useDriveSyncStore((state) => state.isDriveSignedIn);
+  const driveAccountEmail = useDriveSyncStore(
+    (state) => state.driveAccountEmail,
+  );
+  const isDriveSyncing = useDriveSyncStore((state) => state.isDriveSyncing);
+  const lastSyncedAt = useDriveSyncStore((state) => state.lastSyncedAt);
+  const syncError = useDriveSyncStore((state) => state.syncError);
+  const checkDriveAuth = useDriveSyncStore((state) => state.checkAuthStatus);
+  const syncDriveNow = useDriveSyncStore((state) => state.syncNow);
+  const signInDrive = useDriveSyncStore((state) => state.signIn);
+  const signOutDrive = useDriveSyncStore((state) => state.signOut);
 
-  const handleDriveRefresh = async () => {
-    try {
-      await getDriveAccessToken();
-      window.alert("Drive session is valid.");
-    } catch (error) {
-      window.alert(
-        `Drive session check failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  };
+  useEffect(() => {
+    void checkDriveAuth();
+  }, [checkDriveAuth]);
 
-  const handleDriveDisconnect = async () => {
-    try {
-      await signOutOfDrive();
-      window.alert("Drive disconnected.");
-    } catch (error) {
-      window.alert(
-        `Drive disconnect failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+  useEffect(() => {
+    if (vaultPath && syncMode === "drive" && isDriveSignedIn) {
+      void syncDriveNow();
     }
-  };
+  }, [vaultPath, syncMode, isDriveSignedIn, syncDriveNow]);
+
+  const handleOpenVaultFromDrive = useCallback(async () => {
+    let signedIn = useDriveSyncStore.getState().isDriveSignedIn;
+    if (!signedIn) {
+      const ok = await signInDrive();
+      if (!ok) return;
+      signedIn = true;
+    }
+    const { pickVaultFolder } = await import("./vault/pickVaultFolder");
+    const selected = await pickVaultFolder();
+    if (!selected) return;
+
+    await switchVaultTo(selected);
+    setSyncMode("drive");
+    void syncDriveNow();
+  }, [signInDrive, switchVaultTo, setSyncMode, syncDriveNow]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -642,11 +651,15 @@ export function App() {
       <VaultWelcomeView
         isLoadingVault={isLoadingVault}
         vaultError={vaultError}
-        log={log}
+        recentVaults={recentVaults}
         onClearError={() => setVaultError(null)}
         onOpenFixture={openFixture}
         onOpenLargeFixture={openLargeFixture}
         onOpenPicker={openPicker}
+        onCreateNewVault={createNewVault}
+        onOpenVaultFromDrive={handleOpenVaultFromDrive}
+        onSelectRecentVault={(path) => void switchVaultTo(path)}
+        onRemoveRecentVault={(path) => void handleRemoveRecentVault(path)}
       />
     );
   }
@@ -665,8 +678,11 @@ export function App() {
           vaultPath={vaultPath}
           onSwitchVault={(target) => void switchVaultTo(target)}
           onOpenFolderPicker={openPicker}
-          onCreateNewVault={openPicker}
+          onCreateNewVault={createNewVault}
+          onOpenVaultFromDrive={handleOpenVaultFromDrive}
+          onSyncVault={isDriveSignedIn ? () => void syncDriveNow() : undefined}
           onOpenSettings={handleOpenSettings}
+          onOpenSyncSettings={handleOpenSyncSettings}
           onOpenLogs={handleOpenLogs}
           allNotePaths={allNotePaths}
           allFolderPaths={allFolderPaths}
@@ -774,6 +790,13 @@ export function App() {
               viewId={openViewId}
               revision={pluginViewRevision}
             />
+          ) : activeNotePath && isImagePath(activeNotePath) ? (
+            <Suspense fallback={null}>
+              <LazyImagePreviewLeaf
+                path={activeNotePath}
+                onClose={() => void closeNote(activeNotePath)}
+              />
+            </Suspense>
           ) : (
             <EditorArea
               activeNotePath={activeNotePath}
@@ -785,6 +808,7 @@ export function App() {
               onViewReady={(view) => {
                 editorViewRef.current = view;
               }}
+              onOpenSyncSettings={handleOpenSyncSettings}
             />
           )}
         </main>
@@ -857,13 +881,19 @@ export function App() {
             vaultPath={vaultPath}
             syncMode={syncMode}
             onSelectSyncMode={setSyncMode}
+            isDriveSignedIn={isDriveSignedIn}
+            driveAccountEmail={driveAccountEmail}
+            isDriveSyncing={isDriveSyncing}
+            lastSyncedAt={lastSyncedAt}
+            syncError={syncError}
+            onDriveSignIn={() => void signInDrive()}
+            onDriveRefresh={() => void checkDriveAuth()}
+            onDriveDisconnect={() => void signOutDrive()}
+            onDriveSyncNow={() => void syncDriveNow()}
             onVaultSwitched={(newPath) => {
               setIsSettingsOpen(false);
               void loadVaultByMethod(() => openAndIndexVault(newPath));
             }}
-            onDriveSignIn={() => void handleDriveSignIn()}
-            onDriveRefresh={() => void handleDriveRefresh()}
-            onDriveDisconnect={() => void handleDriveDisconnect()}
             themes={themes}
             activeThemeId={activeThemeId}
             themeDiscoveryErrors={themeDiscoveryErrors}
@@ -893,9 +923,9 @@ export function App() {
               }
             }}
             onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
-            onDriveSignIn={() => void handleDriveSignIn()}
-            onDriveRefresh={() => void handleDriveRefresh()}
-            onDriveDisconnect={() => void handleDriveDisconnect()}
+            onDriveSignIn={() => void signInDrive()}
+            onDriveRefresh={() => void checkDriveAuth()}
+            onDriveDisconnect={() => void signOutDrive()}
             pluginCommands={pluginCommands}
             onInvokePluginCommand={(id) => void invokePluginCommand(id)}
             editorView={editorViewRef.current}

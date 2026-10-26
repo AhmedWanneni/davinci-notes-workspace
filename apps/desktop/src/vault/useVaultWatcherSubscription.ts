@@ -3,18 +3,20 @@ import type { GraphIndex } from "@app/indexer";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import {
   getVaultIndexDb,
-  reconcileVaultChanges,
+  withDbLock,
+  queryFullGraphIndex,
+} from "./sqliteIndex";
+import { reconcileVaultChanges } from "./VaultIndexer";
+import {
   subscribeVaultChanges,
-  vaultWatchCoordinator,
   listNotes,
   listFolders,
   readNote,
-  withDbLock,
-  retryOnSqliteBusy,
-  diskStateTracker,
-  classifyDiskChange,
-  queryFullGraphIndex,
-} from "./index";
+} from "./vaultCommands";
+import { vaultWatchCoordinator } from "./vaultWatchCoordinator";
+import { retryOnSqliteBusy } from "./retryOnSqliteBusy";
+import { diskStateTracker } from "./diskStateTracker";
+import { classifyDiskChange } from "./classifyDiskChange";
 import { clearSaveTimer } from "../state/saveTimers";
 import {
   BOOKMARKS_JSON_PATH,
@@ -72,6 +74,25 @@ export function useVaultWatcherSubscription({
           if (!state.dirtyNotes.has(path)) {
             try {
               const file = await readNote(path);
+              const lastKnown = diskStateTracker.get(path);
+              if (
+                lastKnown &&
+                (lastKnown.content === file.content ||
+                  (lastKnown.mtime === file.mtime &&
+                    lastKnown.size === file.size))
+              ) {
+                continue;
+              }
+              const currentContent =
+                useWorkspaceStore.getState().notesContent[path];
+              if (currentContent === file.content) {
+                diskStateTracker.set(path, {
+                  mtime: file.mtime,
+                  size: file.size,
+                  content: file.content,
+                });
+                continue;
+              }
               diskStateTracker.set(path, {
                 mtime: file.mtime,
                 size: file.size,
@@ -172,7 +193,9 @@ export function useVaultWatcherSubscription({
           try {
             const bFile = await readNote(BOOKMARKS_JSON_PATH);
             const parsed = parseBookmarks(bFile.content);
-            useBookmarkStore.getState().mergeExternalBookmarks(parsed.bookmarks);
+            useBookmarkStore
+              .getState()
+              .mergeExternalBookmarks(parsed.bookmarks);
           } catch {
             // Ignore missing/unreadable file
           }

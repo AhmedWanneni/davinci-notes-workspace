@@ -4,7 +4,92 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Reminder In-App Notification Toast ("Done" & "Close" Buttons Non-Responsive)
+## Last Session — Blank Page Resolution & Top Bar Sync Indicator Fix
+
+**Scope:**
+1. **Blank Page Root Cause Analysis & Resolution**:
+   - **Root Cause 1**: Circular import dependency loop between `vault/index.ts -> useWorkspaceStore.ts -> vaultCommands.ts -> desktopSyncEngine.ts -> useDriveSyncStore.ts -> SyncStatusButton.tsx -> EditorArea.tsx -> App.tsx -> vault/index.ts`. Under Vite dev ESM and HMR, evaluating this chain caused undefined module bindings during initialization, resulting in unhandled rendering failures and an unhandled blank page.
+   - **Fix 1**: Decoupled `useDriveSyncStore.ts` from static imports of `desktopSyncEngine.ts` by using dynamic `await import("./desktopSyncEngine")` inside the async `syncNow()` handler.
+   - **Fix 2**: Replaced circular barrel import `import { ... } from "./index"` inside `apps/desktop/src/vault/useVaultWatcherSubscription.ts` with direct imports (`./sqliteIndex`, `./VaultIndexer`, `./vaultCommands`, `./vaultWatchCoordinator`, etc.).
+2. **Crash Prevention (`AppErrorBoundary`)**:
+   - Implemented [`AppErrorBoundary`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppErrorBoundary.tsx) (<100 lines) with friendly fallback UI, error messaging, and an immediate reload button.
+   - Wrapped root application in [`main.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/main.tsx) to ensure the app never displays an unhandled blank white page.
+   - Added unit test suite [`AppErrorBoundary.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppErrorBoundary.test.tsx) with 3 passing tests.
+3. **Top Bar Sync Icon Placement**:
+   - Placed the icon-only [`SyncStatusButton`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SyncStatusButton/SyncStatusButton.tsx) directly next to the Bookmark navigation button in [`AppSidebarHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppSidebar/AppSidebarHeader.tsx) (the top bar header: `Files` | `Search` | `Bookmarks` | `SyncStatus`), ensuring it is always visible even when no note is open.
+   - Retained the note-level sync status icon in [`EditorArea.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/EditorArea/EditorArea.tsx) next to the note bookmark button.
+4. **Verification**:
+   - All 204 Vitest test files in `@app/desktop` pass (836/836 tests).
+   - ESLint passes cleanly with 0 errors on all modified files.
+   - Web production build (`build:web`) succeeds with 0 errors in 11.41s.
+
+---
+
+## Previous Session — Top Bar Sync Icon & Status Bar Cleanup
+
+**Scope:**
+1. **Top Bar Sync Indicator (`SyncStatusButton`)**:
+   - Built a dedicated icon-only [`SyncStatusButton`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SyncStatusButton/SyncStatusButton.tsx) component colocated with SCSS module, Storybook story, unit tests, and barrel index.
+   - Positioned in [`EditorArea.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/EditorArea/EditorArea.tsx) top note header actions bar directly next to the bookmark button (`BookmarkSimple`).
+   - Pure icon display with zero text label:
+     - **Syncing**: Spinning `ArrowsClockwise` (`weight="bold"`).
+     - **Synced**: `CloudCheck` (`weight="bold"`).
+     - **Not synced / error**: `CloudWarning` (`weight="bold"`).
+     - **Not connected / signed out**: `CloudSlash` (`weight="regular"`).
+   - Tooltips on hover describe the exact state, and clicking triggers sync immediately (when signed in and idle) or opens Sync Settings (when disconnected or encountering an error).
+2. **Bottom Status Bar Cleanup**:
+   - Removed the sync button, status label, and cloud icon imports from [`StatusBar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/StatusBar/StatusBar.tsx).
+   - Updated [`StatusBar.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/StatusBar/StatusBar.test.tsx) and added 4 unit tests in [`SyncStatusButton.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SyncStatusButton/SyncStatusButton.test.tsx) (all passing).
+3. **Verification**:
+   - All tests in `@app/desktop` pass (20/20 tests).
+   - Vite web build (`build:web`) succeeds with 0 errors in 9.35s.
+
+---
+
+## Previous Session — Drive Vault Folder Automatic Population & Sync Reconciliation
+
+**Scope:**
+1. **Drive Vault Folder Population Issue**:
+   - **Root Cause**: When a vault was already initialized locally (manifest stored in SQLite via `manifestStore.save`), subsequent sync runs compared `localSnapshot` to `previousLocal`. If no remote device manifests were present in `appDataFolder` (`mergedRemoteEntries` was empty), three-way diff (`classifySyncDiff`) treated all files as "missing remotely" and classified them as `"pull"` without a remote target, resulting in 0 files pushed. Consequently, while the visible Google Drive folder was created by `ensureDriveVaultFolder`, it remained completely empty.
+   - **Resolution**:
+     - Updated `packages/sync-client/driveVaultFolder.ts`:
+       - Added `listDriveVaultFiles(drive, vaultFolderId)` using `appProperties has { key='davinciVault' and value='${vaultFolderId}' }` and `'${vaultFolderId}' in parents` to retrieve the current Drive folder state.
+       - Updated `syncFileToDriveVault` to tag every uploaded file and folder with `davinciVault: vaultFolderId`, `vaultPath: relativePath`, and `contentHash`.
+       - Added `folderCache` support in `ensureDriveFolderPath` to eliminate redundant folder lookups for nested files/attachments.
+       - Made `syncFileToDriveVault` and `deleteFileFromDriveVault` accept `knownExisting` to avoid duplicate roundtrips.
+       - Formatted multipart closing boundary in `buildMultipartBlob` with standard `\r\n--${boundary}--\r\n`.
+     - Updated `apps/desktop/src/sync/desktopSyncEngine.ts`:
+       - Querying `listDriveVaultFiles` directly reconciles the state of the visible Google Drive folder against `localSnapshot.entries`.
+       - Every local active file missing from Drive or with a changed `contentHash` is uploaded directly to the visible Drive folder.
+       - Files deleted locally are deleted from Drive.
+       - Any files present on Drive not yet in the local vault are pulled and saved locally.
+       - Unchanged files matching the Drive `contentHash` are skipped with zero redundant network transfers.
+2. **Testing & Verification**:
+   - Added unit tests: `listDriveVaultFiles` and multipart upload in `driveVaultFolder.test.ts` (5 tests pass); empty Drive folder population, hash-matching skip, and remote pull in `desktopSyncEngine.test.ts` (4 tests pass).
+   - All 52 tests in `@app/sync-client` pass; all 11 sync tests in `@app/desktop` pass; all 25 component tests pass.
+   - Full web build (`build:web`) succeeds with 0 errors. Line caps strictly respected (<200 lines).
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Google Client Secret Support & Open Vault from Drive in VaultSwitcher
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Fix Reminder In-App Notification Toast ("Done" & "Close" Buttons Non-Responsive)
 
 **Scope:**
 1. **Root Cause Analysis**:
