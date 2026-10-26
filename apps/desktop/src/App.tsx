@@ -119,6 +119,10 @@ export function App() {
     setSettingsInitialTab("logs");
     setIsSettingsOpen(true);
   }, []);
+  const handleOpenSyncSettings = useCallback(() => {
+    setSettingsInitialTab("sync");
+    setIsSettingsOpen(true);
+  }, []);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
