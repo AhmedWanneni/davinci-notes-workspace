@@ -8,9 +8,10 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 **Scope:**
 1. **Blank Page Root Cause Analysis & Resolution**:
-   - **Root Cause 1**: Circular import dependency loop between `vault/index.ts -> useWorkspaceStore.ts -> vaultCommands.ts -> desktopSyncEngine.ts -> useDriveSyncStore.ts -> SyncStatusButton.tsx -> EditorArea.tsx -> App.tsx -> vault/index.ts`. Under Vite dev ESM and HMR, evaluating this chain caused undefined module bindings during initialization, resulting in unhandled rendering failures and an unhandled blank page.
-   - **Fix 1**: Decoupled `useDriveSyncStore.ts` from static imports of `desktopSyncEngine.ts` by using dynamic `await import("./desktopSyncEngine")` inside the async `syncNow()` handler.
-   - **Fix 2**: Replaced circular barrel import `import { ... } from "./index"` inside `apps/desktop/src/vault/useVaultWatcherSubscription.ts` with direct imports (`./sqliteIndex`, `./VaultIndexer`, `./vaultCommands`, `./vaultWatchCoordinator`, etc.).
+   - **Root Cause**: `handleOpenSyncSettings` callback was passed to `AppSidebar` and `EditorArea` in [`App.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/App.tsx) but was never declared, throwing `ReferenceError: Can't find variable: handleOpenSyncSettings` immediately when React evaluated `App()`.
+   - **Fix**: Declared `handleOpenSyncSettings` in [`App.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/App.tsx) to open Settings directly to the `"sync"` tab (`setSettingsInitialTab("sync"); setIsSettingsOpen(true);`).
+   - Decoupled `useDriveSyncStore.ts` from static imports of `desktopSyncEngine.ts` via dynamic import in `syncNow()`.
+   - Replaced circular barrel import `import { ... } from "./index"` inside `apps/desktop/src/vault/useVaultWatcherSubscription.ts` with direct imports (`./sqliteIndex`, `./VaultIndexer`, `./vaultCommands`, `./vaultWatchCoordinator`, etc.).
 2. **Crash Prevention (`AppErrorBoundary`)**:
    - Implemented [`AppErrorBoundary`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppErrorBoundary.tsx) (<100 lines) with friendly fallback UI, error messaging, and an immediate reload button.
    - Wrapped root application in [`main.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/main.tsx) to ensure the app never displays an unhandled blank white page.
