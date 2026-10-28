@@ -10,6 +10,7 @@ import {
 } from "./sqliteIndex";
 import { writeNote } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
+import { diskStateTracker } from "./diskStateTracker";
 import { updateTagIndexForNote } from "@app/indexer";
 
 /** Write a markdown note to disk, index it, and refresh `allNotePaths`. */
@@ -19,7 +20,12 @@ export async function createNoteInVault(
 ): Promise<string> {
   const noteContent = content ?? initialNoteContent(path);
   return withVaultWatchSuppressed(async () => {
-    await writeNote(path, noteContent);
+    const newStat = await writeNote(path, noteContent);
+    diskStateTracker.set(path, {
+      mtime: newStat?.mtime ?? Date.now(),
+      size: newStat?.size ?? new TextEncoder().encode(noteContent).length,
+      content: noteContent,
+    });
     const currentPaths = useWorkspaceStore.getState().allNotePaths;
     const updatedPaths = currentPaths.includes(path)
       ? currentPaths

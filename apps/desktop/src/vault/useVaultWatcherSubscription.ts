@@ -195,7 +195,7 @@ export function useVaultWatcherSubscription({
             const parsed = parseBookmarks(bFile.content);
             useBookmarkStore
               .getState()
-              .mergeExternalBookmarks(parsed.bookmarks);
+              .mergeExternalBookmarks(parsed.bookmarks, parsed.links);
           } catch {
             // Ignore missing/unreadable file
           }

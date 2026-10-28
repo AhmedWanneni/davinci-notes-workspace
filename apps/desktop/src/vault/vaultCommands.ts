@@ -216,6 +216,15 @@ export async function renameFolder(
   return invoke("rename_folder", { fromPath, toPath });
 }
 
+export async function readBinaryFile(path: string): Promise<Uint8Array> {
+  if (isWebPlatformMode()) {
+    const data = await getPlatformAdapters().fs.readBinaryFile(path);
+    return data instanceof Uint8Array ? data : new Uint8Array(data);
+  }
+  const bytes = await invoke<number[]>("read_binary_file", { path });
+  return new Uint8Array(bytes);
+}
+
 export async function writeBinaryFile(
   path: string,
   data: Uint8Array | number[],
