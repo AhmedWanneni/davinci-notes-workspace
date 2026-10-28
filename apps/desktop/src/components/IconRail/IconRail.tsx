@@ -31,6 +31,7 @@ export interface IconRailProps {
   isGlobalGraphOpen?: boolean;
   isCalendarOpen?: boolean;
   isBookmarksOpen?: boolean;
+  isRemindersOpen?: boolean;
   isAgentOpen?: boolean;
   isAskVaultOpen?: boolean;
 }
@@ -52,6 +53,7 @@ export function IconRail({
   isGlobalGraphOpen,
   isCalendarOpen,
   isBookmarksOpen,
+  isRemindersOpen,
   isAgentOpen,
   isAskVaultOpen,
 }: IconRailProps) {
@@ -193,10 +195,14 @@ export function IconRail({
             <button
               type="button"
               className="icon-rail__btn"
+              data-active={isRemindersOpen || undefined}
               onClick={onOpenReminders}
               aria-label="Reminders"
             >
-              <Bell size={18} weight="regular" />
+              <Bell
+                size={18}
+                weight={isRemindersOpen ? "fill" : "regular"}
+              />
             </button>
           </Tooltip>
         )}

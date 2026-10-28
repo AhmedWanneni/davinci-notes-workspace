@@ -13,6 +13,7 @@ import { deactivateVaultWatcher } from "./vaultWatchSession";
 import { diskStateTracker } from "./diskStateTracker";
 import { recordRecentVault } from "./recentVaultsRegistry";
 import { BOOKMARKS_TAB_ID, useBookmarkStore } from "../bookmarks";
+import { REMINDERS_TAB_ID } from "../reminders/reminderConstants";
 
 let switchLock: Promise<boolean> = Promise.resolve(true);
 let switchingInProgress = false;
@@ -81,14 +82,14 @@ async function restoreVaultSession(paths: string[]): Promise<void> {
     if (rawOpen) {
       const openNotes = JSON.parse(rawOpen) as string[];
       const validOpen = openNotes.filter(
-        (p) => paths.includes(p) || p === BOOKMARKS_TAB_ID,
+        (p) => paths.includes(p) || p === BOOKMARKS_TAB_ID || p === REMINDERS_TAB_ID,
       );
       for (const note of validOpen) {
         await useWorkspaceStore.getState().openNote(note);
       }
       if (
         activeNote &&
-        (paths.includes(activeNote) || activeNote === BOOKMARKS_TAB_ID)
+        (paths.includes(activeNote) || activeNote === BOOKMARKS_TAB_ID || activeNote === REMINDERS_TAB_ID)
       ) {
         await useWorkspaceStore.getState().setActiveNote(activeNote);
       }

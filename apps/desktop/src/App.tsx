@@ -58,7 +58,16 @@ const LazyBookmarksView = React.lazy(() =>
     default: m.BookmarksView,
   })),
 );
+import { REMINDERS_TAB_ID } from "./reminders/reminderConstants";
+import { startReminderChannelOrchestrator } from "./reminders/reminderChannelOrchestrator";
+import { startScheduledMessageOrchestrator } from "./reminders/scheduledMessageOrchestrator";
+const LazyRemindersView = React.lazy(() =>
+  import("./components/RemindersView").then((m) => ({
+    default: m.RemindersView,
+  })),
+);
 import { AGENT_TAB_ID } from "./components/AgentView";
+import { CALENDAR_TAB_ID } from "./calendar/calendarConstants";
 const LazyAgentView = React.lazy(() =>
   import("./components/AgentView").then((m) => ({
     default: m.AgentView,
@@ -639,14 +648,18 @@ export function App() {
       try {
         const { listen } = await import("@tauri-apps/api/event");
         unlisten = await listen("davinci-tray-open-reminders", () => {
-          setIsRemindersOpen(true);
+          void openNote(REMINDERS_TAB_ID);
         });
       } catch {
         // Outside Tauri runtime
       }
     })();
+    const stopOrchestrator = startReminderChannelOrchestrator();
+    const stopScheduled = startScheduledMessageOrchestrator();
     return () => {
       unlisten?.();
+      stopOrchestrator();
+      stopScheduled();
     };
   }, []);
 
@@ -702,18 +715,19 @@ export function App() {
           }}
           onOpenTags={() => setIsTagsOpen(true)}
           isGlobalGraphOpen={isGlobalGraphOpen}
-          isCalendarOpen={isCalendarOpen}
+          isCalendarOpen={activeNotePath === CALENDAR_TAB_ID || isCalendarOpen}
           isBookmarksOpen={activeNotePath === BOOKMARKS_TAB_ID}
+          isRemindersOpen={activeNotePath === REMINDERS_TAB_ID}
           isAgentOpen={activeNotePath === AGENT_TAB_ID}
           isAskVaultOpen={isRightSidebarOpen}
           onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
-          onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
+          onOpenCalendar={() => void openNote(CALENDAR_TAB_ID)}
           onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
+          onOpenReminders={() => void openNote(REMINDERS_TAB_ID)}
           onOpenAgent={() => void openNote(AGENT_TAB_ID)}
           onOpenAskVault={() => setIsRightSidebarOpen((prev) => !prev)}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
-          onOpenReminders={() => setIsRemindersOpen(true)}
           onCreateNote={handleCreateNote}
           onCreateFolder={handleCreateFolder}
           onCreateCanvas={handleCreateCanvas}
@@ -769,15 +783,35 @@ export function App() {
                 }}
               />
             </Suspense>
+          ) : activeNotePath === REMINDERS_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyRemindersView
+                onOpenNote={(path) => {
+                  void openNote(path);
+                }}
+                onOpenSettings={() => {
+                  setSettingsInitialTab("notifications");
+                  setIsSettingsOpen(true);
+                }}
+              />
+            </Suspense>
           ) : activeNotePath === AGENT_TAB_ID ? (
             <Suspense fallback={null}>
               <LazyAgentView />
             </Suspense>
-          ) : isCalendarOpen ? (
+          ) : activeNotePath === CALENDAR_TAB_ID || isCalendarOpen ? (
             <Suspense fallback={null}>
               <LazyCalendarLeaf
-                onClose={() => setIsCalendarOpen(false)}
-                onOpenSettings={handleOpenSettings}
+                onClose={() => {
+                  setIsCalendarOpen(false);
+                  if (activeNotePath === CALENDAR_TAB_ID) {
+                    void closeNote(CALENDAR_TAB_ID);
+                  }
+                }}
+                onOpenSettings={() => {
+                  setSettingsInitialTab("google-calendar");
+                  setIsSettingsOpen(true);
+                }}
               />
             </Suspense>
           ) : isGlobalGraphOpen ? (
@@ -917,7 +951,7 @@ export function App() {
             onOpenSettings={handleOpenSettings}
             onOpenLogs={handleOpenLogs}
             onOpenTags={() => setIsTagsOpen(true)}
-            onOpenReminders={() => setIsRemindersOpen(true)}
+            onOpenReminders={() => void openNote(REMINDERS_TAB_ID)}
             onSaveVersionNow={() => {
               if (activeNotePath) void saveVersionNow(activeNotePath);
             }}

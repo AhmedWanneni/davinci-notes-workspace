@@ -24,6 +24,7 @@ export interface AppSidebarProps {
   isGlobalGraphOpen?: boolean;
   isCalendarOpen?: boolean;
   isBookmarksOpen?: boolean;
+  isRemindersOpen?: boolean;
   isAgentOpen?: boolean;
   isAskVaultOpen?: boolean;
   onOpenGlobalGraph?: () => void;
@@ -81,6 +82,7 @@ export function AppSidebar({
   isGlobalGraphOpen,
   isCalendarOpen,
   isBookmarksOpen,
+  isRemindersOpen,
   isAgentOpen,
   isAskVaultOpen,
   onOpenGlobalGraph,
@@ -167,6 +169,7 @@ export function AppSidebar({
           isGlobalGraphOpen={isGlobalGraphOpen}
           isCalendarOpen={isCalendarOpen}
           isBookmarksOpen={isBookmarksOpen}
+          isRemindersOpen={isRemindersOpen}
           isAgentOpen={isAgentOpen}
           isAskVaultOpen={isAskVaultOpen}
           onToggleLeftSidebar={onToggleLeftSidebar ?? (() => {})}

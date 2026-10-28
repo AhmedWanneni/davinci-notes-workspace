@@ -176,6 +176,24 @@ describe("AppTabs", () => {
     expect(tabs[1].querySelector("svg")).toBeDefined();
   });
 
+  it("renders distinct image tab with filename and icon", () => {
+    const { container } = render(
+      <AppTabs
+        openNotes={["images/screenshot.png"]}
+        activeNotePath="images/screenshot.png"
+        dirtyNotes={new Set()}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    const tab = container.querySelector(".app-tabs__tab");
+    expect(tab).not.toBeNull();
+    expect(tab?.querySelector(".app-tabs__tab-title")?.textContent).toBe("screenshot.png");
+    expect(tab?.querySelector("svg")).toBeDefined();
+  });
+
   it("calls onCloseNote when clicking the close button on a tab", () => {
     const onCloseNote = vi.fn();
     render(
