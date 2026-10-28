@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { EditorState, Compartment } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
-import { Strikethrough } from "@lezer/markdown";
+import { Strikethrough, Table } from "@lezer/markdown";
 import { syntaxHighlighting } from "@codemirror/language";
 import {
   editorHighlightStyle,
@@ -97,7 +97,7 @@ export function MarkdownView({
         EditorState.readOnly.of(true),
         EditorView.editable.of(false),
         markdown({
-          extensions: [Strikethrough, highlightExtension],
+          extensions: [Table, Strikethrough, highlightExtension],
           codeLanguages: codeBlockLanguage,
         }),
         syntaxHighlighting(editorHighlightStyle),

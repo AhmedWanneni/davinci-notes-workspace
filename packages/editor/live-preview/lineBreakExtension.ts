@@ -54,6 +54,7 @@ function addSoftLineBreaks(
     if (
       line.to < state.doc.length &&
       !hasTrailingHardBreak(line.text) &&
+      !line.text.trim().startsWith("|") &&
       isParagraphBreak(tree, line.to)
     ) {
       decorations.push(softLineBreak.range(line.to, line.to + 1));
@@ -67,6 +68,15 @@ function isParagraphBreak(
 ): boolean {
   let node: SyntaxNode | null = tree.resolveInner(position, -1);
   while (node) {
+    if (
+      node.name === "Table" ||
+      node.name === "TableHeader" ||
+      node.name === "TableRow" ||
+      node.name === "TableCell" ||
+      node.name === "TableDelimiter"
+    ) {
+      return false;
+    }
     if (node.name === "Paragraph") return node.to > position;
     node = node.parent;
   }

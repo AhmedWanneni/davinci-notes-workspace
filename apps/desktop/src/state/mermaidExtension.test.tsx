@@ -59,17 +59,35 @@ describe("Mermaid diagram extension", () => {
     view.destroy();
   });
 
-  it("keeps the fenced source visible while the cursor is inside it", () => {
+  it("renders diagram without box, and provides hover hint to edit code", () => {
     const source = "```mermaid\ngraph LR\nA --> B\n```\n\nAfter";
     const { container, view, destroy } = createMermaidEditor(source);
+
+    // Diagram is rendered without box and remains rendered when cursor moves
     view.dispatch({
       selection: EditorSelection.cursor(source.indexOf("A -->")),
     });
+    const diagram = container.querySelector(".cm-mermaid-diagram");
+    expect(diagram).not.toBeNull();
+
+    // Edit Code mode via hover hint
+    const editCodeBtn = container.querySelector<HTMLButtonElement>(
+      ".cm-mermaid-edit-code-btn",
+    );
+    expect(editCodeBtn).not.toBeNull();
+    editCodeBtn?.click();
+
+    // Diagram replaced by code mode with View Diagram action
     expect(container.querySelector(".cm-mermaid-diagram")).toBeNull();
-    view.dispatch({
-      selection: EditorSelection.cursor(source.length),
-    });
+    const viewDiagramBtn = container.querySelector<HTMLButtonElement>(
+      ".cm-mermaid-view-diagram-btn",
+    );
+    expect(viewDiagramBtn).not.toBeNull();
+
+    // Returning to Diagram view
+    viewDiagramBtn?.click();
     expect(container.querySelector(".cm-mermaid-diagram")).not.toBeNull();
+
     destroy();
   });
 

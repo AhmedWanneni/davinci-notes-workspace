@@ -106,10 +106,18 @@ export async function performSaveNote(
       return;
     }
 
-    // Disk changed: read and classify
+    // Disk changed or initial diskStateTracker entry missing: read and classify
     const diskFile = await readNote(path);
+
+    if (!lastKnown) {
+      // First save for a newly opened or created note without a tracked disk state:
+      // Overwrite with current in-memory content rather than misclassifying as pure-append
+      await writeAndIndexNote(path, content, state, set);
+      return;
+    }
+
     const classification = classifyDiskChange(
-      lastKnown ? lastKnown.content : "",
+      lastKnown.content,
       diskFile.content,
     );
 

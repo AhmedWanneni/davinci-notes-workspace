@@ -70,7 +70,7 @@ module.exports = {
           { from: "theme-api", allow: ["theme-api"] },
           { from: "ai-api", allow: ["ai-api"] },
           { from: "ai-runtime", allow: ["ai-api", "ai-runtime"] },
-          { from: "app", allow: ["clipper-core", "core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "kanban", "database", "plugin-api", "plugin-runtime", "theme-api", "ai-api", "ai-runtime", "attachments", "sanitize", "syncthing-api", "platform-adapters", "app"] },
+          { from: "app", allow: ["clipper-core", "core-types", "design-system", "indexer", "sync-client", "editor", "canvas", "kanban", "database", "plugin-api", "plugin-runtime", "theme-api", "ai-api", "ai-runtime", "attachments", "sanitize", "syncthing-api", "google-calendar-api", "platform-adapters", "app"] },
           { from: "web-clipper", allow: ["clipper-core", "design-system", "web-clipper"] },
           {
             from: "app-desktop",

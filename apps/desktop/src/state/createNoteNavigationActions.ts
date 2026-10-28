@@ -1,6 +1,7 @@
 import { readNote, diskStateTracker } from "../vault";
 import { flushH1DrivenRename } from "../vault/h1DrivenRename";
 import { saveTimers } from "./saveTimers";
+import { isImagePath } from "../components/ImagePreview/imagePreviewUtils";
 import {
   moveNoteHistory,
   pushNoteHistory,
@@ -64,7 +65,7 @@ export function createNoteNavigationActions(
 
     openNote: async (path: string) => {
       const { notesContent, openNotes } = get();
-      if (path.startsWith("davinci://")) {
+      if (path.startsWith("davinci://") || isImagePath(path)) {
         const nextOpenNotes = openNotes.includes(path)
           ? openNotes
           : [...openNotes, path];
@@ -77,7 +78,7 @@ export function createNoteNavigationActions(
         }));
         return;
       }
-      if (notesContent[path] === undefined) {
+      if (notesContent[path] === undefined || !diskStateTracker.get(path)) {
         try {
           const file = await readNote(path);
           diskStateTracker.set(path, {
@@ -85,12 +86,16 @@ export function createNoteNavigationActions(
             size: file.size,
             content: file.content,
           });
-          set((state) => ({
-            notesContent: { ...state.notesContent, [path]: file.content },
-          }));
+          if (notesContent[path] === undefined) {
+            set((state) => ({
+              notesContent: { ...state.notesContent, [path]: file.content },
+            }));
+          }
         } catch (e) {
-          console.error(`Failed to open note: ${path}`, e);
-          return;
+          if (notesContent[path] === undefined) {
+            console.error(`Failed to open note: ${path}`, e);
+            return;
+          }
         }
       }
       const nextOpenNotes = openNotes.includes(path)
@@ -110,7 +115,8 @@ export function createNoteNavigationActions(
       if (
         activeNotePath &&
         activeNotePath !== path &&
-        !activeNotePath.startsWith("davinci://")
+        !activeNotePath.startsWith("davinci://") &&
+        !isImagePath(activeNotePath)
       ) {
         if (saveTimers[activeNotePath]) {
           clearTimeout(saveTimers[activeNotePath]);
@@ -121,12 +127,16 @@ export function createNoteNavigationActions(
           await get().saveNoteNow(effectivePath);
         }
       }
-      set({ activeNotePath: path, isGlobalGraphOpen: false, isCalendarOpen: false });
+      set({
+        activeNotePath: path,
+        isGlobalGraphOpen: false,
+        isCalendarOpen: false,
+      });
     },
 
     closeNote: async (path: string) => {
       let effectivePath = path;
-      if (!path.startsWith("davinci://")) {
+      if (!path.startsWith("davinci://") && !isImagePath(path)) {
         if (saveTimers[path]) {
           clearTimeout(saveTimers[path]);
           delete saveTimers[path];
@@ -140,7 +150,9 @@ export function createNoteNavigationActions(
       }
 
       const { openNotes, activeNotePath, notesContent, conflictNotes } = get();
-      const nextOpenNotes = openNotes.filter((p) => p !== path && p !== effectivePath);
+      const nextOpenNotes = openNotes.filter(
+        (p) => p !== path && p !== effectivePath,
+      );
       let nextActivePath = activeNotePath;
       if (activeNotePath === path || activeNotePath === effectivePath) {
         nextActivePath =

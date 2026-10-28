@@ -67,6 +67,8 @@ export interface InsertItem {
   label: string;
   icon: InsertIconName;
   keywords: readonly string[];
+  shortcut?: string;
+  badge?: string;
   dialog?: InsertDialogSpec;
   build(context: InsertBuildContext): InsertBuildResult;
 }

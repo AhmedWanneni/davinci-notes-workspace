@@ -3,7 +3,7 @@ import { findInsertItem, insertRegistry } from "./InsertRegistry";
 
 describe("insertRegistry", () => {
   it("contains all insert items including Links, Media, and Diagrams", () => {
-    expect(insertRegistry).toHaveLength(43);
+    expect(insertRegistry).toHaveLength(45);
     expect(insertRegistry.map((item) => item.group)).toEqual(
       expect.arrayContaining([
         "Basics",

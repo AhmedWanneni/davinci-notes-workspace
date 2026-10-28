@@ -13,14 +13,24 @@ import { EditorView } from "@codemirror/view";
 import { mathExtension } from "../blocks/math";
 import { isSlashMenuTrigger, slashMenuSource } from "./SlashMenu";
 
-function createContext(doc: string, cursorOffset: number, options: { composing?: boolean; enabled?: boolean; vimMode?: string | null } = {}) {
+function createContext(
+  doc: string,
+  cursorOffset: number,
+  options: {
+    composing?: boolean;
+    enabled?: boolean;
+    vimMode?: string | null;
+  } = {},
+) {
   const state = EditorState.create({
     doc,
     extensions: [markdown(), mathExtension()],
   });
   const context = new CompletionContext(state, cursorOffset, true);
   if (options.composing) {
-    (context as unknown as { view: EditorView }).view = { composing: true } as unknown as EditorView;
+    (context as unknown as { view: EditorView }).view = {
+      composing: true,
+    } as unknown as EditorView;
   }
   return { context, state };
 }
@@ -43,7 +53,11 @@ describe("isSlashMenuTrigger unit checks", () => {
   });
 
   it("rejects when IME composition is active", () => {
-    expect(isSlashMenuTrigger("", true, null, { view: { composing: true } as unknown as EditorView })).toBe(false);
+    expect(
+      isSlashMenuTrigger("", true, null, {
+        view: { composing: true } as unknown as EditorView,
+      }),
+    ).toBe(false);
   });
 });
 
@@ -137,7 +151,10 @@ describe("slashMenuSource transaction semantics and dismissal", () => {
       parent: container,
     });
 
-    view.dispatch({ changes: { from: 0, insert: "/tab" }, selection: { anchor: 4 } });
+    view.dispatch({
+      changes: { from: 0, insert: "/tab" },
+      selection: { anchor: 4 },
+    });
     expect(view.state.doc.toString()).toBe("/tab");
 
     const context = new CompletionContext(view.state, 4, true);
@@ -148,7 +165,12 @@ describe("slashMenuSource transaction semantics and dismissal", () => {
     const tableOpt = result?.options.find((opt) => opt.label === "Table");
     expect(tableOpt).toBeDefined();
 
-    tableOpt!.apply(view, tableOpt!, result!.from, view.state.selection.main.to);
+    tableOpt!.apply(
+      view,
+      tableOpt!,
+      result!.from,
+      view.state.selection.main.to,
+    );
 
     const docAfter = view.state.doc.toString();
     expect(docAfter).not.toContain("/tab");
@@ -168,7 +190,10 @@ describe("slashMenuSource transaction semantics and dismissal", () => {
       state: EditorState.create({
         doc: "/",
         selection: EditorSelection.cursor(1),
-        extensions: [history(), autocompletion({ override: [slashMenuSource({ enabled: true })] })],
+        extensions: [
+          history(),
+          autocompletion({ override: [slashMenuSource({ enabled: true })] }),
+        ],
       }),
       parent: container,
     });
@@ -188,7 +213,10 @@ describe("slashMenuSource transaction semantics and dismissal", () => {
       state: EditorState.create({
         doc: "/",
         selection: EditorSelection.cursor(1),
-        extensions: [history(), autocompletion({ override: [slashMenuSource({ enabled: false })] })],
+        extensions: [
+          history(),
+          autocompletion({ override: [slashMenuSource({ enabled: false })] }),
+        ],
       }),
       parent: container,
     });
@@ -202,5 +230,35 @@ describe("slashMenuSource transaction semantics and dismissal", () => {
 
     view.destroy();
     container.remove();
+  });
+
+  it("provides Suggested and Basic blocks sections with shortcuts and Close menu", async () => {
+    const trigger = slashMenuSource({ enabled: true });
+    const lineStart = createContext("/", 1);
+    const result = await trigger(lineStart.context);
+    expect(result).not.toBeNull();
+    const options = result?.options ?? [];
+
+    const aiNotes = options.find((o) => o.label === "AI Meeting Notes");
+    expect(aiNotes).toBeDefined();
+    expect((aiNotes?.section as { name: string })?.name).toBe("Suggested");
+
+    const htmlEmbeds = options.find((o) => o.label === "HTML · Embeds");
+    expect(htmlEmbeds).toBeDefined();
+    expect((htmlEmbeds?.section as { name: string })?.name).toBe("Suggested");
+
+    const textOpt = options.find((o) => o.label === "Text");
+    expect(textOpt).toBeDefined();
+    expect((textOpt?.section as { name: string })?.name).toBe("Basic blocks");
+
+    const h1Opt = options.find((o) => o.label === "Heading 1");
+    expect(h1Opt).toBeDefined();
+    expect(h1Opt?.detail).toBe("#");
+    expect((h1Opt?.section as { name: string })?.name).toBe("Basic blocks");
+
+    const closeOpt = options.find((o) => o.label === "Close menu");
+    expect(closeOpt).toBeDefined();
+    expect(closeOpt?.detail).toBe("esc");
+    expect((closeOpt?.section as { name: string })?.name).toBe("Actions");
   });
 });

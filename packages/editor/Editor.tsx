@@ -1,77 +1,22 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { EditorState, Compartment } from "@codemirror/state";
-import {
-  EditorView,
-  keymap,
-  highlightActiveLine,
-  drawSelection,
-} from "@codemirror/view";
-import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { markdown } from "@codemirror/lang-markdown";
-import { Strikethrough } from "@lezer/markdown";
-import {
-  autocompletion,
-  clearSnippet,
-  nextSnippetField,
-  prevSnippetField,
-} from "@codemirror/autocomplete";
-import { syntaxHighlighting } from "@codemirror/language";
-import {
-  editorHighlightStyle,
-  editorTheme,
-  markdownAnnotationTheme,
-  reminderTheme,
-  tagTheme,
-} from "./theme";
-import {
-  autocompleteExtension,
-  highlightExtension,
-  listExtension,
-  listIndentKeymap,
-  livePreviewExtension,
-  markdownAnnotationsExtension,
-  reminderExtension,
-  type ReminderClickInfo,
-  tagExtension,
-} from "./live-preview";
+import { EditorView } from "@codemirror/view";
+import { autocompletion } from "@codemirror/autocomplete";
+import { autocompleteExtension, type ReminderClickInfo } from "./live-preview";
 import { linkExtension } from "./links";
-import {
-  embedImageExtension,
-  imageExtension,
-  noteEmbedExtension,
-  noteEmbedTheme,
-} from "./embeds";
-import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
-import { tableExtension, tableTheme } from "./blocks/table";
-import { mermaidExtension, mermaidTheme } from "./blocks/mermaid";
-import { mathExtension, mathTheme } from "./blocks/math";
-import {
-  htmlBlockExtension,
-  htmlBlockTheme,
-  htmlInlineExtension,
-  htmlInlineTheme,
-} from "./blocks/html";
-import { insertHardLineBreak, softLineBreakExtension } from "./live-preview";
-import {
-  attachVimModeListener,
-  loadVimExtension,
-  registerVimExCommands,
-} from "./vim";
-import {
-  attachmentDropHandler,
-  attachmentPasteHandler,
-  type PasteAttachmentHandler,
-} from "./clipboard";
+import { embedImageExtension, noteEmbedExtension } from "./embeds";
+import type { PasteAttachmentHandler } from "./clipboard";
 import {
   createEditorPluginAdapter,
   type EditorPluginAdapter,
 } from "./integration";
-import { slashMenuSource } from "./insert/SlashMenu";
+import { slashMenuSource, slashMenuAddToOptions } from "./insert/SlashMenu";
 import {
   externalChangeAnnotations,
-  externalDocumentChange,
   minimalDocumentChange,
 } from "./integration";
+import { createEditorExtensions } from "./createEditorExtensions";
+import { useVimModeSync } from "./vim/useVimModeSync";
 
 export interface EditorProps {
   value: string;
@@ -96,6 +41,7 @@ export interface EditorProps {
   onViewReady?: (view: EditorView | null) => void;
   slashMenuEnabled?: boolean;
   vimMode?: string | null;
+  strictLineBreaks?: boolean;
 }
 
 export function Editor({
@@ -121,145 +67,58 @@ export function Editor({
   onViewReady,
   slashMenuEnabled = true,
   vimMode,
+  strictLineBreaks = false,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const pluginEditorRef = useRef<EditorPluginAdapter | null>(null);
 
-  // Compartments for reactive updates of options
   const wikilinkCompartmentRef = useRef(new Compartment());
   const autocompleteCompartmentRef = useRef(new Compartment());
   const noteEmbedCompartmentRef = useRef(new Compartment());
+  const embedImageCompartmentRef = useRef(new Compartment());
   const vimCompartmentRef = useRef(new Compartment());
+
   const onTagClickRef = useRef(onTagClick ?? (() => {}));
   const onReminderClickRef = useRef(onReminderClick);
   const onPasteAttachmentRef = useRef(onPasteAttachment);
   const onAttachmentErrorRef = useRef(onAttachmentError ?? (() => {}));
-
-  // Track latest onChange to avoid re-binding CodeMirror listener
   const onChangeRef = useRef(onChange);
+
   onChangeRef.current = onChange;
   onTagClickRef.current = onTagClick ?? (() => {});
   onReminderClickRef.current = onReminderClick;
   onPasteAttachmentRef.current = onPasteAttachment;
   onAttachmentErrorRef.current = onAttachmentError ?? (() => {});
 
-  // Initialize CodeMirror EditorView
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const startState = EditorState.create({
-      doc: value,
-      extensions: [
-        editorTheme,
-        markdownAnnotationTheme,
-        tableTheme,
-        codeBlockLayoutTheme,
-        mermaidTheme,
-        mathTheme,
-        tagTheme,
-        htmlBlockTheme,
-        htmlInlineTheme,
-        EditorView.lineWrapping,
-        ...(onPasteAttachment
-          ? [
-              attachmentPasteHandler(
-                (file, position) =>
-                  onPasteAttachmentRef.current!(file, position),
-                (message) => onAttachmentErrorRef.current(message),
-              ),
-            ]
-          : []),
-        ...(onPasteAttachment
-          ? [
-              attachmentDropHandler(
-                (file, position) =>
-                  onPasteAttachmentRef.current!(file, position),
-                (message) => onAttachmentErrorRef.current(message),
-              ),
-            ]
-          : []),
-        history(),
-        drawSelection(),
-        highlightActiveLine(),
-        keymap.of([
-          { key: "Shift-Enter", run: insertHardLineBreak },
-          ...defaultKeymap,
-          ...historyKeymap,
-          { key: "Tab", run: nextSnippetField },
-          { key: "Shift-Tab", run: prevSnippetField },
-          { key: "Escape", run: clearSnippet },
-          ...listIndentKeymap,
-        ]),
-        markdown({
-          extensions: [Strikethrough, highlightExtension],
-          codeLanguages: codeBlockLanguage,
-        }),
-        syntaxHighlighting(editorHighlightStyle),
-        livePreviewExtension,
-        markdownAnnotationsExtension(),
-        softLineBreakExtension,
-        listExtension(),
-        tableExtension(),
-        mermaidExtension({ onLinkClick }),
-        mathExtension(),
-        imageExtension(),
-        embedImageExtension({ notePaths, resolveMediaUrl }),
-        noteEmbedTheme,
-        noteEmbedCompartmentRef.current.of(
-          noteEmbedExtension({
-            notePaths,
-            sourcePath,
-            onLinkClick,
-            resolveMediaUrl,
-            loadNoteContent,
-            noteContents,
-          }),
-        ),
-        tagExtension({ onTagClick: (tagKey) => onTagClickRef.current(tagKey) }),
-        reminderTheme,
-        reminderExtension({
-          onReminderClick: (info) => onReminderClickRef.current?.(info),
-        }),
-        htmlBlockExtension(),
-        htmlInlineExtension(),
-        // Dynamic compartments for options
-        wikilinkCompartmentRef.current.of(
-          linkExtension({
-            notePaths,
-            sourcePath,
-            onLinkClick,
-            onExternalLinkClick,
-          }),
-        ),
-        autocompleteCompartmentRef.current.of(
-          autocompletion({
-            override: [
-              autocompleteExtension({ notePaths }),
-              slashMenuSource({ enabled: slashMenuEnabled, vimMode }),
-            ],
-          }),
-        ),
-        vimCompartmentRef.current.of([]),
-        // Document changes updater
-        EditorView.updateListener.of((update) => {
-          if (
-            update.docChanged &&
-            !update.transactions.some((transaction) =>
-              transaction.annotation(externalDocumentChange),
-            )
-          ) {
-            onChangeRef.current(update.state.doc.toString());
-            pluginEditorRef.current?.emitContentChange(
-              update.state.doc.toString(),
-            );
-          }
-          if (update.docChanged || update.selectionSet)
-            pluginEditorRef.current?.emitChange();
-        }),
-      ],
+    const extensions = createEditorExtensions({
+      notePaths,
+      sourcePath,
+      onLinkClick,
+      onExternalLinkClick,
+      onTagClickRef,
+      onReminderClickRef,
+      onPasteAttachmentRef,
+      onAttachmentErrorRef,
+      resolveMediaUrl,
+      loadNoteContent,
+      noteContents,
+      slashMenuEnabled,
+      vimMode,
+      strictLineBreaks,
+      wikilinkCompartment: wikilinkCompartmentRef.current,
+      autocompleteCompartment: autocompleteCompartmentRef.current,
+      noteEmbedCompartment: noteEmbedCompartmentRef.current,
+      embedImageCompartment: embedImageCompartmentRef.current,
+      vimCompartment: vimCompartmentRef.current,
+      onChangeRef,
+      pluginEditorRef,
     });
 
+    const startState = EditorState.create({ doc: value, extensions });
     const view = new EditorView({
       state: startState,
       parent: containerRef.current,
@@ -280,11 +139,9 @@ export function Editor({
     };
   }, []);
 
-  // Synchronize incoming value changes (prevent loop / cursor jump)
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
-
     const currentValue = view.state.doc.toString();
     if (value !== currentValue) {
       view.dispatch({
@@ -294,59 +151,11 @@ export function Editor({
     }
   }, [value]);
 
-  const onVimModeChangeRef = useRef(onVimModeChange);
-  onVimModeChangeRef.current = onVimModeChange;
-
-  const exHandlersRef = useRef({
+  useVimModeSync(viewRef, vimCompartmentRef, useVimMode, onVimModeChange, {
     sourcePath,
     handlers: { onSaveNoteNow, onCloseNote, onCloseAllNotes },
   });
-  exHandlersRef.current = {
-    sourcePath,
-    handlers: { onSaveNoteNow, onCloseNote, onCloseAllNotes },
-  };
 
-  // Synchronize dynamic Vim keybinding extension when enabled/disabled
-  useEffect(() => {
-    const view = viewRef.current;
-    if (!view) return;
-
-    let cancelled = false;
-    let cleanupListener: (() => void) | undefined;
-
-    if (useVimMode) {
-      registerVimExCommands(() => exHandlersRef.current);
-      void loadVimExtension().then((extension) => {
-        if (!cancelled && viewRef.current === view) {
-          view.dispatch({
-            effects: vimCompartmentRef.current.reconfigure(extension),
-            selection: view.state.selection,
-          });
-          view.requestMeasure();
-          if (onVimModeChangeRef.current) {
-            cleanupListener = attachVimModeListener(view, (mode) => {
-              onVimModeChangeRef.current?.(mode);
-            });
-          }
-        }
-      });
-    } else {
-      view.dispatch({
-        effects: vimCompartmentRef.current.reconfigure([]),
-        selection: view.state.selection,
-      });
-      view.requestMeasure();
-      onVimModeChangeRef.current?.(null);
-    }
-
-    return () => {
-      cancelled = true;
-      cleanupListener?.();
-      onVimModeChangeRef.current?.(null);
-    };
-  }, [useVimMode]);
-
-  // Synchronize compartment configs when paths or parameters change
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
@@ -362,7 +171,13 @@ export function Editor({
           }),
         ),
         autocompleteCompartmentRef.current.reconfigure(
-          autocompletion({ override: [autocompleteExtension({ notePaths })] }),
+          autocompletion({
+            addToOptions: slashMenuAddToOptions,
+            override: [
+              autocompleteExtension({ notePaths }),
+              slashMenuSource({ enabled: slashMenuEnabled, vimMode }),
+            ],
+          }),
         ),
         noteEmbedCompartmentRef.current.reconfigure(
           noteEmbedExtension({
@@ -372,6 +187,12 @@ export function Editor({
             resolveMediaUrl,
             loadNoteContent,
             noteContents,
+          }),
+        ),
+        embedImageCompartmentRef.current.reconfigure(
+          embedImageExtension({
+            notePaths,
+            resolveMediaUrl,
           }),
         ),
       ],

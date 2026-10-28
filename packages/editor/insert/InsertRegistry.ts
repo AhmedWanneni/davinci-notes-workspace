@@ -1,4 +1,5 @@
 import type { InsertBuildContext, InsertItem } from "./InsertItem";
+import { basicItems } from "./basicItems";
 import { diagramItems } from "./diagrams";
 import { mediaItems } from "./mediaItems";
 
@@ -23,101 +24,12 @@ function inline(text: string) {
 }
 
 export const insertRegistry: readonly InsertItem[] = [
-  {
-    id: "heading-1",
-    group: "Basics",
-    label: "Heading 1",
-    icon: "TextHOne",
-    keywords: ["title", "h1", "heading"],
-    build: (context) => block(`# ${field(context, "Heading")}`),
-  },
-  {
-    id: "heading-2",
-    group: "Basics",
-    label: "Heading 2",
-    icon: "TextHTwo",
-    keywords: ["subtitle", "h2", "heading"],
-    build: (context) => block(`## ${field(context, "Heading")}`),
-  },
-  {
-    id: "heading-3",
-    group: "Basics",
-    label: "Heading 3",
-    icon: "TextHThree",
-    keywords: ["h3", "heading"],
-    build: (context) => block(`### ${field(context, "Heading")}`),
-  },
-  {
-    id: "bullet-list",
-    group: "Basics",
-    label: "Bullet list",
-    icon: "ListBullets",
-    keywords: ["unordered", "list", "bullet"],
-    build: (context) => block(`- ${field(context, "Item")}`),
-  },
-  {
-    id: "numbered-list",
-    group: "Basics",
-    label: "Numbered list",
-    icon: "ListNumbers",
-    keywords: ["ordered", "list", "number"],
-    build: (context) => block(`1. ${field(context, "Item")}`),
-  },
-  {
-    id: "task-list",
-    group: "Basics",
-    label: "Task list",
-    icon: "ListChecks",
-    keywords: ["todo", "checklist", "task"],
-    build: (context) => block(`- [ ] ${field(context, "Task")}`),
-  },
-  {
-    id: "reminder",
-    group: "Basics",
-    label: "Reminder",
-    icon: "Bell",
-    keywords: ["reminder", "due", "date", "time", "todo", "alarm"],
-    dialog: {
-      kind: "reminder-picker",
-      title: "Set Reminder",
-      description: "Pick a date and optional time for this reminder.",
-      confirmLabel: "Insert Reminder",
-    },
-    build: (context) => {
-      const date = context.input?.date || new Date().toISOString().slice(0, 10);
-      const time = context.input?.time ? ` ${context.input.time}` : "";
-      return inline(`(@${date}${time})`);
-    },
-  },
-  {
-    id: "quote",
-    group: "Basics",
-    label: "Quote",
-    icon: "Quotes",
-    keywords: ["blockquote", "citation"],
-    build: (context) => block(`> ${field(context, "Quote")}`),
-  },
-  {
-    id: "divider",
-    group: "Basics",
-    label: "Divider",
-    icon: "Minus",
-    keywords: ["horizontal rule", "separator", "hr"],
-    build: () => block("---"),
-  },
-  {
-    id: "callout",
-    group: "Basics",
-    label: "Callout",
-    icon: "Note",
-    keywords: ["note", "admonition", "aside"],
-    build: (context) =>
-      block(`> [!note] ${field(context, "Title")}\n> \${2:Content}`),
-  },
+  ...basicItems,
   {
     id: "code-block",
     group: "Code and data",
     label: "Code block",
+    shortcut: "```",
     icon: "Code",
     keywords: ["fence", "programming", "code"],
     build: (context) => block(`\`\`\`ts\n${field(context, "// code")}\n\`\`\``),
@@ -127,7 +39,16 @@ export const insertRegistry: readonly InsertItem[] = [
     group: "Code and data",
     label: "Kanban board",
     icon: "Table",
-    keywords: ["kanban", "board", "lane", "todo", "task", "card", "agile", "data"],
+    keywords: [
+      "kanban",
+      "board",
+      "lane",
+      "todo",
+      "task",
+      "card",
+      "agile",
+      "data",
+    ],
     dialog: {
       kind: "kanban-creator",
       title: "New Kanban Board",
@@ -200,9 +121,10 @@ export const insertRegistry: readonly InsertItem[] = [
   {
     id: "html-block",
     group: "HTML",
-    label: "HTML block",
+    label: "HTML · Embeds",
+    badge: "New",
     icon: "Code",
-    keywords: ["html", "div", "markup"],
+    keywords: ["html", "div", "markup", "embeds", "embed"],
     build: (context) => block(`<div>\n  ${field(context, "Content")}\n</div>`),
   },
   {

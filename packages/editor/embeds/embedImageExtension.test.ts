@@ -8,7 +8,12 @@ function createView(doc: string) {
   return new EditorView({
     state: EditorState.create({
       doc,
-      extensions: [embedImageExtension({ notePaths: ["attachments/photo.png"], isReadOnly: true })],
+      extensions: [
+        embedImageExtension({
+          notePaths: ["attachments/photo.png"],
+          isReadOnly: true,
+        }),
+      ],
     }),
     parent: document.body,
   });
@@ -17,8 +22,12 @@ function createView(doc: string) {
 describe("embed image extension", () => {
   it("renders a resolved image and dimension syntax", async () => {
     const view = createView("![[photo.png|640x480]]");
-    await vi.waitFor(() => expect(document.querySelector(".cm-file-image-embed")).not.toBeNull());
-    const image = document.querySelector<HTMLImageElement>(".cm-file-image-embed img");
+    await vi.waitFor(() =>
+      expect(document.querySelector(".cm-file-image-embed")).not.toBeNull(),
+    );
+    const image = document.querySelector<HTMLImageElement>(
+      ".cm-file-image-embed img",
+    );
     expect(image?.src).toContain("attachments/photo.png");
     expect(image?.width).toBe(640);
     expect(image?.height).toBe(480);
@@ -27,8 +36,12 @@ describe("embed image extension", () => {
 
   it("renders width-only syntax with automatic height", async () => {
     const view = createView("![[photo.png|100]]");
-    await vi.waitFor(() => expect(document.querySelector(".cm-file-image-embed")).not.toBeNull());
-    const image = document.querySelector<HTMLImageElement>(".cm-file-image-embed img");
+    await vi.waitFor(() =>
+      expect(document.querySelector(".cm-file-image-embed")).not.toBeNull(),
+    );
+    const image = document.querySelector<HTMLImageElement>(
+      ".cm-file-image-embed img",
+    );
     expect(image?.width).toBe(100);
     expect(image?.style.height).toBe("auto");
     view.destroy();
@@ -36,17 +49,32 @@ describe("embed image extension", () => {
 
   it("renders missing and ambiguous placeholders", async () => {
     const missing = createView("![[missing.png]]");
-    await vi.waitFor(() => expect(document.querySelector(".cm-file-image-placeholder")).not.toBeNull());
-    expect(document.querySelector(".cm-file-image-placeholder")?.textContent).toContain("Missing image");
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector(".cm-file-image-placeholder"),
+      ).not.toBeNull(),
+    );
+    expect(
+      document.querySelector(".cm-file-image-placeholder")?.textContent,
+    ).toContain("Missing image");
     missing.destroy();
     const ambiguous = new EditorView({
       state: EditorState.create({
         doc: "![[photo.png]]",
-        extensions: [embedImageExtension({ notePaths: ["a/photo.png", "b/photo.png"], isReadOnly: true })],
+        extensions: [
+          embedImageExtension({
+            notePaths: ["a/photo.png", "b/photo.png"],
+            isReadOnly: true,
+          }),
+        ],
       }),
       parent: document.body,
     });
-    await vi.waitFor(() => expect(document.querySelector(".cm-file-image-placeholder")?.textContent).toContain("Multiple files"));
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector(".cm-file-image-placeholder")?.textContent,
+      ).toContain("Multiple files"),
+    );
     ambiguous.destroy();
   });
 
@@ -55,15 +83,53 @@ describe("embed image extension", () => {
       state: EditorState.create({
         doc: "![[photo.png]]\ntext",
         selection: EditorSelection.cursor(16),
-        extensions: [embedImageExtension({ notePaths: ["attachments/photo.png"] })],
+        extensions: [
+          embedImageExtension({ notePaths: ["attachments/photo.png"] }),
+        ],
       }),
       parent: document.body,
     });
-    await vi.waitFor(() => expect(document.querySelector(".cm-file-image-embed")).not.toBeNull());
-    await vi.waitFor(() => expect(document.querySelector(".cm-file-image-embed")).not.toBeNull());
+    await vi.waitFor(() =>
+      expect(document.querySelector(".cm-file-image-embed")).not.toBeNull(),
+    );
+    await vi.waitFor(() =>
+      expect(document.querySelector(".cm-file-image-embed")).not.toBeNull(),
+    );
     view.dispatch({ selection: EditorSelection.cursor(3) });
     expect(document.querySelector(".cm-file-image-embed")).toBeNull();
     view.dispatch({ selection: EditorSelection.cursor(view.state.doc.length) });
+    expect(document.querySelector(".cm-file-image-embed")).not.toBeNull();
+    view.destroy();
+  });
+
+  it("renders image embed when text is present in front of it", async () => {
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: "Figure 1: ![[photo.png]] and description",
+        selection: EditorSelection.cursor(5), // cursor is at "Figure" in front of image
+        extensions: [
+          embedImageExtension({ notePaths: ["attachments/photo.png"] }),
+        ],
+      }),
+      parent: document.body,
+    });
+
+    // Image remains rendered while cursor is in front of it
+    await vi.waitFor(() =>
+      expect(document.querySelector(".cm-file-image-embed")).not.toBeNull(),
+    );
+    const image = document.querySelector<HTMLImageElement>(
+      ".cm-file-image-embed img",
+    );
+    expect(image?.src).toContain("attachments/photo.png");
+
+    // Moving cursor directly inside `![[photo.png]]` reveals raw markdown
+    // "Figure 1: " is 10 chars, so embed starts at 10
+    view.dispatch({ selection: EditorSelection.cursor(15) });
+    expect(document.querySelector(".cm-file-image-embed")).toBeNull();
+
+    // Moving cursor to trailing description text re-renders image
+    view.dispatch({ selection: EditorSelection.cursor(30) });
     expect(document.querySelector(".cm-file-image-embed")).not.toBeNull();
     view.destroy();
   });

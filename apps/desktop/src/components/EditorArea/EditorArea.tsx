@@ -27,6 +27,8 @@ import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { readNote, createNoteInVault } from "../../vault";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
 import { EditorConflictBanner } from "./EditorConflictBanner";
+import { EditorInsertTray } from "./EditorInsertTray";
+import { SyncStatusButton } from "../SyncStatusButton";
 import { useEditorMediaHandlers } from "./useEditorMediaHandlers";
 import { NoteCoverImage } from "./NoteCoverImage";
 import { useNoteCoverImage } from "./useNoteCoverImage";
@@ -69,8 +71,15 @@ import {
   useInsertDialogRequest,
   completeInsertDialog,
   cancelInsertDialog,
+  runInsertItem,
+  findInsertItem,
   type ReminderClickInfo,
+  pathStem,
 } from "@app/editor";
+import { EditorFormattingToolbar } from "./EditorFormattingToolbar";
+import { EditorAiSelectionTrigger } from "./EditorAiSelectionTrigger";
+import { EditorAiSelectionPopover } from "./EditorAiSelectionPopover";
+import { useEditorAiSelection } from "./useEditorAiSelection";
 
 export interface EditorAreaProps {
   activeNotePath: string | null;
@@ -80,6 +89,7 @@ export interface EditorAreaProps {
   pluginManager?: PluginLifecycleManager | null;
   onEditorReady?: (editor: EditorPluginAdapter | null) => void;
   onViewReady?: (view: EditorView | null) => void;
+  onOpenSyncSettings?: () => void;
 }
 
 export function EditorArea({
@@ -90,6 +100,7 @@ export function EditorArea({
   pluginManager,
   onEditorReady,
   onViewReady,
+  onOpenSyncSettings,
 }: EditorAreaProps) {
   const content = useWorkspaceStore(
     (state) => (activeNotePath ? state.notesContent[activeNotePath] : "") || "",
@@ -105,7 +116,9 @@ export function EditorArea({
   const conflictNotes = useWorkspaceStore((state) => state.conflictNotes);
   const resolveConflict = useWorkspaceStore((state) => state.resolveConflict);
   const editorViewRef = useRef<EditorView | null>(null);
+  const [editorView, setEditorView] = useState<EditorView | null>(null);
   const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
+  const [isInsertTrayOpen, setIsInsertTrayOpen] = useState(false);
   const [insertAnchor, setInsertAnchor] = useState<DOMRect | null>(null);
   const insertSelectionRef = useRef<
     import("@codemirror/state").EditorSelection | null
@@ -113,6 +126,15 @@ export function EditorArea({
   const insertDialogRequest = useInsertDialogRequest();
   const [editingReminder, setEditingReminder] =
     useState<ReminderClickInfo | null>(null);
+
+  const {
+    selectionBounds: aiSelectionBounds,
+    isPopoverOpen: isAiPopoverOpen,
+    openPopover: openAiPopover,
+    closePopover: closeAiPopover,
+    replaceSelection: replaceAiSelection,
+    insertBelowSelection: insertBelowAiSelection,
+  } = useEditorAiSelection(editorView ?? editorViewRef.current);
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
   const attachmentSettings = useWorkspaceStore(
     (state) => state.attachmentSettings,
@@ -271,6 +293,7 @@ export function EditorArea({
 
   const useVimMode = useWorkspaceStore((state) => state.useVimMode);
   const slashMenuEnabled = useWorkspaceStore((state) => state.slashMenuEnabled);
+  const strictLineBreaks = useWorkspaceStore((state) => state.strictLineBreaks);
   const vimMonospaceMode = useWorkspaceStore((state) => state.vimMonospaceMode);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
   const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
@@ -386,6 +409,7 @@ export function EditorArea({
             />
           </button>
         )}
+        <SyncStatusButton onOpenSyncSettings={onOpenSyncSettings} />
         <button
           type="button"
           className="editor-area__note-header-button"
@@ -450,7 +474,8 @@ export function EditorArea({
                     void openNote(newPath);
                   });
                 } else if (insertDialogRequest.item.id === "database-table") {
-                  const rawName = (input.name as string)?.trim() || "Database Table";
+                  const rawName =
+                    (input.name as string)?.trim() || "Database Table";
                   const cleanName = rawName.replace(/[<>:"/\\|?*]/g, "");
                   const stem = cleanName.endsWith(".md")
                     ? cleanName
@@ -707,6 +732,52 @@ export function EditorArea({
                 }
               />
             )}
+            <EditorFormattingToolbar
+              view={editorView ?? editorViewRef.current}
+              isInsertOpen={isInsertTrayOpen}
+              onOpenInsertMenu={() => {
+                setIsInsertTrayOpen((prev) => !prev);
+              }}
+              onOpenImagePicker={() => {
+                const view = editorView ?? editorViewRef.current;
+                if (!view) return;
+                const imageItem = findInsertItem("image");
+                if (imageItem) {
+                  runInsertItem(view, imageItem, view.state.selection);
+                }
+              }}
+            />
+            {isInsertTrayOpen && (
+              <EditorInsertTray
+                view={editorView ?? editorViewRef.current}
+                onClose={() => setIsInsertTrayOpen(false)}
+                onOpenImagePicker={() => {
+                  const view = editorView ?? editorViewRef.current;
+                  if (!view) return;
+                  const imageItem = findInsertItem("image");
+                  if (imageItem) {
+                    runInsertItem(view, imageItem, view.state.selection);
+                  }
+                }}
+              />
+            )}
+            {!isAiPopoverOpen && (
+              <EditorAiSelectionTrigger
+                bounds={aiSelectionBounds}
+                onOpen={openAiPopover}
+              />
+            )}
+            <EditorAiSelectionPopover
+              bounds={aiSelectionBounds}
+              isOpen={isAiPopoverOpen}
+              noteTitle={activeNotePath ? pathStem(activeNotePath) : undefined}
+              onClose={closeAiPopover}
+              onReplace={replaceAiSelection}
+              onInsertBelow={insertBelowAiSelection}
+              onOpenAgent={() => {
+                void openNote("davinci://agent");
+              }}
+            />
             <div className="editor-area__body">
               <Editor
                 key={activeNotePath}
@@ -723,6 +794,7 @@ export function EditorArea({
                 loadNoteContent={handleReadNote}
                 useVimMode={useVimMode}
                 slashMenuEnabled={slashMenuEnabled}
+                strictLineBreaks={strictLineBreaks}
                 vimMode={vimMode}
                 onVimModeChange={setVimModeState}
                 onSaveNoteNow={saveNoteNow}
@@ -734,6 +806,7 @@ export function EditorArea({
                 }}
                 onViewReady={(view) => {
                   editorViewRef.current = view;
+                  setEditorView(view);
                   onViewReady?.(view);
                   view?.focus();
                 }}
