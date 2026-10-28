@@ -204,4 +204,55 @@ describe("VaultSwitcher", () => {
     expect(trigger.getAttribute("data-collapsed")).toBe("true");
     expect(screen.queryByText("Active Vault")).toBeNull();
   });
+
+  it("renders sync vault item and responds to click when onSyncVault is provided", async () => {
+    const onSyncVault = vi.fn();
+    render(
+      <VaultSwitcher
+        vaultName="Active Vault"
+        vaultPath="/vaults/active"
+        onSwitchVault={onSwitchVault}
+        onOpenFolderPicker={onOpenFolderPicker}
+        onSyncVault={onSyncVault}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /Current vault: Active Vault/i,
+    });
+    fireEvent.click(trigger);
+
+    await waitFor(() => {
+      expect(screen.getByText("Sync vault with Drive…")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText("Sync vault with Drive…"));
+    expect(onSyncVault).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders open vault from drive item and responds to click when onOpenVaultFromDrive is provided", async () => {
+    const onOpenVaultFromDrive = vi.fn();
+    render(
+      <VaultSwitcher
+        vaultName="Active Vault"
+        vaultPath="/vaults/active"
+        onSwitchVault={onSwitchVault}
+        onOpenFolderPicker={onOpenFolderPicker}
+        onOpenVaultFromDrive={onOpenVaultFromDrive}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: /Current vault: Active Vault/i,
+    });
+    fireEvent.click(trigger);
+
+    await waitFor(() => {
+      expect(screen.getByText("Open vault from Drive…")).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText("Open vault from Drive…"));
+    expect(onOpenVaultFromDrive).toHaveBeenCalledTimes(1);
+  });
 });
+

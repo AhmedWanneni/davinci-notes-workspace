@@ -10,6 +10,8 @@ export interface SyncSettingsPanelProps {
   driveAccountEmail?: string | null;
   isDriveSignedIn?: boolean;
   isDriveSyncing?: boolean;
+  lastSyncedAt?: number | null;
+  syncError?: string | null;
   onDriveSignIn?: () => void;
   onDriveSignOut?: () => void;
   onDriveRefresh?: () => void;
@@ -25,6 +27,8 @@ export function SyncSettingsPanel({
   driveAccountEmail,
   isDriveSignedIn = false,
   isDriveSyncing = false,
+  lastSyncedAt,
+  syncError,
   onDriveSignIn,
   onDriveSignOut,
   onDriveRefresh,
@@ -124,7 +128,7 @@ export function SyncSettingsPanel({
             </Typography>
             <Typography variant="text" size="xs" color="muted">
               {isDriveSignedIn
-                ? `Account: ${driveAccountEmail || "Connected"}`
+                ? `Account: ${driveAccountEmail || "Connected"}${lastSyncedAt ? ` · Last synced ${new Date(lastSyncedAt).toLocaleTimeString()}` : ""}`
                 : "Authentication required to sync"}
             </Typography>
           </div>
@@ -132,6 +136,16 @@ export function SyncSettingsPanel({
             {isDriveSignedIn ? "Connected" : "Signed Out"}
           </Badge>
         </div>
+
+        {syncError && (
+          <div
+            className={styles["sync-settings__error-banner"]}
+            role="alert"
+            data-testid="sync-error-banner"
+          >
+            <span>{syncError}</span>
+          </div>
+        )}
 
         <div className={styles["sync-settings__card-actions"]}>
           {isDriveSignedIn ? (

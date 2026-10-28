@@ -1,0 +1,108 @@
+.recent-vaults {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  text-align: left;
+}
+
+.recent-vaults__header {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.recent-vaults__list {
+  display: flex;
+  flex-direction: column;
+  max-height: 240px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.recent-vaults__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background-color var(--duration-fast) var(--ease-default);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
+  }
+}
+
+.recent-vaults__button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+  background: none;
+  border: none;
+  padding: var(--space-1) 0;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  overflow: hidden;
+}
+
+.recent-vaults__name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.recent-vaults__name {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-normal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-vaults__path {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 340px;
+}
+
+.recent-vaults__time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-faint);
+  margin-left: auto;
+}
+
+.recent-vaults__remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: var(--space-1);
+  margin-left: var(--space-2);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: color var(--duration-fast);
+
+  &:hover {
+    color: var(--color-text-error, #f87171);
+    background-color: var(--color-bg-tertiary);
+  }
+}

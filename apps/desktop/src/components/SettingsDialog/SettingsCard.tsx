@@ -4,12 +4,14 @@ import styles from "./SettingsDialog.module.scss";
 
 export interface SettingsCardProps {
   title?: string;
+  description?: string;
   children: React.ReactNode;
   className?: string;
 }
 
 export function SettingsCard({
   title,
+  description,
   children,
   className = "",
 }: SettingsCardProps) {
@@ -23,6 +25,11 @@ export function SettingsCard({
           className={styles["settings-card-title"]}
         >
           {title}
+        </Typography>
+      )}
+      {description && (
+        <Typography variant="text" size="xs" color="muted">
+          {description}
         </Typography>
       )}
       <div className={styles["settings-card"]}>{children}</div>

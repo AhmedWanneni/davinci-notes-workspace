@@ -3,12 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import { ClipModeSelector } from "./ClipModeSelector";
 
 describe("ClipModeSelector", () => {
-  it("offers all three clip modes", () => {
+  it("offers all four clip modes including Bookmark", () => {
     render(<ClipModeSelector mode="full" onChange={() => {}} />);
 
     expect(screen.getByRole("radio", { name: /Full page/ })).toBeChecked();
     expect(screen.getByRole("radio", { name: /Selection/ })).not.toBeChecked();
     expect(screen.getByRole("radio", { name: /Highlights/ })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: /Bookmark/ })).not.toBeChecked();
   });
 
   it("reports the mode the user picks", () => {

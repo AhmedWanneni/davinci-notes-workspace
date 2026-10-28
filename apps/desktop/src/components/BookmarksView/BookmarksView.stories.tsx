@@ -27,6 +27,27 @@ export const Default: Story = {
         { path: "Daily Notes/2026-10-25.md", addedAt: Date.now() - 86400000 },
         { path: "Ideas/Offline Sync.md", addedAt: Date.now() - 172800000 },
       ],
+      webBookmarks: [
+        {
+          id: "w1",
+          url: "https://v2.tauri.app/start/",
+          title: "Tauri 2.0 Documentation",
+          domain: "v2.tauri.app",
+          folder: "Development",
+          tags: ["rust", "desktop"],
+          description: "Build smaller, faster, and more secure desktop and mobile applications.",
+          addedAt: Date.now() - 1800000,
+        },
+        {
+          id: "w2",
+          url: "https://arxiv.org/abs/2303.08774",
+          title: "Attention & Reasoning in Local Models",
+          domain: "arxiv.org",
+          folder: "AI & Research",
+          tags: ["ai", "papers"],
+          addedAt: Date.now() - 5400000,
+        },
+      ],
     });
     useWorkspaceStore.setState({
       allNotePaths: [
@@ -43,6 +64,46 @@ export const Default: Story = {
   },
 };
 
+export const WebLinksPage: Story = {
+  args: {
+    initialPage: "links",
+  },
+  beforeEach: () => {
+    useBookmarkStore.setState({
+      isLoaded: true,
+      bookmarks: [{ path: "Notes/Architecture.md", addedAt: Date.now() }],
+      webBookmarks: [
+        {
+          id: "w1",
+          url: "https://v2.tauri.app/start/",
+          title: "Tauri 2.0 Documentation",
+          domain: "v2.tauri.app",
+          folder: "Development",
+          tags: ["rust", "desktop"],
+          description: "Build smaller, faster, and more secure desktop and mobile applications.",
+          addedAt: Date.now() - 1800000,
+        },
+        {
+          id: "w2",
+          url: "https://arxiv.org/abs/2303.08774",
+          title: "Attention & Reasoning in Local Models",
+          domain: "arxiv.org",
+          folder: "AI & Research",
+          tags: ["ai", "papers"],
+          addedAt: Date.now() - 5400000,
+        },
+        {
+          id: "w3",
+          url: "https://news.ycombinator.com",
+          title: "Hacker News",
+          domain: "news.ycombinator.com",
+          addedAt: Date.now() - 9000000,
+        },
+      ],
+    });
+  },
+};
+
 export const WithMissingNotes: Story = {
   beforeEach: () => {
     useBookmarkStore.setState({
@@ -55,6 +116,7 @@ export const WithMissingNotes: Story = {
           missing: true,
         },
       ],
+      webBookmarks: [],
     });
     useWorkspaceStore.setState({
       allNotePaths: ["Notes/Existing.md"],
@@ -67,6 +129,7 @@ export const Empty: Story = {
     useBookmarkStore.setState({
       isLoaded: true,
       bookmarks: [],
+      webBookmarks: [],
     });
     useWorkspaceStore.setState({
       allNotePaths: [],

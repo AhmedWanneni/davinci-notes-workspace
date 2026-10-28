@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import {
   CaretUpDown,
   Question,
-  Check,
   Folder,
   FolderOpen,
   FolderPlus,
-  Trash,
   ListBullets,
+  ArrowsClockwise,
+  CloudArrowDown,
 } from "@phosphor-icons/react";
 import {
   DropdownMenu,
@@ -23,6 +23,7 @@ import {
   removeRecentVault,
   type RecentVaultEntry,
 } from "../../vault";
+import { VaultSwitcherRecentItem } from "./VaultSwitcherRecentItem";
 import styles from "./VaultSwitcher.module.scss";
 
 export interface VaultSwitcherProps {
@@ -35,6 +36,8 @@ export interface VaultSwitcherProps {
   onSwitchVault: (path: string) => void | Promise<void>;
   onOpenFolderPicker: () => void | Promise<void>;
   onCreateNewVault?: () => void | Promise<void>;
+  onOpenVaultFromDrive?: () => void | Promise<void>;
+  onSyncVault?: () => void | Promise<void>;
 }
 
 export function VaultSwitcher({
@@ -47,6 +50,8 @@ export function VaultSwitcher({
   onSwitchVault,
   onOpenFolderPicker,
   onCreateNewVault,
+  onOpenVaultFromDrive,
+  onSyncVault,
 }: VaultSwitcherProps) {
   const [recentVaults, setRecentVaults] = useState<RecentVaultEntry[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -117,55 +122,15 @@ export function VaultSwitcher({
             side={isCollapsed ? "right" : "top"}
             className={styles["vault-switcher__menu-content"]}
           >
-            {recentVaults.map((entry) => {
-              const isCurrent = entry.path === vaultPath;
-              const isMissing = entry.exists === false;
-
-              return (
-                <DropdownMenuItem
-                  key={entry.path}
-                  disabled={isMissing}
-                  onClick={() => {
-                    if (!isMissing && !isCurrent) {
-                      void onSwitchVault(entry.path);
-                    }
-                  }}
-                  className={
-                    isMissing
-                      ? styles["vault-switcher__menu-item--unavailable"]
-                      : undefined
-                  }
-                >
-                  <div className={styles["vault-switcher__menu-item-row"]}>
-                    <Folder
-                      size={16}
-                      weight={isCurrent ? "fill" : "regular"}
-                      className={styles["vault-switcher__vault-icon"]}
-                      aria-hidden="true"
-                    />
-                    <div className={styles["vault-switcher__menu-item-details"]}>
-                      <span className={styles["vault-switcher__menu-item-name"]}>{entry.name}</span>
-                      <span className={styles["vault-switcher__menu-item-path"]}>{entry.path}</span>
-                    </div>
-                    {isCurrent && <Check size={14} weight="bold" aria-label="Active vault" />}
-                    {isMissing && (
-                      <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <span className={styles["vault-switcher__missing-tag"]}>Missing</span>
-                        <button
-                          type="button"
-                          className={styles["vault-switcher__remove-btn"]}
-                          onClick={(e) => void handleRemove(e, entry.path)}
-                          title="Remove from recent vaults"
-                          aria-label={`Remove ${entry.name} from list`}
-                        >
-                          <Trash size={12} weight="regular" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              );
-            })}
+            {recentVaults.map((entry) => (
+              <VaultSwitcherRecentItem
+                key={entry.path}
+                entry={entry}
+                isCurrent={entry.path === vaultPath}
+                onSwitchVault={onSwitchVault}
+                onRemove={handleRemove}
+              />
+            ))}
 
             {recentVaults.length > 0 && <DropdownMenuSeparator />}
 
@@ -178,6 +143,20 @@ export function VaultSwitcher({
               <DropdownMenuItem onClick={() => void onCreateNewVault()}>
                 <FolderPlus size={16} weight="regular" style={{ marginRight: 8 }} />
                 <span>Create new vault…</span>
+              </DropdownMenuItem>
+            )}
+
+            {onOpenVaultFromDrive && (
+              <DropdownMenuItem onClick={() => void onOpenVaultFromDrive()}>
+                <CloudArrowDown size={16} weight="regular" style={{ marginRight: 8 }} />
+                <span>Open vault from Drive…</span>
+              </DropdownMenuItem>
+            )}
+
+            {onSyncVault && (
+              <DropdownMenuItem onClick={() => void onSyncVault()}>
+                <ArrowsClockwise size={16} weight="regular" style={{ marginRight: 8 }} />
+                <span>Sync vault with Drive…</span>
               </DropdownMenuItem>
             )}
 

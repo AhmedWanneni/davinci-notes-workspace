@@ -142,4 +142,46 @@ describe("quickClipTab", () => {
     expect(queued).toHaveLength(1);
     expect(queued[0]?.payload.source.url).toBe("https://example.com/offline");
   });
+
+  it("supports bookmark mode for quick context-menu link bookmarking", async () => {
+    executeScriptMock.mockResolvedValue([
+      {
+        result: {
+          url: "https://example.com/bookmark-me",
+          title: "Bookmark Me",
+          html: "<html><head><title>Bookmark Me</title></head><body></body></html>",
+        },
+      },
+    ]);
+
+    let sentMode = "";
+    const mockFetch = vi
+      .fn()
+      .mockImplementation(async (_url: string, init: { body: string }) => {
+        const parsed = JSON.parse(init.body);
+        sentMode = parsed.mode;
+        return {
+          status: 200,
+          json: async () => ({
+            clipId: parsed.clipId,
+            status: "written",
+            path: ".davinci/bookmarks.json",
+          }),
+        };
+      });
+
+    const res = await quickClipTab(
+      { id: 1, url: "https://example.com/bookmark-me", title: "Bookmark Me" },
+      storage,
+      mockFetch as never,
+      "bookmark",
+    );
+
+    expect(sentMode).toBe("bookmark");
+    expect(res).toEqual({
+      success: true,
+      delivered: true,
+      path: ".davinci/bookmarks.json",
+    });
+  });
 });

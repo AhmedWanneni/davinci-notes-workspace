@@ -74,3 +74,17 @@
   line-height: 1.4;
   margin: 0;
 }
+
+.sync-settings__error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border-error, #f87171);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-error, #f87171);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+

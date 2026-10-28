@@ -9,6 +9,7 @@ import { quickClipTab } from "../src/clip/quickClipTab";
 import type { ClipFetch } from "../src/transport/postClipToDesktop";
 
 const MENU_CLIP_PAGE = "davinci-clipper-clip-page";
+const MENU_BOOKMARK_LINK = "davinci-clipper-bookmark-link";
 const MENU_CLIP_SELECTION = "davinci-clipper-clip-selection";
 const MENU_HIGHLIGHT_SELECTION = "davinci-clipper-highlight-selection";
 
@@ -47,6 +48,11 @@ export default defineBackground(() => {
         contexts: ["page", "frame"],
       });
       browser.contextMenus.create({
+        id: MENU_BOOKMARK_LINK,
+        title: "Bookmark link in DaVinci Notes",
+        contexts: ["page", "frame", "link"],
+      });
+      browser.contextMenus.create({
         id: MENU_HIGHLIGHT_SELECTION,
         title: "Highlight for DaVinci Notes",
         contexts: ["selection"],
@@ -63,6 +69,10 @@ export default defineBackground(() => {
     if (tab?.id === undefined) return;
     if (info.menuItemId === MENU_HIGHLIGHT_SELECTION) {
       void saveSelectionHighlight(tab.id);
+      return;
+    }
+    if (info.menuItemId === MENU_BOOKMARK_LINK) {
+      void quickClipTab(tab, area(), undefined, "bookmark");
       return;
     }
     void openPopup();

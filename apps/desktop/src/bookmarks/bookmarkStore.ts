@@ -1,183 +1,212 @@
 import { create } from "zustand";
-import type { BookmarkItem } from "./bookmarkTypes";
+import type {
+  BookmarkState,
+  WebBookmarkInput,
+  WebBookmarkItem,
+} from "./bookmarkTypes";
 import {
   loadBookmarksFile,
   mergeBookmarkSets,
+  mergeWebBookmarkSets,
   saveBookmarksFile,
 } from "./bookmarkStorage";
+import {
+  applyOrganizationUpdatesToList,
+  buildWebBookmarkItem,
+  patchWebBookmarkList,
+} from "./webBookmarkActions";
 
-export interface BookmarkState {
-  bookmarks: BookmarkItem[];
-  isLoaded: boolean;
-  loadBookmarks: () => Promise<void>;
-  toggleBookmark: (path: string) => Promise<void>;
-  addBookmark: (path: string) => Promise<void>;
-  removeBookmark: (path: string) => Promise<void>;
-  remapPath: (oldPath: string, newPath: string) => void;
-  remapFolder: (oldPrefix: string, newPrefix: string) => void;
-  markMissing: (path: string) => void;
-  markFolderMissing: (prefix: string) => void;
-  clearMissing: (path: string) => void;
-  mergeExternalBookmarks: (incoming: BookmarkItem[]) => void;
-  flushSave: () => Promise<void>;
-  reset: () => void;
-}
+export type { BookmarkState };
 
 let saveTimeout: ReturnType<typeof setTimeout> | null = null;
 
-function scheduleDiskSave(getItems: () => BookmarkItem[]): void {
+function scheduleDiskSave(
+  getState: () => Pick<BookmarkState, "bookmarks" | "webBookmarks">,
+): void {
   if (saveTimeout) clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => {
     saveTimeout = null;
-    void saveBookmarksFile({ version: 1, bookmarks: getItems() }).catch(
-      (err) => {
-        console.warn("[bookmarks] Failed to save bookmarks:", err);
-      },
-    );
+    const { bookmarks, webBookmarks } = getState();
+    void saveBookmarksFile({
+      version: 1,
+      bookmarks,
+      ...(webBookmarks.length > 0 ? { links: webBookmarks } : {}),
+    }).catch((err) => console.warn("[bookmarks] Failed to save:", err));
   }, 350);
 }
 
 export const useBookmarkStore = create<BookmarkState>((set, get) => ({
   bookmarks: [],
+  webBookmarks: [],
+  previousWebBookmarks: null,
   isLoaded: false,
 
   loadBookmarks: async () => {
     try {
       const data = await loadBookmarksFile();
-      set({ bookmarks: data.bookmarks, isLoaded: true });
+      set({
+        bookmarks: data.bookmarks,
+        webBookmarks: data.links ?? [],
+        isLoaded: true,
+      });
     } catch {
-      set({ bookmarks: [], isLoaded: true });
+      set({ bookmarks: [], webBookmarks: [], isLoaded: true });
     }
   },
 
   toggleBookmark: async (path: string) => {
     const { bookmarks, addBookmark, removeBookmark } = get();
-    const exists = bookmarks.some((b) => b.path === path);
-    if (exists) {
-      await removeBookmark(path);
-    } else {
-      await addBookmark(path);
-    }
+    await (bookmarks.some((b) => b.path === path)
+      ? removeBookmark(path)
+      : addBookmark(path));
   },
 
   addBookmark: async (path: string) => {
     const cleanPath = path.trim();
     if (!cleanPath) return;
-
-    set((state) => {
-      const existing = state.bookmarks.find((b) => b.path === cleanPath);
+    set((s) => {
+      const existing = s.bookmarks.find((b) => b.path === cleanPath);
       if (existing) {
-        // If it was marked missing, clear missing
-        if (existing.missing) {
-          const next = state.bookmarks.map((b) =>
-            b.path === cleanPath ? { ...b, missing: undefined } : b,
-          );
-          return { bookmarks: next };
-        }
-        return state;
+        return existing.missing
+          ? {
+              bookmarks: s.bookmarks.map((b) =>
+                b.path === cleanPath ? { ...b, missing: undefined } : b,
+              ),
+            }
+          : s;
       }
       return {
-        bookmarks: [
-          ...state.bookmarks,
-          { path: cleanPath, addedAt: Date.now() },
-        ],
+        bookmarks: [...s.bookmarks, { path: cleanPath, addedAt: Date.now() }],
       };
     });
-
-    scheduleDiskSave(() => get().bookmarks);
+    scheduleDiskSave(get);
   },
 
   removeBookmark: async (path: string) => {
-    set((state) => ({
-      bookmarks: state.bookmarks.filter((b) => b.path !== path),
+    set((s) => ({ bookmarks: s.bookmarks.filter((b) => b.path !== path) }));
+    scheduleDiskSave(get);
+  },
+
+  addWebBookmark: (input: WebBookmarkInput) => {
+    const created = buildWebBookmarkItem(input);
+    if (!created) return null;
+    set((s) => ({ webBookmarks: mergeWebBookmarkSets(s.webBookmarks, [created]) }));
+    scheduleDiskSave(get);
+    return created;
+  },
+
+  updateWebBookmark: (id, patch) => {
+    set((s) => ({ webBookmarks: patchWebBookmarkList(s.webBookmarks, id, patch) }));
+    scheduleDiskSave(get);
+  },
+
+  removeWebBookmark: (id: string) => {
+    set((s) => ({ webBookmarks: s.webBookmarks.filter((w) => w.id !== id) }));
+    scheduleDiskSave(get);
+  },
+
+  importWebBookmarks: (incoming: readonly WebBookmarkItem[]) => {
+    const beforeCount = get().webBookmarks.length;
+    const merged = mergeWebBookmarkSets(get().webBookmarks, incoming);
+    set({ webBookmarks: merged });
+    scheduleDiskSave(get);
+    return {
+      addedCount: Math.max(0, merged.length - beforeCount),
+      totalCount: merged.length,
+    };
+  },
+
+  applyWebBookmarksOrganization: (updates) => {
+    set((s) => ({
+      previousWebBookmarks: s.webBookmarks,
+      webBookmarks: applyOrganizationUpdatesToList(s.webBookmarks, updates),
     }));
-    scheduleDiskSave(() => get().bookmarks);
+    scheduleDiskSave(get);
+  },
+
+  undoLastOrganization: () => {
+    const prev = get().previousWebBookmarks;
+    if (!prev) return;
+    set({ webBookmarks: prev, previousWebBookmarks: null });
+    scheduleDiskSave(get);
   },
 
   remapPath: (oldPath: string, newPath: string) => {
     if (oldPath === newPath) return;
-    set((state) => {
-      const idx = state.bookmarks.findIndex((b) => b.path === oldPath);
-      if (idx === -1) return state;
-
-      const next = state.bookmarks.map((b) =>
-        b.path === oldPath ? { ...b, path: newPath, missing: undefined } : b,
-      );
-      return { bookmarks: next };
-    });
-    scheduleDiskSave(() => get().bookmarks);
+    set((s) =>
+      s.bookmarks.some((b) => b.path === oldPath)
+        ? {
+            bookmarks: s.bookmarks.map((b) =>
+              b.path === oldPath ? { ...b, path: newPath, missing: undefined } : b,
+            ),
+          }
+        : s,
+    );
+    scheduleDiskSave(get);
   },
 
   remapFolder: (oldPrefix: string, newPrefix: string) => {
     if (oldPrefix === newPrefix) return;
-    const prefixSlash = oldPrefix.endsWith("/") ? oldPrefix : `${oldPrefix}/`;
-    const newPrefixSlash = newPrefix.endsWith("/")
-      ? newPrefix
-      : `${newPrefix}/`;
-
-    set((state) => {
+    const pOld = oldPrefix.endsWith("/") ? oldPrefix : `${oldPrefix}/`;
+    const pNew = newPrefix.endsWith("/") ? newPrefix : `${newPrefix}/`;
+    set((s) => {
       let changed = false;
-      const next = state.bookmarks.map((b) => {
-        if (b.path.startsWith(prefixSlash)) {
-          changed = true;
-          return {
-            ...b,
-            path: `${newPrefixSlash}${b.path.slice(prefixSlash.length)}`,
-            missing: undefined,
-          };
-        }
-        return b;
+      const next = s.bookmarks.map((b) => {
+        if (!b.path.startsWith(pOld)) return b;
+        changed = true;
+        return { ...b, path: `${pNew}${b.path.slice(pOld.length)}`, missing: undefined };
       });
-      return changed ? { bookmarks: next } : state;
+      return changed ? { bookmarks: next } : s;
     });
-    scheduleDiskSave(() => get().bookmarks);
+    scheduleDiskSave(get);
   },
 
   markMissing: (path: string) => {
-    set((state) => {
-      const idx = state.bookmarks.findIndex((b) => b.path === path);
-      if (idx === -1) return state;
-
-      const next = state.bookmarks.map((b) =>
-        b.path === path ? { ...b, missing: true } : b,
-      );
-      return { bookmarks: next };
-    });
-    scheduleDiskSave(() => get().bookmarks);
+    set((s) =>
+      s.bookmarks.some((b) => b.path === path)
+        ? {
+            bookmarks: s.bookmarks.map((b) =>
+              b.path === path ? { ...b, missing: true } : b,
+            ),
+          }
+        : s,
+    );
+    scheduleDiskSave(get);
   },
 
   markFolderMissing: (prefix: string) => {
-    const prefixSlash = prefix.endsWith("/") ? prefix : `${prefix}/`;
-    set((state) => {
+    const pOld = prefix.endsWith("/") ? prefix : `${prefix}/`;
+    set((s) => {
       let changed = false;
-      const next = state.bookmarks.map((b) => {
-        if (b.path.startsWith(prefixSlash)) {
-          changed = true;
-          return { ...b, missing: true };
-        }
-        return b;
+      const next = s.bookmarks.map((b) => {
+        if (!b.path.startsWith(pOld)) return b;
+        changed = true;
+        return { ...b, missing: true };
       });
-      return changed ? { bookmarks: next } : state;
+      return changed ? { bookmarks: next } : s;
     });
-    scheduleDiskSave(() => get().bookmarks);
+    scheduleDiskSave(get);
   },
 
   clearMissing: (path: string) => {
-    set((state) => {
-      const idx = state.bookmarks.findIndex((b) => b.path === path);
-      if (idx === -1 || !state.bookmarks[idx].missing) return state;
-
-      const next = state.bookmarks.map((b) =>
-        b.path === path ? { ...b, missing: undefined } : b,
-      );
-      return { bookmarks: next };
+    set((s) => {
+      const target = s.bookmarks.find((b) => b.path === path);
+      if (!target || !target.missing) return s;
+      return {
+        bookmarks: s.bookmarks.map((b) =>
+          b.path === path ? { ...b, missing: undefined } : b,
+        ),
+      };
     });
-    scheduleDiskSave(() => get().bookmarks);
+    scheduleDiskSave(get);
   },
 
-  mergeExternalBookmarks: (incoming: BookmarkItem[]) => {
-    set((state) => ({
-      bookmarks: mergeBookmarkSets(state.bookmarks, incoming),
+  mergeExternalBookmarks: (incoming, incomingLinks) => {
+    set((s) => ({
+      bookmarks: mergeBookmarkSets(s.bookmarks, incoming),
+      ...(incomingLinks
+        ? { webBookmarks: mergeWebBookmarkSets(s.webBookmarks, incomingLinks) }
+        : {}),
     }));
   },
 
@@ -186,8 +215,12 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
       clearTimeout(saveTimeout);
       saveTimeout = null;
     }
-    const current = get().bookmarks;
-    await saveBookmarksFile({ version: 1, bookmarks: current });
+    const { bookmarks, webBookmarks } = get();
+    await saveBookmarksFile({
+      version: 1,
+      bookmarks,
+      ...(webBookmarks.length > 0 ? { links: webBookmarks } : {}),
+    });
   },
 
   reset: () => {
@@ -195,6 +228,6 @@ export const useBookmarkStore = create<BookmarkState>((set, get) => ({
       clearTimeout(saveTimeout);
       saveTimeout = null;
     }
-    set({ bookmarks: [], isLoaded: false });
+    set({ bookmarks: [], webBookmarks: [], previousWebBookmarks: null, isLoaded: false });
   },
 }));

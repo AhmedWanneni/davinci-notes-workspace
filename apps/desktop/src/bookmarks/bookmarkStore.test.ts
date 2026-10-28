@@ -94,4 +94,41 @@ describe("bookmarkStore", () => {
     useBookmarkStore.getState().clearMissing("deleted.md");
     expect(useBookmarkStore.getState().bookmarks[0].missing).toBeUndefined();
   });
+
+  it("adds, updates, imports, organizes, and undoes web bookmarks", () => {
+    const store = useBookmarkStore.getState();
+    const added = store.addWebBookmark({
+      url: "https://tauri.app",
+      title: "Tauri",
+      tags: ["#Desktop", "Rust"],
+    });
+    expect(added).not.toBeNull();
+    expect(useBookmarkStore.getState().webBookmarks).toHaveLength(1);
+    expect(useBookmarkStore.getState().webBookmarks[0].tags).toEqual([
+      "desktop",
+      "rust",
+    ]);
+
+    const itemId = useBookmarkStore.getState().webBookmarks[0].id;
+    store.updateWebBookmark(itemId, { folder: "Frameworks", title: "Tauri v2" });
+    expect(useBookmarkStore.getState().webBookmarks[0].folder).toBe(
+      "Frameworks",
+    );
+    expect(useBookmarkStore.getState().webBookmarks[0].title).toBe("Tauri v2");
+
+    // Organize & Undo
+    store.applyWebBookmarksOrganization([
+      { id: itemId, folder: "Development", tags: ["tauri", "native"] },
+    ]);
+    expect(useBookmarkStore.getState().webBookmarks[0].folder).toBe(
+      "Development",
+    );
+    expect(useBookmarkStore.getState().previousWebBookmarks).toHaveLength(1);
+
+    store.undoLastOrganization();
+    expect(useBookmarkStore.getState().webBookmarks[0].folder).toBe(
+      "Frameworks",
+    );
+    expect(useBookmarkStore.getState().previousWebBookmarks).toBeNull();
+  });
 });

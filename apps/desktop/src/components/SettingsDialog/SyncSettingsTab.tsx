@@ -12,6 +12,8 @@ interface SyncSettingsTabProps {
   driveAccountEmail?: string | null;
   isDriveSignedIn?: boolean;
   isDriveSyncing?: boolean;
+  lastSyncedAt?: number | null;
+  syncError?: string | null;
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
@@ -26,6 +28,8 @@ export function SyncSettingsTab({
   driveAccountEmail,
   isDriveSignedIn = false,
   isDriveSyncing = false,
+  lastSyncedAt,
+  syncError,
   onDriveSignIn,
   onDriveDisconnect,
   onDriveRefresh,
@@ -42,6 +46,8 @@ export function SyncSettingsTab({
           driveAccountEmail={driveAccountEmail}
           isDriveSignedIn={isDriveSignedIn}
           isDriveSyncing={isDriveSyncing}
+          lastSyncedAt={lastSyncedAt}
+          syncError={syncError}
           onDriveSignIn={onDriveSignIn}
           onDriveSignOut={onDriveDisconnect}
           onDriveRefresh={onDriveRefresh}

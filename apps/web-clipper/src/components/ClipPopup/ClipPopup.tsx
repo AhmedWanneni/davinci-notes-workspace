@@ -129,12 +129,14 @@ export function ClipPopup({ controller }: ClipPopupProps) {
               </div>
             ) : null}
           </div>
-          <TemplatePicker
-            templates={controller.templates}
-            selectedId={controller.templateId}
-            onSelect={controller.setTemplateId}
-            matchedId={controller.matchedTemplateId}
-          />
+          {controller.mode !== "bookmark" ? (
+            <TemplatePicker
+              templates={controller.templates}
+              selectedId={controller.templateId}
+              onSelect={controller.setTemplateId}
+              matchedId={controller.matchedTemplateId}
+            />
+          ) : null}
 
           {warning ? (
             <Typography
@@ -156,7 +158,9 @@ export function ClipPopup({ controller }: ClipPopupProps) {
             onPropertyChange={controller.setProperty}
           />
 
-          <ClipPreview tags={payload.tags} body={payload.body} />
+          {controller.mode !== "bookmark" ? (
+            <ClipPreview tags={payload.tags} body={payload.body} />
+          ) : null}
 
           {controller.queuedCount && controller.queuedCount > 0 ? (
             <div className={styles["clip-popup__queue-notice"]}>
@@ -185,7 +189,11 @@ export function ClipPopup({ controller }: ClipPopupProps) {
               onClick={controller.send}
               disabled={!controller.paired || controller.sending}
             >
-              {controller.sending ? "Sending…" : "Add to DaVinci Notes"}
+              {controller.sending
+                ? "Sending…"
+                : controller.mode === "bookmark"
+                  ? "Bookmark in DaVinci Notes"
+                  : "Add to DaVinci Notes"}
             </Button>
             <Button
               variant="secondary"
