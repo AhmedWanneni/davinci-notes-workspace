@@ -4,7 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Reminders Workspace Page, Free Notification Channels (Desktop, Telegram, Slack, WhatsApp), OS Keychain Secret Storage & Scheduled Messages
+## Last Session — Planning: Native-Like macOS Menu Bar Popover Investigation & Phased Implementation Plan
+
+**Scope:**
+1. **Empirical Reproduction & Codebase Investigation**:
+   - Analyzed `capture.rs`, `lib.rs`, `tray.rs`, `tray_position.rs`, `capabilities/capture.json`, `Cargo.toml`, and `Cargo.lock` (`tauri` 2.11.3, `tao` 0.35.3, `wry` 0.55.1).
+   - Confirmed 4 root causes on macOS:
+     1. Unconditional application activation in `make_window_topmost` (`set_activation_policy(Regular)` + `set_focus()`) forcing macOS app activation, window raising, and Space jumping.
+     2. Window level in `tao` defaults to `NSFloatingWindowLevel` (level 3) on `always_on_top(true)`, below native popover/status levels (level 25 / 101).
+     3. Collection behavior in `tao::window.rs` sets only `CanJoinAllSpaces` and lacks `FullScreenAuxiliary`, preventing overlay across native full-screen app Spaces.
+     4. In AppKit, non-activating key window behavior (`NSWindowStyleMaskNonactivatingPanel`) is strictly reserved for `NSPanel` and cannot be applied to a plain `NSWindow`.
+2. **Evaluated Architectural Options**:
+   - Evaluated Option A (`tauri-nspanel` 2.1.1, MIT/Apache-2.0, MSRV 1.75; `objc2` and `objc2-app-kit` already linked in lockfile; < 35 KB binary delta).
+   - Evaluated Option B (direct `objc2` calls; confirmed plain `NSWindow` cannot be non-activating without full subclassing and text-input client patching).
+   - Evaluated Option C (cheap partial fix; confirmed it fails over full-screen apps and conflicts with ADR-0019/Phase 2 Dock policy when main window is open).
+3. **Comprehensive Phased Plan**:
+   - Authored [`docs/tray-popover-plan.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/tray-popover-plan.md) with reproduction results, root cause analysis, options comparison, 4-phase build plan, 9-point regression test matrix, risk flags, and open questions for owner review.
+   - Zero application code, dependencies, or capabilities modified in this planning session.
+
+---
+
+## Next Up
+- Owner review and approval of [`docs/tray-popover-plan.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/tray-popover-plan.md).
+- Phase 0: Decisions and ADR-0225 (Dock policy and `tauri-nspanel` integration).
+- Phase 1: Baseline cleanup & partial fix gate (remove `Regular` activation from capture, add `visible_on_all_workspaces`, restore blur-hide).
+- Phase 2: macOS `tauri-nspanel` conversion with strict `cfg` gating.
+
+---
+
+## Previous Session — Reminders Workspace Page, Free Notification Channels (Desktop, Telegram, Slack, WhatsApp), OS Keychain Secret Storage & Scheduled Messages
 
 **Scope:**
 1. **Full Reminders Workspace Page (`apps/desktop/src/components/RemindersView`)**:
