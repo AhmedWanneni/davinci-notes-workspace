@@ -258,7 +258,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0169](adr/0169-ui-decoupling-from-sqlite-index-and-unhandled-rejection-resilience.md) | Decouple UI tab opening from SQLite indexing, capped exponential backoff for SQLITE_BUSY, and error boundaries | Accepted |
 | [0170](adr/0170-save-time-external-change-guard-and-append-merge.md) | Save-time external change guard with append-aware merge and conflict copy on exit (supersedes 0161) | Accepted |
 | [0171](adr/0171-capture-window-sql-permission-and-quick-search.md) | Capture window SQL permissions and direct indexer quick search with WAL mode and native note activation | Accepted |
-| [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) | Tray left-click popover toggle for quick capture with monitor work area clamping and left-click setting | Accepted; target superseded by [0180](adr/0180-quick-capture-note-creation-and-destination-options.md) |
+| [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) | Tray left-click popover toggle for quick capture with monitor work area clamping and left-click setting | Accepted; target superseded by [0180](adr/0180-quick-capture-note-creation-and-destination-options.md), window behavior superseded by [0225](adr/0225-native-macos-capture-popover-and-nspanel.md) |
 | [0173](adr/0173-curated-editor-fonts-and-custom-font-input-sanitization.md) | Curated editor fonts and custom font input sanitization with self-hosted font-display swap | Accepted |
 | [0174](adr/0174-curated-editor-fonts-and-vim-monospace-mode.md) | Curated editor fonts and vim monospace mode with lazy Latin woff2 assets | Accepted |
 | [0175](adr/0175-editor-insert-registry-and-lazy-menu.md) | Immutable editor insert registry, lazy header menu, and CodeMirror snippets | Accepted |
@@ -272,6 +272,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0183](adr/0183-rust-reminder-scheduler-and-notifications.md) | Rust reminder scheduler, device-local notification state, and background lifecycle | Accepted |
 | [0184](adr/0184-reminder-recurrence-syntax-and-completion-model.md) | Reminder recurrence syntax, due-date anchoring, and in-place completion model | Accepted |
 | [0224](adr/0224-reminders-page-notification-channels-and-scheduled-messages.md) | Reminders page (`davinci://reminders`), notification channels, OS keychain isolation, and Scheduled Messages | Accepted |
+| [0225](adr/0225-native-macos-capture-popover-and-nspanel.md) | Native macOS quick capture popover via non-activating NSPanel, Status level, and fullscreen auxiliary collection behavior | Accepted; supersedes popover window behavior of [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) |
 
 ## Web Clipper (planned)
 

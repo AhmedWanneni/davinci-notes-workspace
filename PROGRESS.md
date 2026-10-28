@@ -4,31 +4,30 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Planning: Native-Like macOS Menu Bar Popover Investigation & Phased Implementation Plan
+## Last Session — Phase 0: Native macOS Capture Popover Architecture & ADR-0225
 
 **Scope:**
-1. **Empirical Reproduction & Codebase Investigation**:
-   - Analyzed `capture.rs`, `lib.rs`, `tray.rs`, `tray_position.rs`, `capabilities/capture.json`, `Cargo.toml`, and `Cargo.lock` (`tauri` 2.11.3, `tao` 0.35.3, `wry` 0.55.1).
-   - Confirmed 4 root causes on macOS:
-     1. Unconditional application activation in `make_window_topmost` (`set_activation_policy(Regular)` + `set_focus()`) forcing macOS app activation, window raising, and Space jumping.
-     2. Window level in `tao` defaults to `NSFloatingWindowLevel` (level 3) on `always_on_top(true)`, below native popover/status levels (level 25 / 101).
-     3. Collection behavior in `tao::window.rs` sets only `CanJoinAllSpaces` and lacks `FullScreenAuxiliary`, preventing overlay across native full-screen app Spaces.
-     4. In AppKit, non-activating key window behavior (`NSWindowStyleMaskNonactivatingPanel`) is strictly reserved for `NSPanel` and cannot be applied to a plain `NSWindow`.
-2. **Evaluated Architectural Options**:
-   - Evaluated Option A (`tauri-nspanel` 2.1.1, MIT/Apache-2.0, MSRV 1.75; `objc2` and `objc2-app-kit` already linked in lockfile; < 35 KB binary delta).
-   - Evaluated Option B (direct `objc2` calls; confirmed plain `NSWindow` cannot be non-activating without full subclassing and text-input client patching).
-   - Evaluated Option C (cheap partial fix; confirmed it fails over full-screen apps and conflicts with ADR-0019/Phase 2 Dock policy when main window is open).
-3. **Comprehensive Phased Plan**:
-   - Authored [`docs/tray-popover-plan.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/tray-popover-plan.md) with reproduction results, root cause analysis, options comparison, 4-phase build plan, 9-point regression test matrix, risk flags, and open questions for owner review.
-   - Zero application code, dependencies, or capabilities modified in this planning session.
+1. **Architectural Decision Record (ADR-0225)**:
+   - Authored [`0225-native-macos-capture-popover-and-nspanel.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0225-native-macos-capture-popover-and-nspanel.md) superseding window configuration, level, and activation aspects of ADR-0172.
+   - Indexed in [`DECISIONS.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/DECISIONS.md) under Desktop Shell.
+2. **Dock & Application Activation Policy Separation**:
+   - Recorded architectural boundary: Quick Capture is a non-activating accessory popover and will never alter the application's activation policy (`set_activation_policy`).
+   - DaVinci Notes maintains `ActivationPolicy::Regular` while the main window is open (preserving ADR-0019 Dock icon and Cmd+Tab), and `ActivationPolicy::Accessory` when closed to tray (preserving ADR-0183 / Phase 2). In both states, Quick Capture displays without activating the application, raising other windows, or flashing the Dock icon.
+3. **NSPanel & Collection Behavior Decision**:
+   - Approved `tauri-nspanel = "2.1"` (v2.1.1, MIT/Apache-2.0, MSRV 1.75) under `[target.'cfg(target_os = "macos")'.dependencies]` with zero net C crate bloat (`objc2`, `objc2-app-kit`, `objc2-foundation` already linked in lockfile).
+   - Configured `PanelLevel::Status` (level 25) and `CollectionBehavior::new().can_join_all_spaces().full_screen_auxiliary()`.
+   - Re-instated hide-on-blur with 350ms click-debounce retention and draft preservation.
 
 ---
 
 ## Next Up
-- Owner review and approval of [`docs/tray-popover-plan.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/tray-popover-plan.md).
-- Phase 0: Decisions and ADR-0225 (Dock policy and `tauri-nspanel` integration).
 - Phase 1: Baseline cleanup & partial fix gate (remove `Regular` activation from capture, add `visible_on_all_workspaces`, restore blur-hide).
 - Phase 2: macOS `tauri-nspanel` conversion with strict `cfg` gating.
+- Phase 3: Comprehensive regression verification across the 9 fragile interactions and performance audit.
+
+---
+
+## Previous Session — Planning: Native-Like macOS Menu Bar Popover Investigation & Phased Implementation Plan
 
 ---
 
