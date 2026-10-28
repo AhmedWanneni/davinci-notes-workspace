@@ -271,6 +271,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0182](adr/0182-reminder-syntax-and-storage-model.md) | Reminder syntax, task parsing scope, default 09:00 time, and SQLite index storage | Accepted |
 | [0183](adr/0183-rust-reminder-scheduler-and-notifications.md) | Rust reminder scheduler, device-local notification state, and background lifecycle | Accepted |
 | [0184](adr/0184-reminder-recurrence-syntax-and-completion-model.md) | Reminder recurrence syntax, due-date anchoring, and in-place completion model | Accepted |
+| [0224](adr/0224-reminders-page-notification-channels-and-scheduled-messages.md) | Reminders page (`davinci://reminders`), notification channels, OS keychain isolation, and Scheduled Messages | Accepted |
 
 ## Web Clipper (planned)
 
@@ -332,6 +333,7 @@ the list.
 | [0201](adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md) | Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization | Accepted |
 | [0202](adr/0202-calendar-ui-shell-and-obsidian-leaf-integration.md) | Calendar UI shell: IconRail entry, lazy-loaded Obsidian CalendarLeaf, and mutually exclusive navigation state | Accepted |
 | [0203](adr/0203-calendar-reminder-alerts-and-tray-integration.md) | Calendar reminder alerts (5-minute heads-up) and menu-bar system tray upcoming meeting integration | Accepted |
+| [0223](adr/0223-google-calendar-two-way-sync-and-outbox-architecture.md) | Google Calendar two-way sync, ETag concurrency, and persistent outbox architecture | Accepted |
 
 ## Web Shell
 

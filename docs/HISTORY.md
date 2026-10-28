@@ -2,6 +2,105 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-28: Reminders Workspace Page, Free Notification Channels (Desktop, Telegram, Slack, WhatsApp), OS Keychain Secret Storage & Scheduled Messages
+
+- **Phase 1: ADR-0224, Schema Migration 10 & Outbox / Local State Persistence**:
+  - Authored `docs/adr/0224-reminders-page-notification-channels-and-scheduled-messages.md` and indexed in `DECISIONS.md`.
+  - Appended incremental Migration 10 in `apps/desktop/src-tauri/src/db.rs` and `packages/indexer/migrations.ts` without modifying historical migrations 1–9. Added `channels_json` and `delivery_error` to `reminder_local_state`, and created `scheduled_messages` table with status index.
+  - Implemented `remindersViewQueries.ts` (<225 lines) and `scheduledMessagesStore.ts` (<240 lines) with serialized access via `withDbLock` / `withDbTransaction`.
+- **Phase 2: OS Keychain Secret Bridge & URL Policy (`src-tauri`)**:
+  - Implemented `notification_auth.rs` (`save_notification_secret`, `load_notification_secret`, `clear_notification_secret` under `"com.davinci.notes.notification-channels"`, guarded by `reject_plugin_runner`).
+  - Added URL allowlist entries in `oauth.rs` for `https://wa.me/`, `core.telegram.org`, `api.slack.com`, and `callmebot.com`.
+- **Phase 3: Notification Engine, Secret Redactor & Adapters (`src/notifications`)**:
+  - Created zero-dependency adapters: `telegramAdapter.ts` (HTML parse_mode, 4096-char split), `slackAdapter.ts` (safe `@\u200Bchannel` mention neutralization), `whatsappClickAdapter.ts` (`https://wa.me/<digits>?text=<encoded>` with `openWhatsAppClickToChat`), and `callmebotAdapter.ts` (experimental third-party delivery).
+  - Built `secretRedactor.ts`, `dispatchChannelOnce.ts`, and `notifyDispatcher.ts` with exponential backoff retries, secret redaction, and `davinci:notification-log` telemetry.
+- **Phase 4: Vault Markdown Task Actions (`reminderTaskActions.ts`)**:
+  - Built deterministic vault markdown parsers and modifiers (`toggleReminderInMarkdown`, `editReminderInMarkdown`, `deleteReminderInMarkdown`, `addReminderToMarkdown`, `markReminderDoneInVault`, `editReminderInVault`, `deleteReminderInVault`, `addReminderToVaultNote`) keeping markdown files as the single source of truth and advancing recurring reminders.
+- **Phase 5: App Shell Routing & Lazy Integration**:
+  - Added `REMINDERS_TAB_ID = "davinci://reminders"` in `reminderConstants.ts`.
+  - Integrated into `AppTabs.tsx`, `IconRail.tsx`, `AppSidebar.tsx`, `vaultSwitchOrchestrator.ts`, and `App.tsx` (lazy-loaded `LazyRemindersView`, wiring tray menu and command palette).
+- **Phase 6: RemindersView & Scheduled Messages UI (`src/components/RemindersView`)**:
+  - Built modular subviews and modals: `RemindersHeader.tsx`, `RemindersSubView.tsx`, `ReminderRow.tsx`, `ReminderFormModal.tsx`, `ScheduledMessagesSubView.tsx`, `ScheduledMessageRow.tsx`, `ScheduledMessageComposerModal.tsx`, `ChannelPickerField.tsx`, and `useReminderKeyboardNav.ts`.
+  - Added flat-border CUBE SCSS modules (`RemindersView.module.scss`, `ReminderRow.module.scss`, `RemindersModal.module.scss`, `ScheduledMessages.module.scss`, `ChannelPickerField.module.scss`).
+  - Added Storybook story `RemindersView.stories.tsx` and Vitest unit suite `RemindersView.test.tsx`.
+- **Phase 7: Background Schedulers & Orchestrators (`src/reminders`)**:
+  - Implemented `reminderChannelOrchestrator.ts` listening to `davinci-reminders-due`, dispatching notifications to configured channels, and recording delivery errors in `reminder_local_state`.
+  - Implemented `scheduledMessageOrchestrator.ts` with 10s tick, missed catchup (> 5m marked `missed` to prevent surprise blasts), recurrence advancement, and automated transition of WhatsApp items to `needs_manual_send`.
+- **Phase 8: Settings Dialog Notification Tab (`src/components/SettingsDialog`)**:
+  - Built `NotificationsSettingsTab.tsx`, `NotificationDestinationRow.tsx`, `ChannelSetupFormCard.tsx`, `ChannelPrivacyGuide.tsx`, and `ChannelCredentialFields.tsx` for adding/testing/removing channels and managing defaults.
+- **Verification**:
+  - 0 new npm packages; 14 test suites (60 tests) pass in `apps/desktop`; 0 ESLint errors/warnings; all 35+ new and modified files strictly verified $\le 250$ lines; production web build passes in 12.37s.
+
+---
+
+### 2026-10-27: Web Bookmarks Page, Browser Bookmark Import, AI Organization & Browser Plugin Bookmarking
+
+- **Local-First Web Bookmarks Storage & Store (`apps/desktop/src/bookmarks`)**:
+  - Extended `bookmarkTypes.ts` and `bookmarkStorage.ts` with `WebBookmarkItem` (`links` array in `.davinci/bookmarks.json`), maintaining backward compatibility with existing vaults and automatic sync via Drive & Syncthing.
+  - Created `webBookmarkActions.ts` and updated `bookmarkStore.ts` and `useBookmarks.ts` with CRUD, batch import, external watcher merge, and AI organization with 1-click Undo (`undoLastOrganization`).
+- **Browser Bookmark Importer & AI Organizer**:
+  - Built `browserBookmarkImporter.ts` supporting Netscape Bookmark HTML (`.html` from Chrome, Brave, Firefox, Safari, Edge) and browser JSON exports, preserving nested folder hierarchies and tags while rejecting non-http(s) URLs.
+  - Built `organizeBookmarksWithAI.ts` using dynamic `AISubsystem.ts` provider resolution to categorize and tag bookmarks with a deterministic domain/keyword fallback.
+- **BookmarksView UI & Browser Plugin Integration**:
+  - Added segmented `Notes` / `Web Links` switcher in `BookmarksHeader.tsx` and built `NoteBookmarksSubView.tsx`, `WebBookmarksSubView.tsx`, `WebBookmarkRow.tsx`, `WebBookmarkAddBar.tsx`, `WebBookmarkImportModal.tsx`, and `WebBookmarks.module.scss`.
+  - Extended `ClipMode` (`"bookmark"`) across `packages/clipper-core`, `apps/desktop/src-tauri/src/clipper_payload.rs`, `apps/desktop/src/clipper/applyClipToVault.ts`, and `apps/web-clipper` (`ClipModeSelector`, `ClipPopup`, `extractContent`, `quickClipTab`, and right-click context menu `"Bookmark link in DaVinci Notes"` in `background.ts`).
+- **Verification**:
+  - 38/38 unit tests in `src/bookmarks`, 11/11 component tests in `src/components/BookmarksView`, 13/13 tests in `applyClipToVault.test.ts`, 23/23 tests in `apps/web-clipper`, 39/39 Rust clipper tests, 0 ESLint errors, and clean `build:web` production build.
+
+---
+
+### 2026-10-27: Google Calendar Two-Way Integration — Phases 1–6 Complete
+
+- **Phase 1: ADR-0223, Schema Migration 9 & Extended SQLite Outbox Store**:
+  - Authored `docs/adr/0223-google-calendar-two-way-sync-and-outbox-architecture.md` and indexed in `DECISIONS.md`.
+  - Registered incremental Migration 9 in `apps/desktop/src-tauri/src/db.rs` without touching immutable migrations 1–8. Added `etag`, `recurrence_rule`, `recurring_event_id`, `original_start_iso`, and `sync_status` to `google_calendar_events` and created `google_calendar_outbox`.
+  - Created `sqliteCalendarOutboxStore.ts` (<150 lines) and updated `sqliteCalendarStore.ts` (`deleteEventFromDb`, 4-table purge on disconnect).
+- **Phase 2: Lazy-Loaded Interactive Calendar Shell (Schedule-X) & Tab Integration**:
+  - Installed `@schedule-x/calendar@^2.36.0`, `@schedule-x/react@^2.36.0`, `@schedule-x/drag-and-drop@^2.36.0`, `@schedule-x/events-service@^2.36.0`, and `@schedule-x/theme-default@^2.36.0` inside the lazy-loaded calendar bundle.
+  - Built `scheduleXAdapter.ts` (`toScheduleXEvents`, `adjustGoogleAllDayEnd`, `toGoogleAllDayEnd`) with 8 unit tests.
+  - Built `CalendarToolbar.tsx` and `ScheduleXCalendar.tsx` (with `.module.scss`, `.stories.tsx`, `.test.tsx`) supporting Month Grid, Week, Day, and Agenda views with dark-first flat borders.
+  - Wired `CALENDAR_TAB_ID` (`davinci://calendar`) into `AppTabs.tsx` and `App.tsx`.
+- **Phase 3: Google OAuth Write Scopes & Empty State**:
+  - Updated `calendarAuthConfig.ts` to request `CALENDAR_WRITE_SCOPES` (`calendar.events` + `calendar.calendarlist.readonly`).
+  - Built `CalendarEmptyState.tsx` with colocated CSS Module, Storybook story, and unit test suite.
+- **Phase 4: Range Sync & Incremental Delta Sync**:
+  - Extended `calendarSyncEngine.ts` with `syncDateRange(timeMin, timeMax)` (`singleEvents: true`) alongside incremental `syncToken` delta sync and `HTTP 410 Gone` full resync recovery.
+- **Phase 5: Two-Way CRUD, Outbox Worker, ETag Conflict Handling & `EventModal`**:
+  - Added `GooglePreconditionFailedError` (`HTTP 412`) in `packages/google-calendar-api/calendarErrors.ts` and `getEvent`, `updateEvent` (`If-Match: etag`), and `deleteEvent` (`If-Match: etag`) in `packages/google-calendar-api/calendarClient.ts`.
+  - Built `calendarOutboxWorker.ts` (`optimisticCreateEvent`, `optimisticUpdateEvent`, `optimisticDeleteEvent`, `CalendarOutboxWorker`) with Google-wins conflict resolution on `HTTP 412` and offline durability when network drops mid-write.
+  - Built `EventModal.tsx` (<245 lines) with `.module.scss`, `.stories.tsx`, and `.test.tsx`, and integrated into `CalendarLeaf.tsx`.
+- **Phase 6: Vault Reminders Overlay, Benchmarks & Verification**:
+  - Built `vaultRemindersOverlay.ts` querying open vault reminders via `withDbLock` and mapping them to read-only calendar events (`id: "reminder_*"`).
+  - Added `calendarBenchmark.test.ts` verifying 2,000 events map to Schedule-X format in ~10ms.
+  - Verification: 22/22 unit tests in `@app/google-calendar-api`, 81/81 tests across 17 test files in `@app/desktop` calendar modules, 0 ESLint errors/warnings, and `pnpm --filter @app/desktop build:web` succeeds in 12.22s.
+
+---
+
+### 2026-10-26: Google Calendar Two-Way Integration — Phase 1: ADR-0223, Schema Migration 9 & Extended SQLite Outbox Store
+
+- **Architectural Decision Record (ADR-0223)**:
+  - Authored `docs/adr/0223-google-calendar-two-way-sync-and-outbox-architecture.md` and indexed in `DECISIONS.md`.
+  - Established offline durability via a persistent SQLite outbox, strict universal `withDbLock` discipline (ADR-0168), ETag concurrency with `If-Match` headers, and Google-wins conflict resolution policy.
+- **Database Migration 9 (`apps/desktop/src-tauri/src/db.rs`)**:
+  - Registered incremental Migration 9 without touching immutable migrations 1-8.
+  - Added columns to `google_calendar_events`: `etag`, `recurrence_rule`, `recurring_event_id`, `original_start_iso`, and `sync_status`.
+  - Created `google_calendar_outbox` table (`id`, `client_mutation_id`, `calendar_id`, `event_id`, `action`, `payload_json`, `etag`, `attempts`, `last_error`, `created_at`, `updated_at`) with index on `created_at`.
+- **Package Types & Normalization (`packages/google-calendar-api`)**:
+  - Extended `NormalizedCalendarEvent` and `GoogleCalendarApiEvent` with `etag`, `recurrenceRule`, `recurringEventId`, `originalStartIso`, and `syncStatus`.
+  - Added `CalendarOutboxItem`, `CalendarMutationAction`, and `CalendarEventSyncStatus`.
+  - Updated `normalizeEvent` in `calendarClient.ts` to map ETags and recurrence metadata from Google API payloads.
+- **Data Layer & SQLite Outbox Store (`apps/desktop/src/calendar`)**:
+  - Created `sqliteCalendarOutboxStore.ts` (<150 lines) implementing `enqueueOutboxMutation`, `getPendingOutboxItems`, `updateOutboxItemError`, `removeOutboxItem`, `markEventSyncStatus`, and `getOutboxCount` using `withDbLock`.
+  - Updated `sqliteCalendarStore.ts` to store and query the extended event columns, and updated `purgeCalendarCache` to atomically clean all 4 calendar tables (`google_calendars`, `google_calendar_events`, `google_calendar_sync_state`, `google_calendar_outbox`).
+  - Added `google-calendar-api` to allowed boundaries for `app` in `.eslintrc.js`.
+- **Testing & Verification**:
+  - Added `sqliteCalendarStore.test.ts` (7 tests pass) and `sqliteCalendarOutboxStore.test.ts` (6 tests pass).
+  - All 15 unit tests in `@app/google-calendar-api` pass cleanly.
+  - ESLint passes cleanly with 0 errors/warnings on all modified/new files.
+  - All files strictly respect the <200 soft cap and <250 hard cap.
+
+---
+
 ### 2026-10-26: Blank Page Fix & Top Bar Sync Indicator Placement
 
 - **Root Cause Analysis & Resolution**:

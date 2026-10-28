@@ -4,7 +4,108 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Blank Page Resolution & Top Bar Sync Indicator Fix
+## Last Session — Reminders Workspace Page, Free Notification Channels (Desktop, Telegram, Slack, WhatsApp), OS Keychain Secret Storage & Scheduled Messages
+
+**Scope:**
+1. **Full Reminders Workspace Page (`apps/desktop/src/components/RemindersView`)**:
+   - Built lazy-loaded workspace tab `davinci://reminders` routed identically to Bookmarks and Calendar, with `REMINDERS_TAB_ID` wired into [`AppTabs.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppTabs/AppTabs.tsx), [`IconRail.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/IconRail/IconRail.tsx), [`AppSidebar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppSidebar/AppSidebar.tsx), [`vaultSwitchOrchestrator.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/vault/vaultSwitchOrchestrator.ts), command palette, and tray menu (`davinci-tray-open-reminders`).
+   - Grouped sections for **Overdue**, **Today**, **Upcoming**, and **Completed** (collapsible) with due dates, recurrence badges, note location links (`:line`), channels indicator, and delivery error badges.
+   - Built [`RemindersHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersHeader.tsx), [`RemindersSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersSubView.tsx), [`ReminderRow.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ReminderRow.tsx), [`ReminderFormModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ReminderFormModal.tsx), and [`ChannelPickerField.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ChannelPickerField.tsx).
+   - Full keyboard navigation (`j`/`k`, `Enter`, `x`, `s`, `n`, `/`) via [`useReminderKeyboardNav.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/useReminderKeyboardNav.ts).
+2. **Vault Markdown Mutations (`reminderTaskActions.ts`)**:
+   - Built deterministic vault markdown parsers and modifiers (`toggleReminderInMarkdown`, `editReminderInMarkdown`, `deleteReminderInMarkdown`, `addReminderToMarkdown`, `markReminderDoneInVault`, `editReminderInVault`, `deleteReminderInVault`, `addReminderToVaultNote`) keeping markdown files as the single source of truth and advancing recurring reminders.
+3. **Database Migration 10 & Outbox / Local State (`db.rs`, `migrations.ts`, `remindersViewQueries.ts`, `scheduledMessagesStore.ts`)**:
+   - Appended Migration 10 without modifying historical migrations 1–9. Added `channels_json` and `delivery_error` to `reminder_local_state`, and created `scheduled_messages` table with status index.
+   - Built query engines in [`remindersViewQueries.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/vault/remindersViewQueries.ts) and [`scheduledMessagesStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/reminders/scheduledMessagesStore.ts) using universal `withDbLock` / `withDbTransaction`.
+4. **Zero-Secret Notification Engine & Free Channel Adapters (`apps/desktop/src/notifications`)**:
+   - Added native Rust Tauri commands `save_notification_secret`, `load_notification_secret`, and `clear_notification_secret` in [`notification_auth.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/notification_auth.rs) guarded by `reject_plugin_runner`, storing tokens in OS keychain (`com.davinci.notes.notification-channels`).
+   - Allowed external endpoints (`wa.me`, `core.telegram.org`, `api.slack.com`, `callmebot.com`) in [`oauth.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/oauth.rs).
+   - Implemented zero-dependency channel adapters:
+     - **Telegram Bot**: direct `api.telegram.org/bot<token>/sendMessage` with HTML formatting.
+     - **Slack Webhooks**: incoming webhook poster with broadcast mention neutralizing (`@\u200Bchannel`) unless opted in.
+     - **WhatsApp (Click-to-Chat)**: privacy-safe `https://wa.me/<digits>?text=<encoded>` with 1-click manual send prompt.
+     - **CallMeBot**: experimental third-party WhatsApp delivery via `api.callmebot.com`.
+   - Built [`secretRedactor.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/notifications/secretRedactor.ts), [`dispatchChannelOnce.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/notifications/dispatchChannelOnce.ts), and [`notifyDispatcher.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/notifications/notifyDispatcher.ts) with exponential backoff retries and privacy redaction.
+5. **Scheduled Messages Tab & Background Orchestrators (`apps/desktop/src/reminders`)**:
+   - Built [`ScheduledMessagesSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ScheduledMessagesSubView.tsx), [`ScheduledMessageRow.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ScheduledMessageRow.tsx), and [`ScheduledMessageComposerModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ScheduledMessageComposerModal.tsx).
+   - Built [`scheduledMessageOrchestrator.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/reminders/scheduledMessageOrchestrator.ts) (10s ticker, missed-catchup > 5m, recurrence advancement) and [`reminderChannelOrchestrator.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/reminders/reminderChannelOrchestrator.ts).
+   - Built full Settings UI tab (`Settings → Notifications`) with [`NotificationsSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationsSettingsTab.tsx), [`NotificationDestinationRow.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationDestinationRow.tsx), [`ChannelSetupFormCard.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/ChannelSetupFormCard.tsx), [`ChannelPrivacyGuide.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/ChannelPrivacyGuide.tsx), and [`ChannelCredentialFields.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/ChannelCredentialFields.tsx).
+6. **Verification & Performance Compliance**:
+   - 0 new npm packages (100% native platform APIs, Web Crypto, standard `Date`/`Intl`).
+   - All 35+ new and modified files strictly verified $\le 250$ lines (with components adhering to soft cap 150–200 lines).
+   - 14/14 Vitest suites pass (60/60 tests).
+   - 0 ESLint errors/warnings.
+   - Web bundle build (`pnpm --filter @app/desktop build:web`) succeeds in 12.37s with lazy-loaded code split chunks.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+
+---
+
+## Previous Session — Web Bookmarks Page, Browser Bookmark Import, AI Organization & Browser Plugin Bookmarking
+
+**Scope:**
+1. **Local-First Web Bookmarks Storage & Store (`apps/desktop/src/bookmarks`)**:
+   - Extended [`bookmarkTypes.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/bookmarkTypes.ts) and [`bookmarkStorage.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/bookmarkStorage.ts) with `WebBookmarkItem` (`links` array in `.davinci/bookmarks.json`), maintaining 100% backward compatibility and automatic Google Drive / Syncthing sync without SQLite schema churn.
+   - Created [`webBookmarkActions.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/webBookmarkActions.ts) and updated [`bookmarkStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/bookmarkStore.ts) and [`useBookmarks.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/useBookmarks.ts) with `addWebBookmark`, `updateWebBookmark`, `removeWebBookmark`, `importWebBookmarks`, `applyWebBookmarksOrganization`, and 1-click `undoLastOrganization`.
+2. **Automatic Browser Bookmark Detection & Import (Chrome, Brave, Firefox, Arc, Edge, Vivaldi)**:
+   - Built native Rust Tauri commands `detect_browser_bookmarks` and `read_browser_bookmarks` in [`browser_bookmarks.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/browser_bookmarks.rs) (registered in [`lib.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/lib.rs)) that automatically detect installed browsers across macOS/Windows/Linux and read Chromium `Bookmarks` JSON profiles and Firefox `places.sqlite` databases (`SQLITE_OPEN_READ_ONLY` via temp copy).
+   - Built [`browserBookmarkImporter.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/browserBookmarkImporter.ts) with `detectInstalledBrowsers()`, `autoImportFromBrowser(browserId)`, and fallback `.html`/`.json` file parsing.
+3. **AI / Smart Category Organization (`organizeBookmarksWithAI.ts`)**:
+   - Built [`organizeBookmarksWithAI.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/organizeBookmarksWithAI.ts) connecting to the user's configured AI provider via dynamic import of `AISubsystem.ts` to categorize bookmarks into clean categories and `#tags`, with a deterministic domain/keyword fallback classifier and 1-click Undo support.
+4. **Two-Page Bookmarks UI (`Notes` & `Web Links`) with Category View**:
+   - Updated [`BookmarksHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/BookmarksHeader.tsx) and [`BookmarksView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/BookmarksView.tsx) with a segmented switcher between **Notes** and **Web Links**, and extracted [`NoteBookmarksSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/NoteBookmarksSubView.tsx).
+   - Built [`WebBookmarksCategoryView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarksCategoryView.tsx), [`WebBookmarksSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarksSubView.tsx), [`WebBookmarkRow.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarkRow.tsx), [`WebBookmarkAddBar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarkAddBar.tsx), [`WebBookmarkImportModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarkImportModal.tsx), [`WebBookmarks.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarks.module.scss), and [`WebBookmarksCategoryView.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarksCategoryView.module.scss) featuring interactive browser cards for 1-click auto-import, visual **By Category** grouped sections (with collapsible category cards & inline **Organize into Categories** action) vs **List** view toggle, instant search, category filter chips, and `#tag` filtering.
+5. **Browser Plugin Bookmark Mode & Context Menu (`packages/clipper-core`, `apps/web-clipper`, `apps/desktop`)**:
+   - Added `"bookmark"` to `ClipMode` in [`ClipPayload.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/clipper-core/ClipPayload.ts) and `CLIP_MODES` in [`clipper_payload.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/clipper_payload.rs).
+   - Updated [`ClipModeSelector.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/src/components/ClipModeSelector/ClipModeSelector.tsx), [`ClipPopup.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/src/components/ClipPopup/ClipPopup.tsx), [`extractContent.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/src/extraction/extractContent.ts), [`quickClipTab.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/src/clip/quickClipTab.ts), and [`background.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/entrypoints/background.ts) with the **Bookmark** mode and right-click context menu action (**"Bookmark link in DaVinci Notes"**).
+   - Updated [`applyClipToVault.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/clipper/applyClipToVault.ts) to route `"bookmark"` clips directly into `useBookmarkStore.getState().addWebBookmark`.
+6. **Verification**:
+   - All 7 bookmark test suites (38 tests), 2 `BookmarksView` test suites (11 tests), `applyClipToVault.test.ts` (13 tests), 3 `@app/web-clipper` test suites (23 tests), and 39 Rust clipper tests pass with 0 ESLint errors/warnings.
+
+---
+
+## Previous Session — Google Calendar Two-Way Integration (Phases 1–6 Complete)
+
+**Scope:**
+1. **Phase 1 — Architectural Decision Record (ADR-0223), Migration 9 & SQLite Outbox Store**:
+   - Authored [`0223-google-calendar-two-way-sync-and-outbox-architecture.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0223-google-calendar-two-way-sync-and-outbox-architecture.md) and indexed in [`DECISIONS.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/DECISIONS.md).
+   - Added incremental Migration 9 in [`src-tauri/src/db.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/db.rs) adding `etag`, `recurrence_rule`, `recurring_event_id`, `original_start_iso`, `sync_status` to `google_calendar_events` and creating `google_calendar_outbox`.
+   - Built [`sqliteCalendarOutboxStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/sqliteCalendarOutboxStore.ts) and updated [`sqliteCalendarStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/sqliteCalendarStore.ts) with 4-table purge on disconnect.
+2. **Phase 2 — Lazy-Loaded Interactive Calendar Shell (Schedule-X) & Tab Integration**:
+   - Installed `@schedule-x/calendar@^2.36.0`, `@schedule-x/react@^2.36.0`, `@schedule-x/drag-and-drop@^2.36.0`, `@schedule-x/events-service@^2.36.0`, `@schedule-x/theme-default@^2.36.0` inside the lazy-loaded `CalendarLeaf` boundary.
+   - Created [`scheduleXAdapter.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/scheduleXAdapter.ts) handling exclusive all-day end-date conversion (`adjustGoogleAllDayEnd`, `toGoogleAllDayEnd`).
+   - Built [`CalendarToolbar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/CalendarToolbar.tsx) and [`ScheduleXCalendar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/ScheduleXCalendar.tsx) with Month, Week, Day, and Agenda views, colocated with CSS modules, Storybook stories, and unit tests.
+   - Wired `CALENDAR_TAB_ID` (`davinci://calendar`) into [`AppTabs.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppTabs/AppTabs.tsx) and [`App.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/App.tsx).
+3. **Phase 3 — OAuth Write Scopes & Empty State**:
+   - Updated [`calendarAuthConfig.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarAuthConfig.ts) to request `CALENDAR_WRITE_SCOPES` (`calendar.events` + `calendar.calendarlist.readonly`).
+   - Built [`CalendarEmptyState.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/CalendarEmptyState.tsx) with `.module.scss`, `.stories.tsx`, and `.test.tsx`.
+4. **Phase 4 — Range Sync & Incremental Delta Sync**:
+   - Added `syncDateRange(timeMin, timeMax)` (`singleEvents: true`) to [`calendarSyncEngine.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarSyncEngine.ts) alongside incremental `syncToken` delta sync and `HTTP 410 Gone` automatic recovery.
+5. **Phase 5 — Two-Way CRUD, Outbox Worker, ETag Conflict Handling & `EventModal`**:
+   - Added `getEvent`, `updateEvent` (`If-Match: etag`), and `deleteEvent` (`If-Match: etag`) to [`calendarClient.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/google-calendar-api/calendarClient.ts) along with `GooglePreconditionFailedError` (`HTTP 412`) in [`calendarErrors.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/google-calendar-api/calendarErrors.ts).
+   - Built [`calendarOutboxWorker.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarOutboxWorker.ts) implementing `optimisticCreateEvent`, `optimisticUpdateEvent`, `optimisticDeleteEvent`, and `CalendarOutboxWorker` with Google-wins conflict resolution on `HTTP 412`.
+   - Built [`EventModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/EventModal.tsx) with `.module.scss`, `.stories.tsx`, and `.test.tsx`, and integrated into [`CalendarLeaf.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/CalendarLeaf.tsx).
+6. **Phase 6 — Vault Reminders Overlay, Design System Alignment, Connection Banner & "Add as Event"**:
+   - Built [`vaultRemindersOverlay.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/vaultRemindersOverlay.ts) rendering open vault reminders as calendar events (`id: "reminder_*"`), and added **"Add as Calendar Event"** promotion in [`EventModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/EventModal.tsx), [`AddReminderForm.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/AddReminderForm.tsx), and [`ReminderRowItem.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/ReminderRowItem.tsx).
+   - Fixed `getEventsFromDb` in [`sqliteCalendarStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/sqliteCalendarStore.ts) (`LEFT JOIN google_calendars`) and reactive signal updates in [`ScheduleXCalendar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/ScheduleXCalendar.tsx) so newly created events immediately appear in the calendar.
+   - Added Google Calendar connection status banner and **Connect Google Calendar** button in [`CalendarLeaf.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/CalendarLeaf.tsx) via [`calendarSyncRunner.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarSyncRunner.ts), and aligned Schedule-X styles with DaVinci's flat 1px border tokens in [`ScheduleXCalendar.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/ScheduleXCalendar.module.scss).
+   - Added [`calendarBenchmark.test.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarBenchmark.test.ts) verifying 2,000 events map to Schedule-X in ~10ms.
+   - All 22 unit tests in `@app/google-calendar-api` and all 83 unit/component tests across 17 test files in `@app/desktop` calendar modules pass with 0 ESLint errors/warnings.
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+
+---
+
+## Previous Session — Blank Page Resolution & Top Bar Sync Indicator Fix
 
 **Scope:**
 1. **Blank Page Root Cause Analysis & Resolution**:
@@ -23,6 +124,11 @@ Updated at the end of every session. Read this first, before touching code. Full
    - All 204 Vitest test files in `@app/desktop` pass (836/836 tests).
    - ESLint passes cleanly with 0 errors on all modified files.
    - Web production build (`build:web`) succeeds with 0 errors in 11.41s.
+
+---
+
+## Next Up
+- Plan created: Google Calendar Two-Way Integration phased implementation plan at `calendar-feature-plan.md` (awaiting user feedback on open decisions).
 
 ---
 
@@ -73,6 +179,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
@@ -84,6 +191,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
@@ -115,6 +223,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
@@ -153,6 +262,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
@@ -182,6 +292,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
@@ -213,6 +324,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
@@ -245,6 +357,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
@@ -276,6 +389,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
@@ -306,6 +420,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
 - Multi-image drag and drop batch handling.
 - Image modal / lightbox zoom on embed click.
 - Configurable attachment subfolders per vault preferences.
