@@ -56,6 +56,7 @@ export function RemindersDialog({
     missed: [],
     today: [],
     upcoming: [],
+    done: [],
     all: [],
   });
   const [loading, setLoading] = useState(false);

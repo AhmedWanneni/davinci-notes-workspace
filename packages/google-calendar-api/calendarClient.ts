@@ -7,63 +7,26 @@ import type {
   NormalizedCalendarEvent,
   UpdateCalendarEventInput,
 } from "./calendarTypes";
-import { parseMeetLink } from "./parseMeetLink";
+import {
+  GoogleAuthExpiredError,
+  GoogleCalendarApiError,
+  GooglePreconditionFailedError,
+  GoogleSyncTokenExpiredError,
+} from "./calendarErrors";
+import { normalizeCalendarEvent } from "./normalizeCalendarEvent";
+
+export {
+  GoogleAuthExpiredError,
+  GoogleCalendarApiError,
+  GooglePreconditionFailedError,
+  GoogleSyncTokenExpiredError,
+};
 
 const BASE_URL = "https://www.googleapis.com/calendar/v3";
-
-export class GoogleAuthExpiredError extends Error {
-  constructor(message = "Google authorization expired or invalid") {
-    super(message);
-    this.name = "GoogleAuthExpiredError";
-  }
-}
-
-export class GoogleSyncTokenExpiredError extends Error {
-  constructor(message = "Sync token expired or invalid; full sync required") {
-    super(message);
-    this.name = "GoogleSyncTokenExpiredError";
-  }
-}
-
-export class GoogleCalendarApiError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = "GoogleCalendarApiError";
-  }
-}
 
 export interface GoogleCalendarClientOptions {
   fetchFn?: typeof fetch;
   baseUrl?: string;
-}
-
-function normalizeEvent(
-  calendarId: string,
-  raw: GoogleCalendarApiEvent,
-): NormalizedCalendarEvent {
-  const isAllDay = Boolean(raw.start?.date && !raw.start?.dateTime);
-  const startIso = raw.start?.dateTime || raw.start?.date || new Date().toISOString();
-  const endIso = raw.end?.dateTime || raw.end?.date || startIso;
-  const status: "confirmed" | "tentative" | "cancelled" =
-    raw.status === "cancelled" || raw.status === "tentative" ? raw.status : "confirmed";
-
-  return {
-    id: raw.id,
-    calendarId,
-    title: raw.summary?.trim() || "(No title)",
-    startIso,
-    endIso,
-    isAllDay,
-    meetUrl: parseMeetLink(raw),
-    location: raw.location?.trim() || undefined,
-    description: raw.description?.trim() || undefined,
-    status,
-    attendees: Array.isArray(raw.attendees) ? raw.attendees : [],
-    updatedAt: raw.updated ? new Date(raw.updated).getTime() : Date.now(),
-  };
 }
 
 export class GoogleCalendarClient {
@@ -71,7 +34,8 @@ export class GoogleCalendarClient {
   private readonly baseUrl: string;
 
   constructor(options: GoogleCalendarClientOptions = {}) {
-    this.fetchFn = options.fetchFn ?? fetch;
+    this.fetchFn =
+      options.fetchFn ?? ((input, init) => globalThis.fetch(input, init));
     this.baseUrl = options.baseUrl ?? BASE_URL;
   }
 
@@ -101,6 +65,40 @@ export class GoogleCalendarClient {
       foregroundColor: item.foregroundColor,
       selected: item.selected !== false,
     }));
+  }
+
+  async createCalendar(
+    accessToken: string,
+    summary = "Daily",
+    description = "DaVinci Notes Daily Calendar",
+  ): Promise<CalendarListItem> {
+    const url = `${this.baseUrl}/calendars`;
+    const response = await this.fetchFn(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ summary, description }),
+    });
+
+    if (response.status === 401) throw new GoogleAuthExpiredError();
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new GoogleCalendarApiError(response.status, `Failed to create calendar: ${text}`);
+    }
+
+    const item = (await response.json()) as CalendarListItem;
+    return {
+      id: item.id,
+      summary: item.summary || summary,
+      primary: false,
+      description: item.description,
+      backgroundColor: item.backgroundColor,
+      foregroundColor: item.foregroundColor,
+      selected: true,
+    };
   }
 
   async listEvents(
@@ -143,13 +141,32 @@ export class GoogleCalendarClient {
       nextSyncToken?: string;
     };
 
-    const events = (data.items || []).map((raw) => normalizeEvent(calendarId, raw));
-
     return {
-      events,
+      events: (data.items || []).map((raw) => normalizeCalendarEvent(calendarId, raw)),
       nextPageToken: data.nextPageToken,
       nextSyncToken: data.nextSyncToken,
     };
+  }
+
+  async getEvent(
+    accessToken: string,
+    calendarId = "primary",
+    eventId: string,
+  ): Promise<NormalizedCalendarEvent> {
+    const url = `${this.baseUrl}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`;
+    const response = await this.fetchFn(url, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+    });
+
+    if (response.status === 401) throw new GoogleAuthExpiredError();
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new GoogleCalendarApiError(response.status, `Failed to get event: ${text}`);
+    }
+
+    const data = (await response.json()) as GoogleCalendarApiEvent;
+    return normalizeCalendarEvent(calendarId, data);
   }
 
   async createEvent(
@@ -175,7 +192,7 @@ export class GoogleCalendarClient {
     }
 
     const data = (await response.json()) as GoogleCalendarApiEvent;
-    return normalizeEvent(calendarId, data);
+    return normalizeCalendarEvent(calendarId, data);
   }
 
   async updateEvent(
@@ -183,25 +200,54 @@ export class GoogleCalendarClient {
     calendarId = "primary",
     eventId: string,
     patch: UpdateCalendarEventInput,
+    etag?: string,
   ): Promise<NormalizedCalendarEvent> {
     const url = `${this.baseUrl}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`;
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (etag) headers["If-Match"] = etag;
+
     const response = await this.fetchFn(url, {
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers,
       body: JSON.stringify(patch),
     });
 
     if (response.status === 401) throw new GoogleAuthExpiredError();
+    if (response.status === 412) throw new GooglePreconditionFailedError();
     if (!response.ok) {
       const text = await response.text().catch(() => "");
       throw new GoogleCalendarApiError(response.status, `Failed to update event: ${text}`);
     }
 
     const data = (await response.json()) as GoogleCalendarApiEvent;
-    return normalizeEvent(calendarId, data);
+    return normalizeCalendarEvent(calendarId, data);
+  }
+
+  async deleteEvent(
+    accessToken: string,
+    calendarId = "primary",
+    eventId: string,
+    etag?: string,
+  ): Promise<void> {
+    const url = `${this.baseUrl}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`;
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+    };
+    if (etag) headers["If-Match"] = etag;
+
+    const response = await this.fetchFn(url, { method: "DELETE", headers });
+
+    if (response.status === 401) throw new GoogleAuthExpiredError();
+    if (response.status === 412) throw new GooglePreconditionFailedError();
+    if (response.status === 404 || response.status === 410) return;
+    if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      throw new GoogleCalendarApiError(response.status, `Failed to delete event: ${text}`);
+    }
   }
 }

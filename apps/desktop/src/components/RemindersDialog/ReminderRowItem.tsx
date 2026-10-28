@@ -5,9 +5,12 @@ import {
   CaretDown,
   FileText,
   ClockCountdown,
+  CalendarPlus,
 } from "@phosphor-icons/react";
 import type { ReminderViewItem } from "../../vault/remindersViewQueries";
 import type { SnoozePreset } from "../../vault/reminderSnoozeActions";
+import { optimisticCreateEvent } from "../../calendar/calendarOutboxWorker";
+import { flushAndSyncCalendar } from "../../calendar/calendarSyncRunner";
 import styles from "./ReminderRowItem.module.scss";
 
 export interface ReminderRowItemProps {
@@ -15,6 +18,7 @@ export interface ReminderRowItemProps {
   onNavigate: (notePath: string, line: number) => void;
   onToggleDone: (item: ReminderViewItem, done: boolean) => void;
   onSnooze: (item: ReminderViewItem, preset: SnoozePreset) => void;
+  onAddAsEvent?: (item: ReminderViewItem) => void;
 }
 
 const SNOOZE_PRESETS: Array<{ preset: SnoozePreset; label: string }> = [
@@ -61,9 +65,42 @@ export function ReminderRowItem({
   onNavigate,
   onToggleDone,
   onSnooze,
+  onAddAsEvent,
 }: ReminderRowItemProps) {
   const [snoozeMenuOpen, setSnoozeMenuOpen] = useState(false);
+  const [eventAdded, setEventAdded] = useState(false);
   const snoozeRef = useRef<HTMLDivElement>(null);
+
+  const handleAddAsEvent = async () => {
+    if (eventAdded) return;
+    setEventAdded(true);
+    if (onAddAsEvent) {
+      onAddAsEvent(item);
+      return;
+    }
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const startDt = new Date(item.effectiveDueUtc);
+    const validStart = isNaN(startDt.getTime()) ? new Date() : startDt;
+    const endDt = new Date(validStart.getTime() + 30 * 60_000);
+    await optimisticCreateEvent("daily", {
+      summary: `🔔 ${item.text}`,
+      description: `Reminder from ${item.notePath} (line ${item.line})`,
+      start: { dateTime: validStart.toISOString(), timeZone: tz },
+      end: { dateTime: endDt.toISOString(), timeZone: tz },
+      reminders: {
+        useDefault: false,
+        overrides: [
+          { method: "popup", minutes: 0 },
+          { method: "popup", minutes: 10 },
+        ],
+      },
+    });
+    void flushAndSyncCalendar().then(() => {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("davinci:calendar-updated"));
+      }
+    });
+  };
 
   useEffect(() => {
     if (!snoozeMenuOpen) return;
@@ -143,6 +180,18 @@ export function ReminderRowItem({
       </div>
 
       <div className={styles.row__actions}>
+        <button
+          type="button"
+          className={styles.row__btn}
+          onClick={() => void handleAddAsEvent()}
+          disabled={eventAdded}
+          title="Add as calendar event"
+          data-testid={`reminder-add-as-event-${item.reminderKey}`}
+        >
+          <CalendarPlus size={13} weight="bold" />
+          <span>{eventAdded ? "Added" : "Add as Event"}</span>
+        </button>
+
         <button
           type="button"
           className={`${styles.row__btn} ${styles["row__btn--done"]}`}

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Button, Input, Typography } from "@app/design-system";
 import { appendToNoteInVault } from "../../vault/appendToNoteInVault";
+import { optimisticCreateEvent } from "../../calendar/calendarOutboxWorker";
+import { flushAndSyncCalendar } from "../../calendar/calendarSyncRunner";
+import { toGoogleAllDayEnd } from "../../calendar/scheduleXAdapter";
 import styles from "./AddReminderForm.module.scss";
 
 export interface AddReminderFormProps {
@@ -30,6 +33,7 @@ export function AddReminderForm({
       : "Reminders.md",
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addAsCalendarEvent, setAddAsCalendarEvent] = useState(true);
 
   const handlePreset = (daysFromNow: number) => {
     const target = new Date();
@@ -49,6 +53,41 @@ export function AddReminderForm({
       const reminderLine = `- [ ] ${cleanText} (@${date}${timePart})`;
 
       await appendToNoteInVault(file, reminderLine);
+
+      if (addAsCalendarEvent) {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const googleReminders = {
+          useDefault: false,
+          overrides: [
+            { method: "popup" as const, minutes: 0 },
+            { method: "popup" as const, minutes: 10 },
+          ],
+        };
+        if (time.trim()) {
+          const startDt = new Date(`${date}T${time.trim()}:00`);
+          const endDt = new Date(startDt.getTime() + 30 * 60_000);
+          await optimisticCreateEvent("daily", {
+            summary: `🔔 ${cleanText}`,
+            description: `Reminder from ${file}`,
+            start: { dateTime: startDt.toISOString(), timeZone: tz },
+            end: { dateTime: endDt.toISOString(), timeZone: tz },
+            reminders: googleReminders,
+          });
+        } else {
+          await optimisticCreateEvent("daily", {
+            summary: `🔔 ${cleanText}`,
+            description: `Reminder from ${file}`,
+            start: { date },
+            end: { date: toGoogleAllDayEnd(date) },
+            reminders: googleReminders,
+          });
+        }
+        void flushAndSyncCalendar().then(() => {
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new Event("davinci:calendar-updated"));
+          }
+        });
+      }
       onAdded();
     } catch (err) {
       console.error("Failed to add reminder:", err);
@@ -136,6 +175,16 @@ export function AddReminderForm({
           aria-label="Target note for reminder"
         />
       </div>
+
+      <label className={styles["add-reminder-form__checkbox-row"]}>
+        <input
+          type="checkbox"
+          checked={addAsCalendarEvent}
+          onChange={(e) => setAddAsCalendarEvent(e.target.checked)}
+          data-testid="add-reminder-as-event-checkbox"
+        />
+        <span>Also add as calendar event</span>
+      </label>
 
       <div className={styles["add-reminder-form__actions"]}>
         <Button size="sm" variant="secondary" onClick={onCancel}>

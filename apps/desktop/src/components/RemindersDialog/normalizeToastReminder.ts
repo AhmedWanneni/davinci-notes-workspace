@@ -5,6 +5,7 @@ export interface ActiveToastReminder {
   line: number;
   dueAtUtc: string;
   text: string;
+  whatsappClickUrl?: string;
 }
 
 export interface RawReminderPayload {
@@ -19,6 +20,8 @@ export interface RawReminderPayload {
   tz?: string;
   text?: string;
   done?: boolean;
+  whatsapp_click_url?: string;
+  whatsappClickUrl?: string;
 }
 
 /**
@@ -35,6 +38,7 @@ export function normalizeReminder(
     line: raw.line ?? 1,
     dueAtUtc: raw.dueAtUtc ?? raw.due_at_utc ?? "",
     text: raw.text ?? "",
+    whatsappClickUrl: raw.whatsappClickUrl ?? raw.whatsapp_click_url,
   };
 }
 

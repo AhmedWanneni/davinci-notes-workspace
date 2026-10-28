@@ -8,6 +8,8 @@ export interface CalendarListItem {
   selected?: boolean;
 }
 
+export type CalendarListEntry = CalendarListItem;
+
 export interface ConferenceEntryPoint {
   entryPointType: "video" | "phone" | "sip" | "more" | string;
   uri: string;
@@ -41,6 +43,7 @@ export interface EventDateTime {
 
 export interface GoogleCalendarApiEvent {
   id: string;
+  etag?: string;
   status?: "confirmed" | "tentative" | "cancelled" | string;
   summary?: string;
   description?: string;
@@ -51,7 +54,12 @@ export interface GoogleCalendarApiEvent {
   conferenceData?: ConferenceData;
   attendees?: EventAttendee[];
   updated?: string;
+  recurrence?: string[];
+  recurringEventId?: string;
+  originalStartTime?: EventDateTime;
 }
+
+export type CalendarEventSyncStatus = "synced" | "pending_create" | "pending_update" | "pending_delete";
 
 export interface NormalizedCalendarEvent {
   id: string;
@@ -66,6 +74,11 @@ export interface NormalizedCalendarEvent {
   status: "confirmed" | "tentative" | "cancelled";
   attendees: EventAttendee[];
   updatedAt: number;
+  etag?: string;
+  recurrenceRule?: string;
+  recurringEventId?: string;
+  originalStartIso?: string;
+  syncStatus?: CalendarEventSyncStatus;
 }
 
 export interface ListEventsOptions {
@@ -84,12 +97,23 @@ export interface ListEventsResult {
   nextSyncToken?: string;
 }
 
+export interface GoogleEventReminderOverride {
+  method: "popup" | "email";
+  minutes: number;
+}
+
+export interface GoogleEventReminders {
+  useDefault: boolean;
+  overrides?: GoogleEventReminderOverride[];
+}
+
 export interface CreateCalendarEventInput {
   summary: string;
   description?: string;
   location?: string;
   start: { dateTime: string; timeZone?: string } | { date: string };
   end: { dateTime: string; timeZone?: string } | { date: string };
+  reminders?: GoogleEventReminders;
 }
 
 export interface UpdateCalendarEventInput {
@@ -99,4 +123,22 @@ export interface UpdateCalendarEventInput {
   start?: { dateTime: string; timeZone?: string } | { date: string };
   end?: { dateTime: string; timeZone?: string } | { date: string };
   status?: "confirmed" | "tentative" | "cancelled";
+  reminders?: GoogleEventReminders;
 }
+
+export type CalendarMutationAction = "create" | "update" | "delete";
+
+export interface CalendarOutboxItem {
+  id: string;
+  clientMutationId: string;
+  calendarId: string;
+  eventId: string;
+  action: CalendarMutationAction;
+  payloadJson: string;
+  etag?: string;
+  attempts: number;
+  lastError?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+

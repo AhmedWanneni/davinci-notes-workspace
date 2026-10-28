@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import type { NormalizedCalendarEvent } from "@app/google-calendar-api";
-import { Typography } from "@app/design-system";
+import { Button, Typography } from "@app/design-system";
+import { Plus } from "@phosphor-icons/react";
 import { EventCard } from "./EventCard";
 import styles from "./CalendarView.module.scss";
 
@@ -8,9 +9,10 @@ export interface DayAgendaViewProps {
   events: NormalizedCalendarEvent[];
   onJoinMeet?: (url: string) => void;
   onCreateNote?: (event: NormalizedCalendarEvent) => void;
+  onCreateEvent?: () => void;
 }
 
-export function DayAgendaView({ events, onJoinMeet, onCreateNote }: DayAgendaViewProps) {
+export function DayAgendaView({ events, onJoinMeet, onCreateNote, onCreateEvent }: DayAgendaViewProps) {
   const { happeningNow, laterToday, upcoming } = useMemo(() => {
     const now = Date.now();
     const todayMidnight = new Date();
@@ -46,6 +48,12 @@ export function DayAgendaView({ events, onJoinMeet, onCreateNote }: DayAgendaVie
         <Typography variant="text" size="sm" color="muted">
           No upcoming meetings scheduled for this period.
         </Typography>
+        {onCreateEvent && (
+          <Button variant="secondary" size="sm" onClick={onCreateEvent} data-testid="agenda-add-event-btn">
+            <Plus size={14} weight="bold" />
+            <span>Add Event</span>
+          </Button>
+        )}
       </div>
     );
   }

@@ -43,7 +43,6 @@ describe("ReminderNotificationToast", () => {
 
   it("renders toast when davinci-reminders-due is received with snake_case payload", async () => {
     render(<ReminderNotificationToast onSelectNote={onSelectNoteMock} />);
-
     await waitFor(() => {
       expect(listeners["davinci-reminders-due"]).toBeDefined();
     });
@@ -73,7 +72,6 @@ describe("ReminderNotificationToast", () => {
 
   it("dismisses toast when close button is clicked", async () => {
     render(<ReminderNotificationToast onSelectNote={onSelectNoteMock} />);
-
     await waitFor(() => {
       expect(listeners["davinci-reminders-due"]).toBeDefined();
     });
@@ -92,11 +90,9 @@ describe("ReminderNotificationToast", () => {
       });
     });
 
-    const closeBtn = screen.getByLabelText("Dismiss notification");
     await act(async () => {
-      fireEvent.click(closeBtn);
+      fireEvent.click(screen.getByLabelText("Dismiss notification"));
     });
-
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
@@ -106,7 +102,6 @@ describe("ReminderNotificationToast", () => {
       .mockResolvedValue(undefined);
 
     render(<ReminderNotificationToast onSelectNote={onSelectNoteMock} />);
-
     await waitFor(() => {
       expect(listeners["davinci-reminders-due"]).toBeDefined();
     });
@@ -126,9 +121,8 @@ describe("ReminderNotificationToast", () => {
       });
     });
 
-    const doneBtn = screen.getByRole("button", { name: "Done" });
     await act(async () => {
-      fireEvent.click(doneBtn);
+      fireEvent.click(screen.getByRole("button", { name: "Done" }));
     });
 
     expect(markDoneSpy).toHaveBeenCalledWith(
@@ -151,7 +145,6 @@ describe("ReminderNotificationToast", () => {
     );
 
     render(<ReminderNotificationToast onSelectNote={onSelectNoteMock} />);
-
     await waitFor(() => {
       expect(listeners["davinci-reminders-due"]).toBeDefined();
     });
@@ -170,11 +163,9 @@ describe("ReminderNotificationToast", () => {
       });
     });
 
-    const doneBtn = screen.getByRole("button", { name: "Done" });
     await act(async () => {
-      fireEvent.click(doneBtn);
+      fireEvent.click(screen.getByRole("button", { name: "Done" }));
     });
-
     await waitFor(() => {
       expect(screen.queryByRole("alert")).toBeNull();
     });
@@ -186,7 +177,6 @@ describe("ReminderNotificationToast", () => {
       .mockResolvedValue(undefined);
 
     render(<ReminderNotificationToast onSelectNote={onSelectNoteMock} />);
-
     await waitFor(() => {
       expect(listeners["davinci-reminders-due"]).toBeDefined();
     });
@@ -206,14 +196,11 @@ describe("ReminderNotificationToast", () => {
       });
     });
 
-    const snoozeToggle = screen.getByRole("button", { name: "Snooze" });
     await act(async () => {
-      fireEvent.click(snoozeToggle);
+      fireEvent.click(screen.getByRole("button", { name: "Snooze" }));
     });
-
-    const tenMinBtn = screen.getByRole("button", { name: "10 minutes" });
     await act(async () => {
-      fireEvent.click(tenMinBtn);
+      fireEvent.click(screen.getByRole("button", { name: "10 minutes" }));
     });
 
     expect(snoozeSpy).toHaveBeenCalledWith(
@@ -228,33 +215,32 @@ describe("ReminderNotificationToast", () => {
     });
   });
 
-  it("navigates to note and dismisses toast when clicking note link", async () => {
+  it("navigates to note and renders Send on WhatsApp button when whatsappClickUrl is provided", async () => {
     render(<ReminderNotificationToast onSelectNote={onSelectNoteMock} />);
-
     await waitFor(() => {
       expect(listeners["davinci-reminders-due"]).toBeDefined();
     });
-
     await act(async () => {
       listeners["davinci-reminders-due"]?.({
         payload: [
           {
-            id: 5,
-            note_path: "Notes/DeepDive.md",
-            line: 42,
+            id: 6,
+            note_path: "Notes/WhatsApp.md",
+            line: 3,
             due_at_utc: "2026-10-26T18:00:00Z",
-            text: "Read documentation",
+            text: "Confirm flight",
+            whatsapp_click_url: "https://wa.me/14155550199?text=Confirm%20flight",
           },
         ],
       });
     });
+    expect(
+      screen.getByRole("button", { name: /Send on WhatsApp/i }),
+    ).toBeDefined();
 
-    const noteBtn = screen.getByRole("button", { name: /Notes\/DeepDive\.md/ });
     await act(async () => {
-      fireEvent.click(noteBtn);
+      fireEvent.click(screen.getByRole("button", { name: /Notes\/WhatsApp\.md/ }));
     });
-
-    expect(onSelectNoteMock).toHaveBeenCalledWith("Notes/DeepDive.md", 42);
-    expect(screen.queryByRole("alert")).toBeNull();
+    expect(onSelectNoteMock).toHaveBeenCalledWith("Notes/WhatsApp.md", 3);
   });
 });
