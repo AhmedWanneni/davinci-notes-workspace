@@ -19,6 +19,13 @@ pub struct CaptureState {
   pub last_tray_rect: Arc<Mutex<Option<Rect>>>,
 }
 
+fn current_epoch_ms() -> u64 {
+  SystemTime::now()
+    .duration_since(SystemTime::UNIX_EPOCH)
+    .unwrap_or_default()
+    .as_millis() as u64
+}
+
 impl CaptureState {
   pub fn new(initial_shortcut: String, initial_target: String) -> Self {
     Self {
@@ -31,23 +38,12 @@ impl CaptureState {
   }
 
   pub fn record_blur(&self) {
-    let now = SystemTime::now()
-      .duration_since(SystemTime::UNIX_EPOCH)
-      .unwrap_or_default()
-      .as_millis() as u64;
-    self.last_blur_time.store(now, Ordering::SeqCst);
+    self.last_blur_time.store(current_epoch_ms(), Ordering::SeqCst);
   }
 
   pub fn is_recently_blurred(&self) -> bool {
     let last = self.last_blur_time.load(Ordering::SeqCst);
-    if last == 0 {
-      return false;
-    }
-    let now = SystemTime::now()
-      .duration_since(SystemTime::UNIX_EPOCH)
-      .unwrap_or_default()
-      .as_millis() as u64;
-    now.saturating_sub(last) < 350
+    last != 0 && current_epoch_ms().saturating_sub(last) < 350
   }
 
   pub fn set_last_tray_rect(&self, rect: Rect) {
@@ -98,7 +94,15 @@ pub fn toggle_capture_popover(app: &AppHandle, tray_rect: Option<Rect>) -> Resul
   }
 
   if let Some(window) = app.get_webview_window(CAPTURE_WINDOW_LABEL) {
-    if window.is_visible().unwrap_or(false) {
+    #[cfg(target_os = "macos")]
+    let visible = crate::macos_panel::is_capture_panel_visible(&window.as_ref().window());
+    #[cfg(not(target_os = "macos"))]
+    let visible = window.is_visible().unwrap_or(false);
+
+    if visible {
+      #[cfg(target_os = "macos")]
+      let _ = crate::macos_panel::hide_capture_panel(&window.as_ref().window());
+      #[cfg(not(target_os = "macos"))]
       let _ = window.hide();
       return Ok(());
     }
@@ -118,8 +122,7 @@ pub fn show_or_create_capture_window(app: &AppHandle, tray_rect: Option<Rect>) -
       let _ = window.set_position(tauri::Position::Physical(pos));
     }
     let _ = window.unminimize();
-    let _ = window.show();
-    make_window_topmost(&window.as_ref().window());
+    display_capture_window(&window);
     let _ = window.emit("davinci-capture-focus", ());
     return Ok(());
   }
@@ -137,6 +140,7 @@ fn create_and_show_capture_window(app: &AppHandle, target_rect: &Rect) -> Result
   .inner_size(640.0, 340.0)
   .resizable(false)
   .always_on_top(true)
+  .visible_on_all_workspaces(true)
   .skip_taskbar(true);
 
   #[cfg(target_os = "macos")]
@@ -152,15 +156,31 @@ fn create_and_show_capture_window(app: &AppHandle, target_rect: &Rect) -> Result
     .build()
     .map_err(|e| format!("Failed to create capture window: {e}"))?;
 
+  #[cfg(target_os = "macos")]
+  {
+    let _ = crate::macos_panel::setup_capture_panel(&window);
+  }
+
   // Read the real physical size and position directly anchored under the icon
   if let Some(pos) = find_popover_position(app, Some(&window), target_rect) {
     let _ = window.set_position(tauri::Position::Physical(pos));
   }
 
-  let _ = window.show();
-  make_window_topmost(&window.as_ref().window());
+  display_capture_window(&window);
   let _ = window.emit("davinci-capture-focus", ());
   Ok(())
+}
+
+fn display_capture_window(window: &WebviewWindow) {
+  #[cfg(target_os = "macos")]
+  {
+    let _ = crate::macos_panel::show_capture_panel(window);
+  }
+  #[cfg(not(target_os = "macos"))]
+  {
+    let _ = window.show();
+    make_window_topmost(&window.as_ref().window());
+  }
 }
 
 pub fn reclamp_popover(app: &AppHandle, window: &WebviewWindow) -> Result<(), String> {
@@ -174,10 +194,6 @@ pub fn reclamp_popover(app: &AppHandle, window: &WebviewWindow) -> Result<(), St
 }
 
 pub fn make_window_topmost(window: &tauri::Window) {
-  #[cfg(target_os = "macos")]
-  {
-    let _ = window.app_handle().set_activation_policy(tauri::ActivationPolicy::Regular);
-  }
   let _ = window.unminimize();
   let _ = window.show();
   let _ = window.set_always_on_top(true);

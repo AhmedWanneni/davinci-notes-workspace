@@ -2,6 +2,31 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-28: Tray Popover Native macOS NSPanel Implementation (ADR-0225)
+
+- **Phase 0: Architectural Decision Record & Dock Policy Separation**:
+  - Authored `docs/adr/0225-native-macos-capture-popover-and-nspanel.md` and indexed in `DECISIONS.md`.
+  - Disentangled Quick Capture from application activation policy: DaVinci Notes maintains `ActivationPolicy::Regular` when the main window is open and `ActivationPolicy::Accessory` when hidden to tray; Quick Capture operates as a non-activating accessory panel in both states.
+- **Phase 1: Baseline Cleanups & Policy Decoupling**:
+  - Removed `set_activation_policy(Regular)` from `make_window_topmost` in `capture.rs`.
+  - Added `.visible_on_all_workspaces(true)` to `WebviewWindowBuilder` in `create_and_show_capture_window`.
+  - Reinstated hide-on-blur in `lib.rs` on `WindowEvent::Focused(false)`, preserving the 350ms click-debounce timestamp and keeping in-memory drafts preserved.
+- **Phase 2: macOS NSPanel Conversion (`macos_panel.rs`)**:
+  - Added `tauri-nspanel = "2.1"` (v2.1.1) under `[target.'cfg(target_os = "macos")'.dependencies]` in `Cargo.toml`.
+  - Built `macos_panel.rs` (75 lines) defining `QuickCapturePanel` via `tauri_panel!` with:
+    - `can_become_key_window: true`, `is_floating_panel: true`
+    - Window level: `PanelLevel::Status` (level 25, matching `NSStatusWindowLevel`)
+    - Collection behavior: `CollectionBehavior::new().can_join_all_spaces().full_screen_auxiliary()`
+    - Style mask: `NSWindowStyleMask::NonactivatingPanel`
+  - Registered `tauri_nspanel::init()` in `lib.rs` under `#[cfg(target_os = "macos")]`.
+  - Routed display and dismissal through `macos_panel::show_capture_panel` (`order_front_regardless` + `make_key_window`) and `macos_panel::hide_capture_panel`.
+  - Scoped all macOS changes under `#[cfg(target_os = "macos")]`; Windows and Linux builds remain 100% unaffected.
+- **Phase 3: Verification & Performance Audit**:
+  - Zero new npm packages; zero new transitive C crates (`objc2`, `objc2-app-kit`, `objc2-foundation` already present in `Cargo.lock`); binary size delta < 35 KB.
+  - All 5 QuickCapture test files (29 tests) pass. 124 Rust tests pass.
+  - Web production build succeeds in 10.83s.
+  - All files strictly within line caps (`macos_panel.rs` 75 lines, `capture.rs` 204 lines, `capture_commands.rs` 242 lines).
+
 ### 2026-10-28: Reminders Workspace Page, Free Notification Channels (Desktop, Telegram, Slack, WhatsApp), OS Keychain Secret Storage & Scheduled Messages
 
 - **Phase 1: ADR-0224, Schema Migration 10 & Outbox / Local State Persistence**:

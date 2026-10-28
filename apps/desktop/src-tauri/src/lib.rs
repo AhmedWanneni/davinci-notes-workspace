@@ -28,6 +28,8 @@ mod git;
 mod git_auth;
 mod git_history;
 mod git_remote;
+#[cfg(target_os = "macos")]
+mod macos_panel;
 mod manifest;
 mod notification_auth;
 mod oauth;
@@ -77,7 +79,14 @@ use watcher::VaultWatcher;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
+  let mut builder = tauri::Builder::default();
+
+  #[cfg(target_os = "macos")]
+  {
+    builder = builder.plugin(tauri_nspanel::init());
+  }
+
+  builder
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_notification::init())
@@ -201,12 +210,19 @@ pub fn run() {
         match event {
           tauri::WindowEvent::CloseRequested { api, .. } => {
             api.prevent_close();
+            #[cfg(target_os = "macos")]
+            let _ = macos_panel::hide_capture_panel(window);
+            #[cfg(not(target_os = "macos"))]
             let _ = window.hide();
           }
           tauri::WindowEvent::Focused(false) => {
             if let Some(state) = window.app_handle().try_state::<capture::CaptureState>() {
               state.record_blur();
             }
+            #[cfg(target_os = "macos")]
+            let _ = macos_panel::hide_capture_panel(window);
+            #[cfg(not(target_os = "macos"))]
+            let _ = window.hide();
           }
           tauri::WindowEvent::Focused(true) => {
             capture::make_window_topmost(window);
