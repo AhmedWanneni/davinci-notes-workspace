@@ -34,6 +34,10 @@ pub fn is_allowed_external_url(url: &str) -> bool {
   url.starts_with("https://accounts.google.com/")
     || url.starts_with("https://meet.google.com/")
     || url.starts_with("http://meet.google.com/")
+    || url.starts_with("https://wa.me/")
+    || url.starts_with("https://core.telegram.org/")
+    || url.starts_with("https://api.slack.com/")
+    || url.starts_with("https://www.callmebot.com/")
 }
 
 #[tauri::command]
@@ -145,6 +149,11 @@ mod tests {
     assert!(is_allowed_external_url("https://accounts.google.com/o/oauth2/v2/auth?client_id=123"));
     assert!(is_allowed_external_url("https://meet.google.com/abc-defg-hij"));
     assert!(is_allowed_external_url("http://meet.google.com/abc-defg-hij"));
+    assert!(is_allowed_external_url("https://wa.me/14155550199?text=Hello%20World"));
+    assert!(is_allowed_external_url("https://core.telegram.org/bots#how-do-i-create-a-bot"));
+    assert!(is_allowed_external_url("https://api.slack.com/messaging/webhooks"));
+    assert!(is_allowed_external_url("https://www.callmebot.com/blog/free-api-whatsapp-messages/"));
+    assert!(!is_allowed_external_url("https://wa.me.evil.com/14155550199"));
     assert!(!is_allowed_external_url("https://evil.com/phishing"));
     assert!(!is_allowed_external_url("javascript:alert(1)"));
   }

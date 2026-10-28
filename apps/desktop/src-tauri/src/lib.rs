@@ -1,4 +1,5 @@
 mod ai_auth;
+mod browser_bookmarks;
 mod capture;
 mod capture_commands;
 mod capture_format;
@@ -28,6 +29,7 @@ mod git_auth;
 mod git_history;
 mod git_remote;
 mod manifest;
+mod notification_auth;
 mod oauth;
 mod plugin_files;
 mod plugin_network;
@@ -109,6 +111,7 @@ pub fn run() {
       fs::stat_note,
       theme_files::read_theme_file,
       fs::write_note,
+      fs::read_binary_file,
       fs::write_binary_file,
       fs::create_folder,
       fs::rename_note,
@@ -146,6 +149,9 @@ pub fn run() {
       ai_auth::save_ai_key,
       ai_auth::load_ai_key,
       ai_auth::clear_ai_key,
+      notification_auth::save_notification_secret,
+      notification_auth::load_notification_secret,
+      notification_auth::clear_notification_secret,
       plugin_network::plugin_network_request,
       plugin_webview::start_plugin_webview_probe,
       plugin_webview::ensure_plugin_webview,
@@ -179,6 +185,8 @@ pub fn run() {
       syncthing::syncthing_start, syncthing::syncthing_stop,
       syncthing::syncthing_restart, syncthing::syncthing_lifecycle_status,
       syncthing::syncthing_ensure_vault_registered,
+      browser_bookmarks::detect_browser_bookmarks,
+      browser_bookmarks::read_browser_bookmarks,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
