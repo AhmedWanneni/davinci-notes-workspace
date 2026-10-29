@@ -49,7 +49,9 @@ export function buildPaletteCommands({
     targets.push({
       isCommand: true,
       id: "action:toggle-bookmark",
-      title: isBookmarked ? "Remove bookmark from current note" : "Bookmark current note",
+      title: isBookmarked
+        ? "Remove bookmark from current note"
+        : "Bookmark current note",
       recencyScore: 550,
     });
   }
@@ -80,6 +82,27 @@ export function buildPaletteCommands({
     id: "action:tags",
     title: "Browse Tags",
     recencyScore: 400,
+  });
+
+  targets.push({
+    isCommand: true,
+    id: "action:open-ai-listening",
+    title: "Open AI Listening",
+    recencyScore: 430,
+  });
+
+  targets.push({
+    isCommand: true,
+    id: "action:start-meeting-recording",
+    title: "Start Meeting Recording",
+    recencyScore: 425,
+  });
+
+  targets.push({
+    isCommand: true,
+    id: "action:stop-meeting-recording",
+    title: "Stop Meeting Recording",
+    recencyScore: 425,
   });
 
   targets.push({

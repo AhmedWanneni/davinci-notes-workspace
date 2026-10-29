@@ -17,6 +17,7 @@ pub const TRAY_QUIT_EVENT: &str = "davinci-tray-quit";
 pub const CLEAN_QUIT_EVENT: &str = "davinci-clean-quit";
 pub const WINDOW_HIDDEN_EVENT: &str = "davinci-window-hidden";
 pub const TRAY_OPEN_REMINDERS_EVENT: &str = "davinci-tray-open-reminders";
+pub const TRAY_AI_LISTENING_EVENT: &str = "davinci-tray-ai-listening";
 
 #[derive(Default)]
 pub struct TraySettingsState {
@@ -99,6 +100,7 @@ fn setup_macos_tray(app: &AppHandle) -> tauri::Result<()> {
         "tray-new-note" => emit_tray_action(app, TRAY_NEW_NOTE_EVENT, None),
         "tray-daily-note" => emit_tray_action(app, TRAY_DAILY_NOTE_EVENT, None),
         "tray-open-reminders" => emit_tray_action(app, TRAY_OPEN_REMINDERS_EVENT, None),
+        "tray-ai-listening" => emit_tray_action(app, TRAY_AI_LISTENING_EVENT, None),
         "tray-open-vault" => emit_tray_action(app, TRAY_OPEN_VAULT_EVENT, None),
         "tray-quit" => trigger_clean_quit(app),
         _ => if let Some(rest) = id.strip_prefix("tray-recent:") {
@@ -118,10 +120,7 @@ fn setup_macos_tray(app: &AppHandle) -> tauri::Result<()> {
 
 pub fn show_main_window(window: &WebviewWindow) {
   #[cfg(target_os = "macos")]
-  {
-    let app = window.app_handle();
-    let _ = app.set_activation_policy(ActivationPolicy::Regular);
-  }
+  let _ = window.app_handle().set_activation_policy(ActivationPolicy::Regular);
   let _ = window.unminimize();
   let _ = window.show();
   let _ = window.set_focus();
@@ -132,9 +131,7 @@ pub fn hide_main_window(app: &AppHandle) {
     let _ = window.emit(WINDOW_HIDDEN_EVENT, ());
     let _ = window.hide();
     #[cfg(target_os = "macos")]
-    {
-      let _ = app.set_activation_policy(ActivationPolicy::Accessory);
-    }
+    let _ = app.set_activation_policy(ActivationPolicy::Accessory);
   }
 }
 

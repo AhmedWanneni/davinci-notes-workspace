@@ -653,9 +653,16 @@ export function App() {
     void (async () => {
       try {
         const { listen } = await import("@tauri-apps/api/event");
-        unlisten = await listen("davinci-tray-open-reminders", () => {
+        const u1 = await listen("davinci-tray-open-reminders", () => {
           void openNote(REMINDERS_TAB_ID);
         });
+        const u2 = await listen("davinci-tray-ai-listening", () => {
+          void openNote(LISTENING_TAB_ID);
+        });
+        unlisten = () => {
+          u1();
+          u2();
+        };
       } catch {
         // Outside Tauri runtime
       }
@@ -964,6 +971,7 @@ export function App() {
             onOpenLogs={handleOpenLogs}
             onOpenTags={() => setIsTagsOpen(true)}
             onOpenReminders={() => void openNote(REMINDERS_TAB_ID)}
+            onOpenListening={() => void openNote(LISTENING_TAB_ID)}
             onSaveVersionNow={() => {
               if (activeNotePath) void saveVersionNow(activeNotePath);
             }}

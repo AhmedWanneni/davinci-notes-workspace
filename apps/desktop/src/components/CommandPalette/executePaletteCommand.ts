@@ -10,6 +10,9 @@ export interface ExecutePaletteCommandOptions {
   onOpenLogs?: () => void;
   onOpenTags?: () => void;
   onOpenReminders?: () => void;
+  onOpenListening?: () => void;
+  onStartRecording?: () => void;
+  onStopRecording?: () => void;
   onSaveVersionNow?: () => void;
   onToggleBookmark?: () => void;
   onOpenBookmarks?: () => void;
@@ -30,6 +33,9 @@ export function executePaletteCommand({
   onOpenLogs,
   onOpenTags,
   onOpenReminders,
+  onOpenListening,
+  onStartRecording,
+  onStopRecording,
   onSaveVersionNow,
   onToggleBookmark,
   onOpenBookmarks,
@@ -48,6 +54,9 @@ export function executePaletteCommand({
   if (id === "action:logs") onOpenLogs?.();
   if (id === "action:tags") onOpenTags?.();
   if (id === "action:reminders") onOpenReminders?.();
+  if (id === "action:open-ai-listening") onOpenListening?.();
+  if (id === "action:start-meeting-recording") onStartRecording?.();
+  if (id === "action:stop-meeting-recording") onStopRecording?.();
   if (id === "action:save-version") onSaveVersionNow?.();
   if (id === "action:toggle-bookmark") onToggleBookmark?.();
   if (id === "action:open-bookmarks") onOpenBookmarks?.();

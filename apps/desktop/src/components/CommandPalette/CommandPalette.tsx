@@ -19,6 +19,9 @@ export interface CommandPaletteProps {
   onOpenSettings?: () => void;
   onOpenTags?: () => void;
   onOpenReminders?: () => void;
+  onOpenListening?: () => void;
+  onStartRecording?: () => void;
+  onStopRecording?: () => void;
   onOpenLogs?: () => void;
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
@@ -40,6 +43,9 @@ export function CommandPalette({
   onOpenSettings,
   onOpenTags,
   onOpenReminders,
+  onOpenListening,
+  onStartRecording,
+  onStopRecording,
   onOpenLogs,
   onDriveSignIn,
   onDriveDisconnect,
@@ -53,11 +59,8 @@ export function CommandPalette({
   onInsertSuccess,
   recentInsertIds = [],
 }: CommandPaletteProps) {
-  const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
-  const openNotes = useWorkspaceStore((state) => state.openNotes);
-  const activeNotePath = useWorkspaceStore((state) => state.activeNotePath);
-  const useVimMode = useWorkspaceStore((state) => state.useVimMode);
-  const setUseVimMode = useWorkspaceStore((state) => state.setUseVimMode);
+  const { allNotePaths, openNotes, activeNotePath, useVimMode, setUseVimMode } =
+    useWorkspaceStore();
   const { isBookmarked } = useBookmarks();
   const isCurrentBookmarked = isBookmarked(activeNotePath);
   const [query, setQuery] = useState("");
@@ -117,6 +120,9 @@ export function CommandPalette({
       onOpenLogs,
       onOpenTags,
       onOpenReminders,
+      onOpenListening,
+      onStartRecording,
+      onStopRecording,
       onSaveVersionNow,
       onToggleBookmark,
       onOpenBookmarks,
