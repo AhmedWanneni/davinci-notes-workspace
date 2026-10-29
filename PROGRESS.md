@@ -4,7 +4,52 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Settings: Dedicated Git Tab & Open Vault from GitHub Clone
+## Last Session — Release Pipeline, Build Automation & Download Distribution (Phases 1–7)
+
+**Scope:** Implement the complete serverless release engineering infrastructure across Phases 1 through 7: manifest version synchronization across 6 files, multi-platform CI build matrix with draft GitHub Releases, macOS hardened runtime entitlements and code signing, in-app auto-update via `tauri-plugin-updater` with dedicated Settings UI, static Astro `/download` page with inline OS detection, release/rollback CLI scripting harness, and community package manager workflows.
+
+**What was done:**
+1. **Phase 1: Manifest Version Synchronization & Local Release Scripts (ADR-0242)**:
+   - Added `"version": "0.1.0"` and `"check:version-sync"` script in root `package.json`.
+   - Created `scripts/release/bump-version.sh`: Single-command SemVer bump across root `package.json`, `apps/desktop/package.json`, `apps/desktop/src-tauri/Cargo.toml`, `apps/desktop/src-tauri/tauri.conf.json`, `apps/website/package.json`, and `apps/mobile/app.json`. Supports `--dry-run`.
+   - Created `scripts/release/check-version-sync.sh`: Deterministic manifest version equality validator, integrated as CI gate in `.github/workflows/ci.yml`.
+   - Created `scripts/release/build-local.sh`: Local desktop smoke build validation.
+2. **Phase 2: Multi-Platform CI Matrix & Draft Release Pipeline (ADR-0243)**:
+   - Created `.github/workflows/release.yml`: GitHub Actions workflow triggered on tag push `v*` with quality gates and parallel compilation across macOS (arm64, x64), Windows (x64), and Linux (x64).
+   - Configured target-specific Syncthing pre-fetching via `fetchSyncthing.mjs` before Tauri build.
+   - Created `scripts/release/generate-changelog.sh`: Grouped conventional commit release notes extractor.
+   - Created `scripts/release/verify-artifacts.sh`: Artifact file size verification and `SHA256SUMS.txt` generation.
+3. **Phase 3: Code Signing, Notarization & Cryptographic Keys (ADR-0244)**:
+   - Created `apps/desktop/src-tauri/entitlements.mac.plist` defining hardened runtime entitlements for loopback audio, network client, and local server.
+   - Configured `bundle.macOS` in `tauri.conf.json` with `hardenedRuntime: true` and Apple `notarytool` integration.
+4. **Phase 4: In-App Auto-Update & Tauri Updater Plugin (ADR-0245)**:
+   - Registered `tauri-plugin-updater = "2"` in Rust backend (`Cargo.toml`, `lib.rs`) and `@tauri-apps/plugin-updater` in desktop frontend.
+   - Configured updater endpoints pointing to GitHub Releases CDN `latest.json` with Ed25519 public key.
+   - Built `apps/desktop/src/services/updaterService.ts` and `UpdateSettingsCard.tsx` in `GeneralSettingsTab.tsx`.
+   - Added `UpdateSettingsCard.test.tsx` (4 tests passing).
+5. **Phase 5: Website Static Download Page & Permalinks (ADR-0246)**:
+   - Pre-rendered static download page in `apps/website/src/pages/download/index.astro` using `BaseLayout` while keeping `SiteNav.astro` (header) completely untouched.
+   - Implemented zero-dependency client-side OS detection script (< 1.5 KB) setting primary CTA to detected platform.
+   - Created static permalink redirect routes: `/download/mac`, `/download/mac-intel`, `/download/windows`, `/download/linux`.
+   - Verified Astro static build succeeds with 6 generated HTML pages in 739ms.
+6. **Phase 6: Release Orchestration CLI & Emergency Rollback Runbook (ADR-0247)**:
+   - Created `scripts/release/release.sh`: Interactive maintainer CLI driver orchestrating clean working tree checks, version bump, changelog, commit, tag, and push.
+   - Created `scripts/release/rollback.sh`: Emergency rollback tool to unpublish draft releases, delete tags, and revert updater metadata.
+   - Authored comprehensive maintainer runbook in `docs/releasing.md`.
+7. **Phase 7: Community Package Managers & Mobile Coordination (ADR-0248)**:
+   - Created `.github/workflows/homebrew-cask.yml` for automated Homebrew formula generation on release publish.
+   - Created `.github/workflows/winget.yml` for automated WinGet submission on release publish.
+   - Documented decoupled Expo mobile release coordination.
+
+---
+
+## Next Up
+- Push test tag `v0.1.0-rc.2` to remote to observe GitHub Actions matrix execution on staging.
+- Manual verification of GitHub clone with a personal access token on a private/public repo.
+
+---
+
+## Previous Session — Git Settings: Dedicated Git Tab & Open Vault from GitHub Clone
 
 **Scope:** Create a dedicated "Git" tab in desktop Settings (separate from "Sync & Backup") and add an "Open Vault from GitHub" card to clone a remote repository to a local destination and automatically switch to it as the active vault.
 
