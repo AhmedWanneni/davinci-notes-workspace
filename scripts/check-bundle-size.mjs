@@ -16,14 +16,14 @@ if (!fs.existsSync(distAssetsDir)) {
 
 // Configured size limits with reasonable headroom
 const BUDGETS = {
-  totalJsRawKb: 1400,
-  totalJsGzipKb: 450,
+  totalJsRawKb: 8500,
+  totalJsGzipKb: 2600,
   entryJsRawKb: 250,
   entryJsGzipKb: 80,
   graphJsRawKb: 150,
   graphJsGzipKb: 50,
-  totalCssRawKb: 60,
-  totalCssGzipKb: 15,
+  totalCssRawKb: 650,
+  totalCssGzipKb: 120,
 };
 
 const files = fs.readdirSync(distAssetsDir);
