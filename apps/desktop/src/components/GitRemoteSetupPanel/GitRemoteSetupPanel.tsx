@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import { Button, Input, Typography } from "@app/design-system";
 import { detectGitRemoteProvider } from "../../git/GitRemoteProvider";
 import { desktopGitPatStore } from "../../git/desktopGitPatStore";
 import { saveCurrentVaultGitRemoteConfig } from "../../git/GitRemoteConfig";
 import { validateGitRemote } from "../../git/localGitHistory";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import styles from "./GitRemoteSetupPanel.module.scss";
 
 const messages: Record<string, string> = {
@@ -25,33 +27,53 @@ export function GitRemoteSetupPanel() {
   const [token, setToken] = useState("");
   const [username, setUsername] = useState("");
   const [status, setStatus] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
   const provider = detectGitRemoteProvider(url);
+  const setGitEnabled = useWorkspaceStore((state) => state.setGitEnabled);
 
   const connect = async () => {
     setStatus("");
+    setIsConnecting(true);
     try {
       const validation = await validateGitRemote({
         remoteUrl: url,
         token,
         username: username || null,
       });
-      if (validation.remoteState === "nonempty") {
-        setStatus(
-          "This remote already has content. Choose an empty repository for the first backup.",
-        );
-        return;
-      }
+
+      // Save PAT in OS Keychain
       await desktopGitPatStore.save(url, token);
+
+      // Save remote URL configuration in settings table
       await saveCurrentVaultGitRemoteConfig({
         remoteUrl: url,
         username: username || null,
       });
+
+      // Configure git remote 'origin' in the working tree
+      try {
+        await invoke("git_manager_set_remote", { name: "origin", url });
+      } catch (err) {
+        console.warn("Failed to set git remote origin:", err);
+      }
+
+      // Automatically enable Git Manager so the icon appears in the IconRail immediately
+      await setGitEnabled(true);
+
       setToken("");
-      setStatus(
-        "Connected. Your first local-history push will create the remote branch.",
-      );
+      if (validation.remoteState === "nonempty") {
+        setStatus(
+          "Connected! Git Manager is now active in your icon rail. The remote repository has existing commits — use Pull or Push in Git Manager to synchronize.",
+        );
+      } else {
+        setStatus(
+          "Connected! Git Manager is now active in your icon rail. Push your commits directly from the Source Control panel.",
+        );
+      }
     } catch (error) {
       setStatus(messages[String(error)] ?? "Remote validation failed.");
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -59,7 +81,7 @@ export function GitRemoteSetupPanel() {
     <div className={styles["git-remote-panel"]}>
       <Typography variant="text" size="xs" color="muted">
         Paste an HTTPS repository URL and a repository-scoped token to configure
-        remote backup.
+        remote backup and version control.
       </Typography>
 
       <div className={styles["git-remote-panel__field"]}>
@@ -70,6 +92,7 @@ export function GitRemoteSetupPanel() {
           size="sm"
           aria-label="Git repository URL"
           value={url}
+          disabled={isConnecting}
           onChange={(event) => setUrl(event.target.value)}
           placeholder="https://github.com/user/notes.git"
         />
@@ -83,6 +106,7 @@ export function GitRemoteSetupPanel() {
           size="sm"
           aria-label="Git username"
           value={username}
+          disabled={isConnecting}
           onChange={(event) => setUsername(event.target.value)}
           placeholder="Git username (only if required by server)"
         />
@@ -97,6 +121,7 @@ export function GitRemoteSetupPanel() {
           aria-label="Personal access token"
           type="password"
           value={token}
+          disabled={isConnecting}
           onChange={(event) => setToken(event.target.value)}
           placeholder="Personal access token"
         />
@@ -127,9 +152,9 @@ export function GitRemoteSetupPanel() {
           size="sm"
           variant="primary"
           onClick={() => void connect()}
-          disabled={!url || !token}
+          disabled={!url || !token || isConnecting}
         >
-          Validate and connect
+          {isConnecting ? "Validating & connecting..." : "Validate and connect"}
         </Button>
       </div>
 

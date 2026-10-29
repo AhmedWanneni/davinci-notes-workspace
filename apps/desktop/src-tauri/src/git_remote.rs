@@ -32,6 +32,8 @@ pub(crate) fn classify(stderr: &str) -> String {
         "no-push-access".to_string()
     } else if error.contains("src refspec") || error.contains("does not match any") {
         "local-history-empty".to_string()
+    } else if error.contains("fetch first") || error.contains("non-fast-forward") {
+        "non-fast-forward".to_string()
     } else {
         "remote-unreachable".to_string()
     }
@@ -118,7 +120,10 @@ pub async fn validate_git_remote(
             username,
         )?;
         if !push.status.success() {
-            return Err(classify(&String::from_utf8_lossy(&push.stderr)));
+            let class = classify(&String::from_utf8_lossy(&push.stderr));
+            if class != "non-fast-forward" {
+                return Err(class);
+            }
         }
         Ok(GitRemoteValidation {
             remote_state: if list.stdout.is_empty() {
