@@ -4,6 +4,32 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Git Manager Phase 0: Verification Audit & Capabilities Baseline (ADR-0232)
+
+**Scope:** Read-only audit and adversarial verification of Git versioning backend and system Git CLI capabilities across non-repo vaults, init, fetch/pull/push against bare remote, PATH check, porcelain v2 NUL-byte status, forced merge conflicts, large attachment ignoring, and performance benchmarks on 5,000 files and 500 sequential commits.
+
+**What was done:**
+1. **Adversarial Real-CLI Verification Suite**:
+   - Non-repo vault check returns clear fatal error caught without panic.
+   - Ignore policy verification: `vault-index.db*` and a 5 MB binary attachment were confirmed strictly ignored by `git add .` under `.gitignore`.
+   - Unicode & emoji path verification: `Notes/💡 Ideas & Projects/2026 Étude — François & Müller.md` parsed cleanly in `git status --porcelain=v2 -z` with 0 corruption.
+   - Forced merge conflict: add/add conflict generated porcelain `u AA` entries; `git merge --abort` cleanly restored the exact prior working tree.
+   - Local bare repo roundtrip: push, fetch, and pull verified with 1 upstream commit ahead/behind tracking.
+2. **Performance Measurements vs Budgets**:
+   - `git status --porcelain=v2 -z` on 5,000 markdown notes: **23.99 ms** (Budget: < 150 ms).
+   - `git log -n 500` across 500 sequential commits: **35.34 ms** (Budget: < 100 ms).
+3. **Architecture Decision Record**:
+   - Authored [ADR-0232](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0232-git-manager-phase-0-audit-and-capabilities.md) and indexed in `DECISIONS.md`.
+   - Result: **GO** for Phase 1.
+
+---
+
+## Next Up
+- **Phase 1: Git Manager Settings Toggle, Repo Detection, Lazy-Load Boundary, Rail Icon & Empty States**.
+- Phase 2: Status Engine (`git status --porcelain=v2 -z` parser + watcher hook) + Changes list UI.
+
+---
+
 ## Last Session — Isolate Audio Recordings into Attachments Directory (Single Note Per Folder)
 
 **Scope:** Ensure that saving an audio recording (from either Meeting Recorder / AI Listening or QuickCapture) creates strictly ONE file under the target notes folder (`Meetings/` or `Voice Notes/`), routing the underlying `.wav` recording to the vault's attachment directory (`attachments/`).

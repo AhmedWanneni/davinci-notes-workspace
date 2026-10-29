@@ -398,4 +398,11 @@ the list.
 | [0230](adr/0230-meeting-note-markdown-schema-and-canonical-vault-persistence.md) | Meeting Note Markdown Schema & Canonical Vault Persistence | Accepted |
 | [0231](adr/0231-calendar-event-proximity-detection-and-note-taking-prompt.md) | Calendar Event Proximity Detection & Note-Taking Prompt | Accepted |
 
+## Git Manager
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0232](adr/0232-git-manager-phase-0-audit-and-capabilities.md) | Git Manager Phase 0 Verification Audit, System Git CLI Baseline & Capabilities | Accepted |
+
+
 
