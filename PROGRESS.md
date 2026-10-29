@@ -4,7 +4,42 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 9: Polish, Performance Pass, Stabilization Sweep & Close-Out (ADR-0241)
+## Last Session — Git Manager: Source Control Layout & Side-by-Side Diff Editor (VS Code / Cursor Polish)
+
+**Scope:** Match the VS Code / Cursor Source Control UI from user reference screenshot: stacked accordion sections (`CHANGES`, `AGENT REVIEW`, `GRAPH`, `GITLENS`), side-by-side (2-pane) diff editor opened as tabs in the main area with breadcrumbs, pull/push buttons, and branch switching.
+
+**What was done:**
+1. **VS Code / Cursor Accordion Sidebar (`GitSidebarPanel.tsx`, `GitChangesSection.tsx`, `GitGraphSection.tsx`)**:
+   - Implemented 4 stacked accordion sections:
+     - `CHANGES`: Dynamic commit placeholder `Message (⌘↩ to commit on "<branch>")`, sparkle commit-message action, purple split `✓ Commit` button with dropdown chevron (`Commit & Push`, `Commit & Sync`), file list with status letters (`M`, `A`, `D`, `U`), and hover action buttons (Open Diff in tab, Discard changes, Stage/Unstage).
+     - `AGENT REVIEW`: Collapsible accordion section.
+     - `GRAPH`: Header toolbar with `Auto` badge, branch focus button, `GitBranchSwitcher` dropdown, quick Pull button, quick Push button, and refresh button. Body hosts virtualized `GitHistoryGraph` with SVG lanes, commit dots, relative time, author names, and branch ref badges (`⑂ branch`).
+     - `GITLENS`: Collapsible accordion section.
+2. **Main Editor Area Side-by-Side Diff Viewer (`GitDiffViewer.tsx`, `App.tsx`)**:
+   - Clicking any file in the changes list opens a dedicated `git-diff://` tab in `AppTabs`, keeping the Git sidebar open and active.
+   - Side-by-side 2-pane diff rendering powered by `@codemirror/merge`'s `MergeView`:
+     - Line numbers on both sides with synchronized scrolling.
+     - Red/green highlighted deletions and insertions with darker changed-text spans.
+     - Diagonal hatched/striped pattern on empty gap spacer lines (`.cm-mergeSpacer`).
+     - Breadcrumb navigation bar on top (`packages > sync-client > .turbo > turbo-lint.log`).
+     - Top-right toolbar: Pull, Push, Toggle Split/Inline view (`MergeView` vs `unifiedMergeView`), Stage/Unstage toggle, and Close (`×`).
+3. **AppTabs Integration (`AppTabs.tsx`, `AppTabItem.tsx`, `_tabs.scss`)**:
+   - Modularized `AppTabs.tsx` (171 lines) by extracting `AppTabItem.tsx` (159 lines), keeping both well below the 250 hard cap.
+   - Dedicated styling for `.app-tabs__git-badge` displaying status codes (`M`, `A`, `D`, `U`) next to the file name.
+4. **Testing & Verification**:
+   - All 47 Vitest tests in `@app/git-manager` across 13 test files passing.
+   - All 9 Vitest tests in `AppTabs.test.tsx` passing.
+   - All 241 test files (981 tests) across desktop passing.
+   - `build:web` succeeds; bundle weight impact when feature is disabled remains strictly 0.00 KB.
+
+---
+
+## Next Up
+- User testing of the side-by-side diff viewer and remote pull/push controls in real development environment.
+
+---
+
+## Previous Session — Git Manager Phase 9: Polish, Performance Pass, Stabilization Sweep & Close-Out (ADR-0241)
 
 **Scope:** Validate all performance budgets against real filesystem measurements, audit SQLite lock discipline with `withDbLock`, enforce file size caps (< 250 hard cap), verify bundle isolation, and finalize Git Manager ADR documentation.
 

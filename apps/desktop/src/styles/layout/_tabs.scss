@@ -11,7 +11,6 @@
   position: relative;
 }
 
-
 .app-tabs__strip {
   display: flex;
   align-items: flex-end;
@@ -119,7 +118,8 @@
     }
   }
 
-  &:not([data-active="true"], :hover) + .app-tabs__tab:not([data-active="true"], :hover)::before {
+  &:not([data-active="true"], :hover)
+    + .app-tabs__tab:not([data-active="true"], :hover)::before {
     content: "";
     position: absolute;
     left: -2px;
@@ -148,6 +148,32 @@
   font-weight: var(--type-weight-medium);
 }
 
+.app-tabs__git-badge {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-left: 2px;
+  flex-shrink: 0;
+
+  &[data-status="M"] {
+    color: var(--color-text-warning);
+  }
+
+  &[data-status="A"] {
+    color: var(--color-text-success);
+  }
+
+  &[data-status="D"] {
+    color: var(--color-text-danger);
+  }
+
+  &[data-status="U"] {
+    color: var(--color-text-accent);
+  }
+}
+
 .app-tabs__dirty-dot,
 .app-tabs__conflict-dot {
   width: 8px;
@@ -170,7 +196,7 @@
   justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: .5rem;
+  border-radius: 0.5rem;
   background: transparent;
   border: none;
   color: var(--color-text-muted);
@@ -195,7 +221,7 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: .5rem;
+  border-radius: 0.5rem;
   background: transparent;
   border: var(--border-width-thin) solid transparent;
   color: var(--color-text-muted);

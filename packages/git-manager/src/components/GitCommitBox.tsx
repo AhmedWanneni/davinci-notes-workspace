@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
-import { Check, CaretDown } from "@phosphor-icons/react";
+import { Check, CaretDown, Sparkle } from "@phosphor-icons/react";
 import {
   Button,
   Badge,
@@ -13,14 +13,24 @@ import { useGitManagerStore } from "../store/useGitManagerStore";
 import styles from "./GitCommitBox.module.scss";
 
 export interface GitCommitBoxProps {
+  placeholder?: string;
   onCommitSuccess?: () => void;
 }
 
-export function GitCommitBox({ onCommitSuccess }: GitCommitBoxProps) {
+export function GitCommitBox({
+  placeholder,
+  onCommitSuccess,
+}: GitCommitBoxProps) {
   const [message, setMessage] = useState("");
   const [isAmend, setIsAmend] = useState(false);
-  const { staged, commit, isLoading } = useGitManagerStore();
+  const { staged, commit, isLoading, repoInfo } = useGitManagerStore();
 
+  const branchName = repoInfo?.branch;
+  const placeholderText =
+    placeholder ??
+    (branchName
+      ? `Message (⌘↩ to commit on "${branchName}")`
+      : "Message (⌘Enter to commit)");
   const canCommit = message.trim().length > 0 && (staged.length > 0 || isAmend);
 
   const handleCommit = async () => {
@@ -42,9 +52,8 @@ export function GitCommitBox({ onCommitSuccess }: GitCommitBoxProps) {
 
   return (
     <div className={styles["git-commit-box"]} data-testid="git-commit-box">
-      <div className={styles["git-commit-box__header"]}>
-        <span className={styles["git-commit-box__title"]}>Commit</span>
-        {isAmend && (
+      {isAmend && (
+        <div className={styles["git-commit-box__header"]}>
           <Badge
             variant="warning"
             className={styles["git-commit-box__amend-badge"]}
@@ -53,19 +62,36 @@ export function GitCommitBox({ onCommitSuccess }: GitCommitBoxProps) {
           >
             Amend Mode ✕
           </Badge>
-        )}
-      </div>
+        </div>
+      )}
 
-      <textarea
-        className={styles["git-commit-box__textarea"]}
-        placeholder="Message (⌘Enter to commit)"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        onKeyDown={handleKeyDown}
-        disabled={isLoading}
-        rows={3}
-        data-testid="git-commit-message-input"
-      />
+      <div className={styles["git-commit-box__input-wrapper"]}>
+        <textarea
+          className={styles["git-commit-box__textarea"]}
+          placeholder={placeholderText}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isLoading}
+          rows={2}
+          data-testid="git-commit-message-input"
+        />
+        <button
+          type="button"
+          className={styles["git-commit-box__sparkle-btn"]}
+          title="Generate commit message"
+          aria-label="Generate commit message"
+          onClick={() => {
+            if (!message && staged.length > 0) {
+              setMessage(
+                `chore: update ${staged.map((s) => s.path.split("/").pop()).join(", ")}`,
+              );
+            }
+          }}
+        >
+          <Sparkle size={14} weight="regular" />
+        </button>
+      </div>
 
       <div className={styles["git-commit-box__actions"]}>
         <Button
@@ -93,7 +119,10 @@ export function GitCommitBox({ onCommitSuccess }: GitCommitBoxProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => void handleCommit()} disabled={!canCommit}>
+            <DropdownMenuItem
+              onSelect={() => void handleCommit()}
+              disabled={!canCommit}
+            >
               Commit
             </DropdownMenuItem>
             <DropdownMenuSeparator />

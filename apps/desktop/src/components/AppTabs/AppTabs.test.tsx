@@ -190,8 +190,32 @@ describe("AppTabs", () => {
 
     const tab = container.querySelector(".app-tabs__tab");
     expect(tab).not.toBeNull();
-    expect(tab?.querySelector(".app-tabs__tab-title")?.textContent).toBe("screenshot.png");
+    expect(tab?.querySelector(".app-tabs__tab-title")?.textContent).toBe(
+      "screenshot.png",
+    );
     expect(tab?.querySelector("svg")).toBeDefined();
+  });
+
+  it("renders distinct git diff tab with working tree label and status badge", () => {
+    const { container } = render(
+      <AppTabs
+        openNotes={[
+          "git-diff://apps/mobile/.turbo/turbo-lint.log?staged=0&status=M",
+        ]}
+        activeNotePath="git-diff://apps/mobile/.turbo/turbo-lint.log?staged=0&status=M"
+        dirtyNotes={new Set()}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    const tab = container.querySelector(".app-tabs__tab");
+    expect(tab).not.toBeNull();
+    expect(tab?.querySelector(".app-tabs__tab-title")?.textContent).toBe(
+      "turbo-lint.log (Working Tree)",
+    );
+    expect(tab?.querySelector(".app-tabs__git-badge")?.textContent).toBe("M");
   });
 
   it("calls onCloseNote when clicking the close button on a tab", () => {

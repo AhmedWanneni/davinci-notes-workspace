@@ -1,10 +1,12 @@
 export { GitSidebarPanel } from "./src/components/GitSidebarPanel";
 export { GitEmptyState } from "./src/components/GitEmptyState";
 export { GitChangesList } from "./src/components/GitChangesList";
+export { GitChangesSection } from "./src/components/GitChangesSection";
 export { GitStatusRow } from "./src/components/GitStatusRow";
 export { GitCommitBox } from "./src/components/GitCommitBox";
 export { GitDiffViewer } from "./src/components/GitDiffViewer";
 export { GitHistoryGraph } from "./src/components/GitHistoryGraph";
+export { GitGraphSection } from "./src/components/GitGraphSection";
 export { GitCommitDetailSheet } from "./src/components/GitCommitDetailSheet";
 export { GitBranchSwitcher } from "./src/components/GitBranchSwitcher";
 export { GitSyncToolbar } from "./src/components/GitSyncToolbar";

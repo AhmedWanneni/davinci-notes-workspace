@@ -148,12 +148,22 @@ export function AppSidebar({
         {isGitManagerOpen ? (
           <Suspense
             fallback={
-              <div style={{ padding: "var(--space-4)", color: "var(--color-text-muted)" }}>
+              <div
+                style={{
+                  padding: "var(--space-4)",
+                  color: "var(--color-text-muted)",
+                }}
+              >
                 Loading Source Control...
               </div>
             }
           >
-            <LazyGitSidebarPanel />
+            <LazyGitSidebarPanel
+              onOpenDiff={(change) => {
+                const uri = `git-diff://${change.path}?staged=${change.staged ? "1" : "0"}&status=${change.statusCode}`;
+                onNoteClick(uri);
+              }}
+            />
           </Suspense>
         ) : (
           <FileTree

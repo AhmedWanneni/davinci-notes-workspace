@@ -2,6 +2,32 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Source Control Layout & Side-by-Side Diff Editor (VS Code / Cursor Polish)
+
+- **Source Control Sidebar Layout Matching Reference UI**:
+  - Implemented 4 stacked accordion sections:
+    - `CHANGES`: Dynamic commit placeholder `Message (⌘↩ to commit on "<branch>")`, sparkle AI action, purple split `✓ Commit` button with dropdown chevron (`Commit & Push`, `Commit & Sync`), file list with status indicators (`M`, `A`, `D`, `U`), and hover actions (Open Diff in tab, Discard changes, Stage/Unstage).
+    - `AGENT REVIEW`: Collapsible accordion section.
+    - `GRAPH`: Header toolbar with `Auto` badge, branch focus button, `GitBranchSwitcher` dropdown, quick Pull button, quick Push button, and refresh button. Body hosts virtualized `GitHistoryGraph` with SVG lanes, commit dots, relative time, author names, and branch ref badges (`⑂ branch`).
+    - `GITLENS`: Collapsible accordion section.
+- **Main Area Side-by-Side Diff Editor**:
+  - Integrated `git-diff://` tabs in `AppTabs` allowing users to view diffs side-by-side in the main editor area while keeping the Git sidebar open.
+  - 2-pane split diff using `@codemirror/merge`'s `MergeView`:
+    - Synchronized dual scroll panes with line numbers in both gutters.
+    - Red/green line and text highlights for deletions and additions.
+    - Diagonal hatched/striped background pattern on gap spacer lines (`.cm-mergeSpacer`).
+    - Top breadcrumb path (`packages > sync-client > .turbo > turbo-lint.log`).
+    - Quick actions: Pull, Push, Toggle Split/Inline view (`MergeView` vs `unifiedMergeView`), Stage/Unstage toggle, and Close (`×`).
+- **Modularization & File Limit Enforcement**:
+  - Split `AppTabs.tsx` (171 lines) and `AppTabItem.tsx` (159 lines).
+  - Split `GitSidebarPanel.tsx` (220 lines), `GitChangesSection.tsx` (71 lines), and `GitGraphSection.tsx` (126 lines).
+  - All files strictly adhere to the 250-line hard cap from AGENTS.md.
+- **Verification**:
+  - All 47 tests in `@app/git-manager` passing.
+  - All 9 tests in `AppTabs.test.tsx` passing.
+  - All 241 test files (981 tests) across desktop passing.
+  - Lazy-loading verified with 0 KB initial bundle delta when Git is disabled.
+
 ### 2026-10-29: Git Manager Phase 9 — Stabilization, Performance Verification & Close-Out (ADR-0241)
 
 - **Performance Verification vs Budgets**:

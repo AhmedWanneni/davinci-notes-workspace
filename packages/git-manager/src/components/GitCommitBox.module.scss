@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -12,22 +12,19 @@
   justify-content: space-between;
 }
 
-.git-commit-box__title {
-  font-size: var(--type-scale-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
+.git-commit-box__input-wrapper {
+  position: relative;
+  width: 100%;
 }
 
 .git-commit-box__textarea {
   width: 100%;
-  min-height: 64px;
-  max-height: 160px;
+  min-height: 56px;
+  max-height: 120px;
   resize: vertical;
-  padding: var(--space-2);
+  padding: var(--space-2) 26px var(--space-2) var(--space-2);
   font-family: inherit;
-  font-size: var(--type-scale-sm);
+  font-size: var(--type-scale-xs);
   line-height: 1.4;
   color: var(--color-text-normal);
   background: var(--color-bg-tertiary);
@@ -45,16 +42,47 @@
   }
 }
 
+.git-commit-box__sparkle-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 2px;
+
+  &:hover {
+    color: var(--color-text-normal);
+    background: var(--color-bg-hover);
+  }
+}
+
 .git-commit-box__actions {
   display: flex;
   align-items: center;
-  gap: 1px;
+  width: 100%;
 }
 
 .git-commit-box__commit-btn {
   border-top-right-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   flex: 1;
+  background-color: #7c3aed !important;
+  color: #fff !important;
+  border: 1px solid #6d28d9 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+
+  &:hover:not(:disabled) {
+    background-color: #6d28d9 !important;
+  }
 }
 
 .git-commit-box__dropdown-btn {
@@ -62,6 +90,14 @@
   border-bottom-left-radius: 0 !important;
   padding-left: var(--space-1) !important;
   padding-right: var(--space-1) !important;
+  background-color: #7c3aed !important;
+  color: #fff !important;
+  border: 1px solid #6d28d9 !important;
+  border-left: none !important;
+
+  &:hover:not(:disabled) {
+    background-color: #6d28d9 !important;
+  }
 }
 
 .git-commit-box__amend-badge {

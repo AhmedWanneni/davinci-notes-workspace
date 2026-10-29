@@ -1,19 +1,5 @@
 import React from "react";
-import {
-  BookmarkSimple,
-  CalendarCheck,
-  Bell,
-  Plus,
-  SidebarSimple,
-  Sparkle,
-  FileText,
-  FrameCorners,
-  Kanban as KanbanIcon,
-  Table as TableIcon,
-  Image as ImageIcon,
-  X,
-  Ear,
-} from "@phosphor-icons/react";
+import { Plus, SidebarSimple } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
 import {
   getPlatformAdapters,
@@ -21,12 +7,7 @@ import {
 } from "@app/platform-adapters";
 import { WindowControls } from "../WindowControls";
 import { TabListDropdown } from "./TabListDropdown";
-import { BOOKMARKS_TAB_ID } from "../../bookmarks";
-import { CALENDAR_TAB_ID } from "../../calendar/calendarConstants";
-import { AGENT_TAB_ID } from "../AgentView/agentTypes";
-import { REMINDERS_TAB_ID } from "../../reminders/reminderConstants";
-import { LISTENING_TAB_ID } from "../ListeningView/listeningConstants";
-import { isImagePath } from "../ImagePreview/imagePreviewUtils";
+import { AppTabItem } from "./AppTabItem";
 
 export interface AppTabsProps {
   openNotes: string[];
@@ -114,103 +95,24 @@ export function AppTabs({
 
       <div className="app-tabs__strip" ref={tabStripRef}>
         {openNotes.map((path) => {
-          const isBookmarksTab = path === BOOKMARKS_TAB_ID;
-          const isRemindersTab = path === REMINDERS_TAB_ID;
-          const isAgentTab = path === AGENT_TAB_ID;
-          const isCalendarTab = path === CALENDAR_TAB_ID;
-          const isListeningTab = path === LISTENING_TAB_ID;
-          const isVirtual =
-            isBookmarksTab ||
-            isRemindersTab ||
-            isAgentTab ||
-            isCalendarTab ||
-            isListeningTab;
-          const isCanvas = path.endsWith(".canvas");
-          const isBoard = boardNotes?.has(path);
-          const isDatabase = databaseNotes?.has(path);
-          const isImage = isImagePath(path);
-          const displayTitle = isBookmarksTab
-            ? "Bookmarks"
-            : isRemindersTab
-              ? "Reminders"
-              : isAgentTab
-                ? "AI Agent"
-                : isCalendarTab
-                  ? "Calendar"
-                  : isListeningTab
-                    ? "AI Listening"
-                    : isImage
-                      ? (path.split("/").pop() ?? path)
-                      : (path
-                          .replace(/\.(md|canvas)$/i, "")
-                          .split("/")
-                          .pop() ?? path);
           const isActive = activeNotePath === path;
+          const isVirtual =
+            path.startsWith("davinci://") || path.startsWith("git-diff://");
           const isDirty = !isVirtual && dirtyNotes.has(path);
           const hasConflict = !isVirtual && (conflictNotes?.has(path) ?? false);
+
           return (
-            <div
+            <AppTabItem
               key={path}
-              className="app-tabs__tab"
-              role="tab"
-              tabIndex={0}
-              aria-selected={isActive}
-              data-active={isActive || undefined}
-              data-tab-path={path}
-              onClick={() => handleSelectNote(path)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleSelectNote(path);
-                }
-              }}
-              title={path}
-            >
-              <span className="app-tabs__tab-icon" aria-hidden="true">
-                {isBookmarksTab ? (
-                  <BookmarkSimple size={13} weight="regular" />
-                ) : isRemindersTab ? (
-                  <Bell size={13} weight="regular" />
-                ) : isAgentTab ? (
-                  <Sparkle size={13} weight="fill" />
-                ) : isCalendarTab ? (
-                  <CalendarCheck size={13} weight="regular" />
-                ) : isListeningTab ? (
-                  <Ear size={13} weight="regular" />
-                ) : isCanvas ? (
-                  <FrameCorners size={13} weight="regular" />
-                ) : isBoard ? (
-                  <KanbanIcon size={13} weight="regular" />
-                ) : isDatabase ? (
-                  <TableIcon size={13} weight="regular" />
-                ) : isImage ? (
-                  <ImageIcon size={13} weight="regular" />
-                ) : (
-                  <FileText size={13} weight="regular" />
-                )}
-              </span>
-              <span className="app-tabs__tab-title">{displayTitle}</span>
-              {hasConflict ? (
-                <span
-                  className="app-tabs__conflict-dot"
-                  title="Disk conflict"
-                  aria-label="Disk conflict"
-                />
-              ) : (
-                isDirty && <span className="app-tabs__dirty-dot" />
-              )}
-              <button
-                type="button"
-                className="app-tabs__close"
-                aria-label={`Close ${displayTitle}`}
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  onCloseNote(path);
-                }}
-              >
-                <X size={16} weight="regular" />
-              </button>
-            </div>
+              path={path}
+              isActive={isActive}
+              isDirty={isDirty}
+              hasConflict={hasConflict}
+              isBoard={boardNotes?.has(path)}
+              isDatabase={databaseNotes?.has(path)}
+              onSelect={handleSelectNote}
+              onClose={onCloseNote}
+            />
           );
         })}
 

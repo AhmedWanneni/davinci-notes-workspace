@@ -103,6 +103,11 @@ const LazyImagePreviewLeaf = React.lazy(() =>
     default: m.ImagePreviewLeaf,
   })),
 );
+const LazyGitDiffViewer = React.lazy(() =>
+  import("@app/git-manager").then((m) => ({
+    default: m.GitDiffViewer,
+  })),
+);
 import { ReminderNotificationToast } from "./components/RemindersDialog";
 
 export function App() {
@@ -843,7 +848,25 @@ export function App() {
             isMac={isMac}
             showWindowControls={!isLeftSidebarOpen}
           />
-          {activeNotePath === BOOKMARKS_TAB_ID ? (
+          {activeNotePath?.startsWith("git-diff://") ? (
+            <Suspense
+              fallback={
+                <div
+                  style={{
+                    padding: "var(--space-4)",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  Loading diff...
+                </div>
+              }
+            >
+              <LazyGitDiffViewer
+                diffUri={activeNotePath}
+                onClose={() => void closeNote(activeNotePath)}
+              />
+            </Suspense>
+          ) : activeNotePath === BOOKMARKS_TAB_ID ? (
             <Suspense fallback={null}>
               <LazyBookmarksView
                 onOpenNote={(path, newTab) => {

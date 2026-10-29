@@ -5,6 +5,7 @@ import {
   Plus,
   Minus,
   ArrowCounterClockwise,
+  ArrowSquareOut,
 } from "@phosphor-icons/react";
 import { Button } from "@app/design-system";
 import type { GitFileChange } from "../types/gitTypes";
@@ -37,7 +38,13 @@ export function GitChangesList({
 
   if (!hasAnyChanges) {
     return (
-      <div style={{ padding: "var(--space-4) var(--space-3)", color: "var(--color-text-subtle)", fontSize: "var(--type-scale-sm)" }}>
+      <div
+        style={{
+          padding: "var(--space-4) var(--space-3)",
+          color: "var(--color-text-subtle)",
+          fontSize: "var(--type-scale-sm)",
+        }}
+      >
         No changes in working directory.
       </div>
     );
@@ -47,7 +54,7 @@ export function GitChangesList({
     const label = path || "all files";
     if (
       window.confirm(
-        `Are you sure you want to discard changes in ${label}? This action cannot be undone.`
+        `Are you sure you want to discard changes in ${label}? This action cannot be undone.`,
       )
     ) {
       void discardPaths(path ? [path] : []);
@@ -57,7 +64,9 @@ export function GitChangesList({
   return (
     <div className={styles["git-changes-list"]}>
       {conflicts.length > 0 && (
-        <section className={`${styles["git-section"]} ${styles["git-section--conflicts"]}`}>
+        <section
+          className={`${styles["git-section"]} ${styles["git-section--conflicts"]}`}
+        >
           <div
             className={styles["git-section__header"]}
             onClick={() => setIsConflictsOpen(!isConflictsOpen)}
@@ -65,9 +74,15 @@ export function GitChangesList({
             tabIndex={0}
           >
             <div className={styles["git-section__title"]}>
-              {isConflictsOpen ? <CaretDown size={12} /> : <CaretRight size={12} />}
+              {isConflictsOpen ? (
+                <CaretDown size={12} />
+              ) : (
+                <CaretRight size={12} />
+              )}
               <span>Merge Conflicts</span>
-              <span className={styles["git-section__count"]}>{conflicts.length}</span>
+              <span className={styles["git-section__count"]}>
+                {conflicts.length}
+              </span>
             </div>
           </div>
           {isConflictsOpen && (
@@ -93,9 +108,15 @@ export function GitChangesList({
               role="button"
               tabIndex={0}
             >
-              {isStagedOpen ? <CaretDown size={12} /> : <CaretRight size={12} />}
+              {isStagedOpen ? (
+                <CaretDown size={12} />
+              ) : (
+                <CaretRight size={12} />
+              )}
               <span>Staged Changes</span>
-              <span className={styles["git-section__count"]}>{staged.length}</span>
+              <span className={styles["git-section__count"]}>
+                {staged.length}
+              </span>
             </div>
             <div className={styles["git-section__actions"]}>
               <Button
@@ -151,9 +172,15 @@ export function GitChangesList({
               role="button"
               tabIndex={0}
             >
-              {isUnstagedOpen ? <CaretDown size={12} /> : <CaretRight size={12} />}
+              {isUnstagedOpen ? (
+                <CaretDown size={12} />
+              ) : (
+                <CaretRight size={12} />
+              )}
               <span>Changes</span>
-              <span className={styles["git-section__count"]}>{unstaged.length}</span>
+              <span className={styles["git-section__count"]}>
+                {unstaged.length}
+              </span>
             </div>
             <div className={styles["git-section__actions"]}>
               <Button
@@ -193,6 +220,18 @@ export function GitChangesList({
                   onClick={() => onSelectFile?.(change)}
                   actions={
                     <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Open diff for ${change.path}`}
+                        title="Open Diff"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectFile?.(change);
+                        }}
+                      >
+                        <ArrowSquareOut size={12} />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"

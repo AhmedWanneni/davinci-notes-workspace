@@ -65,7 +65,11 @@ export function createNoteNavigationActions(
 
     openNote: async (path: string) => {
       const { notesContent, openNotes } = get();
-      if (path.startsWith("davinci://") || isImagePath(path)) {
+      if (
+        path.startsWith("davinci://") ||
+        path.startsWith("git-diff://") ||
+        isImagePath(path)
+      ) {
         const nextOpenNotes = openNotes.includes(path)
           ? openNotes
           : [...openNotes, path];
@@ -116,6 +120,7 @@ export function createNoteNavigationActions(
         activeNotePath &&
         activeNotePath !== path &&
         !activeNotePath.startsWith("davinci://") &&
+        !activeNotePath.startsWith("git-diff://") &&
         !isImagePath(activeNotePath)
       ) {
         if (saveTimers[activeNotePath]) {
@@ -136,7 +141,11 @@ export function createNoteNavigationActions(
 
     closeNote: async (path: string) => {
       let effectivePath = path;
-      if (!path.startsWith("davinci://") && !isImagePath(path)) {
+      if (
+        !path.startsWith("davinci://") &&
+        !path.startsWith("git-diff://") &&
+        !isImagePath(path)
+      ) {
         if (saveTimers[path]) {
           clearTimeout(saveTimers[path]);
           delete saveTimers[path];

@@ -6,6 +6,7 @@ import styles from "./GitHistoryGraph.module.scss";
 export interface GitHistoryGraphProps {
   nodes: GitGraphNode[];
   selectedHash?: string;
+  showHeader?: boolean;
   onSelectCommit?: (node: GitGraphNode) => void;
 }
 
@@ -20,6 +21,7 @@ const LANE_COLORS = [
 export function GitHistoryGraph({
   nodes,
   selectedHash,
+  showHeader = true,
   onSelectCommit,
 }: GitHistoryGraphProps) {
   const parentRef = useRef<HTMLDivElement>(null);
@@ -36,10 +38,15 @@ export function GitHistoryGraph({
   const svgWidth = Math.max((maxLane + 1) * 16 + 8, 24);
 
   return (
-    <div className={styles["git-history-graph"]} data-testid="git-history-graph">
-      <header className={styles["git-history-graph__header"]}>
-        <span>Commit History ({nodes.length})</span>
-      </header>
+    <div
+      className={styles["git-history-graph"]}
+      data-testid="git-history-graph"
+    >
+      {showHeader && (
+        <header className={styles["git-history-graph__header"]}>
+          <span>Commit History ({nodes.length})</span>
+        </header>
+      )}
 
       <div ref={parentRef} className={styles["git-history-graph__viewport"]}>
         <div
