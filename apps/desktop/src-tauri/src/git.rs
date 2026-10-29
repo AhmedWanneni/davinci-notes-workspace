@@ -12,6 +12,16 @@ use crate::{command_auth::reject_plugin_runner, state::VaultState};
 const VAULT_GITIGNORE: &str = "# Managed by DaVinci Notes local version history.\n# Only Markdown notes are source of truth for local history.\n*\n!**/\n!**/*.md\n";
 static GIT_OPERATION_LOCK: Mutex<()> = Mutex::new(());
 
+pub(crate) fn with_git_lock<T, F>(f: F) -> Result<T, String>
+where
+    F: FnOnce() -> Result<T, String>,
+{
+    let _guard = GIT_OPERATION_LOCK
+        .lock()
+        .map_err(|_| "Local Git operation lock poisoned".to_string())?;
+    f()
+}
+
 pub(crate) fn run_git(vault_root: &Path, args: &[&str]) -> Result<Output, String> {
     Command::new("git")
     .args(args)

@@ -1,6 +1,14 @@
 import { useState } from "react";
-import { CaretDown, CaretRight } from "@phosphor-icons/react";
+import {
+  CaretDown,
+  CaretRight,
+  Plus,
+  Minus,
+  ArrowCounterClockwise,
+} from "@phosphor-icons/react";
+import { Button } from "@app/design-system";
 import type { GitFileChange } from "../types/gitTypes";
+import { useGitManagerStore } from "../store/useGitManagerStore";
 import { GitStatusRow } from "./GitStatusRow";
 import styles from "./GitChangesList.module.scss";
 
@@ -21,6 +29,9 @@ export function GitChangesList({
   const [isStagedOpen, setIsStagedOpen] = useState(true);
   const [isUnstagedOpen, setIsUnstagedOpen] = useState(true);
 
+  const { stagePaths, unstagePaths, discardPaths, isLoading } =
+    useGitManagerStore();
+
   const hasAnyChanges =
     staged.length > 0 || unstaged.length > 0 || conflicts.length > 0;
 
@@ -31,6 +42,17 @@ export function GitChangesList({
       </div>
     );
   }
+
+  const handleDiscard = (path?: string) => {
+    const label = path || "all files";
+    if (
+      window.confirm(
+        `Are you sure you want to discard changes in ${label}? This action cannot be undone.`
+      )
+    ) {
+      void discardPaths(path ? [path] : []);
+    }
+  };
 
   return (
     <div className={styles["git-changes-list"]}>
@@ -64,16 +86,31 @@ export function GitChangesList({
 
       {staged.length > 0 && (
         <section className={styles["git-section"]}>
-          <div
-            className={styles["git-section__header"]}
-            onClick={() => setIsStagedOpen(!isStagedOpen)}
-            role="button"
-            tabIndex={0}
-          >
-            <div className={styles["git-section__title"]}>
+          <div className={styles["git-section__header"]}>
+            <div
+              className={styles["git-section__title"]}
+              onClick={() => setIsStagedOpen(!isStagedOpen)}
+              role="button"
+              tabIndex={0}
+            >
               {isStagedOpen ? <CaretDown size={12} /> : <CaretRight size={12} />}
               <span>Staged Changes</span>
               <span className={styles["git-section__count"]}>{staged.length}</span>
+            </div>
+            <div className={styles["git-section__actions"]}>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Unstage All"
+                title="Unstage All"
+                disabled={isLoading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void unstagePaths([]);
+                }}
+              >
+                <Minus size={12} />
+              </Button>
             </div>
           </div>
           {isStagedOpen && (
@@ -83,6 +120,21 @@ export function GitChangesList({
                   key={`staged-${change.path}`}
                   change={change}
                   onClick={() => onSelectFile?.(change)}
+                  actions={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Unstage ${change.path}`}
+                      title="Unstage"
+                      disabled={isLoading}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void unstagePaths([change.path]);
+                      }}
+                    >
+                      <Minus size={12} />
+                    </Button>
+                  }
                 />
               ))}
             </div>
@@ -92,16 +144,44 @@ export function GitChangesList({
 
       {unstaged.length > 0 && (
         <section className={styles["git-section"]}>
-          <div
-            className={styles["git-section__header"]}
-            onClick={() => setIsUnstagedOpen(!isUnstagedOpen)}
-            role="button"
-            tabIndex={0}
-          >
-            <div className={styles["git-section__title"]}>
+          <div className={styles["git-section__header"]}>
+            <div
+              className={styles["git-section__title"]}
+              onClick={() => setIsUnstagedOpen(!isUnstagedOpen)}
+              role="button"
+              tabIndex={0}
+            >
               {isUnstagedOpen ? <CaretDown size={12} /> : <CaretRight size={12} />}
               <span>Changes</span>
               <span className={styles["git-section__count"]}>{unstaged.length}</span>
+            </div>
+            <div className={styles["git-section__actions"]}>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Discard All"
+                title="Discard All"
+                disabled={isLoading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDiscard();
+                }}
+              >
+                <ArrowCounterClockwise size={12} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Stage All"
+                title="Stage All"
+                disabled={isLoading}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void stagePaths([]);
+                }}
+              >
+                <Plus size={12} />
+              </Button>
             </div>
           </div>
           {isUnstagedOpen && (
@@ -111,6 +191,36 @@ export function GitChangesList({
                   key={`unstaged-${change.path}`}
                   change={change}
                   onClick={() => onSelectFile?.(change)}
+                  actions={
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Discard ${change.path}`}
+                        title="Discard changes"
+                        disabled={isLoading}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDiscard(change.path);
+                        }}
+                      >
+                        <ArrowCounterClockwise size={12} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Stage ${change.path}`}
+                        title="Stage changes"
+                        disabled={isLoading}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void stagePaths([change.path]);
+                        }}
+                      >
+                        <Plus size={12} />
+                      </Button>
+                    </>
+                  }
                 />
               ))}
             </div>

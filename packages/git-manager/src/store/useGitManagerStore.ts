@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import type { GitFileChange, GitRepoInfo } from "../types/gitTypes";
-import { fetchGitRepoInfo, fetchGitStatus, initGitRepository } from "../api/gitClient";
+import {
+  fetchGitRepoInfo,
+  fetchGitStatus,
+  initGitRepository,
+  stageGitPaths,
+  unstageGitPaths,
+  discardGitPaths,
+  commitGit,
+} from "../api/gitClient";
 import { parsePorcelainV2 } from "../parsers/parsePorcelainV2";
 
 export interface GitManagerState {
@@ -15,6 +23,10 @@ export interface GitManagerState {
   refreshRepoInfo: () => Promise<void>;
   refreshStatus: () => Promise<void>;
   initializeRepo: () => Promise<void>;
+  stagePaths: (paths: string[]) => Promise<void>;
+  unstagePaths: (paths: string[]) => Promise<void>;
+  discardPaths: (paths: string[]) => Promise<void>;
+  commit: (message: string, amend?: boolean) => Promise<string | undefined>;
   setStatusDirty: (dirty: boolean) => void;
 }
 
@@ -75,6 +87,61 @@ export const useGitManagerStore = create<GitManagerState>((set, get) => ({
         error: err instanceof Error ? err.message : String(err),
         isLoading: false,
       });
+    }
+  },
+
+  stagePaths: async (paths: string[]) => {
+    set({ isLoading: true, error: null });
+    try {
+      await stageGitPaths(paths);
+      await get().refreshStatus();
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        isLoading: false,
+      });
+    }
+  },
+
+  unstagePaths: async (paths: string[]) => {
+    set({ isLoading: true, error: null });
+    try {
+      await unstageGitPaths(paths);
+      await get().refreshStatus();
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        isLoading: false,
+      });
+    }
+  },
+
+  discardPaths: async (paths: string[]) => {
+    set({ isLoading: true, error: null });
+    try {
+      await discardGitPaths(paths);
+      await get().refreshStatus();
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        isLoading: false,
+      });
+    }
+  },
+
+  commit: async (message: string, amend = false) => {
+    set({ isLoading: true, error: null });
+    try {
+      const hash = await commitGit(message, amend);
+      await get().refreshRepoInfo();
+      await get().refreshStatus();
+      return hash;
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        isLoading: false,
+      });
+      return undefined;
     }
   },
 

@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { GitChangesList } from "./GitChangesList";
+import { useGitManagerStore } from "../store/useGitManagerStore";
 import type { GitFileChange } from "../types/gitTypes";
 
 describe("GitChangesList", () => {
@@ -76,5 +77,30 @@ describe("GitChangesList", () => {
 
     fireEvent.click(screen.getByTestId("git-status-row-src/index.ts"));
     expect(handleSelect).toHaveBeenCalledWith(stagedSample[0]);
+  });
+
+  it("triggers stage and unstage actions from store", () => {
+    const stagePathsMock = vi.fn();
+    const unstagePathsMock = vi.fn();
+    useGitManagerStore.setState({
+      stagePaths: stagePathsMock,
+      unstagePaths: unstagePathsMock,
+    });
+
+    render(
+      <GitChangesList
+        staged={stagedSample}
+        unstaged={unstagedSample}
+        conflicts={[]}
+      />
+    );
+
+    const stageAllBtn = screen.getByRole("button", { name: "Stage All" });
+    fireEvent.click(stageAllBtn);
+    expect(stagePathsMock).toHaveBeenCalledWith([]);
+
+    const unstageAllBtn = screen.getByRole("button", { name: "Unstage All" });
+    fireEvent.click(unstageAllBtn);
+    expect(unstagePathsMock).toHaveBeenCalledWith([]);
   });
 });

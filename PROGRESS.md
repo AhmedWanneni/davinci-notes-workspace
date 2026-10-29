@@ -4,7 +4,40 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 2: Status Engine & Changes List UI (ADR-0234)
+## Last Session — Git Manager Phase 3: Stage / Unstage / Discard, Commit, Amend (ADR-0235)
+
+**Scope:** Implement mutating Git operations (`stage`, `unstage`, `discard`, `commit`, `amend`) with global Mutex serialization (`GIT_OPERATION_LOCK`), pathspec separation, initial-commit empty HEAD handling, destructive action confirmation, and commit box UI.
+
+**What was done:**
+1. **Rust Mutating Backend (`git_manager_ops.rs`)**:
+   - Implemented `git_manager_stage`, `git_manager_unstage`, `git_manager_discard`, `git_manager_commit` (amend support).
+   - Global Mutex `GIT_OPERATION_LOCK` wraps all mutations to prevent index collisions with concurrent auto-versioning.
+   - Initial commit empty HEAD handling: when HEAD does not exist, unstaging uses `git rm -r --cached --ignore-unmatch` instead of failing with ambiguous revision.
+   - Robust discard handling: iterates paths and attempts `git restore --worktree` for tracked modifications; falls back to `git clean -f -d` for untracked files without cross-pathspec failures.
+   - All 5 Rust tests passing (`git_manager_commands.rs` + `git_manager_ops.rs`). File kept at 241 lines (< 250 cap).
+2. **Commit Box UI (`GitCommitBox.tsx`)**:
+   - Commit textarea with ⌘Enter / Ctrl+Enter keyboard submission.
+   - Amend mode toggle with interactive warning badge.
+   - Primary commit button + dropdown options menu using `@app/design-system` primitives (`DropdownMenu`).
+3. **Changes List Action Wiring**:
+   - Header-level Stage All (`+`), Unstage All (`-`), Discard All with confirmation dialog.
+   - Row-level Stage (`+`), Unstage (`-`), Discard with confirmation dialog.
+   - All 24 Vitest tests passing in `@app/git-manager`.
+4. **Lazy-Load Verification**:
+   - Production web build chunk `index-BtAPa5QH.js` is 15.0 KB raw (~4.8 KB gzip).
+   - Zero Git background processes when feature is disabled or panel is unmounted.
+5. **Architecture Decision Record**:
+   - Authored [ADR-0235](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0235-git-manager-staging-discard-and-commits.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 4: Diff viewer, file + hunk level staging (`@codemirror/merge`, `git diff`, patch application)**.
+- Phase 5: History graph (virtualized) + commit detail + file history.
+
+---
+
+## Previous Session — Git Manager Phase 2: Status Engine & Changes List UI (ADR-0234)
 
 **Scope:** Implement status command backend with porcelain v2, NUL-byte parser, debounced watcher hook on `.git` internals, and changes list UI with status badges.
 

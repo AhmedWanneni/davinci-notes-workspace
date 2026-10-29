@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Phase 3 — Stage / Unstage / Discard, Commit, Amend (ADR-0235)
+
+- **Mutating Operations Engine**:
+  - Implemented `apps/desktop/src-tauri/src/git_manager_ops.rs` providing `git_manager_stage`, `git_manager_unstage`, `git_manager_discard`, and `git_manager_commit` (with amend support).
+  - Serialized all working tree / index mutations under `with_git_lock` via `GIT_OPERATION_LOCK`.
+  - Added empty HEAD fallback for unstaging prior to initial commit using `git rm -r --cached --ignore-unmatch`.
+  - Per-path discard handling separating `git restore --worktree` from `git clean -f -d` to avoid cross-pathspec failures.
+- **Commit Box & Changes List UI**:
+  - Built `GitCommitBox` with commit message textarea, ⌘Enter shortcut, and amend mode toggle.
+  - Built split commit button with Radix-based `DropdownMenu` from `@app/design-system`.
+  - Added section-level Stage All, Unstage All, and Discard All buttons to `GitChangesList`.
+  - Added row-level Stage, Unstage, and Discard buttons to `GitStatusRow` with confirmation gates for destructive actions.
+- **Testing & Verification**:
+  - All 24 unit tests in `@app/git-manager` passing.
+  - All Rust unit tests passing in `git_manager_ops.rs` and `git_manager_commands.rs`.
+  - Production web bundle chunk `index-BtAPa5QH.js` is 15.0 KB raw (~4.8 KB gzip).
+- **Architecture Decision Record**:
+  - Authored [ADR-0235](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0235-git-manager-staging-discard-and-commits.md) and indexed in `DECISIONS.md`.
+
 ### 2026-10-29: Git Manager Phase 2 — Status Engine & Changes List UI (ADR-0234)
 
 - **Status Engine & Porcelain v2 Parsing**:

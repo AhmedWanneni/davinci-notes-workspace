@@ -4,6 +4,7 @@ import { Button } from "@app/design-system";
 import { useGitManagerStore } from "../store/useGitManagerStore";
 import { listenToGitChanges } from "../api/gitClient";
 import { GitEmptyState } from "./GitEmptyState";
+import { GitCommitBox } from "./GitCommitBox";
 import { GitChangesList } from "./GitChangesList";
 import styles from "./GitSidebarPanel.module.scss";
 
@@ -105,11 +106,14 @@ export function GitSidebarPanel() {
         {repoInfo.isEmpty && staged.length === 0 && unstaged.length === 0 ? (
           <GitEmptyState type="no-commits" />
         ) : (
-          <GitChangesList
-            staged={staged}
-            unstaged={unstaged}
-            conflicts={conflicts}
-          />
+          <>
+            <GitCommitBox />
+            <GitChangesList
+              staged={staged}
+              unstaged={unstaged}
+              conflicts={conflicts}
+            />
+          </>
         )}
       </div>
     </div>
