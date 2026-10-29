@@ -1,17 +1,31 @@
 import React from "react";
 import {
-  BookmarkSimple, CalendarCheck, Bell, Plus, SidebarSimple,
-  Sparkle, FileText, FrameCorners, Kanban as KanbanIcon,
-  Table as TableIcon, Image as ImageIcon, X,
+  BookmarkSimple,
+  CalendarCheck,
+  Bell,
+  Plus,
+  SidebarSimple,
+  Sparkle,
+  FileText,
+  FrameCorners,
+  Kanban as KanbanIcon,
+  Table as TableIcon,
+  Image as ImageIcon,
+  X,
+  Ear,
 } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
-import { getPlatformAdapters, hasPlatformAdapters } from "@app/platform-adapters";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 import { WindowControls } from "../WindowControls";
 import { TabListDropdown } from "./TabListDropdown";
 import { BOOKMARKS_TAB_ID } from "../../bookmarks";
 import { CALENDAR_TAB_ID } from "../../calendar/calendarConstants";
 import { AGENT_TAB_ID } from "../AgentView/agentTypes";
 import { REMINDERS_TAB_ID } from "../../reminders/reminderConstants";
+import { LISTENING_TAB_ID } from "../ListeningView/listeningConstants";
 import { isImagePath } from "../ImagePreview/imagePreviewUtils";
 
 export interface AppTabsProps {
@@ -104,7 +118,13 @@ export function AppTabs({
           const isRemindersTab = path === REMINDERS_TAB_ID;
           const isAgentTab = path === AGENT_TAB_ID;
           const isCalendarTab = path === CALENDAR_TAB_ID;
-          const isVirtual = isBookmarksTab || isRemindersTab || isAgentTab || isCalendarTab;
+          const isListeningTab = path === LISTENING_TAB_ID;
+          const isVirtual =
+            isBookmarksTab ||
+            isRemindersTab ||
+            isAgentTab ||
+            isCalendarTab ||
+            isListeningTab;
           const isCanvas = path.endsWith(".canvas");
           const isBoard = boardNotes?.has(path);
           const isDatabase = databaseNotes?.has(path);
@@ -117,9 +137,14 @@ export function AppTabs({
                 ? "AI Agent"
                 : isCalendarTab
                   ? "Calendar"
-                  : isImage
-                    ? path.split("/").pop() ?? path
-                    : path.replace(/\.(md|canvas)$/i, "").split("/").pop() ?? path;
+                  : isListeningTab
+                    ? "AI Listening"
+                    : isImage
+                      ? (path.split("/").pop() ?? path)
+                      : (path
+                          .replace(/\.(md|canvas)$/i, "")
+                          .split("/")
+                          .pop() ?? path);
           const isActive = activeNotePath === path;
           const isDirty = !isVirtual && dirtyNotes.has(path);
           const hasConflict = !isVirtual && (conflictNotes?.has(path) ?? false);
@@ -150,6 +175,8 @@ export function AppTabs({
                   <Sparkle size={13} weight="fill" />
                 ) : isCalendarTab ? (
                   <CalendarCheck size={13} weight="regular" />
+                ) : isListeningTab ? (
+                  <Ear size={13} weight="regular" />
                 ) : isCanvas ? (
                   <FrameCorners size={13} weight="regular" />
                 ) : isBoard ? (

@@ -68,6 +68,12 @@ const LazyRemindersView = React.lazy(() =>
 );
 import { AGENT_TAB_ID } from "./components/AgentView";
 import { CALENDAR_TAB_ID } from "./calendar/calendarConstants";
+import { LISTENING_TAB_ID } from "./components/ListeningView";
+const LazyListeningView = React.lazy(() =>
+  import("./components/ListeningView").then((m) => ({
+    default: m.ListeningView,
+  })),
+);
 const LazyAgentView = React.lazy(() =>
   import("./components/AgentView").then((m) => ({
     default: m.AgentView,
@@ -719,12 +725,14 @@ export function App() {
           isBookmarksOpen={activeNotePath === BOOKMARKS_TAB_ID}
           isRemindersOpen={activeNotePath === REMINDERS_TAB_ID}
           isAgentOpen={activeNotePath === AGENT_TAB_ID}
+          isListeningOpen={activeNotePath === LISTENING_TAB_ID}
           isAskVaultOpen={isRightSidebarOpen}
           onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
           onOpenCalendar={() => void openNote(CALENDAR_TAB_ID)}
           onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
           onOpenReminders={() => void openNote(REMINDERS_TAB_ID)}
           onOpenAgent={() => void openNote(AGENT_TAB_ID)}
+          onOpenListening={() => void openNote(LISTENING_TAB_ID)}
           onOpenAskVault={() => setIsRightSidebarOpen((prev) => !prev)}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}
@@ -798,6 +806,10 @@ export function App() {
           ) : activeNotePath === AGENT_TAB_ID ? (
             <Suspense fallback={null}>
               <LazyAgentView />
+            </Suspense>
+          ) : activeNotePath === LISTENING_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyListeningView />
             </Suspense>
           ) : activeNotePath === CALENDAR_TAB_ID || isCalendarOpen ? (
             <Suspense fallback={null}>

@@ -11,6 +11,7 @@ import {
   SignOut,
   Sparkle,
   ChatCircleDots,
+  Ear,
 } from "@phosphor-icons/react";
 import { IconRailButton } from "./IconRailButton";
 
@@ -27,12 +28,14 @@ export interface IconRailProps {
   onOpenCalendar?: () => void;
   onOpenBookmarks?: () => void;
   onOpenAgent?: () => void;
+  onOpenListening?: () => void;
   onOpenAskVault?: () => void;
   isGlobalGraphOpen?: boolean;
   isCalendarOpen?: boolean;
   isBookmarksOpen?: boolean;
   isRemindersOpen?: boolean;
   isAgentOpen?: boolean;
+  isListeningOpen?: boolean;
   isAskVaultOpen?: boolean;
 }
 
@@ -49,12 +52,14 @@ export function IconRail({
   onOpenCalendar,
   onOpenBookmarks,
   onOpenAgent,
+  onOpenListening,
   onOpenAskVault,
   isGlobalGraphOpen,
   isCalendarOpen,
   isBookmarksOpen,
   isRemindersOpen,
   isAgentOpen,
+  isListeningOpen,
   isAskVaultOpen,
 }: IconRailProps) {
   return (
@@ -88,10 +93,18 @@ export function IconRail({
             isActive={isAgentOpen}
             onClick={onOpenAgent}
           >
-            <Sparkle
-              size={18}
-              weight={isAgentOpen ? "fill" : "regular"}
-            />
+            <Sparkle size={18} weight={isAgentOpen ? "fill" : "regular"} />
+          </IconRailButton>
+        )}
+
+        {onOpenListening && (
+          <IconRailButton
+            label="AI Listening"
+            tooltip="Meeting Recorder & AI Listening"
+            isActive={isListeningOpen}
+            onClick={onOpenListening}
+          >
+            <Ear size={18} weight={isListeningOpen ? "fill" : "regular"} />
           </IconRailButton>
         )}
 
@@ -124,10 +137,7 @@ export function IconRail({
           <ShareNetwork size={18} weight="regular" />
         </IconRailButton>
 
-        <IconRailButton
-          label="Daily note"
-          onClick={onDailyNotes}
-        >
+        <IconRailButton label="Daily note" onClick={onDailyNotes}>
           <CalendarBlank size={18} weight="regular" />
         </IconRailButton>
 
@@ -143,10 +153,7 @@ export function IconRail({
         )}
 
         {onCreateCanvas && (
-          <IconRailButton
-            label="New canvas"
-            onClick={onCreateCanvas}
-          >
+          <IconRailButton label="New canvas" onClick={onCreateCanvas}>
             <FrameCorners size={18} weight="regular" />
           </IconRailButton>
         )}
@@ -157,26 +164,17 @@ export function IconRail({
             isActive={isRemindersOpen}
             onClick={onOpenReminders}
           >
-            <Bell
-              size={18}
-              weight={isRemindersOpen ? "fill" : "regular"}
-            />
+            <Bell size={18} weight={isRemindersOpen ? "fill" : "regular"} />
           </IconRailButton>
         )}
       </div>
 
       <div className="icon-rail__group icon-rail__group--bottom">
-        <IconRailButton
-          label="Settings"
-          onClick={onOpenSettings}
-        >
+        <IconRailButton label="Settings" onClick={onOpenSettings}>
           <Gear size={18} weight="regular" />
         </IconRailButton>
 
-        <IconRailButton
-          label="Close vault"
-          onClick={onCloseVault}
-        >
+        <IconRailButton label="Close vault" onClick={onCloseVault}>
           <SignOut size={18} weight="regular" />
         </IconRailButton>
       </div>

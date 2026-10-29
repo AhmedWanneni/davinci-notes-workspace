@@ -26,11 +26,13 @@ export interface AppSidebarProps {
   isBookmarksOpen?: boolean;
   isRemindersOpen?: boolean;
   isAgentOpen?: boolean;
+  isListeningOpen?: boolean;
   isAskVaultOpen?: boolean;
   onOpenGlobalGraph?: () => void;
   onOpenCalendar?: () => void;
   onOpenBookmarks?: () => void;
   onOpenAgent?: () => void;
+  onOpenListening?: () => void;
   onOpenAskVault?: () => void;
   onCloseVault?: () => void;
   onDailyNotes?: () => void;
@@ -84,11 +86,13 @@ export function AppSidebar({
   isBookmarksOpen,
   isRemindersOpen,
   isAgentOpen,
+  isListeningOpen,
   isAskVaultOpen,
   onOpenGlobalGraph,
   onOpenCalendar,
   onOpenBookmarks,
   onOpenAgent,
+  onOpenListening,
   onOpenAskVault,
   onCloseVault,
   onDailyNotes,
@@ -171,6 +175,7 @@ export function AppSidebar({
           isBookmarksOpen={isBookmarksOpen}
           isRemindersOpen={isRemindersOpen}
           isAgentOpen={isAgentOpen}
+          isListeningOpen={isListeningOpen}
           isAskVaultOpen={isAskVaultOpen}
           onToggleLeftSidebar={onToggleLeftSidebar ?? (() => {})}
           onOpenSearch={onOpenSearch ?? (() => {})}
@@ -178,6 +183,7 @@ export function AppSidebar({
           onOpenCalendar={onOpenCalendar}
           onOpenBookmarks={onOpenBookmarks}
           onOpenAgent={onOpenAgent}
+          onOpenListening={onOpenListening}
           onOpenAskVault={onOpenAskVault}
           onOpenSettings={onOpenSettings ?? (() => {})}
           onCloseVault={onCloseVault ?? (() => {})}

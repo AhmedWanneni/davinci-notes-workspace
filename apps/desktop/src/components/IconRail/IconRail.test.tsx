@@ -74,7 +74,10 @@ describe("IconRail", () => {
 
   it("renders calendar button, triggers onOpenCalendar, and reflects isCalendarOpen", () => {
     const onOpenCalendar = vi.fn();
-    const { rerender } = renderIconRail({ onOpenCalendar, isCalendarOpen: false });
+    const { rerender } = renderIconRail({
+      onOpenCalendar,
+      isCalendarOpen: false,
+    });
 
     const calBtn = screen.getByLabelText("Calendar");
     expect(calBtn).toBeDefined();
@@ -134,7 +137,10 @@ describe("IconRail", () => {
 
   it("renders Ask Your Vault button, triggers onOpenAskVault, and reflects isAskVaultOpen", () => {
     const onOpenAskVault = vi.fn();
-    const { rerender } = renderIconRail({ onOpenAskVault, isAskVaultOpen: false });
+    const { rerender } = renderIconRail({
+      onOpenAskVault,
+      isAskVaultOpen: false,
+    });
 
     const askBtn = screen.getByLabelText("Ask Your Vault");
     expect(askBtn).toBeDefined();
@@ -160,5 +166,48 @@ describe("IconRail", () => {
 
     const activeAskBtn = screen.getByLabelText("Ask Your Vault");
     expect(activeAskBtn.getAttribute("data-active")).toBe("true");
+  });
+
+  it("renders AI listening button, triggers onOpenListening, and reflects isListeningOpen", () => {
+    const onOpenListening = vi.fn();
+    const { rerender } = render(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={false}
+          onToggleLeftSidebar={vi.fn()}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          onOpenListening={onOpenListening}
+          isListeningOpen={false}
+        />
+      </TooltipProvider>,
+    );
+
+    const listeningBtn = screen.getByLabelText("AI Listening");
+    expect(listeningBtn).toBeDefined();
+    expect(listeningBtn.getAttribute("data-active")).toBeNull();
+
+    fireEvent.click(listeningBtn);
+    expect(onOpenListening).toHaveBeenCalledOnce();
+
+    rerender(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={false}
+          onToggleLeftSidebar={vi.fn()}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          onOpenListening={onOpenListening}
+          isListeningOpen={true}
+        />
+      </TooltipProvider>,
+    );
+
+    const activeListeningBtn = screen.getByLabelText("AI Listening");
+    expect(activeListeningBtn.getAttribute("data-active")).toBe("true");
   });
 });
