@@ -4,39 +4,25 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — "Create a Release" Agent Skill (Phases 1–7)
+## Last Session — "Create a Release" Execution & v0.1.0 Public Release
 
-**Scope:** Implement the universal, cross-agent "create a release" skill across Phases 1 through 7: deterministic preflight verification, Claude Code skill specification with interactive human approval gates, automated CI watcher and artifact verifier, Astro static website auto-deployment with pre-release isolation, emergency rollback integration, multi-agent adapters (Cursor, Copilot, Antigravity), and ADR-0249 documentation.
+**Scope:** Executed the "create a release" skill for version `v0.1.0`, published the release live to the public on GitHub Releases, and resolved CI matrix build TypeScript path deprecations.
 
 **What was done:**
-1. **Phase 1: Preflight Verification Script & Dry-Run Harness (ADR-0249)**:
-   - Created `scripts/release/preflight-release.sh`: Deterministic preflight checks for working tree cleanliness, branch verification, remote origin parity, manifest sync across all 6 manifests, and tooling/auth audits.
-   - Updated `scripts/release/release.sh` to integrate preflight checks and support `--preflight-only`, `--notes-file <path>`, `--yes`, and `--dry-run`.
-2. **Phase 2: Agent Skill Specification & AI Changelog Drafting**:
-   - Created primary skill file `.claude/skills/create-release/SKILL.md` with SemVer proposal heuristics, user-facing changelog grouping, and Human Gate 1 & 2 execution logic.
-   - Updated `docs/releasing.md` with conversational AI agent release invocation documentation.
-3. **Phase 3: CI Execution Tracking & Asset Verification**:
-   - Created `scripts/release/wait-and-verify-release.sh` using GitHub CLI to monitor release workflow runs, inspect Draft Releases, and verify that all 6 platform binaries (macOS arm64/x64, Windows x64, Linux AppImage/deb) and `SHA256SUMS.txt` are attached.
-4. **Phase 4: Automated Website Deployment Workflow & Beta Isolation**:
-   - Created `.github/workflows/deploy-website.yml` triggering on `release: [published]` to rebuild and deploy the Astro site to GitHub Pages automatically.
-   - Updated `apps/website/src/pages/download/index.astro` to ensure only stable releases populate the main CTA button.
-   - Created `apps/website/src/pages/download/beta.astro` providing a dedicated pre-release download channel. Verified static build with 7 pages compiled in 947ms.
-5. **Phase 5: Two-Stage Human Approval Gates & Emergency Rollback Driver**:
-   - Upgraded `scripts/release/rollback.sh` to support `--revert-commit` and `--all` flags for complete tag, draft release, and commit retraction.
-6. **Phase 6: Multi-Agent Adapters**:
-   - Created `.cursor/rules/release.mdc` for Cursor.
-   - Created `.agents/workflows/create-release.md` for Antigravity / AGY.
-   - Created `.github/copilot-instructions.md` for GitHub Copilot.
-   - Updated `AGENTS.md` with release skill instructions.
-7. **Phase 7: Architecture Decision Record & Verification**:
-   - Recorded `docs/adr/0249-universal-agent-release-skill-architecture.md` and indexed in `DECISIONS.md`.
-   - Verified dry-run execution of preflight, release bump, CI watcher, and rollback scripts.
+1. **Release v0.1.0 Published**:
+   - Tagged and published [Release v0.1.0](https://github.com/AhmedWanneni/davinci-notes-workspace/releases/tag/v0.1.0) on GitHub with curated release notes.
+2. **CI Release Workflow & TS Compiler Fixes**:
+   - Updated `.github/workflows/release.yml` to build web assets via `pnpm --filter @app/desktop build:web`.
+   - Updated root `tsconfig.json` paths to relative `./` targets and removed deprecated `baseUrl`.
+   - Fixed table placeholder attribute typing in `packages/editor/blocks/table/tableExtension.ts`.
+   - Opened and merged PR #16 (`fix/ci-release-workflow-and-ts-paths`) following mandatory agent branching and PR rules.
+   - Retriggered release build matrix on GitHub Actions.
 
 ---
 
 ## Next Up
-- Push test tag `v0.1.0-rc.2` to remote to observe GitHub Actions matrix execution on staging.
-- Manual verification of GitHub clone with a personal access token on a private/public repo.
+- Monitor CI matrix build completion on GitHub Actions for multi-platform installers (`.dmg`, `.exe`, `.AppImage`, `.deb`).
+- Enable GitHub Pages or configure custom domain hosting for website deployment.
 
 ---
 
