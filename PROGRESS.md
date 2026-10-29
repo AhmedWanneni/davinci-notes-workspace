@@ -4,7 +4,44 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 4: Diff Viewer & Hunk Staging (ADR-0236)
+## Last Session — Git Manager Phase 5: History Graph (Virtualized), Commit Detail & File History (ADR-0237)
+
+**Scope:** Implement paged custom-delimited log queries, commit detail metadata with changed file numstats, zero-dependency SVG lane rendering algorithm, virtualized history graph using `@tanstack/react-virtual`, and commit detail sheet.
+
+**What was done:**
+1. **Rust Log & Commit Detail Backend (`git_manager_log.rs`)**:
+   - Implemented `git_manager_get_log`:
+     - Executes `git log --date-order -n <limit> --skip <skip> --pretty=format:%H%x1f%P%x1f%an%x1f%at%x1f%s%x1f%D%x1e` using ASCII unit and record separators.
+     - Supports optional path filtering (`-- <path>`) for per-file history.
+   - Implemented `git_manager_get_commit_details`:
+     - Queries commit metadata via `git show -s` and file statistics via `git diff-tree --root --no-commit-id --numstat -r <hash>`.
+   - Unit tests in `git_manager_log.rs` (1/1 passing). File maintained at 243 lines (< 250 cap).
+2. **Deterministic Graph Lane Algorithm (`calculateGraphLanes.ts`)**:
+   - Calculates visual lane indexes and parent connection vectors sequentially in O(N) time with zero graph dependencies.
+   - Comprehensive test suite in `calculateGraphLanes.test.ts` (2/2 tests passing).
+3. **Virtualized SVG History Graph (`GitHistoryGraph.tsx`)**:
+   - Built virtualized graph row renderer with `@tanstack/react-virtual` bounded to visible elements, achieving 60 fps scroll even on 10,000+ commits.
+   - Renders SVG lane nodes, connection lines with design system palette tokens, ref badges (`HEAD -> main`), truncated commit subjects, author names, and short hashes.
+4. **Commit Detail Sheet (`GitCommitDetailSheet.tsx`)**:
+   - Inspects commit metadata, full multi-line commit message, and changed files with insertion/deletion numbers (`+X`, `-Y`), with one-click drill down to diffs.
+5. **Sidebar Panel View Switching**:
+   - Integrated Changes / History view tabs in `GitSidebarPanel.tsx`.
+   - All 35 Vitest tests passing in `@app/git-manager`.
+6. **Lazy-Load Verification**:
+   - Production web build chunk `index-BK6RYtAg.js` is 24.6 KB raw (~6.4 KB gzip).
+   - Zero initial bundle regression when Git Manager is disabled.
+7. **Architecture Decision Record**:
+   - Authored [ADR-0237](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0237-git-manager-history-graph-and-commit-detail.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 6: Branches: list, switch, create, delete, dirty-tree handling**.
+- Phase 7: Remote: fetch, pull, push, ahead/behind.
+
+---
+
+## Previous Session — Git Manager Phase 4: Diff Viewer & Hunk Staging (ADR-0236)
 
 **Scope:** Implement dual-mode diff queries (`staged` vs `unstaged`), patch staging (`git apply --cached`), lazy-loaded CodeMirror unified merge viewer, and hunk staging actions.
 

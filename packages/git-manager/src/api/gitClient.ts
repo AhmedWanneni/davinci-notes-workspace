@@ -1,5 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { GitFileDiff, GitRepoInfo } from "../types/gitTypes";
+import type {
+  GitCommitDetail,
+  GitCommitEntry,
+  GitFileDiff,
+  GitRepoInfo,
+} from "../types/gitTypes";
 
 export async function fetchGitRepoInfo(): Promise<GitRepoInfo> {
   return invoke<GitRepoInfo>("get_git_repo_info");
@@ -39,6 +44,22 @@ export async function applyGitPatch(
   reverse = false
 ): Promise<void> {
   return invoke<void>("git_manager_apply_patch", { patch, cached, reverse });
+}
+
+export async function fetchGitLog(
+  limit = 50,
+  skip = 0,
+  pathFilter?: string
+): Promise<GitCommitEntry[]> {
+  return invoke<GitCommitEntry[]>("git_manager_get_log", {
+    limit,
+    skip,
+    pathFilter,
+  });
+}
+
+export async function fetchGitCommitDetails(hash: string): Promise<GitCommitDetail> {
+  return invoke<GitCommitDetail>("git_manager_get_commit_details", { hash });
 }
 
 export async function listenToGitChanges(callback: () => void): Promise<() => void> {

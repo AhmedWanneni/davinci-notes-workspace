@@ -2,6 +2,26 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Phase 5 — History Graph, Commit Detail & File History (ADR-0237)
+
+- **Paged Delimited Log & Numstat Engine**:
+  - Implemented `apps/desktop/src-tauri/src/git_manager_log.rs` with `git_manager_get_log` and `git_manager_get_commit_details`.
+  - Used unit separator (`%x1f`) and record separator (`%x1e`) for fast machine parsing of commit hash, parents, author, date, subject, and ref decorations.
+  - Extracted changed file stats (`insertions`, `deletions`, `path`) using `git diff-tree --root --no-commit-id --numstat -r <hash>`.
+- **Zero-Dependency SVG Lane Algorithm & Virtualized Graph**:
+  - Authored `calculateGraphLanes.ts` with O(N) sequential lane reservation and parent connection mapping.
+  - Implemented `GitHistoryGraph.tsx` leveraging `@tanstack/react-virtual` to achieve 60 fps scrolling across large commit histories.
+  - Designed responsive SVG lanes with tokenized colors, ref chips, and metadata summaries.
+- **Commit Details & View Tabs**:
+  - Implemented `GitCommitDetailSheet.tsx` for inspecting commit metadata and diff file drill-downs.
+  - Added Changes / History view tabs to `GitSidebarPanel.tsx`.
+- **Testing & Verification**:
+  - All 35 Vitest tests passing in `@app/git-manager`.
+  - Rust log unit tests passing in `git_manager_log.rs`.
+  - Lazy-loaded bundle chunk verified: `index-BK6RYtAg.js` is 24.6 KB raw (~6.4 KB gzip).
+- **Architecture Decision Record**:
+  - Authored [ADR-0237](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0237-git-manager-history-graph-and-commit-detail.md) and indexed in `DECISIONS.md`.
+
 ### 2026-10-29: Git Manager Phase 4 — Diff Viewer & Hunk Staging (ADR-0236)
 
 - **Diff Engine & Patch Staging**:

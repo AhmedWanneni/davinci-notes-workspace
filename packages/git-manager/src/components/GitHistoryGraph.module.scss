@@ -1,0 +1,108 @@
+.git-history-graph {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-primary);
+  color: var(--color-text-normal);
+  overflow: hidden;
+}
+
+.git-history-graph__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  font-size: var(--type-scale-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.git-history-graph__viewport {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+.git-history-graph__inner {
+  width: 100%;
+  position: relative;
+}
+
+.git-history-row {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 28px;
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--type-scale-xs);
+  gap: var(--space-2);
+  padding-right: var(--space-3);
+  box-sizing: border-box;
+
+  &:hover {
+    background: var(--color-bg-hover);
+  }
+
+  &.is-selected {
+    background: var(--color-bg-selected);
+  }
+}
+
+.git-history-row__graph {
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.git-history-row__content {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.git-history-row__refs {
+  display: inline-flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.git-history-row__subject {
+  font-weight: 500;
+  color: var(--color-text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.git-history-row__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-size: var(--type-scale-xs);
+}
+
+.git-history-row__author {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-history-row__hash {
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+}

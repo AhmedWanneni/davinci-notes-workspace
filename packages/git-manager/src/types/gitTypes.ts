@@ -30,6 +30,42 @@ export interface GitFileDiff {
   staged: boolean;
 }
 
+export interface GitCommitEntry {
+  hash: string;
+  parents: string[];
+  authorName: string;
+  authorDate: number;
+  subject: string;
+  refs: string;
+}
+
+export interface GitCommitFileChange {
+  path: string;
+  status: string;
+  insertions: number;
+  deletions: number;
+}
+
+export interface GitCommitDetail {
+  hash: string;
+  authorName: string;
+  authorEmail: string;
+  authorDate: number;
+  message: string;
+  files: GitCommitFileChange[];
+}
+
+export interface GitGraphLaneConnection {
+  fromLane: number;
+  toLane: number;
+}
+
+export interface GitGraphNode {
+  commit: GitCommitEntry;
+  lane: number;
+  connections: GitGraphLaneConnection[];
+}
+
 export interface GitStatusSummary {
   repoInfo: GitRepoInfo;
   staged: GitFileChange[];

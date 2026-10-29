@@ -47,6 +47,15 @@
   gap: var(--space-1);
 }
 
+.git-sidebar-panel__view-tabs {
+  display: flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+}
+
 .git-sidebar-panel__content {
   flex: 1;
   display: flex;

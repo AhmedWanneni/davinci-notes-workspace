@@ -37,6 +37,7 @@ mod git_history;
 mod git_manager_commands;
 mod git_manager_ops;
 mod git_manager_diff;
+mod git_manager_log;
 mod git_remote;
 #[cfg(target_os = "macos")]
 mod macos_panel;
@@ -159,6 +160,8 @@ pub fn run() {
       git_manager_ops::git_manager_commit,
       git_manager_diff::git_manager_get_file_diff,
       git_manager_diff::git_manager_apply_patch,
+      git_manager_log::git_manager_get_log,
+      git_manager_log::git_manager_get_commit_details,
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,

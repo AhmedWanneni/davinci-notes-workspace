@@ -7,6 +7,8 @@ import { GitEmptyState } from "./GitEmptyState";
 import { GitCommitBox } from "./GitCommitBox";
 import { GitChangesList } from "./GitChangesList";
 import { GitDiffViewer } from "./GitDiffViewer";
+import { GitHistoryGraph } from "./GitHistoryGraph";
+import { GitCommitDetailSheet } from "./GitCommitDetailSheet";
 import styles from "./GitSidebarPanel.module.scss";
 
 export function GitSidebarPanel() {
@@ -16,12 +18,19 @@ export function GitSidebarPanel() {
     unstaged,
     conflicts,
     activeDiff,
+    graphNodes,
+    activeCommitDetail,
+    viewMode,
     isLoading,
+    setViewMode,
     refreshRepoInfo,
     refreshStatus,
     initializeRepo,
     openDiff,
     closeDiff,
+    fetchHistory,
+    openCommitDetail,
+    closeCommitDetail,
   } = useGitManagerStore();
 
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -114,8 +123,41 @@ export function GitSidebarPanel() {
         </div>
       </header>
 
+      <div className={styles["git-sidebar-panel__view-tabs"]}>
+        <Button
+          variant={viewMode === "changes" ? "secondary" : "ghost"}
+          size="sm"
+          onClick={() => setViewMode("changes")}
+        >
+          Changes
+        </Button>
+        <Button
+          variant={viewMode === "history" ? "secondary" : "ghost"}
+          size="sm"
+          onClick={() => {
+            setViewMode("history");
+            void fetchHistory();
+          }}
+        >
+          History
+        </Button>
+      </div>
+
       <div className={styles["git-sidebar-panel__content"]}>
-        {repoInfo.isEmpty && staged.length === 0 && unstaged.length === 0 ? (
+        {viewMode === "history" ? (
+          activeCommitDetail ? (
+            <GitCommitDetailSheet
+              detail={activeCommitDetail}
+              onClose={closeCommitDetail}
+              onSelectFile={(path) => void openDiff(path, true)}
+            />
+          ) : (
+            <GitHistoryGraph
+              nodes={graphNodes}
+              onSelectCommit={(node) => void openCommitDetail(node.commit.hash)}
+            />
+          )
+        ) : repoInfo.isEmpty && staged.length === 0 && unstaged.length === 0 ? (
           <GitEmptyState type="no-commits" />
         ) : (
           <>
