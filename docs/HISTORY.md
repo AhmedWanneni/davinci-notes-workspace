@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Phase 8 — Conflict Resolution & Merge Lifecycle (ADR-0240)
+
+- **Conflict Inspection & Merge Lifecycle**:
+  - Implemented `apps/desktop/src-tauri/src/git_manager_conflicts.rs` (167 lines) and `apps/desktop/src-tauri/src/git_manager_conflict_tests.rs` (174 lines).
+  - Queried Stage 1 (base), Stage 2 (ours), Stage 3 (theirs) via `git show :<stage>:<path>`.
+  - Added binary detection (`--numstat -\t-\t` and null-byte check).
+  - Added safe abort (`git merge --abort`) and continue (`git commit --no-edit`) under `with_git_lock`.
+- **Adversarial Verification Suite**:
+  - Constructed and passed 4 adversarial tests in `git_manager_conflict_tests.rs`:
+    1. Same-line conflict with Blake3 file hash restoration comparison before and after abort.
+    2. Delete-vs-modify detection.
+    3. Binary file conflict resolution.
+    4. External edits mid-merge resolution and 2-parent merge commit verification.
+- **Conflict Store & 3-Pane UI**:
+  - Authored `useGitConflictStore.ts` (107 lines), `GitConflictResolver.tsx` (199 lines), and `GitConflictResolver.module.scss` (159 lines).
+  - 3-pane layout: Ours (read-only), Result (editable), Theirs (read-only).
+  - Quick action buttons ("Ours", "Theirs", "Both", "Mark Resolved") and confirmation-gated abort.
+- **Testing & Verification**:
+  - All 16 Rust tests passing.
+  - All 47 Vitest tests passing in `@app/git-manager` across 13 suites.
+- **Architecture Decision Record**:
+  - Authored [ADR-0240](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0240-git-manager-conflict-resolution-and-merge-lifecycle.md) and indexed in `DECISIONS.md`.
+
 ### 2026-10-29: Git Manager Phase 7 — Remote Sync, Ahead/Behind & Keychain Credentials (ADR-0239)
 
 - **Remote Management & Synchronized Operations**:

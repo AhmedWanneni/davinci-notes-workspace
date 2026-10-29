@@ -8,9 +8,11 @@ export { GitHistoryGraph } from "./src/components/GitHistoryGraph";
 export { GitCommitDetailSheet } from "./src/components/GitCommitDetailSheet";
 export { GitBranchSwitcher } from "./src/components/GitBranchSwitcher";
 export { GitSyncToolbar } from "./src/components/GitSyncToolbar";
+export { GitConflictResolver } from "./src/components/GitConflictResolver";
 export { calculateGraphLanes } from "./src/graph/calculateGraphLanes";
 export { useGitManagerStore } from "./src/store/useGitManagerStore";
 export { useGitSyncStore } from "./src/store/useGitSyncStore";
+export { useGitConflictStore } from "./src/store/useGitConflictStore";
 export {
   fetchGitRepoInfo,
   initGitRepository,
@@ -35,6 +37,10 @@ export {
   fetchGitRemote,
   pullGitRemote,
   pushGitRemote,
+  getGitConflictDetails,
+  resolveGitConflict,
+  abortGitMerge,
+  continueGitMerge,
   listenToGitChanges,
 } from "./src/api/gitClient";
 export { parsePorcelainV2 } from "./src/parsers/parsePorcelainV2";
@@ -44,6 +50,7 @@ export type {
   GitRemoteInfo,
   GitTrackingStatus,
   GitSyncResult,
+  GitConflictFileVersions,
   GitFileChange,
   GitFileDiff,
   GitFileStatusCode,

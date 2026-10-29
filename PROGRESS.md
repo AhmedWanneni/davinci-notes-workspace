@@ -4,7 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 7: Remote: Fetch, Pull, Push, Ahead/Behind (ADR-0239)
+## Last Session — Git Manager Phase 8: Conflict Resolution (3-Pane Ours/Theirs/Result, Abort/Continue) (ADR-0240)
+
+**Scope:** Implement 3-stage conflict inspection (`:1:`, `:2:`, `:3:`), binary conflict detection, 3-pane interactive conflict resolver (`Ours`, `Result`, `Theirs`), one-click resolution actions (`Ours`, `Theirs`, `Both`, `Mark Resolved`), safe abort merge with hash restoration, continue merge, and extensive adversarial verification.
+
+**What was done:**
+1. **Rust Backend & Adversarial Testing (`git_manager_conflicts.rs` & `git_manager_conflict_tests.rs`)**:
+   - `git_manager_conflicts.rs` (167 lines): `git_manager_get_conflict_details`, `git_manager_resolve_conflict`, `git_manager_abort_merge`, `git_manager_continue_merge`.
+   - `git_manager_conflict_tests.rs` (174 lines):
+     - Same-line conflict & exact hash restoration test: verified with Blake3 that `git merge --abort` returns files to 100% identical pre-merge hash.
+     - Delete-vs-modify test: validated detection when incoming side deleted the file (`ours_exists == true, theirs_exists == false`).
+     - Binary file conflict: validated null-byte / `--numstat` binary detection and selection.
+     - External edits mid-merge: verified external disk edits arriving during merge resolution resolve and produce valid 2-parent merge commits (`HEAD^2`).
+   - All 16 Rust tests pass.
+2. **Conflict Store & 3-Pane UI (`@app/git-manager`)**:
+   - Authored `useGitConflictStore.ts` (107 lines) managing active conflict state, result buffer, and abort/continue actions.
+   - Authored `GitConflictResolver.tsx` (199 lines) and `GitConflictResolver.module.scss` (159 lines) with 3-pane responsive layout, binary warnings, one-click shortcuts, and confirmation-gated abort merge.
+   - Connected conflict item clicks in `GitChangesList` / `GitSidebarPanel` to open the resolver seamlessly.
+   - All 47 Vitest tests passing in `@app/git-manager` across 13 suites.
+3. **Architecture Decision Record**:
+   - Authored [ADR-0240](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0240-git-manager-conflict-resolution-and-merge-lifecycle.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 9: Polish, perf pass, stabilization sweep, ADR/docs close-out**.
+
+---
+
+## Previous Session — Git Manager Phase 7: Remote: Fetch, Pull, Push, Ahead/Behind (ADR-0239)
 
 **Scope:** Implement remote configuration, upstream ahead/behind calculation, network sync commands (`fetch`, `pull`, `push`) with OS Keychain PAT authentication via `GIT_ASKPASS`, and `GitSyncToolbar` UI.
 

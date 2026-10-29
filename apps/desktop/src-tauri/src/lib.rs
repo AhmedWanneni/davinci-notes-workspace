@@ -42,6 +42,9 @@ mod git_manager_branches;
 mod git_manager_stash;
 mod git_manager_remote;
 mod git_manager_sync;
+mod git_manager_conflicts;
+#[cfg(test)]
+mod git_manager_conflict_tests;
 mod git_remote;
 #[cfg(target_os = "macos")]
 mod macos_panel;
@@ -178,6 +181,10 @@ pub fn run() {
       git_manager_sync::git_manager_fetch,
       git_manager_sync::git_manager_pull,
       git_manager_sync::git_manager_push,
+      git_manager_conflicts::git_manager_get_conflict_details,
+      git_manager_conflicts::git_manager_resolve_conflict,
+      git_manager_conflicts::git_manager_abort_merge,
+      git_manager_conflicts::git_manager_continue_merge,
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,

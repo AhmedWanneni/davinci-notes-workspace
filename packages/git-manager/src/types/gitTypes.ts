@@ -100,3 +100,14 @@ export interface GitSyncResult {
   message: string;
 }
 
+export interface GitConflictFileVersions {
+  path: string;
+  base: string | null;
+  ours: string | null;
+  theirs: string | null;
+  current: string;
+  isBinary: boolean;
+  oursExists: boolean;
+  theirsExists: boolean;
+}
+

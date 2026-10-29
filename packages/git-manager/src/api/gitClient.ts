@@ -8,6 +8,7 @@ import type {
   GitRemoteInfo,
   GitTrackingStatus,
   GitSyncResult,
+  GitConflictFileVersions,
 } from "../types/gitTypes";
 
 export async function fetchGitRepoInfo(): Promise<GitRepoInfo> {
@@ -116,6 +117,22 @@ export async function pushGitRemote(
   force?: boolean,
 ): Promise<GitSyncResult> {
   return invoke<GitSyncResult>("git_manager_push", { remote, branch, force });
+}
+
+export async function getGitConflictDetails(path: string): Promise<GitConflictFileVersions> {
+  return invoke<GitConflictFileVersions>("git_manager_get_conflict_details", { path });
+}
+
+export async function resolveGitConflict(path: string, content: string): Promise<void> {
+  return invoke<void>("git_manager_resolve_conflict", { path, content });
+}
+
+export async function abortGitMerge(): Promise<void> {
+  return invoke<void>("git_manager_abort_merge");
+}
+
+export async function continueGitMerge(): Promise<string> {
+  return invoke<string>("git_manager_continue_merge");
 }
 
 export async function listenToGitChanges(callback: () => void): Promise<() => void> {

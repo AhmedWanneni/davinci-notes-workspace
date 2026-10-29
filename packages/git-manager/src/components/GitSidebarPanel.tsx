@@ -11,6 +11,8 @@ import { GitHistoryGraph } from "./GitHistoryGraph";
 import { GitCommitDetailSheet } from "./GitCommitDetailSheet";
 import { GitBranchSwitcher } from "./GitBranchSwitcher";
 import { GitSyncToolbar } from "./GitSyncToolbar";
+import { GitConflictResolver } from "./GitConflictResolver";
+import { useGitConflictStore } from "../store/useGitConflictStore";
 import styles from "./GitSidebarPanel.module.scss";
 
 export function GitSidebarPanel() {
@@ -34,6 +36,9 @@ export function GitSidebarPanel() {
     openCommitDetail,
     closeCommitDetail,
   } = useGitManagerStore();
+
+  const activeConflict = useGitConflictStore((s) => s.activeConflict);
+  const openConflict = useGitConflictStore((s) => s.openConflict);
 
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -96,6 +101,14 @@ export function GitSidebarPanel() {
     return (
       <div className={styles["git-sidebar-panel"]} data-testid="git-sidebar-panel">
         <GitDiffViewer diff={activeDiff} onClose={closeDiff} />
+      </div>
+    );
+  }
+
+  if (activeConflict) {
+    return (
+      <div className={styles["git-sidebar-panel"]} data-testid="git-sidebar-panel">
+        <GitConflictResolver />
       </div>
     );
   }
@@ -171,7 +184,13 @@ export function GitSidebarPanel() {
               staged={staged}
               unstaged={unstaged}
               conflicts={conflicts}
-              onSelectFile={(change) => void openDiff(change.path, change.staged)}
+              onSelectFile={(change) => {
+                if (change.statusCode === "U") {
+                  void openConflict(change.path);
+                } else {
+                  void openDiff(change.path, change.staged);
+                }
+              }}
             />
           </>
         )}
