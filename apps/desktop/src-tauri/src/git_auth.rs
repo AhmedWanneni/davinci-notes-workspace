@@ -18,6 +18,10 @@ fn entry(vault_root: &std::path::Path, remote_url: &str) -> Result<Entry, String
     Entry::new(SERVICE, &account(vault_root, remote_url)).map_err(|error| error.to_string())
 }
 
+pub(crate) fn get_pat_for_remote(vault_root: &std::path::Path, remote_url: &str) -> Option<String> {
+    entry(vault_root, remote_url).ok()?.get_password().ok()
+}
+
 #[tauri::command]
 pub fn save_git_pat(window: WebviewWindow, app: AppHandle, remote_url: String, token: String) -> Result<(), String> {
     reject_plugin_runner(&window)?;

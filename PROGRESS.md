@@ -4,7 +4,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 6: Branches: List, Switch, Create, Delete & Dirty Tree Guard (ADR-0238)
+## Last Session — Git Manager Phase 7: Remote: Fetch, Pull, Push, Ahead/Behind (ADR-0239)
+
+**Scope:** Implement remote configuration, upstream ahead/behind calculation, network sync commands (`fetch`, `pull`, `push`) with OS Keychain PAT authentication via `GIT_ASKPASS`, and `GitSyncToolbar` UI.
+
+**What was done:**
+1. **Rust Remote & Sync Backends (`git_manager_remote.rs` & `git_manager_sync.rs`)**:
+   - `git_manager_remote.rs` (186 lines): `git_manager_get_remotes`, `git_manager_set_remote`, `git_manager_get_tracking_status` using `git rev-list --left-right --count HEAD...@{upstream}`.
+   - `git_manager_sync.rs` (199 lines): `git_manager_fetch`, `git_manager_pull`, `git_manager_push` with `with_git_lock`.
+   - Credentials: reuses OS Keychain entry (`com.davinci.notes.git-remote`) and injects PAT via transient `GIT_ASKPASS` script with `GIT_TERMINAL_PROMPT=0`.
+   - All 12 Rust unit tests passing, including round-trip `test_push_fetch_pull_against_local_bare_remote`.
+2. **Sync Store & UI (`@app/git-manager`)**:
+   - Built `useGitSyncStore.ts` (90 lines) isolating sync actions, tracking state, and diagnostic notifications.
+   - Built `GitSyncToolbar.tsx` (170 lines) and `GitSyncToolbar.module.scss` (181 lines) with upstream tracking chips, ahead/behind counters (`↑ahead ↓behind`), and one-click Fetch/Pull/Push buttons.
+   - Mounted `GitSyncToolbar` in `GitSidebarPanel.tsx`.
+   - All 42 Vitest tests passing in `@app/git-manager` across 12 test suites.
+3. **Architecture Decision Record**:
+   - Authored [ADR-0239](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0239-git-manager-remote-sync-and-keychain-credentials.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 8: Conflict resolution (3-pane ours/theirs/result, abort/continue)**.
+- Phase 9: Polish, perf pass, stabilization sweep, ADR/docs close-out.
+
+---
+
+## Previous Session — Git Manager Phase 6: Branches: List, Switch, Create, Delete & Dirty Tree Guard (ADR-0238)
 
 **Scope:** Implement tab-delimited branch querying with upstream tracking and ahead/behind status, safe branch switching with dirty-working-tree protection, branch creation, branch deletion with confirmation, stash push/pop support, and compact Radix branch switcher UI.
 

@@ -7,8 +7,10 @@ export { GitDiffViewer } from "./src/components/GitDiffViewer";
 export { GitHistoryGraph } from "./src/components/GitHistoryGraph";
 export { GitCommitDetailSheet } from "./src/components/GitCommitDetailSheet";
 export { GitBranchSwitcher } from "./src/components/GitBranchSwitcher";
+export { GitSyncToolbar } from "./src/components/GitSyncToolbar";
 export { calculateGraphLanes } from "./src/graph/calculateGraphLanes";
 export { useGitManagerStore } from "./src/store/useGitManagerStore";
+export { useGitSyncStore } from "./src/store/useGitSyncStore";
 export {
   fetchGitRepoInfo,
   initGitRepository,
@@ -27,12 +29,21 @@ export {
   deleteGitBranch,
   stashGitChanges,
   popGitStash,
+  getGitRemotes,
+  setGitRemote,
+  getGitTrackingStatus,
+  fetchGitRemote,
+  pullGitRemote,
+  pushGitRemote,
   listenToGitChanges,
 } from "./src/api/gitClient";
 export { parsePorcelainV2 } from "./src/parsers/parsePorcelainV2";
 export type {
   GitRepoInfo,
   GitBranchInfo,
+  GitRemoteInfo,
+  GitTrackingStatus,
+  GitSyncResult,
   GitFileChange,
   GitFileDiff,
   GitFileStatusCode,

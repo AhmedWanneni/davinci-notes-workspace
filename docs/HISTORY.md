@@ -2,6 +2,23 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Phase 7 — Remote Sync, Ahead/Behind & Keychain Credentials (ADR-0239)
+
+- **Remote Management & Synchronized Operations**:
+  - Implemented `apps/desktop/src-tauri/src/git_manager_remote.rs` (186 lines) and `apps/desktop/src-tauri/src/git_manager_sync.rs` (199 lines).
+  - Implemented `git_manager_get_remotes`, `git_manager_set_remote`, and `git_manager_get_tracking_status` using `git rev-list --left-right --count HEAD...@{upstream}`.
+  - Implemented `git_manager_fetch`, `git_manager_pull`, and `git_manager_push` wrapped in `with_git_lock`.
+  - Credentials: reuses OS Keychain storage (`com.davinci.notes.git-remote`) via transient `GIT_ASKPASS` scripts with `GIT_TERMINAL_PROMPT=0`.
+- **Sync Store & UI**:
+  - Authored `useGitSyncStore.ts` (90 lines) and `GitSyncToolbar.tsx` (170 lines).
+  - Integrated upstream branch indicators, ahead/behind counters (`↑ahead ↓behind`), and Fetch/Pull/Push buttons with spinning feedback.
+  - Mounted toolbar in `GitSidebarPanel.tsx`.
+- **Testing & Verification**:
+  - All 12 Rust tests pass (`test_push_fetch_pull_against_local_bare_remote`).
+  - All 42 Vitest tests pass in `@app/git-manager` across 12 suites.
+- **Architecture Decision Record**:
+  - Authored [ADR-0239](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0239-git-manager-remote-sync-and-keychain-credentials.md) and indexed in `DECISIONS.md`.
+
 ### 2026-10-29: Git Manager Phase 6 — Branches: List, Switch, Create, Delete & Dirty Tree Guard (ADR-0238)
 
 - **Branch Management & Stash Engine**:

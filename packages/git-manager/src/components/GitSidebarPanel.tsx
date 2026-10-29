@@ -10,6 +10,7 @@ import { GitDiffViewer } from "./GitDiffViewer";
 import { GitHistoryGraph } from "./GitHistoryGraph";
 import { GitCommitDetailSheet } from "./GitCommitDetailSheet";
 import { GitBranchSwitcher } from "./GitBranchSwitcher";
+import { GitSyncToolbar } from "./GitSyncToolbar";
 import styles from "./GitSidebarPanel.module.scss";
 
 export function GitSidebarPanel() {
@@ -124,6 +125,8 @@ export function GitSidebarPanel() {
           </Button>
         </div>
       </header>
+
+      <GitSyncToolbar />
 
       <div className={styles["git-sidebar-panel__view-tabs"]}>
         <Button

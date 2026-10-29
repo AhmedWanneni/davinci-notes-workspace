@@ -82,3 +82,21 @@ export interface GitStatusSummary {
   conflicts: GitFileChange[];
   untracked: GitFileChange[];
 }
+
+export interface GitRemoteInfo {
+  name: string;
+  fetchUrl: string;
+  pushUrl: string;
+}
+
+export interface GitTrackingStatus {
+  ahead: number;
+  behind: number;
+  upstream: string | null;
+}
+
+export interface GitSyncResult {
+  success: boolean;
+  message: string;
+}
+

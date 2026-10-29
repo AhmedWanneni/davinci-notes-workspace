@@ -5,6 +5,9 @@ import type {
   GitCommitEntry,
   GitFileDiff,
   GitRepoInfo,
+  GitRemoteInfo,
+  GitTrackingStatus,
+  GitSyncResult,
 } from "../types/gitTypes";
 
 export async function fetchGitRepoInfo(): Promise<GitRepoInfo> {
@@ -85,6 +88,34 @@ export async function stashGitChanges(message?: string): Promise<void> {
 
 export async function popGitStash(): Promise<void> {
   return invoke<void>("git_manager_stash_pop");
+}
+
+export async function getGitRemotes(): Promise<GitRemoteInfo[]> {
+  return invoke<GitRemoteInfo[]>("git_manager_get_remotes");
+}
+
+export async function setGitRemote(name: string, url: string): Promise<void> {
+  return invoke<void>("git_manager_set_remote", { name, url });
+}
+
+export async function getGitTrackingStatus(): Promise<GitTrackingStatus> {
+  return invoke<GitTrackingStatus>("git_manager_get_tracking_status");
+}
+
+export async function fetchGitRemote(remote?: string): Promise<GitSyncResult> {
+  return invoke<GitSyncResult>("git_manager_fetch", { remote });
+}
+
+export async function pullGitRemote(remote?: string): Promise<GitSyncResult> {
+  return invoke<GitSyncResult>("git_manager_pull", { remote });
+}
+
+export async function pushGitRemote(
+  remote?: string,
+  branch?: string,
+  force?: boolean,
+): Promise<GitSyncResult> {
+  return invoke<GitSyncResult>("git_manager_push", { remote, branch, force });
 }
 
 export async function listenToGitChanges(callback: () => void): Promise<() => void> {
