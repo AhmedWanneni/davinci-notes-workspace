@@ -1,21 +1,22 @@
 import React, { useState } from "react";
-import {
-  Sparkle,
-  CheckSquare,
-  Link as LinkIcon,
-  PaperPlaneRight,
-} from "@phosphor-icons/react";
+import { Sparkle, CheckSquare, PaperPlaneRight } from "@phosphor-icons/react";
 import { ListeningHeader } from "./ListeningHeader";
 import { TranscriptFeed } from "./TranscriptFeed";
+import { SuggestedLinksPanel } from "./SuggestedLinksPanel";
 import { useListeningSession } from "./useListeningSession";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import styles from "./ListeningView.module.scss";
 
 export interface ListeningViewProps {
   initialTitle?: string;
-  onSaveToVault?: (title: string, markdown: string) => Promise<void>;
+  onNavigateToNote?: (path: string) => void;
 }
 
-export function ListeningView({ initialTitle }: ListeningViewProps) {
+export function ListeningView({
+  initialTitle,
+  onNavigateToNote,
+}: ListeningViewProps) {
+  const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const {
     status,
     title,
@@ -23,16 +24,27 @@ export function ListeningView({ initialTitle }: ListeningViewProps) {
     micLevel,
     systemLevel,
     segments,
+    suggestedLinks,
+    actionItems,
     setTitle,
     startSession,
     pauseSession,
     resumeSession,
     stopSession,
     discardSession,
+    acceptLink,
+    dismissLink,
   } = useListeningSession(initialTitle);
 
   const [chatPrompt, setChatPrompt] = useState("");
   const isRecording = status === "recording";
+
+  const handleStopAndSave = async () => {
+    const savedPath = await stopSession(allNotePaths);
+    if (savedPath && onNavigateToNote) {
+      onNavigateToNote(savedPath);
+    }
+  };
 
   return (
     <section
@@ -49,7 +61,7 @@ export function ListeningView({ initialTitle }: ListeningViewProps) {
         onStart={() => void startSession()}
         onPause={() => void pauseSession()}
         onResume={() => void resumeSession()}
-        onStop={() => void stopSession()}
+        onStop={() => void handleStopAndSave()}
         onDiscard={() => void discardSession()}
       />
 
@@ -82,26 +94,36 @@ export function ListeningView({ initialTitle }: ListeningViewProps) {
             <div className={styles["notes-card"]}>
               <h3 className={styles["notes-card__title"]}>
                 <CheckSquare size={14} weight="bold" />
-                Action Items
+                Action Items ({actionItems.length})
               </h3>
-              <p className={styles["notes-card__empty"]}>
-                {isRecording
-                  ? "Action items will be detected automatically..."
-                  : "No action items identified yet."}
-              </p>
+              {actionItems.length === 0 ? (
+                <p className={styles["notes-card__empty"]}>
+                  {isRecording
+                    ? "Action items will be detected automatically..."
+                    : "No action items identified yet."}
+                </p>
+              ) : (
+                <ul
+                  className={styles["suggested-links-list"]}
+                  aria-label="Action items"
+                >
+                  {actionItems.map((item, idx) => (
+                    <li key={idx} className={styles["suggested-link-item"]}>
+                      <span className={styles["suggested-link-item__body"]}>
+                        {item}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
-            <div className={styles["notes-card"]}>
-              <h3 className={styles["notes-card__title"]}>
-                <LinkIcon size={14} weight="bold" />
-                Suggested Vault Links
-              </h3>
-              <p className={styles["notes-card__empty"]}>
-                {isRecording
-                  ? "Searching vault notes matching meeting context..."
-                  : "Related notes will appear here as you discuss topics."}
-              </p>
-            </div>
+            <SuggestedLinksPanel
+              links={suggestedLinks}
+              isRecording={isRecording}
+              onAccept={acceptLink}
+              onDismiss={dismissLink}
+            />
           </div>
 
           <footer className={styles["listening-view__chat-footer"]}>

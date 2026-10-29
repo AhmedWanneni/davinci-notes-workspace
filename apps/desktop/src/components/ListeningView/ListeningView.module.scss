@@ -28,7 +28,7 @@
 }
 
 .listening-header__title-input {
-  font-size: var(--font-size-lg, 16px);
+  font-size: var(--type-scale-base);
   font-weight: 600;
   color: var(--color-text-normal);
   background: transparent;
@@ -61,7 +61,7 @@
   gap: var(--space-1);
   padding: 2px 8px;
   font-size: 11px;
-  font-family: var(--font-monospace, monospace);
+  font-family: var(--font-editor);
   font-weight: 600;
   text-transform: uppercase;
   border: var(--border-width-thin) solid var(--color-border-normal);
@@ -171,7 +171,7 @@
 
 .audio-meter__label {
   font-size: 9px;
-  font-family: var(--font-monospace, monospace);
+  font-family: var(--font-editor);
   color: var(--color-text-muted);
   width: 18px;
 }
@@ -311,7 +311,7 @@
 
 .transcript-bubble__time {
   color: var(--color-text-faint);
-  font-family: var(--font-monospace, monospace);
+  font-family: var(--font-editor);
 }
 
 .transcript-bubble__streaming-dot {
@@ -413,4 +413,74 @@
     opacity: 0.4;
     cursor: not-allowed;
   }
+}
+
+.suggested-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.suggested-link-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg-primary);
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  border-radius: var(--border-radius-sm);
+  gap: var(--space-2);
+}
+
+.suggested-link-item__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.suggested-link-item__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-accent);
+}
+
+.suggested-link-item__reason {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.suggested-link-item__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.action-btn--accept,
+.action-btn--dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--border-radius-sm);
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-normal);
+  cursor: pointer;
+}
+
+.action-btn--accept:hover {
+  background-color: var(--color-bg-status-success);
+  border-color: var(--color-border-status-success);
+  color: var(--color-text-success);
+}
+
+.action-btn--dismiss:hover {
+  background-color: var(--color-bg-status-error);
+  border-color: var(--color-border-status-error);
+  color: var(--color-text-error);
 }

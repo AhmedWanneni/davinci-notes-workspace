@@ -8,7 +8,11 @@ import {
 } from "../../adapters/transcriptionClient";
 import type { AudioLevelPayload } from "../../adapters/transcriptionClient";
 import type { ListeningStatus } from "./listeningConstants";
-import type { TranscriptSegmentItem } from "./listeningTypes";
+import type {
+  TranscriptSegmentItem,
+  SuggestedLinkItem,
+} from "./listeningTypes";
+import { saveMeetingNoteToVault } from "../../vault/meetingNoteActions";
 
 export interface UseListeningSessionReturn {
   status: ListeningStatus;
@@ -17,13 +21,22 @@ export interface UseListeningSessionReturn {
   micLevel: number;
   systemLevel: number;
   segments: TranscriptSegmentItem[];
+  suggestedLinks: SuggestedLinkItem[];
+  actionItems: string[];
+  summary: string;
+  createdNotePath: string | null;
   setTitle: (title: string) => void;
   startSession: () => Promise<void>;
   pauseSession: () => Promise<void>;
   resumeSession: () => Promise<void>;
-  stopSession: () => Promise<void>;
+  stopSession: (existingPaths?: string[]) => Promise<string | null>;
   discardSession: () => Promise<void>;
   addSegment: (segment: Omit<TranscriptSegmentItem, "id">) => void;
+  acceptLink: (id: string) => void;
+  dismissLink: (id: string) => void;
+  setSuggestedLinks: React.Dispatch<React.SetStateAction<SuggestedLinkItem[]>>;
+  setActionItems: React.Dispatch<React.SetStateAction<string[]>>;
+  setSummary: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export function useListeningSession(
@@ -35,28 +48,30 @@ export function useListeningSession(
       initialTitle ||
       `Meeting — ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`,
   );
+  const [startedAt, setStartedAt] = useState<number | null>(null);
   const [durationMs, setDurationMs] = useState(0);
   const [micLevel, setMicLevel] = useState(0);
   const [systemLevel, setSystemLevel] = useState(0);
   const [segments, setSegments] = useState<TranscriptSegmentItem[]>([]);
+  const [suggestedLinks, setSuggestedLinks] = useState<SuggestedLinkItem[]>([]);
+  const [actionItems, setActionItems] = useState<string[]>([]);
+  const [summary, setSummary] = useState<string>("");
+  const [createdNotePath, setCreatedNotePath] = useState<string | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (status === "recording") {
-      timerRef.current = setInterval(() => {
-        setDurationMs((prev) => prev + 1000);
-      }, 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-        timerRef.current = null;
-      }
+      timerRef.current = setInterval(
+        () => setDurationMs((p) => p + 1000),
+        1000,
+      );
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [status]);
 
@@ -69,16 +84,15 @@ export function useListeningSession(
           setSystemLevel(event.payload.system_rms);
         }
       })
-        .then((dispose) => {
-          unlisten = dispose;
+        .then((fn) => {
+          unlisten = fn;
         })
         .catch(() => {
-          // Not running in Tauri or mock environment
+          // Not in Tauri or mock
         });
     } catch {
-      // Safe fallback
+      // Ignored
     }
-
     return () => {
       if (unlisten) unlisten();
     };
@@ -92,12 +106,28 @@ export function useListeningSession(
     setSegments((prev) => [...prev, newSeg]);
   }, []);
 
+  const acceptLink = useCallback((id: string) => {
+    setSuggestedLinks((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, accepted: true } : l)),
+    );
+  }, []);
+
+  const dismissLink = useCallback((id: string) => {
+    setSuggestedLinks((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, accepted: false } : l)),
+    );
+  }, []);
+
   const startSession = useCallback(async () => {
     try {
       await startMeetingRecording();
       setStatus("recording");
+      setStartedAt(Date.now());
       setDurationMs(0);
       setSegments([]);
+      setSuggestedLinks([]);
+      setActionItems([]);
+      setCreatedNotePath(null);
     } catch (err) {
       console.error("Failed to start recording:", err);
       setStatus("error");
@@ -122,16 +152,42 @@ export function useListeningSession(
     }
   }, []);
 
-  const stopSession = useCallback(async () => {
-    try {
-      setStatus("processing");
-      await stopMeetingRecording();
-      setStatus("idle");
-    } catch (err) {
-      console.error("Failed to stop recording:", err);
-      setStatus("idle");
-    }
-  }, []);
+  const stopSession = useCallback(
+    async (existingPaths: string[] = []): Promise<string | null> => {
+      try {
+        setStatus("processing");
+        await stopMeetingRecording();
+        const savedPath = await saveMeetingNoteToVault(
+          {
+            title,
+            startedAt: startedAt ?? Date.now(),
+            durationMs,
+            segments,
+            suggestedLinks,
+            actionItems,
+            summary,
+          },
+          existingPaths,
+        );
+        setCreatedNotePath(savedPath);
+        setStatus("idle");
+        return savedPath;
+      } catch (err) {
+        console.error("Failed to stop and save note:", err);
+        setStatus("idle");
+        return null;
+      }
+    },
+    [
+      title,
+      startedAt,
+      durationMs,
+      segments,
+      suggestedLinks,
+      actionItems,
+      summary,
+    ],
+  );
 
   const discardSession = useCallback(async () => {
     try {
@@ -139,6 +195,7 @@ export function useListeningSession(
       setStatus("idle");
       setDurationMs(0);
       setSegments([]);
+      setSuggestedLinks([]);
     } catch (err) {
       console.error("Failed to discard recording:", err);
       setStatus("idle");
@@ -152,6 +209,10 @@ export function useListeningSession(
     micLevel,
     systemLevel,
     segments,
+    suggestedLinks,
+    actionItems,
+    summary,
+    createdNotePath,
     setTitle,
     startSession,
     pauseSession,
@@ -159,5 +220,10 @@ export function useListeningSession(
     stopSession,
     discardSession,
     addSegment,
+    acceptLink,
+    dismissLink,
+    setSuggestedLinks,
+    setActionItems,
+    setSummary,
   };
 }

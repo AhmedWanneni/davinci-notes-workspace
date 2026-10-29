@@ -6,6 +6,7 @@ import { ListeningView } from "./ListeningView";
 import { AudioMeter } from "./AudioMeter";
 import { TranscriptBubble } from "./TranscriptBubble";
 import { TranscriptFeed } from "./TranscriptFeed";
+import { SuggestedLinksPanel } from "./SuggestedLinksPanel";
 import type { TranscriptSegmentItem } from "./listeningTypes";
 
 vi.mock("@tauri-apps/api/core", () => ({
@@ -25,6 +26,12 @@ vi.mock("../../adapters/transcriptionClient", () => ({
     duration_secs: 1.0,
     wav_path: "/tmp/meeting.wav",
   }),
+}));
+
+vi.mock("../../vault/meetingNoteActions", () => ({
+  saveMeetingNoteToVault: vi
+    .fn()
+    .mockResolvedValue("Meetings/2026-10-29 - Test Meeting.md"),
 }));
 
 describe("ListeningView Components", () => {
@@ -115,6 +122,39 @@ describe("ListeningView Components", () => {
       const input = screen.getByLabelText("Meeting Title") as HTMLInputElement;
       fireEvent.change(input, { target: { value: "Updated Planning" } });
       expect(input.value).toBe("Updated Planning");
+    });
+  });
+
+  describe("SuggestedLinksPanel", () => {
+    it("renders suggested links and handles accept and dismiss", () => {
+      const onAccept = vi.fn();
+      const onDismiss = vi.fn();
+      const sampleLink = {
+        id: "l-1",
+        title: "Product Specs",
+        path: "Specs.md",
+        reason: "Matches keyword",
+      };
+
+      render(
+        <SuggestedLinksPanel
+          links={[sampleLink]}
+          isRecording={true}
+          onAccept={onAccept}
+          onDismiss={onDismiss}
+        />,
+      );
+
+      expect(screen.getByText("[[Product Specs]]")).toBeDefined();
+      expect(screen.getByText("Matches keyword")).toBeDefined();
+
+      fireEvent.click(screen.getByLabelText("Accept link to Product Specs"));
+      expect(onAccept).toHaveBeenCalledWith("l-1");
+
+      fireEvent.click(
+        screen.getByLabelText("Dismiss suggestion for Product Specs"),
+      );
+      expect(onDismiss).toHaveBeenCalledWith("l-1");
     });
   });
 });
