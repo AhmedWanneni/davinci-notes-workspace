@@ -387,3 +387,15 @@ the list.
 | [0221](adr/0221-destructive-action-ui-confirmation-gate.md) | Destructive Action UI Confirmation Gate & Action Constraints in `@app/ai-agent` | Accepted |
 | [0222](adr/0222-scoped-intent-prompts-and-tool-gating.md) | Scoped Intent Prompts and Tool Gating for Weak Models in `@app/ai-agent` | Accepted |
 
+## Meeting Recorder & AI Listening
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0226](adr/0226-native-desktop-dual-channel-audio-loopback-architecture.md) | Native Desktop Dual-Channel Audio Loopback Architecture with `cpal` | Accepted |
+| [0227](adr/0227-lazy-loaded-transcription-pipeline-and-sidecar-contract.md) | Lazy-Loaded Transcription Pipeline and Sidecar Contract (Cloud + Local Whisper) | Accepted |
+| [0228](adr/0228-dedicated-ai-listening-workspace-page.md) | Dedicated AI Listening Workspace Page (`davinci://listening`) | Accepted |
+| [0229](adr/0229-non-destructive-vault-grounding-and-wikilink-suggestion-engine.md) | Non-Destructive Vault Grounding & Wikilink Suggestion Engine with SQLite FTS5 | Accepted |
+| [0230](adr/0230-meeting-note-markdown-schema-and-canonical-vault-persistence.md) | Meeting Note Markdown Schema & Canonical Vault Persistence | Accepted |
+| [0231](adr/0231-calendar-event-proximity-detection-and-note-taking-prompt.md) | Calendar Event Proximity Detection & Note-Taking Prompt | Accepted |
+
+
