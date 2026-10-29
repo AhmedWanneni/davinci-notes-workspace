@@ -6,7 +6,14 @@ This document is the authoritative guide for cutting releases of DaVinci Notes /
 
 ## 1. Quick Release Cheatsheet
 
-Cutting a standard release takes one command from maintainer terminal:
+### Option A: Conversational AI Agent Release (Claude, Cursor, Copilot, Antigravity)
+Maintainers can prompt any connected AI coding agent:
+- `"create a release"` (or `"create a patch/minor/major release"`)
+- `"ship a beta release"`
+The agent triggers the universal release skill (`.claude/skills/create-release/SKILL.md`), runs automated preflight checks, formats categorized release notes, pauses at Human Gate 1 for your version approval, tags/pushes, watches the CI matrix, and halts at Human Gate 2 for your final publish confirmation.
+
+### Option B: Terminal Release Driver
+Alternatively, cut a release directly via CLI:
 
 ```bash
 # 1. Ensure working directory is clean on main branch
