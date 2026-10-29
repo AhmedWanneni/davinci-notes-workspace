@@ -8,6 +8,15 @@ export { MeetingPromptToast } from "./MeetingPromptToast";
 export type { MeetingPromptToastProps } from "./MeetingPromptToast";
 export { useListeningSession } from "./useListeningSession";
 export {
+  parseVttTranscript,
+  parseGoogleMeetTextTranscript,
+} from "./meetTranscriptImporter";
+export {
+  saveActiveMeetingRecovery,
+  loadActiveMeetingRecovery,
+  clearActiveMeetingRecovery,
+} from "./meetingRecovery";
+export {
   LISTENING_TAB_ID,
   DEFAULT_MEETINGS_FOLDER,
 } from "./listeningConstants";
