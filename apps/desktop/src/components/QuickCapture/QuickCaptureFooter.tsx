@@ -1,12 +1,14 @@
+import { Microphone } from "@phosphor-icons/react";
 import type { QuickCaptureMode } from "./QuickCaptureHeader";
 import { QuickCaptureHints } from "./QuickCaptureHints";
-import styles from "./QuickCapture.module.scss";
+import styles from "./QuickCaptureFooter.module.scss";
 
 export interface QuickCaptureFooterProps {
   mode: QuickCaptureMode;
   canSave: boolean;
   onSave: () => void;
   onDismiss: () => void;
+  onRecord?: () => void;
 }
 
 export function QuickCaptureFooter({
@@ -14,21 +16,35 @@ export function QuickCaptureFooter({
   canSave,
   onSave,
   onDismiss,
+  onRecord,
 }: QuickCaptureFooterProps) {
   return (
     <div className={styles["quick-capture-footer"]}>
       <QuickCaptureHints mode={mode} />
       <div className={styles["quick-capture-actions"]}>
         {mode === "capture" && (
-          <button
-            type="button"
-            className={styles["quick-capture-save-btn"]}
-            onClick={onSave}
-            disabled={!canSave}
-            aria-label="Save note"
-          >
-            Save note
-          </button>
+          <>
+            {onRecord && (
+              <button
+                type="button"
+                className={styles["quick-capture-record-btn"]}
+                onClick={onRecord}
+                aria-label="Record voice note"
+              >
+                <Microphone size={14} weight="bold" />
+                <span>Record</span>
+              </button>
+            )}
+            <button
+              type="button"
+              className={styles["quick-capture-save-btn"]}
+              onClick={onSave}
+              disabled={!canSave}
+              aria-label="Save note"
+            >
+              Save note
+            </button>
+          </>
         )}
         <button
           type="button"

@@ -7,7 +7,13 @@ import {
   saveRecordedAudioToVault,
 } from "../../adapters/transcriptionClient";
 
-export type RecordState = "idle" | "recording" | "paused" | "recorded" | "saving";
+export type RecordState =
+  "idle" | "recording" | "paused" | "recorded" | "saving";
+
+export interface UseQuickRecordOptions {
+  initialNotes?: string;
+  autoStart?: boolean;
+}
 
 export function formatTimer(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -23,19 +29,30 @@ export function getDefaultRecordTitle(): string {
   return `Voice Note — ${d} ${h}-${m}`;
 }
 
-export function useQuickRecord() {
+export function useQuickRecord(options: UseQuickRecordOptions = {}) {
+  const { initialNotes = "", autoStart = false } = options;
   const [status, setStatus] = useState<RecordState>("idle");
   const [elapsed, setElapsed] = useState(0);
   const [tempWavPath, setTempWavPath] = useState<string | null>(null);
   const [title, setTitle] = useState(getDefaultRecordTitle);
-  const [noteText, setNoteText] = useState("");
+  const [noteText, setNoteText] = useState(initialNotes);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasAutoStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (initialNotes && !noteText) {
+      setNoteText(initialNotes);
+    }
+  }, [initialNotes]);
 
   useEffect(() => {
     if (status === "recording") {
-      timerRef.current = setInterval(() => setElapsed((prev) => prev + 1), 1000);
+      timerRef.current = setInterval(
+        () => setElapsed((prev) => prev + 1),
+        1000,
+      );
     } else if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -52,9 +69,18 @@ export function useQuickRecord() {
       setStatus("recording");
       setElapsed(0);
     } catch {
-      setErrorMessage("Could not start audio recording. Check microphone permissions.");
+      setErrorMessage(
+        "Could not start audio recording. Check microphone permissions.",
+      );
     }
   };
+
+  useEffect(() => {
+    if (autoStart && !hasAutoStartedRef.current && status === "idle") {
+      hasAutoStartedRef.current = true;
+      void handleStart();
+    }
+  }, [autoStart, status]);
 
   const handlePause = async () => {
     try {
@@ -93,7 +119,10 @@ export function useQuickRecord() {
     setTempWavPath(null);
   };
 
-  const buildNoteContent = (audioFileName: string, cleanTitle: string): string => {
+  const buildNoteContent = (
+    audioTarget: string,
+    cleanTitle: string,
+  ): string => {
     const lines = [
       "---",
       `title: "${cleanTitle.replace(/"/g, '\\"')}"`,
@@ -106,7 +135,7 @@ export function useQuickRecord() {
       "",
       `# ${cleanTitle}`,
       "",
-      `![[${audioFileName}]]`,
+      `![[${audioTarget}]]`,
       "",
       noteText.trim() ? `${noteText.trim()}\n` : "",
     ];

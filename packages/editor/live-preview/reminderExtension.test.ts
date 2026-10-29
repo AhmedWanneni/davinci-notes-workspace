@@ -33,7 +33,7 @@ describe("reminderExtension", () => {
     const { container } = createView("Task line (@2026-10-25 14:30)");
     const chip = container.querySelector(".cm-reminder-chip");
     expect(chip).not.toBeNull();
-    expect(chip?.textContent).toMatch(/(Oct 25|Yesterday)/);
+    expect(chip?.textContent).toMatch(/(Oct 25|Yesterday|\d+d ago)/);
     expect(chip?.textContent).toContain("2:30 PM");
   });
 

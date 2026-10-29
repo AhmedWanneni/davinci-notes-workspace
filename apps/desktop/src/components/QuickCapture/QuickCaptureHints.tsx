@@ -1,5 +1,5 @@
 import type { QuickCaptureMode } from "./QuickCaptureHeader";
-import styles from "./QuickCapture.module.scss";
+import styles from "./QuickCaptureHints.module.scss";
 
 export interface QuickCaptureHintsProps {
   mode: QuickCaptureMode;
@@ -14,6 +14,9 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
             <kbd className={styles["quick-capture-kbd"]}>⌘S</kbd> Save
           </span>
           <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>⌘R</kbd> Record
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>Tab</kbd> Options
           </span>
           <span className={styles["quick-capture-hint-item"]}>
@@ -26,7 +29,8 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
       ) : mode === "reminder" ? (
         <>
           <span className={styles["quick-capture-hint-item"]}>
-            <kbd className={styles["quick-capture-kbd"]}>⌘S/⏎</kbd> Save reminder
+            <kbd className={styles["quick-capture-kbd"]}>⌘S/⏎</kbd> Save
+            reminder
           </span>
           <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
@@ -35,7 +39,8 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
       ) : mode === "record" ? (
         <>
           <span className={styles["quick-capture-hint-item"]}>
-            <kbd className={styles["quick-capture-kbd"]}>Space</kbd> Record/Pause
+            <kbd className={styles["quick-capture-kbd"]}>Space</kbd>{" "}
+            Record/Pause
           </span>
           <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>⌘S</kbd> Save note

@@ -1,4 +1,4 @@
-import styles from "./QuickCapture.module.scss";
+import styles from "./QuickCaptureHeader.module.scss";
 
 export type QuickCaptureMode = "capture" | "reminder" | "record" | "search";
 
@@ -81,13 +81,9 @@ export function QuickCaptureHeader({
             {charCount} / {maxChars}
           </span>
         ) : mode === "reminder" ? (
-          <span className={styles["quick-capture-counter"]}>
-            Add reminder
-          </span>
+          <span className={styles["quick-capture-counter"]}>Add reminder</span>
         ) : mode === "record" ? (
-          <span className={styles["quick-capture-counter"]}>
-            Voice record
-          </span>
+          <span className={styles["quick-capture-counter"]}>Voice record</span>
         ) : (
           <span className={styles["quick-capture-counter"]}>
             {resultCount > 0 ? `${selectedIndex + 1} of ${resultCount}` : ""}

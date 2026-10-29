@@ -4,37 +4,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — QuickCapture Voice Recording & Editor Click-to-Play Audio Player
+## Last Session — QuickCapture Direct Record Button & Editor Audio Playback Path Resolution
 
-**Scope:** Allow recording voice notes directly from QuickCapture, and enhance editor audio widgets with interactive click-to-play playback, scrub track, and comprehensive link format support.
+**Scope:** Add a prominent Record button and `⌘R` shortcut directly in QuickCapture's primary capture view, and ensure saved audio recordings in notes resolve relative to note folders and play reliably on click.
 
 **What was done:**
-1. **QuickCapture Audio Recording**:
-   - Added `"record"` mode to `QuickCaptureHeader.tsx`, `QuickCaptureFooter.tsx`, and `QuickCaptureHints.tsx`.
-   - Authorized Tauri audio capture commands for the QuickCapture window in `apps/desktop/src-tauri/src/audio_commands.rs` using `authorize_capture_window`.
-   - Created `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.tsx`, `useQuickRecord.ts`, and `QuickCaptureRecordControls.tsx`:
-     - Live recording with status badge, elapsed time timer, pause, resume, and stop controls.
-     - Custom note title, optional notes textarea, and folder destination.
-     - Automatically persists WAV audio into vault via `saveRecordedAudioToVault` and saves note with frontmatter and `![[Voice Note.wav]]`.
-   - Created `QuickCaptureRecord.module.scss` styled with public design tokens (0 violations).
-   - Added 3 unit tests in `QuickCaptureRecord.test.tsx` verifying full recording, pause, resume, stop, and save flow.
-2. **Editor Click-to-Play Audio Widget**:
-   - Created `packages/editor/embeds/EmbedAudioWidget.ts`:
-     - Prominent Play/Pause button (`▶` / `⏸`) and card click-to-play toggle.
-     - Audio time indicator (`0:00 / 0:00`) and interactive progress track with seek-on-click scrubbing.
-     - Visual `.is-playing` state with focus border and active panel styling.
-     - Retains the "Re-run AI" button to trigger meeting/voice note transcription.
-   - Updated `packages/editor/embeds/embedAudioExtension.ts`:
-     - Expanded pattern matching to support wikilink embeds `![[...wav]]`, wikilinks `[[...wav]]`, and standard markdown audio links/embeds `!?\[...\]\(...wav\)`.
-     - Added smart path candidate resolution against `options.notePaths`.
-   - Updated `packages/editor/embeds/embedLinkResolution.ts` to recognize `.ogg`, `.aac`, `.flac`, and `.webm` as audio.
-   - Colocated unit tests added and passing in `embedAudioExtension.test.ts`.
+1. **QuickCapture Record Button & Auto-Start**:
+   - Added prominent `🎙️ Record` button directly in `QuickCaptureFooter.tsx` within default `"capture"` mode, so users can record audio immediately without tab switching.
+   - Added `⌘R` shortcut in `useCaptureKeybindings.ts` and updated hints in `QuickCaptureHints.tsx`.
+   - Wired `autoStart` and `initialNotes` in `useQuickRecord.ts` and `QuickCaptureRecord.tsx`: clicking Record carries over any typed thought into the notes area and auto-initiates audio capture.
+   - Split styling into colocated `QuickCaptureFooter.module.scss`, `QuickCaptureHeader.module.scss`, and `QuickCaptureHints.module.scss` to keep all files strictly under the 150-200 line soft cap and 250 line hard cap.
+2. **Editor Audio Embed Relative Path Resolution & Playback**:
+   - Updated `packages/editor/embeds/embedAudioExtension.ts` to accept `sourcePath?: string` and resolve audio targets without directory prefixes against the note's folder.
+   - Updated `packages/editor/Editor.tsx`, `createEditorExtensions.ts`, and `MarkdownView.tsx` to supply `sourcePath`.
+   - Updated `apps/desktop/src/components/EditorArea/useEditorMediaHandlers.ts` `handleResolveMediaUrl` to resolve relative audio targets against `activeNotePath`'s directory when un-prefixed.
+   - Updated `EmbedAudioWidget.ts` and `embedAudioTheme.ts`: removed `display: none` which disabled WebKit media engine on macOS, and added visible `▶ Play` / `⏸ Pause` label and native player fallback controls.
 3. **Verification**:
-   - 32 QuickCapture unit tests passing.
-   - All 61 `@app/editor` embeds tests passing.
-   - 137 Rust backend tests passing.
-   - 0 public design token audit violations.
-   - Production web bundle built successfully.
+   - All 33 QuickCapture unit tests passing.
+   - All 241 `@app/editor` tests passing.
+   - 0 Stylelint/public design token audit violations across all touched files.
+   - All touched files strictly $\le 250$ lines.
+   - Production web bundle built successfully (`pnpm --filter @app/desktop build:web`).
 
 ---
 
@@ -44,7 +34,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Previous Session — Meeting Audio Persistence, Editor Audio Player & Re-run Action
+## Previous Session — QuickCapture Voice Recording & Editor Click-to-Play Audio Player
 
 **Scope:** Save recorded `.wav` meeting audio directly in vault, render interactive player in CodeMirror editor (`![[meeting.wav]]`), and enable one-click AI transcription re-run.
 

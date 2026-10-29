@@ -68,7 +68,7 @@ export class EmbedAudioWidget extends WidgetType {
     const playBtn = document.createElement("button");
     playBtn.type = "button";
     playBtn.className = "cm-file-audio-embed__play-btn";
-    playBtn.textContent = "▶";
+    playBtn.textContent = "▶ Play";
     playBtn.setAttribute("aria-label", "Play audio");
 
     const progressWrapper = document.createElement("div");
@@ -93,6 +93,7 @@ export class EmbedAudioWidget extends WidgetType {
     container.appendChild(controls);
 
     const audio = document.createElement("audio");
+    audio.controls = true;
     audio.preload = "metadata";
     audio.src = this.resolveMediaUrl(this.path);
     audio.className = "cm-file-audio-embed__player";
@@ -127,25 +128,28 @@ export class EmbedAudioWidget extends WidgetType {
       e.stopPropagation();
       const rect = progressTrack.getBoundingClientRect();
       if (rect.width > 0 && audio.duration) {
-        const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        const ratio = Math.max(
+          0,
+          Math.min(1, (e.clientX - rect.left) / rect.width),
+        );
         audio.currentTime = ratio * audio.duration;
       }
     };
 
     audio.onplay = () => {
-      playBtn.textContent = "⏸";
+      playBtn.textContent = "⏸ Pause";
       playBtn.setAttribute("aria-label", "Pause audio");
       container.classList.add("is-playing");
     };
 
     audio.onpause = () => {
-      playBtn.textContent = "▶";
+      playBtn.textContent = "▶ Play";
       playBtn.setAttribute("aria-label", "Play audio");
       container.classList.remove("is-playing");
     };
 
     audio.onended = () => {
-      playBtn.textContent = "▶";
+      playBtn.textContent = "▶ Play";
       playBtn.setAttribute("aria-label", "Play audio");
       container.classList.remove("is-playing");
       progressBar.style.width = "0%";

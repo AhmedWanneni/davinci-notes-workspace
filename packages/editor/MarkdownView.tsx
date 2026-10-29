@@ -113,7 +113,12 @@ export function MarkdownView({
         imageExtension({ isReadOnly: true }),
         embedImageExtension({ notePaths, isReadOnly: true, resolveMediaUrl }),
         embedAudioTheme,
-        embedAudioExtension({ notePaths, isReadOnly: true, resolveMediaUrl }),
+        embedAudioExtension({
+          notePaths,
+          sourcePath,
+          isReadOnly: true,
+          resolveMediaUrl,
+        }),
         noteEmbedTheme,
         noteEmbedExtension({
           notePaths,

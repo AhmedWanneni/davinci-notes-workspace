@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: QuickCapture Direct Record Button & Editor Audio Playback Path Resolution
+
+- **QuickCapture Record Button & Auto-Start**:
+  - Added prominent `🎙️ Record` button directly in `QuickCaptureFooter.tsx` within default `"capture"` mode, allowing users to record audio immediately without tab switching.
+  - Added `⌘R` shortcut in `useCaptureKeybindings.ts` and updated hints in `QuickCaptureHints.tsx`.
+  - Wired `autoStart` and `initialNotes` in `useQuickRecord.ts` and `QuickCaptureRecord.tsx`: clicking Record carries over any typed thought into the notes area and auto-initiates audio capture.
+  - Split styling into colocated `QuickCaptureFooter.module.scss`, `QuickCaptureHeader.module.scss`, and `QuickCaptureHints.module.scss` to keep all files strictly under the 150-200 line soft cap and 250 line hard cap.
+- **Editor Audio Embed Relative Path Resolution & Playback**:
+  - Updated `packages/editor/embeds/embedAudioExtension.ts` to accept `sourcePath?: string` and resolve audio targets without directory prefixes against the note's folder.
+  - Updated `packages/editor/Editor.tsx`, `createEditorExtensions.ts`, and `MarkdownView.tsx` to supply `sourcePath`.
+  - Updated `apps/desktop/src/components/EditorArea/useEditorMediaHandlers.ts` `handleResolveMediaUrl` to resolve relative audio targets against `activeNotePath`'s directory when un-prefixed.
+  - Updated `EmbedAudioWidget.ts` and `embedAudioTheme.ts`: removed `display: none` which disabled WebKit media engine on macOS, and added visible `▶ Play` / `⏸ Pause` label and native player fallback controls.
+- **Testing & Verification**:
+  - All 33 QuickCapture unit tests passing.
+  - All 241 `@app/editor` tests passing.
+  - 0 Stylelint/public design token audit violations across all touched files.
+  - All touched files strictly $\le 250$ lines.
+  - Production web bundle built successfully (`pnpm --filter @app/desktop build:web`).
+
 ### 2026-10-29: QuickCapture Voice Recording & Editor Click-to-Play Audio Player
 
 - **QuickCapture Audio Recording**:

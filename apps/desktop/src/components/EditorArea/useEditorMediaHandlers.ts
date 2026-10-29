@@ -88,10 +88,23 @@ export function useEditorMediaHandlers(activeNotePath: string | null) {
       }
       const isAbsolute =
         filePath.startsWith("/") || /^[a-zA-Z]:[/\\]/.test(filePath);
+      let targetPath = filePath.replace(/^\/+/, "");
+      if (
+        !isAbsolute &&
+        !filePath.includes("/") &&
+        activeNotePath &&
+        activeNotePath.includes("/")
+      ) {
+        const parentDir = activeNotePath.substring(
+          0,
+          activeNotePath.lastIndexOf("/"),
+        );
+        targetPath = `${parentDir}/${filePath}`;
+      }
       const absolutePath = isAbsolute
         ? filePath
         : vaultPath
-          ? `${vaultPath.replace(/\/+$/, "")}/${filePath.replace(/^\/+/, "")}`
+          ? `${vaultPath.replace(/\/+$/, "")}/${targetPath}`
           : filePath;
       try {
         if (hasPlatformAdapters()) {
@@ -102,7 +115,7 @@ export function useEditorMediaHandlers(activeNotePath: string | null) {
         return filePath;
       }
     },
-    [vaultPath],
+    [activeNotePath, vaultPath],
   );
 
   const handleSaveMediaFile = useCallback(

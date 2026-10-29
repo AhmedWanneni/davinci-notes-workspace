@@ -1,14 +1,11 @@
 import { EditorState, Range, StateField } from "@codemirror/state";
-import {
-  Decoration,
-  DecorationSet,
-  EditorView,
-} from "@codemirror/view";
+import { Decoration, DecorationSet, EditorView } from "@codemirror/view";
 import { resolveEmbedLink } from "./embedLinkResolution";
 import { EmbedAudioWidget } from "./EmbedAudioWidget";
 
 export interface EmbedAudioExtensionOptions {
   notePaths: readonly string[];
+  sourcePath?: string;
   resolveMediaUrl?: (path: string) => string;
   isReadOnly?: boolean;
 }
@@ -23,7 +20,13 @@ const AUDIO_EXT_PATTERN = /\.(wav|mp3|m4a|ogg|aac|flac|webm)$/i;
 function resolveAudioPathCandidate(
   target: string,
   notePaths?: readonly string[],
+  sourcePath?: string,
 ): string {
+  if (target.includes("/")) return target;
+  if (sourcePath && sourcePath.includes("/")) {
+    const parentDir = sourcePath.substring(0, sourcePath.lastIndexOf("/"));
+    return `${parentDir}/${target}`;
+  }
   if (!notePaths || notePaths.length === 0) return target;
   const lower = target.toLowerCase();
   const found = notePaths.find(
@@ -55,8 +58,15 @@ function audioDecorations(
       const inner = match[1]!;
       const [target] = inner.split("|");
       const isAudio = AUDIO_EXT_PATTERN.test(target ?? "");
-      const res = resolveEmbedLink(`![[${inner}]]`, { paths: options.notePaths });
-      const path = res.type === "audio" ? res.path : isAudio && target ? target : undefined;
+      const res = resolveEmbedLink(`![[${inner}]]`, {
+        paths: options.notePaths,
+      });
+      const path =
+        res.type === "audio"
+          ? res.path
+          : isAudio && target
+            ? target
+            : undefined;
       if (path) {
         matches.push({
           start: line.from + matchIndex,
@@ -98,10 +108,15 @@ function audioDecorations(
       if (item.start < lastEnd) continue;
       lastEnd = item.end;
 
-      const isCursorInside = editable && cursor > item.start && cursor < item.end;
+      const isCursorInside =
+        editable && cursor > item.start && cursor < item.end;
       if (isCursorInside) continue;
 
-      const resolved = resolveAudioPathCandidate(item.target, options.notePaths);
+      const resolved = resolveAudioPathCandidate(
+        item.target,
+        options.notePaths,
+        options.sourcePath,
+      );
       const widget = new EmbedAudioWidget(
         resolved,
         options.resolveMediaUrl ?? ((p) => p),
@@ -109,7 +124,10 @@ function audioDecorations(
       );
 
       ranges.push(
-        Decoration.replace({ widget, inclusive: false }).range(item.start, item.end),
+        Decoration.replace({ widget, inclusive: false }).range(
+          item.start,
+          item.end,
+        ),
       );
     }
   }

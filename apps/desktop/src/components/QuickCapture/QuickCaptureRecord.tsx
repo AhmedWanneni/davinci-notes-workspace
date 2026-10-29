@@ -18,6 +18,8 @@ export interface QuickCaptureRecordProps {
   onDismiss: () => void;
   folder: string;
   onFolderChange: (folder: string) => void;
+  initialNotes?: string;
+  autoStart?: boolean;
 }
 
 export function QuickCaptureRecord({
@@ -25,6 +27,8 @@ export function QuickCaptureRecord({
   onDismiss,
   folder,
   onFolderChange,
+  initialNotes,
+  autoStart,
 }: QuickCaptureRecordProps) {
   const {
     status,
@@ -44,23 +48,31 @@ export function QuickCaptureRecord({
     handleDiscard,
     buildNoteContent,
     saveRecordedAudioToVault,
-  } = useQuickRecord();
+  } = useQuickRecord({ initialNotes, autoStart });
 
   const handleSave = async () => {
     setStatus("saving");
     try {
-      const cleanTitle = title.trim().replace(/[\\/:*?"<>|]/g, " ") || getDefaultRecordTitle();
+      const cleanTitle =
+        title.trim().replace(/[\\/:*?"<>|]/g, " ") || getDefaultRecordTitle();
       const audioFileName = `${cleanTitle}.wav`;
       const noteFileName = `${cleanTitle}.md`;
       const targetFolder = folder.trim() || "Voice Notes";
       const targetAudioRel = `${targetFolder}/${audioFileName}`;
 
       if (tempWavPath) {
-        await saveRecordedAudioToVault(tempWavPath, targetAudioRel).catch(() => {});
+        await saveRecordedAudioToVault(tempWavPath, targetAudioRel).catch(
+          () => {},
+        );
       }
 
       const noteContent = buildNoteContent(audioFileName, cleanTitle);
-      await onSaveRecord(noteContent, noteFileName, targetFolder, targetAudioRel);
+      await onSaveRecord(
+        noteContent,
+        noteFileName,
+        targetFolder,
+        targetAudioRel,
+      );
     } catch {
       setErrorMessage("Failed to save audio note to vault.");
       setStatus("recorded");
@@ -85,7 +97,9 @@ export function QuickCaptureRecord({
       aria-label="Voice recording section"
       onKeyDown={handleKeyDown}
     >
-      <div className={`${styles["record-status-row"]} ${status === "recording" ? styles["is-recording"] : ""}`}>
+      <div
+        className={`${styles["record-status-row"]} ${status === "recording" ? styles["is-recording"] : ""}`}
+      >
         <div className={styles["record-badge"]}>
           <span className={styles["record-indicator-dot"]} />
           <span>

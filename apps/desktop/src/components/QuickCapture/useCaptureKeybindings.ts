@@ -8,6 +8,7 @@ export interface UseCaptureKeybindingsOptions {
   onSave: (content: string) => void;
   onDismiss: () => void;
   onOpenNote: (path: string) => void;
+  onStartRecord?: () => void;
   nameInputRef: RefObject<HTMLInputElement | null>;
   search: {
     results: SearchResult[];
@@ -24,6 +25,7 @@ export function useCaptureKeybindings({
   onSave,
   onDismiss,
   onOpenNote,
+  onStartRecord,
   nameInputRef,
   search,
 }: UseCaptureKeybindingsOptions) {
@@ -33,6 +35,9 @@ export function useCaptureKeybindings({
     if (isMod && key === "k") {
       e.preventDefault();
       setMode("search");
+    } else if (isMod && key === "r") {
+      e.preventDefault();
+      onStartRecord?.();
     } else if (e.key === "Tab" && !e.shiftKey) {
       e.preventDefault();
       nameInputRef.current?.focus();

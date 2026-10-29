@@ -154,11 +154,13 @@ export function createEditorExtensions(
       ? config.embedAudioCompartment.of(
           embedAudioExtension({
             notePaths: config.notePaths,
+            sourcePath: config.sourcePath,
             resolveMediaUrl: config.resolveMediaUrl,
           }),
         )
       : embedAudioExtension({
           notePaths: config.notePaths,
+          sourcePath: config.sourcePath,
           resolveMediaUrl: config.resolveMediaUrl,
         }),
     noteEmbedTheme,

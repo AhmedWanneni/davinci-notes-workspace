@@ -204,6 +204,7 @@ export function Editor({
         embedAudioCompartmentRef.current.reconfigure(
           embedAudioExtension({
             notePaths,
+            sourcePath,
             resolveMediaUrl,
           }),
         ),
