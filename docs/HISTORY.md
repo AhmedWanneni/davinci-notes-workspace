@@ -2,6 +2,21 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Agent Git Workflow Rules — Branch Naming & PR Protocol
+
+- **Branch Naming Constraint**:
+  - Mandated that ALL branches created by any AI agent must start with `feat/`, `fix/`, or `chore/`.
+- **Push & Pull Request Protocol**:
+  - Mandated that upon push, the agent must open a Pull Request.
+  - Specified PR title requirements (informative, conventional commits format).
+  - Specified PR body requirements: thorough summary of changes, clickable markdown links to relevant ADRs in `docs/adr/`, commit breakdown, and checklist.
+- **Rule Artifacts Updated**:
+  - `AGENTS.md`: Added "Git Branching & Pull Request Rules (Mandatory for all AI agents)".
+  - `GEMINI.md`: Synchronized git branching and PR protocol rules.
+  - `.agents/rules/git-workflow.md`: Created always-on rule file.
+  - `.github/PULL_REQUEST_TEMPLATE.md`: Updated template with ADR links and commit breakdown sections.
+  - `docs/architecture/git-workflow.md`: Aligned branching strategy and PR documentation.
+
 ### 2026-10-29: Documentation Reorganization & Master README
 
 - **Consolidated Feature & Historical Plans**:
