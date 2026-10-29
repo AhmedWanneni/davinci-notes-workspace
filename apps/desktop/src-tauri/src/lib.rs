@@ -1,4 +1,11 @@
 mod ai_auth;
+mod audio_capture;
+mod audio_commands;
+mod audio_mixer;
+mod audio_types;
+mod audio_worker;
+#[cfg(test)]
+mod audio_tests;
 mod browser_bookmarks;
 mod capture;
 mod capture_commands;
@@ -103,6 +110,7 @@ pub fn run() {
     .manage(plugin_webview::PluginProbeState::default())
     .manage(plugin_network::PluginNetworkClient::new().expect("plugin network client must initialize"))
     .manage(syncthing::SyncthingManager::new())
+    .manage(audio_capture::AudioCaptureManager::default())
     .invoke_handler(tauri::generate_handler![
       fs::open_vault,
       fs::start_vault_watcher,
@@ -162,6 +170,12 @@ pub fn run() {
       notification_auth::load_notification_secret,
       notification_auth::clear_notification_secret,
       reminder_notify::send_desktop_notification_command,
+      audio_commands::start_meeting_recording,
+      audio_commands::pause_meeting_recording,
+      audio_commands::resume_meeting_recording,
+      audio_commands::stop_meeting_recording,
+      audio_commands::get_meeting_recording_status,
+      audio_commands::list_audio_input_devices,
       plugin_network::plugin_network_request,
       plugin_webview::start_plugin_webview_probe,
       plugin_webview::ensure_plugin_webview,
