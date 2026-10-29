@@ -41,6 +41,8 @@ import {
 } from "./live-preview";
 import { linkExtension } from "./links";
 import {
+  embedAudioExtension,
+  embedAudioTheme,
   embedImageExtension,
   imageExtension,
   noteEmbedExtension,
@@ -86,6 +88,7 @@ export interface EditorExtensionConfig {
   autocompleteCompartment: Compartment;
   noteEmbedCompartment: Compartment;
   embedImageCompartment: Compartment;
+  embedAudioCompartment?: Compartment;
   vimCompartment: Compartment;
   onChangeRef: RefObject<(value: string) => void>;
   pluginEditorRef: RefObject<EditorPluginAdapter | null>;
@@ -146,6 +149,18 @@ export function createEditorExtensions(
         resolveMediaUrl: config.resolveMediaUrl,
       }),
     ),
+    embedAudioTheme,
+    config.embedAudioCompartment
+      ? config.embedAudioCompartment.of(
+          embedAudioExtension({
+            notePaths: config.notePaths,
+            resolveMediaUrl: config.resolveMediaUrl,
+          }),
+        )
+      : embedAudioExtension({
+          notePaths: config.notePaths,
+          resolveMediaUrl: config.resolveMediaUrl,
+        }),
     noteEmbedTheme,
     config.noteEmbedCompartment.of(
       noteEmbedExtension({

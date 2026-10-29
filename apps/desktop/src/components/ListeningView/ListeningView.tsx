@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sparkle, CheckSquare, PaperPlaneRight } from "@phosphor-icons/react";
 import { ListeningHeader } from "./ListeningHeader";
 import { TranscriptFeed } from "./TranscriptFeed";
@@ -9,11 +9,13 @@ import styles from "./ListeningView.module.scss";
 
 export interface ListeningViewProps {
   initialTitle?: string;
+  initialAudioPath?: string;
   onNavigateToNote?: (path: string) => void;
 }
 
 export function ListeningView({
   initialTitle,
+  initialAudioPath,
   onNavigateToNote,
 }: ListeningViewProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
@@ -34,10 +36,34 @@ export function ListeningView({
     discardSession,
     acceptLink,
     dismissLink,
+    retranscribeAudio,
   } = useListeningSession(initialTitle);
 
   const [chatPrompt, setChatPrompt] = useState("");
   const isRecording = status === "recording";
+
+  useEffect(() => {
+    if (initialAudioPath) {
+      void retranscribeAudio(initialAudioPath);
+    }
+  }, [initialAudioPath, retranscribeAudio]);
+
+  useEffect(() => {
+    const handleReRun = (e: Event) => {
+      const customEvent = e as CustomEvent<{ path: string }>;
+      const audioPath = customEvent.detail?.path;
+      if (audioPath) {
+        void retranscribeAudio(audioPath);
+      }
+    };
+    window.addEventListener("davinci:re-run-audio-transcription", handleReRun);
+    return () => {
+      window.removeEventListener(
+        "davinci:re-run-audio-transcription",
+        handleReRun,
+      );
+    };
+  }, [retranscribeAudio]);
 
   const handleStopAndSave = async () => {
     const savedPath = await stopSession(allNotePaths);

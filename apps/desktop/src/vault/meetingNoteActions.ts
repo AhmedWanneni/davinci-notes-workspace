@@ -1,4 +1,6 @@
 import { createNoteInVault } from "./createNoteInVault";
+import { saveRecordedAudioToVault } from "../adapters/transcriptionClient";
+import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import { DEFAULT_MEETINGS_FOLDER } from "../components/ListeningView/listeningConstants";
 import type {
   TranscriptSegmentItem,
@@ -15,6 +17,7 @@ export interface MeetingNoteParams {
   actionItems?: string[];
   attendees?: string[];
   folder?: string;
+  audioRelPath?: string;
 }
 
 function formatTime(date: Date): string {
@@ -82,6 +85,14 @@ export function renderMeetingMarkdown(params: MeetingNoteParams): string {
     sections.push("");
   }
 
+  if (params.audioRelPath) {
+    const audioFileName =
+      params.audioRelPath.split(/[/\\]/).pop() ?? params.audioRelPath;
+    sections.push("## Audio Recording");
+    sections.push(`![[${audioFileName}]]`);
+    sections.push("");
+  }
+
   sections.push("## Transcript");
   if (params.segments.length > 0) {
     for (const seg of params.segments) {
@@ -105,12 +116,33 @@ export function renderMeetingMarkdown(params: MeetingNoteParams): string {
 export async function saveMeetingNoteToVault(
   params: MeetingNoteParams,
   existingPaths: string[] = [],
+  tempWavPath?: string,
 ): Promise<string> {
   const folder = params.folder ?? DEFAULT_MEETINGS_FOLDER;
   const startDate = new Date(params.startedAt || Date.now());
   const dateStr = startDate.toISOString().split("T")[0];
   const cleanTitle =
     params.title.replace(/[\\/:*?"<>|]/g, " ").trim() || "Untitled Meeting";
+
+  if (tempWavPath) {
+    const audioRelPath = `${folder}/${dateStr} - ${cleanTitle}.wav`;
+    let audioCandidate = audioRelPath;
+    let audioCounter = 1;
+    while (existingPaths.includes(audioCandidate)) {
+      audioCandidate = `${folder}/${dateStr} - ${cleanTitle} (${audioCounter}).wav`;
+      audioCounter++;
+    }
+    try {
+      await saveRecordedAudioToVault(tempWavPath, audioCandidate);
+      params.audioRelPath = audioCandidate;
+      const store = useWorkspaceStore.getState();
+      if (!store.allNotePaths.includes(audioCandidate)) {
+        store.updateAllPaths([...store.allNotePaths, audioCandidate]);
+      }
+    } catch (err) {
+      console.error("Failed to copy recorded audio to vault:", err);
+    }
+  }
 
   const basePath = `${folder}/${dateStr} - ${cleanTitle}.md`;
   let candidatePath = basePath;

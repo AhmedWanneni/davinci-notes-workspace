@@ -25,7 +25,10 @@ export interface AudioLevelPayload {
   elapsedSeconds: number;
 }
 
-async function safeInvoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+async function safeInvoke<T>(
+  command: string,
+  args?: Record<string, unknown>,
+): Promise<T> {
   const { invoke } = await import("@tauri-apps/api/core");
   return invoke<T>(command, args);
 }
@@ -52,6 +55,16 @@ export async function getMeetingRecordingStatus(): Promise<RecordingStatusRespon
 
 export async function listAudioInputDevices(): Promise<string[]> {
   return safeInvoke<string[]>("list_audio_input_devices");
+}
+
+export async function saveRecordedAudioToVault(
+  tempWavPath: string,
+  destinationRelPath: string,
+): Promise<string> {
+  return safeInvoke<string>("save_recorded_audio_to_vault", {
+    tempWavPath,
+    destinationRelPath,
+  });
 }
 
 export async function transcribeAudioChunk(

@@ -179,6 +179,7 @@ pub fn run() {
       audio_commands::stop_meeting_recording,
       audio_commands::get_meeting_recording_status,
       audio_commands::list_audio_input_devices,
+      audio_commands::save_recorded_audio_to_vault,
       transcription_commands::transcribe_audio_chunk,
       transcription_commands::transcribe_audio_file,
       plugin_network::plugin_network_request,

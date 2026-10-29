@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Meeting Audio Persistence, Editor Audio Player & Re-run Action
+
+- **Vault Audio Persistence**:
+  - Added `save_recorded_audio_to_vault` in `apps/desktop/src-tauri/src/audio_commands.rs` to copy recorded audio into vault destination (`Meetings/YYYY-MM-DD - {Title}.wav`).
+  - Added `saveRecordedAudioToVault` client adapter function in `transcriptionClient.ts`.
+  - Updated `apps/desktop/src/vault/meetingNoteActions.ts` to automatically copy the WAV file and format `## Audio Recording\n![[audio-file.wav]]\n` in the meeting markdown note.
+- **Editor Audio Embed Extension & Widget**:
+  - Implemented `packages/editor/embeds/embedAudioExtension.ts` and `embedAudioTheme.ts` using public design tokens.
+  - Recognizes `![[...wav|mp3|m4a]]` audio embeds and mounts a native `<audio controls>` player and a "Re-run AI" action button.
+  - Integrated into `createEditorExtensions.ts`, `Editor.tsx`, and `MarkdownView.tsx`.
+- **One-Click Re-run Pipeline**:
+  - Created `apps/desktop/src/components/ListeningView/rerunAudioTranscription.ts` to transcribe recorded audio files on demand and refresh action items and summaries.
+  - Extracted audio level listening into `useAudioLevels.ts` to respect the $\le 250$ line count constraint.
+  - Wired `davinci:re-run-audio-transcription` window event in `App.tsx` and `ListeningView.tsx` to automatically navigate to the listening page and rerun transcription.
+  - Added vault-relative path resolution in `apps/desktop/src-tauri/src/transcription_commands.rs`.
+- **Testing & Quality Assurance**:
+  - Colocated tests in `packages/editor/embeds/embedAudioExtension.test.ts`, `apps/desktop/src/components/ListeningView/rerunAudioTranscription.test.ts`, and `apps/desktop/src/vault/meetingNoteActions.test.ts`.
+  - Verified 137 Rust tests in `src-tauri` pass, 0 public design token violations, and production web bundle build succeeds.
+
 ### 2026-10-29: Meeting Recorder & AI Listening — End-to-End Implementation (Phases 1–7)
 
 - **Architecture & ADRs (ADR-0226 through ADR-0231)**:

@@ -1,8 +1,10 @@
-use tauri::{AppHandle, State, WebviewWindow};
+use tauri::{AppHandle, Manager, State, WebviewWindow};
 
 use crate::audio_capture::AudioCaptureManager;
 use crate::audio_types::{MeetingAudioResult, RecordingStatusResponse};
 use crate::command_auth::reject_plugin_runner;
+use crate::fs::resolve_in_vault;
+use crate::state::VaultState;
 
 #[tauri::command]
 pub fn start_meeting_recording(
@@ -66,4 +68,22 @@ pub fn get_meeting_recording_status(
 pub fn list_audio_input_devices(window: WebviewWindow) -> Result<Vec<String>, String> {
   reject_plugin_runner(&window)?;
   AudioCaptureManager::list_devices()
+}
+
+#[tauri::command]
+pub fn save_recorded_audio_to_vault(
+  window: WebviewWindow,
+  app: AppHandle,
+  temp_wav_path: String,
+  destination_rel_path: String,
+) -> Result<String, String> {
+  reject_plugin_runner(&window)?;
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let dest_abs = resolve_in_vault(&vault_root, &destination_rel_path)?;
+  if let Some(parent) = dest_abs.parent() {
+    let _ = std::fs::create_dir_all(parent);
+  }
+  std::fs::copy(&temp_wav_path, &dest_abs)
+    .map_err(|e| format!("Failed to copy WAV audio: {e}"))?;
+  Ok(destination_rel_path)
 }

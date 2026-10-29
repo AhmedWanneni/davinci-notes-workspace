@@ -4,7 +4,11 @@ import { EditorView } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
 import { autocompleteExtension, type ReminderClickInfo } from "./live-preview";
 import { linkExtension } from "./links";
-import { embedImageExtension, noteEmbedExtension } from "./embeds";
+import {
+  embedAudioExtension,
+  embedImageExtension,
+  noteEmbedExtension,
+} from "./embeds";
 import type { PasteAttachmentHandler } from "./clipboard";
 import {
   createEditorPluginAdapter,
@@ -77,6 +81,7 @@ export function Editor({
   const autocompleteCompartmentRef = useRef(new Compartment());
   const noteEmbedCompartmentRef = useRef(new Compartment());
   const embedImageCompartmentRef = useRef(new Compartment());
+  const embedAudioCompartmentRef = useRef(new Compartment());
   const vimCompartmentRef = useRef(new Compartment());
 
   const onTagClickRef = useRef(onTagClick ?? (() => {}));
@@ -113,6 +118,7 @@ export function Editor({
       autocompleteCompartment: autocompleteCompartmentRef.current,
       noteEmbedCompartment: noteEmbedCompartmentRef.current,
       embedImageCompartment: embedImageCompartmentRef.current,
+      embedAudioCompartment: embedAudioCompartmentRef.current,
       vimCompartment: vimCompartmentRef.current,
       onChangeRef,
       pluginEditorRef,
@@ -191,6 +197,12 @@ export function Editor({
         ),
         embedImageCompartmentRef.current.reconfigure(
           embedImageExtension({
+            notePaths,
+            resolveMediaUrl,
+          }),
+        ),
+        embedAudioCompartmentRef.current.reconfigure(
+          embedAudioExtension({
             notePaths,
             resolveMediaUrl,
           }),

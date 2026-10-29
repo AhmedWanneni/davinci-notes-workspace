@@ -583,6 +583,21 @@ export function App() {
       window.removeEventListener("davinci-ai-open-citation", handleCitation);
   }, [handleOpenCitation]);
 
+  useEffect(() => {
+    const handleReRunAudio = () => {
+      void openNote(LISTENING_TAB_ID);
+    };
+    window.addEventListener(
+      "davinci:re-run-audio-transcription",
+      handleReRunAudio,
+    );
+    return () =>
+      window.removeEventListener(
+        "davinci:re-run-audio-transcription",
+        handleReRunAudio,
+      );
+  }, [openNote]);
+
   const handleDropFiles = async (
     targetFolder: string,
     files: readonly File[],

@@ -1,4 +1,6 @@
 export * from "./createReadOnlyEmbedView";
+export * from "./embedAudioExtension";
+export * from "./embedAudioTheme";
 export * from "./embedImageExtension";
 export * from "./embedLinkResolution";
 export * from "./imageExtension";

@@ -122,6 +122,9 @@ export type {
 } from "./embeds/imageExtension";
 export { embedImageExtension } from "./embeds/embedImageExtension";
 export type { EmbedImageExtensionOptions } from "./embeds/embedImageExtension";
+export { embedAudioExtension } from "./embeds/embedAudioExtension";
+export type { EmbedAudioExtensionOptions } from "./embeds/embedAudioExtension";
+export { embedAudioTheme } from "./embeds/embedAudioTheme";
 export {
   isYoutubeImage,
   youtubeEmbedVideoId,

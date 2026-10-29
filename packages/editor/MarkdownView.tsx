@@ -25,6 +25,8 @@ import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
 import { readOnlyTableTheme, tableExtension } from "./blocks/table";
 import { linkExtension } from "./links";
 import {
+  embedAudioExtension,
+  embedAudioTheme,
   embedImageExtension,
   imageExtension,
   noteEmbedExtension,
@@ -110,6 +112,8 @@ export function MarkdownView({
         mathExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
         embedImageExtension({ notePaths, isReadOnly: true, resolveMediaUrl }),
+        embedAudioTheme,
+        embedAudioExtension({ notePaths, isReadOnly: true, resolveMediaUrl }),
         noteEmbedTheme,
         noteEmbedExtension({
           notePaths,

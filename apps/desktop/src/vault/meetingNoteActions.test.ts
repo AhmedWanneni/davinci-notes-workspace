@@ -83,4 +83,14 @@ describe("meetingNoteActions", () => {
       /Meetings\/\d{4}-\d{2}-\d{2} - Weekly Product Sync \(1\)\.md/,
     );
   });
+
+  it("renders audio recording wikilink embed and saves audio to vault", async () => {
+    const paramsWithAudio: MeetingNoteParams = {
+      ...baseParams,
+      audioRelPath: "Meetings/2024-04-24 - Weekly Product Sync.wav",
+    };
+    const md = renderMeetingMarkdown(paramsWithAudio);
+    expect(md).toContain("## Audio Recording");
+    expect(md).toContain("![[2024-04-24 - Weekly Product Sync.wav]]");
+  });
 });

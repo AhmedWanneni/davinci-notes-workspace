@@ -4,7 +4,39 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Meeting Recorder + AI Listening (All 7 Phases Completed)
+## Last Session — Meeting Audio Persistence, Editor Audio Player & Re-run Action
+
+**Scope:** Save recorded `.wav` meeting audio directly in vault, render interactive player in CodeMirror editor (`![[meeting.wav]]`), and enable one-click AI transcription re-run.
+
+**What was done:**
+1. **Vault Audio Persistence**:
+   - Added `save_recorded_audio_to_vault` in `apps/desktop/src-tauri/src/audio_commands.rs` to safely copy recorded WAV audio into the vault destination (`Meetings/YYYY-MM-DD - {Title}.wav`).
+   - Extended `transcriptionClient.ts` with `saveRecordedAudioToVault` adapter method.
+   - Updated `apps/desktop/src/vault/meetingNoteActions.ts` and `useListeningSession.ts` to automatically save WAV files alongside `.md` notes and render `## Audio Recording\n![[audio-file.wav]]`.
+2. **Editor Audio Embed Extension & Widget**:
+   - Created `packages/editor/embeds/embedAudioExtension.ts` and `embedAudioTheme.ts` to recognize `![[...wav|mp3|m4a]]` audio embeds.
+   - Replaced raw markdown links with an interactive `<audio controls>` player and a "Re-run AI" action button.
+   - Reconfigured compartments in `Editor.tsx`, `MarkdownView.tsx`, and `createEditorExtensions.ts`.
+3. **One-Click Re-run Pipeline**:
+   - Created `apps/desktop/src/components/ListeningView/rerunAudioTranscription.ts` to fetch API secrets, transcribe audio files via `transcribeAudioFile`, and generate updated action items and summaries.
+   - Factored audio levels into `useAudioLevels.ts` to keep hooks below the strict line budget.
+   - Wired `davinci:re-run-audio-transcription` window event in `App.tsx` and `ListeningView.tsx` to automatically switch to the listening page and rerun transcription on the target file.
+   - Added relative-path resolution in `apps/desktop/src-tauri/src/transcription_commands.rs` so vault-relative audio paths can be read and transcribed directly.
+4. **Testing & Verification**:
+   - Added unit test in `packages/editor/embeds/embedAudioExtension.test.ts`.
+   - Added unit test in `apps/desktop/src/components/ListeningView/rerunAudioTranscription.test.ts`.
+   - Added embed markdown rendering test in `apps/desktop/src/vault/meetingNoteActions.test.ts`.
+   - Verified 137 Rust tests in `src-tauri` passing, 0 public design token violations, and web production build succeeded.
+
+---
+
+## Next Up
+- Optional: Add local whisper.cpp sidecar model binary downloader for fully offline transcription setting.
+- Optional: Per-speaker diarization using machine learning voice embeddings.
+
+---
+
+## Previous Session — Meeting Recorder + AI Listening (All 7 Phases Completed)
 
 **Scope:** End-to-end implementation of desktop Meeting Recorder & AI Listening (`meeting-recorder-feature-plan.md`, ADR-0226 through ADR-0231).
 

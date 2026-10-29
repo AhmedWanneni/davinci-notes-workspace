@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { listen } from "@tauri-apps/api/event";
 import {
   startMeetingRecording,
   pauseMeetingRecording,
   resumeMeetingRecording,
   stopMeetingRecording,
 } from "../../adapters/transcriptionClient";
-import type { AudioLevelPayload } from "../../adapters/transcriptionClient";
 import type { ListeningStatus } from "./listeningConstants";
 import type {
   TranscriptSegmentItem,
   SuggestedLinkItem,
 } from "./listeningTypes";
 import { saveMeetingNoteToVault } from "../../vault/meetingNoteActions";
+import { useAudioLevels } from "./useAudioLevels";
+import { rerunAudioTranscription } from "./rerunAudioTranscription";
 
 export interface UseListeningSessionReturn {
   status: ListeningStatus;
@@ -34,6 +34,7 @@ export interface UseListeningSessionReturn {
   addSegment: (segment: Omit<TranscriptSegmentItem, "id">) => void;
   acceptLink: (id: string) => void;
   dismissLink: (id: string) => void;
+  retranscribeAudio: (filePath: string) => Promise<void>;
   setSuggestedLinks: React.Dispatch<React.SetStateAction<SuggestedLinkItem[]>>;
   setActionItems: React.Dispatch<React.SetStateAction<string[]>>;
   setSummary: React.Dispatch<React.SetStateAction<string>>;
@@ -50,8 +51,7 @@ export function useListeningSession(
   );
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [durationMs, setDurationMs] = useState(0);
-  const [micLevel, setMicLevel] = useState(0);
-  const [systemLevel, setSystemLevel] = useState(0);
+  const { micLevel, systemLevel } = useAudioLevels();
   const [segments, setSegments] = useState<TranscriptSegmentItem[]>([]);
   const [suggestedLinks, setSuggestedLinks] = useState<SuggestedLinkItem[]>([]);
   const [actionItems, setActionItems] = useState<string[]>([]);
@@ -74,29 +74,6 @@ export function useListeningSession(
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [status]);
-
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    try {
-      listen<AudioLevelPayload>("davinci-audio-levels", (event) => {
-        if (event.payload) {
-          setMicLevel(event.payload.mic_rms);
-          setSystemLevel(event.payload.system_rms);
-        }
-      })
-        .then((fn) => {
-          unlisten = fn;
-        })
-        .catch(() => {
-          // Not in Tauri or mock
-        });
-    } catch {
-      // Ignored
-    }
-    return () => {
-      if (unlisten) unlisten();
-    };
-  }, []);
 
   const addSegment = useCallback((seg: Omit<TranscriptSegmentItem, "id">) => {
     const newSeg: TranscriptSegmentItem = {
@@ -156,7 +133,7 @@ export function useListeningSession(
     async (existingPaths: string[] = []): Promise<string | null> => {
       try {
         setStatus("processing");
-        await stopMeetingRecording();
+        const audioResult = await stopMeetingRecording().catch(() => null);
         const savedPath = await saveMeetingNoteToVault(
           {
             title,
@@ -168,6 +145,7 @@ export function useListeningSession(
             summary,
           },
           existingPaths,
+          audioResult?.wav_path,
         );
         setCreatedNotePath(savedPath);
         setStatus("idle");
@@ -202,6 +180,20 @@ export function useListeningSession(
     }
   }, []);
 
+  const retranscribeAudio = useCallback(async (filePath: string) => {
+    try {
+      setStatus("processing");
+      const result = await rerunAudioTranscription(filePath);
+      setSegments(result.segments);
+      setActionItems(result.actionItems);
+      setSummary(result.summary);
+      setStatus("idle");
+    } catch (err) {
+      console.error("Failed to rerun audio transcription:", err);
+      setStatus("error");
+    }
+  }, []);
+
   return {
     status,
     title,
@@ -222,6 +214,7 @@ export function useListeningSession(
     addSegment,
     acceptLink,
     dismissLink,
+    retranscribeAudio,
     setSuggestedLinks,
     setActionItems,
     setSummary,
