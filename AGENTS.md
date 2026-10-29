@@ -72,6 +72,7 @@ Every module folder gets a barrel `index.ts` re-exporting its public surface. Co
 - **Before ending a session** (or if running low on context/tokens): update `PROGRESS.md` (Last Session + Next Up) and append full detail to `docs/HISTORY.md`, plus any blockers — don't let state live only in your own context.
 - **Non-obvious decisions** get logged as an ADR (new numbered file under `docs/adr/`, appended to the `DECISIONS.md` index), not re-litigated by the next session. Check `DECISIONS.md` before "fixing" something that looks odd — it may be deliberate.
 - **Diffs should be small enough to actually read.** If a generation is too big to review line-by-line, ask for it split up.
+- **Cutting a Release**: When asked to "create a release" or "ship a beta", follow the release skill runbook in `docs/releasing.md` and `.claude/skills/create-release/SKILL.md`. Always run preflight checks (`preflight-release.sh`) and pause at Human Gate 1 (version/notes approval) and Human Gate 2 (publish confirmation).
 
 ## Git Branching & Pull Request Rules (Mandatory for all AI agents)
 
