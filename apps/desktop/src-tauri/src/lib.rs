@@ -55,6 +55,9 @@ mod reminder_tests;
 mod state;
 mod syncthing;
 mod theme_files;
+mod transcription;
+mod transcription_cloud;
+mod transcription_commands;
 mod tray;
 mod tray_commands;
 mod tray_config;
@@ -176,6 +179,8 @@ pub fn run() {
       audio_commands::stop_meeting_recording,
       audio_commands::get_meeting_recording_status,
       audio_commands::list_audio_input_devices,
+      transcription_commands::transcribe_audio_chunk,
+      transcription_commands::transcribe_audio_file,
       plugin_network::plugin_network_request,
       plugin_webview::start_plugin_webview_probe,
       plugin_webview::ensure_plugin_webview,
