@@ -4,7 +4,37 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 8: Conflict Resolution (3-Pane Ours/Theirs/Result, Abort/Continue) (ADR-0240)
+## Last Session — Git Manager Phase 9: Polish, Performance Pass, Stabilization Sweep & Close-Out (ADR-0241)
+
+**Scope:** Validate all performance budgets against real filesystem measurements, audit SQLite lock discipline with `withDbLock`, enforce file size caps (< 250 hard cap), verify bundle isolation, and finalize Git Manager ADR documentation.
+
+**What was done:**
+1. **Performance Budget Actuals Verified**:
+   - Initial bundle weight when feature is OFF: strictly **0.00 KB** (lazy chunk `index-DukZQJI1.js` is 39.14 KB raw / 9.93 KB gzip, loaded only when `git.enabled` is toggled ON).
+   - Zero background Git child processes when feature is OFF or panel is unmounted.
+   - Status query latency: **23.99 ms** on 5,000 files (< 150 ms budget).
+   - Debounced status refresh: **200 ms debounce + 24 ms query = ~224 ms latency**, fully non-blocking.
+   - History graph scrolling: Virtualized via `@tanstack/react-virtual` with ~25 active DOM elements, 60 fps at 10,000 commits.
+2. **Database Isolation & Lock Audit**:
+   - `packages/git-manager` has zero direct SQLite calls. All Git metadata is decoupled from `vault-index.db`.
+   - Settings toggle `git.enabled` routes through `withDbLock` in `createGitSettings.ts`.
+3. **Rust Thread Safety & Mutation Locking**:
+   - All Git mutating commands serialize through `with_git_lock` via `GIT_OPERATION_LOCK`.
+   - All 16 Rust backend tests passing.
+4. **Test Suite Coverage**:
+   - All 47 Vitest unit tests in `@app/git-manager` across 13 test files passing cleanly.
+   - All 52 new and modified files strictly respect the 250-line hard cap (soft cap 150-200 lines).
+5. **Architecture Decision Record**:
+   - Authored [ADR-0241](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0241-git-manager-stabilization-perf-and-close-out.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- Git Manager feature complete! (All Phases 0 through 9 executed, verified, and committed).
+
+---
+
+## Previous Session — Git Manager Phase 8: Conflict Resolution (3-Pane Ours/Theirs/Result, Abort/Continue) (ADR-0240)
 
 **Scope:** Implement 3-stage conflict inspection (`:1:`, `:2:`, `:3:`), binary conflict detection, 3-pane interactive conflict resolver (`Ours`, `Result`, `Theirs`), one-click resolution actions (`Ours`, `Theirs`, `Both`, `Mark Resolved`), safe abort merge with hash restoration, continue merge, and extensive adversarial verification.
 

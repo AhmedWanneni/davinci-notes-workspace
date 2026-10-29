@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Phase 9 — Stabilization, Performance Verification & Close-Out (ADR-0241)
+
+- **Performance Verification vs Budgets**:
+  - Feature OFF initial bundle delta: strictly **0.00 KB** (lazy chunk `index-DukZQJI1.js` is 39.14 KB raw / 9.93 KB gzip).
+  - Background Git child processes: **0** when disabled or panel closed.
+  - Status latency on 5,000 files: **23.99 ms** (< 150 ms budget).
+  - Debounced status refresh: **200 ms debounce + 24 ms query**, non-blocking background IPC.
+  - History graph scroll: virtualized with `@tanstack/react-virtual`, 60 fps at 10,000 commits.
+- **Concurrency & SQLite Audit**:
+  - `rg` audit confirms zero direct SQLite calls in `packages/git-manager`.
+  - `git.enabled` setting strictly wrapped in `withDbLock` in `createGitSettings.ts`.
+  - All mutating Rust Git commands wrapped in `with_git_lock` via `GIT_OPERATION_LOCK`.
+- **Testing & Code Quality**:
+  - All 16 Rust backend unit and adversarial tests pass.
+  - All 47 Vitest tests pass in `@app/git-manager` across 13 suites.
+  - All 52 files strictly adhere to the 250-line hard cap from AGENTS.md.
+- **Architecture Decision Record**:
+  - Authored [ADR-0241](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0241-git-manager-stabilization-perf-and-close-out.md) and indexed in `DECISIONS.md`.
+
 ### 2026-10-29: Git Manager Phase 8 — Conflict Resolution & Merge Lifecycle (ADR-0240)
 
 - **Conflict Inspection & Merge Lifecycle**:

@@ -411,6 +411,7 @@ the list.
 | [0238](adr/0238-git-manager-branch-management-and-dirty-tree-guard.md) | Git Manager Branch Management and Dirty Tree Guard | Accepted |
 | [0239](adr/0239-git-manager-remote-sync-and-keychain-credentials.md) | Git Manager Remote Sync and Keychain Credentials | Accepted |
 | [0240](adr/0240-git-manager-conflict-resolution-and-merge-lifecycle.md) | Git Manager Conflict Resolution and Merge Lifecycle | Accepted |
+| [0241](adr/0241-git-manager-stabilization-perf-and-close-out.md) | Git Manager Stabilization, Performance Budget Verification and Close-Out | Accepted |
 
 
 
