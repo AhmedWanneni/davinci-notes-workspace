@@ -92,7 +92,7 @@ mod tests {
             .expect("askpass script should be executable");
 
         let mut child = Command::new("git")
-            .args(["-c", "credential.helper=", "credential", "fill"])
+            .args(["-c", "credential.interactive=always", "-c", "credential.helper=", "credential", "fill"])
             .env("GIT_ASKPASS", &script)
             .env("GIT_TERMINAL_PROMPT", "0")
             .env("DAVINCI_GIT_PAT", "phase3-token")
