@@ -31,6 +31,7 @@ vi.mock("../state/useWorkspaceStore", () => ({
 }));
 
 import { applyClipToVault, clipTargetPlan } from "./applyClipToVault";
+import { BOOKMARKS_JSON_PATH, useBookmarkStore } from "../bookmarks";
 
 function payload(overrides: Partial<ClipPayload> = {}): ClipPayload {
   return {
@@ -222,5 +223,35 @@ describe("applyClipToVault", () => {
       contentHash: "0123456789abcdef",
       relativePath: "Clippings/Probe.md",
     });
+  });
+
+  it("saves bookmark mode payload directly to useBookmarkStore as a web bookmark", async () => {
+    useBookmarkStore.getState().reset();
+    const res = await applyClipToVault(
+      event({
+        mode: "bookmark",
+        target: { folder: "Development", noteName: "Tauri Guide.md" },
+        source: {
+          url: "https://v2.tauri.app",
+          title: "Tauri 2.0",
+          domain: "v2.tauri.app",
+          description: "Fast desktop apps",
+        },
+        tags: ["rust", "tauri"],
+      }),
+    );
+
+    expect(res).toEqual({
+      clipId: "clip-1",
+      status: "written",
+      path: BOOKMARKS_JSON_PATH,
+    });
+    expect(createNoteInVaultMock).not.toHaveBeenCalled();
+    const saved = useBookmarkStore.getState().webBookmarks;
+    expect(saved).toHaveLength(1);
+    expect(saved[0].url).toBe("https://v2.tauri.app");
+    expect(saved[0].title).toBe("Tauri Guide");
+    expect(saved[0].folder).toBe("Development");
+    expect(saved[0].tags).toEqual(["rust", "tauri"]);
   });
 });

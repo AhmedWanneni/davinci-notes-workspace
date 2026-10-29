@@ -15,24 +15,14 @@ pub const DEBOUNCE_MS: u64 = 400;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct VaultChangeBatch {
-  pub changed: Vec<String>,
-  pub removed: Vec<String>,
-  pub renamed: Vec<VaultPathRename>,
-}
+pub struct VaultChangeBatch { pub changed: Vec<String>, pub removed: Vec<String>, pub renamed: Vec<VaultPathRename> }
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct VaultPathRename {
-  pub from: String,
-  pub to: String,
-}
+pub struct VaultPathRename { pub from: String, pub to: String }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum VaultPathChange {
-  Changed,
-  Removed,
-}
+pub enum VaultPathChange { Changed, Removed }
 
 pub struct VaultWatcher {
   debouncer: Mutex<Option<Debouncer<RecommendedWatcher, RecommendedCache>>>,
@@ -86,6 +76,7 @@ impl VaultWatcher {
         let mut changed = HashSet::new();
         let mut removed = HashSet::new();
         let mut renamed = Vec::new();
+        let mut git_changed = false;
 
         for debounced in events {
           let event = debounced.event;
@@ -102,6 +93,10 @@ impl VaultWatcher {
             let Some(rel) = vault_relative(&vault_for_events, &path) else {
               continue;
             };
+            if is_git_ref(&rel) {
+              git_changed = true;
+              continue;
+            }
             if !is_supported_vault_file(&rel) {
               continue;
             }
@@ -119,6 +114,10 @@ impl VaultWatcher {
               None => {}
             }
           }
+        }
+
+        if git_changed {
+          let _ = app.emit("git-changed", ());
         }
 
         if changed.is_empty() && removed.is_empty() {
@@ -173,14 +172,16 @@ fn rename_paths(vault_root: &Path, event: &notify::Event) -> Option<(String, Str
 
 fn is_supported_vault_file(relative: &str) -> bool {
   let file_name = Path::new(relative).file_name().and_then(|n| n.to_str()).unwrap_or("");
-  if file_name.starts_with(".syncthing.") && file_name.ends_with(".tmp") {
-    return false;
-  }
+  if file_name.starts_with(".syncthing.") && file_name.ends_with(".tmp") { return false; }
   matches!(
     Path::new(relative).extension().and_then(|ext| ext.to_str()).map(|ext| ext.to_ascii_lowercase()).as_deref(),
     Some("md" | "canvas" | "png" | "jpg" | "jpeg" | "gif" | "svg" | "webp" | "bmp" | "ico" | "avif"
       | "mp4" | "webm" | "ogg" | "ogv" | "mov" | "mkv" | "m4v" | "mp3" | "wav" | "m4a" | "pdf")
   )
+}
+
+fn is_git_ref(r: &str) -> bool {
+  r == ".git/HEAD" || r == ".git/index" || r.starts_with(".git/refs/")
 }
 
 /// Ignore metadata/access noise — reads during indexing must not look like edits.
@@ -236,5 +237,9 @@ mod tests {
     assert!(!is_supported_vault_file("sub/.syncthing.file.png.tmp"));
     assert!(!is_supported_vault_file("attachments/archive.zip"));
     assert!(!is_supported_vault_file("README"));
+    assert!(is_git_ref(".git/HEAD"));
+    assert!(is_git_ref(".git/index"));
+    assert!(is_git_ref(".git/refs/heads/main"));
+    assert!(!is_git_ref(".git/objects/12/34"));
   }
 }

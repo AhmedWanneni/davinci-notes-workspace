@@ -60,7 +60,7 @@ describe("InsertRegistry media items", () => {
       input: { url },
     });
 
-    expect(result.block).toBe(true);
+    expect(result.block).toBe(false);
     expect(result.text).toBe(`![](${url})`);
     IMAGE_PATTERN.lastIndex = 0;
     expect(IMAGE_PATTERN.test(result.text)).toBe(true);
@@ -76,7 +76,7 @@ describe("InsertRegistry media items", () => {
       input: { path },
     });
 
-    expect(result.block).toBe(true);
+    expect(result.block).toBe(false);
     expect(result.text).toBe(`![[${path}]]`);
 
     const resolution = resolveEmbedLink(result.text, {

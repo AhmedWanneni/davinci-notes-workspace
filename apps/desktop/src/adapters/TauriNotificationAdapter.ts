@@ -12,16 +12,26 @@ export class TauriNotificationAdapter implements NotificationAdapter {
   }
 
   showNotification(title: string, options?: AppNotificationOptions): void {
-    if (
-      typeof window !== "undefined" &&
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-      new Notification(title, {
-        body: options?.body,
-        tag: options?.tag,
-        icon: options?.icon,
-      });
-    }
+    void (async () => {
+      try {
+        const { invoke } = await import("@tauri-apps/api/core");
+        await invoke("send_desktop_notification_command", {
+          title,
+          body: options?.body ?? "",
+        });
+      } catch {
+        if (
+          typeof window !== "undefined" &&
+          "Notification" in window &&
+          Notification.permission === "granted"
+        ) {
+          new Notification(title, {
+            body: options?.body,
+            tag: options?.tag,
+            icon: options?.icon ?? "/logo/dark-logo.svg",
+          });
+        }
+      }
+    })();
   }
 }

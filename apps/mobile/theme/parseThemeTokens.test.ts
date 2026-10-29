@@ -20,9 +20,9 @@ describe("Mobile Theme Foundation & Token Extractor (Phase 1)", () => {
     expect(catppuccinFrappeTokens.color.bg.primary).toBe("#303446");
     expect(catppuccinLatteTokens.color.bg.primary).toBe("#eff1f5");
     expect(catppuccinLatteTokens.isDark).toBe(false);
-    expect(lightATokens.color.bg.primary).toBe("#fafafa");
+    expect(lightATokens.color.bg.primary).toBe("#ffffff");
     expect(lightATokens.isDark).toBe(false);
-    expect(darkBTokens.color.bg.primary).toBe("#000000");
+    expect(darkBTokens.color.bg.primary).toBe("#1e1e1e");
     expect(darkBTokens.isDark).toBe(true);
     expect(darkBTokens.layout.capsuleRadius).toBe("9999px");
     expect(darkBTokens.layout.sheetGroupRadius).toBe("12px");

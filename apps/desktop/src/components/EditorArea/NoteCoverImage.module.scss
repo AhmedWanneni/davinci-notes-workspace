@@ -1,0 +1,123 @@
+.note-cover {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  max-height: 240px;
+  overflow: hidden;
+  flex-shrink: 0;
+  user-select: none;
+  background-color: var(--color-bg-secondary);
+
+  &:hover .note-cover-actions,
+  &:hover :global(.editor-area__note-header--overlay) {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.note-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+
+  &[data-dragging="true"] {
+    transition: none;
+  }
+}
+
+.note-cover-actions {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 6px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border: var(--border-width-thin) solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--border-radius-sm);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.note-cover-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 8px;
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
+  color: #ffffff;
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius-xs);
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.note-cover-reposition-overlay {
+  position: absolute;
+  inset: 0;
+  cursor: ns-resize;
+  z-index: 20;
+}
+
+.note-cover-reposition-bar {
+  position: absolute;
+  bottom: var(--space-3);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  border: var(--border-width-thin) solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-sm);
+  color: #ffffff;
+  font-size: var(--type-scale-xs);
+  z-index: 30;
+}
+
+.note-cover-reposition-hint {
+  font-weight: var(--type-weight-medium);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.note-cover-reposition-btn {
+  padding: 4px 10px;
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-semibold);
+  border-radius: var(--border-radius-xs);
+  border: var(--border-width-thin) solid transparent;
+  cursor: pointer;
+
+  &[data-variant="save"] {
+    background: var(--color-accent);
+    color: #ffffff;
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+  }
+
+  &[data-variant="cancel"] {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  }
+}

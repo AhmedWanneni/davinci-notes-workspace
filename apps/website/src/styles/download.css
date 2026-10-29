@@ -1,0 +1,184 @@
+.download-page {
+  padding-top: calc(68px + clamp(2rem, 5vw, 4rem));
+  padding-bottom: clamp(3rem, 6vw, 6rem);
+  background-color: var(--logseq-bg);
+  min-height: calc(100vh - 120px);
+}
+
+.download-hero {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto clamp(2.5rem, 5vw, 4rem) auto;
+  padding: 0 var(--gutter);
+}
+
+.download-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-hand-drawn-subtle, 4px);
+  border: 1px solid var(--logseq-border);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--logseq-cyan);
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.download-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--logseq-text-title);
+  margin-bottom: 1rem;
+}
+
+.download-subtitle {
+  font-family: var(--font-sans);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: var(--logseq-text-muted);
+  line-height: 1.6;
+  margin: 0 auto 2rem auto;
+  max-width: 600px;
+}
+
+.primary-cta-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.btn-download-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 2.25rem;
+  background-color: var(--logseq-card-light);
+  color: var(--logseq-text-title);
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: 1px solid var(--logseq-border-light);
+  border-radius: var(--radius-hand-drawn);
+  text-decoration: none;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.btn-download-primary:hover {
+  background-color: var(--logseq-card-hover);
+  transform: translateY(-2px);
+  border-color: var(--logseq-cyan);
+}
+
+.detected-os-text {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--logseq-text-faint);
+}
+
+.platforms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.platform-card {
+  background-color: var(--logseq-card);
+  border: 1px solid var(--logseq-border);
+  border-radius: var(--radius-hand-drawn-subtle);
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.platform-card:hover {
+  border-color: var(--logseq-border-light);
+  transform: translateY(-2px);
+}
+
+.platform-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.platform-card-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--logseq-text-title);
+}
+
+.platform-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.platform-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.8rem;
+  background-color: var(--logseq-card-dark);
+  border: 1px solid var(--logseq-border);
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--logseq-text-body);
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.platform-link-row:hover {
+  background-color: var(--logseq-card-hover);
+  border-color: var(--logseq-cyan);
+}
+
+.file-type-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--logseq-cyan);
+}
+
+.verification-section {
+  max-width: var(--container-max);
+  margin: 3.5rem auto 0 auto;
+  padding: 0 var(--gutter);
+  text-align: center;
+}
+
+.verification-box {
+  padding: 1.5rem;
+  background-color: var(--logseq-card-dark);
+  border: 1px solid var(--logseq-border);
+  border-radius: var(--radius-hand-drawn-subtle);
+  display: inline-block;
+  text-align: left;
+  max-width: 680px;
+}
+
+.verification-heading {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--logseq-text-title);
+  margin-bottom: 0.5rem;
+}
+
+.verification-text {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--logseq-text-muted);
+  line-height: 1.5;
+}

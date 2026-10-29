@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest";
-import { cleanup } from "@testing-library/react";
-import { computeNoteStats } from "./StatusBar";
+import { cleanup, render, screen } from "@testing-library/react";
+import { computeNoteStats, StatusBar } from "./StatusBar";
 
 afterEach(() => {
   cleanup();
@@ -146,5 +146,18 @@ describe("StatusBar component rendering", () => {
     expect(container.querySelector(".status-bar__right")).toBeNull();
     expect(screen.queryByText("No file open")).toBeNull();
   });
-});
 
+  it("does not render drive sync indicator in bottom status bar", () => {
+    render(
+      <StatusBar
+        activeNotePath="test.md"
+        content="Hello"
+        syncMode="drive"
+        isDriveSignedIn={true}
+        isDriveSyncing={false}
+      />,
+    );
+
+    expect(screen.queryByTestId("status-bar-sync-indicator")).toBeNull();
+  });
+});

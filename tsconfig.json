@@ -9,6 +9,8 @@
     "baseUrl": ".",
     "paths": {
       "@app/canvas": ["packages/canvas/index.ts"],
+      "@app/kanban": ["packages/kanban/index.ts"],
+      "@app/database": ["packages/database/index.ts"],
       "@app/attachments": ["packages/attachments/index.ts"],
       "@app/core-types": ["packages/core-types/index.ts"],
       "@app/clipper-core": ["packages/clipper-core/index.ts"],

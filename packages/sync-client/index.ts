@@ -84,3 +84,14 @@ export {
   createWebPkceProvider,
 } from "./webManifestSource";
 export type { WebVaultFileReader } from "./webManifestSource";
+export {
+  createDriveFolder,
+  deleteFileFromDriveVault,
+  ensureDriveFolderPath,
+  ensureDriveVaultFolder,
+  findDriveFolder,
+  getDriveMimeType,
+  getOrCreateDriveFolder,
+  listDriveVaultFiles,
+  syncFileToDriveVault,
+} from "./driveVaultFolder";

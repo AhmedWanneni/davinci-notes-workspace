@@ -116,6 +116,14 @@ export {
   extractSectionByHeading,
   normalizeHeadingTarget,
 } from "./subpathUtils";
+export { CanvasBottomDock } from "./CanvasBottomDock";
+export type { CanvasBottomDockProps } from "./CanvasBottomDock";
+export { CanvasNavToolbar } from "./CanvasNavToolbar";
+export type { CanvasNavToolbarProps } from "./CanvasNavToolbar";
+export { CanvasCardActionBar } from "./CanvasCardActionBar";
+export type { CanvasCardActionBarProps } from "./CanvasCardActionBar";
+export { useCanvasHistory } from "./useCanvasHistory";
+export type { UseCanvasHistoryOptions } from "./useCanvasHistory";
 export type { CanvasViewProps } from "./CanvasView";
 export { CanvasView } from "./CanvasView";
 

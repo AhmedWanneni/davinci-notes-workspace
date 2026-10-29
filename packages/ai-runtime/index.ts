@@ -6,3 +6,13 @@ export {
   createOpenRouterProvider,
   createOllamaProvider,
 } from "./providerImplementations.js";
+export { parseSseStream } from "./sseStream.js";
+export {
+  extractOllamaFallbackToolCall,
+  formatOllamaToolSystemPrompt,
+} from "./ollamaToolFallback.js";
+export {
+  extractConversationalToolCall,
+  extractConversationalToolCalls,
+  isConversationalMeta,
+} from "./conversationalToolFallback.js";

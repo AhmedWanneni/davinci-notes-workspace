@@ -1,0 +1,92 @@
+.reminder-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: var(--space-3);
+}
+
+.reminder-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.reminder-presets {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.reminder-preset-btn {
+  background: transparent;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  padding: 2px var(--space-2);
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--motion-duration-fast);
+
+  &:hover {
+    color: var(--color-text-normal);
+    background-color: var(--color-bg-hover);
+  }
+}
+
+.reminder-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+
+.reminder-input {
+  width: 100%;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-normal);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  padding: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-sm);
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: var(--color-border-focus);
+    outline: none;
+  }
+}
+
+.reminder-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: var(--space-2);
+  border-top: var(--border-width-thin) solid var(--color-border-subtle);
+}
+
+.reminder-hints {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-faint);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+}
+
+.reminder-kbd {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-secondary-alt);
+  color: var(--color-text-muted);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
+}
+
+.reminder-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}

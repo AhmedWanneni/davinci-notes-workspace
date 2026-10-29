@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   categorizeReminderDue,
   queryRemindersForView,
+  upsertReminderChannelState,
 } from "./remindersViewQueries";
 import { computeSnoozeTime } from "./reminderSnoozeActions";
 
@@ -46,8 +47,8 @@ describe("remindersViewQueries — categorizeReminderDue", () => {
   });
 });
 
-describe("remindersViewQueries — queryRemindersForView mock", () => {
-  it("groups rows into missed, today, and upcoming", async () => {
+describe("remindersViewQueries — queryRemindersForView & upsertReminderChannelState", () => {
+  it("groups rows into missed, today, upcoming, and done with channel metadata", async () => {
     const mockDb = {
       select: async () => [
         {
@@ -61,6 +62,8 @@ describe("remindersViewQueries — queryRemindersForView mock", () => {
           local_key: "key-1",
           status: "missed",
           snooze_until_utc: null,
+          channels_json: JSON.stringify(["desktop-default", "slack-team"]),
+          delivery_error: "Slack HTTP 503",
         },
         {
           id: 2,
@@ -73,6 +76,8 @@ describe("remindersViewQueries — queryRemindersForView mock", () => {
           local_key: null,
           status: null,
           snooze_until_utc: null,
+          channels_json: null,
+          delivery_error: null,
         },
         {
           id: 3,
@@ -85,8 +90,25 @@ describe("remindersViewQueries — queryRemindersForView mock", () => {
           local_key: null,
           status: null,
           snooze_until_utc: null,
+          channels_json: null,
+          delivery_error: null,
+        },
+        {
+          id: 4,
+          note_path: "NoteD.md",
+          line: 9,
+          due_at_utc: "2026-10-10T09:00:00Z",
+          tz: "UTC",
+          text: "Completed task",
+          done: 1,
+          local_key: "key-4",
+          status: "notified",
+          snooze_until_utc: null,
+          channels_json: null,
+          delivery_error: null,
         },
       ],
+      execute: vi.fn().mockResolvedValue(undefined),
     } as unknown as Parameters<typeof queryRemindersForView>[0];
 
     const now = new Date("2026-10-14T12:00:00Z");
@@ -94,10 +116,26 @@ describe("remindersViewQueries — queryRemindersForView mock", () => {
 
     expect(result.missed).toHaveLength(1);
     expect(result.missed[0].text).toBe("Overdue task");
+    expect(result.missed[0].channels).toEqual(["desktop-default", "slack-team"]);
+    expect(result.missed[0].deliveryError).toBe("Slack HTTP 503");
+
     expect(result.today).toHaveLength(1);
     expect(result.today[0].text).toBe("Today task");
     expect(result.upcoming).toHaveLength(1);
     expect(result.upcoming[0].text).toBe("Future task");
+    expect(result.done).toHaveLength(1);
+    expect(result.done[0].text).toBe("Completed task");
+    expect(result.done[0].category).toBe("done");
     expect(result.all).toHaveLength(3);
+
+    await upsertReminderChannelState(mockDb, {
+      reminderKey: "key-1",
+      notePath: "NoteA.md",
+      dueAtUtc: "2026-10-14T08:00:00Z",
+      text: "Overdue task",
+      channels: ["desktop-default"],
+      deliveryError: null,
+    });
+    expect(mockDb!.execute).toHaveBeenCalledTimes(1);
   });
 });

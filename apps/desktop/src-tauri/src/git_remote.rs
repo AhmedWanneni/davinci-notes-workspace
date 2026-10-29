@@ -19,7 +19,7 @@ fn malformed_url(url: &str) -> bool {
     !url.starts_with("https://") || url.split('/').nth(2).unwrap_or_default().is_empty()
 }
 
-fn classify(stderr: &str) -> String {
+pub(crate) fn classify(stderr: &str) -> String {
     let error = stderr.to_ascii_lowercase();
     if error.contains("authentication failed") || error.contains("invalid username or token") {
         "bad-token".to_string()
@@ -32,12 +32,14 @@ fn classify(stderr: &str) -> String {
         "no-push-access".to_string()
     } else if error.contains("src refspec") || error.contains("does not match any") {
         "local-history-empty".to_string()
+    } else if error.contains("fetch first") || error.contains("non-fast-forward") {
+        "non-fast-forward".to_string()
     } else {
         "remote-unreachable".to_string()
     }
 }
 
-fn askpass_script(token: &str) -> Result<std::path::PathBuf, String> {
+pub(crate) fn askpass_script(token: &str) -> Result<std::path::PathBuf, String> {
     let nonce = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_err(|e| e.to_string())?
@@ -53,7 +55,7 @@ fn askpass_script(token: &str) -> Result<std::path::PathBuf, String> {
     Ok(path)
 }
 
-fn git_with_pat(
+pub(crate) fn git_with_pat(
     vault: &std::path::Path,
     args: &[&str],
     token: &str,
@@ -118,7 +120,10 @@ pub async fn validate_git_remote(
             username,
         )?;
         if !push.status.success() {
-            return Err(classify(&String::from_utf8_lossy(&push.stderr)));
+            let class = classify(&String::from_utf8_lossy(&push.stderr));
+            if class != "non-fast-forward" {
+                return Err(class);
+            }
         }
         Ok(GitRemoteValidation {
             remote_state: if list.stdout.is_empty() {

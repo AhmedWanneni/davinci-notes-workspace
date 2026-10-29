@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Baseline desktop capabilities for DaVinci Notes shell",
+  "description": "Baseline desktop capabilities for Sophia shell",
   "windows": [
     "main"
   ],
@@ -16,6 +16,20 @@
     "core:window:allow-set-fullscreen",
     "dialog:default",
     "fs:default",
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        { "path": "$HOME/**" },
+        { "path": "/**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [
+        { "path": "$HOME/**" },
+        { "path": "/**" }
+      ]
+    },
     "sql:default",
     "sql:allow-execute",
     "notification:default"

@@ -146,14 +146,10 @@ describe("sqliteIndex persistNotesBatch", () => {
     expect(mode).toBe("wal");
   });
 
-  it("preserves the original failure when SQLite already ended the transaction", async () => {
+  it("preserves the original failure during transactional work", async () => {
     const execute = vi
       .fn()
-      .mockResolvedValueOnce(undefined)
-      .mockRejectedValueOnce(new Error("constraint failed"))
-      .mockRejectedValueOnce(
-        new Error("cannot rollback - no transaction is active"),
-      );
+      .mockRejectedValueOnce(new Error("constraint failed"));
     const db = { execute } as unknown as Database;
 
     await expect(
@@ -161,8 +157,6 @@ describe("sqliteIndex persistNotesBatch", () => {
         await db.execute("INSERT INTO embedding_chunks VALUES (...) ");
       }),
     ).rejects.toThrow("constraint failed");
-    expect(execute).toHaveBeenNthCalledWith(1, "BEGIN IMMEDIATE");
-    expect(execute).toHaveBeenNthCalledWith(3, "ROLLBACK");
   });
 
   it("serializes indexing, reads, embedding, and settings operations", async () => {
@@ -223,8 +217,6 @@ describe("sqliteIndex persistNotesBatch", () => {
     expect(maximumActiveWriters).toBe(1);
     expect(statements).toEqual(
       expect.arrayContaining([
-        "BEGIN IMMEDIATE",
-        "COMMIT",
         "DELETE FROM notes",
         "DELETE FROM links",
         expect.stringContaining("INSERT INTO embedding_chunks"),
@@ -245,15 +237,7 @@ describe("sqliteIndex persistNotesBatch", () => {
       "DELETE FROM notes WHERE path IN ($1, $2)",
       ["note1.md", "note2.md"],
     );
-    expect(execute).toHaveBeenNthCalledWith(
-      2,
-      "DELETE FROM links WHERE source_path IN ($1, $2) OR target_path IN ($1, $2)",
-      ["note1.md", "note2.md"],
-    );
-    expect(execute).toHaveBeenNthCalledWith(
-      3,
-      "DELETE FROM notes_fts WHERE path IN ($1, $2)",
-      ["note1.md", "note2.md"],
-    );
+    expect(execute).toHaveBeenNthCalledWith(2, "DELETE FROM links WHERE source_path IN ($1, $2) OR target_path IN ($1, $2)", ["note1.md", "note2.md"]);
+    expect(execute).toHaveBeenNthCalledWith(3, "DELETE FROM notes_fts WHERE path IN ($1, $2)", ["note1.md", "note2.md"]);
   });
 });

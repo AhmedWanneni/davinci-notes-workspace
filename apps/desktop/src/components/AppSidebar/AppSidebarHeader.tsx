@@ -10,6 +10,7 @@ import {
   hasPlatformAdapters,
 } from "@app/platform-adapters";
 import { WindowControls } from "../WindowControls";
+import { SyncStatusButton } from "../SyncStatusButton";
 
 export interface AppSidebarHeaderProps {
   isMac: boolean;
@@ -18,6 +19,7 @@ export interface AppSidebarHeaderProps {
   onOpenSearch?: () => void;
   onOpenTags?: () => void;
   onToggleLeftSidebar?: () => void;
+  onOpenSyncSettings?: () => void;
 }
 
 export function AppSidebarHeader({
@@ -27,6 +29,7 @@ export function AppSidebarHeader({
   onOpenSearch,
   onOpenTags,
   onToggleLeftSidebar,
+  onOpenSyncSettings,
 }: AppSidebarHeaderProps) {
   return (
     <div className="app-sidebar__header">
@@ -68,6 +71,10 @@ export function AppSidebarHeader({
             <BookmarkSimple size={18} weight="regular" />
           </button>
         </Tooltip>
+        <SyncStatusButton
+          className="app-sidebar__nav-btn"
+          onOpenSyncSettings={onOpenSyncSettings}
+        />
       </div>
       <div
         className="app-sidebar__drag-region"

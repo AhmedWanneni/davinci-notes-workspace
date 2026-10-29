@@ -6,6 +6,7 @@ import { indexVaultFull } from "./VaultIndexer";
 import { listFolders, listNotes, openVault } from "./vaultCommands";
 import { deactivateVaultWatcher } from "./vaultWatchSession";
 import { recordRecentVault } from "./recentVaultsRegistry";
+import { BOOKMARKS_TAB_ID } from "../bookmarks";
 
 vi.mock("./VaultIndexer", () => ({
   indexVaultFull: vi.fn().mockResolvedValue({
@@ -31,10 +32,13 @@ vi.mock("./vaultCommands", () => ({
   openVault: vi.fn((p: string) => Promise.resolve(`/canonical${p}`)),
   listNotes: vi.fn().mockResolvedValue(["note1.md"]),
   listFolders: vi.fn().mockResolvedValue(["folder1"]),
+  readNote: vi.fn().mockResolvedValue({ content: "{}" }),
+  writeNote: vi.fn().mockResolvedValue({ exists: true, mtime: 1, size: 2 }),
 }));
 
 vi.mock("./vaultWatchSession", () => ({
   deactivateVaultWatcher: vi.fn().mockResolvedValue(undefined),
+  withVaultWatchSuppressed: vi.fn((fn: () => unknown) => fn()),
 }));
 
 vi.mock("./recentVaultsRegistry", () => ({
@@ -179,5 +183,22 @@ describe("vaultSwitchOrchestrator", () => {
     expect(log).toContain("settings:start");
     expect(log).toContain("settings:end");
     expect(useWorkspaceStore.getState().vaultPath).toBe("/canonical/VaultB");
+  });
+
+  it("restores BOOKMARKS_TAB_ID in session restore", async () => {
+    const { getSetting } = await import("./settingsCommands");
+    vi.mocked(getSetting).mockImplementation(async (_db, key) => {
+      if (key === "session.openNotes") {
+        return JSON.stringify(["note1.md", BOOKMARKS_TAB_ID]);
+      }
+      if (key === "session.activeNotePath") {
+        return BOOKMARKS_TAB_ID;
+      }
+      return null;
+    });
+
+    await switchVault("/VaultWithBookmarks");
+    expect(useWorkspaceStore.getState().openNotes).toContain(BOOKMARKS_TAB_ID);
+    expect(useWorkspaceStore.getState().activeNotePath).toBe(BOOKMARKS_TAB_ID);
   });
 });

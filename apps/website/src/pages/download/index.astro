@@ -1,0 +1,178 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import '../../styles/download.css';
+
+const REPO = 'AhmedWanneni/davinci-notes-workspace';
+const DEFAULT_VERSION = 'v0.1.0';
+
+let releaseVersion = DEFAULT_VERSION;
+let releaseDate = 'Latest Release';
+
+const fallbackAssets = {
+  macArm: `https://github.com/${REPO}/releases/latest/download/Sophia_${DEFAULT_VERSION}_aarch64.dmg`,
+  macIntel: `https://github.com/${REPO}/releases/latest/download/Sophia_${DEFAULT_VERSION}_x64.dmg`,
+  windows: `https://github.com/${REPO}/releases/latest/download/Sophia_${DEFAULT_VERSION}_x64-setup.exe`,
+  linuxAppImage: `https://github.com/${REPO}/releases/latest/download/sophia_${DEFAULT_VERSION}_amd64.AppImage`,
+  linuxDeb: `https://github.com/${REPO}/releases/latest/download/sophia_${DEFAULT_VERSION}_amd64.deb`,
+  checksums: `https://github.com/${REPO}/releases/latest/download/SHA256SUMS.txt`,
+};
+
+let assets = { ...fallbackAssets };
+
+try {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, {
+    headers: { 'User-Agent': 'DaVinciNotes-Website-Builder' },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    releaseVersion = data.tag_name || DEFAULT_VERSION;
+    if (data.published_at) {
+      releaseDate = new Date(data.published_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    }
+  }
+} catch {
+  // Use fallback defaults on network/rate-limit failure
+}
+---
+
+<BaseLayout
+  title="Download DaVinci Notes — Desktop App for Mac, Windows & Linux"
+  description="Download DaVinci Notes / Sophia for macOS (Apple Silicon & Intel), Windows, and Linux. Private, local-first, zero-backend knowledge base."
+>
+  <SiteNav />
+
+  <main class="download-page">
+    <section class="download-hero">
+      <span class="download-badge">Release {releaseVersion} • {releaseDate}</span>
+      <h1 class="download-title">Download DaVinci Notes</h1>
+      <p class="download-subtitle">
+        Your notes, thoughts, and knowledge securely kept on your machine.
+        Local-first, fast, and completely private.
+      </p>
+
+      <div class="primary-cta-container">
+        <a
+          id="primary-download-btn"
+          href={assets.macArm}
+          class="btn-download-primary"
+        >
+          <span>Download for macOS</span>
+          <span aria-hidden="true">↓</span>
+        </a>
+        <span id="detected-os-label" class="detected-os-text">
+          Detecting operating system...
+        </span>
+      </div>
+    </section>
+
+    <section class="platforms-grid">
+      <!-- macOS -->
+      <div class="platform-card">
+        <div class="platform-card-header">
+          <h2 class="platform-card-title">macOS</h2>
+          <span class="file-type-badge">macOS 11+</span>
+        </div>
+        <p class="verification-text">Apple Silicon (M1/M2/M3/M4) and Intel 64-bit</p>
+        <div class="platform-links-list">
+          <a href={assets.macArm} class="platform-link-row">
+            <span>Apple Silicon (.dmg)</span>
+            <span class="file-type-badge">arm64</span>
+          </a>
+          <a href={assets.macIntel} class="platform-link-row">
+            <span>Intel (.dmg)</span>
+            <span class="file-type-badge">x64</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Windows -->
+      <div class="platform-card">
+        <div class="platform-card-header">
+          <h2 class="platform-card-title">Windows</h2>
+          <span class="file-type-badge">Windows 10 / 11</span>
+        </div>
+        <p class="verification-text">Installer and portable executable for 64-bit systems</p>
+        <div class="platform-links-list">
+          <a href={assets.windows} class="platform-link-row">
+            <span>Setup Installer (.exe)</span>
+            <span class="file-type-badge">x64</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Linux -->
+      <div class="platform-card">
+        <div class="platform-card-header">
+          <h2 class="platform-card-title">Linux</h2>
+          <span class="file-type-badge">Standard Distros</span>
+        </div>
+        <p class="verification-text">Universal AppImage and Debian/Ubuntu packages</p>
+        <div class="platform-links-list">
+          <a href={assets.linuxAppImage} class="platform-link-row">
+            <span>Universal AppImage (.AppImage)</span>
+            <span class="file-type-badge">x64</span>
+          </a>
+          <a href={assets.linuxDeb} class="platform-link-row">
+            <span>Debian / Ubuntu (.deb)</span>
+            <span class="file-type-badge">x64</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="verification-section">
+      <div class="verification-box">
+        <div class="verification-heading">🔒 Cryptographic Verification</div>
+        <div class="verification-text">
+          Every release publishes signed SHA-256 checksums. Verify your download:
+          <br />
+          <code>curl -sL {assets.checksums} | sha256sum -c</code>
+          <br /><br />
+          Looking for older versions?
+          <a
+            href={`https://github.com/${REPO}/releases`}
+            target="_blank"
+            rel="noreferrer"
+            style="color: var(--logseq-cyan); text-decoration: underline;"
+          >
+            Browse all releases on GitHub ↗
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+
+  <script is:inline define:vars={{ assets }}>
+    (function () {
+      const ua = navigator.userAgent || '';
+      const platform = (navigator.userAgentData?.platform || navigator.platform || '').toLowerCase();
+      const primaryBtn = document.getElementById('primary-download-btn');
+      const label = document.getElementById('detected-os-label');
+
+      if (!primaryBtn || !label) return;
+
+      if (/win/i.test(platform) || /windows/i.test(ua)) {
+        primaryBtn.href = assets.windows;
+        primaryBtn.innerHTML = '<span>Download for Windows</span> <span aria-hidden="true">↓</span>';
+        label.textContent = 'Detected Windows (64-bit)';
+      } else if (/linux/i.test(platform) || /linux/i.test(ua)) {
+        primaryBtn.href = assets.linuxAppImage;
+        primaryBtn.innerHTML = '<span>Download for Linux</span> <span aria-hidden="true">↓</span>';
+        label.textContent = 'Detected Linux (.AppImage)';
+      } else {
+        // Default to macOS
+        primaryBtn.href = assets.macArm;
+        primaryBtn.innerHTML = '<span>Download for macOS</span> <span aria-hidden="true">↓</span>';
+        label.textContent = 'Detected macOS (Apple Silicon)';
+      }
+    })();
+  </script>
+</BaseLayout>

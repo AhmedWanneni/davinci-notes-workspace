@@ -258,7 +258,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0169](adr/0169-ui-decoupling-from-sqlite-index-and-unhandled-rejection-resilience.md) | Decouple UI tab opening from SQLite indexing, capped exponential backoff for SQLITE_BUSY, and error boundaries | Accepted |
 | [0170](adr/0170-save-time-external-change-guard-and-append-merge.md) | Save-time external change guard with append-aware merge and conflict copy on exit (supersedes 0161) | Accepted |
 | [0171](adr/0171-capture-window-sql-permission-and-quick-search.md) | Capture window SQL permissions and direct indexer quick search with WAL mode and native note activation | Accepted |
-| [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) | Tray left-click popover toggle for quick capture with monitor work area clamping and left-click setting | Accepted; target superseded by [0180](adr/0180-quick-capture-note-creation-and-destination-options.md) |
+| [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) | Tray left-click popover toggle for quick capture with monitor work area clamping and left-click setting | Accepted; target superseded by [0180](adr/0180-quick-capture-note-creation-and-destination-options.md), window behavior superseded by [0225](adr/0225-native-macos-capture-popover-and-nspanel.md) |
 | [0173](adr/0173-curated-editor-fonts-and-custom-font-input-sanitization.md) | Curated editor fonts and custom font input sanitization with self-hosted font-display swap | Accepted |
 | [0174](adr/0174-curated-editor-fonts-and-vim-monospace-mode.md) | Curated editor fonts and vim monospace mode with lazy Latin woff2 assets | Accepted |
 | [0175](adr/0175-editor-insert-registry-and-lazy-menu.md) | Immutable editor insert registry, lazy header menu, and CodeMirror snippets | Accepted |
@@ -271,6 +271,8 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0182](adr/0182-reminder-syntax-and-storage-model.md) | Reminder syntax, task parsing scope, default 09:00 time, and SQLite index storage | Accepted |
 | [0183](adr/0183-rust-reminder-scheduler-and-notifications.md) | Rust reminder scheduler, device-local notification state, and background lifecycle | Accepted |
 | [0184](adr/0184-reminder-recurrence-syntax-and-completion-model.md) | Reminder recurrence syntax, due-date anchoring, and in-place completion model | Accepted |
+| [0224](adr/0224-reminders-page-notification-channels-and-scheduled-messages.md) | Reminders page (`davinci://reminders`), notification channels, OS keychain isolation, and Scheduled Messages | Accepted |
+| [0225](adr/0225-native-macos-capture-popover-and-nspanel.md) | Native macOS quick capture popover via non-activating NSPanel, Status level, and fullscreen auxiliary collection behavior | Accepted; supersedes popover window behavior of [0172](adr/0172-tray-click-to-capture-popover-and-left-click-setting.md) |
 
 ## Web Clipper (planned)
 
@@ -332,6 +334,7 @@ the list.
 | [0201](adr/0201-calendar-sqlite-cache-and-synctoken-lifecycle.md) | Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization | Accepted |
 | [0202](adr/0202-calendar-ui-shell-and-obsidian-leaf-integration.md) | Calendar UI shell: IconRail entry, lazy-loaded Obsidian CalendarLeaf, and mutually exclusive navigation state | Accepted |
 | [0203](adr/0203-calendar-reminder-alerts-and-tray-integration.md) | Calendar reminder alerts (5-minute heads-up) and menu-bar system tray upcoming meeting integration | Accepted |
+| [0223](adr/0223-google-calendar-two-way-sync-and-outbox-architecture.md) | Google Calendar two-way sync, ETag concurrency, and persistent outbox architecture | Accepted |
 
 ## Web Shell
 
@@ -348,4 +351,86 @@ the list.
 | [0204](adr/0204-davinci-cli-architecture-and-quick-capture.md) | DaVinci Notes CLI architecture: standalone Rust binary (`apps/cli`), zero-SQLite v1, 5-tier vault discovery, and atomic quick capture | Accepted |
 | [0205](adr/0205-external-editor-resolution-and-handoff.md) | External editor resolution chain (flag -> config -> $VISUAL -> $EDITOR -> nvim/vim/vi), shell-words parsing, terminal handoff, and file refresh | Accepted |
 | [0206](adr/0206-in-process-vim-mode-evaluation.md) | In-process Vim mode evaluation: retention of external handoff, rejection of edtui/tui-textarea, and feature-gating future embedded Neovim | Proposed |
->>>>>>> main
+
+## Kanban
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0208](adr/0208-obsidian-kanban-format-and-lossless-writeback.md) | Obsidian Kanban format compatibility, line-preserving round-trip, and minimal-diff write-back | Accepted |
+
+## Database Table
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0209](adr/0209-markdown-database-table-format-and-lossless-writeback.md) | Markdown database table format compatibility, lossless line-preserving round-trip, and minimal-diff row splicing | Accepted |
+
+## Bookmarks
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0210](adr/0210-bookmarks-storage-identity-and-lifecycle.md) | Bookmarks storage in `.davinci/bookmarks.json`, path-based identity, union-by-path sync merge, and lazy-loaded tab leaf | Accepted |
+
+## AI Agent
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0211](adr/0211-modality-neutral-tool-calling-and-streaming.md) | Modality-neutral Tool Calling Abstraction & Streaming Runtime in `@app/ai-api` and `@app/ai-runtime` | Accepted |
+| [0212](adr/0212-agent-safety-jail-and-untrusted-boundary.md) | Agent Safety Jail, Untrusted Data Boundary & Anti-Injection Architecture in `@app/ai-agent` | Accepted |
+| [0213](adr/0213-vault-change-ledger-and-transaction-rollback.md) | Vault Change Ledger (`.davinci/agent/history.json`) and Transaction Rollback | Accepted |
+| [0214](adr/0214-dedicated-agent-tab-and-lazy-mounting.md) | Dedicated Agent Tab (`davinci://agent`) and Lazy Subsystem Mounting | Accepted |
+| [0215](adr/0215-llm-wiki-synthesis-and-moc-architecture.md) | LLM-Wiki Synthesis Engine and Map of Content (MOC) Architecture | Accepted |
+| [0216](adr/0216-web-search-grounding-and-untrusted-content.md) | Web Search Grounding and Untrusted Content Boundaries in `@app/ai-agent` | Accepted |
+| [0217](adr/0217-google-calendar-write-scope-upgrade.md) | Google Calendar Write Scope Upgrade and Task Sync in `@app/ai-agent` | Accepted |
+| [0218](adr/0218-agent-shortcuts-and-scheduled-tasks-engine.md) | Agent Shortcuts and Scheduled Tasks Engine with Catch-Up Review | Accepted |
+| [0219](adr/0219-zero-dependency-schema-validator-for-prompt-understanding.md) | Zero-Dependency Schema Validator for Prompt Understanding in `@app/ai-agent` | Accepted |
+| [0220](adr/0220-prompt-understanding-pipeline-architecture.md) | Prompt Understanding Pipeline Architecture & Multi-Stage Execution | Accepted |
+| [0221](adr/0221-destructive-action-ui-confirmation-gate.md) | Destructive Action UI Confirmation Gate & Action Constraints in `@app/ai-agent` | Accepted |
+| [0222](adr/0222-scoped-intent-prompts-and-tool-gating.md) | Scoped Intent Prompts and Tool Gating for Weak Models in `@app/ai-agent` | Accepted |
+
+## Meeting Recorder & AI Listening
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0226](adr/0226-native-desktop-dual-channel-audio-loopback-architecture.md) | Native Desktop Dual-Channel Audio Loopback Architecture with `cpal` | Accepted |
+| [0227](adr/0227-lazy-loaded-transcription-pipeline-and-sidecar-contract.md) | Lazy-Loaded Transcription Pipeline and Sidecar Contract (Cloud + Local Whisper) | Accepted |
+| [0228](adr/0228-dedicated-ai-listening-workspace-page.md) | Dedicated AI Listening Workspace Page (`davinci://listening`) | Accepted |
+| [0229](adr/0229-non-destructive-vault-grounding-and-wikilink-suggestion-engine.md) | Non-Destructive Vault Grounding & Wikilink Suggestion Engine with SQLite FTS5 | Accepted |
+| [0230](adr/0230-meeting-note-markdown-schema-and-canonical-vault-persistence.md) | Meeting Note Markdown Schema & Canonical Vault Persistence | Accepted |
+| [0231](adr/0231-calendar-event-proximity-detection-and-note-taking-prompt.md) | Calendar Event Proximity Detection & Note-Taking Prompt | Accepted |
+
+## Git Manager
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0232](adr/0232-git-manager-phase-0-audit-and-capabilities.md) | Git Manager Phase 0 Verification Audit, System Git CLI Baseline & Capabilities | Accepted |
+| [0233](adr/0233-git-manager-settings-and-lazy-boundary.md) | Git Manager Activation Setting and Lazy-Loaded Monorepo Boundary | Accepted |
+| [0234](adr/0234-git-manager-status-engine-and-porcelain-v2.md) | Git Manager Status Engine and Porcelain v2 Parsing | Accepted |
+| [0235](adr/0235-git-manager-staging-discard-and-commits.md) | Git Manager Staging, Discard, and Commit Operations | Accepted |
+| [0236](adr/0236-git-manager-diff-viewer-and-hunk-staging.md) | Git Manager Diff Viewer and Hunk Staging | Accepted |
+| [0237](adr/0237-git-manager-history-graph-and-commit-detail.md) | Git Manager History Graph and Commit Detail | Accepted |
+| [0238](adr/0238-git-manager-branch-management-and-dirty-tree-guard.md) | Git Manager Branch Management and Dirty Tree Guard | Accepted |
+| [0239](adr/0239-git-manager-remote-sync-and-keychain-credentials.md) | Git Manager Remote Sync and Keychain Credentials | Accepted |
+| [0240](adr/0240-git-manager-conflict-resolution-and-merge-lifecycle.md) | Git Manager Conflict Resolution and Merge Lifecycle | Accepted |
+| [0241](adr/0241-git-manager-stabilization-perf-and-close-out.md) | Git Manager Stabilization, Performance Budget Verification and Close-Out | Accepted |
+
+## Release Management & Distribution
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0242](adr/0242-release-versioning-and-manifest-synchronization.md) | Release Versioning, Single Source of Truth, and Manifest Synchronization | Accepted |
+| [0243](adr/0243-multi-platform-ci-build-matrix.md) | Multi-Platform CI Build Matrix, Syncthing Pre-Fetching and Draft Release Pipeline | Accepted |
+| [0244](adr/0244-code-signing-and-notarization-architecture.md) | Code Signing, Hardened Runtime Entitlements and Notarization Architecture | Accepted |
+| [0245](adr/0245-in-app-auto-update-architecture.md) | Serverless In-App Auto-Update Architecture via Tauri Updater and GitHub Releases | Accepted |
+| [0246](adr/0246-static-website-download-architecture.md) | Static Website Download Architecture, Inline OS Detection, and Permalinks | Accepted |
+| [0247](adr/0247-release-automation-and-emergency-rollback.md) | Release Automation Harness, Idempotency and Emergency Rollback Protocol | Accepted |
+| [0248](adr/0248-community-package-managers-and-mobile-coordination.md) | Community Package Managers Distribution and Mobile Release Coordination | Accepted |
+
+
+
+
+
+
+
+
+
+

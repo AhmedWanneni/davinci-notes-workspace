@@ -121,4 +121,119 @@ describe("AppTabs", () => {
     fireEvent.click(screen.getByText("Close all"));
     expect(onCloseAllNotes).toHaveBeenCalledOnce();
   });
+
+  it("does not render dropdown icon when no tabs are open", () => {
+    render(
+      <AppTabs
+        openNotes={[]}
+        activeNotePath={null}
+        dirtyNotes={new Set()}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    expect(screen.queryByRole("button", { name: "Open tabs list" })).toBeNull();
+  });
+
+  it("renders distinct kanban icon for board tabs", () => {
+    const { container } = render(
+      <AppTabs
+        openNotes={["board.md", "regular.md"]}
+        activeNotePath="board.md"
+        dirtyNotes={new Set()}
+        boardNotes={new Set(["board.md"])}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    const tabs = container.querySelectorAll(".app-tabs__tab");
+    expect(tabs).toHaveLength(2);
+    // Tab 1 is board, tab 2 is markdown
+    expect(tabs[0].querySelector("svg")).toBeDefined();
+    expect(tabs[1].querySelector("svg")).toBeDefined();
+  });
+
+  it("renders distinct table icon for database tabs", () => {
+    const { container } = render(
+      <AppTabs
+        openNotes={["db.md", "regular.md"]}
+        activeNotePath="db.md"
+        dirtyNotes={new Set()}
+        databaseNotes={new Set(["db.md"])}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    const tabs = container.querySelectorAll(".app-tabs__tab");
+    expect(tabs).toHaveLength(2);
+    expect(tabs[0].querySelector("svg")).toBeDefined();
+    expect(tabs[1].querySelector("svg")).toBeDefined();
+  });
+
+  it("renders distinct image tab with filename and icon", () => {
+    const { container } = render(
+      <AppTabs
+        openNotes={["images/screenshot.png"]}
+        activeNotePath="images/screenshot.png"
+        dirtyNotes={new Set()}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    const tab = container.querySelector(".app-tabs__tab");
+    expect(tab).not.toBeNull();
+    expect(tab?.querySelector(".app-tabs__tab-title")?.textContent).toBe(
+      "screenshot.png",
+    );
+    expect(tab?.querySelector("svg")).toBeDefined();
+  });
+
+  it("renders distinct git diff tab with working tree label and status badge", () => {
+    const { container } = render(
+      <AppTabs
+        openNotes={[
+          "git-diff://apps/mobile/.turbo/turbo-lint.log?staged=0&status=M",
+        ]}
+        activeNotePath="git-diff://apps/mobile/.turbo/turbo-lint.log?staged=0&status=M"
+        dirtyNotes={new Set()}
+        onSelectNote={vi.fn()}
+        onCloseNote={vi.fn()}
+        isMac={false}
+      />,
+    );
+
+    const tab = container.querySelector(".app-tabs__tab");
+    expect(tab).not.toBeNull();
+    expect(tab?.querySelector(".app-tabs__tab-title")?.textContent).toBe(
+      "turbo-lint.log (Working Tree)",
+    );
+    expect(tab?.querySelector(".app-tabs__git-badge")?.textContent).toBe("M");
+  });
+
+  it("calls onCloseNote when clicking the close button on a tab", () => {
+    const onCloseNote = vi.fn();
+    render(
+      <AppTabs
+        openNotes={["notes/new-note.md"]}
+        activeNotePath="notes/new-note.md"
+        dirtyNotes={new Set()}
+        onSelectNote={vi.fn()}
+        onCloseNote={onCloseNote}
+        isMac={false}
+      />,
+    );
+
+    const closeBtn = screen.getByRole("button", { name: "Close new-note" });
+    fireEvent.click(closeBtn);
+    expect(onCloseNote).toHaveBeenCalledOnce();
+    expect(onCloseNote).toHaveBeenCalledWith("notes/new-note.md");
+  });
 });

@@ -3,19 +3,26 @@ import type { GraphIndex } from "@app/indexer";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import {
   getVaultIndexDb,
-  reconcileVaultChanges,
+  withDbLock,
+  queryFullGraphIndex,
+} from "./sqliteIndex";
+import { reconcileVaultChanges } from "./VaultIndexer";
+import {
   subscribeVaultChanges,
-  vaultWatchCoordinator,
   listNotes,
   listFolders,
   readNote,
-  withDbLock,
-  retryOnSqliteBusy,
-  diskStateTracker,
-  classifyDiskChange,
-  queryFullGraphIndex,
-} from "./index";
+} from "./vaultCommands";
+import { vaultWatchCoordinator } from "./vaultWatchCoordinator";
+import { retryOnSqliteBusy } from "./retryOnSqliteBusy";
+import { diskStateTracker } from "./diskStateTracker";
+import { classifyDiskChange } from "./classifyDiskChange";
 import { clearSaveTimer } from "../state/saveTimers";
+import {
+  BOOKMARKS_JSON_PATH,
+  parseBookmarks,
+  useBookmarkStore,
+} from "../bookmarks";
 
 export interface VaultWatcherSubscriptionOptions {
   append: (line: string) => void;
@@ -67,6 +74,25 @@ export function useVaultWatcherSubscription({
           if (!state.dirtyNotes.has(path)) {
             try {
               const file = await readNote(path);
+              const lastKnown = diskStateTracker.get(path);
+              if (
+                lastKnown &&
+                (lastKnown.content === file.content ||
+                  (lastKnown.mtime === file.mtime &&
+                    lastKnown.size === file.size))
+              ) {
+                continue;
+              }
+              const currentContent =
+                useWorkspaceStore.getState().notesContent[path];
+              if (currentContent === file.content) {
+                diskStateTracker.set(path, {
+                  mtime: file.mtime,
+                  size: file.size,
+                  content: file.content,
+                });
+                continue;
+              }
               diskStateTracker.set(path, {
                 mtime: file.mtime,
                 size: file.size,
@@ -162,6 +188,29 @@ export function useVaultWatcherSubscription({
         updateAllPaths(paths);
         updateAllFolderPaths(folders);
         incrementVaultUpdateCounter();
+
+        if (batch.changed.includes(BOOKMARKS_JSON_PATH)) {
+          try {
+            const bFile = await readNote(BOOKMARKS_JSON_PATH);
+            const parsed = parseBookmarks(bFile.content);
+            useBookmarkStore
+              .getState()
+              .mergeExternalBookmarks(parsed.bookmarks, parsed.links);
+          } catch {
+            // Ignore missing/unreadable file
+          }
+        }
+        for (const { from, to } of renamed) {
+          useBookmarkStore.getState().remapPath(from, to);
+        }
+        for (const path of removedPaths) {
+          if (!renamedFrom.has(path)) {
+            useBookmarkStore.getState().markMissing(path);
+          }
+        }
+        for (const path of batch.changed) {
+          useBookmarkStore.getState().clearMissing(path);
+        }
         try {
           const db = await getVaultIndexDb();
           const fullGraph = await withDbLock(() => queryFullGraphIndex(db));

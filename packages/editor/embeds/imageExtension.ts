@@ -9,6 +9,8 @@ import {
 } from "@codemirror/view";
 import { isYoutubeImage } from "./youtubeEmbed";
 import { isTweetImage } from "./tweetEmbed";
+import { attachImageResizeOverlay } from "./imageResizeOverlay";
+import { updateEmbedWidthInText } from "./imageResizeSyntax";
 
 export interface ImageDimensions {
   alt: string;
@@ -55,6 +57,7 @@ class ImageWidget extends WidgetType {
     readonly alt: string,
     readonly width?: number,
     readonly height?: number,
+    readonly isReadOnly?: boolean,
   ) {
     super();
   }
@@ -64,11 +67,12 @@ class ImageWidget extends WidgetType {
       this.url === other.url &&
       this.alt === other.alt &&
       this.width === other.width &&
-      this.height === other.height
+      this.height === other.height &&
+      this.isReadOnly === other.isReadOnly
     );
   }
 
-  toDOM(): HTMLElement {
+  toDOM(view: EditorView): HTMLElement {
     const container = document.createElement("span");
     container.className = "cm-image-embed";
 
@@ -99,6 +103,31 @@ class ImageWidget extends WidgetType {
     };
 
     container.appendChild(img);
+
+    const editable =
+      !this.isReadOnly && (!view || view.state.facet(EditorView.editable));
+    if (editable) {
+      attachImageResizeOverlay({
+        container,
+        image: img,
+        currentWidth: this.width,
+        currentHeight: this.height,
+        isReadOnly: !editable,
+        onCommitWidth: (newWidth) => {
+          if (!view) return;
+          const pos = view.posAtDOM(container);
+          if (pos === null || pos < 0) return;
+          const line = view.state.doc.lineAt(pos);
+          const newText = updateEmbedWidthInText(line.text, newWidth);
+          if (newText !== line.text) {
+            view.dispatch({
+              changes: { from: line.from, to: line.to, insert: newText },
+            });
+          }
+        },
+      });
+    }
+
     return container;
   }
 
@@ -116,10 +145,7 @@ export function imageExtension(options: ImageExtensionOptions = {}) {
     const builder: Range<Decoration>[] = [];
     const state = view.state;
     const isReadOnly = options.isReadOnly || !state.facet(EditorView.editable);
-
-    const activeLineNumber = !isReadOnly
-      ? state.doc.lineAt(state.selection.main.head).number
-      : -1;
+    const cursor = state.selection.main.head;
 
     for (const { from, to } of view.visibleRanges) {
       const lineStart = state.doc.lineAt(from).from;
@@ -135,8 +161,8 @@ export function imageExtension(options: ImageExtensionOptions = {}) {
 
         if (isYoutubeImage(source) || isTweetImage(source)) continue;
 
-        const line = state.doc.lineAt(start);
-        if (!isReadOnly && line.number === activeLineNumber) {
+        const isCursorInside = !isReadOnly && cursor > start && cursor < end;
+        if (isCursorInside) {
           continue;
         }
 
@@ -145,7 +171,7 @@ export function imageExtension(options: ImageExtensionOptions = {}) {
 
         builder.push(
           Decoration.replace({
-            widget: new ImageWidget(url, alt, width, height),
+            widget: new ImageWidget(url, alt, width, height, isReadOnly),
           }).range(start, end),
         );
       }

@@ -84,7 +84,7 @@ export function SyncthingQrPairingSection({
       </div>
 
       <p className={styles["qr-caption"]}>
-        Scan with DaVinci Notes on your phone to automatically pair and synchronize your vault.
+        Scan with Sophia on your phone to automatically pair and synchronize your vault.
       </p>
     </div>
   );

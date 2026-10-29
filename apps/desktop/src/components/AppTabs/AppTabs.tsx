@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Plus,
-  SidebarSimple,
-  FileText,
-  FrameCorners,
-  X,
-} from "@phosphor-icons/react";
+import { Plus, SidebarSimple } from "@phosphor-icons/react";
 import { Tooltip } from "@app/design-system";
 import {
   getPlatformAdapters,
@@ -13,12 +7,15 @@ import {
 } from "@app/platform-adapters";
 import { WindowControls } from "../WindowControls";
 import { TabListDropdown } from "./TabListDropdown";
+import { AppTabItem } from "./AppTabItem";
 
 export interface AppTabsProps {
   openNotes: string[];
   activeNotePath: string | null;
   dirtyNotes: Set<string>;
   conflictNotes?: Map<string, string>;
+  boardNotes?: Set<string>;
+  databaseNotes?: Set<string>;
   onSelectNote: (path: string) => void;
   onCloseNote: (path: string) => void;
   onCloseAllNotes?: () => void;
@@ -36,6 +33,8 @@ export function AppTabs({
   activeNotePath,
   dirtyNotes,
   conflictNotes,
+  boardNotes,
+  databaseNotes,
   onSelectNote,
   onCloseNote,
   onCloseAllNotes,
@@ -96,98 +95,24 @@ export function AppTabs({
 
       <div className="app-tabs__strip" ref={tabStripRef}>
         {openNotes.map((path) => {
-          const isCanvas = path.endsWith(".canvas");
-          const displayTitle =
-            path
-              .replace(/\.(md|canvas)$/i, "")
-              .split("/")
-              .pop() ?? path;
           const isActive = activeNotePath === path;
-          const isDirty = dirtyNotes.has(path);
-          const hasConflict = conflictNotes?.has(path) ?? false;
+          const isVirtual =
+            path.startsWith("davinci://") || path.startsWith("git-diff://");
+          const isDirty = !isVirtual && dirtyNotes.has(path);
+          const hasConflict = !isVirtual && (conflictNotes?.has(path) ?? false);
+
           return (
-            <div
+            <AppTabItem
               key={path}
-              className="app-tabs__tab"
-              role="tab"
-              tabIndex={0}
-              aria-selected={isActive}
-              data-active={isActive || undefined}
-              data-tab-path={path}
-              onClick={() => handleSelectNote(path)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  handleSelectNote(path);
-                }
-              }}
-              title={path}
-            >
-              {isActive && (
-                <>
-                  <svg
-                    className="app-tabs__tab-curve app-tabs__tab-curve--left"
-                    viewBox="0 0 6 6"
-                    width="6"
-                    height="6"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M 6,0 A 6,6 0 0,0 0,6 L 6,6 Z"
-                      className="app-tabs__tab-curve-fill"
-                    />
-                    <path
-                      d="M 6,0 A 6,6 0 0,0 0,6"
-                      className="app-tabs__tab-curve-stroke"
-                    />
-                  </svg>
-                  <svg
-                    className="app-tabs__tab-curve app-tabs__tab-curve--right"
-                    viewBox="0 0 6 6"
-                    width="6"
-                    height="6"
-                    aria-hidden="true"
-                  >
-                    <path
-                      d="M 0,0 A 6,6 0 0,1 6,6 L 0,6 Z"
-                      className="app-tabs__tab-curve-fill"
-                    />
-                    <path
-                      d="M 0,0 A 6,6 0 0,1 6,6"
-                      className="app-tabs__tab-curve-stroke"
-                    />
-                  </svg>
-                </>
-              )}
-              <span className="app-tabs__tab-icon" aria-hidden="true">
-                {isCanvas ? (
-                  <FrameCorners size={13} weight="regular" />
-                ) : (
-                  <FileText size={13} weight="regular" />
-                )}
-              </span>
-              <span className="app-tabs__tab-title">{displayTitle}</span>
-              {hasConflict ? (
-                <span
-                  className="app-tabs__conflict-dot"
-                  title="Disk conflict"
-                  aria-label="Disk conflict"
-                />
-              ) : (
-                isDirty && <span className="app-tabs__dirty-dot" />
-              )}
-              <button
-                type="button"
-                className="app-tabs__close"
-                aria-label={`Close ${displayTitle}`}
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation();
-                  onCloseNote(path);
-                }}
-              >
-                <X size={16} weight="regular" />
-              </button>
-            </div>
+              path={path}
+              isActive={isActive}
+              isDirty={isDirty}
+              hasConflict={hasConflict}
+              isBoard={boardNotes?.has(path)}
+              isDatabase={databaseNotes?.has(path)}
+              onSelect={handleSelectNote}
+              onClose={onCloseNote}
+            />
           );
         })}
 
@@ -215,12 +140,14 @@ export function AppTabs({
       </div>
 
       <div className="app-tabs__actions">
-        <TabListDropdown
-          openNotes={openNotes}
-          activeNotePath={activeNotePath}
-          onSelectNote={handleSelectNote}
-          onCloseAllNotes={onCloseAllNotes}
-        />
+        {openNotes.length > 0 && (
+          <TabListDropdown
+            openNotes={openNotes}
+            activeNotePath={activeNotePath}
+            onSelectNote={handleSelectNote}
+            onCloseAllNotes={onCloseAllNotes}
+          />
+        )}
 
         {onToggleRightSidebar && (
           <Tooltip

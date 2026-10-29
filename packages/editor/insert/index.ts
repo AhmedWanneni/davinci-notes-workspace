@@ -11,7 +11,11 @@ export type {
 export { insertRegistry, findInsertItem } from "./InsertRegistry";
 export { loadInsertRegistry } from "./loadInsertRegistry";
 export { insertItem } from "./InsertAction";
-export { slashMenuSource, isSlashMenuTrigger } from "./SlashMenu";
+export {
+  slashMenuSource,
+  isSlashMenuTrigger,
+  slashMenuAddToOptions,
+} from "./SlashMenu";
 export {
   getRecentInsertIds,
   recordRecentInsert,

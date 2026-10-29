@@ -4,6 +4,9 @@ const sharedAnnotations = {
   ".cm-blockquote-line": {
     borderLeft: "var(--border-width-thick) solid var(--color-text-accent)",
     paddingLeft: "var(--space-3)",
+    paddingTop: "var(--space-1)",
+    paddingBottom: "var(--space-1)",
+    backgroundColor: "var(--color-bg-surface)",
   },
   ".cm-heading-line": {
     paddingTop: "var(--space-2)",

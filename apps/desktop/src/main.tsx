@@ -8,6 +8,7 @@ import {
 import "@app/design-system/styles/_global.scss";
 import "./styles/_main.scss";
 import { createDesktopPlatformAdapters } from "./adapters";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { App } from "./App";
 
 const isTauri =
@@ -25,8 +26,10 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <TooltipProvider delayDuration={300}>
-      <App />
-    </TooltipProvider>
+    <AppErrorBoundary>
+      <TooltipProvider delayDuration={300}>
+        <App />
+      </TooltipProvider>
+    </AppErrorBoundary>
   </StrictMode>,
 );

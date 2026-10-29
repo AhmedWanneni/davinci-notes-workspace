@@ -23,6 +23,7 @@ export function useCanvasPersistence({
   setNodes,
   setEdges,
 }: UseCanvasPersistenceOptions) {
+  const lastPathRef = useRef<string | undefined>(path);
   const lastSerializedRef = useRef<string | null>(initialContent ?? null);
   const edgesRef = useRef<Edge[]>([]);
 
@@ -51,8 +52,14 @@ export function useCanvasPersistence({
   );
 
   useEffect(() => {
+    const isNewPath = path !== lastPathRef.current;
+    if (isNewPath) {
+      lastPathRef.current = path;
+      lastSerializedRef.current = null;
+    }
+
     const incoming = initialContent ?? "";
-    if (incoming === lastSerializedRef.current) return;
+    if (!isNewPath && incoming === lastSerializedRef.current) return;
 
     try {
       const parsed = parseCanvas(incoming);
@@ -64,7 +71,7 @@ export function useCanvasPersistence({
       setNodes([]);
       setEdgesWithRef([]);
     }
-  }, [initialContent, setEdgesWithRef, setNodes, lastSerializedRef]);
+  }, [initialContent, path, setEdgesWithRef, setNodes]);
 
   return { persistCanvas, edgesRef, setEdgesWithRef, lastSerializedRef };
 }

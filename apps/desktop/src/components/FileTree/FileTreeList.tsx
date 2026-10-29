@@ -3,6 +3,7 @@ import type { Virtualizer } from "@tanstack/react-virtual";
 import { getMappedIcon } from "../../icons/iconMap";
 import { FileTreeRow } from "./FileTreeRow";
 import type { FlatTreeNode } from "./tree-utils";
+import { useBookmarks } from "../../bookmarks";
 
 export interface FileTreeListProps {
   parentRef: RefObject<HTMLDivElement | null>;
@@ -69,6 +70,7 @@ export function FileTreeList({
   hasRenameNote,
   hasRenameFolder,
 }: FileTreeListProps) {
+  const { isBookmarked } = useBookmarks();
   return (
     <div
       className="file-tree"
@@ -101,6 +103,7 @@ export function FileTreeList({
               height={virtualItem.size}
               isActive={isFile && item.node.path === activePath}
               isDirty={isFile && dirtyPaths.has(item.node.path)}
+              isBookmarked={isFile && isBookmarked(item.node.path)}
               icon={getMappedIcon(icons, item.node.path) ?? undefined}
               isDragging={item.node.path === draggedPath}
               isDropTarget={isFolder && item.node.path === dropTargetFolder}

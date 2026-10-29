@@ -1,7 +1,8 @@
-import styles from "./QuickCapture.module.scss";
+import type { QuickCaptureMode } from "./QuickCaptureHeader";
+import styles from "./QuickCaptureHints.module.scss";
 
 export interface QuickCaptureHintsProps {
-  mode: "capture" | "search";
+  mode: QuickCaptureMode;
 }
 
 export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
@@ -13,10 +14,36 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
             <kbd className={styles["quick-capture-kbd"]}>⌘S</kbd> Save
           </span>
           <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>⌘R</kbd> Record
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>Tab</kbd> Options
           </span>
           <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>⌘K</kbd> Search
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
+          </span>
+        </>
+      ) : mode === "reminder" ? (
+        <>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>⌘S/⏎</kbd> Save
+            reminder
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
+          </span>
+        </>
+      ) : mode === "record" ? (
+        <>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>Space</kbd>{" "}
+            Record/Pause
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>⌘S</kbd> Save note
           </span>
           <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit

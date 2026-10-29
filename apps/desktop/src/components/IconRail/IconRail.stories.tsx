@@ -16,7 +16,11 @@ const meta = {
     onCreateCanvas: () => {},
     onOpenReminders: () => {},
     onOpenCalendar: () => {},
+    onOpenAgent: () => {},
+    onOpenAskVault: () => {},
     isCalendarOpen: false,
+    isAgentOpen: false,
+    isAskVaultOpen: false,
   },
 } satisfies Meta<typeof IconRail>;
 

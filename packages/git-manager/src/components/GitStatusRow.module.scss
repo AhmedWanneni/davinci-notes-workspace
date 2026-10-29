@@ -1,0 +1,100 @@
+.git-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: 4px var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-normal);
+  transition: background-color 0.1s ease;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+
+    .git-status-row__actions {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+}
+
+.git-status-row__info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  overflow: hidden;
+  flex: 1;
+}
+
+.git-status-row__icon {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.git-status-row__filename {
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-status-row__directory {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 2px;
+}
+
+.git-status-row__trailing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.git-status-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.1s ease;
+}
+
+.git-status-row__badge {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0 4px;
+  border-radius: 2px;
+  text-align: center;
+  min-width: 14px;
+
+  &[data-status="M"] {
+    color: #e5a50a;
+  }
+
+  &[data-status="A"],
+  &[data-status="?"] {
+    color: #3fb950;
+  }
+
+  &[data-status="D"] {
+    color: #f85149;
+  }
+
+  &[data-status="R"],
+  &[data-status="C"] {
+    color: #58a6ff;
+  }
+
+  &[data-status="U"] {
+    color: #d29922;
+  }
+}

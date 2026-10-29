@@ -148,7 +148,7 @@ pub fn find_popover_position(
   // Read the real window size at placement time, falling back to default geometry if not yet created.
   let win_size = window
     .and_then(|w| w.outer_size().ok())
-    .unwrap_or_else(|| PhysicalSize::new((640.0 * scale).round() as u32, (340.0 * scale).round() as u32));
+    .unwrap_or_else(|| PhysicalSize::new((780.0 * scale).round() as u32, (520.0 * scale).round() as u32));
 
   let icon_bounds = TrayIconBounds {
     x: icon_pos.x,

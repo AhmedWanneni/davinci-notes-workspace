@@ -1,0 +1,97 @@
+.git-commit-detail-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-primary);
+  color: var(--color-text-normal);
+  overflow: hidden;
+}
+
+.git-commit-detail-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+}
+
+.git-commit-detail-sheet__hash {
+  font-family: var(--font-mono);
+  font-size: var(--type-scale-xs);
+  font-weight: 600;
+  color: var(--color-text-accent);
+}
+
+.git-commit-detail-sheet__body {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.git-commit-detail-sheet__meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+}
+
+.git-commit-detail-sheet__message {
+  font-size: var(--type-scale-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  padding: var(--space-2);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.git-commit-detail-sheet__files-title {
+  font-size: var(--type-scale-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.git-commit-detail-sheet__file-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-scale-xs);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-bg-hover);
+  }
+}
+
+.git-commit-detail-sheet__file-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.git-commit-detail-sheet__file-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.git-commit-detail-sheet__stat-add {
+  color: var(--color-text-success);
+}
+
+.git-commit-detail-sheet__stat-del {
+  color: var(--color-text-error);
+}

@@ -1,0 +1,65 @@
+.git-changes-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+}
+
+.git-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.git-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--type-scale-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    color: var(--color-text-normal);
+  }
+}
+
+.git-section__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.git-section__count {
+  font-family: var(--font-mono);
+  font-size: var(--type-scale-xs);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+.git-section__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.git-section__items {
+  display: flex;
+  flex-direction: column;
+}
+
+.git-section--conflicts {
+  .git-section__header {
+    color: var(--color-text-error);
+  }
+  .git-section__count {
+    background: var(--color-bg-status-error);
+    color: var(--color-text-error);
+  }
+}

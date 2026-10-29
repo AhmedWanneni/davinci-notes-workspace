@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { FileTreeEmojiSkeleton } from "./FileTreeEmojiSkeleton";
 import { getEmojiPopoverPosition } from "./getEmojiPopoverPosition";
 
 const LazyEmojiPicker = lazy(() =>
@@ -51,7 +52,24 @@ export function FileTreeEmojiPopover({
       className="file-tree__emoji-popover"
       style={getEmojiPopoverPosition(x, y)}
     >
-      <Suspense fallback={<span>Loading emoji…</span>}>
+      <Suspense
+        fallback={
+          <div className="file-tree__emoji-picker">
+            <div className="file-tree__emoji-picker-header">
+              <span className="file-tree__emoji-tab" />
+              <span className="file-tree__emoji-close" />
+            </div>
+            <div className="file-tree__emoji-search-row">
+              <div className="file-tree__emoji-search-wrap">
+                <span className="file-tree__emoji-search" />
+              </div>
+            </div>
+            <div className="file-tree__emoji-viewport">
+              <FileTreeEmojiSkeleton />
+            </div>
+          </div>
+        }
+      >
         <LazyEmojiPicker onClose={onClose} onSelect={onSelect} />
       </Suspense>
     </div>,

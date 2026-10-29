@@ -252,4 +252,20 @@ describe("ClipPopup", () => {
     render(<ClipPopup controller={controller({ downloading: true })} />);
     expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
   });
+
+  it("renders Bookmark in DaVinci Notes CTA and hides template picker in bookmark mode", () => {
+    render(
+      <ClipPopup
+        controller={controller({
+          mode: "bookmark",
+          paired: true,
+          payload: { ...PAYLOAD, mode: "bookmark" },
+        })}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Bookmark in DaVinci Notes" }),
+    ).toBeEnabled();
+    expect(screen.queryByLabelText("Template")).toBeNull();
+  });
 });

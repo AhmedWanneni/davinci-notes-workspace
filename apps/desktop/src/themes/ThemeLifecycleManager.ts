@@ -48,12 +48,16 @@ export class ThemeLifecycleManager {
               style.getAttribute(THEME_STYLE_ATTRIBUTE) === savedThemeId,
           ) ?? null)
         : null;
-    if (savedThemeId && this.themes.has(savedThemeId) && cachedStyle) {
-      this.activeThemeId = savedThemeId;
-      this.activeStyle = cachedStyle;
-    } else if (savedThemeId && this.themes.has(savedThemeId))
-      await this.activateTheme(savedThemeId, false);
-    else {
+    if (savedThemeId && this.themes.has(savedThemeId)) {
+      if (savedTheme?.source === "builtin") {
+        await this.activateTheme(savedThemeId, true);
+      } else if (cachedStyle) {
+        this.activeThemeId = savedThemeId;
+        this.activeStyle = cachedStyle;
+      } else {
+        await this.activateTheme(savedThemeId, false);
+      }
+    } else {
       this.removeThemeStyles();
       await this.activateTheme(null, false);
     }

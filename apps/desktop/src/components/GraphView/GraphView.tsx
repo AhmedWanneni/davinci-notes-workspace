@@ -14,23 +14,23 @@ export interface GraphViewProps {
 
 const GLOBAL_NODE_LIMIT = 200;
 
+export function getNodeRadius(degree: number): number {
+  return Math.min(9, Math.max(4, 3.8 + Math.sqrt(degree) * 1.5));
+}
+
 export const GraphView: React.FC<GraphViewProps> = ({
   graph,
   defaultMode = "local",
   onNavigate,
 }) => {
   const [mode, setMode] = useState<"local" | "global">(defaultMode);
-
   const activeNotePath = useWorkspaceStore((state) => state.activeNotePath);
 
   const { nodes, edges } = useMemo(() => {
     let filteredNodes = new Set<string>();
 
     if (mode === "local" && activeNotePath) {
-      // Local graph: active note + direct connections
       filteredNodes.add(activeNotePath);
-
-      // Add outlinks (edges where source is activeNotePath)
       for (const edge of graph.edges) {
         if (edge.source === activeNotePath) {
           filteredNodes.add(edge.target);
@@ -38,46 +38,46 @@ export const GraphView: React.FC<GraphViewProps> = ({
           filteredNodes.add(edge.source);
         }
       }
-    } else if (mode === "global" || (mode === "local" && !activeNotePath)) {
-      // Global graph: limit nodes to prevent SVG choking
+    } else {
       const degrees = new Map<string, number>();
-
       for (const edge of graph.edges) {
         degrees.set(edge.source, (degrees.get(edge.source) ?? 0) + 1);
         degrees.set(edge.target, (degrees.get(edge.target) ?? 0) + 1);
       }
 
-      // Sort nodes by degree descending
       const sortedNodeIds = Array.from(graph.nodes.keys()).sort(
         (a, b) => (degrees.get(b) ?? 0) - (degrees.get(a) ?? 0),
       );
 
-      // Take top N
-      const topNodes = sortedNodeIds.slice(0, GLOBAL_NODE_LIMIT);
-      filteredNodes = new Set(topNodes);
+      filteredNodes = new Set(sortedNodeIds.slice(0, GLOBAL_NODE_LIMIT));
     }
 
-    // Build the final arrays for D3
-    const simNodes: SimNode[] = [];
     const simEdges: SimEdge[] = [];
-
-    for (const nodeId of filteredNodes) {
-      const originalNode = graph.nodes.get(nodeId);
-      if (originalNode) {
-        simNodes.push({ id: originalNode.id, label: originalNode.label });
-      } else {
-        // Fallback for missing nodes in the map
-        simNodes.push({
-          id: nodeId,
-          label: nodeId.replace(/\.md$/i, "").split("/").pop() ?? nodeId,
-        });
-      }
-    }
+    const degreeMap = new Map<string, number>();
 
     for (const edge of graph.edges) {
       if (filteredNodes.has(edge.source) && filteredNodes.has(edge.target)) {
         simEdges.push({ source: edge.source, target: edge.target });
+        degreeMap.set(edge.source, (degreeMap.get(edge.source) ?? 0) + 1);
+        degreeMap.set(edge.target, (degreeMap.get(edge.target) ?? 0) + 1);
       }
+    }
+
+    const simNodes: SimNode[] = [];
+    for (const nodeId of filteredNodes) {
+      const originalNode = graph.nodes.get(nodeId);
+      const degree = degreeMap.get(nodeId) ?? 0;
+      const label =
+        originalNode?.label ??
+        nodeId.replace(/\.md$/i, "").split("/").pop() ??
+        nodeId;
+
+      simNodes.push({
+        id: nodeId,
+        label,
+        degree,
+        radius: getNodeRadius(degree),
+      });
     }
 
     return { nodes: simNodes, edges: simEdges };
@@ -90,6 +90,18 @@ export const GraphView: React.FC<GraphViewProps> = ({
       useWorkspaceStore.getState().openNote(nodeId);
     }
   };
+
+  const modeControl = (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setMode(mode === "local" ? "global" : "local")}
+      title={mode === "local" ? "Switch to Global Graph" : "Switch to Local Graph"}
+      aria-label={mode === "local" ? "Switch to Global Graph" : "Switch to Local Graph"}
+    >
+      <ShareNetwork size={16} />
+    </Button>
+  );
 
   return (
     <div className="graph-view">
@@ -115,17 +127,9 @@ export const GraphView: React.FC<GraphViewProps> = ({
           edges={edges}
           activeNodeId={activeNotePath}
           onNodeClick={handleNodeClick}
+          modeControl={modeControl}
         />
       )}
-      <div className="graph-view__controls">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setMode(mode === "local" ? "global" : "local")}
-        >
-          {mode === "local" ? "Show Global Graph" : "Show Local Graph"}
-        </Button>
-      </div>
     </div>
   );
 };

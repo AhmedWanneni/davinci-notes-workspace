@@ -1,8 +1,10 @@
-import styles from "./QuickCapture.module.scss";
+import styles from "./QuickCaptureHeader.module.scss";
+
+export type QuickCaptureMode = "capture" | "reminder" | "record" | "search";
 
 export interface QuickCaptureHeaderProps {
-  mode: "capture" | "search";
-  onModeChange: (mode: "capture" | "search") => void;
+  mode: QuickCaptureMode;
+  onModeChange: (mode: QuickCaptureMode) => void;
   charCount: number;
   maxChars: number;
   selectedIndex: number;
@@ -38,6 +40,28 @@ export function QuickCaptureHeader({
         <button
           type="button"
           role="tab"
+          aria-selected={mode === "reminder"}
+          className={`${styles["quick-capture-tab-btn"]} ${
+            mode === "reminder" ? styles["is-active"] : ""
+          }`}
+          onClick={() => onModeChange("reminder")}
+        >
+          Reminder
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "record"}
+          className={`${styles["quick-capture-tab-btn"]} ${
+            mode === "record" ? styles["is-active"] : ""
+          }`}
+          onClick={() => onModeChange("record")}
+        >
+          🎙️ Record
+        </button>
+        <button
+          type="button"
+          role="tab"
           aria-selected={mode === "search"}
           className={`${styles["quick-capture-tab-btn"]} ${
             mode === "search" ? styles["is-active"] : ""
@@ -56,6 +80,10 @@ export function QuickCaptureHeader({
           >
             {charCount} / {maxChars}
           </span>
+        ) : mode === "reminder" ? (
+          <span className={styles["quick-capture-counter"]}>Add reminder</span>
+        ) : mode === "record" ? (
+          <span className={styles["quick-capture-counter"]}>Voice record</span>
         ) : (
           <span className={styles["quick-capture-counter"]}>
             {resultCount > 0 ? `${selectedIndex + 1} of ${resultCount}` : ""}

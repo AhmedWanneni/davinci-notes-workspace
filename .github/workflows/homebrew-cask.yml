@@ -1,0 +1,80 @@
+name: Update Homebrew Cask
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to update (e.g. v0.2.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  update-cask:
+    name: Update Homebrew Formula
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Determine release version
+        id: vars
+        run: |
+          RAW_VER="${{ github.event.inputs.version || github.event.release.tag_name }}"
+          CLEAN_VER="${RAW_VER#v}"
+          echo "version=${CLEAN_VER}" >> $GITHUB_OUTPUT
+          echo "tag=${RAW_VER}" >> $GITHUB_OUTPUT
+
+      - name: Compute sha256 checksums
+        id: hashes
+        run: |
+          TAG="${{ steps.vars.outputs.tag }}"
+          VER="${{ steps.vars.outputs.version }}"
+          ARM_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/Sophia_${TAG}_aarch64.dmg"
+          INTEL_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}/Sophia_${TAG}_x64.dmg"
+
+          echo "Fetching ARM DMG hash..."
+          ARM_HASH=$(curl -sL "$ARM_URL" | sha256sum | awk '{print $1}')
+          echo "arm_sha256=${ARM_HASH}" >> $GITHUB_OUTPUT
+
+          echo "Fetching Intel DMG hash..."
+          INTEL_HASH=$(curl -sL "$INTEL_URL" | sha256sum | awk '{print $1}')
+          echo "intel_sha256=${INTEL_HASH}" >> $GITHUB_OUTPUT
+
+      - name: Output Homebrew Cask Definition
+        run: |
+          cat <<EOF > davinci-notes.rb
+          cask "davinci-notes" do
+            version "${{ steps.vars.outputs.version }}"
+
+            arch arm: "aarch64", intel: "x64"
+            sha256 arm:   "${{ steps.hashes.outputs.arm_sha256 }}",
+                   intel: "${{ steps.hashes.outputs.intel_sha256 }}"
+
+            url "https://github.com/${{ github.repository }}/releases/download/v#{version}/Sophia_v#{version}_#{arch}.dmg"
+            name "DaVinci Notes"
+            desc "Local-first, private knowledge base and notes app"
+            homepage "https://github.com/${{ github.repository }}"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :big_sur"
+
+            app "DaVinci Notes.app"
+
+            zap trash: [
+              "~/Library/Application Support/com.sophia.notes",
+              "~/Library/Caches/com.sophia.notes",
+              "~/Library/Preferences/com.sophia.notes.plist",
+            ]
+          end
+          EOF
+          echo "Generated cask formula:"
+          cat davinci-notes.rb

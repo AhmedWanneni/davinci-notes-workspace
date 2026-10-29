@@ -1,0 +1,59 @@
+.sync-status-btn {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-bg-hover);
+    color: var(--color-text-normal);
+  }
+
+  &:focus-visible {
+    outline: var(--border-width-thin) solid var(--color-border-focus);
+    outline-offset: -1px;
+  }
+
+  &[data-state="synced"] {
+    color: var(--color-text-success);
+  }
+
+  &[data-state="syncing"] {
+    color: var(--color-text-accent);
+    cursor: default;
+  }
+
+  &[data-state="error"] {
+    color: var(--color-text-warning);
+  }
+
+  &[data-state="disconnected"] {
+    color: var(--color-text-muted);
+    opacity: 0.75;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
+.sync-status-btn__spinner {
+  animation: sync-status-spin 1s linear infinite;
+}
+
+@keyframes sync-status-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

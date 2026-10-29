@@ -1,0 +1,114 @@
+.schedule-x-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-normal);
+  font-family: var(--font-sans);
+
+  /* Override Schedule-X default theme variables with DaVinci tokens */
+  --sx-font-family: var(--font-sans);
+  --sx-color-primary: var(--color-interactive-accent);
+  --sx-color-on-primary: var(--color-text-on-accent);
+  --sx-color-primary-container: var(--color-bg-secondary);
+  --sx-color-on-primary-container: var(--color-text-normal);
+  --sx-color-surface: var(--color-bg-primary);
+  --sx-color-surface-dim: var(--color-bg-secondary);
+  --sx-color-surface-container: var(--color-bg-secondary);
+  --sx-color-surface-container-low: var(--color-bg-primary);
+  --sx-color-surface-container-high: var(--color-bg-secondary);
+  --sx-color-on-surface: var(--color-text-normal);
+  --sx-color-outline: var(--color-border-normal);
+  --sx-color-outline-variant: var(--color-border-normal);
+  --sx-color-neutral: var(--color-text-muted);
+  --sx-color-neutral-variant: var(--color-text-muted);
+  --sx-border: var(--border-width-thin) solid var(--color-border-normal);
+  --sx-box-shadow: none;
+  --sx-rounding-extra-small: var(--border-radius-sm);
+  --sx-rounding-small: var(--border-radius-sm);
+  --sx-rounding-medium: var(--border-radius-sm);
+
+  :global(.sx-react-calendar-wrapper) {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  :global(.sx__calendar-wrapper) {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-normal);
+    box-shadow: none;
+    font-family: var(--font-sans);
+  }
+
+  /* Hide Schedule-X's built-in header because CalendarToolbar is our single top bar */
+  :global(.sx__calendar-header) {
+    display: none;
+  }
+
+  :global(.sx__view-container) {
+    flex: 1;
+    min-height: 0;
+    background-color: var(--color-bg-primary);
+  }
+
+  :global(.sx__month-grid-wrapper),
+  :global(.sx__week-wrapper) {
+    background-color: var(--color-bg-primary);
+    border-color: var(--color-border-normal);
+  }
+
+  :global(.sx__month-grid-day) {
+    border-color: var(--color-border-normal);
+    background-color: var(--color-bg-primary);
+    transition: background-color 0.12s ease;
+
+    &:hover {
+      background-color: var(--color-bg-secondary);
+    }
+  }
+
+  :global(.sx__month-grid-day__header-day-name) {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+  }
+
+  :global(.sx__month-grid-day__header-date) {
+    font-size: var(--font-size-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-normal);
+    border-radius: var(--border-radius-sm);
+
+    &:global(.sx__is-today) {
+      background-color: var(--color-interactive-accent);
+      color: var(--color-text-on-accent);
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+
+  :global(.sx__event) {
+    border: var(--border-width-thin) solid var(--color-border-normal);
+    border-left-width: var(--space-1);
+    border-radius: var(--border-radius-sm);
+    box-shadow: none;
+    font-size: var(--font-size-xs);
+    font-family: var(--font-sans);
+    cursor: pointer;
+  }
+}
