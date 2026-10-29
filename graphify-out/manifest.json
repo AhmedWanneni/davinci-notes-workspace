@@ -7895,8 +7895,8 @@
     "semantic_hash": "2ade840e30624bed7f888bc5d2a79394"
   },
   "apps/website/.astro/content.d.ts": {
-    "mtime": 1793293832.62972,
-    "seen": 1793294971.352294,
+    "mtime": 1793298050.3525295,
+    "seen": 1793298279.157803,
     "ast_hash": "4aaaf7e07990466432e5a0fcf9b2e58c",
     "semantic_hash": "4aaaf7e07990466432e5a0fcf9b2e58c"
   },
@@ -7915,10 +7915,10 @@
     "ast_empty": true
   },
   "apps/website/.astro/types.d.ts": {
-    "mtime": 1793294045.5012858,
-    "seen": 1793294971.3523479,
-    "ast_hash": "72c584e3bd8b5f007b2beb870517b437",
-    "semantic_hash": "72c584e3bd8b5f007b2beb870517b437"
+    "mtime": 1793298050.352883,
+    "seen": 1793298279.1579258,
+    "ast_hash": "f3d48b2aa569815a445d3509aa161559",
+    "semantic_hash": ""
   },
   "apps/website/astro.config.mjs": {
     "mtime": 1792835118.8386216,
@@ -8065,10 +8065,10 @@
     "semantic_hash": "047f811b50533c228cd4de8e2d7345ef"
   },
   "apps/website/src/pages/download/index.astro": {
-    "mtime": 1793293652.344058,
-    "seen": 1793294971.353685,
-    "ast_hash": "d6795eb8662bbaa5cb36d5e5a3bd4057",
-    "semantic_hash": "d6795eb8662bbaa5cb36d5e5a3bd4057"
+    "mtime": 1793298029.4345305,
+    "seen": 1793298279.159366,
+    "ast_hash": "c28359219e7c7dff49a3a2f1938b1a54",
+    "semantic_hash": ""
   },
   "apps/website/src/pages/download/linux.astro": {
     "mtime": 1793293681.161918,
@@ -12862,16 +12862,16 @@
     "semantic_hash": "b1eeaf7e910ff808d584d90d2e2f8b13"
   },
   "scripts/release/release.sh": {
-    "mtime": 1793293720.9163551,
-    "seen": 1793294971.3900611,
-    "ast_hash": "cc0b19fcbdf30d59ab570b5b6c2a40f7",
-    "semantic_hash": "cc0b19fcbdf30d59ab570b5b6c2a40f7"
+    "mtime": 1793297929.2008803,
+    "seen": 1793298279.1991198,
+    "ast_hash": "5fc12266d582d6421de265eaf24457ad",
+    "semantic_hash": ""
   },
   "scripts/release/rollback.sh": {
-    "mtime": 1793293729.1895323,
-    "seen": 1793294971.390111,
-    "ast_hash": "220e04e3e832f033dd19fa4673350fe1",
-    "semantic_hash": "220e04e3e832f033dd19fa4673350fe1"
+    "mtime": 1793298079.8986902,
+    "seen": 1793298279.199122,
+    "ast_hash": "9164a36325890c80a065f49e4aaa9cc8",
+    "semantic_hash": ""
   },
   "scripts/release/verify-artifacts.sh": {
     "mtime": 1793292992.9667726,
@@ -13247,15 +13247,15 @@
     "semantic_hash": ""
   },
   ".github/PULL_REQUEST_TEMPLATE.md": {
-    "mtime": 1792835118.4333677,
-    "seen": 1793295459.9445791,
-    "ast_hash": "faf6f2dcb27c1edabfa2a838fd683dad",
+    "mtime": 1793295924.563001,
+    "seen": 1793298279.201874,
+    "ast_hash": "cb2f00cb5de1e0b2025186cea46e91c2",
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1792835118.443689,
-    "seen": 1793295459.94458,
-    "ast_hash": "1771c38fbf906ae44690c3ac84c0ebc0",
+    "mtime": 1793298131.7447572,
+    "seen": 1793298279.2018769,
+    "ast_hash": "ccb9b21b0f4b30726fc6cf83fe324d95",
     "semantic_hash": ""
   },
   "CONTRIBUTING.md": {
@@ -13265,15 +13265,15 @@
     "semantic_hash": ""
   },
   "DECISIONS.md": {
-    "mtime": 1793293819.269266,
-    "seen": 1793295459.944583,
-    "ast_hash": "bdc2126fa44d1f1a0023974c7c565226",
+    "mtime": 1793298176.2312362,
+    "seen": 1793298279.201919,
+    "ast_hash": "8876e9ee801bfd74dedc6c0ec61283f5",
     "semantic_hash": ""
   },
   "GEMINI.md": {
-    "mtime": 1793294903.456891,
-    "seen": 1793295459.944584,
-    "ast_hash": "67d88e9d0760c3ba54c75dfd9551c1c5",
+    "mtime": 1793295908.2516441,
+    "seen": 1793298279.201921,
+    "ast_hash": "a81aafa0aa0058f99d1a9e1167307b13",
     "semantic_hash": ""
   },
   "LICENSES.md": {
@@ -13289,9 +13289,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793293870.6284504,
-    "seen": 1793295459.944587,
-    "ast_hash": "97d7e03ea46528ab54dcffce2d71753f",
+    "mtime": 1793296578.6368484,
+    "seen": 1793298279.201997,
+    "ast_hash": "631919c0587f938c3d3e5a7d6c80ee28",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13367,9 +13367,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793291640.472294,
-    "seen": 1793295459.944602,
-    "ast_hash": "d10fc862d0fc3c7a67bc8c2e64e43768",
+    "mtime": 1793295996.9037292,
+    "seen": 1793298279.202581,
+    "ast_hash": "ebc2c270aa09d784c39ee7cacc04ff6c",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -14993,9 +14993,9 @@
     "semantic_hash": ""
   },
   "docs/architecture/git-workflow.md": {
-    "mtime": 1792835118.8680596,
-    "seen": 1793295459.944928,
-    "ast_hash": "07a4d6c5dfd5328ccff4e1ef9448b5a3",
+    "mtime": 1793295951.1758556,
+    "seen": 1793298279.2150981,
+    "ast_hash": "79a1b1e1450a890f81d57fa8e3f8dcb6",
     "semantic_hash": ""
   },
   "docs/architecture/mobile-architecture.md": {
@@ -15083,9 +15083,9 @@
     "semantic_hash": ""
   },
   "docs/releasing.md": {
-    "mtime": 1793293807.5516937,
-    "seen": 1793295459.9449441,
-    "ast_hash": "02724106bef488f216055459d2ba9b0f",
+    "mtime": 1793297979.014135,
+    "seen": 1793298279.21586,
+    "ast_hash": "b15b5c46a46184b10ac297a0eedc9fe0",
     "semantic_hash": ""
   },
   "docs/theme-css-safety.md": {
@@ -15329,9 +15329,9 @@
     "semantic_hash": ""
   },
   "plans/README.md": {
-    "mtime": 1793295308.7305346,
-    "seen": 1793295459.944992,
-    "ast_hash": "1cc875393fc2cf18f3a96a5533bb978b",
+    "mtime": 1793296561.1099854,
+    "seen": 1793298279.217937,
+    "ast_hash": "e81b05b637ea17fac491a852d52a1c5b",
     "semantic_hash": ""
   },
   "plans/agent-feature-plan.md": {
@@ -15848,6 +15848,66 @@
     "mtime": 1792835118.844316,
     "seen": 1793295459.94509,
     "ast_hash": "73beca4c9f0a3e63c5d51c53463c6dcb",
+    "semantic_hash": ""
+  },
+  ".github/workflows/deploy-website.yml": {
+    "mtime": 1793298060.9436374,
+    "seen": 1793298279.079662,
+    "ast_hash": "b5e147f63b83cc67b82f76c896e27acc",
+    "semantic_hash": ""
+  },
+  "apps/website/src/pages/download/beta.astro": {
+    "mtime": 1793298045.2610037,
+    "seen": 1793298279.159363,
+    "ast_hash": "8b9c6763e1e2f36e964abcf5aa75e430",
+    "semantic_hash": ""
+  },
+  "scripts/release/preflight-release.sh": {
+    "mtime": 1793298224.4013903,
+    "seen": 1793298279.1991181,
+    "ast_hash": "ba786250c87e41372382e3737fb760d6",
+    "semantic_hash": ""
+  },
+  "scripts/release/wait-and-verify-release.sh": {
+    "mtime": 1793298000.1866856,
+    "seen": 1793298279.199168,
+    "ast_hash": "cb6b64a344b9aa2517688fd4c430fc5d",
+    "semantic_hash": ""
+  },
+  ".agents/rules/git-workflow.md": {
+    "mtime": 1793295915.4953437,
+    "seen": 1793298279.200187,
+    "ast_hash": "74c9b6ef6a0a805ffc7165901822edb3",
+    "semantic_hash": ""
+  },
+  ".agents/workflows/create-release.md": {
+    "mtime": 1793298113.5479908,
+    "seen": 1793298279.2001889,
+    "ast_hash": "3ae3ad0834636a6d44561119cb3309ab",
+    "semantic_hash": ""
+  },
+  ".claude/skills/create-release/SKILL.md": {
+    "mtime": 1793297969.84737,
+    "seen": 1793298279.2018728,
+    "ast_hash": "3ca71d0ab52114e3fc421447ebe55ed2",
+    "semantic_hash": ""
+  },
+  ".github/copilot-instructions.md": {
+    "mtime": 1793298121.9624515,
+    "seen": 1793298279.201875,
+    "ast_hash": "0cf86045a03fdc1ce1d3097678adfdbd",
+    "semantic_hash": ""
+  },
+  "docs/adr/0249-universal-agent-release-skill-architecture.md": {
+    "mtime": 1793298154.866792,
+    "seen": 1793298279.21496,
+    "ast_hash": "05ed470e21f84d9568f5805923ed398c",
+    "semantic_hash": ""
+  },
+  "plans/release-skill-feature-plan.md": {
+    "mtime": 1793296552.352542,
+    "seen": 1793298279.219789,
+    "ast_hash": "4eba2c1320f3d61878d49962ef6d4674",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {
