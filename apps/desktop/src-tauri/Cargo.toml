@@ -32,6 +32,7 @@ tauri-plugin-global-shortcut = "2"
 tauri-plugin-log = "2"
 tauri-plugin-notification = "2"
 tauri-plugin-sql = { version = "2.4.0", features = ["sqlite"] }
+tauri-plugin-updater = "2"
 tokio = { version = "1", features = ["sync", "time", "macros"] }
 keyring = "3.6.2"
 unicode-normalization = "0.1"

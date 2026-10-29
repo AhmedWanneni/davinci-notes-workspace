@@ -44,6 +44,12 @@
     }
   },
   "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDExQjgyQzgzQUY2REZENkQKUldTWUhkV29nME9MTEJvVURmRGFGdlB4S0dYQW9oVzIxdXBYWlhrdTZpT1B5NSt3eG5nNGRwazkK"
+    },
     "sql": {
       "preload": [
         "sqlite:vault-index.db"

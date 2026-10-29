@@ -420,6 +420,8 @@ the list.
 | [0242](adr/0242-release-versioning-and-manifest-synchronization.md) | Release Versioning, Single Source of Truth, and Manifest Synchronization | Accepted |
 | [0243](adr/0243-multi-platform-ci-build-matrix.md) | Multi-Platform CI Build Matrix, Syncthing Pre-Fetching and Draft Release Pipeline | Accepted |
 | [0244](adr/0244-code-signing-and-notarization-architecture.md) | Code Signing, Hardened Runtime Entitlements and Notarization Architecture | Accepted |
+| [0245](adr/0245-in-app-auto-update-architecture.md) | Serverless In-App Auto-Update Architecture via Tauri Updater and GitHub Releases | Accepted |
+
 
 
 

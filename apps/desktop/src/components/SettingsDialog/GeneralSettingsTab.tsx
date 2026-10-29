@@ -6,6 +6,7 @@ import { CaptureSettingsSection } from "./CaptureSettingsSection";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
 import { TrayClickSettingsRow } from "./TrayClickSettingsRow";
+import { UpdateSettingsCard } from "./UpdateSettingsCard";
 import styles from "./SettingsDialog.module.scss";
 
 interface GeneralSettingsTabProps {
@@ -49,28 +50,9 @@ export function GeneralSettingsTab({
 
   return (
     <div className={styles["settings-tab-content"]}>
-      <SettingsCard>
-        <SettingsRow
-          title="Version 0.1.0"
-          description={
-            <>
-              Installer version: 0.1.0
-              <br />
-              <a
-                href="#changelog"
-                onClick={(e) => e.preventDefault()}
-                className={styles["settings-link"]}
-              >
-                Read the changelog.
-              </a>
-            </>
-          }
-        >
-          <Button variant="secondary" size="sm">
-            Check for updates
-          </Button>
-        </SettingsRow>
+      <UpdateSettingsCard />
 
+      <SettingsCard>
         <SettingsRow
           title="Keep running in menu bar"
           description="When closed, Sophia will stay open in the menu bar tray."
