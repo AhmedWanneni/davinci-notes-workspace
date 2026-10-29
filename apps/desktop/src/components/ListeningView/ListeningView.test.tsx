@@ -25,6 +25,7 @@ vi.mock("../../adapters/transcriptionClient", () => ({
     total_samples: 16000,
     duration_secs: 1.0,
     wav_path: "/tmp/meeting.wav",
+    wavFilePath: "/tmp/meeting.wav",
   }),
 }));
 
@@ -122,6 +123,24 @@ describe("ListeningView Components", () => {
       const input = screen.getByLabelText("Meeting Title") as HTMLInputElement;
       fireEvent.change(input, { target: { value: "Updated Planning" } });
       expect(input.value).toBe("Updated Planning");
+    });
+
+    it("stops recording and saves note with audio WAV path", async () => {
+      const { saveMeetingNoteToVault } = await import(
+        "../../vault/meetingNoteActions"
+      );
+      render(<ListeningView initialTitle="Sprint Retro" />);
+      await act(async () => {
+        fireEvent.click(screen.getByTestId("start-recording-btn"));
+      });
+      await act(async () => {
+        fireEvent.click(screen.getByTestId("stop-recording-btn"));
+      });
+      expect(saveMeetingNoteToVault).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Sprint Retro" }),
+        expect.any(Array),
+        "/tmp/meeting.wav",
+      );
     });
   });
 

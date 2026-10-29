@@ -2,6 +2,19 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Meeting Record Page Audio WAV Persistence & Embed Resolution
+
+- **Audio File Retrieval from `stopMeetingRecording`**:
+  - Fixed property lookup in `useListeningSession.ts`: Tauri's `MeetingAudioResult` serializes `wav_file_path` as camelCase `wavFilePath`. Added fallback resolution across `wavFilePath`, `wav_file_path`, and `wav_path` so `tempWav` is always properly passed to `saveMeetingNoteToVault`.
+  - Updated `saveMeetingNoteToVault` to persist the audio file to `Meetings/YYYY-MM-DD - {Title}.wav`, update workspace store paths, and embed `![[...wav]]` under `## Audio Recording`.
+- **SCSS Warning Fix**:
+  - Replaced non-standard `justifyContent:` with `justify-content:` in `QuickCaptureRecord.module.scss`.
+- **Testing & Verification**:
+  - Added unit test in `ListeningView.test.tsx` verifying that stopping a recording passes the WAV path to `saveMeetingNoteToVault`.
+  - All 17 ListeningView tests passing.
+  - All 3 meetingNoteActions unit tests passing.
+  - Production web bundle built successfully (`pnpm --filter @app/desktop build:web`).
+
 ### 2026-10-29: QuickCapture Window Expansion & Prominent "Start Recording" Placement
 
 - **Window Size Expansion**:

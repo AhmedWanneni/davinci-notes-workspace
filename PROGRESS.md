@@ -4,26 +4,20 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — QuickCapture Window Expansion & Prominent "Start Recording" Placement
+## Last Session — Meeting Record Page Audio WAV Persistence & Embed Resolution
 
-**Scope:** Expand the QuickCapture popover window dimensions (from 640x340 to 780x520), eliminate clipping with container scrollability, place the prominent "Start Recording" action at the top of the Record view, and enhance the direct capture record button.
+**Scope:** Ensure meetings recorded from the AI Listening / Record page properly persist the `.wav` audio file to the vault and embed the audio player widget in the saved note.
 
 **What was done:**
-1. **Window Size Expansion**:
-   - Increased QuickCapture window `inner_size` in `apps/desktop/src-tauri/src/capture.rs` from `(640.0, 340.0)` to `(780.0, 520.0)`.
-   - Updated popover fallback geometry in `apps/desktop/src-tauri/src/tray_position.rs` to `780.0 x 520.0`.
-   - In `QuickCapture.tsx`, added automated client-side window resize (`LogicalSize(780, 520)`) and `reclamp_capture_popover` invocation so live app sessions immediately resize without restarting Tauri.
-2. **Prominent "Start Recording" Action Placement**:
-   - In `QuickCaptureRecord.tsx`: moved `<QuickCaptureRecordControls>` to the TOP directly under `record-status-row` so the "Start Recording" button is immediately visible in plain sight rather than pushed below inputs.
-   - In `QuickCaptureRecordControls.tsx`: updated button to display `<Microphone />` with label `Start Recording` (using primary interactive accent token) instead of a subtle `● Record`.
-   - In `QuickCaptureFooter.tsx`: updated capture button to display `<Microphone />` with label `Start Recording`.
-   - In `QuickCaptureHeader.tsx`: updated the tab to display `🎙️ Record`.
-3. **Refactoring & File Caps**:
-   - Extracted `useCaptureActions.ts` (95 lines) from `QuickCapture.tsx` to handle save, note open, and dismiss logic cleanly, bringing `QuickCapture.tsx` down to 209 lines (under 250 hard cap).
-   - Set `.quick-capture-container` to `overflow-y: auto; overflow-x: hidden;` and `.quick-capture-textarea` to `min-height: 160px;`.
-4. **Verification**:
-   - All 33 QuickCapture unit tests passing.
-   - 0 public design token violations across all modified SCSS.
+1. **Audio File Retrieval from `stopMeetingRecording`**:
+   - Fixed property lookup in `useListeningSession.ts`: Tauri's `MeetingAudioResult` serializes `wav_file_path` as camelCase `wavFilePath`. Added fallback resolution across `wavFilePath`, `wav_file_path`, and `wav_path` so `tempWav` is always properly passed to `saveMeetingNoteToVault`.
+   - Updated `saveMeetingNoteToVault` to persist the audio file to `Meetings/YYYY-MM-DD - {Title}.wav`, update workspace store paths, and embed `![[...wav]]` under `## Audio Recording`.
+2. **SCSS Warning Fix**:
+   - Replaced non-standard `justifyContent:` with `justify-content:` in `QuickCaptureRecord.module.scss`.
+3. **Verification**:
+   - Added unit test in `ListeningView.test.tsx` verifying that stopping a recording passes the WAV path to `saveMeetingNoteToVault`.
+   - All 17 ListeningView tests passing.
+   - All 3 meetingNoteActions unit tests passing.
    - Production web bundle built successfully (`pnpm --filter @app/desktop build:web`).
 
 ---
@@ -34,7 +28,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Previous Session — QuickCapture Direct Record Button & Editor Audio Playback Path Resolution
+## Previous Session — QuickCapture Window Expansion & Prominent "Start Recording" Placement
 
 **Scope:** Save recorded `.wav` meeting audio directly in vault, render interactive player in CodeMirror editor (`![[meeting.wav]]`), and enable one-click AI transcription re-run.
 

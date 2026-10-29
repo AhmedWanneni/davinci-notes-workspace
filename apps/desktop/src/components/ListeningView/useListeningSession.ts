@@ -134,6 +134,10 @@ export function useListeningSession(
       try {
         setStatus("processing");
         const audioResult = await stopMeetingRecording().catch(() => null);
+        const tempWav =
+          audioResult?.wavFilePath ||
+          (audioResult as unknown as { wav_file_path?: string })?.wav_file_path ||
+          (audioResult as unknown as { wav_path?: string })?.wav_path;
         const savedPath = await saveMeetingNoteToVault(
           {
             title,
@@ -145,7 +149,7 @@ export function useListeningSession(
             summary,
           },
           existingPaths,
-          audioResult?.wav_path,
+          tempWav,
         );
         setCreatedNotePath(savedPath);
         setStatus("idle");
