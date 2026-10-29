@@ -35,6 +35,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
+- Release Pipeline: Authored phased release management, build pipeline, and download distribution plan in `releases-feature-plan.md`.
 - Manual verification of GitHub clone with a personal access token on a private/public repo.
 
 ---
