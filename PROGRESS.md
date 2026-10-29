@@ -4,35 +4,52 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Meeting Recorder + AI Listening Feature Plan
+## Last Session — Meeting Recorder + AI Listening (All 7 Phases Completed)
 
-**Scope:** Architectural scan and technical implementation design for desktop Meeting Recorder & live AI Listening feature (`meeting-recorder-feature-plan.md`). Planning only, no implementation code.
+**Scope:** End-to-end implementation of desktop Meeting Recorder & AI Listening (`meeting-recorder-feature-plan.md`, ADR-0226 through ADR-0231).
 
 **What was done:**
-1. **Repository & Capability Audit**:
-   - Examined Command Palette (`CommandPalette.tsx`, `buildPaletteCommands.ts`) and fuzzysort setup ([ADR-0030](docs/adr/0030-fuzzysort-for-command-palette.md)).
-   - Examined Tray menu and macOS NSPanel capture popover (`tray.rs`, `tray_menu.rs`, `macos_panel.rs`, [ADR-0225](docs/adr/0225-native-macos-capture-popover-and-nspanel.md)).
-   - Examined Google Calendar OAuth client and existing Meet link regex parser (`packages/google-calendar-api/parseMeetLink.ts`).
-   - Examined AI Agent tool calling (`@app/ai-agent`, `vaultInspectionTools.ts`, `vaultMutationTools.ts`, `safetyJail.ts`).
-   - Examined SQLite FTS5 BM25 search (`@app/indexer`, `sqliteFtsIndex.ts`, `withDbLock` discipline [ADR-0168](docs/adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md)).
-   - Evaluated `@app/design-system` primitives and identified `<AudioLevelMeter />` requirement.
-2. **Architecture & Decisions Documented**:
-   - Outlined 8 explicit architectural and product decisions (D1–D8) requiring user alignment.
-   - Drafted 6 proposed ADRs (ADR-0226 through ADR-0231).
-   - Formulated 7-phase build plan with dependency weights, verification criteria, and exact adversarial tests.
-   - Identified single-session constraints for low-level audio capture and canonical note writing.
-   - Formatted and generated `meeting-recorder-feature-plan.md` in root directory.
+1. **ADRs Recorded**:
+   - Recorded ADR-0226 through ADR-0231 in `docs/adr/` and indexed in `DECISIONS.md`.
+2. **Phase 1: Native Desktop Dual-Channel Audio Capture Engine (Rust)**:
+   - Added `cpal = "0.15"` to `apps/desktop/src-tauri/Cargo.toml`.
+   - Created `audio_types.rs`, `audio_mixer.rs` (16kHz linear resampling, RMS, WAV header), `audio_worker.rs` (thread decoupled for CoreAudio safety), `audio_capture.rs`, `audio_commands.rs`, and unit tests in `audio_tests.rs`.
+3. **Phase 2: Lazy Local & Cloud Transcription Pipeline**:
+   - Built lazy audio chunking (20s windows, 1.5s overlap) in `transcription.rs`.
+   - Built multi-endpoint cloud Whisper dispatch in `transcription_cloud.rs` and exposed commands in `transcription_commands.rs`.
+   - Created TypeScript adapter `transcriptionClient.ts` with unit tests.
+4. **Phase 3: AI Listening Page UI & Streaming Transcript View**:
+   - Created `apps/desktop/src/components/ListeningView/`:
+     - `AudioMeter.tsx`, `TranscriptBubble.tsx`, `TranscriptFeed.tsx`, `ListeningHeader.tsx`, `useListeningSession.ts`, `ListeningView.tsx`.
+     - CUBE CSS styling in `ListeningView.module.scss` using public design tokens with 0 Stylelint and token violations.
+   - Added AI Listening button with Phosphor `Ear` icon in `IconRail.tsx` and mapped tab in `AppTabs.tsx`.
+   - Lazy-mounted `ListeningView` at `davinci://listening` in `App.tsx`.
+5. **Phase 4: Vault Grounding & Live Note Synthesizer**:
+   - Created prompt generators in `packages/ai-agent/prompts/meetingPrompts.ts`.
+   - Created `packages/ai-agent/meetingListenerEngine.ts` for keyword extraction, FTS5 vault searching, non-destructive wikilink suggestions, and action item detection.
+   - Created `apps/desktop/src/components/ListeningView/SuggestedLinksPanel.tsx`.
+   - Created canonical meeting markdown note generator and vault writer in `apps/desktop/src/vault/meetingNoteActions.ts` writing to `Meetings/YYYY-MM-DD - {Title}.md`.
+6. **Phase 5: Palette, Menu Bar Tray & Shortcut Integration**:
+   - Added `"action:open-ai-listening"`, `"action:start-meeting-recording"`, and `"action:stop-meeting-recording"` in `buildPaletteCommands.ts` and `executePaletteCommand.ts`.
+   - Added "AI Listening & Meetings" item in `tray_menu.rs` and emitted `TRAY_AI_LISTENING_EVENT` in `tray.rs`.
+   - Handled tray event in `App.tsx` to automatically focus and navigate to `davinci://listening`.
+7. **Phase 6: Calendar Integration & Proximity Detection**:
+   - Created `meetingDetector.ts` to identify imminent/active meetings with conference URLs (`meet.google.com`, `zoom.us`, `teams.microsoft.com`).
+   - Created `MeetingPromptToast.tsx` and unit tests.
+8. **Phase 7: Meet Transcript Importer & Recovery Hardening**:
+   - Created `meetTranscriptImporter.ts` supporting standard WebVTT and Google Meet plain text transcript exports.
+   - Created `meetingRecovery.ts` for active meeting crash recovery state.
+   - Verified 10 Rust audio tests, 28 Vitest unit tests, and production web bundle build.
 
 ---
 
 ## Next Up
-- Await user approval on `meeting-recorder-feature-plan.md` and answers to open decisions (D1–D8).
-- Write ADR-0226 through ADR-0231 upon approval.
-- Begin Phase 1: Native Desktop Dual-Channel Audio Capture Engine (Rust).
+- Optional: Add local whisper.cpp sidecar model binary downloader for fully offline transcription setting.
+- Optional: Per-speaker diarization using machine learning voice embeddings.
 
 ---
 
-## Previous Session — macOS Notification Branding & Reminders View Fixes
+## Previous Session — Meeting Recorder + AI Listening Feature Plan
 
 **Scope:** Eliminate the Terminal icon on macOS notifications by bypassing Tauri dev-mode override and associating notifications with the Sophia owl identity, plus fix test assertion timing.
 

@@ -2,6 +2,51 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Meeting Recorder & AI Listening — End-to-End Implementation (Phases 1–7)
+
+- **Architecture & ADRs (ADR-0226 through ADR-0231)**:
+  - Formulated and recorded 6 ADRs covering:
+    - Native dual-channel loopback audio capture with `cpal` (ADR-0226).
+    - Lazy-loaded transcription pipeline and Whisper sidecar contract (ADR-0227).
+    - Dedicated workspace tab at `davinci://listening` (ADR-0228).
+    - Non-destructive FTS5 vault grounding and link suggestions (ADR-0229).
+    - Canonical meeting note markdown schema (`Meetings/YYYY-MM-DD - {Title}.md`) (ADR-0230).
+    - Calendar proximity detection and note-taking prompts (ADR-0231).
+- **Phase 1: Native Desktop Dual-Channel Audio Capture Engine (Rust)**:
+  - Added `cpal = "0.15"` to `apps/desktop/src-tauri/Cargo.toml`.
+  - Built `audio_types.rs`, `audio_mixer.rs` (16kHz linear resampling, RMS, WAV header), `audio_worker.rs` (thread decoupled for CoreAudio safety), `audio_capture.rs`, and Tauri commands in `audio_commands.rs`.
+  - Verified with 10 passing unit tests in `audio_tests.rs`.
+- **Phase 2: Lazy Local & Cloud Transcription Pipeline**:
+  - Implemented lazy audio chunking (20s windows, 1.5s overlap) in `transcription.rs`.
+  - Built multi-endpoint cloud Whisper dispatch in `transcription_cloud.rs` and exposed Tauri commands in `transcription_commands.rs`.
+  - Created TypeScript adapter `transcriptionClient.ts` with 5 Vitest unit tests.
+- **Phase 3: AI Listening Page UI & Streaming Transcript View**:
+  - Created dedicated components in `apps/desktop/src/components/ListeningView/`:
+    - `AudioMeter.tsx`: Lightweight level meter showing mic & system RMS levels.
+    - `TranscriptBubble.tsx`: Individual speaker speech bubble with formatted timestamp and streaming indicator.
+    - `TranscriptFeed.tsx`: Live auto-scrolling bubble list with clean empty state.
+    - `ListeningHeader.tsx`: Title input, REC status badge `[● REC mm:ss]`, pause, resume, stop, and discard controls.
+    - `useListeningSession.ts`: Hook managing recording lifecycle, Tauri audio level events, and transcription.
+    - `ListeningView.tsx`: Main split-pane workspace.
+    - `ListeningView.module.scss`: Pure public tokens styling compliant with Stylelint.
+  - Added AI Listening navigation button in `IconRail.tsx`, tab mapping in `AppTabs.tsx`, and lazy mount in `App.tsx`.
+- **Phase 4: Vault Grounding & Live Note Synthesizer**:
+  - Created meeting prompt generators in `packages/ai-agent/prompts/meetingPrompts.ts`.
+  - Created `packages/ai-agent/meetingListenerEngine.ts` providing keyword extraction, FTS5 vault querying, non-destructive wikilink suggestions, and action item detection.
+  - Built `apps/desktop/src/components/ListeningView/SuggestedLinksPanel.tsx` with accept/dismiss actions.
+  - Created canonical markdown serializer and vault persistence in `apps/desktop/src/vault/meetingNoteActions.ts` with collision handling.
+- **Phase 5: Palette, Menu Bar Tray & Shortcut Integration**:
+  - Registered `"action:open-ai-listening"`, `"action:start-meeting-recording"`, and `"action:stop-meeting-recording"` in `buildPaletteCommands.ts` and `executePaletteCommand.ts`.
+  - Added "AI Listening & Meetings" item in `tray_menu.rs` and emitted `TRAY_AI_LISTENING_EVENT` in `tray.rs`.
+  - Wired tray event listener in `App.tsx` to automatically bring window to front and open `davinci://listening`.
+- **Phase 6: Calendar Integration & Proximity Prompts**:
+  - Created `apps/desktop/src/calendar/meetingDetector.ts` inspecting upcoming calendar events for conference links (`meet.google.com`, `zoom.us`, `teams.microsoft.com`).
+  - Created `MeetingPromptToast.tsx` prompting "Take AI Notes" when a meeting is imminent.
+- **Phase 7: Meet Transcript Importer & Recovery Hardening**:
+  - Created `meetTranscriptImporter.ts` supporting standard WebVTT and Google Meet plain text transcripts.
+  - Created `meetingRecovery.ts` for crash recovery and state preservation.
+  - Verified with 10 Rust unit tests, 28 TypeScript unit tests, and production web bundle build.
+
 ### 2026-10-29: macOS Notification App Attribution & Reminders Page Form Visibility
 
 - **macOS Notification App Icon Attribution**:
