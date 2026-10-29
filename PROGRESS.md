@@ -21,12 +21,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Next Up
-- Push test tag `v0.1.0-rc.2` to remote to observe GitHub Actions matrix execution on staging.
-- Manual verification of GitHub clone with a personal access token on a private/public repo.
-
----
-
-## Next Up
+- Review and approve `plans/release-skill-feature-plan.md` for conversational "create a release" agent skill across Claude, Cursor, Copilot, and Antigravity.
 - Push test tag `v0.1.0-rc.2` to remote to observe GitHub Actions matrix execution on staging.
 - Manual verification of GitHub clone with a personal access token on a private/public repo.
 

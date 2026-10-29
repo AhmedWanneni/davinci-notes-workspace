@@ -11,6 +11,7 @@ Every major feature begins with an adversarial, phased feature plan conforming t
 | Feature Area | Specification Document | Status | Primary Subsystems | Linked ADRs |
 |---|---|---|---|---|
 | **Release Pipeline & Distribution** | [`releases-feature-plan.md`](releases-feature-plan.md) | **Completed** | CI Matrix, Signing, Auto-Updater, Website `/download`, Rollback CLI | ADR-0242 – ADR-0248 |
+| **"Create a Release" Agent Skill** | [`release-skill-feature-plan.md`](release-skill-feature-plan.md) | **Planning** | Universal Agent Skill, Preflight Checks, Approval Gates, Auto-Deploy Website | ADR-0249 |
 | **Git Manager** | [`git-manager-feature-plan.md`](git-manager-feature-plan.md) | **Completed** | Desktop `@app/git-manager`, CodeMirror Merge Diff, SVG Graph, OS Keychain | ADR-0232 – ADR-0241 |
 | **Meeting Recorder & AI Listening** | [`meeting-recorder-feature-plan.md`](meeting-recorder-feature-plan.md) | **Completed** | Rust `cpal` Audio Loopback, Whisper Transcription, Vault Grounding | ADR-0226 – ADR-0231 |
 | **AI Agent & Vault Grounding** | [`agent-feature-plan.md`](agent-feature-plan.md) | **Completed** | `@app/ai-agent`, Autonomous Tool Jail, Map of Content, FTS5 Search | ADR-0211 – ADR-0218 |
