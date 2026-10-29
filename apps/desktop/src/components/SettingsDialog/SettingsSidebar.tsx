@@ -2,25 +2,14 @@ import React from "react";
 import {
   Gear,
   Palette,
-  Desktop,
   PencilSimpleLine,
   FolderSimple,
-  Command,
-  Key,
   CloudArrowUp,
   Bell,
   Sparkle,
   PuzzlePiece,
-  TreeStructure,
-  SquaresFour,
-  TerminalWindow,
-  CalendarBlank,
   CalendarCheck,
-  ClockCounterClockwise,
-  Compass,
-  Eye,
   MagnifyingGlass,
-  CopySimple,
   Globe,
   ListBullets,
 } from "@phosphor-icons/react";
@@ -30,25 +19,15 @@ import styles from "./SettingsDialog.module.scss";
 export type SettingsTabId =
   | "general"
   | "appearance"
-  | "interface"
   | "editor"
   | "files"
-  | "hotkeys"
-  | "keychain"
   | "sync"
   | "notifications"
+  | "calendar"
   | "ai"
+  | "web-clipper"
   | "plugins"
   | "logs"
-  | "backlinks"
-  | "canvas"
-  | "command-palette"
-  | "daily-notes"
-  | "file-recovery"
-  | "note-composer"
-  | "page-preview"
-  | "quick-switcher"
-  | "templates"
   | string;
 
 export interface SettingsSidebarItem {
@@ -59,32 +38,47 @@ export interface SettingsSidebarItem {
 }
 
 export const SETTINGS_SIDEBAR_ITEMS: SettingsSidebarItem[] = [
-  // Options
   { id: "general", label: "General", icon: Gear, category: "options" },
   { id: "appearance", label: "Appearance", icon: Palette, category: "options" },
-  { id: "interface", label: "Interface", icon: Desktop, category: "options" },
-  { id: "editor", label: "Editor", icon: PencilSimpleLine, category: "options" },
-  { id: "files", label: "Files and links", icon: FolderSimple, category: "options" },
-  { id: "hotkeys", label: "Hotkeys", icon: Command, category: "options" },
-  { id: "keychain", label: "Keychain", icon: Key, category: "options" },
-  { id: "sync", label: "Sync & Backup", icon: CloudArrowUp, category: "options" },
-  { id: "notifications", label: "Notifications", icon: Bell, category: "options" },
-  { id: "calendar", label: "Google Calendar", icon: CalendarCheck, category: "options" },
+  {
+    id: "editor",
+    label: "Editor",
+    icon: PencilSimpleLine,
+    category: "options",
+  },
+  {
+    id: "files",
+    label: "Files and links",
+    icon: FolderSimple,
+    category: "options",
+  },
+  {
+    id: "sync",
+    label: "Sync & Backup",
+    icon: CloudArrowUp,
+    category: "options",
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    icon: Bell,
+    category: "options",
+  },
+  {
+    id: "calendar",
+    label: "Google Calendar",
+    icon: CalendarCheck,
+    category: "options",
+  },
   { id: "ai", label: "AI Assistant", icon: Sparkle, category: "options" },
   { id: "web-clipper", label: "Web Clipper", icon: Globe, category: "options" },
-  { id: "plugins", label: "Community plugins", icon: PuzzlePiece, category: "options" },
+  {
+    id: "plugins",
+    label: "Community plugins",
+    icon: PuzzlePiece,
+    category: "options",
+  },
   { id: "logs", label: "Logs", icon: ListBullets, category: "options" },
-
-  // Core Plugins
-  { id: "backlinks", label: "Backlinks", icon: TreeStructure, category: "core-plugins" },
-  { id: "canvas", label: "Canvas", icon: SquaresFour, category: "core-plugins" },
-  { id: "command-palette", label: "Command palette", icon: TerminalWindow, category: "core-plugins" },
-  { id: "daily-notes", label: "Daily notes", icon: CalendarBlank, category: "core-plugins" },
-  { id: "file-recovery", label: "File recovery", icon: ClockCounterClockwise, category: "core-plugins" },
-  { id: "note-composer", label: "Note composer", icon: Compass, category: "core-plugins" },
-  { id: "page-preview", label: "Page preview", icon: Eye, category: "core-plugins" },
-  { id: "quick-switcher", label: "Quick switcher", icon: MagnifyingGlass, category: "core-plugins" },
-  { id: "templates", label: "Templates", icon: CopySimple, category: "core-plugins" },
 ];
 
 interface SettingsSidebarProps {

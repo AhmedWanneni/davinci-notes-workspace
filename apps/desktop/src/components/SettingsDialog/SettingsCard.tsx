@@ -15,6 +15,11 @@ export function SettingsCard({
   children,
   className = "",
 }: SettingsCardProps) {
+  const validChildren = React.Children.toArray(children).filter(Boolean);
+  if (validChildren.length === 0) {
+    return null;
+  }
+
   return (
     <div className={`${styles["settings-card-wrapper"]} ${className}`}>
       {title && (

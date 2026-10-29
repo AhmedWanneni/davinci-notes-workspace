@@ -9,7 +9,6 @@ import {
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
-import { CursorColorSetting } from "./CursorColorSetting";
 import { FONT_GROUPS } from "./editorFontGroups";
 import styles from "./SettingsDialog.module.scss";
 
@@ -38,7 +37,9 @@ export function EditorSettingsTab() {
     (state) => state.setVimMonospaceMode,
   );
   const slashMenuEnabled = useWorkspaceStore((state) => state.slashMenuEnabled);
-  const setSlashMenuEnabled = useWorkspaceStore((state) => state.setSlashMenuEnabled);
+  const setSlashMenuEnabled = useWorkspaceStore(
+    (state) => state.setSlashMenuEnabled,
+  );
 
   const customValidation = validateAndSanitizeCustomFont(editorCustomFont);
 
@@ -197,8 +198,6 @@ export function EditorSettingsTab() {
             aria-label="Use monospace font in vim mode"
           />
         </SettingsRow>
-
-        <CursorColorSetting />
       </SettingsCard>
     </div>
   );

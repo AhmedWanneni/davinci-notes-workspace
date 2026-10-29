@@ -22,10 +22,13 @@ import settingStyles from "./SettingsDialog.module.scss";
 import styles from "./NotificationsSettingsTab.module.scss";
 
 export function NotificationsSettingsTab() {
-  const [destinations, setDestinations] = useState<ChannelDestinationMeta[]>([]);
-  const [addingKind, setAddingKind] = useState<Exclude<ChannelKind, "desktop"> | null>(
-    null,
+  const [destinations, setDestinations] = useState<ChannelDestinationMeta[]>(
+    [],
   );
+  const [addingKind, setAddingKind] = useState<Exclude<
+    ChannelKind,
+    "desktop"
+  > | null>(null);
   const [showExperimental, setShowExperimental] = useState(false);
   const [testingId, setTestingId] = useState<string | null>(null);
   const [testFeedback, setTestFeedback] = useState<
@@ -88,7 +91,7 @@ export function NotificationsSettingsTab() {
       const res = await notify(
         dest,
         {
-          title: "DaVinci Notes Test",
+          title: "Sophia Test",
           text: `Test notification to "${dest.name}" succeeded.`,
           sourceKind: "test",
         },
@@ -115,7 +118,7 @@ export function NotificationsSettingsTab() {
     <div className={settingStyles["settings-tab-content"]}>
       <SettingsCard
         title="Notification Channels"
-        description="Configure where reminders and scheduled messages are delivered. Desktop notifications are always available. External channel credentials are stored exclusively in your OS keychain (never in your vault or logs). Note: The scheduler runs inside the desktop app — keep DaVinci Notes open or minimized to the system tray for timely delivery."
+        description="Configure where reminders and scheduled messages are delivered. Desktop notifications are always available. External channel credentials are stored exclusively in your OS keychain (never in your vault or logs). Note: The scheduler runs inside the desktop app — keep Sophia open or minimized to the system tray for timely delivery."
       >
         <div className={styles["add-channel-toolbar"]}>
           <Button
@@ -153,19 +156,21 @@ export function NotificationsSettingsTab() {
           />
         )}
 
-        <div className={styles["destinations-list"]} role="list">
-          {destinations.map((dest) => (
-            <NotificationDestinationRow
-              key={dest.id}
-              destination={dest}
-              feedback={testFeedback[dest.id]}
-              isTesting={testingId === dest.id}
-              onToggleDefault={(d, v) => void handleToggleDefault(d, v)}
-              onSendTest={(d) => void handleSendTest(d)}
-              onRemove={(id) => void handleRemove(id)}
-            />
-          ))}
-        </div>
+        {destinations.length > 0 && (
+          <div className={styles["destinations-list"]} role="list">
+            {destinations.map((dest) => (
+              <NotificationDestinationRow
+                key={dest.id}
+                destination={dest}
+                feedback={testFeedback[dest.id]}
+                isTesting={testingId === dest.id}
+                onToggleDefault={(d, v) => void handleToggleDefault(d, v)}
+                onSendTest={(d) => void handleSendTest(d)}
+                onRemove={(id) => void handleRemove(id)}
+              />
+            ))}
+          </div>
+        )}
       </SettingsCard>
 
       <SettingsCard
