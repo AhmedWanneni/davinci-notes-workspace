@@ -423,6 +423,8 @@ the list.
 | [0245](adr/0245-in-app-auto-update-architecture.md) | Serverless In-App Auto-Update Architecture via Tauri Updater and GitHub Releases | Accepted |
 | [0246](adr/0246-static-website-download-architecture.md) | Static Website Download Architecture, Inline OS Detection, and Permalinks | Accepted |
 | [0247](adr/0247-release-automation-and-emergency-rollback.md) | Release Automation Harness, Idempotency and Emergency Rollback Protocol | Accepted |
+| [0248](adr/0248-community-package-managers-and-mobile-coordination.md) | Community Package Managers Distribution and Mobile Release Coordination | Accepted |
+
 
 
 

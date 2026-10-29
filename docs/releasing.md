@@ -118,3 +118,22 @@ If binaries are distributed without Apple Developer notarization (e.g. forks or 
 xattr -cr /Applications/DaVinci\ Notes.app
 ```
 Or right-click `DaVinci Notes.app` in Finder, hold `Option`, click `Open`, and click `Open` in the dialog.
+
+---
+
+## 7. Community Package Managers
+
+- **Homebrew Cask**: Handled automatically via `.github/workflows/homebrew-cask.yml`. On published release, generates `davinci-notes.rb` with current version and SHA-256 hashes.
+- **Windows Package Manager (WinGet)**: Handled automatically via `.github/workflows/winget.yml`. Uses `winget-releaser` action to submit manifests to Microsoft Community repository.
+
+---
+
+## 8. Mobile App (Expo / EAS Build) Coordination
+
+The mobile application (`apps/mobile`) shares the SemVer version in `apps/mobile/app.json` (`expo.version`) bumped simultaneously by `bump-version.sh`.
+
+However, mobile builds follow a separate app-store submission cadence:
+1. `apps/mobile` builds submit to Apple TestFlight and Google Play via EAS Build (`eas build --platform all`).
+2. Release notes are coordinated using the output of `generate-changelog.sh`.
+3. Due to App Store review turnaround (1–3 days), mobile release versions should match desktop minor/major releases while desktop may cut independent fast patch releases for desktop-only features.
+
