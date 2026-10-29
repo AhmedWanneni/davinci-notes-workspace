@@ -35,6 +35,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "macOS": {
+      "hardenedRuntime": true,
+      "entitlements": "entitlements.mac.plist"
+    },
     "android": {
       "debugApplicationIdSuffix": ".debug"
     }
