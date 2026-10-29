@@ -124,12 +124,12 @@ fi
 
 # 6. Quality Gates (Optional)
 if [[ "$SKIP_TESTS" == "false" ]]; then
-  log "6. Running quality gates (TypeScript typecheck across workspace)..."
-  if ! pnpm turbo run typecheck --filter=@app/desktop; then
-    echo "[FAIL] Desktop TypeScript typecheck failed." >&2
+  log "6. Running quality gates (Desktop web build verification)..."
+  if ! pnpm --filter @app/desktop build:web >/dev/null 2>&1; then
+    echo "[FAIL] Desktop web build verification failed." >&2
     exit 1
   fi
-  log "   [OK] Desktop typecheck passed."
+  log "   [OK] Desktop web build verification passed."
 else
   log "6. Quality gates skipped via --skip-tests."
 fi
