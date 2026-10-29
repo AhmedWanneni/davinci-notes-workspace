@@ -4,7 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — macOS Notification Branding & Reminders View Fixes
+## Last Session — Meeting Recorder + AI Listening Feature Plan
+
+**Scope:** Architectural scan and technical implementation design for desktop Meeting Recorder & live AI Listening feature (`meeting-recorder-feature-plan.md`). Planning only, no implementation code.
+
+**What was done:**
+1. **Repository & Capability Audit**:
+   - Examined Command Palette (`CommandPalette.tsx`, `buildPaletteCommands.ts`) and fuzzysort setup ([ADR-0030](docs/adr/0030-fuzzysort-for-command-palette.md)).
+   - Examined Tray menu and macOS NSPanel capture popover (`tray.rs`, `tray_menu.rs`, `macos_panel.rs`, [ADR-0225](docs/adr/0225-native-macos-capture-popover-and-nspanel.md)).
+   - Examined Google Calendar OAuth client and existing Meet link regex parser (`packages/google-calendar-api/parseMeetLink.ts`).
+   - Examined AI Agent tool calling (`@app/ai-agent`, `vaultInspectionTools.ts`, `vaultMutationTools.ts`, `safetyJail.ts`).
+   - Examined SQLite FTS5 BM25 search (`@app/indexer`, `sqliteFtsIndex.ts`, `withDbLock` discipline [ADR-0168](docs/adr/0168-vault-index-write-lock-contention-and-universal-lock-discipline.md)).
+   - Evaluated `@app/design-system` primitives and identified `<AudioLevelMeter />` requirement.
+2. **Architecture & Decisions Documented**:
+   - Outlined 8 explicit architectural and product decisions (D1–D8) requiring user alignment.
+   - Drafted 6 proposed ADRs (ADR-0226 through ADR-0231).
+   - Formulated 7-phase build plan with dependency weights, verification criteria, and exact adversarial tests.
+   - Identified single-session constraints for low-level audio capture and canonical note writing.
+   - Formatted and generated `meeting-recorder-feature-plan.md` in root directory.
+
+---
+
+## Next Up
+- Await user approval on `meeting-recorder-feature-plan.md` and answers to open decisions (D1–D8).
+- Write ADR-0226 through ADR-0231 upon approval.
+- Begin Phase 1: Native Desktop Dual-Channel Audio Capture Engine (Rust).
+
+---
+
+## Previous Session — macOS Notification Branding & Reminders View Fixes
 
 **Scope:** Eliminate the Terminal icon on macOS notifications by bypassing Tauri dev-mode override and associating notifications with the Sophia owl identity, plus fix test assertion timing.
 
