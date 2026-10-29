@@ -103,16 +103,18 @@ function getTableDecorations(view: EditorView): DecorationSet {
         const lastClass = isLast ? " cm-table-cell-last" : "";
         const cellText = view.state.sliceDoc(cell.from, cell.to);
         const isBlank = cellText.trim() === "";
-        const placeholderAttrs = isBlank ? { "data-placeholder": "Cell" } : {};
+        const attributes: Record<string, string> = {
+          "data-table-column": String(column),
+        };
+        if (isBlank) {
+          attributes["data-placeholder"] = "Cell";
+        }
 
         if (cell.from < cell.to) {
           decorations.push(
             Decoration.mark({
               class: `cm-table-cell cm-table-cell-${alignment}${lastClass}`,
-              attributes: {
-                "data-table-column": String(column),
-                ...placeholderAttrs,
-              },
+              attributes,
             }).range(cell.from, cell.to),
           );
         } else {

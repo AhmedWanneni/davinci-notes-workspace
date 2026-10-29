@@ -107,7 +107,7 @@ jobs:
         run: node apps/desktop/scripts/fetchSyncthing.mjs --target ${{ matrix.target }}
 
       - name: Build frontend web assets
-        run: pnpm turbo run build --filter=@app/desktop...
+        run: pnpm --filter @app/desktop build:web
 
       - name: Build Tauri Desktop Package
         uses: tauri-apps/tauri-action@v0
