@@ -80,7 +80,7 @@ if ! git diff-index --quiet HEAD --; then
   exit 1
 fi
 
-UNTRACKED_COUNT="$(git status --porcelain | grep '^??' | wc -l | tr -d ' ')"
+UNTRACKED_COUNT="$( (git status --porcelain | grep '^??' || true) | wc -l | tr -d ' ')"
 if [[ "$UNTRACKED_COUNT" -gt 0 ]]; then
   echo "[WARN] $UNTRACKED_COUNT untracked file(s) present in working tree." >&2
 fi
