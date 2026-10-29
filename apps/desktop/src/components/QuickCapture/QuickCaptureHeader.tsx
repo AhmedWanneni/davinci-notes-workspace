@@ -57,7 +57,7 @@ export function QuickCaptureHeader({
           }`}
           onClick={() => onModeChange("record")}
         >
-          Record
+          🎙️ Record
         </button>
         <button
           type="button"

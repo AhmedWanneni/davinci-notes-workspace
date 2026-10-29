@@ -29,10 +29,10 @@ export function QuickCaptureFooter({
                 type="button"
                 className={styles["quick-capture-record-btn"]}
                 onClick={onRecord}
-                aria-label="Record voice note"
+                aria-label="Start recording"
               >
-                <Microphone size={14} weight="bold" />
-                <span>Record</span>
+                <Microphone size={16} weight="bold" />
+                <span>Start Recording</span>
               </button>
             )}
             <button

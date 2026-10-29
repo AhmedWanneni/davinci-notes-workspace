@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: QuickCapture Window Expansion & Prominent "Start Recording" Placement
+
+- **Window Size Expansion**:
+  - Increased QuickCapture window `inner_size` in `apps/desktop/src-tauri/src/capture.rs` from `(640.0, 340.0)` to `(780.0, 520.0)`.
+  - Updated popover fallback geometry in `apps/desktop/src-tauri/src/tray_position.rs` to `780.0 x 520.0`.
+  - Added automated client-side window resize (`LogicalSize(780, 520)`) and `reclamp_capture_popover` invocation on mount in `QuickCapture.tsx` so live desktop app sessions resize immediately.
+- **Prominent "Start Recording" Placement**:
+  - In `QuickCaptureRecord.tsx`: moved `<QuickCaptureRecordControls>` to the TOP directly under `record-status-row` so the "Start Recording" button is immediately visible in plain sight rather than pushed below inputs.
+  - In `QuickCaptureRecordControls.tsx`: updated button to display `<Microphone />` with label `Start Recording` (using primary interactive accent token) instead of a subtle `● Record`.
+  - In `QuickCaptureFooter.tsx`: updated capture button to display `<Microphone />` with label `Start Recording`.
+  - In `QuickCaptureHeader.tsx`: updated the tab to display `🎙️ Record`.
+- **Refactoring & File Caps**:
+  - Extracted `useCaptureActions.ts` (105 lines) from `QuickCapture.tsx` to handle save, note open, and dismiss logic cleanly, bringing `QuickCapture.tsx` down to 209 lines (under 250 hard cap).
+  - Set `.quick-capture-container` to `overflow-y: auto; overflow-x: hidden;` and `.quick-capture-textarea` to `min-height: 160px;`.
+- **Testing & Verification**:
+  - All 33 QuickCapture unit tests passing.
+  - 0 public design token violations across all modified SCSS.
+  - Production web bundle built successfully (`pnpm --filter @app/desktop build:web`).
+
 ### 2026-10-29: QuickCapture Direct Record Button & Editor Audio Playback Path Resolution
 
 - **QuickCapture Record Button & Auto-Start**:

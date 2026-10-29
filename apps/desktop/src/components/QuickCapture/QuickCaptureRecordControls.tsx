@@ -1,3 +1,4 @@
+import { Microphone, Pause, Play, Stop, Check, Trash, X } from "@phosphor-icons/react";
 import type { RecordState } from "./useQuickRecord";
 import styles from "./QuickCaptureRecord.module.scss";
 
@@ -32,7 +33,8 @@ export function QuickCaptureRecordControls({
             onClick={onStart}
             aria-label="Start recording"
           >
-            ● Record
+            <Microphone size={16} weight="bold" />
+            <span>Start Recording</span>
           </button>
         )}
 
@@ -44,7 +46,8 @@ export function QuickCaptureRecordControls({
               onClick={onPause}
               aria-label="Pause recording"
             >
-              ⏸ Pause
+              <Pause size={14} weight="bold" />
+              <span>Pause</span>
             </button>
             <button
               type="button"
@@ -52,7 +55,8 @@ export function QuickCaptureRecordControls({
               onClick={onStop}
               aria-label="Stop recording"
             >
-              ■ Done
+              <Stop size={14} weight="bold" />
+              <span>Done (Stop)</span>
             </button>
           </>
         )}
@@ -65,7 +69,8 @@ export function QuickCaptureRecordControls({
               onClick={onResume}
               aria-label="Resume recording"
             >
-              ▶ Resume
+              <Play size={14} weight="bold" />
+              <span>Resume</span>
             </button>
             <button
               type="button"
@@ -73,7 +78,8 @@ export function QuickCaptureRecordControls({
               onClick={onStop}
               aria-label="Stop recording"
             >
-              ■ Done
+              <Stop size={14} weight="bold" />
+              <span>Done (Stop)</span>
             </button>
           </>
         )}
@@ -86,7 +92,8 @@ export function QuickCaptureRecordControls({
               onClick={onSave}
               aria-label="Save audio note"
             >
-              ✓ Save Note
+              <Check size={14} weight="bold" />
+              <span>Save Note</span>
             </button>
             <button
               type="button"
@@ -94,7 +101,8 @@ export function QuickCaptureRecordControls({
               onClick={onDiscard}
               aria-label="Discard recording"
             >
-              Discard
+              <Trash size={14} weight="bold" />
+              <span>Discard</span>
             </button>
           </>
         )}
@@ -106,7 +114,8 @@ export function QuickCaptureRecordControls({
         onClick={onCancel}
         aria-label="Cancel"
       >
-        Cancel
+        <X size={14} weight="bold" />
+        <span>Cancel</span>
       </button>
     </div>
   );

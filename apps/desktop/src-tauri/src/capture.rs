@@ -118,6 +118,7 @@ pub fn show_or_create_capture_window(app: &AppHandle, tray_rect: Option<Rect>) -
     .unwrap_or_else(|| resolve_tray_rect_or_fallback(app, None));
 
   if let Some(window) = app.get_webview_window(CAPTURE_WINDOW_LABEL) {
+    let _ = window.set_size(tauri::Size::Logical(tauri::LogicalSize::new(780.0, 520.0)));
     if let Some(pos) = find_popover_position(app, Some(&window), &target_rect) {
       let _ = window.set_position(tauri::Position::Physical(pos));
     }
@@ -137,7 +138,7 @@ fn create_and_show_capture_window(app: &AppHandle, target_rect: &Rect) -> Result
     WebviewUrl::App("capture.html".into()),
   )
   .title("Sophia — Quick Capture")
-  .inner_size(640.0, 340.0)
+  .inner_size(780.0, 520.0)
   .resizable(false)
   .always_on_top(true)
   .visible_on_all_workspaces(true)

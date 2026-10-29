@@ -113,6 +113,23 @@ export function QuickCaptureRecord({
         <span className={styles["record-timer"]}>{formatTimer(elapsed)}</span>
       </div>
 
+      <QuickCaptureRecordControls
+        status={status}
+        onStart={() => void handleStart()}
+        onPause={() => void handlePause()}
+        onResume={() => void handleResume()}
+        onStop={() => void handleStop()}
+        onSave={() => void handleSave()}
+        onDiscard={() => void handleDiscard()}
+        onCancel={() => void handleDiscard().then(onDismiss)}
+      />
+
+      {errorMessage && (
+        <Typography variant="text" size="xs" color="muted">
+          {errorMessage}
+        </Typography>
+      )}
+
       <div className={styles["record-field"]}>
         <Typography variant="text" size="xs" color="muted" weight="medium">
           Note Title
@@ -153,23 +170,6 @@ export function QuickCaptureRecord({
           aria-label="Recording notes"
         />
       </div>
-
-      {errorMessage && (
-        <Typography variant="text" size="xs" color="muted">
-          {errorMessage}
-        </Typography>
-      )}
-
-      <QuickCaptureRecordControls
-        status={status}
-        onStart={() => void handleStart()}
-        onPause={() => void handlePause()}
-        onResume={() => void handleResume()}
-        onStop={() => void handleStop()}
-        onSave={() => void handleSave()}
-        onDiscard={() => void handleDiscard()}
-        onCancel={() => void handleDiscard().then(onDismiss)}
-      />
     </div>
   );
 }

@@ -18,12 +18,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   background-color: var(--color-bg-status-accent);
   color: var(--color-text-accent);
   border: var(--border-width-thin) solid var(--color-border-focus);
   border-radius: var(--border-radius-sm);
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-1) var(--space-3);
   font-family: var(--font-ui);
   font-size: var(--type-scale-xs);
   font-weight: var(--type-weight-semibold);
