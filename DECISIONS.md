@@ -413,5 +413,12 @@ the list.
 | [0240](adr/0240-git-manager-conflict-resolution-and-merge-lifecycle.md) | Git Manager Conflict Resolution and Merge Lifecycle | Accepted |
 | [0241](adr/0241-git-manager-stabilization-perf-and-close-out.md) | Git Manager Stabilization, Performance Budget Verification and Close-Out | Accepted |
 
+## Release Management & Distribution
+
+| ADR | Decision | Status |
+|---|---|---|
+| [0242](adr/0242-release-versioning-and-manifest-synchronization.md) | Release Versioning, Single Source of Truth, and Manifest Synchronization | Accepted |
+
+
 
 
