@@ -9,6 +9,7 @@ import { GitChangesList } from "./GitChangesList";
 import { GitDiffViewer } from "./GitDiffViewer";
 import { GitHistoryGraph } from "./GitHistoryGraph";
 import { GitCommitDetailSheet } from "./GitCommitDetailSheet";
+import { GitBranchSwitcher } from "./GitBranchSwitcher";
 import styles from "./GitSidebarPanel.module.scss";
 
 export function GitSidebarPanel() {
@@ -101,12 +102,13 @@ export function GitSidebarPanel() {
   return (
     <div className={styles["git-sidebar-panel"]} data-testid="git-sidebar-panel">
       <header className={styles["git-sidebar-panel__header"]}>
-        <div className={styles["git-sidebar-panel__branch-info"]}>
-          <GitBranch size={16} weight="regular" className={styles["git-sidebar-panel__branch-icon"]} />
-          <span className={styles["git-sidebar-panel__branch-name"]}>
-            {repoInfo.branch || (repoInfo.isDetached ? "Detached HEAD" : "main")}
-          </span>
-        </div>
+        <GitBranchSwitcher
+          currentBranch={repoInfo.branch || (repoInfo.isDetached ? "Detached HEAD" : "main")}
+          onBranchSwitched={() => {
+            void refreshRepoInfo();
+            void refreshStatus();
+          }}
+        />
         <div className={styles["git-sidebar-panel__actions"]}>
           <Button
             variant="ghost"

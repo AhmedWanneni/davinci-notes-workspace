@@ -4,7 +4,42 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 5: History Graph (Virtualized), Commit Detail & File History (ADR-0237)
+## Last Session — Git Manager Phase 6: Branches: List, Switch, Create, Delete & Dirty Tree Guard (ADR-0238)
+
+**Scope:** Implement tab-delimited branch querying with upstream tracking and ahead/behind status, safe branch switching with dirty-working-tree protection, branch creation, branch deletion with confirmation, stash push/pop support, and compact Radix branch switcher UI.
+
+**What was done:**
+1. **Rust Branch Backend (`git_manager_branches.rs` & `git_manager_stash.rs`)**:
+   - Implemented `git_manager_list_branches`:
+     - Runs `git branch -a --format="%(refname:short)%09%(upstream:short)%09%(HEAD)%09%(upstream:track)"`.
+     - Parses upstream tracking ref and ahead/behind counts (e.g. `[ahead 2, behind 1]`).
+   - Implemented `git_manager_switch_branch`:
+     - Checks `git status --porcelain=v2 -z` before checkout; returns `DIRTY_WORKING_TREE` error if uncommitted changes exist.
+   - Implemented `git_manager_create_branch` (`git checkout -b <name>`) and `git_manager_delete_branch` (`git branch -d` / `git branch -D`).
+   - Implemented `git_manager_stash` and `git_manager_stash_pop` in `git_manager_stash.rs` (104 lines).
+   - Wrapped mutations in `with_git_lock`. Added integration test `test_branch_lifecycle_and_dirty_guard` (10/10 Rust tests pass).
+2. **Branch Switcher UI (`GitBranchSwitcher.tsx`)**:
+   - Radix popover anchored to active branch button in sidebar header.
+   - Real-time search filter across local and remote branches.
+   - Active branch checkmark, upstream tracking indicator, ahead/behind badges.
+   - Inline branch deletion button with modal confirmation.
+   - "Create new branch" inline input with instantaneous branch switch.
+   - All 38 Vitest tests passing in `@app/git-manager`.
+3. **Lazy-Load Verification**:
+   - Zero initial bundle regression when Git Manager is disabled.
+4. **Architecture Decision Record**:
+   - Authored [ADR-0238](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0238-git-manager-branch-management-and-dirty-tree-guard.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 7: Remote: fetch, pull, push, ahead/behind**.
+- Phase 8: Conflict resolution (3-pane ours/theirs/result, abort/continue).
+- Phase 9: Polish, perf pass, stabilization sweep, ADR/docs close-out.
+
+---
+
+## Previous Session — Git Manager Phase 5: History Graph (Virtualized), Commit Detail & File History (ADR-0237)
 
 **Scope:** Implement paged custom-delimited log queries, commit detail metadata with changed file numstats, zero-dependency SVG lane rendering algorithm, virtualized history graph using `@tanstack/react-virtual`, and commit detail sheet.
 

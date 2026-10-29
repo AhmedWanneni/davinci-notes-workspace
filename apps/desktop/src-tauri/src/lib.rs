@@ -38,6 +38,8 @@ mod git_manager_commands;
 mod git_manager_ops;
 mod git_manager_diff;
 mod git_manager_log;
+mod git_manager_branches;
+mod git_manager_stash;
 mod git_remote;
 #[cfg(target_os = "macos")]
 mod macos_panel;
@@ -162,6 +164,12 @@ pub fn run() {
       git_manager_diff::git_manager_apply_patch,
       git_manager_log::git_manager_get_log,
       git_manager_log::git_manager_get_commit_details,
+      git_manager_branches::git_manager_list_branches,
+      git_manager_branches::git_manager_switch_branch,
+      git_manager_branches::git_manager_create_branch,
+      git_manager_branches::git_manager_delete_branch,
+      git_manager_stash::git_manager_stash,
+      git_manager_stash::git_manager_stash_pop,
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,

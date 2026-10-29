@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
+  GitBranchInfo,
   GitCommitDetail,
   GitCommitEntry,
   GitFileDiff,
@@ -60,6 +61,30 @@ export async function fetchGitLog(
 
 export async function fetchGitCommitDetails(hash: string): Promise<GitCommitDetail> {
   return invoke<GitCommitDetail>("git_manager_get_commit_details", { hash });
+}
+
+export async function fetchGitBranches(): Promise<GitBranchInfo[]> {
+  return invoke<GitBranchInfo[]>("git_manager_list_branches");
+}
+
+export async function switchGitBranch(branch: string): Promise<void> {
+  return invoke<void>("git_manager_switch_branch", { branch });
+}
+
+export async function createGitBranch(branch: string, checkout = true): Promise<void> {
+  return invoke<void>("git_manager_create_branch", { branch, checkout });
+}
+
+export async function deleteGitBranch(branch: string, force = false): Promise<void> {
+  return invoke<void>("git_manager_delete_branch", { branch, force });
+}
+
+export async function stashGitChanges(message?: string): Promise<void> {
+  return invoke<void>("git_manager_stash", { message });
+}
+
+export async function popGitStash(): Promise<void> {
+  return invoke<void>("git_manager_stash_pop");
 }
 
 export async function listenToGitChanges(callback: () => void): Promise<() => void> {

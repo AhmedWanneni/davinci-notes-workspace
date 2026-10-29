@@ -2,6 +2,23 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Phase 6 — Branches: List, Switch, Create, Delete & Dirty Tree Guard (ADR-0238)
+
+- **Branch Management & Stash Engine**:
+  - Implemented `apps/desktop/src-tauri/src/git_manager_branches.rs` and `apps/desktop/src-tauri/src/git_manager_stash.rs`.
+  - Used tab-delimited formatting (`git branch -a --format="%(refname:short)%09%(upstream:short)%09%(HEAD)%09%(upstream:track)"`) for branch enumeration and upstream tracking parsing.
+  - Implemented dirty working tree guard before checkout: prevents silent file overwrite or conflict abort by validating `git status --porcelain=v2 -z` prior to checkout.
+  - Added dedicated stash push and pop commands (`git_manager_stash`, `git_manager_stash_pop`) wrapped in `with_git_lock`.
+- **Branch Switcher UI**:
+  - Implemented `GitBranchSwitcher.tsx` with Radix Popover, real-time search filtering, active branch indicators, ahead/behind tracking badges, inline branch deletion with confirmation modal, and new branch creation.
+  - Mounted switcher in `GitSidebarPanel.tsx` header.
+- **Testing & Verification**:
+  - All 38 Vitest tests passing in `@app/git-manager` across 11 test suites.
+  - All 10 Rust unit tests passing in `davinci_notes_desktop_lib`.
+  - Lazy-loaded bundle chunk verified: zero initial bundle regression when Git Manager is disabled.
+- **Architecture Decision Record**:
+  - Authored [ADR-0238](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0238-git-manager-branch-management-and-dirty-tree-guard.md) and indexed in `DECISIONS.md`.
+
 ### 2026-10-29: Git Manager Phase 5 — History Graph, Commit Detail & File History (ADR-0237)
 
 - **Paged Delimited Log & Numstat Engine**:

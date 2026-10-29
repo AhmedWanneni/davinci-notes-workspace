@@ -55,6 +55,15 @@ export interface GitCommitDetail {
   files: GitCommitFileChange[];
 }
 
+export interface GitBranchInfo {
+  name: string;
+  isCurrent: boolean;
+  isRemote: boolean;
+  upstream?: string;
+  ahead: number;
+  behind: number;
+}
+
 export interface GitGraphLaneConnection {
   fromLane: number;
   toLane: number;

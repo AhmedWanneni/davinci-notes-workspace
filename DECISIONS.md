@@ -408,6 +408,7 @@ the list.
 | [0235](adr/0235-git-manager-staging-discard-and-commits.md) | Git Manager Staging, Discard, and Commit Operations | Accepted |
 | [0236](adr/0236-git-manager-diff-viewer-and-hunk-staging.md) | Git Manager Diff Viewer and Hunk Staging | Accepted |
 | [0237](adr/0237-git-manager-history-graph-and-commit-detail.md) | Git Manager History Graph and Commit Detail | Accepted |
+| [0238](adr/0238-git-manager-branch-management-and-dirty-tree-guard.md) | Git Manager Branch Management and Dirty Tree Guard | Accepted |
 
 
 
