@@ -4,6 +4,8 @@ export { ListeningHeader } from "./ListeningHeader";
 export { TranscriptFeed } from "./TranscriptFeed";
 export { TranscriptBubble } from "./TranscriptBubble";
 export { AudioMeter } from "./AudioMeter";
+export { MeetingPromptToast } from "./MeetingPromptToast";
+export type { MeetingPromptToastProps } from "./MeetingPromptToast";
 export { useListeningSession } from "./useListeningSession";
 export {
   LISTENING_TAB_ID,
