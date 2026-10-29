@@ -22,6 +22,14 @@ export interface GitFileChange {
   staged: boolean;
 }
 
+export interface GitFileDiff {
+  path: string;
+  originalContent: string;
+  modifiedContent: string;
+  patch: string;
+  staged: boolean;
+}
+
 export interface GitStatusSummary {
   repoInfo: GitRepoInfo;
   staged: GitFileChange[];

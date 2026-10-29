@@ -4,7 +4,41 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 3: Stage / Unstage / Discard, Commit, Amend (ADR-0235)
+## Last Session — Git Manager Phase 4: Diff Viewer & Hunk Staging (ADR-0236)
+
+**Scope:** Implement dual-mode diff queries (`staged` vs `unstaged`), patch staging (`git apply --cached`), lazy-loaded CodeMirror unified merge viewer, and hunk staging actions.
+
+**What was done:**
+1. **Rust Diff & Patch Backend (`git_manager_diff.rs`)**:
+   - Implemented `git_manager_get_file_diff`:
+     - If staged: diffs `HEAD:<path>` against index `:<path>` with `git diff --cached -U3`.
+     - If unstaged: diffs index `:<path>` (or HEAD fallback) against working tree on disk with `git diff -U3`.
+   - Implemented `git_manager_apply_patch`:
+     - Pipes patch to `git apply --whitespace=nowarn --cached -`.
+     - Supports reverse un-staging with `--reverse`.
+   - Wrapped all operations in `with_git_lock`.
+   - Thread-safe unit tests using atomic test counters (2/2 Rust diff tests passing). File maintained at 248 lines (< 250 cap).
+2. **Unified Diff Viewer UI (`GitDiffViewer.tsx`)**:
+   - Integrated `@codemirror/merge`'s `unifiedMergeView` for inline diff rendering with red deletions, green additions, and unified gutters.
+   - Header with filename, status badge (`Staged` vs `Working Tree`), stage/unstage toggle, and close action.
+   - Wired `openDiff`, `closeDiff`, `stageHunk`, and `unstageHunk` into `useGitManagerStore`.
+   - Connected `onSelectFile` in `GitSidebarPanel` so clicking any file change seamlessly displays the diff.
+   - All 28 Vitest tests passing in `@app/git-manager`.
+3. **Lazy-Load Verification**:
+   - Production web build chunk `index-DG4gaaue.js` is 17.0 KB raw (~5.4 KB gzip).
+   - Zero Git background processes when feature is disabled or panel is unmounted.
+4. **Architecture Decision Record**:
+   - Authored [ADR-0236](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0236-git-manager-diff-viewer-and-hunk-staging.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 5: History graph (virtualized) + commit detail + file history**.
+- Phase 6: Branches: list, switch, create, delete, dirty-tree handling.
+
+---
+
+## Previous Session — Git Manager Phase 3: Stage / Unstage / Discard, Commit, Amend (ADR-0235)
 
 **Scope:** Implement mutating Git operations (`stage`, `unstage`, `discard`, `commit`, `amend`) with global Mutex serialization (`GIT_OPERATION_LOCK`), pathspec separation, initial-commit empty HEAD handling, destructive action confirmation, and commit box UI.
 

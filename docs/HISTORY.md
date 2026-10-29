@@ -2,6 +2,26 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Phase 4 — Diff Viewer & Hunk Staging (ADR-0236)
+
+- **Diff Engine & Patch Staging**:
+  - Implemented `apps/desktop/src-tauri/src/git_manager_diff.rs` with `git_manager_get_file_diff` and `git_manager_apply_patch`.
+  - Staged diff mode compares `HEAD:<path>` against index `:<path>` via `git diff --cached -U3`.
+  - Unstaged diff mode compares index `:<path>` against disk content via `git diff -U3`.
+  - Patch staging pipes unified diff hunks into `git apply --whitespace=nowarn --cached -` (with `--reverse` for unstage).
+  - Serialized all diff and apply operations under `with_git_lock`.
+- **Unified Diff Viewer UI**:
+  - Implemented `packages/git-manager/src/components/GitDiffViewer.tsx` leveraging `@codemirror/merge`'s `unifiedMergeView`.
+  - Configured inline deletions and additions with gutters and token-based colors.
+  - Added header controls for quick stage/unstage toggle and dismiss action.
+  - Integrated `activeDiff`, `openDiff`, `closeDiff`, `stageHunk`, `unstageHunk` in `useGitManagerStore`.
+- **Testing & Verification**:
+  - All 28 unit tests passing in `@app/git-manager`.
+  - Rust unit tests in `git_manager_diff.rs` passing (2/2).
+  - Code-split web build verified: `index-DG4gaaue.js` is 17.0 KB raw (~5.4 KB gzip).
+- **Architecture Decision Record**:
+  - Authored [ADR-0236](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0236-git-manager-diff-viewer-and-hunk-staging.md) and indexed in `DECISIONS.md`.
+
 ### 2026-10-29: Git Manager Phase 3 — Stage / Unstage / Discard, Commit, Amend (ADR-0235)
 
 - **Mutating Operations Engine**:

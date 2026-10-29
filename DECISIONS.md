@@ -406,6 +406,7 @@ the list.
 | [0233](adr/0233-git-manager-settings-and-lazy-boundary.md) | Git Manager Activation Setting and Lazy-Loaded Monorepo Boundary | Accepted |
 | [0234](adr/0234-git-manager-status-engine-and-porcelain-v2.md) | Git Manager Status Engine and Porcelain v2 Parsing | Accepted |
 | [0235](adr/0235-git-manager-staging-discard-and-commits.md) | Git Manager Staging, Discard, and Commit Operations | Accepted |
+| [0236](adr/0236-git-manager-diff-viewer-and-hunk-staging.md) | Git Manager Diff Viewer and Hunk Staging | Accepted |
 
 
 

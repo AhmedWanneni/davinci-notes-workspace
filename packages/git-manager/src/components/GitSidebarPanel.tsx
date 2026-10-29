@@ -6,6 +6,7 @@ import { listenToGitChanges } from "../api/gitClient";
 import { GitEmptyState } from "./GitEmptyState";
 import { GitCommitBox } from "./GitCommitBox";
 import { GitChangesList } from "./GitChangesList";
+import { GitDiffViewer } from "./GitDiffViewer";
 import styles from "./GitSidebarPanel.module.scss";
 
 export function GitSidebarPanel() {
@@ -14,10 +15,13 @@ export function GitSidebarPanel() {
     staged,
     unstaged,
     conflicts,
+    activeDiff,
     isLoading,
     refreshRepoInfo,
     refreshStatus,
     initializeRepo,
+    openDiff,
+    closeDiff,
   } = useGitManagerStore();
 
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -77,6 +81,14 @@ export function GitSidebarPanel() {
     );
   }
 
+  if (activeDiff) {
+    return (
+      <div className={styles["git-sidebar-panel"]} data-testid="git-sidebar-panel">
+        <GitDiffViewer diff={activeDiff} onClose={closeDiff} />
+      </div>
+    );
+  }
+
   return (
     <div className={styles["git-sidebar-panel"]} data-testid="git-sidebar-panel">
       <header className={styles["git-sidebar-panel__header"]}>
@@ -112,6 +124,7 @@ export function GitSidebarPanel() {
               staged={staged}
               unstaged={unstaged}
               conflicts={conflicts}
+              onSelectFile={(change) => void openDiff(change.path, change.staged)}
             />
           </>
         )}

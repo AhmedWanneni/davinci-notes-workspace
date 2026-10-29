@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { GitFileChange, GitRepoInfo } from "../types/gitTypes";
+import type { GitFileChange, GitFileDiff, GitRepoInfo } from "../types/gitTypes";
 import {
   fetchGitRepoInfo,
   fetchGitStatus,
@@ -8,6 +8,8 @@ import {
   unstageGitPaths,
   discardGitPaths,
   commitGit,
+  fetchFileDiff,
+  applyGitPatch,
 } from "../api/gitClient";
 import { parsePorcelainV2 } from "../parsers/parsePorcelainV2";
 
@@ -17,6 +19,7 @@ export interface GitManagerState {
   unstaged: GitFileChange[];
   conflicts: GitFileChange[];
   untracked: GitFileChange[];
+  activeDiff: GitFileDiff | null;
   isLoading: boolean;
   error: string | null;
   isStatusDirty: boolean;
@@ -27,6 +30,10 @@ export interface GitManagerState {
   unstagePaths: (paths: string[]) => Promise<void>;
   discardPaths: (paths: string[]) => Promise<void>;
   commit: (message: string, amend?: boolean) => Promise<string | undefined>;
+  openDiff: (path: string, staged: boolean) => Promise<void>;
+  closeDiff: () => void;
+  stageHunk: (patch: string) => Promise<void>;
+  unstageHunk: (patch: string) => Promise<void>;
   setStatusDirty: (dirty: boolean) => void;
 }
 
@@ -36,6 +43,7 @@ export const useGitManagerStore = create<GitManagerState>((set, get) => ({
   unstaged: [],
   conflicts: [],
   untracked: [],
+  activeDiff: null,
   isLoading: false,
   error: null,
   isStatusDirty: false,
@@ -142,6 +150,55 @@ export const useGitManagerStore = create<GitManagerState>((set, get) => ({
         isLoading: false,
       });
       return undefined;
+    }
+  },
+
+  openDiff: async (path: string, staged: boolean) => {
+    set({ isLoading: true, error: null });
+    try {
+      const diff = await fetchFileDiff(path, staged);
+      set({ activeDiff: diff, isLoading: false });
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        isLoading: false,
+      });
+    }
+  },
+
+  closeDiff: () => set({ activeDiff: null }),
+
+  stageHunk: async (patch: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await applyGitPatch(patch, true, false);
+      const active = get().activeDiff;
+      if (active) {
+        await get().openDiff(active.path, active.staged);
+      }
+      await get().refreshStatus();
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        isLoading: false,
+      });
+    }
+  },
+
+  unstageHunk: async (patch: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await applyGitPatch(patch, true, true);
+      const active = get().activeDiff;
+      if (active) {
+        await get().openDiff(active.path, active.staged);
+      }
+      await get().refreshStatus();
+    } catch (err) {
+      set({
+        error: err instanceof Error ? err.message : String(err),
+        isLoading: false,
+      });
     }
   },
 
