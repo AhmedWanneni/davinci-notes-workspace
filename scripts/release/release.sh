@@ -124,7 +124,11 @@ fi
 echo "Step 4: Committing release manifests..."
 git add package.json apps/desktop/package.json apps/desktop/src-tauri/tauri.conf.json \
   apps/desktop/src-tauri/Cargo.toml apps/website/package.json apps/mobile/app.json
-git commit -m "chore(release): ${TAG_NAME}"
+if ! git diff --cached --quiet; then
+  git commit -m "chore(release): ${TAG_NAME}"
+else
+  echo "Manifests already match ${NEW_VERSION}, skipping empty commit."
+fi
 
 # Step 6: Create annotated tag
 echo "Step 5: Creating annotated git tag ${TAG_NAME}..."
