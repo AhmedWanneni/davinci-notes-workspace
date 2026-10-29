@@ -2,6 +2,7 @@ import React from "react";
 import {
   MagnifyingGlass, Plus, Gear, Bell, PaperPlaneRight,
 } from "@phosphor-icons/react";
+import { Button } from "@app/design-system";
 import styles from "./RemindersView.module.scss";
 
 export type RemindersTabId = "reminders" | "scheduled";
@@ -67,23 +68,25 @@ export function RemindersHeader({
 
         <div className={styles["reminders-header__actions"]}>
           {activeTab === "reminders" ? (
-            <button
-              type="button"
-              className={styles["btn--primary"]}
+            <Button
+              variant="primary"
+              size="sm"
               onClick={onNewReminder}
+              aria-label="Add a reminder"
             >
               <Plus size={14} weight="bold" />
-              <span>Add Reminder</span>
-            </button>
+              <span>Add a reminder</span>
+            </Button>
           ) : (
-            <button
-              type="button"
-              className={styles["btn--primary"]}
+            <Button
+              variant="primary"
+              size="sm"
               onClick={onNewScheduledMessage}
+              aria-label="Schedule message"
             >
               <Plus size={14} weight="bold" />
               <span>Schedule Message</span>
-            </button>
+            </Button>
           )}
 
           <button

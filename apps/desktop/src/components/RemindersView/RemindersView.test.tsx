@@ -5,8 +5,21 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { RemindersView } from "./RemindersView";
 import * as remindersQueries from "../../vault/remindersViewQueries";
 import * as taskActions from "../../vault/reminderTaskActions";
+import * as appendModule from "../../vault/appendToNoteInVault";
 import * as scheduledStore from "../../reminders/scheduledMessagesStore";
 import type { ReminderViewItem } from "../../vault/remindersViewQueries";
+
+vi.mock("../../vault/appendToNoteInVault", () => ({
+  appendToNoteInVault: vi.fn().mockResolvedValue("mocked"),
+}));
+
+vi.mock("../../calendar/calendarOutboxWorker", () => ({
+  optimisticCreateEvent: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../../calendar/calendarSyncRunner", () => ({
+  flushAndSyncCalendar: vi.fn().mockResolvedValue(undefined),
+}));
 
 vi.mock("../../vault/remindersViewQueries", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../vault/remindersViewQueries")>();
@@ -180,5 +193,47 @@ describe("RemindersView", () => {
 
     fireEvent.click(screen.getByLabelText("Notification Settings"));
     expect(onOpenSettings).toHaveBeenCalled();
+  });
+
+  it("opens add reminder form when Add a reminder button is clicked and cancels it", async () => {
+    render(<RemindersView onOpenNote={vi.fn()} onOpenSettings={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: "Add a reminder" })[0]).toBeDefined();
+    });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Add a reminder" })[0]);
+    expect(screen.getByRole("form", { name: "Add a reminder" })).toBeDefined();
+    expect(screen.getByLabelText("Reminder Task Title")).toBeDefined();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("form", { name: "Add a reminder" })).toBeNull();
+  });
+
+  it("submits add reminder form and calls appendToNoteInVault", async () => {
+    render(<RemindersView onOpenNote={vi.fn()} onOpenSettings={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getAllByRole("button", { name: "Add a reminder" })[0]).toBeDefined();
+    });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Add a reminder" })[0]);
+
+    const input = screen.getByLabelText("Reminder Task Title");
+    fireEvent.change(input, { target: { value: "Review pull request" } });
+
+    const submitBtn = screen.getByRole("button", { name: "Add reminder" });
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(appendModule.appendToNoteInVault).toHaveBeenCalledWith(
+        expect.stringMatching(/\.md$/),
+        expect.stringContaining("Review pull request"),
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole("form", { name: "Add a reminder" })).toBeNull();
+    });
   });
 });

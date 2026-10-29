@@ -37,7 +37,7 @@
   border: var(--border-width-thin) solid transparent;
   border-radius: var(--border-radius-sm);
   color: var(--color-text-muted);
-  font-size: var(--type-size-sm);
+  font-size: var(--type-scale-sm);
   cursor: pointer;
 
   &:hover {
@@ -63,7 +63,7 @@
   border-radius: var(--border-radius-sm);
   background-color: var(--color-bg-tertiary);
   border: var(--border-width-thin) solid var(--color-border-normal);
-  font-size: var(--type-size-xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
 }
 
@@ -98,7 +98,7 @@
   border: var(--border-width-thin) solid var(--color-border-normal);
   border-radius: var(--border-radius-sm);
   color: var(--color-text-normal);
-  font-size: var(--type-size-sm);
+  font-size: var(--type-scale-sm);
   outline: none;
 
   &:focus {
@@ -115,6 +115,11 @@
   gap: var(--space-5);
 }
 
+.reminders-subview__top-action {
+  display: flex;
+  align-items: center;
+}
+
 .reminders-group {
   display: flex;
   flex-direction: column;
@@ -125,7 +130,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--type-size-sm);
+  font-size: var(--type-scale-sm);
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
@@ -141,7 +146,7 @@
 }
 
 .reminders-group__count {
-  font-size: var(--type-size-xs);
+  font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
 }
 
@@ -154,7 +159,7 @@
   padding: 0;
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: var(--type-size-sm);
+  font-size: var(--type-scale-sm);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -170,17 +175,14 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
-  background-color: var(--color-accent);
-  color: var(--color-bg-primary);
-  border: var(--border-width-thin) solid var(--color-accent);
+  background-color: var(--color-interactive-accent);
+  color: var(--color-text-on-accent);
+  border: var(--border-width-thin) solid var(--color-interactive-accent);
   border-radius: var(--border-radius-sm);
-  font-size: var(--type-size-sm);
+  font-size: var(--type-scale-sm);
   font-weight: 500;
   cursor: pointer;
-
-  &:hover {
-    filter: brightness(1.1);
-  }
+  &:hover { background-color: var(--color-interactive-accent-hover); border-color: var(--color-interactive-accent-hover); }
 }
 
 .btn--secondary {
@@ -192,12 +194,9 @@
   color: var(--color-text-normal);
   border: var(--border-width-thin) solid var(--color-border-normal);
   border-radius: var(--border-radius-sm);
-  font-size: var(--type-size-sm);
+  font-size: var(--type-scale-sm);
   cursor: pointer;
-
-  &:hover {
-    border-color: var(--color-text-muted);
-  }
+  &:hover { background-color: var(--color-bg-hover); }
 }
 
 .btn--icon {
@@ -211,10 +210,7 @@
   border-radius: var(--border-radius-sm);
   color: var(--color-text-normal);
   cursor: pointer;
-
-  &:hover {
-    background-color: var(--color-bg-secondary);
-  }
+  &:hover { background-color: var(--color-bg-secondary); }
 }
 
 .reminders-empty {
@@ -234,13 +230,13 @@
 
 .reminders-empty__title {
   margin: 0;
-  font-size: var(--type-size-md);
+  font-size: var(--type-scale-base);
   font-weight: 500;
   color: var(--color-text-normal);
 }
 
 .reminders-empty__sub {
   margin: 0;
-  font-size: var(--type-size-sm);
+  font-size: var(--type-scale-sm);
   color: var(--color-text-muted);
 }

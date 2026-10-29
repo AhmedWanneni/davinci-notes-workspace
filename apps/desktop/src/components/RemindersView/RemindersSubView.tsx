@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { CaretDown, CaretRight, CheckCircle, Warning } from "@phosphor-icons/react";
+import { CaretDown, CaretRight, CheckCircle, Warning, Plus } from "@phosphor-icons/react";
+import { Button } from "@app/design-system";
 import type { ReminderViewItem } from "../../vault/remindersViewQueries";
 import type { SnoozePreset } from "../../vault/reminderSnoozeActions";
 import { ReminderRow } from "./ReminderRow";
@@ -50,9 +51,14 @@ export function RemindersSubView({
             <p className={styles["reminders-empty__sub"]}>
               Add one with the button above or write <code>- [ ] Task (@YYYY-MM-DD)</code> in any markdown note.
             </p>
-            <button type="button" className={styles["btn--primary"]} onClick={onNewReminder}>
-              Add Reminder
-            </button>
+            <Button
+              variant="primary"
+              onClick={onNewReminder}
+              aria-label="Add a reminder"
+            >
+              <Plus size={14} weight="bold" />
+              <span>Add a reminder</span>
+            </Button>
           </>
         )}
       </div>
@@ -100,6 +106,18 @@ export function RemindersSubView({
 
   return (
     <div className={styles["reminders-subview"]}>
+      <div className={styles["reminders-subview__top-action"]}>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onNewReminder}
+          aria-label="Add a reminder"
+        >
+          <Plus size={14} weight="bold" />
+          <span>Add a reminder</span>
+        </Button>
+      </div>
+
       {renderGroup("Overdue", overdue, "overdue")}
       {renderGroup("Today", today)}
       {renderGroup("Upcoming", upcoming)}

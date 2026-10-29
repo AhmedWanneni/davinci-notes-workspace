@@ -161,6 +161,7 @@ pub fn run() {
       notification_auth::save_notification_secret,
       notification_auth::load_notification_secret,
       notification_auth::clear_notification_secret,
+      reminder_notify::send_desktop_notification_command,
       plugin_network::plugin_network_request,
       plugin_webview::start_plugin_webview_probe,
       plugin_webview::ensure_plugin_webview,
@@ -233,7 +234,7 @@ pub fn run() {
     })
     .setup(|app| {
       let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
-        .title("DaVinci Notes")
+        .title("Sophia")
         .inner_size(1200.0, 800.0)
         .min_inner_size(640.0, 480.0)
         .resizable(true)
@@ -248,6 +249,12 @@ pub fn run() {
       let window = window.decorations(false);
 
       window.build()?;
+
+      #[cfg(target_os = "macos")]
+      {
+        macos_panel::set_dock_icon();
+        macos_panel::setup_notification_identity();
+      }
 
       tray::setup(app.handle())?;
       capture::setup(app.handle())?;

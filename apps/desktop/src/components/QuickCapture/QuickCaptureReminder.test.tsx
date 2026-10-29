@@ -28,7 +28,10 @@ describe("QuickCaptureReminder", () => {
     fireEvent.click(screen.getByRole("button", { name: "Tomorrow" }));
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const expected = tomorrow.toISOString().slice(0, 10);
+    const year = tomorrow.getFullYear();
+    const month = String(tomorrow.getMonth() + 1).padStart(2, "0");
+    const day = String(tomorrow.getDate()).padStart(2, "0");
+    const expected = `${year}-${month}-${day}`;
     expect((screen.getByLabelText("Due date") as HTMLInputElement).value).toBe(expected);
   });
 

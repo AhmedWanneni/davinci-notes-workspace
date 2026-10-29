@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
-  Bell,
   Check,
   X,
   Clock,
@@ -167,8 +166,14 @@ export function ReminderNotificationToast({
     >
       <div className={styles.toast__header}>
         <div className={styles["toast__title-group"]}>
-          <Bell size={16} className={styles.toast__icon} />
-          <span className={styles.toast__heading}>Reminder</span>
+          <img
+            src="/logo/dark-logo.svg"
+            alt="Sophia"
+            width={20}
+            height={20}
+            className={styles.toast__icon}
+          />
+          <span className={styles.toast__heading}>Sophia — Reminder</span>
           {remaining > 0 && (
             <span className={styles.toast__badge}>+{remaining} more</span>
           )}

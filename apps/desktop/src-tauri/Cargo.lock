@@ -849,6 +849,7 @@ dependencies = [
  "getrandom 0.2.17",
  "keyring",
  "log",
+ "mac-notification-sys",
  "notify",
  "notify-debouncer-full",
  "reqwest",

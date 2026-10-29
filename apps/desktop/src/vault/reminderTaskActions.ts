@@ -1,6 +1,6 @@
 import { advanceRecurringReminder } from "@app/indexer";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
-import { readNote } from "./vaultCommands";
+import { readNote, statNote } from "./vaultCommands";
 import { writeAndIndexNote } from "./performSaveNote";
 
 export interface ReminderTaskTarget {
@@ -150,14 +150,25 @@ async function applyAndSaveNote(
     return;
   }
 
-  const file = await readNote(notePath);
-  const updated = transform(file.content);
-  if (updated !== file.content) {
+  let existing = "";
+  try {
+    const stat = await statNote(notePath);
+    if (stat.exists) {
+      existing = (await readNote(notePath)).content;
+    }
+  } catch {
+    existing = "";
+  }
+  const updated = transform(existing);
+  if (updated !== existing) {
+    const allNotePaths = store.allNotePaths.includes(notePath)
+      ? store.allNotePaths
+      : [...store.allNotePaths, notePath];
     await writeAndIndexNote(
       notePath,
       updated,
       {
-        allNotePaths: store.allNotePaths,
+        allNotePaths,
         graph: store.graph,
         tagIndex: store.tagIndex,
       },

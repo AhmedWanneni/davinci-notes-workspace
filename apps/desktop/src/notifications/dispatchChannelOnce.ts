@@ -27,18 +27,29 @@ async function sendDesktopNotification(
   if (skipNative) {
     return { ok: true, status: "sent" };
   }
+  const title = payload.title || "Sophia Reminder";
+  const body = payload.text ?? payload.body ?? "";
+
   try {
-    if (
-      typeof window !== "undefined" &&
-      "Notification" in window &&
-      Notification.permission === "granted"
-    ) {
-      new Notification(payload.title || "DaVinci Notes Reminder", {
-        body: payload.text ?? payload.body ?? "",
-      });
-    }
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("send_desktop_notification_command", { title, body });
+    return { ok: true, status: "sent" };
   } catch {
-    // Fallback to in-app toast event
+    // Fallback if running outside Tauri runtime or in mock test env
+    try {
+      if (
+        typeof window !== "undefined" &&
+        "Notification" in window &&
+        Notification.permission === "granted"
+      ) {
+        new Notification(title, {
+          body,
+          icon: "/logo/dark-logo.svg",
+        });
+      }
+    } catch {
+      // Fallback to in-app toast event
+    }
   }
   return { ok: true, status: "sent" };
 }
