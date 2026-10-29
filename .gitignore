@@ -12,6 +12,9 @@ node_modules/
 # Lockfile must stay committed for reproducible installs.
 !pnpm-lock.yaml
 
+# Graphify Local cache
+graphify-out/cache/
+
 npm-debug.log*
 pnpm-debug.log*
 yarn-debug.log*
