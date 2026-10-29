@@ -421,6 +421,8 @@ the list.
 | [0243](adr/0243-multi-platform-ci-build-matrix.md) | Multi-Platform CI Build Matrix, Syncthing Pre-Fetching and Draft Release Pipeline | Accepted |
 | [0244](adr/0244-code-signing-and-notarization-architecture.md) | Code Signing, Hardened Runtime Entitlements and Notarization Architecture | Accepted |
 | [0245](adr/0245-in-app-auto-update-architecture.md) | Serverless In-App Auto-Update Architecture via Tauri Updater and GitHub Releases | Accepted |
+| [0246](adr/0246-static-website-download-architecture.md) | Static Website Download Architecture, Inline OS Detection, and Permalinks | Accepted |
+
 
 
 
