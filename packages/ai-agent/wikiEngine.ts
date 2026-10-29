@@ -111,7 +111,7 @@ export function generateWikiIndexMarkdown(categories: WikiCategoryEntry[]): stri
     "",
     "# Knowledge Index (Map of Content)",
     "",
-    "_Auto-maintained by DaVinci AI Agent._",
+    "_Auto-maintained by Sophia AI Agent._",
     "",
   ];
 

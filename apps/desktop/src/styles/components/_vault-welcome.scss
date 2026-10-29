@@ -29,6 +29,11 @@
   align-items: center;
 }
 
+.vault-welcome__logo {
+  border-radius: var(--border-radius-lg);
+  margin-bottom: var(--space-2);
+}
+
 .vault-welcome__cards {
   display: grid;
   grid-template-columns: 1fr 1fr;

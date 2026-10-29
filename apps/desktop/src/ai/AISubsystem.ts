@@ -153,7 +153,7 @@ export async function validateAndSaveCloudKey(apiKey: string): Promise<void> {
   if (!apiKey) throw new Error("provider API key is required");
   const provider = await createOpenAICompatibleProvider({ apiKey });
   try {
-    await provider.embed({ inputs: ["DaVinci Notes connection test"] });
+    await provider.embed({ inputs: ["Sophia connection test"] });
     await createDesktopAISecretStore().save("openai-compatible", apiKey);
     await saveAIProviderStatus("ready");
   } catch (error) {
@@ -177,7 +177,7 @@ export async function validateAndSaveProviderKey(
         ? await createOpenRouterProvider({ apiKey, ...models })
         : await createOpenAICompatibleProvider({ apiKey });
   try {
-    await provider.embed({ inputs: ["DaVinci Notes connection test"] });
+    await provider.embed({ inputs: ["Sophia connection test"] });
     await createDesktopAISecretStore().save(providerId, apiKey);
     await saveAIProviderValidationStatus("ready", providerId);
   } catch (error) {

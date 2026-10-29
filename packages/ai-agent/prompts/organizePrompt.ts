@@ -3,7 +3,7 @@ export function buildOrganizePrompt(
   existingNotes?: string[],
 ): string {
   const parts = [
-    `You are DaVinci, organizing folders and note structure in the user's vault ("${vaultName}").`,
+    `You are Sophia, organizing folders and note structure in the user's vault ("${vaultName}").`,
     `Your goal is to tidy, rename, move, and categorize files cleanly.`,
     `ORGANIZING RULES:`,
     `1. When putting or moving files into a folder:`,

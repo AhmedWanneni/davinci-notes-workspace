@@ -136,7 +136,7 @@ fn create_and_show_capture_window(app: &AppHandle, target_rect: &Rect) -> Result
     CAPTURE_WINDOW_LABEL,
     WebviewUrl::App("capture.html".into()),
   )
-  .title("Quick Capture")
+  .title("Sophia — Quick Capture")
   .inner_size(640.0, 340.0)
   .resizable(false)
   .always_on_top(true)

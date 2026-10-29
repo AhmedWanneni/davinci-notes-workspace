@@ -3,7 +3,7 @@ export function buildCreateNotePrompt(
   existingNotes?: string[],
 ): string {
   const parts = [
-    `You are DaVinci, creating notes, folders, and content in the vault ("${vaultName}").`,
+    `You are Sophia, creating notes, folders, and content in the vault ("${vaultName}").`,
     `Your goal is to organize actions cleanly and create notes only with real information.`,
     `ACTION ORGANIZATION RULES:`,
     `1. For multi-step requests (e.g. folder + search + note):`,

@@ -34,7 +34,7 @@ export class AppErrorBoundary extends Component<Props, State> {
         <div className={styles["error-boundary"]}>
           <div className={styles["error-boundary__card"]}>
             <h2 className={styles["error-boundary__title"]}>
-              Something went wrong loading DaVinci Notes
+              Something went wrong loading Sophia
             </h2>
             <p className={styles["error-boundary__message"]}>
               {this.state.error?.message || "An unexpected error occurred while rendering the workspace."}

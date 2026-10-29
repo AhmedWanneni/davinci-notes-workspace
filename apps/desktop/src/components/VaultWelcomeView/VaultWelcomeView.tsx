@@ -51,8 +51,15 @@ export function VaultWelcomeView({
     <main className="vault-welcome">
       <section className="vault-welcome__content">
         <div className="vault-welcome__header">
+          <img
+            src="/logo/dark-logo.svg"
+            alt="Sophia"
+            width={64}
+            height={64}
+            className="vault-welcome__logo"
+          />
           <Typography variant="h1" size="2xl">
-            DaVinci Notes
+            Sophia
           </Typography>
           <Typography variant="text" size="sm" color="muted">
             Local-first, fast, connected knowledge base.

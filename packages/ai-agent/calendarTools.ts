@@ -134,7 +134,7 @@ export async function executeCalendarSyncTasks(
       summary: t.text,
       startIso: t.startIso,
       endIso: t.endIso,
-      description: `Task reminder scheduled from DaVinci Notes`,
+      description: `Task reminder scheduled from Sophia`,
       calendarId,
     });
     createdEvents.push(event);

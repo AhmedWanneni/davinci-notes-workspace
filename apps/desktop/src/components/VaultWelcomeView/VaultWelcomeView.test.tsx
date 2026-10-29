@@ -16,7 +16,7 @@ describe("VaultWelcomeView", () => {
       />,
     );
 
-    expect(screen.getByText("DaVinci Notes")).toBeDefined();
+    expect(screen.getByText("Sophia")).toBeDefined();
     expect(screen.getByText("Open Existing Vault")).toBeDefined();
     expect(screen.getByText("Create New Vault")).toBeDefined();
     expect(screen.getByTestId("btn-open-demo")).toBeDefined();

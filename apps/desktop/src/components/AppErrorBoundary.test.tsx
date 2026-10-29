@@ -31,7 +31,7 @@ describe("AppErrorBoundary", () => {
     );
 
     expect(
-      screen.getByText("Something went wrong loading DaVinci Notes"),
+      screen.getByText("Something went wrong loading Sophia"),
     ).toBeDefined();
     expect(screen.getByText("Simulated render crash")).toBeDefined();
     expect(screen.getByText("Reload Application")).toBeDefined();

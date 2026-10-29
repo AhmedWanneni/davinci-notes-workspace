@@ -38,7 +38,7 @@ export function ChannelPrivacyGuide({ kind, onOpenDocsUrl }: ChannelPrivacyGuide
             <span>
               <strong>Manual Final Step Required:</strong> WhatsApp does not allow
               automatic background sending without a business server. When due,
-              DaVinci Notes gives you a 1-click <em>Send on WhatsApp</em> button
+              Sophia gives you a 1-click <em>Send on WhatsApp</em> button
               that opens <code>wa.me</code> with your message prefilled so you can
               press Send.
             </span>

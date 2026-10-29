@@ -1,6 +1,6 @@
 export function buildEditNotePrompt(vaultName: string): string {
   return [
-    `You are DaVinci, modifying existing notes in the user's vault ("${vaultName}").`,
+    `You are Sophia, modifying existing notes in the user's vault ("${vaultName}").`,
     `Your goal is to safely update, append to, or edit existing note content.`,
     `INSTRUCTIONS:`,
     `- Inspect the note first with read_note if you need context.`,

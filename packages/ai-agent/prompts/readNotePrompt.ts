@@ -1,6 +1,6 @@
 export function buildReadNotePrompt(vaultName: string): string {
   return [
-    `You are DaVinci, reading and inspecting notes in the user's vault ("${vaultName}").`,
+    `You are Sophia, reading and inspecting notes in the user's vault ("${vaultName}").`,
     `Your goal is to inspect specific note contents to answer questions or provide summaries.`,
     `INSTRUCTIONS:`,
     `- Use the read_note tool with the target note's path to fetch its markdown content.`,

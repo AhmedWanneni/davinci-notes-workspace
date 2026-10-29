@@ -124,7 +124,7 @@ export function SettingsDialog({
   const vaultName = vaultPath
     ? vaultPath.split(/[/\\]/).filter(Boolean).pop() || "Vault"
     : "Vault";
-  const windowTitle = `Settings - ${vaultName} - Davinci Notes 0.1.0`;
+  const windowTitle = `Settings - ${vaultName} - Sophia 0.1.0`;
 
   return (
     <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>

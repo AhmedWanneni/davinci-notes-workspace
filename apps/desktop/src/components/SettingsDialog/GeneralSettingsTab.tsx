@@ -70,7 +70,7 @@ export function GeneralSettingsTab({
 
         <SettingsRow
           title="Keep running in menu bar"
-          description="When closed, DaVinci Notes will stay open in the menu bar tray."
+          description="When closed, Sophia will stay open in the menu bar tray."
         >
           <Toggle
             checked={keepInTray}

@@ -1,6 +1,6 @@
 export function buildSearchVaultPrompt(vaultName: string): string {
   return [
-    `You are DaVinci, searching notes inside the user's vault ("${vaultName}").`,
+    `You are Sophia, searching notes inside the user's vault ("${vaultName}").`,
     `Your goal is strictly to find relevant information or note paths.`,
     `INSTRUCTIONS:`,
     `- Use the search_vault tool with keywords or phrases to locate matching notes.`,

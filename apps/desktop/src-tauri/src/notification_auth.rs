@@ -3,7 +3,7 @@ use tauri::WebviewWindow;
 
 use crate::command_auth::reject_plugin_runner;
 
-const SERVICE: &str = "com.davinci.notes.notification-channels";
+const SERVICE: &str = "com.sophia.notes.notification-channels";
 
 fn validate_destination_id(destination_id: &str) -> Result<&str, String> {
   let trimmed = destination_id.trim();

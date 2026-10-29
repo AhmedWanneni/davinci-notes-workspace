@@ -33,7 +33,7 @@ export function EditorConflictBanner({
         <span>External conflict detected in {fileName}</span>
       </div>
       <p className={styles["conflict-banner__text"]}>
-        This file was modified outside DaVinci Notes while you were editing it.
+        This file was modified outside Sophia while you were editing it.
         Autosave is paused to prevent data loss. Choose an action:
       </p>
       <div className={styles["conflict-banner__actions"]}>

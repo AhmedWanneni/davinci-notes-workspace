@@ -72,7 +72,7 @@ export async function runDesktopDriveSync(opts?: {
   const manifestStore = createJsonManifestStore(manifestStorage);
   const previousLocal = await manifestStore.load();
   const vaultName =
-    vaultPath.split(/[/\\]/).filter(Boolean).pop() || "DaVinci Notes";
+    vaultPath.split(/[/\\]/).filter(Boolean).pop() || "Sophia";
 
   try {
     const vaultFolder = await ensureDriveVaultFolder(drive, vaultName);

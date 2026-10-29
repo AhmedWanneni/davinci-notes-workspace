@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Baseline desktop capabilities for DaVinci Notes shell",
+  "description": "Baseline desktop capabilities for Sophia shell",
   "windows": [
     "main"
   ],
