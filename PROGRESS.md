@@ -4,27 +4,19 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Documentation Reorganization & Master README
+## Last Session — Agent Git Workflow Rules: Branch Naming & Pull Request Protocol
 
-**Scope:** Consolidate and organize all markdown files across the repository (feature plans, historical phase plans, architectural specifications, and documentation hub) and author a comprehensive, production-grade root `README.md`.
+**Scope:** Enforce mandatory agent conventions across `AGENTS.md`, `GEMINI.md`, `.agents/rules/git-workflow.md`, `.github/PULL_REQUEST_TEMPLATE.md`, and `docs/architecture/git-workflow.md`: all agent branches must start with `feat/`, `fix/`, or `chore/`, and all pushes require opening a Pull Request with descriptive titles, commit descriptions, and clickable ADR links.
 
 **What was done:**
-1. **Consolidated Plans (`plans/`)**:
-   - Archived legacy bootstrap plans (`phase-6` through `phase-13`, `cube-css-app-migration.md`, `desktop-app-build.md`, `stablize.md`, `ui-grid-layout-plan.md`) into `plans/historical/`.
-   - Moved all root feature plans into `plans/`: `agent-feature-plan.md`, `bookmarks-feature-plan.md`, `calendar-feature-plan.md`, `git-manager-feature-plan.md`, `meeting-recorder-feature-plan.md`, `releases-feature-plan.md`, `reminders-page-feature-plan.md`, `web-version-feature-plan.md`.
-   - Moved fragmented plans from `docs/` and `packages/` into `plans/`: `cli-feature-plan.md`, `tray-feature-plan.md`, `tray-popover-plan.md`, `canvas-grouping-plan.md`, `canvas-pdf-plan.md`.
-   - Authored `plans/README.md` indexing active feature plans, completion status, and historical plan directory.
-2. **Consolidated Architecture Specifications (`docs/architecture/`)**:
-   - Moved root architecture specs into `docs/architecture/`: `stack-architecture.md`, `mobile-architecture.md`, `design-system.md`, `conventions.md`, `git-workflow.md`, `apps/wireframe.md`.
-   - Authored `docs/architecture/README.md` with system architecture Mermaid diagram and specifications index.
-3. **Documentation Hub Index (`docs/README.md`)**:
-   - Established a centralized navigation index linking architecture specifications, ADRs, releasing runbooks, extensions, and session history.
-4. **Master `README.md` at Root**:
-   - Authored complete, high-quality GitHub-Flavored Markdown documentation with technology badges, local-first philosophy, key capabilities breakdown, monorepo directory tree, quickstart setup & development commands, release pipeline summary, and architectural tenets.
-5. **Quality Verification & Graph Update**:
-   - Verified 100% relative markdown link integrity across all indexes and root `README.md` (0 broken links).
-   - Validated manifest version parity across all 6 manifests via `pnpm run check:version-sync`.
-   - Rebuilt Graphify AST knowledge graph (`graphify update .`), tracking 15,442 nodes and 36,571 edges.
+1. **Branch Prefix Enforcement**: Added strict rule requiring all agent branches to start with `feat/`, `fix/`, or `chore/`.
+2. **Push & PR Protocol**: Added mandatory requirement that upon push, the agent must open a Pull Request with conventional commit title, detailed explanation, clickable ADR links, and commit summary.
+3. **Configuration & Template Updates**:
+   - `AGENTS.md`: Added "Git Branching & Pull Request Rules (Mandatory for all AI agents)".
+   - `GEMINI.md`: Colocated git branching and PR protocol rules.
+   - `.agents/rules/git-workflow.md`: Created always-on agent rule definition.
+   - `.github/PULL_REQUEST_TEMPLATE.md`: Added dedicated sections for ADR links, commit breakdown, and branch checklist.
+   - `docs/architecture/git-workflow.md`: Aligned branching strategy and PR documentation.
 
 ---
 

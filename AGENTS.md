@@ -73,6 +73,22 @@ Every module folder gets a barrel `index.ts` re-exporting its public surface. Co
 - **Non-obvious decisions** get logged as an ADR (new numbered file under `docs/adr/`, appended to the `DECISIONS.md` index), not re-litigated by the next session. Check `DECISIONS.md` before "fixing" something that looks odd — it may be deliberate.
 - **Diffs should be small enough to actually read.** If a generation is too big to review line-by-line, ask for it split up.
 
+## Git Branching & Pull Request Rules (Mandatory for all AI agents)
+
+- **Branch Naming**: ALL branches created by an agent MUST start with one of three prefixes:
+  - `feat/<feature-name>` — for new features, components, or enhancements
+  - `fix/<bug-description>` — for bug fixes, edge cases, and regressions
+  - `chore/<task-name>` — for dependencies, tooling, documentation, refactors, or config
+  No branch should ever be created without one of these three prefixes.
+- **Push & Pull Request Protocol**:
+  - When pushing, the agent must open a Pull Request (e.g. via `gh pr create` or providing the full PR description).
+  - **PR Title**: Must be clear and descriptive about what the branch does (e.g. `feat(editor): add math block live preview`).
+  - **PR Description**: Must include:
+    1. **Summary**: A thorough description of what the PR accomplishes and why.
+    2. **ADR Links**: Clickable markdown links to any relevant Architecture Decision Records in `docs/adr/` (e.g. `[ADR-0116](docs/adr/0116-sync-via-drive-syncthing-no-owned-backend.md)`).
+    3. **Commits Breakdown**: Clear breakdown of the commits included in the PR.
+    4. **Checklist**: Completed Before Merging Checklist.
+
 ## Testing
 
 - Pure logic (parsers, graph builders, sync diffing) gets unit tests — prioritize these, cheap to write, high value.
