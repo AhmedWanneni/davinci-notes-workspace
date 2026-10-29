@@ -1,6 +1,6 @@
 import styles from "./QuickCapture.module.scss";
 
-export type QuickCaptureMode = "capture" | "reminder" | "search";
+export type QuickCaptureMode = "capture" | "reminder" | "record" | "search";
 
 export interface QuickCaptureHeaderProps {
   mode: QuickCaptureMode;
@@ -51,6 +51,17 @@ export function QuickCaptureHeader({
         <button
           type="button"
           role="tab"
+          aria-selected={mode === "record"}
+          className={`${styles["quick-capture-tab-btn"]} ${
+            mode === "record" ? styles["is-active"] : ""
+          }`}
+          onClick={() => onModeChange("record")}
+        >
+          Record
+        </button>
+        <button
+          type="button"
+          role="tab"
           aria-selected={mode === "search"}
           className={`${styles["quick-capture-tab-btn"]} ${
             mode === "search" ? styles["is-active"] : ""
@@ -72,6 +83,10 @@ export function QuickCaptureHeader({
         ) : mode === "reminder" ? (
           <span className={styles["quick-capture-counter"]}>
             Add reminder
+          </span>
+        ) : mode === "record" ? (
+          <span className={styles["quick-capture-counter"]}>
+            Voice record
           </span>
         ) : (
           <span className={styles["quick-capture-counter"]}>

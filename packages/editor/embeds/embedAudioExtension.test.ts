@@ -45,6 +45,32 @@ describe("embedAudioExtension", () => {
       }),
     );
 
+    const playBtn = widgetEl.querySelector(
+      ".cm-file-audio-embed__play-btn",
+    ) as HTMLButtonElement;
+    expect(playBtn).not.toBeNull();
+    const playSpy = vi.spyOn(player, "play").mockImplementation(() => Promise.resolve());
+    playBtn.click();
+    expect(playSpy).toHaveBeenCalled();
+
+    view.destroy();
+  });
+
+  it("decorates non-embed wikilinks [[call.wav]] and markdown links [call](call.wav)", () => {
+    const doc = "Link 1: [[voice-memo.wav]]\nLink 2: [Voice Memo](voice-memo.mp3)";
+    const state = EditorState.create({
+      doc,
+      extensions: [
+        embedAudioExtension({
+          notePaths: ["voice-memo.wav", "voice-memo.mp3"],
+          resolveMediaUrl: (path) => `asset://${path}`,
+        }),
+      ],
+    });
+
+    const view = new EditorView({ state });
+    const widgets = view.dom.querySelectorAll(".cm-file-audio-embed");
+    expect(widgets.length).toBe(2);
     view.destroy();
   });
 });

@@ -1,0 +1,135 @@
+import { useState, useEffect, useRef } from "react";
+import {
+  startMeetingRecording,
+  pauseMeetingRecording,
+  resumeMeetingRecording,
+  stopMeetingRecording,
+  saveRecordedAudioToVault,
+} from "../../adapters/transcriptionClient";
+
+export type RecordState = "idle" | "recording" | "paused" | "recorded" | "saving";
+
+export function formatTimer(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
+
+export function getDefaultRecordTitle(): string {
+  const now = new Date();
+  const d = now.toISOString().split("T")[0];
+  const h = String(now.getHours()).padStart(2, "0");
+  const m = String(now.getMinutes()).padStart(2, "0");
+  return `Voice Note — ${d} ${h}-${m}`;
+}
+
+export function useQuickRecord() {
+  const [status, setStatus] = useState<RecordState>("idle");
+  const [elapsed, setElapsed] = useState(0);
+  const [tempWavPath, setTempWavPath] = useState<string | null>(null);
+  const [title, setTitle] = useState(getDefaultRecordTitle);
+  const [noteText, setNoteText] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (status === "recording") {
+      timerRef.current = setInterval(() => setElapsed((prev) => prev + 1), 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [status]);
+
+  const handleStart = async () => {
+    try {
+      setErrorMessage(null);
+      await startMeetingRecording();
+      setStatus("recording");
+      setElapsed(0);
+    } catch {
+      setErrorMessage("Could not start audio recording. Check microphone permissions.");
+    }
+  };
+
+  const handlePause = async () => {
+    try {
+      await pauseMeetingRecording();
+      setStatus("paused");
+    } catch {
+      // Ignored
+    }
+  };
+
+  const handleResume = async () => {
+    try {
+      await resumeMeetingRecording();
+      setStatus("recording");
+    } catch {
+      // Ignored
+    }
+  };
+
+  const handleStop = async () => {
+    try {
+      const res = await stopMeetingRecording();
+      setStatus("recorded");
+      setTempWavPath(res?.wavFilePath ?? null);
+    } catch {
+      setErrorMessage("Failed to stop recording audio.");
+    }
+  };
+
+  const handleDiscard = async () => {
+    if (status === "recording" || status === "paused") {
+      await stopMeetingRecording().catch(() => {});
+    }
+    setStatus("idle");
+    setElapsed(0);
+    setTempWavPath(null);
+  };
+
+  const buildNoteContent = (audioFileName: string, cleanTitle: string): string => {
+    const lines = [
+      "---",
+      `title: "${cleanTitle.replace(/"/g, '\\"')}"`,
+      `date: ${new Date().toISOString().split("T")[0]}`,
+      "tags:",
+      "  - voice-note",
+      "  - audio",
+      `duration: "${formatTimer(elapsed)}"`,
+      "---",
+      "",
+      `# ${cleanTitle}`,
+      "",
+      `![[${audioFileName}]]`,
+      "",
+      noteText.trim() ? `${noteText.trim()}\n` : "",
+    ];
+    return lines.join("\n");
+  };
+
+  return {
+    status,
+    setStatus,
+    elapsed,
+    tempWavPath,
+    title,
+    setTitle,
+    noteText,
+    setNoteText,
+    errorMessage,
+    setErrorMessage,
+    handleStart,
+    handlePause,
+    handleResume,
+    handleStop,
+    handleDiscard,
+    buildNoteContent,
+    saveRecordedAudioToVault,
+  };
+}

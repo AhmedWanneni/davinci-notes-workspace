@@ -32,6 +32,18 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
             <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
           </span>
         </>
+      ) : mode === "record" ? (
+        <>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>Space</kbd> Record/Pause
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>⌘S</kbd> Save note
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
+          </span>
+        </>
       ) : (
         <>
           <span className={styles["quick-capture-hint-item"]}>

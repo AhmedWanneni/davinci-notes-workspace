@@ -35,6 +35,10 @@ export {
   QuickCaptureReminder,
   type QuickCaptureReminderProps,
 } from "./QuickCaptureReminder";
+export {
+  QuickCaptureRecord,
+  type QuickCaptureRecordProps,
+} from "./QuickCaptureRecord";
 export { useCaptureTheme } from "./useCaptureTheme";
 export {
   useCaptureKeybindings,

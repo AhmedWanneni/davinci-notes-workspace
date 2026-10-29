@@ -6,6 +6,7 @@ import { QuickCaptureDestination } from "./QuickCaptureDestination";
 import { QuickCaptureFooter } from "./QuickCaptureFooter";
 import { QuickCaptureHeader, type QuickCaptureMode } from "./QuickCaptureHeader";
 import { QuickCaptureReminder } from "./QuickCaptureReminder";
+import { QuickCaptureRecord } from "./QuickCaptureRecord";
 import { QuickSearchList } from "./QuickSearchList";
 import { useCaptureKeybindings } from "./useCaptureKeybindings";
 import { useCaptureTheme } from "./useCaptureTheme";
@@ -17,11 +18,7 @@ import { Input } from "@app/design-system";
 export const MAX_CAPTURE_CHARS = 10_000;
 
 export interface QuickCaptureProps {
-  onSave?: (
-    text: string,
-    filename?: string,
-    folder?: string,
-  ) => Promise<void> | void;
+  onSave?: (text: string, filename?: string, folder?: string) => Promise<void> | void;
   onDismiss?: () => Promise<void> | void;
   onOpenNote?: (path: string) => Promise<void> | void;
   initialMode?: QuickCaptureMode;
@@ -57,10 +54,9 @@ export function QuickCapture(props: QuickCaptureProps) {
   useEffect(() => {
     const focusActive = () => {
       if (mode === "capture") textareaRef.current?.focus();
-      else searchInputRef.current?.focus();
+      else if (mode === "search") searchInputRef.current?.focus();
     };
     focusActive();
-
     let unlisten: (() => void) | undefined;
     void listen("davinci-capture-focus", () => {
       restoreCachedBuiltinTheme();
@@ -184,9 +180,14 @@ export function QuickCapture(props: QuickCaptureProps) {
         </>
       ) : mode === "reminder" ? (
         <QuickCaptureReminder
-          onSaveReminder={(reminderText, fName, fDir) =>
-            handleSave(reminderText, fName, fDir)
-          }
+          onSaveReminder={handleSave}
+          onDismiss={() => void handleDismiss()}
+          folder={folder}
+          onFolderChange={setFolder}
+        />
+      ) : mode === "record" ? (
+        <QuickCaptureRecord
+          onSaveRecord={handleSave}
           onDismiss={() => void handleDismiss()}
           folder={folder}
           onFolderChange={setFolder}
@@ -229,7 +230,7 @@ export function QuickCapture(props: QuickCaptureProps) {
         </div>
       )}
 
-      {mode !== "reminder" && (
+      {mode !== "reminder" && mode !== "record" && (
         <QuickCaptureFooter
           mode={mode}
           canSave={text.trim().length > 0}

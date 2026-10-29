@@ -4,7 +4,47 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Meeting Audio Persistence, Editor Audio Player & Re-run Action
+## Last Session — QuickCapture Voice Recording & Editor Click-to-Play Audio Player
+
+**Scope:** Allow recording voice notes directly from QuickCapture, and enhance editor audio widgets with interactive click-to-play playback, scrub track, and comprehensive link format support.
+
+**What was done:**
+1. **QuickCapture Audio Recording**:
+   - Added `"record"` mode to `QuickCaptureHeader.tsx`, `QuickCaptureFooter.tsx`, and `QuickCaptureHints.tsx`.
+   - Authorized Tauri audio capture commands for the QuickCapture window in `apps/desktop/src-tauri/src/audio_commands.rs` using `authorize_capture_window`.
+   - Created `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.tsx`, `useQuickRecord.ts`, and `QuickCaptureRecordControls.tsx`:
+     - Live recording with status badge, elapsed time timer, pause, resume, and stop controls.
+     - Custom note title, optional notes textarea, and folder destination.
+     - Automatically persists WAV audio into vault via `saveRecordedAudioToVault` and saves note with frontmatter and `![[Voice Note.wav]]`.
+   - Created `QuickCaptureRecord.module.scss` styled with public design tokens (0 violations).
+   - Added 3 unit tests in `QuickCaptureRecord.test.tsx` verifying full recording, pause, resume, stop, and save flow.
+2. **Editor Click-to-Play Audio Widget**:
+   - Created `packages/editor/embeds/EmbedAudioWidget.ts`:
+     - Prominent Play/Pause button (`▶` / `⏸`) and card click-to-play toggle.
+     - Audio time indicator (`0:00 / 0:00`) and interactive progress track with seek-on-click scrubbing.
+     - Visual `.is-playing` state with focus border and active panel styling.
+     - Retains the "Re-run AI" button to trigger meeting/voice note transcription.
+   - Updated `packages/editor/embeds/embedAudioExtension.ts`:
+     - Expanded pattern matching to support wikilink embeds `![[...wav]]`, wikilinks `[[...wav]]`, and standard markdown audio links/embeds `!?\[...\]\(...wav\)`.
+     - Added smart path candidate resolution against `options.notePaths`.
+   - Updated `packages/editor/embeds/embedLinkResolution.ts` to recognize `.ogg`, `.aac`, `.flac`, and `.webm` as audio.
+   - Colocated unit tests added and passing in `embedAudioExtension.test.ts`.
+3. **Verification**:
+   - 32 QuickCapture unit tests passing.
+   - All 61 `@app/editor` embeds tests passing.
+   - 137 Rust backend tests passing.
+   - 0 public design token audit violations.
+   - Production web bundle built successfully.
+
+---
+
+## Next Up
+- Optional: Add local whisper.cpp sidecar model binary downloader for fully offline transcription setting.
+- Optional: Per-speaker diarization using machine learning voice embeddings.
+
+---
+
+## Previous Session — Meeting Audio Persistence, Editor Audio Player & Re-run Action
 
 **Scope:** Save recorded `.wav` meeting audio directly in vault, render interactive player in CodeMirror editor (`![[meeting.wav]]`), and enable one-click AI transcription re-run.
 

@@ -3,9 +3,9 @@ import {
   Decoration,
   DecorationSet,
   EditorView,
-  WidgetType,
 } from "@codemirror/view";
 import { resolveEmbedLink } from "./embedLinkResolution";
+import { EmbedAudioWidget } from "./EmbedAudioWidget";
 
 export interface EmbedAudioExtensionOptions {
   notePaths: readonly string[];
@@ -14,71 +14,26 @@ export interface EmbedAudioExtensionOptions {
 }
 
 const WIKILINK_EMBED_PATTERN = /!\[\[([^\]]+)\]\]/g;
-const AUDIO_EXT_PATTERN = /\.(wav|mp3|m4a|ogg|aac|flac)$/i;
+const WIKILINK_AUDIO_PATTERN =
+  /(?<!!)\[\[([^\]]+\.(?:wav|mp3|m4a|ogg|aac|flac|webm)(?:\|[^\]]+)?)\]\]/gi;
+const MARKDOWN_AUDIO_PATTERN =
+  /!?\[([^\]]*)\]\(([^)\s]+\.(?:wav|mp3|m4a|ogg|aac|flac|webm))\)/gi;
+const AUDIO_EXT_PATTERN = /\.(wav|mp3|m4a|ogg|aac|flac|webm)$/i;
 
-export class EmbedAudioWidget extends WidgetType {
-  constructor(
-    readonly path: string,
-    readonly resolveMediaUrl: (path: string) => string,
-    readonly isReadOnly?: boolean,
-  ) {
-    super();
-  }
-
-  eq(other: EmbedAudioWidget) {
-    return this.path === other.path && this.isReadOnly === other.isReadOnly;
-  }
-
-  toDOM() {
-    const container = document.createElement("div");
-    container.className = "cm-file-audio-embed";
-    container.setAttribute("data-audio-path", this.path);
-
-    const header = document.createElement("div");
-    header.className = "cm-file-audio-embed__header";
-
-    const titleGroup = document.createElement("div");
-    titleGroup.className = "cm-file-audio-embed__title-group";
-
-    const icon = document.createElement("span");
-    icon.className = "cm-file-audio-embed__icon";
-    icon.textContent = "🎙️";
-
-    const title = document.createElement("span");
-    title.className = "cm-file-audio-embed__title";
-    title.textContent = this.path.split(/[/\\]/).pop() ?? this.path;
-
-    titleGroup.appendChild(icon);
-    titleGroup.appendChild(title);
-    header.appendChild(titleGroup);
-
-    const rerunBtn = document.createElement("button");
-    rerunBtn.type = "button";
-    rerunBtn.className = "cm-file-audio-embed__rerun-btn";
-    rerunBtn.textContent = "Re-run AI";
-    rerunBtn.title = "Re-run transcription and AI note listening";
-    rerunBtn.onclick = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      window.dispatchEvent(
-        new CustomEvent("davinci:re-run-audio-transcription", {
-          detail: { path: this.path },
-        }),
-      );
-    };
-    header.appendChild(rerunBtn);
-
-    container.appendChild(header);
-
-    const audio = document.createElement("audio");
-    audio.controls = true;
-    audio.preload = "metadata";
-    audio.src = this.resolveMediaUrl(this.path);
-    audio.className = "cm-file-audio-embed__player";
-    container.appendChild(audio);
-
-    return container;
-  }
+function resolveAudioPathCandidate(
+  target: string,
+  notePaths?: readonly string[],
+): string {
+  if (!notePaths || notePaths.length === 0) return target;
+  const lower = target.toLowerCase();
+  const found = notePaths.find(
+    (p) =>
+      p === target ||
+      p.endsWith(`/${target}`) ||
+      p.toLowerCase() === lower ||
+      p.toLowerCase().endsWith(`/${lower}`),
+  );
+  return found ?? target;
 }
 
 function audioDecorations(
@@ -91,40 +46,70 @@ function audioDecorations(
 
   for (let lineNumber = 1; lineNumber <= state.doc.lines; lineNumber += 1) {
     const line = state.doc.line(lineNumber);
-    if (!line.text.includes("![[")) continue;
+    if (!line.text.includes("[") && !line.text.includes("(")) continue;
+
+    const matches: { start: number; end: number; target: string }[] = [];
 
     for (const match of line.text.matchAll(WIKILINK_EMBED_PATTERN)) {
       const matchIndex = match.index!;
-      const start = line.from + matchIndex;
-      const end = start + match[0].length;
-      const isCursorInside = editable && cursor > start && cursor < end;
-      if (isCursorInside) continue;
-
       const inner = match[1]!;
       const [target] = inner.split("|");
-      const isAudioTarget = AUDIO_EXT_PATTERN.test(target ?? "");
+      const isAudio = AUDIO_EXT_PATTERN.test(target ?? "");
+      const res = resolveEmbedLink(`![[${inner}]]`, { paths: options.notePaths });
+      const path = res.type === "audio" ? res.path : isAudio && target ? target : undefined;
+      if (path) {
+        matches.push({
+          start: line.from + matchIndex,
+          end: line.from + matchIndex + match[0].length,
+          target: path,
+        });
+      }
+    }
 
-      const result = resolveEmbedLink(`![[${inner}]]`, {
-        paths: options.notePaths,
-      });
+    for (const match of line.text.matchAll(WIKILINK_AUDIO_PATTERN)) {
+      const matchIndex = match.index!;
+      const inner = match[1]!;
+      const [target] = inner.split("|");
+      if (target && AUDIO_EXT_PATTERN.test(target)) {
+        matches.push({
+          start: line.from + matchIndex,
+          end: line.from + matchIndex + match[0].length,
+          target,
+        });
+      }
+    }
 
-      const audioPath =
-        result.type === "audio"
-          ? result.path
-          : isAudioTarget && target
-            ? target
-            : undefined;
+    for (const match of line.text.matchAll(MARKDOWN_AUDIO_PATTERN)) {
+      const matchIndex = match.index!;
+      const target = match[2];
+      if (target && AUDIO_EXT_PATTERN.test(target)) {
+        matches.push({
+          start: line.from + matchIndex,
+          end: line.from + matchIndex + match[0].length,
+          target,
+        });
+      }
+    }
 
-      if (!audioPath) continue;
+    matches.sort((a, b) => a.start - b.start);
 
+    let lastEnd = -1;
+    for (const item of matches) {
+      if (item.start < lastEnd) continue;
+      lastEnd = item.end;
+
+      const isCursorInside = editable && cursor > item.start && cursor < item.end;
+      if (isCursorInside) continue;
+
+      const resolved = resolveAudioPathCandidate(item.target, options.notePaths);
       const widget = new EmbedAudioWidget(
-        audioPath,
+        resolved,
         options.resolveMediaUrl ?? ((p) => p),
         options.isReadOnly,
       );
 
       ranges.push(
-        Decoration.replace({ widget, inclusive: false }).range(start, end),
+        Decoration.replace({ widget, inclusive: false }).range(item.start, item.end),
       );
     }
   }
@@ -142,3 +127,4 @@ export function embedAudioExtension(options: EmbedAudioExtensionOptions) {
     provide: (field) => EditorView.decorations.from(field),
   });
 }
+export { EmbedAudioWidget };

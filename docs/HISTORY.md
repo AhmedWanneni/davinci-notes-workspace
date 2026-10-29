@@ -2,6 +2,35 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: QuickCapture Voice Recording & Editor Click-to-Play Audio Player
+
+- **QuickCapture Audio Recording**:
+  - Added `"record"` mode to `QuickCaptureHeader.tsx`, `QuickCaptureFooter.tsx`, and `QuickCaptureHints.tsx`.
+  - Authorized Tauri audio capture commands for the QuickCapture window in `apps/desktop/src-tauri/src/audio_commands.rs` using `authorize_capture_window`.
+  - Created `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.tsx`, `useQuickRecord.ts`, and `QuickCaptureRecordControls.tsx`:
+    - Live recording with status badge, elapsed time timer, pause, resume, and stop controls.
+    - Custom note title, optional notes textarea, and folder destination.
+    - Automatically persists WAV audio into vault via `saveRecordedAudioToVault` and saves note with frontmatter and `![[Voice Note.wav]]`.
+  - Created `QuickCaptureRecord.module.scss` styled with public design tokens (0 violations).
+  - Added 3 unit tests in `QuickCaptureRecord.test.tsx` verifying full recording, pause, resume, stop, and save flow.
+- **Editor Click-to-Play Audio Widget**:
+  - Created `packages/editor/embeds/EmbedAudioWidget.ts`:
+    - Prominent Play/Pause button (`▶` / `⏸`) and card click-to-play toggle.
+    - Audio time indicator (`0:00 / 0:00`) and interactive progress track with seek-on-click scrubbing.
+    - Visual `.is-playing` state with focus border and active panel styling.
+    - Retains the "Re-run AI" button to trigger meeting/voice note transcription.
+  - Updated `packages/editor/embeds/embedAudioExtension.ts`:
+    - Expanded pattern matching to support wikilink embeds `![[...wav]]`, wikilinks `[[...wav]]`, and standard markdown audio links/embeds `!?\[...\]\(...wav\)`.
+    - Added smart path candidate resolution against `options.notePaths`.
+  - Updated `packages/editor/embeds/embedLinkResolution.ts` to recognize `.ogg`, `.aac`, `.flac`, and `.webm` as audio.
+  - Colocated unit tests added and passing in `embedAudioExtension.test.ts`.
+- **Testing & Verification**:
+  - 32 QuickCapture unit tests passing.
+  - All 61 `@app/editor` embeds tests passing.
+  - 137 Rust backend tests passing.
+  - 0 public design token audit violations.
+  - Production web bundle built successfully.
+
 ### 2026-10-29: Meeting Audio Persistence, Editor Audio Player & Re-run Action
 
 - **Vault Audio Persistence**:

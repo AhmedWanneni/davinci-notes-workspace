@@ -8,6 +8,11 @@ export const embedAudioTheme = EditorView.theme({
     border: "var(--border-width-thin) solid var(--color-border-normal)",
     borderRadius: "var(--border-radius-md)",
     backgroundColor: "var(--color-bg-secondary)",
+    userSelect: "none",
+  },
+  ".cm-file-audio-embed.is-playing": {
+    borderColor: "var(--color-border-focus)",
+    backgroundColor: "var(--color-bg-secondary-alt)",
   },
   ".cm-file-audio-embed__header": {
     display: "flex",
@@ -50,9 +55,58 @@ export const embedAudioTheme = EditorView.theme({
     backgroundColor: "var(--color-bg-status-accent)",
     borderColor: "var(--color-border-focus)",
   },
-  ".cm-file-audio-embed__player": {
+  ".cm-file-audio-embed__controls": {
+    display: "flex",
+    alignItems: "center",
+    gap: "var(--space-3)",
+    marginTop: "var(--space-1)",
+  },
+  ".cm-file-audio-embed__play-btn": {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "32px",
+    height: "32px",
+    minWidth: "32px",
+    borderRadius: "var(--border-radius-md)",
+    border: "var(--border-width-thin) solid var(--color-border-normal)",
+    backgroundColor: "var(--color-bg-primary)",
+    color: "var(--color-text-normal)",
+    cursor: "pointer",
+    fontSize: "12px",
+  },
+  ".cm-file-audio-embed__play-btn:hover": {
+    borderColor: "var(--color-border-focus)",
+    color: "var(--color-text-accent)",
+  },
+  ".cm-file-audio-embed__progress-wrapper": {
+    display: "flex",
+    flexDirection: "column",
+    flex: "1",
+    gap: "var(--space-1)",
+    minWidth: "0",
+  },
+  ".cm-file-audio-embed__progress-track": {
     width: "100%",
-    height: "36px",
-    display: "block",
+    height: "6px",
+    backgroundColor: "var(--color-bg-primary)",
+    borderRadius: "var(--border-radius-sm)",
+    overflow: "hidden",
+    cursor: "pointer",
+    position: "relative",
+  },
+  ".cm-file-audio-embed__progress-bar": {
+    height: "100%",
+    width: "0%",
+    backgroundColor: "var(--color-text-accent)",
+    borderRadius: "var(--border-radius-sm)",
+  },
+  ".cm-file-audio-embed__time": {
+    fontSize: "11px",
+    fontFamily: "var(--font-editor)",
+    color: "var(--color-text-muted)",
+  },
+  ".cm-file-audio-embed__player": {
+    display: "none",
   },
 });

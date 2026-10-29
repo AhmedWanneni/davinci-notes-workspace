@@ -22,7 +22,7 @@ function targetKind(path: string): "image" | "audio" | "video" | "pdf" | "note" 
   if (!isAcceptedAttachmentName(path)) return undefined;
   const extension = path.toLowerCase().split(".").pop();
   if (extension === "pdf") return "pdf";
-  if (["mp3", "wav", "m4a"].includes(extension ?? "")) return "audio";
+  if (["mp3", "wav", "m4a", "ogg", "aac", "flac"].includes(extension ?? "")) return "audio";
   if (["mp4", "webm", "mov"].includes(extension ?? "")) return "video";
   return "image";
 }
