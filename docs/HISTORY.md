@@ -2,6 +2,32 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: "Create a Release" Universal Agent Skill (Phases 1–7)
+
+- **Phase 1: Preflight Verification Script & Dry-Run Harness (ADR-0249)**:
+  - Created `scripts/release/preflight-release.sh` enforcing clean working tree, branch checks, manifest synchronization across all 6 manifests, and tooling/auth validation.
+  - Updated `scripts/release/release.sh` to integrate preflight checks with `--preflight-only`, `--notes-file <path>`, and `--yes` support.
+- **Phase 2: Agent Skill Specification & AI Changelog Drafting**:
+  - Authored primary skill definition in `.claude/skills/create-release/SKILL.md` with SemVer heuristics, user-facing changelog grouping, and two-stage human approval gates.
+  - Documented conversational agent release triggers in `docs/releasing.md`.
+- **Phase 3: CI Execution Tracking & Asset Verification**:
+  - Implemented `scripts/release/wait-and-verify-release.sh` to monitor GitHub Actions release runs and assert that all 6 required installer binaries and `SHA256SUMS.txt` are attached to the Draft Release.
+- **Phase 4: Automated Website Deployment Workflow & Beta Isolation**:
+  - Implemented `.github/workflows/deploy-website.yml` triggering on `release: [published]` to rebuild and deploy the Astro site to GitHub Pages.
+  - Updated `apps/website/src/pages/download/index.astro` to strictly filter for stable releases on the main CTA button.
+  - Created `apps/website/src/pages/download/beta.astro` providing dedicated pre-release download access.
+- **Phase 5: Two-Stage Human Approval Gates & Emergency Rollback Driver**:
+  - Upgraded `scripts/release/rollback.sh` to support `--revert-commit` and `--all` flags for full retraction.
+- **Phase 6: Multi-Agent Adapters**:
+  - Created `.cursor/rules/release.mdc` for Cursor.
+  - Created `.agents/workflows/create-release.md` for Antigravity / AGY.
+  - Created `.github/copilot-instructions.md` for GitHub Copilot.
+  - Updated `AGENTS.md` with release skill instructions.
+- **Phase 7: Architecture Decision Record & Verification**:
+  - Recorded `docs/adr/0249-universal-agent-release-skill-architecture.md` and indexed in `DECISIONS.md`.
+  - Rebuilt Graphify AST knowledge graph (`graphify update .`), tracking 15,543 nodes and 36,683 edges.
+
+
 ### 2026-10-29: Agent Git Workflow Rules — Branch Naming & PR Protocol
 
 - **Branch Naming Constraint**:

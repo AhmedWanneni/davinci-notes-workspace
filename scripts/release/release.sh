@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+# =============================================================================
+# scripts/release/release.sh — Release Orchestration Driver
+# =============================================================================
+# Orchestrates end-to-end version bump, release notes generation, commit,
+# tagging, and pushing to trigger GitHub Actions release matrix.
+#
+# Usage:
+#   release.sh [--dry-run] [--no-push] [--yes] [--preflight-only]
+#              [--skip-preflight] [--notes-file <path>] [--allow-branch <branch>]
+#              <patch|minor|major|X.Y.Z>
+# =============================================================================
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -6,52 +18,81 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 DRY_RUN=false
 NO_PUSH=false
+AUTO_CONFIRM=false
+PREFLIGHT_ONLY=false
+SKIP_PREFLIGHT=false
+CUSTOM_NOTES_FILE=""
+ALLOWED_BRANCH="main"
 BUMP_TARGET=""
 
-for arg in "$@"; do
-  case "$arg" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --dry-run)
       DRY_RUN=true
+      shift
       ;;
     --no-push)
       NO_PUSH=true
+      shift
+      ;;
+    --yes|-y)
+      AUTO_CONFIRM=true
+      shift
+      ;;
+    --preflight-only)
+      PREFLIGHT_ONLY=true
+      shift
+      ;;
+    --skip-preflight)
+      SKIP_PREFLIGHT=true
+      shift
+      ;;
+    --notes-file)
+      CUSTOM_NOTES_FILE="$2"
+      shift 2
+      ;;
+    --allow-branch)
+      ALLOWED_BRANCH="$2"
+      shift 2
       ;;
     -*)
-      echo "Unknown option: $arg" >&2
+      echo "ERROR: Unknown option: $1" >&2
       exit 1
       ;;
     *)
       if [[ -z "$BUMP_TARGET" ]]; then
-        BUMP_TARGET="$arg"
+        BUMP_TARGET="$1"
+        shift
       else
-        echo "Unexpected argument: $arg" >&2
+        echo "ERROR: Unexpected argument: $1" >&2
         exit 1
       fi
       ;;
   esac
 done
 
-if [[ -z "$BUMP_TARGET" ]]; then
-  echo "Usage: $0 [--dry-run] [--no-push] <patch|minor|major|X.Y.Z>" >&2
-  exit 1
+cd "$REPO_ROOT"
+
+# Preflight execution
+if [[ "$PREFLIGHT_ONLY" == "true" ]]; then
+  bash "${SCRIPT_DIR}/preflight-release.sh" --allow-branch "$ALLOWED_BRANCH"
+  exit 0
 fi
 
-cd "$REPO_ROOT"
+if [[ -z "$BUMP_TARGET" ]]; then
+  echo "Usage: $0 [--dry-run] [--no-push] [--yes] [--notes-file <f>] <patch|minor|major|X.Y.Z>" >&2
+  exit 1
+fi
 
 echo "=== DaVinci Notes Release Orchestration ==="
 
-# 1. Guard against dirty working tree
-if ! git diff-index --quiet HEAD --; then
-  echo "ERROR: Working tree has uncommitted modifications. Please commit or stash before releasing." >&2
-  git status --short
-  exit 1
+# Step 1: Preflight Audit
+if [[ "$SKIP_PREFLIGHT" == "false" ]]; then
+  echo "Step 1: Running preflight release audit..."
+  bash "${SCRIPT_DIR}/preflight-release.sh" --allow-branch "$ALLOWED_BRANCH" --skip-tests
 fi
 
-# 2. Check manifest version synchronization
-echo "Step 1: Auditing baseline manifest versions..."
-bash "${SCRIPT_DIR}/check-version-sync.sh"
-
-# 3. Simulate or execute bump
+# Step 2: Dry Run simulation
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "[DRY-RUN] Simulating bump for target: $BUMP_TARGET"
   bash "${SCRIPT_DIR}/bump-version.sh" --dry-run "$BUMP_TARGET"
@@ -61,28 +102,32 @@ if [[ "$DRY_RUN" == "true" ]]; then
   exit 0
 fi
 
-# 4. Perform live bump across all 6 manifests
-echo "Step 2: Bumping version across manifests..."
+# Step 3: Perform live bump across all 6 manifests
+echo "Step 2: Bumping version across 6 manifests..."
 bash "${SCRIPT_DIR}/bump-version.sh" "$BUMP_TARGET"
 
-# Read synchronized new version
 NEW_VERSION="$(node -e "const pkg=require('./package.json'); console.log(pkg.version);")"
 TAG_NAME="v${NEW_VERSION}"
 
-# 5. Generate release notes
-echo "Step 3: Generating release notes..."
+# Step 4: Prepare release notes
+echo "Step 3: Preparing release notes for ${TAG_NAME}..."
 NOTES_FILE="${REPO_ROOT}/RELEASE_NOTES_TMP.md"
-bash "${SCRIPT_DIR}/generate-changelog.sh" --out "$NOTES_FILE"
-echo "Release notes written to ${NOTES_FILE} for review."
+if [[ -n "$CUSTOM_NOTES_FILE" && -f "$CUSTOM_NOTES_FILE" ]]; then
+  cp "$CUSTOM_NOTES_FILE" "$NOTES_FILE"
+  echo "Using custom release notes from ${CUSTOM_NOTES_FILE}"
+else
+  bash "${SCRIPT_DIR}/generate-changelog.sh" --out "$NOTES_FILE"
+  echo "Generated release notes written to ${NOTES_FILE}"
+fi
 
-# 6. Commit release bump
-echo "Step 4: Creating release commit..."
+# Step 5: Commit manifest changes
+echo "Step 4: Committing release manifests..."
 git add package.json apps/desktop/package.json apps/desktop/src-tauri/tauri.conf.json \
   apps/desktop/src-tauri/Cargo.toml apps/website/package.json apps/mobile/app.json
 git commit -m "chore(release): ${TAG_NAME}"
 
-# 7. Create annotated tag
-echo "Step 5: Tagging release ${TAG_NAME}..."
+# Step 6: Create annotated tag
+echo "Step 5: Creating annotated git tag ${TAG_NAME}..."
 git tag -a "${TAG_NAME}" -F "$NOTES_FILE"
 rm -f "$NOTES_FILE"
 
@@ -95,8 +140,17 @@ if [[ "$NO_PUSH" == "true" ]]; then
   exit 0
 fi
 
-read -r -p "Push release commit and tag ${TAG_NAME} to remote origin? (y/N): " CONFIRM
-if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
+DO_PUSH=false
+if [[ "$AUTO_CONFIRM" == "true" ]]; then
+  DO_PUSH=true
+else
+  read -r -p "Push release commit and tag ${TAG_NAME} to remote origin? (y/N): " CONFIRM
+  if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
+    DO_PUSH=true
+  fi
+fi
+
+if [[ "$DO_PUSH" == "true" ]]; then
   echo "Pushing release commit and tag..."
   git push origin HEAD
   git push origin "${TAG_NAME}"
