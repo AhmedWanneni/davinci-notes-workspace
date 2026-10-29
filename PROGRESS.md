@@ -4,7 +4,141 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Tray Popover Native macOS NSPanel Implementation (Phases 1–3 Complete, ADR-0225)
+## Last Session — macOS Notification Branding & Reminders View Fixes
+
+**Scope:** Eliminate the Terminal icon on macOS notifications by bypassing Tauri dev-mode override and associating notifications with the Sophia owl identity, plus fix test assertion timing.
+
+**What was done:**
+1. **Identified True Root Cause for Notification Terminal Icon**:
+   - `tauri-plugin-notification` hardcodes `notify_rust::set_application(if tauri::is_dev() { "com.apple.Terminal" } else { &self.identifier })`.
+   - When running in dev mode (`tauri dev`), `tauri-plugin-notification` explicitly sets the bundle ID to `"com.apple.Terminal"`, causing macOS `usernoted` to display the Terminal icon regardless of app configuration.
+   - Calling `app.notification().builder()` also triggered `mac-notification-sys`'s static one-time initialization lock (`INIT_APPLICATION_SET.call_once`), permanently binding notifications to Terminal.
+2. **Native macOS Direct Dispatch Architecture**:
+   - In [`reminder_notify.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/reminder_notify.rs):
+     - Created `dispatch_native_notification` that bypasses `tauri-plugin-notification` on macOS and directly calls `mac_notification_sys::Notification` with `com.sophia.notes`.
+     - Attached the Sophia owl icon (`icons/128x128.png`) via `.content_image(...)`.
+     - Routed `send_reminder_notification`, `send_missed_notification`, and `send_desktop_notification_command` through `dispatch_native_notification`.
+   - In [`macos_panel.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/macos_panel.rs):
+     - Enhanced `setup_notification_identity()` to ensure `~/Applications/Sophia.app` is provisioned and registered in LaunchServices (`lsregister -f`).
+     - Added direct FFI call to `setApplication` in Obj-C to ensure `fakeBundleIdentifier` is always `"com.sophia.notes"` even across runtimes.
+3. **Verification**:
+   - Added unit test `test_macos_dispatch` in `reminder_notify.rs` testing native macOS notification dispatch. Passed successfully.
+   - Fixed local vs UTC date discrepancy in `QuickCaptureReminder.test.tsx`.
+   - Vitest unit tests (231 suites) passing. Cargo check & cargo test passing.
+2. **Reminders Page ("Add a reminder"):**
+   - Fixed broken CSS custom properties in [`RemindersView.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.module.scss) (`--color-accent` → `var(--color-interactive-accent)`, `--type-size-*` → `var(--type-scale-*)`), and migrated primary action buttons to standard [`Button`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/design-system/components/Button/Button.tsx) components from `@app/design-system` so buttons are always distinctly visible.
+   - In [`RemindersHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersHeader.tsx):
+     - Rendered primary action button `<Button variant="primary" size="sm">` with `Plus` icon and `"Add a reminder"` label.
+   - In [`RemindersSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersSubView.tsx):
+     - Added an `"Add a reminder"` button directly at the top of the reminders subview list and in the empty state.
+   - In [`RemindersView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.tsx):
+     - Added `isAdding` state toggled by `"Add a reminder"` button and empty-state button.
+     - Embedded the inline [`AddReminderForm`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/AddReminderForm.tsx) right beneath the header/toolbar.
+     - Wired `onAdded` (dispatches `davinci-reminders-updated` and reloads data) and `onCancel`.
+     - Intelligently defaults the target note (`defaultTargetNote`) to the currently open document or first available markdown note.
+   - In [`useRemindersViewData.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/useRemindersViewData.ts):
+     - Extracted data queries, event listeners, and mutation handlers into a dedicated hook (157 lines), keeping [`RemindersView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.tsx) at 154 lines (under the 150-200 line soft cap and 250 hard cap).
+   - In [`reminderTaskActions.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/vault/reminderTaskActions.ts):
+     - Updated `applyAndSaveNote` to gracefully check file existence with `statNote` before `readNote`, preventing crashes when creating reminders in new note files.
+   - In [`RemindersDialog/index.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/index.ts):
+     - Re-exported `AddReminderForm` following module barrel guidelines.
+2. **Testing & Verification:**
+   - Added unit tests in [`RemindersView.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.test.tsx) (7/7 tests passing):
+     - Opens add reminder form when "Add a reminder" button is clicked and cancels it.
+     - Submits add reminder form and appends task to vault note.
+   - All tests passing in `RemindersDialog.test.tsx` (5/5).
+   - `pnpm --filter @app/desktop build:web` passes cleanly in 10s.
+   - `cargo check` passes cleanly in 0.8s.
+
+---
+
+## Next Up
+
+- Multichannel reminder channel configuration verification (Telegram, Discord, Slack) in desktop settings
+- Test calendar event syncing with newly created inline reminders
+
+**Scope:** App rename from "DaVinci Notes" → **Sophia** across all user-facing surfaces, plus owl icon for quick notes and reminder notifications.
+
+**What was done:**
+
+1. **App rename — "Sophia" everywhere:**
+   - `tauri.conf.json` — `productName` + `identifier` → `com.sophia.notes`
+   - `index.html`, `capture.html` — `<title>` + favicon `<link>` → `/logo/dark-logo.svg`
+   - `lib.rs` (main window title), `capture.rs` (capture window title)
+   - `VaultWelcomeView.tsx`, `AppErrorBoundary.tsx`, `EditorConflictBanner.tsx`, `SyncthingQrPairingSection.tsx`
+   - `SettingsDialog.tsx` window chrome title
+   - `GeneralSettingsTab.tsx`, `ChannelPrivacyGuide.tsx`, `NotificationsSettingsTab.tsx` — UI copy
+   - `AIConsentScreen.tsx`, `AIKeyEntryScreen.tsx`, `AISubsystem.ts`, `AISettingsPanel.tsx` — AI copy
+   - `dispatchChannelOnce.ts`, `webVaultBridge.ts`, `desktopSyncEngine.ts`
+   - All 6 AI agent prompts in `packages/ai-agent/prompts/` — "You are Sophia"
+   - `calendarTools.ts`, `wikiEngine.ts`, `notification_auth.rs`
+   - Tests updated: `VaultWelcomeView.test.tsx`, `AppErrorBoundary.test.tsx`
+
+2. **Owl logo for quick notes / reminder notifications & Native Dock/App Icons:**
+   - Generated native app icons from `dark-logo.svg`:
+     - `icon.icns` (multi-resolution macOS bundle & Dock icon)
+     - `icon.ico` (multi-resolution Windows icon)
+     - `icon.png` (512x512 RGBA)
+     - `32x32.png`, `128x128.png`, `128x128@2x.png` (Tauri RGBA icons)
+     - `tray-icon.png`, `tray-icon@2x.png`, `tray-icon@2x.rgba` (44x44 raw RGBA)
+   - Added runtime macOS Dock icon update in `macos_panel::set_dock_icon()` (`NSApp.setApplicationIconImage`) so the Sophia owl appears in the Dock immediately even in dev mode
+   - Reminder notification toast (`ReminderNotificationToast.tsx`) — owl img replaces Bell icon, heading "Sophia — Reminder"
+   - Native OS reminder notifications (`reminder_notify.rs`) — 🦉 prefix on all titles
+   - Welcome screen — 64×64px owl logo above "Sophia" heading
+   - HTML favicons added to `apps/desktop/index.html`, `apps/desktop/capture.html`, `apps/web/index.html`, and `manifest.webmanifest`
+   - New `OwlIcon` component (`src/components/OwlIcon/`) — dark/light variant, size prop, Storybook story, 2 tests passing
+
+3. **Menu bar & Rail Icon refinements:**
+   - **Removed owl logo from icon rail**: Restored [`IconRail.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/IconRail/IconRail.tsx) to standard navigation (removed quick notes button from sidebar). All 7 IconRail tests passing.
+   - **Simple minimalist owl icon for macOS top menu bar**:
+     - Swapped the menu bar tray icon from the square badge logo to a clean, minimalist monochrome Lucide owl icon (`tray-icon.svg`).
+     - Generated 22x22 (`tray-icon.png`), 44x44 (`tray-icon@2x.png`), and raw 7744-byte RGBA buffer (`tray-icon@2x.rgba`) with transparent background.
+     - macOS template mode (`icon_as_template(true)`) automatically adapts the clean owl silhouette to macOS light and dark menu bars.
+
+4. **Logos stored at:** `apps/desktop/public/logo/dark-logo.svg` + `light.logo.svg`
+
+**All tests passing:** OwlIcon (2/2), IconRail (8/8), ReminderNotificationToast (7/7), VaultWelcomeView (5/5), AppErrorBoundary (3/3)
+
+---
+
+## Next Up
+- Hook `onQuickNotes` to tray shortcut / global shortcut if needed
+- Consider light-variant owl in light-mode (theme-aware `OwlIcon`)
+- Visual regression / Chromatic run for changed components
+
+---
+
+## Last Session — SettingsDialog Design Simplification, Empty Section Omission & Deduplication
+
+**Scope:**
+1. **Empty Section Handling**:
+   - Updated [`SettingsCard.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsCard.tsx) to return `null` when it has no valid children, preventing empty cards from rendering.
+   - Updated [`VisibleCalendarsCard.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/VisibleCalendarsCard.tsx) to return `null` when `calendars.length === 0`.
+   - Conditionally rendered destination list in [`NotificationsSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationsSettingsTab.tsx) only when destinations exist.
+   - Omitted empty sidebar categories (e.g. "Core plugins") when they contain no active items.
+2. **Divider Line & Box Flattening**:
+   - Removed `border-bottom` on `.settings-card-title` in [`SettingsDialog.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsDialog.module.scss) to eliminate stacked double lines with row dividers.
+   - Removed inline `borderBottom` on the connection container in [`AISettingsPanel.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AISettingsPanel/AISettingsPanel.tsx).
+   - Removed `box-shadow` on `.settings-dialog-root` to strictly comply with `AGENTS.md` ("Depth = borders, not shadows").
+   - Flattened isolated `.calendar-item` boxes in [`GoogleCalendarSettingsTab.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/GoogleCalendarSettingsTab.module.scss) into clean flat list rows with dividers.
+   - Flattened `.destination-row` and simplified setup/privacy containers in [`NotificationsSettingsTab.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationsSettingsTab.module.scss).
+3. **Deduplication**:
+   - Removed duplicated [`CursorColorSetting`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/CursorColorSetting.tsx) from [`EditorSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/EditorSettingsTab.tsx), retaining it exclusively in [`AppearanceSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/AppearanceSettingsTab.tsx).
+   - Removed unimplemented placeholder items (`interface`, `hotkeys`, `keychain`, and 9 dummy core plugin items) from [`SETTINGS_SIDEBAR_ITEMS`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsSidebar.tsx).
+4. **Verification**:
+   - 40/40 tests pass across 10 test files in `src/components/SettingsDialog`.
+   - 0 ESLint errors in `SettingsDialog`.
+   - `build:web` builds in 10.15s. All files $\le 250$ lines.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+
+---
+
+## Previous Session — Tray Popover Native macOS NSPanel Implementation (Phases 1–3 Complete, ADR-0225)
 
 **Scope:**
 1. **Phase 1: Baseline Cleanups & Policy Decoupling**:

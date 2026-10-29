@@ -2,6 +2,45 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: macOS Notification App Attribution & Reminders Page Form Visibility
+
+- **macOS Notification App Icon Attribution**:
+  - In development (`tauri dev`), macOS attributes notifications to the parent process (`Terminal.app`) when running an unbundled binary without LaunchServices bundle registration.
+  - Configured and registered `com.sophia.notes` with LaunchServices via `lsregister` using a development app bundle containing `Info.plist` and `icon.icns`.
+  - Added `mac-notification-sys = "0.6"` to Cargo dependencies and called `mac_notification_sys::set_application("com.sophia.notes")` in [`macos_panel::setup_notification_identity()`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/macos_panel.rs) upon app startup in [`lib.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/lib.rs).
+  - Explicitly passed the Sophia owl logo icon (`128x128.png` / `/logo/dark-logo.svg`) in [`reminder_notify.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/reminder_notify.rs), [`dispatchChannelOnce.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/notifications/dispatchChannelOnce.ts), and [`TauriNotificationAdapter.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/adapters/TauriNotificationAdapter.ts).
+- **Reminders Workspace View ("Add a reminder")**:
+  - Restored the inline [`AddReminderForm`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/AddReminderForm.tsx) on [`RemindersView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.tsx), allowing users to create reminders directly within the reminders view tab without opening external modals.
+  - Fixed invisible button styling caused by undefined tokens (`--color-accent` and `--type-size-*`) by migrating action buttons in [`RemindersHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersHeader.tsx) and [`RemindersSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersSubView.tsx) to official [`Button`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/design-system/components/Button/Button.tsx) components from `@app/design-system` with proper purple accent background and contrast.
+  - Added an `"Add a reminder"` button both in the header actions and directly above the reminders list in [`RemindersSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersSubView.tsx) for instant visibility.
+  - Integrated date presets (`Today`, `Tomorrow`, `Next week`), due date/time pickers, target note selector with sensible default (currently active note or first markdown file), and optional Google Calendar sync.
+  - Extracted state and action queries into [`useRemindersViewData.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/useRemindersViewData.ts) (157 lines) ensuring [`RemindersView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.tsx) remains clean and modular (154 lines, under soft cap).
+  - Enhanced `applyAndSaveNote` in [`reminderTaskActions.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/vault/reminderTaskActions.ts) to gracefully create target notes if they do not yet exist on disk using `statNote`.
+- **Verification**:
+  - Added unit tests in [`RemindersView.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.test.tsx) covering form opening, canceling, and submission to markdown vault.
+  - All 7 tests in `RemindersView.test.tsx` and 5 tests in `RemindersDialog.test.tsx` pass.
+  - Web production build passed cleanly.
+
+
+### 2026-10-28: SettingsDialog Design Simplification, Empty Section Omission & Deduplication
+
+- **Empty Section Handling**:
+  - Enhanced [`SettingsCard.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsCard.tsx) to inspect `React.Children.toArray(children).filter(Boolean)` and return `null` if empty, omitting empty cards and titles.
+  - Updated [`VisibleCalendarsCard.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/VisibleCalendarsCard.tsx) to return `null` when `calendars.length === 0`.
+  - Conditioned `.destinations-list` rendering in [`NotificationsSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationsSettingsTab.tsx) on `destinations.length > 0`.
+  - Omitted empty sidebar categories (e.g. "Core plugins") when they have 0 items.
+- **Divider Lines & Box Flattening**:
+  - Removed underline (`border-bottom`) on `.settings-card-title` in [`SettingsDialog.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsDialog.module.scss) to eliminate stacked double lines with row dividers.
+  - Removed duplicate inline `borderBottom` in [`AISettingsPanel.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AISettingsPanel/AISettingsPanel.tsx).
+  - Removed `box-shadow` on `.settings-dialog-root` in compliance with `AGENTS.md` ("Depth = borders, not shadows").
+  - Flattened `.calendar-item` and `.destination-row` into clean flat list rows with subtle dividing lines.
+- **Deduplication**:
+  - Removed duplicate [`CursorColorSetting`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/CursorColorSetting.tsx) from [`EditorSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/EditorSettingsTab.tsx); preserved in [`AppearanceSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/AppearanceSettingsTab.tsx).
+  - Pruned unimplemented placeholder tabs (`interface`, `hotkeys`, `keychain`, and 9 dummy core plugin items) from [`SETTINGS_SIDEBAR_ITEMS`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsSidebar.tsx).
+- **Verification**:
+  - Added unit tests for [`SettingsCard.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsCard.test.tsx) and [`VisibleCalendarsCard.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/VisibleCalendarsCard.test.tsx).
+  - 40/40 tests pass across 10 test files. ESLint passes with 0 errors. Web bundle builds in 10.15s. All files $\le 250$ lines.
+
 ### 2026-10-28: Tray Popover Native macOS NSPanel Implementation (ADR-0225)
 
 - **Phase 0: Architectural Decision Record & Dock Policy Separation**:
