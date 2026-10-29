@@ -2,6 +2,28 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Manager Phase 2 — Status Engine & Changes List UI (ADR-0234)
+
+- **Status Engine & Porcelain v2 Parsing**:
+  - Implemented `git_manager_status` command in `apps/desktop/src-tauri/src/git_manager_commands.rs`, executing `git status --porcelain=v2 -z --untracked-files=all` with a 5-second cancellable timeout.
+  - Implemented `packages/git-manager/src/parsers/parsePorcelainV2.ts` to parse Type 1 ordinary changes, Type 2 renames/copies (with secondary NUL tokens), Type u conflicts, and Type ? untracked files into typed `GitFileChange` records.
+  - Preserves full path fidelity for paths containing spaces, unicode, or emojis.
+- **Reactive Watcher Integration**:
+  - Enhanced `apps/desktop/src-tauri/src/watcher.rs` to detect mutations to `.git/HEAD`, `.git/index`, and `.git/refs/**` and emit `"git-changed"`.
+  - Ignored internal noisy Git files (`COMMIT_EDITMSG`, `objects/`, etc.).
+  - Bound `GitSidebarPanel` to `"git-changed"` with a 200 ms debounce timer.
+- **UI Components**:
+  - Created `GitStatusRow` with status code badges (`M`, `A`, `D`, `R`, `C`, `U`, `?`).
+  - Created `GitChangesList` with collapsible sections for Conflicts, Staged Changes, and Changes.
+  - Connected `GitSidebarPanel` to `useGitManagerStore`.
+- **Testing & Verification**:
+  - 19/19 Vitest tests passing in `@app/git-manager`.
+  - 3/3 Rust unit tests passing in `git_manager_commands.rs`.
+  - 5/5 Rust unit tests passing in `watcher.rs`.
+  - Lazy-loaded bundle chunk verified: `index-Du3jDUNo.js` is 9.8 KB raw (~3.3 KB gzip), 0 KB on initial bundle when Git is disabled.
+- **Architecture Decision Record**:
+  - Authored [ADR-0234](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0234-git-manager-status-engine-and-porcelain-v2.md) and indexed in `DECISIONS.md`.
+
 ### 2026-10-29: Isolate Audio Recordings into Attachments Directory (Single Note Per Folder)
 
 - **Audio File Destination Routing**:

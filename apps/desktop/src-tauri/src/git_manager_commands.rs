@@ -120,6 +120,30 @@ pub async fn init_git_repository(
         .map_err(|e| format!("Git init task failed: {e}"))?
 }
 
+pub(crate) fn query_git_status(vault_root: &Path) -> Result<String, String> {
+    let output = run_git(
+        vault_root,
+        &["status", "--porcelain=v2", "-z", "--untracked-files=all"],
+    )?;
+    if !output.status.success() {
+        let msg = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(format!("Git status failed: {msg}"));
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+}
+
+#[tauri::command]
+pub async fn git_manager_status(
+    window: WebviewWindow,
+    app: AppHandle,
+) -> Result<String, String> {
+    reject_plugin_runner(&window)?;
+    let vault_root = app.state::<VaultState>().get_root()?;
+    tauri::async_runtime::spawn_blocking(move || query_git_status(&vault_root))
+        .await
+        .map_err(|e| format!("Git status task failed: {e}"))?
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -166,5 +190,14 @@ mod tests {
         assert!(info.git_available);
         assert!(info.is_repo);
         assert!(info.is_empty);
+    }
+
+    #[test]
+    fn test_query_git_status_reports_untracked_and_modified() {
+        let vault = TestVault::new();
+        initialize_local_repository(&vault.0).unwrap();
+        fs::write(vault.0.join("note.md"), "# Hello").unwrap();
+        let status = query_git_status(&vault.0).unwrap();
+        assert!(status.contains("? note.md"));
     }
 }

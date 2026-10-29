@@ -150,6 +150,7 @@ pub fn run() {
       git_history::restore_local_git_version,
       git_manager_commands::get_git_repo_info,
       git_manager_commands::init_git_repository,
+      git_manager_commands::git_manager_status,
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,

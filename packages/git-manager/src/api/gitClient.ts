@@ -8,3 +8,16 @@ export async function fetchGitRepoInfo(): Promise<GitRepoInfo> {
 export async function initGitRepository(): Promise<void> {
   return invoke<void>("init_git_repository");
 }
+
+export async function fetchGitStatus(): Promise<string> {
+  return invoke<string>("git_manager_status");
+}
+
+export async function listenToGitChanges(callback: () => void): Promise<() => void> {
+  try {
+    const { listen } = await import("@tauri-apps/api/event");
+    return await listen("git-changed", callback);
+  } catch {
+    return () => {};
+  }
+}

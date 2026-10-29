@@ -4,7 +4,42 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 1: Settings Toggle, Repo Detection, Lazy Boundary & Rail Icon (ADR-0233)
+## Last Session — Git Manager Phase 2: Status Engine & Changes List UI (ADR-0234)
+
+**Scope:** Implement status command backend with porcelain v2, NUL-byte parser, debounced watcher hook on `.git` internals, and changes list UI with status badges.
+
+**What was done:**
+1. **Rust Status Backend (`git_manager_commands.rs`)**:
+   - Implemented `git_manager_status` running `git status --porcelain=v2 -z --untracked-files=all` with a 5s cancellable timeout.
+   - Added unit test `test_query_git_status_reports_untracked_and_modified` (3/3 backend tests passing).
+2. **NUL-Delimited Porcelain v2 Parser (`parsePorcelainV2.ts`)**:
+   - Parses Type 1 (`1 <XY> ... <path>`), Type 2 renames (`2 <XY> ... <path>\0<origPath>`), Type u conflicts (`u <XY> ... <path>`), and Type ? (`? <path>`).
+   - Categorizes entries into `staged`, `unstaged`, `conflicts`, and `untracked`.
+   - Comprehensive test suite in `parsePorcelainV2.test.ts` (6/6 tests passing) validating path safety with spaces, unicode, and emojis.
+3. **Reactive Watcher (`watcher.rs`)**:
+   - Enhanced native vault watcher to detect `.git/HEAD`, `.git/index`, and `.git/refs/**` mutations and emit `"git-changed"`.
+   - Ignored other noisy internal `.git/` files (e.g. `COMMIT_EDITMSG`, `objects/`, etc.).
+   - All 5 watcher tests passing. File maintained at 245 lines (< 250 cap).
+4. **UI Components (`@app/git-manager`)**:
+   - Built `GitStatusRow` displaying filename, directory, and status badges (`M`, `A`, `D`, `R`, `C`, `U`, `?`) using CUBE CSS and design tokens.
+   - Built `GitChangesList` with collapsible sections for Merge Conflicts, Staged Changes, and Changes.
+   - Connected `GitSidebarPanel` to `useGitManagerStore` and `listenToGitChanges` with a 200 ms debounce.
+   - All 19 tests in `@app/git-manager` passing.
+5. **Lazy-Load Verification**:
+   - Production web build chunk `index-Du3jDUNo.js` is 9.8 KB raw (~3.3 KB gzip).
+   - Zero Git background processes when feature is disabled or panel is unmounted.
+6. **Architecture Decision Record**:
+   - Authored [ADR-0234](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0234-git-manager-status-engine-and-porcelain-v2.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 3: Stage/unstage/discard, commit, amend**.
+- Phase 4: Diff viewer, file + hunk level staging.
+
+---
+
+## Previous Session — Git Manager Phase 1: Settings Toggle, Repo Detection, Lazy Boundary & Rail Icon (ADR-0233)
 
 **Scope:** Implement `git.enabled` setting, repo detection backend in Rust, independent `@app/git-manager` workspace package with lazy loading boundary, rail icon toggle, and empty states.
 

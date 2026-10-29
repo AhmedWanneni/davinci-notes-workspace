@@ -1,21 +1,50 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { GitBranch, ArrowsClockwise } from "@phosphor-icons/react";
 import { Button } from "@app/design-system";
 import { useGitManagerStore } from "../store/useGitManagerStore";
+import { listenToGitChanges } from "../api/gitClient";
 import { GitEmptyState } from "./GitEmptyState";
+import { GitChangesList } from "./GitChangesList";
 import styles from "./GitSidebarPanel.module.scss";
 
 export function GitSidebarPanel() {
   const {
     repoInfo,
+    staged,
+    unstaged,
+    conflicts,
     isLoading,
     refreshRepoInfo,
+    refreshStatus,
     initializeRepo,
   } = useGitManagerStore();
+
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     void refreshRepoInfo();
   }, [refreshRepoInfo]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    void listenToGitChanges(() => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        void refreshStatus();
+      }, 200);
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      unlisten?.();
+    };
+  }, [refreshStatus]);
 
   if (isLoading && !repoInfo) {
     return (
@@ -60,7 +89,10 @@ export function GitSidebarPanel() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => void refreshRepoInfo()}
+            onClick={() => {
+              void refreshRepoInfo();
+              void refreshStatus();
+            }}
             disabled={isLoading}
             aria-label="Refresh Git status"
           >
@@ -70,7 +102,15 @@ export function GitSidebarPanel() {
       </header>
 
       <div className={styles["git-sidebar-panel__content"]}>
-        {repoInfo.isEmpty && <GitEmptyState type="no-commits" />}
+        {repoInfo.isEmpty && staged.length === 0 && unstaged.length === 0 ? (
+          <GitEmptyState type="no-commits" />
+        ) : (
+          <GitChangesList
+            staged={staged}
+            unstaged={unstaged}
+            conflicts={conflicts}
+          />
+        )}
       </div>
     </div>
   );
