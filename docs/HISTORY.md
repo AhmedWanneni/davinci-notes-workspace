@@ -2,6 +2,20 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Isolate Audio Recordings into Attachments Directory (Single Note Per Folder)
+
+- **Audio File Destination Routing**:
+  - In `apps/desktop/src/vault/meetingNoteActions.ts`: modified `saveMeetingNoteToVault` to store recorded `.wav` files into `${attachmentFolder}/${dateStr} - ${cleanTitle}.wav` (defaulting to `attachments/` or user-configured attachment folder). The meeting notes folder (e.g. `Meetings/`) now contains strictly the markdown note (`.md`).
+  - In `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.tsx`: saved voice note audio to `attachments/${audioFileName}` while saving the `.md` note to `Voice Notes/${cleanTitle}.md`.
+- **Audio Link Embed Resolution**:
+  - In `packages/editor/embeds/embedAudioExtension.ts`: updated `resolveAudioPathCandidate` so that wikilinks like `![[recording.wav]]` query `notePaths` first to find `attachments/recording.wav` before falling back to the current note's parent folder.
+  - Tested notes in subfolders (e.g. `Meetings/2026-10-29.md`) embedding `![[sync.wav]]` located at `attachments/sync.wav`.
+- **Testing & Verification**:
+  - Added unit test in `packages/editor/embeds/embedAudioExtension.test.ts` verifying attachment folder audio resolution.
+  - Added unit test in `apps/desktop/src/vault/meetingNoteActions.test.ts` confirming audio is saved to `attachments/` while the note alone is placed in `Meetings/`.
+  - Updated `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.test.tsx` and verified all tests pass.
+  - Production web bundle build succeeded without warnings or errors.
+
 ### 2026-10-29: Meeting Record Page Audio WAV Persistence & Embed Resolution
 
 - **Audio File Retrieval from `stopMeetingRecording`**:

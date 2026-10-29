@@ -49,7 +49,9 @@ describe("embedAudioExtension", () => {
       ".cm-file-audio-embed__play-btn",
     ) as HTMLButtonElement;
     expect(playBtn).not.toBeNull();
-    const playSpy = vi.spyOn(player, "play").mockImplementation(() => Promise.resolve());
+    const playSpy = vi
+      .spyOn(player, "play")
+      .mockImplementation(() => Promise.resolve());
     playBtn.click();
     expect(playSpy).toHaveBeenCalled();
 
@@ -57,7 +59,8 @@ describe("embedAudioExtension", () => {
   });
 
   it("decorates non-embed wikilinks [[call.wav]] and markdown links [call](call.wav)", () => {
-    const doc = "Link 1: [[voice-memo.wav]]\nLink 2: [Voice Memo](voice-memo.mp3)";
+    const doc =
+      "Link 1: [[voice-memo.wav]]\nLink 2: [Voice Memo](voice-memo.mp3)";
     const state = EditorState.create({
       doc,
       extensions: [
@@ -71,6 +74,30 @@ describe("embedAudioExtension", () => {
     const view = new EditorView({ state });
     const widgets = view.dom.querySelectorAll(".cm-file-audio-embed");
     expect(widgets.length).toBe(2);
+    view.destroy();
+  });
+
+  it("resolves audio in attachments folder for a note in a subfolder", () => {
+    const doc = "Recording from meeting:\n![[sync.wav]]";
+    const state = EditorState.create({
+      doc,
+      extensions: [
+        embedAudioExtension({
+          sourcePath: "Meetings/2026-10-29.md",
+          notePaths: ["attachments/sync.wav"],
+          resolveMediaUrl: (path) => `asset://${path}`,
+        }),
+      ],
+    });
+
+    const view = new EditorView({ state });
+    const widgetEl = view.dom.querySelector(
+      ".cm-file-audio-embed",
+    ) as HTMLElement;
+    expect(widgetEl).not.toBeNull();
+    expect(widgetEl.getAttribute("data-audio-path")).toBe(
+      "attachments/sync.wav",
+    );
     view.destroy();
   });
 });

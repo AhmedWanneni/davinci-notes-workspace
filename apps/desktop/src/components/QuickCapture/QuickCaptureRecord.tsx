@@ -58,7 +58,8 @@ export function QuickCaptureRecord({
       const audioFileName = `${cleanTitle}.wav`;
       const noteFileName = `${cleanTitle}.md`;
       const targetFolder = folder.trim() || "Voice Notes";
-      const targetAudioRel = `${targetFolder}/${audioFileName}`;
+      const attachmentFolder = "attachments";
+      const targetAudioRel = `${attachmentFolder}/${audioFileName}`;
 
       if (tempWavPath) {
         await saveRecordedAudioToVault(tempWavPath, targetAudioRel).catch(

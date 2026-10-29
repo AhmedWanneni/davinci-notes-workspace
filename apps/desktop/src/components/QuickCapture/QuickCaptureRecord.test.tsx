@@ -28,7 +28,9 @@ describe("QuickCaptureRecord", () => {
     );
 
     expect(screen.getByText("Ready to record")).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Start recording" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Start recording" }),
+    ).toBeTruthy();
     expect(screen.getByLabelText("Voice note title")).toBeTruthy();
   });
 
@@ -79,7 +81,9 @@ describe("QuickCaptureRecord", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Audio captured")).toBeTruthy();
-      expect(screen.getByRole("button", { name: "Save audio note" })).toBeTruthy();
+      expect(
+        screen.getByRole("button", { name: "Save audio note" }),
+      ).toBeTruthy();
     });
   });
 
@@ -92,7 +96,9 @@ describe("QuickCaptureRecord", () => {
       totalSamples: 240000,
       sampleRate: 16000,
     });
-    vi.mocked(transcriptionClient.saveRecordedAudioToVault).mockResolvedValue("Voice Notes/My Thoughts.wav");
+    vi.mocked(transcriptionClient.saveRecordedAudioToVault).mockResolvedValue(
+      "attachments/My Thoughts.wav",
+    );
 
     render(
       <QuickCaptureRecord
@@ -107,10 +113,18 @@ describe("QuickCaptureRecord", () => {
     fireEvent.change(titleInput, { target: { value: "My Thoughts" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Start recording" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Stop recording" })).toBeTruthy());
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Stop recording" }),
+      ).toBeTruthy(),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Stop recording" }));
-    await waitFor(() => expect(screen.getByRole("button", { name: "Save audio note" })).toBeTruthy());
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Save audio note" }),
+      ).toBeTruthy(),
+    );
 
     fireEvent.click(screen.getByRole("button", { name: "Save audio note" }));
 
@@ -119,7 +133,7 @@ describe("QuickCaptureRecord", () => {
         expect.stringContaining("![[My Thoughts.wav]]"),
         "My Thoughts.md",
         "Voice Notes",
-        "Voice Notes/My Thoughts.wav",
+        "attachments/My Thoughts.wav",
       );
     });
   });

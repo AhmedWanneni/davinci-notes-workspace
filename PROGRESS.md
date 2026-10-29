@@ -4,21 +4,22 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Meeting Record Page Audio WAV Persistence & Embed Resolution
+## Last Session — Isolate Audio Recordings into Attachments Directory (Single Note Per Folder)
 
-**Scope:** Ensure meetings recorded from the AI Listening / Record page properly persist the `.wav` audio file to the vault and embed the audio player widget in the saved note.
+**Scope:** Ensure that saving an audio recording (from either Meeting Recorder / AI Listening or QuickCapture) creates strictly ONE file under the target notes folder (`Meetings/` or `Voice Notes/`), routing the underlying `.wav` recording to the vault's attachment directory (`attachments/`).
 
 **What was done:**
-1. **Audio File Retrieval from `stopMeetingRecording`**:
-   - Fixed property lookup in `useListeningSession.ts`: Tauri's `MeetingAudioResult` serializes `wav_file_path` as camelCase `wavFilePath`. Added fallback resolution across `wavFilePath`, `wav_file_path`, and `wav_path` so `tempWav` is always properly passed to `saveMeetingNoteToVault`.
-   - Updated `saveMeetingNoteToVault` to persist the audio file to `Meetings/YYYY-MM-DD - {Title}.wav`, update workspace store paths, and embed `![[...wav]]` under `## Audio Recording`.
-2. **SCSS Warning Fix**:
-   - Replaced non-standard `justifyContent:` with `justify-content:` in `QuickCaptureRecord.module.scss`.
+1. **Audio File Destination Routing**:
+   - In `apps/desktop/src/vault/meetingNoteActions.ts`: modified `saveMeetingNoteToVault` to store recorded `.wav` files into `${attachmentFolder}/${dateStr} - ${cleanTitle}.wav` (defaulting to `attachments/` or user-configured attachment folder). The meeting notes folder (e.g. `Meetings/`) now contains strictly the markdown note (`.md`).
+   - In `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.tsx`: saved voice note audio to `attachments/${audioFileName}` while saving the `.md` note to `Voice Notes/${cleanTitle}.md`.
+2. **Audio Link Embed Resolution**:
+   - In `packages/editor/embeds/embedAudioExtension.ts`: updated `resolveAudioPathCandidate` so that wikilinks like `![[recording.wav]]` query `notePaths` first to find `attachments/recording.wav` before falling back to the current note's parent folder.
+   - Tested notes in subfolders (e.g. `Meetings/2026-10-29.md`) embedding `![[sync.wav]]` located at `attachments/sync.wav`.
 3. **Verification**:
-   - Added unit test in `ListeningView.test.tsx` verifying that stopping a recording passes the WAV path to `saveMeetingNoteToVault`.
-   - All 17 ListeningView tests passing.
-   - All 3 meetingNoteActions unit tests passing.
-   - Production web bundle built successfully (`pnpm --filter @app/desktop build:web`).
+   - Added unit test in `packages/editor/embeds/embedAudioExtension.test.ts` verifying attachment folder audio resolution.
+   - Added unit test in `apps/desktop/src/vault/meetingNoteActions.test.ts` confirming audio is saved to `attachments/` while the note alone is placed in `Meetings/`.
+   - Updated `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.test.tsx` and verified all tests pass.
+   - Production web bundle build succeeded without warnings or errors.
 
 ---
 
@@ -28,7 +29,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Previous Session — QuickCapture Window Expansion & Prominent "Start Recording" Placement
+## Previous Session — Meeting Record Page Audio WAV Persistence & Embed Resolution
 
 **Scope:** Save recorded `.wav` meeting audio directly in vault, render interactive player in CodeMirror editor (`![[meeting.wav]]`), and enable one-click AI transcription re-run.
 

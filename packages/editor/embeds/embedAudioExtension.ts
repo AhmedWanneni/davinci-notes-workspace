@@ -23,11 +23,13 @@ function resolveAudioPathCandidate(
   sourcePath?: string,
 ): string {
   if (target.includes("/")) return target;
-  if (sourcePath && sourcePath.includes("/")) {
-    const parentDir = sourcePath.substring(0, sourcePath.lastIndexOf("/"));
-    return `${parentDir}/${target}`;
+  if (!notePaths || notePaths.length === 0) {
+    if (sourcePath && sourcePath.includes("/")) {
+      const parentDir = sourcePath.substring(0, sourcePath.lastIndexOf("/"));
+      return `${parentDir}/${target}`;
+    }
+    return target;
   }
-  if (!notePaths || notePaths.length === 0) return target;
   const lower = target.toLowerCase();
   const found = notePaths.find(
     (p) =>
@@ -36,7 +38,12 @@ function resolveAudioPathCandidate(
       p.toLowerCase() === lower ||
       p.toLowerCase().endsWith(`/${lower}`),
   );
-  return found ?? target;
+  if (found) return found;
+  if (sourcePath && sourcePath.includes("/")) {
+    const parentDir = sourcePath.substring(0, sourcePath.lastIndexOf("/"));
+    return `${parentDir}/${target}`;
+  }
+  return target;
 }
 
 function audioDecorations(

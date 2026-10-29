@@ -125,17 +125,19 @@ export async function saveMeetingNoteToVault(
     params.title.replace(/[\\/:*?"<>|]/g, " ").trim() || "Untitled Meeting";
 
   if (tempWavPath) {
-    const audioRelPath = `${folder}/${dateStr} - ${cleanTitle}.wav`;
-    let audioCandidate = audioRelPath;
+    const store = useWorkspaceStore.getState();
+    const attachmentFolder =
+      store.attachmentSettings?.specifiedFolder?.trim() || "attachments";
+    const audioFileName = `${dateStr} - ${cleanTitle}.wav`;
+    let audioCandidate = `${attachmentFolder}/${audioFileName}`;
     let audioCounter = 1;
     while (existingPaths.includes(audioCandidate)) {
-      audioCandidate = `${folder}/${dateStr} - ${cleanTitle} (${audioCounter}).wav`;
+      audioCandidate = `${attachmentFolder}/${dateStr} - ${cleanTitle} (${audioCounter}).wav`;
       audioCounter++;
     }
     try {
       await saveRecordedAudioToVault(tempWavPath, audioCandidate);
       params.audioRelPath = audioCandidate;
-      const store = useWorkspaceStore.getState();
       if (!store.allNotePaths.includes(audioCandidate)) {
         store.updateAllPaths([...store.allNotePaths, audioCandidate]);
       }
