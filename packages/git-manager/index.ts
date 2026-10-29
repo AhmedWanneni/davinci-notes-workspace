@@ -43,6 +43,7 @@ export {
   resolveGitConflict,
   abortGitMerge,
   continueGitMerge,
+  cloneGitRepository,
   listenToGitChanges,
 } from "./src/api/gitClient";
 export { parsePorcelainV2 } from "./src/parsers/parsePorcelainV2";

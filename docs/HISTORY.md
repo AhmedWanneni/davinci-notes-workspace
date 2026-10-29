@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Git Settings — Dedicated Git Tab & Open Vault from GitHub Clone
+
+- **Dedicated Git Settings Tab**:
+  - Added dedicated "Git" tab in `SettingsSidebar` with `GitBranch` icon.
+  - Removed Git source control section from `SyncSettingsTab.tsx` so "Sync & Backup" is strictly dedicated to Syncthing / Local Backup.
+  - Implemented `GitSettingsTab.tsx` (46 lines) combining the "Open Vault from GitHub" clone workflow and current vault Git source control setup.
+  - Lazily loaded via `LazyGitSettingsTab` in `SettingsDialog.tsx` preserving 0 KB initial bundle impact.
+- **Clone from GitHub Command & API**:
+  - Implemented `git_manager_clone_repo` Tauri command in `git_manager_clone.rs`:
+    - Handles directory validation and clone execution.
+    - Supports PAT authentication via `git_with_pat` and automatic credential persistence in OS Keychain via `store_pat_for_remote`.
+  - Added `cloneGitRepository(url, destination, token)` in `@app/git-manager` API client.
+- **GitCloneRepoCard Component**:
+  - UI with inputs for repository URL, destination path (with native folder browser), and PAT token.
+  - Automatically derives repository name when browsing parent folders.
+  - On clone completion: enables Git in the newly cloned vault (`git.enabled`) and invokes `onVaultSwitched` to open it immediately.
+- **Verification**:
+  - 5 Vitest unit tests in `GitCloneRepoCard.test.tsx` passing.
+  - 11 Vitest unit tests in `SettingsDialog.test.tsx` passing.
+  - Stylelint passed on `GitCloneRepoCard.module.scss`.
+  - Production build `build:web` succeeded without errors.
+  - All touched files remain under the 250-line hard cap (SettingsDialog.tsx: 248 lines, GitCloneRepoCard.tsx: 172 lines).
+
 ### 2026-10-29: Git Manager Source Control Layout & Side-by-Side Diff Editor (VS Code / Cursor Polish)
 
 - **Source Control Sidebar Layout Matching Reference UI**:

@@ -5,6 +5,7 @@ import {
   PencilSimpleLine,
   FolderSimple,
   CloudArrowUp,
+  GitBranch,
   Bell,
   Sparkle,
   PuzzlePiece,
@@ -21,6 +22,7 @@ export type SettingsTabId =
   | "appearance"
   | "editor"
   | "files"
+  | "git"
   | "sync"
   | "notifications"
   | "calendar"
@@ -50,6 +52,12 @@ export const SETTINGS_SIDEBAR_ITEMS: SettingsSidebarItem[] = [
     id: "files",
     label: "Files and links",
     icon: FolderSimple,
+    category: "options",
+  },
+  {
+    id: "git",
+    label: "Git",
+    icon: GitBranch,
     category: "options",
   },
   {

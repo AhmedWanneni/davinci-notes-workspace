@@ -4,7 +4,42 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager: Source Control Layout & Side-by-Side Diff Editor (VS Code / Cursor Polish)
+## Last Session — Git Settings: Dedicated Git Tab & Open Vault from GitHub Clone
+
+**Scope:** Create a dedicated "Git" tab in desktop Settings (separate from "Sync & Backup") and add an "Open Vault from GitHub" card to clone a remote repository to a local destination and automatically switch to it as the active vault.
+
+**What was done:**
+1. **Dedicated Git Settings Tab (`GitSettingsTab.tsx`, `SettingsSidebar.tsx`, `SettingsDialog.tsx`)**:
+   - Added `git` tab item to `SettingsSidebar` with `GitBranch` icon under the Options section.
+   - Removed the Git Version Control card from `SyncSettingsTab.tsx` (focusing Sync & Backup solely on Syncthing / Local Backup).
+   - Created `GitSettingsTab.tsx` (46 lines) hosting:
+     - `GitCloneRepoCard`: Clone remote repository into a local directory and switch active vault.
+     - `GitRemoteSetupPanel`: Manage Git source control toggle and remote origin URL/credentials for current vault.
+   - Lazy-loaded `LazyGitSettingsTab` in `SettingsDialog.tsx` to maintain 0 KB initial bundle overhead when Settings is opened on other tabs.
+2. **Backend Git Clone Command (`git_manager_clone.rs`, `gitClient.ts`)**:
+   - Implemented Tauri command `git_manager_clone_repo` in Rust:
+     - Validates repository URL and empty destination directory.
+     - Authenticates using PAT token via `git_with_pat` when provided and stores credentials securely in OS Keychain (`store_pat_for_remote`).
+     - Performs standard `git clone <url> <dest>` synchronously in Rust worker thread.
+   - Exported `cloneGitRepository(url, destination, token)` from `@app/git-manager`.
+3. **Open Vault from GitHub UI (`GitCloneRepoCard.tsx`, `GitCloneRepoCard.module.scss`)**:
+   - Inputs for GitHub repository URL, local folder path (with Browse folder picker), and optional PAT token for private repos.
+   - Automatically derives repository name into destination path when picking parent folder.
+   - Enables Git source control (`git.enabled`) upon successful clone and switches active workspace via `onVaultSwitched(clonedPath)`.
+4. **Verification & Testing**:
+   - Created `GitCloneRepoCard.test.tsx` with 5 unit tests covering rendering, input validation, directory picker, successful clone with vault switch, and error presentation.
+   - Updated `SettingsDialog.test.tsx` (11 tests pass) confirming navigation to the new Git tab.
+   - Verified file length limits (all files under 250 hard cap; `GitCloneRepoCard.tsx` at 172 lines, `SettingsDialog.tsx` at 248 lines).
+   - Web bundle build (`pnpm --filter @app/desktop build:web`) succeeded with 0 errors.
+
+---
+
+## Next Up
+- Manual verification of GitHub clone with a personal access token on a private/public repo.
+
+---
+
+## Previous Session — Git Manager: Source Control Layout & Side-by-Side Diff Editor (VS Code / Cursor Polish)
 
 **Scope:** Match the VS Code / Cursor Source Control UI from user reference screenshot: stacked accordion sections (`CHANGES`, `AGENT REVIEW`, `GRAPH`, `GITLENS`), side-by-side (2-pane) diff editor opened as tabs in the main area with breadcrumbs, pull/push buttons, and branch switching.
 

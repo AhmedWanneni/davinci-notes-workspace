@@ -1,4 +1,4 @@
-import type { GitFileChange, GitFileStatusCode, GitStatusSummary } from "../types/gitTypes";
+import type { GitFileChange, GitFileStatusCode } from "../types/gitTypes";
 
 export interface ParsedPorcelainResult {
   staged: GitFileChange[];

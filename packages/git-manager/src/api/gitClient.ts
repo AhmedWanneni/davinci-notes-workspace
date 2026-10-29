@@ -35,18 +35,24 @@ export async function discardGitPaths(paths: string[]): Promise<void> {
   return invoke<void>("git_manager_discard", { paths });
 }
 
-export async function commitGit(message: string, amend = false): Promise<string> {
+export async function commitGit(
+  message: string,
+  amend = false,
+): Promise<string> {
   return invoke<string>("git_manager_commit", { message, amend });
 }
 
-export async function fetchFileDiff(path: string, staged: boolean): Promise<GitFileDiff> {
+export async function fetchFileDiff(
+  path: string,
+  staged: boolean,
+): Promise<GitFileDiff> {
   return invoke<GitFileDiff>("git_manager_get_file_diff", { path, staged });
 }
 
 export async function applyGitPatch(
   patch: string,
   cached: boolean,
-  reverse = false
+  reverse = false,
 ): Promise<void> {
   return invoke<void>("git_manager_apply_patch", { patch, cached, reverse });
 }
@@ -54,7 +60,7 @@ export async function applyGitPatch(
 export async function fetchGitLog(
   limit = 50,
   skip = 0,
-  pathFilter?: string
+  pathFilter?: string,
 ): Promise<GitCommitEntry[]> {
   return invoke<GitCommitEntry[]>("git_manager_get_log", {
     limit,
@@ -63,7 +69,9 @@ export async function fetchGitLog(
   });
 }
 
-export async function fetchGitCommitDetails(hash: string): Promise<GitCommitDetail> {
+export async function fetchGitCommitDetails(
+  hash: string,
+): Promise<GitCommitDetail> {
   return invoke<GitCommitDetail>("git_manager_get_commit_details", { hash });
 }
 
@@ -75,11 +83,17 @@ export async function switchGitBranch(branch: string): Promise<void> {
   return invoke<void>("git_manager_switch_branch", { branch });
 }
 
-export async function createGitBranch(branch: string, checkout = true): Promise<void> {
+export async function createGitBranch(
+  branch: string,
+  checkout = true,
+): Promise<void> {
   return invoke<void>("git_manager_create_branch", { branch, checkout });
 }
 
-export async function deleteGitBranch(branch: string, force = false): Promise<void> {
+export async function deleteGitBranch(
+  branch: string,
+  force = false,
+): Promise<void> {
   return invoke<void>("git_manager_delete_branch", { branch, force });
 }
 
@@ -119,11 +133,18 @@ export async function pushGitRemote(
   return invoke<GitSyncResult>("git_manager_push", { remote, branch, force });
 }
 
-export async function getGitConflictDetails(path: string): Promise<GitConflictFileVersions> {
-  return invoke<GitConflictFileVersions>("git_manager_get_conflict_details", { path });
+export async function getGitConflictDetails(
+  path: string,
+): Promise<GitConflictFileVersions> {
+  return invoke<GitConflictFileVersions>("git_manager_get_conflict_details", {
+    path,
+  });
 }
 
-export async function resolveGitConflict(path: string, content: string): Promise<void> {
+export async function resolveGitConflict(
+  path: string,
+  content: string,
+): Promise<void> {
   return invoke<void>("git_manager_resolve_conflict", { path, content });
 }
 
@@ -135,7 +156,21 @@ export async function continueGitMerge(): Promise<string> {
   return invoke<string>("git_manager_continue_merge");
 }
 
-export async function listenToGitChanges(callback: () => void): Promise<() => void> {
+export async function cloneGitRepository(
+  url: string,
+  destination: string,
+  token?: string,
+): Promise<string> {
+  return invoke<string>("git_manager_clone_repo", {
+    url,
+    destination,
+    token: token || null,
+  });
+}
+
+export async function listenToGitChanges(
+  callback: () => void,
+): Promise<() => void> {
   try {
     const { listen } = await import("@tauri-apps/api/event");
     return await listen("git-changed", callback);

@@ -141,4 +141,15 @@ describe("SettingsDialog", () => {
       await screen.findByText(/Loading Calendar Settings|Google Account/),
     ).toBeDefined();
   });
+
+  it("navigates to Git tab when clicked", async () => {
+    render(<SettingsDialog {...defaultProps} />);
+
+    const gitBtn = screen.getByRole("button", { name: "Git" });
+    fireEvent.click(gitBtn);
+
+    expect(
+      await screen.findByText(/Open Vault from GitHub|Loading Git Settings/),
+    ).toBeDefined();
+  });
 });

@@ -43,6 +43,7 @@ mod git_manager_stash;
 mod git_manager_remote;
 mod git_manager_sync;
 mod git_manager_conflicts;
+mod git_manager_clone;
 #[cfg(test)]
 mod git_manager_conflict_tests;
 mod git_remote;
@@ -185,6 +186,7 @@ pub fn run() {
       git_manager_conflicts::git_manager_resolve_conflict,
       git_manager_conflicts::git_manager_abort_merge,
       git_manager_conflicts::git_manager_continue_merge,
+      git_manager_clone::git_manager_clone_repo,
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,

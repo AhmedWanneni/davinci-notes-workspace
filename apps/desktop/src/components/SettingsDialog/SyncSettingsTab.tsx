@@ -1,6 +1,5 @@
 import React from "react";
 import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
-import { GitRemoteSetupPanel } from "../GitRemoteSetupPanel";
 import { SettingsCard } from "./SettingsCard";
 import styles from "./SettingsDialog.module.scss";
 
@@ -61,10 +60,6 @@ export function SyncSettingsTab({
         <React.Suspense fallback={<div>Loading Syncthing...</div>}>
           <LazySyncthingPanel />
         </React.Suspense>
-      </SettingsCard>
-
-      <SettingsCard title="Git Version Control">
-        <GitRemoteSetupPanel />
       </SettingsCard>
     </div>
   );
