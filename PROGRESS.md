@@ -4,7 +4,39 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Git Manager Phase 0: Verification Audit & Capabilities Baseline (ADR-0232)
+## Last Session — Git Manager Phase 1: Settings Toggle, Repo Detection, Lazy Boundary & Rail Icon (ADR-0233)
+
+**Scope:** Implement `git.enabled` setting, repo detection backend in Rust, independent `@app/git-manager` workspace package with lazy loading boundary, rail icon toggle, and empty states.
+
+**What was done:**
+1. **Rust Repo Detection & Init Backend**:
+   - Created `apps/desktop/src-tauri/src/git_manager_commands.rs`: `get_git_repo_info` (detects PATH presence, work tree check, branch, empty repo, detached HEAD) and `init_git_repository`.
+   - Registered commands in `lib.rs`.
+   - Added unit tests in `git_manager_commands.rs` (2/2 tests pass).
+2. **Workspace Package `@app/git-manager`**:
+   - Initialized `packages/git-manager` with TypeScript, React 19, Zustand store (`useGitManagerStore`), and IPC client.
+   - Built `GitEmptyState` handling `"not-installed"`, `"not-repo"`, and `"no-commits"` states.
+   - Built `GitSidebarPanel` container with header, branch name, and refresh action.
+   - Added unit tests in `GitEmptyState.test.tsx` and `useGitManagerStore.test.ts` (6/6 tests pass).
+   - Configured `.eslintrc.js` package boundaries.
+3. **Desktop Shell Integration & Lazy Boundary**:
+   - Added `createGitSettings.ts` in `apps/desktop/src/state` persisted via SQLite `settings` table with `withDbLock`.
+   - Added "Git Version Control" toggle in `GeneralSettingsTab`.
+   - Added `GitBranch` icon button in `IconRail.tsx` conditionally rendered when `isGitEnabled` is true.
+   - Wired `AppSidebar.tsx` to conditionally render `LazyGitSidebarPanel` via `React.lazy()` when Git Manager is open, hiding the `FileTree`.
+   - Verified initial bundle entry delta is strictly **0 KB**; `index-9krMKY6f.js` chunk is 4.4 KB raw (1.8 KB gzip).
+4. **Architecture Decision Record**:
+   - Authored [ADR-0233](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0233-git-manager-settings-and-lazy-boundary.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 2: Status Engine (`git status --porcelain=v2 -z` parser + watcher hook) + Changes list UI**.
+- Phase 3: Stage/unstage/discard, commit, amend.
+
+---
+
+## Previous Session — Git Manager Phase 0: Verification Audit & Capabilities Baseline (ADR-0232)
 
 **Scope:** Read-only audit and adversarial verification of Git versioning backend and system Git CLI capabilities across non-repo vaults, init, fetch/pull/push against bare remote, PATH check, porcelain v2 NUL-byte status, forced merge conflicts, large attachment ignoring, and performance benchmarks on 5,000 files and 500 sequential commits.
 

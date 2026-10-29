@@ -5,6 +5,10 @@ import {
   type EditorSettingsState,
 } from "./createEditorSettings";
 import {
+  createGitSettings,
+  type GitSettingsState,
+} from "./createGitSettings";
+import {
   createNoteCrudActions,
   type NoteCrudActions,
 } from "./createNoteCrudActions";
@@ -28,6 +32,7 @@ import { notifyNoteEmbedUpdate } from "@app/editor";
 export interface WorkspaceState
   extends
     EditorSettingsState,
+    GitSettingsState,
     NoteCrudActions,
     NoteSaveActions,
     NoteNavigationActions {
@@ -78,6 +83,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   noteHistory: emptyNoteHistory,
   setSyncMode: (mode) => set({ syncMode: mode }),
   ...createEditorSettings(set),
+  ...createGitSettings(set),
   setVaultPath: (path: string | null) => set({ vaultPath: path }),
 
   initializeVault: async (
@@ -87,6 +93,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     tagIndex: TagIndex | null = null,
   ) => {
     diskStateTracker.clear();
+    void get().loadGitSettings();
     set({
       allNotePaths: paths,
       allFolderPaths: folderPaths,

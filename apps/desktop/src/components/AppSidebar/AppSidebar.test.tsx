@@ -26,6 +26,10 @@ vi.mock("@tauri-apps/api/window", () => ({
   }),
 }));
 
+vi.mock("@app/git-manager", () => ({
+  GitSidebarPanel: () => <div data-testid="mock-git-sidebar-panel">Mock Git Sidebar</div>,
+}));
+
 describe("AppSidebar", () => {
   beforeEach(() => {
     Object.defineProperty(HTMLElement.prototype, "hasPointerCapture", {
@@ -109,6 +113,50 @@ describe("AppSidebar", () => {
 
     expect(sidebar?.getAttribute("data-collapsed")).toBe("true");
     expect(container.querySelector(".app-sidebar__resizer")).toBeNull();
+  });
+
+  it("switches from file tree to git sidebar panel when isGitManagerOpen is true", async () => {
+    const { rerender } = render(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath={null}
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isGitManagerOpen={false}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.queryByTestId("mock-git-sidebar-panel")).toBeNull();
+
+    rerender(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath={null}
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isGitManagerOpen={true}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(await screen.findByTestId("mock-git-sidebar-panel")).toBeDefined();
   });
 });
 

@@ -1,0 +1,63 @@
+.git-sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-base);
+  color: var(--color-text-normal);
+  overflow-y: auto;
+}
+
+.git-sidebar-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-surface);
+  min-height: 38px;
+}
+
+.git-sidebar-panel__branch-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-scale-sm);
+  font-weight: 500;
+  color: var(--color-text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-sidebar-panel__branch-icon {
+  color: var(--color-text-subtle);
+  flex-shrink: 0;
+}
+
+.git-sidebar-panel__branch-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-sidebar-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.git-sidebar-panel__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.git-sidebar-panel__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  color: var(--color-text-subtle);
+  font-size: var(--type-scale-sm);
+}

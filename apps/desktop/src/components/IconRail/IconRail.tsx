@@ -12,6 +12,7 @@ import {
   Sparkle,
   ChatCircleDots,
   Ear,
+  GitBranch,
 } from "@phosphor-icons/react";
 import { IconRailButton } from "./IconRailButton";
 
@@ -30,6 +31,7 @@ export interface IconRailProps {
   onOpenAgent?: () => void;
   onOpenListening?: () => void;
   onOpenAskVault?: () => void;
+  onOpenGitManager?: () => void;
   isGlobalGraphOpen?: boolean;
   isCalendarOpen?: boolean;
   isBookmarksOpen?: boolean;
@@ -37,6 +39,8 @@ export interface IconRailProps {
   isAgentOpen?: boolean;
   isListeningOpen?: boolean;
   isAskVaultOpen?: boolean;
+  isGitManagerOpen?: boolean;
+  isGitEnabled?: boolean;
 }
 
 export function IconRail({
@@ -61,6 +65,9 @@ export function IconRail({
   isAgentOpen,
   isListeningOpen,
   isAskVaultOpen,
+  isGitManagerOpen,
+  isGitEnabled,
+  onOpenGitManager,
 }: IconRailProps) {
   return (
     <nav className="icon-rail" aria-label="Primary navigation">
@@ -83,6 +90,20 @@ export function IconRail({
             <BookmarkSimple
               size={18}
               weight={isBookmarksOpen ? "fill" : "regular"}
+            />
+          </IconRailButton>
+        )}
+
+        {isGitEnabled && onOpenGitManager && (
+          <IconRailButton
+            label="Source Control"
+            tooltip="Source Control (Git)"
+            isActive={isGitManagerOpen}
+            onClick={onOpenGitManager}
+          >
+            <GitBranch
+              size={18}
+              weight={isGitManagerOpen ? "bold" : "regular"}
             />
           </IconRailButton>
         )}

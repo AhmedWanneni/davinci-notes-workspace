@@ -112,6 +112,8 @@ export function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
   const [isRemindersOpen, setIsRemindersOpen] = useState(false);
+  const [isGitManagerOpen, setIsGitManagerOpen] = useState(false);
+  const gitEnabled = useWorkspaceStore((state) => state.gitEnabled);
   const [searchInitialQuery, setSearchInitialQuery] = useState("");
   const isGlobalGraphOpen = useWorkspaceStore(
     (state) => state.isGlobalGraphOpen,
@@ -140,6 +142,15 @@ export function App() {
   }, []);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const handleToggleGitManager = useCallback(() => {
+    setIsGitManagerOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsLeftSidebarOpen(true);
+      }
+      return next;
+    });
+  }, []);
   const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
   const [askVaultEnabled, setAskVaultEnabled] = useState(false);
   const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
@@ -736,12 +747,22 @@ export function App() {
           log={log}
           isCollapsed={!isLeftSidebarOpen}
           isMac={isMac}
-          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
+          onToggleLeftSidebar={() => {
+            if (isGitManagerOpen) {
+              setIsGitManagerOpen(false);
+            } else {
+              setIsLeftSidebarOpen((prev) => !prev);
+            }
+          }}
           onOpenSearch={() => {
+            setIsGitManagerOpen(false);
             setSearchInitialQuery("");
             setIsSearchOpen(true);
           }}
-          onOpenTags={() => setIsTagsOpen(true)}
+          onOpenTags={() => {
+            setIsGitManagerOpen(false);
+            setIsTagsOpen(true);
+          }}
           isGlobalGraphOpen={isGlobalGraphOpen}
           isCalendarOpen={activeNotePath === CALENDAR_TAB_ID || isCalendarOpen}
           isBookmarksOpen={activeNotePath === BOOKMARKS_TAB_ID}
@@ -749,12 +770,33 @@ export function App() {
           isAgentOpen={activeNotePath === AGENT_TAB_ID}
           isListeningOpen={activeNotePath === LISTENING_TAB_ID}
           isAskVaultOpen={isRightSidebarOpen}
-          onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
-          onOpenCalendar={() => void openNote(CALENDAR_TAB_ID)}
-          onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
-          onOpenReminders={() => void openNote(REMINDERS_TAB_ID)}
-          onOpenAgent={() => void openNote(AGENT_TAB_ID)}
-          onOpenListening={() => void openNote(LISTENING_TAB_ID)}
+          isGitManagerOpen={isGitManagerOpen}
+          isGitEnabled={gitEnabled}
+          onOpenGitManager={handleToggleGitManager}
+          onOpenGlobalGraph={() => {
+            setIsGitManagerOpen(false);
+            setIsGlobalGraphOpen(!isGlobalGraphOpen);
+          }}
+          onOpenCalendar={() => {
+            setIsGitManagerOpen(false);
+            void openNote(CALENDAR_TAB_ID);
+          }}
+          onOpenBookmarks={() => {
+            setIsGitManagerOpen(false);
+            void openNote(BOOKMARKS_TAB_ID);
+          }}
+          onOpenReminders={() => {
+            setIsGitManagerOpen(false);
+            void openNote(REMINDERS_TAB_ID);
+          }}
+          onOpenAgent={() => {
+            setIsGitManagerOpen(false);
+            void openNote(AGENT_TAB_ID);
+          }}
+          onOpenListening={() => {
+            setIsGitManagerOpen(false);
+            void openNote(LISTENING_TAB_ID);
+          }}
           onOpenAskVault={() => setIsRightSidebarOpen((prev) => !prev)}
           onCloseVault={() => setVaultPath(null)}
           onDailyNotes={handleDailyNotes}

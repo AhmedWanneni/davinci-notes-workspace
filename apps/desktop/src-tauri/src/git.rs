@@ -12,7 +12,7 @@ use crate::{command_auth::reject_plugin_runner, state::VaultState};
 const VAULT_GITIGNORE: &str = "# Managed by DaVinci Notes local version history.\n# Only Markdown notes are source of truth for local history.\n*\n!**/\n!**/*.md\n";
 static GIT_OPERATION_LOCK: Mutex<()> = Mutex::new(());
 
-fn run_git(vault_root: &Path, args: &[&str]) -> Result<Output, String> {
+pub(crate) fn run_git(vault_root: &Path, args: &[&str]) -> Result<Output, String> {
     Command::new("git")
     .args(args)
     .current_dir(vault_root)

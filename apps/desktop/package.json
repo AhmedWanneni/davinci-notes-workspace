@@ -25,6 +25,7 @@
     "@app/database": "workspace:*",
     "@app/design-system": "workspace:*",
     "@app/editor": "workspace:*",
+    "@app/git-manager": "workspace:*",
     "@app/google-calendar-api": "workspace:*",
     "@app/indexer": "workspace:*",
     "@app/kanban": "workspace:*",

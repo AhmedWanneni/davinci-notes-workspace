@@ -210,4 +210,33 @@ describe("IconRail", () => {
     const activeListeningBtn = screen.getByLabelText("AI Listening");
     expect(activeListeningBtn.getAttribute("data-active")).toBe("true");
   });
+
+  it("renders Source Control button only when git is enabled", () => {
+    const onOpenGitManager = vi.fn();
+    const { rerender } = renderIconRail({
+      isGitEnabled: false,
+      onOpenGitManager,
+    });
+    expect(screen.queryByLabelText("Source Control")).toBeNull();
+
+    rerender(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={false}
+          onToggleLeftSidebar={vi.fn()}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          isGitEnabled={true}
+          onOpenGitManager={onOpenGitManager}
+        />
+      </TooltipProvider>,
+    );
+
+    const gitBtn = screen.getByLabelText("Source Control");
+    expect(gitBtn).toBeDefined();
+    fireEvent.click(gitBtn);
+    expect(onOpenGitManager).toHaveBeenCalledOnce();
+  });
 });

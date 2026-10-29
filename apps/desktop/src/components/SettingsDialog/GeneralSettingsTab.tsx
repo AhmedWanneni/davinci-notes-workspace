@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Button, Toggle } from "@app/design-system";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { CaptureSettingsSection } from "./CaptureSettingsSection";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
@@ -20,6 +21,8 @@ export function GeneralSettingsTab({
   const [earlyAccess, setEarlyAccess] = useState(false);
   const [language, setLanguage] = useState("en");
   const [keepInTray, setKeepInTray] = useState(true);
+  const gitEnabled = useWorkspaceStore((state) => state.gitEnabled);
+  const setGitEnabled = useWorkspaceStore((state) => state.setGitEnabled);
 
   useEffect(() => {
     let mounted = true;
@@ -82,6 +85,17 @@ export function GeneralSettingsTab({
         <TrayClickSettingsRow />
 
         <CaptureSettingsSection />
+
+        <SettingsRow
+          title="Git Version Control"
+          description="Enable Git Manager to stage, commit, diff, and manage repository history."
+        >
+          <Toggle
+            checked={gitEnabled}
+            onCheckedChange={(checked) => void setGitEnabled(checked)}
+            aria-label="Git Version Control"
+          />
+        </SettingsRow>
 
         <SettingsRow
           title="Automatic updates"

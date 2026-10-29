@@ -403,6 +403,7 @@ the list.
 | ADR | Decision | Status |
 |---|---|---|
 | [0232](adr/0232-git-manager-phase-0-audit-and-capabilities.md) | Git Manager Phase 0 Verification Audit, System Git CLI Baseline & Capabilities | Accepted |
+| [0233](adr/0233-git-manager-settings-and-lazy-boundary.md) | Git Manager Activation Setting and Lazy-Loaded Monorepo Boundary | Accepted |
 
 
 
