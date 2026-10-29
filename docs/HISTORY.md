@@ -2,6 +2,50 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-29: Documentation Reorganization & Master README
+
+- **Consolidated Feature & Historical Plans**:
+  - Moved legacy bootstrap plans (`phase-6` through `phase-13`, `cube-css-app-migration.md`, `desktop-app-build.md`, `stablize.md`, `ui-grid-layout-plan.md`) into `plans/historical/`.
+  - Moved all feature plans from root into `plans/`: `agent-feature-plan.md`, `bookmarks-feature-plan.md`, `calendar-feature-plan.md`, `git-manager-feature-plan.md`, `meeting-recorder-feature-plan.md`, `releases-feature-plan.md`, `reminders-page-feature-plan.md`, `web-version-feature-plan.md`.
+  - Moved plans from `docs/` and `packages/` into `plans/`: `cli-feature-plan.md`, `tray-feature-plan.md`, `tray-popover-plan.md`, `canvas-grouping-plan.md`, `canvas-pdf-plan.md`.
+  - Created `plans/README.md` containing active feature plan index, completion status matrix, and historical plan directory.
+- **Consolidated Architecture Specifications**:
+  - Moved root architecture specifications into `docs/architecture/`: `stack-architecture.md`, `mobile-architecture.md` (renamed from `mobile-app-stack-architecture.md`), `design-system.md`, `conventions.md`, `git-workflow.md`, `apps/wireframe.md`.
+  - Created `docs/architecture/README.md` with system architecture Mermaid diagram and specifications index.
+- **Documentation Hub Index**:
+  - Created `docs/README.md` establishing a centralized hub for architecture, ADRs, release runbooks, extensions, and session history.
+- **Authored Master README.md**:
+  - Created comprehensive `README.md` at repository root covering:
+    - Overview and philosophy of local-first, zero-backend knowledge management.
+    - Key capabilities breakdown (CodeMirror editor, knowledge graph, Drive/Syncthing sync, Git source control, audio recorder, local AI agent, calendar/reminders, web clipper).
+    - Monorepo directory map with all apps, packages, docs, and plans.
+    - Quickstart prerequisites, installation, development commands, and quality verification gates.
+    - Automated release pipeline overview and distribution channels.
+    - Standing architectural principles and links to governance documents (`AGENTS.md`, `DECISIONS.md`, `PERFORMANCE.md`).
+- **Verification & Link Auditing**:
+  - Validated all internal relative markdown links across index files with zero broken links.
+  - Verified manifest version parity across 6 manifests via `pnpm run check:version-sync`.
+  - Rebuilt Graphify AST knowledge graph (`graphify update .`) with 15,442 nodes and 36,571 edges.
+
+### 2026-10-29: Release Pipeline, Build Automation & Download Distribution (Phases 1–7)
+
+- **Phase 1: Manifest Version Synchronization & Local Release Scripts (ADR-0242)**:
+  - Added `"version": "0.1.0"` and `"check:version-sync"` script in root `package.json`.
+  - Created `scripts/release/bump-version.sh`, `scripts/release/check-version-sync.sh`, and `scripts/release/build-local.sh`.
+- **Phase 2: Multi-Platform CI Matrix & Draft Release Pipeline (ADR-0243)**:
+  - Created `.github/workflows/release.yml` with parallel compilation across macOS (arm64, x64), Windows (x64), and Linux (x64).
+  - Created `scripts/release/generate-changelog.sh` and `scripts/release/verify-artifacts.sh`.
+- **Phase 3: Code Signing, Notarization & Cryptographic Keys (ADR-0244)**:
+  - Created `apps/desktop/src-tauri/entitlements.mac.plist` and configured `tauri.conf.json` with Apple `notarytool` integration.
+- **Phase 4: In-App Auto-Update & Tauri Updater Plugin (ADR-0245)**:
+  - Integrated `tauri-plugin-updater` and created `UpdateSettingsCard.tsx` with unit tests.
+- **Phase 5: Website Static Download Page & Permalinks (ADR-0246)**:
+  - Built static pre-rendered `/download` page in `apps/website` with zero-dependency client-side OS detection.
+- **Phase 6: Release Orchestration CLI & Emergency Rollback Runbook (ADR-0247)**:
+  - Created `scripts/release/release.sh`, `scripts/release/rollback.sh`, and authored `docs/releasing.md`.
+- **Phase 7: Community Package Managers & Mobile Coordination (ADR-0248)**:
+  - Created `.github/workflows/homebrew-cask.yml` and `.github/workflows/winget.yml`.
+
 ### 2026-10-29: Git Settings — Dedicated Git Tab & Open Vault from GitHub Clone
 
 - **Dedicated Git Settings Tab**:

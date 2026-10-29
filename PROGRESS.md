@@ -4,42 +4,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Release Pipeline, Build Automation & Download Distribution (Phases 1–7)
+## Last Session — Documentation Reorganization & Master README
 
-**Scope:** Implement the complete serverless release engineering infrastructure across Phases 1 through 7: manifest version synchronization across 6 files, multi-platform CI build matrix with draft GitHub Releases, macOS hardened runtime entitlements and code signing, in-app auto-update via `tauri-plugin-updater` with dedicated Settings UI, static Astro `/download` page with inline OS detection, release/rollback CLI scripting harness, and community package manager workflows.
+**Scope:** Consolidate and organize all markdown files across the repository (feature plans, historical phase plans, architectural specifications, and documentation hub) and author a comprehensive, production-grade root `README.md`.
 
 **What was done:**
-1. **Phase 1: Manifest Version Synchronization & Local Release Scripts (ADR-0242)**:
-   - Added `"version": "0.1.0"` and `"check:version-sync"` script in root `package.json`.
-   - Created `scripts/release/bump-version.sh`: Single-command SemVer bump across root `package.json`, `apps/desktop/package.json`, `apps/desktop/src-tauri/Cargo.toml`, `apps/desktop/src-tauri/tauri.conf.json`, `apps/website/package.json`, and `apps/mobile/app.json`. Supports `--dry-run`.
-   - Created `scripts/release/check-version-sync.sh`: Deterministic manifest version equality validator, integrated as CI gate in `.github/workflows/ci.yml`.
-   - Created `scripts/release/build-local.sh`: Local desktop smoke build validation.
-2. **Phase 2: Multi-Platform CI Matrix & Draft Release Pipeline (ADR-0243)**:
-   - Created `.github/workflows/release.yml`: GitHub Actions workflow triggered on tag push `v*` with quality gates and parallel compilation across macOS (arm64, x64), Windows (x64), and Linux (x64).
-   - Configured target-specific Syncthing pre-fetching via `fetchSyncthing.mjs` before Tauri build.
-   - Created `scripts/release/generate-changelog.sh`: Grouped conventional commit release notes extractor.
-   - Created `scripts/release/verify-artifacts.sh`: Artifact file size verification and `SHA256SUMS.txt` generation.
-3. **Phase 3: Code Signing, Notarization & Cryptographic Keys (ADR-0244)**:
-   - Created `apps/desktop/src-tauri/entitlements.mac.plist` defining hardened runtime entitlements for loopback audio, network client, and local server.
-   - Configured `bundle.macOS` in `tauri.conf.json` with `hardenedRuntime: true` and Apple `notarytool` integration.
-4. **Phase 4: In-App Auto-Update & Tauri Updater Plugin (ADR-0245)**:
-   - Registered `tauri-plugin-updater = "2"` in Rust backend (`Cargo.toml`, `lib.rs`) and `@tauri-apps/plugin-updater` in desktop frontend.
-   - Configured updater endpoints pointing to GitHub Releases CDN `latest.json` with Ed25519 public key.
-   - Built `apps/desktop/src/services/updaterService.ts` and `UpdateSettingsCard.tsx` in `GeneralSettingsTab.tsx`.
-   - Added `UpdateSettingsCard.test.tsx` (4 tests passing).
-5. **Phase 5: Website Static Download Page & Permalinks (ADR-0246)**:
-   - Pre-rendered static download page in `apps/website/src/pages/download/index.astro` using `BaseLayout` while keeping `SiteNav.astro` (header) completely untouched.
-   - Implemented zero-dependency client-side OS detection script (< 1.5 KB) setting primary CTA to detected platform.
-   - Created static permalink redirect routes: `/download/mac`, `/download/mac-intel`, `/download/windows`, `/download/linux`.
-   - Verified Astro static build succeeds with 6 generated HTML pages in 739ms.
-6. **Phase 6: Release Orchestration CLI & Emergency Rollback Runbook (ADR-0247)**:
-   - Created `scripts/release/release.sh`: Interactive maintainer CLI driver orchestrating clean working tree checks, version bump, changelog, commit, tag, and push.
-   - Created `scripts/release/rollback.sh`: Emergency rollback tool to unpublish draft releases, delete tags, and revert updater metadata.
-   - Authored comprehensive maintainer runbook in `docs/releasing.md`.
-7. **Phase 7: Community Package Managers & Mobile Coordination (ADR-0248)**:
-   - Created `.github/workflows/homebrew-cask.yml` for automated Homebrew formula generation on release publish.
-   - Created `.github/workflows/winget.yml` for automated WinGet submission on release publish.
-   - Documented decoupled Expo mobile release coordination.
+1. **Consolidated Plans (`plans/`)**:
+   - Archived legacy bootstrap plans (`phase-6` through `phase-13`, `cube-css-app-migration.md`, `desktop-app-build.md`, `stablize.md`, `ui-grid-layout-plan.md`) into `plans/historical/`.
+   - Moved all root feature plans into `plans/`: `agent-feature-plan.md`, `bookmarks-feature-plan.md`, `calendar-feature-plan.md`, `git-manager-feature-plan.md`, `meeting-recorder-feature-plan.md`, `releases-feature-plan.md`, `reminders-page-feature-plan.md`, `web-version-feature-plan.md`.
+   - Moved fragmented plans from `docs/` and `packages/` into `plans/`: `cli-feature-plan.md`, `tray-feature-plan.md`, `tray-popover-plan.md`, `canvas-grouping-plan.md`, `canvas-pdf-plan.md`.
+   - Authored `plans/README.md` indexing active feature plans, completion status, and historical plan directory.
+2. **Consolidated Architecture Specifications (`docs/architecture/`)**:
+   - Moved root architecture specs into `docs/architecture/`: `stack-architecture.md`, `mobile-architecture.md`, `design-system.md`, `conventions.md`, `git-workflow.md`, `apps/wireframe.md`.
+   - Authored `docs/architecture/README.md` with system architecture Mermaid diagram and specifications index.
+3. **Documentation Hub Index (`docs/README.md`)**:
+   - Established a centralized navigation index linking architecture specifications, ADRs, releasing runbooks, extensions, and session history.
+4. **Master `README.md` at Root**:
+   - Authored complete, high-quality GitHub-Flavored Markdown documentation with technology badges, local-first philosophy, key capabilities breakdown, monorepo directory tree, quickstart setup & development commands, release pipeline summary, and architectural tenets.
+5. **Quality Verification & Graph Update**:
+   - Verified 100% relative markdown link integrity across all indexes and root `README.md` (0 broken links).
+   - Validated manifest version parity across all 6 manifests via `pnpm run check:version-sync`.
+   - Rebuilt Graphify AST knowledge graph (`graphify update .`), tracking 15,442 nodes and 36,571 edges.
+
+---
+
+## Next Up
+- Push test tag `v0.1.0-rc.2` to remote to observe GitHub Actions matrix execution on staging.
+- Manual verification of GitHub clone with a personal access token on a private/public repo.
 
 ---
 
