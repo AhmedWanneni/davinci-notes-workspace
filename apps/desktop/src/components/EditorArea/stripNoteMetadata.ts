@@ -13,7 +13,6 @@ export function stripNoteMetadata(raw: string): string {
 
   const opening = match[1] ?? "---\n";
   const yaml = match[2] ?? "";
-  const closing = match[3] ?? "\n---\n";
   const body = raw.slice(match[0].length);
 
   const nextYaml = yaml.replace(METADATA_KEYS_REGEX, "");

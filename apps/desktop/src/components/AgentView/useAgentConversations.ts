@@ -10,7 +10,6 @@ import {
   moveConversationToProject,
   type AgentConversationsData,
   type AgentConversation,
-  type AgentProject,
 } from "@app/ai-agent";
 import { readNote, writeNote } from "../../vault/vaultCommands";
 import type { ChatMessageItem } from "./agentTypes";

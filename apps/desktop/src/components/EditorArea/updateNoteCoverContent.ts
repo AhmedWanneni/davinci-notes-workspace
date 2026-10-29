@@ -27,7 +27,7 @@ export function updateNoteCoverContent(
 
   // If removing cover
   if (cover === null) {
-    let nextYaml = yaml.replace(COVER_REGEX, "").replace(COVER_Y_REGEX, "");
+    const nextYaml = yaml.replace(COVER_REGEX, "").replace(COVER_Y_REGEX, "");
     if (!nextYaml.trim()) {
       return body;
     }
