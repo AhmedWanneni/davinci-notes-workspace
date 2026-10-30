@@ -74,6 +74,28 @@
   color: #ffffff;
 }
 
+.closing-platform-strip {
+  margin-top: 24px;
+  font-size: 0.9rem;
+  color: #fae1ce;
+}
+
+.closing-platform-strip .platform-quick-link {
+  color: #fffbf4;
+  text-decoration: underline;
+  font-weight: 600;
+  margin: 0 4px;
+}
+
+.closing-platform-strip .platform-quick-link:hover {
+  color: #fddb9b;
+}
+
+.closing-platform-strip .platform-detected-tag {
+  color: #fddb9b;
+  font-weight: 700;
+}
+
 @media (max-width: 640px) {
   .closing-glow-card {
     padding: 50px 24px;

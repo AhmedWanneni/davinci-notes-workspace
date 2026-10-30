@@ -109,14 +109,26 @@ import OwlBottomItems from './OwlBottomItems.astro';
       <span class="cta-version-tag">FREE v1.0</span>
     </div>
     <div class="cta-sheet-buttons">
-      <a href="#download" class="cta-hand-btn cta-hand-btn-primary">
-        <span>↓ DOWNLOAD FOR DESKTOP</span>
+      <a
+        href="https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/Sophia_0.1.0_aarch64.dmg"
+        class="cta-hand-btn cta-hand-btn-primary"
+        data-laptop-download-btn
+      >
+        <span class="cta-btn-text">↓ DOWNLOAD FOR MAC (.DMG)</span>
       </a>
       <a href="#workbench" class="cta-hand-btn cta-hand-btn-secondary">
         <span>TRY INTERACTIVE DEMO ↓</span>
       </a>
     </div>
-    <div class="cta-sheet-platforms">MACOS · WINDOWS · LINUX · MOBILE</div>
+    <div class="cta-sheet-platforms" data-laptop-platforms>
+      <span>Mac (Apple Silicon & Intel)</span><br />
+      <span class="platform-alt-row">
+        Also for:
+        <a href="https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/Sophia_0.1.0_x64-setup.exe" class="platform-quick-link">Windows .exe</a> ·
+        <a href="https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/sophia_0.1.0_amd64.AppImage" class="platform-quick-link">Linux</a> ·
+        <a href="/download" class="platform-quick-link">All ↗</a>
+      </span>
+    </div>
   </div>
 
   <!-- Note R2: Mid-Right Realistic Side-Bound Spiral "INCLUDED" Checklist (Matching Owl's "TO DO:" Pad) -->

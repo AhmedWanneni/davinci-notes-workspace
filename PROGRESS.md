@@ -29,6 +29,93 @@ Updated at the end of every session. Read this first, before touching code. Full
 ## Next Up
 - Verify end-to-end Quit behavior from QuickCapture popover on macOS tray launch.
 - Package release smoke checks.
+- Verify development live-reload and watch mode across desktop frontend.
+
+---
+
+## Previous Session — Fix `pnpm dev` Tauri CLI Argument Mismatch
+
+**Scope:** Fix `error: unexpected argument '--ignore-version-mismatches' found` during `pnpm dev` in `@app/desktop`.
+
+**What was done:**
+1. **Root Cause Analysis**:
+   - `tauri build` accepts `--ignore-version-mismatches`, but `tauri dev` uses a distinct CLI argument parser that does not accept `--ignore-version-mismatches` and rejects it with exit code 2.
+   - When `--ignore-version-mismatches` was previously appended to `"dev"` in `apps/desktop/package.json`, any invocation of `pnpm dev` or `pnpm --filter @app/desktop dev` crashed immediately before starting Vite or Tauri.
+2. **Fixed Desktop Script & Wrapper (`apps/desktop/package.json`, `apps/desktop/scripts/withCompatibleMacSdk.mjs`)**:
+   - Updated `apps/desktop/package.json` `"dev"` script to execute `node scripts/withCompatibleMacSdk.mjs tauri dev` without unsupported CLI arguments.
+   - Enhanced `withCompatibleMacSdk.mjs` to automatically filter out `--ignore-version-mismatches` when running `tauri dev`, while preserving and ensuring `--ignore-version-mismatches` is present for `tauri build`.
+3. **Verification**:
+   - Verified `pnpm --filter @app/desktop dev --help` runs and exits with code 0.
+   - Verified that passing `--ignore-version-mismatches` explicitly to `dev` is safely stripped without crash.
+
+---
+
+## Previous Session — Multi-Platform Release Matrix & Zero-Prompt Free Installer
+
+**Scope:** Launch CI multi-platform release matrix in GitHub Actions to build and publish Windows (`.exe`) and Linux (`.AppImage`, `.deb`) installers, package a standard macOS DMG with `Install Sophia.command` to allow 100% free installs without Gatekeeper warnings, and deploy `install.sh` to Cloudflare Pages:
+1. **Multi-Platform CI Cloud Matrix Dispatch**:
+   - Dispatched GitHub Actions `Release Pipeline` (Run ID `41118195862`) for `v0.1.0`.
+   - Quality gates and manifest audit passed cleanly in 2m10s.
+   - Concurrently executing: Windows x64 (`Sophia_0.1.0_x64-setup.exe`), Linux x64 (`sophia_0.1.0_amd64.AppImage` & `.deb`), macOS Intel (`x64.dmg`), and macOS Apple Silicon (`aarch64.dmg`).
+2. **Zero-Prompt 100% Free Install Script (`apps/website/public/install.sh`, `download/index.astro`)**:
+   - Authored lightweight, self-contained `install.sh` deployed at `https://sophia-notes.pages.dev/install.sh`.
+   - Automatically detects OS (macOS vs Linux) and architecture (`arm64` vs `x64`), downloads verified release package, installs to `/Applications` or `~/.local/bin`, strips quarantine xattrs, and launches Sophia immediately without requiring Apple Developer ID notarization.
+   - Added 1-line copyable terminal install widget to the download page.
+3. **DMG Installer Upgrade (`scripts/tui/build.sh`)**:
+   - Enhanced macOS DMG packaging to include an executable `Install Sophia.command` alongside the `Applications` folder shortcut.
+   - Users can double-click `Install Sophia.command` inside the DMG for 1-click free installation and launch.
+   - Re-packaged and uploaded `Sophia_0.1.0_aarch64.dmg` to GitHub Release `v0.1.0`.
+## Previous Session — Fix Desktop Release CI Pipeline & Attach v0.1.0 Binaries
+
+**Scope:** Fix the GitHub Actions desktop release workflow (`.github/workflows/release.yml`) so all platform installers build properly, fix missing `"tauri"` script execution in root monorepo, compile and attach the macOS Apple Silicon `.dmg` directly to GitHub Release `v0.1.0`:
+1. **CI Release Workflow & Monorepo Root Script Fixes (`package.json`, `.github/workflows/release.yml`)**:
+   - Diagnosed root cause of release workflow failure: `tauri-action` invoked `npm run tauri build -- --target ...` in repository root, failing with `npm error Missing script: "tauri"`.
+   - Added `"tauri": "pnpm --filter @app/desktop tauri"` to root `package.json`.
+   - Updated `.github/workflows/release.yml` to specify `tauriScript: 'pnpm --filter @app/desktop tauri'` and added `--ignore-version-mismatches` to build args.
+   - Fixed `finalize-release` step to upload all binary installers (`./final-artifacts/*`) and publish with `--draft=false`.
+2. **Local Production Build & Release Upload**:
+   - Built production macOS desktop bundle locally (`Sophia.app` 53.85 MB, `Sophia_0.1.0_aarch64.dmg` 22.40 MB).
+   - Uploaded `Sophia_0.1.0_aarch64.dmg` (SHA-256: `c706cd715df3a48f004cb6eee8401c8bff0e55180cec170f20f00b98ae8c41ed`) directly to GitHub Release `v0.1.0`.
+   - Verified authenticated asset delivery returns HTTP 200 OK (`Content-Length: 23491773`).
+3. **Repository Visibility Diagnosis**:
+   - Identified that GitHub returns 404 to unauthenticated public visitors because the repository `AhmedWanneni/davinci-notes-workspace` is currently set to Private (`"isPrivate": true`).
+   - Prepared prompt/decision for repo visibility vs public hosting.
+
+---
+
+## Next Up
+- Decide on making repository public or configuring public download mirror for releases.
+- Trigger CI workflow dispatch to compile and publish Windows and Linux release assets.
+- Verify download links end-to-end on `https://sophia-notes.pages.dev`.
+
+---
+
+## Previous Session — Cloudflare Pages TUI Deployment & Dynamic Laptop-Specific Download Detection
+
+**Scope:** Implement an interactive, user-friendly Bash TUI for deploying the website to Cloudflare Pages (with automatic connection detection, browser login launcher, and GitHub connect workflow), add Cloudflare Pages configuration files (`apps/website/wrangler.toml` and `.github/workflows/deploy-cloudflare.yml`), and tailor download links dynamically on the website based on the visitor's laptop operating system (macOS Apple Silicon & Intel .dmg, Windows .exe, Linux .AppImage & .deb):
+1. **Interactive Cloudflare Deployment TUI (`scripts/tui/cloudflare.sh`, `scripts/deploy-cloudflare.sh`, `scripts/manage.sh`, `package.json`)**:
+   - Built a modular, DevKit-styled sub-controller `cloudflare.sh` (212 lines) with standalone runner `scripts/deploy-cloudflare.sh` (42 lines) and npm script `pnpm deploy:cloudflare`.
+   - Integrated into the master dashboard `scripts/manage.sh` as option `[ 8 ]` ("☁️ Deploy to Cloudflare") and CLI argument `-cf` / `--cloudflare`.
+   - **Connection Detection & Browser Launcher**: Automatically inspects `wrangler whoami`. If not authenticated, prompts 1-key CLI login (`wrangler login`) or opens the Cloudflare Pages GitHub connection dashboard in the user's default browser (`https://dash.cloudflare.com/?to=/:account/pages/new/provider/github`).
+   - **Automated Deployment**: Compiles the Astro production build (`pnpm --filter @app/website build`), deploys `apps/website/dist` to Cloudflare Pages (`wrangler pages deploy apps/website/dist --project-name sophia-notes`), prints the live URL, and offers 1-key browser launch.
+2. **Cloudflare Configurations (`apps/website/wrangler.toml`, `.github/workflows/deploy-cloudflare.yml`, `docs/deployment/cloudflare-pages.md`)**:
+   - Added `wrangler.toml` specifying project `sophia-notes`, compatibility date `2024-11-01`, and `dist` build directory.
+   - Authored GitHub Actions workflow `.github/workflows/deploy-cloudflare.yml` deploying on push to `main` when `apps/website/**` changes.
+   - Documented step-by-step setup in `docs/deployment/cloudflare-pages.md`.
+3. **Dynamic Laptop & OS Download Detection (`laptopDownload.ts`, `OwlSideNotes.astro`, `ClosingSection.astro`, `ClosingSection.css`, `hero-nodes.css`)**:
+   - Created client-side detector `apps/website/src/scripts/laptopDownload.ts` (153 lines) detecting macOS (Apple Silicon vs Intel), Windows (64-bit), and Linux.
+   - **Hero GET THE APP Card**: The primary CTA dynamically transforms to:
+     - macOS: `↓ DOWNLOAD FOR MAC (.DMG)` pointing directly to `Sophia_0.1.0_aarch64.dmg`.
+     - Windows: `↓ DOWNLOAD FOR WINDOWS (.EXE)` pointing directly to `Sophia_0.1.0_x64-setup.exe`.
+     - Linux: `↓ DOWNLOAD FOR LINUX (.APPIMAGE)` pointing directly to `sophia_0.1.0_amd64.AppImage`.
+   - Provides instant 1-click alternative links (`Intel .dmg`, `Windows .exe`, `Linux .AppImage / .deb`, and `All Downloads ↗`) on the card and closing CTA strip.
+   - Updated `/download` redirect endpoints (`mac.astro`, `mac-intel.astro`, `windows.astro`, `linux.astro`) to clean `0.1.0` artifact names.
+
+---
+
+## Next Up
+- Verify Cloudflare Pages deployment in production.
+- Test download triggers across real Mac, Windows, and Linux user agents.
 
 ---
 

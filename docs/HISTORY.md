@@ -21,6 +21,74 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ---
 
+### 2026-10-30: Fix `pnpm dev` Tauri CLI Argument Mismatch
+
+- **CLI Flag Separation for Dev vs. Build**:
+  - Identified that `--ignore-version-mismatches` is an option specific to `tauri build` and is not recognized by `tauri dev` clap parser.
+  - Removed `--ignore-version-mismatches` from `apps/desktop/package.json` `"dev"` script.
+  - Added smart arg filtering in `apps/desktop/scripts/withCompatibleMacSdk.mjs`: automatically strips `--ignore-version-mismatches` for `tauri dev` and ensures it is passed for `tauri build`.
+  - Verified `pnpm --filter @app/desktop dev` and root `pnpm dev` invoke without unexpected argument errors.
+
+---
+
+### 2026-10-30: Multi-Platform Release Matrix & Zero-Prompt Free Installer
+
+- **Multi-Platform CI Cloud Matrix Dispatch**:
+  - Dispatched GitHub Actions `Release Pipeline` (Run ID `41118195862`) for `v0.1.0`.
+  - Quality gates and manifest audit passed cleanly in 2m10s.
+  - Concurrently compiling on GitHub runners: Windows x64 (`Sophia_0.1.0_x64-setup.exe`), Linux x64 (`sophia_0.1.0_amd64.AppImage` & `.deb`), macOS Intel (`x64.dmg`), and macOS Apple Silicon (`aarch64.dmg`).
+- **Zero-Prompt 100% Free Install Script (`apps/website/public/install.sh`, `download/index.astro`)**:
+  - Created standalone `install.sh` served at `https://sophia-notes.pages.dev/install.sh`.
+  - Automatically detects macOS vs Linux, downloads the binary, installs to `/Applications` or `~/.local/bin`, strips quarantine xattrs, and launches Sophia without requiring a paid Apple Developer ID.
+  - Added copyable 1-line install command to the website download page.
+- **DMG Installer Upgrade (`scripts/tui/build.sh`)**:
+  - Packaged `Install Sophia.command` inside the DMG alongside the `Applications` folder shortcut.
+  - Re-uploaded `Sophia_0.1.0_aarch64.dmg` to GitHub Release `v0.1.0`.
+
+---
+
+### 2026-10-30: Fix Desktop Release CI Pipeline & Attach v0.1.0 Binaries
+
+- **CI Release Workflow & Monorepo Root Script Fixes (`package.json`, `.github/workflows/release.yml`)**:
+  - Identified root cause of release workflow failure across all 4 runner platforms: `tauri-action` invoked `npm run tauri build -- --target ...` in repository root, failing with `npm error Missing script: "tauri"`.
+  - Added `"tauri": "pnpm --filter @app/desktop tauri"` to root `package.json`.
+  - Updated `.github/workflows/release.yml` with `tauriScript: 'pnpm --filter @app/desktop tauri'` and `--ignore-version-mismatches`.
+  - Updated `finalize-release` to upload all installers (`./final-artifacts/*`) and publish with `--draft=false`.
+- **Packaging & Release Upload**:
+  - Compiled macOS desktop bundle locally (`Sophia.app` 53.85 MB, `Sophia_0.1.0_aarch64.dmg` 22.40 MB).
+  - Attached `Sophia_0.1.0_aarch64.dmg` (SHA-256: `c706cd715df3a48f004cb6eee8401c8bff0e55180cec170f20f00b98ae8c41ed`) directly to GitHub Release `v0.1.0`.
+  - Confirmed via `gh api` that authenticated requests download the 22.4MB asset with HTTP 200 OK.
+- **Repository Visibility**:
+  - Identified that public unauthenticated requests to `/releases/download/...` return 404 because `AhmedWanneni/davinci-notes-workspace` is private.
+
+---
+
+### 2026-10-30: Cloudflare Pages Deployment TUI & Laptop-Specific Download Detection
+
+- **Cloudflare CLI & Interactive Bash TUI (`scripts/tui/cloudflare.sh`, `scripts/deploy-cloudflare.sh`, `scripts/manage.sh`)**:
+  - Implemented modular `cloudflare.sh` sub-controller and standalone `scripts/deploy-cloudflare.sh` executable.
+  - Added option `[ 8 ]` ("☁️ Deploy to Cloudflare") to master dashboard and `-cf` / `--cloudflare` CLI argument.
+  - Automatic authentication detection via `wrangler whoami`; if unauthenticated, triggers browser OAuth (`wrangler login`) or opens the Cloudflare Pages GitHub connection page in browser (`https://dash.cloudflare.com/?to=/:account/pages/new/provider/github`).
+  - Automated build & deploy: compiles `apps/website/dist` via `pnpm --filter @app/website build` and uploads to Cloudflare Pages (`wrangler pages deploy apps/website/dist --project-name sophia-notes`).
+- **Cloudflare Configurations (`apps/website/wrangler.toml`, `.github/workflows/deploy-cloudflare.yml`, `docs/deployment/cloudflare-pages.md`)**:
+  - Created `apps/website/wrangler.toml` for project `sophia-notes` with compatibility date and output directory.
+  - Added GitHub Actions workflow `.github/workflows/deploy-cloudflare.yml` for automated CI deployments.
+  - Added deployment documentation in `docs/deployment/cloudflare-pages.md`.
+- **Dynamic Laptop Operating System Detection (`laptopDownload.ts`, `OwlSideNotes.astro`, `ClosingSection.astro`)**:
+  - Created `apps/website/src/scripts/laptopDownload.ts` detecting macOS (Apple Silicon vs Intel), Windows (64-bit), and Linux.
+  - Tailored primary CTA button on the hero card and bottom card to the visitor's laptop:
+    - macOS: `↓ DOWNLOAD FOR MAC (.DMG)` linking directly to `Sophia_0.1.0_aarch64.dmg`.
+    - Windows: `↓ DOWNLOAD FOR WINDOWS (.EXE)` linking directly to `Sophia_0.1.0_x64-setup.exe`.
+    - Linux: `↓ DOWNLOAD FOR LINUX (.APPIMAGE)` linking directly to `sophia_0.1.0_amd64.AppImage`.
+  - Added quick alternative direct links (`Intel .dmg`, `Windows .exe`, `Linux .AppImage / .deb`, and `All Downloads ↗`) across the card and closing section.
+  - Updated `/download` redirect endpoints (`mac.astro`, `mac-intel.astro`, `windows.astro`, `linux.astro`).
+- **Validation**:
+  - Astro production build passes cleanly (`pnpm --filter website build`, 19 pages generated in 1.54s).
+  - Orbit math unit tests pass (5/5 tests passing).
+  - All files strictly under 250 lines (max 212 lines).
+
+---
+
 ### 2026-10-30: Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
 
 - **Gatekeeper & Quarantine Repair Module (`scripts/tui/gatekeeper.sh`)**:
@@ -69,6 +137,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
   - All files strictly under 250 lines; static build and unit tests pass.
 
 ---
+
 ### 2026-10-29: "Create a Release" Universal Agent Skill (Phases 1–7)
 
 - **Phase 1: Preflight Verification Script & Dry-Run Harness (ADR-0249)**:
@@ -5635,14 +5704,12 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - **Text File Three-Way Merge**:
   - Selected `node-diff3` (unpacked ~151 KB, gzipped ~3.5 KB, zero dependencies) for line-based diff3 merge in `packages/sync-client/conflictResolver.ts`.
   - Non-overlapping text edits merge automatically into clean text (`hasConflict: false`, `kind: "text-merge-clean"`).
-  - Overlapping text edits insert inline markers (`<<<<<<< local`, `=======`, `>>>>>>> remote`) and return `hasConflict: true` with `kind: "text-merge-conflict"` for UI surfacing.
-- **Wikilink Safety Verification (Adversarial Test)**:
+  - Overlapping text edits insert inline markers (`- **Wikilink Safety Verification (Adversarial Test)**:
   - Tested conflict-marked content containing `[[Project Alpha|Local Alias]]` and `[[Project Alpha|Remote Alias]]` against the real `@app/indexer` `parseLinks` parser.
   - Confirmed indexer parses conflict markers cleanly without panicking, throwing errors, or corrupting link definitions.
 - **Canvas JSON Safety Verification (Adversarial Test)**:
   - Evaluated simultaneous edits on `.canvas` files.
-  - Decision: `.canvas` files return `false` for `isTextMergeable` (atomic/binary conflict resolution). Line-based diff3 merge on JSON files introduces `<<<<<<<` conflict markers or invalid JSON syntax, causing `JSON.parse` to throw `SyntaxError` and corrupting canvas files.
-  - Atomic resolution generates `diagram (iPad copy).canvas`. Both local and remote versions were parsed with `JSON.parse` in adversarial tests — confirmed 100% valid, openable JSON Canvas 1.0 files without syntax errors.
+  - Decision: `.canvas` files return `false` for `isTextMergeable` (atomic/binary conflict resolution). Line-based diff3 merge on JSON files introduces `  - Atomic resolution generates `diagram (iPad copy).canvas`. Both local and remote versions were parsed with `JSON.parse` in adversarial tests — confirmed 100% valid, openable JSON Canvas 1.0 files without syntax errors.
 - **Binary File Conflicts**:
   - Binary files (`.png`, `.jpg`, `.pdf`) and `.canvas` files generate `<name> (<device-name> copy).<ext>`.
   - Filename collisions chain to the space-separated numeric suffix convention from ADR-0110 (`<name> (<device-name> copy) 1.<ext>`).
