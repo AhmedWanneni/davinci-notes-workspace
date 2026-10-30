@@ -272,8 +272,8 @@
     "semantic_hash": "9e7f58071b5a127f2babfc16d0117a49"
   },
   "apps/desktop/package.json": {
-    "mtime": 1793365504.0683699,
-    "seen": 1793365744.364665,
+    "mtime": 1793365783.5719597,
+    "seen": 1793373244.22963,
     "ast_hash": "c5fb8887bcf188b68d1ef3b6ee699bd6",
     "semantic_hash": ""
   },
@@ -8137,8 +8137,8 @@
     "semantic_hash": "759c05571d14e7526ee426966984d787"
   },
   "package.json": {
-    "mtime": 1793365669.4954908,
-    "seen": 1793365744.411158,
+    "mtime": 1793365784.388884,
+    "seen": 1793373244.280053,
     "ast_hash": "1439e21ed23cb966c58d4636828042e8",
     "semantic_hash": ""
   },
@@ -13265,8 +13265,8 @@
     "semantic_hash": ""
   },
   "DECISIONS.md": {
-    "mtime": 1793365689.8159606,
-    "seen": 1793365744.444371,
+    "mtime": 1793365783.5566497,
+    "seen": 1793373244.308217,
     "ast_hash": "5553e458d782ecd04f95ba48e501d3e4",
     "semantic_hash": ""
   },
@@ -13289,9 +13289,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793365706.4024656,
-    "seen": 1793365744.444422,
-    "ast_hash": "9afe75f5d047f0f73f48f8b620f1e729",
+    "mtime": 1793373207.5630734,
+    "seen": 1793373244.3082979,
+    "ast_hash": "d25f419170746e4933be2658c7cf5c8d",
     "semantic_hash": ""
   },
   "README.md": {
@@ -15911,63 +15911,69 @@
     "semantic_hash": ""
   },
   "scripts/manage.sh": {
-    "mtime": 1793365582.4175649,
-    "seen": 1793365744.441056,
-    "ast_hash": "40add605c800cf58a0d56645bff05084",
+    "mtime": 1793373163.6969283,
+    "seen": 1793373244.305862,
+    "ast_hash": "d77995fd286d140e571b68299b01327d",
     "semantic_hash": ""
   },
   "scripts/tui.sh": {
-    "mtime": 1793365582.4175649,
-    "seen": 1793365744.441252,
-    "ast_hash": "40add605c800cf58a0d56645bff05084",
+    "mtime": 1793373163.6969283,
+    "seen": 1793373244.306239,
+    "ast_hash": "d77995fd286d140e571b68299b01327d",
     "semantic_hash": ""
   },
   "scripts/tui/build.sh": {
-    "mtime": 1793365596.8284125,
-    "seen": 1793365744.4412532,
-    "ast_hash": "e9441a14a67a887318dfe5103e9fdbd4",
+    "mtime": 1793373117.4626868,
+    "seen": 1793373244.30624,
+    "ast_hash": "8166e993fbdd1aecdd006a362d755244",
     "semantic_hash": ""
   },
   "scripts/tui/ci.sh": {
-    "mtime": 1793365628.890477,
-    "seen": 1793365744.4412549,
+    "mtime": 1793365784.3912117,
+    "seen": 1793373244.306242,
     "ast_hash": "bc0ed595db230689eb38d6b4422f7674",
     "semantic_hash": ""
   },
   "scripts/tui/dev.sh": {
-    "mtime": 1793365587.8748891,
-    "seen": 1793365744.441256,
+    "mtime": 1793365784.3922849,
+    "seen": 1793373244.3062432,
     "ast_hash": "eb10e54abedbd65543428c0ca0c6f924",
     "semantic_hash": ""
   },
   "scripts/tui/health.sh": {
-    "mtime": 1793365636.8894866,
-    "seen": 1793365744.441258,
+    "mtime": 1793365784.3926463,
+    "seen": 1793373244.306245,
     "ast_hash": "e5ae7d6834a1ea3bebe1ffe9b6fb30ef",
     "semantic_hash": ""
   },
   "scripts/tui/links.sh": {
-    "mtime": 1793365616.1754797,
-    "seen": 1793365744.441259,
-    "ast_hash": "2017bf58889a20a32382da6d0ee88009",
+    "mtime": 1793373144.4735994,
+    "seen": 1793373244.306248,
+    "ast_hash": "fbda8cbb6abc749ea9e437396c88386f",
     "semantic_hash": ""
   },
   "scripts/tui/status.sh": {
-    "mtime": 1793365422.869515,
-    "seen": 1793365744.44126,
+    "mtime": 1793365784.3935108,
+    "seen": 1793373244.306249,
     "ast_hash": "a621c35e12d9e1641ed6a22c86319bfa",
     "semantic_hash": ""
   },
   "scripts/tui/ui.sh": {
-    "mtime": 1793365579.0745542,
-    "seen": 1793365744.441262,
+    "mtime": 1793365784.3937573,
+    "seen": 1793373244.306251,
     "ast_hash": "ea3df6c286d138d17c382488a5b545a1",
     "semantic_hash": ""
   },
   "docs/adr/0250-interactive-bash-tui-application-manager.md": {
-    "mtime": 1793365685.6850996,
-    "seen": 1793365744.456974,
+    "mtime": 1793365783.5728018,
+    "seen": 1793373244.317235,
     "ast_hash": "f39b9c935f0f976e4d5f9d3a4ca803a4",
+    "semantic_hash": ""
+  },
+  "scripts/tui/installer.sh": {
+    "mtime": 1793373075.7202861,
+    "seen": 1793373244.306247,
+    "ast_hash": "81924bddee9b1e4b6bb77515f26eaf76",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

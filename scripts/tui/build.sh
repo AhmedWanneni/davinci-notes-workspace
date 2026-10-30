@@ -1,68 +1,135 @@
 #!/usr/bin/env bash
-# build.sh — Local packaging, asset building, and artifact discovery
+# build.sh — Local packaging for macOS, Windows, and Linux with installer management
 set -euo pipefail
 
-build_find_local_artifacts() {
+build_macos_target() {
   local repo_root="$1"
-  local bundle_dir="${repo_root}/apps/desktop/src-tauri/target/release/bundle"
+  local target="${2:-aarch64-apple-darwin}"
+  cd "$repo_root"
 
-  if [[ ! -d "$bundle_dir" ]]; then
-    ui_info "No local release bundle directory found yet."
-    return
-  fi
+  ui_info "Preparing Syncthing sidecar for target: ${target}..."
+  node apps/desktop/scripts/fetchSyncthing.mjs --target "$target"
 
-  ui_section "Discovered Local Built Artifacts" "📦"
-  local found=0
+  ui_info "Compiling frontend web assets..."
+  pnpm --filter @app/desktop build:web
 
-  # Search for macOS DMG
-  if compgen -G "${bundle_dir}/dmg/*.dmg" >/dev/null; then
-    for dmg in "${bundle_dir}/dmg/"*.dmg; do
-      local sz
-      sz="$(ls -lh "$dmg" | awk '{print $5}')"
-      printf "  🍏 ${C_GREEN}macOS DMG:${C_RESET} %s (${C_MUTED}%s${C_RESET})\n" "$dmg" "$sz"
-      printf "     ${C_MUTED}→ Open in Finder: open -R \"%s\"${C_RESET}\n" "$dmg"
-      found=1
-    done
+  ui_info "Building macOS application package (${target})..."
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    (cd apps/desktop && node scripts/withCompatibleMacSdk.mjs tauri build --target "$target")
+    installer_sync_from_tauri "$repo_root"
+    local inst_dir
+    inst_dir="$(installer_get_dir "$repo_root")"
+    local newest_dmg
+    newest_dmg="$(find "$inst_dir" -name "*.dmg" -newer apps/desktop/dist/index.html 2>/dev/null | head -1 || find "$inst_dir" -name "*.dmg" | head -1 || true)"
+    if [[ -n "$newest_dmg" && -f "$newest_dmg" ]]; then
+      ui_success "macOS build completed! DMG created:"
+      printf "  🍏 ${C_BOLD}%s${C_RESET} (${C_CYAN}%s${C_RESET})\n" "$newest_dmg" "$(ls -lh "$newest_dmg" | awk '{print $5}')"
+      printf "\n  Would you like to install / mount it now? [Y/n]: "
+      local ins
+      read -r ins || ins="y"
+      if [[ "$ins" =~ ^[Yy]$ || -z "$ins" ]]; then
+        installer_perform_install "$newest_dmg"
+      fi
+    fi
+  else
+    ui_error "macOS DMG builds require a macOS host system."
   fi
+}
 
-  # Search for macOS App
-  if compgen -G "${bundle_dir}/macos/*.app" >/dev/null; then
-    for app in "${bundle_dir}/macos/"*.app; do
-      printf "  🍏 ${C_GREEN}macOS App:${C_RESET} %s\n" "$app"
-      found=1
-    done
-  fi
+build_windows_target() {
+  local repo_root="$1"
+  cd "$repo_root"
+  ui_section "Build Windows Installer (.exe / .msi)" "🪟"
 
-  # Search for Linux deb/AppImage
-  if compgen -G "${bundle_dir}/deb/*.deb" >/dev/null; then
-    for deb in "${bundle_dir}/deb/"*.deb; do
-      printf "  🐧 ${C_GREEN}Linux DEB:${C_RESET} %s\n" "$deb"
-      found=1
-    done
+  if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "cygwin"* || "$OSTYPE" == "win32"* ]]; then
+    ui_info "Detected Windows host. Running native Tauri build..."
+    node apps/desktop/scripts/fetchSyncthing.mjs --target "x86_64-pc-windows-msvc"
+    pnpm --filter @app/desktop build:web
+    (cd apps/desktop && pnpm tauri build --target "x86_64-pc-windows-msvc")
+    installer_sync_from_tauri "$repo_root"
+    ui_success "Windows build complete!"
+  else
+    ui_info "Host is ${OSTYPE}. Windows installers require Windows SDK or GitHub Cloud Builder."
+    printf "  ${C_BOLD}1)${C_RESET} ☁️ Trigger GitHub Actions Cloud Build for Windows & download .exe\n"
+    printf "  ${C_BOLD}2)${C_RESET} 🔗 Fetch latest published Windows .exe from GitHub Releases\n"
+    printf "  ${C_BOLD}b)${C_RESET} Cancel\n\n"
+    printf "  ${C_BOLD}Select [1-2]:${C_RESET} "
+    local c
+    read -r c || return 0
+    case "$c" in
+      1)
+        if command -v gh >/dev/null 2>&1; then
+          local tag
+          tag="$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")"
+          ui_info "Dispatched Windows build matrix in CI for ${tag}..."
+          gh workflow run release.yml -f release_tag="$tag"
+          ui_info "Run Option 4 from CI menu to watch and verify."
+        else
+          ui_warn "GitHub CLI (gh) not installed."
+        fi
+        ;;
+      2)
+        local inst_dir
+        inst_dir="$(installer_get_dir "$repo_root")"
+        local tag
+        tag="$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")"
+        local url="https://github.com/AhmedWanneni/davinci-notes-workspace/releases/download/${tag}/Sophia_${tag#v}_x64-setup.exe"
+        ui_info "Downloading ${url} to ${inst_dir}..."
+        curl -fL "$url" -o "${inst_dir}/Sophia_${tag#v}_x64-setup.exe" && ui_success "Downloaded!" || ui_warn "Asset building in CI."
+        ;;
+      *) ;;
+    esac
   fi
-  if compgen -G "${bundle_dir}/appimage/*.AppImage" >/dev/null; then
-    for ai in "${bundle_dir}/appimage/"*.AppImage; do
-      printf "  🐧 ${C_GREEN}Linux AppImage:${C_RESET} %s\n" "$ai"
-      found=1
-    done
-  fi
+}
 
-  # Search for Windows MSI/NSIS
-  if compgen -G "${bundle_dir}/msi/*.msi" >/dev/null; then
-    for msi in "${bundle_dir}/msi/"*.msi; do
-      printf "  🪟 ${C_GREEN}Windows MSI:${C_RESET} %s\n" "$msi"
-      found=1
-    done
-  fi
-  if compgen -G "${bundle_dir}/nsis/*.exe" >/dev/null; then
-    for exe in "${bundle_dir}/nsis/"*.exe; do
-      printf "  🪟 ${C_GREEN}Windows EXE:${C_RESET} %s\n" "$exe"
-      found=1
-    done
-  fi
+build_linux_target() {
+  local repo_root="$1"
+  cd "$repo_root"
+  ui_section "Build Linux Installer (.AppImage / .deb)" "🐧"
 
-  if [[ "$found" == "0" ]]; then
-    ui_info "No installable packages found in release bundle yet."
+  if [[ "$OSTYPE" == "linux"* ]]; then
+    ui_info "Detected Linux host. Running native Tauri build..."
+    node apps/desktop/scripts/fetchSyncthing.mjs --target "x86_64-unknown-linux-gnu"
+    pnpm --filter @app/desktop build:web
+    (cd apps/desktop && pnpm tauri build --target "x86_64-unknown-linux-gnu")
+    installer_sync_from_tauri "$repo_root"
+    ui_success "Linux build complete!"
+  else
+    ui_info "Host is ${OSTYPE}. Linux packaging requires Linux libraries (WebKit2GTK) or Cloud/Docker."
+    printf "  ${C_BOLD}1)${C_RESET} ☁️ Trigger GitHub Actions Cloud Build for Linux & download .AppImage\n"
+    printf "  ${C_BOLD}2)${C_RESET} 🔗 Fetch latest published Linux .AppImage from GitHub Releases\n"
+    printf "  ${C_BOLD}b)${C_RESET} Cancel\n\n"
+    printf "  ${C_BOLD}Select [1-2]:${C_RESET} "
+    local c
+    read -r c || return 0
+    case "$c" in
+      1)
+        if command -v gh >/dev/null 2>&1; then
+          local tag
+          tag="$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")"
+          ui_info "Dispatched Linux build matrix in CI for ${tag}..."
+          gh workflow run release.yml -f release_tag="$tag"
+          ui_info "Run Option 4 from CI menu to watch and verify."
+        else
+          ui_warn "GitHub CLI (gh) not installed."
+        fi
+        ;;
+      2)
+        local inst_dir
+        inst_dir="$(installer_get_dir "$repo_root")"
+        local tag
+        tag="$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.1.0")"
+        local url="https://github.com/AhmedWanneni/davinci-notes-workspace/releases/download/${tag}/Sophia_${tag#v}_amd64.AppImage"
+        ui_info "Downloading ${url} to ${inst_dir}..."
+        if curl -fL "$url" -o "${inst_dir}/Sophia_${tag#v}_amd64.AppImage"; then
+          chmod +x "${inst_dir}/Sophia_${tag#v}_amd64.AppImage"
+          ui_success "Downloaded and marked executable!"
+        else
+          ui_warn "Asset building in CI."
+        fi
+        ;;
+      *) ;;
+    esac
   fi
 }
 
@@ -73,67 +140,61 @@ build_menu() {
   while true; do
     ui_banner
     status_render_bar "$repo_root"
-    ui_section "Build Applications & Artifacts" "🔨"
+    ui_section "Build Applications & Installers" "🔨"
 
-    printf "  ${C_BOLD}1)${C_RESET} Build Frontend Web Assets (${C_CYAN}pnpm build:web${C_RESET})\n"
-    printf "  ${C_BOLD}2)${C_RESET} Local Smoke Check (${C_CYAN}verify sync, assets, cargo check${C_RESET})\n"
-    printf "  ${C_BOLD}3)${C_RESET} Build Full Desktop App Package (${C_CYAN}Compile native DMG/App${C_RESET})\n"
-    printf "  ${C_BOLD}4)${C_RESET} Inspect & Reveal Local Built Artifacts (${C_CYAN}DMG, App, DEB${C_RESET})\n"
-    printf "  ${C_BOLD}5)${C_RESET} Clean Build Caches (${C_CYAN}Clean dist, turbo, target${C_RESET})\n"
+    printf "  ${C_BOLD}1)${C_RESET} 🍏 ${C_BOLD}Build macOS Application${C_RESET} (${C_CYAN}Compile DMG & App packages${C_RESET})\n"
+    printf "  ${C_BOLD}2)${C_RESET} 🪟 ${C_BOLD}Build Windows Installer${C_RESET} (${C_CYAN}EXE / MSI packages${C_RESET})\n"
+    printf "  ${C_BOLD}3)${C_RESET} 🐧 ${C_BOLD}Build Linux Installer${C_RESET}   (${C_CYAN}AppImage & DEB packages${C_RESET})\n"
+    printf "  ${C_BOLD}4)${C_RESET} 📦 ${C_BOLD}Manage Ready Installers & Install Now${C_RESET} (${C_CYAN}One-click install/run${C_RESET})\n"
+    printf "  ${C_BOLD}5)${C_RESET} 🌐 Build Frontend Web Assets Only (${C_CYAN}pnpm build:web${C_RESET})\n"
+    printf "  ${C_BOLD}6)${C_RESET} 🧹 Clean Build Caches (${C_CYAN}Clean dist, turbo, target${C_RESET})\n"
     printf "  ${C_BOLD}b)${C_RESET} Back to Main Menu\n\n"
-    printf "  ${C_BOLD}Select an option:${C_RESET} "
+    printf "  ${C_BOLD}Select an option [1-6]:${C_RESET} "
 
     local choice
     read -r choice || break
     case "$choice" in
       1)
-        ui_info "Building frontend web distribution bundle..."
-        pnpm --filter @app/desktop build:web
-        ui_success "Web assets successfully compiled to apps/desktop/dist!"
+        printf "\n  Select macOS Target:\n"
+        printf "  1) Apple Silicon (aarch64 M1-M4) [Recommended]\n"
+        printf "  2) Intel x64 (x86_64-apple-darwin)\n"
+        printf "  Choose [1-2]: "
+        local mac_opt
+        read -r mac_opt || mac_opt="1"
+        if [[ "$mac_opt" == "2" ]]; then
+          build_macos_target "$repo_root" "x86_64-apple-darwin"
+        else
+          build_macos_target "$repo_root" "aarch64-apple-darwin"
+        fi
         ui_pause
         ;;
       2)
-        ui_info "Running local smoke check..."
-        bash "${repo_root}/scripts/release/build-local.sh"
+        build_windows_target "$repo_root"
         ui_pause
         ;;
       3)
-        ui_info "Compiling and packaging native desktop application..."
-        ui_info "This will compile Rust backend in release mode and package installers."
-        if pnpm --filter @app/desktop build; then
-          ui_success "Native packaging completed successfully!"
-          build_find_local_artifacts "$repo_root"
-        else
-          ui_error "Desktop build failed. Check compiler output above."
-        fi
+        build_linux_target "$repo_root"
         ui_pause
         ;;
       4)
-        build_find_local_artifacts "$repo_root"
-        local bdir="${repo_root}/apps/desktop/src-tauri/target/release/bundle"
-        if [[ -d "$bdir" && "$OSTYPE" == "darwin"* ]]; then
-          printf "\n  Open bundle directory in macOS Finder? [y/N]: "
-          local o
-          read -r o || o="n"
-          if [[ "$o" =~ ^[Yy]$ ]]; then
-            open "$bdir"
-            ui_success "Opened bundle in Finder."
-          fi
-        fi
-        ui_pause
+        installer_menu "$repo_root"
         ;;
       5)
+        ui_info "Building frontend web distribution bundle..."
+        pnpm --filter @app/desktop build:web
+        ui_success "Web assets compiled to apps/desktop/dist!"
+        ui_pause
+        ;;
+      6)
         ui_warn "Cleaning cache directories..."
         rm -rf apps/desktop/dist apps/desktop/src-tauri/target/release/bundle
         pnpm turbo clean 2>/dev/null || true
         ui_success "Cleaned temporary build artifacts."
         ui_pause
         ;;
-      b|B|"")
-        break
-        ;;
+      b|B|"") break ;;
       *)
-        ui_warn "Invalid selection. Please enter 1-5 or b."
+        ui_warn "Invalid selection. Please enter 1-6 or b."
         sleep 1
         ;;
     esac

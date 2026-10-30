@@ -117,12 +117,21 @@ links_display_for_tag() {
       ui_pause
       ;;
     d|D)
-      local dest_dir="${HOME}/Downloads"
-      mkdir -p "$dest_dir"
+      local dest_dir
+      dest_dir="$(installer_get_dir "$repo_root")"
       local dest_path="${dest_dir}/${chosen_file}"
       ui_info "Downloading to ${dest_path}..."
       if curl -fL "$target_url" -o "$dest_path"; then
         ui_success "Downloaded to ${dest_path}"
+        if [[ "$dest_path" == *.AppImage ]]; then
+          chmod +x "$dest_path"
+        fi
+        printf "\n  Would you like to install / run this package now? [Y/n]: "
+        local ins
+        read -r ins || ins="y"
+        if [[ "$ins" =~ ^[Yy]$ || -z "$ins" ]]; then
+          installer_perform_install "$dest_path"
+        fi
       else
         ui_error "Download failed. Asset may still be compiling in CI matrix."
       fi
