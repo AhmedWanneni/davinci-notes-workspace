@@ -1,0 +1,220 @@
+/* ==========================================================================
+   HOW IT WORKS SECTION — Step-by-step walkthrough of the core note flow
+   Strict compliance: >=16px body, >=14px labels, zero box-shadows, zero gradients
+   ========================================================================== */
+
+.how-it-works-section {
+  position: relative;
+  background-color: var(--logseq-bg);
+  padding-top: clamp(4rem, 8vw, 7rem);
+  padding-bottom: clamp(4rem, 8vw, 7rem);
+  border-bottom: 1px solid var(--logseq-border);
+}
+
+.how-header {
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+}
+
+.how-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.875rem; /* 14px */
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--logseq-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.how-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.15;
+  color: var(--logseq-text-title);
+  margin: 0 0 var(--space-4);
+  font-weight: 500;
+}
+
+.how-lead {
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.6;
+  color: var(--logseq-text-muted);
+  margin: 0;
+}
+
+/* Stepper Tabs */
+.how-tabs {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+button.how-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  font-size: 1rem !important; /* 16px */
+  font-weight: 500;
+  color: var(--logseq-text-muted);
+  background-color: var(--logseq-card);
+  border: 1px solid var(--logseq-border);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+button.how-tab-btn:hover {
+  background-color: var(--logseq-card-hover);
+  color: var(--logseq-text-title);
+  border-color: rgba(216, 167, 177, 0.4);
+}
+
+button.how-tab-btn.is-active {
+  background-color: var(--logseq-card-active);
+  color: var(--logseq-text-title);
+  border-color: var(--logseq-text-muted);
+}
+
+button.how-tab-btn span {
+  font-size: 1rem !important; /* 16px */
+}
+
+button.how-tab-btn .how-tab-num {
+  font-family: var(--font-mono);
+  font-size: 0.875rem !important; /* 14px */
+  opacity: 0.75;
+}
+
+/* Stage & Showcase */
+.how-stage {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.how-panel {
+  display: none;
+  position: relative;
+  background-color: var(--logseq-card);
+  border: 1px solid var(--logseq-border);
+  border-radius: var(--radius-hand-drawn-subtle, 180px 10px 160px 10px / 10px 160px 10px 180px);
+  padding: clamp(1.5rem, 4vw, 2.75rem);
+}
+
+.how-panel.is-active {
+  display: grid;
+  grid-template-columns: 1fr 1.35fr;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+.how-panel-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.how-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.875rem; /* 14px */
+  color: var(--logseq-text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.how-step-heading {
+  font-family: var(--font-sans);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  line-height: 1.25;
+  color: var(--logseq-text-title);
+  margin: 0;
+  font-weight: 600;
+}
+
+.how-step-desc {
+  font-size: 1rem; /* 16px */
+  line-height: 1.6;
+  color: var(--logseq-text-muted);
+  margin: 0;
+}
+
+.how-step-tag {
+  font-family: var(--font-mono);
+  font-size: 0.875rem; /* 14px */
+  color: var(--logseq-text-faint);
+  margin-top: var(--space-2);
+}
+
+/* Mockup Window Primitives */
+.how-mockup-frame {
+  background-color: var(--logseq-card-dark);
+  border: 1px solid var(--logseq-border);
+  border-radius: var(--radius-hand-drawn-subtle, 180px 10px 160px 10px / 10px 160px 10px 180px);
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.how-mockup-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--logseq-border);
+  background-color: rgba(0, 0, 0, 0.25);
+  font-family: var(--font-mono);
+  font-size: 0.875rem; /* 14px */
+  color: var(--logseq-text-faint);
+}
+
+.how-mockup-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.how-mockup-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(216, 167, 177, 0.4);
+}
+
+.how-mockup-content {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  font-family: var(--font-sans);
+  font-size: 1rem; /* 16px */
+  color: var(--logseq-text-body);
+}
+
+.how-mockup-wikilink {
+  color: var(--logseq-text-title);
+  background-color: var(--logseq-card-active);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(216, 167, 177, 0.3);
+  font-family: var(--font-mono);
+  font-size: 0.9375rem; /* 15px */
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 860px) {
+  .how-panel.is-active {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  .how-tabs {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .how-tab-btn {
+    white-space: nowrap;
+  }
+}

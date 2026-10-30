@@ -1,0 +1,25 @@
+---
+interface Props {
+  type?: 'note' | 'tip' | 'warning' | 'important';
+  title?: string;
+}
+
+const { type = 'note', title } = Astro.props;
+
+const icons = {
+  note: 'ℹ️',
+  tip: '💡',
+  warning: '⚠️',
+  important: '⚡',
+};
+
+const icon = icons[type];
+---
+
+<div class={`docs-callout docs-callout-${type}`} role="region" aria-label={title || type}>
+  <div class="docs-callout-icon" aria-hidden="true">{icon}</div>
+  <div class="docs-callout-content">
+    {title && <strong style="display: block; margin-bottom: 0.25rem; color: var(--logseq-text-title, #1c140d);">{title}</strong>}
+    <slot />
+  </div>
+</div>

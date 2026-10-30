@@ -2,6 +2,28 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Rollback Color Experiments to Original Warm Kraft Palette
+
+- **Reverted Color Experiments**:
+  - Reverted commit `323486b` to restore the warm kraft canvas (`#ebd0a9`), the original warm illustrated owl cutout, and the natural stationery palette.
+  - Retained all interactive owl features: 20% smaller centered owl, SVG eye overlays, cursor tracking, slow 3-second blink cycle, nose cross-eye squint, pupil dilation during dragging, and draggable notes/alarm clock.
+  - Verified static build (`pnpm --filter website build`) and unit tests pass.
+
+---
+
+### 2026-10-30: Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
+
+- **Unified Stationery Header (`apps/website/src/components/SiteNav.astro`)**:
+  - Replaced multi-tab header with a calm warm-ivory stationery bar (`#f3e3c6`) pinned at both ends with brass thumbtacks, featuring the hand-inked owl icon, **Sophia *Notes*** serif title, and `Patrick Hand` navigation links.
+- **Centered Bottom-Anchored Owl & Interactive Drag-and-Drop (`HeroSection.astro`, `OwlSideNotes.astro`, `OwlBottomItems.astro`, `OwlHeadHotspots.astro`, `heroInteractive.ts`)**:
+  - Processed transparent-background responsive WebP cutouts (`owl-hero-{480,768,1024}.webp`) anchored flush at the bottom of `.hero-stage` (`100svh`, `max-height: calc(100svh - 118px)`).
+  - Designed realistic illustrated side and bottom notes (`SOPHIA NOTES` spiral pad, `REMINDER:` ochre sticky, `GET THE APP:` binder-clipped card, `INCLUDED:` side-spiral checklist, `№ 77 BUS TICKET`, `IMPORTANT! ☆`, `!`, `IDEA` lightbulb card, `DON'T OVERTHINK` paperclipped slip, and `GROWTH` bar chart).
+  - Completed the 360° painterly twin-bell alarm clock (`1`–`12` serif numerals, minute ticks, and bottom peg feet) and fixed non-draggable painterly pens & pencils in the bottom corners.
+  - Added pointer drag-and-drop for all notes, the alarm clock, and extractable owl-head thoughts with a `↺ RESET DESK` button.
+  - Scaled owl figure down by 20% (`max-height: calc((100svh - 118px) * 0.8)`) and added interactive SVG eyes that follow the cursor, blink slowly every ~3 seconds, dilate (`scale(1.24)`) while dragging notes, and tuck into the inner-middle socket corners (`translate(±46px, 8px)`) when hovering over her nose/beak.
+  - All files strictly under 250 lines; static build and unit tests pass.
+
+---
 ### 2026-10-29: "Create a Release" Universal Agent Skill (Phases 1–7)
 
 - **Phase 1: Preflight Verification Script & Dry-Run Harness (ADR-0249)**:
@@ -2730,7 +2752,6 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 | 2026-10-11 | Editor styling tokens — Phase 5 | Implemented Editor Font Size and Font Family settings with curated options (System UI, Serif, Monospace, Montserrat, Raleway), custom font support, and live re-measurement. Added ADR-0173. Zero remote font requests using self-hosted @fontsource-variable WOFF2 assets with font-display: swap. Input sanitization prevents CSS injection. Font sizes scale 12–24px (default 16px) with reset. Caret lands accurately at wrapped line ends. All 97 editor and 384 desktop unit tests pass with zero public token violations. |
 | 2026-10-11 | Editor styling tokens — Phase 4 | Implemented element-cursor-gated reveal/dimming for Markdown markers and hanging indent / nested styling for lists using Phase 2 tokens. Bounded decoration computation, 0px line-height shifts, and preserved raw Markdown for active lists. |
 | 2026-10-11 | Editor styling tokens — Phase 3 | Applied Phase 2 Obsidian-parity tokens to CodeMirror 6 theme and highlight styles (`editorHighlightStyle.ts`, `editorTheme.ts`); mapped H1-H6 typography to `--editor-obsidian-heading-h{1-6}-*`, unified body line-height to `--editor-obsidian-body-line-height` (1.5), updated content bottom padding to `--editor-content-padding-bottom`, and added line inline padding `--editor-obsidian-content-line-padding-inline`. Maintained full-width content without arbitrary max-width constraints. Allowlisted tokens in `check-public-tokens.mjs`. All 73 editor unit tests and 377 desktop unit tests pass with zero public token violations. |
->>>>>>> main
 | 2026-10-11 | Editor styling tokens — Phase 2 | Added 30 editor-prefixed Obsidian-parity tokens in a separate `editor.obsidian` namespace; generated CSS, SCSS, and TypeScript outputs. All existing token source values and generated token values were preserved. Design-system build and typecheck passed; `packages/editor` was not modified. |
 | 2026-10-11 | Tray Phase 4b — Click-to-capture popover with left-click setting | Implemented ADR-0172 (supersedes Phase 1 click decision): left-click on tray icon toggles Quick Capture popover anchored under the tray icon; right-click opens the native menu; pure Rust positioning in tray_position.rs clamps strictly to monitor work area with Retina DPI and multi-monitor support; eliminated blur/toggle race via 350ms timestamp debounce; in-memory draft text preserved across blur, dismiss, and Escape; live configurable "Menu bar icon click" setting ("Open quick capture" vs "Open menu") with existing-user fallback to "menu". 45 Rust tests and 373 frontend tests pass with 0 lint errors. |
 | 2026-10-11 | Tray Phase 5 — Quick Search from the capture window | Implemented Option C (ADR-0171): granted scoped SQL permissions (`sql:default`, `sql:allow-execute`) to `capabilities/capture.json` so the capture window queries `vault-index.db` directly via `@tauri-apps/plugin-sql` and the canonical `@app/indexer` search engine (`executeSearchQuery` / `parseSearchQuery`). Reuses exact same BM25 ranking and query syntax without IPC proxy lag or main webview coupling. Queries are debounced by 150ms with sequence token cancellation and WAL concurrency (`journal_mode=WAL`, `busy_timeout=5000`). Up/Down keys navigate, Enter opens note via native `open_note_from_capture` with strict vault-root path confinement, and Tab toggles modes while preserving typed capture text. All 39 Rust unit tests and 370 frontend unit tests (102 test suites) pass with 0 lint errors. Capture bundle grew by only 1.43 KB gzip (8.14 KB raw / 2.57 KB gzip). |
@@ -3292,7 +3313,6 @@ L40: | 2026-08-16 | Canvas Feature Phase 9 — PDF Cards | Implemented PDF file 
 - Re-measurement trigger: Calls `document.fonts.load(...)` with `allSettled` and CodeMirror `view.requestMeasure()` so line heights, selections, and caret positioning update accurately. Verified 0px displacement at end of wrapped lines.
 - Persistence: Stored in SQLite `settings` table via `createEditorSettings.ts` using `withDbLock` (`editorFont`, `editorCustomFont`, `editorFontSize`).
 - Added unit tests in `editorSettings.test.ts`, `editorFontRegistry.test.ts`, and `editorSettingsStore.test.ts`. All 97 editor and 384 desktop unit tests pass cleanly.
->>>>>>> main
 
 ### 2026-10-11 — Editor styling tokens: Phase 2
 

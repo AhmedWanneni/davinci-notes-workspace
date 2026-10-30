@@ -1,38 +1,40 @@
 /* ==========================================================================
    DAVINCI NOTES THEME & DESIGN SYSTEM
-   Base Background: #150612 for all sections
-   Palette: BURGUNDY (#4B1D3F), WHEAT (#F5E8D0), ROSE SMOKE (#D8A7B1), MIDNIGHT (#150612)
+   Autumn Harvest Theme inspired by Cozy Illustrated Autumn Cats
+   Base Background: #ebd0a9 (Warm Kraft Oatmeal Parchment)
+   Palette: PUMPKIN (#c85e13), TERRACOTTA (#9c3e17), MOSS OLIVE (#4c5a38),
+            HONEY (#d58c24), ESPRESSO (#1c140d), CREAM (#faf0de)
    Strictly flat: NO shadows, depth via hand-drawn/organic borders and contrasting planes.
    ========================================================================== */
 
 :root {
-  /* Surfaces (All sections unified to #150612) */
-  --logseq-bg: #150612;
-  --logseq-bg-alt: #150612;
-  --logseq-card: #220b1e;
-  --logseq-card-hover: #2e1029;
-  --logseq-card-active: #4b1d3f;
-  --logseq-card-dark: #1b0717;
-  --logseq-card-light: #4b1d3f;
+  /* Surfaces (Warm kraft parchment desk & cards) */
+  --logseq-bg: #ebd0a9;
+  --logseq-bg-alt: #dfc297;
+  --logseq-card: #f6dfbe;
+  --logseq-card-hover: #fffbf4;
+  --logseq-card-active: #fcf4e8;
+  --logseq-card-dark: #dfc297;
+  --logseq-card-light: #fffbf4;
 
-  /* Borders (Harmonized rose smoke & wheat hairlines, zero shadows) */
-  --logseq-border: rgba(216, 167, 177, 0.22);
-  --logseq-border-light: rgba(216, 167, 177, 0.4);
-  --logseq-border-glow: #d8a7b1;
+  /* Borders (Warm ink hairlines, zero shadows) */
+  --logseq-border: rgba(56, 40, 24, 0.18);
+  --logseq-border-light: rgba(56, 40, 24, 0.32);
+  --logseq-border-glow: #c85e13;
 
   /* Accents */
-  --logseq-cyan: #d8a7b1;
-  --logseq-teal: #4b1d3f;
-  --logseq-mint: #f5e8d0;
-  --logseq-blue: #4b1d3f;
-  --logseq-yellow: #f5e8d0;
-  --logseq-red: #d9657b;
+  --logseq-cyan: #c85e13;
+  --logseq-teal: #4c5a38;
+  --logseq-mint: #faf0de;
+  --logseq-blue: #9c3e17;
+  --logseq-yellow: #d58c24;
+  --logseq-red: #b5471c;
 
-  /* Typography Colors (High-contrast wheat & rose smoke) */
-  --logseq-text-title: #f5e8d0;
-  --logseq-text-body: #f5e8d0;
-  --logseq-text-muted: #d8a7b1;
-  --logseq-text-faint: #8e6d78;
+  /* Typography Colors (High-contrast deep espresso & warm cedar on kraft) */
+  --logseq-text-title: #1c140d;
+  --logseq-text-body: #2f2317;
+  --logseq-text-muted: #6b5744;
+  --logseq-text-faint: #937d68;
 
   /* Fonts */
   --font-display: "Cormorant Garamond", Georgia, serif;
@@ -99,19 +101,19 @@ button {
   justify-content: center;
   gap: 8px;
   padding: 0.68rem 1.35rem;
-  background-color: #4b1d3f;
-  color: #f5e8d0;
+  background-color: #c85e13;
+  color: #fffbf4;
   font-weight: 600;
   font-size: 0.88rem;
   border-radius: var(--radius-hand-drawn-subtle);
-  border: 1.5px solid #d8a7b1;
+  border: 1.5px solid #a84807;
   box-shadow: none !important;
   transition: all 140ms ease;
 }
 
 .btn-logseq-primary:hover {
-  background-color: #611e50;
-  border-color: #f5e8d0;
+  background-color: #b04e08;
+  border-color: #1c140d;
   color: #ffffff;
 }
 
@@ -121,18 +123,18 @@ button {
   justify-content: center;
   gap: 8px;
   padding: 0.68rem 1.35rem;
-  background-color: rgba(75, 29, 63, 0.35);
-  color: #d8a7b1;
+  background-color: rgba(200, 94, 19, 0.1);
+  color: #9c3e17;
   font-weight: 600;
   font-size: 0.88rem;
   border-radius: var(--radius-hand-drawn-subtle);
-  border: 1.5px solid rgba(216, 167, 177, 0.45);
+  border: 1.5px solid rgba(156, 62, 23, 0.45);
   box-shadow: none !important;
   transition: all 140ms ease;
 }
 
 .btn-logseq-secondary:hover {
-  background-color: #4b1d3f;
-  border-color: #f5e8d0;
-  color: #f5e8d0;
+  background-color: #c85e13;
+  border-color: #a84807;
+  color: #fffbf4;
 }

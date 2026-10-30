@@ -1,0 +1,224 @@
+---
+import './AppWorkbenchDemo.css';
+
+const docs = [
+  {
+    id: 'ideas',
+    file: 'On Fleeting Ideas.md',
+    title: 'On Fleeting Ideas',
+    frontmatter: 'tags: [epistemology, local-first]\ncreated: 2026-10-24',
+    lead: 'An idea unlinked is a memory waiting to fade. When stored as plain Markdown on disk, notes outlive the software that created them.',
+    hasMath: true,
+  },
+  {
+    id: 'daily',
+    file: '2026-10-24.md',
+    title: 'Daily Lab Log — Oct 24',
+    frontmatter: 'tags: [journal, research]\nstatus: active',
+    lead: 'Today’s notes and observations captured directly to local disk:',
+    hasChecklist: true,
+  },
+  {
+    id: 'canvas',
+    file: 'De Divina Proportione.canvas',
+    title: 'Spatial Canvas Board',
+    frontmatter: 'format: JSON Canvas 1.0\nnodes: 14 · edges: 11',
+    lead: 'Arrange text cards, sketches, and reference notes freely on an infinite 2D plane.',
+  },
+];
+---
+
+<section class="app-demo-section" id="demo" aria-labelledby="demo-heading">
+  <div class="logseq-container">
+    <div class="demo-header">
+      <div class="demo-kicker">Interactive Experience</div>
+      <h2 id="demo-heading" class="demo-title">Try DaVinci Notes</h2>
+      <p class="demo-lead">Click notes, switch tabs, check tasks, and inspect live backlinks below:</p>
+    </div>
+
+    <!-- 3-Pane Desktop Workbench Window -->
+    <div class="demo-window" role="region" aria-label="Interactive DaVinci Notes application demo">
+      <!-- Titlebar -->
+      <div class="demo-titlebar">
+        <div class="demo-window-controls" aria-hidden="true">
+          <span class="demo-control-dot"></span>
+          <span class="demo-control-dot"></span>
+          <span class="demo-control-dot"></span>
+        </div>
+        <div class="demo-vault-name" id="demo-current-path">research / On Fleeting Ideas.md</div>
+        <div class="demo-sync-pill">● Local Vault · 0 Cloud Latency</div>
+      </div>
+
+      <!-- Tab Strip -->
+      <div class="demo-tab-row" role="tablist" aria-label="Open document tabs">
+        {docs.map((doc, idx) => (
+          <button
+            type="button"
+            role="tab"
+            class:list={['demo-tab', { 'is-active': idx === 0 }]}
+            id={`tab-demo-${doc.id}`}
+            aria-selected={idx === 0 ? 'true' : 'false'}
+            aria-controls={`doc-panel-${doc.id}`}
+            data-demo-doc={doc.id}
+          >
+            <span>{doc.file}</span>
+          </button>
+        ))}
+      </div>
+
+      <!-- Workspace Body -->
+      <div class="demo-body">
+        <!-- Left: Icon Rail & File Tree -->
+        <aside class="demo-sidebar" aria-label="Vault files">
+          <div class="demo-icon-rail" aria-hidden="true">
+            <span class="demo-rail-icon is-active" title="Files">📁</span>
+            <span class="demo-rail-icon" title="Search">🔍</span>
+            <span class="demo-rail-icon" title="Graph">🕸️</span>
+            <span class="demo-rail-icon" title="Canvas">◫</span>
+          </div>
+
+          <div class="demo-file-tree">
+            <div class="demo-tree-header">Vault Notes</div>
+            <div class="demo-tree-folder">▼ research/</div>
+            <button type="button" class="demo-tree-file is-active" data-demo-doc="ideas">
+              <span>▤</span> On Fleeting Ideas.md
+            </button>
+            <div class="demo-tree-folder">▼ daily/</div>
+            <button type="button" class="demo-tree-file" data-demo-doc="daily">
+              <span>📅</span> 2026-10-24.md
+            </button>
+            <div class="demo-tree-folder">▼ boards/</div>
+            <button type="button" class="demo-tree-file" data-demo-doc="canvas">
+              <span>◫</span> De Divina.canvas
+            </button>
+          </div>
+        </aside>
+
+        <!-- Center: Markdown Note Editor -->
+        <div class="demo-editor-pane">
+          {docs.map((doc, idx) => (
+            <article
+              id={`doc-panel-${doc.id}`}
+              role="tabpanel"
+              class:list={['demo-doc-view', { 'is-active': idx === 0 }]}
+              data-demo-view={doc.id}
+            >
+              <div class="demo-doc-frontmatter mono-label">
+                ---<br />{doc.frontmatter}<br />---
+              </div>
+
+              <h3 class="demo-doc-title"># {doc.title}</h3>
+
+              <div class="demo-doc-body">
+                <p>{doc.lead}</p>
+
+                {doc.hasMath && (
+                  <div style="margin: 16px 0; padding: 12px; background: rgba(56, 40, 24, 0.06); border: 1px solid var(--logseq-border); border-radius: 6px; font-family: var(--font-mono); font-size: 0.9375rem; color: var(--logseq-text-title);">
+                    $$ e^{`i\\pi`} + 1 = 0 $$
+                  </div>
+                )}
+
+                {doc.hasChecklist && (
+                  <div class="demo-checklist">
+                    <label class="demo-check-item">
+                      <input type="checkbox" checked />
+                      <span>Verify 5,000-note vault scan</span>
+                    </label>
+                    <label class="demo-check-item">
+                      <input type="checkbox" />
+                      <span>Review meeting notes with [[Luca Pacioli]]</span>
+                    </label>
+                    <label class="demo-check-item">
+                      <input type="checkbox" />
+                      <span>Pair mobile device via Syncthing QR</span>
+                    </label>
+                  </div>
+                )}
+
+                <p>
+                  Explore thoughts in <button type="button" class="demo-wikilink-btn" data-demo-doc={doc.id === 'ideas' ? 'daily' : 'ideas'}>[[{doc.id === 'ideas' ? '2026-10-24' : 'On Fleeting Ideas'}]]</button> or inspect your local graph.
+                </p>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <!-- Right: Local Graph & Linked Mentions -->
+        <aside class="demo-context-pane" aria-label="Context and backlinks">
+          <div>
+            <div class="demo-context-header">Local Graph</div>
+            <div class="demo-graph-box" aria-hidden="true">
+              <svg viewBox="0 0 220 110" width="100%" height="100">
+                <line x1="110" y1="55" x2="40" y2="30" stroke="rgba(56, 40, 24, 0.28)" stroke-width="1.5" />
+                <line x1="110" y1="55" x2="180" y2="35" stroke="rgba(56, 40, 24, 0.28)" stroke-width="1.5" />
+                <line x1="110" y1="55" x2="110" y2="90" stroke="rgba(56, 40, 24, 0.28)" stroke-width="1.5" />
+                <circle cx="110" cy="55" r="8" fill="var(--accent-pumpkin)" />
+                <circle cx="40" cy="30" r="5" fill="var(--bg-surface)" stroke="var(--accent-pumpkin)" stroke-width="1.2" />
+                <circle cx="180" cy="35" r="5" fill="var(--bg-surface)" stroke="var(--accent-pumpkin)" stroke-width="1.2" />
+                <circle cx="110" cy="90" r="5" fill="var(--bg-surface)" stroke="var(--accent-pumpkin)" stroke-width="1.2" />
+                <text x="110" y="73" fill="var(--logseq-text-title)" font-family="'IBM Plex Mono', monospace" font-size="9" text-anchor="middle">ACTIVE</text>
+              </svg>
+            </div>
+          </div>
+
+          <div>
+            <div class="demo-context-header">Linked Mentions (Backlinks)</div>
+            <div class="demo-backlink-list">
+              <div class="demo-backlink-card">
+                <div class="demo-backlink-source">Anatomia Mentis.md</div>
+                <div class="demo-backlink-snippet">"...why note capture requires instant response..."</div>
+              </div>
+              <div class="demo-backlink-card">
+                <div class="demo-backlink-source">De Divina Proportione.canvas</div>
+                <div class="demo-backlink-snippet">"...spatial card linking this note..."</div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="demo-statusbar">
+        <span>3 linked mentions · 4 properties · 318 words</span>
+        <span>UTF-8 · Markdown (.md)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Interactive App Demo Controller
+  const docButtons = document.querySelectorAll<HTMLElement>('[data-demo-doc]');
+  const docViews = document.querySelectorAll<HTMLElement>('[data-demo-view]');
+  const currentPathEl = document.getElementById('demo-current-path');
+
+  const paths: Record<string, string> = {
+    ideas: 'research / On Fleeting Ideas.md',
+    daily: 'daily / 2026-10-24.md',
+    canvas: 'boards / De Divina Proportione.canvas',
+  };
+
+  docButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetDoc = btn.getAttribute('data-demo-doc');
+      if (!targetDoc) return;
+
+      if (currentPathEl && paths[targetDoc]) {
+        currentPathEl.textContent = paths[targetDoc];
+      }
+
+      docButtons.forEach((b) => {
+        const matches = b.getAttribute('data-demo-doc') === targetDoc;
+        b.classList.toggle('is-active', matches);
+        if (b.getAttribute('role') === 'tab') {
+          b.setAttribute('aria-selected', matches ? 'true' : 'false');
+        }
+      });
+
+      docViews.forEach((view) => {
+        const matches = view.getAttribute('data-demo-view') === targetDoc;
+        view.classList.toggle('is-active', matches);
+      });
+    });
+  });
+</script>

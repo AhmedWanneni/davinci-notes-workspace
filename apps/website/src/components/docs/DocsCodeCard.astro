@@ -1,0 +1,46 @@
+---
+interface Props {
+  title?: string;
+  lang?: string;
+  code: string;
+}
+
+const { title, lang = 'bash', code } = Astro.props;
+---
+
+<div class="docs-code-card">
+  <div class="docs-code-header">
+    <span>{title || lang}</span>
+    <button
+      type="button"
+      class="docs-copy-btn"
+      aria-label="Copy code to clipboard"
+      data-code={code}
+      style="background: transparent; border: 1px solid var(--logseq-border, rgba(56, 40, 24, 0.25)); color: var(--accent-pumpkin, #c85e13); padding: 0.2rem 0.5rem; font-size: 0.75rem; border-radius: 3px; cursor: pointer;"
+    >
+      Copy
+    </button>
+  </div>
+  <pre class="docs-code-pre"><code>{code.trim()}</code></pre>
+</div>
+
+<script>
+  document.querySelectorAll('.docs-copy-btn').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const code = button.getAttribute('data-code');
+      if (!code) return;
+      try {
+        await navigator.clipboard.writeText(code);
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.setAttribute('style', 'background: var(--accent-pumpkin, #c85e13); border: 1px solid var(--palette-pumpkin-dark, #a84807); color: #fffbf4; padding: 0.2rem 0.5rem; font-size: 0.75rem; border-radius: 3px; cursor: pointer;');
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.setAttribute('style', 'background: transparent; border: 1px solid var(--logseq-border, rgba(56, 40, 24, 0.25)); color: var(--accent-pumpkin, #c85e13); padding: 0.2rem 0.5rem; font-size: 0.75rem; border-radius: 3px; cursor: pointer;');
+        }, 1800);
+      } catch (err) {
+        console.error('Failed to copy', err);
+      }
+    });
+  });
+</script>

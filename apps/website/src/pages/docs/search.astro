@@ -1,0 +1,108 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'quick-switcher', title: 'Quick Switcher (Cmd+K)' },
+  { id: 'full-text-search', title: 'Searching Across All Notes' },
+  { id: 'filters', title: 'Useful Search Filters' },
+];
+
+const simpleSearchMermaid = `
+flowchart LR
+    Key["⌨️ Press Cmd+K"] --> Prompt["Type a Word or Title"]
+    Prompt --> Instant["⚡ Matches Appear Instantly"]
+    Instant --> Open["Hit Enter to Open the Note"]
+`;
+---
+
+<DocsLayout
+  title="Finding Notes (Search & Switcher)"
+  description="How to find any note, phrase, or tag in DaVinci Notes in seconds."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Search</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Finding Notes (Search & Switcher)</h1>
+    <p class="docs-lead">
+      Find any thought or note in milliseconds. Jump between notes with quick keyboard shortcuts or search inside the text of thousands of notes.
+    </p>
+  </header>
+
+  <section id="quick-switcher" class="docs-section">
+    <h2 class="docs-section-title">Quick Switcher (Cmd+K)</h2>
+    <p class="docs-paragraph">
+      The fastest way to get around DaVinci Notes is the <strong>Quick Switcher</strong>. Press <span class="docs-code-inline">Cmd+K</span> (or <span class="docs-code-inline">Ctrl+K</span> on Windows):
+    </p>
+    <DocsMermaid chart={simpleSearchMermaid} caption="Quick note jumping" />
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Press Cmd+K from anywhere</div>
+          <p>A search box pops up instantly over your screen, showing your recent notes.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Start typing letters of the title</div>
+          <p>Even if you make a typo or only remember one word, the right note appears at the top.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">3</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Press Enter to jump</div>
+          <p>Your note opens instantly. If the note doesn't exist yet, pressing Enter creates it immediately!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="full-text-search" class="docs-section">
+    <h2 class="docs-section-title">Searching Inside Your Notes</h2>
+    <p class="docs-paragraph">
+      If you can't remember the note title, click the <strong>Search icon</strong> in the left sidebar (or press <span class="docs-code-inline">Cmd+Shift+F</span>). This searches through the full text of all your notes and highlights the exact sentence matching your query.
+    </p>
+  </section>
+
+  <section id="filters" class="docs-section">
+    <h2 class="docs-section-title">Useful Search Filters</h2>
+    <p class="docs-paragraph">You can narrow down search results easily:</p>
+    <div class="docs-table-wrapper">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Search for</th>
+            <th>What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>tag:#recipes</code></td>
+            <td>Only shows notes tagged with #recipes.</td>
+          </tr>
+          <tr>
+            <td><code>path:Work/</code></td>
+            <td>Only searches inside your Work folder.</td>
+          </tr>
+          <tr>
+            <td><code>"exact phrase"</code></td>
+            <td>Matches the exact words in that specific order.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Knowledge Graph & Backlinks', href: '/docs/graph' }}
+    next={{ title: 'Syncing with Phone (No Cloud)', href: '/docs/sync' }}
+  />
+</DocsLayout>

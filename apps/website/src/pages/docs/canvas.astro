@@ -1,0 +1,120 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'what-is-canvas', title: 'What is Canvas?' },
+  { id: 'adding-cards', title: 'How to Add Cards & Notes' },
+  { id: 'connecting', title: 'Connecting Cards with Arrows' },
+  { id: 'navigation', title: 'Zooming & Moving Around' },
+];
+
+const simpleCanvasMermaid = `
+flowchart LR
+    Board["🎨 Infinite Canvas Board"] --> Add["Add Text Cards & Existing Notes"]
+    Add --> Arrow["Drag Handles to Connect Ideas with Arrows"]
+    Arrow --> Group["Group Related Cards in Colored Boxes"]
+`;
+---
+
+<DocsLayout
+  title="Visual Whiteboard (Canvas)"
+  description="How to brainstorm, map ideas, and organize thoughts visually on the DaVinci Canvas."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Canvas</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Visual Whiteboard (Canvas)</h1>
+    <p class="docs-lead">
+      Brainstorm and arrange your thoughts on an infinite digital canvas. Lay out cards, embed your notes, and draw arrows between ideas.
+    </p>
+  </header>
+
+  <section id="what-is-canvas" class="docs-section">
+    <h2 class="docs-section-title">What is Canvas?</h2>
+    <p class="docs-paragraph">
+      Canvas is like an endless corkboard for your mind. Instead of a long scroll of text, you can place notes anywhere on a 2D plane, draw connecting arrows, and group thoughts into topics.
+    </p>
+    <DocsMermaid chart={simpleCanvasMermaid} caption="Visual mapping on the canvas" />
+  </section>
+
+  <section id="adding-cards" class="docs-section">
+    <h2 class="docs-section-title">How to Add Cards & Notes</h2>
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Create a new canvas</div>
+          <p>Click the <strong>New Canvas</strong> button in the left sidebar or press <span class="docs-code-inline">Cmd+N</span> and choose Canvas.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Add a text card or drop an existing note</div>
+          <p>Double-click anywhere on the empty space to type a quick sticky note, or drag and drop any note from your file tree directly onto the board.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">3</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Resize and move</div>
+          <p>Drag any card by its header to move it, or pull its corners to make it wider or taller.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="connecting" class="docs-section">
+    <h2 class="docs-section-title">Connecting Cards with Arrows</h2>
+    <p class="docs-paragraph">
+      To connect two thoughts together:
+    </p>
+    <ol class="docs-paragraph" style="padding-left: 1.5rem; color: var(--logseq-text-body);">
+      <li>Hover over any card edge to reveal a small circle handle.</li>
+      <li>Click and drag the handle over to another card.</li>
+      <li>Release to create a smooth connecting arrow. You can double-click the line to type a label (like <em>"causes"</em> or <em>"leads to"</em>).</li>
+    </ol>
+    <DocsCallout type="tip" title="Color Coding">
+      Click on any card or arrow to choose a color (Rose, Burgundy, Gold, or Teal) to highlight important points.
+    </DocsCallout>
+  </section>
+
+  <section id="navigation" class="docs-section">
+    <h2 class="docs-section-title">Zooming & Moving Around</h2>
+    <div class="docs-table-wrapper">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>How to do it</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pan / Move View</td>
+            <td>Hold <code>Spacebar</code> and drag your mouse, or drag with two fingers on a trackpad.</td>
+          </tr>
+          <tr>
+            <td>Zoom In / Out</td>
+            <td>Scroll with <code>Cmd</code> / <code>Ctrl</code> pressed, or pinch on your trackpad.</td>
+          </tr>
+          <tr>
+            <td>See Everything</td>
+            <td>Press <code>Shift + 1</code> to fit all your cards onto the screen at once.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Writing & Formatting Notes', href: '/docs/editor' }}
+    next={{ title: 'Knowledge Graph & Backlinks', href: '/docs/graph' }}
+  />
+</DocsLayout>

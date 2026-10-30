@@ -2,6 +2,7 @@
 @import "./typography.css";
 @import "./hero.css";
 @import "./hero-nodes.css";
+@import "./hero-interactive.css";
 @import "./workbench.css";
 @import "./sections.css";
 
@@ -48,7 +49,7 @@ a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
 
 a:focus-visible, button:focus-visible {
-  outline: 2px solid var(--accent-terracotta);
+  outline: 2px solid var(--accent-pumpkin);
   outline-offset: 2px;
 }
 
@@ -100,7 +101,7 @@ a:focus-visible, button:focus-visible {
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent-terracotta);
+  color: var(--accent-pumpkin);
 }
 
 .nav-index {
@@ -125,7 +126,7 @@ a:focus-visible, button:focus-visible {
 }
 
 .nav-index a:hover { background-color: var(--bg-surface); color: var(--text-primary); }
-.nav-index b { color: var(--accent-terracotta); font-weight: 500; }
+.nav-index b { color: var(--accent-pumpkin); font-weight: 500; }
 
 .nav-controls {
   display: flex;
@@ -150,15 +151,15 @@ a:focus-visible, button:focus-visible {
 }
 
 .btn-primary {
-  background-color: var(--accent-vermilion);
+  background-color: var(--accent-pumpkin);
   color: var(--text-on-accent);
-  border-color: var(--accent-vermilion);
+  border-color: var(--accent-pumpkin);
 }
 
 .btn-primary:hover {
-  background-color: var(--accent-terracotta);
-  border-color: var(--accent-terracotta);
-  color: #121110;
+  background-color: var(--palette-pumpkin-dark);
+  border-color: var(--palette-pumpkin-dark);
+  color: #fffbf4;
 }
 
 .btn-quiet {

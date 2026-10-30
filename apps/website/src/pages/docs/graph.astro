@@ -1,0 +1,82 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'what-is-graph', title: 'What is the Graph View?' },
+  { id: 'backlinks', title: 'Finding Backlinks & Mentions' },
+  { id: 'local-graph', title: 'Using the Local Graph' },
+];
+
+const simpleGraphMermaid = `
+flowchart LR
+    NoteA["Note: Photography"] --> Link["Link: [[Lenses]]"]
+    Link --> NoteB["Note: Lenses"]
+    NoteB -.-> Panel["Right Panel: Shows 'Photography' as a Backlink"]
+`;
+---
+
+<DocsLayout
+  title="Knowledge Graph & Backlinks"
+  description="How to visualize your notes as an interconnected network and track mentions."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Graph</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Knowledge Graph & Backlinks</h1>
+    <p class="docs-lead">
+      See how your notes connect together. Explore a visual web of your ideas and discover related thoughts automatically.
+    </p>
+  </header>
+
+  <section id="what-is-graph" class="docs-section">
+    <h2 class="docs-section-title">What is the Graph View?</h2>
+    <p class="docs-paragraph">
+      Every time you link two notes using <span class="docs-code-inline">[[brackets]]</span>, DaVinci Notes draws an invisible connection between them. The Graph View visualizes these links as an interactive constellation of glowing dots. The more connections a note has, the bigger its dot becomes!
+    </p>
+    <DocsMermaid chart={simpleGraphMermaid} caption="How links form a visual graph" />
+  </section>
+
+  <section id="backlinks" class="docs-section">
+    <h2 class="docs-section-title">Finding Backlinks & Mentions</h2>
+    <p class="docs-paragraph">
+      When you open any note, look at the right sidebar to see its <strong>Backlinks Panel</strong>:
+    </p>
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Linked Mentions</div>
+          <p>Shows every note in your vault that links directly to this note. Click any snippet to jump straight to that sentence.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Unlinked Mentions (Discovery)</div>
+          <p>DaVinci automatically finds notes where you typed the title of this note without brackets. Click <strong>Link</strong> to turn it into an active connection instantly!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="local-graph" class="docs-section">
+    <h2 class="docs-section-title">Using the Local Graph</h2>
+    <p class="docs-paragraph">
+      If your main graph gets too crowded with hundreds of notes, switch to the <strong>Local Graph</strong> tab. It shows only the current note and the notes directly tied to it, helping you focus on the topic at hand without getting lost.
+    </p>
+    <DocsCallout type="tip" title="Click to Navigate">
+      Clicking any dot in the graph immediately opens that note in your editor.
+    </DocsCallout>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Visual Whiteboard (Canvas)', href: '/docs/canvas' }}
+    next={{ title: 'Finding Notes (Search & Switcher)', href: '/docs/search' }}
+  />
+</DocsLayout>

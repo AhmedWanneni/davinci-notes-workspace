@@ -1,0 +1,149 @@
+/* ==========================================================================
+   WHAT YOU CAN DO SECTION — 6 verified core capabilities for everyday users
+   Handmade aesthetic: organic border-radius, micro-tilts, washi-tape tabs
+   Strict compliance: >=16px body, >=14px labels, max 3 cards per row, 0 shadows
+   ========================================================================== */
+
+.features-grid-section {
+  position: relative;
+  background-color: var(--logseq-bg);
+  padding-top: clamp(4rem, 8vw, 7rem);
+  padding-bottom: clamp(4rem, 8vw, 7rem);
+}
+
+.features-header {
+  text-align: center;
+  max-width: 780px;
+  margin: 0 auto clamp(2.5rem, 5vw, 4rem);
+}
+
+.features-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.875rem; /* 14px */
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-pumpkin);
+  margin-bottom: var(--space-3);
+  font-weight: 600;
+}
+
+.features-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  line-height: 1.15;
+  color: var(--logseq-text-title);
+  margin: 0 0 var(--space-4);
+  font-weight: 500;
+}
+
+.features-lead {
+  font-size: 1.0625rem; /* 17px */
+  line-height: 1.6;
+  color: var(--logseq-text-muted);
+  margin: 0;
+}
+
+/* 3-column Grid (desktop) / 1-column (mobile) */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.feature-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--logseq-card);
+  border: 1px solid var(--logseq-border);
+  border-radius: var(--radius-hand-drawn-subtle, 180px 10px 160px 10px / 10px 160px 10px 180px);
+  padding: clamp(1.75rem, 3.5vw, 2.25rem);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease;
+  box-shadow: none;
+}
+
+/* Handmade washi tape tab pinning the card */
+.feature-card::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 44px;
+  height: 12px;
+  background-color: rgba(200, 94, 19, 0.2);
+  border: 1px dashed rgba(200, 94, 19, 0.5);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* Subtle organic card tilts on desktop */
+@media (min-width: 641px) {
+  .feature-card:nth-child(1) { transform: rotate(-0.75deg); }
+  .feature-card:nth-child(2) { transform: rotate(0.6deg); }
+  .feature-card:nth-child(3) { transform: rotate(-0.5deg); }
+  .feature-card:nth-child(4) { transform: rotate(0.65deg); }
+  .feature-card:nth-child(5) { transform: rotate(-0.6deg); }
+  .feature-card:nth-child(6) { transform: rotate(0.5deg); }
+}
+
+.feature-card:hover {
+  background-color: var(--logseq-card-hover);
+  border-color: var(--accent-pumpkin);
+  transform: rotate(0deg) translateY(-4px);
+}
+
+.feature-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-hand-drawn-subtle, 6px);
+  background-color: rgba(200, 94, 19, 0.12);
+  border: 1px solid rgba(200, 94, 19, 0.35);
+  margin-bottom: var(--space-4);
+  color: var(--accent-pumpkin);
+}
+
+.feature-card-heading {
+  font-family: var(--font-sans);
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  color: var(--logseq-text-title);
+  margin: 0 0 var(--space-2);
+  line-height: 1.3;
+}
+
+.feature-card-body {
+  font-size: 1rem; /* 16px */
+  line-height: 1.55;
+  color: var(--logseq-text-muted);
+  margin: 0 0 var(--space-4);
+  flex-grow: 1;
+}
+
+.feature-card-badge {
+  font-family: var(--font-mono);
+  font-size: 0.875rem; /* 14px */
+  color: var(--accent-pumpkin);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 980px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}

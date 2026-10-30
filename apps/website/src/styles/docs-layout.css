@@ -1,0 +1,176 @@
+/* ==========================================================================
+   DAVINCI NOTES — SIMPLE, CLEAN DOCUMENTATION LAYOUT
+   Autumn Harvest Palette: Minimal border-boxes, smooth standard corners.
+   ========================================================================== */
+
+.docs-page-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--logseq-bg, #ebd0a9);
+  color: var(--logseq-text-body, #2f2317);
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+}
+
+.docs-main-container {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 200px;
+  gap: 3rem;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 6rem;
+  width: 100%;
+}
+
+@media (max-width: 1140px) {
+  .docs-main-container {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 2rem;
+  }
+  .docs-toc-aside {
+    display: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .docs-main-container {
+    grid-template-columns: 1fr;
+    padding: 1.25rem 1rem 4rem;
+    gap: 2rem;
+  }
+}
+
+/* Sidebar Navigation */
+.docs-sidebar {
+  position: sticky;
+  top: 88px;
+  height: calc(100vh - 108px);
+  overflow-y: auto;
+  padding-right: 1.25rem;
+  border-right: 1px solid var(--logseq-border);
+}
+
+.docs-sidebar-group {
+  margin-bottom: 2rem;
+}
+
+.docs-sidebar-heading {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-pumpkin);
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+}
+
+.docs-sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.docs-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.9rem;
+  color: var(--logseq-text-muted);
+  text-decoration: none;
+  border-radius: 6px;
+  transition: all 120ms ease;
+}
+
+.docs-sidebar-link:hover {
+  color: var(--logseq-text-title);
+  background-color: var(--logseq-card-hover);
+}
+
+.docs-sidebar-link.is-active {
+  color: #fffbf4;
+  background-color: var(--accent-pumpkin);
+  font-weight: 600;
+}
+
+/* Right TOC Aside */
+.docs-toc-aside {
+  position: sticky;
+  top: 88px;
+  height: calc(100vh - 108px);
+  overflow-y: auto;
+  padding-left: 1rem;
+  border-left: 1px solid var(--logseq-border);
+}
+
+.docs-toc-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent-pumpkin);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+}
+
+.docs-toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.docs-toc-link {
+  font-size: 0.85rem;
+  color: var(--logseq-text-muted);
+  text-decoration: none;
+  line-height: 1.4;
+  transition: color 120ms ease;
+}
+
+.docs-toc-link:hover {
+  color: var(--logseq-text-title);
+}
+
+/* Pagination Footer */
+.docs-nav-pagination {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--logseq-border);
+}
+
+.docs-nav-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0.85rem 1.25rem;
+  border-radius: 8px;
+  text-decoration: none;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--logseq-border);
+  transition: all 120ms ease;
+  min-width: 180px;
+}
+
+.docs-nav-card:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--accent-pumpkin);
+}
+
+.docs-nav-label {
+  font-size: 0.75rem;
+  color: var(--accent-terracotta);
+  margin-bottom: 0.2rem;
+}
+
+.docs-nav-target {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--logseq-text-title);
+}

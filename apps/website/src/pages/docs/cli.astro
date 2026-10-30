@@ -1,0 +1,103 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsCodeCard from '../../components/docs/DocsCodeCard.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'what-is-cli', title: 'What is the DaVinci CLI?' },
+  { id: 'common-commands', title: 'Everyday Terminal Commands' },
+  { id: 'piping', title: 'Piping Text from Terminal' },
+];
+
+const simpleCliMermaid = `
+flowchart LR
+    Terminal["⌨️ Type in Terminal: davinci capture 'New idea'"] --> Vault["📁 Appended to Today's Daily Note Instantly"]
+`;
+
+const cliCommands = `# Save a thought to today's daily note in 1 second
+$ davinci capture "Call landlord about parking spot"
+
+# Search your notes directly in the terminal
+$ davinci search "coffee brewing"
+
+# Open today's journal in your default editor
+$ davinci daily`;
+---
+
+<DocsLayout
+  title="Terminal Tool (CLI)"
+  description="How to take quick notes and search your vault directly from your command line terminal."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>CLI</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Terminal Tool (CLI)</h1>
+    <p class="docs-lead">
+      If you spend your day in the terminal, you can interact with your notes without ever switching windows.
+    </p>
+  </header>
+
+  <section id="what-is-cli" class="docs-section">
+    <h2 class="docs-section-title">What is the DaVinci CLI?</h2>
+    <p class="docs-paragraph">
+      The <span class="docs-code-inline">davinci</span> command-line tool is a lightweight utility that connects directly to your local vault folder. It's built for speed—each command runs in under 15 milliseconds.
+    </p>
+    <DocsMermaid chart={simpleCliMermaid} caption="Quick command-line capture" />
+  </section>
+
+  <section id="common-commands" class="docs-section">
+    <h2 class="docs-section-title">Everyday Terminal Commands</h2>
+    <DocsCodeCard title="Quick Terminal Commands" lang="bash" code={cliCommands} />
+    <div class="docs-table-wrapper">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Command</th>
+            <th>What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>davinci capture "text"</code></td>
+            <td>Appends a bullet point to today's daily note.</td>
+          </tr>
+          <tr>
+            <td><code>davinci search "word"</code></td>
+            <td>Searches your notes and prints matching snippets right in the terminal.</td>
+          </tr>
+          <tr>
+            <td><code>davinci daily</code></td>
+            <td>Opens today's daily note.</td>
+          </tr>
+          <tr>
+            <td><code>davinci sync</code></td>
+            <td>Triggers an immediate sync pass across your devices.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="piping" class="docs-section">
+    <h2 class="docs-section-title">Piping Output into Notes</h2>
+    <p class="docs-paragraph">
+      You can send output from other terminal commands straight into a new note:
+    </p>
+    <DocsCodeCard
+      title="Terminal Piping Example"
+      lang="bash"
+      code={`# Save terminal output directly to a note
+$ cat build-log.txt | davinci new "Build Log"`}
+    />
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Saving Web Articles (Clipper)', href: '/docs/clipper' }}
+    next={{ title: 'Themes & Plugins', href: '/docs/plugins' }}
+  />
+</DocsLayout>

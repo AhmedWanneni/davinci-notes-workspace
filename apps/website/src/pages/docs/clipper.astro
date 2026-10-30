@@ -1,0 +1,83 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'web-clipper', title: 'The Web Clipper Extension' },
+  { id: 'how-to-clip', title: 'How to Clip an Article' },
+  { id: 'quick-capture', title: 'Quick Capture (Cmd+Shift+C)' },
+];
+
+const simpleClipperMermaid = `
+flowchart LR
+    Web["🌐 Read Any Article in Chrome / Firefox"] --> Click["✂️ Click DaVinci Extension"]
+    Click --> Clean["🧹 Strips Ads & Popups into Clean Markdown"]
+    Clean --> Vault["📁 Saved Directly in Your Vault"]
+`;
+---
+
+<DocsLayout
+  title="Saving Web Articles (Clipper)"
+  description="How to save clean articles from your web browser and capture thoughts quickly."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Clipper</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Saving Web Articles (Clipper)</h1>
+    <p class="docs-lead">
+      Save reading material from the web directly into your vault, stripped of annoying ads, banners, and clutter.
+    </p>
+  </header>
+
+  <section id="web-clipper" class="docs-section">
+    <h2 class="docs-section-title">The Web Clipper Extension</h2>
+    <p class="docs-paragraph">
+      When you read a great blog post or news article, bookmarks often get forgotten. The DaVinci Web Clipper extension (for Chrome, Brave, and Firefox) saves the full article as a clean text note inside your vault. Photos are saved locally too, so even if the website goes down, your copy remains safe forever!
+    </p>
+    <DocsMermaid chart={simpleClipperMermaid} caption="How the web clipper turns web pages into clean notes" />
+  </section>
+
+  <section id="how-to-clip" class="docs-section">
+    <h2 class="docs-section-title">How to Clip an Article</h2>
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Install the extension</div>
+          <p>Get the DaVinci Clipper from the Chrome Web Store or Firefox Add-ons.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Click the Clipper icon</div>
+          <p>When you're on a page you want to keep, click the DaVinci icon in your browser toolbar.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">3</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Click "Save to Vault"</div>
+          <p>The clean article is instantly saved into your vault's <span class="docs-code-inline">clippings/</span> folder!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="quick-capture" class="docs-section">
+    <h2 class="docs-section-title">Quick Capture Window (Cmd+Shift+C)</h2>
+    <p class="docs-paragraph">
+      Have a quick idea while coding, designing, or browsing? Press <span class="docs-code-inline">Cmd+Shift+C</span> on Mac (or <span class="docs-code-inline">Ctrl+Shift+C</span> on Windows). A tiny text box appears over whatever app you're in. Type your thought, hit Enter, and it appends straight into today's daily note!
+    </p>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Google Calendar & Task Reminders', href: '/docs/calendar' }}
+    next={{ title: 'Terminal Tool (CLI)', href: '/docs/cli' }}
+  />
+</DocsLayout>

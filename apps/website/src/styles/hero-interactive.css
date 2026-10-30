@@ -1,0 +1,222 @@
+/* ==========================================================================
+   SOPHIA NOTES — INTERACTIVE HERO DRAGGING & OWL HEAD EXTRACTABLE THOUGHTS
+   ========================================================================== */
+
+/* Interactive Draggable Cursor & Tactile Lift */
+[data-draggable-hero] {
+  cursor: grab;
+  touch-action: none;
+  pointer-events: auto;
+  will-change: transform;
+}
+
+[data-draggable-hero]:hover {
+  border-color: #1c1209;
+}
+
+[data-draggable-hero].is-dragging {
+  cursor: grabbing !important;
+  transition: none !important;
+}
+
+.bottom-svg-item[data-draggable-hero] {
+  pointer-events: auto;
+  cursor: grab;
+}
+
+/* Subtle Interactive Hint Bar + Reset Button */
+.hero-interactive-bar {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.hero-interactive-hint {
+  pointer-events: auto;
+  font-family: 'Patrick Hand', var(--font-mono), sans-serif;
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+  color: #3a2614;
+  background-color: rgba(243, 227, 198, 0.86);
+  border: 1.4px dashed rgba(44, 28, 12, 0.45);
+  border-radius: 4px;
+  padding: 3px 12px;
+  user-select: none;
+}
+
+.hero-reset-desk-btn {
+  pointer-events: auto;
+  font-family: 'Patrick Hand', var(--font-mono), sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff8eb;
+  background-color: #9e3f1c;
+  border: 1.6px solid #281a0e;
+  border-radius: 4px;
+  padding: 3px 11px;
+  cursor: pointer;
+  transition: background-color 140ms ease, transform 140ms ease;
+}
+
+.hero-reset-desk-btn:hover {
+  background-color: #c85e13;
+  transform: translateY(-1px);
+}
+
+/* Owl Head Overlay Container (Matches Center Owl Picture Bounds) */
+.owl-head-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+}
+
+/* Extractable Head Notes: Invisible Hotspots Until Hovered or Pulled Out */
+.owl-head-extractable {
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.owl-head-extractable:hover:not(.is-extracted) {
+  opacity: 0.96;
+}
+
+.owl-head-extractable.is-extracted {
+  opacity: 1;
+}
+
+/* Head Extractable Note Styles (Matching Owl Head Artwork) */
+.owl-scrap-terracotta {
+  background-color: #b86c45;
+  border-bottom: 3px solid #8a4b2b;
+  padding: 9px 11px;
+  width: 114px;
+  text-align: center;
+}
+.scrap-doodle-svg { width: 64px; height: 40px; display: block; margin: 0 auto 2px; }
+.scrap-title-sm { font-size: 0.9rem; font-weight: 700; }
+
+.owl-scrap-head-notes {
+  background-color: #e6d2b0;
+  border-left: 3.5px double #735a3f;
+  padding: 12px 13px 10px;
+  width: 126px;
+  text-align: left;
+}
+.head-spiral-top {
+  position: absolute;
+  top: -6px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.head-spiral-top span {
+  width: 3.5px;
+  height: 10px;
+  background-color: #281a0e;
+  border-radius: 2px;
+}
+.head-mini-list {
+  list-style: none;
+  margin: 5px 0 0;
+  padding: 0;
+  font-size: 0.84rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.hand-oval-inline {
+  display: inline-block;
+  padding: 0 5px;
+  border: 1.6px solid #331d0e;
+  border-radius: 50%;
+}
+
+.head-bell-svg { width: 38px; height: 26px; display: block; margin: 2px auto; }
+.head-exclaim-svg { width: 44px; height: 42px; display: block; margin: 0 auto; }
+
+.scrap-todo-rings {
+  position: absolute;
+  left: -6px;
+  top: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.scrap-todo-rings span {
+  display: block;
+  width: 11px;
+  height: 3.5px;
+  background-color: #281a0e;
+  border-radius: 2px;
+}
+
+.owl-scrap-ticket {
+  background-color: #d6b687;
+  padding: 5px;
+  width: 96px;
+  text-align: center;
+}
+.ticket-inner-frame {
+  border: 1.5px solid #4a3019;
+  border-radius: 2px;
+  padding: 5px 4px;
+}
+.ticket-no { font-size: 0.96rem; font-weight: 700; }
+.ticket-dots { font-size: 0.75rem; line-height: 0.7; letter-spacing: 0.12em; }
+.ticket-bus-svg { width: 28px; height: 15px; display: block; margin: 3px auto 1px; }
+.ticket-label { font-size: 0.76rem; font-weight: 700; }
+.ticket-code { font-size: 0.74rem; border-top: 1px solid rgba(51, 29, 14, 0.35); margin-top: 2px; padding-top: 1px; }
+
+.owl-scrap-head-clock {
+  background-color: #9e3f1c;
+  color: #f6e7c8;
+  padding: 9px 12px;
+  width: 126px;
+  text-align: center;
+}
+.head-clock-badge {
+  background-color: #e6cfa8;
+  color: #281a0e;
+  border: 1.5px solid #281a0e;
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.owl-scrap-slate {
+  background-color: #4f5449;
+  color: #22180e;
+  border-bottom: 3px solid #353931;
+  padding: 9px 11px;
+  width: 104px;
+  text-align: center;
+}
+
+/* Coordinates Mapped Directly Over the Owl's Open Head Items + Default Edge Notes */
+.head-item-brain { top: 28%; left: calc(50% - 144px); transform: rotate(-9deg); }
+.head-item-notes { top: 26%; left: calc(50% - 62px); transform: rotate(-7deg); }
+.head-item-focus { top: 38%; left: calc(50% - 150px); width: 112px; padding: 9px 11px; transform: rotate(-12deg); }
+.head-item-alarm-note { top: 29%; left: calc(50% + 40px); width: 96px; transform: rotate(13deg); }
+.head-item-exclaim { top: -8%; right: 8px; width: 64px; padding: 6px; transform: rotate(15deg); z-index: 14; }
+.head-item-todo { top: 41%; left: calc(50% + 20px); width: 120px; padding: 10px 11px 10px 15px; transform: rotate(14deg); }
+.head-item-ticket { top: 38%; left: -102px; transform: rotate(16deg); z-index: 14; }
+.head-item-clock { top: 49%; left: calc(50% - 76px); transform: rotate(-5deg); }
+.head-item-meeting { top: 59%; left: calc(50% - 44px); transform: rotate(-4deg); }
+.head-item-important { top: 34%; right: -130px; width: 118px; padding: 9px 10px; transform: rotate(-12deg); z-index: 14; }
+.head-item-buy { top: 56%; left: calc(50% + 90px); width: 96px; padding: 8px 10px; transform: rotate(16deg); }
+
+@media (max-width: 1120px) {
+  .owl-head-overlay { display: none; }
+}

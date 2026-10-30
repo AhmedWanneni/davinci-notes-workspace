@@ -1,0 +1,29 @@
+---
+interface NavTarget {
+  title: string;
+  href: string;
+}
+
+interface Props {
+  prev?: NavTarget;
+  next?: NavTarget;
+}
+
+const { prev, next } = Astro.props;
+---
+
+<nav class="docs-nav-pagination" aria-label="Pagination">
+  {prev ? (
+    <a href={prev.href} class="docs-nav-card docs-nav-prev">
+      <span class="docs-nav-label">← Previous</span>
+      <span class="docs-nav-target">{prev.title}</span>
+    </a>
+  ) : <div />}
+
+  {next ? (
+    <a href={next.href} class="docs-nav-card docs-nav-next" style="text-align: right;">
+      <span class="docs-nav-label">Next →</span>
+      <span class="docs-nav-target">{next.title}</span>
+    </a>
+  ) : <div />}
+</nav>

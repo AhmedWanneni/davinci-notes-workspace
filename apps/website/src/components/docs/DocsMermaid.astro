@@ -1,0 +1,13 @@
+---
+interface Props {
+  chart: string;
+  caption?: string;
+}
+
+const { chart, caption } = Astro.props;
+---
+
+<figure class="docs-mermaid-wrapper">
+  <pre class="mermaid">{chart.trim()}</pre>
+  {caption && <figcaption style="margin-top: 0.75rem; font-size: 0.8125rem; font-family: var(--font-mono, monospace); color: var(--logseq-text-muted, #6b5744);">{caption}</figcaption>}
+</figure>

@@ -1,140 +1,114 @@
 ---
-import { HERO_THOUGHTS } from '../../data/heroThoughts';
-import SkullCutInterior from './SkullCutInterior.astro';
-import ThoughtNode from './ThoughtNode.astro';
-
-/**
- * Build unique undirected edge pairs for the pre-rendered SVG hairline layer
- */
-const edgePairs: Array<{ from: string; to: string }> = [];
-const seenEdges = new Set<string>();
-
-for (const thought of HERO_THOUGHTS) {
-  for (const targetId of thought.linksTo) {
-    const key = [thought.id, targetId].sort().join('--');
-    if (!seenEdges.has(key)) {
-      seenEdges.add(key);
-      edgePairs.push({ from: thought.id, to: targetId });
-    }
-  }
-}
+import OwlSideNotes from './OwlSideNotes.astro';
+import OwlHeadHotspots from './OwlHeadHotspots.astro';
 ---
 
 <section class="hero-stage" id="top" aria-labelledby="hero-headline">
+  <h1 id="hero-headline" class="sr-only">
+    Sophia Notes — Every thought in your head, organized in one place.
+  </h1>
+
   <div class="hero-centered-container">
-    <!-- Centerpiece Visual: Woman & Rock Cutout + 360° Interactive Thought Orbit -->
-    <div
-      id="orbit-stage"
-      class="orbit-stage"
-      tabindex="0"
-      role="application"
-      aria-roledescription="360-degree rotatable thought cloud"
-      aria-label="Interactive 3D cloud of notes, equations, and sketches emerging from the portrait's mind. Drag horizontally or press Left and Right arrow keys to rotate 360 degrees."
-    >
+    <!-- Full-Viewport Stage: Interactive Owl in the Center + Draggable Notes & Desk Items -->
+    <div class="hero-artwork-stage">
+      <OwlSideNotes />
+      <div class="hero-owl-stage-box">
+        <OwlHeadHotspots />
 
+        <div class="hero-owl-figure">
+          <picture class="hero-owl-picture">
+            <source
+              type="image/webp"
+              srcset="/images/hero/owl-hero-480.webp 480w, /images/hero/owl-hero-768.webp 768w, /images/hero/owl-hero-1024.webp 1024w"
+              sizes="(max-width: 640px) 80vw, (max-width: 1024px) 64vw, 600px"
+            />
+            <img
+              class="hero-owl-img"
+              src="/images/hero/owl-hero-1024.webp"
+              alt="Illustrated autumn owl with an open mind overflowing with organized notes, reminders, to-do lists, and creative ideas"
+              width="1024"
+              height="935"
+              fetchpriority="high"
+              decoding="async"
+              draggable="false"
+            />
+          </picture>
 
-      <!-- Anatomical Skull Cavity Revealed When Crown Opens -->
-      <SkullCutInterior />
+          <!-- Interactive Eyes Overlay (Follows Cursor + Blinks Slowly Every 3 Seconds) -->
+          <svg
+            class="hero-owl-eyes-svg"
+            viewBox="0 0 1024 935"
+            fill="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <clipPath id="owl-eye-clip-left">
+                <circle cx="353.5" cy="722.5" r="68.5" />
+              </clipPath>
+              <clipPath id="owl-eye-clip-right">
+                <circle cx="681" cy="724" r="69" />
+              </clipPath>
+            </defs>
 
-      <!-- Dynamic SVG Hairline Graph Connections -->
-      <svg
-        id="orbit-edges-svg"
-        class="orbit-edges-svg"
-        viewBox="0 0 900 680"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        {edgePairs.map((edge) => (
-          <line
-            class="orbit-edge-line"
-            data-edge-from={edge.from}
-            data-edge-to={edge.to}
-            x1="450"
-            y1="250"
-            x2="450"
-            y2="250"
-          />
-        ))}
-      </svg>
+            <!-- LEFT EYE -->
+            <g clip-path="url(#owl-eye-clip-left)">
+              <!-- Warm Cream Sclera Base -->
+              <circle cx="353.5" cy="722.5" r="70" fill="#f3dcb4" />
+              <!-- Subtle Top Socket Shade -->
+              <path d="M283 705 A70 70 0 0 1 424 705 A70 64 0 0 0 283 705 Z" fill="#dfc496" opacity="0.65" />
+              <!-- Mouse-Tracking Pupil & Cute Specular Catchlights (Smaller Default, Dilates When Dragging Notes) -->
+              <g class="owl-pupil-track" data-eye="left" data-eye-cx="353.5" data-eye-cy="722.5">
+                <g class="owl-pupil-scale" style="transform-origin: 353.5px 722.5px">
+                  <circle cx="353.5" cy="722.5" r="41" fill="#181105" />
+                  <circle cx="341" cy="699" r="13.5" fill="#f5e1be" />
+                  <circle cx="364" cy="712" r="5.5" fill="#f5e1be" />
+                  <circle cx="344" cy="738" r="3.2" fill="#f5e1be" opacity="0.85" />
+                </g>
+              </g>
+              <!-- Slow Blinking Upper & Lower Feather Eyelids -->
+              <rect class="owl-eyelid-top" x="278" y="648" width="152" height="82" fill="#a84e1d" />
+              <path class="owl-eyelid-lash" d="M284 723 Q353.5 734 423 723" stroke="#5c280b" stroke-width="5" stroke-linecap="round" />
+              <rect class="owl-eyelid-bottom" x="278" y="722" width="152" height="80" fill="#9c4618" />
+            </g>
+            <!-- Crisp Inner Eye Socket Rim -->
+            <circle cx="353.5" cy="722.5" r="68.5" stroke="#5c2a0b" stroke-width="4" fill="none" />
 
-      <!-- Center Portrait Figure Assembly (Pure Cutout: Woman & Rock, ZERO Background) -->
-      <div class="portrait-assembly" aria-hidden="true">
-        <!-- Lower Portrait Base (Rocks, Terracotta Drape, Face Below Cut) -->
-        <picture class="portrait-layer portrait-base">
-          <source
-            type="image/avif"
-            srcset="/images/hero/muse-base-480.avif 480w, /images/hero/muse-base-768.avif 768w, /images/hero/muse-base-1120.avif 1051w"
-            sizes="(max-width: 768px) 340px, 520px"
-          />
-          <source
-            type="image/webp"
-            srcset="/images/hero/muse-base-480.webp 480w, /images/hero/muse-base-768.webp 768w, /images/hero/muse-base-1120.webp 1051w"
-            sizes="(max-width: 768px) 340px, 520px"
-          />
-          <img
-            src="/images/hero/muse-base-768.webp"
-            alt="Classical painted woman in a terracotta drape seated on stone"
-            width="768"
-            height="1093"
-            fetchpriority="high"
-            decoding="async"
-            draggable="false"
-          />
-        </picture>
+            <!-- RIGHT EYE -->
+            <g clip-path="url(#owl-eye-clip-right)">
+              <!-- Warm Cream Sclera Base -->
+              <circle cx="681" cy="724" r="70.5" fill="#f3dcb4" />
+              <!-- Subtle Top Socket Shade -->
+              <path d="M610 706 A70 70 0 0 1 752 706 A70 64 0 0 0 610 706 Z" fill="#dfc496" opacity="0.65" />
+              <!-- Mouse-Tracking Pupil & Cute Specular Catchlights (Smaller Default, Dilates When Dragging Notes) -->
+              <g class="owl-pupil-track" data-eye="right" data-eye-cx="681" data-eye-cy="724">
+                <g class="owl-pupil-scale" style="transform-origin: 681px 724px">
+                  <circle cx="681" cy="724" r="41" fill="#181105" />
+                  <circle cx="668.5" cy="700.5" r="13.5" fill="#f5e1be" />
+                  <circle cx="691.5" cy="713.5" r="5.5" fill="#f5e1be" />
+                  <circle cx="671.5" cy="739.5" r="3.2" fill="#f5e1be" opacity="0.85" />
+                </g>
+              </g>
+              <!-- Slow Blinking Upper & Lower Feather Eyelids -->
+              <rect class="owl-eyelid-top" x="605" y="650" width="152" height="82" fill="#a84e1d" />
+              <path class="owl-eyelid-lash" d="M611 724.5 Q681 735.5 751 724.5" stroke="#5c280b" stroke-width="5" stroke-linecap="round" />
+              <rect class="owl-eyelid-bottom" x="605" y="724" width="152" height="80" fill="#9c4618" />
+            </g>
+            <!-- Crisp Inner Eye Socket Rim -->
+            <circle cx="681" cy="724" r="69" stroke="#5c2a0b" stroke-width="4" fill="none" />
 
-        <!-- Upper Cranium & Hair Crown (Lifts Along 14° Cut Normal) -->
-        <picture id="portrait-crown-layer" class="portrait-layer portrait-crown">
-          <source
-            type="image/avif"
-            srcset="/images/hero/muse-crown-480.avif 480w, /images/hero/muse-crown-768.avif 768w, /images/hero/muse-crown-1120.avif 1051w"
-            sizes="(max-width: 768px) 340px, 520px"
-          />
-          <source
-            type="image/webp"
-            srcset="/images/hero/muse-crown-480.webp 480w, /images/hero/muse-crown-768.webp 768w, /images/hero/muse-crown-1120.webp 1051w"
-            sizes="(max-width: 768px) 340px, 520px"
-          />
-          <img
-            src="/images/hero/muse-crown-768.webp"
-            alt=""
-            width="768"
-            height="1093"
-            decoding="async"
-            draggable="false"
-          />
-        </picture>
+            <!-- Cute Rosy Feather Cheeks (Glow Gently When Squinting or Excited) -->
+            <g class="owl-cute-cheeks">
+              <ellipse cx="268" cy="786" rx="28" ry="15" fill="#c9461d" opacity="0.42" transform="rotate(-10 268 786)" />
+              <ellipse cx="766" cy="788" rx="28" ry="15" fill="#c9461d" opacity="0.42" transform="rotate(10 766 788)" />
+            </g>
+          </svg>
+        </div>
       </div>
-
-      <!-- 3D Orbiting Thought Nodes Floating Around Her Head in the Center -->
-      <div id="orbit-cloud" class="orbit-cloud">
-        {/* HERO_THOUGHTS.map((thought, idx) => (
-          <ThoughtNode thought={thought} index={idx} />
-        )) */}
-      </div>
-    </div>
-
-    <!-- Centered Call to Action Buttons Below Centerpiece (Logseq Style) -->
-    <div class="hero-cta-actions">
-      <a class="btn-logseq-primary" href="#download">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        <span>Download for Desktop</span>
-        <span aria-hidden="true">⌵</span>
-      </a>
-      <a class="btn-logseq-secondary" href="#features">
-        <span>Explore Features</span>
-        <span aria-hidden="true">↗</span>
-      </a>
-    </div>
-
-    <!-- Screen-Reader Only Accessible Thought Graph Index -->
-    <div class="sr-only" aria-label="Plain-text list of orbiting thoughts">
-      <ul>
-        {/*HERO_THOUGHTS.map((t) => (
-          <li>
-            <a href={t.sectionHref}>{t.title}</a>: {t.excerpt}
-          </li>
-        ))*/ }
-      </ul>
     </div>
   </div>
 </section>
+
+<script>
+  import { initHeroInteractive } from '../../scripts/heroInteractive';
+  initHeroInteractive();
+</script>

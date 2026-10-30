@@ -2,65 +2,50 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SiteNav from '../components/SiteNav.astro';
 import HeroSection from '../components/hero/HeroSection.astro';
-import RoleSection from '../components/RoleSection.astro';
-import CommunitySection from '../components/CommunitySection.astro';
+import WavyDivider from '../components/WavyDivider.astro';
+import AppWorkbenchDemo from '../components/AppWorkbenchDemo.astro';
+import WhatYouCanDoSection from '../components/WhatYouCanDoSection.astro';
 import ThoughtsStage from '../components/ThoughtsStage.astro';
-import WorkflowsSection from '../components/WorkflowsSection.astro';
-import SafeSpaceSection from '../components/SafeSpaceSection.astro';
 import SyncSection from '../components/SyncSection.astro';
+import NotesStayYoursSection from '../components/NotesStayYoursSection.astro';
+import CommunitySection from '../components/CommunitySection.astro';
 import ClosingSection from '../components/ClosingSection.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 ---
 
 <BaseLayout
-  title="DaVinci Notes — Connect your notes, increase understanding."
+  title="Sophia Notes — Every thought in your head, organized in one place."
   description="A local-first, privacy-focused open source note-taking and knowledge base application. Connect your thoughts with linked references, graph views, and flashcards."
 >
   <SiteNav />
 
   <main id="top">
+    <!-- Pattern 1: Monumental Centered Display + Bottom-Anchored Owl Illustration -->
     <HeroSection />
-    <RoleSection />
-    <CommunitySection />
+
+    <!-- Pattern 2: Full-Fidelity 3-Pane Desktop Application Workbench Demo -->
+    <AppWorkbenchDemo />
+    <WavyDivider />
+
+    <!-- Pattern 3: Pinned Index Cards with Alternating Micro-Tilts & Vector Doodles -->
+    <WhatYouCanDoSection />
+
+    <!-- Pattern 4: Freeform 2D Visual Canvas & Clutter-to-Clarity Transformation -->
     <ThoughtsStage />
-    <WorkflowsSection />
-    <SafeSpaceSection />
+
+    <!-- Pattern 5: Two-Column Split Layout with Real-Time Peer Sync Card -->
     <SyncSection />
+    <WavyDivider />
+
+    <!-- Pattern 6: Organic Parchment Data Sovereignty Plaque -->
+    <NotesStayYoursSection />
+
+    <!-- Pattern 7: Open Source Community Hub -->
+    <CommunitySection />
+
+    <!-- Pattern 8: Final Illuminated Call-to-Action Card -->
     <ClosingSection />
   </main>
 
   <SiteFooter />
-
-  <script>
-    import { mountHeroOrbit } from '../scripts/orbitController';
-
-    // Mount 360-degree interactive thought orbit
-    mountHeroOrbit();
-
-    // Role Tab Switching
-    const roleTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-role-tab]'));
-    roleTabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        roleTabs.forEach((t) => {
-          t.classList.remove('is-active');
-          t.setAttribute('aria-selected', 'false');
-        });
-        tab.classList.add('is-active');
-        tab.setAttribute('aria-selected', 'true');
-      });
-    });
-
-    // Workflow Tab Switching
-    const wfTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-wf-tab]'));
-    wfTabs.forEach((tab) => {
-      tab.addEventListener('click', () => {
-        wfTabs.forEach((t) => {
-          t.classList.remove('is-active');
-          t.setAttribute('aria-selected', 'false');
-        });
-        tab.classList.add('is-active');
-        tab.setAttribute('aria-selected', 'true');
-      });
-    });
-  </script>
 </BaseLayout>

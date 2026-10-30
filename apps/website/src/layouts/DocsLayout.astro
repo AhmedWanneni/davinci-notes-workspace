@@ -1,0 +1,76 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import DocsSidebar from '../components/docs/DocsSidebar.astro';
+import DocsTableOfContents from '../components/docs/DocsTableOfContents.astro';
+import '../styles/docs-layout.css';
+import '../styles/docs-content.css';
+
+interface TocItem {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  toc?: TocItem[];
+}
+
+const { title, description, toc = [] } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<BaseLayout title={`${title} — DaVinci Notes Docs`} description={description}>
+  <div class="docs-page-wrapper">
+    <SiteNav />
+
+    <div class="docs-main-container">
+      <DocsSidebar currentPath={currentPath} />
+
+      <main class="docs-content" id="docs-content">
+        <slot />
+      </main>
+
+      {toc.length > 0 && <DocsTableOfContents items={toc} />}
+    </div>
+
+    <SiteFooter />
+  </div>
+
+  <script>
+    import mermaid from 'mermaid';
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      securityLevel: 'loose',
+      fontFamily: '"IBM Plex Mono", monospace',
+      themeVariables: {
+        darkMode: false,
+        background: '#ebd0a9',
+        mainBkg: '#f6dfbe',
+        nodeBorder: '#c85e13',
+        primaryColor: '#fcf4e8',
+        primaryTextColor: '#1c140d',
+        primaryBorderColor: '#c85e13',
+        lineColor: '#6b5744',
+        secondaryColor: '#dfc297',
+        tertiaryColor: '#fffbf4',
+        border1: '#c85e13',
+        edgeLabelBackground: '#f6dfbe',
+        clusterBkg: '#dfc297',
+        clusterBorder: '#c85e13',
+        titleColor: '#1c140d',
+      },
+    });
+
+    // Run mermaid on load
+    document.addEventListener('DOMContentLoaded', () => {
+      mermaid.run({
+        querySelector: '.mermaid',
+      });
+    });
+  </script>
+</BaseLayout>

@@ -1,0 +1,112 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'ask-your-vault', title: 'What is Ask Your Vault?' },
+  { id: 'citations', title: 'Answers with Citations' },
+  { id: 'privacy-first', title: 'Privacy & Offline AI' },
+  { id: 'how-to-setup', title: 'How to Turn it On' },
+];
+
+const simpleAiMermaid = `
+flowchart LR
+    Ask["💬 You Ask: 'What did I plan for the marketing launch?'"] --> Search["🔍 AI Finds Related Notes in Your Vault"]
+    Search --> Answer["✨ Answers with Direct Links to [[Your Notes]]"]
+`;
+---
+
+<DocsLayout
+  title="AI Assistant (Ask Your Vault)"
+  description="How to ask questions and search your notes with private AI."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>AI</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">AI Assistant (Ask Your Vault)</h1>
+    <p class="docs-lead">
+      Chat with your notes. Ask questions in natural everyday language, and the assistant finds the exact answers across your notebook with clickable source links.
+    </p>
+  </header>
+
+  <section id="ask-your-vault" class="docs-section">
+    <h2 class="docs-section-title">What is "Ask Your Vault"?</h2>
+    <p class="docs-paragraph">
+      As your notebook grows to hundreds of notes, remembering where you wrote a specific recipe, quote, or meeting decision can be tough. The AI assistant acts as a personal librarian: ask a question like <em>"What were the three key takeaways from our meeting with David?"</em> and it reads your notes to give you the summary.
+    </p>
+    <DocsMermaid chart={simpleAiMermaid} caption="How the AI assistant answers your questions" />
+  </section>
+
+  <section id="citations" class="docs-section">
+    <h2 class="docs-section-title">Answers with Verified Citations</h2>
+    <p class="docs-paragraph">
+      Unlike generic chatbots that make up facts, DaVinci Notes only answers using your actual notes. Every single sentence is backed by a clickable <span class="docs-code-inline">[[source link]]</span> so you can verify the original text yourself.
+    </p>
+  </section>
+
+  <section id="privacy-first" class="docs-section">
+    <h2 class="docs-section-title">Privacy & Offline AI</h2>
+    <p class="docs-paragraph">Your thoughts are private, so DaVinci gives you total control:</p>
+    <div class="docs-table-wrapper">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>How it protects you</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>100% Offline with Ollama</strong></td>
+            <td>Run models like Llama 3 right on your laptop. Zero data ever leaves your computer!</td>
+          </tr>
+          <tr>
+            <td><strong>Cloud Active Glow</strong></td>
+            <td>A small indicator glows whenever AI is thinking, so you always know when network activity happens.</td>
+          </tr>
+          <tr>
+            <td><strong>No Silent Training</strong></td>
+            <td>Your notes are never used to train public AI models.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="how-to-setup" class="docs-section">
+    <h2 class="docs-section-title">How to Turn it On</h2>
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Open AI Settings</div>
+          <p>Go to <strong>Settings &gt; AI Assistant</strong>.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Pick your model</div>
+          <p>Choose <strong>Ollama</strong> (free and offline) or paste your own API key for OpenAI, Claude, or Google Gemini.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">3</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Start asking questions</div>
+          <p>Click the <strong>Sparkle icon</strong> in the right sidebar to open the chat drawer and ask anything about your notes!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Syncing with Phone (No Cloud)', href: '/docs/sync' }}
+    next={{ title: 'Google Calendar & Reminders', href: '/docs/calendar' }}
+  />
+</DocsLayout>

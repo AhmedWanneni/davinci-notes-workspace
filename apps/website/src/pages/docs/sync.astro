@@ -1,0 +1,107 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'how-it-works', title: 'Private Sync Without Cloud Servers' },
+  { id: 'scan-to-sync', title: '3 Steps to Connect Your Phone' },
+  { id: 'offline-safety', title: 'Offline Edits & Conflict Safety' },
+  { id: 'google-drive', title: 'Alternative: Google Drive' },
+];
+
+const simpleSyncMermaid = `
+sequenceDiagram
+    autonumber
+    actor You
+    participant Computer as 💻 Your Computer
+    participant Phone as 📱 Your Phone
+
+    You->>Computer: Open Settings > Sync (Show QR Code)
+    You->>Phone: Open App & Tap "Scan to Sync"
+    Phone->>Computer: Scan QR Code with Phone Camera
+    Computer->>You: "Allow your phone to connect?"
+    You->>Computer: Click "Accept & Share"
+    Computer-->>Phone: 🔒 Notes Sync Directly Device-to-Device!
+`;
+---
+
+<DocsLayout
+  title="Syncing with Phone (No Cloud Needed)"
+  description="How to connect your phone and computer to sync your notes privately."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Sync</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Syncing with Phone (No Cloud Needed)</h1>
+    <p class="docs-lead">
+      Keep your notes in sync between your computer and phone without uploading private personal data to company cloud servers.
+    </p>
+  </header>
+
+  <section id="how-it-works" class="docs-section">
+    <h2 class="docs-section-title">Private Sync Without Cloud Servers</h2>
+    <p class="docs-paragraph">
+      Traditional apps require you to create an account, upload all your private notes to their servers, and pay monthly subscriptions. DaVinci Notes connects your phone and computer directly together using built-in, secure peer-to-peer sync.
+    </p>
+    <DocsCallout type="note" title="100% Private & Free">
+      Your notes travel directly between your devices over your home Wi-Fi or encrypted connections. No middleman ever sees your files.
+    </DocsCallout>
+  </section>
+
+  <section id="scan-to-sync" class="docs-section">
+    <h2 class="docs-section-title">3 Steps to Connect Your Phone</h2>
+    <DocsMermaid chart={simpleSyncMermaid} caption="Quick 3-step phone pairing" />
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Show QR Code on Computer</div>
+          <p>On your desktop app, open <strong>Settings &gt; Sync & Backup</strong>. A QR code and 6-digit code will appear on your screen.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Scan with Phone App</div>
+          <p>Open DaVinci Notes on your phone and tap <strong>Scan to Sync</strong>. Point your camera at your computer screen.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">3</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Tap "Accept" on Computer</div>
+          <p>A message pops up on your computer asking to confirm the connection. Click <strong>Accept & Share</strong>. Your notes will immediately start syncing!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="offline-safety" class="docs-section">
+    <h2 class="docs-section-title">What Happens if You Edit Offline?</h2>
+    <p class="docs-paragraph">
+      If you take notes on your phone while on an airplane without Wi-Fi, everything is saved locally. When your devices reconnect:
+    </p>
+    <ul class="docs-paragraph" style="padding-left: 1.5rem; color: var(--logseq-text-body);">
+      <li>New notes you wrote on either device automatically copy over.</li>
+      <li>If you edited different parts of the same note, DaVinci combines both edits cleanly.</li>
+      <li>If you typed on the exact same line, both versions are kept safely so you never lose a single word.</li>
+    </ul>
+  </section>
+
+  <section id="google-drive" class="docs-section">
+    <h2 class="docs-section-title">Alternative: Google Drive</h2>
+    <p class="docs-paragraph">
+      If you prefer standard cloud storage, you can also sign in with Google Drive under <strong>Settings &gt; Sync</strong>. DaVinci Notes only accesses files it creates, keeping the rest of your Drive untouched.
+    </p>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Finding Notes (Search & Switcher)', href: '/docs/search' }}
+    next={{ title: 'AI Assistant (Ask Your Vault)', href: '/docs/ai' }}
+  />
+</DocsLayout>

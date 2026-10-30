@@ -1,0 +1,94 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsCodeCard from '../../components/docs/DocsCodeCard.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'google-calendar', title: 'Connecting Google Calendar' },
+  { id: 'reminders', title: 'Setting Task Reminders' },
+  { id: 'system-tray', title: 'System Tray Quick Menu' },
+];
+
+const simpleCalendarMermaid = `
+flowchart LR
+    Task["- [ ] Call doctor @remind(today 3pm)"] --> Alert["⏰ Your Computer Alerts You at 3:00 PM"]
+    Alert --> Click["Clicking Notification Jumps Straight to Note"]
+`;
+
+const reminderExample = `## Today's Plan
+- [ ] Submit weekly report @remind(2026-10-26 09:00)
+- [ ] Team sync meeting @remind(every monday 10:00)
+- [ ] Buy groceries @due(tomorrow)`;
+---
+
+<DocsLayout
+  title="Google Calendar & Task Reminders"
+  description="How to see your calendar and set inline task reminders inside your notes."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Calendar</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Google Calendar & Task Reminders</h1>
+    <p class="docs-lead">
+      Never miss a meeting or deadline. Connect your Google Calendar to see your schedule alongside your notes, and turn tasks into desktop reminder alerts with simple text tags.
+    </p>
+  </header>
+
+  <section id="google-calendar" class="docs-section">
+    <h2 class="docs-section-title">Connecting Google Calendar</h2>
+    <p class="docs-paragraph">
+      To see your calendar events right inside DaVinci Notes, go to <strong>Settings &gt; Calendar</strong> and click <strong>Connect Google Calendar</strong>. Your schedule will sync smoothly so you can link meetings directly to your meeting notes!
+    </p>
+  </section>
+
+  <section id="reminders" class="docs-section">
+    <h2 class="docs-section-title">Setting Task Reminders</h2>
+    <p class="docs-paragraph">
+      You don't need a separate to-do list app. Add <span class="docs-code-inline">@remind</span> to any checklist item in your notes:
+    </p>
+    <DocsCodeCard title="Notes with Reminders" lang="markdown" code={reminderExample} />
+    <DocsMermaid chart={simpleCalendarMermaid} caption="How inline task reminders trigger alerts" />
+
+    <div class="docs-table-wrapper">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Type this</th>
+            <th>When it reminds you</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>@remind(2026-10-26 09:00)</code></td>
+            <td>Alerts you on October 26 at 9:00 AM.</td>
+          </tr>
+          <tr>
+            <td><code>@remind(every monday 10:00)</code></td>
+            <td>Repeats automatically every single Monday.</td>
+          </tr>
+          <tr>
+            <td><code>@due(tomorrow)</code></td>
+            <td>Calculates tomorrow's date automatically.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="system-tray" class="docs-section">
+    <h2 class="docs-section-title">System Tray Quick Menu</h2>
+    <p class="docs-paragraph">
+      DaVinci sits in your computer menu bar (top on Mac, bottom right on Windows). Click the icon anytime to see today's agenda, check off completed tasks, or write a quick note without opening the full app.
+    </p>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'AI Assistant (Ask Your Vault)', href: '/docs/ai' }}
+    next={{ title: 'Saving Web Articles (Clipper)', href: '/docs/clipper' }}
+  />
+</DocsLayout>
