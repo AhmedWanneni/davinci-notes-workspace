@@ -8,6 +8,7 @@ export interface QuickCaptureFooterProps {
   canSave: boolean;
   onSave: () => void;
   onDismiss: () => void;
+  onQuit?: () => void;
   onRecord?: () => void;
 }
 
@@ -16,6 +17,7 @@ export function QuickCaptureFooter({
   canSave,
   onSave,
   onDismiss,
+  onQuit,
   onRecord,
 }: QuickCaptureFooterProps) {
   return (
@@ -48,12 +50,22 @@ export function QuickCaptureFooter({
         )}
         <button
           type="button"
-          className={styles["quick-capture-quit-btn"]}
+          className={styles["quick-capture-close-btn"]}
           onClick={onDismiss}
-          aria-label="Quit quick capture"
+          aria-label="Close quick capture"
         >
-          Quit
+          Close
         </button>
+        {onQuit && (
+          <button
+            type="button"
+            className={styles["quick-capture-quit-btn"]}
+            onClick={onQuit}
+            aria-label="Quit application"
+          >
+            Quit
+          </button>
+        )}
       </div>
     </div>
   );

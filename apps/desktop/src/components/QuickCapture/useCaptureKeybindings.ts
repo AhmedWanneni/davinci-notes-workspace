@@ -7,6 +7,7 @@ export interface UseCaptureKeybindingsOptions {
   text: string;
   onSave: (content: string) => void;
   onDismiss: () => void;
+  onQuit?: () => void;
   onOpenNote: (path: string) => void;
   onStartRecord?: () => void;
   nameInputRef: RefObject<HTMLInputElement | null>;
@@ -24,6 +25,7 @@ export function useCaptureKeybindings({
   text,
   onSave,
   onDismiss,
+  onQuit,
   onOpenNote,
   onStartRecord,
   nameInputRef,
@@ -41,7 +43,11 @@ export function useCaptureKeybindings({
     } else if (e.key === "Tab" && !e.shiftKey) {
       e.preventDefault();
       nameInputRef.current?.focus();
-    } else if (e.key === "Escape" || (isMod && (key === "q" || key === "w"))) {
+    } else if (isMod && key === "q") {
+      e.preventDefault();
+      if (onQuit) onQuit();
+      else onDismiss();
+    } else if (e.key === "Escape" || (isMod && key === "w")) {
       e.preventDefault();
       onDismiss();
     } else if ((isMod && key === "s") || (isMod && e.key === "Enter")) {
@@ -56,11 +62,15 @@ export function useCaptureKeybindings({
     if (isMod && key === "k") {
       e.preventDefault();
       setMode("capture");
+    } else if (isMod && key === "q") {
+      e.preventDefault();
+      if (onQuit) onQuit();
+      else onDismiss();
     } else if (e.key === "Escape") {
       e.preventDefault();
       search.resetSearch();
       setMode("capture");
-    } else if (isMod && (key === "q" || key === "w")) {
+    } else if (isMod && key === "w") {
       e.preventDefault();
       onDismiss();
     } else if (e.key === "ArrowDown") {

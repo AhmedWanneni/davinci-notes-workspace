@@ -4,7 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix `pnpm dev` Tauri CLI Argument Mismatch
+## Last Session — QuickCapture Application Quit & Complete Teardown
+
+**Scope:** Add an explicit, user-friendly "Quit" option in `QuickCapture` that terminates the entire application completely (shutting down background Syncthing sidecar daemon, stopping vault watcher, destroying tray icon, and exiting process without lingering in the macOS menu bar / system tray).
+
+**What was done:**
+1. **Rust Backend Commands (`apps/desktop/src-tauri/src/capture_commands.rs`, `tray_commands.rs`, `lib.rs`)**:
+   - Added `quick_capture_quit_app` Tauri command in `capture_commands.rs` authorized for capture window (`authorize_capture_window`) that delegates directly to `crate::tray::trigger_clean_quit(&app)`.
+   - Updated `request_app_exit` in `tray_commands.rs` to authorize capture window (`authorize_capture_window` instead of rejecting it) and gracefully terminate Syncthing sidecar (`mgr.shutdown_on_exit(&app)`).
+   - Registered `capture_commands::quick_capture_quit_app` in Tauri `invoke_handler`.
+2. **Frontend Capture Actions & Shortcuts (`apps/desktop/src/components/QuickCapture/`)**:
+   - Updated `useCaptureActions.ts` with `onQuit` option and `handleQuit` helper that invokes `quick_capture_quit_app` with graceful fallback to `request_app_exit`.
+   - Updated `useCaptureKeybindings.ts` to map `Cmd+Q` / `Ctrl+Q` to `onQuit()` (quitting the entire app), while preserving `Esc` and `Cmd+W` for popover dismissal (`onDismiss()`).
+   - Updated `QuickCaptureHints.tsx` to display `⌘Q Quit` alongside `Esc Close` in all modes (`capture`, `reminder`, `record`, `search`).
+3. **UI Controls & Semantic Differentiation (`QuickCaptureHeader`, `QuickCaptureFooter`)**:
+   - Added distinct "Close" button (`onDismiss`, hides popover) and "Quit" button (`onQuit`, terminates the application completely).
+   - Styled `.quick-capture-close-btn` and `.quick-capture-quit-btn` using design tokens, with hover danger accent (`--color-text-error`) on Quit.
+4. **Testing & Line Limit Compliance**:
+   - Updated and expanded unit tests across `QuickCapture.test.tsx`, `QuickCaptureSearch.test.tsx`, and `useCaptureActions.test.ts` (all 38 test suites pass).
+   - Maintained all modified files strictly below the 250-line limit per `AGENTS.md`.
+
+---
+
+## Next Up
+- Verify end-to-end Quit behavior from QuickCapture popover on macOS tray launch.
+- Package release smoke checks.
+- Verify development live-reload and watch mode across desktop frontend.
+
+---
+
+## Previous Session — Fix `pnpm dev` Tauri CLI Argument Mismatch
 
 **Scope:** Fix `error: unexpected argument '--ignore-version-mismatches' found` during `pnpm dev` in `@app/desktop`.
 
@@ -18,14 +47,6 @@ Updated at the end of every session. Read this first, before touching code. Full
 3. **Verification**:
    - Verified `pnpm --filter @app/desktop dev --help` runs and exits with code 0.
    - Verified that passing `--ignore-version-mismatches` explicitly to `dev` is safely stripped without crash.
-
----
-
-## Next Up
-- Verify development live-reload and watch mode across desktop frontend.
-- Monitor GitHub Actions release pipeline run 41118195862 to completion.
-- Verify Windows .exe and Linux .AppImage/.deb downloads live on `https://sophia-notes.pages.dev/download`.
-- Verify end-to-end user experience across platforms.
 
 ---
 

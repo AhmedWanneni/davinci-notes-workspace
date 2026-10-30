@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: QuickCapture Application Quit & Complete Teardown
+
+- **Tauri Native Quit Pipeline (`apps/desktop/src-tauri/`)**:
+  - Implemented `quick_capture_quit_app` in `capture_commands.rs`, permitting invocations from the capture window (`authorize_capture_window`) and routing into `crate::tray::trigger_clean_quit(&app)`.
+  - Updated `request_app_exit` in `tray_commands.rs` to allow the capture window and trigger graceful child daemon shutdown on Syncthing (`mgr.shutdown_on_exit(&app)`).
+  - Ensured that when quitting from QuickCapture, the app cleanly flushes dirty editor buffers (via `davinci-clean-quit`), halts `VaultWatcher`, terminates `syncthing`, destroys the macOS menu bar tray icon, and exits with code 0.
+- **Frontend QuickCapture Actions & Keybindings (`apps/desktop/src/components/QuickCapture/`)**:
+  - Enhanced `useCaptureActions.ts` with `handleQuit`, defaulting to `quick_capture_quit_app` and falling back to `request_app_exit`.
+  - Updated `useCaptureKeybindings.ts` so `Cmd+Q` / `Ctrl+Q` invokes application quit (`onQuit`), while `Escape` and `Cmd+W` dismiss the popover (`onDismiss`).
+  - Updated `QuickCaptureHints.tsx` to display `⌘Q Quit` and `Esc Close`.
+- **UI Header & Footer Refinements**:
+  - Differentiated popover dismissal ("Close") from application termination ("Quit") in `QuickCaptureHeader` and `QuickCaptureFooter`.
+  - Styled with CSS variables (`--color-text-error` on hover for destructive quit action, `--color-border-subtle`).
+- **Test Suite & Verification**:
+  - Added unit test cases for Quit button click and `Cmd+Q` keyboard shortcut in `QuickCapture.test.tsx` and `useCaptureActions.test.ts`.
+  - Kept all files under the 250-line rule enforced by `AGENTS.md`.
+
+---
+
 ### 2026-10-30: Fix `pnpm dev` Tauri CLI Argument Mismatch
 
 - **CLI Flag Separation for Dev vs. Build**:
@@ -5685,14 +5704,12 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - **Text File Three-Way Merge**:
   - Selected `node-diff3` (unpacked ~151 KB, gzipped ~3.5 KB, zero dependencies) for line-based diff3 merge in `packages/sync-client/conflictResolver.ts`.
   - Non-overlapping text edits merge automatically into clean text (`hasConflict: false`, `kind: "text-merge-clean"`).
-  - Overlapping text edits insert inline markers (`<<<<<<< local`, `=======`, `>>>>>>> remote`) and return `hasConflict: true` with `kind: "text-merge-conflict"` for UI surfacing.
-- **Wikilink Safety Verification (Adversarial Test)**:
+  - Overlapping text edits insert inline markers (`- **Wikilink Safety Verification (Adversarial Test)**:
   - Tested conflict-marked content containing `[[Project Alpha|Local Alias]]` and `[[Project Alpha|Remote Alias]]` against the real `@app/indexer` `parseLinks` parser.
   - Confirmed indexer parses conflict markers cleanly without panicking, throwing errors, or corrupting link definitions.
 - **Canvas JSON Safety Verification (Adversarial Test)**:
   - Evaluated simultaneous edits on `.canvas` files.
-  - Decision: `.canvas` files return `false` for `isTextMergeable` (atomic/binary conflict resolution). Line-based diff3 merge on JSON files introduces `<<<<<<<` conflict markers or invalid JSON syntax, causing `JSON.parse` to throw `SyntaxError` and corrupting canvas files.
-  - Atomic resolution generates `diagram (iPad copy).canvas`. Both local and remote versions were parsed with `JSON.parse` in adversarial tests — confirmed 100% valid, openable JSON Canvas 1.0 files without syntax errors.
+  - Decision: `.canvas` files return `false` for `isTextMergeable` (atomic/binary conflict resolution). Line-based diff3 merge on JSON files introduces `  - Atomic resolution generates `diagram (iPad copy).canvas`. Both local and remote versions were parsed with `JSON.parse` in adversarial tests — confirmed 100% valid, openable JSON Canvas 1.0 files without syntax errors.
 - **Binary File Conflicts**:
   - Binary files (`.png`, `.jpg`, `.pdf`) and `.canvas` files generate `<name> (<device-name> copy).<ext>`.
   - Filename collisions chain to the space-separated numeric suffix convention from ADR-0110 (`<name> (<device-name> copy) 1.<ext>`).

@@ -23,7 +23,10 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
             <kbd className={styles["quick-capture-kbd"]}>⌘K</kbd> Search
           </span>
           <span className={styles["quick-capture-hint-item"]}>
-            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
+            <kbd className={styles["quick-capture-kbd"]}>⌘Q</kbd> Quit
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Close
           </span>
         </>
       ) : mode === "reminder" ? (
@@ -33,7 +36,10 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
             reminder
           </span>
           <span className={styles["quick-capture-hint-item"]}>
-            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
+            <kbd className={styles["quick-capture-kbd"]}>⌘Q</kbd> Quit
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Close
           </span>
         </>
       ) : mode === "record" ? (
@@ -46,7 +52,10 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
             <kbd className={styles["quick-capture-kbd"]}>⌘S</kbd> Save note
           </span>
           <span className={styles["quick-capture-hint-item"]}>
-            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Quit
+            <kbd className={styles["quick-capture-kbd"]}>⌘Q</kbd> Quit
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>Esc</kbd> Close
           </span>
         </>
       ) : (
@@ -56,6 +65,9 @@ export function QuickCaptureHints({ mode }: QuickCaptureHintsProps) {
           </span>
           <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>⏎</kbd> Open
+          </span>
+          <span className={styles["quick-capture-hint-item"]}>
+            <kbd className={styles["quick-capture-kbd"]}>⌘Q</kbd> Quit
           </span>
           <span className={styles["quick-capture-hint-item"]}>
             <kbd className={styles["quick-capture-kbd"]}>Tab/Esc</kbd> Capture

@@ -3,8 +3,13 @@ import { invoke } from "@tauri-apps/api/core";
 import type { QuickCaptureMode } from "./QuickCaptureHeader";
 
 export interface UseCaptureActionsOptions {
-  onSave?: (text: string, filename?: string, folder?: string) => Promise<void> | void;
+  onSave?: (
+    text: string,
+    filename?: string,
+    folder?: string,
+  ) => Promise<void> | void;
   onDismiss?: () => Promise<void> | void;
+  onQuit?: () => Promise<void> | void;
   onOpenNote?: (path: string) => Promise<void> | void;
   filename: string;
   folder: string;
@@ -22,6 +27,7 @@ const toErrorText = (err: unknown, fallback: string) =>
 export function useCaptureActions({
   onSave,
   onDismiss,
+  onQuit,
   onOpenNote,
   filename,
   folder,
@@ -45,6 +51,23 @@ export function useCaptureActions({
     else void invoke("quick_capture_dismiss").catch(() => {});
   };
 
+  const handleQuit = async () => {
+    setErrorMessage(null);
+    setSavedDestination(null);
+    setAutoStartRecord(false);
+    resetSearch();
+    setMode("capture");
+    if (onQuit) {
+      await onQuit();
+    } else {
+      try {
+        await invoke("quick_capture_quit_app");
+      } catch {
+        void invoke("request_app_exit").catch(() => {});
+      }
+    }
+  };
+
   const handleSave = async (
     content: string,
     overrideFilename?: string,
@@ -55,7 +78,11 @@ export function useCaptureActions({
       await handleDismiss();
       return;
     }
-    const clearInputs = () => { setText(""); setFilename(""); setFolder(""); };
+    const clearInputs = () => {
+      setText("");
+      setFilename("");
+      setFolder("");
+    };
     setErrorMessage(null);
     try {
       const fName = (overrideFilename ?? filename).trim() || undefined;
@@ -65,11 +92,14 @@ export function useCaptureActions({
         else await onSave(content);
         clearInputs();
       } else {
-        const res = await invoke<{ path: string; isAppend: boolean }>("quick_capture_save", {
-          text: content,
-          filename: fName ?? null,
-          folder: fDir ?? null,
-        });
+        const res = await invoke<{ path: string; isAppend: boolean }>(
+          "quick_capture_save",
+          {
+            text: content,
+            filename: fName ?? null,
+            folder: fDir ?? null,
+          },
+        );
         setSavedDestination(res.path);
         setTimeout(() => {
           clearInputs();
@@ -99,6 +129,7 @@ export function useCaptureActions({
     errorMessage,
     setErrorMessage,
     handleDismiss,
+    handleQuit,
     handleSave,
     handleOpenNote,
   };
