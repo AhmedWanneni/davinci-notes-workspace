@@ -16,6 +16,23 @@ build_macos_target() {
   ui_info "Building macOS application package (${target})..."
   if [[ "$OSTYPE" == "darwin"* ]]; then
     (cd apps/desktop && pnpm exec node scripts/withCompatibleMacSdk.mjs tauri build --ignore-version-mismatches --target "$target")
+    local b_app="${repo_root}/apps/desktop/src-tauri/target/${target}/release/bundle/macos/Sophia.app"
+    [[ ! -d "$b_app" ]] && b_app="${repo_root}/apps/desktop/src-tauri/target/release/bundle/macos/Sophia.app"
+    if [[ -d "$b_app" ]]; then
+      ui_info "Applying clean ad-hoc signature to prevent Gatekeeper damage error..."
+      gatekeeper_sign_app "$b_app"
+      local b_dmg="${repo_root}/apps/desktop/src-tauri/target/${target}/release/bundle/dmg"
+      [[ ! -d "$b_dmg" ]] && b_dmg="${repo_root}/apps/desktop/src-tauri/target/release/bundle/dmg"
+      if [[ -d "$b_dmg" ]] && command -v hdiutil >/dev/null 2>&1; then
+        local d_file
+        d_file="$(ls -t "${b_dmg}/"*.dmg 2>/dev/null | head -1 || true)"
+        if [[ -n "$d_file" ]]; then
+          ui_info "Packaging verified Sophia.app into DMG..."
+          rm -f "$d_file"
+          hdiutil create -volname "Sophia" -srcfolder "$b_app" -ov -format UDZO "$d_file" -quiet
+        fi
+      fi
+    fi
     installer_sync_from_tauri "$repo_root"
     local inst_dir
     inst_dir="$(installer_get_dir "$repo_root")"
@@ -158,15 +175,15 @@ build_menu() {
     ui_banner
     status_render_bar "$repo_root"
     ui_section "Build Applications & Installers" "🔨"
-
-    printf "  ${C_BOLD}1)${C_RESET} 🍏 ${C_BOLD}Build macOS Application${C_RESET} (${C_CYAN}Compile DMG & App packages${C_RESET})\n"
-    printf "  ${C_BOLD}2)${C_RESET} 🪟 ${C_BOLD}Build Windows Installer${C_RESET} (${C_CYAN}EXE / MSI packages${C_RESET})\n"
-    printf "  ${C_BOLD}3)${C_RESET} 🐧 ${C_BOLD}Build Linux Installer${C_RESET}   (${C_CYAN}AppImage & DEB packages${C_RESET})\n"
-    printf "  ${C_BOLD}4)${C_RESET} 📦 ${C_BOLD}Manage Ready Installers & Install Now${C_RESET} (${C_CYAN}One-click install/run${C_RESET})\n"
-    printf "  ${C_BOLD}5)${C_RESET} 🌐 Build Frontend Web Assets Only (${C_CYAN}pnpm build:web${C_RESET})\n"
-    printf "  ${C_BOLD}6)${C_RESET} 🧹 Clean Build Caches (${C_CYAN}Clean dist, turbo, target${C_RESET})\n"
-    printf "  ${C_BOLD}b)${C_RESET} Back to Main Menu\n\n"
-    printf "  ${C_BOLD}Select an option [1-6]:${C_RESET} "
+    ui_menu_item "1" "🍏" "Build macOS App" "Compile DMG & App (Ad-hoc signed)"
+    ui_menu_item "2" "🪟" "Build Windows Installer" "EXE / MSI packages"
+    ui_menu_item "3" "🐧" "Build Linux Installer" "AppImage & DEB packages"
+    ui_menu_item "4" "📦" "Installers Manager" "One-click install/run & path reveal"
+    ui_menu_item "5" "🌐" "Build Web Assets" "pnpm build:web"
+    ui_menu_item "6" "🧹" "Clean Build Caches" "Clean dist, turbo, target"
+    ui_menu_item "b" "↩ " "Back to Main Menu" ""
+    ui_section_end
+    printf "  ${C_CYAN}${C_BOLD}Select an option [1-6, b]:${C_RESET} "
 
     local choice
     read -r choice || break
