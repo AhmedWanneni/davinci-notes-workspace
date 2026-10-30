@@ -43,32 +43,40 @@ function LinkCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
 
   const embedUrl = useMemo(() => getEmbedUrl(url), [url]);
 
-  const handleResizeEnd = useCallback(() => {
-    setNodes((nodes) => {
-      const next = nodes.map((node) => {
-        if (node.id !== id) return node;
-        const width =
-          typeof node.style?.width === "number"
-            ? node.style.width
-            : DEFAULT_LINK_CARD_WIDTH;
-        const height =
-          typeof node.style?.height === "number"
-            ? node.style.height
-            : DEFAULT_LINK_CARD_HEIGHT;
-        const [, gridY] = CANVAS_SNAP_GRID;
-        return {
-          ...node,
-          style: {
-            ...node.style,
-            width: snapToGrid(width, CANVAS_SNAP_GRID[0]),
-            height: snapToGrid(height, gridY),
-          },
-        };
+  const handleResizeEnd = useCallback(
+    (_event: unknown, p: { x: number; y: number; width: number; height: number }) => {
+      setNodes((nodes) => {
+        const next = nodes.map((node) => {
+          if (node.id !== id) return node;
+          const w = Number.isFinite(p.width)
+            ? p.width
+            : typeof node.style?.width === "number"
+              ? node.style.width
+              : DEFAULT_LINK_CARD_WIDTH;
+          const h = Number.isFinite(p.height)
+            ? p.height
+            : typeof node.style?.height === "number"
+              ? node.style.height
+              : DEFAULT_LINK_CARD_HEIGHT;
+          const posX = Number.isFinite(p.x) ? p.x : node.position.x;
+          const posY = Number.isFinite(p.y) ? p.y : node.position.y;
+          const [gx, gy] = CANVAS_SNAP_GRID;
+          return {
+            ...node,
+            position: { x: snapToGrid(posX, gx), y: snapToGrid(posY, gy) },
+            style: {
+              ...node.style,
+              width: snapToGrid(w, gx),
+              height: snapToGrid(h, gy),
+            },
+          };
+        });
+        queueMicrotask(onLayoutChange);
+        return next;
       });
-      queueMicrotask(onLayoutChange);
-      return next;
-    });
-  }, [id, onLayoutChange, setNodes]);
+    },
+    [id, onLayoutChange, setNodes],
+  );
 
   const handleSaveUrl = useCallback(
     (newUrl: string) => {

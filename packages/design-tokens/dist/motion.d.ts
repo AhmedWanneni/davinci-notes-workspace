@@ -1,14 +1,14 @@
 export interface MotionDurationTokens {
-  readonly fast: string;
-  readonly base: string;
-  readonly slow: string;
+    readonly fast: string;
+    readonly base: string;
+    readonly slow: string;
 }
 export interface MotionEaseTokens {
-  readonly standard: string;
+    readonly standard: string;
 }
 export interface MotionTokens {
-  readonly duration: MotionDurationTokens;
-  readonly ease: MotionEaseTokens;
+    readonly duration: MotionDurationTokens;
+    readonly ease: MotionEaseTokens;
 }
 export declare const motionDurationTokens: MotionDurationTokens;
 export declare const motionEaseTokens: MotionEaseTokens;

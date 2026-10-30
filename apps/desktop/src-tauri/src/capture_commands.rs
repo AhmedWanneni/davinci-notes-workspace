@@ -29,7 +29,14 @@ pub fn quick_capture_save(
 #[tauri::command]
 pub fn quick_capture_dismiss(window: WebviewWindow) -> Result<(), String> {
   authorize_capture_window(&window)?;
-  let _ = window.hide();
+  #[cfg(target_os = "macos")]
+  {
+    let _ = crate::macos_panel::hide_capture_panel(&window.as_ref().window());
+  }
+  #[cfg(not(target_os = "macos"))]
+  {
+    let _ = window.hide();
+  }
   Ok(())
 }
 
@@ -104,7 +111,14 @@ pub fn open_note_from_capture(
       serde_json::json!({ "path": path }),
     );
   }
-  let _ = window.hide();
+  #[cfg(target_os = "macos")]
+  {
+    let _ = crate::macos_panel::hide_capture_panel(&window.as_ref().window());
+  }
+  #[cfg(not(target_os = "macos"))]
+  {
+    let _ = window.hide();
+  }
   Ok(())
 }
 

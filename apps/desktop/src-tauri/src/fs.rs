@@ -193,7 +193,9 @@ pub fn open_vault(window: WebviewWindow, app: AppHandle, path: String) -> Result
 
   let chosen = PathBuf::from(path);
 
-  if !chosen.is_dir() {
+  if !chosen.exists() {
+    fs::create_dir_all(&chosen).map_err(|e| format!("Cannot create vault directory: {e}"))?;
+  } else if !chosen.is_dir() {
     return Err("Selected path is not a directory".to_string());
   }
 
@@ -329,6 +331,14 @@ pub fn write_note(window: WebviewWindow, app: AppHandle, path: String, content: 
     .as_millis() as i64;
   let size = meta.len();
   Ok(NoteStatPayload { exists: true, mtime, size })
+}
+
+#[tauri::command]
+pub fn read_binary_file(window: WebviewWindow, app: AppHandle, path: String) -> Result<Vec<u8>, String> {
+  reject_plugin_runner(&window)?;
+  let vault_root = app.state::<VaultState>().get_root()?;
+  let absolute = resolve_in_vault(&vault_root, &path)?;
+  fs::read(&absolute).map_err(|e| format!("Read binary failed: {e}"))
 }
 
 #[tauri::command]

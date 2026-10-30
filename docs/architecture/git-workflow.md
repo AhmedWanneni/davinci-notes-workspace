@@ -16,9 +16,10 @@ main                    ← always deployable, protected
   └─ chore/eslint-boundaries
 ```
 
-- Branch naming: `feat/`, `fix/`, `chore/`, `refactor/`, `docs/` prefixes — makes CI able to apply different rules per type if needed later (e.g. skip visual regression on `docs/`).
+- Branch naming: **ALL branches created by AI agents MUST start with `feat/`, `fix/`, or `chore/`** (e.g. `feat/wikilink-parser`, `fix/sync-conflict-race`, `chore/bump-deps`).
 - One branch per concern, matching the "one AI change = one commit" rule — branches should rarely outlive a single PR.
 - `main` is protected: no direct pushes, PR + passing CI + review required.
+- **Push & PR requirement**: On pushing a branch, the agent must open a Pull Request with an informative title (conventional commit style), a comprehensive description of changes and commits, direct markdown links to relevant ADRs in `docs/adr/`, and a completed checklist.
 
 ## 2. Commit Convention
 
@@ -157,15 +158,20 @@ On `main`:
 
 ```md
 ## What
-(one sentence — matches the branch's single concern)
+(Detailed description of what this PR introduces and why — matches the branch's single concern)
 
-## Why
-(link to PROGRESS.md item or DECISIONS.md entry if relevant)
+## Architecture Decision Records (ADRs)
+(Clickable links to relevant ADRs under docs/adr/XXXX-...md, e.g. [ADR-0116](docs/adr/0116-sync-via-drive-syncthing-no-owned-backend.md))
+
+## Commits & Changes Breakdown
+- `type(scope)`: Description of commit
 
 ## Checklist
-- [ ] File size / folder rules followed (AGENTS.md)
+- [ ] Branch starts with `feat/`, `fix/`, or `chore/`
+- [ ] PR title is descriptive and follows conventional commits
+- [ ] File size soft cap (150-200) / hard cap (250 lines) followed (`AGENTS.md`)
 - [ ] Story + test added for new components
-- [ ] PROGRESS.md updated
+- [ ] `PROGRESS.md` & `docs/HISTORY.md` updated
 - [ ] Changeset added (if this ships a package change)
 ```
 

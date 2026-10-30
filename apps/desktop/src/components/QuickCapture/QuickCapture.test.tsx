@@ -4,17 +4,24 @@ import { describe, expect, it, vi } from "vitest";
 import { QuickCapture } from "./QuickCapture";
 
 describe("QuickCapture", () => {
-  it("renders textarea, counter, and keyboard hints", () => {
+  it("renders textarea, counter, keyboard hints, and record button", () => {
     render(<QuickCapture />);
 
-    expect(
-      screen.getByRole("textbox", { name: /quick capture text/i }),
-    ).toBeDefined();
+    expect(screen.getByRole("textbox", { name: /quick capture text/i })).toBeDefined();
     expect(screen.getByText(/0 \/ 10000/)).toBeDefined();
     expect(screen.getByRole("button", { name: /save note/i })).toBeDefined();
-    expect(
-      screen.getAllByRole("button", { name: /quit quick capture/i }).length,
-    ).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: /start recording/i })).toBeDefined();
+    expect(screen.getAllByRole("button", { name: /quit quick capture/i }).length).toBeGreaterThan(0);
+  });
+
+  it("switches to record mode when Record button is clicked", async () => {
+    render(<QuickCapture />);
+    fireEvent.click(screen.getByRole("button", { name: /start recording/i }));
+    await waitFor(() => {
+      expect(
+        screen.getByRole("region", { name: /voice recording section/i }),
+      ).toBeDefined();
+    });
   });
 
   it("submits on Cmd+S and clears input", async () => {
@@ -63,9 +70,7 @@ describe("QuickCapture", () => {
       name: /quick capture text/i,
     });
     fireEvent.change(textarea, { target: { value: "Line one" } });
-
     fireEvent.keyDown(textarea, { key: "Enter" });
-
     expect(handleSave).not.toHaveBeenCalled();
   });
 

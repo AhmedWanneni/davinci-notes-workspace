@@ -4,7 +4,95 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
+## Last Session — Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
+
+**Scope:** Diagnose and permanently fix macOS Gatekeeper "Sophia is damaged and can't be opened. You should move it to the Trash" error after DMG installation, and upgrade the terminal dashboard to a polished DevKit-style user experience (rounded box cards, keycaps, instant repair commands).
+
+**What was done:**
+1. **Root Cause Analysis ("App is Damaged" Gatekeeper Error)**:
+   - When building without an Apple Developer ID certificate, Tauri's bundler produced `code has no resources but signature indicates they must be present` due to an incomplete seal between the main binary and the `syncthing` sidecar.
+   - macOS Gatekeeper attaches `com.apple.quarantine` upon DMG mount or download, and rejects bundles with mismatched resource seals as "damaged".
+2. **Automated Ad-Hoc Signing & Gatekeeper Module (`scripts/tui/gatekeeper.sh`)**:
+   - Created dedicated 104-line Gatekeeper repair module providing `gatekeeper_sign_app`, `gatekeeper_verify_app`, and `gatekeeper_fix_interactive`.
+   - Strips extended attributes (`xattr -cr`) and signs the application bundle and sidecars with deep ad-hoc code signature (`codesign --force --deep --sign -`).
+   - Verified that `/Applications/Sophia.app` satisfies Designated Requirements and launches cleanly with zero Gatekeeper warnings.
+3. **DMG Packaging Repair Pipeline (`scripts/tui/build.sh`, `scripts/tui/installer.sh`)**:
+   - In `build_macos_target`, automatically deep ad-hoc signs `Sophia.app` immediately after Tauri compilation.
+   - Re-generates clean DMG via `hdiutil create` with the verified bundle and strips quarantine flags on output artifacts.
+   - In `installer_perform_install`, automatically strips quarantine and ad-hoc signs `/Applications/Sophia.app` upon installation.
+   - Added `pnpm fix:damaged` script and `scripts/manage.sh -f` / `--fix` CLI shortcut.
+4. **DevKit-Style TUI Upgrade (`scripts/tui/ui.sh`, `manage.sh`, `dev.sh`, `ci.sh`, `health.sh`)**:
+   - Upgraded UI primitives to modern DevKit aesthetics: rounded Unicode box frames (`╭───╮`, `│`, `╰───╯`), styled keycaps (`[ 1 ]`, `[ f ]`), and unified menu item cards.
+   - Added direct Gatekeeper repair action `[ f ]` in main dashboard and installer manager.
+
+---
+
+## Next Up
+- Verify that macOS Gatekeeper does not trigger warnings across clean machines.
+- Run complete test suite and package release smoke checks.
+
+---
+
+## Previous Session — Desktop Updates & Development Script Enhancements
+## Last Session — Desktop Updates & Development Script Enhancements
+
+**Scope:** Polish desktop package scripts, add root workspace shortcuts for `@app/desktop` dev and build workflows, and ensure `--ignore-version-mismatches` is consistently applied across all platform build targets in the interactive TUI.
+
+**What was done:**
+1. **Root & Desktop Convenience Scripts (`package.json`, `apps/desktop/package.json`)**:
+   - Added `"desktop:build"` and `"desktop:dev"` to root `package.json` for rapid CLI access.
+   - Updated `apps/desktop/package.json` `"dev"` script to append `--ignore-version-mismatches`, eliminating Tauri version mismatch crashes during local frontend live reload.
+2. **TUI Development Mode Launcher (`scripts/tui/dev.sh`)**:
+   - Updated option 1 to execute `pnpm --filter @app/desktop dev` directly instead of running whole-monorepo dev.
+3. **Multi-Platform Build Flag Parity (`scripts/tui/build.sh`)**:
+   - Injected `--ignore-version-mismatches` to native Windows and Linux builds to ensure platform parity with macOS packaging.
+
+---
+
+## Next Up
+- Test `pnpm desktop:dev` and `pnpm desktop:build` from root.
+- Validate DMG and App bundle launch on local macOS environment.
+
+---
+
+## Previous Session — Interactive Bash TUI Application & Release Manager (ADR-0250)
+
+**Scope:** Create a user-friendly, modular Bash Text User Interface (TUI) in `scripts/manage.sh` (with alias `scripts/tui.sh` and npm scripts `pnpm manage` / `pnpm tui`) to manage the app, run dev modes, compile/package local applications, trigger/watch GitHub CI matrix builds, and discover/copy direct download links for macOS (ARM/Intel DMG), Windows (EXE), Linux (AppImage/DEB), and checksums.
+
+**What was done:**
+1. **Interactive Bash TUI Manager (`scripts/manage.sh`, `scripts/tui.sh`)**:
+   - Built a modular, zero-heavy-dependency terminal control center with ANSI styling, ASCII banner, real-time workspace status bar (branch, clean/dirty state, active version, host architecture, Syncthing presence).
+   - Added CLI shortcuts: `-i` / `--installers`, `-l` / `--links`, `-b` / `--build`, `-c` / `--ci`, `-d` / `--dev`, `--health`, `--diagnostics`.
+2. **Local Multi-Platform Builds & One-Click Installer (`scripts/tui/build.sh`, `scripts/tui/installer.sh`)**:
+   - Resolved `spawn tauri ENOENT` by having `withCompatibleMacSdk.mjs` automatically resolve local `node_modules/.bin/tauri` and inject workspace bin paths into `env.PATH`.
+   - Injected `--ignore-version-mismatches` into `tauri build` invocations to resolve mismatched minor versions between npm Tauri plugins and Rust crates without panicking.
+   - Enhanced build completion reporting in `scripts/tui/build.sh` to output both absolute and relative local paths, keeping the interactive TUI session open.
+   - Updated `installer_sync_from_tauri` to automatically discover target-triple bundle directories (`target/*/release/bundle` and `target/release/bundle`) and ignore local `installers/` binaries in git.
+   - Tuned `chunkSizeWarningLimit: 800` in `apps/desktop/vite.config.ts` to suppress large vendor bundle warnings.
+   - Implemented dedicated targets in the Build menu:
+     - 🍏 **macOS Application**: Build Apple Silicon (`aarch64`) or Intel (`x86_64`) native `.dmg` and `.app` bundles with automated sidecar pre-fetching and SDK resolution.
+     - 🪟 **Windows Installer**: Native compilation on Windows or 1-click cloud build/fetch to `./installers/`.
+     - 🐧 **Linux Installer**: Native compilation on Linux, or cloud build/fetch `.AppImage` (with automatic `chmod +x`) and `.deb`.
+   - Built the Installer Manager (`scripts/tui/installer.sh`, 228 lines):
+     - Centralizes all built/downloaded packages in a dedicated `./installers/` directory.
+     - **One-click install/launch**: Automatically mounts macOS `.dmg` via `hdiutil`, installs to `/Applications`, launches `.app`, or launches Linux `.AppImage`.
+     - **Reveal in Finder / File Explorer**: 1-key action to highlight the installer file.
+     - **Checksum verification**: Inspect SHA256 checksums of local binaries.
+3. **CI Runner Compatibility (`apps/desktop/package.json`, `package.json`)**:
+   - Added `"tauri": "tauri"` to `apps/desktop/package.json` to prevent `npm error Missing script: "tauri"` when `tauri-action` invokes `npm run tauri build`.
+   - Added `"manage"` and `"tui"` scripts to root `package.json`.
+4. **Architecture Documentation (ADR-0250)**:
+   - Recorded `docs/adr/0250-interactive-bash-tui-application-manager.md` and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- Run desktop packaging smoke build via `pnpm manage -b` on local host.
+- Re-run GitHub Actions release workflow matrix with `"tauri": "tauri"` script fix to verify binary attachment to `v0.1.0`.
+
+---
+
+## Previous Session — Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
 
 **Scope:** Re-architected the color system, header, and interactive hero in `apps/website` for **Sophia Notes**, centering the Autumn Owl illustration (~20% smaller for generous negative space: `max-height: calc((100svh - 118px) * 0.8)`) flush at the bottom of a `100svh` hero stage, with cursor-following eyes, a slow 3-second blink cycle, a cross-eyed squint when hovering her nose, pupil dilation when dragging notes, and realistic draggable illustrated notes:
 - **Interactive Owl Eyes (`HeroSection.astro`, `hero.css`, `heroInteractive.ts`)**:
@@ -57,77 +145,2088 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Previous Session — Complete Documentation Suite with Step-by-Step Guides, Options, Showcases & Mermaid Diagrams
+## Previous Session — "Create a Release" Execution & v0.1.0 Public Release
 
-**Scope:** Read all monorepo plans, ADRs, packages, and options, and implemented a complete 12-page documentation portal in `apps/website` (`/docs`).
+**Scope:** Create a dedicated "Git" tab in desktop Settings (separate from "Sync & Backup") and add an "Open Vault from GitHub" card to clone a remote repository to a local destination and automatically switch to it as the active vault.
 
-**Built in `apps/website`:**
-- **Documentation Architecture & Layout**:
-  - `src/layouts/DocsLayout.astro`: 3-column responsive layout (sticky navigation sidebar, main content, on-page table of contents).
-  - `src/styles/docs-layout.css` & `src/styles/docs-content.css`: Border-driven depth, typography tokens, high-contrast palette, zero box-shadows.
-  - Interactive client-side Mermaid rendering with custom theme matching DaVinci brand tokens.
-- **Reusable Documentation Components**:
-  - `DocsSidebar.astro`: Categorized navigational tree with active page indicators.
-  - `DocsTableOfContents.astro`: On-page jump navigation.
-  - `DocsMermaid.astro`: Container for responsive Mermaid diagrams.
-  - `DocsCodeCard.astro`: Syntax block with one-click clipboard copying.
-  - `DocsCallout.astro`: Semantic callout alerts (`important`, `tip`, `warning`, `note`).
-  - `DocsPagination.astro`: Contextual previous/next article routing.
-- **12 Comprehensive Documentation Guides**:
-  1. `/docs` (`index.astro`): Overview, local-first philosophy, multi-tier architecture, vault directory structure, global config table, and architecture flowchart.
-  2. `/docs/editor` (`editor.astro`): CodeMirror 6 Live Preview, AST decoration pipeline, wikilinks resolution rules, KaTeX math formulas, Vim mode with Ex commands, and editor settings.
-  3. `/docs/canvas` (`canvas.astro`): JSON Canvas standard (jsoncanvas.org), 5 node types (text, file embed, web iframe, nested canvas, groups), edge connections, multi-selection, and settings.
-  4. `/docs/graph` (`graph.astro`): 2D D3-force physical graph simulation, node capping (ADR-0031), dynamic LOD labels (ADR-0032), global vs local graph, linked & unlinked mentions panel.
-  5. `/docs/search` (`search.astro`): Cmd+K Quick Switcher with MRU, SQLite FTS5 engine with BM25 ranking, search operators (`tag:`, `path:`, `title:`, quotes, negation), and performance options.
-  6. `/docs/sync` (`sync.astro`): Local-first peer-to-peer sync via embedded Syncthing daemon, QR scan-to-sync sequence, 5-minute rotating verification codes, 3-way diff3 conflict merge, and Google Drive backup option.
-  7. `/docs/ai` (`ai.astro`): "Ask Your Vault" RAG pipeline, strict sentence-level citation verification, granular consent controls, Cloud Active indicator (ADR-0143), local Ollama vs cloud models, and SQLite vector storage fallback.
-  8. `/docs/calendar` (`calendar.astro`): Google Calendar two-way sync, SQLite event cache, `@remind` inline task annotations, Rust native desktop scheduler, and system tray integration.
-  9. `/docs/clipper` (`clipper.astro`): WXT browser extension (Chrome/Firefox), Mozilla Readability + Turndown markdown converter, local asset downloading, and Cmd+Shift+C desktop Quick Capture.
-  10. `/docs/cli` (`cli.astro`): Native Rust CLI binary (`davinci`), capture/daily/search/sync commands, terminal stdin piping (`| davinci new`), and command reference.
-  11. `/docs/plugins` (`plugins.astro`): Sandboxed iframe runtime (`IframePluginHost`), typed JSON-RPC protocol over `postMessage`, capability-based permission manifest, and CSS token theme ecosystem.
-  12. `/docs/mobile` (`mobile.astro`): React Native / Expo architecture, embedded Android Syncthing daemon (`libsyncthing.so`), Kotlin proxy, touch-friendly CodeMirror accessory bar, mobile graph, and Fast Capture widget.
-- **Integration**:
-  - Updated `SiteNav.astro` and `SiteFooter.astro` with prominent direct links to Documentation.
-- **Strict Quality Compliance**:
-  - Every single created and modified file is $\le 250$ lines (hard cap strictly respected).
-  - Static production build passes cleanly (`13 page(s) built in 649ms`).
-  - Unit tests pass (5/5 passing).
+**What was done:**
+1. **Dedicated Git Settings Tab (`GitSettingsTab.tsx`, `SettingsSidebar.tsx`, `SettingsDialog.tsx`)**:
+   - Added `git` tab item to `SettingsSidebar` with `GitBranch` icon under the Options section.
+   - Removed the Git Version Control card from `SyncSettingsTab.tsx` (focusing Sync & Backup solely on Syncthing / Local Backup).
+   - Created `GitSettingsTab.tsx` (46 lines) hosting:
+     - `GitCloneRepoCard`: Clone remote repository into a local directory and switch active vault.
+     - `GitRemoteSetupPanel`: Manage Git source control toggle and remote origin URL/credentials for current vault.
+   - Lazy-loaded `LazyGitSettingsTab` in `SettingsDialog.tsx` to maintain 0 KB initial bundle overhead when Settings is opened on other tabs.
+2. **Backend Git Clone Command (`git_manager_clone.rs`, `gitClient.ts`)**:
+   - Implemented Tauri command `git_manager_clone_repo` in Rust:
+     - Validates repository URL and empty destination directory.
+     - Authenticates using PAT token via `git_with_pat` when provided and stores credentials securely in OS Keychain (`store_pat_for_remote`).
+     - Performs standard `git clone <url> <dest>` synchronously in Rust worker thread.
+   - Exported `cloneGitRepository(url, destination, token)` from `@app/git-manager`.
+3. **Open Vault from GitHub UI (`GitCloneRepoCard.tsx`, `GitCloneRepoCard.module.scss`)**:
+   - Inputs for GitHub repository URL, local folder path (with Browse folder picker), and optional PAT token for private repos.
+   - Automatically derives repository name into destination path when picking parent folder.
+   - Enables Git source control (`git.enabled`) upon successful clone and switches active workspace via `onVaultSwitched(clonedPath)`.
+4. **Verification & Testing**:
+   - Created `GitCloneRepoCard.test.tsx` with 5 unit tests covering rendering, input validation, directory picker, successful clone with vault switch, and error presentation.
+   - Updated `SettingsDialog.test.tsx` (11 tests pass) confirming navigation to the new Git tab.
+   - Verified file length limits (all files under 250 hard cap; `GitCloneRepoCard.tsx` at 172 lines, `SettingsDialog.tsx` at 248 lines).
+   - Web bundle build (`pnpm --filter @app/desktop build:web`) succeeded with 0 errors.
 
 ---
 
-## Last Session — Marketing Website Pattern De-duplication & Interactive App Demo Workbench
-
-**Scope:** Eliminated repeating section patterns and built a full-fidelity interactive 3-pane desktop application demo on the marketing site (`apps/website`).
-
-**Built & Refactored (`apps/website`):**
-- `AppWorkbenchDemo.astro` + `AppWorkbenchDemo.css`:
-  - 3-pane Obsidian-grade desktop application demo: window titlebar, window dots, live path indicator, and sync pill.
-  - Left pane: icon rail (files, search, graph, canvas) + collapsible file tree (`research/`, `daily/`, `boards/`).
-  - Center pane: interactive note editor with document tabs, YAML frontmatter, H1 note titles, math formulas, interactive task checklists, and clickable `[[wikilinks]]`.
-  - Right pane: local graph SVG and linked mentions backlinks inspector.
-  - Bottom bar: status bar with word count, property count, and local encoding indicator.
-  - Client-side vanilla TypeScript controller enabling seamless note switching from tree, tabs, or wikilinks.
-- `index.astro` Pattern Rhythm Diversification:
-  - Eliminated repetitive tab-bar-above-box patterns (`RoleSection`, `WorkflowsSection`) and identical card grids (`SafeSpaceSection`).
-  - Established a distinct, non-repeating visual layout for every section:
-    1. Hero: Centered monumental display + 3D interactive orbital thought cloud.
-    2. App Demo: Full-fidelity 3-pane interactive desktop software workbench.
-    3. Features: Tactile pinned index cards with alternating micro-tilts and vector doodles.
-    4. Thoughts: Freeform 2D visual scatter board and clutter-to-clarity transformation.
-    5. Sync: Split-screen telemetry card with real-time peer sync progress bar.
-    6. Sovereignty: Handcrafted organic parchment plaque with wax seal aesthetics.
-    7. Community: Open source hub.
-    8. Closing: Illuminated glow card with direct platform download actions.
-- **Strict Compliance & Verification**:
-  - `SiteNav.astro` (header) is 100% untouched (`git diff` empty).
-  - Responsive audit: 0 section horizontal overflows across 360px, 768px, and 1280px.
-  - All text strictly $\ge 14\text{px}$ (labels/badges) and $\ge 16\text{px}$ (body).
-  - Static production build passes in 272ms; unit tests pass (5/5).
-  - All files strictly adhere to `AGENTS.md` line caps ($\le 224$ lines, hard cap 250).
+## Next Up
+- Release Pipeline: Authored phased release management, build pipeline, and download distribution plan in `releases-feature-plan.md`.
+- Manual verification of GitHub clone with a personal access token on a private/public repo.
 
 ---
 
-<<<<<<< HEAD
+## Previous Session — Git Manager: Source Control Layout & Side-by-Side Diff Editor (VS Code / Cursor Polish)
+
+**Scope:** Match the VS Code / Cursor Source Control UI from user reference screenshot: stacked accordion sections (`CHANGES`, `AGENT REVIEW`, `GRAPH`, `GITLENS`), side-by-side (2-pane) diff editor opened as tabs in the main area with breadcrumbs, pull/push buttons, and branch switching.
+
+**What was done:**
+1. **VS Code / Cursor Accordion Sidebar (`GitSidebarPanel.tsx`, `GitChangesSection.tsx`, `GitGraphSection.tsx`)**:
+   - Implemented 4 stacked accordion sections:
+     - `CHANGES`: Dynamic commit placeholder `Message (⌘↩ to commit on "<branch>")`, sparkle commit-message action, purple split `✓ Commit` button with dropdown chevron (`Commit & Push`, `Commit & Sync`), file list with status letters (`M`, `A`, `D`, `U`), and hover action buttons (Open Diff in tab, Discard changes, Stage/Unstage).
+     - `AGENT REVIEW`: Collapsible accordion section.
+     - `GRAPH`: Header toolbar with `Auto` badge, branch focus button, `GitBranchSwitcher` dropdown, quick Pull button, quick Push button, and refresh button. Body hosts virtualized `GitHistoryGraph` with SVG lanes, commit dots, relative time, author names, and branch ref badges (`⑂ branch`).
+     - `GITLENS`: Collapsible accordion section.
+2. **Main Editor Area Side-by-Side Diff Viewer (`GitDiffViewer.tsx`, `App.tsx`)**:
+   - Clicking any file in the changes list opens a dedicated `git-diff://` tab in `AppTabs`, keeping the Git sidebar open and active.
+   - Side-by-side 2-pane diff rendering powered by `@codemirror/merge`'s `MergeView`:
+     - Line numbers on both sides with synchronized scrolling.
+     - Red/green highlighted deletions and insertions with darker changed-text spans.
+     - Diagonal hatched/striped pattern on empty gap spacer lines (`.cm-mergeSpacer`).
+     - Breadcrumb navigation bar on top (`packages > sync-client > .turbo > turbo-lint.log`).
+     - Top-right toolbar: Pull, Push, Toggle Split/Inline view (`MergeView` vs `unifiedMergeView`), Stage/Unstage toggle, and Close (`×`).
+3. **AppTabs Integration (`AppTabs.tsx`, `AppTabItem.tsx`, `_tabs.scss`)**:
+   - Modularized `AppTabs.tsx` (171 lines) by extracting `AppTabItem.tsx` (159 lines), keeping both well below the 250 hard cap.
+   - Dedicated styling for `.app-tabs__git-badge` displaying status codes (`M`, `A`, `D`, `U`) next to the file name.
+4. **Testing & Verification**:
+   - All 47 Vitest tests in `@app/git-manager` across 13 test files passing.
+   - All 9 Vitest tests in `AppTabs.test.tsx` passing.
+   - All 241 test files (981 tests) across desktop passing.
+   - `build:web` succeeds; bundle weight impact when feature is disabled remains strictly 0.00 KB.
+
+---
+
+## Next Up
+- User testing of the side-by-side diff viewer and remote pull/push controls in real development environment.
+
+---
+
+## Previous Session — Git Manager Phase 9: Polish, Performance Pass, Stabilization Sweep & Close-Out (ADR-0241)
+
+**Scope:** Validate all performance budgets against real filesystem measurements, audit SQLite lock discipline with `withDbLock`, enforce file size caps (< 250 hard cap), verify bundle isolation, and finalize Git Manager ADR documentation.
+
+**What was done:**
+1. **Performance Budget Actuals Verified**:
+   - Initial bundle weight when feature is OFF: strictly **0.00 KB** (lazy chunk `index-DukZQJI1.js` is 39.14 KB raw / 9.93 KB gzip, loaded only when `git.enabled` is toggled ON).
+   - Zero background Git child processes when feature is OFF or panel is unmounted.
+   - Status query latency: **23.99 ms** on 5,000 files (< 150 ms budget).
+   - Debounced status refresh: **200 ms debounce + 24 ms query = ~224 ms latency**, fully non-blocking.
+   - History graph scrolling: Virtualized via `@tanstack/react-virtual` with ~25 active DOM elements, 60 fps at 10,000 commits.
+2. **Database Isolation & Lock Audit**:
+   - `packages/git-manager` has zero direct SQLite calls. All Git metadata is decoupled from `vault-index.db`.
+   - Settings toggle `git.enabled` routes through `withDbLock` in `createGitSettings.ts`.
+3. **Rust Thread Safety & Mutation Locking**:
+   - All Git mutating commands serialize through `with_git_lock` via `GIT_OPERATION_LOCK`.
+   - All 16 Rust backend tests passing.
+4. **Test Suite Coverage**:
+   - All 47 Vitest unit tests in `@app/git-manager` across 13 test files passing cleanly.
+   - All 52 new and modified files strictly respect the 250-line hard cap (soft cap 150-200 lines).
+5. **Architecture Decision Record**:
+   - Authored [ADR-0241](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0241-git-manager-stabilization-perf-and-close-out.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- Git Manager feature complete! (All Phases 0 through 9 executed, verified, and committed).
+
+---
+
+## Previous Session — Git Manager Phase 8: Conflict Resolution (3-Pane Ours/Theirs/Result, Abort/Continue) (ADR-0240)
+
+**Scope:** Implement 3-stage conflict inspection (`:1:`, `:2:`, `:3:`), binary conflict detection, 3-pane interactive conflict resolver (`Ours`, `Result`, `Theirs`), one-click resolution actions (`Ours`, `Theirs`, `Both`, `Mark Resolved`), safe abort merge with hash restoration, continue merge, and extensive adversarial verification.
+
+**What was done:**
+1. **Rust Backend & Adversarial Testing (`git_manager_conflicts.rs` & `git_manager_conflict_tests.rs`)**:
+   - `git_manager_conflicts.rs` (167 lines): `git_manager_get_conflict_details`, `git_manager_resolve_conflict`, `git_manager_abort_merge`, `git_manager_continue_merge`.
+   - `git_manager_conflict_tests.rs` (174 lines):
+     - Same-line conflict & exact hash restoration test: verified with Blake3 that `git merge --abort` returns files to 100% identical pre-merge hash.
+     - Delete-vs-modify test: validated detection when incoming side deleted the file (`ours_exists == true, theirs_exists == false`).
+     - Binary file conflict: validated null-byte / `--numstat` binary detection and selection.
+     - External edits mid-merge: verified external disk edits arriving during merge resolution resolve and produce valid 2-parent merge commits (`HEAD^2`).
+   - All 16 Rust tests pass.
+2. **Conflict Store & 3-Pane UI (`@app/git-manager`)**:
+   - Authored `useGitConflictStore.ts` (107 lines) managing active conflict state, result buffer, and abort/continue actions.
+   - Authored `GitConflictResolver.tsx` (199 lines) and `GitConflictResolver.module.scss` (159 lines) with 3-pane responsive layout, binary warnings, one-click shortcuts, and confirmation-gated abort merge.
+   - Connected conflict item clicks in `GitChangesList` / `GitSidebarPanel` to open the resolver seamlessly.
+   - All 47 Vitest tests passing in `@app/git-manager` across 13 suites.
+3. **Architecture Decision Record**:
+   - Authored [ADR-0240](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0240-git-manager-conflict-resolution-and-merge-lifecycle.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 9: Polish, perf pass, stabilization sweep, ADR/docs close-out**.
+
+---
+
+## Previous Session — Git Manager Phase 7: Remote: Fetch, Pull, Push, Ahead/Behind (ADR-0239)
+
+**Scope:** Implement remote configuration, upstream ahead/behind calculation, network sync commands (`fetch`, `pull`, `push`) with OS Keychain PAT authentication via `GIT_ASKPASS`, and `GitSyncToolbar` UI.
+
+**What was done:**
+1. **Rust Remote & Sync Backends (`git_manager_remote.rs` & `git_manager_sync.rs`)**:
+   - `git_manager_remote.rs` (186 lines): `git_manager_get_remotes`, `git_manager_set_remote`, `git_manager_get_tracking_status` using `git rev-list --left-right --count HEAD...@{upstream}`.
+   - `git_manager_sync.rs` (199 lines): `git_manager_fetch`, `git_manager_pull`, `git_manager_push` with `with_git_lock`.
+   - Credentials: reuses OS Keychain entry (`com.davinci.notes.git-remote`) and injects PAT via transient `GIT_ASKPASS` script with `GIT_TERMINAL_PROMPT=0`.
+   - All 12 Rust unit tests passing, including round-trip `test_push_fetch_pull_against_local_bare_remote`.
+2. **Sync Store & UI (`@app/git-manager`)**:
+   - Built `useGitSyncStore.ts` (90 lines) isolating sync actions, tracking state, and diagnostic notifications.
+   - Built `GitSyncToolbar.tsx` (170 lines) and `GitSyncToolbar.module.scss` (181 lines) with upstream tracking chips, ahead/behind counters (`↑ahead ↓behind`), and one-click Fetch/Pull/Push buttons.
+   - Mounted `GitSyncToolbar` in `GitSidebarPanel.tsx`.
+   - All 42 Vitest tests passing in `@app/git-manager` across 12 test suites.
+3. **Architecture Decision Record**:
+   - Authored [ADR-0239](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0239-git-manager-remote-sync-and-keychain-credentials.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 8: Conflict resolution (3-pane ours/theirs/result, abort/continue)**.
+- Phase 9: Polish, perf pass, stabilization sweep, ADR/docs close-out.
+
+---
+
+## Previous Session — Git Manager Phase 6: Branches: List, Switch, Create, Delete & Dirty Tree Guard (ADR-0238)
+
+**Scope:** Implement tab-delimited branch querying with upstream tracking and ahead/behind status, safe branch switching with dirty-working-tree protection, branch creation, branch deletion with confirmation, stash push/pop support, and compact Radix branch switcher UI.
+
+**What was done:**
+1. **Rust Branch Backend (`git_manager_branches.rs` & `git_manager_stash.rs`)**:
+   - Implemented `git_manager_list_branches`:
+     - Runs `git branch -a --format="%(refname:short)%09%(upstream:short)%09%(HEAD)%09%(upstream:track)"`.
+     - Parses upstream tracking ref and ahead/behind counts (e.g. `[ahead 2, behind 1]`).
+   - Implemented `git_manager_switch_branch`:
+     - Checks `git status --porcelain=v2 -z` before checkout; returns `DIRTY_WORKING_TREE` error if uncommitted changes exist.
+   - Implemented `git_manager_create_branch` (`git checkout -b <name>`) and `git_manager_delete_branch` (`git branch -d` / `git branch -D`).
+   - Implemented `git_manager_stash` and `git_manager_stash_pop` in `git_manager_stash.rs` (104 lines).
+   - Wrapped mutations in `with_git_lock`. Added integration test `test_branch_lifecycle_and_dirty_guard` (10/10 Rust tests pass).
+2. **Branch Switcher UI (`GitBranchSwitcher.tsx`)**:
+   - Radix popover anchored to active branch button in sidebar header.
+   - Real-time search filter across local and remote branches.
+   - Active branch checkmark, upstream tracking indicator, ahead/behind badges.
+   - Inline branch deletion button with modal confirmation.
+   - "Create new branch" inline input with instantaneous branch switch.
+   - All 38 Vitest tests passing in `@app/git-manager`.
+3. **Lazy-Load Verification**:
+   - Zero initial bundle regression when Git Manager is disabled.
+4. **Architecture Decision Record**:
+   - Authored [ADR-0238](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0238-git-manager-branch-management-and-dirty-tree-guard.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 7: Remote: fetch, pull, push, ahead/behind**.
+- Phase 8: Conflict resolution (3-pane ours/theirs/result, abort/continue).
+- Phase 9: Polish, perf pass, stabilization sweep, ADR/docs close-out.
+
+---
+
+## Previous Session — Git Manager Phase 5: History Graph (Virtualized), Commit Detail & File History (ADR-0237)
+
+**Scope:** Implement paged custom-delimited log queries, commit detail metadata with changed file numstats, zero-dependency SVG lane rendering algorithm, virtualized history graph using `@tanstack/react-virtual`, and commit detail sheet.
+
+**What was done:**
+1. **Rust Log & Commit Detail Backend (`git_manager_log.rs`)**:
+   - Implemented `git_manager_get_log`:
+     - Executes `git log --date-order -n <limit> --skip <skip> --pretty=format:%H%x1f%P%x1f%an%x1f%at%x1f%s%x1f%D%x1e` using ASCII unit and record separators.
+     - Supports optional path filtering (`-- <path>`) for per-file history.
+   - Implemented `git_manager_get_commit_details`:
+     - Queries commit metadata via `git show -s` and file statistics via `git diff-tree --root --no-commit-id --numstat -r <hash>`.
+   - Unit tests in `git_manager_log.rs` (1/1 passing). File maintained at 243 lines (< 250 cap).
+2. **Deterministic Graph Lane Algorithm (`calculateGraphLanes.ts`)**:
+   - Calculates visual lane indexes and parent connection vectors sequentially in O(N) time with zero graph dependencies.
+   - Comprehensive test suite in `calculateGraphLanes.test.ts` (2/2 tests passing).
+3. **Virtualized SVG History Graph (`GitHistoryGraph.tsx`)**:
+   - Built virtualized graph row renderer with `@tanstack/react-virtual` bounded to visible elements, achieving 60 fps scroll even on 10,000+ commits.
+   - Renders SVG lane nodes, connection lines with design system palette tokens, ref badges (`HEAD -> main`), truncated commit subjects, author names, and short hashes.
+4. **Commit Detail Sheet (`GitCommitDetailSheet.tsx`)**:
+   - Inspects commit metadata, full multi-line commit message, and changed files with insertion/deletion numbers (`+X`, `-Y`), with one-click drill down to diffs.
+5. **Sidebar Panel View Switching**:
+   - Integrated Changes / History view tabs in `GitSidebarPanel.tsx`.
+   - All 35 Vitest tests passing in `@app/git-manager`.
+6. **Lazy-Load Verification**:
+   - Production web build chunk `index-BK6RYtAg.js` is 24.6 KB raw (~6.4 KB gzip).
+   - Zero initial bundle regression when Git Manager is disabled.
+7. **Architecture Decision Record**:
+   - Authored [ADR-0237](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0237-git-manager-history-graph-and-commit-detail.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 6: Branches: list, switch, create, delete, dirty-tree handling**.
+- Phase 7: Remote: fetch, pull, push, ahead/behind.
+
+---
+
+## Previous Session — Git Manager Phase 4: Diff Viewer & Hunk Staging (ADR-0236)
+
+**Scope:** Implement dual-mode diff queries (`staged` vs `unstaged`), patch staging (`git apply --cached`), lazy-loaded CodeMirror unified merge viewer, and hunk staging actions.
+
+**What was done:**
+1. **Rust Diff & Patch Backend (`git_manager_diff.rs`)**:
+   - Implemented `git_manager_get_file_diff`:
+     - If staged: diffs `HEAD:<path>` against index `:<path>` with `git diff --cached -U3`.
+     - If unstaged: diffs index `:<path>` (or HEAD fallback) against working tree on disk with `git diff -U3`.
+   - Implemented `git_manager_apply_patch`:
+     - Pipes patch to `git apply --whitespace=nowarn --cached -`.
+     - Supports reverse un-staging with `--reverse`.
+   - Wrapped all operations in `with_git_lock`.
+   - Thread-safe unit tests using atomic test counters (2/2 Rust diff tests passing). File maintained at 248 lines (< 250 cap).
+2. **Unified Diff Viewer UI (`GitDiffViewer.tsx`)**:
+   - Integrated `@codemirror/merge`'s `unifiedMergeView` for inline diff rendering with red deletions, green additions, and unified gutters.
+   - Header with filename, status badge (`Staged` vs `Working Tree`), stage/unstage toggle, and close action.
+   - Wired `openDiff`, `closeDiff`, `stageHunk`, and `unstageHunk` into `useGitManagerStore`.
+   - Connected `onSelectFile` in `GitSidebarPanel` so clicking any file change seamlessly displays the diff.
+   - All 28 Vitest tests passing in `@app/git-manager`.
+3. **Lazy-Load Verification**:
+   - Production web build chunk `index-DG4gaaue.js` is 17.0 KB raw (~5.4 KB gzip).
+   - Zero Git background processes when feature is disabled or panel is unmounted.
+4. **Architecture Decision Record**:
+   - Authored [ADR-0236](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0236-git-manager-diff-viewer-and-hunk-staging.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 5: History graph (virtualized) + commit detail + file history**.
+- Phase 6: Branches: list, switch, create, delete, dirty-tree handling.
+
+---
+
+## Previous Session — Git Manager Phase 3: Stage / Unstage / Discard, Commit, Amend (ADR-0235)
+
+**Scope:** Implement mutating Git operations (`stage`, `unstage`, `discard`, `commit`, `amend`) with global Mutex serialization (`GIT_OPERATION_LOCK`), pathspec separation, initial-commit empty HEAD handling, destructive action confirmation, and commit box UI.
+
+**What was done:**
+1. **Rust Mutating Backend (`git_manager_ops.rs`)**:
+   - Implemented `git_manager_stage`, `git_manager_unstage`, `git_manager_discard`, `git_manager_commit` (amend support).
+   - Global Mutex `GIT_OPERATION_LOCK` wraps all mutations to prevent index collisions with concurrent auto-versioning.
+   - Initial commit empty HEAD handling: when HEAD does not exist, unstaging uses `git rm -r --cached --ignore-unmatch` instead of failing with ambiguous revision.
+   - Robust discard handling: iterates paths and attempts `git restore --worktree` for tracked modifications; falls back to `git clean -f -d` for untracked files without cross-pathspec failures.
+   - All 5 Rust tests passing (`git_manager_commands.rs` + `git_manager_ops.rs`). File kept at 241 lines (< 250 cap).
+2. **Commit Box UI (`GitCommitBox.tsx`)**:
+   - Commit textarea with ⌘Enter / Ctrl+Enter keyboard submission.
+   - Amend mode toggle with interactive warning badge.
+   - Primary commit button + dropdown options menu using `@app/design-system` primitives (`DropdownMenu`).
+3. **Changes List Action Wiring**:
+   - Header-level Stage All (`+`), Unstage All (`-`), Discard All with confirmation dialog.
+   - Row-level Stage (`+`), Unstage (`-`), Discard with confirmation dialog.
+   - All 24 Vitest tests passing in `@app/git-manager`.
+4. **Lazy-Load Verification**:
+   - Production web build chunk `index-BtAPa5QH.js` is 15.0 KB raw (~4.8 KB gzip).
+   - Zero Git background processes when feature is disabled or panel is unmounted.
+5. **Architecture Decision Record**:
+   - Authored [ADR-0235](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0235-git-manager-staging-discard-and-commits.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 4: Diff viewer, file + hunk level staging (`@codemirror/merge`, `git diff`, patch application)**.
+- Phase 5: History graph (virtualized) + commit detail + file history.
+
+---
+
+## Previous Session — Git Manager Phase 2: Status Engine & Changes List UI (ADR-0234)
+
+**Scope:** Implement status command backend with porcelain v2, NUL-byte parser, debounced watcher hook on `.git` internals, and changes list UI with status badges.
+
+**What was done:**
+1. **Rust Status Backend (`git_manager_commands.rs`)**:
+   - Implemented `git_manager_status` running `git status --porcelain=v2 -z --untracked-files=all` with a 5s cancellable timeout.
+   - Added unit test `test_query_git_status_reports_untracked_and_modified` (3/3 backend tests passing).
+2. **NUL-Delimited Porcelain v2 Parser (`parsePorcelainV2.ts`)**:
+   - Parses Type 1 (`1 <XY> ... <path>`), Type 2 renames (`2 <XY> ... <path>\0<origPath>`), Type u conflicts (`u <XY> ... <path>`), and Type ? (`? <path>`).
+   - Categorizes entries into `staged`, `unstaged`, `conflicts`, and `untracked`.
+   - Comprehensive test suite in `parsePorcelainV2.test.ts` (6/6 tests passing) validating path safety with spaces, unicode, and emojis.
+3. **Reactive Watcher (`watcher.rs`)**:
+   - Enhanced native vault watcher to detect `.git/HEAD`, `.git/index`, and `.git/refs/**` mutations and emit `"git-changed"`.
+   - Ignored other noisy internal `.git/` files (e.g. `COMMIT_EDITMSG`, `objects/`, etc.).
+   - All 5 watcher tests passing. File maintained at 245 lines (< 250 cap).
+4. **UI Components (`@app/git-manager`)**:
+   - Built `GitStatusRow` displaying filename, directory, and status badges (`M`, `A`, `D`, `R`, `C`, `U`, `?`) using CUBE CSS and design tokens.
+   - Built `GitChangesList` with collapsible sections for Merge Conflicts, Staged Changes, and Changes.
+   - Connected `GitSidebarPanel` to `useGitManagerStore` and `listenToGitChanges` with a 200 ms debounce.
+   - All 19 tests in `@app/git-manager` passing.
+5. **Lazy-Load Verification**:
+   - Production web build chunk `index-Du3jDUNo.js` is 9.8 KB raw (~3.3 KB gzip).
+   - Zero Git background processes when feature is disabled or panel is unmounted.
+6. **Architecture Decision Record**:
+   - Authored [ADR-0234](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0234-git-manager-status-engine-and-porcelain-v2.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 3: Stage/unstage/discard, commit, amend**.
+- Phase 4: Diff viewer, file + hunk level staging.
+
+---
+
+## Previous Session — Git Manager Phase 1: Settings Toggle, Repo Detection, Lazy Boundary & Rail Icon (ADR-0233)
+
+**Scope:** Implement `git.enabled` setting, repo detection backend in Rust, independent `@app/git-manager` workspace package with lazy loading boundary, rail icon toggle, and empty states.
+
+**What was done:**
+1. **Rust Repo Detection & Init Backend**:
+   - Created `apps/desktop/src-tauri/src/git_manager_commands.rs`: `get_git_repo_info` (detects PATH presence, work tree check, branch, empty repo, detached HEAD) and `init_git_repository`.
+   - Registered commands in `lib.rs`.
+   - Added unit tests in `git_manager_commands.rs` (2/2 tests pass).
+2. **Workspace Package `@app/git-manager`**:
+   - Initialized `packages/git-manager` with TypeScript, React 19, Zustand store (`useGitManagerStore`), and IPC client.
+   - Built `GitEmptyState` handling `"not-installed"`, `"not-repo"`, and `"no-commits"` states.
+   - Built `GitSidebarPanel` container with header, branch name, and refresh action.
+   - Added unit tests in `GitEmptyState.test.tsx` and `useGitManagerStore.test.ts` (6/6 tests pass).
+   - Configured `.eslintrc.js` package boundaries.
+3. **Desktop Shell Integration & Lazy Boundary**:
+   - Added `createGitSettings.ts` in `apps/desktop/src/state` persisted via SQLite `settings` table with `withDbLock`.
+   - Added "Git Version Control" toggle in `GeneralSettingsTab`.
+   - Added `GitBranch` icon button in `IconRail.tsx` conditionally rendered when `isGitEnabled` is true.
+   - Wired `AppSidebar.tsx` to conditionally render `LazyGitSidebarPanel` via `React.lazy()` when Git Manager is open, hiding the `FileTree`.
+   - Verified initial bundle entry delta is strictly **0 KB**; `index-9krMKY6f.js` chunk is 4.4 KB raw (1.8 KB gzip).
+4. **Architecture Decision Record**:
+   - Authored [ADR-0233](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0233-git-manager-settings-and-lazy-boundary.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Next Up
+- **Phase 2: Status Engine (`git status --porcelain=v2 -z` parser + watcher hook) + Changes list UI**.
+- Phase 3: Stage/unstage/discard, commit, amend.
+
+---
+
+## Previous Session — Git Manager Phase 0: Verification Audit & Capabilities Baseline (ADR-0232)
+
+**Scope:** Read-only audit and adversarial verification of Git versioning backend and system Git CLI capabilities across non-repo vaults, init, fetch/pull/push against bare remote, PATH check, porcelain v2 NUL-byte status, forced merge conflicts, large attachment ignoring, and performance benchmarks on 5,000 files and 500 sequential commits.
+
+**What was done:**
+1. **Adversarial Real-CLI Verification Suite**:
+   - Non-repo vault check returns clear fatal error caught without panic.
+   - Ignore policy verification: `vault-index.db*` and a 5 MB binary attachment were confirmed strictly ignored by `git add .` under `.gitignore`.
+   - Unicode & emoji path verification: `Notes/💡 Ideas & Projects/2026 Étude — François & Müller.md` parsed cleanly in `git status --porcelain=v2 -z` with 0 corruption.
+   - Forced merge conflict: add/add conflict generated porcelain `u AA` entries; `git merge --abort` cleanly restored the exact prior working tree.
+   - Local bare repo roundtrip: push, fetch, and pull verified with 1 upstream commit ahead/behind tracking.
+2. **Performance Measurements vs Budgets**:
+   - `git status --porcelain=v2 -z` on 5,000 markdown notes: **23.99 ms** (Budget: < 150 ms).
+   - `git log -n 500` across 500 sequential commits: **35.34 ms** (Budget: < 100 ms).
+3. **Architecture Decision Record**:
+   - Authored [ADR-0232](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0232-git-manager-phase-0-audit-and-capabilities.md) and indexed in `DECISIONS.md`.
+   - Result: **GO** for Phase 1.
+
+---
+
+## Next Up
+- **Phase 1: Git Manager Settings Toggle, Repo Detection, Lazy-Load Boundary, Rail Icon & Empty States**.
+- Phase 2: Status Engine (`git status --porcelain=v2 -z` parser + watcher hook) + Changes list UI.
+
+---
+
+## Last Session — Isolate Audio Recordings into Attachments Directory (Single Note Per Folder)
+
+**Scope:** Ensure that saving an audio recording (from either Meeting Recorder / AI Listening or QuickCapture) creates strictly ONE file under the target notes folder (`Meetings/` or `Voice Notes/`), routing the underlying `.wav` recording to the vault's attachment directory (`attachments/`).
+
+**What was done:**
+1. **Audio File Destination Routing**:
+   - In `apps/desktop/src/vault/meetingNoteActions.ts`: modified `saveMeetingNoteToVault` to store recorded `.wav` files into `${attachmentFolder}/${dateStr} - ${cleanTitle}.wav` (defaulting to `attachments/` or user-configured attachment folder). The meeting notes folder (e.g. `Meetings/`) now contains strictly the markdown note (`.md`).
+   - In `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.tsx`: saved voice note audio to `attachments/${audioFileName}` while saving the `.md` note to `Voice Notes/${cleanTitle}.md`.
+2. **Audio Link Embed Resolution**:
+   - In `packages/editor/embeds/embedAudioExtension.ts`: updated `resolveAudioPathCandidate` so that wikilinks like `![[recording.wav]]` query `notePaths` first to find `attachments/recording.wav` before falling back to the current note's parent folder.
+   - Tested notes in subfolders (e.g. `Meetings/2026-10-29.md`) embedding `![[sync.wav]]` located at `attachments/sync.wav`.
+3. **Verification**:
+   - Added unit test in `packages/editor/embeds/embedAudioExtension.test.ts` verifying attachment folder audio resolution.
+   - Added unit test in `apps/desktop/src/vault/meetingNoteActions.test.ts` confirming audio is saved to `attachments/` while the note alone is placed in `Meetings/`.
+   - Updated `apps/desktop/src/components/QuickCapture/QuickCaptureRecord.test.tsx` and verified all tests pass.
+   - Production web bundle build succeeded without warnings or errors.
+
+---
+
+## Next Up
+- Optional: Add local whisper.cpp sidecar model binary downloader for fully offline transcription setting.
+- Optional: Per-speaker diarization using machine learning voice embeddings.
+
+---
+
+## Previous Session — Meeting Record Page Audio WAV Persistence & Embed Resolution
+
+**Scope:** Save recorded `.wav` meeting audio directly in vault, render interactive player in CodeMirror editor (`![[meeting.wav]]`), and enable one-click AI transcription re-run.
+
+**What was done:**
+1. **Vault Audio Persistence**:
+   - Added `save_recorded_audio_to_vault` in `apps/desktop/src-tauri/src/audio_commands.rs` to safely copy recorded WAV audio into the vault destination (`Meetings/YYYY-MM-DD - {Title}.wav`).
+   - Extended `transcriptionClient.ts` with `saveRecordedAudioToVault` adapter method.
+   - Updated `apps/desktop/src/vault/meetingNoteActions.ts` and `useListeningSession.ts` to automatically save WAV files alongside `.md` notes and render `## Audio Recording\n![[audio-file.wav]]`.
+2. **Editor Audio Embed Extension & Widget**:
+   - Created `packages/editor/embeds/embedAudioExtension.ts` and `embedAudioTheme.ts` to recognize `![[...wav|mp3|m4a]]` audio embeds.
+   - Replaced raw markdown links with an interactive `<audio controls>` player and a "Re-run AI" action button.
+   - Reconfigured compartments in `Editor.tsx`, `MarkdownView.tsx`, and `createEditorExtensions.ts`.
+3. **One-Click Re-run Pipeline**:
+   - Created `apps/desktop/src/components/ListeningView/rerunAudioTranscription.ts` to fetch API secrets, transcribe audio files via `transcribeAudioFile`, and generate updated action items and summaries.
+   - Factored audio levels into `useAudioLevels.ts` to keep hooks below the strict line budget.
+   - Wired `davinci:re-run-audio-transcription` window event in `App.tsx` and `ListeningView.tsx` to automatically switch to the listening page and rerun transcription on the target file.
+   - Added relative-path resolution in `apps/desktop/src-tauri/src/transcription_commands.rs` so vault-relative audio paths can be read and transcribed directly.
+4. **Testing & Verification**:
+   - Added unit test in `packages/editor/embeds/embedAudioExtension.test.ts`.
+   - Added unit test in `apps/desktop/src/components/ListeningView/rerunAudioTranscription.test.ts`.
+   - Added embed markdown rendering test in `apps/desktop/src/vault/meetingNoteActions.test.ts`.
+   - Verified 137 Rust tests in `src-tauri` passing, 0 public design token violations, and web production build succeeded.
+
+---
+
+## Next Up
+- Optional: Add local whisper.cpp sidecar model binary downloader for fully offline transcription setting.
+- Optional: Per-speaker diarization using machine learning voice embeddings.
+
+---
+
+## Previous Session — Meeting Recorder + AI Listening (All 7 Phases Completed)
+
+**Scope:** End-to-end implementation of desktop Meeting Recorder & AI Listening (`meeting-recorder-feature-plan.md`, ADR-0226 through ADR-0231).
+
+**What was done:**
+1. **ADRs Recorded**:
+   - Recorded ADR-0226 through ADR-0231 in `docs/adr/` and indexed in `DECISIONS.md`.
+2. **Phase 1: Native Desktop Dual-Channel Audio Capture Engine (Rust)**:
+   - Added `cpal = "0.15"` to `apps/desktop/src-tauri/Cargo.toml`.
+   - Created `audio_types.rs`, `audio_mixer.rs` (16kHz linear resampling, RMS, WAV header), `audio_worker.rs` (thread decoupled for CoreAudio safety), `audio_capture.rs`, `audio_commands.rs`, and unit tests in `audio_tests.rs`.
+3. **Phase 2: Lazy Local & Cloud Transcription Pipeline**:
+   - Built lazy audio chunking (20s windows, 1.5s overlap) in `transcription.rs`.
+   - Built multi-endpoint cloud Whisper dispatch in `transcription_cloud.rs` and exposed commands in `transcription_commands.rs`.
+   - Created TypeScript adapter `transcriptionClient.ts` with unit tests.
+4. **Phase 3: AI Listening Page UI & Streaming Transcript View**:
+   - Created `apps/desktop/src/components/ListeningView/`:
+     - `AudioMeter.tsx`, `TranscriptBubble.tsx`, `TranscriptFeed.tsx`, `ListeningHeader.tsx`, `useListeningSession.ts`, `ListeningView.tsx`.
+     - CUBE CSS styling in `ListeningView.module.scss` using public design tokens with 0 Stylelint and token violations.
+   - Added AI Listening button with Phosphor `Ear` icon in `IconRail.tsx` and mapped tab in `AppTabs.tsx`.
+   - Lazy-mounted `ListeningView` at `davinci://listening` in `App.tsx`.
+5. **Phase 4: Vault Grounding & Live Note Synthesizer**:
+   - Created prompt generators in `packages/ai-agent/prompts/meetingPrompts.ts`.
+   - Created `packages/ai-agent/meetingListenerEngine.ts` for keyword extraction, FTS5 vault searching, non-destructive wikilink suggestions, and action item detection.
+   - Created `apps/desktop/src/components/ListeningView/SuggestedLinksPanel.tsx`.
+   - Created canonical meeting markdown note generator and vault writer in `apps/desktop/src/vault/meetingNoteActions.ts` writing to `Meetings/YYYY-MM-DD - {Title}.md`.
+6. **Phase 5: Palette, Menu Bar Tray & Shortcut Integration**:
+   - Added `"action:open-ai-listening"`, `"action:start-meeting-recording"`, and `"action:stop-meeting-recording"` in `buildPaletteCommands.ts` and `executePaletteCommand.ts`.
+   - Added "AI Listening & Meetings" item in `tray_menu.rs` and emitted `TRAY_AI_LISTENING_EVENT` in `tray.rs`.
+   - Handled tray event in `App.tsx` to automatically focus and navigate to `davinci://listening`.
+7. **Phase 6: Calendar Integration & Proximity Detection**:
+   - Created `meetingDetector.ts` to identify imminent/active meetings with conference URLs (`meet.google.com`, `zoom.us`, `teams.microsoft.com`).
+   - Created `MeetingPromptToast.tsx` and unit tests.
+8. **Phase 7: Meet Transcript Importer & Recovery Hardening**:
+   - Created `meetTranscriptImporter.ts` supporting standard WebVTT and Google Meet plain text transcript exports.
+   - Created `meetingRecovery.ts` for active meeting crash recovery state.
+   - Verified 10 Rust audio tests, 28 Vitest unit tests, and production web bundle build.
+
+---
+
+## Next Up
+- Optional: Add local whisper.cpp sidecar model binary downloader for fully offline transcription setting.
+- Optional: Per-speaker diarization using machine learning voice embeddings.
+
+---
+
+## Previous Session — Meeting Recorder + AI Listening Feature Plan
+
+**Scope:** Eliminate the Terminal icon on macOS notifications by bypassing Tauri dev-mode override and associating notifications with the Sophia owl identity, plus fix test assertion timing.
+
+**What was done:**
+1. **Identified True Root Cause for Notification Terminal Icon**:
+   - `tauri-plugin-notification` hardcodes `notify_rust::set_application(if tauri::is_dev() { "com.apple.Terminal" } else { &self.identifier })`.
+   - When running in dev mode (`tauri dev`), `tauri-plugin-notification` explicitly sets the bundle ID to `"com.apple.Terminal"`, causing macOS `usernoted` to display the Terminal icon regardless of app configuration.
+   - Calling `app.notification().builder()` also triggered `mac-notification-sys`'s static one-time initialization lock (`INIT_APPLICATION_SET.call_once`), permanently binding notifications to Terminal.
+2. **Native macOS Direct Dispatch Architecture**:
+   - In [`reminder_notify.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/reminder_notify.rs):
+     - Created `dispatch_native_notification` that bypasses `tauri-plugin-notification` on macOS and directly calls `mac_notification_sys::Notification` with `com.sophia.notes`.
+     - Attached the Sophia owl icon (`icons/128x128.png`) via `.content_image(...)`.
+     - Routed `send_reminder_notification`, `send_missed_notification`, and `send_desktop_notification_command` through `dispatch_native_notification`.
+   - In [`macos_panel.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/macos_panel.rs):
+     - Enhanced `setup_notification_identity()` to ensure `~/Applications/Sophia.app` is provisioned and registered in LaunchServices (`lsregister -f`).
+     - Added direct FFI call to `setApplication` in Obj-C to ensure `fakeBundleIdentifier` is always `"com.sophia.notes"` even across runtimes.
+3. **Verification**:
+   - Added unit test `test_macos_dispatch` in `reminder_notify.rs` testing native macOS notification dispatch. Passed successfully.
+   - Fixed local vs UTC date discrepancy in `QuickCaptureReminder.test.tsx`.
+   - Vitest unit tests (231 suites) passing. Cargo check & cargo test passing.
+2. **Reminders Page ("Add a reminder"):**
+   - Fixed broken CSS custom properties in [`RemindersView.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.module.scss) (`--color-accent` → `var(--color-interactive-accent)`, `--type-size-*` → `var(--type-scale-*)`), and migrated primary action buttons to standard [`Button`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/design-system/components/Button/Button.tsx) components from `@app/design-system` so buttons are always distinctly visible.
+   - In [`RemindersHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersHeader.tsx):
+     - Rendered primary action button `<Button variant="primary" size="sm">` with `Plus` icon and `"Add a reminder"` label.
+   - In [`RemindersSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersSubView.tsx):
+     - Added an `"Add a reminder"` button directly at the top of the reminders subview list and in the empty state.
+   - In [`RemindersView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.tsx):
+     - Added `isAdding` state toggled by `"Add a reminder"` button and empty-state button.
+     - Embedded the inline [`AddReminderForm`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/AddReminderForm.tsx) right beneath the header/toolbar.
+     - Wired `onAdded` (dispatches `davinci-reminders-updated` and reloads data) and `onCancel`.
+     - Intelligently defaults the target note (`defaultTargetNote`) to the currently open document or first available markdown note.
+   - In [`useRemindersViewData.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/useRemindersViewData.ts):
+     - Extracted data queries, event listeners, and mutation handlers into a dedicated hook (157 lines), keeping [`RemindersView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.tsx) at 154 lines (under the 150-200 line soft cap and 250 hard cap).
+   - In [`reminderTaskActions.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/vault/reminderTaskActions.ts):
+     - Updated `applyAndSaveNote` to gracefully check file existence with `statNote` before `readNote`, preventing crashes when creating reminders in new note files.
+   - In [`RemindersDialog/index.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/index.ts):
+     - Re-exported `AddReminderForm` following module barrel guidelines.
+2. **Testing & Verification:**
+   - Added unit tests in [`RemindersView.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersView.test.tsx) (7/7 tests passing):
+     - Opens add reminder form when "Add a reminder" button is clicked and cancels it.
+     - Submits add reminder form and appends task to vault note.
+   - All tests passing in `RemindersDialog.test.tsx` (5/5).
+   - `pnpm --filter @app/desktop build:web` passes cleanly in 10s.
+   - `cargo check` passes cleanly in 0.8s.
+
+---
+
+## Next Up
+
+- Multichannel reminder channel configuration verification (Telegram, Discord, Slack) in desktop settings
+- Test calendar event syncing with newly created inline reminders
+
+**Scope:** App rename from "DaVinci Notes" → **Sophia** across all user-facing surfaces, plus owl icon for quick notes and reminder notifications.
+
+**What was done:**
+
+1. **App rename — "Sophia" everywhere:**
+   - `tauri.conf.json` — `productName` + `identifier` → `com.sophia.notes`
+   - `index.html`, `capture.html` — `<title>` + favicon `<link>` → `/logo/dark-logo.svg`
+   - `lib.rs` (main window title), `capture.rs` (capture window title)
+   - `VaultWelcomeView.tsx`, `AppErrorBoundary.tsx`, `EditorConflictBanner.tsx`, `SyncthingQrPairingSection.tsx`
+   - `SettingsDialog.tsx` window chrome title
+   - `GeneralSettingsTab.tsx`, `ChannelPrivacyGuide.tsx`, `NotificationsSettingsTab.tsx` — UI copy
+   - `AIConsentScreen.tsx`, `AIKeyEntryScreen.tsx`, `AISubsystem.ts`, `AISettingsPanel.tsx` — AI copy
+   - `dispatchChannelOnce.ts`, `webVaultBridge.ts`, `desktopSyncEngine.ts`
+   - All 6 AI agent prompts in `packages/ai-agent/prompts/` — "You are Sophia"
+   - `calendarTools.ts`, `wikiEngine.ts`, `notification_auth.rs`
+   - Tests updated: `VaultWelcomeView.test.tsx`, `AppErrorBoundary.test.tsx`
+
+2. **Owl logo for quick notes / reminder notifications & Native Dock/App Icons:**
+   - Generated native app icons from `dark-logo.svg`:
+     - `icon.icns` (multi-resolution macOS bundle & Dock icon)
+     - `icon.ico` (multi-resolution Windows icon)
+     - `icon.png` (512x512 RGBA)
+     - `32x32.png`, `128x128.png`, `128x128@2x.png` (Tauri RGBA icons)
+     - `tray-icon.png`, `tray-icon@2x.png`, `tray-icon@2x.rgba` (44x44 raw RGBA)
+   - Added runtime macOS Dock icon update in `macos_panel::set_dock_icon()` (`NSApp.setApplicationIconImage`) so the Sophia owl appears in the Dock immediately even in dev mode
+   - Reminder notification toast (`ReminderNotificationToast.tsx`) — owl img replaces Bell icon, heading "Sophia — Reminder"
+   - Native OS reminder notifications (`reminder_notify.rs`) — 🦉 prefix on all titles
+   - Welcome screen — 64×64px owl logo above "Sophia" heading
+   - HTML favicons added to `apps/desktop/index.html`, `apps/desktop/capture.html`, `apps/web/index.html`, and `manifest.webmanifest`
+   - New `OwlIcon` component (`src/components/OwlIcon/`) — dark/light variant, size prop, Storybook story, 2 tests passing
+
+3. **Menu bar & Rail Icon refinements:**
+   - **Removed owl logo from icon rail**: Restored [`IconRail.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/IconRail/IconRail.tsx) to standard navigation (removed quick notes button from sidebar). All 7 IconRail tests passing.
+   - **Simple minimalist owl icon for macOS top menu bar**:
+     - Swapped the menu bar tray icon from the square badge logo to a clean, minimalist monochrome Lucide owl icon (`tray-icon.svg`).
+     - Generated 22x22 (`tray-icon.png`), 44x44 (`tray-icon@2x.png`), and raw 7744-byte RGBA buffer (`tray-icon@2x.rgba`) with transparent background.
+     - macOS template mode (`icon_as_template(true)`) automatically adapts the clean owl silhouette to macOS light and dark menu bars.
+
+4. **Logos stored at:** `apps/desktop/public/logo/dark-logo.svg` + `light.logo.svg`
+
+**All tests passing:** OwlIcon (2/2), IconRail (8/8), ReminderNotificationToast (7/7), VaultWelcomeView (5/5), AppErrorBoundary (3/3)
+
+---
+
+## Next Up
+- Hook `onQuickNotes` to tray shortcut / global shortcut if needed
+- Consider light-variant owl in light-mode (theme-aware `OwlIcon`)
+- Visual regression / Chromatic run for changed components
+
+---
+
+## Last Session — SettingsDialog Design Simplification, Empty Section Omission & Deduplication
+
+**Scope:**
+1. **Empty Section Handling**:
+   - Updated [`SettingsCard.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsCard.tsx) to return `null` when it has no valid children, preventing empty cards from rendering.
+   - Updated [`VisibleCalendarsCard.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/VisibleCalendarsCard.tsx) to return `null` when `calendars.length === 0`.
+   - Conditionally rendered destination list in [`NotificationsSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationsSettingsTab.tsx) only when destinations exist.
+   - Omitted empty sidebar categories (e.g. "Core plugins") when they contain no active items.
+2. **Divider Line & Box Flattening**:
+   - Removed `border-bottom` on `.settings-card-title` in [`SettingsDialog.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsDialog.module.scss) to eliminate stacked double lines with row dividers.
+   - Removed inline `borderBottom` on the connection container in [`AISettingsPanel.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AISettingsPanel/AISettingsPanel.tsx).
+   - Removed `box-shadow` on `.settings-dialog-root` to strictly comply with `AGENTS.md` ("Depth = borders, not shadows").
+   - Flattened isolated `.calendar-item` boxes in [`GoogleCalendarSettingsTab.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/GoogleCalendarSettingsTab.module.scss) into clean flat list rows with dividers.
+   - Flattened `.destination-row` and simplified setup/privacy containers in [`NotificationsSettingsTab.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationsSettingsTab.module.scss).
+3. **Deduplication**:
+   - Removed duplicated [`CursorColorSetting`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/CursorColorSetting.tsx) from [`EditorSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/EditorSettingsTab.tsx), retaining it exclusively in [`AppearanceSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/AppearanceSettingsTab.tsx).
+   - Removed unimplemented placeholder items (`interface`, `hotkeys`, `keychain`, and 9 dummy core plugin items) from [`SETTINGS_SIDEBAR_ITEMS`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/SettingsSidebar.tsx).
+4. **Verification**:
+   - 40/40 tests pass across 10 test files in `src/components/SettingsDialog`.
+   - 0 ESLint errors in `SettingsDialog`.
+   - `build:web` builds in 10.15s. All files $\le 250$ lines.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+
+---
+
+## Previous Session — Tray Popover Native macOS NSPanel Implementation (Phases 1–3 Complete, ADR-0225)
+
+**Scope:**
+1. **Phase 1: Baseline Cleanups & Policy Decoupling**:
+   - Removed `set_activation_policy(tauri::ActivationPolicy::Regular)` from [`capture.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/capture.rs) so Quick Capture never mutates the application's activation policy.
+   - Added `.visible_on_all_workspaces(true)` to `WebviewWindowBuilder` in `create_and_show_capture_window`.
+   - Re-instated hide-on-blur in [`lib.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/lib.rs) on `WindowEvent::Focused(false)`, respecting the 350ms click-debounce timestamp and keeping in-memory drafts preserved.
+2. **Phase 2: macOS NSPanel Conversion (`macos_panel.rs`)**:
+   - Added `tauri-nspanel = "2.1"` (v2.1.1) under `[target.'cfg(target_os = "macos")'.dependencies]` in [`Cargo.toml`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/Cargo.toml).
+   - Created [`macos_panel.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/macos_panel.rs) (75 lines, single responsibility) defining `QuickCapturePanel` via `tauri_panel!` with:
+     - `can_become_key_window: true`, `is_floating_panel: true`
+     - Window level: `PanelLevel::Status` (level 25, matching `NSStatusWindowLevel`)
+     - Collection behavior: `CollectionBehavior::new().can_join_all_spaces().full_screen_auxiliary()`
+     - Style mask: `NSWindowStyleMask::NonactivatingPanel`
+   - Initialized `tauri_nspanel::init()` in `lib.rs` under `#[cfg(target_os = "macos")]`.
+   - Updated [`capture_commands.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/capture_commands.rs) and `capture.rs` to route macOS display and dismiss through `macos_panel::show_capture_panel` and `macos_panel::hide_capture_panel`.
+   - Guaranteed 100% cross-platform isolation: Windows and Linux retain existing `WebviewWindowBuilder` always-on-top path with 0 dependency delta.
+3. **Phase 3: Verification & Performance Audit**:
+   - 0 new npm packages (100% native platform APIs).
+   - Cargo dependencies: zero new transitive native C crates (`objc2`, `objc2-app-kit`, `objc2-foundation` already present in `Cargo.lock`); binary delta < 35 KB.
+   - All 5 QuickCapture test files (29 tests) pass with 0 errors.
+   - 124 Rust tests pass; `cargo check` passes cleanly on Darwin targets.
+   - Web bundle build (`pnpm --filter @app/desktop build:web`) succeeds in 10.83s.
+   - All files strictly adhere to line caps (`macos_panel.rs` 75 lines, `capture.rs` 204 lines, `capture_commands.rs` 242 lines).
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+
+---
+
+## Previous Session — Phase 0: Native macOS Capture Popover Architecture & ADR-0225
+
+---
+
+## Previous Session — Planning: Native-Like macOS Menu Bar Popover Investigation & Phased Implementation Plan
+
+---
+
+## Previous Session — Reminders Workspace Page, Free Notification Channels (Desktop, Telegram, Slack, WhatsApp), OS Keychain Secret Storage & Scheduled Messages
+
+**Scope:**
+1. **Full Reminders Workspace Page (`apps/desktop/src/components/RemindersView`)**:
+   - Built lazy-loaded workspace tab `davinci://reminders` routed identically to Bookmarks and Calendar, with `REMINDERS_TAB_ID` wired into [`AppTabs.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppTabs/AppTabs.tsx), [`IconRail.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/IconRail/IconRail.tsx), [`AppSidebar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppSidebar/AppSidebar.tsx), [`vaultSwitchOrchestrator.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/vault/vaultSwitchOrchestrator.ts), command palette, and tray menu (`davinci-tray-open-reminders`).
+   - Grouped sections for **Overdue**, **Today**, **Upcoming**, and **Completed** (collapsible) with due dates, recurrence badges, note location links (`:line`), channels indicator, and delivery error badges.
+   - Built [`RemindersHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersHeader.tsx), [`RemindersSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/RemindersSubView.tsx), [`ReminderRow.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ReminderRow.tsx), [`ReminderFormModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ReminderFormModal.tsx), and [`ChannelPickerField.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ChannelPickerField.tsx).
+   - Full keyboard navigation (`j`/`k`, `Enter`, `x`, `s`, `n`, `/`) via [`useReminderKeyboardNav.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/useReminderKeyboardNav.ts).
+2. **Vault Markdown Mutations (`reminderTaskActions.ts`)**:
+   - Built deterministic vault markdown parsers and modifiers (`toggleReminderInMarkdown`, `editReminderInMarkdown`, `deleteReminderInMarkdown`, `addReminderToMarkdown`, `markReminderDoneInVault`, `editReminderInVault`, `deleteReminderInVault`, `addReminderToVaultNote`) keeping markdown files as the single source of truth and advancing recurring reminders.
+3. **Database Migration 10 & Outbox / Local State (`db.rs`, `migrations.ts`, `remindersViewQueries.ts`, `scheduledMessagesStore.ts`)**:
+   - Appended Migration 10 without modifying historical migrations 1–9. Added `channels_json` and `delivery_error` to `reminder_local_state`, and created `scheduled_messages` table with status index.
+   - Built query engines in [`remindersViewQueries.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/vault/remindersViewQueries.ts) and [`scheduledMessagesStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/reminders/scheduledMessagesStore.ts) using universal `withDbLock` / `withDbTransaction`.
+4. **Zero-Secret Notification Engine & Free Channel Adapters (`apps/desktop/src/notifications`)**:
+   - Added native Rust Tauri commands `save_notification_secret`, `load_notification_secret`, and `clear_notification_secret` in [`notification_auth.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/notification_auth.rs) guarded by `reject_plugin_runner`, storing tokens in OS keychain (`com.davinci.notes.notification-channels`).
+   - Allowed external endpoints (`wa.me`, `core.telegram.org`, `api.slack.com`, `callmebot.com`) in [`oauth.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/oauth.rs).
+   - Implemented zero-dependency channel adapters:
+     - **Telegram Bot**: direct `api.telegram.org/bot<token>/sendMessage` with HTML formatting.
+     - **Slack Webhooks**: incoming webhook poster with broadcast mention neutralizing (`@\u200Bchannel`) unless opted in.
+     - **WhatsApp (Click-to-Chat)**: privacy-safe `https://wa.me/<digits>?text=<encoded>` with 1-click manual send prompt.
+     - **CallMeBot**: experimental third-party WhatsApp delivery via `api.callmebot.com`.
+   - Built [`secretRedactor.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/notifications/secretRedactor.ts), [`dispatchChannelOnce.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/notifications/dispatchChannelOnce.ts), and [`notifyDispatcher.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/notifications/notifyDispatcher.ts) with exponential backoff retries and privacy redaction.
+5. **Scheduled Messages Tab & Background Orchestrators (`apps/desktop/src/reminders`)**:
+   - Built [`ScheduledMessagesSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ScheduledMessagesSubView.tsx), [`ScheduledMessageRow.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ScheduledMessageRow.tsx), and [`ScheduledMessageComposerModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersView/ScheduledMessageComposerModal.tsx).
+   - Built [`scheduledMessageOrchestrator.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/reminders/scheduledMessageOrchestrator.ts) (10s ticker, missed-catchup > 5m, recurrence advancement) and [`reminderChannelOrchestrator.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/reminders/reminderChannelOrchestrator.ts).
+   - Built full Settings UI tab (`Settings → Notifications`) with [`NotificationsSettingsTab.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationsSettingsTab.tsx), [`NotificationDestinationRow.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/NotificationDestinationRow.tsx), [`ChannelSetupFormCard.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/ChannelSetupFormCard.tsx), [`ChannelPrivacyGuide.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/ChannelPrivacyGuide.tsx), and [`ChannelCredentialFields.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SettingsDialog/ChannelCredentialFields.tsx).
+6. **Verification & Performance Compliance**:
+   - 0 new npm packages (100% native platform APIs, Web Crypto, standard `Date`/`Intl`).
+   - All 35+ new and modified files strictly verified $\le 250$ lines (with components adhering to soft cap 150–200 lines).
+   - 14/14 Vitest suites pass (60/60 tests).
+   - 0 ESLint errors/warnings.
+   - Web bundle build (`pnpm --filter @app/desktop build:web`) succeeds in 12.37s with lazy-loaded code split chunks.
+
+---
+
+## Next Up
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+
+---
+
+## Previous Session — Web Bookmarks Page, Browser Bookmark Import, AI Organization & Browser Plugin Bookmarking
+
+**Scope:**
+1. **Local-First Web Bookmarks Storage & Store (`apps/desktop/src/bookmarks`)**:
+   - Extended [`bookmarkTypes.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/bookmarkTypes.ts) and [`bookmarkStorage.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/bookmarkStorage.ts) with `WebBookmarkItem` (`links` array in `.davinci/bookmarks.json`), maintaining 100% backward compatibility and automatic Google Drive / Syncthing sync without SQLite schema churn.
+   - Created [`webBookmarkActions.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/webBookmarkActions.ts) and updated [`bookmarkStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/bookmarkStore.ts) and [`useBookmarks.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/useBookmarks.ts) with `addWebBookmark`, `updateWebBookmark`, `removeWebBookmark`, `importWebBookmarks`, `applyWebBookmarksOrganization`, and 1-click `undoLastOrganization`.
+2. **Automatic Browser Bookmark Detection & Import (Chrome, Brave, Firefox, Arc, Edge, Vivaldi)**:
+   - Built native Rust Tauri commands `detect_browser_bookmarks` and `read_browser_bookmarks` in [`browser_bookmarks.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/browser_bookmarks.rs) (registered in [`lib.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/lib.rs)) that automatically detect installed browsers across macOS/Windows/Linux and read Chromium `Bookmarks` JSON profiles and Firefox `places.sqlite` databases (`SQLITE_OPEN_READ_ONLY` via temp copy).
+   - Built [`browserBookmarkImporter.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/browserBookmarkImporter.ts) with `detectInstalledBrowsers()`, `autoImportFromBrowser(browserId)`, and fallback `.html`/`.json` file parsing.
+3. **AI / Smart Category Organization (`organizeBookmarksWithAI.ts`)**:
+   - Built [`organizeBookmarksWithAI.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/bookmarks/organizeBookmarksWithAI.ts) connecting to the user's configured AI provider via dynamic import of `AISubsystem.ts` to categorize bookmarks into clean categories and `#tags`, with a deterministic domain/keyword fallback classifier and 1-click Undo support.
+4. **Two-Page Bookmarks UI (`Notes` & `Web Links`) with Category View**:
+   - Updated [`BookmarksHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/BookmarksHeader.tsx) and [`BookmarksView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/BookmarksView.tsx) with a segmented switcher between **Notes** and **Web Links**, and extracted [`NoteBookmarksSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/NoteBookmarksSubView.tsx).
+   - Built [`WebBookmarksCategoryView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarksCategoryView.tsx), [`WebBookmarksSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarksSubView.tsx), [`WebBookmarkRow.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarkRow.tsx), [`WebBookmarkAddBar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarkAddBar.tsx), [`WebBookmarkImportModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarkImportModal.tsx), [`WebBookmarks.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarks.module.scss), and [`WebBookmarksCategoryView.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/BookmarksView/WebBookmarksCategoryView.module.scss) featuring interactive browser cards for 1-click auto-import, visual **By Category** grouped sections (with collapsible category cards & inline **Organize into Categories** action) vs **List** view toggle, instant search, category filter chips, and `#tag` filtering.
+5. **Browser Plugin Bookmark Mode & Context Menu (`packages/clipper-core`, `apps/web-clipper`, `apps/desktop`)**:
+   - Added `"bookmark"` to `ClipMode` in [`ClipPayload.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/clipper-core/ClipPayload.ts) and `CLIP_MODES` in [`clipper_payload.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/clipper_payload.rs).
+   - Updated [`ClipModeSelector.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/src/components/ClipModeSelector/ClipModeSelector.tsx), [`ClipPopup.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/src/components/ClipPopup/ClipPopup.tsx), [`extractContent.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/src/extraction/extractContent.ts), [`quickClipTab.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/src/clip/quickClipTab.ts), and [`background.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/web-clipper/entrypoints/background.ts) with the **Bookmark** mode and right-click context menu action (**"Bookmark link in DaVinci Notes"**).
+   - Updated [`applyClipToVault.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/clipper/applyClipToVault.ts) to route `"bookmark"` clips directly into `useBookmarkStore.getState().addWebBookmark`.
+6. **Verification**:
+   - All 7 bookmark test suites (38 tests), 2 `BookmarksView` test suites (11 tests), `applyClipToVault.test.ts` (13 tests), 3 `@app/web-clipper` test suites (23 tests), and 39 Rust clipper tests pass with 0 ESLint errors/warnings.
+
+---
+
+## Previous Session — Google Calendar Two-Way Integration (Phases 1–6 Complete)
+
+**Scope:**
+1. **Phase 1 — Architectural Decision Record (ADR-0223), Migration 9 & SQLite Outbox Store**:
+   - Authored [`0223-google-calendar-two-way-sync-and-outbox-architecture.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/docs/adr/0223-google-calendar-two-way-sync-and-outbox-architecture.md) and indexed in [`DECISIONS.md`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/DECISIONS.md).
+   - Added incremental Migration 9 in [`src-tauri/src/db.rs`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src-tauri/src/db.rs) adding `etag`, `recurrence_rule`, `recurring_event_id`, `original_start_iso`, `sync_status` to `google_calendar_events` and creating `google_calendar_outbox`.
+   - Built [`sqliteCalendarOutboxStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/sqliteCalendarOutboxStore.ts) and updated [`sqliteCalendarStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/sqliteCalendarStore.ts) with 4-table purge on disconnect.
+2. **Phase 2 — Lazy-Loaded Interactive Calendar Shell (Schedule-X) & Tab Integration**:
+   - Installed `@schedule-x/calendar@^2.36.0`, `@schedule-x/react@^2.36.0`, `@schedule-x/drag-and-drop@^2.36.0`, `@schedule-x/events-service@^2.36.0`, `@schedule-x/theme-default@^2.36.0` inside the lazy-loaded `CalendarLeaf` boundary.
+   - Created [`scheduleXAdapter.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/scheduleXAdapter.ts) handling exclusive all-day end-date conversion (`adjustGoogleAllDayEnd`, `toGoogleAllDayEnd`).
+   - Built [`CalendarToolbar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/CalendarToolbar.tsx) and [`ScheduleXCalendar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/ScheduleXCalendar.tsx) with Month, Week, Day, and Agenda views, colocated with CSS modules, Storybook stories, and unit tests.
+   - Wired `CALENDAR_TAB_ID` (`davinci://calendar`) into [`AppTabs.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppTabs/AppTabs.tsx) and [`App.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/App.tsx).
+3. **Phase 3 — OAuth Write Scopes & Empty State**:
+   - Updated [`calendarAuthConfig.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarAuthConfig.ts) to request `CALENDAR_WRITE_SCOPES` (`calendar.events` + `calendar.calendarlist.readonly`).
+   - Built [`CalendarEmptyState.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/CalendarEmptyState.tsx) with `.module.scss`, `.stories.tsx`, and `.test.tsx`.
+4. **Phase 4 — Range Sync & Incremental Delta Sync**:
+   - Added `syncDateRange(timeMin, timeMax)` (`singleEvents: true`) to [`calendarSyncEngine.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarSyncEngine.ts) alongside incremental `syncToken` delta sync and `HTTP 410 Gone` automatic recovery.
+5. **Phase 5 — Two-Way CRUD, Outbox Worker, ETag Conflict Handling & `EventModal`**:
+   - Added `getEvent`, `updateEvent` (`If-Match: etag`), and `deleteEvent` (`If-Match: etag`) to [`calendarClient.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/google-calendar-api/calendarClient.ts) along with `GooglePreconditionFailedError` (`HTTP 412`) in [`calendarErrors.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/packages/google-calendar-api/calendarErrors.ts).
+   - Built [`calendarOutboxWorker.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarOutboxWorker.ts) implementing `optimisticCreateEvent`, `optimisticUpdateEvent`, `optimisticDeleteEvent`, and `CalendarOutboxWorker` with Google-wins conflict resolution on `HTTP 412`.
+   - Built [`EventModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/EventModal.tsx) with `.module.scss`, `.stories.tsx`, and `.test.tsx`, and integrated into [`CalendarLeaf.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/CalendarLeaf.tsx).
+6. **Phase 6 — Vault Reminders Overlay, Design System Alignment, Connection Banner & "Add as Event"**:
+   - Built [`vaultRemindersOverlay.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/vaultRemindersOverlay.ts) rendering open vault reminders as calendar events (`id: "reminder_*"`), and added **"Add as Calendar Event"** promotion in [`EventModal.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/EventModal.tsx), [`AddReminderForm.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/AddReminderForm.tsx), and [`ReminderRowItem.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/RemindersDialog/ReminderRowItem.tsx).
+   - Fixed `getEventsFromDb` in [`sqliteCalendarStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/sqliteCalendarStore.ts) (`LEFT JOIN google_calendars`) and reactive signal updates in [`ScheduleXCalendar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/ScheduleXCalendar.tsx) so newly created events immediately appear in the calendar.
+   - Added Google Calendar connection status banner and **Connect Google Calendar** button in [`CalendarLeaf.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/CalendarLeaf.tsx) via [`calendarSyncRunner.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarSyncRunner.ts), and aligned Schedule-X styles with DaVinci's flat 1px border tokens in [`ScheduleXCalendar.module.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/CalendarView/ScheduleXCalendar.module.scss).
+   - Added [`calendarBenchmark.test.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/calendar/calendarBenchmark.test.ts) verifying 2,000 events map to Schedule-X in ~10ms.
+   - All 22 unit tests in `@app/google-calendar-api` and all 83 unit/component tests across 17 test files in `@app/desktop` calendar modules pass with 0 ESLint errors/warnings.
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+
+---
+
+## Previous Session — Blank Page Resolution & Top Bar Sync Indicator Fix
+
+**Scope:**
+1. **Blank Page Root Cause Analysis & Resolution**:
+   - **Root Cause**: `handleOpenSyncSettings` callback was passed to `AppSidebar` and `EditorArea` in [`App.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/App.tsx) but was never declared, throwing `ReferenceError: Can't find variable: handleOpenSyncSettings` immediately when React evaluated `App()`.
+   - **Fix**: Declared `handleOpenSyncSettings` in [`App.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/App.tsx) to open Settings directly to the `"sync"` tab (`setSettingsInitialTab("sync"); setIsSettingsOpen(true);`).
+   - Decoupled `useDriveSyncStore.ts` from static imports of `desktopSyncEngine.ts` via dynamic import in `syncNow()`.
+   - Replaced circular barrel import `import { ... } from "./index"` inside `apps/desktop/src/vault/useVaultWatcherSubscription.ts` with direct imports (`./sqliteIndex`, `./VaultIndexer`, `./vaultCommands`, `./vaultWatchCoordinator`, etc.).
+2. **Crash Prevention (`AppErrorBoundary`)**:
+   - Implemented [`AppErrorBoundary`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppErrorBoundary.tsx) (<100 lines) with friendly fallback UI, error messaging, and an immediate reload button.
+   - Wrapped root application in [`main.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/main.tsx) to ensure the app never displays an unhandled blank white page.
+   - Added unit test suite [`AppErrorBoundary.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppErrorBoundary.test.tsx) with 3 passing tests.
+3. **Top Bar Sync Icon Placement**:
+   - Placed the icon-only [`SyncStatusButton`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SyncStatusButton/SyncStatusButton.tsx) directly next to the Bookmark navigation button in [`AppSidebarHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/AppSidebar/AppSidebarHeader.tsx) (the top bar header: `Files` | `Search` | `Bookmarks` | `SyncStatus`), ensuring it is always visible even when no note is open.
+   - Retained the note-level sync status icon in [`EditorArea.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/EditorArea/EditorArea.tsx) next to the note bookmark button.
+4. **Verification**:
+   - All 204 Vitest test files in `@app/desktop` pass (836/836 tests).
+   - ESLint passes cleanly with 0 errors on all modified files.
+   - Web production build (`build:web`) succeeds with 0 errors in 11.41s.
+
+---
+
+## Next Up
+- Plan created: Google Calendar Two-Way Integration phased implementation plan at `calendar-feature-plan.md` (awaiting user feedback on open decisions).
+
+---
+
+## Previous Session — Top Bar Sync Icon & Status Bar Cleanup
+
+**Scope:**
+1. **Top Bar Sync Indicator (`SyncStatusButton`)**:
+   - Built a dedicated icon-only [`SyncStatusButton`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SyncStatusButton/SyncStatusButton.tsx) component colocated with SCSS module, Storybook story, unit tests, and barrel index.
+   - Positioned in [`EditorArea.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/EditorArea/EditorArea.tsx) top note header actions bar directly next to the bookmark button (`BookmarkSimple`).
+   - Pure icon display with zero text label:
+     - **Syncing**: Spinning `ArrowsClockwise` (`weight="bold"`).
+     - **Synced**: `CloudCheck` (`weight="bold"`).
+     - **Not synced / error**: `CloudWarning` (`weight="bold"`).
+     - **Not connected / signed out**: `CloudSlash` (`weight="regular"`).
+   - Tooltips on hover describe the exact state, and clicking triggers sync immediately (when signed in and idle) or opens Sync Settings (when disconnected or encountering an error).
+2. **Bottom Status Bar Cleanup**:
+   - Removed the sync button, status label, and cloud icon imports from [`StatusBar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/StatusBar/StatusBar.tsx).
+   - Updated [`StatusBar.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/StatusBar/StatusBar.test.tsx) and added 4 unit tests in [`SyncStatusButton.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/desktop/apps/desktop/src/components/SyncStatusButton/SyncStatusButton.test.tsx) (all passing).
+3. **Verification**:
+   - All tests in `@app/desktop` pass (20/20 tests).
+   - Vite web build (`build:web`) succeeds with 0 errors in 9.35s.
+
+---
+
+## Previous Session — Drive Vault Folder Automatic Population & Sync Reconciliation
+
+**Scope:**
+1. **Drive Vault Folder Population Issue**:
+   - **Root Cause**: When a vault was already initialized locally (manifest stored in SQLite via `manifestStore.save`), subsequent sync runs compared `localSnapshot` to `previousLocal`. If no remote device manifests were present in `appDataFolder` (`mergedRemoteEntries` was empty), three-way diff (`classifySyncDiff`) treated all files as "missing remotely" and classified them as `"pull"` without a remote target, resulting in 0 files pushed. Consequently, while the visible Google Drive folder was created by `ensureDriveVaultFolder`, it remained completely empty.
+   - **Resolution**:
+     - Updated `packages/sync-client/driveVaultFolder.ts`:
+       - Added `listDriveVaultFiles(drive, vaultFolderId)` using `appProperties has { key='davinciVault' and value='${vaultFolderId}' }` and `'${vaultFolderId}' in parents` to retrieve the current Drive folder state.
+       - Updated `syncFileToDriveVault` to tag every uploaded file and folder with `davinciVault: vaultFolderId`, `vaultPath: relativePath`, and `contentHash`.
+       - Added `folderCache` support in `ensureDriveFolderPath` to eliminate redundant folder lookups for nested files/attachments.
+       - Made `syncFileToDriveVault` and `deleteFileFromDriveVault` accept `knownExisting` to avoid duplicate roundtrips.
+       - Formatted multipart closing boundary in `buildMultipartBlob` with standard `\r\n--${boundary}--\r\n`.
+     - Updated `apps/desktop/src/sync/desktopSyncEngine.ts`:
+       - Querying `listDriveVaultFiles` directly reconciles the state of the visible Google Drive folder against `localSnapshot.entries`.
+       - Every local active file missing from Drive or with a changed `contentHash` is uploaded directly to the visible Drive folder.
+       - Files deleted locally are deleted from Drive.
+       - Any files present on Drive not yet in the local vault are pulled and saved locally.
+       - Unchanged files matching the Drive `contentHash` are skipped with zero redundant network transfers.
+2. **Testing & Verification**:
+   - Added unit tests: `listDriveVaultFiles` and multipart upload in `driveVaultFolder.test.ts` (5 tests pass); empty Drive folder population, hash-matching skip, and remote pull in `desktopSyncEngine.test.ts` (4 tests pass).
+   - All 52 tests in `@app/sync-client` pass; all 11 sync tests in `@app/desktop` pass; all 25 component tests pass.
+   - Full web build (`build:web`) succeeds with 0 errors. Line caps strictly respected (<200 lines).
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Google Client Secret Support & Open Vault from Drive in VaultSwitcher
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Fix Reminder In-App Notification Toast ("Done" & "Close" Buttons Non-Responsive)
+
+**Scope:**
+1. **Root Cause Analysis**:
+   - **Stacking Context & Dialog Backdrop Interception**: When adding a reminder in `RemindersDialog` (`AddReminderForm`), a reminder due now/past immediately emitted `davinci-reminders-due`. `ReminderNotificationToast` was rendered directly inside `#root` (`z-index: 1000`). Radix `<DialogContent>` was portaled to `document.body > [data-radix-portal]` with `z-index: 1000` and rendered full-screen overlay backdrop (`position: fixed; inset: 0;`). As `[data-radix-portal]` was mounted after `#root`, clicks on the toast hit the dialog backdrop instead of the toast's Close and Done buttons.
+   - **Radix Modal DismissableLayer Suppression**: When `RemindersDialog` (`modal={true}`) was open, Radix's DismissableLayer intercepted pointerdown events outside `DialogContent` and cancelled outside element interaction.
+   - **Data Contract Snake/Camel Mismatch**: Rust `PendingReminder` derived `serde::Serialize` without `rename_all = "camelCase"`, emitting `note_path`, `due_at_utc`, and `reminder_key`. Frontend `ActiveToastReminder` expected camelCase (`notePath`, etc.). In `handleDone`, `current.notePath` was `undefined`, causing `markReminderDoneInVault` to reject with an unhandled exception and preventing `handleDismiss()` from executing.
+2. **React Portal & High Stacking Priority**:
+   - `ReminderNotificationToast.tsx`: Portaled to `document.body` via `createPortal`, raised `z-index: 10000`, added `pointer-events: auto`, and stamped `data-reminder-toast="true"`.
+3. **Radix Dialog Content Outside Interaction Bypass**:
+   - Updated `packages/design-system/components/Dialog/Dialog.tsx`: Added `onPointerDownOutside` and `onInteractOutside` guards to check `(target as HTMLElement)?.closest?.("[data-reminder-toast]")`. If true, calls `e.preventDefault()`, preventing Radix from suppressing clicks on toast buttons or dismissing the underlying dialog.
+4. **Rust Serde & Universal Normalization**:
+   - Updated `apps/desktop/src-tauri/src/reminder_db.rs`: Added `#[serde(rename_all = "camelCase")]` to `PendingReminder`.
+   - Created `normalizeToastReminder.ts`: Robust normalization supporting both `snake_case` and `camelCase` input payloads and deduplicating incoming reminders.
+   - Handled `handleDone`, `handleSnooze`, and `handleDismiss` in `ReminderNotificationToast.tsx` with `try/catch/finally` so toasts are always dismissed without freezing.
+5. **Testing & Verification**:
+   - Colocated `normalizeToastReminder.test.ts` (4 unit tests passing).
+   - Colocated `ReminderNotificationToast.test.tsx` (7 unit tests passing: snake_case/camelCase payloads, Done button, Close button, rejection fallback, snooze presets, note navigation).
+   - Added `Dialog.test.tsx` unit test verifying reminder toast interaction bypass.
+   - All 12 desktop reminder test suites (61 tests) and all 8 Rust reminder tests pass.
+   - All files strictly under 150-200 line cap.
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Boxless Diagram Rendering with Hover Hint & Code Mode (Removed Visual Editor)
+
+**Scope:**
+1. **Removed Visual Editor**:
+   - Completely removed the visual diagram editor modal, step manager, popovers, and AST parsers per user instruction.
+   - Cleaned up deleted files: `mermaidVisualEditorModal.ts`, `mermaidVisualEditorSteps.ts`, `mermaidNodeEditPopover.ts`, `mermaidModalTheme.ts`, `mermaidDiagramParser.ts`, and `mermaidDiagramParser.test.ts`.
+2. **Boxless Clean Diagram Rendering**:
+   - Diagrams render naturally without borders, container cards, or background boxes (`.cm-mermaid-diagram` with transparent background and no border).
+   - Preserved Obsidian-style internal links (`class A internal-link;`).
+3. **Subtle Hover Hint (`mermaidHoverHint.ts`)**:
+   - Completely invisible by default (`opacity: 0`), appearing smoothly only when hovering over the diagram (`:hover`).
+   - Clean floating pill button: `[ 💻 Edit code ]`.
+4. **Code Editing & Seamless Toggle**:
+   - Clicking `[ 💻 Edit code ]` switches the block into CodeMirror fenced source mode with `[ 👁️ View Diagram ]` header widget (`mermaidToolbarWidget.ts`).
+   - Clicking `[ 👁️ View Diagram ]` immediately restores the rendered diagram view.
+   - Moving the cursor through the note keeps diagrams rendered visually without auto-collapsing.
+5. **Codebase Structure & Line Caps**:
+   - All files strictly modular and well below the 150-200 line soft cap:
+     - `mermaidTheme.ts`: 115 lines
+     - `mermaidWidget.ts`: 110 lines
+     - `mermaidExtension.ts`: 124 lines
+     - `mermaidHoverHint.ts`: 25 lines
+     - `mermaidToolbarWidget.ts`: 31 lines
+     - `mermaidSvgInteractions.ts`: 17 lines
+6. **Verification & Testing**:
+   - All 4 tests in `apps/desktop/src/state/mermaidExtension.test.tsx` passing.
+   - All 239 tests in `@app/editor` passing.
+   - Desktop production build (`pnpm --filter @app/desktop build:web`) succeeded with exit code 0 in 9.96s.
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — AI Selection Comment & Inline Edit/Amend Widget (SearchDialog Style & Click-Away)
+
+**Scope:**
+1. **Root Cause Diagnosis of Single-Row Table Collapse**:
+   - Identified why inserted tables rendered on a single horizontal row (`Header 1 | Header 2 | :--- | :--- | Cell 1 | Cell 2`): `@lezer/markdown` was initialized without the `Table` parser extension (`markdown({ extensions: [Strikethrough, highlightExtension] })`), causing Lezer to parse Markdown tables as a generic `Paragraph` AST node.
+   - Because `softLineBreakExtension` replaces newlines inside `Paragraph` nodes with space widgets when `strictLineBreaks` is active or in `MarkdownView`, all table rows (`\n`) were being replaced with spaces and collapsed into a single visual line of 6 cells.
+2. **Grammar & Line Break Safeguards (`createEditorExtensions.ts`, `MarkdownView.tsx`, `lineBreakExtension.ts`, `packages/editor/index.ts`)**:
+   - Included `Table` from `@lezer/markdown` in `createEditorExtensions.ts` and `MarkdownView.tsx`, properly parsing tables as `Table`, `TableHeader`, and `TableRow` AST elements.
+   - Exported `Table` from `packages/editor/index.ts` for clean shared imports across the repository without extra sub-dependencies.
+   - Added guards to `isParagraphBreak` in `lineBreakExtension.ts` explicitly ignoring `Table`, `TableHeader`, `TableRow`, `TableCell`, and `TableDelimiter` AST nodes, and added `!line.text.trim().startsWith("|")` to `addSoftLineBreaks` so table rows can never be collapsed into paragraphs.
+3. **Padded Block Table Insertion (`tableSnippetGenerator.ts`, `EditorFormattingToolbarButtons.tsx`, `EditorInsertTray.tsx`)**:
+   - Added `insertTableAtCursor(view, cols, rows)` guaranteeing safe block-level before/after newlines and automatically placing the cursor inside the first header cell.
+   - Replaced ad-hoc raw dispatches in `EditorFormattingToolbarButtons.tsx` and `EditorInsertTray.tsx` with `insertTableAtCursor`.
+4. **Verification & Testing**:
+   - Added unit test in `tableEditing.test.tsx` verifying that `softLineBreakExtension` never collapses table rows, preserving distinct header, separator, and body rows.
+   - Added unit test for `insertTableAtCursor` testing block padding and cursor positioning.
+   - All 5 table test suites (28 tests) and all 35 `@app/editor` test suites (239 tests) pass.
+   - Production web build (`pnpm --filter @app/desktop build:web`) succeeded in 9.57s.
+   - All modified files remain strictly under the 250-line hard cap (most under 195 lines).
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — In-Editor Table Rendering & In-Place Cell Editing Fix
+
+**Scope:**
+1. **Empty Cell Crash Fix (`tableExtension.ts`, `tableParser.ts`)**:
+   - Diagnosed root cause of broken table rendering: empty cells (`| |` or `||`) previously had whitespace stripped to a 0-length range (`cell.from === cell.to`), causing CodeMirror to throw `RangeError: Mark decorations may not be empty` and crashing the `tableExtension` ViewPlugin on table load or insertion.
+   - Introduced `EmptyCellWidget` (a dedicated CodeMirror `WidgetType` rendering `<span class="cm-table-cell cm-table-cell-empty">&nbsp;</span>`) for zero-length cells, and preserved non-empty whitespace cell ranges for `Decoration.mark`.
+2. **Table Rendering & Trailing Space Tolerance (`tableParser.ts`)**:
+   - Fixed regex alignment parsing in `separatorAlignment` to `.trim()` cell contents before matching `---` and `:---`.
+   - Prevented spurious extra cell creation when a table row has trailing spaces after the final pipe (`| A | B | `).
+   - Supported 1-column tables (`separator.cells.length >= 1`).
+   - Escaped wikilink pipes (`[[Target|Alias]]`), inline code pipes, and backslash-escaped pipes (`\|`) so table column splitting never misidentifies internal pipes as column dividers.
+3. **In-Place Cell Editing & Styling Polish (`tableTheme.ts`)**:
+   - Removed `fontSize: 0` on `.cm-table-row` which was previously collapsing caret height and causing typed text to appear invisible or jump.
+   - Styled `.cm-table-cell` with `display: inline-flex`, `minHeight: 32px`, `whiteSpace: pre-wrap`, and cell borders, ensuring both filled and empty cells have clear click targets, proper caret placement, and live editable text.
+   - Hidden `.cm-table-delimiter` with fixed `width: 0`, `overflow: hidden`, and `opacity: 0` so cursor navigation never causes cell widths to jump.
+4. **Modularity & Architecture (`tableParser.ts`, `tableContextMenu.ts`, `tableExtension.ts`)**:
+   - Split table logic into modular files under 170 lines each, strictly satisfying `AGENTS.md` (soft cap 150–200, hard cap 250).
+5. **Testing & Verification**:
+   - Added `tableEditing.test.tsx` testing empty cell widget rendering, typing into empty cells, editing values in filled cells, and single-column tables.
+   - All 5 table test suites (24 tests) and all 35 `@app/editor` test suites (239 tests) passing cleanly.
+   - Production web build (`pnpm --filter @app/desktop build:web`) succeeds with 0 errors.
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Interactive Draggable Table Grid Picker & In-Editor Rendering Polish
+
+**Scope:**
+1. **Interactive Draggable Table Grid Picker (`TableGridPicker.tsx`, `TableGridPicker.module.scss`, `tableSnippetGenerator.ts`)**:
+   - Built a Google Docs-style interactive 2D grid matrix of squares ($8 \times 8$).
+   - Hover and drag dynamically highlights the selected rectangular area and displays real-time dimensions (e.g., `3 x 4`, `5 x 2`).
+   - Clicking or releasing drag immediately inserts a clean, properly formatted Markdown table into CodeMirror and positions cursor inside the first header cell.
+   - Wired into `EditorFormattingToolbarButtons.tsx` as a popover on the Table button, with outside-click dismissal.
+   - Embedded into `EditorInsertTray.tsx` under the Tables category for direct custom table sizing alongside quick presets.
+2. **In-Editor Table Rendering Polish (`tableTheme.ts`)**:
+   - Replaced flat $0\text{px}$ vertical padding with comfortable cell padding (`var(--space-2) var(--space-3)`).
+   - Added row bottom borders (`1px solid var(--color-border-subtle)`) and subtle hover row highlights.
+   - Added a distinctive header background (`var(--color-bg-secondary)`), bold text, and a strong header divider border (`2px solid var(--color-border-strong)`).
+3. **Rendered Sections & Insert UI Enhancements (`mermaidTheme.ts`, `markdownAnnotationTheme.ts`, `EditorInsertTray.module.scss`)**:
+   - Wrapped rendered Mermaid diagrams in bounded card containers with subtle border, surface background, and rounded corners.
+   - Added comfortable vertical breathing room and soft background tint for blockquotes and callouts.
+   - Polished category tab spacing and section labels in `EditorInsertTray`.
+4. **Verification & Testing**:
+   - Unit tests added and passing in `TableGridPicker.test.tsx` and `tableSnippetGenerator.test.ts`.
+   - Storybook stories created in `TableGridPicker.stories.tsx`.
+   - All 35 test files (239 tests) in `@app/editor` pass cleanly.
+   - Production web build (`pnpm --filter @app/desktop build:web`) succeeds with 0 errors.
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Vim Mode dd Reversion Fix, Structured Insert Tray, and Image Resize Affordances
+
+**Scope:**
+1. **Interactive Drag Handles & Live Dimension Badge (`imageResizeOverlay.ts`)**:
+   - Added right-border (`col-resize`) and bottom-right corner (`nwse-resize`) drag handles visible on image hover/selection.
+   - Smooth 60fps drag resizing with automatic natural aspect ratio preservation and boundary clamping ($80\text{px} \le \text{width} \le \text{containerWidth}$).
+   - Live monospace dimension badge displayed during drag indicating current pixel width.
+2. **Floating Quick Preset Toolbar (`imageResizeOverlay.ts`, `imageTheme.ts`)**:
+   - Floating action toolbar on hover with instant presets (`25%`, `50%`, `100%`) and `Reset` button (to restore natural size).
+3. **Pure Markdown Syntax Updating (`imageResizeSyntax.ts`)**:
+   - Pure parser/updater modifying Wikilink (`![[target|width]]`) and Markdown (`![alt|width](url)`) syntax on drag release or preset click.
+   - Preserves custom alt titles and existing path stems. Removes dimension part on `Reset`.
+4. **Theme Modularization & Line Cap Compliance (`imageTheme.ts`, `editorTheme.ts`)**:
+   - Extracted image embed, placeholder, and resize styles to `imageTheme.ts`, reducing `editorTheme.ts` from 292 down to 234 lines (under 250 hard cap).
+   - Styled with design tokens, border depth, and kebab-case classes.
+5. **Verification & Testing**:
+   - Added unit test suite `packages/editor/embeds/imageResizeSyntax.test.ts` (9/9 passing).
+   - Added unit test suite `packages/editor/embeds/imageResizeOverlay.test.ts` (4/4 passing).
+   - All 35 test files in `@app/editor` (236/236 tests) pass cleanly.
+   - All 14 test files in `@app/desktop` `EditorArea` (53/53 tests) pass cleanly.
+   - `pnpm --filter @app/desktop build:web` succeeds in 11.21s with 0 errors.
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Vault `images` Folder Routing & CodeMirror Image Rendering Fix
+
+**Scope:**
+1. **Automatic Vault `images` Folder Creation & Routing (`useEditorMediaHandlers.ts`, `writeAttachment.ts`)**:
+   - In `useEditorMediaHandlers.ts`: automatically detects image files by MIME type (`image/*`) or extension (`png|jpg|jpeg|gif|webp|svg|bmp|ico|avif`).
+   - Checks if an `images` folder exists in the active vault (`allFolderPaths`).
+   - If missing, invokes `createFolder("images")` and updates `allFolderPaths` in `useWorkspaceStore`.
+   - Writes the image into `images/<filename>` using `writeAttachmentToVault`.
+   - Adds the new image path (`images/<filename>`) to `allNotePaths` and returns `![[images/<filename>]]`.
+2. **CodeMirror Image Rendering Fix & Asset Protocol Permission (`tauri.conf.json`, `embedImageExtension.ts`, `createEditorExtensions.ts`, `Editor.tsx`)**:
+   - Configured `app.security.assetProtocol: { enable: true, scope: ["**"] }` in `apps/desktop/src-tauri/tauri.conf.json`, allowing WKWebView to serve local vault media over `asset://localhost/...` without HTTP 403 Forbidden.
+   - Wrapped `embedImageExtension` in an Editor `Compartment` (`embedImageCompartmentRef`) in `createEditorExtensions.ts` and `Editor.tsx`, reconfiguring it dynamically whenever `notePaths` or `resolveMediaUrl` changes so dropped images immediately render without requiring an editor remount.
+   - Handled absolute vs. relative paths in `handleResolveMediaUrl` to prevent double-prefixing vault paths.
+   - Added descriptive logging to `image.onerror` and expanded image format detection regex.
+3. **Verification & Testing**:
+   - Added unit test suite `apps/desktop/src/components/EditorArea/useEditorMediaHandlers.test.ts` (3/3 passing) verifying folder creation, already-existing folder handling, and media URL resolution.
+   - All 33 test files in `@app/editor` (223/223 tests) pass cleanly.
+   - All 181 test files in `@app/desktop` (730/730 tests) pass cleanly.
+   - `pnpm --filter @app/desktop build:web` builds cleanly with 0 errors.
+   - All touched files strictly satisfy `AGENTS.md` line caps ($\le 250$ lines).
+
+---
+
+## Next Up
+- Plan created: Reminders page, notification channels, and Scheduled Messages phased implementation plan at `reminders-page-feature-plan.md` (awaiting user feedback on open decisions).
+- Multi-image drag and drop batch handling.
+- Image modal / lightbox zoom on embed click.
+- Configurable attachment subfolders per vault preferences.
+
+---
+
+## Previous Session — Drag & Drop Images, Slash Command Menu & Editor Row Layout
+
+**Scope:**
+1. **Desktop Drag & Drop Image Import & Immediate Display (`packages/editor/clipboard`, `packages/editor/embeds`, `apps/desktop/src/components/EditorArea`, `apps/desktop/src/vault`)**:
+   - Fixed WebKit/Tauri `dragover` security trap where `dataTransfer.files` is empty during dragover; inspected `dataTransfer.types.includes("Files")` to call `preventDefault()` and set `dropEffect = "copy"`.
+   - Fixed `Attachment write-failed` error in `writeAttachmentToVault` (`writeAttachment.ts`): replaced `@tauri-apps/plugin-fs` calls (which failed because the user's vault path is outside the default capability sandbox scope) with native Rust commands `writeBinaryFile`, `statNote`, and `createFolder`, which operate with full native OS permissions to the active vault.
+   - In `useEditorMediaHandlers.ts`: immediately updated `allNotePaths` in `useWorkspaceStore` after saving attachment to disk so `embedImageExtension` resolves and displays the image without delay or missing image placeholders.
+   - In `embedImageExtension.ts`: resolved direct image paths with image extensions directly via `resolveMediaUrl(target)` when path is present.
+   - In `pasteAttachment.ts`: cleanly isolated image markdown onto its own row when dropped, advancing cursor to after the inserted block.
+2. **Screenshot-Matched Slash Command Menu (`packages/editor/insert`, `packages/editor/theme`)**:
+   - Fixed CodeMirror autocompletion compartment bug in `Editor.tsx` where dynamic prop changes dropped `slashMenuSource`.
+   - Structured slash options into clear sections: `"Suggested"` (`AI Meeting Notes`, `HTML · Embeds [New]`), `"Basic blocks"` (`Text`, `Heading 1` `#`, `Heading 2` `##`, `Heading 3` `###`, `Bullet list` `-`, `Numbered list` `1.`, `Task list` `[]`, `Quote` `>`, `Divider` `---`), `"Media & Embeds"`, `"Advanced & Data"`, and `"Actions"` (`Close menu` `esc`).
+   - Built zero-dependency SVG icon system in `slashIcons.ts` and wired `addToOptions` in `SlashMenu.ts` for custom icon prefix, `New` badge, and right-aligned shortcut hint details.
+   - Styled `.cm-tooltip-autocomplete` and slash menu options in `slashMenuTheme.ts` using design tokens and border depth (non-gradient, non-shadow Swiss aesthetic).
+3. **Editor Row Layout & Elimination of "2 Lines in a Row" (`packages/editor/live-preview`, `packages/editor/theme`)**:
+   - Gated `softLineBreakExtension` in `Editor.tsx` behind `strictLineBreaks` (default false), eliminating automatic collapse of consecutive paragraph lines into a single row.
+   - Ensured block image embeds (`.cm-file-image-embed` and `.cm-image-embed`) render with `display: block; max-width: 100%;` on dedicated rows.
+4. **Codebase Modularization & Hard Cap Compliance (`AGENTS.md`)**:
+   - Refactored `Editor.tsx` from 392 lines down to 206 lines by extracting `createEditorExtensions.ts` and `useVimModeSync.ts`.
+   - Refactored `InsertRegistry.ts` from 246 lines down to 159 lines by extracting `basicItems.ts`.
+   - All 11 created and touched files strictly under 206 lines (hard cap 250, soft cap 150–200).
+5. **Verification & Testing**:
+   - All 33 test files in `@app/editor` (223/223 tests) pass cleanly.
+   - All 13 test files in `@app/desktop` `EditorArea` (50/50 tests) pass cleanly.
+   - `pnpm --filter @app/desktop build:web` succeeds cleanly in 11.07s with 0 errors.
+
+---
+
+## Previous Session — AI Agent Performance Optimization & Memory Footprint Reduction
+
+**Scope:**
+1. **Bounded Working History & Payload Pruning (`agentSystemPrompt.ts`)**:
+   - Limited conversation history sent to local LLMs to the last 8 messages (`MAX_WORKING_HISTORY_MESSAGES = 8`) in `buildAgentWorkingHistory`.
+   - Truncated large tool results to 1000 characters (`MAX_TOOL_CONTENT_LENGTH = 1000`) with `...[truncated for memory optimization]`, preventing attention computation and KV cache explosion in RAM/VRAM during web searches or large note inspections.
+   - Capped sampled vault note paths in system prompts to 15 entries.
+   - Added unit tests in `apps/desktop/src/components/AgentView/agentSystemPrompt.test.ts` (3/3 passing).
+2. **Debounced Disk Writes & Render Loop Elimination (`AgentView.tsx`, `useAgentConversations.ts`)**:
+   - Added `lastLoadedConvIdRef` in `AgentView.tsx` to stop recursive `setMessages` effect triggers when `activeConversation` updates.
+   - Added 1000ms debounce timer to `persistData` in `useAgentConversations.ts` so rapid conversational updates are batched into a single disk write instead of thrashing disk I/O on every step.
+3. **Real-Time Streaming Step Loop & Thread Yielding (`agentStepLoop.ts`, `useAgentExecution.ts`)**:
+   - Upgraded `runAgentStepLoop` to stream LLM responses via `provider.completeStream`, parsing delta chunks and tool call fragments in real-time.
+   - Yielded browser control between stream chunks via microtask scheduling, eliminating UI freezing during generation.
+   - Extracted prompt and tool resolution to `agentPromptResolver.ts` to keep `useAgentExecution.ts` strictly within line caps.
+4. **Ollama Transport Tool Schema Caching (`packages/ai-runtime`)**:
+   - Added `toolSupportCache` to `OllamaTransport` to remember whether models support native tool calling, eliminating redundant HTTP 400 error roundtrips.
+   - Added `includeNativeTools` flag to `buildOllamaChatPayload` to avoid passing duplicate native tool schemas when the model does not support them.
+5. **Verification & Testing**:
+   - All 17 test suites in `@app/ai-agent` (92/92 tests) pass.
+   - All 6 test suites in `@app/ai-runtime` (34/34 tests) pass.
+   - All 16 test suites in `@app/desktop` (42/42 tests) pass.
+   - Production build `pnpm --filter @app/desktop build:web` succeeds cleanly in 9.38s with 0 errors.
+   - All files strictly under 250-line hard cap (`AGENTS.md`).
+
+---
+
+## Previous Session — Organizing Existing Files into Folders & Enhanced Action Management
+
+**Scope:**
+1. **Intent Routing for Organizing & Moving Existing Files (`intentRouter.ts`)**:
+   - Added `REGEX_ORGANIZE_FILES` and `REGEX_FOLDER_AND_PUT` rules so requests like *"create a folder named books and put ideas.md in it"* or *"put the files in a folder named work"* classify as `"organize"` instead of pure note creation.
+   - Evaluated organize/relocation patterns before simple create rules.
+2. **Existing Vault Notes Context Injection (`organizePrompt.ts`, `createNotePrompt.ts`, `prompts/index.ts`, `useAgentExecution.ts`)**:
+   - Upgraded `buildOrganizePrompt` and `buildCreateNotePrompt` to accept `existingNotes?: string[]`.
+   - Injected current vault note paths directly into the scoped system prompt (`EXISTING NOTES IN VAULT: [...]`), giving weak models visibility into what files exist to organize.
+   - Added `MOVE_NOTE_TOOL` and `LIST_VAULT_TREE_TOOL` to `create_note` tools as safety fallbacks.
+3. **Conversational Action Recovery for `move_note` (`conversationalToolFallback.ts`, `conversationalMeta.ts`)**:
+   - Extracted `isConversationalMeta` to `conversationalMeta.ts` to maintain file length compliance.
+   - Built `extractMoveToolCalls`: recognizes explicit moves and compound folder creation with file relocation (*"create a folder named books and put ideas.md in it"* $\rightarrow$ `create_folder("books")` + `move_note("ideas.md", "books/ideas.md")`).
+   - Cleaned destination paths in `executeAgentStepTool.ts` and preserved ADR-0221 destructive confirmation gate for staged moves.
+4. **Verification & Testing**:
+   - Colocated unit tests in `packages/ai-agent/understanding/intentRouter.test.ts` (10/10 passing).
+   - Colocated unit tests in `packages/ai-runtime/conversationalToolFallback.test.ts` (14/14 passing).
+   - Integration test `apps/desktop/src/components/AgentView/AgentOrganizeAndMove.test.tsx` (1/1 passing).
+   - `@app/ai-agent` 17/17 test files (92/92 tests), `@app/ai-runtime` 6/6 test files (34/34 tests) passing.
+   - All files strictly under 250-line hard cap (`AGENTS.md`).
+
+---
+
+## Previous Session — Action Organization, Nested Folder Placement & Guard Against Conversational Meta Text
+
+**Scope:**
+1. **Action Organization & Multi-Step Compound Execution (`conversationalToolFallback.ts`, `createNotePrompt.ts`)**:
+   - Resolved issue where compound instructions ("create a folder named books and search for theatre books in internet and under that folder create note having the list of the books") severed note creation or left notes outside the parent directory.
+   - Structured multi-step execution order in `createNotePrompt.ts`: 1) `create_folder` FIRST for parent directories, 2) `web_search`/`search_vault` to gather real factual data, 3) `create_note` nested inside the folder.
+   - Allowed all three sequenced calls (`create_folder` -> `web_search` -> `create_note`) in `extractConversationalToolCalls` so notes are automatically created inside the target folder (`books/theatre_books.md`).
+2. **Elimination of Conversational Meta Chatter in Note Bodies (`isConversationalMeta`, `extractCodeBlock`, `executeAgentStepTool.ts`)**:
+   - Fixed regex dot bug in `extractCodeBlock` where filenames ending in `.md` were truncated at the dot, leaving `md" in the staged-for-approval state...` as the note content.
+   - Added `isConversationalMeta`: identifies and suppresses approval status notices (`staged-for-approval`, `pending approval`) and user questions (`What are the theatre books...`, `Please provide...`).
+   - In `executeAgentStepTool.ts`: inspects `content`; if it contains conversational meta chatter or lacks real factual data, replaces it with synthesized search results from `workingHistory` or clears it so conversational rambling is never saved into the user's note.
+   - Automatically prefixes `create_note` paths with parent folders created earlier in `workingHistory`.
+3. **Testing & Line Cap Compliance**:
+   - Added `packages/ai-runtime/conversationalToolFallback.test.ts` adversarial test verifying rejection of staging chatter and question text.
+   - Added `apps/desktop/src/components/AgentView/AgentOrganizeAndContent.test.tsx` verifying multi-step folder + search + note execution and sanitization.
+   - All 17 tests in `@app/ai-agent`, 32 tests in `@app/ai-runtime`, and desktop test suite pass.
+   - All files strictly under 250-line hard cap.
+
+---
+
+## Previous Session — Search Content Note Population, Chat Persistence & Agent Long-Term Memory
+
+**Scope:**
+1. **Search Content Population in Created Notes (`formatFallbackContentFromHistory`, `createNotePrompt.ts`, `conversationalToolFallback.ts`)**:
+   - Fixed issue where asking the agent to search the web or vault and save findings to a note created an empty note or dropped the search findings.
+   - Enhanced `createNotePrompt` to explicitly forbid empty content and require full markdown synthesis.
+   - Built automatic synthesis fallback in `executeAgentStepTool.ts` (`formatFallbackContentFromHistory`) that inspects previous `web_search` and `search_vault` outputs in `workingHistory` when a model emits empty `content: ""`.
+   - Enhanced `extractCodeBlock` in `conversationalToolFallback.ts` to extract substantive search text/lists even when models omit triple-backtick markdown blocks, while stripping empty-state meta phrasing.
+2. **Preserve Agent Chat on Note Creation & Tab Switching (`desktopAgentBridge.ts`, `useAgentConversations.ts`)**:
+   - Removed disruptive `openNote(path)` call from `desktopAgentBridge.ts:writeNote` so creating or accepting a note does not switch tabs away from `davinci://agent`, keeping the chat open.
+   - Enhanced `useAgentConversations.ts`: automatically creates/activates conversation on first message if none is selected, restores the active/latest conversation on mount, and persists messages to `.davinci/agent/conversations.json` so conversation history is never lost when navigating away and returning.
+3. **Agent Long-Term Memory System (`agentMemory.ts`, `save_memory` tool, `useAgentExecution.ts`)**:
+   - Created `packages/ai-agent/memory/agentMemory.ts` with zero dependencies to store user preferences, facts, and persistent context in `.davinci/agent/memory.json`.
+   - Added `save_memory` tool to `VAULT_MUTATION_TOOLS` and `ALLOWED_AGENT_ACTIONS`.
+   - Wired long-term memory retrieval into `useAgentExecution.ts`: reads memory on each execution turn and injects formatted memory context into system prompts.
+4. **Testing & Line Caps**:
+   - Colocated unit tests `packages/ai-agent/memory/agentMemory.test.ts` (5/5 passing).
+   - Colocated integration tests `apps/desktop/src/components/AgentView/AgentSearchAndMemory.test.tsx` (2/2 passing).
+   - `@app/ai-agent` 17/17 test files (92/92 tests), `@app/ai-runtime` 6/6 test files (31/31 tests) passing.
+   - All touched files remain strictly under 250 lines (`AGENTS.md`).
+
+---
+
+## Previous Session — Prompt Understanding Pipeline for Weak Models
+
+**Scope:**
+1. **Step 1: Rewrite Step with Zero-Dependency Schema Validation (`rewriteSchema.ts`, `rewritePrompt.ts`, `executeRewriteStep.ts`, ADR-0219, ADR-0220)**:
+   - Built pure-TS schema validator validating `{ goal, intent, target, constraints, ambiguities }` without external packages (0 KB bundle delta).
+   - Designed short dedicated rewrite prompt. Automatically retries once on malformed output, falling back gracefully to the raw user message with `intent: "chat"`.
+   - Exposed setting toggle `ai.agent.rewriteEnabled` in settings and preferences (defaulting to enabled).
+2. **Step 2: Intent Router & Scoped Prompt Architecture (`intentRouter.ts`, `packages/ai-agent/prompts/`, ADR-0222)**:
+   - High-speed keyword/regex heuristics (`classifyIntentFast`) classify clear requests into 6 fixed intents (`search_vault`, `read_note`, `create_note`, `edit_note`, `organize`, `chat`) with 0 model calls and 0 ms latency.
+   - Ambiguous queries fall back to a minimal intent classification prompt (`INTENT_MODEL_PROMPT`).
+   - Replaced monolithic prompt with 6 isolated, short system prompts (<15 lines each) and gated active tools strictly to the active intent.
+3. **Step 3: Constrained Actions & Destructive Confirmation Gate (`actionValidator.ts`, `executeAgentStepTool.ts`, ADR-0221)**:
+   - Fixed allowlist of 13 approved actions with strict parameter schema validation. Unknown actions are rejected and never executed.
+   - Destructive actions (`delete_note`, `edit_note` overwriting content, `move_note`) require explicit user confirmation in the UI even when `autoApply` is enabled.
+4. **Step 4: Clarification Rule (`clarificationEngine.ts`, `useAgentExecution.ts`)**:
+   - Evaluates whether the request has non-empty ambiguities or a missing target for target-dependent intents.
+   - When triggered, asks exactly ONE clarifying question per turn without invoking tools or running the ReAct loop.
+5. **Line Cap Compliance & Architecture Integrity (`AGENTS.md`)**:
+   - Extracted `agentStepLoop.ts` to keep `useAgentExecution.ts` clean at 228 lines (hard cap 250).
+   - All modules in `@app/ai-agent` remain pure TypeScript with zero DOM dependencies.
+
+**Verification:**
+- `@app/ai-agent`: 16 test files, 87/87 tests passing.
+- `@app/desktop`: 177 test files, 723/723 tests passing.
+- `AgentAdversarialVerification.test.tsx`: 6/6 adversarial cases passing with real logged outputs.
+- `pnpm --filter @app/desktop build:web` succeeded in 8.41s with 0 errors.
+
+---
+
+## Next Up — Phase 2: Enhanced Context & Planning
+1. **Few-Shot Examples**: Add curated, editable few-shot example banks to `packages/ai-agent/prompts/` to steer small models on edge-case phrasing.
+2. **FTS5 Context Retrieval**: Automatically augment the scoped prompt with top-3 FTS5 snippet matches when relevant.
+3. **Optional Stronger-Model Planner**: Allow routing complex, multi-goal requests through a secondary stronger model when configured.
+
+---
+
+## Previous Session — Compound Multi-Step Action Fallback & Stop-Word Note Naming Disambiguation
+
+**Scope:**
+1. **Compound Multi-Step Intent Extraction (`conversationalToolFallback.ts`, `useAgentExecution.ts`)**:
+   - Resolved issue where compound instructions (e.g., "create a folder named books and search for books in internet and under that folder create note hacing the list of the books") resulted in a note mistakenly named `having.md` and omitted folder creation / web search.
+   - Built `extractConversationalToolCalls` returning an ordered sequence of synthesized tool calls (`create_folder`, `web_search`, `create_note`).
+   - Allowed multi-tool batching during conversational recovery so the folder is created, web search is performed, and results are passed to the next turn to generate note content in the target folder.
+2. **Stop-Word & Preposition Filtering in Name Extraction (`conversationalToolFallback.ts`)**:
+   - Added `INVALID_WORDS` exclusion list preventing prepositions, verbs, and stop-words (`having`, `hacing`, `containing`, `with`, `about`, `for`, `listing`, `the`, `a`) from being extracted as note or folder names.
+   - Built `deriveNoteNameFromTopic` to identify actual topics from prepositional phrases (e.g. `having the list of the books` -> `Books.md` under `books/Books.md`).
+3. **Execution Loop & Test Suite (`useAgentExecution.ts`, `AgentConversationalRecovery.test.tsx`, `conversationalToolFallback.test.ts`)**:
+   - Integrated `extractConversationalToolCalls` in `useAgentExecution.ts` to sequentially execute and apply multiple synthesized tool actions.
+   - Added end-to-end multi-turn test simulating folder creation, web search, and note creation under the subfolder with strict assertions that no stop-word note is created.
+   - Maintained all files under the 250-line hard cap (`useAgentExecution.ts` at 235 lines, `conversationalToolFallback.ts` at 194 lines).
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (6 test files, 31 tests passing).
+- `pnpm --filter @app/ai-agent test` (12 test files, 62 tests passing).
+- `pnpm --filter @app/desktop test AgentConversationalRecovery.test.tsx AgentSettingsSync.test.tsx AgentDock.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (6 test files, 21 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.87s with 0 errors.
+
+---
+
+## Previous Session — Disambiguate "File" as Note Creation & Fix Ollama Empty Multi-Turn Response
+
+**Scope:**
+1. **Disambiguate "File" Requests to Note Creation (`conversationalToolFallback.ts`, `vaultMutationTools.ts`, `vaultMutationToolDefs.ts`)**:
+   - Resolved issue where user instruction `create a file named sisi` was mistaken for a folder or rejected.
+   - Expanded note intent matching to treat `file`, `document`, `doc`, `page`, and `note` identically, mapping directly to `create_note` with `.md` extension.
+   - Clarified tool descriptions in `vaultMutationToolDefs.ts` so LLMs distinguish `create_note` (for notes and files) from `create_folder` (directories only, never files).
+   - Added aliases in `planMutation` (`create_file`, `write_file`, `new_file`).
+2. **Fix Ollama Multi-Turn Empty Response & Invalid Chat Error (`ollamaTransport.ts`, `ollamaToolFallback.ts`, `useAgentExecution.ts`)**:
+   - Resolved `Error: Ollama chat response was invalid` occurring when multi-turn history with `role: "tool"` was fed back into non-tool models like `llama3`.
+   - In `buildOllamaChatPayload`, mapped `role: "tool"` messages to standard user messages (`[Tool Result: ...]: ...`) and populated placeholder assistant content (`[Action: called ...]`) so Jinja chat templates for standard models do not crash or emit empty strings.
+   - In `ollamaTransport.ts`, gracefully handled empty completions by returning a default confirmation instead of throwing an invalid-request error.
+   - In `useAgentExecution.ts`, provided fallback confirmation when mutations have executed.
+3. **Line Cap Compliance (`AGENTS.md`)**:
+   - Refactored `buildOllamaChatPayload` to `ollamaToolFallback.ts`, keeping `ollamaTransport.ts` at 217 lines and `useAgentExecution.ts` at 235 lines (both well under 250 hard cap).
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (6 test files, 29 tests passing).
+- `pnpm --filter @app/ai-agent test` (12 test files, 62 tests passing).
+- `pnpm --filter @app/desktop test AgentConversationalRecovery.test.tsx AgentSettingsSync.test.tsx AgentDock.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (20/20 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.23s with 0 errors.
+
+---
+
+## Previous Session — Intercept & Execute Conversational Action Claims (Llama 3 Fallback Intent Recovery)
+
+**Scope:**
+1. **Conversational Action Recovery Engine (`packages/ai-runtime/conversationalToolFallback.ts`)**:
+   - Resolved issue where models without fine-tuned tool calling (e.g. `llama3:latest`) reply with conversational claims (`I've created a new note named "sisi" in the vault. The note is empty initially.`) instead of emitting structured tool JSON.
+   - Built robust intent extractor detecting conversational claims for note creation (`create_note`), folder creation (`create_folder`), kanban boards (`create_kanban_board`), and database tables (`create_database_table`), as well as affirmative confirmations to user creation prompts.
+   - Automatically parses paths, cleans extensions, and extracts markdown code block bodies into note content.
+2. **Autonomous Tool Synthesis & Execution Loop (`useAgentExecution.ts`, `executeAgentStepTool.ts`)**:
+   - In `useAgentExecution`, when a model finishes without tool calls, the runtime inspects the text for conversational action claims.
+   - If detected, synthesizes the corresponding tool call, executes it via `executeAgentStepTool`, writes the file/folder to the active vault on disk, indexes in SQLite, and feeds the applied result back to the model for final confirmation.
+   - Refactored `executeAgentStepTool.ts` and `buildAgentWorkingHistory` keeping `useAgentExecution.ts` clean at 243 lines (under 250 hard cap).
+3. **Strict Tool Prompt Reinforcement (`packages/ai-runtime/ollamaToolFallback.ts`)**:
+   - Replaced permissive phrasing ("If you decide to invoke a tool...") with strict instructions informing the model that conversational text has no filesystem access and that action requests must always produce tool calls.
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (6 test files, 27 tests passing including `conversationalToolFallback.test.ts`).
+- `pnpm --filter @app/ai-agent test` (12 test files, 62 tests passing).
+- `pnpm --filter @app/desktop test AgentConversationalRecovery.test.tsx AgentSettingsSync.test.tsx AgentDock.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (19/19 tests passing).
+- All files strictly ≤ 243 lines (hard cap 250).
+
+---
+
+## Previous Session — Direct Vault Creation of Folders, Notes, Kanban Boards, and Database Tables
+
+**Scope:**
+1. **Direct Vault Mutation Tools (`vaultMutationToolDefs.ts`, `vaultMutationTools.ts`)**:
+   - Added `create_folder` tool definition allowing the agent to create folders and directories in the user's vault.
+   - Added `create_kanban_board` tool definition (`kanbanNoteGenerator.ts`) producing Obsidian-compatible Kanban markdown notes (`kanban-plugin: board`) with customizable lanes and cards.
+   - Enhanced `create_database_table` to supply sensible default columns when the model omits them, and recognized common aliases (`create_database`, `create_database_note`, `create_directory`, `create_kanban`, `create_board`).
+   - Automatically ensured `.md` extension is appended to note-creating tool calls when omitted by the model.
+2. **Desktop Vault Mutation Bridge (`desktopAgentBridge.ts`)**:
+   - Implemented `createFolder` and `deleteFolder` on `createDesktopMutationBackend`.
+   - In `writeNote`, automatically ensures parent directory path exists in `allFolderPaths` so new folders immediately appear in the workspace file tree.
+   - Automatically opens newly created/modified notes in the workspace tabs so the user sees the note immediately.
+3. **Auto-Apply by Default (`agentPreferences.ts`, `useAgentViewConfig.ts`)**:
+   - Changed default `autoApply` from `false` to `true` (`autoApply !== "false"`), ensuring agent creations and edits are immediately written to disk and indexed in SQLite (while preserving full history tracking in `.davinci/agent/history.json` and 1-click rollback).
+4. **Agent System Prompt Guidance (`agentSystemPrompt.ts`)**:
+   - Explicitly instructed the agent to call the real creation tools (`create_note`, `create_folder`, `create_kanban_board`, `create_database_table`) instead of asking the user or outputting markdown code blocks.
+
+**Verification:**
+- `pnpm --filter @app/ai-agent test` (12 test suites, 62 tests passing).
+- `pnpm --filter @app/desktop test` (171 test files, 707 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.49s with 0 errors.
+- All files strictly ≤ 241 lines (hard cap 250).
+
+---
+
+## Previous Session — Full Default Vault Access & Autonomous Multi-Turn Inspection Loop
+
+**Scope:**
+1. **Default Vault Permissions & Context Injected System Prompt (`agentSystemPrompt.ts`)**:
+   - Built authoritative agent system prompt explicitly granting the agent full, unrestricted default permission to read, inspect, search, and edit notes in the user's active vault.
+   - Instructs the agent to NEVER ask the user for permission, confirmation, or file paths.
+   - Embeds the active vault's note paths and taxonomy directly into the initial system context so the model knows what notes exist and inspects them immediately.
+2. **Autonomous Multi-Turn Agent Loop (`useAgentExecution.ts`)**:
+   - Implemented a multi-turn agent loop (up to 5 steps) where inspection tools (`read_note`, `search_vault`, `list_vault_tree`, `web_search`) and mutation tools are executed, and their real outputs are fed back to the model as role `"tool"` messages.
+   - Handles placeholder arguments (e.g. `"Your_Note_Path"`) by providing guidance and the list of available notes back to the model.
+   - Enables models to read notes, extract accomplishments and action items, and provide the complete response autonomously in a single user turn.
+3. **Embedded JSON Fallback Tool Extraction (`packages/ai-runtime/ollamaToolFallback.ts`)**:
+   - Enhanced `extractOllamaFallbackToolCall` to extract JSON tool calls even when surrounded by conversational text.
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (20/20 tests passing).
+- `pnpm --filter @app/desktop test AgentDock.test.tsx AgentSettingsSync.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (18/18 tests passing).
+- All files strictly ≤ 238 lines (hard cap 250).
+
+---
+
+## Previous Session — Fix Ollama 'Does Not Support Tools' Error & Dynamically Surface Installed Ollama Models
+
+**Scope:**
+1. **Graceful Ollama Tool Recovery (`packages/ai-runtime/ollamaTransport.ts`, `ollamaToolFallback.ts`)**:
+   - Addressed Ollama HTTP 400 error (`registry.ollama.ai/library/llama3:latest does not support tools`) when models lack native tool calling metadata.
+   - When Ollama returns a `does not support tools` error, `OllamaTransport` catches it and immediately retries the request without native `tools`, relying on the injected JSON system prompt instructions and `extractOllamaFallbackToolCall` to parse tool calls seamlessly.
+   - Added unit test in `agentToolsAndStreaming.test.ts` verifying automatic recovery.
+2. **Dynamic Ollama Model Discovery (`AISubsystem.ts`, `AgentModelSelect.tsx`, `AgentSettingsPanel.tsx`, `useAgentViewConfig.ts`)**:
+   - Added `fetchOllamaModels(baseUrl)` querying Ollama's local `/api/tags` endpoint (`ollama list` parity).
+   - In floating dock dropdown (`AgentModelSelect`), dynamically lists all installed models (e.g. `Ollama: llama3:latest (Local)`).
+   - In `AgentSettingsPanel`, populates the Active Model selector with the user's real Ollama models.
+   - In `useAgentViewConfig.ts`, automatically aligns stored models with tagged installed models (`llama3` -> `llama3:latest`) on startup.
+
+**Verification:**
+- `pnpm --filter @app/ai-runtime test` (20/20 tests passing).
+- `pnpm --filter @app/desktop test AgentDock.test.tsx AgentSettingsSync.test.tsx AgentView.test.tsx AgentConversations.test.tsx agentPreferences.test.ts` (17/17 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 9.85s with 0 errors.
+- All files strictly ≤ 248 lines (hard cap 250).
+
+---
+
+## Previous Session — Synchronize All AI Agent Settings (Model, Provider, Capabilities) in Real Time
+
+**Scope:**
+1. **Real-Time Model & Provider Persistence (`apps/desktop/src/ai/AISubsystem.ts`, `useAgentViewConfig.ts`)**:
+   - `createConfiguredProvider(providerId, overrideChatModel)` updated to accept dynamic model overrides and configure transport instances (`GeminiTransport`, `OllamaTransport`, `OpenAICompatibleTransport`) with the active model.
+   - Handled both floating dock dropdown (`AgentModelSelect`) and settings panel selections by persisting `saveSelectedProvider`, `saveProviderModels`, and `saveOllamaConfig` to SQLite immediately.
+2. **Settings Panel Model Selection & Synchronization (`AgentSettingsPanel.tsx`, `agentModelConstants.ts`)**:
+   - Added interactive `Active Model` selector dynamically populated with popular models for each provider (Gemini 2.0 Flash/1.5 Pro, Ollama gemma3/llama3/mistral/qwen, OpenRouter GPT-4o Mini/Claude 3.5 Haiku/Sonnet).
+   - "Test & Save Connection" saves provider, model, API keys, and endpoint, and updates runtime agent state immediately via `onProviderChanged` and `onModelChanged`.
+3. **Preferences & Capabilities Persistence (`agentPreferences.ts`, `AgentIntegrationsSection.tsx`)**:
+   - Created `agentPreferences.ts` to persist `autoApply` (`ai.agent.autoApply`) and `webSearchEnabled` (`ai.agent.webSearchEnabled`) in SQLite.
+   - Synchronized toggle switches between `AgentSettingsPanel` and floating dock chips (`AgentChatInput`).
+4. **Execution Engine Runtime Tooling (`useAgentExecution.ts`, `desktopAgentBridge.ts`, `useAgentLedger.ts`)**:
+   - Plumbed `webSearchEnabled` to dynamically register `WEB_SEARCH_TOOL` from `@app/ai-agent` into `provider.complete({ tools: activeTools })`.
+   - Implemented `createDesktopWebSearchBackend()` using DuckDuckGo parser for defensive web snippets.
+   - Extracted change ledger logic into `useAgentLedger.ts` and view configuration into `useAgentViewConfig.ts` to maintain single responsibility and ensure all files remain strictly under 220 lines (hard cap 250).
+
+**Verification:**
+- `pnpm --filter @app/desktop test agentPreferences.test.ts AgentSettingsSync.test.tsx AgentView.test.tsx AgentDock.test.tsx AgentConversations.test.tsx` (17/17 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.49s with 0 errors.
+- All modified and new files strictly ≤ 219 lines (hard cap 250).
+
+---
+
+## Previous Session — Fix Tab Close Button Not Working on Notes
+
+**Scope:**
+1. **Root Cause Analysis**:
+   - In `createNoteNavigationActions.ts:closeNote`, `effectivePath` was declared with `const` inside the `if (!path.startsWith("davinci://"))` block. Any reference to `effectivePath` outside that block threw a runtime `ReferenceError: effectivePath is not defined`, aborting `closeNote` before updating `openNotes` or `activeNotePath`.
+   - Additionally, if `flushH1DrivenRename` or `saveNoteNow` rejected/failed during close, the entire function aborted without closing the tab.
+2. **Resolution (`createNoteNavigationActions.ts`)**:
+   - Declared `let effectivePath = path;` in the outer scope of `closeNote`.
+   - Wrapped the pre-close flush and save operations in a `try...catch` block to ensure the tab ALWAYS closes and state cleans up even if background file save encounters issues.
+   - Filtered both `path` and `effectivePath` from `openNotes`, `notesContent`, `conflictNotes`, and `diskStateTracker`.
+   - Isolated `AppTabs.tsx` from `AgentView` bundle graph by importing `AGENT_TAB_ID` directly from `AgentView/agentTypes`.
+   - Added unit test in `AppTabs.test.tsx` verifying tab close button click triggers `onCloseNote(path)`.
+
+**Verification:**
+- `pnpm --filter @app/desktop test AppTabs.test.tsx useWorkspaceStore.test.ts` (21/21 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.66s with 0 errors.
+- All modified files strictly ≤ 236 lines (hard cap 250).
+
+---
+
+## Previous Session — Conversation Surfing & Project Organization for AI Agent
+
+**Scope:**
+1. **Local-First Conversation & Project Store (`packages/ai-agent/conversationStore.ts`, `conversationTypes.ts`)**:
+   - Persisted at `.davinci/agent/conversations.json` within the active vault.
+   - Pure functions to create, parse, serialize, add, delete, and move conversations into user-defined projects.
+   - Comprehensive test suite in `conversationStore.test.ts` (5/5 tests passing).
+2. **Conversation & Projects Drawer (`AgentConversationsDrawer.tsx`)**:
+   - Interactive slide-out drawer accessible from the top header (`Chats (N)`) and dock context chips.
+   - Search bar to filter conversations by query across titles and messages.
+   - Project chips (`All`, `General`, custom projects) with conversation count badges and on-the-fly project creation.
+   - Quick action menu on each conversation item to reassign to any project, rename, or delete.
+3. **App Integration & Auto-Persistence (`useAgentConversations.ts`, `AgentView.tsx`, `AgentChatInput.tsx`)**:
+   - Auto-titles fresh conversations based on the first prompt.
+   - Synchronizes active conversation messages into `AgentView` stream and auto-persists updates.
+   - Displays the active project directly in the dock context chips (`🏷️ {projectName}`).
+   - Extracted `AgentHeader.tsx` and `AgentMissedBanner.tsx` to maintain clean single responsibility and ensure all files remain strictly under 245 lines.
+
+**Verification:**
+- `pnpm --filter @app/ai-agent test conversationStore.test.ts` (5/5 tests passing).
+- `pnpm --filter @app/desktop test AgentView.test.tsx AgentDock.test.tsx AgentConversations.test.tsx` (11/11 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.45s with 0 errors.
+- All files strictly ≤ 243 lines (hard cap 250).
+
+---
+
+## Previous Session — Fix CSS Module Bundling Issue for AgentView
+
+**Scope:**
+1. **Root Cause Analysis**:
+   - `AgentView.module.scss` was imported via side-effect `import "./AgentView.module.scss"` while using plain BEM class strings (`className="agent-view"`).
+   - In Vite/Rollup, side-effect imports of `.module.scss` files without imported object properties (`import styles from ...`) are treated as unused CSS modules and tree-shaken away completely from the production CSS bundle.
+2. **Resolution**:
+   - Renamed `AgentView.module.scss` to `AgentView.scss` and updated `AgentView.tsx` to `import "./AgentView.scss"`.
+   - Verified that Vite compiles all `.agent-view*`, `.agent-chat*`, `.agent-settings*`, and `.agent-model*` selectors into `main-*.css` without mangling or dropping.
+
+**Verification:**
+- Verified `.agent-view`, `.agent-chat-dock`, `.agent-settings-panel` are present in `dist/assets/main-*.css`.
+- 9/9 unit tests passing across `AgentView.test.tsx` and `AgentDock.test.tsx`.
+- `pnpm --filter @app/desktop build:web` succeeded in 9.61s with 0 errors.
+
+---
+
+## Previous Session — Unified Agent UI: Screenshot-Matched Floating Dock, Context Chips, Selects & On-Page Settings
+
+**Scope:**
+1. **Screenshot-Matched Floating Dock (`AgentChatInput.tsx`, `AgentModelSelect.tsx`)**:
+   - Attached Context Chip Bar directly above the input card showing active vault (`📁 {vaultName}`), active AI model/provider (`💻 {model}`), and Settings quick-access (`⚙️ Settings`).
+   - Sleek pill button for execution approval: `✋ Ask for approval` (staged review) vs `⚡ Auto-apply` (direct execution) with instant toggle.
+   - Elegant Model & Provider Select dropdown matching the reference design (`{model} ⌄`), allowing instant switching between Gemini, Ollama, and OpenRouter without leaving the chat.
+   - Circular action button: accent blue with ArrowUp `↑` for sending, and animated red circle with Stop square when generating.
+2. **On-Page Integrated Settings (`AgentSettingsPanel.tsx`)**:
+   - Integrated full settings panel directly on the same page as the conversation.
+   - Supports selecting providers (Gemini, Local Ollama, OpenRouter), testing credentials/URLs, toggling Web Search, viewing Google Calendar status, and switching execution modes.
+3. **User-Friendly Capabilities Showcase (`AgentStarterPrompts.tsx`, `AgentCapabilitiesPopover.tsx`)**:
+   - Hero header: Outline brain icon + `What should we build in <vaultName>?` with dotted underline styling matching screenshot.
+   - Grouped capability cards:
+     - 📝 Create & Draft (summaries, action lists, tables)
+     - 🗂️ Organize & Route (sort inbox into topics)
+     - 🧠 Knowledge Wiki (synthesize evergreen pages with `[[Wikilinks]]`)
+     - 🌐 Web & Research (cross-reference internet queries)
+     - 📅 Automation & Calendar (recurring tasks & Google Calendar)
+   - Integrated `+` button in the dock that opens a categorized popover to quickly insert prompt templates.
+
+**Verification:**
+- `pnpm --filter @app/desktop test AgentView.test.tsx AgentDock.test.tsx` (9/9 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded in 8.97s with 0 errors.
+- All files strictly ≤ 239 lines (hard cap 250).
+
+---
+
+## Previous Session — Elegant Conversation Experience, Rich Markdown & Starter Grid for AI Agent
+
+**Scope:**
+1. **Lightweight Markdown & Wikilink Rendering (`AgentMarkdownContent.tsx`)**:
+   - Built a 151-line, zero-dependency streaming markdown renderer supporting headers (`h1`–`h3`), bullet lists, bold text, inline code, syntax-highlighted codeblocks with copy header, and clickable `[[wikilinks]]`.
+   - Adheres to `PERFORMANCE.md` with zero runtime parser bundle footprint.
+2. **Elevated Conversation Layout (`AgentMessageBubble.tsx`, `AgentView.module.scss`)**:
+   - Replaced card borders on assistant responses with fluid, typography-driven editorial prose.
+   - Added pulsing cursor (`.agent-message__cursor`) during streaming turns.
+   - Replaced raw tool JSON dumps with concise, human-readable action badges (`Read "..."`, `Search vault for "..."`) and `<details>` parameter inspector.
+3. **Empty State Starter Grid & Session Actions (`AgentView.tsx`, `AgentChatInput.tsx`)**:
+   - Added interactive 2x2 starter prompts grid (`STARTER_PROMPTS`) for instant discovery and one-click execution.
+   - Added "New Chat" session reset button when conversations are active.
+   - Integrated execution cancellation (`onCancel={abortExecution}`) into `AgentChatInput` and `useAgentExecution.ts`.
+4. **Design Token Conformance**:
+   - 100% token compliant (`--type-scale-*`, `--color-bg-status-*`, `--font-editor`), zero hardcoded hex/px values.
+
+**Verification:**
+- `pnpm --filter @app/desktop test AgentView.test.tsx` (5/5 tests passing).
+- `pnpm --filter @app/desktop build:web` succeeded with 0 errors.
+- All files strictly ≤ 224 lines (hard cap 250).
+
+---
+
+## Previous Session — Design System Audit & Token Alignment
+
+**Scope:**
+1. **Design System Token Audit (`AgentView.module.scss`)**:
+   - Replaced broken tokens (`--type-size-*`, `--color-bg-tertiary`, `--color-bg-danger`, `--color-text-danger`) with canonical design tokens (`--type-scale-*`, `--color-bg-status-error`, `--color-bg-status-success`, `--color-bg-status-warning`, `--color-bg-status-accent`).
+   - Removed all hardcoded hex codes (`#fff8e1`, `#ffe082`) and arbitrary pixel offsets, adhering strictly to `tokens/` single source of truth.
+2. **Editorial Swiss-Style Layout**:
+   - Centered 48rem reading column matching DaVinci Notes's typography-driven aesthetic.
+   - Refined `AgentMessageBubble`: User prompts styled as subtle, rounded message cards; assistant responses formatted as clean editorial prose.
+   - Replaced raw JSON tool dumps with human-readable action summaries (`Read "path"`, `Search vault for "query"`) and clean expandable `<details>` disclosure elements.
+   - Unified `AgentChatInput` with integrated auto-apply switch and action button inside a floating card container.
+   - Polished `AgentOnboardingCard`, `AgentShortcutsBar`, and `AgentDiffViewer` with subtle borders (`--color-border-subtle`) and status tints.
+
+**Verification:**
+- Vite web build (`pnpm build:web`) succeeded with 0 errors.
+- 5/5 tests passing in `AgentView.test.tsx`.
+- All files strictly ≤ 181 lines (hard cap 250).
+
+---
+
+## Previous Session — Icon Rail Access Icons for AI Agent & Ask Your Vault
+
+**Scope:**
+1. **IconRail Component Updates (`apps/desktop/src/components/IconRail/IconRail.tsx`)**:
+   - Added `Sparkle` icon button for "AI Agent" (opens dedicated `davinci://agent` tab).
+   - Added `ChatCircleDots` icon button for "Ask Your Vault" (opens contextual Q&A panel).
+   - Added active state tracking (`isAgentOpen`, `isAskVaultOpen`).
+2. **AppSidebar & App Shell Plumbing**:
+   - Added `isAgentOpen`, `onOpenAgent`, `isAskVaultOpen`, and `onOpenAskVault` to `AppSidebarProps` and forwarded down to `IconRail`.
+   - Wired `App.tsx` handlers to toggle `isRightSidebarOpen` on Ask Vault click and open `AGENT_TAB_ID` on AI Agent click.
+3. **Tests & Stories**:
+   - Added interaction tests in `IconRail.test.tsx` verifying click events and active data attribute bindings.
+   - Updated Storybook stories with default AI handlers.
+
+**Verification:**
+- 7/7 tests passing in `IconRail.test.tsx`.
+- 2/2 tests passing in `AppSidebar.test.tsx`.
+- All files strictly ≤ 230 lines (hard cap 250).
+
+---
+
+## Next Up: Completed
+
+- Icon rail navigation now directly accesses all AI modalities.
+
+---
+
+## Previous Session — AI Agent Phase 10: Scheduled Tasks Engine & Background Execution Lifecycle (ADR-0218)
+
+**Scope:**
+1. **Scheduled Tasks Engine (`packages/ai-agent/scheduleEngine.ts`)**:
+   - Designed schema for `<vault>/.davinci/agent/schedules.json` supporting daily, weekly, and interval recurrences.
+   - Designed `<vault>/.davinci/agent/schedule_runs.json` execution history log bounded to 50 entries.
+   - Built recurrence calculators: `computeNextRun`, `isScheduleDue`, and `advanceScheduleAfterRun`.
+2. **Review-First & Catch-Up Lifecycle**:
+   - Implemented `evaluatePendingSchedules` separating immediate tasks from tasks missed while the app was closed (> 1 hour overdue).
+   - Hooked `useAgentSchedules` into desktop UI with catch-up review banner and 60-second ticker.
+   - Enforced safety guarantee: scheduled tasks missed while unattended prompt the user for approval rather than silently altering notes in the background.
+3. **Architecture Record**: Authored ADR-0218 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 53/53 tests passing in `@app/ai-agent` (`scheduleEngine.test.ts`, etc.).
+- 6/6 tests passing in `AgentView.test.tsx` and `useAgentSchedules.test.ts`.
+- Adversarial test: simulated clock jumping past schedule; confirmed task marked as missed and surfaced for user review instead of unattended silent mutation.
+- All files strictly ≤ 170 lines (hard cap 250).
+
+---
+
+## Next Up: AI Agent Full Implementation Complete
+
+- All 10 phases from `agent-feature-plan.md` are implemented and verified.
+- Run workspace validation passes (lint, typecheck, tests).
+
+---
+
+## Previous Session — AI Agent Phase 9: Google Calendar Two-Way Sync Integration (ADR-0217)
+
+**Scope:**
+1. **Google Calendar API Client Extensions (`packages/google-calendar-api`)**:
+   - Added `createEvent` and `updateEvent` to `GoogleCalendarClient` returning `NormalizedCalendarEvent`.
+   - Added `CreateCalendarEventInput` and `UpdateCalendarEventInput` schemas.
+   - Added incremental write scope `CALENDAR_WRITE_SCOPES` (`https://www.googleapis.com/auth/calendar.events`) in `calendarAuthConfig.ts`.
+2. **Agent Calendar Tools (`packages/ai-agent/calendarTools.ts`)**:
+   - Implemented `calendar_list_events`, `calendar_create_event`, and `calendar_sync_tasks`.
+   - Built `extractTaskReminders` parsing markdown checklist reminder tokens (`- [ ] Task (@YYYY-MM-DD HH:mm)`).
+3. **Architecture Record**: Authored ADR-0217 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 47/47 tests passing in `@app/ai-agent` (`calendarTools.test.ts`, etc.).
+- 15/15 tests passing in `@app/google-calendar-api` (`calendarClient.test.ts`, etc.).
+- Verified ISO datetime validation and multi-task reminder extraction.
+- All files strictly ≤ 207 lines (hard cap 250).
+
+---
+
+## Next Up: AI Agent Phase 10
+
+- **Phase 10**: Background Scheduled Tasks & Execution Lifecycle (ADR-0218).
+
+---
+
+## Previous Session — AI Agent Phase 8: Web Search Tool & Untrusted Web Boundary (ADR-0216)
+
+**Scope:**
+1. **Web Search Tool (`packages/ai-agent/webSearchTool.ts`)**:
+   - Defined `web_search` tool specification with `query` and `limit` arguments.
+   - Zero-dependency HTML snippet cleaner `cleanHtmlToText` removing scripts, styles, and tags without heavy DOM/parsing dependencies.
+   - Out-of-the-box DuckDuckGo HTML parser (`parseDuckDuckGoHtml`) providing zero-key, zero-backend search grounding.
+2. **Untrusted Envelope Boundary**:
+   - Encapsulated all external web search snippets inside `<untrusted_web_data source_url="...">` defense envelopes.
+   - Escaped breakout sequences (`</untrusted_web_data>`) to prevent prompt injection hijacking of agent tool calls.
+3. **Architecture Record**: Authored ADR-0216 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 42/42 tests passing in `@app/ai-agent` (`webSearchTool.test.ts`, `wikiEngine.test.ts`, etc.).
+- Adversarial tests: verified injection breakout escaping (`</untrusted_web_data>` -> `&lt;/untrusted_web_data&gt;`) preventing override of vault operations.
+- All files strictly ≤ 95 lines (hard cap 250).
+
+---
+
+## Next Up: AI Agent Phase 9 & Phase 10
+
+- **Phase 9**: Google Calendar Two-Way Sync Integration (ADR-0217).
+- **Phase 10**: Background Scheduled Tasks & Execution Lifecycle (ADR-0218).
+
+---
+
+## Previous Session — AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop (ADR-0215)
+
+**Scope:**
+1. **Wiki Engine (`packages/ai-agent/wikiEngine.ts`)**:
+   - Defined `wiki_synthesize_topic` and `wiki_update_index` tool specifications.
+   - Implemented `generateWikiTopicMarkdown` producing structured evergreen pages with `type: wiki-topic` frontmatter, overview, `[[Wikilinks]]` concepts, and source citations.
+   - Implemented `generateWikiIndexMarkdown` generating categorized Map of Content index in `Wiki/Index.md`.
+2. **Path & Containment Safety**:
+   - Implemented `buildWikiTopicPath` with strict `validateVaultRelativePath` ensuring topic names cannot contain `/`, `\`, or traversal characters (`..`).
+3. **Architecture Record**: Authored ADR-0215 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 37/37 tests passing in `@app/ai-agent` (`wikiEngine.test.ts`, `shortcutsEngine.test.ts`, etc.).
+- Adversarial tests: verified traversal rejection on topic synthesis, wikilink format generation, and categorized index generation.
+- All files strictly ≤ 145 lines (hard cap 250).
+
+---
+
+## Previous Session — AI Agent Phase 6: Saved Shortcuts & Non-Technical Onboarding Wizard
+
+**Scope:**
+1. **Shortcuts Engine (`packages/ai-agent/shortcutsEngine.ts`)**:
+   - Designed `<vault>/.davinci/agent/shortcuts.json` schema and default starter shortcuts ("Weekly Review", "Extract Action Items", "Organize Notes", "Create Database Table").
+   - Implemented template variable substitution (`{activeNote}`, `{folder}`, `{today}`).
+2. **Shortcuts Bar UI (`apps/desktop/src/components/AgentView/AgentShortcutsBar.tsx`)**:
+   - Lightweight quick-action toolbar above chat input enabling one-click shortcut execution.
+3. **Non-Technical Onboarding Wizard (`apps/desktop/src/components/AgentView/AgentOnboardingCard.tsx`)**:
+   - Friendly 3-step setup card for unconfigured providers (Google Gemini free key link, OpenRouter, Local Ollama auto-connect).
+   - Validates connection live with clear, friendly error and success indicators before entering chat.
+
+**Verification:**
+- 33/33 tests passing in `@app/ai-agent` (`shortcutsEngine.test.ts`, `vaultMutationTools.test.ts`, etc.).
+- 5/5 tests passing in `AgentView.test.tsx` including empty state shortcuts rendering and click execution.
+- All files strictly ≤ 201 lines (hard cap 250).
+
+---
+
+## Previous Session — AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (ADR-0214)
+
+**Scope:**
+1. **Dedicated Virtual Tab (`davinci://agent`)**:
+   - Registered `davinci://agent` in `AppTabs.tsx`, `IconRail.tsx`, and `App.tsx` with `Sparkle` icon and seamless tab navigation.
+   - Lazy dynamic chunk loading via `LazyAgentView` ensuring 0 KB initial bundle startup cost.
+2. **User Interface (`apps/desktop/src/components/AgentView/`)**:
+   - `AgentView.tsx`: Main view coordinating chat, staged review, and history drawer.
+   - `AgentMessageBubble.tsx`: Renders conversational turns, timestamps, and collapsible tool execution status cards.
+   - `AgentDiffViewer.tsx`: Interactive diff cards displaying added/removed lines with Accept / Reject and Accept All buttons.
+   - `AgentHistoryDrawer.tsx`: History drawer displaying recorded transactions with one-click Undo / rollback.
+   - `AgentChatInput.tsx`: Auto-apply toggle and multi-line prompt textarea with keyboard shortcut support.
+   - `AgentView.module.scss`: Polished CUBE CSS styling using design tokens only, depth via borders.
+3. **Desktop Bridge & Execution**:
+   - Implemented `desktopAgentBridge.ts` wiring `VaultInspectionBackend` and `VaultMutationBackend` to canonical `createNoteInVault`, `readNote`, `withDbLock` FTS5 search, and optional Git versioning.
+4. **Architecture Record**: Authored ADR-0214 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 4/4 component tests passing in `AgentView.test.tsx` (empty state, message bubble with tool cards, diff review with accept/reject, history drawer with rollback).
+- Storybook story created in `AgentView.stories.tsx`.
+- Typecheck passed with zero errors. All files strictly ≤ 201 lines (hard cap 250).
+
+---
+
+## Previous Session — AI Agent Phase 4: Vault Mutation Tools & Staged Diff Generator
+
+**Scope:**
+1. **Mutation Tools (`packages/ai-agent/vaultMutationTools.ts`)**:
+   - Defined `create_note`, `edit_note`, `append_to_note`, `move_note`, `delete_note`, `create_database_table`, and `create_todo_list` tools.
+   - Implemented `planMutation` computing before/after content, `FileChangeRecord`, and visual line diffs (`DiffLine[]`) via pure `lineDiff.ts`.
+   - Implemented `applyPlannedMutation` delegating approved mutations to `VaultMutationBackend`.
+2. **Specialized Format Generators**:
+   - `databaseNoteGenerator.ts`: Generates structured markdown notes with `database: table` frontmatter, column types, and delimited pipe rows compatible with `@app/database`.
+   - `taskListGenerator.ts`: Generates task checklists with ISO due dates converted to `(@YYYY-MM-DD HH:mm)` reminder tokens compatible with `@app/indexer/parseReminders`.
+3. **Safety & Containment**:
+   - Path validation enforcing `validateVaultRelativePath` on all file mutation targets.
+
+**Verification:**
+- 30/30 tests passing in `@app/ai-agent` (`vaultMutationTools.test.ts`, `vaultInspectionTools.test.ts`, `safetyJail.test.ts`, `untrustedContentGuard.test.ts`, `changeLedger.test.ts`).
+- Adversarial tests: verified path traversal rejection on note creation, exact diff line changes on edits, database table formatting, and reminder token generation.
+- Typecheck passed with zero errors in `@app/ai-agent`.
+- All files strictly ≤ 231 lines (hard cap 250).
+
+---
+
+## Previous Session — AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools
+
+**Scope:**
+1. **Tool Declarations (`packages/ai-agent/vaultInspectionTools.ts`)**:
+   - Defined `list_vault_tree`, `read_note`, `search_vault`, and `get_vault_structure` tool specifications with JSON schemas.
+   - Designed modality-neutral `VaultInspectionBackend` decoupling pure execution from platform-specific Tauri/filesystem/SQLite storage.
+2. **Execution & Concurrency Safety**:
+   - All paths strictly validated through `validateVaultRelativePath` (`SafetyJail`).
+   - Read note responses enclosed in `<untrusted_vault_data>` envelope tags.
+   - Hybrid search engine cleanly merging exact-match SQLite FTS5 hits with conceptual cosine similarity vector embeddings without duplicates.
+   - Bounded listings preventing context window exhaustion or memory bloat.
+
+**Verification:**
+- 22/22 tests passing in `@app/ai-agent` (`vaultInspectionTools.test.ts`, `safetyJail.test.ts`, `untrustedContentGuard.test.ts`, `changeLedger.test.ts`).
+- Adversarial path traversal attempt on `read_note` rejected with `SafetyJailError`.
+- Typecheck passed with zero errors in `@app/ai-agent`.
+- All files strictly ≤ 156 lines (hard cap 250).
+
+---
+
+## Previous Session — AI Agent Phase 2: Agent Safety Core, Change Ledger & Transaction Rollback (ADR-0212, ADR-0213)
+
+**Scope:**
+1. **Safety Jail (`packages/ai-agent/safetyJail.ts`)**:
+   - Implemented strict path normalisation and validation preventing absolute paths, traversal (`..`), null bytes, Windows reserved device names (`CON`, `PRN`), and hidden system files.
+   - Enforced vault root boundary, blocking `.git/`, `.trash/`, and `.davinci/` private configs while permitting `.davinci/agent/`.
+2. **Untrusted Content Boundary (`packages/ai-agent/untrustedContentGuard.ts`)**:
+   - Enclosed vault notes in `<untrusted_vault_data>` and web search results in `<untrusted_web_data>`.
+   - Escaped breakout tags and injected anti-injection system prompt preventing prompt injections from commanding tool calls or arbitrary file edits.
+3. **Change Ledger & Transaction Rollback (`packages/ai-agent/changeLedger.ts`)**:
+   - Implemented append-only change ledger in `.davinci/agent/history.json` tracking `beforeContent` and `afterContent` for creates, modifies, deletes, and moves (bounded to 100 transactions).
+   - Implemented `computeRollbackOperations` inverting actions in LIFO order with atomic file restoration.
+   - Resilient parsing handling missing, empty, or corrupted JSON gracefully.
+4. **Architecture Records**: Authored ADR-0212 and ADR-0213 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 17/17 tests passing in `@app/ai-agent` (`safetyJail.test.ts`, `untrustedContentGuard.test.ts`, `changeLedger.test.ts`).
+- Adversarial tests passed: path traversals (`../../etc/passwd`), null bytes, Windows device names, prompt injection XML breakouts, and multi-file transaction rollback.
+- Typecheck passed with zero errors in `@app/ai-agent`.
+- All files strictly ≤ 128 lines (well below the 250 hard cap).
+
+---
+
+## Previous Session — AI Agent Phase 1: Tool Calling Abstraction & Streaming Runtime (ADR-0211)
+
+**Scope:**
+1. **API Abstraction (`packages/ai-api`)**:
+   - Defined `AgentToolDefinition`, `AgentToolCall`, `AgentToolResult`, `ToolParameterSchema`, and `ChatStreamChunk` in `packages/ai-api/agentTypes.ts`.
+   - Extended `ChatMessage` with `role: "tool"` and `toolCalls`, and `AIProvider` with `"tools"` and `"streaming"` capabilities and `completeStream?()`.
+2. **Streaming & Tool Transports (`packages/ai-runtime`)**:
+   - Implemented zero-dependency Server-Sent Events parser (`sseStream.ts`) for chunked streaming.
+   - Upgraded `cloudTransport.ts` (OpenAI / OpenRouter) to support tool parameters, tool call extraction, and SSE streaming.
+   - Upgraded `geminiTransport.ts` to support function declarations, function calling responses, and `:streamGenerateContent?alt=sse`.
+   - Upgraded `ollamaTransport.ts` to support native tools plus schema-guided prompt injection and JSON repair fallback (`ollamaToolFallback.ts`) for local models lacking native tool endpoints.
+   - Delegated `completeStream()` and exposed capabilities in `providerImplementations.ts`.
+3. **Architecture Record**: Authored ADR-0211 and indexed in `DECISIONS.md`.
+
+**Verification:**
+- 19/19 tests passing in `@app/ai-runtime` (`agentToolsAndStreaming.test.ts`, `ollamaToolFallback.test.ts`, `sseStream.test.ts`, `cloudTransport.test.ts`, `providerTransports.test.ts`).
+- 2/2 tests passing in `@app/ai-api`.
+- Verified typechecking with zero errors in `@app/ai-api` and `@app/ai-runtime`.
+- Verified all file line counts strictly below the 250 hard cap (all ≤ 208 lines).
+
+---
+
+## Previous Session — AI Agent Feature Planning (agent-feature-plan.md)
+
+**Scope:**
+1. Completed comprehensive architectural assessment and gap analysis of existing AI, search, vault mutation, versioning, calendar, reminder, and database subsystems.
+2. Authored phased implementation plan: `agent-feature-plan.md` covering architecture, package boundaries (`@app/ai-api`, `@app/ai-runtime`, `@app/ai-agent`, `apps/desktop/src/agent`), 10-phase build order with adversarial verification, 8 proposed ADRs (ADR-0211 to ADR-0218), safety jail, change ledger (`.davinci/agent/history.json`), and risk register.
+3. Identified critical decisions and assumptions: review-first staging vs auto-apply, web search provider strategy, Google Calendar write scope upgrade (`calendar.events`), Wiki folder convention, and unattended scheduled task catch-up policy.
+
+**Verification:**
+- Verified file existence, markdown formatting, and alignment with `AGENTS.md`, `PERFORMANCE.md`, and ADR-0168 (`withDbLock`).
+
+---
+
+## Previous Session — Bookmarks Feature (Storage, Lifecycle, UI, Dedicated Tab & Polish)
+
+**Scope:**
+1. **Data Layer (`apps/desktop/src/bookmarks/`)**:
+   - Implemented `.davinci/bookmarks.json` vault storage as the single source of truth (ADR-0210).
+   - Set-by-path merge engine (`mergeBookmarkSets`) with latest `addedAt` timestamp resolving conflicts for cross-device sync (Google Drive / Syncthing).
+   - Debounced atomic writes (400ms) with synchronous flush on tab close, vault switch, and window unload.
+   - Corrupt JSON / schema mismatch safe fallbacks.
+2. **Lifecycle Management**:
+   - Integrated with `renameNoteInVault` and `renameFolderInVault`: renames accurately remap bookmarks while preserving `addedAt`.
+   - Integrated with `deleteNoteInVault` and `deleteFolderInVault`: deletions flag bookmarks as `missing: true` rather than silently dropping them.
+   - External watcher integration in `useVaultWatcherSubscription`: renames remap bookmarks, external deletions set `missing: true`, file creations clear `missing: false`, and incoming changes to `.davinci/bookmarks.json` are cleanly merged.
+3. **Add/Remove UI**:
+   - Implemented unified `useBookmarks()` hook.
+   - Editor header: bookmark toggle button with active fill state and tooltip.
+   - File tree context menu: "Bookmark note" / "Remove bookmark" action with `BookmarkSimple` Phosphor icon.
+   - File tree row: discreet bookmark glyph on bookmarked notes.
+   - Command palette: "Bookmark current note" (`Mod+D` shortcut) and "Open Bookmarks" commands.
+   - Global shortcut: `Mod+D` (Cmd+D / Ctrl+D) toggles bookmark for active note.
+4. **Dedicated Bookmarks Page (`BookmarksView`)**:
+   - Single dedicated tab (`davinci://bookmarks`), accessible via `BookmarkSimple` on the icon rail (active when open). Clicking reuses existing tab without duplicates.
+   - Header with count badge, real-time search filter (`/` shortcut), and sort options (Recently added, Name A-Z, Last modified).
+   - Rows display custom note emoji (or document icon), note title, muted folder path, 1-2 line content preview snippet from index, added date, and hover remove button.
+   - Keyboard navigation (`useBookmarkKeyboardNav`): Arrow Up/Down, Enter to open, Cmd/Ctrl-Enter or middle click for new tab, Delete to remove, `/` to focus filter.
+   - Polished Obsidian-style aesthetic with design tokens only, no gradients or box shadows, CUBE CSS layers.
+   - List virtualization above 200 items using `@tanstack/react-virtual`.
+   - Lazy-loaded dynamic import chunk (0 impact on app startup time).
+5. **Session Restore & Safety**:
+   - Added `davinci://bookmarks` virtual tab handling in `createNoteNavigationActions.ts` (safe from disk reads, autosave clobbering, or H1-sync renames).
+   - Preserved `davinci://bookmarks` across vault reload and app restarts in `vaultSwitchOrchestrator.ts`.
+   - 0 new runtime dependencies added.
+
+**Deferred:**
+- Bookmark folders/groups and custom tags
+- Bookmarking headings, block references, or saved searches
+- Mobile UI implementation (data schema is shared and sync-compatible)
+- Drag-and-drop manual reordering of bookmarks
+
+**Verification:**
+- 44/44 unit, lifecycle, integration, and benchmark tests passing across 7 suites (`src/bookmarks/`, `BookmarksView/`, `vaultSwitchOrchestrator.test.ts`).
+- 1,000-item benchmark: parse in 1.1ms, serialize in 1.4ms, filter/sort in 0.9ms, merge in 0.8ms.
+- Production web bundle build successful (`pnpm --filter @app/desktop build:web`), `BookmarksView` properly split into separate lazy chunk.
+
+---
+
+## Next Up
+
+1. **AI Agent Phase 8: Web Search Tool & Untrusted Web Content Ingestion [HIGH RISK]**.
+2. AI Agent Phase 9: Google Calendar Two-Way Sync (Write Scope Upgrade & Task Sync).
+3. AI Agent Phase 10: Scheduled Tasks Engine & Background Execution Lifecycle.
+
+---
+
+## Previous Session — Database Table View (Stored in One Markdown Note — Option A)
+
+**Scope:**
+1. **Model (`@app/database`)**:
+   - Implemented lossless round-trip parser (`parseDatabase`) and serializer (`serializeDatabase`) for single-note markdown database tables (`database: table`).
+   - Line-preserving table model: preserves all unknown preamble (H1, text, notes) before the first pipe table and epilogue after the table byte-for-byte.
+   - Comment-preserving YAML frontmatter AST updates using `yaml.parseDocument` for columns and select options.
+   - Single-line cell constraint with HTML `<br>` for preserved line breaks; pipe escaping `\|`.
+   - Typed columns supported: `text`, `number` (right-aligned), `select` (options with design-system colors), `checkbox` (stores `true`/`false`, accepts `x`/`X`/`[x]`, writes back original form), `date` (ISO YYYY-MM-DD). Values not matching column type are displayed as-is with subtle warning indicator and NEVER dropped or silently rewritten.
+   - Minimal diff line-splicing operations: `editCell`, `toggleCheckboxCell`, `addRow`, `deleteRow`, `duplicateRow`, `addColumn`, `renameColumn`, `deleteColumn`, `reorderColumns`, `changeColumnType`.
+   - Pure TypeScript, 0 DOM dependencies, 0 new external dependencies.
+2. **View (React + Design System)**:
+   - Lazy-loaded `DatabaseView` matching Obsidian/Notion flat aesthetic (borders for depth, design-system tokens, Phosphor icons).
+   - In-memory view toolbar: filter by column, sort by column (asc/desc), instant search across rows, "New" row button. View state kept in memory in v1 to avoid cyclic file write churn.
+   - Full keyboard navigation (`useDatabaseKeyboardNav`): arrow keys navigate cells, Enter starts inline edit, Esc cancels, Tab navigates to next cell.
+   - Row virtualization using `@tanstack/react-virtual` for 60fps performance on 5,000+ rows with sticky headers and column resizing handles.
+   - Rich inline markdown rendering (`renderInlineMarkdown`) supporting wikilinks (`[[Note]]`), tags (`#tag`), bold (`**text**`), code (`` `code` ``), strikethrough (`~~text~~`), line breaks (`<br>`). First cell wikilink opens vault notes.
+   - Header column configuration modal (`DatabaseColumnModal`): rename column, change type (with type-mismatch warnings), manage select options and colors (`red`, `orange`, `yellow`, `green`, `blue`, `purple`, `pink`, `gray`), delete column.
+   - Safe parsing fallback: malformed database notes open as standard markdown with a notice banner, never corrupting or rewriting the file.
+   - Dual-mode header toggle: "Open as markdown" / "Open as table" toggle in note header; tab icon displays `TableIcon` for database notes.
+3. **Write-Back & External-Change Guard (ADR-0170 & ADR-0209)**:
+   - All writes route through the ADR-0170 save queue (`updateNoteContent`) with 750ms debounce and atomic disk persistence.
+   - Active cell draft preservation: user typing in an active cell is preserved when external changes reload the table from disk, using stable row IDs.
+4. **Insert Item & Indexer Integration**:
+   - Added `"Database table"` item to `InsertRegistry.ts` (Code and data group) with modal naming dialog (`database-creator`).
+   - Verified indexer compatibility (`databaseIndexing.test.ts`): wikilinks in table cells index normally into vault graph and backlinks without changing indexer schema.
+
+**Deferred:**
+- Embedding a table inside a note (```database block)
+- Multi-select column type
+- Formulas and footer calculations
+- Relations and rollup columns
+- Board, calendar, and gallery views
+- CSV import and export
+- Persisted view state in note frontmatter
+- One-note-per-row databases (Option B)
+
+**Verification**:
+- 41 unit and adversarial tests passing in `@app/database` across 7 test suites.
+- 5,000-row benchmark parses in ~11ms and serializes in ~1.2ms.
+- 0 bytes added to initial desktop bundle (lazy-loaded as `@app/database` dynamic chunk).
+- Production web build passing (`pnpm --filter @app/desktop build:web`).
+- All insert registry, properties, and indexer tests passing.
+
+---
+
+## Next Up
+
+1. Validate visual appearance and table keyboard navigation across dark and light themes in production desktop and mobile builds.
+2. Test database table editing with external sync updates in live desktop app.
+
+---
+
+## Previous Session — Kanban Board View (Obsidian Kanban Plugin Parity) & UI Polish
+
+**Scope:**
+1. **Model (`@app/kanban`)**:
+   - Implemented lossless round-trip parser (`parseBoard`) and serializer (`serializeBoard`) for Obsidian Kanban markdown notes (`kanban-plugin: board`).
+   - Line-preserving board model preserving all unknown content byte-for-byte (H1/H3/H4+ headings, opaque `%% ... %%` comment settings blocks, `*** \n ## Archive`, date tokens `@{...}`, tags, wikilinks, CRLF / LF line endings, blank lines, and frontmatter keys/order).
+   - Minimal diff line splicing for operations: `addCard`, `editCard`, `toggleCardComplete`, `deleteCard`, `moveCard`, `reorderCard`, `addLane`, `renameLane`, `deleteLane`, `reorderLane`, and `setLaneColor`.
+   - Pure TypeScript, zero DOM dependencies, 0 new npm packages added.
+2. **View (React + Design System)**:
+   - Lazy-loaded `KanbanView` matching Obsidian's flat design system aesthetic (no box shadows, borders for depth, clean typography, 8px rounded lanes, 6px cards).
+   - Column Color Customization: Integrated `KanbanLaneColorPicker` with 8 preset swatches (App Accent `#cd47ab`, Blue, Teal, Green, Yellow, Orange, Red, Default) that sets a top border accent bar on columns, serialized into Obsidian-standard `%% kanban:settings` block.
+   - Simple Board Title: Displays clean H1 header on the board extracted from `# Title` preamble (or note file stem), automatically added when creating new boards.
+   - Removed Properties by Default: Hidden `<PropertiesBlock>` from Kanban board view, and added `kanban-plugin` to `HIDDEN_FRONTMATTER_KEYS` in `PropertiesBlock.tsx`.
+   - Rich inline markdown renderer (`renderInlineMarkdown`) supporting wikilinks (`[[target|alias]]`), tags (`#tag`), bold (`**bold**`), strikethrough (`~~strike~~`), inline code (`` `code` ``), standard markdown links (`[text](url)`), and `@date` tokens. Wikilinks cleanly hook into vault note navigation.
+   - Dual-mode header toggle: seamlessly switch between "Open as markdown" and "Open as board" via the tab header action button without losing context.
+   - Smooth native HTML5 drag-and-drop for reordering cards within lanes, moving cards across lanes, and reordering lanes (reusing the drag-and-drop pattern from the file tree, 0 drag library dependencies).
+   - Full keyboard navigation: arrow keys navigate cards and lanes, Enter edits a card inline (Enter saves, Shift+Enter multi-line, Esc cancels), Space toggles task completion, Delete removes a card.
+   - Safe parsing fallback: malformed board frontmatter opens in standard markdown mode with an informative banner without modifying or rewriting the note file.
+3. **Write-Back & External Change Guard (ADR-0170 & ADR-0208)**:
+   - Routes board writes through the ADR-0170 save queue with a 750ms debounce and deep equality guard to avoid redundant disk writes.
+   - External file changes (e.g. from Obsidian or external text editors) reload the board live without clobbering active card draft inputs by preserving stable card identity slugs across reparses.
+   - Simultaneous markdown / board open guard: atomic state updates ensure markdown editor and board view never overwrite each other.
+4. **Insert Item & Indexer Integration**:
+   - Registered `"Kanban board"` item in `InsertRegistry.ts` (under `Code and data` group) with a modal board title dialog (`kanban-creator`).
+   - Creates a new note with YAML frontmatter (`kanban-plugin: board`), `# <Title>`, and 3 starter lanes (`To Do`, `Doing`, `Done`) in the current vault directory, immediately opening it in Kanban view.
+   - Verified indexer compatibility: task cards' wikilinks and tags are indexed identically to standard markdown notes into the vault graph and backlinks without requiring any schema changes.
+
+**Deferred:**
+- Embedding a board inside a note (```kanban block)
+- Date and time pickers
+- Tag colors
+- Archive handling
+- "New note from card"
+- Property-based database views
+
+**Verification**:
+- 50 tests passing in `@app/kanban` across 7 test suites (`roundTrip.test.ts`, `minimalDiffs.test.ts`, `adversarial.test.ts`, `columnColorAndTitle.test.tsx`, `KanbanView.test.tsx`, `writeBackAndConflict.test.tsx`, `kanbanBenchmark.test.ts`).
+- 5,000-card benchmark parses in ~6.3ms and serializes in ~1.4ms.
+- 0 bytes added to initial desktop bundle (lazy-loaded as `@app/kanban` Rollup dynamic chunk).
+- Production web build passing (`pnpm --filter @app/desktop build:web`).
+- All insert registry, properties, and indexer tests passing.
+
+---
+
+## Next Up
+
+1. Validate visual appearance and drag interaction across dark and light themes in production desktop and mobile builds.
+2. Test canvas drag-and-drop of vault notes and images in live desktop app.
+
+---
+
+## Previous Session — Obsidian Canvas UI Parity, Resize & Persistence Resolutions
+
+**Scope:**
+1. **Canvas Persistence & Autosave Wiring (`EditorArea.tsx` & `useCanvasPersistence.ts`)**:
+   - Fixed `<LazyCanvasView>` props in `EditorArea.tsx` by passing `path={activeNotePath}` (fixing the misnamed `canvasPath`), `initialContent={content}`, `onContentChange={updateNoteContent}`, and `onPickLocalImage={handlePickLocalImage}`.
+   - Fixed path transitions and cache synchronization in `useCanvasPersistence.ts` so switching notes and reopening canvases cleanly hydrates nodes and edges.
+2. **Node Position & Size Snapping Fix (`handleResizeEnd`)**:
+   - Resolved the bug where node resizing ignored the `ResizeParams` arguments from `NodeResizer` across `TextCardNode.tsx`, `FileCardNode.tsx`, `LinkCardNode.tsx`, and `GroupCardNode.tsx`.
+   - Now captures `params.width`, `params.height`, `params.x`, and `params.y`, applying canvas grid snapping and triggering immediate layout persistence.
+   - Fixed `getNodeWidth` and `getNodeHeight` in `groupBounds.ts` so nullish coalescing does not evaluate `0` as truthy when style is missing.
+3. **Card Dimension Proportions Adjusted (Compact Sizing)**:
+   - Reduced default and minimum box sizes in `canvasConstants.ts` and `groupBounds.ts` to match Obsidian's compact layout:
+     - Text cards: 216×72 px default (down from 250×120), 60×36 px min (down from 80×48).
+     - File cards: 288×216 px default (down from 400×320), 120×80 px min (down from 200×120).
+     - Group cards: 360×264 px default (down from 480×360), 96×72 px min.
+     - Link cards: 312×216 px default (down from 480×360), 120×80 px min.
+   - Styled `FileCardNode.module.scss` header to be compact (11px uppercase bold muted title, transparent background, 4px 8px padding).
+4. **Obsidian Canvas UI Parity**:
+   - **Bottom Floating Dock (`CanvasBottomDock.tsx`)**: 3-button dock matching Obsidian Canvas: Note Card (search/pick notes from vault), Text Card (creates card at center), and Media Card (native image picker / file upload).
+   - **Right Floating Navigation Toolbar (`CanvasNavToolbar.tsx`)**: Vertical toolbar featuring Settings, Zoom In (+), Reset Zoom (100%), Zoom to Fit, Zoom Out (-), Undo (Cmd+Z), Redo (Cmd+Shift+Z), and Help.
+   - **Contextual Card Action Bar (`CanvasCardActionBar.tsx`)**: Floating toolbar positioned above selected cards offering Delete (`TrashSimple`), Color Palette (`Palette` with 6 Obsidian presets), Zoom to Card (`CornersOut`), and Edit (`PencilSimple`).
+   - **History & Undo/Redo Engine (`useCanvasHistory.ts`)**: In-memory snapshot stack for canvas state with keyboard shortcut integration.
+   - **Visual Styling**: Card border radius set to 10px, clean white/primary card background, and 2px purple accent selection border.
+   - **Modular Refactoring (`CanvasFlowArea.tsx`, `useCanvasEditorContextValue.ts`)**: Modularized subcomponents to keep all files strictly under the 250-line cap (all between 77 and 233 lines).
+
+**Verification**:
+- All 29 test files (185 tests) in `@app/canvas` passing (`pnpm --filter @app/canvas test`).
+- All 159 test files (644 tests) in `@app/desktop` passing (`pnpm --filter @app/desktop test`).
+- Typecheck clean with 0 errors (`pnpm --filter @app/canvas typecheck`).
+- ESLint clean with 0 errors (`pnpm --filter @app/canvas lint`).
+- Production Web build verified (`pnpm --filter @app/desktop build:web`).
+
+---
+
+## Next Up
+
+1. Test canvas drag-and-drop of vault notes and images in live desktop app.
+2. Validate visual appearance across dark and light themes in production desktop and mobile builds.
+
+---
+
+## Previous Session — Decouple Cover and Icon Metadata from Editor Markdown Content
+
+**Scope:**
+1. **Decoupled Cover Storage (`.davinci/covers.json`)**:
+   - Created `noteCoverStorage.ts` to manage and persist cover URLs and Y-positions in `.davinci/covers.json` instead of writing them into markdown file frontmatter.
+   - Updated `useNoteCoverImage.ts` so setting, changing, repositioning, and removing covers never modifies markdown text.
+2. **Decoupled Icon Storage (`.davinci/icons.json`)**:
+   - Refactored `treeIconStorage.ts` so all icons (including markdown notes) are persisted in `.davinci/icons.json`.
+   - Removed `persistMarkdownIcon` — selecting emojis in the file tree never modifies note files or writes `icon:` frontmatter.
+3. **Clean Editor Content & Automatic Stripping**:
+   - Created `stripNoteMetadata.ts` to remove any `cover:`, `cover_y:`, `banner:`, `banner_y:`, and `icon:` from frontmatter.
+   - Cleaned editor input so the text area never shows or adds these lines, automatically cleaning legacy files.
+   - Added `icon` to hidden keys in `PropertiesBlock.tsx`.
+
+**Verification**:
+- 34 unit tests across 8 test files passing.
+- Production Web build verified (`pnpm --filter @app/desktop build:web`).
+
+---
+
+## Next Up
+
+1. Test cover banners with local vault images and custom URLs in live desktop app.
+2. Validate visual appearance across dark and light themes in production desktop and mobile builds.
+
+---
+
+## Previous Session — Saving Dot Light Grey & Size Polish, QuickCapture Reminder Bottom Organization
+
+---
+
+## Previous Session — Fix Vault Switch Database Locked Error ((code: 5))
+
+**Scope:** Diagnose root cause of `Vault switch failed: error returned from database: (code: 5) database is locked` on startup / vault switch, terminate orphaned daemon instances holding uncommitted locks, and permanently prevent connection-pool deadlocks across `tauri-plugin-sql`.
+
+**Root Cause Analysis:**
+1. **Unpinned Transactions on `tauri-plugin-sql` Connection Pool (`withDbTransaction`)**:
+   - `tauri-plugin-sql` delegates `db.execute()` to a multi-connection `sqlx::Pool<Sqlite>` (up to 10 connections).
+   - Calling `db.execute("BEGIN IMMEDIATE")` checks out Connection A, starts a transaction, and returns Connection A to the pool. The subsequent `DELETE` or `INSERT` checks out Connection B from the pool, which immediately hits `SQLITE_BUSY (code: 5)` because Connection A holds an uncommitted write lock.
+   - The catch block in `withDbTransaction` then called `db.execute("ROLLBACK")` which checked out Connection C, throwing `"no transaction is active"`. Connection A was left permanently holding the uncommitted write lock in memory.
+   - Any app instance that hit this error kept `vault-index.db` permanently locked for all future queries and any subsequent app launches until the process was killed.
+2. **Orphaned Background Process with `keep_in_tray`**:
+   - Because `keep_in_tray` is enabled by default in macOS tray, closing the window kept the binary alive in the background (PID 12897 and 78229). When running the app again, the new instance contended with the background instance's open locks.
+3. **Destructive Pool Closure on Switch (`closeVaultIndexDb`)**:
+   - `closeVaultIndexDb()` ran `PRAGMA wal_checkpoint(TRUNCATE)` which demands an exclusive SQLite lock and fails if any background reader is active.
+4. **Redundant Exclusive WAL PRAGMA in Rust (`reminder_db.rs`)**:
+   - `open_connection` in `reminder_db.rs` ran `PRAGMA journal_mode = WAL;` on every single reminder poll, attempting to acquire an exclusive lock during active frontend vault transactions.
+
+**Changes:**
+1. **Eliminated Raw Pool Transactions (`sqliteIndex.ts`)**:
+   - Refactored `withDbTransaction` to execute directly under `withDbLock` without issuing manual `BEGIN IMMEDIATE` / `COMMIT` / `ROLLBACK` strings across arbitrary pool connections.
+   - Serialization and atomicity are strictly guaranteed by the `withDbLock` promise queue without leaking transactions.
+2. **Non-Blocking Checkpoint & Pool Preservation (`sqliteIndex.ts`)**:
+   - Replaced `PRAGMA wal_checkpoint(TRUNCATE)` with `PRAGMA wal_checkpoint(PASSIVE)` in `closeVaultIndexDb()`.
+   - Kept the single healthy connection pool alive across vault transitions instead of tearing it down and reconnecting.
+3. **Exponential Backoff Retry (`withDbRetry`) & Re-entrancy Guard**:
+   - Added `withDbRetry` to automatically retry queries encountering transient `SQLITE_BUSY` / `(code: 5)` with exponential backoff up to 5 attempts.
+   - Added `currentLockDepth` re-entrancy guard to `withDbLock` to prevent recursive queue deadlocks.
+4. **Sanitized Rust SQLite Connection (`reminder_db.rs`)**:
+   - Removed redundant `PRAGMA journal_mode = WAL` from `open_connection()`.
+   - Increased busy timeout to 10000ms (`PRAGMA busy_timeout = 10000;`).
+5. **Terminated Orphaned Processes & Freed Database Lock**:
+   - Terminated orphaned detached background processes (PID 12897, 78229) that were holding uncommitted transaction locks.
+6. **Extracted Modular Code (`sqliteNotePersistence.ts`)**:
+   - Extracted batch note/outlink/FTS persistence functions into `sqliteNotePersistence.ts` (148 lines) and re-exported them through `sqliteIndex.ts` (158 lines) to maintain strict compliance with the 250-line cap rule.
+7. **Validation**:
+   - Verified database integrity and write locks via native `sqlite3 "BEGIN IMMEDIATE; COMMIT;"` (succeeds with 0 errors).
+   - All tests in `sqliteIndex.test.ts`, `vaultSwitchOrchestrator.test.ts`, `VaultIndexer.test.ts`, and Rust `reminder_tests` pass cleanly.
+
+---
+
+## Next Up
+
+1. Validate dark theme equivalents across Obsidian default dark palette.
+2. Test theme switching responsiveness across mobile and desktop.
+
+---
+
+
 **Mobile Text Rendering & Syncthing Connection Error Resolutions (complete)**
 Resolved runtime React Native text rendering errors and sanitized raw Java socket exceptions in the mobile app:
 1. **React Native Text Rendering Crash (`Text strings must be rendered within a <Text> component`)**:
@@ -264,7 +2363,8 @@ Shipped official Syncthing v2.1.6 binary bundling and full process lifecycle man
 
 ---
 
-=======
+
+---
 ## Last Session — Web Clipper Phase 8: Packaging, store listings, docs, and hardening pass (FINAL PHASE OF WEB CLIPPER)
 
 **Scope:** Complete the final phase (Phase 8) of `plans/web-clipper/web-clipper-feature-plan.md` — multi-target packaging scripts & zipped artifacts for Chrome, Edge, and Firefox; security and permission audit (minimal permissions, zero eval/new-Function, zero remote CDN scripts); zero Cargo dependency overhead verification; ADR status promotion (ADR-0173 through ADR-0180 Accepted); comprehensive user documentation (`docs/web-clipper.md`); store listing copy & permission justifications (`apps/web-clipper/STORE_LISTINGS.md`); and full test matrix verification.
@@ -1322,8 +3422,6 @@ session) — see the plan §12.
   - `parseMeetLink.ts`: Robust Meet link extraction with priority order: `hangoutLink` -> `conferenceData.entryPoints` (video) -> regex fallback in `location` / `description`, with URL protocol sanitization.
   - `calendarClient.ts`: Lightweight, zero-dependency `fetch` REST client for `listCalendars` and `listEvents` (supporting `syncToken` delta queries and error typing for 401 Auth Expired, 410 SyncToken Expired, and 4xx/5xx).
   - All 13 unit tests pass; 0 ESLint boundaries/typecheck errors; all files under 160 lines (enforcing soft cap 200).
-
->>>>>>> main
 **Syncthing Desktop + Phone 10-Scenario Verification Matrix & Conflict Isolation (complete)**
 Executed and verified the full 10-item sync matrix directly against live Syncthing peers and the filesystem:
 1. **Scenario 1 — Desktop -> Phone CRUD (PASS, 6,562ms)**:

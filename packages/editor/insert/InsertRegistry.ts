@@ -1,4 +1,5 @@
 import type { InsertBuildContext, InsertItem } from "./InsertItem";
+import { basicItems } from "./basicItems";
 import { diagramItems } from "./diagrams";
 import { mediaItems } from "./mediaItems";
 
@@ -23,104 +24,69 @@ function inline(text: string) {
 }
 
 export const insertRegistry: readonly InsertItem[] = [
-  {
-    id: "heading-1",
-    group: "Basics",
-    label: "Heading 1",
-    icon: "TextHOne",
-    keywords: ["title", "h1", "heading"],
-    build: (context) => block(`# ${field(context, "Heading")}`),
-  },
-  {
-    id: "heading-2",
-    group: "Basics",
-    label: "Heading 2",
-    icon: "TextHTwo",
-    keywords: ["subtitle", "h2", "heading"],
-    build: (context) => block(`## ${field(context, "Heading")}`),
-  },
-  {
-    id: "heading-3",
-    group: "Basics",
-    label: "Heading 3",
-    icon: "TextHThree",
-    keywords: ["h3", "heading"],
-    build: (context) => block(`### ${field(context, "Heading")}`),
-  },
-  {
-    id: "bullet-list",
-    group: "Basics",
-    label: "Bullet list",
-    icon: "ListBullets",
-    keywords: ["unordered", "list", "bullet"],
-    build: (context) => block(`- ${field(context, "Item")}`),
-  },
-  {
-    id: "numbered-list",
-    group: "Basics",
-    label: "Numbered list",
-    icon: "ListNumbers",
-    keywords: ["ordered", "list", "number"],
-    build: (context) => block(`1. ${field(context, "Item")}`),
-  },
-  {
-    id: "task-list",
-    group: "Basics",
-    label: "Task list",
-    icon: "ListChecks",
-    keywords: ["todo", "checklist", "task"],
-    build: (context) => block(`- [ ] ${field(context, "Task")}`),
-  },
-  {
-    id: "reminder",
-    group: "Basics",
-    label: "Reminder",
-    icon: "Bell",
-    keywords: ["reminder", "due", "date", "time", "todo", "alarm"],
-    dialog: {
-      kind: "reminder-picker",
-      title: "Set Reminder",
-      description: "Pick a date and optional time for this reminder.",
-      confirmLabel: "Insert Reminder",
-    },
-    build: (context) => {
-      const date = context.input?.date || new Date().toISOString().slice(0, 10);
-      const time = context.input?.time ? ` ${context.input.time}` : "";
-      return inline(`(@${date}${time})`);
-    },
-  },
-  {
-    id: "quote",
-    group: "Basics",
-    label: "Quote",
-    icon: "Quotes",
-    keywords: ["blockquote", "citation"],
-    build: (context) => block(`> ${field(context, "Quote")}`),
-  },
-  {
-    id: "divider",
-    group: "Basics",
-    label: "Divider",
-    icon: "Minus",
-    keywords: ["horizontal rule", "separator", "hr"],
-    build: () => block("---"),
-  },
-  {
-    id: "callout",
-    group: "Basics",
-    label: "Callout",
-    icon: "Note",
-    keywords: ["note", "admonition", "aside"],
-    build: (context) =>
-      block(`> [!note] ${field(context, "Title")}\n> \${2:Content}`),
-  },
+  ...basicItems,
   {
     id: "code-block",
     group: "Code and data",
     label: "Code block",
+    shortcut: "```",
     icon: "Code",
     keywords: ["fence", "programming", "code"],
     build: (context) => block(`\`\`\`ts\n${field(context, "// code")}\n\`\`\``),
+  },
+  {
+    id: "kanban-board",
+    group: "Code and data",
+    label: "Kanban board",
+    icon: "Table",
+    keywords: [
+      "kanban",
+      "board",
+      "lane",
+      "todo",
+      "task",
+      "card",
+      "agile",
+      "data",
+    ],
+    dialog: {
+      kind: "kanban-creator",
+      title: "New Kanban Board",
+      description: "Enter a title for the new kanban board note.",
+      confirmLabel: "Create Board",
+      validate: (input) => {
+        const name = (input.name as string)?.trim();
+        if (!name) return "Please enter a board name.";
+        return null;
+      },
+    },
+    build: (context) => {
+      const title = context?.selectedText?.trim() || "Kanban Board";
+      return block(
+        `---\nkanban-plugin: board\n---\n\n# ${title}\n\n## To Do\n\n## Doing\n\n## Done\n`,
+      );
+    },
+  },
+  {
+    id: "database-table",
+    group: "Code and data",
+    label: "Database table",
+    icon: "Table",
+    keywords: ["database", "table", "notion", "grid", "data", "columns"],
+    dialog: {
+      kind: "database-creator",
+      title: "New Database Table",
+      description: "Enter a title for the new database note.",
+      confirmLabel: "Create Table",
+      validate: (input) =>
+        (input.name as string)?.trim() ? null : "Please enter a table name.",
+    },
+    build: (context) => {
+      const title = context?.selectedText?.trim() || "Database Table";
+      return block(
+        `---\ndatabase: table\ncolumns:\n  - name: Name\n    type: text\n  - name: Status\n    type: select\n    options:\n      - { value: Todo, color: blue }\n      - { value: In Progress, color: orange }\n      - { value: Done, color: green }\n  - name: Done\n    type: checkbox\n---\n\n| Name | Status | Done |\n|---|---|---|\n| ${title} | Todo | false |\n`,
+      );
+    },
   },
   {
     id: "table",
@@ -155,9 +121,10 @@ export const insertRegistry: readonly InsertItem[] = [
   {
     id: "html-block",
     group: "HTML",
-    label: "HTML block",
+    label: "HTML · Embeds",
+    badge: "New",
     icon: "Code",
-    keywords: ["html", "div", "markup"],
+    keywords: ["html", "div", "markup", "embeds", "embed"],
     build: (context) => block(`<div>\n  ${field(context, "Content")}\n</div>`),
   },
   {

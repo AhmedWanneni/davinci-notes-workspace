@@ -3,7 +3,7 @@ import { findInsertItem, insertRegistry } from "./InsertRegistry";
 
 describe("insertRegistry", () => {
   it("contains all insert items including Links, Media, and Diagrams", () => {
-    expect(insertRegistry).toHaveLength(41);
+    expect(insertRegistry).toHaveLength(45);
     expect(insertRegistry.map((item) => item.group)).toEqual(
       expect.arrayContaining([
         "Basics",
@@ -88,5 +88,43 @@ describe("insertRegistry", () => {
     expect(findInsertItem("footnote")?.build({ selectedText: "" }).text).toBe(
       "[^${1:1}]\n\n[^${1:1}]: ${2:Footnote}",
     );
+  });
+
+  it("builds kanban-board item with dialog and starter template", () => {
+    const item = findInsertItem("kanban-board");
+    expect(item).toBeDefined();
+    expect(item?.group).toBe("Code and data");
+    expect(item?.dialog?.kind).toBe("kanban-creator");
+    expect(item?.dialog?.validate?.({})).toBe("Please enter a board name.");
+    expect(item?.dialog?.validate?.({ name: "Sprint" })).toBeNull();
+
+    const result = item?.build({ selectedText: "" });
+    expect(result?.block).toBe(true);
+    expect(result?.text).toContain("kanban-plugin: board");
+    expect(result?.text).toContain("# Kanban Board");
+    expect(result?.text).toContain("## To Do");
+    expect(result?.text).toContain("## Doing");
+    expect(result?.text).toContain("## Done");
+
+    const customResult = item?.build({ selectedText: "Sprint 42" });
+    expect(customResult?.text).toContain("# Sprint 42");
+  });
+
+  it("builds database-table item with dialog and starter template", () => {
+    const item = findInsertItem("database-table");
+    expect(item).toBeDefined();
+    expect(item?.group).toBe("Code and data");
+    expect(item?.dialog?.kind).toBe("database-creator");
+    expect(item?.dialog?.validate?.({})).toBe("Please enter a table name.");
+    expect(item?.dialog?.validate?.({ name: "Projects" })).toBeNull();
+
+    const result = item?.build({ selectedText: "" });
+    expect(result?.block).toBe(true);
+    expect(result?.text).toContain("database: table");
+    expect(result?.text).toContain("| Name | Status | Done |");
+    expect(result?.text).toContain("| Database Table | Todo | false |");
+
+    const customResult = item?.build({ selectedText: "Tasks" });
+    expect(customResult?.text).toContain("| Tasks | Todo | false |");
   });
 });

@@ -11,6 +11,7 @@
   height: 100%;
   outline: none;
   cursor: grab;
+  user-select: none;
 
   &:active {
     cursor: grabbing;
@@ -19,51 +20,84 @@
 
 .graph-view__edge {
   stroke: var(--color-border-subtle);
-  stroke-width: 1.5px;
-  stroke-opacity: 0.6;
+  stroke-width: 1px;
+  stroke-opacity: 0.45;
+  transition:
+    stroke var(--motion-duration-fast) var(--motion-ease-standard),
+    stroke-width var(--motion-duration-fast) var(--motion-ease-standard),
+    stroke-opacity var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &.is-highlighted {
+    stroke: var(--color-text-accent);
+    stroke-width: 1.5px;
+    stroke-opacity: 1;
+  }
+
+  &.is-dimmed {
+    stroke-opacity: 0.08;
+  }
 }
 
 .graph-view__node-group {
   cursor: pointer;
+  transition: opacity var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &.is-dimmed {
+    opacity: 0.15;
+  }
 }
 
 .graph-view__node {
-  fill: var(--color-bg-secondary);
-  stroke: var(--color-border-subtle);
-  stroke-width: 2px;
+  fill: var(--color-text-muted);
+  stroke: none;
   transition:
-    fill var(--motion-duration-base) var(--motion-ease-standard),
-    stroke var(--motion-duration-base) var(--motion-ease-standard);
+    fill var(--motion-duration-fast) var(--motion-ease-standard),
+    opacity var(--motion-duration-fast) var(--motion-ease-standard);
 
-  .graph-view__node-group:hover & {
-    fill: var(--color-bg-hover);
-    stroke: var(--color-text-accent);
+  .graph-view__node-group:hover &,
+  .graph-view__node-group.is-hovered & {
+    fill: var(--color-text-accent);
+  }
+
+  .graph-view__node-group.is-highlighted & {
+    fill: var(--color-text-normal);
   }
 
   &[data-active="true"],
   &--active {
     fill: var(--color-text-accent);
-    stroke: var(--color-text-accent);
   }
 }
 
 .graph-view__label {
-  font-family: var(--font-ui);
-  font-size: var(--type-scale-xs);
+  font-family: var(--font-ui), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 10.5px;
+  font-weight: var(--type-weight-normal, 400);
   fill: var(--color-text-muted);
   pointer-events: none;
   user-select: none;
+  paint-order: stroke fill;
+  stroke: var(--color-bg-primary);
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    fill var(--motion-duration-fast) var(--motion-ease-standard),
+    font-weight var(--motion-duration-fast) var(--motion-ease-standard);
 
-  /* Halo effect for contrast against edges */
-  text-shadow:
-    -1px -1px 0 var(--color-bg-primary),
-    1px -1px 0 var(--color-bg-primary),
-    -1px 1px 0 var(--color-bg-primary),
-    1px 1px 0 var(--color-bg-primary);
-  transition: fill var(--motion-duration-base) var(--motion-ease-standard);
-
-  .graph-view__node-group:hover & {
+  .graph-view__node-group:hover &,
+  .graph-view__node-group.is-hovered & {
     fill: var(--color-text-normal);
+    font-weight: var(--type-weight-medium, 500);
+  }
+
+  .graph-view__node-group.is-highlighted & {
+    fill: var(--color-text-normal);
+  }
+
+  &[data-active="true"] {
+    fill: var(--color-text-normal);
+    font-weight: var(--type-weight-medium, 500);
   }
 }
 
@@ -81,10 +115,14 @@
 
 .graph-view__controls {
   position: absolute;
-  bottom: var(--space-4);
-  right: var(--space-4);
+  top: var(--space-3);
+  right: var(--space-3);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px;
+  background-color: var(--color-bg-primary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
   z-index: 10;
 }

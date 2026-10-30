@@ -86,11 +86,11 @@ export function VersionHistoryPanel({
           versions.map((version) => (
             <button
               type="button"
-              className="version-history__item"
+              className={`version-history__item${selected?.revision === version.revision ? " version-history__item--selected" : ""}`}
               key={version.revision}
               onClick={() => void selectVersion(version)}
             >
-              <Typography variant="text" size="xs" weight="semibold">
+              <Typography variant="text" size="xs" weight="medium">
                 {version.message}
               </Typography>
               <Typography variant="text" size="xs" color="muted">
@@ -110,7 +110,7 @@ export function VersionHistoryPanel({
         </Typography>
       )}
       {selected && (
-        <>
+        <div className="version-history__details">
           <Button
             size="sm"
             variant="secondary"
@@ -131,7 +131,7 @@ export function VersionHistoryPanel({
               </span>
             ))}
           </pre>
-        </>
+        </div>
       )}
     </div>
   );

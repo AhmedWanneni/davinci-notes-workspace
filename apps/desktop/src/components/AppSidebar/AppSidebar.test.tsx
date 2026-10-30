@@ -26,6 +26,10 @@ vi.mock("@tauri-apps/api/window", () => ({
   }),
 }));
 
+vi.mock("@app/git-manager", () => ({
+  GitSidebarPanel: () => <div data-testid="mock-git-sidebar-panel">Mock Git Sidebar</div>,
+}));
+
 describe("AppSidebar", () => {
   beforeEach(() => {
     Object.defineProperty(HTMLElement.prototype, "hasPointerCapture", {
@@ -54,12 +58,13 @@ describe("AppSidebar", () => {
     );
 
     expect(screen.getByLabelText("File Explorer")).toBeDefined();
-    expect(screen.getByLabelText("Files")).toBeDefined();
-    expect(screen.getByLabelText("Search")).toBeDefined();
+    expect(screen.getAllByLabelText("Files").length).toBeGreaterThan(0);
+    expect(screen.getAllByLabelText("Search").length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Bookmarks")).toBeDefined();
     expect(screen.getByRole("button", { name: /vault-1/i })).toBeDefined();
-    expect(screen.getByLabelText("Settings")).toBeDefined();
+    expect(screen.getAllByLabelText("Settings").length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Help")).toBeDefined();
+    expect(screen.getByLabelText("Primary navigation")).toBeDefined();
   });
 
   it("handles collapsed state and shows/hides resizer", () => {
@@ -108,6 +113,50 @@ describe("AppSidebar", () => {
 
     expect(sidebar?.getAttribute("data-collapsed")).toBe("true");
     expect(container.querySelector(".app-sidebar__resizer")).toBeNull();
+  });
+
+  it("switches from file tree to git sidebar panel when isGitManagerOpen is true", async () => {
+    const { rerender } = render(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath={null}
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isGitManagerOpen={false}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.queryByTestId("mock-git-sidebar-panel")).toBeNull();
+
+    rerender(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath={null}
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isGitManagerOpen={true}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(await screen.findByTestId("mock-git-sidebar-panel")).toBeDefined();
   });
 });
 

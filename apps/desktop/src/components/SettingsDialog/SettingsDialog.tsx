@@ -21,16 +21,38 @@ import { LogsSettingsTab } from "./LogsSettingsTab";
 import styles from "./SettingsDialog.module.scss";
 
 const LazyAISettingsPanel = React.lazy(() =>
-  import("../AISettingsPanel").then((module) => ({
-    default: module.AISettingsPanel,
+  import("../AISettingsPanel").then((m) => ({ default: m.AISettingsPanel })),
+);
+const LazyGoogleCalendarSettingsTab = React.lazy(() =>
+  import("./GoogleCalendarSettingsTab").then((m) => ({
+    default: m.GoogleCalendarSettingsTab,
+  })),
+);
+const LazyNotificationsSettingsTab = React.lazy(() =>
+  import("./NotificationsSettingsTab").then((m) => ({
+    default: m.NotificationsSettingsTab,
+  })),
+);
+const LazyGitSettingsTab = React.lazy(() =>
+  import("./GitSettingsTab").then((m) => ({
+    default: m.GitSettingsTab,
   })),
 );
 
-const LazyGoogleCalendarSettingsTab = React.lazy(() =>
-  import("./GoogleCalendarSettingsTab").then((module) => ({
-    default: module.GoogleCalendarSettingsTab,
-  })),
-);
+const KNOWN_TABS = new Set([
+  "general",
+  "appearance",
+  "editor",
+  "files",
+  "git",
+  "sync",
+  "notifications",
+  "calendar",
+  "ai",
+  "plugins",
+  "web-clipper",
+  "logs",
+]);
 
 export interface SettingsDialogProps {
   isOpen: boolean;
@@ -42,6 +64,8 @@ export interface SettingsDialogProps {
   driveAccountEmail?: string | null;
   isDriveSignedIn?: boolean;
   isDriveSyncing?: boolean;
+  lastSyncedAt?: number | null;
+  syncError?: string | null;
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
@@ -68,6 +92,8 @@ export function SettingsDialog({
   driveAccountEmail,
   isDriveSignedIn = false,
   isDriveSyncing = false,
+  lastSyncedAt,
+  syncError,
   onDriveSignIn,
   onDriveDisconnect,
   onDriveRefresh,
@@ -95,9 +121,7 @@ export function SettingsDialog({
   const handleSwitchVault = async () => {
     try {
       const newPath = await openVaultFromPicker();
-      if (newPath) {
-        onVaultSwitched(newPath);
-      }
+      if (newPath) onVaultSwitched(newPath);
     } catch (err) {
       console.error("Failed to switch vault:", err);
     }
@@ -106,7 +130,7 @@ export function SettingsDialog({
   const vaultName = vaultPath
     ? vaultPath.split(/[/\\]/).filter(Boolean).pop() || "Vault"
     : "Vault";
-  const windowTitle = `Settings - ${vaultName} - Davinci Notes 0.1.0`;
+  const windowTitle = `Settings - ${vaultName} - Sophia 0.1.0`;
 
   return (
     <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>
@@ -152,7 +176,6 @@ export function SettingsDialog({
                   onSwitchVault={() => void handleSwitchVault()}
                 />
               )}
-
               {activeTab === "appearance" && (
                 <AppearanceSettingsTab
                   themes={themes}
@@ -165,11 +188,16 @@ export function SettingsDialog({
                   onActivateThemeFromBrowser={onActivateThemeFromBrowser}
                 />
               )}
-
               {activeTab === "editor" && <EditorSettingsTab />}
-
               {activeTab === "files" && <FilesLinksSettingsTab />}
-
+              {activeTab === "git" && (
+                <React.Suspense fallback={<div>Loading Git Settings...</div>}>
+                  <LazyGitSettingsTab
+                    vaultPath={vaultPath}
+                    onVaultSwitched={onVaultSwitched}
+                  />
+                </React.Suspense>
+              )}
               {activeTab === "sync" && (
                 <SyncSettingsTab
                   syncMode={syncMode}
@@ -177,6 +205,8 @@ export function SettingsDialog({
                   driveAccountEmail={driveAccountEmail}
                   isDriveSignedIn={isDriveSignedIn}
                   isDriveSyncing={isDriveSyncing}
+                  lastSyncedAt={lastSyncedAt}
+                  syncError={syncError}
                   onDriveSignIn={onDriveSignIn}
                   onDriveDisconnect={onDriveDisconnect}
                   onDriveRefresh={onDriveRefresh}
@@ -185,15 +215,24 @@ export function SettingsDialog({
                   onOpenConflictsPanel={onOpenConflictsPanel}
                 />
               )}
-
+              {activeTab === "notifications" && (
+                <div className={styles["settings-tab-content"]}>
+                  <React.Suspense
+                    fallback={<div>Loading Notification Settings...</div>}
+                  >
+                    <LazyNotificationsSettingsTab />
+                  </React.Suspense>
+                </div>
+              )}
               {activeTab === "calendar" && (
                 <div className={styles["settings-tab-content"]}>
-                  <React.Suspense fallback={<div>Loading Calendar Settings...</div>}>
+                  <React.Suspense
+                    fallback={<div>Loading Calendar Settings...</div>}
+                  >
                     <LazyGoogleCalendarSettingsTab />
                   </React.Suspense>
                 </div>
               )}
-
               {activeTab === "ai" && (
                 <div className={styles["settings-tab-content"]}>
                   <React.Suspense fallback={<div>Loading AI Settings...</div>}>
@@ -201,26 +240,13 @@ export function SettingsDialog({
                   </React.Suspense>
                 </div>
               )}
-
               {activeTab === "plugins" && (
                 <PluginsSettingsTab vaultPath={vaultPath} />
               )}
-
               {activeTab === "web-clipper" && <ClipperSettingsSection />}
               {activeTab === "logs" && <LogsSettingsTab log={log} />}
 
-              {![
-                "general",
-                "appearance",
-                "editor",
-                "files",
-                "sync",
-                "calendar",
-                "ai",
-                "plugins",
-                "web-clipper",
-                "logs",
-              ].includes(activeTab) && (
+              {!KNOWN_TABS.has(activeTab) && (
                 <div className={styles["settings-tab-content"]}>
                   <SettingsCard
                     title={activeTab

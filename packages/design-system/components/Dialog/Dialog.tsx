@@ -38,6 +38,8 @@ export const DialogContent = forwardRef<
       title,
       description,
       showCloseButton = true,
+      onPointerDownOutside,
+      onInteractOutside,
       ...props
     },
     ref,
@@ -48,6 +50,24 @@ export const DialogContent = forwardRef<
         <DialogPrimitive.Content
           ref={ref}
           className={`${styles.dialogContent || styles["dialog-content"]} ${className}`}
+          onPointerDownOutside={(e) => {
+            const target = e.detail?.originalEvent
+              ?.target as HTMLElement | null;
+            if (target?.closest?.("[data-reminder-toast]")) {
+              e.preventDefault();
+              return;
+            }
+            onPointerDownOutside?.(e);
+          }}
+          onInteractOutside={(e) => {
+            const target = e.detail?.originalEvent
+              ?.target as HTMLElement | null;
+            if (target?.closest?.("[data-reminder-toast]")) {
+              e.preventDefault();
+              return;
+            }
+            onInteractOutside?.(e);
+          }}
           {...props}
         >
           {(title || description) && (

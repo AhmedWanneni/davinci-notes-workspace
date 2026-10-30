@@ -16,6 +16,7 @@ import {
   updateCalendarSelectedInDb,
   purgeCalendarCache,
 } from "../../calendar/sqliteCalendarStore";
+import { flushAndSyncCalendar } from "../../calendar/calendarSyncRunner";
 import { getVaultIndexDb } from "../../vault/sqliteIndex";
 import { getSetting, setSetting } from "../../vault/settingsCommands";
 import { GoogleAccountCard } from "./GoogleAccountCard";
@@ -104,6 +105,8 @@ export function GoogleCalendarSettingsTab({
       );
       await saveCalendarsToDb(remoteCals);
       setCalendars(remoteCals);
+      await flushAndSyncCalendar();
+      window.dispatchEvent(new Event("davinci:calendar-updated"));
       onStatusChange?.();
     } catch (err) {
       console.error("[calendar-settings] Sign in failed:", err);
@@ -120,6 +123,7 @@ export function GoogleCalendarSettingsTab({
       setIsConnected(false);
       setCalendars([]);
       setErrorMessage(null);
+      window.dispatchEvent(new Event("davinci:calendar-updated"));
       onStatusChange?.();
     } catch (err) {
       console.error("[calendar-settings] Disconnect failed:", err);
@@ -132,6 +136,7 @@ export function GoogleCalendarSettingsTab({
     setCalendars((prev) =>
       prev.map((c) => (c.id === id ? { ...c, selected } : c)),
     );
+    window.dispatchEvent(new Event("davinci:calendar-updated"));
   };
 
   const handleIntervalChange = (val: string) => {

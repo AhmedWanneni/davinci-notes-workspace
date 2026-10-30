@@ -8,7 +8,7 @@
 
 export const CLIP_PAYLOAD_VERSION = 1 as const;
 
-export type ClipMode = "full" | "selection" | "highlights";
+export type ClipMode = "full" | "selection" | "highlights" | "bookmark";
 
 export type ClipBehavior =
   | "create"

@@ -5,20 +5,20 @@
 .dropdownContent {
   min-width: 8rem;
   overflow: hidden;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg);
   border: var(--border-width-thin) solid var(--color-border-subtle);
-  background-color: var(--color-bg-primary-alt);
+  background-color: var(--color-bg-primary);
   padding: var(--space-1);
   color: var(--color-text-normal);
   font-family: var(--font-ui);
   box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 10%),
-    0 2px 4px -1px rgb(0 0 0 / 6%);
+    0 8px 24px rgb(0 0 0 / 14%),
+    0 2px 6px rgb(0 0 0 / 8%);
 
   @supports (color: color-mix(in srgb, black, transparent)) {
     box-shadow:
-      0 4px 6px -1px color-mix(in srgb, var(--color-shadow) 10%, transparent),
-      0 2px 4px -1px color-mix(in srgb, var(--color-shadow) 6%, transparent);
+      0 8px 24px color-mix(in srgb, var(--color-shadow) 18%, transparent),
+      0 2px 6px color-mix(in srgb, var(--color-shadow) 10%, transparent);
   }
 
   z-index: 50;
@@ -49,9 +49,9 @@
   cursor: default;
   user-select: none;
   align-items: center;
-  border-radius: var(--border-radius-sm);
-  padding: var(--space-2) var(--space-2);
-  font-size: var(--type-scale-sm);
+  border-radius: var(--border-radius-md);
+  padding: 6px var(--space-2);
+  font-size: var(--type-scale-xs);
   outline: none;
   transition: background-color var(--motion-duration-fast)
     var(--motion-ease-standard);

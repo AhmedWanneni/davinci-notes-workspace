@@ -1,0 +1,175 @@
+name: Release Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Target release tag (e.g. v0.2.0)'
+        required: false
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    name: Validate Quality Gates & Version Sync
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Audit manifest version synchronization
+        run: pnpm run check:version-sync
+
+      - name: Run verification checks (Web Assets Build)
+        run: pnpm --filter @app/desktop build:web
+
+      - name: Verify bundle size limits
+        run: pnpm run check:bundle-size
+
+  build-desktop:
+    name: Build Desktop (${{ matrix.arch_label }})
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            target: 'aarch64-apple-darwin'
+            arch_label: 'macOS Apple Silicon'
+          - platform: 'macos-latest'
+            target: 'x86_64-apple-darwin'
+            arch_label: 'macOS Intel'
+          - platform: 'windows-latest'
+            target: 'x86_64-pc-windows-msvc'
+            arch_label: 'Windows x64'
+          - platform: 'ubuntu-22.04'
+            target: 'x86_64-unknown-linux-gnu'
+            arch_label: 'Linux x64'
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Setup Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: 'apps/desktop/src-tauri -> target'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Pre-fetch Syncthing binary for target (${{ matrix.target }})
+        run: node apps/desktop/scripts/fetchSyncthing.mjs --target ${{ matrix.target }}
+
+      - name: Build frontend web assets
+        run: pnpm --filter @app/desktop build:web
+
+      - name: Build Tauri Desktop Package
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ENABLE_CODE_SIGNING: ${{ secrets.APPLE_CERTIFICATE != '' }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: './apps/desktop'
+          tagName: ${{ github.event.inputs.release_tag || github.ref_name }}
+          releaseName: 'DaVinci Notes ${{ github.event.inputs.release_tag || github.ref_name }}'
+          releaseDraft: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          args: --target ${{ matrix.target }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-desktop-${{ matrix.target }}
+          path: |
+            apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle/
+          retention-days: 7
+
+  finalize-release:
+    name: Finalize Checksums & Publish Changelog
+    needs: build-desktop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./downloaded-artifacts
+
+      - name: Verify artifacts & generate SHA256SUMS
+        run: |
+          mkdir -p ./final-artifacts
+          find ./downloaded-artifacts -type f \( -name "*.dmg" -o -name "*.exe" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.tar.gz" -o -name "*.zip" -o -name "*.sig" \) -exec cp {} ./final-artifacts/ \;
+          bash scripts/release/verify-artifacts.sh --dir ./final-artifacts --out-sums ./final-artifacts/SHA256SUMS.txt
+
+      - name: Generate release notes
+        run: |
+          bash scripts/release/generate-changelog.sh --out ./RELEASE_BODY.md
+
+      - name: Upload SHA256SUMS and attach to Draft Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ github.event.inputs.release_tag || github.ref_name }}
+        run: |
+          gh release upload "$TAG_NAME" ./final-artifacts/SHA256SUMS.txt --clobber || true
+          gh release edit "$TAG_NAME" --notes-file ./RELEASE_BODY.md || true

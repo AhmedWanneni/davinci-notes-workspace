@@ -9,6 +9,7 @@ import {
 } from "./sqliteIndex";
 import { deleteNote } from "./vaultCommands";
 import { withVaultWatchSuppressed } from "./vaultWatchSession";
+import { useBookmarkStore } from "../bookmarks/bookmarkStore";
 import { removeNoteFromGraph } from "./removeNoteFromGraph";
 import { removeNoteFromTagIndex } from "@app/indexer";
 
@@ -71,6 +72,8 @@ export async function deleteNoteInVault(
         vaultUpdateCounter: current.vaultUpdateCounter + 1,
       };
     });
+
+    useBookmarkStore.getState().markMissing(path);
 
     return { ok: true, path };
   });

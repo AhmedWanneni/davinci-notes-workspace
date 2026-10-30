@@ -109,6 +109,13 @@ pub fn build_tray_menu(
     has_vault,
     None::<&str>,
   )?;
+  let ai_listening = MenuItem::with_id(
+    app,
+    "tray-ai-listening",
+    "AI Listening & Meetings",
+    true,
+    None::<&str>,
+  )?;
 
   let sep1 = PredefinedMenuItem::separator(app)?;
   let sep2 = PredefinedMenuItem::separator(app)?;
@@ -122,6 +129,7 @@ pub fn build_tray_menu(
   menu.append(&new_note)?;
   menu.append(&daily_note)?;
   menu.append(&open_reminders)?;
+  menu.append(&ai_listening)?;
   menu.append(&sep1)?;
 
   if !upcoming_reminders.is_empty() {

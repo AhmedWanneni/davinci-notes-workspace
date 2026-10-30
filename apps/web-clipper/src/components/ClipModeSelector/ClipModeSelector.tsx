@@ -20,6 +20,11 @@ export const CLIP_MODE_OPTIONS: readonly ClipModeOption[] = [
     label: "Highlights",
     hint: "Only highlighted passages",
   },
+  {
+    value: "bookmark",
+    label: "Bookmark",
+    hint: "Save link to Bookmarks",
+  },
 ];
 
 export interface ClipModeSelectorProps {

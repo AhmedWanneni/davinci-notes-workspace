@@ -1,28 +1,11 @@
-import {
-  lazy,
-  memo,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type JSX,
-} from "react";
-import {
-  Handle,
-  NodeResizer,
-  Position,
-  useReactFlow,
-  type NodeProps,
-} from "@xyflow/react";
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useState, type JSX } from "react";
+import { Handle, NodeResizer, Position, useReactFlow, type NodeProps } from "@xyflow/react";
 import { MarkdownView } from "@app/editor";
-import {
-  CANVAS_SNAP_GRID,
-  MIN_FILE_CARD_HEIGHT,
-  MIN_FILE_CARD_WIDTH,
-  snapToGrid,
-} from "./canvasConstants";
+import { CANVAS_SNAP_GRID, MIN_FILE_CARD_HEIGHT, MIN_FILE_CARD_WIDTH, snapToGrid } from "./canvasConstants";
 import { useCanvasEditor } from "./CanvasEditorContext";
+import { CanvasCardActionBar } from "./CanvasCardActionBar";
+import { getCanvasEdgeColorCss } from "./canvasEdgeConstants";
+import type { CanvasColor } from "./CanvasColor";
 import { FileCardHeader } from "./FileCardHeader";
 import { FileCardHeadingPicker } from "./FileCardHeadingPicker";
 import { FileCardSwapPicker } from "./FileCardSwapPicker";
@@ -31,15 +14,8 @@ import { getFileCardType } from "./mediaCardUtils";
 import { extractHeadings, extractSectionByHeading } from "./subpathUtils";
 import styles from "./FileCardNode.module.scss";
 
-const LazyPdfCardView = lazy(() =>
-  import("./PdfCardView").then((m) => ({ default: m.PdfCardView })),
-);
-
-const LazyNestedCanvasCardView = lazy(() =>
-  import("./NestedCanvasCardView").then((m) => ({
-    default: m.NestedCanvasCardView,
-  })),
-);
+const LazyPdfCardView = lazy(() => import("./PdfCardView").then((m) => ({ default: m.PdfCardView })));
+const LazyNestedCanvasCardView = lazy(() => import("./NestedCanvasCardView").then((m) => ({ default: m.NestedCanvasCardView })));
 
 export interface FileCardNodeData {
   file?: string;
@@ -50,7 +26,7 @@ export interface FileCardNodeData {
 }
 
 function FileCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
-  const { setNodes } = useReactFlow();
+  const { setNodes, fitView } = useReactFlow();
   const {
     allNotePaths = [],
     notesContent = {},
@@ -58,10 +34,13 @@ function FileCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
     onOpenFile,
     onNodeFileChange,
     onLayoutChange,
+    onDeleteNode,
+    onNodeColorChange,
   } = useCanvasEditor();
 
   const file = typeof data.file === "string" ? data.file : "";
   const subpath = typeof data.subpath === "string" ? data.subpath : undefined;
+  const color = typeof data.color === "string" ? data.color : undefined;
   const fileType = useMemo(() => getFileCardType(file), [file]);
 
   const [asyncContent, setAsyncContent] = useState<string | null>(null);
@@ -98,25 +77,28 @@ function FileCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
     return extractHeadings(rawContent);
   }, [fileType, rawContent]);
 
-  const handleResizeEnd = useCallback(() => {
-    setNodes((nodes) => {
-      const next = nodes.map((node) => {
-        if (node.id !== id) return node;
-        const width = typeof node.style?.width === "number" ? node.style.width : 400;
-        const height = typeof node.style?.height === "number" ? node.style.height : 320;
-        return {
-          ...node,
-          style: {
-            ...node.style,
-            width: snapToGrid(width, CANVAS_SNAP_GRID[0]),
-            height: snapToGrid(height, CANVAS_SNAP_GRID[1]),
-          },
-        };
+  const handleResizeEnd = useCallback(
+    (_event: unknown, p: { x: number; y: number; width: number; height: number }) => {
+      setNodes((nodes) => {
+        const next = nodes.map((node) => {
+          if (node.id !== id) return node;
+          const w = Number.isFinite(p.width) ? p.width : (typeof node.style?.width === "number" ? node.style.width : 400);
+          const h = Number.isFinite(p.height) ? p.height : (typeof node.style?.height === "number" ? node.style.height : 320);
+          const posX = Number.isFinite(p.x) ? p.x : node.position.x;
+          const posY = Number.isFinite(p.y) ? p.y : node.position.y;
+          const [gx, gy] = CANVAS_SNAP_GRID;
+          return {
+            ...node,
+            position: { x: snapToGrid(posX, gx), y: snapToGrid(posY, gy) },
+            style: { ...node.style, width: snapToGrid(w, gx), height: snapToGrid(h, gy) },
+          };
+        });
+        queueMicrotask(onLayoutChange);
+        return next;
       });
-      queueMicrotask(onLayoutChange);
-      return next;
-    });
-  }, [id, onLayoutChange, setNodes]);
+    },
+    [id, onLayoutChange, setNodes],
+  );
 
   const handleSwapFile = useCallback(
     (newPath: string) => {
@@ -140,8 +122,17 @@ function FileCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
     .filter(Boolean)
     .join(" ");
 
+  const cardBorderColor = color ? getCanvasEdgeColorCss(color as CanvasColor) : undefined;
+
   return (
     <div className={styles["file-card-wrapper"]}>
+      <CanvasCardActionBar
+        selected={Boolean(selected)}
+        onDelete={() => onDeleteNode?.(id)}
+        onColorChange={(c) => onNodeColorChange?.(id, c as CanvasColor)}
+        onZoomTo={() => void fitView({ nodes: [{ id }], duration: 300, padding: 0.3 })}
+        onEdit={fileType === "markdown" ? () => onOpenFile?.(file) : undefined}
+      />
       <NodeResizer
         isVisible={selected}
         keepAspectRatio={fileType === "image"}
@@ -154,7 +145,11 @@ function FileCardNodeComponent({ id, data, selected }: NodeProps): JSX.Element {
       <Handle type="source" position={Position.Bottom} id="bottom" className={styles["file-card__handle"]} />
       <Handle type="source" position={Position.Left} id="left" className={styles["file-card__handle"]} />
 
-      <div className={cardClass} data-testid={`file-card-${id}`}>
+      <div
+        className={cardClass}
+        style={cardBorderColor ? { borderColor: cardBorderColor } : undefined}
+        data-testid={`file-card-${id}`}
+      >
         <FileCardHeader
           file={file}
           subpath={subpath}

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@app/design-system";
-import { FileText, MagnifyingGlass } from "@phosphor-icons/react";
+import { X } from "@phosphor-icons/react";
 import type { SearchResult } from "@app/indexer";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 export interface SemanticSearchResult {
   path: string;
@@ -19,6 +20,7 @@ export interface SearchDialogProps {
   initialQuery?: string;
   semanticSearch?: (query: string) => Promise<SemanticSearchResult[]>;
   semanticSearchEnabled?: boolean;
+  openNotes?: readonly string[];
 }
 
 export function SearchDialog({
@@ -29,7 +31,10 @@ export function SearchDialog({
   initialQuery = "",
   semanticSearch,
   semanticSearchEnabled = false,
+  openNotes,
 }: SearchDialogProps) {
+  const storeOpenNotes = useWorkspaceStore((state) => state.openNotes);
+  const effectiveOpenNotes = openNotes ?? storeOpenNotes;
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"exact" | "semantic">("exact");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -52,50 +57,58 @@ export function SearchDialog({
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      if (!query.trim() || (mode === "semantic" && query.trim().length < 3)) {
+      if (!query.trim()) {
+        setResults([]);
+        setSemanticResults([]);
+        return;
+      }
+      if (mode === "semantic" && query.trim().length < 3) {
         setResults([]);
         setSemanticResults([]);
         return;
       }
       if (mode === "semantic" && semanticSearch) {
-        void semanticSearch(query).then((nextResults) => {
-          setSemanticResults(nextResults);
+        void semanticSearch(query.trim()).then((res) => {
+          setSemanticResults(res);
           setResults([]);
           setSelectedIndex(0);
         });
-      } else {
-        void onSearch(query).then((nextResults) => {
-          setResults(nextResults);
-          setSemanticResults([]);
-          setSelectedIndex(0);
-        });
+        return;
       }
-    }, 150);
+      void onSearch(query.trim()).then((res) => {
+        setResults(res);
+        setSemanticResults([]);
+        setSelectedIndex(0);
+      });
+    }, 120);
+
     return () => window.clearTimeout(timer);
-  }, [mode, onSearch, query, semanticSearch]);
+  }, [effectiveOpenNotes, mode, onSearch, query, semanticSearch]);
 
   const openSelected = () => {
-    if (mode === "semantic") {
-      const selectedSemantic = semanticResults[selectedIndex];
-      if (selectedSemantic) onSelectNote(selectedSemantic.path);
-      onOpenChange(false);
+    if (mode === "exact") {
+      const selected = results[selectedIndex];
+      if (selected) {
+        onSelectNote(selected.path);
+        onOpenChange(false);
+      }
       return;
     }
-    const selected = results[selectedIndex];
-    if (!selected) return;
-    onSelectNote(selected.path);
-    onOpenChange(false);
+    const selectedSemantic = semanticResults[selectedIndex];
+    if (selectedSemantic) {
+      onSelectNote(selectedSemantic.path);
+      onOpenChange(false);
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const total = mode === "exact" ? results.length : semanticResults.length;
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setSelectedIndex((index) => (index + 1) % Math.max(results.length, 1));
+      setSelectedIndex((index) => (index + 1) % Math.max(total, 1));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      setSelectedIndex(
-        (index) => (index - 1 + results.length) % Math.max(results.length, 1),
-      );
+      setSelectedIndex((index) => (index - 1 + total) % Math.max(total, 1));
     } else if (event.key === "Enter") {
       event.preventDefault();
       openSelected();
@@ -106,16 +119,23 @@ export function SearchDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="search-dialog__dialog" showCloseButton={false}>
         <div className="search-dialog__input-wrapper">
-          <MagnifyingGlass size={18} aria-hidden="true" />
           <input
             ref={inputRef}
             className="search-dialog__input"
             value={query}
-            placeholder="Search notes, or use tag:..."
+            placeholder="Select a command..."
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleKeyDown}
             aria-label="Search notes"
           />
+          <button
+            type="button"
+            className="search-dialog__close"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close search"
+          >
+            <X size={10} weight="bold" />
+          </button>
         </div>
         {semanticSearchEnabled && semanticSearch && (
           <div
@@ -157,17 +177,18 @@ export function SearchDialog({
                 onOpenChange(false);
               }}
             >
-              <FileText size={18} aria-hidden="true" />
               <span className="search-dialog__result-copy">
-                <span className="search-dialog__title">{result.title}</span>
-                <span className="search-dialog__path">{result.path}</span>
-                {result.snippet ? (
+                <div className="search-dialog__row-header">
+                  <span className="search-dialog__title">{result.title}</span>
+                  {result.path !== result.title && (
+                    <span className="search-dialog__path">{result.path}</span>
+                  )}
+                </div>
+                {result.snippet && (
                   <span
                     className="search-dialog__snippet"
                     dangerouslySetInnerHTML={{ __html: result.snippet }}
                   />
-                ) : (
-                  <span className="search-dialog__snippet">Tag match</span>
                 )}
               </span>
             </li>
@@ -182,24 +203,33 @@ export function SearchDialog({
               onMouseEnter={() => setSelectedIndex(index)}
               onClick={openSelected}
             >
-              <FileText size={18} aria-hidden="true" />
               <span className="search-dialog__result-copy">
-                <span className="search-dialog__title">{result.path}</span>
-                <span className="search-dialog__path">
-                  Semantic match{result.heading ? ` - ${result.heading}` : ""}
-                </span>
+                <div className="search-dialog__row-header">
+                  <span className="search-dialog__title">{result.path}</span>
+                  <span className="search-dialog__path">
+                    Semantic match{result.heading ? ` - ${result.heading}` : ""}
+                  </span>
+                </div>
                 <span className="search-dialog__snippet">
                   Lines {result.startLine}-{result.endLine}
                 </span>
               </span>
             </li>
           ))}
-          {query.trim() &&
-            results.length === 0 &&
+          {results.length === 0 &&
             semanticResults.length === 0 && (
-              <li className="search-dialog__empty">No matching notes.</li>
+              <li className="search-dialog__empty">
+                {!query.trim()
+                  ? "No files to display. Type to search."
+                  : "No matching notes."}
+              </li>
             )}
         </ul>
+        <div className="search-dialog__footer">
+          <span>↑↓ to navigate</span>
+          <span>↵ to use</span>
+          <span>esc to dismiss</span>
+        </div>
       </DialogContent>
     </Dialog>
   );

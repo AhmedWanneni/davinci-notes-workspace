@@ -54,6 +54,7 @@ export function runInsertItem(
   view: EditorView,
   item: InsertItem,
   selection: EditorSelection = view.state.selection,
+  selectedText?: string,
 ): boolean {
   if (!view.state.facet(EditorView.editable)) return false;
 
@@ -62,7 +63,11 @@ export function runInsertItem(
     return true;
   }
 
-  const success = insertItem(view, item, selection);
+  const text =
+    selectedText !== undefined
+      ? selectedText
+      : view.state.doc.sliceString(selection.main.from, selection.main.to);
+  const success = insertItem(view, item, selection, text);
   if (success) {
     recordRecentInsert(item.id);
   }
@@ -94,6 +99,15 @@ export function completeInsertDialog(
 }
 
 export function cancelInsertDialog(request: InsertDialogRequest): void {
+  const range = request.selection.main;
+  if (range.from < range.to) {
+    const text = request.view.state.doc.sliceString(range.from, range.to);
+    if (text.startsWith("/")) {
+      request.view.dispatch({
+        changes: { from: range.from, to: range.to, insert: "" },
+      });
+    }
+  }
   closeInsertDialog();
   request.view.focus();
 }

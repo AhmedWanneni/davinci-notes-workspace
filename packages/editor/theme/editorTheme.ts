@@ -25,14 +25,31 @@ export const editorTheme = EditorView.theme({
   ".cm-content": {
     padding:
       "var(--space-6) var(--space-8) var(--editor-content-padding-bottom)",
+    caretColor: "var(--color-editor-cursor, var(--color-text-normal))",
   },
   ".cm-line": {
     paddingLeft: "var(--editor-obsidian-content-line-padding-inline)",
     paddingRight: "var(--editor-obsidian-content-line-padding-inline)",
   },
   ".cm-cursor": {
-    borderLeftColor: "var(--color-text-accent)",
+    borderLeftColor: "var(--color-editor-cursor, var(--color-text-normal))",
     borderLeftWidth: "2px",
+  },
+  ".cm-dropCursor": {
+    borderLeftColor: "var(--color-editor-cursor, var(--color-text-normal))",
+    borderLeftWidth: "2px",
+  },
+  ".cm-fat-cursor": {
+    position: "absolute",
+    backgroundColor: "var(--color-editor-cursor, #000000) !important",
+    color: "var(--color-bg-primary, #ffffff) !important",
+    border: "none",
+    whiteSpace: "pre",
+  },
+  "&:not(.cm-focused) .cm-fat-cursor": {
+    backgroundColor: "transparent !important",
+    outline: "solid 1px var(--color-editor-cursor, #000000) !important",
+    color: "inherit !important",
   },
   "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection":
     {
@@ -69,44 +86,6 @@ export const editorTheme = EditorView.theme({
     color: "var(--color-text-accent)",
     textDecoration: "underline",
     cursor: "pointer",
-  },
-  ".cm-image-embed": {
-    display: "inline-block",
-    maxWidth: "100%",
-    verticalAlign: "middle",
-    margin: "var(--space-1) 0",
-  },
-  ".cm-image-embed img": {
-    maxWidth: "100%",
-    height: "auto",
-    display: "block",
-    borderRadius: "var(--border-radius-sm)",
-  },
-  ".cm-image-error": {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "var(--space-2)",
-    border: "1px dashed var(--color-border-subtle)",
-    borderRadius: "var(--border-radius-sm)",
-    color: "var(--color-text-muted)",
-    fontSize: "var(--type-scale-xs)",
-  },
-  ".cm-file-image-embed": {
-    display: "block",
-    maxWidth: "100%",
-    margin: "var(--space-2) 0",
-  },
-  ".cm-file-image-embed img": {
-    display: "block",
-    maxWidth: "100%",
-    height: "auto",
-  },
-  ".cm-file-image-placeholder": {
-    display: "block",
-    padding: "var(--space-3)",
-    border: "1px dashed var(--color-border-subtle)",
-    color: "var(--color-text-muted)",
   },
   ".cm-list-bullet, .cm-list-ordered": {
     display: "inline-block",
@@ -213,28 +192,6 @@ export const readOnlyEditorTheme = EditorView.theme({
     color: "var(--color-text-accent)",
     textDecoration: "underline",
     cursor: "pointer",
-  },
-  ".cm-image-embed": {
-    display: "inline-block",
-    maxWidth: "100%",
-    verticalAlign: "middle",
-    margin: "var(--space-1) 0",
-  },
-  ".cm-image-embed img": {
-    maxWidth: "100%",
-    height: "auto",
-    display: "block",
-    borderRadius: "var(--border-radius-sm)",
-  },
-  ".cm-image-error": {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "var(--space-2)",
-    border: "1px dashed var(--color-border-subtle)",
-    borderRadius: "var(--border-radius-sm)",
-    color: "var(--color-text-muted)",
-    fontSize: "var(--type-scale-xs)",
   },
   ".cm-list-bullet, .cm-list-ordered": {
     display: "inline-block",

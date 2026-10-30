@@ -1,49 +1,16 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { AppSidebarHeader } from "./AppSidebarHeader";
+import type { AppSidebarProps } from "./AppSidebarTypes";
 import { FileTree } from "../FileTree";
+import { IconRail } from "../IconRail";
 import { VaultSwitcher } from "../VaultSwitcher";
 import { useSidebarResize } from "./useSidebarResize";
 
-export interface AppSidebarProps {
-  vaultName: string;
-  vaultPath?: string | null;
-  allNotePaths: string[];
-  allFolderPaths: string[];
-  activeNotePath: string | null;
-  dirtyNotes: Set<string>;
-  log: string[];
-  navigation?: ReactNode;
-  isCollapsed?: boolean;
-  isMac: boolean;
-  activeTab?: "files" | "search" | "bookmarks";
-  onTabChange?: (tab: "files" | "search" | "bookmarks") => void;
-  onToggleLeftSidebar?: () => void;
-  onOpenSearch?: () => void;
-  onOpenTags?: () => void;
-  onCreateNote: (parentFolder?: string) => void | Promise<unknown>;
-  onCreateFolder: (parentFolder?: string) => Promise<string | null>;
-  onCreateCanvas?: () => void;
-  onNoteClick: (path: string) => void;
-  onRenameNote?: (oldPath: string, newStem: string) => Promise<boolean>;
-  onRenameFolder?: (oldPath: string, newName: string) => Promise<boolean>;
-  onDeleteNote?: (path: string) => Promise<boolean>;
-  onDeleteFolder?: (path: string) => Promise<boolean>;
-  onDuplicateNote?: (path: string) => Promise<boolean>;
-  onMoveNote?: (path: string, newParentFolder: string) => Promise<boolean>;
-  onMoveFile?: (path: string, newParentFolder: string) => Promise<boolean>;
-  onDropFiles?: (targetFolder: string, files: readonly File[]) => Promise<void>;
-  onSelectedFolderChange?: (folderPath: string | null) => void;
-  pendingRenameFolder?: string | null;
-  pendingRenameNote?: string | null;
-  onPendingRenameFolderHandled?: () => void;
-  onPendingRenameNoteHandled?: () => void;
-  onSwitchVault?: (path: string) => void;
-  onOpenFolderPicker?: () => void;
-  onCreateNewVault?: () => void;
-  onOpenSettings?: () => void;
-  onOpenHelp?: () => void;
-  onOpenLogs?: () => void;
-}
+export type { AppSidebarProps } from "./AppSidebarTypes";
+
+const LazyGitSidebarPanel = lazy(() =>
+  import("@app/git-manager").then((m) => ({ default: m.GitSidebarPanel })),
+);
 
 export function AppSidebar({
   vaultName,
@@ -61,8 +28,28 @@ export function AppSidebar({
   onToggleLeftSidebar,
   onOpenSearch,
   onOpenTags,
+  isGlobalGraphOpen,
+  isCalendarOpen,
+  isBookmarksOpen,
+  isRemindersOpen,
+  isAgentOpen,
+  isListeningOpen,
+  isAskVaultOpen,
+  isGitManagerOpen,
+  isGitEnabled,
+  onOpenGitManager,
+  onOpenGlobalGraph,
+  onOpenCalendar,
+  onOpenBookmarks,
+  onOpenAgent,
+  onOpenListening,
+  onOpenAskVault,
+  onCloseVault,
+  onDailyNotes,
+  onOpenReminders,
   onCreateNote,
   onCreateFolder,
+  onCreateCanvas,
   onNoteClick,
   onRenameNote,
   onRenameFolder,
@@ -80,7 +67,10 @@ export function AppSidebar({
   onSwitchVault,
   onOpenFolderPicker,
   onCreateNewVault,
+  onOpenVaultFromDrive,
+  onSyncVault,
   onOpenSettings,
+  onOpenSyncSettings,
   onOpenHelp,
   onOpenLogs,
 }: AppSidebarProps) {
@@ -124,40 +114,92 @@ export function AppSidebar({
         onOpenSearch={onOpenSearch}
         onOpenTags={onOpenTags}
         onToggleLeftSidebar={onToggleLeftSidebar}
+        onOpenSyncSettings={onOpenSyncSettings ?? onOpenSettings}
       />
 
       <div className="app-sidebar__content">
-        {navigation}
-        <FileTree
-          filePaths={allNotePaths}
-          folderPaths={allFolderPaths}
-          activePath={activeNotePath}
-          dirtyPaths={dirtyNotes}
-          pendingRenameFolder={pendingRenameFolder}
-          pendingRenameNote={pendingRenameNote}
-          onNoteClick={onNoteClick}
-          onCreateNote={onCreateNote}
-          onCreateFolder={onCreateFolder}
-          onPendingRenameHandled={onPendingRenameFolderHandled}
-          onPendingRenameNoteHandled={onPendingRenameNoteHandled}
-          onRenameNote={onRenameNote}
-          onRenameFolder={onRenameFolder}
-          onDeleteNote={onDeleteNote}
-          onDeleteFolder={onDeleteFolder}
-          onDuplicateNote={onDuplicateNote}
-          onMoveNote={onMoveNote}
-          onMoveFile={onMoveFile}
-          onDropFiles={onDropFiles}
-          onSelectedFolderChange={handleSelectedFolderChange}
+        <IconRail
+          isLeftSidebarOpen={!isCollapsed}
+          isGlobalGraphOpen={isGlobalGraphOpen}
+          isCalendarOpen={isCalendarOpen}
+          isBookmarksOpen={isBookmarksOpen}
+          isRemindersOpen={isRemindersOpen}
+          isAgentOpen={isAgentOpen}
+          isListeningOpen={isListeningOpen}
+          isAskVaultOpen={isAskVaultOpen}
+          isGitManagerOpen={isGitManagerOpen}
+          isGitEnabled={isGitEnabled}
+          onOpenGitManager={onOpenGitManager}
+          onToggleLeftSidebar={onToggleLeftSidebar ?? (() => {})}
+          onOpenSearch={onOpenSearch ?? (() => {})}
+          onOpenGlobalGraph={onOpenGlobalGraph ?? (() => {})}
+          onOpenCalendar={onOpenCalendar}
+          onOpenBookmarks={onOpenBookmarks}
+          onOpenAgent={onOpenAgent}
+          onOpenListening={onOpenListening}
+          onOpenAskVault={onOpenAskVault}
+          onOpenSettings={onOpenSettings ?? (() => {})}
+          onCloseVault={onCloseVault ?? (() => {})}
+          onDailyNotes={onDailyNotes}
+          onCreateCanvas={onCreateCanvas}
+          onOpenReminders={onOpenReminders}
         />
+        {navigation}
+        {isGitManagerOpen ? (
+          <Suspense
+            fallback={
+              <div
+                style={{
+                  padding: "var(--space-4)",
+                  color: "var(--color-text-muted)",
+                }}
+              >
+                Loading Source Control...
+              </div>
+            }
+          >
+            <LazyGitSidebarPanel
+              onOpenDiff={(change) => {
+                const uri = `git-diff://${change.path}?staged=${change.staged ? "1" : "0"}&status=${change.statusCode}`;
+                onNoteClick(uri);
+              }}
+            />
+          </Suspense>
+        ) : (
+          <FileTree
+            filePaths={allNotePaths}
+            folderPaths={allFolderPaths}
+            activePath={activeNotePath}
+            dirtyPaths={dirtyNotes}
+            pendingRenameFolder={pendingRenameFolder}
+            pendingRenameNote={pendingRenameNote}
+            onNoteClick={onNoteClick}
+            onCreateNote={onCreateNote}
+            onCreateFolder={onCreateFolder}
+            onPendingRenameHandled={onPendingRenameFolderHandled}
+            onPendingRenameNoteHandled={onPendingRenameNoteHandled}
+            onRenameNote={onRenameNote}
+            onRenameFolder={onRenameFolder}
+            onDeleteNote={onDeleteNote}
+            onDeleteFolder={onDeleteFolder}
+            onDuplicateNote={onDuplicateNote}
+            onMoveNote={onMoveNote}
+            onMoveFile={onMoveFile}
+            onDropFiles={onDropFiles}
+            onSelectedFolderChange={handleSelectedFolderChange}
+          />
+        )}
       </div>
 
       <VaultSwitcher
+        isCollapsed={isCollapsed}
         vaultName={vaultName}
         vaultPath={vaultPath ?? null}
         onSwitchVault={onSwitchVault ?? (() => {})}
         onOpenFolderPicker={onOpenFolderPicker ?? (() => {})}
         onCreateNewVault={onCreateNewVault}
+        onOpenVaultFromDrive={onOpenVaultFromDrive}
+        onSyncVault={onSyncVault}
         onOpenSettings={onOpenSettings}
         onOpenHelp={onOpenHelp}
         onOpenLogs={onOpenLogs}
@@ -173,4 +215,3 @@ export function AppSidebar({
     </aside>
   );
 }
-

@@ -1,4 +1,12 @@
 mod ai_auth;
+mod audio_capture;
+mod audio_commands;
+mod audio_mixer;
+mod audio_types;
+mod audio_worker;
+#[cfg(test)]
+mod audio_tests;
+mod browser_bookmarks;
 mod capture;
 mod capture_commands;
 mod capture_format;
@@ -26,8 +34,23 @@ mod fs;
 mod git;
 mod git_auth;
 mod git_history;
+mod git_manager_commands;
+mod git_manager_ops;
+mod git_manager_diff;
+mod git_manager_log;
+mod git_manager_branches;
+mod git_manager_stash;
+mod git_manager_remote;
+mod git_manager_sync;
+mod git_manager_conflicts;
+mod git_manager_clone;
+#[cfg(test)]
+mod git_manager_conflict_tests;
 mod git_remote;
+#[cfg(target_os = "macos")]
+mod macos_panel;
 mod manifest;
+mod notification_auth;
 mod oauth;
 mod plugin_files;
 mod plugin_network;
@@ -44,6 +67,9 @@ mod reminder_tests;
 mod state;
 mod syncthing;
 mod theme_files;
+mod transcription;
+mod transcription_cloud;
+mod transcription_commands;
 mod tray;
 mod tray_commands;
 mod tray_config;
@@ -75,11 +101,19 @@ use watcher::VaultWatcher;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
+  let mut builder = tauri::Builder::default();
+
+  #[cfg(target_os = "macos")]
+  {
+    builder = builder.plugin(tauri_nspanel::init());
+  }
+
+  builder
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_fs::init())
     .plugin(tauri_plugin_notification::init())
     .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+    .plugin(tauri_plugin_updater::Builder::new().build())
     .plugin(
       tauri_plugin_sql::Builder::default()
         .add_migrations(db::DB_URL, db::migrations())
@@ -92,6 +126,7 @@ pub fn run() {
     .manage(plugin_webview::PluginProbeState::default())
     .manage(plugin_network::PluginNetworkClient::new().expect("plugin network client must initialize"))
     .manage(syncthing::SyncthingManager::new())
+    .manage(audio_capture::AudioCaptureManager::default())
     .invoke_handler(tauri::generate_handler![
       fs::open_vault,
       fs::start_vault_watcher,
@@ -109,6 +144,7 @@ pub fn run() {
       fs::stat_note,
       theme_files::read_theme_file,
       fs::write_note,
+      fs::read_binary_file,
       fs::write_binary_file,
       fs::create_folder,
       fs::rename_note,
@@ -124,6 +160,34 @@ pub fn run() {
       git_history::list_local_git_versions,
       git_history::read_local_git_version,
       git_history::restore_local_git_version,
+      git_manager_commands::get_git_repo_info,
+      git_manager_commands::init_git_repository,
+      git_manager_commands::git_manager_status,
+      git_manager_ops::git_manager_stage,
+      git_manager_ops::git_manager_unstage,
+      git_manager_ops::git_manager_discard,
+      git_manager_ops::git_manager_commit,
+      git_manager_diff::git_manager_get_file_diff,
+      git_manager_diff::git_manager_apply_patch,
+      git_manager_log::git_manager_get_log,
+      git_manager_log::git_manager_get_commit_details,
+      git_manager_branches::git_manager_list_branches,
+      git_manager_branches::git_manager_switch_branch,
+      git_manager_branches::git_manager_create_branch,
+      git_manager_branches::git_manager_delete_branch,
+      git_manager_stash::git_manager_stash,
+      git_manager_stash::git_manager_stash_pop,
+      git_manager_remote::git_manager_get_remotes,
+      git_manager_remote::git_manager_set_remote,
+      git_manager_remote::git_manager_get_tracking_status,
+      git_manager_sync::git_manager_fetch,
+      git_manager_sync::git_manager_pull,
+      git_manager_sync::git_manager_push,
+      git_manager_conflicts::git_manager_get_conflict_details,
+      git_manager_conflicts::git_manager_resolve_conflict,
+      git_manager_conflicts::git_manager_abort_merge,
+      git_manager_conflicts::git_manager_continue_merge,
+      git_manager_clone::git_manager_clone_repo,
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,
@@ -146,6 +210,19 @@ pub fn run() {
       ai_auth::save_ai_key,
       ai_auth::load_ai_key,
       ai_auth::clear_ai_key,
+      notification_auth::save_notification_secret,
+      notification_auth::load_notification_secret,
+      notification_auth::clear_notification_secret,
+      reminder_notify::send_desktop_notification_command,
+      audio_commands::start_meeting_recording,
+      audio_commands::pause_meeting_recording,
+      audio_commands::resume_meeting_recording,
+      audio_commands::stop_meeting_recording,
+      audio_commands::get_meeting_recording_status,
+      audio_commands::list_audio_input_devices,
+      audio_commands::save_recorded_audio_to_vault,
+      transcription_commands::transcribe_audio_chunk,
+      transcription_commands::transcribe_audio_file,
       plugin_network::plugin_network_request,
       plugin_webview::start_plugin_webview_probe,
       plugin_webview::ensure_plugin_webview,
@@ -179,6 +256,8 @@ pub fn run() {
       syncthing::syncthing_start, syncthing::syncthing_stop,
       syncthing::syncthing_restart, syncthing::syncthing_lifecycle_status,
       syncthing::syncthing_ensure_vault_registered,
+      browser_bookmarks::detect_browser_bookmarks,
+      browser_bookmarks::read_browser_bookmarks,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {
@@ -193,12 +272,19 @@ pub fn run() {
         match event {
           tauri::WindowEvent::CloseRequested { api, .. } => {
             api.prevent_close();
+            #[cfg(target_os = "macos")]
+            let _ = macos_panel::hide_capture_panel(window);
+            #[cfg(not(target_os = "macos"))]
             let _ = window.hide();
           }
           tauri::WindowEvent::Focused(false) => {
             if let Some(state) = window.app_handle().try_state::<capture::CaptureState>() {
               state.record_blur();
             }
+            #[cfg(target_os = "macos")]
+            let _ = macos_panel::hide_capture_panel(window);
+            #[cfg(not(target_os = "macos"))]
+            let _ = window.hide();
           }
           tauri::WindowEvent::Focused(true) => {
             capture::make_window_topmost(window);
@@ -209,7 +295,7 @@ pub fn run() {
     })
     .setup(|app| {
       let window = WebviewWindowBuilder::new(app, "main", WebviewUrl::default())
-        .title("DaVinci Notes")
+        .title("Sophia")
         .inner_size(1200.0, 800.0)
         .min_inner_size(640.0, 480.0)
         .resizable(true)
@@ -224,6 +310,12 @@ pub fn run() {
       let window = window.decorations(false);
 
       window.build()?;
+
+      #[cfg(target_os = "macos")]
+      {
+        macos_panel::set_dock_icon();
+        macos_panel::setup_notification_identity();
+      }
 
       tray::setup(app.handle())?;
       capture::setup(app.handle())?;

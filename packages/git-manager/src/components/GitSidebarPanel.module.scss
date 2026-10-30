@@ -1,0 +1,122 @@
+.git-sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-base);
+  color: var(--color-text-normal);
+  overflow-y: auto;
+}
+
+.git-accordion-section {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.git-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px var(--space-2);
+  background: var(--color-bg-secondary);
+  user-select: none;
+  cursor: pointer;
+  min-height: 28px;
+
+  &:hover {
+    background: var(--color-bg-hover);
+  }
+}
+
+.git-accordion-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.git-accordion-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.git-accordion-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.git-graph-body {
+  height: 320px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.git-placeholder-body {
+  padding: var(--space-3);
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-faint);
+  font-style: italic;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--color-bg-hover);
+    color: var(--color-text-normal);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.auto-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  margin-right: 2px;
+}
+
+.git-sidebar-panel__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  color: var(--color-text-subtle);
+  font-size: var(--type-scale-sm);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { EditorState, Compartment } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
-import { Strikethrough } from "@lezer/markdown";
+import { Strikethrough, Table } from "@lezer/markdown";
 import { syntaxHighlighting } from "@codemirror/language";
 import {
   editorHighlightStyle,
@@ -25,6 +25,8 @@ import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
 import { readOnlyTableTheme, tableExtension } from "./blocks/table";
 import { linkExtension } from "./links";
 import {
+  embedAudioExtension,
+  embedAudioTheme,
   embedImageExtension,
   imageExtension,
   noteEmbedExtension,
@@ -97,7 +99,7 @@ export function MarkdownView({
         EditorState.readOnly.of(true),
         EditorView.editable.of(false),
         markdown({
-          extensions: [Strikethrough, highlightExtension],
+          extensions: [Table, Strikethrough, highlightExtension],
           codeLanguages: codeBlockLanguage,
         }),
         syntaxHighlighting(editorHighlightStyle),
@@ -110,6 +112,13 @@ export function MarkdownView({
         mathExtension({ isReadOnly: true }),
         imageExtension({ isReadOnly: true }),
         embedImageExtension({ notePaths, isReadOnly: true, resolveMediaUrl }),
+        embedAudioTheme,
+        embedAudioExtension({
+          notePaths,
+          sourcePath,
+          isReadOnly: true,
+          resolveMediaUrl,
+        }),
         noteEmbedTheme,
         noteEmbedExtension({
           notePaths,

@@ -4,6 +4,7 @@ import {
   updateTagIndexForNote,
 } from "@app/indexer";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
+import { useBookmarkStore } from "../bookmarks/bookmarkStore";
 import { migrateSaveTimer } from "../state/saveTimers";
 import { applyNoteRenameState } from "./applyNoteRenameState";
 import { clearH1RenameTimer } from "./h1DrivenRename";
@@ -174,6 +175,7 @@ export async function renameNoteInVault(
 
     migrateSaveTimer(oldPath, newPath);
     clearH1RenameTimer(oldPath);
+    useBookmarkStore.getState().remapPath(oldPath, newPath);
 
     return { ok: true, newPath };
   });

@@ -14,19 +14,23 @@ export interface Bounds {
 }
 
 export function getNodeWidth(node: Node): number {
-  return (
-    (typeof node.style?.width === "number" ? node.style.width : 0) ??
-    (typeof node.width === "number" ? node.width : 0) ??
-    250
-  );
+  if (typeof node.style?.width === "number" && node.style.width > 0) {
+    return node.style.width;
+  }
+  if (typeof node.width === "number" && node.width > 0) {
+    return node.width;
+  }
+  return 216;
 }
 
 export function getNodeHeight(node: Node): number {
-  return (
-    (typeof node.style?.height === "number" ? node.style.height : 0) ??
-    (typeof node.height === "number" ? node.height : 0) ??
-    150
-  );
+  if (typeof node.style?.height === "number" && node.style.height > 0) {
+    return node.style.height;
+  }
+  if (typeof node.height === "number" && node.height > 0) {
+    return node.height;
+  }
+  return 72;
 }
 
 export function isGroupNode(node: Node): boolean {
