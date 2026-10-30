@@ -16,6 +16,7 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Resolved `spawn tauri ENOENT` by having `withCompatibleMacSdk.mjs` automatically resolve local `node_modules/.bin/tauri` and inject workspace bin paths into `env.PATH`.
    - Injected `--ignore-version-mismatches` into `tauri build` invocations to resolve mismatched minor versions between npm Tauri plugins and Rust crates without panicking.
    - Enhanced build completion reporting in `scripts/tui/build.sh` to output both absolute and relative local paths, keeping the interactive TUI session open.
+   - Updated `installer_sync_from_tauri` to automatically discover target-triple bundle directories (`target/*/release/bundle` and `target/release/bundle`) and ignore local `installers/` binaries in git.
    - Tuned `chunkSizeWarningLimit: 800` in `apps/desktop/vite.config.ts` to suppress large vendor bundle warnings.
    - Implemented dedicated targets in the Build menu:
      - 🍏 **macOS Application**: Build Apple Silicon (`aarch64`) or Intel (`x86_64`) native `.dmg` and `.app` bundles with automated sidecar pre-fetching and SDK resolution.

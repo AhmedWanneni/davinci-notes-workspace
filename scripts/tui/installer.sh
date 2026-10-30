@@ -13,38 +13,50 @@ installer_sync_from_tauri() {
   local repo_root="$1"
   local inst_dir
   inst_dir="$(installer_get_dir "$repo_root")"
-  local bundle_dir="${repo_root}/apps/desktop/src-tauri/target/release/bundle"
+  local bundle_dirs=()
 
-  if [[ ! -d "$bundle_dir" ]]; then
+  # Collect all standard and target-specific release bundle directories
+  if [[ -d "${repo_root}/apps/desktop/src-tauri/target/release/bundle" ]]; then
+    bundle_dirs+=("${repo_root}/apps/desktop/src-tauri/target/release/bundle")
+  fi
+  for d in "${repo_root}/apps/desktop/src-tauri/target"/*/release/bundle; do
+    if [[ -d "$d" ]]; then
+      bundle_dirs+=("$d")
+    fi
+  done
+
+  if [[ ${#bundle_dirs[@]} -eq 0 ]]; then
     return 0
   fi
 
-  # Copy DMG files
-  for f in "${bundle_dir}/dmg/"*.dmg; do
-    if [[ -f "$f" ]]; then
-      cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
-    fi
-  done
-  # Copy macOS App packages
-  for f in "${bundle_dir}/macos/"*.app; do
-    if [[ -d "$f" ]]; then
-      local base
-      base="$(basename "$f")"
-      rm -rf "${inst_dir}/${base}"
-      cp -R "$f" "$inst_dir/"
-    fi
-  done
-  # Copy Linux artifacts
-  for f in "${bundle_dir}/appimage/"*.AppImage "${bundle_dir}/deb/"*.deb; do
-    if [[ -f "$f" ]]; then
-      cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
-    fi
-  done
-  # Copy Windows artifacts
-  for f in "${bundle_dir}/msi/"*.msi "${bundle_dir}/nsis/"*.exe; do
-    if [[ -f "$f" ]]; then
-      cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
-    fi
+  for bundle_dir in "${bundle_dirs[@]}"; do
+    # Copy DMG files
+    for f in "${bundle_dir}/dmg/"*.dmg; do
+      if [[ -f "$f" ]]; then
+        cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
+      fi
+    done
+    # Copy macOS App packages
+    for f in "${bundle_dir}/macos/"*.app; do
+      if [[ -d "$f" ]]; then
+        local base
+        base="$(basename "$f")"
+        rm -rf "${inst_dir}/${base}"
+        cp -R "$f" "$inst_dir/"
+      fi
+    done
+    # Copy Linux artifacts
+    for f in "${bundle_dir}/appimage/"*.AppImage "${bundle_dir}/deb/"*.deb; do
+      if [[ -f "$f" ]]; then
+        cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
+      fi
+    done
+    # Copy Windows artifacts
+    for f in "${bundle_dir}/msi/"*.msi "${bundle_dir}/nsis/"*.exe; do
+      if [[ -f "$f" ]]; then
+        cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
+      fi
+    done
   done
 }
 

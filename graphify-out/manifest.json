@@ -272,8 +272,8 @@
     "semantic_hash": "9e7f58071b5a127f2babfc16d0117a49"
   },
   "apps/desktop/package.json": {
-    "mtime": 1793373965.1148424,
-    "seen": 1793374015.864683,
+    "mtime": 1793374072.0883908,
+    "seen": 1793374994.5975869,
     "ast_hash": "ea3e879eb12f130b7c712430af9d8429",
     "semantic_hash": ""
   },
@@ -314,8 +314,8 @@
     "semantic_hash": "f4b984eac6b6307e31850ddd54c7f780"
   },
   "apps/desktop/scripts/withCompatibleMacSdk.mjs": {
-    "mtime": 1793373938.430003,
-    "seen": 1793374015.8649862,
+    "mtime": 1793374072.08861,
+    "seen": 1793374994.597892,
     "ast_hash": "330e8b7ccbd15a02a4357344e1932e13",
     "semantic_hash": ""
   },
@@ -13289,9 +13289,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793373984.7222393,
-    "seen": 1793374015.980277,
-    "ast_hash": "d39c8f1fa1d0a92a2f4b47afbd02f4a6",
+    "mtime": 1793374967.9781306,
+    "seen": 1793374994.7315562,
+    "ast_hash": "471e0ffc1081b609965f55ef50fb24f6",
     "semantic_hash": ""
   },
   "README.md": {
@@ -15923,9 +15923,9 @@
     "semantic_hash": ""
   },
   "scripts/tui/build.sh": {
-    "mtime": 1793373953.0606298,
-    "seen": 1793374015.976835,
-    "ast_hash": "d5c23ae8268cae4a3e1a99e6a6804272",
+    "mtime": 1793374801.719183,
+    "seen": 1793374994.728127,
+    "ast_hash": "4b777df25e38bbba1f85c7c658a990cd",
     "semantic_hash": ""
   },
   "scripts/tui/ci.sh": {
@@ -15971,9 +15971,9 @@
     "semantic_hash": ""
   },
   "scripts/tui/installer.sh": {
-    "mtime": 1793373294.813296,
-    "seen": 1793373585.345995,
-    "ast_hash": "81924bddee9b1e4b6bb77515f26eaf76",
+    "mtime": 1793374786.359891,
+    "seen": 1793374994.7282739,
+    "ast_hash": "be8236ac5801bacfed7b9851982d50c4",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {
