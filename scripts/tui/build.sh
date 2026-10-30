@@ -20,7 +20,7 @@ build_macos_target() {
     local inst_dir
     inst_dir="$(installer_get_dir "$repo_root")"
     local newest_dmg
-    newest_dmg="$(find "$inst_dir" -name "*.dmg" -newer apps/desktop/dist/index.html 2>/dev/null | head -1 || find "$inst_dir" -name "*.dmg" | head -1 || true)"
+    newest_dmg="$(ls -t "${inst_dir}/"*.dmg 2>/dev/null | head -1 || true)"
     if [[ -n "$newest_dmg" && -f "$newest_dmg" ]]; then
       local abs_dmg
       abs_dmg="$(cd "$(dirname "$newest_dmg")" && pwd)/$(basename "$newest_dmg")"

@@ -51,6 +51,7 @@ apps/website/.astro/
 apps/*/src-tauri/target/
 apps/cli/target/
 target/
+installers/
 
 # Tauri mobile generated native projects — regenerated via tauri ios/android init.
 apps/*/src-tauri/gen/
