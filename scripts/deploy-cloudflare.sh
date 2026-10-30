@@ -10,6 +10,18 @@ source "${SCRIPT_DIR}/tui/ui.sh"
 source "${SCRIPT_DIR}/tui/status.sh"
 source "${SCRIPT_DIR}/tui/cloudflare.sh"
 
+# Automatically load .env if present
+if [[ -f "${REPO_ROOT}/.env" ]]; then
+  while IFS='=' read -r key val || [[ -n "$key" ]]; do
+    [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+    key="$(echo "$key" | tr -d '\r ')"
+    val="$(echo "$val" | tr -d '\r"' | sed "s/^'//;s/'$//")"
+    if [[ -z "${!key:-}" && -n "$key" ]]; then
+      export "$key"="$val"
+    fi
+  done < "${REPO_ROOT}/.env"
+fi
+
 # CLI flag handling
 if [[ $# -gt 0 ]]; then
   case "$1" in

@@ -40,7 +40,25 @@ cloudflare_get_auth_info() {
   fi
 }
 
+cloudflare_load_env() {
+  local repo_root="$1"
+  if [[ -f "${repo_root}/.env" ]]; then
+    while IFS='=' read -r key val || [[ -n "$key" ]]; do
+      [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+      key="$(echo "$key" | tr -d '\r ')"
+      val="$(echo "$val" | tr -d '\r"' | sed "s/^'//;s/'$//")"
+      if [[ -z "${!key:-}" && -n "$key" ]]; then
+        export "$key"="$val"
+      fi
+    done < "${repo_root}/.env"
+  fi
+}
+
 cloudflare_ensure_oauth() {
+  local repo_root="${1:-}"
+  if [[ -n "$repo_root" ]]; then
+    cloudflare_load_env "$repo_root"
+  fi
   local auth_status
   auth_status="$(cloudflare_get_auth_info)"
   if [[ "$auth_status" == "NOT_LOGGED_IN" ]]; then
@@ -49,10 +67,10 @@ cloudflare_ensure_oauth() {
     wrangler login || true
     auth_status="$(cloudflare_get_auth_info)"
     if [[ "$auth_status" == "NOT_LOGGED_IN" ]]; then
-      ui_warn "OAuth authentication not completed. Please authorize in your browser."
+      ui_warn "Authentication not completed. Please authorize in your browser or set CLOUDFLARE_API_TOKEN."
       return 1
     fi
-    ui_success "Cloudflare OAuth authentication succeeded!"
+    ui_success "Cloudflare authentication succeeded!"
     sleep 1
   fi
   return 0
@@ -144,6 +162,7 @@ cloudflare_open_connect_github() {
 
 cloudflare_menu() {
   local repo_root="$1"
+  cloudflare_load_env "$repo_root"
 
   while true; do
     ui_banner
