@@ -1,7 +1,9 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use crate::tray_config::{load_saved_keep_in_tray, load_saved_tray_click_action};
-use crate::tray_menu::{build_tray_menu, validate_recent_note_path, RecentNoteItem};
+#[cfg(target_os = "macos")]
+use crate::tray_menu::build_tray_menu;
+use crate::tray_menu::{validate_recent_note_path, RecentNoteItem};
 use crate::watcher::VaultWatcher;
 #[cfg(target_os = "macos")]
 use tauri::{image::Image, tray::TrayIconBuilder, ActivationPolicy};

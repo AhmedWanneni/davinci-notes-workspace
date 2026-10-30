@@ -110,7 +110,10 @@
 .cta-hand-btn-primary:hover { background-color: #b54d25; }
 .cta-hand-btn-secondary { background-color: #ebd6b2; color: #26180d; }
 .cta-hand-btn-secondary:hover { background-color: #faf0de; }
-.cta-sheet-platforms { margin-top: 10px; text-align: center; font-size: 0.78rem; color: #3a2614; }
+.cta-sheet-platforms { margin-top: 10px; text-align: center; font-size: 0.78rem; color: #3a2614; line-height: 1.35; }
+.cta-sheet-platforms .platform-quick-link { color: #8e3512; text-decoration: underline; font-weight: 600; }
+.cta-sheet-platforms .platform-quick-link:hover { color: #26180d; }
+.cta-sheet-platforms .platform-alt-row { font-size: 0.72rem; color: #614a38; display: inline-block; margin-top: 2px; }
 
 /* 3. Middle Notes (Warm Ochre Sticky + Side-Bound Spiral Checklist) */
 .owl-scrap-mustard {
