@@ -190,6 +190,7 @@ export default defineConfig({
   },
   build: {
     target: "es2022",
+    chunkSizeWarningLimit: 800,
     minify: !process.env.TAURI_DEBUG,
     sourcemap: !!process.env.TAURI_DEBUG,
     outDir: "dist",

@@ -15,7 +15,7 @@ build_macos_target() {
 
   ui_info "Building macOS application package (${target})..."
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    (cd apps/desktop && node scripts/withCompatibleMacSdk.mjs tauri build --target "$target")
+    (cd apps/desktop && pnpm exec node scripts/withCompatibleMacSdk.mjs tauri build --target "$target")
     installer_sync_from_tauri "$repo_root"
     local inst_dir
     inst_dir="$(installer_get_dir "$repo_root")"
