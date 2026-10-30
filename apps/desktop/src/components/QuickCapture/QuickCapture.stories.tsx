@@ -20,6 +20,9 @@ export const Default: Story = {
     onDismiss: async () => {
       console.log("Dismissed capture");
     },
+    onQuit: async () => {
+      console.log("Quit application");
+    },
   },
 };
 
@@ -30,6 +33,9 @@ export const WithError: Story = {
     },
     onDismiss: async () => {
       console.log("Dismissed capture");
+    },
+    onQuit: async () => {
+      console.log("Quit application");
     },
   },
 };

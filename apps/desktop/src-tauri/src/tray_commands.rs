@@ -1,7 +1,7 @@
 use std::sync::atomic::Ordering;
 use tauri::{AppHandle, Manager, WebviewWindow};
 
-use crate::command_auth::reject_plugin_runner;
+use crate::command_auth::{authorize_capture_window, reject_plugin_runner};
 use crate::tray::{TrayDynamicState, TraySettingsState};
 use crate::tray_config::save_keep_in_tray_to_disk;
 use crate::tray_menu::RecentNoteItem;
@@ -142,12 +142,15 @@ pub fn update_tray_reminders(
 
 #[tauri::command]
 pub fn request_app_exit(window: WebviewWindow, app: AppHandle) -> Result<(), String> {
-  reject_plugin_runner(&window)?;
+  authorize_capture_window(&window)?;
   if let Some(tray_state) = app.try_state::<TraySettingsState>() {
     tray_state.is_quitting.store(true, Ordering::SeqCst);
   }
   if let Some(watcher) = app.try_state::<VaultWatcher>() {
     watcher.stop();
+  }
+  if let Some(mgr) = app.try_state::<crate::syncthing::SyncthingManager>() {
+    mgr.shutdown_on_exit(&app);
   }
   app.exit(0);
   Ok(())

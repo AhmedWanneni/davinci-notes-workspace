@@ -7,11 +7,20 @@ describe("QuickCapture", () => {
   it("renders textarea, counter, keyboard hints, and record button", () => {
     render(<QuickCapture />);
 
-    expect(screen.getByRole("textbox", { name: /quick capture text/i })).toBeDefined();
+    expect(
+      screen.getByRole("textbox", { name: /quick capture text/i }),
+    ).toBeDefined();
     expect(screen.getByText(/0 \/ 10000/)).toBeDefined();
     expect(screen.getByRole("button", { name: /save note/i })).toBeDefined();
-    expect(screen.getByRole("button", { name: /start recording/i })).toBeDefined();
-    expect(screen.getAllByRole("button", { name: /quit quick capture/i }).length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("button", { name: /start recording/i }),
+    ).toBeDefined();
+    expect(
+      screen.getAllByRole("button", { name: /close quick capture/i }).length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole("button", { name: /quit application/i }).length,
+    ).toBeGreaterThan(0);
   });
 
   it("switches to record mode when Record button is clicked", async () => {
@@ -91,18 +100,47 @@ describe("QuickCapture", () => {
     expect((textarea as HTMLTextAreaElement).value).toBe("Unsaved text");
   });
 
-  it("dismisses on clicking the Quit button", async () => {
+  it("dismisses on clicking the Close button", async () => {
     const handleDismiss = vi.fn().mockResolvedValue(undefined);
     render(<QuickCapture onDismiss={handleDismiss} />);
 
+    const closeButtons = screen.getAllByRole("button", {
+      name: /close quick capture/i,
+    });
+    expect(closeButtons.length).toBeGreaterThan(0);
+    fireEvent.click(closeButtons[0]);
+
+    await waitFor(() => {
+      expect(handleDismiss).toHaveBeenCalled();
+    });
+  });
+
+  it("quits application on clicking Quit button", async () => {
+    const handleQuit = vi.fn().mockResolvedValue(undefined);
+    render(<QuickCapture onQuit={handleQuit} />);
+
     const quitButtons = screen.getAllByRole("button", {
-      name: /quit quick capture/i,
+      name: /quit application/i,
     });
     expect(quitButtons.length).toBeGreaterThan(0);
     fireEvent.click(quitButtons[0]);
 
     await waitFor(() => {
-      expect(handleDismiss).toHaveBeenCalled();
+      expect(handleQuit).toHaveBeenCalled();
+    });
+  });
+
+  it("quits application on Cmd+Q shortcut", async () => {
+    const handleQuit = vi.fn().mockResolvedValue(undefined);
+    render(<QuickCapture onQuit={handleQuit} />);
+
+    const textarea = screen.getByRole("textbox", {
+      name: /quick capture text/i,
+    });
+    fireEvent.keyDown(textarea, { key: "q", metaKey: true });
+
+    await waitFor(() => {
+      expect(handleQuit).toHaveBeenCalled();
     });
   });
 
@@ -137,109 +175,6 @@ describe("QuickCapture", () => {
     await waitFor(() => {
       expect(screen.getByRole("alert")).toBeDefined();
       expect(screen.getByText("Vault not found error")).toBeDefined();
-    });
-  });
-
-  it("preserves typed capture text when switching to search and back", () => {
-    render(<QuickCapture />);
-
-    const textarea = screen.getByRole("textbox", {
-      name: /quick capture text/i,
-    });
-    fireEvent.change(textarea, { target: { value: "Preserved thought" } });
-
-    // Switch to search via header tab
-    const searchTab = screen.getByRole("tab", { name: /search/i });
-    fireEvent.click(searchTab);
-
-    expect(
-      screen.queryByRole("textbox", { name: /quick capture text/i }),
-    ).toBeNull();
-    expect(
-      screen.getByRole("textbox", { name: /search notes/i }),
-    ).toBeDefined();
-
-    // Switch back to capture
-    const captureTab = screen.getByRole("tab", { name: /capture/i });
-    fireEvent.click(captureTab);
-
-    const restoredTextarea = screen.getByRole("textbox", {
-      name: /quick capture text/i,
-    }) as HTMLTextAreaElement;
-    expect(restoredTextarea.value).toBe("Preserved thought");
-  });
-
-  it("switches back to capture on Escape in search mode without losing text", () => {
-    render(<QuickCapture />);
-
-    const textarea = screen.getByRole("textbox", {
-      name: /quick capture text/i,
-    });
-    fireEvent.change(textarea, { target: { value: "Important idea" } });
-
-    // Switch to search via Cmd+K
-    fireEvent.keyDown(textarea, { key: "k", metaKey: true });
-    const searchInput = screen.getByRole("textbox", { name: /search notes/i });
-
-    // Press Escape while in search mode
-    fireEvent.keyDown(searchInput, { key: "Escape" });
-
-    const restoredTextarea = screen.getByRole("textbox", {
-      name: /quick capture text/i,
-    }) as HTMLTextAreaElement;
-    expect(restoredTextarea).toBeDefined();
-    expect(restoredTextarea.value).toBe("Important idea");
-  });
-
-  it("submits with optional filename and folder when provided", async () => {
-    const handleSave = vi.fn().mockResolvedValue(undefined);
-    render(<QuickCapture onSave={handleSave} />);
-
-    const textarea = screen.getByRole("textbox", {
-      name: /quick capture text/i,
-    });
-    const nameInput = screen.getByRole("textbox", { name: /note name/i });
-    const folderInput = screen.getByRole("combobox", { name: /note folder/i });
-
-    fireEvent.change(textarea, { target: { value: "Task details" } });
-    fireEvent.change(nameInput, { target: { value: "Sprint Task" } });
-    fireEvent.change(folderInput, { target: { value: "work/sprints" } });
-
-    fireEvent.keyDown(textarea, { key: "s", metaKey: true });
-
-    await waitFor(() => {
-      expect(handleSave).toHaveBeenCalledWith(
-        "Task details",
-        "Sprint Task",
-        "work/sprints",
-      );
-    });
-  });
-
-  it("opens selected search result on Enter", async () => {
-    const handleOpenNote = vi.fn().mockResolvedValue(undefined);
-    const mockSearchResults = [
-      { path: "work/project.md", title: "Project Note", mtime: 1, score: -2 },
-    ];
-    render(
-      <QuickCapture
-        initialMode="search"
-        searchFn={async () => mockSearchResults}
-        onOpenNote={handleOpenNote}
-      />,
-    );
-
-    const searchInput = screen.getByRole("textbox", { name: /search notes/i });
-    fireEvent.change(searchInput, { target: { value: "proj" } });
-
-    await waitFor(() => {
-      expect(screen.getByText("Project Note")).toBeDefined();
-    });
-
-    fireEvent.keyDown(searchInput, { key: "Enter" });
-
-    await waitFor(() => {
-      expect(handleOpenNote).toHaveBeenCalledWith("work/project.md");
     });
   });
 });

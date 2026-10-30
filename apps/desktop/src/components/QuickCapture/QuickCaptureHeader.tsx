@@ -10,6 +10,7 @@ export interface QuickCaptureHeaderProps {
   selectedIndex: number;
   resultCount: number;
   onDismiss?: () => void;
+  onQuit?: () => void;
 }
 
 export function QuickCaptureHeader({
@@ -20,6 +21,7 @@ export function QuickCaptureHeader({
   selectedIndex,
   resultCount,
   onDismiss,
+  onQuit,
 }: QuickCaptureHeaderProps) {
   const isNearLimit = charCount > maxChars * 0.9;
 
@@ -92,10 +94,21 @@ export function QuickCaptureHeader({
         {onDismiss && (
           <button
             type="button"
-            className={styles["quick-capture-quit-btn"]}
+            className={styles["quick-capture-close-btn"]}
             onClick={onDismiss}
-            aria-label="Quit quick capture"
-            title="Quit (Esc)"
+            aria-label="Close quick capture"
+            title="Close (Esc)"
+          >
+            Close
+          </button>
+        )}
+        {onQuit && (
+          <button
+            type="button"
+            className={styles["quick-capture-quit-btn"]}
+            onClick={onQuit}
+            aria-label="Quit application"
+            title="Quit application completely (⌘Q)"
           >
             Quit
           </button>

@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: QuickCapture Application Quit & Complete Teardown
+
+- **Tauri Native Quit Pipeline (`apps/desktop/src-tauri/`)**:
+  - Implemented `quick_capture_quit_app` in `capture_commands.rs`, permitting invocations from the capture window (`authorize_capture_window`) and routing into `crate::tray::trigger_clean_quit(&app)`.
+  - Updated `request_app_exit` in `tray_commands.rs` to allow the capture window and trigger graceful child daemon shutdown on Syncthing (`mgr.shutdown_on_exit(&app)`).
+  - Ensured that when quitting from QuickCapture, the app cleanly flushes dirty editor buffers (via `davinci-clean-quit`), halts `VaultWatcher`, terminates `syncthing`, destroys the macOS menu bar tray icon, and exits with code 0.
+- **Frontend QuickCapture Actions & Keybindings (`apps/desktop/src/components/QuickCapture/`)**:
+  - Enhanced `useCaptureActions.ts` with `handleQuit`, defaulting to `quick_capture_quit_app` and falling back to `request_app_exit`.
+  - Updated `useCaptureKeybindings.ts` so `Cmd+Q` / `Ctrl+Q` invokes application quit (`onQuit`), while `Escape` and `Cmd+W` dismiss the popover (`onDismiss`).
+  - Updated `QuickCaptureHints.tsx` to display `⌘Q Quit` and `Esc Close`.
+- **UI Header & Footer Refinements**:
+  - Differentiated popover dismissal ("Close") from application termination ("Quit") in `QuickCaptureHeader` and `QuickCaptureFooter`.
+  - Styled with CSS variables (`--color-text-error` on hover for destructive quit action, `--color-border-subtle`).
+- **Test Suite & Verification**:
+  - Added unit test cases for Quit button click and `Cmd+Q` keyboard shortcut in `QuickCapture.test.tsx` and `useCaptureActions.test.ts`.
+  - Kept all files under the 250-line rule enforced by `AGENTS.md`.
+
+---
+
 ### 2026-10-30: Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
 
 - **Gatekeeper & Quarantine Repair Module (`scripts/tui/gatekeeper.sh`)**:

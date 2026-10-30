@@ -30,13 +30,16 @@ pub fn quick_capture_save(
 pub fn quick_capture_dismiss(window: WebviewWindow) -> Result<(), String> {
   authorize_capture_window(&window)?;
   #[cfg(target_os = "macos")]
-  {
-    let _ = crate::macos_panel::hide_capture_panel(&window.as_ref().window());
-  }
+  let _ = crate::macos_panel::hide_capture_panel(&window.as_ref().window());
   #[cfg(not(target_os = "macos"))]
-  {
-    let _ = window.hide();
-  }
+  let _ = window.hide();
+  Ok(())
+}
+
+#[tauri::command]
+pub fn quick_capture_quit_app(window: WebviewWindow, app: AppHandle) -> Result<(), String> {
+  authorize_capture_window(&window)?;
+  crate::tray::trigger_clean_quit(&app);
   Ok(())
 }
 
@@ -112,13 +115,9 @@ pub fn open_note_from_capture(
     );
   }
   #[cfg(target_os = "macos")]
-  {
-    let _ = crate::macos_panel::hide_capture_panel(&window.as_ref().window());
-  }
+  let _ = crate::macos_panel::hide_capture_panel(&window.as_ref().window());
   #[cfg(not(target_os = "macos"))]
-  {
-    let _ = window.hide();
-  }
+  let _ = window.hide();
   Ok(())
 }
 

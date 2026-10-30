@@ -73,6 +73,7 @@
   }
 }
 
+.quick-capture-close-btn,
 .quick-capture-quit-btn {
   display: inline-flex;
   align-items: center;
@@ -101,5 +102,12 @@
 
   &:active {
     background-color: var(--color-bg-secondary-alt);
+  }
+}
+
+.quick-capture-quit-btn {
+  &:hover {
+    color: var(--color-text-error);
+    border-color: var(--color-border-error, var(--color-text-error));
   }
 }

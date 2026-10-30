@@ -4,7 +4,10 @@ import { listen } from "@tauri-apps/api/event";
 import type { SearchResult } from "@app/indexer";
 import { QuickCaptureDestination } from "./QuickCaptureDestination";
 import { QuickCaptureFooter } from "./QuickCaptureFooter";
-import { QuickCaptureHeader, type QuickCaptureMode } from "./QuickCaptureHeader";
+import {
+  QuickCaptureHeader,
+  type QuickCaptureMode,
+} from "./QuickCaptureHeader";
 import { QuickCaptureReminder } from "./QuickCaptureReminder";
 import { QuickCaptureRecord } from "./QuickCaptureRecord";
 import { QuickSearchList } from "./QuickSearchList";
@@ -19,15 +22,27 @@ import { Input } from "@app/design-system";
 export const MAX_CAPTURE_CHARS = 10_000;
 
 export interface QuickCaptureProps {
-  onSave?: (text: string, filename?: string, folder?: string) => Promise<void> | void;
+  onSave?: (
+    text: string,
+    filename?: string,
+    folder?: string,
+  ) => Promise<void> | void;
   onDismiss?: () => Promise<void> | void;
+  onQuit?: () => Promise<void> | void;
   onOpenNote?: (path: string) => Promise<void> | void;
   initialMode?: QuickCaptureMode;
   searchFn?: (query: string) => Promise<SearchResult[]>;
 }
 
 export function QuickCapture(props: QuickCaptureProps) {
-  const { onSave, onDismiss, onOpenNote, initialMode = "capture", searchFn } = props;
+  const {
+    onSave,
+    onDismiss,
+    onQuit,
+    onOpenNote,
+    initialMode = "capture",
+    searchFn,
+  } = props;
   const [mode, setMode] = useState<QuickCaptureMode>(initialMode);
   const [autoStartRecord, setAutoStartRecord] = useState(false);
   const [text, setText] = useState("");
@@ -46,11 +61,13 @@ export function QuickCapture(props: QuickCaptureProps) {
     errorMessage,
     setErrorMessage,
     handleDismiss,
+    handleQuit,
     handleSave,
     handleOpenNote,
   } = useCaptureActions({
     onSave,
     onDismiss,
+    onQuit,
     onOpenNote,
     filename,
     folder,
@@ -70,7 +87,8 @@ export function QuickCapture(props: QuickCaptureProps) {
     focusActive();
     void (async () => {
       try {
-        const { getCurrentWindow, LogicalSize } = await import("@tauri-apps/api/window");
+        const { getCurrentWindow, LogicalSize } =
+          await import("@tauri-apps/api/window");
         await getCurrentWindow().setSize(new LogicalSize(780, 520));
         await invoke("reclamp_capture_popover");
       } catch {
@@ -81,8 +99,14 @@ export function QuickCapture(props: QuickCaptureProps) {
     void listen("davinci-capture-focus", () => {
       restoreCachedBuiltinTheme();
       focusActive();
-    }).then((fn) => { unlisten = fn; }).catch(() => {});
-    return () => { unlisten?.(); };
+    })
+      .then((fn) => {
+        unlisten = fn;
+      })
+      .catch(() => {});
+    return () => {
+      unlisten?.();
+    };
   }, [mode]);
 
   const handleStartRecord = () => {
@@ -95,6 +119,7 @@ export function QuickCapture(props: QuickCaptureProps) {
     text,
     onSave: (c) => void handleSave(c),
     onDismiss: () => void handleDismiss(),
+    onQuit: () => void handleQuit(),
     onOpenNote: (p) => void handleOpenNote(p),
     onStartRecord: handleStartRecord,
     nameInputRef,
@@ -104,16 +129,22 @@ export function QuickCapture(props: QuickCaptureProps) {
   return (
     <div
       className={styles["quick-capture-container"]}
-      onMouseDown={() => { void invoke("quick_capture_bring_to_front").catch(() => {}); }}
+      onMouseDown={() => {
+        void invoke("quick_capture_bring_to_front").catch(() => {});
+      }}
     >
       <QuickCaptureHeader
         mode={mode}
-        onModeChange={(m) => { setAutoStartRecord(false); setMode(m); }}
+        onModeChange={(m) => {
+          setAutoStartRecord(false);
+          setMode(m);
+        }}
         charCount={text.length}
         maxChars={MAX_CAPTURE_CHARS}
         selectedIndex={selectedIndex}
         resultCount={results.length}
         onDismiss={() => void handleDismiss()}
+        onQuit={() => void handleQuit()}
       />
 
       {mode === "capture" ? (
@@ -123,7 +154,7 @@ export function QuickCapture(props: QuickCaptureProps) {
             className={styles["quick-capture-textarea"]}
             value={text}
             maxLength={MAX_CAPTURE_CHARS}
-            placeholder="Type a thought... (Tab for note name, ⌘S to save, ⌘R to record, Esc to quit)"
+            placeholder="Type a thought... (Tab for note name, ⌘S to save, ⌘R to record, Esc to close, ⌘Q to quit)"
             onChange={(e) => {
               setText(e.target.value);
               if (errorMessage) setErrorMessage(null);
@@ -133,9 +164,15 @@ export function QuickCapture(props: QuickCaptureProps) {
           />
           <QuickCaptureDestination
             filename={filename}
-            onFilenameChange={(name) => { setFilename(name); if (errorMessage) setErrorMessage(null); }}
+            onFilenameChange={(name) => {
+              setFilename(name);
+              if (errorMessage) setErrorMessage(null);
+            }}
             folder={folder}
-            onFolderChange={(f) => { setFolder(f); if (errorMessage) setErrorMessage(null); }}
+            onFolderChange={(f) => {
+              setFolder(f);
+              if (errorMessage) setErrorMessage(null);
+            }}
             onSave={() => void handleSave(text)}
             onDismiss={() => void handleDismiss()}
             nameInputRef={nameInputRef}
@@ -201,6 +238,7 @@ export function QuickCapture(props: QuickCaptureProps) {
           canSave={text.trim().length > 0}
           onSave={() => void handleSave(text)}
           onDismiss={() => void handleDismiss()}
+          onQuit={() => void handleQuit()}
           onRecord={handleStartRecord}
         />
       )}
