@@ -2,6 +2,19 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
+
+- **Unified Stationery Header (`apps/website/src/components/SiteNav.astro`)**:
+  - Replaced multi-tab header with a calm warm-ivory stationery bar (`#f3e3c6`) pinned at both ends with brass thumbtacks, featuring the hand-inked owl icon, **Sophia *Notes*** serif title, and `Patrick Hand` navigation links.
+- **Centered Bottom-Anchored Owl & Interactive Drag-and-Drop (`HeroSection.astro`, `OwlSideNotes.astro`, `OwlBottomItems.astro`, `OwlHeadHotspots.astro`, `heroInteractive.ts`)**:
+  - Processed transparent-background responsive WebP cutouts (`owl-hero-{480,768,1024}.webp`) anchored flush at the bottom of `.hero-stage` (`100svh`, `max-height: calc(100svh - 118px)`).
+  - Designed realistic illustrated side and bottom notes (`SOPHIA NOTES` spiral pad, `REMINDER:` ochre sticky, `GET THE APP:` binder-clipped card, `INCLUDED:` side-spiral checklist, `№ 77 BUS TICKET`, `IMPORTANT! ☆`, `!`, `IDEA` lightbulb card, `DON'T OVERTHINK` paperclipped slip, and `GROWTH` bar chart).
+  - Completed the 360° painterly twin-bell alarm clock (`1`–`12` serif numerals, minute ticks, and bottom peg feet) and fixed non-draggable painterly pens & pencils in the bottom corners.
+  - Added pointer drag-and-drop for all notes, the alarm clock, and extractable owl-head thoughts with a `↺ RESET DESK` button.
+  - All files strictly under 250 lines; static build and unit tests pass.
+
+---
+
 ### 2026-10-19: Marketing Site Unified Midnight Background (#150612) & Harmonized Wine Styling
 
 - **Unified Section Canvas Background (`#150612`)**:

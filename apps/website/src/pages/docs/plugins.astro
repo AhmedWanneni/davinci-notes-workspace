@@ -1,0 +1,84 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'themes', title: 'Changing Themes' },
+  { id: 'community-plugins', title: 'Community Plugins' },
+  { id: 'safety', title: 'Safe Sandboxing' },
+];
+
+const simplePluginMermaid = `
+flowchart LR
+    App["🛡️ DaVinci Host App"] <--> Security["🔒 Secure Permission Boundary"]
+    Security <--> Plugin["🧩 Community Plugin (Isolated)"]
+`;
+---
+
+<DocsLayout
+  title="Themes & Community Plugins"
+  description="How to customize the look of DaVinci Notes and install plugins safely."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Plugins</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Themes & Community Plugins</h1>
+    <p class="docs-lead">
+      Personalize your note-taking environment. Switch between handcrafted visual themes and expand what DaVinci can do with community-built plugins.
+    </p>
+  </header>
+
+  <section id="themes" class="docs-section">
+    <h2 class="docs-section-title">Changing Themes</h2>
+    <p class="docs-paragraph">
+      To change how DaVinci Notes looks, go to <strong>Settings &gt; Appearance</strong>. You can switch between curated color palettes:
+    </p>
+    <ul class="docs-paragraph" style="padding-left: 1.5rem; color: var(--logseq-text-body);">
+      <li><strong>Codex (Default):</strong> Deep atmospheric midnight burgundy with wheat typography.</li>
+      <li><strong>Obsidian Dark:</strong> High-contrast dark charcoal for night work.</li>
+      <li><strong>Parchment Sepia:</strong> Soft, warm tones reminiscent of classic paper.</li>
+      <li><strong>Minimal Light:</strong> Crisp, clean bright theme for daytime reading.</li>
+    </ul>
+  </section>
+
+  <section id="community-plugins" class="docs-section">
+    <h2 class="docs-section-title">Community Plugins</h2>
+    <p class="docs-paragraph">
+      Plugins let you add extra tools like word counters, flashcards, or custom charts to your vault.
+    </p>
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Enable Community Plugins</div>
+          <p>Go to <strong>Settings &gt; Community Plugins</strong> and toggle the switch on.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Browse and Install</div>
+          <p>Click <strong>Browse</strong> to view popular plugins, review their capabilities, and install them with one click.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="safety" class="docs-section">
+    <h2 class="docs-section-title">Safe Sandboxing</h2>
+    <p class="docs-paragraph">
+      Your privacy matters. Unlike other apps where community plugins can read anything on your computer or send files silently over the internet, DaVinci Notes runs all plugins inside a secure, isolated sandbox. Plugins can only access what you explicitly allow.
+    </p>
+    <DocsMermaid chart={simplePluginMermaid} caption="How plugin sandboxing protects your notes" />
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Terminal Tool (CLI)', href: '/docs/cli' }}
+    next={{ title: 'Mobile App (iPhone & Android)', href: '/docs/mobile' }}
+  />
+</DocsLayout>

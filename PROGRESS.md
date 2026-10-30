@@ -4,6 +4,125 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
+
+**Scope:** Re-architected the color system, header, and interactive hero in `apps/website` for **Sophia Notes**, centering the big Autumn Owl illustration flush at the bottom of a `100svh` hero stage (`max-height: calc(100svh - 118px)`) surrounded by realistic, draggable illustrated notes, extractable owl-head thoughts, a complete 360° vintage twin-bell alarm clock, and fixed painterly pens/pencils:
+- **Unified Stationery Header (`src/components/SiteNav.astro`)**:
+  - Single warm-ivory stationery bar (`#f3e3c6`) pinned with two brass thumbtack dots (`nav-pin-left`, `nav-pin-right`), hand-inked owl icon, **Sophia *Notes*** serif brand title, and `Patrick Hand` uppercase navigation links (`WORKBENCH · FEATURES · CANVAS · SYNC · DOCS · GITHUB ↗`).
+- **Interactive Centered Owl Hero & Realistic Cards (`src/components/hero/HeroSection.astro`, `OwlSideNotes.astro`, `OwlBottomItems.astro`, `OwlHeadHotspots.astro`, `src/scripts/heroInteractive.ts`, `src/styles/hero.css`, `hero-nodes.css`, `hero-interactive.css`)**:
+  - Removed the previous woman cutout and 3D orbit subcomponents (`SkullCutInterior.astro`, `ThoughtNode.astro`, `MathFormulas.astro`, `LeonardoSketches.astro`, and old `muse-*` images).
+  - Processed the owl illustration into clean transparent-background responsive WebP cutouts (`public/images/hero/owl-hero-{480,768,1024}.webp`) that blend seamlessly into the `#ebd0a9` kraft canvas while sitting 100% flush along the bottom edge of `.hero-stage` with zero scroll needed on standard laptop viewports (`1440 × 746`).
+  - Crafted realistic illustrated side and bottom cards matching the owl's interior artwork:
+    - Upper-left `SOPHIA NOTES` spiral manifesto pad with square punched holes, double wire loops, stacked left notepad edge, hand-inked double underline, and hand-drawn oval around `ORGANIZED`.
+    - Upper-right binder-clipped `GET THE APP:` download card with 3D charcoal clip, wire handles, and cast shadow.
+    - Mid-left ochre `REMINDER:` sticky and mid-right side-bound spiral `INCLUDED:` checklist with hand-drawn checkmarks bursting out of checkbox corners.
+    - Default edge-peeking notes (`№ 77 BUS TICKET` stub on mid-left, `IMPORTANT! ☆` sticky on mid-right, and `!` card perched on the upper-right of the `GET THE APP` card).
+    - Half-shown bottom items: olive `IDEA` lightbulb card with looped filament, complete 360° vintage twin-bell alarm clock (`1`–`12` serif numerals, minute ticks, and bottom peg feet revealed when dragged upward), paperclipped `DON'T OVERTHINK` slip, `GROWTH` bar-chart card, and fixed non-draggable painterly pens & pencils in the bottom-left and bottom-right corners.
+  - Built client-side drag-and-drop (`heroInteractive.ts`) allowing the user to hold and move any note or the alarm clock, or pull thoughts/notes directly out of the owl's head, with a `↺ RESET DESK` button to restore default positions.
+- **Sampled & Formulated Color System**:
+  - **Kraft Canvas / Parchment**: `#ebd0a9` (warm oatmeal / kraft paper base canvas from the poster background), with subtle textural grain.
+  - **Pumpkin Orange**: `#c85e13` (ginger tabby & pumpkin accent for primary buttons, active tabs, pill highlights).
+  - **Terracotta Rust**: `#9c3e17` (knit rust sweater & maple leaf tone for badges, callouts, and closing illuminated plaque).
+  - **Golden Honey**: `#d58c24` (pie & golden amber tabby tone for sticky notes, tag tokens, and secondary highlights).
+  - **Forest Moss Olive**: `#4c5a38` (gardener cat apron & botanical foliage for live status indicators, checkmarks).
+  - **Warm Cream / Ivory**: `#faf0de` & `#fffbf4` (foam froth, coffee mug, cat bibs for index card surfaces and elevated notes).
+  - **Deep Espresso Ink**: `#1c140d` (black cat silhouette & linework ink for crisp AAA contrast text: 11.8:1 contrast on kraft).
+- **Files Updated**:
+  - `src/styles/tokens.css`: Core autumn swatches, surface hierarchies, typography contrast tokens, and backward-compatible aliases.
+  - `src/styles/logseq-theme.css`: Theme surface layers, button primitives (pumpkin primary with hand-drawn inked borders, terracotta secondary).
+  - `src/layouts/BaseLayout.astro`: Favicon and mobile theme-color set to `#ebd0a9` and `#c85e13`.
+  - `src/layouts/DocsLayout.astro`: Client-side Mermaid diagrams themed with kraft parchment background, pumpkin node borders, and espresso titles.
+  - `src/styles/global.css`: Header, links, focus visible rings, and brand mark aligned to pumpkin & espresso.
+  - `src/styles/hero.css` & `src/styles/hero-nodes.css`: 3D orbit thought notes, LaTeX formulas, Leonardo sketches, and hud hints adapted to warm paper cards with inked borders.
+  - `src/styles/typography.css`: Headings, display ems, kickers, and wikilink tokens.
+  - `src/components/SiteNav.astro`: Translucent frosted kraft navigation bar (`rgba(235, 208, 169, 0.94)`).
+  - `src/components/SiteFooter.astro`: Brand emblem and social links.
+  - `src/components/WavyDivider.css`: Terracotta ink stroke wave.
+  - `src/components/AppWorkbenchDemo.astro` & `.css`: Desktop application demo styled as an archival manuscript workbench with warm cream editor pane, kraft sidebar, and pumpkin active tab indicators.
+  - `src/components/WhatYouCanDoSection.css`: Index cards pinned with pumpkin washi tape and organic micro-tilts.
+  - `src/components/ThoughtsStage.astro` & `.css`: Clutter-to-clarity items (golden sticky note, notebook with pumpkin binding, mobile phone mockup).
+  - `src/components/SyncSection.css`: Telemetry card with pumpkin sync progress and forest olive completion indicators.
+  - `src/components/NotesStayYoursSection.css`: Sovereignty plaque with organic hand-drawn borders.
+  - `src/components/ClosingSection.css`: Warm terracotta call-to-action banner with golden amber emphasis and cream button.
+  - `src/components/CommunitySection.astro`: Discord/Forum cards with forest olive live dot.
+  - `src/styles/docs-layout.css` & `src/styles/docs-content.css`: Docs sidebar active pill, code blocks, tables, callout banners, and numbered steps.
+- **Verification**:
+  - Static production build passes cleanly (`13 page(s) built in 1.09s`).
+  - Unit tests pass (5/5 passing).
+  - Headless Chrome visual verification confirms full visual cohesion across hero, app demo, capabilities, clutter stage, sync, data sovereignty, closing card, footer, and documentation portal.
+
+---
+
+## Previous Session — Complete Documentation Suite with Step-by-Step Guides, Options, Showcases & Mermaid Diagrams
+
+**Scope:** Read all monorepo plans, ADRs, packages, and options, and implemented a complete 12-page documentation portal in `apps/website` (`/docs`).
+
+**Built in `apps/website`:**
+- **Documentation Architecture & Layout**:
+  - `src/layouts/DocsLayout.astro`: 3-column responsive layout (sticky navigation sidebar, main content, on-page table of contents).
+  - `src/styles/docs-layout.css` & `src/styles/docs-content.css`: Border-driven depth, typography tokens, high-contrast palette, zero box-shadows.
+  - Interactive client-side Mermaid rendering with custom theme matching DaVinci brand tokens.
+- **Reusable Documentation Components**:
+  - `DocsSidebar.astro`: Categorized navigational tree with active page indicators.
+  - `DocsTableOfContents.astro`: On-page jump navigation.
+  - `DocsMermaid.astro`: Container for responsive Mermaid diagrams.
+  - `DocsCodeCard.astro`: Syntax block with one-click clipboard copying.
+  - `DocsCallout.astro`: Semantic callout alerts (`important`, `tip`, `warning`, `note`).
+  - `DocsPagination.astro`: Contextual previous/next article routing.
+- **12 Comprehensive Documentation Guides**:
+  1. `/docs` (`index.astro`): Overview, local-first philosophy, multi-tier architecture, vault directory structure, global config table, and architecture flowchart.
+  2. `/docs/editor` (`editor.astro`): CodeMirror 6 Live Preview, AST decoration pipeline, wikilinks resolution rules, KaTeX math formulas, Vim mode with Ex commands, and editor settings.
+  3. `/docs/canvas` (`canvas.astro`): JSON Canvas standard (jsoncanvas.org), 5 node types (text, file embed, web iframe, nested canvas, groups), edge connections, multi-selection, and settings.
+  4. `/docs/graph` (`graph.astro`): 2D D3-force physical graph simulation, node capping (ADR-0031), dynamic LOD labels (ADR-0032), global vs local graph, linked & unlinked mentions panel.
+  5. `/docs/search` (`search.astro`): Cmd+K Quick Switcher with MRU, SQLite FTS5 engine with BM25 ranking, search operators (`tag:`, `path:`, `title:`, quotes, negation), and performance options.
+  6. `/docs/sync` (`sync.astro`): Local-first peer-to-peer sync via embedded Syncthing daemon, QR scan-to-sync sequence, 5-minute rotating verification codes, 3-way diff3 conflict merge, and Google Drive backup option.
+  7. `/docs/ai` (`ai.astro`): "Ask Your Vault" RAG pipeline, strict sentence-level citation verification, granular consent controls, Cloud Active indicator (ADR-0143), local Ollama vs cloud models, and SQLite vector storage fallback.
+  8. `/docs/calendar` (`calendar.astro`): Google Calendar two-way sync, SQLite event cache, `@remind` inline task annotations, Rust native desktop scheduler, and system tray integration.
+  9. `/docs/clipper` (`clipper.astro`): WXT browser extension (Chrome/Firefox), Mozilla Readability + Turndown markdown converter, local asset downloading, and Cmd+Shift+C desktop Quick Capture.
+  10. `/docs/cli` (`cli.astro`): Native Rust CLI binary (`davinci`), capture/daily/search/sync commands, terminal stdin piping (`| davinci new`), and command reference.
+  11. `/docs/plugins` (`plugins.astro`): Sandboxed iframe runtime (`IframePluginHost`), typed JSON-RPC protocol over `postMessage`, capability-based permission manifest, and CSS token theme ecosystem.
+  12. `/docs/mobile` (`mobile.astro`): React Native / Expo architecture, embedded Android Syncthing daemon (`libsyncthing.so`), Kotlin proxy, touch-friendly CodeMirror accessory bar, mobile graph, and Fast Capture widget.
+- **Integration**:
+  - Updated `SiteNav.astro` and `SiteFooter.astro` with prominent direct links to Documentation.
+- **Strict Quality Compliance**:
+  - Every single created and modified file is $\le 250$ lines (hard cap strictly respected).
+  - Static production build passes cleanly (`13 page(s) built in 649ms`).
+  - Unit tests pass (5/5 passing).
+
+---
+
+## Last Session — Marketing Website Pattern De-duplication & Interactive App Demo Workbench
+
+**Scope:** Eliminated repeating section patterns and built a full-fidelity interactive 3-pane desktop application demo on the marketing site (`apps/website`).
+
+**Built & Refactored (`apps/website`):**
+- `AppWorkbenchDemo.astro` + `AppWorkbenchDemo.css`:
+  - 3-pane Obsidian-grade desktop application demo: window titlebar, window dots, live path indicator, and sync pill.
+  - Left pane: icon rail (files, search, graph, canvas) + collapsible file tree (`research/`, `daily/`, `boards/`).
+  - Center pane: interactive note editor with document tabs, YAML frontmatter, H1 note titles, math formulas, interactive task checklists, and clickable `[[wikilinks]]`.
+  - Right pane: local graph SVG and linked mentions backlinks inspector.
+  - Bottom bar: status bar with word count, property count, and local encoding indicator.
+  - Client-side vanilla TypeScript controller enabling seamless note switching from tree, tabs, or wikilinks.
+- `index.astro` Pattern Rhythm Diversification:
+  - Eliminated repetitive tab-bar-above-box patterns (`RoleSection`, `WorkflowsSection`) and identical card grids (`SafeSpaceSection`).
+  - Established a distinct, non-repeating visual layout for every section:
+    1. Hero: Centered monumental display + 3D interactive orbital thought cloud.
+    2. App Demo: Full-fidelity 3-pane interactive desktop software workbench.
+    3. Features: Tactile pinned index cards with alternating micro-tilts and vector doodles.
+    4. Thoughts: Freeform 2D visual scatter board and clutter-to-clarity transformation.
+    5. Sync: Split-screen telemetry card with real-time peer sync progress bar.
+    6. Sovereignty: Handcrafted organic parchment plaque with wax seal aesthetics.
+    7. Community: Open source hub.
+    8. Closing: Illuminated glow card with direct platform download actions.
+- **Strict Compliance & Verification**:
+  - `SiteNav.astro` (header) is 100% untouched (`git diff` empty).
+  - Responsive audit: 0 section horizontal overflows across 360px, 768px, and 1280px.
+  - All text strictly $\ge 14\text{px}$ (labels/badges) and $\ge 16\text{px}$ (body).
+  - Static production build passes in 272ms; unit tests pass (5/5).
+  - All files strictly adhere to `AGENTS.md` line caps ($\le 224$ lines, hard cap 250).
+
+---
+
 <<<<<<< HEAD
 **Mobile Text Rendering & Syncthing Connection Error Resolutions (complete)**
 Resolved runtime React Native text rendering errors and sanitized raw Java socket exceptions in the mobile app:

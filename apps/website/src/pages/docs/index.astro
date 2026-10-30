@@ -1,0 +1,129 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsCodeCard from '../../components/docs/DocsCodeCard.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'what-is-davinci', title: 'What is DaVinci Notes?' },
+  { id: 'quick-start', title: '3-Step Quick Start' },
+  { id: 'how-it-works', title: 'How Your Notes are Stored' },
+  { id: 'shortcuts', title: 'Essential Shortcuts' },
+];
+
+const simpleFlow = `
+flowchart LR
+    Folder["📁 Your Normal Folder on Your Computer"] --> App["✨ DaVinci Notes App"]
+    App --> Write["✍️ Write Notes with [[Links]]"]
+    App --> Canvas["🎨 Whiteboard on Visual Canvas"]
+    App --> Mobile["📱 Direct Sync to Phone"]
+`;
+---
+
+<DocsLayout
+  title="Getting Started & Overview"
+  description="A simple, friendly guide to using DaVinci Notes."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <span>Docs</span> <span>/</span> <span>Getting Started</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Getting Started with DaVinci Notes</h1>
+    <p class="docs-lead">
+      DaVinci Notes is a fast, private note app. Your notes are stored as normal text files on your own computer, meaning you own your data forever.
+    </p>
+  </header>
+
+  <section id="what-is-davinci" class="docs-section">
+    <h2 class="docs-section-title">What is DaVinci Notes?</h2>
+    <p class="docs-paragraph">
+      Unlike apps that lock your notes inside their cloud servers, DaVinci Notes works right on your computer. You choose a regular folder, and all your notes are saved as plain text markdown files (<span class="docs-code-inline">.md</span>). If you ever stop using the app, all your notes remain readable in any text editor.
+    </p>
+    <DocsMermaid chart={simpleFlow} caption="How DaVinci Notes works with your notes" />
+  </section>
+
+  <section id="quick-start" class="docs-section">
+    <h2 class="docs-section-title">3-Step Quick Start</h2>
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Choose a folder on your computer</div>
+          <p>When you open the app, click <strong>Open Folder</strong>. Select where you'd like your notes to live (for example, your <em>Documents/Notes</em> folder).</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Create a note</div>
+          <p>Press <span class="docs-code-inline">Cmd+N</span> (or <span class="docs-code-inline">Ctrl+N</span> on Windows) to create a new note. Start typing your thoughts immediately.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">3</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Link your notes together</div>
+          <p>Whenever you mention another topic or person, type two brackets like <span class="docs-code-inline">[[Ideas]]</span>. DaVinci connects the notes automatically!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works" class="docs-section">
+    <h2 class="docs-section-title">How Your Notes are Stored</h2>
+    <p class="docs-paragraph">
+      Everything is kept simple. Inside your folder, your notes look like standard files:
+    </p>
+    <DocsCodeCard
+      title="Your Notes Folder"
+      lang="plaintext"
+      code={`My Notes/
+├── Daily Ideas.md          # A standard text note
+├── Project Roadmap.md      # Another note linked to Daily Ideas
+├── brainstorm.canvas       # A visual whiteboard board
+└── attachments/            # Photos and files you paste in`}
+    />
+    <DocsCallout type="tip" title="Always Works Offline">
+      Because all notes are on your device, the app works 100% offline. You never need an internet connection to write, search, or read your thoughts.
+    </DocsCallout>
+  </section>
+
+  <section id="shortcuts" class="docs-section">
+    <h2 class="docs-section-title">Essential Shortcuts</h2>
+    <div class="docs-table-wrapper">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Shortcut</th>
+            <th>What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>Cmd + N</code> / <code>Ctrl + N</code></td>
+            <td>Create a new note</td>
+          </tr>
+          <tr>
+            <td><code>Cmd + K</code> / <code>Ctrl + K</code></td>
+            <td>Quick search — jump to any note instantly</td>
+          </tr>
+          <tr>
+            <td><code>[[</code></td>
+            <td>Link to another note</td>
+          </tr>
+          <tr>
+            <td><code>/</code></td>
+            <td>Insert menu (headings, lists, tables, images)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <DocsPagination
+    next={{ title: 'Writing Notes & Formatting', href: '/docs/editor' }}
+  />
+</DocsLayout>

@@ -1,0 +1,25 @@
+/* ==========================================================================
+   WAVY DIVIDER — Hand-drawn organic ink wave divider
+   Lightweight responsive SVG stroke; zero box-shadows, zero gradients
+   ========================================================================== */
+
+.wavy-divider-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  background-color: var(--logseq-bg);
+}
+
+.wavy-divider-svg {
+  width: 100%;
+  max-width: 1280px;
+  height: 20px;
+  stroke: var(--accent-terracotta);
+  opacity: 0.45;
+  vector-effect: non-scaling-stroke;
+}

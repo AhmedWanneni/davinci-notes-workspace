@@ -1,0 +1,25 @@
+---
+interface TocItem {
+  id: string;
+  title: string;
+}
+
+interface Props {
+  items: TocItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<aside class="docs-toc-aside" aria-label="Table of Contents">
+  <div class="docs-toc-title">On this page</div>
+  <ul class="docs-toc-list">
+    {items.map((item) => (
+      <li>
+        <a href={`#${item.id}`} class="docs-toc-link">
+          {item.title}
+        </a>
+      </li>
+    ))}
+  </ul>
+</aside>

@@ -1,0 +1,145 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsCodeCard from '../../components/docs/DocsCodeCard.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'live-preview', title: 'Writing with Live Preview' },
+  { id: 'linking', title: 'How to Link Notes' },
+  { id: 'formatting', title: 'Checklists, Tables & Images' },
+  { id: 'customizing', title: 'Fonts & Editor Settings' },
+];
+
+const simpleEditorMermaid = `
+flowchart LR
+    Type["✍️ You Type Markdown (e.g. # Title, - [ ])"] --> Preview["✨ Formats Automatically on Screen"]
+    Preview --> Click["👆 Interactive: Click Links & Check Tasks"]
+    Preview --> Save["💾 Saves Silently to Plain Text on Disk"]
+`;
+
+const exampleNote = `# Vacation Ideas
+
+Planning our summer trip with [[Sarah]].
+
+## Things to Pack
+- [x] Passports and tickets
+- [ ] Sunglasses
+- [ ] Camera and charger
+
+## Estimated Budget
+| Item | Cost |
+| :--- | :--- |
+| Flights | $450 |
+| Hotel | $600 |
+
+Link to daily thoughts: [[July Trip Planning]]`;
+---
+
+<DocsLayout
+  title="Writing & Formatting Notes"
+  description="How to write, format, and connect your notes in DaVinci Notes."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Editor</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Writing & Formatting Notes</h1>
+    <p class="docs-lead">
+      Write without distractions. DaVinci formats your text automatically as you type, so you get clean headers, interactive checklists, and clickable links without complicated menus.
+    </p>
+  </header>
+
+  <section id="live-preview" class="docs-section">
+    <h2 class="docs-section-title">Writing with Live Preview</h2>
+    <p class="docs-paragraph">
+      You don't have to switch between "edit mode" and "preview mode". As soon as you type, headers become large, checklists become clickable boxes, and links become clickable text. If you click on a line, you can edit it immediately.
+    </p>
+    <DocsMermaid chart={simpleEditorMermaid} caption="How the editor works as you write" />
+  </section>
+
+  <section id="linking" class="docs-section">
+    <h2 class="docs-section-title">How to Link Notes Together</h2>
+    <p class="docs-paragraph">
+      Connecting ideas is the heart of DaVinci Notes. To link to another note, just type <span class="docs-code-inline">[[</span> anywhere:
+    </p>
+    <div class="docs-steps">
+      <div class="docs-step-item">
+        <div class="docs-step-number">1</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Type two brackets [[</div>
+          <p>A list of your existing notes appears instantly.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">2</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Select or type a note title</div>
+          <p>Press Enter to pick an existing note, or keep typing a new title like <span class="docs-code-inline">[[Book Recommendations]]</span> to create a note for it later.</p>
+        </div>
+      </div>
+      <div class="docs-step-item">
+        <div class="docs-step-number">3</div>
+        <div class="docs-step-body">
+          <div class="docs-step-title">Click to navigate</div>
+          <p>Clicking any link opens that note in a new tab immediately!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="formatting" class="docs-section">
+    <h2 class="docs-section-title">Checklists, Tables & Images</h2>
+    <p class="docs-paragraph">Here is a quick reference for common formatting tricks:</p>
+    <div class="docs-table-wrapper">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>You type</th>
+            <th>What happens</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>- [ ] Call dentist</code></td>
+            <td>Creates a clickable checklist box. Tap it to check it off!</td>
+          </tr>
+          <tr>
+            <td><code># Heading</code></td>
+            <td>Creates a big section title (use <code>##</code> for smaller headings).</td>
+          </tr>
+          <tr>
+            <td><code>**bold text**</code></td>
+            <td>Makes text <strong>bold</strong>.</td>
+          </tr>
+          <tr>
+            <td><code>![[photo.png]]</code></td>
+            <td>Embeds an image from your notes folder right on the page.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <DocsCodeCard title="Example Formatted Note" lang="markdown" code={exampleNote} />
+  </section>
+
+  <section id="customizing" class="docs-section">
+    <h2 class="docs-section-title">Fonts & Editor Settings</h2>
+    <p class="docs-paragraph">
+      Open <strong>Settings &gt; Editor</strong> to make the writing experience yours:
+    </p>
+    <ul class="docs-paragraph" style="padding-left: 1.5rem; color: var(--logseq-text-body);">
+      <li><strong>Font Size:</strong> Slide between 12px and 24px for comfortable reading.</li>
+      <li><strong>Font Family:</strong> Switch between clean sans-serif (Inter) or typewriter monospaced fonts (IBM Plex Mono).</li>
+      <li><strong>Vim Mode:</strong> If you love terminal editing, turn on Vim mode to navigate with <span class="docs-code-inline">h, j, k, l</span>.</li>
+    </ul>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Getting Started & Overview', href: '/docs' }}
+    next={{ title: 'Visual Whiteboard (Canvas)', href: '/docs/canvas' }}
+  />
+</DocsLayout>

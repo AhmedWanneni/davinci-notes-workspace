@@ -46,7 +46,7 @@
 }
 
 [data-theme="salon"] .hero-stage .display-hero em {
-  color: #ff9d82;
+  color: var(--accent-pumpkin);
 }
 
 .display-section {
@@ -110,5 +110,5 @@
   padding: 1px 5px;
   font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--accent-gold);
+  color: var(--accent-honey);
 }

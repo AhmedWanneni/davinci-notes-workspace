@@ -1,0 +1,102 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import DocsMermaid from '../../components/docs/DocsMermaid.astro';
+import DocsCallout from '../../components/docs/DocsCallout.astro';
+import DocsPagination from '../../components/docs/DocsPagination.astro';
+
+const toc = [
+  { id: 'mobile-app', title: 'Notes on iPhone & Android' },
+  { id: 'touch-toolbar', title: 'Touch Keyboard Toolbar' },
+  { id: 'fast-capture', title: 'Home Screen Fast Capture' },
+  { id: 'battery-wifi', title: 'Battery & Data Saving' },
+];
+
+const simpleMobileMermaid = `
+flowchart LR
+    Widget["⚡ Home Screen Fast Capture Widget"] --> Type["Type or Dictate a Thought on the Go"]
+    Type --> Sync["🔄 Syncs Back to Your Computer Silently"]
+`;
+---
+
+<DocsLayout
+  title="Mobile App (iPhone & Android)"
+  description="How to take notes, view graphs, and capture thoughts on iOS and Android."
+  toc={toc}
+>
+  <header class="docs-title-header">
+    <div class="docs-breadcrumbs">
+      <a href="/">Home</a> <span>/</span> <a href="/docs">Docs</a> <span>/</span> <span>Mobile</span>
+    </div>
+    <span class="docs-badge">User Guide</span>
+    <h1 class="docs-title">Mobile App (iPhone & Android)</h1>
+    <p class="docs-lead">
+      Have your entire second brain in your pocket. Take notes on the go, view your visual canvases, and capture fleeting thoughts with one tap.
+    </p>
+  </header>
+
+  <section id="mobile-app" class="docs-section">
+    <h2 class="docs-section-title">Notes on iPhone & Android</h2>
+    <p class="docs-paragraph">
+      The DaVinci Notes mobile app gives you the same clean, local-first writing experience on iOS and Android. All your notes are saved right on your phone, so you can read and write even when you don't have cell service or Wi-Fi.
+    </p>
+    <DocsMermaid chart={simpleMobileMermaid} caption="Quick mobile note capture" />
+  </section>
+
+  <section id="touch-toolbar" class="docs-section">
+    <h2 class="docs-section-title">Touch Keyboard Toolbar</h2>
+    <p class="docs-paragraph">
+      Typing brackets and markdown on a small phone keyboard can be tedious. DaVinci places a handy shortcut bar right above your phone keyboard:
+    </p>
+    <div class="docs-table-wrapper">
+      <table class="docs-table">
+        <thead>
+          <tr>
+            <th>Button</th>
+            <th>What it does</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>[[ ]]</code></td>
+            <td>Inserts two brackets and opens your note picker immediately.</td>
+          </tr>
+          <tr>
+            <td><code>- [ ]</code></td>
+            <td>Adds a checklist box with a single tap.</td>
+          </tr>
+          <tr>
+            <td><code>#</code></td>
+            <td>Turns the current line into a section heading.</td>
+          </tr>
+          <tr>
+            <td><code>**</code></td>
+            <td>Makes selected text bold.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="fast-capture" class="docs-section">
+    <h2 class="docs-section-title">Home Screen Fast Capture</h2>
+    <p class="docs-paragraph">
+      Add the DaVinci Notes widget to your phone's home screen. When an idea strikes, tap the widget to immediately type or dictate your thought. It saves straight into today's daily log without waiting for the full app to load.
+    </p>
+  </section>
+
+  <section id="battery-wifi" class="docs-section">
+    <h2 class="docs-section-title">Battery & Data Saving Controls</h2>
+    <p class="docs-paragraph">
+      In the mobile app's <strong>Settings &gt; Sync</strong>:
+    </p>
+    <ul class="docs-paragraph" style="padding-left: 1.5rem; color: var(--logseq-text-body);">
+      <li><strong>Sync on Wi-Fi Only:</strong> Keeps your cellular data usage at zero.</li>
+      <li><strong>Sync Only While Charging:</strong> Ensures the background sync never drains your battery while you're out and about.</li>
+    </ul>
+  </section>
+
+  <DocsPagination
+    prev={{ title: 'Themes & Community Plugins', href: '/docs/plugins' }}
+    next={{ title: 'Back to Getting Started', href: '/docs' }}
+  />
+</DocsLayout>

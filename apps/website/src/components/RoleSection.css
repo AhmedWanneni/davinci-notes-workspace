@@ -97,7 +97,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  background-color: #12040f;
+  background-color: var(--bg-inset);
   border-bottom: 1.5px solid var(--logseq-border);
 }
 .mockup-dots { display: flex; gap: 6px; }

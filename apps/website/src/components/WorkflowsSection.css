@@ -100,19 +100,19 @@
   background: var(--palette-burgundy);
 }
 .av-1 {
-  background: var(--palette-burgundy);
+  background: var(--accent-pumpkin);
 }
 .av-2 {
-  background: #3c1932;
+  background: var(--palette-terracotta);
 }
 .av-3 {
-  background: #572049;
+  background: var(--accent-olive);
 }
 .av-4 {
-  background: #2f1427;
+  background: var(--accent-honey);
 }
 .av-5 {
-  background: #6b285a;
+  background: var(--palette-charcoal);
 }
 
 .log-timeline {
@@ -172,7 +172,7 @@
 }
 
 .testimonial-card blockquote strong {
-  color: #ffffff;
+  color: var(--logseq-text-title);
   font-style: italic;
 }
 

@@ -1,0 +1,230 @@
+---
+import './HowItWorksSection.css';
+
+const steps = [
+  {
+    id: 'vault',
+    num: '01',
+    tabLabel: 'Open a Vault',
+    badge: 'Step 01 · Local Storage',
+    heading: 'Your notes live in a normal folder on your device.',
+    desc: 'Choose any folder on your computer. DaVinci Notes reads and saves plain files directly—no accounts, no imports, and no proprietary formats.',
+    tag: 'Plain Markdown (.md) · Zero vendor lock-in',
+    file: 'My Notes / Journal /',
+  },
+  {
+    id: 'write',
+    num: '02',
+    tabLabel: 'Write Freely',
+    badge: 'Step 02 · Clean Editor',
+    heading: 'Focus on your writing with instant, clean formatting.',
+    desc: 'Type headings, bullet points, and task lists without clutter. The editor formats your thoughts cleanly so you can stay in flow.',
+    tag: 'Distraction-free · Fast typing',
+    file: 'Ideas for Renaissance.md',
+  },
+  {
+    id: 'link',
+    num: '03',
+    tabLabel: 'Connect Notes',
+    badge: 'Step 03 · Wikilinks',
+    heading: 'Link your ideas with simple double brackets.',
+    desc: 'Type [[ anywhere to link to another thought or create a new note on the fly. Your ideas naturally build a network over time.',
+    tag: 'Bi-directional connections · Fast autocomplete',
+    file: 'Studio Notes.md',
+  },
+  {
+    id: 'backlinks',
+    num: '04',
+    tabLabel: 'See Backlinks',
+    badge: 'Step 04 · Two-Way Context',
+    heading: 'See every note that references your current page.',
+    desc: 'Open any note to see an automatic list of every other note pointing to it. You never have to manually organize cross-references.',
+    tag: 'Automatic backlinks · Zero manual index',
+    file: 'Optics and Light.md',
+  },
+  {
+    id: 'graph',
+    num: '05',
+    tabLabel: 'Visual Graph',
+    badge: 'Step 05 · Knowledge Map',
+    heading: 'Explore your thoughts as a living constellation.',
+    desc: 'Step back to see an interactive visual map of your entire vault. Discover relationships, clusters, and patterns across your thinking.',
+    tag: 'Interactive visual view · Cluster discovery',
+    file: 'Interactive Graph View',
+  },
+];
+---
+
+<section class="how-it-works-section" id="how-it-works" aria-labelledby="how-heading">
+  <div class="logseq-container">
+    <div class="how-header">
+      <div class="how-kicker">Simple, Local, Connected</div>
+      <h2 id="how-heading" class="how-title">How DaVinci Notes Works</h2>
+      <p class="how-lead">
+        Build a personal web of thinking in five simple steps. No cloud required.
+      </p>
+    </div>
+
+    <!-- Step Navigation Tabs -->
+    <div class="how-tabs" role="tablist" aria-label="Walkthrough steps">
+      {steps.map((s, idx) => (
+        <button
+          type="button"
+          role="tab"
+          class={`how-tab-btn ${idx === 0 ? 'is-active' : ''}`}
+          id={`tab-${s.id}`}
+          aria-selected={idx === 0 ? 'true' : 'false'}
+          aria-controls={`panel-${s.id}`}
+          data-step-tab={s.id}
+        >
+          <span class="how-tab-num">{s.num}</span>
+          <span>{s.tabLabel}</span>
+        </button>
+      ))}
+    </div>
+
+    <!-- Step Showcase Panels -->
+    <div class="how-stage">
+      {steps.map((s, idx) => (
+        <div
+          role="tabpanel"
+          id={`panel-${s.id}`}
+          aria-labelledby={`tab-${s.id}`}
+          class={`how-panel ${idx === 0 ? 'is-active' : ''}`}
+          data-step-panel={s.id}
+        >
+          <div class="how-panel-text">
+            <div class="how-step-badge">{s.badge}</div>
+            <h3 class="how-step-heading">{s.heading}</h3>
+            <p class="how-step-desc">{s.desc}</p>
+            <div class="how-step-tag">✦ {s.tag}</div>
+          </div>
+
+          <div class="how-panel-visual">
+            <div class="how-mockup-frame">
+              <div class="how-mockup-topbar">
+                <div class="how-mockup-dots" aria-hidden="true">
+                  <span class="how-mockup-dot"></span>
+                  <span class="how-mockup-dot"></span>
+                  <span class="how-mockup-dot"></span>
+                </div>
+                <span>{s.file}</span>
+                <span style="opacity: 0.5;">Plain Text</span>
+              </div>
+
+              <div class="how-mockup-content">
+                {s.id === 'vault' && (
+                  <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(0,0,0,0.2); border-radius: 6px;">
+                      <span style="font-size: 1.4rem;">📁</span>
+                      <div>
+                        <div style="font-weight: 600; font-size: 1rem;">Personal Vault</div>
+                        <div style="font-size: 0.875rem; color: var(--logseq-text-muted);">/Users/You/Documents/Notes</div>
+                      </div>
+                    </div>
+                    <div style="font-size: 0.9375rem; color: var(--logseq-text-muted); line-height: 1.5;">
+                      ✓ 100% stored on your computer<br />
+                      ✓ Open and edit in any text app
+                    </div>
+                  </div>
+                )}
+
+                {s.id === 'write' && (
+                  <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 1.25rem; font-weight: 600; color: var(--logseq-text-title);"># Morning Reflections</div>
+                    <p style="margin: 0; line-height: 1.6; color: var(--logseq-text-body); font-size: 1rem;">
+                      The mind is like a canvas that grows richer as we connect new thoughts.
+                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 6px; padding-left: 4px; font-size: 0.9375rem; color: var(--logseq-text-muted);">
+                      <div>☑ Review sketches of water movement</div>
+                      <div>☐ Study perspective geometries</div>
+                    </div>
+                  </div>
+                )}
+
+                {s.id === 'link' && (
+                  <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <p style="margin: 0; line-height: 1.6; font-size: 1rem;">
+                      Studied bird flight dynamics today. Compare this with <span class="how-mockup-wikilink">[[Anatomy Studies]]</span> and verify principles in <span class="how-mockup-wikilink">[[Wing Mechanics]]</span>.
+                    </p>
+                    <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--logseq-border); border-radius: 6px; padding: 10px 14px; font-size: 0.875rem; color: var(--logseq-text-muted);">
+                      <div style="color: var(--logseq-text-title); margin-bottom: 4px; font-weight: 500;">Link to existing note:</div>
+                      <div>↵ [[Anatomy Studies]] · 14 notes linked</div>
+                    </div>
+                  </div>
+                )}
+
+                {s.id === 'backlinks' && (
+                  <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 1.15rem; font-weight: 600; color: var(--logseq-text-title);">Optics and Light</div>
+                    <div style="border-top: 1px solid var(--logseq-border); padding-top: 10px; margin-top: 4px;">
+                      <div style="font-size: 0.875rem; font-weight: 600; color: var(--logseq-text-muted); margin-bottom: 8px;">
+                        Linked mentions (2)
+                      </div>
+                      <div style="background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 4px; font-size: 0.875rem; margin-bottom: 6px;">
+                        <strong>Painting Methods:</strong> "...use findings from [[Optics and Light]] for shadow blends..."
+                      </div>
+                      <div style="background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 4px; font-size: 0.875rem;">
+                        <strong>Camera Obscura:</strong> "...relies on the same ray geometry in [[Optics and Light]]..."
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {s.id === 'graph' && (
+                  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 140px; padding: 10px 0;">
+                    <svg viewBox="0 0 260 120" width="100%" height="120" style="max-width: 280px; overflow: visible;" aria-hidden="true">
+                      <!-- Edges -->
+                      <line x1="50" y1="40" x2="130" y2="60" stroke="rgba(216, 167, 177, 0.4)" stroke-width="1.5" />
+                      <line x1="130" y1="60" x2="210" y2="40" stroke="rgba(216, 167, 177, 0.4)" stroke-width="1.5" />
+                      <line x1="130" y1="60" x2="140" y2="100" stroke="rgba(56, 40, 24, 0.3)" stroke-width="1.5" />
+                      <line x1="50" y1="40" x2="60" y2="95" stroke="rgba(56, 40, 24, 0.3)" stroke-width="1.5" />
+                      <!-- Nodes -->
+                      <circle cx="50" cy="40" r="14" fill="var(--bg-surface)" stroke="var(--accent-pumpkin)" stroke-width="1.5" />
+                      <text x="50" y="44" fill="var(--logseq-text-title)" font-size="10" font-weight="600" text-anchor="middle">Art</text>
+                      <circle cx="130" cy="60" r="18" fill="var(--accent-pumpkin)" stroke="var(--accent-terracotta)" stroke-width="2" />
+                      <text x="130" y="64" fill="#fffbf4" font-size="10" font-weight="600" text-anchor="middle">DaVinci</text>
+                      <circle cx="210" cy="40" r="14" fill="var(--bg-surface)" stroke="var(--accent-pumpkin)" stroke-width="1.5" />
+                      <text x="210" y="44" fill="var(--logseq-text-title)" font-size="10" font-weight="600" text-anchor="middle">Flight</text>
+                      <circle cx="140" cy="100" r="12" fill="var(--bg-surface)" stroke="var(--accent-pumpkin)" stroke-width="1.5" />
+                      <text x="140" y="103" fill="var(--logseq-text-title)" font-size="9" text-anchor="middle">Optics</text>
+                      <circle cx="60" cy="95" r="12" fill="var(--bg-surface)" stroke="var(--accent-pumpkin)" stroke-width="1.5" />
+                      <text x="60" y="98" fill="var(--logseq-text-title)" font-size="9" text-anchor="middle">Notes</text>
+                    </svg>
+                    <div style="font-size: 0.875rem; color: var(--logseq-text-muted); text-align: center; margin-top: 8px;">
+                      5 notes connected · 6 links
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  // Tab controller for How It Works section
+  const stepTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-step-tab]'));
+  const stepPanels = Array.from(document.querySelectorAll<HTMLElement>('[data-step-panel]'));
+
+  stepTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.getAttribute('data-step-tab');
+      if (!targetId) return;
+
+      stepTabs.forEach((t) => {
+        const isActive = t === tab;
+        t.classList.toggle('is-active', isActive);
+        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+
+      stepPanels.forEach((panel) => {
+        const matches = panel.getAttribute('data-step-panel') === targetId;
+        panel.classList.toggle('is-active', matches);
+      });
+    });
+  });
+</script>

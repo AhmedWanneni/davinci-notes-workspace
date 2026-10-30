@@ -1,140 +1,41 @@
 ---
-import { HERO_THOUGHTS } from '../../data/heroThoughts';
-import SkullCutInterior from './SkullCutInterior.astro';
-import ThoughtNode from './ThoughtNode.astro';
-
-/**
- * Build unique undirected edge pairs for the pre-rendered SVG hairline layer
- */
-const edgePairs: Array<{ from: string; to: string }> = [];
-const seenEdges = new Set<string>();
-
-for (const thought of HERO_THOUGHTS) {
-  for (const targetId of thought.linksTo) {
-    const key = [thought.id, targetId].sort().join('--');
-    if (!seenEdges.has(key)) {
-      seenEdges.add(key);
-      edgePairs.push({ from: thought.id, to: targetId });
-    }
-  }
-}
+import OwlSideNotes from './OwlSideNotes.astro';
+import OwlHeadHotspots from './OwlHeadHotspots.astro';
 ---
 
 <section class="hero-stage" id="top" aria-labelledby="hero-headline">
+  <h1 id="hero-headline" class="sr-only">
+    Sophia Notes — Every thought in your head, organized in one place.
+  </h1>
+
   <div class="hero-centered-container">
-    <!-- Centerpiece Visual: Woman & Rock Cutout + 360° Interactive Thought Orbit -->
-    <div
-      id="orbit-stage"
-      class="orbit-stage"
-      tabindex="0"
-      role="application"
-      aria-roledescription="360-degree rotatable thought cloud"
-      aria-label="Interactive 3D cloud of notes, equations, and sketches emerging from the portrait's mind. Drag horizontally or press Left and Right arrow keys to rotate 360 degrees."
-    >
+    <!-- Full-Viewport Stage: Interactive Owl in the Center + Draggable Notes & Desk Items -->
+    <div class="hero-artwork-stage">
+      <OwlSideNotes />
+      <OwlHeadHotspots />
 
-
-      <!-- Anatomical Skull Cavity Revealed When Crown Opens -->
-      <SkullCutInterior />
-
-      <!-- Dynamic SVG Hairline Graph Connections -->
-      <svg
-        id="orbit-edges-svg"
-        class="orbit-edges-svg"
-        viewBox="0 0 900 680"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        {edgePairs.map((edge) => (
-          <line
-            class="orbit-edge-line"
-            data-edge-from={edge.from}
-            data-edge-to={edge.to}
-            x1="450"
-            y1="250"
-            x2="450"
-            y2="250"
-          />
-        ))}
-      </svg>
-
-      <!-- Center Portrait Figure Assembly (Pure Cutout: Woman & Rock, ZERO Background) -->
-      <div class="portrait-assembly" aria-hidden="true">
-        <!-- Lower Portrait Base (Rocks, Terracotta Drape, Face Below Cut) -->
-        <picture class="portrait-layer portrait-base">
-          <source
-            type="image/avif"
-            srcset="/images/hero/muse-base-480.avif 480w, /images/hero/muse-base-768.avif 768w, /images/hero/muse-base-1120.avif 1051w"
-            sizes="(max-width: 768px) 340px, 520px"
-          />
-          <source
-            type="image/webp"
-            srcset="/images/hero/muse-base-480.webp 480w, /images/hero/muse-base-768.webp 768w, /images/hero/muse-base-1120.webp 1051w"
-            sizes="(max-width: 768px) 340px, 520px"
-          />
-          <img
-            src="/images/hero/muse-base-768.webp"
-            alt="Classical painted woman in a terracotta drape seated on stone"
-            width="768"
-            height="1093"
-            fetchpriority="high"
-            decoding="async"
-            draggable="false"
-          />
-        </picture>
-
-        <!-- Upper Cranium & Hair Crown (Lifts Along 14° Cut Normal) -->
-        <picture id="portrait-crown-layer" class="portrait-layer portrait-crown">
-          <source
-            type="image/avif"
-            srcset="/images/hero/muse-crown-480.avif 480w, /images/hero/muse-crown-768.avif 768w, /images/hero/muse-crown-1120.avif 1051w"
-            sizes="(max-width: 768px) 340px, 520px"
-          />
-          <source
-            type="image/webp"
-            srcset="/images/hero/muse-crown-480.webp 480w, /images/hero/muse-crown-768.webp 768w, /images/hero/muse-crown-1120.webp 1051w"
-            sizes="(max-width: 768px) 340px, 520px"
-          />
-          <img
-            src="/images/hero/muse-crown-768.webp"
-            alt=""
-            width="768"
-            height="1093"
-            decoding="async"
-            draggable="false"
-          />
-        </picture>
-      </div>
-
-      <!-- 3D Orbiting Thought Nodes Floating Around Her Head in the Center -->
-      <div id="orbit-cloud" class="orbit-cloud">
-        {/* HERO_THOUGHTS.map((thought, idx) => (
-          <ThoughtNode thought={thought} index={idx} />
-        )) */}
-      </div>
-    </div>
-
-    <!-- Centered Call to Action Buttons Below Centerpiece (Logseq Style) -->
-    <div class="hero-cta-actions">
-      <a class="btn-logseq-primary" href="#download">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-        <span>Download for Desktop</span>
-        <span aria-hidden="true">⌵</span>
-      </a>
-      <a class="btn-logseq-secondary" href="#features">
-        <span>Explore Features</span>
-        <span aria-hidden="true">↗</span>
-      </a>
-    </div>
-
-    <!-- Screen-Reader Only Accessible Thought Graph Index -->
-    <div class="sr-only" aria-label="Plain-text list of orbiting thoughts">
-      <ul>
-        {/*HERO_THOUGHTS.map((t) => (
-          <li>
-            <a href={t.sectionHref}>{t.title}</a>: {t.excerpt}
-          </li>
-        ))*/ }
-      </ul>
+      <picture class="hero-owl-picture">
+        <source
+          type="image/webp"
+          srcset="/images/hero/owl-hero-480.webp 480w, /images/hero/owl-hero-768.webp 768w, /images/hero/owl-hero-1024.webp 1024w"
+          sizes="(max-width: 640px) 94vw, (max-width: 1024px) 78vw, 760px"
+        />
+        <img
+          class="hero-owl-img"
+          src="/images/hero/owl-hero-1024.webp"
+          alt="Illustrated autumn owl with an open mind overflowing with organized notes, reminders, to-do lists, and creative ideas"
+          width="1024"
+          height="935"
+          fetchpriority="high"
+          decoding="async"
+          draggable="false"
+        />
+      </picture>
     </div>
   </div>
 </section>
+
+<script>
+  import { initHeroInteractive } from '../../scripts/heroInteractive';
+  initHeroInteractive();
+</script>

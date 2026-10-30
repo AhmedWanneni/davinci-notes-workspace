@@ -1,123 +1,148 @@
 ---
 ---
 
-<header class="logseq-nav-header">
-  <div class="logseq-container nav-inner">
-    <div class="nav-left">
-      <a href="/" class="nav-brand">
-        <span class="nav-brand-icon">✦</span>
-        <span class="nav-brand-name">davinci<strong>notes</strong></span>
-      </a>
-      <nav class="nav-menu" aria-label="Main menu">
-        <a href="#top" class="nav-item is-active">Home</a>
-        <a href="#download" class="nav-item">Downloads</a>
-      </nav>
-    </div>
+<header class="sophia-nav-header">
+  <nav class="nav-stationery-bar" aria-label="Main navigation">
+    <!-- Left & Right Brass Thumbtack Pins -->
+    <span class="nav-pin nav-pin-left" aria-hidden="true"></span>
+    <span class="nav-pin nav-pin-right" aria-hidden="true"></span>
 
-    <div class="nav-right">
-      <div class="nav-external-links">
-        <a href="#community" class="nav-item">Community ↗</a>
-        <a href="#privacy" class="nav-item">Privacy ↗</a>
-        <a href="https://github.com" target="_blank" rel="noreferrer" class="nav-item">GitHub ↗</a>
-      </div>
-      <a href="#download" class="btn-logseq-primary btn-nav-cta">
-        <span>Download<span class="hide-mobile"> for Desktop</span></span>
-        <span class="btn-arrow" aria-hidden="true">⌵</span>
-      </a>
+    <a href="/" class="nav-brand">
+      <svg class="nav-owl-icon" width="22" height="17" viewBox="0 0 32 24" fill="none" aria-hidden="true">
+        <path d="M3 8 C6 3, 13 4, 16 8 C19 4, 26 3, 29 8" stroke="#281a0e" stroke-width="2.2" stroke-linecap="round" />
+        <circle cx="10.5" cy="12.5" r="5.5" fill="#faf0de" stroke="#281a0e" stroke-width="2.1" />
+        <circle cx="21.5" cy="12.5" r="5.5" fill="#faf0de" stroke="#281a0e" stroke-width="2.1" />
+        <circle cx="10.5" cy="12.5" r="2.6" fill="#281a0e" />
+        <circle cx="21.5" cy="12.5" r="2.6" fill="#281a0e" />
+        <path d="M14.5 16.5 L16 20.5 L17.5 16.5 Z" fill="#c85e13" stroke="#281a0e" stroke-width="1.7" stroke-linejoin="round" />
+      </svg>
+      <span class="nav-brand-title">Sophia <em>Notes</em></span>
+    </a>
+
+    <span class="nav-divider" aria-hidden="true"></span>
+
+    <div class="nav-links">
+      <a href="/#workbench" class="nav-link">Workbench</a>
+      <a href="/#features" class="nav-link">Features</a>
+      <a href="/#canvas-stage" class="nav-link">Canvas</a>
+      <a href="/#sync" class="nav-link">Sync</a>
+      <a href="/docs" class="nav-link">Docs</a>
+      <a href="https://github.com" target="_blank" rel="noreferrer" class="nav-link">GitHub ↗</a>
     </div>
-  </div>
+  </nav>
 </header>
 
 <style>
-  .logseq-nav-header {
-    position: sticky;
-    top: 0;
+  .sophia-nav-header {
+    position: fixed;
+    top: 14px;
+    left: 0;
+    right: 0;
     z-index: 100;
-    background-color: rgba(21, 6, 18, 0.94);
-    backdrop-filter: blur(8px);
-    box-shadow: none !important;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
   }
 
-  .nav-inner {
-    display: flex;
+  .nav-stationery-bar {
+    position: relative;
+    pointer-events: auto;
+    display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    height: 68px;
+    gap: 18px;
+    padding: 8px 24px;
+    background-color: #f3e3c6;
+    border: 1.7px solid #281a0e;
+    border-radius: 4px 7px 5px 6px / 6px 4px 7px 5px;
+    color: #26180d;
   }
 
-  .nav-left {
-    display: flex;
-    align-items: center;
-    gap: 32px;
+  /* Tactile Paper Offset Backing */
+  .nav-stationery-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(48, 28, 12, 0.14);
+    border-radius: inherit;
+    transform: translate(3px, 4px);
+    z-index: -1;
+    pointer-events: none;
   }
+
+  /* Brass Thumbtack Pins */
+  .nav-pin {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 7px;
+    height: 7px;
+    background-color: #c38b32;
+    border: 1.4px solid #281a0e;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .nav-pin-left { left: 8px; }
+  .nav-pin-right { right: 8px; }
 
   .nav-brand {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--logseq-text-title);
+    padding-left: 4px;
+    color: #1c140d;
   }
 
-  .nav-brand-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 26px;
-    height: 26px;
-    background-color: var(--logseq-teal);
-    color: var(--logseq-mint);
-    border: 1px solid var(--logseq-border-glow);
-    border-radius: var(--radius-hand-drawn-subtle);
-    font-size: 0.85rem;
+  .nav-owl-icon {
+    display: block;
+    flex-shrink: 0;
   }
 
-  .nav-brand-name strong {
-    color: var(--logseq-cyan);
-    font-weight: 800;
+  .nav-brand-title {
+    font-family: var(--font-display);
+    font-size: 1.32rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
   }
 
-  .nav-menu, .nav-external-links {
+  .nav-brand-title em {
+    font-style: italic;
+    color: var(--accent-terracotta);
+  }
+
+  .nav-divider {
+    width: 1.5px;
+    height: 16px;
+    background-color: rgba(40, 26, 14, 0.28);
+  }
+
+  .nav-links {
     display: flex;
     align-items: center;
     gap: 20px;
+    padding-right: 4px;
   }
 
-  .nav-item {
-    font-size: 0.875rem;
-    color: var(--logseq-text-muted);
-    transition: color 150ms ease;
+  .nav-link {
+    font-family: 'Patrick Hand', var(--font-sans), sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #3b2615;
+    padding: 1px 0;
+    border-bottom: 1.6px solid transparent;
+    transition: color 140ms ease, border-color 140ms ease;
   }
 
-  .nav-item:hover, .nav-item.is-active {
-    color: var(--logseq-text-title);
+  .nav-link:hover {
+    color: #1c140d;
+    border-bottom-color: #c85e13;
   }
 
-  .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-  }
-
-  .btn-nav-cta {
-    padding: 0.5rem 1.1rem;
-    font-size: 0.82rem;
-  }
-
-  @media (max-width: 860px) {
-    .nav-menu, .nav-external-links {
-      display: none;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .btn-nav-cta {
-      padding: 0.45rem 0.8rem;
-      font-size: 0.76rem;
-    }
-    .hide-mobile {
-      display: none;
-    }
+  @media (max-width: 768px) {
+    .nav-stationery-bar { gap: 10px; padding: 6px 14px; }
+    .nav-links { gap: 10px; }
+    .nav-link { font-size: 0.85rem; }
   }
 </style>
