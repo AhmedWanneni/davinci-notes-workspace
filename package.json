@@ -15,6 +15,7 @@
     "tui": "bash scripts/manage.sh",
     "desktop:build": "pnpm --filter @app/desktop build",
     "desktop:dev": "pnpm --filter @app/desktop dev",
+    "deploy:cloudflare": "bash scripts/deploy-cloudflare.sh",
     "fix:damaged": "bash scripts/manage.sh -f",
     "prepare": "husky"
   },

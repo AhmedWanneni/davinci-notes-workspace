@@ -2,6 +2,32 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Cloudflare Pages Deployment TUI & Laptop-Specific Download Detection
+
+- **Cloudflare CLI & Interactive Bash TUI (`scripts/tui/cloudflare.sh`, `scripts/deploy-cloudflare.sh`, `scripts/manage.sh`)**:
+  - Implemented modular `cloudflare.sh` sub-controller and standalone `scripts/deploy-cloudflare.sh` executable.
+  - Added option `[ 8 ]` ("☁️ Deploy to Cloudflare") to master dashboard and `-cf` / `--cloudflare` CLI argument.
+  - Automatic authentication detection via `wrangler whoami`; if unauthenticated, triggers browser OAuth (`wrangler login`) or opens the Cloudflare Pages GitHub connection page in browser (`https://dash.cloudflare.com/?to=/:account/pages/new/provider/github`).
+  - Automated build & deploy: compiles `apps/website/dist` via `pnpm --filter @app/website build` and uploads to Cloudflare Pages (`wrangler pages deploy apps/website/dist --project-name sophia-notes`).
+- **Cloudflare Configurations (`apps/website/wrangler.toml`, `.github/workflows/deploy-cloudflare.yml`, `docs/deployment/cloudflare-pages.md`)**:
+  - Created `apps/website/wrangler.toml` for project `sophia-notes` with compatibility date and output directory.
+  - Added GitHub Actions workflow `.github/workflows/deploy-cloudflare.yml` for automated CI deployments.
+  - Added deployment documentation in `docs/deployment/cloudflare-pages.md`.
+- **Dynamic Laptop Operating System Detection (`laptopDownload.ts`, `OwlSideNotes.astro`, `ClosingSection.astro`)**:
+  - Created `apps/website/src/scripts/laptopDownload.ts` detecting macOS (Apple Silicon vs Intel), Windows (64-bit), and Linux.
+  - Tailored primary CTA button on the hero card and bottom card to the visitor's laptop:
+    - macOS: `↓ DOWNLOAD FOR MAC (.DMG)` linking directly to `Sophia_0.1.0_aarch64.dmg`.
+    - Windows: `↓ DOWNLOAD FOR WINDOWS (.EXE)` linking directly to `Sophia_0.1.0_x64-setup.exe`.
+    - Linux: `↓ DOWNLOAD FOR LINUX (.APPIMAGE)` linking directly to `sophia_0.1.0_amd64.AppImage`.
+  - Added quick alternative direct links (`Intel .dmg`, `Windows .exe`, `Linux .AppImage / .deb`, and `All Downloads ↗`) across the card and closing section.
+  - Updated `/download` redirect endpoints (`mac.astro`, `mac-intel.astro`, `windows.astro`, `linux.astro`).
+- **Validation**:
+  - Astro production build passes cleanly (`pnpm --filter website build`, 19 pages generated in 1.54s).
+  - Orbit math unit tests pass (5/5 tests passing).
+  - All files strictly under 250 lines (max 212 lines).
+
+---
+
 ### 2026-10-30: Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
 
 - **Gatekeeper & Quarantine Repair Module (`scripts/tui/gatekeeper.sh`)**:

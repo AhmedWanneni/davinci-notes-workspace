@@ -4,7 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
+## Last Session — Cloudflare Pages TUI Deployment & Dynamic Laptop-Specific Download Detection
+
+**Scope:** Implement an interactive, user-friendly Bash TUI for deploying the website to Cloudflare Pages (with automatic connection detection, browser login launcher, and GitHub connect workflow), add Cloudflare Pages configuration files (`apps/website/wrangler.toml` and `.github/workflows/deploy-cloudflare.yml`), and tailor download links dynamically on the website based on the visitor's laptop operating system (macOS Apple Silicon & Intel .dmg, Windows .exe, Linux .AppImage & .deb):
+1. **Interactive Cloudflare Deployment TUI (`scripts/tui/cloudflare.sh`, `scripts/deploy-cloudflare.sh`, `scripts/manage.sh`, `package.json`)**:
+   - Built a modular, DevKit-styled sub-controller `cloudflare.sh` (212 lines) with standalone runner `scripts/deploy-cloudflare.sh` (42 lines) and npm script `pnpm deploy:cloudflare`.
+   - Integrated into the master dashboard `scripts/manage.sh` as option `[ 8 ]` ("☁️ Deploy to Cloudflare") and CLI argument `-cf` / `--cloudflare`.
+   - **Connection Detection & Browser Launcher**: Automatically inspects `wrangler whoami`. If not authenticated, prompts 1-key CLI login (`wrangler login`) or opens the Cloudflare Pages GitHub connection dashboard in the user's default browser (`https://dash.cloudflare.com/?to=/:account/pages/new/provider/github`).
+   - **Automated Deployment**: Compiles the Astro production build (`pnpm --filter @app/website build`), deploys `apps/website/dist` to Cloudflare Pages (`wrangler pages deploy apps/website/dist --project-name sophia-notes`), prints the live URL, and offers 1-key browser launch.
+2. **Cloudflare Configurations (`apps/website/wrangler.toml`, `.github/workflows/deploy-cloudflare.yml`, `docs/deployment/cloudflare-pages.md`)**:
+   - Added `wrangler.toml` specifying project `sophia-notes`, compatibility date `2024-11-01`, and `dist` build directory.
+   - Authored GitHub Actions workflow `.github/workflows/deploy-cloudflare.yml` deploying on push to `main` when `apps/website/**` changes.
+   - Documented step-by-step setup in `docs/deployment/cloudflare-pages.md`.
+3. **Dynamic Laptop & OS Download Detection (`laptopDownload.ts`, `OwlSideNotes.astro`, `ClosingSection.astro`, `ClosingSection.css`, `hero-nodes.css`)**:
+   - Created client-side detector `apps/website/src/scripts/laptopDownload.ts` (153 lines) detecting macOS (Apple Silicon vs Intel), Windows (64-bit), and Linux.
+   - **Hero GET THE APP Card**: The primary CTA dynamically transforms to:
+     - macOS: `↓ DOWNLOAD FOR MAC (.DMG)` pointing directly to `Sophia_0.1.0_aarch64.dmg`.
+     - Windows: `↓ DOWNLOAD FOR WINDOWS (.EXE)` pointing directly to `Sophia_0.1.0_x64-setup.exe`.
+     - Linux: `↓ DOWNLOAD FOR LINUX (.APPIMAGE)` pointing directly to `sophia_0.1.0_amd64.AppImage`.
+   - Provides instant 1-click alternative links (`Intel .dmg`, `Windows .exe`, `Linux .AppImage / .deb`, and `All Downloads ↗`) on the card and closing CTA strip.
+   - Updated `/download` redirect endpoints (`mac.astro`, `mac-intel.astro`, `windows.astro`, `linux.astro`) to clean `0.1.0` artifact names.
+
+---
+
+## Next Up
+- Verify Cloudflare Pages deployment in production.
+- Test download triggers across real Mac, Windows, and Linux user agents.
+
+---
+
+## Previous Session — Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
 
 **Scope:** Diagnose and permanently fix macOS Gatekeeper "Sophia is damaged and can't be opened. You should move it to the Trash" error after DMG installation, and upgrade the terminal dashboard to a polished DevKit-style user experience (rounded box cards, keycaps, instant repair commands).
 
