@@ -4,6 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
+
+**Scope:** Diagnose and permanently fix macOS Gatekeeper "Sophia is damaged and can't be opened. You should move it to the Trash" error after DMG installation, and upgrade the terminal dashboard to a polished DevKit-style user experience (rounded box cards, keycaps, instant repair commands).
+
+**What was done:**
+1. **Root Cause Analysis ("App is Damaged" Gatekeeper Error)**:
+   - When building without an Apple Developer ID certificate, Tauri's bundler produced `code has no resources but signature indicates they must be present` due to an incomplete seal between the main binary and the `syncthing` sidecar.
+   - macOS Gatekeeper attaches `com.apple.quarantine` upon DMG mount or download, and rejects bundles with mismatched resource seals as "damaged".
+2. **Automated Ad-Hoc Signing & Gatekeeper Module (`scripts/tui/gatekeeper.sh`)**:
+   - Created dedicated 104-line Gatekeeper repair module providing `gatekeeper_sign_app`, `gatekeeper_verify_app`, and `gatekeeper_fix_interactive`.
+   - Strips extended attributes (`xattr -cr`) and signs the application bundle and sidecars with deep ad-hoc code signature (`codesign --force --deep --sign -`).
+   - Verified that `/Applications/Sophia.app` satisfies Designated Requirements and launches cleanly with zero Gatekeeper warnings.
+3. **DMG Packaging Repair Pipeline (`scripts/tui/build.sh`, `scripts/tui/installer.sh`)**:
+   - In `build_macos_target`, automatically deep ad-hoc signs `Sophia.app` immediately after Tauri compilation.
+   - Re-generates clean DMG via `hdiutil create` with the verified bundle and strips quarantine flags on output artifacts.
+   - In `installer_perform_install`, automatically strips quarantine and ad-hoc signs `/Applications/Sophia.app` upon installation.
+   - Added `pnpm fix:damaged` script and `scripts/manage.sh -f` / `--fix` CLI shortcut.
+4. **DevKit-Style TUI Upgrade (`scripts/tui/ui.sh`, `manage.sh`, `dev.sh`, `ci.sh`, `health.sh`)**:
+   - Upgraded UI primitives to modern DevKit aesthetics: rounded Unicode box frames (`╭───╮`, `│`, `╰───╯`), styled keycaps (`[ 1 ]`, `[ f ]`), and unified menu item cards.
+   - Added direct Gatekeeper repair action `[ f ]` in main dashboard and installer manager.
+
+---
+
+## Next Up
+- Verify that macOS Gatekeeper does not trigger warnings across clean machines.
+- Run complete test suite and package release smoke checks.
+
+---
+
+## Previous Session — Desktop Updates & Development Script Enhancements
 ## Last Session — Desktop Updates & Development Script Enhancements
 
 **Scope:** Polish desktop package scripts, add root workspace shortcuts for `@app/desktop` dev and build workflows, and ensure `--ignore-version-mismatches` is consistently applied across all platform build targets in the interactive TUI.

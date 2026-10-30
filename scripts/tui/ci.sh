@@ -10,14 +10,14 @@ ci_menu() {
     ui_banner
     status_render_bar "$repo_root"
     ui_section "GitHub CI & Release Automation" "☁"
-
-    printf "  ${C_BOLD}1)${C_RESET} List Recent Release Workflow Runs (${C_CYAN}gh run list${C_RESET})\n"
-    printf "  ${C_BOLD}2)${C_RESET} Inspect Latest Run & Failure Logs (${C_CYAN}gh run view --log-failed${C_RESET})\n"
-    printf "  ${C_BOLD}3)${C_RESET} Trigger Release Build Matrix in CI (${C_CYAN}macOS, Windows, Linux${C_RESET})\n"
-    printf "  ${C_BOLD}4)${C_RESET} Watch Release Build in Real Time (${C_CYAN}wait-and-verify-release.sh${C_RESET})\n"
-    printf "  ${C_BOLD}5)${C_RESET} Open GitHub Actions in Web Browser\n"
-    printf "  ${C_BOLD}b)${C_RESET} Back to Main Menu\n\n"
-    printf "  ${C_BOLD}Select an option:${C_RESET} "
+    ui_menu_item "1" "📋" "List Release Runs" "gh run list (last 5 runs)"
+    ui_menu_item "2" "🔍" "Inspect Latest Run" "gh run view & failure logs"
+    ui_menu_item "3" "⚡" "Trigger Matrix Build" "macOS, Windows, Linux CI"
+    ui_menu_item "4" "⏱ " "Watch Build Real-Time" "wait-and-verify-release.sh"
+    ui_menu_item "5" "🌐" "Open CI in Browser" "GitHub Actions dashboard"
+    ui_menu_item "b" "↩ " "Back to Main Menu" ""
+    ui_section_end
+    printf "  ${C_CYAN}${C_BOLD}Select an option [1-5, b]:${C_RESET} "
 
     local choice
     read -r choice || break

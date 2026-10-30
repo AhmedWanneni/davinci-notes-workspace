@@ -10,14 +10,14 @@ dev_menu() {
     ui_banner
     status_render_bar "$repo_root"
     ui_section "Run App & Development Modes" "🚀"
-
-    printf "  ${C_BOLD}1)${C_RESET} Start Desktop Application (${C_CYAN}Tauri + Vite Live Reload${C_RESET})\n"
-    printf "  ${C_BOLD}2)${C_RESET} Start Web Interface Only (${C_CYAN}Vite on localhost:1420${C_RESET})\n"
-    printf "  ${C_BOLD}3)${C_RESET} Start Astro Marketing Website (${C_CYAN}Astro on localhost:4321${C_RESET})\n"
-    printf "  ${C_BOLD}4)${C_RESET} Prepare Local Syncthing Binary (${C_CYAN}Download host sidecar${C_RESET})\n"
-    printf "  ${C_BOLD}5)${C_RESET} Prepare Emoji Dataset (${C_CYAN}emojibase data extraction${C_RESET})\n"
-    printf "  ${C_BOLD}b)${C_RESET} Back to Main Menu\n\n"
-    printf "  ${C_BOLD}Select an option:${C_RESET} "
+    ui_menu_item "1" "💻" "Start Desktop App" "Tauri + Vite Live Reload"
+    ui_menu_item "2" "🌐" "Start Web UI Only" "Vite on localhost:1420"
+    ui_menu_item "3" "🪐" "Start Marketing Site" "Astro on localhost:4321"
+    ui_menu_item "4" "🔄" "Fetch Syncthing Sidecar" "Download host binary"
+    ui_menu_item "5" "🎨" "Prepare Emoji Dataset" "emojibase extraction"
+    ui_menu_item "b" "↩ " "Back to Main Menu" ""
+    ui_section_end
+    printf "  ${C_CYAN}${C_BOLD}Select an option [1-5, b]:${C_RESET} "
 
     local choice
     read -r choice || break

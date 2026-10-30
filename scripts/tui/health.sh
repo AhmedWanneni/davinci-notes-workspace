@@ -10,14 +10,14 @@ health_menu() {
     ui_banner
     status_render_bar "$repo_root"
     ui_section "Health, Audits & Quality Gates" "🔍"
-
-    printf "  ${C_BOLD}1)${C_RESET} Run Full Preflight Release Audit (${C_CYAN}tree, branch, sync, web build${C_RESET})\n"
-    printf "  ${C_BOLD}2)${C_RESET} Audit Manifest Version Synchronization (${C_CYAN}all 6 manifests${C_RESET})\n"
-    printf "  ${C_BOLD}3)${C_RESET} Run Unit Test Suite (${C_CYAN}pnpm test${C_RESET})\n"
-    printf "  ${C_BOLD}4)${C_RESET} Audit Bundle Size Budgets (${C_CYAN}scripts/check-bundle-size.mjs${C_RESET})\n"
-    printf "  ${C_BOLD}5)${C_RESET} View Git Status & Uncommitted Diffs\n"
-    printf "  ${C_BOLD}b)${C_RESET} Back to Main Menu\n\n"
-    printf "  ${C_BOLD}Select an option:${C_RESET} "
+    ui_menu_item "1" "🧪" "Preflight Release Audit" "tree, branch, sync, web build"
+    ui_menu_item "2" "📋" "Version Sync Audit" "all 6 manifests"
+    ui_menu_item "3" "⚡" "Run Unit Test Suite" "pnpm test"
+    ui_menu_item "4" "📊" "Bundle Size Budgets" "scripts/check-bundle-size.mjs"
+    ui_menu_item "5" "🌿" "Git Status & Diffs" "uncommitted changes audit"
+    ui_menu_item "b" "↩ " "Back to Main Menu" ""
+    ui_section_end
+    printf "  ${C_CYAN}${C_BOLD}Select an option [1-5, b]:${C_RESET} "
 
     local choice
     read -r choice || break

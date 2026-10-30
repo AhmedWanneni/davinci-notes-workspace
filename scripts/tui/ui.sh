@@ -30,23 +30,34 @@ ui_banner() {
   ui_clear
   printf "${C_CYAN}${C_BOLD}"
   cat << "EOF"
-  ____        _   ___           _   _   _       _            
- |  _ \  __ _| \ / (_)_ __   ___(_) | \ | | ___ | |_ ___ ___ 
- | | | |/ _` |\ V /| | '_ \ / __| | |  \| |/ _ \| __/ _ \ __|
- | |_| | (_| | | | | | | | | (__| | | |\  | (_) | ||  __/\__ \
- |____/ \__,_| |_| |_|_| |_|\___|_| |_| \_|\___/ \__\___||___/
+  ╭─────────────────────────────────────────────────────────────╮
+  │   ✦  SOPHIA DEVKIT  —  DaVinci Notes Terminal Suite        │
+  │      Fast · Local-First · Multi-Platform Desktop Engine     │
+  ╰─────────────────────────────────────────────────────────────╯
 EOF
   printf "${C_RESET}"
-  printf "${C_MUTED}  ─────────────────────────────────────────────────────────────${C_RESET}\n"
-  printf "  ${C_BOLD}${C_WHITE}DaVinci Notes / Sophia — Developer & Release Control Center${C_RESET}\n"
-  printf "${C_MUTED}  ─────────────────────────────────────────────────────────────${C_RESET}\n\n"
 }
 
 ui_section() {
   local title="$1"
   local icon="${2:-◆}"
-  printf "\n  ${C_CYAN}${C_BOLD}%s %s${C_RESET}\n" "$icon" "$title"
-  printf "  ${C_MUTED}───────────────────────────────────────────────────────────${C_RESET}\n"
+  printf "\n  ${C_CYAN}${C_BOLD}╭─ %s %s${C_RESET}\n" "$icon" "$title"
+}
+
+ui_menu_item() {
+  local key="$1"
+  local icon="$2"
+  local title="$3"
+  local desc="${4:-}"
+  if [[ -n "$desc" ]]; then
+    printf "  ${C_CYAN}│${C_RESET}  ${C_BOLD}[ %s ]${C_RESET} %s  ${C_BOLD}%-24s${C_RESET} ${C_MUTED}%s${C_RESET}\n" "$key" "$icon" "$title" "$desc"
+  else
+    printf "  ${C_CYAN}│${C_RESET}  ${C_BOLD}[ %s ]${C_RESET} %s  ${C_BOLD}%s${C_RESET}\n" "$key" "$icon" "$title"
+  fi
+}
+
+ui_section_end() {
+  printf "  ${C_CYAN}╰─────────────────────────────────────────────────────────────${C_RESET}\n\n"
 }
 
 ui_info() {

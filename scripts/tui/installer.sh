@@ -30,32 +30,20 @@ installer_sync_from_tauri() {
   fi
 
   for bundle_dir in "${bundle_dirs[@]}"; do
-    # Copy DMG files
-    for f in "${bundle_dir}/dmg/"*.dmg; do
-      if [[ -f "$f" ]]; then
-        cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
-      fi
-    done
-    # Copy macOS App packages
+    # Copy macOS App packages and apply ad-hoc code signature
     for f in "${bundle_dir}/macos/"*.app; do
       if [[ -d "$f" ]]; then
         local base
         base="$(basename "$f")"
         rm -rf "${inst_dir}/${base}"
         cp -R "$f" "$inst_dir/"
+        gatekeeper_sign_app "${inst_dir}/${base}"
       fi
     done
-    # Copy Linux artifacts
-    for f in "${bundle_dir}/appimage/"*.AppImage "${bundle_dir}/deb/"*.deb; do
-      if [[ -f "$f" ]]; then
-        cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
-      fi
-    done
-    # Copy Windows artifacts
-    for f in "${bundle_dir}/msi/"*.msi "${bundle_dir}/nsis/"*.exe; do
-      if [[ -f "$f" ]]; then
-        cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/"
-      fi
+    # Copy DMG, Linux and Windows artifacts
+    for f in "${bundle_dir}/dmg/"*.dmg "${bundle_dir}/appimage/"*.AppImage \
+             "${bundle_dir}/deb/"*.deb "${bundle_dir}/msi/"*.msi "${bundle_dir}/nsis/"*.exe; do
+      [[ -f "$f" ]] && (cp -u "$f" "$inst_dir/" 2>/dev/null || cp "$f" "$inst_dir/")
     done
   done
 }
@@ -86,9 +74,13 @@ installer_perform_install() {
             local app_in_vol
             app_in_vol="$(find "$mount_point" -maxdepth 2 -name "*.app" | head -1 || true)"
             if [[ -n "$app_in_vol" ]]; then
-              ui_info "Copying $(basename "$app_in_vol") to /Applications..."
+              local app_name
+              app_name="$(basename "$app_in_vol")"
+              ui_info "Copying ${app_name} to /Applications..."
               cp -R "$app_in_vol" /Applications/
-              ui_success "Installed to /Applications! You can now launch Sophia from Spotlight or Launchpad."
+              ui_info "Applying clean code signature & clearing Gatekeeper quarantine..."
+              gatekeeper_sign_app "/Applications/${app_name}"
+              ui_success "Installed to /Applications! Ready to launch without 'Damaged' errors."
             else
               ui_warn "No .app found in mounted volume."
             fi
@@ -110,6 +102,7 @@ installer_perform_install() {
     fi
   elif [[ "$file" == *.app ]]; then
     if [[ "$OSTYPE" == "darwin"* ]]; then
+      gatekeeper_sign_app "$file"
       ui_info "Launching application: ${file}..."
       open "$file"
       ui_success "Application launched!"
@@ -188,12 +181,13 @@ installer_menu() {
       printf "  ${C_BOLD}%2d)${C_RESET} %s %-36s ${C_CYAN}%-10s${C_RESET}\n" "$((i+1))" "$os_badge" "$base" "$sz"
     done
 
-    printf "\n  ${C_BOLD}Actions:${C_RESET} Enter file number to install/reveal, 'o' to open folder, 'b' to go back.\n"
-    printf "  ${C_BOLD}Select [1-%d]:${C_RESET} " "${#files[@]}"
+    printf "\n  ${C_BOLD}Actions:${C_RESET} Enter file #, ${C_BOLD}[f]${C_RESET} Fix Gatekeeper on /Applications, ${C_BOLD}[o]${C_RESET} Open folder, ${C_BOLD}[b]${C_RESET} Back\n"
+    printf "  ${C_BOLD}Select [1-%d, f, o, b]:${C_RESET} " "${#files[@]}"
 
     local sel
     read -r sel || break
     case "$sel" in
+      f|F) gatekeeper_fix_interactive "$repo_root" ;;
       o|O)
         open "$inst_dir" 2>/dev/null || xdg-open "$inst_dir" 2>/dev/null || true
         ui_success "Opened folder: $inst_dir"
@@ -204,11 +198,12 @@ installer_menu() {
         if [[ "$sel" =~ ^[0-9]+$ ]] && (( sel >= 1 && sel <= ${#files[@]} )); then
           local target_file="${files[$((sel-1))]}"
           printf "\n  ${C_BOLD}Selected:${C_RESET} %s\n" "$(basename "$target_file")"
-          printf "  ${C_BOLD}1)${C_RESET} 🚀 ${C_GREEN}Install / Launch Now${C_RESET}\n"
-          printf "  ${C_BOLD}2)${C_RESET} 📂 Reveal in Finder / File Explorer\n"
-          printf "  ${C_BOLD}3)${C_RESET} 📋 Copy absolute file path\n"
-          printf "  ${C_BOLD}4)${C_RESET} 🔐 View SHA256 checksum\n"
-          printf "  ${C_BOLD}Choose action [1-4]:${C_RESET} "
+          printf "  ${C_BOLD}[ 1 ]${C_RESET} 🚀 ${C_GREEN}Install / Launch Now${C_RESET}\n"
+          printf "  ${C_BOLD}[ 2 ]${C_RESET} 📂 Reveal in Finder / File Explorer\n"
+          printf "  ${C_BOLD}[ 3 ]${C_RESET} 🛡️ Fix 'Damaged' Gatekeeper Error\n"
+          printf "  ${C_BOLD}[ 4 ]${C_RESET} 📋 Copy absolute file path\n"
+          printf "  ${C_BOLD}[ 5 ]${C_RESET} 🔐 View SHA256 checksum\n"
+          printf "  ${C_BOLD}Choose action [1-5]:${C_RESET} "
           local act
           read -r act || act="1"
           case "$act" in
@@ -222,8 +217,13 @@ installer_menu() {
               ui_success "Revealed in File Manager."
               ui_pause
               ;;
-            3) ui_copy_clipboard "$target_file" "installer path"; ui_pause ;;
-            4)
+            3)
+              gatekeeper_sign_app "$target_file"
+              ui_success "Applied clean signature & cleared quarantine on $(basename "$target_file")"
+              ui_pause
+              ;;
+            4) ui_copy_clipboard "$target_file" "installer path"; ui_pause ;;
+            5)
               if command -v shasum >/dev/null 2>&1; then
                 ui_info "SHA256: $(shasum -a 256 "$target_file" | awk '{print $1}')"
               fi

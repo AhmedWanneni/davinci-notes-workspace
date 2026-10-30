@@ -49,14 +49,14 @@ status_render_bar() {
   fi
 
   # Render formatted status box
-  printf "  ${C_MUTED}┌─────────────────────────────────────────────────────────┐${C_RESET}\n"
+  printf "  ${C_MUTED}╭─────────────────────────────────────────────────────────╮${C_RESET}\n"
   printf "  ${C_MUTED}│${C_RESET} ${C_BOLD}Branch:${C_RESET} %-18s ${C_MUTED}│${C_RESET} ${C_BOLD}State:${C_RESET} %-23b ${C_MUTED}│${C_RESET}\n" \
     "$branch" "$dirty_badge"
   printf "  ${C_MUTED}│${C_RESET} ${C_BOLD}Version:${C_RESET} v%-17s ${C_MUTED}│${C_RESET} ${C_BOLD}Syncthing:${C_RESET} %-20b ${C_MUTED}│${C_RESET}\n" \
     "$version" "$st_status"
   printf "  ${C_MUTED}│${C_RESET} ${C_BOLD}Host:${C_RESET} %-20s ${C_MUTED}│${C_RESET} ${C_BOLD}Architecture:${C_RESET} %-14s ${C_MUTED}│${C_RESET}\n" \
     "$host_os" "$host_arch"
-  printf "  ${C_MUTED}└─────────────────────────────────────────────────────────┘${C_RESET}\n"
+  printf "  ${C_MUTED}╰─────────────────────────────────────────────────────────╯${C_RESET}\n"
 }
 
 status_show_diagnostics() {

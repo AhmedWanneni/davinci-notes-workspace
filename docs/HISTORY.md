@@ -2,6 +2,20 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
+
+- **Gatekeeper & Quarantine Repair Module (`scripts/tui/gatekeeper.sh`)**:
+  - Identified root cause of macOS "Sophia is damaged and can't be opened": Tauri's bundler produced `code has no resources but signature indicates they must be present` due to an incomplete seal between the main binary and the `syncthing` sidecar without a Developer ID certificate.
+  - Implemented `gatekeeper_sign_app`, `gatekeeper_verify_app`, and `gatekeeper_fix_interactive` to strip `com.apple.quarantine` and apply a deep ad-hoc code signature (`codesign --force --deep --sign -`).
+  - Added 1-key interactive fix `[ f ]` in `scripts/manage.sh`, CLI flag `-f` / `--fix`, and `pnpm fix:damaged` script.
+- **DMG Re-packaging & Automated Post-Install Signing (`scripts/tui/build.sh`, `scripts/tui/installer.sh`)**:
+  - Updated `build_macos_target` to automatically ad-hoc sign `Sophia.app` and re-pack it into `Sophia_0.1.0_*.dmg` via `hdiutil create` with quarantine flags stripped.
+  - Updated `installer_perform_install` to automatically ad-hoc sign `/Applications/Sophia.app` upon copying.
+- **DevKit Terminal Styling Upgrade (`scripts/tui/ui.sh`, `scripts/tui/status.sh`, `scripts/manage.sh`, `dev.sh`, `ci.sh`, `health.sh`)**:
+  - Restyled dashboard with modern DevKit UI aesthetics: rounded Unicode box frames (`╭───╮`, `│`, `╰───╯`), styled keycaps (`[ 1 ]`, `[ f ]`), and unified menu cards.
+
+---
+
 ### 2026-10-30: Desktop Updates — TUI Launcher, Packaging Workflows & Script Convenience
 
 - **Root & Desktop Convenience Scripts (`package.json`, `apps/desktop/package.json`)**:
