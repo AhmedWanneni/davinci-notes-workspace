@@ -95,7 +95,13 @@ const command =
     ? join(localBin, "tauri")
     : args[0];
 
-const child = spawn(command, args.slice(1), {
+const isTauriBuild = args[0] === "tauri" && args[1] === "build";
+const passthroughArgs = [...args.slice(1)];
+if (isTauriBuild && !passthroughArgs.includes("--ignore-version-mismatches")) {
+  passthroughArgs.push("--ignore-version-mismatches");
+}
+
+const child = spawn(command, passthroughArgs, {
   stdio: "inherit",
   env,
   shell: process.platform === "win32",

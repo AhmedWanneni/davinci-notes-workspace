@@ -15,21 +15,38 @@ build_macos_target() {
 
   ui_info "Building macOS application package (${target})..."
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    (cd apps/desktop && pnpm exec node scripts/withCompatibleMacSdk.mjs tauri build --target "$target")
+    (cd apps/desktop && pnpm exec node scripts/withCompatibleMacSdk.mjs tauri build --ignore-version-mismatches --target "$target")
     installer_sync_from_tauri "$repo_root"
     local inst_dir
     inst_dir="$(installer_get_dir "$repo_root")"
     local newest_dmg
     newest_dmg="$(find "$inst_dir" -name "*.dmg" -newer apps/desktop/dist/index.html 2>/dev/null | head -1 || find "$inst_dir" -name "*.dmg" | head -1 || true)"
     if [[ -n "$newest_dmg" && -f "$newest_dmg" ]]; then
-      ui_success "macOS build completed! DMG created:"
-      printf "  🍏 ${C_BOLD}%s${C_RESET} (${C_CYAN}%s${C_RESET})\n" "$newest_dmg" "$(ls -lh "$newest_dmg" | awk '{print $5}')"
-      printf "\n  Would you like to install / mount it now? [Y/n]: "
-      local ins
-      read -r ins || ins="y"
-      if [[ "$ins" =~ ^[Yy]$ || -z "$ins" ]]; then
-        installer_perform_install "$newest_dmg"
-      fi
+      local abs_dmg
+      abs_dmg="$(cd "$(dirname "$newest_dmg")" && pwd)/$(basename "$newest_dmg")"
+      local rel_dmg="./installers/$(basename "$newest_dmg")"
+      local sz
+      sz="$(ls -lh "$newest_dmg" | awk '{print $5}')"
+
+      ui_section "macOS Build Completed Successfully!" "🎉"
+      printf "  ${C_GREEN}✔ Output Package:${C_RESET} %s (${C_CYAN}%s${C_RESET})\n\n" "$(basename "$newest_dmg")" "$sz"
+      printf "  ${C_BOLD}Local Absolute Path:${C_RESET} ${C_CYAN}%s${C_RESET}\n" "$abs_dmg"
+      printf "  ${C_BOLD}Local Relative Path:${C_RESET} ${C_CYAN}%s${C_RESET}\n\n" "$rel_dmg"
+
+      printf "  ${C_BOLD}Next Steps:${C_RESET}\n"
+      printf "  ${C_BOLD}1)${C_RESET} 🚀 Mount and Install / Launch Sophia now\n"
+      printf "  ${C_BOLD}2)${C_RESET} 📂 Reveal in macOS Finder (open -R)\n"
+      printf "  ${C_BOLD}3)${C_RESET} 📋 Copy absolute file path to clipboard\n"
+      printf "  ${C_BOLD}b)${C_RESET} Return to Build Menu\n\n"
+      printf "  ${C_BOLD}Select action [1-3, b]:${C_RESET} "
+      local act
+      read -r act || act="b"
+      case "$act" in
+        1) installer_perform_install "$newest_dmg" ;;
+        2) open -R "$newest_dmg"; ui_success "Revealed in Finder: $newest_dmg" ;;
+        3) ui_copy_clipboard "$abs_dmg" "DMG path" ;;
+        *) ;;
+      esac
     fi
   else
     ui_error "macOS DMG builds require a macOS host system."

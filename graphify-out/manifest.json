@@ -272,9 +272,9 @@
     "semantic_hash": "9e7f58071b5a127f2babfc16d0117a49"
   },
   "apps/desktop/package.json": {
-    "mtime": 1793365783.5719597,
-    "seen": 1793373244.22963,
-    "ast_hash": "c5fb8887bcf188b68d1ef3b6ee699bd6",
+    "mtime": 1793373965.1148424,
+    "seen": 1793374015.864683,
+    "ast_hash": "ea3e879eb12f130b7c712430af9d8429",
     "semantic_hash": ""
   },
   "apps/desktop/postcss.config.cjs": {
@@ -314,9 +314,9 @@
     "semantic_hash": "f4b984eac6b6307e31850ddd54c7f780"
   },
   "apps/desktop/scripts/withCompatibleMacSdk.mjs": {
-    "mtime": 1793373477.1716805,
-    "seen": 1793373585.251829,
-    "ast_hash": "c59277e4b2710c4759a9cb55e2f25e16",
+    "mtime": 1793373938.430003,
+    "seen": 1793374015.8649862,
+    "ast_hash": "330e8b7ccbd15a02a4357344e1932e13",
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/Cargo.toml": {
@@ -5510,8 +5510,8 @@
     "semantic_hash": "7eac3898c584d7b4477a7899c2cb996f"
   },
   "apps/desktop/vite.config.ts": {
-    "mtime": 1793373505.2628024,
-    "seen": 1793373585.293588,
+    "mtime": 1793373642.2652879,
+    "seen": 1793374015.91375,
     "ast_hash": "9dc4071c88ba2276702765156aadd962",
     "semantic_hash": ""
   },
@@ -13289,9 +13289,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793373556.3139865,
-    "seen": 1793373585.348632,
-    "ast_hash": "05fcf23885f4851a27edbf274bb165f4",
+    "mtime": 1793373984.7222393,
+    "seen": 1793374015.980277,
+    "ast_hash": "d39c8f1fa1d0a92a2f4b47afbd02f4a6",
     "semantic_hash": ""
   },
   "README.md": {
@@ -15923,9 +15923,9 @@
     "semantic_hash": ""
   },
   "scripts/tui/build.sh": {
-    "mtime": 1793373510.1411607,
-    "seen": 1793373585.3458781,
-    "ast_hash": "258f4764d76613e6262c2c6dd0065c65",
+    "mtime": 1793373953.0606298,
+    "seen": 1793374015.976835,
+    "ast_hash": "d5c23ae8268cae4a3e1a99e6a6804272",
     "semantic_hash": ""
   },
   "scripts/tui/ci.sh": {
