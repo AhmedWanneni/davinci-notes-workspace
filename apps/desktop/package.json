@@ -8,7 +8,7 @@
     "prepare:emoji-data": "node scripts/copyEmojiData.mjs",
     "prepare:syncthing": "node scripts/fetchSyncthing.mjs",
     "dev:web": "pnpm prepare:emoji-data && pnpm prepare:syncthing && vite",
-    "dev": "node scripts/withCompatibleMacSdk.mjs tauri dev",
+    "dev": "node scripts/withCompatibleMacSdk.mjs tauri dev --ignore-version-mismatches",
     "build:web": "pnpm prepare:emoji-data && pnpm prepare:syncthing && vite build",
     "build": "pnpm build:web && node scripts/withCompatibleMacSdk.mjs tauri build --ignore-version-mismatches",
     "lint": "eslint . --ext .ts,.tsx",

@@ -25,7 +25,7 @@ dev_menu() {
       1)
         ui_info "Starting DaVinci Notes Desktop in development mode..."
         ui_info "Press Ctrl+C inside the terminal to terminate."
-        pnpm dev
+        pnpm --filter @app/desktop dev
         ui_pause
         ;;
       2)

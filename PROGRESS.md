@@ -4,7 +4,28 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Interactive Bash TUI Application & Release Manager (ADR-0250)
+## Last Session — Desktop Updates & Development Script Enhancements
+
+**Scope:** Polish desktop package scripts, add root workspace shortcuts for `@app/desktop` dev and build workflows, and ensure `--ignore-version-mismatches` is consistently applied across all platform build targets in the interactive TUI.
+
+**What was done:**
+1. **Root & Desktop Convenience Scripts (`package.json`, `apps/desktop/package.json`)**:
+   - Added `"desktop:build"` and `"desktop:dev"` to root `package.json` for rapid CLI access.
+   - Updated `apps/desktop/package.json` `"dev"` script to append `--ignore-version-mismatches`, eliminating Tauri version mismatch crashes during local frontend live reload.
+2. **TUI Development Mode Launcher (`scripts/tui/dev.sh`)**:
+   - Updated option 1 to execute `pnpm --filter @app/desktop dev` directly instead of running whole-monorepo dev.
+3. **Multi-Platform Build Flag Parity (`scripts/tui/build.sh`)**:
+   - Injected `--ignore-version-mismatches` to native Windows and Linux builds to ensure platform parity with macOS packaging.
+
+---
+
+## Next Up
+- Test `pnpm desktop:dev` and `pnpm desktop:build` from root.
+- Validate DMG and App bundle launch on local macOS environment.
+
+---
+
+## Previous Session — Interactive Bash TUI Application & Release Manager (ADR-0250)
 
 **Scope:** Create a user-friendly, modular Bash Text User Interface (TUI) in `scripts/manage.sh` (with alias `scripts/tui.sh` and npm scripts `pnpm manage` / `pnpm tui`) to manage the app, run dev modes, compile/package local applications, trigger/watch GitHub CI matrix builds, and discover/copy direct download links for macOS (ARM/Intel DMG), Windows (EXE), Linux (AppImage/DEB), and checksums.
 
