@@ -15,6 +15,7 @@ describe("SyncthingPanel Component", () => {
     uptime: 120,
     qrDataUrl:
       "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    configuredDevices: [],
     pendingDevices: [],
     pendingFolders: [],
     errorMessage: null,
@@ -174,5 +175,44 @@ describe("SyncthingPanel Component", () => {
     fireEvent.click(refreshBtn);
 
     expect(refreshMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders paired devices and switches between Phone and Computer pairing tabs", () => {
+    const customWithDevices: SyncthingStatusState = {
+      ...baseStatus,
+      configuredDevices: [
+        {
+          deviceId:
+            "ARJZ7MZ-ZPVJ4XL-6IIAEOV-2LZQZOR-2RBFRXI-62QV5WS-Y32WHPD-TWOP4QR",
+          name: "Work Laptop",
+          connected: true,
+          paused: false,
+          address: "192.168.1.100:22000",
+          isVaultShared: true,
+        },
+      ],
+    };
+
+    render(
+      <SyncthingPanel
+        customStatus={customWithDevices}
+        customPairing={basePairing}
+      />,
+    );
+
+    // Paired devices should be visible
+    expect(screen.getByText("Work Laptop")).toBeDefined();
+    expect(screen.getByText("Vault Shared")).toBeDefined();
+
+    // Default tab is Phone (QR Code)
+    expect(screen.getByTestId("syncthing-qr-image")).toBeDefined();
+
+    // Switch to Connect Computer
+    const computerTab = screen.getByText("Connect Computer (Device ID)");
+    fireEvent.click(computerTab);
+
+    // Add device form should be visible
+    expect(screen.getByTestId("syncthing-add-device")).toBeDefined();
+    expect(screen.queryByTestId("syncthing-qr-image")).toBeNull();
   });
 });

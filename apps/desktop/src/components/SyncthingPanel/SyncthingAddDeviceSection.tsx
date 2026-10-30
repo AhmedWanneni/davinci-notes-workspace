@@ -1,11 +1,15 @@
 import React, { useState } from "react";
 import { Button, Input, Typography } from "@app/design-system";
-import { PlusCircle, WarningCircle } from "@phosphor-icons/react";
-import { syncthingAddDevice } from "./syncthingCommands";
+import { Check, Info, PlusCircle, WarningCircle } from "@phosphor-icons/react";
+import {
+  syncthingAddDevice,
+  syncthingShareVaultFolder,
+} from "./syncthingCommands";
 import styles from "./SyncthingAddDeviceSection.module.scss";
 
 interface Props {
   onAdded: () => Promise<void>;
+  localDeviceId?: string;
 }
 
 export function isValidDeviceIdFormat(id: string): boolean {
@@ -23,10 +27,12 @@ export function formatDeviceIdGroups(raw: string): string {
   return groups.join("-");
 }
 
-export function SyncthingAddDeviceSection({ onAdded }: Props) {
+export function SyncthingAddDeviceSection({ onAdded, localDeviceId }: Props) {
   const [deviceIdInput, setDeviceIdInput] = useState("");
   const [deviceNameInput, setDeviceNameInput] = useState("");
+  const [autoShareVault, setAutoShareVault] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const cleanId = deviceIdInput.trim().toUpperCase().replace(/[\s-]/g, "");
@@ -35,6 +41,7 @@ export function SyncthingAddDeviceSection({ onAdded }: Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
 
     const formatted = formatDeviceIdGroups(deviceIdInput);
     if (!isValidDeviceIdFormat(formatted)) {
@@ -47,8 +54,14 @@ export function SyncthingAddDeviceSection({ onAdded }: Props) {
     setSubmitting(true);
     try {
       await syncthingAddDevice(formatted, deviceNameInput);
+      if (autoShareVault) {
+        await syncthingShareVaultFolder(formatted).catch(() => {});
+      }
       setDeviceIdInput("");
       setDeviceNameInput("");
+      setSuccess(
+        "Device added! Remember to also add or accept this Mac's ID on that device.",
+      );
       await onAdded();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -59,13 +72,32 @@ export function SyncthingAddDeviceSection({ onAdded }: Props) {
   };
 
   return (
-    <div className={styles["add-device-card"]}>
+    <div
+      className={styles["add-device-card"]}
+      data-testid="syncthing-add-device"
+    >
       <div className={styles["add-device-card__header"]}>
         <div className={styles["add-device-card__title"]}>
           <PlusCircle size={16} />
           <Typography variant="h4" size="sm">
-            Add Remote Device
+            Add Another Computer / Device
           </Typography>
+        </div>
+      </div>
+
+      <div className={styles["add-device-card__notice"]}>
+        <Info size={16} />
+        <div>
+          <strong>Syncthing requires two-way authorization.</strong>
+          <p>
+            After adding this device, you must also paste or accept this Mac's
+            Device ID on that device to connect.
+          </p>
+          {Boolean(localDeviceId) && (
+            <code>
+              {localDeviceId?.slice(0, 7)}...{localDeviceId?.slice(-7)}
+            </code>
+          )}
         </div>
       </div>
 
@@ -78,7 +110,7 @@ export function SyncthingAddDeviceSection({ onAdded }: Props) {
             className={styles["add-device-card__label"]}
             htmlFor="syncthing-device-id"
           >
-            Device ID
+            Remote Device ID
           </label>
           <Input
             id="syncthing-device-id"
@@ -86,6 +118,7 @@ export function SyncthingAddDeviceSection({ onAdded }: Props) {
             onChange={(e) => {
               setDeviceIdInput(e.target.value);
               setError(null);
+              setSuccess(null);
             }}
             placeholder="XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX"
             className={styles["add-device-card__input-mono"]}
@@ -110,15 +143,40 @@ export function SyncthingAddDeviceSection({ onAdded }: Props) {
             id="syncthing-device-name"
             value={deviceNameInput}
             onChange={(e) => setDeviceNameInput(e.target.value)}
-            placeholder="e.g. Pixel 8, Work Laptop"
+            placeholder="e.g. Work Laptop, Linux Server"
             autoComplete="off"
           />
+        </div>
+
+        <div className={styles["add-device-card__checkbox-row"]}>
+          <input
+            type="checkbox"
+            id="auto-share-vault"
+            checked={autoShareVault}
+            onChange={(e) => setAutoShareVault(e.target.checked)}
+          />
+          <label
+            htmlFor="auto-share-vault"
+            className={styles["add-device-card__checkbox-label"]}
+          >
+            Automatically share active vault with this device
+          </label>
         </div>
 
         {error && (
           <div className={styles["add-device-card__error-alert"]} role="alert">
             <WarningCircle size={14} />
             <span>{error}</span>
+          </div>
+        )}
+
+        {success && (
+          <div
+            className={styles["add-device-card__success-alert"]}
+            role="status"
+          >
+            <Check size={14} />
+            <span>{success}</span>
           </div>
         )}
 
@@ -137,3 +195,5 @@ export function SyncthingAddDeviceSection({ onAdded }: Props) {
     </div>
   );
 }
+
+export default SyncthingAddDeviceSection;

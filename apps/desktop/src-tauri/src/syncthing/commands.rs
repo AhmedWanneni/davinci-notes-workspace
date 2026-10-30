@@ -8,7 +8,7 @@ use super::client::SyncthingClient;
 use super::config::{resolve_local_syncthing_config, SyncthingResolvedConfig};
 use super::lifecycle::SyncthingManager;
 use super::types::{
-  SyncthingDetectResult, SyncthingError, SyncthingLifecycleStatus,
+  SyncthingConfiguredDevice, SyncthingDetectResult, SyncthingError, SyncthingLifecycleStatus,
   SyncthingPendingDevice, SyncthingPendingFolder, SyncthingStatusResult,
   SyncthingVaultFolderInfo,
 };
@@ -111,6 +111,32 @@ pub async fn syncthing_add_device(
   let config = resolve_active_config(window.app_handle())?;
   let client = SyncthingClient::new(config)?;
   client.add_device(&id, &name).await
+}
+
+#[command]
+pub async fn syncthing_list_devices(
+  window: WebviewWindow,
+  app: AppHandle,
+) -> Result<Vec<SyncthingConfiguredDevice>, SyncthingError> {
+  reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
+  let config = resolve_active_config(&app)?;
+  let client = SyncthingClient::new(config)?;
+  let vault_root = app
+    .state::<VaultState>()
+    .get_root()
+    .ok();
+  client.list_devices(vault_root.as_deref()).await
+}
+
+#[command]
+pub async fn syncthing_remove_device(
+  window: WebviewWindow,
+  id: String,
+) -> Result<(), SyncthingError> {
+  reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
+  let config = resolve_active_config(window.app_handle())?;
+  let client = SyncthingClient::new(config)?;
+  client.remove_device(&id).await
 }
 
 #[command]

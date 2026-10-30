@@ -3,6 +3,7 @@ pub mod client;
 pub mod commands;
 pub mod config;
 pub mod devices;
+pub mod devices_pending;
 pub mod folders;
 pub mod folders_pending;
 pub mod lifecycle;

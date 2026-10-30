@@ -2,6 +2,33 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Syncthing Device Connection Investigation, Paired Devices List & Settings UX Polish
+
+- **Root-Cause Investigation for "Not Connected"**:
+  - Analyzed Syncthing daemon runtime configuration in `~/Library/Application Support/com.sophia.notes/syncthing/config.xml` and protocol lifecycle:
+    - Adding a remote device ID on Mac creates a configuration entry, but Syncthing uses mutual TLS authentication. The remote device will reject/ignore connection attempts until the user either accepts the incoming request on the remote device or pastes the Mac's Device ID into that remote device.
+    - Syncthing relies on dynamic local discovery (UDP port 21027) or global discovery / relays (`*.syncthing.net`), requiring 30–60 seconds for network endpoint exchange.
+    - The existing `SyncthingPanel` lacked any configured/paired devices list, and the separate "Share Active Vault" input caused confusion by asking users to re-paste the same 56-character ID.
+- **Backend Devices Management (`apps/desktop/src-tauri/src/syncthing/`)**:
+  - Added `SyncthingConfiguredDevice` struct with fields for device ID, name, connection status, paused status, address, last seen, and vault sharing status.
+  - Implemented `list_devices()` and `remove_device()` on `SyncthingClient`, querying both `/rest/config/devices` and `/rest/system/connections`, and verifying active vault folder sharing.
+  - Exposed `syncthing_list_devices` and `syncthing_remove_device` Tauri commands.
+  - Split `devices.rs` into `devices.rs` (233 lines) and `devices_pending.rs` (69 lines) adhering strictly to the < 250 line limit in `AGENTS.md`.
+- **Shared API & Command Bindings (`packages/syncthing-api/`, `syncthingCommands.ts`)**:
+  - Exported `SyncthingConfiguredDevice` in `@app/syncthing-api/types.ts`.
+  - Added frontend wrappers `syncthingListDevices` and `syncthingRemoveDevice` in `syncthingCommands.ts`.
+  - Updated `useSyncthingStatus.ts` hook to retrieve and maintain live `configuredDevices`.
+- **UI Overhaul & Redesign (`apps/desktop/src/components/SyncthingPanel/`)**:
+  - Created `SyncthingPairedDevicesSection` with live status indicators (🟢 Connected with address, 🟡 Disconnected with mutual-authorization guidance), vault sharing badge, and Unpair button.
+  - Redesigned `SyncthingAddDeviceSection` with mutual pairing notice, local Mac Device ID reference, and an automatic "Share active vault with this device" checkbox.
+  - Redesigned `SyncthingPanel` layout with clean mode tabs: `[Connect Phone (QR Code)]` vs `[Connect Computer (Device ID)]`, eliminating clutter and removing the redundant separate "Share Active Vault" form.
+- **Testing & Quality Assurance**:
+  - Added unit test suites `SyncthingPairedDevicesSection.test.tsx`, `SyncthingAddDeviceSection.test.tsx`, and updated `SyncthingPanel.test.tsx` (all 26 tests passing).
+  - Validated all 20 Syncthing Rust unit tests (`cargo test syncthing`).
+  - Updated AST knowledge graph with `graphify update .`.
+
+---
+
 ### 2026-10-30: QuickCapture Application Quit & Complete Teardown
 
 - **Tauri Native Quit Pipeline (`apps/desktop/src-tauri/`)**:

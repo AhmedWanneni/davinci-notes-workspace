@@ -674,9 +674,9 @@
     "semantic_hash": "f1e07668b5555b0da68ca6574744e4be"
   },
   "apps/desktop/src-tauri/src/lib.rs": {
-    "mtime": 1793393706.014392,
-    "seen": 1793393775.1700008,
-    "ast_hash": "eb9a78d18a738a22b1e5a3aade8e49fc",
+    "mtime": 1793395473.5341294,
+    "seen": 1793396113.6902158,
+    "ast_hash": "c8a4937849a90e9aced5862362172b87",
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/macos_panel.rs": {
@@ -800,10 +800,10 @@
     "semantic_hash": "6057dc4a39dd390c438e54f11d966672"
   },
   "apps/desktop/src-tauri/src/syncthing/commands.rs": {
-    "mtime": 1793298539.4802506,
-    "seen": 1793365744.367521,
-    "ast_hash": "b1e4613f5d4eb4757affc465f4f51cb2",
-    "semantic_hash": "b1e4613f5d4eb4757affc465f4f51cb2"
+    "mtime": 1793395462.303902,
+    "seen": 1793396113.690965,
+    "ast_hash": "28451fd8e7c76e6150071c6fc6833b62",
+    "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/syncthing/config.rs": {
     "mtime": 1792835118.4599361,
@@ -812,10 +812,10 @@
     "semantic_hash": "5d0a49ab0d72c3e26a8db5c6a38fa7cd"
   },
   "apps/desktop/src-tauri/src/syncthing/devices.rs": {
-    "mtime": 1792835118.460331,
-    "seen": 1793294971.28895,
-    "ast_hash": "80438505ca8b506b579dacde40d03a55",
-    "semantic_hash": "80438505ca8b506b579dacde40d03a55"
+    "mtime": 1793395422.4486146,
+    "seen": 1793396113.691005,
+    "ast_hash": "5c043fe695e4a6f8ab4962e42d11183b",
+    "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/syncthing/folders.rs": {
     "mtime": 1793298539.4805002,
@@ -854,10 +854,10 @@
     "semantic_hash": "75191b5546f645ec2c38933ea0c25e25"
   },
   "apps/desktop/src-tauri/src/syncthing/mod.rs": {
-    "mtime": 1793298539.480998,
-    "seen": 1793365744.367676,
-    "ast_hash": "9fb8b27e3058a03aae9f26f5750f1517",
-    "semantic_hash": "9fb8b27e3058a03aae9f26f5750f1517"
+    "mtime": 1793395432.4142644,
+    "seen": 1793396113.6912482,
+    "ast_hash": "7cd8360e2c573d48699ad49945252e2b",
+    "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/syncthing/process.rs": {
     "mtime": 1793298539.4811862,
@@ -896,10 +896,10 @@
     "semantic_hash": "89c67c512425c4f8bd92a16e4f05883b"
   },
   "apps/desktop/src-tauri/src/syncthing/types.rs": {
-    "mtime": 1793298539.4814765,
-    "seen": 1793365744.367933,
-    "ast_hash": "d5173fb8f29c7b97e256aeb693639366",
-    "semantic_hash": "d5173fb8f29c7b97e256aeb693639366"
+    "mtime": 1793395361.2374113,
+    "seen": 1793396113.691486,
+    "ast_hash": "004ae2336034e67b648b2a03bdbf1ab0",
+    "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/theme_files.rs": {
     "mtime": 1792835118.464327,
@@ -3896,16 +3896,16 @@
     "semantic_hash": "07b6884f0a3488d07175a7e472ce2706"
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingAddDeviceSection.test.tsx": {
-    "mtime": 1792835118.4888978,
-    "seen": 1793294971.317615,
-    "ast_hash": "f182eaa88931093f9c5e85543ca7da75",
-    "semantic_hash": "f182eaa88931093f9c5e85543ca7da75"
+    "mtime": 1793395720.8779366,
+    "seen": 1793396113.7112992,
+    "ast_hash": "f97830251616dbcbfbc571062cd81058",
+    "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingAddDeviceSection.tsx": {
-    "mtime": 1792835118.4892304,
-    "seen": 1793294971.317674,
-    "ast_hash": "adefc65fdd87f42614648d420ac48166",
-    "semantic_hash": "adefc65fdd87f42614648d420ac48166"
+    "mtime": 1793395702.8343937,
+    "seen": 1793396113.7113001,
+    "ast_hash": "26a5f49f0c085fb0ebd6031c5b0fbce1",
+    "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingCheckItemRow.tsx": {
     "mtime": 1792835118.4894342,
@@ -3914,22 +3914,22 @@
     "semantic_hash": "4c037a06ee2e8ab9d01dee2d7b2db9f5"
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingPanel.stories.tsx": {
-    "mtime": 1793298539.5897443,
-    "seen": 1793365744.380018,
-    "ast_hash": "ff039a3c5de9301e696adaa8824b2c63",
-    "semantic_hash": "ff039a3c5de9301e696adaa8824b2c63"
+    "mtime": 1793395833.4422765,
+    "seen": 1793396113.7113469,
+    "ast_hash": "8735def138f61adb8876f9ec60843345",
+    "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingPanel.test.tsx": {
-    "mtime": 1793298539.589958,
-    "seen": 1793365744.380019,
-    "ast_hash": "51903f43e9ca57a14e7fdb532eace955",
-    "semantic_hash": "51903f43e9ca57a14e7fdb532eace955"
+    "mtime": 1793396072.763945,
+    "seen": 1793396113.711348,
+    "ast_hash": "e21f1f32140cc3c7f5af00495c991303",
+    "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingPanel.tsx": {
-    "mtime": 1793298539.5902054,
-    "seen": 1793365744.380021,
-    "ast_hash": "a32bb2a577b89387e29353f56920361f",
-    "semantic_hash": "a32bb2a577b89387e29353f56920361f"
+    "mtime": 1793395800.3089774,
+    "seen": 1793396113.711349,
+    "ast_hash": "4f2c6970b59c237ff528af6c7899fe67",
+    "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingPendingDeviceRow.tsx": {
     "mtime": 1793298539.590337,
@@ -4022,16 +4022,16 @@
     "semantic_hash": "ae507ab4477b81bcd213a17c97817905"
   },
   "apps/desktop/src/components/SyncthingPanel/index.ts": {
-    "mtime": 1792835118.4951506,
-    "seen": 1793294971.318837,
-    "ast_hash": "b9d4f3b7b13f3d7b87e9810691910a6b",
-    "semantic_hash": "b9d4f3b7b13f3d7b87e9810691910a6b"
+    "mtime": 1793395754.3978252,
+    "seen": 1793396113.711967,
+    "ast_hash": "797dffa74f7c386298230508a1fe6f60",
+    "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/syncthingCommands.ts": {
-    "mtime": 1793298539.5919592,
-    "seen": 1793365744.3805618,
-    "ast_hash": "1a60aaaaa9bf70f8869586f5c6d9d1c8",
-    "semantic_hash": "1a60aaaaa9bf70f8869586f5c6d9d1c8"
+    "mtime": 1793396058.6625547,
+    "seen": 1793396113.711968,
+    "ast_hash": "7cd60fb55b7cea3ede2d2829495be320",
+    "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/useSyncthingPairing.ts": {
     "mtime": 1793298539.5920427,
@@ -4040,10 +4040,10 @@
     "semantic_hash": "4613d9efdb79b5681baadc499a86f2fa"
   },
   "apps/desktop/src/components/SyncthingPanel/useSyncthingStatus.ts": {
-    "mtime": 1793298539.5922828,
-    "seen": 1793365744.380565,
-    "ast_hash": "19160eb99f7927db61bd33d65142572d",
-    "semantic_hash": "19160eb99f7927db61bd33d65142572d"
+    "mtime": 1793395566.278704,
+    "seen": 1793396113.712011,
+    "ast_hash": "9cb252a79a40a78d2059038bb80d932a",
+    "semantic_hash": ""
   },
   "apps/desktop/src/components/TagsDialog/TagsDialog.tsx": {
     "mtime": 1792835118.4958985,
@@ -12684,10 +12684,10 @@
     "semantic_hash": "8a7e5c61d3fcc8f72b57a12cb7cd0dff"
   },
   "packages/syncthing-api/types.ts": {
-    "mtime": 1792835118.9444857,
-    "seen": 1793294971.3891141,
-    "ast_hash": "9376423f977782936e0e5249adfcc81d",
-    "semantic_hash": "9376423f977782936e0e5249adfcc81d"
+    "mtime": 1793395493.6344223,
+    "seen": 1793396113.7639391,
+    "ast_hash": "4e571618b68d00b908830142d2204f13",
+    "semantic_hash": ""
   },
   "packages/syncthing-api/validatePairing.test.ts": {
     "mtime": 1793298541.0124595,
@@ -16154,6 +16154,126 @@
     "mtime": 1793393706.025172,
     "seen": 1793393775.2540889,
     "ast_hash": "6baeb8b90148d593a33e1cebeac5a30b",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src-tauri/src/syncthing/devices_pending.rs": {
+    "mtime": 1793395395.9871376,
+    "seen": 1793396113.691007,
+    "ast_hash": "5167ae3b13e8b60c19c44fff8d29332e",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/SyncthingPanel/SyncthingPairedDevicesSection.stories.tsx": {
+    "mtime": 1793395613.0703502,
+    "seen": 1793396113.711342,
+    "ast_hash": "3efdc1d4cd5de9fe9d6f103749a6b5a5",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/SyncthingPanel/SyncthingPairedDevicesSection.test.tsx": {
+    "mtime": 1793395746.9660065,
+    "seen": 1793396113.7113442,
+    "ast_hash": "b0626748915e4d2b61f8bc0190b6dfcb",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/SyncthingPanel/SyncthingPairedDevicesSection.tsx": {
+    "mtime": 1793395601.6162302,
+    "seen": 1793396113.711345,
+    "ast_hash": "0d3237d78e03c3b3036051aa25c07bc5",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/2026-10-24.md": {
+    "mtime": 1793395340.2202835,
+    "seen": 1793396113.7779012,
+    "ast_hash": "32bc8733bc6253b66be2cf7011009d2b",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/2026-10-25.md": {
+    "mtime": 1793395339.176791,
+    "seen": 1793396113.777903,
+    "ast_hash": "4ba681b67344cf4dd7b0f063b9838469",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/2026-10-26.md": {
+    "mtime": 1793395338.3438249,
+    "seen": 1793396113.777904,
+    "ast_hash": "be71818b492bda1d6a65a4c0994da703",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/Cola.md": {
+    "mtime": 1793395330.7852783,
+    "seen": 1793396113.77805,
+    "ast_hash": "ff8f97eb519f3dd02bdc249a790ff3c1",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/Hibbll.md": {
+    "mtime": 1793395328.2113814,
+    "seen": 1793396113.778052,
+    "ast_hash": "795b6d622b6935b6097d7634a68c5d1f",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/Reminders.md": {
+    "mtime": 1793395319.7508426,
+    "seen": 1793396113.778053,
+    "ast_hash": "bdf190384551aed1115a6169b0d009c9",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/Untitle.md": {
+    "mtime": 1793395318.3550375,
+    "seen": 1793396113.778054,
+    "ast_hash": "29a03f0ffd505ee49d67a307aea9cb4f",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/Untitled 9.md": {
+    "mtime": 1793395314.3467267,
+    "seen": 1793396113.778351,
+    "ast_hash": "7966d698000f988ca5fa96c62d1440b4",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/bbhh/nnoi.md": {
+    "mtime": 1793395337.4263344,
+    "seen": 1793396113.778425,
+    "ast_hash": "8abf5f86d438bb1c79161b8cc68b3ede",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/daily/bbbbhh.md": {
+    "mtime": 1793395329.7431793,
+    "seen": 1793396113.7784262,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/having.md": {
+    "mtime": 1793395329.1358848,
+    "seen": 1793396113.778494,
+    "ast_hash": "145ba4948b6ec4534e7c9f97fbb0a27c",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/hello world Untitled 2.md": {
+    "mtime": 1793395311.0090797,
+    "seen": 1793396113.778495,
+    "ast_hash": "b82184de737a85fbedd4563cefb1fcb2",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/missing-parent.md": {
+    "mtime": 1793395322.4800622,
+    "seen": 1793396113.778534,
+    "ast_hash": "e54bf4cfb13a5bce459ecd5e031062b5",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/projects/Beta Overview.md": {
+    "mtime": 1793395321.5065851,
+    "seen": 1793396113.778535,
+    "ast_hash": "cabd5efddac2610098a88322617d7331",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/projects/Project Alpha.md": {
+    "mtime": 1793395320.587571,
+    "seen": 1793396113.778537,
+    "ast_hash": "d38c9fa55bc2f0194080711961660083",
+    "semantic_hash": ""
+  },
+  "packages/indexer/fixtures/vault/theatre.md": {
+    "mtime": 1793395318.9936454,
+    "seen": 1793396113.778697,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

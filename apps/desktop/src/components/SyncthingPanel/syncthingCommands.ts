@@ -1,9 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type {
+  SyncthingConfiguredDevice,
+  SyncthingCheckReport,
+} from "@app/syncthing-api";
 
 export type {
   SyncthingDetectResult,
   SyncthingStatusResult,
+  SyncthingConfiguredDevice,
   SyncthingPendingDevice,
   SyncthingPendingFolder,
   SyncthingCheckItem,
@@ -87,6 +92,16 @@ export async function syncthingAddDevice(
   return invoke<void>("syncthing_add_device", { id, name });
 }
 
+export async function syncthingListDevices(): Promise<
+  SyncthingConfiguredDevice[]
+> {
+  return invoke<SyncthingConfiguredDevice[]>("syncthing_list_devices");
+}
+
+export async function syncthingRemoveDevice(id: string): Promise<void> {
+  return invoke<void>("syncthing_remove_device", { id });
+}
+
 export async function syncthingPendingDevices() {
   return invoke("syncthing_pending_devices");
 }
@@ -121,6 +136,6 @@ export async function syncthingAcceptFolder(
   });
 }
 
-export async function syncthingCheckSync() {
-  return invoke("syncthing_check_sync");
+export async function syncthingCheckSync(): Promise<SyncthingCheckReport> {
+  return invoke<SyncthingCheckReport>("syncthing_check_sync");
 }

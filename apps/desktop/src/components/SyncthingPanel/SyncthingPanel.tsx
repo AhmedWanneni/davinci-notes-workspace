@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import { Button, Typography } from "@app/design-system";
-import { Check, Copy, Desktop } from "@phosphor-icons/react";
+import {
+  Check,
+  Copy,
+  Desktop,
+  PlusCircle,
+  QrCode,
+} from "@phosphor-icons/react";
 import { useSyncthingStatus } from "./useSyncthingStatus";
 import { useSyncthingPairing } from "./useSyncthingPairing";
 import { SyncthingStatusBanner } from "./SyncthingStatusBanner";
 import { SyncthingQrPairingSection } from "./SyncthingQrPairingSection";
 import { SyncthingAddDeviceSection } from "./SyncthingAddDeviceSection";
+import { SyncthingPairedDevicesSection } from "./SyncthingPairedDevicesSection";
 import { SyncthingPendingSection } from "./SyncthingPendingSection";
 import { SyncthingSyncCheckSection } from "./SyncthingSyncCheckSection";
-import { SyncthingVaultShareSection } from "./SyncthingVaultShareSection";
 import styles from "./SyncthingPanel.module.scss";
 
 export interface SyncthingPanelProps {
@@ -28,6 +34,7 @@ export function SyncthingPanel({
     deviceId,
     deviceName,
     qrDataUrl,
+    configuredDevices = [],
     pendingDevices,
     pendingFolders,
     errorMessage,
@@ -56,6 +63,7 @@ export function SyncthingPanel({
   } = customPairing || hookPairing;
 
   const [copied, setCopied] = useState(false);
+  const [pairingTab, setPairingTab] = useState<"phone" | "computer">("phone");
 
   const handleCopy = async () => {
     if (!deviceId) return;
@@ -87,7 +95,7 @@ export function SyncthingPanel({
         onRefresh={() => void refresh()}
       />
 
-      {/* 2. Raw Device ID Card (Always visible with Copy button for generic clients/paste) */}
+      {/* 2. Raw Device ID Card (Always visible for copying ID to other devices) */}
       {Boolean(deviceId) && (
         <div className={styles["syncthing-panel__card"]}>
           <div className={styles["syncthing-panel__card-header"]}>
@@ -127,19 +135,15 @@ export function SyncthingPanel({
         </div>
       )}
 
-      {/* 3. Pairing QR Code with Countdown Window & Code Rotation */}
+      {/* 3. Paired Devices List (Always visible when Syncthing is running) */}
       {status === "running" && (
-        <SyncthingQrPairingSection
-          qrDataUrl={pairingQrUrl || qrDataUrl}
-          pairingCode={pairingCode}
-          secondsLeft={secondsLeft}
-          isExpired={isExpired}
-          isGenerating={isGenerating}
-          onRotateCode={rotateCode}
+        <SyncthingPairedDevicesSection
+          devices={configuredDevices}
+          onUpdated={refresh}
         />
       )}
 
-      {/* 4. Incoming Pending Requests (Devices + Folders) with Code Matching */}
+      {/* 4. Incoming Pending Requests (Only visible when pending offers exist) */}
       {status === "running" && (
         <SyncthingPendingSection
           pendingDevices={pendingDevices}
@@ -150,15 +154,55 @@ export function SyncthingPanel({
         />
       )}
 
-      {/* 5. Add Remote Device */}
-      {status === "running" && <SyncthingAddDeviceSection onAdded={refresh} />}
-
-      {/* 6. Share Current Vault with Remote Device */}
+      {/* 5. Pair a New Device (Clean mode selection: Phone vs Computer) */}
       {status === "running" && (
-        <SyncthingVaultShareSection onShared={refresh} />
+        <div>
+          <div className={styles["syncthing-panel__pair-tabs"]}>
+            <button
+              type="button"
+              className={`${styles["syncthing-panel__pair-tab"]} ${
+                pairingTab === "phone"
+                  ? styles["syncthing-panel__pair-tab--active"]
+                  : ""
+              }`}
+              onClick={() => setPairingTab("phone")}
+            >
+              <QrCode size={16} />
+              Connect Phone (QR Code)
+            </button>
+            <button
+              type="button"
+              className={`${styles["syncthing-panel__pair-tab"]} ${
+                pairingTab === "computer"
+                  ? styles["syncthing-panel__pair-tab--active"]
+                  : ""
+              }`}
+              onClick={() => setPairingTab("computer")}
+            >
+              <PlusCircle size={16} />
+              Connect Computer (Device ID)
+            </button>
+          </div>
+
+          {pairingTab === "phone" ? (
+            <SyncthingQrPairingSection
+              qrDataUrl={pairingQrUrl || qrDataUrl}
+              pairingCode={pairingCode}
+              secondsLeft={secondsLeft}
+              isExpired={isExpired}
+              isGenerating={isGenerating}
+              onRotateCode={rotateCode}
+            />
+          ) : (
+            <SyncthingAddDeviceSection
+              onAdded={refresh}
+              localDeviceId={deviceId}
+            />
+          )}
+        </div>
       )}
 
-      {/* 7. Check Sync Health Verification */}
+      {/* 6. Check Sync Health Verification */}
       {status === "running" && <SyncthingSyncCheckSection />}
     </div>
   );

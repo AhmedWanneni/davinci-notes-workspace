@@ -27,6 +27,21 @@ pub struct SyncthingPendingDevice {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncthingConfiguredDevice {
+  #[serde(rename = "deviceId")]
+  pub device_id: String,
+  pub name: String,
+  pub connected: bool,
+  pub paused: bool,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub address: Option<String>,
+  #[serde(rename = "lastSeen", skip_serializing_if = "Option::is_none")]
+  pub last_seen: Option<String>,
+  #[serde(rename = "isVaultShared")]
+  pub is_vault_shared: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SyncthingPendingFolder {
   #[serde(rename = "folderId")]
   pub folder_id: String,

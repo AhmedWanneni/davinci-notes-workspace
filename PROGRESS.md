@@ -4,7 +4,41 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — QuickCapture Application Quit & Complete Teardown
+## Last Session — Syncthing Device Connection Investigation, Paired Devices List & Settings UX Polish
+
+**Scope:** Investigate why pasting another device ID in SettingsDialog showed "not connected", and overhaul the confusing Syncthing settings design with live device connection tracking, mutual-pairing guidance, and clean device pairing modes.
+
+**What was done:**
+1. **Root-Cause Investigation**:
+   - Traced live runtime config (`config.xml`) and Syncthing protocol behavior: Syncthing uses mutual TLS authentication. Adding a device on Mac only authorizes outbound connection; the remote device must also accept or add Mac's Device ID. Additionally, discovery over LAN/relays requires 30–60 seconds.
+   - Diagnosed UI shortcoming: `SyncthingPanel` had no paired devices list and duplicated device ID inputs between "Add Device" and "Share Vault".
+2. **Backend Commands & Device Management (`apps/desktop/src-tauri/src/syncthing/`)**:
+   - Added `SyncthingConfiguredDevice` struct and `list_devices()` / `remove_device()` methods in `devices.rs`.
+   - Exposed `syncthing_list_devices` and `syncthing_remove_device` Tauri commands.
+   - Refactored and split `devices.rs` into `devices.rs` (233 lines) and `devices_pending.rs` (69 lines) adhering to the strict line cap (< 250 lines).
+3. **Shared API & Command Bindings (`packages/syncthing-api/`, `syncthingCommands.ts`)**:
+   - Exported `SyncthingConfiguredDevice` in `@app/syncthing-api`.
+   - Added `syncthingListDevices` and `syncthingRemoveDevice` in `syncthingCommands.ts`.
+   - Extended `useSyncthingStatus.ts` to poll and maintain `configuredDevices`.
+4. **UI Components & Settings Redesign (`apps/desktop/src/components/SyncthingPanel/`)**:
+   - Created `SyncthingPairedDevicesSection` (`.tsx`, `.module.scss`, `.stories.tsx`, `.test.tsx`) showing all paired devices with live connection status (`Connected` with address, `Disconnected` with mutual-pairing guidance), vault sharing badge, and Unpair button.
+   - Redesigned `SyncthingAddDeviceSection` with mutual pairing notice, Mac Device ID reference, and automatic active vault sharing checkbox.
+   - Redesigned `SyncthingPanel` layout: introduced clean pairing mode switcher ("Connect Phone (QR)" vs "Connect Computer (Device ID)"), eliminating the confusing clutter and duplicate manual "Share Active Vault" input.
+5. **Testing & Verification**:
+   - Vitest unit tests in `SyncthingPairedDevicesSection.test.tsx`, `SyncthingAddDeviceSection.test.tsx`, and `SyncthingPanel.test.tsx` (all 26 tests passing).
+   - Rust unit tests passing (20/20).
+   - Knowledge graph updated with `graphify update .`.
+
+---
+
+## Next Up
+- Verify live P2P sync between desktop and a second Syncthing node.
+- Package release smoke checks.
+- Verify development live-reload and watch mode across desktop frontend.
+
+---
+
+## Previous Session — QuickCapture Application Quit & Complete Teardown
 
 **Scope:** Add an explicit, user-friendly "Quit" option in `QuickCapture` that terminates the entire application completely (shutting down background Syncthing sidecar daemon, stopping vault watcher, destroying tray icon, and exiting process without lingering in the macOS menu bar / system tray).
 

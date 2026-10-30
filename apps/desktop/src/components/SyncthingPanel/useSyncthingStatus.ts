@@ -7,9 +7,11 @@ import {
   syncthingGetLifecycleStatus,
   syncthingPendingDevices,
   syncthingPendingFolders,
+  syncthingListDevices,
   syncthingRestart,
   syncthingStart,
   syncthingStop,
+  type SyncthingConfiguredDevice,
   type SyncthingPendingDevice,
   type SyncthingPendingFolder,
 } from "./syncthingCommands";
@@ -33,6 +35,7 @@ export interface SyncthingStatusState {
   deviceName: string;
   uptime: number;
   qrDataUrl: string | null;
+  configuredDevices: SyncthingConfiguredDevice[];
   pendingDevices: SyncthingPendingDevice[];
   pendingFolders: SyncthingPendingFolder[];
   errorMessage: string | null;
@@ -54,6 +57,9 @@ export function useSyncthingStatus(enabled = true): SyncthingStatusState {
   const [deviceName, setDeviceName] = useState("");
   const [uptime, setUptime] = useState(0);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [configuredDevices, setConfiguredDevices] = useState<
+    SyncthingConfiguredDevice[]
+  >([]);
   const [pendingDevices, setPendingDevices] = useState<
     SyncthingPendingDevice[]
   >([]);
@@ -117,18 +123,21 @@ export function useSyncthingStatus(enabled = true): SyncthingStatusState {
         setDeviceName(stat.deviceName);
         setUptime(stat.uptime);
 
-        const [qr, pDevs, pFolders] = await Promise.all([
+        const [qr, pDevs, pFolders, cDevs] = await Promise.all([
           fetchSyncthingQrPng().catch(() => null),
           syncthingPendingDevices().catch(() => []),
           syncthingPendingFolders().catch(() => []),
+          syncthingListDevices().catch(() => []),
         ]);
         setQrDataUrl(qr);
         setPendingDevices(pDevs as SyncthingPendingDevice[]);
         setPendingFolders(pFolders as SyncthingPendingFolder[]);
+        setConfiguredDevices(cDevs as SyncthingConfiguredDevice[]);
         setStatus("running");
       } else {
         setStatus("stopped");
         setQrDataUrl(null);
+        setConfiguredDevices([]);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -224,6 +233,7 @@ export function useSyncthingStatus(enabled = true): SyncthingStatusState {
     deviceName,
     uptime,
     qrDataUrl,
+    configuredDevices,
     pendingDevices,
     pendingFolders,
     errorMessage,
