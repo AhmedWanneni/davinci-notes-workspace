@@ -14,6 +14,8 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Added CLI shortcuts: `-i` / `--installers`, `-l` / `--links`, `-b` / `--build`, `-c` / `--ci`, `-d` / `--dev`, `--health`, `--diagnostics`.
 2. **Local Multi-Platform Builds & One-Click Installer (`scripts/tui/build.sh`, `scripts/tui/installer.sh`)**:
    - Resolved `spawn tauri ENOENT` by having `withCompatibleMacSdk.mjs` automatically resolve local `node_modules/.bin/tauri` and inject workspace bin paths into `env.PATH`.
+   - Injected `--ignore-version-mismatches` into `tauri build` invocations to resolve mismatched minor versions between npm Tauri plugins and Rust crates without panicking.
+   - Enhanced build completion reporting in `scripts/tui/build.sh` to output both absolute and relative local paths, keeping the interactive TUI session open.
    - Tuned `chunkSizeWarningLimit: 800` in `apps/desktop/vite.config.ts` to suppress large vendor bundle warnings.
    - Implemented dedicated targets in the Build menu:
      - 🍏 **macOS Application**: Build Apple Silicon (`aarch64`) or Intel (`x86_64`) native `.dmg` and `.app` bundles with automated sidecar pre-fetching and SDK resolution.

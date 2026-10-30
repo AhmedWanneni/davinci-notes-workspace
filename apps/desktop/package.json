@@ -10,7 +10,7 @@
     "dev:web": "pnpm prepare:emoji-data && pnpm prepare:syncthing && vite",
     "dev": "node scripts/withCompatibleMacSdk.mjs tauri dev",
     "build:web": "pnpm prepare:emoji-data && pnpm prepare:syncthing && vite build",
-    "build": "pnpm build:web && node scripts/withCompatibleMacSdk.mjs tauri build",
+    "build": "pnpm build:web && node scripts/withCompatibleMacSdk.mjs tauri build --ignore-version-mismatches",
     "lint": "eslint . --ext .ts,.tsx",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
