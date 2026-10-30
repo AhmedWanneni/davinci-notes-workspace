@@ -2,6 +2,15 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Rollback Color Experiments to Original Warm Kraft Palette
+
+- **Reverted Color Experiments**:
+  - Reverted commit `323486b` to restore the warm kraft canvas (`#ebd0a9`), the original warm illustrated owl cutout, and the natural stationery palette.
+  - Retained all interactive owl features: 20% smaller centered owl, SVG eye overlays, cursor tracking, slow 3-second blink cycle, nose cross-eye squint, pupil dilation during dragging, and draggable notes/alarm clock.
+  - Verified static build (`pnpm --filter website build`) and unit tests pass.
+
+---
+
 ### 2026-10-30: Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
 
 - **Unified Stationery Header (`apps/website/src/components/SiteNav.astro`)**:
