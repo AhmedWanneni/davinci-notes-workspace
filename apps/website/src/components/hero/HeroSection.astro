@@ -12,25 +12,98 @@ import OwlHeadHotspots from './OwlHeadHotspots.astro';
     <!-- Full-Viewport Stage: Interactive Owl in the Center + Draggable Notes & Desk Items -->
     <div class="hero-artwork-stage">
       <OwlSideNotes />
-      <OwlHeadHotspots />
+      <div class="hero-owl-stage-box">
+        <OwlHeadHotspots />
 
-      <picture class="hero-owl-picture">
-        <source
-          type="image/webp"
-          srcset="/images/hero/owl-hero-480.webp 480w, /images/hero/owl-hero-768.webp 768w, /images/hero/owl-hero-1024.webp 1024w"
-          sizes="(max-width: 640px) 94vw, (max-width: 1024px) 78vw, 760px"
-        />
-        <img
-          class="hero-owl-img"
-          src="/images/hero/owl-hero-1024.webp"
-          alt="Illustrated autumn owl with an open mind overflowing with organized notes, reminders, to-do lists, and creative ideas"
-          width="1024"
-          height="935"
-          fetchpriority="high"
-          decoding="async"
-          draggable="false"
-        />
-      </picture>
+        <div class="hero-owl-figure">
+          <picture class="hero-owl-picture">
+            <source
+              type="image/webp"
+              srcset="/images/hero/owl-hero-480.webp 480w, /images/hero/owl-hero-768.webp 768w, /images/hero/owl-hero-1024.webp 1024w"
+              sizes="(max-width: 640px) 80vw, (max-width: 1024px) 64vw, 600px"
+            />
+            <img
+              class="hero-owl-img"
+              src="/images/hero/owl-hero-1024.webp"
+              alt="Illustrated autumn owl with an open mind overflowing with organized notes, reminders, to-do lists, and creative ideas"
+              width="1024"
+              height="935"
+              fetchpriority="high"
+              decoding="async"
+              draggable="false"
+            />
+          </picture>
+
+          <!-- Interactive Eyes Overlay (Follows Cursor + Blinks Slowly Every 3 Seconds) -->
+          <svg
+            class="hero-owl-eyes-svg"
+            viewBox="0 0 1024 935"
+            fill="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <clipPath id="owl-eye-clip-left">
+                <circle cx="353.5" cy="722.5" r="68.5" />
+              </clipPath>
+              <clipPath id="owl-eye-clip-right">
+                <circle cx="681" cy="724" r="69" />
+              </clipPath>
+            </defs>
+
+            <!-- LEFT EYE -->
+            <g clip-path="url(#owl-eye-clip-left)">
+              <!-- Warm Cream Sclera Base -->
+              <circle cx="353.5" cy="722.5" r="70" fill="#f3dcb4" />
+              <!-- Subtle Top Socket Shade -->
+              <path d="M283 705 A70 70 0 0 1 424 705 A70 64 0 0 0 283 705 Z" fill="#dfc496" opacity="0.65" />
+              <!-- Mouse-Tracking Pupil & Cute Specular Catchlights (Smaller Default, Dilates When Dragging Notes) -->
+              <g class="owl-pupil-track" data-eye="left" data-eye-cx="353.5" data-eye-cy="722.5">
+                <g class="owl-pupil-scale" style="transform-origin: 353.5px 722.5px">
+                  <circle cx="353.5" cy="722.5" r="41" fill="#181105" />
+                  <circle cx="341" cy="699" r="13.5" fill="#f5e1be" />
+                  <circle cx="364" cy="712" r="5.5" fill="#f5e1be" />
+                  <circle cx="344" cy="738" r="3.2" fill="#f5e1be" opacity="0.85" />
+                </g>
+              </g>
+              <!-- Slow Blinking Upper & Lower Feather Eyelids -->
+              <rect class="owl-eyelid-top" x="278" y="648" width="152" height="82" fill="#a84e1d" />
+              <path class="owl-eyelid-lash" d="M284 723 Q353.5 734 423 723" stroke="#5c280b" stroke-width="5" stroke-linecap="round" />
+              <rect class="owl-eyelid-bottom" x="278" y="722" width="152" height="80" fill="#9c4618" />
+            </g>
+            <!-- Crisp Inner Eye Socket Rim -->
+            <circle cx="353.5" cy="722.5" r="68.5" stroke="#5c2a0b" stroke-width="4" fill="none" />
+
+            <!-- RIGHT EYE -->
+            <g clip-path="url(#owl-eye-clip-right)">
+              <!-- Warm Cream Sclera Base -->
+              <circle cx="681" cy="724" r="70.5" fill="#f3dcb4" />
+              <!-- Subtle Top Socket Shade -->
+              <path d="M610 706 A70 70 0 0 1 752 706 A70 64 0 0 0 610 706 Z" fill="#dfc496" opacity="0.65" />
+              <!-- Mouse-Tracking Pupil & Cute Specular Catchlights (Smaller Default, Dilates When Dragging Notes) -->
+              <g class="owl-pupil-track" data-eye="right" data-eye-cx="681" data-eye-cy="724">
+                <g class="owl-pupil-scale" style="transform-origin: 681px 724px">
+                  <circle cx="681" cy="724" r="41" fill="#181105" />
+                  <circle cx="668.5" cy="700.5" r="13.5" fill="#f5e1be" />
+                  <circle cx="691.5" cy="713.5" r="5.5" fill="#f5e1be" />
+                  <circle cx="671.5" cy="739.5" r="3.2" fill="#f5e1be" opacity="0.85" />
+                </g>
+              </g>
+              <!-- Slow Blinking Upper & Lower Feather Eyelids -->
+              <rect class="owl-eyelid-top" x="605" y="650" width="152" height="82" fill="#a84e1d" />
+              <path class="owl-eyelid-lash" d="M611 724.5 Q681 735.5 751 724.5" stroke="#5c280b" stroke-width="5" stroke-linecap="round" />
+              <rect class="owl-eyelid-bottom" x="605" y="724" width="152" height="80" fill="#9c4618" />
+            </g>
+            <!-- Crisp Inner Eye Socket Rim -->
+            <circle cx="681" cy="724" r="69" stroke="#5c2a0b" stroke-width="4" fill="none" />
+
+            <!-- Cute Rosy Feather Cheeks (Glow Gently When Squinting or Excited) -->
+            <g class="owl-cute-cheeks">
+              <ellipse cx="268" cy="786" rx="28" ry="15" fill="#c9461d" opacity="0.42" transform="rotate(-10 268 786)" />
+              <ellipse cx="766" cy="788" rx="28" ry="15" fill="#c9461d" opacity="0.42" transform="rotate(10 766 788)" />
+            </g>
+          </svg>
+        </div>
+      </div>
     </div>
   </div>
 </section>

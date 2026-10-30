@@ -6,7 +6,11 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Last Session — Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
 
-**Scope:** Re-architected the color system, header, and interactive hero in `apps/website` for **Sophia Notes**, centering the big Autumn Owl illustration flush at the bottom of a `100svh` hero stage (`max-height: calc(100svh - 118px)`) surrounded by realistic, draggable illustrated notes, extractable owl-head thoughts, a complete 360° vintage twin-bell alarm clock, and fixed painterly pens/pencils:
+**Scope:** Re-architected the color system, header, and interactive hero in `apps/website` for **Sophia Notes**, centering the Autumn Owl illustration (~20% smaller for generous negative space: `max-height: calc((100svh - 118px) * 0.8)`) flush at the bottom of a `100svh` hero stage, with cursor-following eyes, a slow 3-second blink cycle, a cross-eyed squint when hovering her nose, pupil dilation when dragging notes, and realistic draggable illustrated notes:
+- **Interactive Owl Eyes (`HeroSection.astro`, `hero.css`, `heroInteractive.ts`)**:
+  - Added an SVG eye overlay locked to the exact socket coordinates (`#owl-eye-clip-left`, `#owl-eye-clip-right`) with smaller default pupils (`r="41"`), triple catchlights, and rosy feather cheeks.
+  - Smooth `requestAnimationFrame` cursor tracking across the viewport; hovering the nose/beak tucks both black pupils into the inner-middle corners (`translate(±46px, 8px)`) partially clipped by the socket rim for a cute cross-eyed look; holding/dragging any note dilates the pupils (`scale(1.24)`).
+  - Slow feather-eyelid blink animation every ~3 seconds (`owl-blink-top` / `owl-blink-bottom`).
 - **Unified Stationery Header (`src/components/SiteNav.astro`)**:
   - Single warm-ivory stationery bar (`#f3e3c6`) pinned with two brass thumbtack dots (`nav-pin-left`, `nav-pin-right`), hand-inked owl icon, **Sophia *Notes*** serif brand title, and `Patrick Hand` uppercase navigation links (`WORKBENCH · FEATURES · CANVAS · SYNC · DOCS · GITHUB ↗`).
 - **Interactive Centered Owl Hero & Realistic Cards (`src/components/hero/HeroSection.astro`, `OwlSideNotes.astro`, `OwlBottomItems.astro`, `OwlHeadHotspots.astro`, `src/scripts/heroInteractive.ts`, `src/styles/hero.css`, `hero-nodes.css`, `hero-interactive.css`)**:

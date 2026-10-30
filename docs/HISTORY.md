@@ -11,6 +11,7 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
   - Designed realistic illustrated side and bottom notes (`SOPHIA NOTES` spiral pad, `REMINDER:` ochre sticky, `GET THE APP:` binder-clipped card, `INCLUDED:` side-spiral checklist, `№ 77 BUS TICKET`, `IMPORTANT! ☆`, `!`, `IDEA` lightbulb card, `DON'T OVERTHINK` paperclipped slip, and `GROWTH` bar chart).
   - Completed the 360° painterly twin-bell alarm clock (`1`–`12` serif numerals, minute ticks, and bottom peg feet) and fixed non-draggable painterly pens & pencils in the bottom corners.
   - Added pointer drag-and-drop for all notes, the alarm clock, and extractable owl-head thoughts with a `↺ RESET DESK` button.
+  - Scaled owl figure down by 20% (`max-height: calc((100svh - 118px) * 0.8)`) and added interactive SVG eyes that follow the cursor, blink slowly every ~3 seconds, dilate (`scale(1.24)`) while dragging notes, and tuck into the inner-middle socket corners (`translate(±46px, 8px)`) when hovering over her nose/beak.
   - All files strictly under 250 lines; static build and unit tests pass.
 
 ---

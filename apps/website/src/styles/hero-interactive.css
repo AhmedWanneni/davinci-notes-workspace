@@ -205,17 +205,17 @@
 }
 
 /* Coordinates Mapped Directly Over the Owl's Open Head Items + Default Edge Notes */
-.head-item-brain { top: 15%; left: calc(50% - 178px); transform: rotate(-9deg); }
-.head-item-notes { top: 13%; left: calc(50% - 76px); transform: rotate(-7deg); }
-.head-item-focus { top: 27%; left: calc(50% - 186px); width: 118px; padding: 9px 11px; transform: rotate(-12deg); }
-.head-item-alarm-note { top: 16%; left: calc(50% + 52px); width: 98px; transform: rotate(13deg); }
+.head-item-brain { top: 28%; left: calc(50% - 144px); transform: rotate(-9deg); }
+.head-item-notes { top: 26%; left: calc(50% - 62px); transform: rotate(-7deg); }
+.head-item-focus { top: 38%; left: calc(50% - 150px); width: 112px; padding: 9px 11px; transform: rotate(-12deg); }
+.head-item-alarm-note { top: 29%; left: calc(50% + 40px); width: 96px; transform: rotate(13deg); }
 .head-item-exclaim { top: -8%; right: 8px; width: 64px; padding: 6px; transform: rotate(15deg); z-index: 14; }
-.head-item-todo { top: 31%; left: calc(50% + 26px); width: 126px; padding: 10px 11px 10px 15px; transform: rotate(14deg); }
+.head-item-todo { top: 41%; left: calc(50% + 20px); width: 120px; padding: 10px 11px 10px 15px; transform: rotate(14deg); }
 .head-item-ticket { top: 38%; left: -102px; transform: rotate(16deg); z-index: 14; }
-.head-item-clock { top: 41%; left: calc(50% - 92px); transform: rotate(-5deg); }
-.head-item-meeting { top: 53%; left: calc(50% - 54px); transform: rotate(-4deg); }
+.head-item-clock { top: 49%; left: calc(50% - 76px); transform: rotate(-5deg); }
+.head-item-meeting { top: 59%; left: calc(50% - 44px); transform: rotate(-4deg); }
 .head-item-important { top: 34%; right: -130px; width: 118px; padding: 9px 10px; transform: rotate(-12deg); z-index: 14; }
-.head-item-buy { top: 49%; left: calc(50% + 114px); width: 98px; padding: 8px 10px; transform: rotate(16deg); }
+.head-item-buy { top: 56%; left: calc(50% + 90px); width: 96px; padding: 8px 10px; transform: rotate(16deg); }
 
 @media (max-width: 1120px) {
   .owl-head-overlay { display: none; }
