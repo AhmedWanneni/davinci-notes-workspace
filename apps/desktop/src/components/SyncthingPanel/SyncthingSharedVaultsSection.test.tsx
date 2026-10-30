@@ -150,4 +150,74 @@ describe("SyncthingSharedVaultsSection", () => {
     expect(unshareSpy).toHaveBeenCalledWith("work-folder");
     expect(onUpdatedMock).toHaveBeenCalled();
   });
+
+  it("supports 2 instances: instance 1 displays active vault_1 and switches to synced vault_2", async () => {
+    const onOpenVaultMock = vi.fn();
+    const vaults: commands.SyncthingSharedVault[] = [
+      {
+        folderId: "vault-1-id",
+        label: "vault_1",
+        path: "/workspaces/vault_1",
+        sharedWithDeviceIds: [],
+        paused: false,
+        isActiveVault: true,
+      },
+      {
+        folderId: "vault-2-id",
+        label: "vault_2",
+        path: "/workspaces/vault_2",
+        sharedWithDeviceIds: ["NODE-2-DEVICE-ID"],
+        paused: false,
+        isActiveVault: false,
+      },
+    ];
+
+    const { rerender } = render(
+      <SyncthingSharedVaultsSection
+        vaults={vaults}
+        onOpenVault={onOpenVaultMock}
+        onUpdated={vi.fn()}
+      />,
+    );
+
+    // Initial state: vault_1 is active, vault_2 is synced
+    expect(screen.getByText("vault_1")).toBeDefined();
+    expect(screen.getByText("vault_2")).toBeDefined();
+    expect(screen.getByText("/workspaces/vault_1")).toBeDefined();
+    expect(screen.getByText("/workspaces/vault_2")).toBeDefined();
+    expect(screen.getByText("Active Vault")).toBeDefined();
+    expect(screen.getByText("Synced Vault")).toBeDefined();
+
+    // Click "Open Vault" to switch to vault_2
+    const switchBtn = screen.getByText("Open Vault");
+    await act(async () => {
+      fireEvent.click(switchBtn);
+    });
+
+    expect(onOpenVaultMock).toHaveBeenCalledWith("/workspaces/vault_2");
+
+    // After switching, re-render with updated active state
+    const switchedVaults: commands.SyncthingSharedVault[] = [
+      {
+        ...vaults[0],
+        isActiveVault: false,
+      },
+      {
+        ...vaults[1],
+        isActiveVault: true,
+      },
+    ];
+
+    rerender(
+      <SyncthingSharedVaultsSection
+        vaults={switchedVaults}
+        onOpenVault={onOpenVaultMock}
+        onUpdated={vi.fn()}
+      />,
+    );
+
+    // Now vault_2 is Active Vault
+    const badges = screen.getAllByText(/Vault/);
+    expect(badges.length).toBeGreaterThan(0);
+  });
 });

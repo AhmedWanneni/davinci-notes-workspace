@@ -4028,9 +4028,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/syncthingCommands.ts": {
-    "mtime": 1793398867.7257342,
-    "seen": 1793399248.463823,
-    "ast_hash": "a8c78d02f4a96ec975652e8763a4244a",
+    "mtime": 1793399297.4593358,
+    "seen": 1793400051.9924989,
+    "ast_hash": "d14e63868f0237016c191c7ab35f28ae",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/useSyncthingPairing.ts": {
@@ -4040,9 +4040,9 @@
     "semantic_hash": "4613d9efdb79b5681baadc499a86f2fa"
   },
   "apps/desktop/src/components/SyncthingPanel/useSyncthingStatus.ts": {
-    "mtime": 1793398952.5643878,
-    "seen": 1793399248.463864,
-    "ast_hash": "9779d8ad1ddf1d53390f4d7b49e3d5ce",
+    "mtime": 1793399297.4686656,
+    "seen": 1793400051.992547,
+    "ast_hash": "31548318731de2324c40df391bc285c0",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TagsDialog/TagsDialog.tsx": {
@@ -13265,9 +13265,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793396516.2584636,
-    "seen": 1793399248.518124,
-    "ast_hash": "8f5bd54e28fb9f463511bcd3cf4d19d6",
+    "mtime": 1793399267.7752314,
+    "seen": 1793400052.0507698,
+    "ast_hash": "c646afd0a8162ef0dd828643b44e659c",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13343,9 +13343,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793396530.4584062,
-    "seen": 1793399248.518514,
-    "ast_hash": "be669607b7f930b05813f0e3f2f7e098",
+    "mtime": 1793399283.7342145,
+    "seen": 1793400052.051201,
+    "ast_hash": "fc846d727c28d78a2b8b88d71024f43e",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -16283,15 +16283,21 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingSharedVaultsSection.test.tsx": {
-    "mtime": 1793399040.112614,
-    "seen": 1793399248.463547,
-    "ast_hash": "c7dce313b881cc00fe77a59ac099d70f",
+    "mtime": 1793400007.458984,
+    "seen": 1793400051.992151,
+    "ast_hash": "6f8cfc54f621476520823f207c7e5bed",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/SyncthingPanel/SyncthingSharedVaultsSection.tsx": {
-    "mtime": 1793399012.4668899,
-    "seen": 1793399248.463549,
-    "ast_hash": "f968d875f9db2dbeb0f76009039a805f",
+    "mtime": 1793399297.4525259,
+    "seen": 1793400051.992152,
+    "ast_hash": "a46736f3b3616fe00487455877af789c",
+    "semantic_hash": ""
+  },
+  "apps/desktop/scripts/testTwoInstancesSync.mjs": {
+    "mtime": 1793399989.8219514,
+    "seen": 1793400051.9673321,
+    "ast_hash": "3e8157c05356b4f8b9c45db9038158d9",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {
