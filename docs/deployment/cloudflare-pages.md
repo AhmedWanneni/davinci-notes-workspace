@@ -17,9 +17,10 @@ pnpm manage # Select option [ 8 ]
 ```
 
 ### Features:
+- **Zero API Tokens Needed**: Uses native Cloudflare Browser OAuth (`wrangler login`).
 - **Authentication Check**: Automatically detects whether `wrangler` is logged in.
-- **1-Click OAuth Login**: If not authenticated, select `[ 1 ]` to trigger browser OAuth login (`wrangler login`).
-- **1-Click GitHub Connect**: Select `[ 2 ]` to open the Cloudflare Pages GitHub connection page in your default browser.
+- **1-Click OAuth Browser Login**: If not authenticated, the script automatically pops open the Cloudflare OAuth login in your default browser. Once you click "Allow", your CLI session is immediately authenticated and ready to deploy.
+- **1-Click GitHub Connect**: Select `[ 3 ]` (or `[ 4 ]`) to open the Cloudflare Pages GitHub connection page in your default browser.
 - **Build & Deploy**: Automatically runs `pnpm --filter @app/website build` and uploads `apps/website/dist` to Cloudflare Pages (`sophia-notes.pages.dev`).
 - **Live URL Launch**: Automatically surfaces the live deployment URL and offers to open it in your browser.
 

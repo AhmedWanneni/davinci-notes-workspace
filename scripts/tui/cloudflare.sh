@@ -40,17 +40,41 @@ cloudflare_get_auth_info() {
   fi
 }
 
+cloudflare_ensure_oauth() {
+  local auth_status
+  auth_status="$(cloudflare_get_auth_info)"
+  if [[ "$auth_status" == "NOT_LOGGED_IN" ]]; then
+    printf "\n  ${C_YELLOW}⚠️  Not connected to Cloudflare yet.${C_RESET}\n"
+    printf "  ${C_CYAN}${C_BOLD}Opening Cloudflare OAuth login in your default browser...${C_RESET}\n\n"
+    wrangler login || true
+    auth_status="$(cloudflare_get_auth_info)"
+    if [[ "$auth_status" == "NOT_LOGGED_IN" ]]; then
+      ui_warn "OAuth authentication not completed. Please authorize in your browser."
+      return 1
+    fi
+    ui_success "Cloudflare OAuth authentication succeeded!"
+    sleep 1
+  fi
+  return 0
+}
+
 cloudflare_deploy_flow() {
   local repo_root="$1"
   local project_name="${2:-sophia-notes}"
   local branch
   branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")"
 
+  # Ensure user is authenticated via OAuth; if not, open browser OAuth immediately
+  if ! cloudflare_ensure_oauth; then
+    read -r -p "  Press Enter to return to menu..." _
+    return 1
+  fi
+
   ui_clear
   printf "\n  ${C_CYAN}${C_BOLD}🚀 Deploying Sophia Notes Website to Cloudflare Pages${C_RESET}\n\n"
   printf "  ${C_MUTED}Project Name :${C_RESET} ${C_BOLD}%s${C_RESET}\n" "$project_name"
   printf "  ${C_MUTED}Git Branch   :${C_RESET} ${C_BOLD}%s${C_RESET}\n" "$branch"
-  printf "  ${C_MUTED}Build Dir    :${C_RESET} ${C_BOLD}apps/website/dist${C_RESET}\n\n"
+  printf "  ${C_MUTED}Build Output :${C_RESET} ${C_BOLD}apps/website/dist${C_RESET}\n\n"
 
   printf "  ${C_YELLOW}Step 1/2: Compiling Astro production static build...${C_RESET}\n"
   if ! (cd "$repo_root" && pnpm --filter @app/website build); then
@@ -60,7 +84,7 @@ cloudflare_deploy_flow() {
   fi
   printf "  ${C_GREEN}✔ Production build ready in apps/website/dist!${C_RESET}\n\n"
 
-  printf "  ${C_YELLOW}Step 2/2: Uploading static assets to Cloudflare Pages...${C_RESET}\n"
+  printf "  ${C_YELLOW}Step 2/2: Uploading static assets via Cloudflare OAuth...${C_RESET}\n"
   local deploy_output
   deploy_output="$(cd "$repo_root" && wrangler pages deploy apps/website/dist --project-name "$project_name" --branch "$branch" 2>&1)" || {
     printf "%s\n" "$deploy_output"
@@ -88,43 +112,34 @@ cloudflare_deploy_flow() {
 
 cloudflare_create_project_flow() {
   local repo_root="$1"
+  if ! cloudflare_ensure_oauth; then
+    read -r -p "  Press Enter to return to menu..." _
+    return 1
+  fi
+
   printf "\n  ${C_CYAN}${C_BOLD}Enter Cloudflare Pages Project Name [sophia-notes]:${C_RESET} "
   local proj
   read -r proj || true
   proj="${proj:-sophia-notes}"
 
-  printf "  Creating Pages project '%s'...\n" "$proj"
+  printf "  Initializing Pages project '%s'...\n" "$proj"
   wrangler pages project create "$proj" --production-branch "main" || true
-  ui_success "Project configuration initialized."
+  ui_success "Project configuration initialized on Cloudflare."
   read -r -p "  Press Enter to return..." _
 }
 
 cloudflare_open_connect_github() {
-  printf "\n  ${C_CYAN}${C_BOLD}Opening Cloudflare Pages in Browser...${C_RESET}\n\n"
-  printf "  ${C_BOLD}Recommended Git Configuration in Cloudflare Dashboard:${C_RESET}\n"
-  printf "    ${C_MUTED}1. Connect Repository:${C_RESET}  ${C_CYAN}AhmedWanneni/davinci-notes-workspace${C_RESET}\n"
-  printf "    ${C_MUTED}2. Framework Preset  :${C_RESET}  ${C_BOLD}Astro${C_RESET}\n"
-  printf "    ${C_MUTED}3. Root Directory    :${C_RESET}  ${C_BOLD}apps/website${C_RESET}\n"
-  printf "    ${C_MUTED}4. Build Command     :${C_RESET}  ${C_BOLD}pnpm build${C_RESET}\n"
-  printf "    ${C_MUTED}5. Output Directory  :${C_RESET}  ${C_BOLD}dist${C_RESET}\n"
-  printf "    ${C_MUTED}6. Environment Var   :${C_RESET}  ${C_BOLD}NODE_VERSION = 20${C_RESET}\n\n"
+  printf "\n  ${C_CYAN}${C_BOLD}Opening Cloudflare Pages in Default Browser...${C_RESET}\n\n"
+  printf "  ${C_BOLD}Recommended Git Settings in Cloudflare Dashboard:${C_RESET}\n"
+  printf "    ${C_MUTED}1. Connect GitHub Repository:${C_RESET}  ${C_CYAN}AhmedWanneni/davinci-notes-workspace${C_RESET}\n"
+  printf "    ${C_MUTED}2. Framework Preset         :${C_RESET}  ${C_BOLD}Astro${C_RESET}\n"
+  printf "    ${C_MUTED}3. Root Directory           :${C_RESET}  ${C_BOLD}apps/website${C_RESET}\n"
+  printf "    ${C_MUTED}4. Build Command            :${C_RESET}  ${C_BOLD}pnpm build${C_RESET}\n"
+  printf "    ${C_MUTED}5. Output Directory         :${C_RESET}  ${C_BOLD}dist${C_RESET}\n"
+  printf "    ${C_MUTED}6. Environment Variable     :${C_RESET}  ${C_BOLD}NODE_VERSION = 20${C_RESET}\n\n"
 
   cloudflare_open_url "https://dash.cloudflare.com/?to=/:account/pages/new/provider/github"
   read -r -p "  Press Enter to return..." _
-}
-
-cloudflare_set_api_token() {
-  printf "\n  ${C_CYAN}${C_BOLD}Enter Cloudflare API Token (with Pages Write permissions):${C_RESET} "
-  local token
-  read -rs token || true
-  printf "\n"
-  if [[ -n "$token" ]]; then
-    export CLOUDFLARE_API_TOKEN="$token"
-    ui_success "CLOUDFLARE_API_TOKEN exported for this session."
-  else
-    ui_warn "No token entered. Retaining previous session environment."
-  fi
-  sleep 1
 }
 
 cloudflare_menu() {
@@ -137,13 +152,13 @@ cloudflare_menu() {
     local auth_status
     auth_status="$(cloudflare_get_auth_info)"
 
-    ui_section "Cloudflare CLI & Website Deployment" "☁️ "
+    ui_section "Cloudflare Pages Deployment (Browser OAuth)" "☁️ "
 
     if [[ "$auth_status" == "NOT_INSTALLED" ]]; then
       printf "  ${C_RED}✘ Wrangler CLI not detected on system path.${C_RESET}\n"
-      printf "  ${C_MUTED}You can install it with: npm install -g wrangler${C_RESET}\n\n"
+      printf "  ${C_MUTED}Install it to use automatic browser OAuth deployment.${C_RESET}\n\n"
       ui_menu_item "1" "📦" "Install Wrangler CLI" "Run 'npm install -g wrangler'"
-      ui_menu_item "2" "🌐" "Open Cloudflare Dashboard" "Connect GitHub in browser without CLI"
+      ui_menu_item "2" "🌐" "Open Cloudflare in Browser" "Deploy GitHub repository via web UI"
       ui_menu_item "0" "↩ " "Back to Main Menu" ""
       ui_section_end
       printf "  ${C_CYAN}${C_BOLD}Select an option [0-2]:${C_RESET} "
@@ -163,11 +178,11 @@ cloudflare_menu() {
     fi
 
     if [[ "$auth_status" == "NOT_LOGGED_IN" ]]; then
-      printf "  ${C_YELLOW}⚠️  Cloudflare CLI: Not Authenticated${C_RESET}\n"
-      printf "  ${C_MUTED}Log in via browser OAuth or open Cloudflare Pages dashboard.${C_RESET}\n\n"
-      ui_menu_item "1" "🔑" "Login via Cloudflare CLI" "Runs 'wrangler login' (opens browser OAuth)"
-      ui_menu_item "2" "🌐" "Open Cloudflare Dashboard" "Deploy GitHub repository in browser"
-      ui_menu_item "3" "🔐" "Set API Token" "Export CLOUDFLARE_API_TOKEN"
+      printf "  ${C_YELLOW}⚠️  Not connected to Cloudflare.${C_RESET}\n"
+      printf "  ${C_MUTED}Connect instantly via browser OAuth (no manual API tokens needed).${C_RESET}\n\n"
+      ui_menu_item "1" "🔑" "Open Browser OAuth Login" "Runs 'wrangler login' to authorize"
+      ui_menu_item "2" "🚀" "Build & Deploy Now" "Opens browser OAuth, then deploys website"
+      ui_menu_item "3" "🌐" "Open Cloudflare Dashboard" "Connect GitHub repo in browser web UI"
       ui_menu_item "0" "↩ " "Back to Main Menu" ""
       ui_section_end
       printf "  ${C_CYAN}${C_BOLD}Select an option [0-3]:${C_RESET} "
@@ -176,24 +191,24 @@ cloudflare_menu() {
       read -r choice || break
       case "$choice" in
         1)
-          printf "  Launching Cloudflare browser login...\n"
+          printf "  Opening browser for Cloudflare OAuth login...\n"
           wrangler login || true
           ;;
-        2) cloudflare_open_connect_github ;;
-        3) cloudflare_set_api_token ;;
+        2) cloudflare_deploy_flow "$repo_root" "sophia-notes" ;;
+        3) cloudflare_open_connect_github ;;
         0|q|Q) break ;;
       esac
       continue
     fi
 
-    # Logged in state
+    # Authenticated via OAuth
     local account_label="${auth_status#LOGGED_IN:}"
-    printf "  ${C_GREEN}✔ Cloudflare CLI: Connected${C_RESET} ${C_MUTED}(%s)${C_RESET}\n\n" "$account_label"
+    printf "  ${C_GREEN}✔ Cloudflare OAuth Connected${C_RESET} ${C_MUTED}(%s)${C_RESET}\n\n" "$account_label"
     ui_menu_item "1" "🚀" "Build & Deploy Website" "Build Astro site and deploy to Pages"
-    ui_menu_item "2" "📁" "Create Pages Project" "Initialize 'sophia-notes' on Cloudflare"
+    ui_menu_item "2" "📁" "Create Pages Project" "Initialize 'sophia-notes' project"
     ui_menu_item "3" "🌐" "Open Cloudflare Dashboard" "Manage Pages, custom domains & analytics"
-    ui_menu_item "4" "🐙" "Connect GitHub via Web" "Open GitHub Pages integration in browser"
-    ui_menu_item "5" "🔄" "Re-authenticate CLI" "Run 'wrangler login' with new account"
+    ui_menu_item "4" "🐙" "Connect GitHub in Browser" "Configure auto-deploy on git push"
+    ui_menu_item "5" "🔄" "Re-open Browser OAuth" "Switch account or refresh OAuth session"
     ui_menu_item "0" "↩ " "Back to Main Menu" ""
     ui_section_end
     printf "  ${C_CYAN}${C_BOLD}Select an option [0-5]:${C_RESET} "
