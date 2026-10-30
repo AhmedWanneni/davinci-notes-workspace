@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Published Windows .exe & Cross-Platform Release Assets
+
+- **Cross-Platform Compilation Fixes (`apps/desktop/src-tauri/src/tray.rs`, `src/lib.rs`)**:
+  - Gated `build_tray_menu` behind `#[cfg(target_os = "macos")]` in `tray.rs`, eliminating the `E0432` unresolved import error that was failing Windows and Linux compilation.
+  - Silenced `unused_mut` warning on `tauri::Builder::default()` in `lib.rs`.
+- **CI Pipeline Packaging & Dependency Fixes (`.github/workflows/release.yml`)**:
+  - Added `libasound2-dev` to Ubuntu 22.04 system dependencies for `alsa-sys` compilation.
+  - Removed unconfigured empty `APPLE_*` environment variables in `tauri-action`, preventing `security import` failures in free CI environments.
+  - Configured `releaseDraft: false` so builds attach directly to the public release.
+- **Public Assets Verified on Live Website**:
+  - Windows x64: `Sophia_0.1.0_x64-setup.exe` (19.1 MB, HTTP 200 OK) + `Sophia_0.1.0_x64_en-US.msi`
+  - Linux: `Sophia_0.1.0_amd64.AppImage` (104.2 MB, HTTP 200 OK) + `.deb` (25.5 MB) + `.rpm`
+  - macOS Apple Silicon: `Sophia_0.1.0_aarch64.dmg` (26.0 MB, HTTP 200 OK)
+  - macOS Intel: `Sophia_0.1.0_x64.dmg` (24.9 MB, HTTP 200 OK)
+  - Checksums: `SHA256SUMS.txt` computed, verified, and attached to `v0.1.0`.
+  - Verified all download links on `https://sophia-notes.pages.dev/download` and `https://sophia-notes.pages.dev` download cleanly without 404.
+
+---
+
 ### 2026-10-30: Multi-Platform Release Matrix & Zero-Prompt Free Installer
 
 - **Multi-Platform CI Cloud Matrix Dispatch**:

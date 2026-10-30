@@ -4,28 +4,29 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Multi-Platform Release Matrix & Zero-Prompt Free Installer
+## Last Session — Published Windows .exe & Cross-Platform Release Assets
 
-**Scope:** Launch CI multi-platform release matrix in GitHub Actions to build and publish Windows (`.exe`) and Linux (`.AppImage`, `.deb`) installers, package a standard macOS DMG with `Install Sophia.command` to allow 100% free installs without Gatekeeper warnings, and deploy `install.sh` to Cloudflare Pages:
-1. **Multi-Platform CI Cloud Matrix Dispatch**:
-   - Dispatched GitHub Actions `Release Pipeline` (Run ID `41118195862`) for `v0.1.0`.
-   - Quality gates and manifest audit passed cleanly in 2m10s.
-   - Concurrently executing: Windows x64 (`Sophia_0.1.0_x64-setup.exe`), Linux x64 (`sophia_0.1.0_amd64.AppImage` & `.deb`), macOS Intel (`x64.dmg`), and macOS Apple Silicon (`aarch64.dmg`).
-2. **Zero-Prompt 100% Free Install Script (`apps/website/public/install.sh`, `download/index.astro`)**:
-   - Authored lightweight, self-contained `install.sh` deployed at `https://sophia-notes.pages.dev/install.sh`.
-   - Automatically detects OS (macOS vs Linux) and architecture (`arm64` vs `x64`), downloads verified release package, installs to `/Applications` or `~/.local/bin`, strips quarantine xattrs, and launches Sophia immediately without requiring Apple Developer ID notarization.
-   - Added 1-line copyable terminal install widget to the download page.
-3. **DMG Installer Upgrade (`scripts/tui/build.sh`)**:
-   - Enhanced macOS DMG packaging to include an executable `Install Sophia.command` alongside the `Applications` folder shortcut.
-   - Users can double-click `Install Sophia.command` inside the DMG for 1-click free installation and launch.
-   - Re-packaged and uploaded `Sophia_0.1.0_aarch64.dmg` to GitHub Release `v0.1.0`.
+**Scope:** Resolved compilation and packaging errors in GitHub Actions CI release pipeline, successfully built and published the Windows `.exe` installer, Linux packages, and macOS Intel DMG to Release `v0.1.0`, verified public download availability on the live website:
+1. **Cross-Platform Compilation Fixes (`apps/desktop/src-tauri/src/tray.rs`, `src/lib.rs`)**:
+   - Gated `build_tray_menu` behind `#[cfg(target_os = "macos")]` in `tray.rs`, eliminating the `E0432` unresolved import error that failed Windows and Linux compilation.
+   - Silenced `unused_mut` warning on `tauri::Builder::default()` in `lib.rs`.
+2. **CI Pipeline Packaging & Dependency Fixes (`.github/workflows/release.yml`)**:
+   - Added `libasound2-dev` to Ubuntu 22.04 system dependencies for `alsa-sys` compilation.
+   - Removed unconfigured empty `APPLE_*` environment variables in `tauri-action`, preventing `security import` failures in free CI environments.
+   - Configured `releaseDraft: false` so builds attach directly to the public release.
+3. **Public Assets Verified on Live Website**:
+   - Windows x64: `Sophia_0.1.0_x64-setup.exe` (19.1 MB, HTTP 200 OK) + `Sophia_0.1.0_x64_en-US.msi`
+   - Linux: `Sophia_0.1.0_amd64.AppImage` (104.2 MB, HTTP 200 OK) + `.deb` (25.5 MB) + `.rpm`
+   - macOS Apple Silicon: `Sophia_0.1.0_aarch64.dmg` (26.0 MB, HTTP 200 OK)
+   - macOS Intel: `Sophia_0.1.0_x64.dmg` (24.9 MB, HTTP 200 OK)
+   - Checksums: `SHA256SUMS.txt` computed, verified, and attached to `v0.1.0`.
+   - Verified all links on `https://sophia-notes.pages.dev/download` and `https://sophia-notes.pages.dev` download cleanly without 404.
 
 ---
 
 ## Next Up
-- Monitor GitHub Actions release pipeline run 41118195862 to completion.
-- Verify Windows .exe and Linux .AppImage/.deb downloads live on `https://sophia-notes.pages.dev/download`.
-- Verify end-to-end user experience across platforms.
+- Monitor user feedback on Windows setup installer and macOS Homebrew/DMG experience.
+- Maintain version sync for future releases.
 
 ---
 
