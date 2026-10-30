@@ -34,6 +34,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 ---
 
 ## Previous Session — Desktop Updates & Development Script Enhancements
+## Last Session — Desktop Updates & Development Script Enhancements
 
 **Scope:** Polish desktop package scripts, add root workspace shortcuts for `@app/desktop` dev and build workflows, and ensure `--ignore-version-mismatches` is consistently applied across all platform build targets in the interactive TUI.
 
