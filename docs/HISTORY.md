@@ -2,6 +2,34 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Syncthing Shared Vaults Visibility & 1-Click Vault Switching
+
+- **Shared Vaults & Folder Access Backend (`apps/desktop/src-tauri/src/`)**:
+  - Added `SyncthingSharedVault` struct in `syncthing/types.rs` containing `folder_id`, `label`, `path`, `shared_with_device_ids`, `paused`, `is_active_vault`, and `sync_state`.
+  - Implemented `list_shared_vaults()` and `unshare_vault_folder()` in `syncthing/folders.rs`, comparing local folder paths against the active vault root to flag `is_active_vault`.
+  - Added cross-platform `show_in_folder()` command in `folder_commands.rs` to reveal files/folders natively (`open <path>` on macOS, `explorer <path>` on Windows, `xdg-open <path>` on Linux).
+  - Registered `syncthing_list_shared_vaults`, `syncthing_unshare_vault_folder`, and `show_in_folder` in Tauri's command handler in `lib.rs`.
+- **State & Command Integration (`packages/syncthing-api/`, `SyncthingPanel/`)**:
+  - Exported `SyncthingSharedVault` in `@app/syncthing-api/types.ts`.
+  - Added frontend bindings `syncthingListSharedVaults`, `syncthingUnshareVaultFolder`, and `showInFolder` to `syncthingCommands.ts`.
+  - Updated `useSyncthingStatus.ts` to poll and expose `sharedVaults: SyncthingSharedVault[]` while keeping the file cleanly condensed and compliant with the 250-line cap (244 lines).
+- **UI Components & Seamless Vault Access (`SyncthingPanel/`, `SettingsDialog/`)**:
+  - Created `SyncthingSharedVaultsSection` (`.tsx`, `.module.scss`, `.stories.tsx`, `.test.tsx`) following strict design tokens (kebab-case, no raw values/fallbacks).
+  - Displays all synced folders with Active Vault indicator badge, device count badge, and clean path display.
+  - Actions for each vault:
+    - 1-click "Open Vault" (switches current workspace vault in Sophia and dismisses settings dialog via `onVaultSwitched`).
+    - "Reveal" button opening native file manager at vault path.
+    - "Stop Sync" (trash icon) to unshare folder from Syncthing.
+  - Integrated into `SyncthingPanel.tsx`, forwarded `onOpenVault` through `SyncSettingsTab.tsx` and `SettingsDialog.tsx`.
+- **Testing & Quality Assurance**:
+  - Added unit test suite `SyncthingSharedVaultsSection.test.tsx` (5 tests passing).
+  - All 8 test suites in `SyncthingPanel` (31 tests) passing.
+  - All 12 test suites in `SettingsDialog` (50 tests) passing.
+  - Rust unit tests passing (20/20).
+  - AST knowledge graph updated with `graphify update .`.
+
+---
+
 ### 2026-10-30: Syncthing Device Connection Investigation, Paired Devices List & Settings UX Polish
 
 - **Root-Cause Investigation for "Not Connected"**:

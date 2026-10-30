@@ -1,0 +1,89 @@
+.shared-vaults-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-normal);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-bg-secondary);
+}
+
+.shared-vaults-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.shared-vaults-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-normal);
+}
+
+.shared-vaults-card__empty-state {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.shared-vaults-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.shared-vaults-card__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-primary);
+}
+
+.shared-vaults-card__item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.shared-vaults-card__item-name-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.shared-vaults-card__item-name {
+  font-weight: 500;
+  color: var(--color-text-normal);
+  font-size: 13px;
+}
+
+.shared-vaults-card__item-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.shared-vaults-card__item-path {
+  font-family: var(--font-editor);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  word-break: break-all;
+
+  code {
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+    font-family: inherit;
+  }
+}

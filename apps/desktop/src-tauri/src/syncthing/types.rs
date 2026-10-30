@@ -51,6 +51,21 @@ pub struct SyncthingPendingFolder {
   pub time: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncthingSharedVault {
+  #[serde(rename = "folderId")]
+  pub folder_id: String,
+  pub label: String,
+  pub path: String,
+  #[serde(rename = "sharedWithDeviceIds")]
+  pub shared_with_device_ids: Vec<String>,
+  pub paused: bool,
+  #[serde(rename = "isActiveVault")]
+  pub is_active_vault: bool,
+  #[serde(rename = "syncState", skip_serializing_if = "Option::is_none")]
+  pub sync_state: Option<String>,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum SyncthingLifecycleState {

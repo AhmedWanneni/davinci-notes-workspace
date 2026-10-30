@@ -13,6 +13,7 @@ import { SyncthingStatusBanner } from "./SyncthingStatusBanner";
 import { SyncthingQrPairingSection } from "./SyncthingQrPairingSection";
 import { SyncthingAddDeviceSection } from "./SyncthingAddDeviceSection";
 import { SyncthingPairedDevicesSection } from "./SyncthingPairedDevicesSection";
+import { SyncthingSharedVaultsSection } from "./SyncthingSharedVaultsSection";
 import { SyncthingPendingSection } from "./SyncthingPendingSection";
 import { SyncthingSyncCheckSection } from "./SyncthingSyncCheckSection";
 import styles from "./SyncthingPanel.module.scss";
@@ -20,11 +21,13 @@ import styles from "./SyncthingPanel.module.scss";
 export interface SyncthingPanelProps {
   customStatus?: ReturnType<typeof useSyncthingStatus>;
   customPairing?: ReturnType<typeof useSyncthingPairing>;
+  onOpenVault?: (path: string) => void;
 }
 
 export function SyncthingPanel({
   customStatus,
   customPairing,
+  onOpenVault,
 }: SyncthingPanelProps) {
   const hookStatus = useSyncthingStatus(!customStatus);
   const {
@@ -37,6 +40,7 @@ export function SyncthingPanel({
     configuredDevices = [],
     pendingDevices,
     pendingFolders,
+    sharedVaults = [],
     errorMessage,
     lastLogs,
     isLoading,
@@ -139,6 +143,15 @@ export function SyncthingPanel({
       {status === "running" && (
         <SyncthingPairedDevicesSection
           devices={configuredDevices}
+          onUpdated={refresh}
+        />
+      )}
+
+      {/* 4. Shared Vaults & Folders */}
+      {status === "running" && (
+        <SyncthingSharedVaultsSection
+          vaults={sharedVaults}
+          onOpenVault={onOpenVault}
           onUpdated={refresh}
         />
       )}

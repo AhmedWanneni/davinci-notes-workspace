@@ -19,6 +19,7 @@ interface SyncSettingsTabProps {
   onDriveSyncNow?: () => void;
   vaultPath: string | null;
   onOpenConflictsPanel?: () => void;
+  onOpenVault?: (path: string) => void;
 }
 
 export function SyncSettingsTab({
@@ -35,6 +36,7 @@ export function SyncSettingsTab({
   onDriveSyncNow,
   vaultPath,
   onOpenConflictsPanel,
+  onOpenVault,
 }: SyncSettingsTabProps) {
   return (
     <div className={styles["settings-tab-content"]}>
@@ -58,7 +60,7 @@ export function SyncSettingsTab({
 
       <SettingsCard title="Syncthing">
         <React.Suspense fallback={<div>Loading Syncthing...</div>}>
-          <LazySyncthingPanel />
+          <LazySyncthingPanel onOpenVault={onOpenVault} />
         </React.Suspense>
       </SettingsCard>
     </div>

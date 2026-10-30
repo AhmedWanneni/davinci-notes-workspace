@@ -257,6 +257,8 @@ pub fn run() {
       syncthing::syncthing_accept_device, syncthing::syncthing_dismiss_pending_device,
       syncthing::syncthing_share_vault_folder, syncthing::syncthing_pending_folders,
       syncthing::syncthing_accept_folder, syncthing::syncthing_check_sync,
+      syncthing::syncthing_list_shared_vaults, syncthing::syncthing_unshare_vault_folder,
+      folder_commands::show_in_folder,
       syncthing::syncthing_start, syncthing::syncthing_stop,
       syncthing::syncthing_restart, syncthing::syncthing_lifecycle_status,
       syncthing::syncthing_ensure_vault_registered,

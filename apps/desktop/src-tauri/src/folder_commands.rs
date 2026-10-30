@@ -46,6 +46,40 @@ fn resolve_folder_path(vault_root: &Path, relative: &str) -> Result<PathBuf, Str
     Ok(absolute)
 }
 
+#[tauri::command]
+pub fn show_in_folder(path: String) -> Result<(), String> {
+  let p = Path::new(&path);
+  if !p.exists() {
+    return Err("Path does not exist on disk".to_string());
+  }
+
+  #[cfg(target_os = "macos")]
+  {
+    std::process::Command::new("open")
+      .arg(&path)
+      .spawn()
+      .map_err(|e| e.to_string())?;
+  }
+
+  #[cfg(target_os = "windows")]
+  {
+    std::process::Command::new("explorer")
+      .arg(&path)
+      .spawn()
+      .map_err(|e| e.to_string())?;
+  }
+
+  #[cfg(target_os = "linux")]
+  {
+    std::process::Command::new("xdg-open")
+      .arg(&path)
+      .spawn()
+      .map_err(|e| e.to_string())?;
+  }
+
+  Ok(())
+}
+
 pub(crate) fn rename_folder_in_vault(
     vault_root: &Path,
     from_path: &str,

@@ -18,6 +18,7 @@ describe("SyncthingPanel Component", () => {
     configuredDevices: [],
     pendingDevices: [],
     pendingFolders: [],
+    sharedVaults: [],
     errorMessage: null,
     lastLogs: null,
     isLoading: false,

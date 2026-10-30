@@ -213,6 +213,7 @@ export function SettingsDialog({
                   onDriveSyncNow={onDriveSyncNow}
                   vaultPath={vaultPath}
                   onOpenConflictsPanel={onOpenConflictsPanel}
+                  onOpenVault={onVaultSwitched}
                 />
               )}
               {activeTab === "notifications" && (

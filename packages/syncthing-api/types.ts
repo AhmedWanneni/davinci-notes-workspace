@@ -37,6 +37,16 @@ export interface SyncthingPendingFolder {
   time: string;
 }
 
+export interface SyncthingSharedVault {
+  folderId: string;
+  label: string;
+  path: string;
+  sharedWithDeviceIds: string[];
+  paused: boolean;
+  isActiveVault: boolean;
+  syncState?: string;
+}
+
 export interface SyncthingCheckItem {
   passed: boolean;
   reason: string;

@@ -9,7 +9,7 @@ use super::config::{resolve_local_syncthing_config, SyncthingResolvedConfig};
 use super::lifecycle::SyncthingManager;
 use super::types::{
   SyncthingConfiguredDevice, SyncthingDetectResult, SyncthingError, SyncthingLifecycleStatus,
-  SyncthingPendingDevice, SyncthingPendingFolder, SyncthingStatusResult,
+  SyncthingPendingDevice, SyncthingPendingFolder, SyncthingSharedVault, SyncthingStatusResult,
   SyncthingVaultFolderInfo,
 };
 
@@ -22,40 +22,33 @@ pub(crate) fn resolve_active_config(app: &AppHandle) -> Result<SyncthingResolved
   resolve_local_syncthing_config()
 }
 
+fn get_manager(app: &AppHandle) -> Result<tauri::State<'_, SyncthingManager>, SyncthingError> {
+  app.try_state::<SyncthingManager>()
+    .ok_or_else(|| SyncthingError::UnexpectedResponse("SyncthingManager state not registered".to_string()))
+}
+
 #[command]
 pub async fn syncthing_start(window: WebviewWindow, app: AppHandle) -> Result<SyncthingLifecycleStatus, SyncthingError> {
   reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
-  let manager = app
-    .try_state::<SyncthingManager>()
-    .ok_or_else(|| SyncthingError::UnexpectedResponse("SyncthingManager state not registered".to_string()))?;
-  manager.start(&app).await
+  get_manager(&app)?.start(&app).await
 }
 
 #[command]
 pub async fn syncthing_stop(window: WebviewWindow, app: AppHandle) -> Result<SyncthingLifecycleStatus, SyncthingError> {
   reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
-  let manager = app
-    .try_state::<SyncthingManager>()
-    .ok_or_else(|| SyncthingError::UnexpectedResponse("SyncthingManager state not registered".to_string()))?;
-  manager.stop(&app).await
+  get_manager(&app)?.stop(&app).await
 }
 
 #[command]
 pub async fn syncthing_restart(window: WebviewWindow, app: AppHandle) -> Result<SyncthingLifecycleStatus, SyncthingError> {
   reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
-  let manager = app
-    .try_state::<SyncthingManager>()
-    .ok_or_else(|| SyncthingError::UnexpectedResponse("SyncthingManager state not registered".to_string()))?;
-  manager.restart(&app).await
+  get_manager(&app)?.restart(&app).await
 }
 
 #[command]
 pub async fn syncthing_lifecycle_status(window: WebviewWindow, app: AppHandle) -> Result<SyncthingLifecycleStatus, SyncthingError> {
   reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
-  let manager = app
-    .try_state::<SyncthingManager>()
-    .ok_or_else(|| SyncthingError::UnexpectedResponse("SyncthingManager state not registered".to_string()))?;
-  Ok(manager.get_status())
+  Ok(get_manager(&app)?.get_status())
 }
 
 #[command]
@@ -212,6 +205,29 @@ pub async fn syncthing_accept_folder(
   client
     .accept_folder(&folder_id, &target_path, allow_non_empty.unwrap_or(false))
     .await
+}
+
+#[command]
+pub async fn syncthing_list_shared_vaults(
+  window: WebviewWindow,
+  app: AppHandle,
+) -> Result<Vec<SyncthingSharedVault>, SyncthingError> {
+  reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
+  let config = resolve_active_config(&app)?;
+  let client = SyncthingClient::new(config)?;
+  let vault_root = app.state::<VaultState>().get_root().ok();
+  client.list_shared_vaults(vault_root.as_deref()).await
+}
+
+#[command]
+pub async fn syncthing_unshare_vault_folder(
+  window: WebviewWindow,
+  folder_id: String,
+) -> Result<(), SyncthingError> {
+  reject_plugin_runner(&window).map_err(SyncthingError::UnexpectedResponse)?;
+  let config = resolve_active_config(window.app_handle())?;
+  let client = SyncthingClient::new(config)?;
+  client.unshare_vault_folder(&folder_id).await
 }
 
 #[command]
