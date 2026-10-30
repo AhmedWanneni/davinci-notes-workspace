@@ -272,9 +272,9 @@
     "semantic_hash": "9e7f58071b5a127f2babfc16d0117a49"
   },
   "apps/desktop/package.json": {
-    "mtime": 1793375651.0432103,
-    "seen": 1793376240.3497548,
-    "ast_hash": "ea3e879eb12f130b7c712430af9d8429",
+    "mtime": 1793377071.1353338,
+    "seen": 1793377271.236021,
+    "ast_hash": "c247baacd11f4e67aa26ecee474033d4",
     "semantic_hash": ""
   },
   "apps/desktop/postcss.config.cjs": {
@@ -7927,8 +7927,8 @@
     "semantic_hash": "a829f835226b9b50b8f91290447f427f"
   },
   "apps/website/package.json": {
-    "mtime": 1793375626.7497594,
-    "seen": 1793376240.395445,
+    "mtime": 1793376850.5885143,
+    "seen": 1793377271.309946,
     "ast_hash": "d93ae5b7931f058b1eef57e7827d632b",
     "semantic_hash": ""
   },
@@ -7939,8 +7939,8 @@
     "semantic_hash": "f1528c5992e0af0612d626563f4794c9"
   },
   "apps/website/src/components/CommunitySection.astro": {
-    "mtime": 1793375651.2058113,
-    "seen": 1793376240.395498,
+    "mtime": 1793376850.595712,
+    "seen": 1793377271.310008,
     "ast_hash": "4302946ac82a6f199be8b9fcef5b11de",
     "semantic_hash": ""
   },
@@ -7951,8 +7951,8 @@
     "semantic_hash": "14d26f4970afdbc0f264b1438414d2f6"
   },
   "apps/website/src/components/LogseqHero.astro": {
-    "mtime": 1793375626.7519133,
-    "seen": 1793376240.395554,
+    "mtime": 1793376850.5963001,
+    "seen": 1793377271.310068,
     "ast_hash": "77447a90d23b706fd5620a502a200e1c",
     "semantic_hash": ""
   },
@@ -7969,14 +7969,14 @@
     "semantic_hash": "478f579cbfd901d907d299647f019cd1"
   },
   "apps/website/src/components/SiteFooter.astro": {
-    "mtime": 1793375626.7525597,
-    "seen": 1793376240.395678,
+    "mtime": 1793376850.5981743,
+    "seen": 1793377271.3101802,
     "ast_hash": "e6b4368431e00dc420a216d9d1549216",
     "semantic_hash": ""
   },
   "apps/website/src/components/SiteNav.astro": {
-    "mtime": 1793375717.2918198,
-    "seen": 1793376240.395679,
+    "mtime": 1793376850.598502,
+    "seen": 1793377271.3101811,
     "ast_hash": "0ba0eb21aa907da18029bf6cadbbc358",
     "semantic_hash": ""
   },
@@ -7999,8 +7999,8 @@
     "semantic_hash": "9156ef2e9814491e457bca4b831bae9e"
   },
   "apps/website/src/components/hero/HeroSection.astro": {
-    "mtime": 1793375631.6318977,
-    "seen": 1793376240.3958569,
+    "mtime": 1793376850.6024237,
+    "seen": 1793377271.3103511,
     "ast_hash": "00e707b2c20de2d891c32d5510aeae34",
     "semantic_hash": ""
   },
@@ -8035,8 +8035,8 @@
     "semantic_hash": "b03b604325a6718652ba7d6a474b2f69"
   },
   "apps/website/src/layouts/BaseLayout.astro": {
-    "mtime": 1793375626.7566037,
-    "seen": 1793376240.396148,
+    "mtime": 1793376850.6032531,
+    "seen": 1793377271.310648,
     "ast_hash": "3824bc353cc921b2c449325884ee2cb9",
     "semantic_hash": ""
   },
@@ -8071,8 +8071,8 @@
     "semantic_hash": "701b34b44d8d769e526b92468750d80d"
   },
   "apps/website/src/pages/index.astro": {
-    "mtime": 1793375626.7589798,
-    "seen": 1793376240.396173,
+    "mtime": 1793376850.6063917,
+    "seen": 1793377271.3110101,
     "ast_hash": "b94c1836e20a0a2e64d29cc47831ce64",
     "semantic_hash": ""
   },
@@ -8113,9 +8113,9 @@
     "semantic_hash": "759c05571d14e7526ee426966984d787"
   },
   "package.json": {
-    "mtime": 1793375651.2910714,
-    "seen": 1793376240.3964832,
-    "ast_hash": "1439e21ed23cb966c58d4636828042e8",
+    "mtime": 1793377101.8915315,
+    "seen": 1793377271.3113332,
+    "ast_hash": "18d89f2b5c1911ced08f0cdc422efbf5",
     "semantic_hash": ""
   },
   "packages/ai-agent/calendarTools.test.ts": {
@@ -13265,9 +13265,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793375989.3346255,
-    "seen": 1793376240.425008,
-    "ast_hash": "e6f7f237ec275850b2120e9a1c7388c8",
+    "mtime": 1793377191.3327053,
+    "seen": 1793377271.356436,
+    "ast_hash": "f723f198aa4a4d1f78088383817a7833",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13343,9 +13343,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793375898.0604262,
-    "seen": 1793376240.4254348,
-    "ast_hash": "5c5ce022f6bfa16af5ba30f9ba1a89c5",
+    "mtime": 1793377179.1189134,
+    "seen": 1793377271.357234,
+    "ast_hash": "0691232a3b5a8df53479233b26020528",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -15851,9 +15851,9 @@
     "semantic_hash": ""
   },
   "scripts/tui/build.sh": {
-    "mtime": 1793375651.386825,
-    "seen": 1793376240.422375,
-    "ast_hash": "4b777df25e38bbba1f85c7c658a990cd",
+    "mtime": 1793377143.4596283,
+    "seen": 1793377271.35285,
+    "ast_hash": "5d69db1dc3f367db0c23c2b0e2c3ba2f",
     "semantic_hash": ""
   },
   "scripts/tui/ci.sh": {
@@ -15863,9 +15863,9 @@
     "semantic_hash": ""
   },
   "scripts/tui/dev.sh": {
-    "mtime": 1793375651.3872285,
-    "seen": 1793376240.422378,
-    "ast_hash": "eb10e54abedbd65543428c0ca0c6f924",
+    "mtime": 1793377087.8354988,
+    "seen": 1793377271.3529012,
+    "ast_hash": "e07f314c249691640d13c327b3894f6a",
     "semantic_hash": ""
   },
   "scripts/tui/health.sh": {
@@ -15905,194 +15905,194 @@
     "semantic_hash": ""
   },
   "apps/website/src/components/AppWorkbenchDemo.astro": {
-    "mtime": 1793375626.7511497,
-    "seen": 1793376240.395446,
+    "mtime": 1793376850.5944023,
+    "seen": 1793377271.309948,
     "ast_hash": "e96e6559660c754a3f01bd33c25f48a5",
     "semantic_hash": ""
   },
   "apps/website/src/components/HowItWorksSection.astro": {
-    "mtime": 1793375626.7516751,
-    "seen": 1793376240.395552,
+    "mtime": 1793376850.5958512,
+    "seen": 1793377271.310066,
     "ast_hash": "fc09efac19cab532058a07f1ca47adaf",
     "semantic_hash": ""
   },
   "apps/website/src/components/NotesStayYoursSection.astro": {
-    "mtime": 1793375626.7521665,
-    "seen": 1793376240.395555,
+    "mtime": 1793376850.5969992,
+    "seen": 1793377271.31007,
     "ast_hash": "0a84938a5a541301442c0ea503ce6a98",
     "semantic_hash": ""
   },
   "apps/website/src/components/WavyDivider.astro": {
-    "mtime": 1793375626.7530909,
-    "seen": 1793376240.3957891,
+    "mtime": 1793376850.5991032,
+    "seen": 1793377271.310288,
     "ast_hash": "644a5304453726a692497b3a849909f0",
     "semantic_hash": ""
   },
   "apps/website/src/components/WhatYouCanDoSection.astro": {
-    "mtime": 1793375626.7533045,
-    "seen": 1793376240.395791,
+    "mtime": 1793376850.5999014,
+    "seen": 1793377271.310289,
     "ast_hash": "02b3af99e10b52253b11407ec24c6dcd",
     "semantic_hash": ""
   },
   "apps/website/src/components/docs/DocsCallout.astro": {
-    "mtime": 1793375626.7537189,
-    "seen": 1793376240.395848,
+    "mtime": 1793376850.6010394,
+    "seen": 1793377271.3103418,
     "ast_hash": "468d067d528f9d5c7c48fcc1662a58e7",
     "semantic_hash": ""
   },
   "apps/website/src/components/docs/DocsCodeCard.astro": {
-    "mtime": 1793375626.7538164,
-    "seen": 1793376240.39585,
+    "mtime": 1793376850.6011398,
+    "seen": 1793377271.310343,
     "ast_hash": "09e7212ddb381806cdb385f831ba4791",
     "semantic_hash": ""
   },
   "apps/website/src/components/docs/DocsMermaid.astro": {
-    "mtime": 1793375626.7539198,
-    "seen": 1793376240.395851,
+    "mtime": 1793376850.6013262,
+    "seen": 1793377271.310345,
     "ast_hash": "06cd4d2c32420bd2787c4d7d4613b517",
     "semantic_hash": ""
   },
   "apps/website/src/components/docs/DocsPagination.astro": {
-    "mtime": 1793375626.7540221,
-    "seen": 1793376240.395853,
+    "mtime": 1793376850.6014376,
+    "seen": 1793377271.310346,
     "ast_hash": "13c6d232ee82d177d8714e08ac82a24e",
     "semantic_hash": ""
   },
   "apps/website/src/components/docs/DocsSidebar.astro": {
-    "mtime": 1793375626.7541103,
-    "seen": 1793376240.395854,
+    "mtime": 1793376850.6015513,
+    "seen": 1793377271.310348,
     "ast_hash": "335417b09d46e45d47837165df6655ad",
     "semantic_hash": ""
   },
   "apps/website/src/components/docs/DocsTableOfContents.astro": {
-    "mtime": 1793375626.7542064,
-    "seen": 1793376240.3958552,
+    "mtime": 1793376850.6017656,
+    "seen": 1793377271.310349,
     "ast_hash": "959035202786a78bc046a52c573f4f0f",
     "semantic_hash": ""
   },
   "apps/website/src/components/hero/OwlBottomItems.astro": {
-    "mtime": 1793375626.7555335,
-    "seen": 1793376240.3958578,
+    "mtime": 1793376850.6026158,
+    "seen": 1793377271.3103518,
     "ast_hash": "a7269eb492dca686be4be8efa66f5e19",
     "semantic_hash": ""
   },
   "apps/website/src/components/hero/OwlHeadHotspots.astro": {
-    "mtime": 1793375626.7556653,
-    "seen": 1793376240.39586,
+    "mtime": 1793376850.602754,
+    "seen": 1793377271.3103528,
     "ast_hash": "678c1763ee770d80dc66dd187fd941d4",
     "semantic_hash": ""
   },
   "apps/website/src/components/hero/OwlSideNotes.astro": {
-    "mtime": 1793375626.7564263,
-    "seen": 1793376240.395861,
+    "mtime": 1793376850.6028876,
+    "seen": 1793377271.310355,
     "ast_hash": "144f437c0e4b965a8efa7ea44cb78035",
     "semantic_hash": ""
   },
   "apps/website/src/layouts/DocsLayout.astro": {
-    "mtime": 1793375626.7567065,
-    "seen": 1793376240.396149,
+    "mtime": 1793376850.6033525,
+    "seen": 1793377271.3106492,
     "ast_hash": "8949e2bf6924aff4d09b02ba9b29d962",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/ai.astro": {
-    "mtime": 1793375626.7568676,
-    "seen": 1793376240.39615,
+    "mtime": 1793376850.6036043,
+    "seen": 1793377271.3106508,
     "ast_hash": "2ae85b8ff2dbf2c31cfaa830d5dad061",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/calendar.astro": {
-    "mtime": 1793375626.7569818,
-    "seen": 1793376240.396152,
+    "mtime": 1793376850.6038883,
+    "seen": 1793377271.310652,
     "ast_hash": "4a61e81060ff898ac642af445f88a0d5",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/canvas.astro": {
-    "mtime": 1793375626.7570968,
-    "seen": 1793376240.396153,
+    "mtime": 1793376850.6040637,
+    "seen": 1793377271.310653,
     "ast_hash": "c72a877bfe12e28aa686c8e65ed9c997",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/cli.astro": {
-    "mtime": 1793375626.7571838,
-    "seen": 1793376240.3961542,
+    "mtime": 1793376850.604235,
+    "seen": 1793377271.3106549,
     "ast_hash": "79455af30fd6e7af510f53027af1eadc",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/clipper.astro": {
-    "mtime": 1793375626.7572844,
-    "seen": 1793376240.3961558,
+    "mtime": 1793376850.6047313,
+    "seen": 1793377271.310657,
     "ast_hash": "0faba7b62038bc16dd4bfc4330b4feb3",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/editor.astro": {
-    "mtime": 1793375626.7582731,
-    "seen": 1793376240.396157,
+    "mtime": 1793376850.6048648,
+    "seen": 1793377271.310658,
     "ast_hash": "e490d13332f694e2325adb5a144820ca",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/graph.astro": {
-    "mtime": 1793375626.7583692,
-    "seen": 1793376240.396158,
+    "mtime": 1793376850.6049736,
+    "seen": 1793377271.3106592,
     "ast_hash": "ceefb9b3369461ab57543d35192d2f27",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/index.astro": {
-    "mtime": 1793375626.7584643,
-    "seen": 1793376240.396159,
+    "mtime": 1793376850.6051006,
+    "seen": 1793377271.310661,
     "ast_hash": "14f19888aa7d6b47530c085ad4e83b08",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/mobile.astro": {
-    "mtime": 1793375626.7585592,
-    "seen": 1793376240.39616,
+    "mtime": 1793376850.6055355,
+    "seen": 1793377271.3106618,
     "ast_hash": "9d1d24fb1a0426685a24fffd27a62b8f",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/plugins.astro": {
-    "mtime": 1793375626.7586467,
-    "seen": 1793376240.396161,
+    "mtime": 1793376850.6059139,
+    "seen": 1793377271.310664,
     "ast_hash": "fc17ea0deecc63ec7d15013691e8de64",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/search.astro": {
-    "mtime": 1793375626.7587552,
-    "seen": 1793376240.396163,
+    "mtime": 1793376850.606036,
+    "seen": 1793377271.310665,
     "ast_hash": "a17117b3f06e5b2843e3f5b7e48ffa35",
     "semantic_hash": ""
   },
   "apps/website/src/pages/docs/sync.astro": {
-    "mtime": 1793375626.7588513,
-    "seen": 1793376240.3961642,
+    "mtime": 1793376850.60615,
+    "seen": 1793377271.310666,
     "ast_hash": "2b64a238038a0d48e4d4205a2c38e540",
     "semantic_hash": ""
   },
   "apps/website/src/scripts/heroInteractive.ts": {
-    "mtime": 1793375631.6320708,
-    "seen": 1793376240.3961742,
+    "mtime": 1793376850.6065962,
+    "seen": 1793377271.311011,
     "ast_hash": "28e0493aded594e11ff142cd00fd7afb",
     "semantic_hash": ""
   },
   "apps/website/public/images/hero/owl-hero-1024.webp": {
-    "mtime": 1793375626.7500222,
-    "seen": 1793376240.440632,
+    "mtime": 1793376850.5907822,
+    "seen": 1793377271.379127,
     "ast_hash": "af42a97faa97422c696b3a82afd4cd44",
     "semantic_hash": ""
   },
   "apps/website/public/images/hero/owl-hero-480.webp": {
-    "mtime": 1793375626.7501974,
-    "seen": 1793376240.440634,
+    "mtime": 1793376850.5912735,
+    "seen": 1793377271.3791292,
     "ast_hash": "6458882f6d0932901103bc2916588185",
     "semantic_hash": ""
   },
   "apps/website/public/images/hero/owl-hero-768.webp": {
-    "mtime": 1793375626.7503688,
-    "seen": 1793376240.440635,
+    "mtime": 1793376850.5940626,
+    "seen": 1793377271.3791308,
     "ast_hash": "a2478a71506d79e4400251781879270f",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {
-    "mtime": 1793376103.441149,
-    "seen": 1793376240.440741,
+    "mtime": 1793376850.6882632,
+    "seen": 1793377271.37924,
     "ast_hash": "3779f96e8dd7e099e1458873f50b9471",
     "semantic_hash": ""
   },
