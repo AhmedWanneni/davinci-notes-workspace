@@ -11,15 +11,17 @@ Updated at the end of every session. Read this first, before touching code. Full
 **What was done:**
 1. **Interactive Bash TUI Manager (`scripts/manage.sh`, `scripts/tui.sh`)**:
    - Built a modular, zero-heavy-dependency terminal control center with ANSI styling, ASCII banner, real-time workspace status bar (branch, clean/dirty state, active version, host architecture, Syncthing presence).
-   - Added CLI shortcuts: `-l` / `--links`, `-b` / `--build`, `-c` / `--ci`, `-d` / `--dev`, `--health`, `--diagnostics`.
-2. **Modular Architecture (All files strictly <= 200 lines)**:
-   - `scripts/tui/ui.sh` (108 lines): Styling tokens, ASCII banner, section headers, browser opener, OS clipboard integrations (`pbcopy`, `wl-copy`, `xclip`, `clip.exe`).
-   - `scripts/tui/status.sh` (93 lines): Real-time status header and tooling diagnostics (Node, pnpm, Cargo, rustc, gh, git, Syncthing).
-   - `scripts/tui/dev.sh` (64 lines): Development launchers for desktop app, web interface, website, and asset pre-fetchers.
-   - `scripts/tui/build.sh` (141 lines): Frontend asset compiler, smoke test, full local DMG/App builder, and artifact discovery.
-   - `scripts/tui/links.sh` (193 lines): Multi-platform release download links (macOS M1-M4 DMG, macOS Intel DMG, Windows EXE, Linux AppImage/DEB, SHA256 checksums) with clipboard copy, browser open, and curl download.
-   - `scripts/tui/ci.sh` (101 lines): GitHub Actions release workflow watcher, trigger matrix, and log inspection.
-   - `scripts/tui/health.sh` (68 lines): Preflight release audit, manifest sync verification, unit tests, and bundle size checks.
+   - Added CLI shortcuts: `-i` / `--installers`, `-l` / `--links`, `-b` / `--build`, `-c` / `--ci`, `-d` / `--dev`, `--health`, `--diagnostics`.
+2. **Local Multi-Platform Builds & One-Click Installer (`scripts/tui/build.sh`, `scripts/tui/installer.sh`)**:
+   - Implemented dedicated targets in the Build menu:
+     - 🍏 **macOS Application**: Build Apple Silicon (`aarch64`) or Intel (`x86_64`) native `.dmg` and `.app` bundles with automated sidecar pre-fetching and SDK resolution.
+     - 🪟 **Windows Installer**: Native compilation on Windows or 1-click cloud build/fetch to `./installers/`.
+     - 🐧 **Linux Installer**: Native compilation on Linux, or cloud build/fetch `.AppImage` (with automatic `chmod +x`) and `.deb`.
+   - Built the Installer Manager (`scripts/tui/installer.sh`, 228 lines):
+     - Centralizes all built/downloaded packages in a dedicated `./installers/` directory.
+     - **One-click install/launch**: Automatically mounts macOS `.dmg` via `hdiutil`, installs to `/Applications`, launches `.app`, or launches Linux `.AppImage`.
+     - **Reveal in Finder / File Explorer**: 1-key action to highlight the installer file.
+     - **Checksum verification**: Inspect SHA256 checksums of local binaries.
 3. **CI Runner Compatibility (`apps/desktop/package.json`, `package.json`)**:
    - Added `"tauri": "tauri"` to `apps/desktop/package.json` to prevent `npm error Missing script: "tauri"` when `tauri-action` invokes `npm run tauri build`.
    - Added `"manage"` and `"tui"` scripts to root `package.json`.
