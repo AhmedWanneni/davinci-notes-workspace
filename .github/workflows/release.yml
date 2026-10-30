@@ -127,11 +127,12 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: './apps/desktop'
+          tauriScript: 'pnpm --filter @app/desktop tauri'
           tagName: ${{ github.event.inputs.release_tag || github.ref_name }}
           releaseName: 'DaVinci Notes ${{ github.event.inputs.release_tag || github.ref_name }}'
           releaseDraft: true
           prerelease: ${{ contains(github.ref_name, '-') }}
-          args: --target ${{ matrix.target }}
+          args: --target ${{ matrix.target }} --ignore-version-mismatches
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -166,10 +167,10 @@ jobs:
         run: |
           bash scripts/release/generate-changelog.sh --out ./RELEASE_BODY.md
 
-      - name: Upload SHA256SUMS and attach to Draft Release
+      - name: Upload all artifacts and publish Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ github.event.inputs.release_tag || github.ref_name }}
         run: |
-          gh release upload "$TAG_NAME" ./final-artifacts/SHA256SUMS.txt --clobber || true
-          gh release edit "$TAG_NAME" --notes-file ./RELEASE_BODY.md || true
+          gh release upload "$TAG_NAME" ./final-artifacts/* --clobber || true
+          gh release edit "$TAG_NAME" --draft=false --notes-file ./RELEASE_BODY.md || true

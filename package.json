@@ -13,6 +13,7 @@
     "test:public-tokens": "node --test scripts/check-public-tokens.test.mjs",
     "manage": "bash scripts/manage.sh",
     "tui": "bash scripts/manage.sh",
+    "tauri": "pnpm --filter @app/desktop tauri",
     "desktop:build": "pnpm --filter @app/desktop build",
     "desktop:dev": "pnpm --filter @app/desktop dev",
     "deploy:cloudflare": "bash scripts/deploy-cloudflare.sh",

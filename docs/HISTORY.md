@@ -2,6 +2,22 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Fix Desktop Release CI Pipeline & Attach v0.1.0 Binaries
+
+- **CI Release Workflow & Monorepo Root Script Fixes (`package.json`, `.github/workflows/release.yml`)**:
+  - Identified root cause of release workflow failure across all 4 runner platforms: `tauri-action` invoked `npm run tauri build -- --target ...` in repository root, failing with `npm error Missing script: "tauri"`.
+  - Added `"tauri": "pnpm --filter @app/desktop tauri"` to root `package.json`.
+  - Updated `.github/workflows/release.yml` with `tauriScript: 'pnpm --filter @app/desktop tauri'` and `--ignore-version-mismatches`.
+  - Updated `finalize-release` to upload all installers (`./final-artifacts/*`) and publish with `--draft=false`.
+- **Packaging & Release Upload**:
+  - Compiled macOS desktop bundle locally (`Sophia.app` 53.85 MB, `Sophia_0.1.0_aarch64.dmg` 22.40 MB).
+  - Attached `Sophia_0.1.0_aarch64.dmg` (SHA-256: `c706cd715df3a48f004cb6eee8401c8bff0e55180cec170f20f00b98ae8c41ed`) directly to GitHub Release `v0.1.0`.
+  - Confirmed via `gh api` that authenticated requests download the 22.4MB asset with HTTP 200 OK.
+- **Repository Visibility**:
+  - Identified that public unauthenticated requests to `/releases/download/...` return 404 because `AhmedWanneni/davinci-notes-workspace` is private.
+
+---
+
 ### 2026-10-30: Cloudflare Pages Deployment TUI & Laptop-Specific Download Detection
 
 - **Cloudflare CLI & Interactive Bash TUI (`scripts/tui/cloudflare.sh`, `scripts/deploy-cloudflare.sh`, `scripts/manage.sh`)**:

@@ -4,7 +4,32 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Cloudflare Pages TUI Deployment & Dynamic Laptop-Specific Download Detection
+## Last Session — Fix Desktop Release CI Pipeline & Attach v0.1.0 Binaries
+
+**Scope:** Fix the GitHub Actions desktop release workflow (`.github/workflows/release.yml`) so all platform installers build properly, fix missing `"tauri"` script execution in root monorepo, compile and attach the macOS Apple Silicon `.dmg` directly to GitHub Release `v0.1.0`:
+1. **CI Release Workflow & Monorepo Root Script Fixes (`package.json`, `.github/workflows/release.yml`)**:
+   - Diagnosed root cause of release workflow failure: `tauri-action` invoked `npm run tauri build -- --target ...` in repository root, failing with `npm error Missing script: "tauri"`.
+   - Added `"tauri": "pnpm --filter @app/desktop tauri"` to root `package.json`.
+   - Updated `.github/workflows/release.yml` to specify `tauriScript: 'pnpm --filter @app/desktop tauri'` and added `--ignore-version-mismatches` to build args.
+   - Fixed `finalize-release` step to upload all binary installers (`./final-artifacts/*`) and publish with `--draft=false`.
+2. **Local Production Build & Release Upload**:
+   - Built production macOS desktop bundle locally (`Sophia.app` 53.85 MB, `Sophia_0.1.0_aarch64.dmg` 22.40 MB).
+   - Uploaded `Sophia_0.1.0_aarch64.dmg` (SHA-256: `c706cd715df3a48f004cb6eee8401c8bff0e55180cec170f20f00b98ae8c41ed`) directly to GitHub Release `v0.1.0`.
+   - Verified authenticated asset delivery returns HTTP 200 OK (`Content-Length: 23491773`).
+3. **Repository Visibility Diagnosis**:
+   - Identified that GitHub returns 404 to unauthenticated public visitors because the repository `AhmedWanneni/davinci-notes-workspace` is currently set to Private (`"isPrivate": true`).
+   - Prepared prompt/decision for repo visibility vs public hosting.
+
+---
+
+## Next Up
+- Decide on making repository public or configuring public download mirror for releases.
+- Trigger CI workflow dispatch to compile and publish Windows and Linux release assets.
+- Verify download links end-to-end on `https://sophia-notes.pages.dev`.
+
+---
+
+## Previous Session — Cloudflare Pages TUI Deployment & Dynamic Laptop-Specific Download Detection
 
 **Scope:** Implement an interactive, user-friendly Bash TUI for deploying the website to Cloudflare Pages (with automatic connection detection, browser login launcher, and GitHub connect workflow), add Cloudflare Pages configuration files (`apps/website/wrangler.toml` and `.github/workflows/deploy-cloudflare.yml`), and tailor download links dynamically on the website based on the visitor's laptop operating system (macOS Apple Silicon & Intel .dmg, Windows .exe, Linux .AppImage & .deb):
 1. **Interactive Cloudflare Deployment TUI (`scripts/tui/cloudflare.sh`, `scripts/deploy-cloudflare.sh`, `scripts/manage.sh`, `package.json`)**:
