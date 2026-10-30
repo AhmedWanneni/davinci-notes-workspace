@@ -4,7 +4,32 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Multi-Platform Release Matrix & Zero-Prompt Free Installer
+## Last Session — Fix `pnpm dev` Tauri CLI Argument Mismatch
+
+**Scope:** Fix `error: unexpected argument '--ignore-version-mismatches' found` during `pnpm dev` in `@app/desktop`.
+
+**What was done:**
+1. **Root Cause Analysis**:
+   - `tauri build` accepts `--ignore-version-mismatches`, but `tauri dev` uses a distinct CLI argument parser that does not accept `--ignore-version-mismatches` and rejects it with exit code 2.
+   - When `--ignore-version-mismatches` was previously appended to `"dev"` in `apps/desktop/package.json`, any invocation of `pnpm dev` or `pnpm --filter @app/desktop dev` crashed immediately before starting Vite or Tauri.
+2. **Fixed Desktop Script & Wrapper (`apps/desktop/package.json`, `apps/desktop/scripts/withCompatibleMacSdk.mjs`)**:
+   - Updated `apps/desktop/package.json` `"dev"` script to execute `node scripts/withCompatibleMacSdk.mjs tauri dev` without unsupported CLI arguments.
+   - Enhanced `withCompatibleMacSdk.mjs` to automatically filter out `--ignore-version-mismatches` when running `tauri dev`, while preserving and ensuring `--ignore-version-mismatches` is present for `tauri build`.
+3. **Verification**:
+   - Verified `pnpm --filter @app/desktop dev --help` runs and exits with code 0.
+   - Verified that passing `--ignore-version-mismatches` explicitly to `dev` is safely stripped without crash.
+
+---
+
+## Next Up
+- Verify development live-reload and watch mode across desktop frontend.
+- Monitor GitHub Actions release pipeline run 41118195862 to completion.
+- Verify Windows .exe and Linux .AppImage/.deb downloads live on `https://sophia-notes.pages.dev/download`.
+- Verify end-to-end user experience across platforms.
+
+---
+
+## Previous Session — Multi-Platform Release Matrix & Zero-Prompt Free Installer
 
 **Scope:** Launch CI multi-platform release matrix in GitHub Actions to build and publish Windows (`.exe`) and Linux (`.AppImage`, `.deb`) installers, package a standard macOS DMG with `Install Sophia.command` to allow 100% free installs without Gatekeeper warnings, and deploy `install.sh` to Cloudflare Pages:
 1. **Multi-Platform CI Cloud Matrix Dispatch**:
@@ -19,16 +44,6 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Enhanced macOS DMG packaging to include an executable `Install Sophia.command` alongside the `Applications` folder shortcut.
    - Users can double-click `Install Sophia.command` inside the DMG for 1-click free installation and launch.
    - Re-packaged and uploaded `Sophia_0.1.0_aarch64.dmg` to GitHub Release `v0.1.0`.
-
----
-
-## Next Up
-- Monitor GitHub Actions release pipeline run 41118195862 to completion.
-- Verify Windows .exe and Linux .AppImage/.deb downloads live on `https://sophia-notes.pages.dev/download`.
-- Verify end-to-end user experience across platforms.
-
----
-
 ## Previous Session — Fix Desktop Release CI Pipeline & Attach v0.1.0 Binaries
 
 **Scope:** Fix the GitHub Actions desktop release workflow (`.github/workflows/release.yml`) so all platform installers build properly, fix missing `"tauri"` script execution in root monorepo, compile and attach the macOS Apple Silicon `.dmg` directly to GitHub Release `v0.1.0`:
