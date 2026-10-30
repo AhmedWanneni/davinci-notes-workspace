@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, Input } from "@app/design-system";
 import { Check, FolderOpen } from "@phosphor-icons/react";
+import { pickVaultFolder } from "../../vault/pickVaultFolder";
 import type { SyncthingPendingFolder } from "./syncthingCommands";
 import styles from "./SyncthingPendingSection.module.scss";
 
@@ -17,6 +18,17 @@ export function SyncthingPendingFolderRow({
 }: SyncthingPendingFolderRowProps) {
   const [targetPath, setTargetPath] = useState("");
   const [allowNonEmpty, setAllowNonEmpty] = useState(false);
+
+  const handleBrowse = async () => {
+    try {
+      const picked = await pickVaultFolder();
+      if (picked) {
+        setTargetPath(picked);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const handleAccept = () => {
     if (!targetPath.trim()) return;
@@ -45,13 +57,24 @@ export function SyncthingPendingFolderRow({
         >
           Target Destination Path:
         </label>
-        <Input
-          id={`folder-path-${folder.folderId}`}
-          value={targetPath}
-          onChange={(e) => setTargetPath(e.target.value)}
-          placeholder="/Users/name/Vaults/SharedVault"
-          className={styles["pending-card__input-mono"]}
-        />
+        <div className={styles["pending-card__path-row"]}>
+          <Input
+            id={`folder-path-${folder.folderId}`}
+            value={targetPath}
+            onChange={(e) => setTargetPath(e.target.value)}
+            placeholder="/Users/name/Vaults/SharedVault"
+            className={styles["pending-card__input-mono"]}
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={handleBrowse}
+            disabled={disabled}
+          >
+            Browse...
+          </Button>
+        </div>
         <label className={styles["pending-card__checkbox-label"]}>
           <input
             type="checkbox"

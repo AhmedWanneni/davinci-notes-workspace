@@ -171,4 +171,40 @@ describe("SyncthingPendingSection", () => {
       expect(onUpdated).toHaveBeenCalled();
     });
   });
+
+  it("renders pending folder offer and accepts it with target path", async () => {
+    const onUpdated = vi.fn().mockResolvedValue(undefined);
+    render(
+      <SyncthingPendingSection
+        pendingDevices={[]}
+        pendingFolders={[
+          {
+            folderId: "davinci-c130e8cee8",
+            label: "Obsidian Vault",
+            offeredBy: mockDevId,
+            time: "2026-10-30T23:26:00Z",
+          },
+        ]}
+        onUpdated={onUpdated}
+      />,
+    );
+
+    expect(screen.getByText("Obsidian Vault")).toBeDefined();
+    const input = screen.getByLabelText("Target Destination Path:");
+    fireEvent.change(input, { target: { value: "/Users/test/Vault" } });
+
+    const acceptBtn = screen.getByRole("button", {
+      name: "Accept Folder Offer",
+    });
+    fireEvent.click(acceptBtn);
+
+    await waitFor(() => {
+      expect(commands.syncthingAcceptFolder).toHaveBeenCalledWith(
+        "davinci-c130e8cee8",
+        "/Users/test/Vault",
+        false,
+      );
+      expect(onUpdated).toHaveBeenCalled();
+    });
+  });
 });
