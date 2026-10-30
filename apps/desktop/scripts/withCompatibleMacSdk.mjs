@@ -96,9 +96,15 @@ const command =
     : args[0];
 
 const isTauriBuild = args[0] === "tauri" && args[1] === "build";
-const passthroughArgs = [...args.slice(1)];
+const isTauriDev = args[0] === "tauri" && args[1] === "dev";
+let passthroughArgs = [...args.slice(1)];
 if (isTauriBuild && !passthroughArgs.includes("--ignore-version-mismatches")) {
   passthroughArgs.push("--ignore-version-mismatches");
+}
+if (isTauriDev) {
+  passthroughArgs = passthroughArgs.filter(
+    (arg) => arg !== "--ignore-version-mismatches",
+  );
 }
 
 const child = spawn(command, passthroughArgs, {
