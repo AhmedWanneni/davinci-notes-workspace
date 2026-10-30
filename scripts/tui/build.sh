@@ -36,6 +36,17 @@ build_macos_target() {
           if [[ -f "${repo_root}/apps/desktop/src-tauri/icons/icon.icns" ]]; then
             cp "${repo_root}/apps/desktop/src-tauri/icons/icon.icns" "${staging_dmg}/.VolumeIcon.icns"
           fi
+          cat << 'CMDEOF' > "${staging_dmg}/Install Sophia.command"
+#!/usr/bin/env bash
+D="$(cd "$(dirname "$0")" && pwd)"
+echo "Installing Sophia to /Applications..."
+cp -R "$D/Sophia.app" /Applications/
+xattr -cr /Applications/Sophia.app 2>/dev/null || true
+codesign --force --deep --sign - /Applications/Sophia.app 2>/dev/null || true
+echo "✔ Done! Launching Sophia..."
+open -a /Applications/Sophia.app
+CMDEOF
+          chmod +x "${staging_dmg}/Install Sophia.command"
           rm -f "$d_file"
           hdiutil create -volname "Sophia" -srcfolder "$staging_dmg" -ov -format UDZO "$d_file" -quiet
           rm -rf "$staging_dmg"
@@ -55,15 +66,10 @@ build_macos_target() {
       sz="$(ls -lh "$newest_dmg" | awk '{print $5}')"
 
       ui_section "macOS Build Completed Successfully!" "🎉"
-      printf "  ${C_GREEN}✔ Output Package:${C_RESET} %s (${C_CYAN}%s${C_RESET})\n\n" "$(basename "$newest_dmg")" "$sz"
-      printf "  ${C_BOLD}Local Absolute Path:${C_RESET} ${C_CYAN}%s${C_RESET}\n" "$abs_dmg"
-      printf "  ${C_BOLD}Local Relative Path:${C_RESET} ${C_CYAN}%s${C_RESET}\n\n" "$rel_dmg"
+      printf "  ${C_GREEN}✔ Output Package:${C_RESET} %s (${C_CYAN}%s${C_RESET})\n" "$(basename "$newest_dmg")" "$sz"
+      printf "  ${C_BOLD}Path:${C_RESET} ${C_CYAN}%s${C_RESET}\n\n" "$rel_dmg"
 
-      printf "  ${C_BOLD}Next Steps:${C_RESET}\n"
-      printf "  ${C_BOLD}1)${C_RESET} 🚀 Mount and Install / Launch Sophia now\n"
-      printf "  ${C_BOLD}2)${C_RESET} 📂 Reveal in macOS Finder (open -R)\n"
-      printf "  ${C_BOLD}3)${C_RESET} 📋 Copy absolute file path to clipboard\n"
-      printf "  ${C_BOLD}b)${C_RESET} Return to Build Menu\n\n"
+      printf "  ${C_BOLD}Next Steps:${C_RESET} [1] Mount/Install  [2] Reveal in Finder  [3] Copy path  [b] Return\n"
       printf "  ${C_BOLD}Select action [1-3, b]:${C_RESET} "
       local act
       read -r act || act="b"
@@ -93,10 +99,9 @@ build_windows_target() {
     ui_success "Windows build complete!"
   else
     ui_info "Host is ${OSTYPE}. Windows installers require Windows SDK or GitHub Cloud Builder."
-    printf "  ${C_BOLD}1)${C_RESET} ☁️ Trigger GitHub Actions Cloud Build for Windows & download .exe\n"
-    printf "  ${C_BOLD}2)${C_RESET} 🔗 Fetch latest published Windows .exe from GitHub Releases\n"
-    printf "  ${C_BOLD}b)${C_RESET} Cancel\n\n"
-    printf "  ${C_BOLD}Select [1-2]:${C_RESET} "
+    printf "  ${C_BOLD}[1]${C_RESET} ☁️ Trigger GitHub Actions Cloud Build for Windows\n"
+    printf "  ${C_BOLD}[2]${C_RESET} 🔗 Fetch published Windows .exe from GitHub Releases\n"
+    printf "  ${C_BOLD}Select [1-2, b]:${C_RESET} "
     local c
     read -r c || return 0
     case "$c" in
@@ -139,10 +144,9 @@ build_linux_target() {
     ui_success "Linux build complete!"
   else
     ui_info "Host is ${OSTYPE}. Linux packaging requires Linux libraries (WebKit2GTK) or Cloud/Docker."
-    printf "  ${C_BOLD}1)${C_RESET} ☁️ Trigger GitHub Actions Cloud Build for Linux & download .AppImage\n"
-    printf "  ${C_BOLD}2)${C_RESET} 🔗 Fetch latest published Linux .AppImage from GitHub Releases\n"
-    printf "  ${C_BOLD}b)${C_RESET} Cancel\n\n"
-    printf "  ${C_BOLD}Select [1-2]:${C_RESET} "
+    printf "  ${C_BOLD}[1]${C_RESET} ☁️ Trigger GitHub Actions Cloud Build for Linux\n"
+    printf "  ${C_BOLD}[2]${C_RESET} 🔗 Fetch published Linux .AppImage from GitHub Releases\n"
+    printf "  ${C_BOLD}Select [1-2, b]:${C_RESET} "
     local c
     read -r c || return 0
     case "$c" in

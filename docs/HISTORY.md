@@ -2,6 +2,22 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Multi-Platform Release Matrix & Zero-Prompt Free Installer
+
+- **Multi-Platform CI Cloud Matrix Dispatch**:
+  - Dispatched GitHub Actions `Release Pipeline` (Run ID `41118195862`) for `v0.1.0`.
+  - Quality gates and manifest audit passed cleanly in 2m10s.
+  - Concurrently compiling on GitHub runners: Windows x64 (`Sophia_0.1.0_x64-setup.exe`), Linux x64 (`sophia_0.1.0_amd64.AppImage` & `.deb`), macOS Intel (`x64.dmg`), and macOS Apple Silicon (`aarch64.dmg`).
+- **Zero-Prompt 100% Free Install Script (`apps/website/public/install.sh`, `download/index.astro`)**:
+  - Created standalone `install.sh` served at `https://sophia-notes.pages.dev/install.sh`.
+  - Automatically detects macOS vs Linux, downloads the binary, installs to `/Applications` or `~/.local/bin`, strips quarantine xattrs, and launches Sophia without requiring a paid Apple Developer ID.
+  - Added copyable 1-line install command to the website download page.
+- **DMG Installer Upgrade (`scripts/tui/build.sh`)**:
+  - Packaged `Install Sophia.command` inside the DMG alongside the `Applications` folder shortcut.
+  - Re-uploaded `Sophia_0.1.0_aarch64.dmg` to GitHub Release `v0.1.0`.
+
+---
+
 ### 2026-10-30: Fix Desktop Release CI Pipeline & Attach v0.1.0 Binaries
 
 - **CI Release Workflow & Monorepo Root Script Fixes (`package.json`, `.github/workflows/release.yml`)**:

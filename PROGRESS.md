@@ -4,7 +4,32 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Desktop Release CI Pipeline & Attach v0.1.0 Binaries
+## Last Session — Multi-Platform Release Matrix & Zero-Prompt Free Installer
+
+**Scope:** Launch CI multi-platform release matrix in GitHub Actions to build and publish Windows (`.exe`) and Linux (`.AppImage`, `.deb`) installers, package a standard macOS DMG with `Install Sophia.command` to allow 100% free installs without Gatekeeper warnings, and deploy `install.sh` to Cloudflare Pages:
+1. **Multi-Platform CI Cloud Matrix Dispatch**:
+   - Dispatched GitHub Actions `Release Pipeline` (Run ID `41118195862`) for `v0.1.0`.
+   - Quality gates and manifest audit passed cleanly in 2m10s.
+   - Concurrently executing: Windows x64 (`Sophia_0.1.0_x64-setup.exe`), Linux x64 (`sophia_0.1.0_amd64.AppImage` & `.deb`), macOS Intel (`x64.dmg`), and macOS Apple Silicon (`aarch64.dmg`).
+2. **Zero-Prompt 100% Free Install Script (`apps/website/public/install.sh`, `download/index.astro`)**:
+   - Authored lightweight, self-contained `install.sh` deployed at `https://sophia-notes.pages.dev/install.sh`.
+   - Automatically detects OS (macOS vs Linux) and architecture (`arm64` vs `x64`), downloads verified release package, installs to `/Applications` or `~/.local/bin`, strips quarantine xattrs, and launches Sophia immediately without requiring Apple Developer ID notarization.
+   - Added 1-line copyable terminal install widget to the download page.
+3. **DMG Installer Upgrade (`scripts/tui/build.sh`)**:
+   - Enhanced macOS DMG packaging to include an executable `Install Sophia.command` alongside the `Applications` folder shortcut.
+   - Users can double-click `Install Sophia.command` inside the DMG for 1-click free installation and launch.
+   - Re-packaged and uploaded `Sophia_0.1.0_aarch64.dmg` to GitHub Release `v0.1.0`.
+
+---
+
+## Next Up
+- Monitor GitHub Actions release pipeline run 41118195862 to completion.
+- Verify Windows .exe and Linux .AppImage/.deb downloads live on `https://sophia-notes.pages.dev/download`.
+- Verify end-to-end user experience across platforms.
+
+---
+
+## Previous Session — Fix Desktop Release CI Pipeline & Attach v0.1.0 Binaries
 
 **Scope:** Fix the GitHub Actions desktop release workflow (`.github/workflows/release.yml`) so all platform installers build properly, fix missing `"tauri"` script execution in root monorepo, compile and attach the macOS Apple Silicon `.dmg` directly to GitHub Release `v0.1.0`:
 1. **CI Release Workflow & Monorepo Root Script Fixes (`package.json`, `.github/workflows/release.yml`)**:
