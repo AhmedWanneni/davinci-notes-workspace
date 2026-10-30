@@ -62,6 +62,8 @@
   margin: 0 auto;
   line-height: 0;
   z-index: 3;
+  transform-origin: bottom center;
+  animation: owl-alive-breathe 4.4s ease-in-out infinite;
 }
 
 .hero-owl-picture {
@@ -148,10 +150,55 @@
   86%, 90% { opacity: 1; }
 }
 
+@keyframes owl-alive-breathe {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50% { transform: scale(1.01, 1.016) translateY(-2px); }
+}
+
+.owl-head-bell-waves {
+  transform-origin: 376px 340px;
+  animation: owl-bell-ring 2.6s ease-in-out infinite;
+}
+
+.owl-head-bulb-glow {
+  transform-origin: 198px 474px;
+  animation: owl-bulb-pulse 2.4s ease-in-out infinite;
+}
+
+.owl-sparkle-1, .owl-sparkle-2, .owl-sparkle-3 {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: owl-sparkle-twinkle 2.8s ease-in-out infinite;
+}
+.owl-sparkle-2 { animation-delay: 0.9s; }
+.owl-sparkle-3 { animation-delay: 1.7s; }
+
+@keyframes owl-bell-ring {
+  0%, 72%, 100% { opacity: 0; transform: scale(0.92); }
+  78%, 86%, 94% { opacity: 0.95; transform: scale(1.04) rotate(-2deg); }
+  82%, 90% { opacity: 0.95; transform: scale(1.04) rotate(2deg); }
+}
+
+@keyframes owl-bulb-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+@keyframes owl-sparkle-twinkle {
+  0%, 100% { transform: scale(0.82) rotate(0deg); opacity: 0.65; }
+  50% { transform: scale(1.18) rotate(12deg); opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .hero-owl-figure,
   .owl-eyelid-top,
   .owl-eyelid-bottom,
-  .owl-eyelid-lash {
+  .owl-eyelid-lash,
+  .owl-head-bell-waves,
+  .owl-head-bulb-glow,
+  .owl-sparkle-1,
+  .owl-sparkle-2,
+  .owl-sparkle-3 {
     animation: none;
   }
 }

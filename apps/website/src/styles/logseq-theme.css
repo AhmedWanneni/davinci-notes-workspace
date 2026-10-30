@@ -1,40 +1,40 @@
 /* ==========================================================================
    DAVINCI NOTES THEME & DESIGN SYSTEM
-   Autumn Harvest Theme inspired by Cozy Illustrated Autumn Cats
-   Base Background: #ebd0a9 (Warm Kraft Oatmeal Parchment)
-   Palette: PUMPKIN (#c85e13), TERRACOTTA (#9c3e17), MOSS OLIVE (#4c5a38),
-            HONEY (#d58c24), ESPRESSO (#1c140d), CREAM (#faf0de)
+   Lively Cozy Storybook Palette (inspired by Och Monika & Anna Kunak)
+   Base Background: #f9f2e2 (Sunlit Warm Cream / Storybook Paper)
+   Palette: BERRY (#c43d2f), DUSTY SLATE-NAVY (#384f62), BOTANICAL SAGE (#506b42),
+            PUMPKIN (#d4621c), HONEY (#e69d35), ESPRESSO (#22160d), CREAM (#fffdf8)
    Strictly flat: NO shadows, depth via hand-drawn/organic borders and contrasting planes.
    ========================================================================== */
 
 :root {
-  /* Surfaces (Warm kraft parchment desk & cards) */
-  --logseq-bg: #ebd0a9;
-  --logseq-bg-alt: #dfc297;
-  --logseq-card: #f6dfbe;
-  --logseq-card-hover: #fffbf4;
-  --logseq-card-active: #fcf4e8;
-  --logseq-card-dark: #dfc297;
-  --logseq-card-light: #fffbf4;
+  /* Surfaces (Sunlit warm cream desk & crisp storybook cards) */
+  --logseq-bg: #f9f2e2;
+  --logseq-bg-alt: #f0e4ca;
+  --logseq-card: #fffaf0;
+  --logseq-card-hover: #ffffff;
+  --logseq-card-active: #fffdf8;
+  --logseq-card-dark: #efe2c8;
+  --logseq-card-light: #fffdf8;
 
   /* Borders (Warm ink hairlines, zero shadows) */
-  --logseq-border: rgba(56, 40, 24, 0.18);
-  --logseq-border-light: rgba(56, 40, 24, 0.32);
-  --logseq-border-glow: #c85e13;
+  --logseq-border: rgba(46, 30, 16, 0.2);
+  --logseq-border-light: rgba(46, 30, 16, 0.34);
+  --logseq-border-glow: #c43d2f;
 
   /* Accents */
-  --logseq-cyan: #c85e13;
-  --logseq-teal: #4c5a38;
-  --logseq-mint: #faf0de;
-  --logseq-blue: #9c3e17;
-  --logseq-yellow: #d58c24;
-  --logseq-red: #b5471c;
+  --logseq-cyan: #c43d2f;
+  --logseq-teal: #506b42;
+  --logseq-mint: #e1e8d7;
+  --logseq-blue: #384f62;
+  --logseq-yellow: #e69d35;
+  --logseq-red: #c43d2f;
 
-  /* Typography Colors (High-contrast deep espresso & warm cedar on kraft) */
-  --logseq-text-title: #1c140d;
-  --logseq-text-body: #2f2317;
-  --logseq-text-muted: #6b5744;
-  --logseq-text-faint: #937d68;
+  /* Typography Colors (High-contrast deep espresso & warm cedar on sunlit cream) */
+  --logseq-text-title: #22160d;
+  --logseq-text-body: #322316;
+  --logseq-text-muted: #644f3b;
+  --logseq-text-faint: #8c7560;
 
   /* Fonts */
   --font-display: "Cormorant Garamond", Georgia, serif;
@@ -101,19 +101,19 @@ button {
   justify-content: center;
   gap: 8px;
   padding: 0.68rem 1.35rem;
-  background-color: #c85e13;
-  color: #fffbf4;
+  background-color: #c43d2f;
+  color: #fffdf8;
   font-weight: 600;
   font-size: 0.88rem;
   border-radius: var(--radius-hand-drawn-subtle);
-  border: 1.5px solid #a84807;
+  border: 1.5px solid #22160d;
   box-shadow: none !important;
   transition: all 140ms ease;
 }
 
 .btn-logseq-primary:hover {
-  background-color: #b04e08;
-  border-color: #1c140d;
+  background-color: #a63225;
+  border-color: #22160d;
   color: #ffffff;
 }
 
@@ -123,18 +123,18 @@ button {
   justify-content: center;
   gap: 8px;
   padding: 0.68rem 1.35rem;
-  background-color: rgba(200, 94, 19, 0.1);
-  color: #9c3e17;
+  background-color: #dbe4eb;
+  color: #2c3e4f;
   font-weight: 600;
   font-size: 0.88rem;
   border-radius: var(--radius-hand-drawn-subtle);
-  border: 1.5px solid rgba(156, 62, 23, 0.45);
+  border: 1.5px solid #384f62;
   box-shadow: none !important;
   transition: all 140ms ease;
 }
 
 .btn-logseq-secondary:hover {
-  background-color: #c85e13;
-  border-color: #a84807;
-  color: #fffbf4;
+  background-color: #384f62;
+  border-color: #22160d;
+  color: #fffdf8;
 }
