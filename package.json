@@ -11,6 +11,8 @@
     "check:public-tokens": "node scripts/check-public-tokens.mjs",
     "check:version-sync": "bash scripts/release/check-version-sync.sh",
     "test:public-tokens": "node --test scripts/check-public-tokens.test.mjs",
+    "manage": "bash scripts/manage.sh",
+    "tui": "bash scripts/manage.sh",
     "prepare": "husky"
   },
   "devDependencies": {

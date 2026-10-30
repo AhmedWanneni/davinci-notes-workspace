@@ -425,6 +425,7 @@ the list.
 | [0247](adr/0247-release-automation-and-emergency-rollback.md) | Release Automation Harness, Idempotency and Emergency Rollback Protocol | Accepted |
 | [0248](adr/0248-community-package-managers-and-mobile-coordination.md) | Community Package Managers Distribution and Mobile Release Coordination | Accepted |
 | [0249](adr/0249-universal-agent-release-skill-architecture.md) | Universal Agent Release Skill Architecture and Two-Stage Human Approval Gating | Accepted |
+| [0250](adr/0250-interactive-bash-tui-application-manager.md) | Interactive Bash TUI Application & Release Manager | Accepted |
 
 
 

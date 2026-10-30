@@ -4,29 +4,37 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — "Create a Release" Execution & v0.1.0 Public Release
+## Last Session — Interactive Bash TUI Application & Release Manager (ADR-0250)
 
-**Scope:** Executed the "create a release" skill for version `v0.1.0`, published the release live to the public on GitHub Releases, and resolved CI matrix build TypeScript path deprecations.
+**Scope:** Create a user-friendly, modular Bash Text User Interface (TUI) in `scripts/manage.sh` (with alias `scripts/tui.sh` and npm scripts `pnpm manage` / `pnpm tui`) to manage the app, run dev modes, compile/package local applications, trigger/watch GitHub CI matrix builds, and discover/copy direct download links for macOS (ARM/Intel DMG), Windows (EXE), Linux (AppImage/DEB), and checksums.
 
 **What was done:**
-1. **Release v0.1.0 Published**:
-   - Tagged and published [Release v0.1.0](https://github.com/AhmedWanneni/davinci-notes-workspace/releases/tag/v0.1.0) on GitHub with curated release notes.
-2. **CI Release Workflow & TS Compiler Fixes**:
-   - Updated `.github/workflows/release.yml` to build web assets via `pnpm --filter @app/desktop build:web`.
-   - Updated root `tsconfig.json` paths to relative `./` targets and removed deprecated `baseUrl`.
-   - Fixed table placeholder attribute typing in `packages/editor/blocks/table/tableExtension.ts`.
-   - Opened and merged PR #16 (`fix/ci-release-workflow-and-ts-paths`) following mandatory agent branching and PR rules.
-   - Retriggered release build matrix on GitHub Actions.
+1. **Interactive Bash TUI Manager (`scripts/manage.sh`, `scripts/tui.sh`)**:
+   - Built a modular, zero-heavy-dependency terminal control center with ANSI styling, ASCII banner, real-time workspace status bar (branch, clean/dirty state, active version, host architecture, Syncthing presence).
+   - Added CLI shortcuts: `-l` / `--links`, `-b` / `--build`, `-c` / `--ci`, `-d` / `--dev`, `--health`, `--diagnostics`.
+2. **Modular Architecture (All files strictly <= 200 lines)**:
+   - `scripts/tui/ui.sh` (108 lines): Styling tokens, ASCII banner, section headers, browser opener, OS clipboard integrations (`pbcopy`, `wl-copy`, `xclip`, `clip.exe`).
+   - `scripts/tui/status.sh` (93 lines): Real-time status header and tooling diagnostics (Node, pnpm, Cargo, rustc, gh, git, Syncthing).
+   - `scripts/tui/dev.sh` (64 lines): Development launchers for desktop app, web interface, website, and asset pre-fetchers.
+   - `scripts/tui/build.sh` (141 lines): Frontend asset compiler, smoke test, full local DMG/App builder, and artifact discovery.
+   - `scripts/tui/links.sh` (193 lines): Multi-platform release download links (macOS M1-M4 DMG, macOS Intel DMG, Windows EXE, Linux AppImage/DEB, SHA256 checksums) with clipboard copy, browser open, and curl download.
+   - `scripts/tui/ci.sh` (101 lines): GitHub Actions release workflow watcher, trigger matrix, and log inspection.
+   - `scripts/tui/health.sh` (68 lines): Preflight release audit, manifest sync verification, unit tests, and bundle size checks.
+3. **CI Runner Compatibility (`apps/desktop/package.json`, `package.json`)**:
+   - Added `"tauri": "tauri"` to `apps/desktop/package.json` to prevent `npm error Missing script: "tauri"` when `tauri-action` invokes `npm run tauri build`.
+   - Added `"manage"` and `"tui"` scripts to root `package.json`.
+4. **Architecture Documentation (ADR-0250)**:
+   - Recorded `docs/adr/0250-interactive-bash-tui-application-manager.md` and indexed in `DECISIONS.md`.
 
 ---
 
 ## Next Up
-- Monitor CI matrix build completion on GitHub Actions for multi-platform installers (`.dmg`, `.exe`, `.AppImage`, `.deb`).
-- Enable GitHub Pages or configure custom domain hosting for website deployment.
+- Run desktop packaging smoke build via `pnpm manage -b` on local host.
+- Re-run GitHub Actions release workflow matrix with `"tauri": "tauri"` script fix to verify binary attachment to `v0.1.0`.
 
 ---
 
-## Previous Session — Git Settings: Dedicated Git Tab & Open Vault from GitHub Clone
+## Previous Session — "Create a Release" Execution & v0.1.0 Public Release
 
 **Scope:** Create a dedicated "Git" tab in desktop Settings (separate from "Sync & Backup") and add an "Open Vault from GitHub" card to clone a remote repository to a local destination and automatically switch to it as the active vault.
 
