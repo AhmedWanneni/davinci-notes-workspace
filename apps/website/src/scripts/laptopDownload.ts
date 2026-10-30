@@ -14,15 +14,15 @@ export interface DownloadCatalog {
 
 export const DOWNLOAD_LINKS: DownloadCatalog = {
   macArm:
-    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/Sophia_0.1.0_aarch64.dmg",
+    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/Sophia_0.3.0_aarch64.dmg",
   macIntel:
-    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/Sophia_0.1.0_x64.dmg",
+    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/Sophia_0.3.0_x64.dmg",
   windows:
-    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/Sophia_0.1.0_x64-setup.exe",
+    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/Sophia_0.3.0_x64-setup.exe",
   linuxAppImage:
-    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/sophia_0.1.0_amd64.AppImage",
+    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/sophia_0.3.0_amd64.AppImage",
   linuxDeb:
-    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/sophia_0.1.0_amd64.deb",
+    "https://github.com/AhmedWanneni/davinci-notes-workspace/releases/latest/download/sophia_0.3.0_amd64.deb",
   downloadPage: "/download",
 };
 
