@@ -8,18 +8,13 @@
     <span class="nav-pin nav-pin-right" aria-hidden="true"></span>
 
     <a href="/" class="nav-brand">
-      <svg class="nav-owl-icon" width="24" height="19" viewBox="0 0 34 26" fill="none" aria-hidden="true">
-        <path d="M3 9 C6 3, 13 4, 17 9 C21 4, 28 3, 31 9" stroke="#22160d" stroke-width="2.2" stroke-linecap="round" />
-        <circle cx="11.5" cy="13.5" r="5.5" fill="#fffdf8" stroke="#22160d" stroke-width="2.1" />
-        <circle cx="22.5" cy="13.5" r="5.5" fill="#fffdf8" stroke="#22160d" stroke-width="2.1" />
-        <circle cx="11.5" cy="13.5" r="2.7" fill="#22160d" />
-        <circle cx="22.5" cy="13.5" r="2.7" fill="#22160d" />
-        <circle cx="10.5" cy="12.2" r="1" fill="#fffdf8" />
-        <circle cx="21.5" cy="12.2" r="1" fill="#fffdf8" />
-        <path d="M15.3 17.2 L17 21.5 L18.7 17.2 Z" fill="#d4621c" stroke="#22160d" stroke-width="1.7" stroke-linejoin="round" />
-        <!-- Little Botanical Berry & Leaf Sprig -->
-        <path d="M27 5 C29 2, 33 3, 32 6 C30 7, 28 6, 27 5 Z" fill="#506b42" stroke="#22160d" stroke-width="1.3" />
-        <circle cx="27.5" cy="6.5" r="2.1" fill="#c43d2f" stroke="#22160d" stroke-width="1.2" />
+      <svg class="nav-owl-icon" width="22" height="17" viewBox="0 0 32 24" fill="none" aria-hidden="true">
+        <path d="M3 8 C6 3, 13 4, 16 8 C19 4, 26 3, 29 8" stroke="#281a0e" stroke-width="2.2" stroke-linecap="round" />
+        <circle cx="10.5" cy="12.5" r="5.5" fill="#faf0de" stroke="#281a0e" stroke-width="2.1" />
+        <circle cx="21.5" cy="12.5" r="5.5" fill="#faf0de" stroke="#281a0e" stroke-width="2.1" />
+        <circle cx="10.5" cy="12.5" r="2.6" fill="#281a0e" />
+        <circle cx="21.5" cy="12.5" r="2.6" fill="#281a0e" />
+        <path d="M14.5 16.5 L16 20.5 L17.5 16.5 Z" fill="#c85e13" stroke="#281a0e" stroke-width="1.7" stroke-linejoin="round" />
       </svg>
       <span class="nav-brand-title">Sophia <em>Notes</em></span>
     </a>
@@ -56,36 +51,46 @@
     align-items: center;
     gap: 18px;
     padding: 8px 24px;
-    background-color: #fffdf8;
-    border: 1.8px solid #22160d;
-    border-right: 3.5px solid #384f62;
-    border-bottom: 3.5px solid #384f62;
+    background-color: #f3e3c6;
+    border: 1.7px solid #281a0e;
     border-radius: 4px 7px 5px 6px / 6px 4px 7px 5px;
-    color: #22160d;
+    color: #26180d;
   }
 
-  /* Brass & Berry Thumbtack Pins */
+  /* Tactile Paper Offset Backing */
+  .nav-stationery-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(48, 28, 12, 0.14);
+    border-radius: inherit;
+    transform: translate(3px, 4px);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  /* Brass Thumbtack Pins */
   .nav-pin {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 7.5px;
-    height: 7.5px;
-    background-color: #c43d2f;
-    border: 1.5px solid #22160d;
+    width: 7px;
+    height: 7px;
+    background-color: #c38b32;
+    border: 1.4px solid #281a0e;
     border-radius: 50%;
     pointer-events: none;
   }
 
   .nav-pin-left { left: 8px; }
-  .nav-pin-right { right: 8px; background-color: #384f62; }
+  .nav-pin-right { right: 8px; }
 
   .nav-brand {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding-left: 4px;
-    color: #22160d;
+    color: #1c140d;
   }
 
   .nav-owl-icon {
@@ -103,13 +108,13 @@
 
   .nav-brand-title em {
     font-style: italic;
-    color: #c43d2f;
+    color: var(--accent-terracotta);
   }
 
   .nav-divider {
     width: 1.5px;
     height: 16px;
-    background-color: rgba(34, 22, 13, 0.24);
+    background-color: rgba(40, 26, 14, 0.28);
   }
 
   .nav-links {
@@ -124,16 +129,15 @@
     font-size: 1rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: #384f62;
-    font-weight: 700;
+    color: #3b2615;
     padding: 1px 0;
-    border-bottom: 1.8px solid transparent;
+    border-bottom: 1.6px solid transparent;
     transition: color 140ms ease, border-color 140ms ease;
   }
 
   .nav-link:hover {
-    color: #c43d2f;
-    border-bottom-color: #c43d2f;
+    color: #1c140d;
+    border-bottom-color: #c85e13;
   }
 
   @media (max-width: 768px) {

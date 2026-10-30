@@ -1,96 +1,84 @@
 /* ==========================================================================
    DAVINCI NOTES — EDITORIAL DESIGN TOKENS
-   Lively Cozy Storybook Palette (inspired by Och Monika & Anna Kunak):
-     - WARM IVORY CANVAS: #f9f2e2 (Sunlit Warm Cream / Storybook Paper)
-     - BERRY CRIMSON:     #c43d2f (Geranium Blossom, Rowan Berries & Rose Jam)
-     - CORAL BLUSH:       #e06d5e / #f4d6ce (Rose Petals & Blush Book Spines)
-     - DUSTY SLATE-NAVY:  #384f62 / #4b657a (Celestial Mug, Armchair & Floral Book)
-     - BOTANICAL SAGE:    #506b42 / #80966b (Potted Plants, Eucalyptus & Moss)
-     - PUMPKIN & HONEY:   #d4621c / #e69d35 (Cozy Foxes, Pumpkin & Candlelight)
-     - DEEP ESPRESSO:     #22160d (Crisp Hand-Drawn Storybook Ink)
+   Autumn Harvest Palette inspired by Cozy Illustrated Autumn Cats:
+     - KRAFT CANVAS:  #ebd0a9 (Warm Kraft / Autumn Oatmeal Parchment)
+     - PUMPKIN:       #c85e13 (Ginger Tabby & Pumpkin Orange)
+     - TERRACOTTA:    #9c3e17 (Autumn Maple Leaf & Knit Rust Sweaters)
+     - HONEY AMBER:   #d58c24 (Baked Pie & Golden Amber Tabby)
+     - MOSS OLIVE:    #4c5a38 (Gardener Cat Apron & Autumn Botanicals)
+     - WARM CREAM:    #faf0de (Marshmallow Foam, Latte Mug & Cat Bibs)
+     - IVORY:         #fffbf4 (Clean Cream Paper)
+     - DEEP ESPRESSO: #1c140d (Black Cat Silhouettes & Linework Ink)
    Strictly flat surfaces: 0 box-shadows, 0 drop-shadows. Organic / hand-drawn.
    ========================================================================== */
 
 :root {
   /* Core Reference Swatches */
-  --palette-kraft: #f9f2e2;
-  --palette-kraft-deep: #efe2c8;
-  --palette-pumpkin: #d4621c;
-  --palette-pumpkin-dark: #b34d11;
-  --palette-pumpkin-vivid: #e07026;
-  --palette-terracotta: #a63d22;
-  --palette-terracotta-dark: #822b14;
-  --palette-berry: #c43d2f;
-  --palette-berry-soft: #de6e60;
-  --palette-blush: #f5d8d0;
-  --palette-slate: #384f62;
-  --palette-slate-light: #4e697f;
-  --palette-slate-tint: #dbe4eb;
-  --palette-honey: #e69d35;
-  --palette-honey-tint: #faecc7;
-  --palette-olive: #506b42;
-  --palette-olive-dark: #3b5030;
-  --palette-sage: #80966b;
-  --palette-sage-tint: #e1e8d7;
-  --palette-cream: #fcf7ec;
-  --palette-ivory: #fffdf8;
-  --palette-espresso: #22160d;
-  --palette-charcoal: #2c2016;
-  --palette-taupe: #6b5947;
+  --palette-kraft: #ebd0a9;
+  --palette-kraft-deep: #dfc297;
+  --palette-pumpkin: #c85e13;
+  --palette-pumpkin-dark: #a84807;
+  --palette-pumpkin-vivid: #dc6b18;
+  --palette-terracotta: #9c3e17;
+  --palette-terracotta-dark: #812f0f;
+  --palette-honey: #d58c24;
+  --palette-olive: #4c5a38;
+  --palette-olive-dark: #3a452a;
+  --palette-cream: #faf0de;
+  --palette-ivory: #fffbf4;
+  --palette-espresso: #1c140d;
+  --palette-charcoal: #2a2118;
+  --palette-taupe: #695d50;
 
   /* Backward Compatibility Aliases */
-  --palette-burgundy: var(--palette-berry);
+  --palette-burgundy: var(--palette-pumpkin);
   --palette-nude: var(--palette-cream);
   --palette-wheat: var(--palette-cream);
-  --palette-rose-smoke: var(--palette-berry-soft);
+  --palette-rose-smoke: var(--palette-terracotta);
   --palette-off-black: var(--palette-espresso);
-  --palette-midnight-wine: var(--palette-slate);
+  --palette-midnight-wine: var(--palette-charcoal);
 
-  /* Surfaces (Sunlit warm cream canvas & lively storybook paper layers) */
-  --bg-canvas: #f9f2e2;
-  --bg-hero-stage: #f9f2e2;
-  --bg-surface: #fffaf0;
-  --bg-elevated: #fffdf8;
-  --bg-card: #fffaf0;
-  --bg-card-hover: #ffffff;
-  --bg-card-light: #fffdf8;
-  --bg-inset: #efe2c8;
-  --bg-burgundy: #c43d2f;
-  --bg-nude: #fcf7ec;
-  --bg-rose-smoke: #f5d8d0;
-  --bg-dark-accent: #2c3e4f;
+  /* Surfaces (Warm kraft & parchment layers) */
+  --bg-canvas: #ebd0a9;
+  --bg-hero-stage: #ebd0a9;
+  --bg-surface: #f6dfbe;
+  --bg-elevated: #fcf4e8;
+  --bg-card: #f6dfbe;
+  --bg-card-hover: #fffbf4;
+  --bg-card-light: #fffbf4;
+  --bg-inset: #dfc297;
+  --bg-burgundy: #c85e13;
+  --bg-nude: #faf0de;
+  --bg-rose-smoke: #dfc297;
+  --bg-dark-accent: #221a12;
 
-  /* Typography Colors (High contrast AAA readability against sunlit cream) */
-  --text-primary: #22160d;
-  --text-on-hero: #22160d;
-  --text-secondary: #3d2c1e;
-  --text-muted: #66513e;
-  --text-faint: #8c7560;
-  --text-on-accent: #fffdf8;
-  --text-on-light: #22160d;
-  --text-on-dark: #fcf7ec;
+  /* Typography Colors (High contrast AAA readability against kraft paper) */
+  --text-primary: #1c140d;
+  --text-on-hero: #1c140d;
+  --text-secondary: #3f2f22;
+  --text-muted: #6b5744;
+  --text-faint: #937d68;
+  --text-on-accent: #fffbf4;
+  --text-on-light: #1c140d;
+  --text-on-dark: #faf0de;
 
   /* Accent Pigments */
-  --accent-pumpkin: #d4621c;
-  --accent-terracotta: #a63d22;
-  --accent-berry: #c43d2f;
-  --accent-coral: #de6e60;
-  --accent-slate: #384f62;
-  --accent-honey: #e69d35;
-  --accent-gold: #e69d35;
-  --accent-olive: #506b42;
-  --accent-sage: #7a9165;
-  --accent-vermilion: #c43d2f;
-  --accent-burgundy: #c43d2f;
-  --accent-rose: #de6e60;
-  --accent-nude: #fcf7ec;
+  --accent-pumpkin: #c85e13;
+  --accent-terracotta: #9c3e17;
+  --accent-honey: #d58c24;
+  --accent-gold: #d58c24;
+  --accent-olive: #4c5a38;
+  --accent-vermilion: #b5471c;
+  --accent-burgundy: #c85e13;
+  --accent-rose: #9c3e17;
+  --accent-nude: #faf0de;
 
   /* Hairline & Organic Hand-Drawn Borders */
-  --border-hairline: rgba(46, 30, 16, 0.16);
-  --border-strong: rgba(46, 30, 16, 0.42);
-  --border-accent: #c43d2f;
-  --border-burgundy: #c43d2f;
-  --border-on-hero: rgba(46, 30, 16, 0.24);
+  --border-hairline: rgba(56, 40, 24, 0.18);
+  --border-strong: rgba(56, 40, 24, 0.42);
+  --border-accent: #c85e13;
+  --border-burgundy: #c85e13;
+  --border-on-hero: rgba(56, 40, 24, 0.22);
 
   /* Organic Hand-Drawn Border Radii */
   --radius-hand-drawn: 255px 15px 225px 15px / 15px 225px 15px 255px;

@@ -1,7 +1,5 @@
 /* ==========================================================================
    SOPHIA NOTES — REALISTIC ILLUSTRATED SIDE & BOTTOM CARDS
-   Lively Cozy Storybook Palette: Sunlit Cream, Dusty Slate-Navy, Berry Rose,
-   Botanical Sage, Candlelight Amber & Pumpkin Ochre
    ========================================================================== */
 
 .owl-side-notes {
@@ -20,16 +18,26 @@
   position: absolute;
   pointer-events: auto;
   font-family: 'Patrick Hand', var(--font-mono), sans-serif;
-  color: #22160d;
-  border: 1.8px solid #22160d;
-  border-right-width: 3.5px;
-  border-bottom-width: 3.5px;
+  color: #2c1a0d;
+  border: 1.6px solid rgba(48, 28, 12, 0.44);
   border-radius: 3px 6px 4px 5px / 5px 3px 6px 4px;
   line-height: 1.32;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   user-select: none;
   transition: transform 180ms ease;
+}
+
+/* Realistic Multi-Sheet Stacked Paper Backing Plate */
+.owl-scrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(44, 24, 9, 0.19);
+  border-radius: inherit;
+  transform: translate(4px, 5px);
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Shared Hand-Drawn Ink Accents */
@@ -45,46 +53,43 @@
 .hand-star-svg { width: 22px; height: 22px; flex-shrink: 0; }
 .ink-dot {
   display: inline-block;
-  width: 5.5px;
-  height: 5.5px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background-color: #c43d2f;
+  background-color: #2c1a0d;
   margin-right: 7px;
   vertical-align: middle;
 }
 
-/* 1. Upper-Left Spiral Manifesto Sheet (Crisp Quilt Cream Paper + Dusty Rose & Mustard Accents) */
+/* 1. Upper-Left Spiral Manifesto Sheet (#e5cfa8, Stacked Notepad Edge) */
 .owl-scrap-manifesto {
-  background-color: #fdf8f0;
-  border-color: #392b2a;
-  border-left: 4.5px double #bd625d;
-  border-right: 3.5px solid #d9ccb6;
-  border-bottom: 3.5px solid #d9ccb6;
+  background-color: #e5cfa8;
+  border: 1.8px solid #3b2614;
+  border-left: 4.5px double #6b5239;
   padding: 23px 20px 18px;
   width: 248px;
   text-align: left;
 }
 .spiral-rings-top { position: absolute; top: -15px; left: 10px; width: 208px; height: 25px; }
 .manifesto-head-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-.scrap-heading-underlined { display: inline-flex; flex-direction: column; font-size: 1.2rem; font-weight: 700; line-height: 1.05; color: #392b2a; }
-.manifesto-hand-lead { font-size: 1.05rem; line-height: 1.38; margin: 0 0 10px; color: #392b2a; }
-.hand-oval-wrap { position: relative; display: inline-block; padding: 1px 10px; font-weight: 700; margin: 0 2px; background-color: #f4d38c; border-radius: 50%; }
+.scrap-heading-underlined { display: inline-flex; flex-direction: column; font-size: 1.2rem; font-weight: 700; line-height: 1.05; }
+.manifesto-hand-lead { font-size: 1.05rem; line-height: 1.38; margin: 0 0 10px; color: #2a180c; }
+.hand-oval-wrap { position: relative; display: inline-block; padding: 1px 10px; font-weight: 700; margin: 0 2px; }
 .hand-oval-svg { position: absolute; inset: -4px -7px; width: calc(100% + 14px); height: calc(100% + 8px); pointer-events: none; }
 .scrap-bullets { list-style: none; margin: 0; padding: 0; font-size: 0.94rem; display: flex; flex-direction: column; gap: 5px; }
 
-/* 2. Upper-Right Binder-Clipped App Download Card (Quilt Dusty Rose Parchment + Olive & Terracotta) */
+/* 2. Upper-Right Binder-Clipped App Download Card (#c87d52 / Warm Terracotta-Parchment) */
 .owl-scrap-cta-sheet {
-  background-color: #f7e6e3;
-  border-color: #392b2a;
-  border-right: 3.5px solid #bd625d;
-  border-bottom: 3.5px solid #bd625d;
+  background-color: #dabf95;
+  border: 1.8px solid #3b2614;
+  border-bottom: 3.5px solid #8c6e49;
   padding: 23px 18px 16px;
   width: 248px;
   text-align: left;
 }
 .binder-clip-svg { position: absolute; top: -28px; left: 50%; transform: translateX(-50%); width: 52px; height: 44px; }
 .cta-sheet-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 11px; }
-.cta-version-tag { background-color: #7b6d40; color: #fffdf8; padding: 2px 8px; border: 1.5px solid #392b2a; border-radius: 3px; font-size: 0.8rem; }
+.cta-version-tag { background-color: #4b5435; color: #f6e7c8; padding: 2px 8px; border: 1.5px solid #281a0e; border-radius: 3px; font-size: 0.8rem; }
 .cta-sheet-buttons { display: flex; flex-direction: column; gap: 9px; }
 .cta-hand-btn {
   display: flex;
@@ -96,23 +101,22 @@
   font-size: 0.98rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  border: 1.8px solid #392b2a;
+  border: 1.8px solid #281a0e;
   border-radius: 3px 6px 4px 5px / 5px 3px 6px 4px;
   transition: transform 140ms ease, background-color 140ms ease;
 }
 .cta-hand-btn:hover { transform: translateY(-1px); }
-.cta-hand-btn-primary { background-color: #ac4e32; color: #fffdf8; }
-.cta-hand-btn-primary:hover { background-color: #c4673b; }
-.cta-hand-btn-secondary { background-color: #fffdf8; color: #392b2a; }
-.cta-hand-btn-secondary:hover { background-color: #f4e3ca; }
-.cta-sheet-platforms { margin-top: 10px; text-align: center; font-size: 0.78rem; color: #7b6d40; font-weight: 700; }
+.cta-hand-btn-primary { background-color: #9e4320; color: #fff8eb; }
+.cta-hand-btn-primary:hover { background-color: #b54d25; }
+.cta-hand-btn-secondary { background-color: #ebd6b2; color: #26180d; }
+.cta-hand-btn-secondary:hover { background-color: #faf0de; }
+.cta-sheet-platforms { margin-top: 10px; text-align: center; font-size: 0.78rem; color: #3a2614; }
 
-/* 3. Middle Notes (Quilt Mustard-Gold Sticky + Quilt Olive-Sage Spiral Checklist) */
+/* 3. Middle Notes (Warm Ochre Sticky + Side-Bound Spiral Checklist) */
 .owl-scrap-mustard {
-  background-color: #e4a555;
-  border-color: #392b2a;
-  border-right: 3.5px solid #bd8235;
-  border-bottom: 3.5px solid #bd8235;
+  background-color: #c49234;
+  border-color: rgba(56, 34, 14, 0.45);
+  border-bottom: 3px solid #966b1e;
   padding: 13px 16px;
   width: 168px;
   text-align: left;
@@ -121,10 +125,9 @@
 .scrap-star-doodle { position: absolute; right: 11px; top: 14px; width: 22px; height: 22px; }
 
 .owl-scrap-todo {
-  background-color: #e2e8da;
-  border-color: #392b2a;
-  border-right: 3.5px solid #6c7e5a;
-  border-bottom: 3.5px solid #6c7e5a;
+  background-color: #e6d0a7;
+  border-right: 3px solid #b59b72;
+  border-bottom: 3px solid #b59b72;
   padding: 13px 15px 13px 22px;
   width: 178px;
   text-align: left;
@@ -151,33 +154,20 @@
 .bottom-item-alarm { width: 146px; height: 162px; bottom: -62px; left: 138px; transform: rotate(-9deg); z-index: 2; }
 .bottom-item-left-pens { width: 118px; height: 145px; bottom: -58px; left: -94px; transform: rotate(5deg); z-index: 1; }
 .bottom-item-right-pens { width: 128px; height: 148px; bottom: -46px; right: -44px; transform: rotate(-4deg); z-index: 1; }
-.bottom-item-mug { width: 118px; height: 132px; bottom: -34px; left: 278px; transform: rotate(6deg); z-index: 3; }
-.bottom-item-candle { width: 116px; height: 136px; bottom: -32px; right: 296px; transform: rotate(-5deg); z-index: 2; }
-.storybook-steam-curls { animation: storybook-steam-float 2.6s ease-in-out infinite; }
-.storybook-candle-flame { transform-origin: 62px 35px; animation: storybook-flame-flicker 2.1s ease-in-out infinite; }
-@keyframes storybook-steam-float {
-  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.7; }
-  50% { transform: translateY(-4px) translateX(2px); opacity: 1; }
-}
-@keyframes storybook-flame-flicker {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  35% { transform: scale(1.06, 0.96) rotate(-3deg); }
-  70% { transform: scale(0.96, 1.07) rotate(3deg); }
-}
 
-.owl-scrap-olive { background-color: #7b6d40; border-right: 3.5px solid #574d2b; border-bottom: 3.5px solid #574d2b; padding: 9px 10px 18px; width: 106px; text-align: center; }
-.scrap-olive-title { font-size: 1.04rem; font-weight: 700; color: #fffdf8; }
+.owl-scrap-olive { background-color: #4f5434; border-bottom: 3px solid #353921; padding: 9px 10px 18px; width: 106px; text-align: center; }
+.scrap-olive-title { font-size: 1.04rem; font-weight: 700; color: #241b0f; }
 .scrap-bulb-svg { width: 48px; height: 46px; display: block; margin: 1px auto 0; }
 .bottom-item-idea { bottom: -30px; left: 54px; transform: rotate(-14deg); z-index: 3; }
 
-.owl-scrap-paperclip { background-color: #fffdf8; border-right: 3.5px solid #d4b894; border-bottom: 3.5px solid #d4b894; padding: 11px 12px 22px 24px; width: 138px; text-align: left; }
+.owl-scrap-paperclip { background-color: #e6d1ac; border-bottom: 3px solid #bda47d; padding: 11px 12px 22px 24px; width: 138px; text-align: left; }
 .paperclip-svg { position: absolute; top: -11px; left: 5px; width: 20px; height: 38px; }
 .scrap-clip-text { display: flex; flex-direction: column; font-size: 0.88rem; font-weight: 700; line-height: 1.22; }
 .scrap-heart-svg { position: absolute; right: 9px; bottom: 16px; width: 14px; height: 13px; }
 .bottom-item-clip { bottom: -18px; right: 168px; transform: rotate(-8deg); z-index: 3; }
 
-.owl-scrap-growth { background-color: #f4e8d3; border-right: 3.5px solid #c8b79d; border-bottom: 3.5px solid #c8b79d; padding: 9px 10px 18px; width: 110px; text-align: left; }
-.scrap-growth-head { font-size: 0.92rem; font-weight: 700; color: #392b2a; }
+.owl-scrap-growth { background-color: #dcc297; border-bottom: 3px solid #ab9068; padding: 9px 10px 18px; width: 110px; text-align: left; }
+.scrap-growth-head { font-size: 0.92rem; font-weight: 700; }
 .scrap-chart-svg { width: 100%; height: 48px; display: block; }
 .bottom-item-growth { bottom: -32px; right: 70px; transform: rotate(11deg); z-index: 2; }
 

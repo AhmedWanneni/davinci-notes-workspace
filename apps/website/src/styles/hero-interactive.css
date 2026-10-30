@@ -41,11 +41,10 @@
   pointer-events: auto;
   font-family: 'Patrick Hand', var(--font-mono), sans-serif;
   font-size: 0.86rem;
-  font-weight: 700;
   letter-spacing: 0.06em;
-  color: #22160d;
-  background-color: #fffdf8;
-  border: 1.5px dashed #384f62;
+  color: #3a2614;
+  background-color: rgba(243, 227, 198, 0.86);
+  border: 1.4px dashed rgba(44, 28, 12, 0.45);
   border-radius: 4px;
   padding: 3px 12px;
   user-select: none;
@@ -57,9 +56,9 @@
   font-size: 0.86rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  color: #fffdf8;
-  background-color: #c43d2f;
-  border: 1.6px solid #22160d;
+  color: #fff8eb;
+  background-color: #9e3f1c;
+  border: 1.6px solid #281a0e;
   border-radius: 4px;
   padding: 3px 11px;
   cursor: pointer;
@@ -67,7 +66,7 @@
 }
 
 .hero-reset-desk-btn:hover {
-  background-color: #d4621c;
+  background-color: #c85e13;
   transform: translateY(-1px);
 }
 
@@ -93,11 +92,10 @@
   opacity: 1;
 }
 
-/* Head Extractable Note Styles (Matching Owl Head Artwork & Cozy Bear Quilt Palette) */
+/* Head Extractable Note Styles (Matching Owl Head Artwork) */
 .owl-scrap-terracotta {
-  background-color: #bd625d;
-  color: #fffdf8;
-  border-bottom: 3px solid #8e423e;
+  background-color: #b86c45;
+  border-bottom: 3px solid #8a4b2b;
   padding: 9px 11px;
   width: 114px;
   text-align: center;
@@ -106,8 +104,8 @@
 .scrap-title-sm { font-size: 0.9rem; font-weight: 700; }
 
 .owl-scrap-head-notes {
-  background-color: #fdf8f0;
-  border-left: 3.5px double #7b6d40;
+  background-color: #e6d2b0;
+  border-left: 3.5px double #735a3f;
   padding: 12px 13px 10px;
   width: 126px;
   text-align: left;
@@ -123,7 +121,7 @@
 .head-spiral-top span {
   width: 3.5px;
   height: 10px;
-  background-color: #392b2a;
+  background-color: #281a0e;
   border-radius: 2px;
 }
 .head-mini-list {
@@ -138,8 +136,7 @@
 .hand-oval-inline {
   display: inline-block;
   padding: 0 5px;
-  background-color: #f4d38c;
-  border: 1.6px solid #ac4e32;
+  border: 1.6px solid #331d0e;
   border-radius: 50%;
 }
 
@@ -159,40 +156,38 @@
   display: block;
   width: 11px;
   height: 3.5px;
-  background-color: #392b2a;
+  background-color: #281a0e;
   border-radius: 2px;
 }
 
 .owl-scrap-ticket {
-  background-color: #f4e3ca;
-  color: #392b2a;
-  border-bottom: 3px solid #cca05e;
+  background-color: #d6b687;
   padding: 5px;
   width: 96px;
   text-align: center;
 }
 .ticket-inner-frame {
-  border: 1.6px solid #7b6d40;
+  border: 1.5px solid #4a3019;
   border-radius: 2px;
   padding: 5px 4px;
 }
-.ticket-no { font-size: 0.96rem; font-weight: 700; color: #ac4e32; }
-.ticket-dots { font-size: 0.75rem; line-height: 0.7; letter-spacing: 0.12em; color: #7b6d40; }
+.ticket-no { font-size: 0.96rem; font-weight: 700; }
+.ticket-dots { font-size: 0.75rem; line-height: 0.7; letter-spacing: 0.12em; }
 .ticket-bus-svg { width: 28px; height: 15px; display: block; margin: 3px auto 1px; }
-.ticket-label { font-size: 0.76rem; font-weight: 700; color: #392b2a; }
-.ticket-code { font-size: 0.74rem; border-top: 1px solid rgba(123, 109, 64, 0.45); margin-top: 2px; padding-top: 1px; color: #7b6d40; }
+.ticket-label { font-size: 0.76rem; font-weight: 700; }
+.ticket-code { font-size: 0.74rem; border-top: 1px solid rgba(51, 29, 14, 0.35); margin-top: 2px; padding-top: 1px; }
 
 .owl-scrap-head-clock {
-  background-color: #ac4e32;
-  color: #fffdf8;
+  background-color: #9e3f1c;
+  color: #f6e7c8;
   padding: 9px 12px;
   width: 126px;
   text-align: center;
 }
 .head-clock-badge {
-  background-color: #f4e3ca;
-  color: #392b2a;
-  border: 1.5px solid #392b2a;
+  background-color: #e6cfa8;
+  color: #281a0e;
+  border: 1.5px solid #281a0e;
   border-radius: 3px;
   padding: 2px 6px;
   font-size: 0.92rem;
@@ -201,9 +196,9 @@
 }
 
 .owl-scrap-slate {
-  background-color: #4f473c;
-  color: #fffdf8;
-  border-bottom: 3px solid #352f28;
+  background-color: #4f5449;
+  color: #22180e;
+  border-bottom: 3px solid #353931;
   padding: 9px 11px;
   width: 104px;
   text-align: center;

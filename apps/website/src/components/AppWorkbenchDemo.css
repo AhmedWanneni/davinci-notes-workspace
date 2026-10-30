@@ -46,7 +46,7 @@
   max-width: 1200px;
   margin: 0 auto;
   background-color: var(--bg-surface);
-  border: 1.8px solid #22160d;
+  border: 1.5px solid var(--logseq-border-light);
   border-radius: var(--radius-hand-drawn-subtle, 10px);
   overflow: hidden;
 }
@@ -56,16 +56,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 18px;
-  background-color: #384f62;
-  color: #fffdf8;
-  border-bottom: 1.5px solid #22160d;
+  background-color: var(--bg-inset);
+  border-bottom: 1px solid var(--logseq-border);
 }
 
 .demo-window-controls { display: flex; gap: 8px; }
-.demo-control-dot { width: 11px; height: 11px; border-radius: 50%; border: 1.2px solid #22160d; background-color: #f4be52; }
-.demo-control-dot:first-child { background-color: #de6e60; }
-.demo-control-dot:last-child { background-color: #80966b; }
-.demo-vault-name { font-family: var(--font-mono); font-size: 0.875rem; color: #fcf5e5; }
+.demo-control-dot { width: 11px; height: 11px; border-radius: 50%; border: 1px solid rgba(56, 40, 24, 0.4); background-color: rgba(56, 40, 24, 0.15); }
+.demo-vault-name { font-family: var(--font-mono); font-size: 0.875rem; color: var(--logseq-text-muted); }
 
 .demo-sync-pill {
   display: inline-flex;
@@ -73,17 +70,17 @@
   gap: 6px;
   font-family: var(--font-mono);
   font-size: 0.875rem;
-  color: #fffdf8;
-  background-color: #506b42;
+  color: #fffbf4;
+  background-color: var(--accent-pumpkin);
   padding: 3px 10px;
   border-radius: 4px;
-  border: 1.2px solid #22160d;
+  border: 1px solid rgba(56, 40, 24, 0.2);
 }
 
 /* Tab Row */
 .demo-tab-row {
   display: flex;
-  background-color: #efe2c8;
+  background-color: rgba(56, 40, 24, 0.06);
   border-bottom: 1px solid var(--logseq-border);
   overflow-x: auto;
 }
@@ -100,14 +97,14 @@
   background: none;
   border-top: none;
   border-left: none;
-  border-bottom: 2.5px solid transparent;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease;
 }
 
-.demo-tab:hover { background-color: rgba(56, 79, 98, 0.08); color: var(--logseq-text-title); }
-.demo-tab.is-active { background-color: var(--bg-card-light); color: var(--logseq-text-title); border-bottom-color: #c43d2f; font-weight: 600; }
+.demo-tab:hover { background-color: rgba(56, 40, 24, 0.04); color: var(--logseq-text-title); }
+.demo-tab.is-active { background-color: var(--bg-card-light); color: var(--logseq-text-title); border-bottom-color: var(--accent-pumpkin); font-weight: 600; }
 
 /* 3-Pane Workspace Body */
 .demo-body {

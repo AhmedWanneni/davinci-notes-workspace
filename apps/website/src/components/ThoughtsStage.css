@@ -48,8 +48,8 @@
 .item-youtube {
   top: 30px;
   left: 80px;
-  background: #fae6de;
-  border: 1.5px solid #22160d;
+  background: var(--logseq-card);
+  border: 1.5px solid var(--logseq-border-light);
   border-radius: var(--radius-hand-drawn-subtle);
   padding: 12px;
   display: flex;
@@ -58,14 +58,14 @@
   transform: rotate(-6deg);
 }
 .yt-preview-box { display: flex; flex-direction: column; gap: 6px; width: 90px; }
-.yt-bar { height: 6px; border-radius: 2px; background: #c43d2f; opacity: 0.55; }
+.yt-bar { height: 6px; border-radius: 2px; background: var(--logseq-border-light); }
 .yt-bar.bar-2 { width: 60%; }
 
 .item-tweet {
   top: 50px;
   right: 180px;
-  background: #dbe4eb;
-  border: 1.5px solid #22160d;
+  background: var(--logseq-card);
+  border: 1.5px solid var(--logseq-border);
   border-radius: var(--radius-hand-drawn-subtle);
   padding: 14px;
   display: flex;
@@ -74,7 +74,7 @@
   transform: rotate(8deg);
 }
 .tweet-lines { display: flex; flex-direction: column; gap: 5px; width: 70px; }
-.tweet-line { height: 5px; border-radius: 2px; background: #384f62; opacity: 0.6; }
+.tweet-line { height: 5px; border-radius: 2px; background: var(--logseq-border-light); }
 .tweet-line.short { width: 50%; }
 
 .item-notebook {
@@ -82,8 +82,8 @@
   left: 70px;
   width: 140px;
   height: 180px;
-  background: #e1e8d7;
-  border: 1.5px solid #22160d;
+  background: var(--logseq-card);
+  border: 1.5px solid var(--logseq-border-light);
   border-radius: var(--radius-hand-drawn-subtle);
   padding: 12px;
   transform: rotate(4deg);
@@ -91,17 +91,17 @@
   flex-direction: column;
   gap: 10px;
 }
-.spiral-binding { display: flex; gap: 8px; border-bottom: 1.5px dashed #506b42; padding-bottom: 6px; }
-.spiral-binding span { width: 6px; height: 10px; border-radius: 3px; background: #506b42; }
-.notebook-sheet .rule { display: block; height: 1px; background: rgba(80, 107, 66, 0.35); margin-bottom: 14px; }
+.spiral-binding { display: flex; gap: 8px; border-bottom: 1.5px dashed var(--logseq-border); padding-bottom: 6px; }
+.spiral-binding span { width: 6px; height: 10px; border-radius: 3px; background: var(--accent-pumpkin); opacity: 0.8; }
+.notebook-sheet .rule { display: block; height: 1px; background: var(--logseq-border); margin-bottom: 14px; }
 
 .item-stickynote {
   bottom: 100px;
   right: 320px;
   width: 86px;
   height: 86px;
-  background: #f4be52;
-  color: #22160d;
+  background: #fde8af;
+  color: #40280a;
   font-weight: 700;
   font-family: var(--font-mono);
   display: flex;
@@ -109,29 +109,29 @@
   justify-content: center;
   transform: rotate(-8deg);
   border-radius: var(--radius-hand-drawn-subtle);
-  border: 1.5px solid #22160d;
+  border: 1.5px solid #d49a37;
 }
 
 .item-pdf {
   bottom: 50px;
   right: 120px;
   width: 110px;
-  background: #fffdf8;
-  border: 1.5px solid #22160d;
+  background: var(--logseq-card);
+  border: 1.5px solid var(--logseq-border-light);
   border-radius: var(--radius-hand-drawn-subtle);
   padding: 12px;
   transform: rotate(5deg);
 }
-.pdf-tag { font-size: 0.75rem; font-weight: 800; color: #c43d2f; margin-bottom: 8px; }
-.pdf-lines span { display: block; height: 4px; border-radius: 2px; background: rgba(34, 22, 13, 0.25); margin-bottom: 6px; }
+.pdf-tag { font-size: 0.75rem; font-weight: 800; color: var(--accent-terracotta); margin-bottom: 8px; }
+.pdf-lines span { display: block; height: 4px; border-radius: 2px; background: var(--logseq-border); margin-bottom: 6px; }
 
 .item-mobile {
   top: 40px;
   right: 40px;
   width: 120px;
   height: 220px;
-  background: #384f62;
-  border: 1.8px solid #22160d;
+  background: #2a2016;
+  border: 1.5px solid var(--border-strong);
   border-radius: var(--radius-hand-drawn-subtle);
   padding: 8px;
   transform: rotate(-4deg);

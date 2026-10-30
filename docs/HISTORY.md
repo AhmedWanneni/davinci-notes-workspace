@@ -2,40 +2,6 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
-### 2026-10-30: Tomke & Jona Cozy Gouache Bear Style & Quilt Palette
-
-- **Cozy Gouache Bear Color & Texture Grading (`owl-hero-{480,768,1024}.webp`)**:
-  - Sampled exact RGBs from Tomke & Jona's bear reference illustration: rich cocoa/cinnamon fur (`#975837`), deep shadow fur (`#7e3c24`), snout ochre (`#cca05e` / `#e0b06b`), quilt mustard gold (`#e4a555`), quilt olive sage (`#7b6d40`), terracotta rust (`#ac4e32`), dusty rose (`#bd625d`), warm craft tan (`#dea56e`), and soft umber linework (`#392b2a`).
-  - Applied velvety matte gouache texture blending via median filtering to capture the tactile, painterly quality of the reference artwork.
-- **Interactive Eyes, Cheeks & Ambient Motion (`HeroSection.astro`, `hero.css`)**:
-  - Matched eyelids to bear cocoa fur `#975837` and shadow fur `#82492c`.
-  - Matched sclera to quilt trim cream `#f4e3ca`, lash lines to soft umber `#392b2a`, and rosy cheeks to mug dusty rose `#bd625d`.
-  - Tuned ambient alarm ringing waves (`#ac4e32` / `#e4a555`), idea bulb pulse (`#e4a555`), and floating sparkles (`#e4a555` / `#bd625d`).
-- **Cozy Draggable Desk Props (`OwlStorybookProps.astro`)**:
-  - Replaced celestial blue mug with the **Dusty-Rose Mug** (`#bd625d`) featuring folk quilt chevron and heart stitch motifs and **warm heart-shaped steam** rising out, directly matching the bear's mug in the reference illustration.
-  - Re-styled stacked books on the right with quilt olive sage (`#7b6d40`) and terracotta red (`#ac4e32`) with a mustard gold candle saucer.
-- **Harmonized Quilt Paper Tints (`hero-nodes.css`, `hero-interactive.css`)**:
-  - Updated all hero notes with quilt patchwork tones: dusty rose margin (`#bd625d`), warm cream paper (`#fdf8f0`), mustard oval (`#f4d38c`), terracotta CTA (`#ac4e32`), olive sage todo note (`#e2e8da` / `#7b6d40`), and craft ticket stub (`#f4e3ca`).
-- **Strict Compliance & Verification**:
-  - All files strictly under 242 lines (under the 250-line hard cap).
-  - Headless Chrome screenshot verified at 1440x900 (`/tmp/hero-preview-bear-style.png`).
-  - `pnpm --filter website build` and `pnpm --filter website test` pass completely.
-
----
-
-### 2026-10-30: Sophia Notes Lively Cozy Storybook Palette, Botanical Sprigs & Draggable Desk Props
-
-- **Sunlit Warm Cream Canvas & Multi-Hue Storybook Palette (`tokens.css`, `logseq-theme.css`, `BaseLayout.astro`)**:
-  - Updated `--bg-canvas` and `--logseq-bg` from `#ebd0a9` to sunlit warm cream (`#f9f2e2`) and introduced the full multi-hue storybook palette from the *Och Monika* and *Anna Kunak* reference sheets: Berry Crimson (`#c43d2f`), Rose Blush (`#de6e60` / `#fcebe4`), Dusty Slate-Navy (`#384f62` / `#dbe4eb`), Botanical Sage (`#506b42` / `#e4edd9`), Candlelight Honey (`#f7c759` / `#e69d35`), and Pumpkin Ochre (`#d4621c`).
-- **Lively Hero Notes & New Draggable Storybook Desk Props (`SiteNav.astro`, `OwlSideNotes.astro`, `OwlBottomItems.astro`, `OwlStorybookProps.astro`, `OwlHeadHotspots.astro`, `hero-nodes.css`, `hero-interactive.css`)**:
-  - Differentiated every hero card with distinct storybook paper tints and solid 3D paper-edge borders (`border-right-width: 3.5px; border-bottom-width: 3.5px`).
-  - Added rowan-berry & eucalyptus botanical sprigs and two new draggable bottom props (`OwlStorybookProps.astro`): a steaming celestial slate-navy tea mug and a glowing pillar candle on stacked rose & sage books.
-  - Color-graded the owl illustration itself (`owl-hero-{480,768,1024}.webp`) into the lively storybook palette (fox-amber feathers, berry-coral brain & alarm cards, dusty slate-navy `MEETING 10 AM` & pens, botanical green `IDEA` / `BUY:` / wings, glowing yellow lightbulb, and sunlit cream paper pads) and added subtle breathing, ringing alarm waves, pulsing bulb rays, twinkling sparkles, rising tea steam, and candle flame flicker.
-- **Full-Page Section Harmony (`AppWorkbenchDemo.css`, `WhatYouCanDoSection.css`, `ThoughtsStage.css`, `ClosingSection.css`)**:
-  - Applied slate-navy, berry-crimson, botanical sage, and candlelight honey across the workbench titlebar, alternating feature index cards, scatter stage items, and slate-navy closing CTA card.
-
----
-
 ### 2026-10-30: Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
 
 - **Unified Stationery Header (`apps/website/src/components/SiteNav.astro`)**:

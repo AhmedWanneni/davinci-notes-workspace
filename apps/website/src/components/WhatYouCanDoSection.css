@@ -79,27 +79,15 @@
   pointer-events: none;
 }
 
-/* Subtle organic card tilts & lively storybook palette accents on desktop */
+/* Subtle organic card tilts on desktop */
 @media (min-width: 641px) {
-  .feature-card:nth-child(1) { transform: rotate(-0.75deg); background-color: #fffdf8; }
-  .feature-card:nth-child(2) { transform: rotate(0.6deg); background-color: #fae8e1; }
-  .feature-card:nth-child(3) { transform: rotate(-0.5deg); background-color: #e2ebe6; }
-  .feature-card:nth-child(4) { transform: rotate(0.65deg); background-color: #fcf3d9; }
-  .feature-card:nth-child(5) { transform: rotate(-0.6deg); background-color: #e4ebf0; }
-  .feature-card:nth-child(6) { transform: rotate(0.5deg); background-color: #e4ebd9; }
+  .feature-card:nth-child(1) { transform: rotate(-0.75deg); }
+  .feature-card:nth-child(2) { transform: rotate(0.6deg); }
+  .feature-card:nth-child(3) { transform: rotate(-0.5deg); }
+  .feature-card:nth-child(4) { transform: rotate(0.65deg); }
+  .feature-card:nth-child(5) { transform: rotate(-0.6deg); }
+  .feature-card:nth-child(6) { transform: rotate(0.5deg); }
 }
-
-.feature-card:nth-child(2)::before { background-color: rgba(196, 61, 47, 0.25); border-color: #c43d2f; }
-.feature-card:nth-child(2) .feature-card-icon { background-color: rgba(196, 61, 47, 0.14); border-color: #c43d2f; color: #c43d2f; }
-.feature-card:nth-child(2) .feature-card-badge { color: #c43d2f; }
-
-.feature-card:nth-child(3)::before, .feature-card:nth-child(5)::before { background-color: rgba(56, 79, 98, 0.24); border-color: #384f62; }
-.feature-card:nth-child(3) .feature-card-icon, .feature-card:nth-child(5) .feature-card-icon { background-color: rgba(56, 79, 98, 0.14); border-color: #384f62; color: #384f62; }
-.feature-card:nth-child(3) .feature-card-badge, .feature-card:nth-child(5) .feature-card-badge { color: #384f62; }
-
-.feature-card:nth-child(6)::before { background-color: rgba(80, 107, 66, 0.26); border-color: #506b42; }
-.feature-card:nth-child(6) .feature-card-icon { background-color: rgba(80, 107, 66, 0.15); border-color: #506b42; color: #506b42; }
-.feature-card:nth-child(6) .feature-card-badge { color: #506b42; }
 
 .feature-card:hover {
   background-color: var(--logseq-card-hover);

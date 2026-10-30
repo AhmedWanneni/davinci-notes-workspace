@@ -4,29 +4,9 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Tomke & Jona Cozy Gouache Bear Style & Quilt Palette
+## Last Session — Sophia Notes Interactive Owl Hero, Unified Stationery Header & Realistic Desk Items
 
-**Scope:** Restyled the owl, desk props, notes, and ambient animations across `apps/website` to faithfully match the cozy gouache illustration style of the bear wrapped in a patchwork quilt (*Tomke & Jona* reference sheet):
-- **Cozy Gouache Bear Color & Texture Grading (`owl-hero-{480,768,1024}.webp`)**:
-  - Sampled exact RGBs from the reference bear art:
-    - Bear Fur/Plumage: Rich, warm, velvety cocoa/cinnamon brown (`#975837`, center sample `[159, 98, 69]`), deep shadow fur (`#7e3c24`), and warm snout ochre (`#cca05e` / `#e0b06b`).
-    - Quilt Patchwork Notes & Items: Mustard gold (`#e4a555`), olive sage green (`#7b6d40`), terracotta rust/red (`#ac4e32` / `#c4673b`), dusty rose/berry (`#bd625d`), warm peach tan (`#dea56e`), and warm cream trim (`#f4e3ca`).
-    - Linework & Inking: Soft, warm umber/espresso charcoal ink (`#392b2a`), replacing harsh black.
-  - Applied velvety matte gouache texture blending with median filtering to recreate the painterly, paper-like surface seen in Tomke & Jona's bear artwork.
-  - Re-exported multi-density WebP cutouts (`1024w`, `768w`, `480w`).
-- **Interactive Eyes, Cheeks & Ambient Motion (`HeroSection.astro`, `hero.css`)**:
-  - Matched eyelids to bear cocoa `#975837` and shadow fur `#82492c`.
-  - Matched sclera to quilt trim cream `#f4e3ca`, lash lines to soft umber `#392b2a`, and rosy cheeks to mug dusty rose `#bd625d`.
-  - Tuned ambient alarm ringing waves (`#ac4e32` / `#e4a555`), idea bulb pulse (`#e4a555`), and floating sparkles (`#e4a555` / `#bd625d`).
-- **Cozy Draggable Desk Props (`OwlStorybookProps.astro`)**:
-  - Replaced celestial blue mug with the **Dusty-Rose Mug** (`#bd625d`) featuring folk quilt chevron and heart stitch motifs and **warm heart-shaped steam** rising out, directly matching the bear's mug in the reference illustration.
-  - Re-styled stacked books on the right with quilt olive sage (`#7b6d40`) and terracotta red (`#ac4e32`) with a mustard gold candle saucer.
-- **Harmonized Quilt Paper Tints (`hero-nodes.css`, `hero-interactive.css`)**:
-  - Updated all hero notes with quilt patchwork tones: dusty rose margin (`#bd625d`), warm cream paper (`#fdf8f0`), mustard oval (`#f4d38c`), terracotta CTA (`#ac4e32`), olive sage todo note (`#e2e8da` / `#7b6d40`), and craft ticket stub (`#f4e3ca`).
-- **Verification**:
-  - All files strictly under 242 lines (under the 250-line hard cap).
-  - Headless Chrome screenshot verified at 1440x900 (`/tmp/hero-preview-bear-style.png`).
-  - `pnpm --filter website build` and `pnpm --filter website test` pass completely.
+**Scope:** Re-architected the color system, header, and interactive hero in `apps/website` for **Sophia Notes**, centering the Autumn Owl illustration (~20% smaller for generous negative space: `max-height: calc((100svh - 118px) * 0.8)`) flush at the bottom of a `100svh` hero stage, with cursor-following eyes, a slow 3-second blink cycle, a cross-eyed squint when hovering her nose, pupil dilation when dragging notes, and realistic draggable illustrated notes:
 - **Interactive Owl Eyes (`HeroSection.astro`, `hero.css`, `heroInteractive.ts`)**:
   - Added an SVG eye overlay locked to the exact socket coordinates (`#owl-eye-clip-left`, `#owl-eye-clip-right`) with smaller default pupils (`r="41"`), triple catchlights, and rosy feather cheeks.
   - Smooth `requestAnimationFrame` cursor tracking across the viewport; hovering the nose/beak tucks both black pupils into the inner-middle corners (`translate(±46px, 8px)`) partially clipped by the socket rim for a cute cross-eyed look; holding/dragging any note dilates the pupils (`scale(1.24)`).

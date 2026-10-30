@@ -9,8 +9,8 @@
   margin: 0 auto;
   padding: 80px 40px;
   text-align: center;
-  background-color: #384f62;
-  border: 2px solid #22160d;
+  background-color: var(--palette-terracotta);
+  border: 1.5px solid var(--palette-pumpkin);
   border-radius: var(--radius-hand-drawn-subtle);
   box-shadow: none !important;
   overflow: hidden;
@@ -20,7 +20,7 @@
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 5vw, 4rem);
   font-weight: 400;
-  color: #fffdf8;
+  color: #fffbf4;
   margin: 0 0 20px;
   letter-spacing: -0.02em;
 }
@@ -28,7 +28,7 @@
 .closing-title strong {
   font-weight: 600;
   font-style: italic;
-  color: #f7ca54;
+  color: #fddb9b;
 }
 
 .closing-lead {
@@ -36,7 +36,7 @@
   margin: 0 auto 40px;
   font-size: 1.15rem;
   line-height: 1.6;
-  color: #e8eef2;
+  color: #fae1ce;
 }
 
 .closing-lead strong {
@@ -52,26 +52,26 @@
 }
 
 .closing-glow-card .btn-logseq-primary {
-  background-color: #c43d2f;
-  color: #fffdf8;
-  border-color: #22160d;
+  background-color: #fffbf4;
+  color: #812f0f;
+  border-color: #fddb9b;
 }
 
 .closing-glow-card .btn-logseq-primary:hover {
-  background-color: #d4621c;
-  color: #ffffff;
+  background-color: #fddb9b;
+  color: #1c140d;
 }
 
 .closing-glow-card .btn-logseq-secondary {
-  background-color: #fffdf8;
-  color: #22160d;
-  border-color: #22160d;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #fffbf4;
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .closing-glow-card .btn-logseq-secondary:hover {
-  background-color: #faecc7;
-  border-color: #22160d;
-  color: #22160d;
+  background-color: rgba(255, 255, 255, 0.22);
+  border-color: #fffbf4;
+  color: #ffffff;
 }
 
 @media (max-width: 640px) {
