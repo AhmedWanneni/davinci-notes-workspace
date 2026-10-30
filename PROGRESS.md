@@ -4,7 +4,29 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
+## Last Session — Fix `pnpm dev` Tauri CLI Argument Mismatch
+
+**Scope:** Fix `error: unexpected argument '--ignore-version-mismatches' found` during `pnpm dev` in `@app/desktop`.
+
+**What was done:**
+1. **Root Cause Analysis**:
+   - `tauri build` accepts `--ignore-version-mismatches`, but `tauri dev` uses a distinct CLI argument parser that does not accept `--ignore-version-mismatches` and rejects it with exit code 2.
+   - When `--ignore-version-mismatches` was previously appended to `"dev"` in `apps/desktop/package.json`, any invocation of `pnpm dev` or `pnpm --filter @app/desktop dev` crashed immediately before starting Vite or Tauri.
+2. **Fixed Desktop Script & Wrapper (`apps/desktop/package.json`, `apps/desktop/scripts/withCompatibleMacSdk.mjs`)**:
+   - Updated `apps/desktop/package.json` `"dev"` script to execute `node scripts/withCompatibleMacSdk.mjs tauri dev` without unsupported CLI arguments.
+   - Enhanced `withCompatibleMacSdk.mjs` to automatically filter out `--ignore-version-mismatches` when running `tauri dev`, while preserving and ensuring `--ignore-version-mismatches` is present for `tauri build`.
+3. **Verification**:
+   - Verified `pnpm --filter @app/desktop dev --help` runs and exits with code 0.
+   - Verified that passing `--ignore-version-mismatches` explicitly to `dev` is safely stripped without crash.
+
+---
+
+## Next Up
+- Verify development live-reload and watch mode across desktop frontend.
+
+---
+
+## Previous Session — Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
 
 **Scope:** Diagnose and permanently fix macOS Gatekeeper "Sophia is damaged and can't be opened. You should move it to the Trash" error after DMG installation, and upgrade the terminal dashboard to a polished DevKit-style user experience (rounded box cards, keycaps, instant repair commands).
 

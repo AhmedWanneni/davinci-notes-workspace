@@ -2,6 +2,16 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Fix `pnpm dev` Tauri CLI Argument Mismatch
+
+- **CLI Flag Separation for Dev vs. Build**:
+  - Identified that `--ignore-version-mismatches` is an option specific to `tauri build` and is not recognized by `tauri dev` clap parser.
+  - Removed `--ignore-version-mismatches` from `apps/desktop/package.json` `"dev"` script.
+  - Added smart arg filtering in `apps/desktop/scripts/withCompatibleMacSdk.mjs`: automatically strips `--ignore-version-mismatches` for `tauri dev` and ensures it is passed for `tauri build`.
+  - Verified `pnpm --filter @app/desktop dev` and root `pnpm dev` invoke without unexpected argument errors.
+
+---
+
 ### 2026-10-30: Fix "App is Damaged" Gatekeeper Error & DevKit TUI User Experience Upgrade
 
 - **Gatekeeper & Quarantine Repair Module (`scripts/tui/gatekeeper.sh`)**:
