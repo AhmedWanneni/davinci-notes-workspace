@@ -15,6 +15,7 @@ source "${SCRIPT_DIR}/tui/build.sh"
 source "${SCRIPT_DIR}/tui/links.sh"
 source "${SCRIPT_DIR}/tui/ci.sh"
 source "${SCRIPT_DIR}/tui/health.sh"
+source "${SCRIPT_DIR}/tui/cloudflare.sh"
 
 main_menu() {
   while true; do
@@ -29,10 +30,11 @@ main_menu() {
     ui_menu_item "5" "☁️ " "GitHub CI & Matrix" "Trigger workflows, check runs, live watcher"
     ui_menu_item "6" "🔍" "Health & Quality Gates" "Preflight checks, version sync, tests, bundle size"
     ui_menu_item "7" "⚙️ " "System Diagnostics" "Audit Node, pnpm, Cargo, Syncthing binaries"
+    ui_menu_item "8" "☁️ " "Deploy to Cloudflare" "Cloudflare Pages CLI deploy & GitHub Connect"
     ui_menu_item "f" "🛡️ " "Fix 'App is Damaged'" "Remove Gatekeeper quarantine & ad-hoc sign Sophia.app"
     ui_menu_item "0" "🚪" "Exit Control Center" "(or press 'q')"
     ui_section_end
-    printf "  ${C_CYAN}${C_BOLD}Select an option [0-7, f]:${C_RESET} "
+    printf "  ${C_CYAN}${C_BOLD}Select an option [0-8, f]:${C_RESET} "
 
     local choice
     read -r choice || break
@@ -44,6 +46,7 @@ main_menu() {
       5) ci_menu "$REPO_ROOT" ;;
       6) health_menu "$REPO_ROOT" ;;
       7) status_show_diagnostics "$REPO_ROOT" ;;
+      8) cloudflare_menu "$REPO_ROOT" ;;
       f|F) gatekeeper_fix_interactive "$REPO_ROOT" ;;
       0|q|Q)
         ui_clear
@@ -93,6 +96,10 @@ if [[ $# -gt 0 ]]; then
       gatekeeper_fix_interactive "$REPO_ROOT"
       exit 0
       ;;
+    --cloudflare|-cf)
+      cloudflare_menu "$REPO_ROOT"
+      exit 0
+      ;;
     --help|-h)
       printf "DaVinci Notes Management TUI\n\n"
       printf "Usage: %s [OPTION]\n\n" "$0"
@@ -103,6 +110,7 @@ if [[ $# -gt 0 ]]; then
       printf "  -c, --ci           Directly open GitHub Actions CI matrix menu\n"
       printf "  -d, --dev          Directly open Development servers menu\n"
       printf "  -f, --fix          Directly fix macOS 'App is Damaged' Gatekeeper error\n"
+      printf "  -cf, --cloudflare  Directly open Cloudflare Pages deployment menu\n"
       printf "      --health       Directly run Quality Gates and Preflight checks\n"
       printf "      --diagnostics  Directly run System & Tooling diagnostics\n"
       printf "  -h, --help         Show this help message\n"

@@ -6,16 +6,17 @@ import '../../styles/download.css';
 
 const REPO = 'AhmedWanneni/davinci-notes-workspace';
 const DEFAULT_VERSION = 'v0.1.0';
+const cleanVer = DEFAULT_VERSION.replace(/^v/, '');
 
 let releaseVersion = DEFAULT_VERSION;
 let releaseDate = 'Latest Release';
 
 const fallbackAssets = {
-  macArm: `https://github.com/${REPO}/releases/latest/download/Sophia_${DEFAULT_VERSION}_aarch64.dmg`,
-  macIntel: `https://github.com/${REPO}/releases/latest/download/Sophia_${DEFAULT_VERSION}_x64.dmg`,
-  windows: `https://github.com/${REPO}/releases/latest/download/Sophia_${DEFAULT_VERSION}_x64-setup.exe`,
-  linuxAppImage: `https://github.com/${REPO}/releases/latest/download/sophia_${DEFAULT_VERSION}_amd64.AppImage`,
-  linuxDeb: `https://github.com/${REPO}/releases/latest/download/sophia_${DEFAULT_VERSION}_amd64.deb`,
+  macArm: `https://github.com/${REPO}/releases/latest/download/Sophia_${cleanVer}_aarch64.dmg`,
+  macIntel: `https://github.com/${REPO}/releases/latest/download/Sophia_${cleanVer}_x64.dmg`,
+  windows: `https://github.com/${REPO}/releases/latest/download/Sophia_${cleanVer}_x64-setup.exe`,
+  linuxAppImage: `https://github.com/${REPO}/releases/latest/download/sophia_${cleanVer}_amd64.AppImage`,
+  linuxDeb: `https://github.com/${REPO}/releases/latest/download/sophia_${cleanVer}_amd64.deb`,
   checksums: `https://github.com/${REPO}/releases/latest/download/SHA256SUMS.txt`,
 };
 
@@ -69,6 +70,11 @@ try {
           Detecting operating system...
         </span>
       </div>
+
+      <div class="quick-terminal-box" style="margin-top: 1.5rem; padding: 0.75rem 1.25rem; border: 1px dashed var(--logseq-border); border-radius: 6px; background: rgba(0,0,0,0.03); display: inline-block;">
+        <span style="display: block; font-size: 0.8rem; color: var(--logseq-text-muted); margin-bottom: 0.35rem;">⚡ Fast 1-Line Free Install (Zero Gatekeeper Prompts):</span>
+        <code style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--logseq-cyan); user-select: all; cursor: pointer;">curl -fsSL https://sophia-notes.pages.dev/install.sh | bash</code>
+      </div>
     </section>
 
     <section class="platforms-grid">
@@ -89,6 +95,13 @@ try {
             <span class="file-type-badge">x64</span>
           </a>
         </div>
+        <div style="margin-top: 10px; padding: 6px 10px; background: rgba(0,0,0,0.03); border: 1px dashed var(--logseq-border); border-radius: 4px; font-size: 0.75rem;">
+          <span style="font-weight: 600;">🍺 Homebrew Cask:</span><br />
+          <code style="font-family: var(--font-mono); color: var(--logseq-cyan); user-select: all;">brew install --cask ahmedwanneni/sophia/sophia</code>
+        </div>
+        <p class="verification-text" style="margin-top: 8px; font-size: 0.72rem; opacity: 0.85;">
+          💡 <em>DMG First-time:</em> Right-click → <strong>Open</strong>, or allow via <strong>System Settings → Privacy &amp; Security</strong>.
+        </p>
       </div>
 
       <!-- Windows -->
