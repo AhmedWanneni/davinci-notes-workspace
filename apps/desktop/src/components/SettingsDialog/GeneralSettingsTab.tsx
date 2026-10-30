@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Button, Toggle } from "@app/design-system";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { CaptureSettingsSection } from "./CaptureSettingsSection";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
 import { TrayClickSettingsRow } from "./TrayClickSettingsRow";
+import { UpdateSettingsCard } from "./UpdateSettingsCard";
 import styles from "./SettingsDialog.module.scss";
 
 interface GeneralSettingsTabProps {
@@ -20,6 +22,8 @@ export function GeneralSettingsTab({
   const [earlyAccess, setEarlyAccess] = useState(false);
   const [language, setLanguage] = useState("en");
   const [keepInTray, setKeepInTray] = useState(true);
+  const gitEnabled = useWorkspaceStore((state) => state.gitEnabled);
+  const setGitEnabled = useWorkspaceStore((state) => state.setGitEnabled);
 
   useEffect(() => {
     let mounted = true;
@@ -46,31 +50,12 @@ export function GeneralSettingsTab({
 
   return (
     <div className={styles["settings-tab-content"]}>
+      <UpdateSettingsCard />
+
       <SettingsCard>
         <SettingsRow
-          title="Version 0.1.0"
-          description={
-            <>
-              Installer version: 0.1.0
-              <br />
-              <a
-                href="#changelog"
-                onClick={(e) => e.preventDefault()}
-                className={styles["settings-link"]}
-              >
-                Read the changelog.
-              </a>
-            </>
-          }
-        >
-          <Button variant="secondary" size="sm">
-            Check for updates
-          </Button>
-        </SettingsRow>
-
-        <SettingsRow
           title="Keep running in menu bar"
-          description="When closed, DaVinci Notes will stay open in the menu bar tray."
+          description="When closed, Sophia will stay open in the menu bar tray."
         >
           <Toggle
             checked={keepInTray}
@@ -82,6 +67,17 @@ export function GeneralSettingsTab({
         <TrayClickSettingsRow />
 
         <CaptureSettingsSection />
+
+        <SettingsRow
+          title="Git Version Control"
+          description="Enable Git Manager to stage, commit, diff, and manage repository history."
+        >
+          <Toggle
+            checked={gitEnabled}
+            onCheckedChange={(checked) => void setGitEnabled(checked)}
+            aria-label="Git Version Control"
+          />
+        </SettingsRow>
 
         <SettingsRow
           title="Automatic updates"

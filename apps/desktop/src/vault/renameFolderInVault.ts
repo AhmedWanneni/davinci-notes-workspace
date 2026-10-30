@@ -19,6 +19,7 @@ import { withVaultWatchSuppressed } from "./vaultWatchSession";
 import { migrateSaveTimer } from "../state/saveTimers";
 import { clearH1RenameTimer } from "./h1DrivenRename";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
+import { useBookmarkStore } from "../bookmarks/bookmarkStore";
 
 function remapPath(
   path: string | null,
@@ -160,6 +161,7 @@ export async function renameFolderInVault(
     }
 
     useWorkspaceStore.setState({ graph: currentGraph });
+    useBookmarkStore.getState().remapFolder(oldPath, newPath);
 
     return { ok: true, newPath };
   });

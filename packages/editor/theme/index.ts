@@ -3,3 +3,5 @@ export * from "./editorTheme";
 export * from "./markdownAnnotationTheme";
 export * from "./tagTheme";
 export * from "./reminderTheme";
+export * from "./slashMenuTheme";
+export * from "./imageTheme";

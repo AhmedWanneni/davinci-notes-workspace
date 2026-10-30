@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use tauri::{AppHandle, Manager};
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct PendingReminder {
   pub id: i64,
   pub reminder_key: String,
@@ -31,8 +32,7 @@ pub fn get_db_path(app: &AppHandle) -> Option<PathBuf> {
 pub fn open_connection(path: &Path) -> Result<Connection> {
   let conn = Connection::open(path)?;
   conn.execute_batch(
-    "PRAGMA journal_mode = WAL;
-     PRAGMA busy_timeout = 5000;
+    "PRAGMA busy_timeout = 10000;
      PRAGMA foreign_keys = ON;",
   )?;
   Ok(conn)

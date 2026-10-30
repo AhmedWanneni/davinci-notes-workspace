@@ -1,5 +1,12 @@
+import type {
+  AgentToolCall,
+  AgentToolDefinition,
+  ChatStreamChunk,
+} from "./agentTypes.js";
+
 export type AIProviderMode = "cloud" | "local";
-export type AIProviderCapability = "embeddings" | "chat";
+export type AIProviderCapability =
+  "embeddings" | "chat" | "tools" | "streaming";
 
 export interface EmbeddingRequest {
   inputs: string[];
@@ -11,12 +18,17 @@ export interface EmbeddingResponse {
 }
 
 export interface ChatMessage {
-  role: "system" | "user" | "assistant";
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
+  toolCalls?: AgentToolCall[];
+  toolCallId?: string;
+  name?: string;
 }
 
 export interface ChatRequest {
   messages: ChatMessage[];
+  tools?: AgentToolDefinition[];
+  toolChoice?: "auto" | "none" | "required";
   maxTokens?: number;
   temperature?: number;
 }
@@ -24,6 +36,8 @@ export interface ChatRequest {
 export interface ChatResponse {
   content: string;
   model: string;
+  toolCalls?: AgentToolCall[];
+  finishReason?: "stop" | "tool_calls" | "length" | "content_filter" | "error";
   usage?: { inputTokens?: number; outputTokens?: number };
 }
 
@@ -49,8 +63,13 @@ export class AIProviderError extends Error {
     super(message);
     this.name = "AIProviderError";
     this.code = code;
-    this.retryable = options.retryable ?? (code === "network" || code === "rate-limited" || code === "insufficient-credits");
-    this.requiresReauthentication = options.requiresReauthentication ?? code === "authentication";
+    this.retryable =
+      options.retryable ??
+      (code === "network" ||
+        code === "rate-limited" ||
+        code === "insufficient-credits");
+    this.requiresReauthentication =
+      options.requiresReauthentication ?? code === "authentication";
   }
 }
 
@@ -60,12 +79,14 @@ export interface AIProvider {
   readonly capabilities: ReadonlySet<AIProviderCapability>;
   embed(request: EmbeddingRequest): Promise<EmbeddingResponse>;
   complete(request: ChatRequest): Promise<ChatResponse>;
+  completeStream?(request: ChatRequest): AsyncIterable<ChatStreamChunk>;
   dispose(): Promise<void>;
 }
 
 export interface AIProviderOperations {
   embed(request: EmbeddingRequest): Promise<EmbeddingResponse>;
   complete(request: ChatRequest): Promise<ChatResponse>;
+  completeStream?(request: ChatRequest): AsyncIterable<ChatStreamChunk>;
   dispose?(): Promise<void>;
 }
 

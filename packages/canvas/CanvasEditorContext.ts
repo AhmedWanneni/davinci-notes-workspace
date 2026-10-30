@@ -4,6 +4,8 @@ import type { CanvasColor } from "./CanvasColor";
 export interface CanvasEditorContextValue {
   onNodeTextChange: (nodeId: string, text: string) => void;
   onLayoutChange: () => void;
+  onDeleteNode?: (nodeId: string) => void;
+  onNodeColorChange?: (nodeId: string, color?: CanvasColor) => void;
   onEdgeLabelChange?: (edgeId: string, label: string) => void;
   onEdgeColorChange?: (edgeId: string, color?: CanvasColor) => void;
   deleteEdge?: (edgeId: string) => void;

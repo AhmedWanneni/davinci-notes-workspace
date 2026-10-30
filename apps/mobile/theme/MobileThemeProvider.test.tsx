@@ -21,18 +21,18 @@ describe("MobileThemeProvider & Theme Lifecycle (Phase 2)", () => {
   it("generates complete CSS custom properties matching token values", () => {
     const css = generateThemeCss(darkBTokens);
     expect(css).toContain(":root {");
-    expect(css).toContain("--color-bg-primary: #000000;");
-    expect(css).toContain("--color-text-normal: #f5f7fa;");
-    expect(css).toContain("--color-interactive-accent: #00ccff;");
+    expect(css).toContain("--color-bg-primary: #1e1e1e;");
+    expect(css).toContain("--color-text-normal: #dcddde;");
+    expect(css).toContain("--color-interactive-accent: #cd47ab;");
     expect(css).toContain("--radius-capsule: 9999px;");
     expect(css).toContain("--space-touch-target: 44px;");
   });
 
   it("verifies Light A CSS generation", () => {
     const lightCss = generateThemeCss(lightATokens);
-    expect(lightCss).toContain("--color-bg-primary: #fafafa;");
-    expect(lightCss).toContain("--color-text-normal: #1f2328;");
-    expect(lightCss).toContain("--color-interactive-accent: #0969da;");
+    expect(lightCss).toContain("--color-bg-primary: #ffffff;");
+    expect(lightCss).toContain("--color-text-normal: #222222;");
+    expect(lightCss).toContain("--color-interactive-accent: #cd47ab;");
   });
 
   it("verifies Catppuccin Frappé CSS generation", () => {

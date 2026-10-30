@@ -113,13 +113,18 @@ export {
   imageExtension,
   parseImageDimensions,
   sanitizeImageUrl,
-} from "./embeds/imageExtension";
+  updateEmbedWidthInText,
+} from "./embeds";
+export { imageTheme } from "./theme";
 export type {
   ImageDimensions,
   ImageExtensionOptions,
 } from "./embeds/imageExtension";
 export { embedImageExtension } from "./embeds/embedImageExtension";
 export type { EmbedImageExtensionOptions } from "./embeds/embedImageExtension";
+export { embedAudioExtension } from "./embeds/embedAudioExtension";
+export type { EmbedAudioExtensionOptions } from "./embeds/embedAudioExtension";
+export { embedAudioTheme } from "./embeds/embedAudioTheme";
 export {
   isYoutubeImage,
   youtubeEmbedVideoId,
@@ -169,5 +174,6 @@ export {
   extractNoteHeadings,
 } from "./embeds";
 export type { NoteEmbedOptions } from "./embeds";
-export { Strikethrough } from "@lezer/markdown";
+export { Strikethrough, Table } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";
+export { undo, redo, history } from "@codemirror/commands";

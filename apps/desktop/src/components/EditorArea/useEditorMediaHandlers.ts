@@ -5,7 +5,11 @@ import {
   getPlatformAdapters,
   hasPlatformAdapters,
 } from "@app/platform-adapters";
-import { writeAttachmentToVault, writeBinaryFile } from "../../vault";
+import {
+  createFolder,
+  writeAttachmentToVault,
+  writeBinaryFile,
+} from "../../vault";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 export function useEditorMediaHandlers(activeNotePath: string | null) {
@@ -19,10 +23,31 @@ export function useEditorMediaHandlers(activeNotePath: string | null) {
       if (!vaultPath || !activeNotePath) {
         throw new Error("Open a vault and note before pasting an attachment.");
       }
-      const folder = resolveAttachmentFolder(
-        activeNotePath,
-        attachmentSettings,
-      );
+      const isImage =
+        file.type.startsWith("image/") ||
+        /\.(png|jpe?g|gif|webp|svg|bmp|ico|avif)$/i.test(file.name);
+      let folder = resolveAttachmentFolder(activeNotePath, attachmentSettings);
+
+      if (isImage) {
+        folder = "images";
+        const { allFolderPaths, updateAllFolderPaths } =
+          useWorkspaceStore.getState();
+        const folderExists = allFolderPaths.some(
+          (f) =>
+            f.toLowerCase() === "images" || f.toLowerCase().endsWith("/images"),
+        );
+        if (!folderExists) {
+          try {
+            await createFolder("images");
+          } catch {
+            // Folder may already exist on disk
+          }
+          if (!allFolderPaths.includes("images")) {
+            updateAllFolderPaths([...allFolderPaths, "images"].sort());
+          }
+        }
+      }
+
       const writtenPath = await writeAttachmentToVault(
         vaultPath,
         folder,
@@ -33,7 +58,14 @@ export function useEditorMediaHandlers(activeNotePath: string | null) {
       const linkTarget = writtenPath.startsWith(vaultPrefix)
         ? writtenPath.slice(vaultPrefix.length)
         : writtenPath;
-      return `![[${linkTarget.replaceAll("\\", "/")}]]`;
+      const normalizedTarget = linkTarget.replaceAll("\\", "/");
+      const currentPaths = useWorkspaceStore.getState().allNotePaths;
+      if (!currentPaths.includes(normalizedTarget)) {
+        useWorkspaceStore
+          .getState()
+          .updateAllPaths([...currentPaths, normalizedTarget]);
+      }
+      return `![[${normalizedTarget}]]`;
     },
     [activeNotePath, attachmentSettings, vaultPath],
   );
@@ -49,13 +81,31 @@ export function useEditorMediaHandlers(activeNotePath: string | null) {
         filePath.startsWith("data:") ||
         filePath.startsWith("blob:") ||
         filePath.startsWith("http://") ||
-        filePath.startsWith("https://")
+        filePath.startsWith("https://") ||
+        filePath.startsWith("asset://")
       ) {
         return filePath;
       }
-      const absolutePath = vaultPath
-        ? `${vaultPath.replace(/\/+$/, "")}/${filePath.replace(/^\/+/, "")}`
-        : filePath;
+      const isAbsolute =
+        filePath.startsWith("/") || /^[a-zA-Z]:[/\\]/.test(filePath);
+      let targetPath = filePath.replace(/^\/+/, "");
+      if (
+        !isAbsolute &&
+        !filePath.includes("/") &&
+        activeNotePath &&
+        activeNotePath.includes("/")
+      ) {
+        const parentDir = activeNotePath.substring(
+          0,
+          activeNotePath.lastIndexOf("/"),
+        );
+        targetPath = `${parentDir}/${filePath}`;
+      }
+      const absolutePath = isAbsolute
+        ? filePath
+        : vaultPath
+          ? `${vaultPath.replace(/\/+$/, "")}/${targetPath}`
+          : filePath;
       try {
         if (hasPlatformAdapters()) {
           return getPlatformAdapters().fs.resolveFileUrl(absolutePath);
@@ -65,7 +115,7 @@ export function useEditorMediaHandlers(activeNotePath: string | null) {
         return filePath;
       }
     },
-    [vaultPath],
+    [activeNotePath, vaultPath],
   );
 
   const handleSaveMediaFile = useCallback(

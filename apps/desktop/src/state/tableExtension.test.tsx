@@ -120,7 +120,7 @@ describe("Table extension (Phase 9)", () => {
     );
     expect(container.querySelector(".cm-link-external")).not.toBeNull();
     expect(container.querySelector(".cm-wikilink")).not.toBeNull();
-    expect(container.querySelectorAll(".cm-table-cell")).toHaveLength(4);
+    expect(container.querySelectorAll(".cm-table-cell")).toHaveLength(6);
     expect(container.textContent).toContain("pipe");
     destroy();
   });
@@ -202,29 +202,25 @@ describe("Table extension (Phase 9)", () => {
       "| A | B |\n| --- | --- |\n| C | D |",
     );
     view.dispatch({ selection: EditorSelection.cursor(26) });
-    view.dom
-      .querySelector(".cm-content")
-      ?.dispatchEvent(
-        new MouseEvent("contextmenu", {
-          bubbles: true,
-          clientX: 1,
-          clientY: 1,
-        }),
-      );
+    view.dom.querySelector(".cm-content")?.dispatchEvent(
+      new MouseEvent("contextmenu", {
+        bubbles: true,
+        clientX: 1,
+        clientY: 1,
+      }),
+    );
     const menu = container.querySelector(".cm-table-context-menu");
     expect(menu).not.toBeNull();
 
     menu?.querySelector<HTMLButtonElement>("[data-action='add-row']")?.click();
     expect(view.state.doc.lines).toBe(4);
-    view.dom
-      .querySelector(".cm-content")
-      ?.dispatchEvent(
-        new MouseEvent("contextmenu", {
-          bubbles: true,
-          clientX: 1,
-          clientY: 1,
-        }),
-      );
+    view.dom.querySelector(".cm-content")?.dispatchEvent(
+      new MouseEvent("contextmenu", {
+        bubbles: true,
+        clientX: 1,
+        clientY: 1,
+      }),
+    );
     container
       .querySelector<HTMLButtonElement>("[data-action='add-column']")
       ?.click();

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:c2pa="http://c2pa.org/manifest" width="512" height="512" viewBox="0 0 280 280" role="img" aria-label="Warm cozy owl icon, dark background">
+    
+  <path id="background" fill="#2B1F1A" d="M64 0H216A64 64 0 0 1 280 64V216A64 64 0 0 1 216 280H64A64 64 0 0 1 0 216V64A64 64 0 0 1 64 0Z"/>
+  <path id="wing-left" fill="#D58E55" d="M64 150Q50 192 82 228Q98 200 96 160Z"/>
+  <path id="wing-right" fill="#D58E55" d="M216 150Q230 192 198 228Q182 200 184 160Z"/>
+  <path id="tuft-left" fill="#E9A86B" d="M80 104Q66 66 92 60Q114 64 120 94Z"/>
+  <path id="tuft-right" fill="#E9A86B" d="M200 104Q214 66 188 60Q166 64 160 94Z"/>
+  <path id="body" fill="#E9A86B" d="M62 160A78 86 0 1 0 218 160A78 86 0 1 0 62 160Z"/>
+  <path id="belly" fill="#F8E6C8" d="M88 192A52 50 0 1 0 192 192A52 50 0 1 0 88 192Z"/>
+  <path id="belly-feathers" fill="none" stroke="#E9A86B" stroke-width="3" stroke-linecap="round" d="M118 176q7 8 14 0M146 176q7 8 14 0M104 196q7 8 14 0M132 196q7 8 14 0M160 196q7 8 14 0M118 216q7 8 14 0M146 216q7 8 14 0"/>
+  <path id="eye-ring-left" fill="#F8E6C8" d="M85 118A25 25 0 1 0 135 118A25 25 0 1 0 85 118Z"/>
+  <path id="eye-ring-right" fill="#F8E6C8" d="M145 118A25 25 0 1 0 195 118A25 25 0 1 0 145 118Z"/>
+  <path id="pupil-left" fill="#3A2A22" d="M98 120A14 14 0 1 0 126 120A14 14 0 1 0 98 120Z"/>
+  <path id="pupil-right" fill="#3A2A22" d="M154 120A14 14 0 1 0 182 120A14 14 0 1 0 154 120Z"/>
+  <path id="highlight-left" fill="#FFFFFF" d="M112.5 114A4.5 4.5 0 1 0 121.5 114A4.5 4.5 0 1 0 112.5 114Z"/>
+  <path id="highlight-right" fill="#FFFFFF" d="M168.5 114A4.5 4.5 0 1 0 177.5 114A4.5 4.5 0 1 0 168.5 114Z"/>
+  <path id="cheek-left" fill="#E77F67" fill-opacity="0.55" d="M75 146A9 9 0 1 0 93 146A9 9 0 1 0 75 146Z"/>
+  <path id="cheek-right" fill="#E77F67" fill-opacity="0.55" d="M187 146A9 9 0 1 0 205 146A9 9 0 1 0 187 146Z"/>
+  <path id="beak" fill="#F4C25B" d="M140 130L130 144Q140 152 150 144Z"/>
+  <path id="foot-left" fill="#F4C25B" d="M109 249A13 6 0 1 0 135 249A13 6 0 1 0 109 249Z"/>
+  <path id="foot-right" fill="#F4C25B" d="M145 249A13 6 0 1 0 171 249A13 6 0 1 0 145 249Z"/>
+  <path id="star-1" fill="#F4C25B" d="M41 52A3 3 0 1 0 47 52A3 3 0 1 0 41 52Z"/>
+  <path id="star-2" fill="#F4C25B" d="M234 44A4 4 0 1 0 242 44A4 4 0 1 0 234 44Z"/>
+  <path id="star-3" fill="#F4C25B" d="M229.5 84A2.5 2.5 0 1 0 234.5 84A2.5 2.5 0 1 0 229.5 84Z"/>
+</svg>

@@ -1,0 +1,100 @@
+.kanban-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  padding: 10px 12px;
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border-subtle, #e4e4e4);
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+  outline: none;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+
+  &:hover {
+    border-color: var(--color-border-normal, #d4d4d4);
+  }
+
+  &.is-focused {
+    border-color: var(--color-interactive-accent, #cd47ab);
+  }
+
+  &.is-completed {
+    opacity: 0.6;
+
+    .card-title {
+      text-decoration: line-through;
+      color: var(--color-text-muted, #5c5c5c);
+    }
+  }
+
+  &.is-dragging {
+    opacity: 0.35;
+    border-style: dashed;
+  }
+}
+
+.card-header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2, 8px);
+  width: 100%;
+}
+
+.card-checkbox {
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: var(--color-interactive-accent, #cd47ab);
+  width: 15px;
+  height: 15px;
+}
+
+.card-title {
+  flex: 1;
+  font-size: var(--type-scale-sm, 0.875rem);
+  line-height: var(--type-leading-normal, 1.45);
+  color: var(--color-text-normal, #222222);
+  word-break: break-word;
+}
+
+.card-delete-button {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--color-text-muted, #5c5c5c);
+  padding: 3px;
+  cursor: pointer;
+  border-radius: 4px;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: var(--color-text-error, #e55353);
+    background: var(--color-bg-hover, rgba(0, 0, 0, 0.05));
+  }
+}
+
+.kanban-card:hover .card-delete-button {
+  display: inline-flex;
+}
+
+.card-body-preview {
+  font-size: var(--type-scale-xs, 0.75rem);
+  color: var(--color-text-muted, #5c5c5c);
+  padding-left: 20px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.card-edit-input {
+  width: 100%;
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  font-size: var(--type-scale-sm, 0.875rem);
+  color: var(--color-text-normal, #222222);
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-interactive-accent, #cd47ab);
+  border-radius: var(--border-radius-sm, 4px);
+  outline: none;
+  font-family: inherit;
+}

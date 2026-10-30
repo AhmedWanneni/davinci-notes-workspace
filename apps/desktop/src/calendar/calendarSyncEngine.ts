@@ -34,7 +34,44 @@ export class CalendarSyncEngine {
     this.getAccessToken = options.getAccessToken;
     this.onSyncComplete = options.onSyncComplete;
     this.onError = options.onError;
-    this.daysAhead = options.daysAhead ?? 7;
+    this.daysAhead = options.daysAhead ?? 35;
+  }
+
+  async syncDateRange(
+    timeMin: string,
+    timeMax: string,
+  ): Promise<{ success: boolean; eventCount: number; error?: string }> {
+    try {
+      const accessToken = await this.getAccessToken();
+      const allCalendars = await getCalendarsFromDb();
+      const selectedCalendars = allCalendars.filter((c) => c.selected);
+
+      let totalEvents = 0;
+      for (const cal of selectedCalendars) {
+        const result = await this.client.listEvents(accessToken, cal.id, {
+          timeMin,
+          timeMax,
+          singleEvents: true,
+          orderBy: "startTime",
+        });
+
+        if (result.events.length > 0) {
+          await saveEventsToDb(result.events);
+          totalEvents += result.events.length;
+        }
+      }
+
+      this.onSyncComplete?.(totalEvents);
+      return { success: true, eventCount: totalEvents };
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      this.onError?.(error);
+      return {
+        success: false,
+        eventCount: 0,
+        error: error instanceof GoogleAuthExpiredError ? "auth-expired" : error.message,
+      };
+    }
   }
 
   async syncNow(): Promise<{ success: boolean; eventCount: number; error?: string }> {
@@ -53,7 +90,7 @@ export class CalendarSyncEngine {
 
       let totalEvents = 0;
       const now = new Date();
-      const timeMin = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+      const timeMin = new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000).toISOString();
       const timeMax = new Date(now.getTime() + this.daysAhead * 24 * 60 * 60 * 1000).toISOString();
 
       for (const cal of selectedCalendars) {

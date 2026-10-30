@@ -1,17 +1,17 @@
 export interface IconSizeTokens {
-  readonly xs: string;
-  readonly sm: string;
-  readonly md: string;
-  readonly lg: string;
-  readonly xl: string;
+    readonly xs: string;
+    readonly sm: string;
+    readonly md: string;
+    readonly lg: string;
+    readonly xl: string;
 }
 export interface IconWeightTokens {
-  readonly default: string;
-  readonly active: string;
+    readonly default: string;
+    readonly active: string;
 }
 export interface IconTokens {
-  readonly size: IconSizeTokens;
-  readonly weight: IconWeightTokens;
+    readonly size: IconSizeTokens;
+    readonly weight: IconWeightTokens;
 }
 export declare const iconSizeTokens: IconSizeTokens;
 export declare const iconWeightTokens: IconWeightTokens;

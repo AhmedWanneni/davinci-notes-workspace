@@ -15,7 +15,7 @@ use std::collections::BTreeMap;
 pub const CLIP_PAYLOAD_VERSION: u32 = 1;
 
 /// Allowed `mode` values (mirrors `ClipMode`).
-pub const CLIP_MODES: [&str; 3] = ["full", "selection", "highlights"];
+pub const CLIP_MODES: [&str; 4] = ["full", "selection", "highlights", "bookmark"];
 
 /// Allowed `behavior` values (mirrors `CLIP_BEHAVIORS`).
 pub const CLIP_BEHAVIORS: [&str; 6] = [

@@ -79,4 +79,21 @@ describe("CalendarView Components", () => {
     fireEvent.click(syncBtn);
     expect(onSync).toHaveBeenCalled();
   });
+
+  it("CalendarLeaf displays connection banner and triggers onConnect when not connected", () => {
+    const onConnect = vi.fn();
+    render(
+      <CalendarLeaf
+        eventsOverride={[sampleEvent]}
+        isConnectedOverride={false}
+        onConnect={onConnect}
+      />,
+    );
+
+    expect(screen.getByTestId("calendar-connect-banner")).toBeDefined();
+    const connectBtn = screen.getByTestId("calendar-connect-btn");
+    expect(connectBtn.textContent).toBe("Connect Google Calendar");
+    fireEvent.click(connectBtn);
+    expect(onConnect).toHaveBeenCalledTimes(1);
+  });
 });

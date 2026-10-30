@@ -1,5 +1,5 @@
-const PICKER_WIDTH = 320;
-const PICKER_HEIGHT = 390;
+const PICKER_WIDTH = 256;
+const PICKER_HEIGHT = 320;
 const VIEWPORT_GUTTER = 12;
 
 export function getEmojiPopoverPosition(x: number, y: number) {

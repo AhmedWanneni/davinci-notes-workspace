@@ -39,5 +39,13 @@ export function extractContent(
     };
   }
 
+  if (mode === "bookmark") {
+    return {
+      markdown: (snapshot.selection ?? "").trim(),
+      html: "",
+      title: snapshot.title || doc.title || undefined,
+    };
+  }
+
   return extractArticle(doc, snapshot.url);
 }

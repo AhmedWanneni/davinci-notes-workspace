@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { ClipAck, ClipBehavior, ClipPayload } from "@app/clipper-core";
 import { composeNoteFile } from "@app/clipper-core";
+import { BOOKMARKS_JSON_PATH, useBookmarkStore } from "../bookmarks";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import { processClipAttachments } from "./clipperAttachments";
 import {
@@ -122,6 +123,36 @@ export async function applyClipToVault(
     }
 
     let payload = event.payload;
+    if (payload.mode === "bookmark") {
+      const cleanNoteTitle = payload.target.noteName.replace(/\.md$/i, "").trim();
+      const rawFolder = payload.target.folder.trim();
+      const folder =
+        rawFolder && rawFolder.toLowerCase() !== "clippings"
+          ? rawFolder
+          : undefined;
+      useBookmarkStore.getState().addWebBookmark({
+        url: payload.source.url,
+        title: cleanNoteTitle || payload.source.title,
+        domain: payload.source.domain,
+        description: payload.source.description,
+        folder,
+        tags: payload.tags,
+        favicon: payload.source.favicon,
+      });
+
+      try {
+        await invoke("clipper_record_written", {
+          clipId: payload.clipId,
+          contentHash: payload.contentHash,
+          relativePath: BOOKMARKS_JSON_PATH,
+        });
+      } catch (recordError) {
+        console.warn("[clipper] failed to record bookmark in dedupe ledger:", recordError);
+      }
+
+      return { clipId, status: "written", path: BOOKMARKS_JSON_PATH };
+    }
+
     if (payload.attachments && payload.attachments.length > 0) {
       payload = await processClipAttachments(payload, {
         vaultPath: store.vaultPath,

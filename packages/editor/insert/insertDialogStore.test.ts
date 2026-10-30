@@ -99,4 +99,29 @@ describe("insertDialogStore runner and lifecycle", () => {
     expect(getRecentInsertIds()).not.toContain("tweet");
     destroy();
   });
+
+  it("removes slash command text on dialog cancel", () => {
+    const { view, destroy } = createTestView("note /img rest", true, 5);
+    view.dispatch({ selection: { anchor: 5, head: 9 } });
+    const item = findInsertItem("image")!;
+    runInsertItem(view, item, view.state.selection, "");
+    const req = getInsertDialogRequest()!;
+
+    cancelInsertDialog(req);
+
+    expect(getInsertDialogRequest()).toBeNull();
+    expect(view.state.doc.toString()).toBe("note  rest");
+    destroy();
+  });
+
+  it("inserts heading replacing slash command text with empty selectedText", () => {
+    const { view, destroy } = createTestView("/head", true, 0);
+    view.dispatch({ selection: { anchor: 0, head: 5 } });
+    const item = findInsertItem("heading-1")!;
+    runInsertItem(view, item, view.state.selection, "");
+
+    expect(view.state.doc.toString()).toBe("# Heading");
+    expect(view.state.doc.toString()).not.toContain("/head");
+    destroy();
+  });
 });

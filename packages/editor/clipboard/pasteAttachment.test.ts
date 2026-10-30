@@ -115,4 +115,18 @@ describe("attachment paste handling", () => {
       view.destroy();
     },
   );
+
+  it("isolates image on its own row when dropped into regular text", async () => {
+    const view = new EditorView({
+      state: EditorState.create({ doc: "Some text" }),
+    });
+    await handleIncomingFiles(
+      [new File(["x"], "image.png")],
+      9,
+      view,
+      async () => "![[image.png]]",
+    );
+    expect(view.state.doc.toString()).toBe("Some text\n![[image.png]]");
+    view.destroy();
+  });
 });

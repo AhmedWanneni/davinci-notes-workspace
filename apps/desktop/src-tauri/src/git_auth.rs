@@ -18,6 +18,20 @@ fn entry(vault_root: &std::path::Path, remote_url: &str) -> Result<Entry, String
     Entry::new(SERVICE, &account(vault_root, remote_url)).map_err(|error| error.to_string())
 }
 
+pub(crate) fn get_pat_for_remote(vault_root: &std::path::Path, remote_url: &str) -> Option<String> {
+    entry(vault_root, remote_url).ok()?.get_password().ok()
+}
+
+pub(crate) fn store_pat_for_remote(
+    vault_root: &std::path::Path,
+    remote_url: &str,
+    token: &str,
+) -> Result<(), String> {
+    entry(vault_root, remote_url)?
+        .set_password(token)
+        .map_err(|error| error.to_string())
+}
+
 #[tauri::command]
 pub fn save_git_pat(window: WebviewWindow, app: AppHandle, remote_url: String, token: String) -> Result<(), String> {
     reject_plugin_runner(&window)?;
@@ -92,7 +106,7 @@ mod tests {
             .expect("askpass script should be executable");
 
         let mut child = Command::new("git")
-            .args(["-c", "credential.helper=", "credential", "fill"])
+            .args(["-c", "credential.interactive=always", "-c", "credential.helper=", "credential", "fill"])
             .env("GIT_ASKPASS", &script)
             .env("GIT_TERMINAL_PROMPT", "0")
             .env("DAVINCI_GIT_PAT", "phase3-token")

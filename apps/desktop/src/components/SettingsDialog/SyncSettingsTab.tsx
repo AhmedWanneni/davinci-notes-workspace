@@ -1,6 +1,5 @@
 import React from "react";
 import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
-import { GitRemoteSetupPanel } from "../GitRemoteSetupPanel";
 import { SettingsCard } from "./SettingsCard";
 import styles from "./SettingsDialog.module.scss";
 
@@ -12,6 +11,8 @@ interface SyncSettingsTabProps {
   driveAccountEmail?: string | null;
   isDriveSignedIn?: boolean;
   isDriveSyncing?: boolean;
+  lastSyncedAt?: number | null;
+  syncError?: string | null;
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
@@ -26,6 +27,8 @@ export function SyncSettingsTab({
   driveAccountEmail,
   isDriveSignedIn = false,
   isDriveSyncing = false,
+  lastSyncedAt,
+  syncError,
   onDriveSignIn,
   onDriveDisconnect,
   onDriveRefresh,
@@ -42,6 +45,8 @@ export function SyncSettingsTab({
           driveAccountEmail={driveAccountEmail}
           isDriveSignedIn={isDriveSignedIn}
           isDriveSyncing={isDriveSyncing}
+          lastSyncedAt={lastSyncedAt}
+          syncError={syncError}
           onDriveSignIn={onDriveSignIn}
           onDriveSignOut={onDriveDisconnect}
           onDriveRefresh={onDriveRefresh}
@@ -55,10 +60,6 @@ export function SyncSettingsTab({
         <React.Suspense fallback={<div>Loading Syncthing...</div>}>
           <LazySyncthingPanel />
         </React.Suspense>
-      </SettingsCard>
-
-      <SettingsCard title="Git Version Control">
-        <GitRemoteSetupPanel />
       </SettingsCard>
     </div>
   );

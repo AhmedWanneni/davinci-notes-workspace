@@ -26,10 +26,10 @@ export const mediaItems: readonly InsertItem[] = [
     },
     build: (context) => {
       if (context.input?.path) {
-        return { text: `![[${context.input.path}]]`, block: true };
+        return { text: `![[${context.input.path}]]`, block: false };
       }
       const url = context.input?.url || "https://";
-      return { text: `![](${url})`, block: true };
+      return { text: `![](${url})`, block: false };
     },
   },
   {

@@ -103,5 +103,8 @@ describe("Reminder Editor Integration: Insert, Edit, Remove, Undo/Redo", () => {
     expect(currentDiskContent).toBe(
       "- [ ] Call the doctor (@2026-10-20 14:00)",
     );
+
+    view.destroy();
+    container.remove();
   });
 });

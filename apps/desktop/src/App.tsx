@@ -3,6 +3,7 @@ import React, {
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -11,7 +12,6 @@ import { loadEditorFont } from "./fonts/editorFontRegistry";
 import { AppSidebar } from "./components/AppSidebar";
 import { AppTabs } from "./components/AppTabs";
 import { EditorArea } from "./components/EditorArea";
-import { IconRail } from "./components/IconRail";
 import { RightSidebar } from "./components/RightSidebar";
 import { PluginViewLeaf } from "./components/PluginViewLeaf";
 import { StatusBar } from "./components/StatusBar";
@@ -19,12 +19,7 @@ import { VaultWelcomeView } from "./components/VaultWelcomeView";
 import { useWorkspaceStore } from "./state/useWorkspaceStore";
 import { usePluginStore } from "./state/usePluginStore";
 import { useThemeStore } from "./state/useThemeStore";
-import {
-  getDriveAccessToken,
-  openDriveAuthorizationUrl,
-  signInToDrive,
-  signOutOfDrive,
-} from "./sync/desktopDriveAuth";
+import { useDriveSyncStore } from "./sync";
 import {
   getVaultIndexDb,
   openAndIndexVault,
@@ -57,6 +52,33 @@ const LazySettingsDialog = React.lazy(() =>
   })),
 );
 import type { SettingsTabId } from "./components/SettingsDialog";
+import { BOOKMARKS_TAB_ID, useBookmarks } from "./bookmarks";
+const LazyBookmarksView = React.lazy(() =>
+  import("./components/BookmarksView").then((m) => ({
+    default: m.BookmarksView,
+  })),
+);
+import { REMINDERS_TAB_ID } from "./reminders/reminderConstants";
+import { startReminderChannelOrchestrator } from "./reminders/reminderChannelOrchestrator";
+import { startScheduledMessageOrchestrator } from "./reminders/scheduledMessageOrchestrator";
+const LazyRemindersView = React.lazy(() =>
+  import("./components/RemindersView").then((m) => ({
+    default: m.RemindersView,
+  })),
+);
+import { AGENT_TAB_ID } from "./components/AgentView";
+import { CALENDAR_TAB_ID } from "./calendar/calendarConstants";
+import { LISTENING_TAB_ID } from "./components/ListeningView";
+const LazyListeningView = React.lazy(() =>
+  import("./components/ListeningView").then((m) => ({
+    default: m.ListeningView,
+  })),
+);
+const LazyAgentView = React.lazy(() =>
+  import("./components/AgentView").then((m) => ({
+    default: m.AgentView,
+  })),
+);
 const LazyCommandPalette = React.lazy(() =>
   import("./components/CommandPalette").then((m) => ({
     default: m.CommandPalette,
@@ -75,6 +97,17 @@ const LazyRemindersDialog = React.lazy(() =>
     default: m.RemindersDialog,
   })),
 );
+import { isImagePath } from "./components/ImagePreview/imagePreviewUtils";
+const LazyImagePreviewLeaf = React.lazy(() =>
+  import("./components/ImagePreview/ImagePreviewLeaf").then((m) => ({
+    default: m.ImagePreviewLeaf,
+  })),
+);
+const LazyGitDiffViewer = React.lazy(() =>
+  import("@app/git-manager").then((m) => ({
+    default: m.GitDiffViewer,
+  })),
+);
 import { ReminderNotificationToast } from "./components/RemindersDialog";
 
 export function App() {
@@ -84,6 +117,8 @@ export function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
   const [isRemindersOpen, setIsRemindersOpen] = useState(false);
+  const [isGitManagerOpen, setIsGitManagerOpen] = useState(false);
+  const gitEnabled = useWorkspaceStore((state) => state.gitEnabled);
   const [searchInitialQuery, setSearchInitialQuery] = useState("");
   const isGlobalGraphOpen = useWorkspaceStore(
     (state) => state.isGlobalGraphOpen,
@@ -106,8 +141,21 @@ export function App() {
     setSettingsInitialTab("logs");
     setIsSettingsOpen(true);
   }, []);
+  const handleOpenSyncSettings = useCallback(() => {
+    setSettingsInitialTab("sync");
+    setIsSettingsOpen(true);
+  }, []);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const handleToggleGitManager = useCallback(() => {
+    setIsGitManagerOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsLeftSidebarOpen(true);
+      }
+      return next;
+    });
+  }, []);
   const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
   const [askVaultEnabled, setAskVaultEnabled] = useState(false);
   const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
@@ -129,6 +177,7 @@ export function App() {
   const openNotes = useWorkspaceStore((state) => state.openNotes);
   const dirtyNotes = useWorkspaceStore((state) => state.dirtyNotes);
   const saveVersionNow = useWorkspaceStore((state) => state.saveVersionNow);
+  const { toggleBookmark } = useBookmarks();
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const editorFont = useWorkspaceStore((state) => state.editorFont);
@@ -140,6 +189,34 @@ export function App() {
   const activeContent = activeNotePath
     ? (notesContent[activeNotePath] ?? "")
     : "";
+
+  const boardNotes = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of openNotes) {
+      const c = notesContent[p];
+      if (
+        c &&
+        /(?:^|\n)\s*kanban-plugin\s*:\s*["']?board["']?\s*(?:\r?\n|$)/.test(c)
+      ) {
+        set.add(p);
+      }
+    }
+    return set;
+  }, [openNotes, notesContent]);
+
+  const databaseNotes = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of openNotes) {
+      const c = notesContent[p];
+      if (
+        c &&
+        /(?:^|\n)\s*database\s*:\s*["']?table["']?\s*(?:\r?\n|$)/.test(c)
+      ) {
+        set.add(p);
+      }
+    }
+    return set;
+  }, [openNotes, notesContent]);
 
   const loadSettings = useWorkspaceStore((state) => state.loadSettings);
   const openNote = useWorkspaceStore((state) => state.openNote);
@@ -179,6 +256,8 @@ export function App() {
     isLoadingVault,
     vaultError,
     setVaultError,
+    recentVaults,
+    handleRemoveRecentVault,
     graph,
     loadVaultByMethod,
     createNewNote,
@@ -186,6 +265,7 @@ export function App() {
     createNewCanvas,
     handleLinkClick,
     switchVaultTo,
+    createNewVault,
     openFixture,
     openLargeFixture,
     openPicker,
@@ -426,6 +506,13 @@ export function App() {
         setSearchInitialQuery("");
         setIsSearchOpen((prev) => !prev);
       }
+      if (isMod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "d") {
+        const active = activeNoteRef.current;
+        if (active && !active.startsWith("davinci://")) {
+          e.preventDefault();
+          void toggleBookmark(active);
+        }
+      }
     };
     window.addEventListener("keydown", handleGlobalKeyDown);
     return () => window.removeEventListener("keydown", handleGlobalKeyDown);
@@ -512,6 +599,21 @@ export function App() {
       window.removeEventListener("davinci-ai-open-citation", handleCitation);
   }, [handleOpenCitation]);
 
+  useEffect(() => {
+    const handleReRunAudio = () => {
+      void openNote(LISTENING_TAB_ID);
+    };
+    window.addEventListener(
+      "davinci:re-run-audio-transcription",
+      handleReRunAudio,
+    );
+    return () =>
+      window.removeEventListener(
+        "davinci:re-run-audio-transcription",
+        handleReRunAudio,
+      );
+  }, [openNote]);
+
   const handleDropFiles = async (
     targetFolder: string,
     files: readonly File[],
@@ -539,53 +641,69 @@ export function App() {
     }
   };
 
-  const handleDriveSignIn = async () => {
-    try {
-      await signInToDrive(openDriveAuthorizationUrl);
-      window.alert("Drive sign-in complete.");
-    } catch (error) {
-      window.alert(
-        `Drive sign-in failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  };
+  const isDriveSignedIn = useDriveSyncStore((state) => state.isDriveSignedIn);
+  const driveAccountEmail = useDriveSyncStore(
+    (state) => state.driveAccountEmail,
+  );
+  const isDriveSyncing = useDriveSyncStore((state) => state.isDriveSyncing);
+  const lastSyncedAt = useDriveSyncStore((state) => state.lastSyncedAt);
+  const syncError = useDriveSyncStore((state) => state.syncError);
+  const checkDriveAuth = useDriveSyncStore((state) => state.checkAuthStatus);
+  const syncDriveNow = useDriveSyncStore((state) => state.syncNow);
+  const signInDrive = useDriveSyncStore((state) => state.signIn);
+  const signOutDrive = useDriveSyncStore((state) => state.signOut);
 
-  const handleDriveRefresh = async () => {
-    try {
-      await getDriveAccessToken();
-      window.alert("Drive session is valid.");
-    } catch (error) {
-      window.alert(
-        `Drive session check failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  };
+  useEffect(() => {
+    void checkDriveAuth();
+  }, [checkDriveAuth]);
 
-  const handleDriveDisconnect = async () => {
-    try {
-      await signOutOfDrive();
-      window.alert("Drive disconnected.");
-    } catch (error) {
-      window.alert(
-        `Drive disconnect failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+  useEffect(() => {
+    if (vaultPath && syncMode === "drive" && isDriveSignedIn) {
+      void syncDriveNow();
     }
-  };
+  }, [vaultPath, syncMode, isDriveSignedIn, syncDriveNow]);
+
+  const handleOpenVaultFromDrive = useCallback(async () => {
+    let signedIn = useDriveSyncStore.getState().isDriveSignedIn;
+    if (!signedIn) {
+      const ok = await signInDrive();
+      if (!ok) return;
+      signedIn = true;
+    }
+    const { pickVaultFolder } = await import("./vault/pickVaultFolder");
+    const selected = await pickVaultFolder();
+    if (!selected) return;
+
+    await switchVaultTo(selected);
+    setSyncMode("drive");
+    void syncDriveNow();
+  }, [signInDrive, switchVaultTo, setSyncMode, syncDriveNow]);
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
     void (async () => {
       try {
         const { listen } = await import("@tauri-apps/api/event");
-        unlisten = await listen("davinci-tray-open-reminders", () => {
-          setIsRemindersOpen(true);
+        const u1 = await listen("davinci-tray-open-reminders", () => {
+          void openNote(REMINDERS_TAB_ID);
         });
+        const u2 = await listen("davinci-tray-ai-listening", () => {
+          void openNote(LISTENING_TAB_ID);
+        });
+        unlisten = () => {
+          u1();
+          u2();
+        };
       } catch {
         // Outside Tauri runtime
       }
     })();
+    const stopOrchestrator = startReminderChannelOrchestrator();
+    const stopScheduled = startScheduledMessageOrchestrator();
     return () => {
       unlisten?.();
+      stopOrchestrator();
+      stopScheduled();
     };
   }, []);
 
@@ -594,11 +712,15 @@ export function App() {
       <VaultWelcomeView
         isLoadingVault={isLoadingVault}
         vaultError={vaultError}
-        log={log}
+        recentVaults={recentVaults}
         onClearError={() => setVaultError(null)}
         onOpenFixture={openFixture}
         onOpenLargeFixture={openLargeFixture}
         onOpenPicker={openPicker}
+        onCreateNewVault={createNewVault}
+        onOpenVaultFromDrive={handleOpenVaultFromDrive}
+        onSelectRecentVault={(path) => void switchVaultTo(path)}
+        onRemoveRecentVault={(path) => void handleRemoveRecentVault(path)}
       />
     );
   }
@@ -612,31 +734,16 @@ export function App() {
       data-right-collapsed={!isRightSidebarOpen || undefined}
     >
       <div className="app-shell__body">
-        <IconRail
-          isLeftSidebarOpen={isLeftSidebarOpen}
-          isGlobalGraphOpen={isGlobalGraphOpen}
-          isCalendarOpen={isCalendarOpen}
-          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
-          onOpenSearch={() => {
-            setSearchInitialQuery("");
-            setIsSearchOpen(true);
-          }}
-          onOpenGlobalGraph={() => setIsGlobalGraphOpen(!isGlobalGraphOpen)}
-          onOpenCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
-          onOpenSettings={handleOpenSettings}
-          onCloseVault={() => setVaultPath(null)}
-          onDailyNotes={handleDailyNotes}
-          onCreateCanvas={handleCreateCanvas}
-          onOpenReminders={() => setIsRemindersOpen(true)}
-        />
-
         <AppSidebar
           vaultName={vaultName}
           vaultPath={vaultPath}
           onSwitchVault={(target) => void switchVaultTo(target)}
           onOpenFolderPicker={openPicker}
-          onCreateNewVault={openPicker}
+          onCreateNewVault={createNewVault}
+          onOpenVaultFromDrive={handleOpenVaultFromDrive}
+          onSyncVault={isDriveSignedIn ? () => void syncDriveNow() : undefined}
           onOpenSettings={handleOpenSettings}
+          onOpenSyncSettings={handleOpenSyncSettings}
           onOpenLogs={handleOpenLogs}
           allNotePaths={allNotePaths}
           allFolderPaths={allFolderPaths}
@@ -645,12 +752,59 @@ export function App() {
           log={log}
           isCollapsed={!isLeftSidebarOpen}
           isMac={isMac}
-          onToggleLeftSidebar={() => setIsLeftSidebarOpen((prev) => !prev)}
+          onToggleLeftSidebar={() => {
+            if (isGitManagerOpen) {
+              setIsGitManagerOpen(false);
+            } else {
+              setIsLeftSidebarOpen((prev) => !prev);
+            }
+          }}
           onOpenSearch={() => {
+            setIsGitManagerOpen(false);
             setSearchInitialQuery("");
             setIsSearchOpen(true);
           }}
-          onOpenTags={() => setIsTagsOpen(true)}
+          onOpenTags={() => {
+            setIsGitManagerOpen(false);
+            setIsTagsOpen(true);
+          }}
+          isGlobalGraphOpen={isGlobalGraphOpen}
+          isCalendarOpen={activeNotePath === CALENDAR_TAB_ID || isCalendarOpen}
+          isBookmarksOpen={activeNotePath === BOOKMARKS_TAB_ID}
+          isRemindersOpen={activeNotePath === REMINDERS_TAB_ID}
+          isAgentOpen={activeNotePath === AGENT_TAB_ID}
+          isListeningOpen={activeNotePath === LISTENING_TAB_ID}
+          isAskVaultOpen={isRightSidebarOpen}
+          isGitManagerOpen={isGitManagerOpen}
+          isGitEnabled={gitEnabled}
+          onOpenGitManager={handleToggleGitManager}
+          onOpenGlobalGraph={() => {
+            setIsGitManagerOpen(false);
+            setIsGlobalGraphOpen(!isGlobalGraphOpen);
+          }}
+          onOpenCalendar={() => {
+            setIsGitManagerOpen(false);
+            void openNote(CALENDAR_TAB_ID);
+          }}
+          onOpenBookmarks={() => {
+            setIsGitManagerOpen(false);
+            void openNote(BOOKMARKS_TAB_ID);
+          }}
+          onOpenReminders={() => {
+            setIsGitManagerOpen(false);
+            void openNote(REMINDERS_TAB_ID);
+          }}
+          onOpenAgent={() => {
+            setIsGitManagerOpen(false);
+            void openNote(AGENT_TAB_ID);
+          }}
+          onOpenListening={() => {
+            setIsGitManagerOpen(false);
+            void openNote(LISTENING_TAB_ID);
+          }}
+          onOpenAskVault={() => setIsRightSidebarOpen((prev) => !prev)}
+          onCloseVault={() => setVaultPath(null)}
+          onDailyNotes={handleDailyNotes}
           onCreateNote={handleCreateNote}
           onCreateFolder={handleCreateFolder}
           onCreateCanvas={handleCreateCanvas}
@@ -681,6 +835,8 @@ export function App() {
             activeNotePath={activeNotePath}
             dirtyNotes={dirtyNotes}
             conflictNotes={conflictNotes}
+            boardNotes={boardNotes}
+            databaseNotes={databaseNotes}
             onSelectNote={(path) => void setActiveNote(path)}
             onCloseNote={(path) => void closeNote(path)}
             onCloseAllNotes={() => void closeAllNotes()}
@@ -692,11 +848,69 @@ export function App() {
             isMac={isMac}
             showWindowControls={!isLeftSidebarOpen}
           />
-          {isCalendarOpen ? (
+          {activeNotePath?.startsWith("git-diff://") ? (
+            <Suspense
+              fallback={
+                <div
+                  style={{
+                    padding: "var(--space-4)",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  Loading diff...
+                </div>
+              }
+            >
+              <LazyGitDiffViewer
+                diffUri={activeNotePath}
+                onClose={() => void closeNote(activeNotePath)}
+              />
+            </Suspense>
+          ) : activeNotePath === BOOKMARKS_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyBookmarksView
+                onOpenNote={(path, newTab) => {
+                  if (newTab) {
+                    void openNote(path);
+                  } else {
+                    void openNote(path);
+                  }
+                }}
+              />
+            </Suspense>
+          ) : activeNotePath === REMINDERS_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyRemindersView
+                onOpenNote={(path) => {
+                  void openNote(path);
+                }}
+                onOpenSettings={() => {
+                  setSettingsInitialTab("notifications");
+                  setIsSettingsOpen(true);
+                }}
+              />
+            </Suspense>
+          ) : activeNotePath === AGENT_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyAgentView />
+            </Suspense>
+          ) : activeNotePath === LISTENING_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyListeningView />
+            </Suspense>
+          ) : activeNotePath === CALENDAR_TAB_ID || isCalendarOpen ? (
             <Suspense fallback={null}>
               <LazyCalendarLeaf
-                onClose={() => setIsCalendarOpen(false)}
-                onOpenSettings={handleOpenSettings}
+                onClose={() => {
+                  setIsCalendarOpen(false);
+                  if (activeNotePath === CALENDAR_TAB_ID) {
+                    void closeNote(CALENDAR_TAB_ID);
+                  }
+                }}
+                onOpenSettings={() => {
+                  setSettingsInitialTab("google-calendar");
+                  setIsSettingsOpen(true);
+                }}
               />
             </Suspense>
           ) : isGlobalGraphOpen ? (
@@ -713,6 +927,13 @@ export function App() {
               viewId={openViewId}
               revision={pluginViewRevision}
             />
+          ) : activeNotePath && isImagePath(activeNotePath) ? (
+            <Suspense fallback={null}>
+              <LazyImagePreviewLeaf
+                path={activeNotePath}
+                onClose={() => void closeNote(activeNotePath)}
+              />
+            </Suspense>
           ) : (
             <EditorArea
               activeNotePath={activeNotePath}
@@ -724,6 +945,7 @@ export function App() {
               onViewReady={(view) => {
                 editorViewRef.current = view;
               }}
+              onOpenSyncSettings={handleOpenSyncSettings}
             />
           )}
         </main>
@@ -759,6 +981,7 @@ export function App() {
             isOpen={isSearchOpen}
             onOpenChange={setIsSearchOpen}
             initialQuery={searchInitialQuery}
+            openNotes={openNotes}
             onSearch={async (query) => {
               const db = await getVaultIndexDb();
               return withDbLock(() =>
@@ -795,13 +1018,19 @@ export function App() {
             vaultPath={vaultPath}
             syncMode={syncMode}
             onSelectSyncMode={setSyncMode}
+            isDriveSignedIn={isDriveSignedIn}
+            driveAccountEmail={driveAccountEmail}
+            isDriveSyncing={isDriveSyncing}
+            lastSyncedAt={lastSyncedAt}
+            syncError={syncError}
+            onDriveSignIn={() => void signInDrive()}
+            onDriveRefresh={() => void checkDriveAuth()}
+            onDriveDisconnect={() => void signOutDrive()}
+            onDriveSyncNow={() => void syncDriveNow()}
             onVaultSwitched={(newPath) => {
               setIsSettingsOpen(false);
               void loadVaultByMethod(() => openAndIndexVault(newPath));
             }}
-            onDriveSignIn={() => void handleDriveSignIn()}
-            onDriveRefresh={() => void handleDriveRefresh()}
-            onDriveDisconnect={() => void handleDriveDisconnect()}
             themes={themes}
             activeThemeId={activeThemeId}
             themeDiscoveryErrors={themeDiscoveryErrors}
@@ -821,13 +1050,20 @@ export function App() {
             onOpenSettings={handleOpenSettings}
             onOpenLogs={handleOpenLogs}
             onOpenTags={() => setIsTagsOpen(true)}
-            onOpenReminders={() => setIsRemindersOpen(true)}
+            onOpenReminders={() => void openNote(REMINDERS_TAB_ID)}
+            onOpenListening={() => void openNote(LISTENING_TAB_ID)}
             onSaveVersionNow={() => {
               if (activeNotePath) void saveVersionNow(activeNotePath);
             }}
-            onDriveSignIn={() => void handleDriveSignIn()}
-            onDriveRefresh={() => void handleDriveRefresh()}
-            onDriveDisconnect={() => void handleDriveDisconnect()}
+            onToggleBookmark={() => {
+              if (activeNotePath && !activeNotePath.startsWith("davinci://")) {
+                void toggleBookmark(activeNotePath);
+              }
+            }}
+            onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
+            onDriveSignIn={() => void signInDrive()}
+            onDriveRefresh={() => void checkDriveAuth()}
+            onDriveDisconnect={() => void signOutDrive()}
             pluginCommands={pluginCommands}
             onInvokePluginCommand={(id) => void invokePluginCommand(id)}
             editorView={editorViewRef.current}

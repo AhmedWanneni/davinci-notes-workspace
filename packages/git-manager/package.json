@@ -1,0 +1,39 @@
+{
+  "name": "@app/git-manager",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "echo 'dev @app/git-manager'",
+    "lint": "eslint . --ext .ts,.tsx",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@app/core-types": "workspace:*",
+    "@app/design-system": "workspace:*",
+    "@app/design-tokens": "workspace:*",
+    "@codemirror/merge": "^6.8.0",
+    "@codemirror/state": "^6.5.4",
+    "@codemirror/view": "^6.36.7",
+    "@phosphor-icons/react": "^2.1.10",
+    "@tanstack/react-virtual": "^3.13.2",
+    "@tauri-apps/api": "^2.10.1",
+    "zustand": "^5.0.3"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "jsdom": "^30.0.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.10"
+  }
+}

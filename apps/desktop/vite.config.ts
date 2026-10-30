@@ -113,6 +113,14 @@ export default defineConfig({
         replacement: path.join(repoRoot, "packages/canvas/index.ts"),
       },
       {
+        find: "@app/kanban",
+        replacement: path.join(repoRoot, "packages/kanban/index.ts"),
+      },
+      {
+        find: "@app/database",
+        replacement: path.join(repoRoot, "packages/database/index.ts"),
+      },
+      {
         find: "@app/attachments",
         replacement: path.join(repoRoot, "packages/attachments/index.ts"),
       },
@@ -182,6 +190,7 @@ export default defineConfig({
   },
   build: {
     target: "es2022",
+    chunkSizeWarningLimit: 800,
     minify: !process.env.TAURI_DEBUG,
     sourcemap: !!process.env.TAURI_DEBUG,
     outDir: "dist",

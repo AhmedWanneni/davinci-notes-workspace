@@ -100,16 +100,17 @@ export async function signInToCalendar(
     throw new Error("calendar-oauth-state-mismatch");
   }
 
-  const token = await requestToken(
-    new URLSearchParams({
-      client_id: config.clientId,
-      code: callback.code,
-      code_verifier: verifier,
-      grant_type: "authorization_code",
-      redirect_uri: redirectUri,
-    }),
-    config.tokenEndpoint,
-  );
+  const tokenParams = new URLSearchParams({
+    client_id: config.clientId,
+    code: callback.code,
+    code_verifier: verifier,
+    grant_type: "authorization_code",
+    redirect_uri: redirectUri,
+  });
+  if (config.clientSecret) {
+    tokenParams.set("client_secret", config.clientSecret);
+  }
+  const token = await requestToken(tokenParams, config.tokenEndpoint);
 
   const tokenWithClientId: CalendarOAuthToken = {
     ...token,
@@ -139,14 +140,15 @@ export async function getCalendarAccessToken(
 
   const config = getCalendarOAuthConfig(token.clientId);
   try {
-    const refreshed = await requestToken(
-      new URLSearchParams({
-        client_id: config.clientId,
-        refresh_token: token.refreshToken,
-        grant_type: "refresh_token",
-      }),
-      config.tokenEndpoint,
-    );
+    const refreshParams = new URLSearchParams({
+      client_id: config.clientId,
+      refresh_token: token.refreshToken,
+      grant_type: "refresh_token",
+    });
+    if (config.clientSecret) {
+      refreshParams.set("client_secret", config.clientSecret);
+    }
+    const refreshed = await requestToken(refreshParams, config.tokenEndpoint);
 
     const merged: CalendarOAuthToken = {
       accessToken: refreshed.accessToken,

@@ -36,7 +36,7 @@ describe("SettingsDialog", () => {
     render(<SettingsDialog {...defaultProps} />);
 
     expect(
-      screen.getByText(/Settings - Obsidian Vault - Davinci Notes 0.1.0/i),
+      screen.getByText(/Settings - Obsidian Vault - Sophia 0.1.0/i),
     ).toBeDefined();
     expect(screen.getByPlaceholderText(/Search settings/i)).toBeDefined();
     expect(screen.getByRole("button", { name: "General" })).toBeDefined();
@@ -63,6 +63,15 @@ describe("SettingsDialog", () => {
     expect(screen.getByText("Editor Font")).toBeDefined();
     expect(screen.getByText("Editor Font Size")).toBeDefined();
     expect(screen.getByText("Strict Line Breaks")).toBeDefined();
+    expect(screen.queryByText("Cursor Color")).toBeNull();
+  });
+
+  it("does not render empty core-plugins or dummy placeholder items in the sidebar", () => {
+    render(<SettingsDialog {...defaultProps} />);
+
+    expect(screen.queryByText("Core plugins")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Backlinks" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Keychain" })).toBeNull();
   });
 
   it("navigates to appearance tab when clicked", () => {
@@ -128,6 +137,19 @@ describe("SettingsDialog", () => {
     const calBtn = screen.getByRole("button", { name: "Google Calendar" });
     fireEvent.click(calBtn);
 
-    expect(await screen.findByText(/Loading Calendar Settings|Google Account/)).toBeDefined();
+    expect(
+      await screen.findByText(/Loading Calendar Settings|Google Account/),
+    ).toBeDefined();
+  });
+
+  it("navigates to Git tab when clicked", async () => {
+    render(<SettingsDialog {...defaultProps} />);
+
+    const gitBtn = screen.getByRole("button", { name: "Git" });
+    fireEvent.click(gitBtn);
+
+    expect(
+      await screen.findByText(/Open Vault from GitHub|Loading Git Settings/),
+    ).toBeDefined();
   });
 });

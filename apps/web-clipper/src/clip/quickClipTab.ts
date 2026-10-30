@@ -7,7 +7,7 @@ import { prepareClipContext } from "./prepareClipContext";
 import { renderClipPayload } from "./renderClipPayload";
 import { loadTemplates } from "../templates/templateStore";
 import { readSchemaOrg } from "../page/readSchemaOrg";
-import { matchTemplate } from "@app/clipper-core";
+import { matchTemplate, type ClipMode } from "@app/clipper-core";
 import { loadPairing } from "../pairing/pairingStore";
 import type { ClipFetch } from "../transport/postClipToDesktop";
 import { postClipToDesktop } from "../transport/postClipToDesktop";
@@ -44,6 +44,7 @@ export async function quickClipTab(
   tab: { id?: number; url?: string; title?: string },
   storage: StorageArea,
   fetchImpl: ClipFetch = fetch as unknown as ClipFetch,
+  mode: ClipMode = "full",
 ): Promise<QuickClipResult> {
   if (!tab.id || isRestrictedUrl(tab.url)) {
     return { success: false, reason: "restricted-url" };
@@ -71,7 +72,7 @@ export async function quickClipTab(
     const clipContext = prepareClipContext({
       capture,
       doc,
-      mode: "full",
+      mode,
       now: new Date(),
     });
 

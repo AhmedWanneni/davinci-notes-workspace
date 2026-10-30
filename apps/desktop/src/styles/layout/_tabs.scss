@@ -3,7 +3,6 @@
   align-items: center;
   justify-content: space-between;
   background-color: var(--color-bg-primary-alt);
-  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   height: 40px;
   min-height: 40px;
   width: 100%;
@@ -16,9 +15,10 @@
   display: flex;
   align-items: flex-end;
   height: 100%;
-  padding: var(--space-1) var(--space-2) 0 var(--space-2);
-  overflow-x: auto;
-  overflow-y: hidden;
+  padding-inline: var(--space-2);
+  padding-block: 0;
+  box-sizing: border-box;
+  overflow: auto hidden;
   flex: 1;
   scrollbar-width: none;
   gap: 2px;
@@ -38,8 +38,6 @@
   align-items: center;
   height: 100%;
   flex-shrink: 0;
-  border-right: var(--border-width-thin) solid var(--color-border-subtle);
-  padding: 0 var(--space-1);
 }
 
 .app-tabs__sidebar-toggle-btn {
@@ -85,12 +83,43 @@
     border-left: var(--border-width-thin) solid var(--color-border-subtle);
     border-right: var(--border-width-thin) solid var(--color-border-subtle);
     border-bottom: var(--border-width-thin) solid var(--color-bg-primary);
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    border-radius: var(--space-2) var(--space-2) 0 0;
     margin-bottom: -1px;
     z-index: 2;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: calc(-1 * var(--border-width-thin));
+      width: var(--space-2);
+      height: var(--space-2);
+      border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    &::before {
+      left: calc(-1 * var(--space-2));
+      border-right: var(--border-width-thin) solid var(--color-border-subtle);
+      border-bottom-right-radius: var(--space-2);
+      box-shadow: var(--space-1) var(--space-1) 0 var(--space-1)
+        var(--color-bg-primary);
+      clip-path: inset(0 0 0 0);
+    }
+
+    &::after {
+      right: calc(-1 * var(--space-2));
+      border-left: var(--border-width-thin) solid var(--color-border-subtle);
+      border-bottom-left-radius: var(--space-2);
+      box-shadow: calc(-1 * var(--space-1)) var(--space-1) 0 var(--space-1)
+        var(--color-bg-primary);
+      clip-path: inset(0 0 0 0);
+    }
   }
 
-  &:not([data-active="true"]):not(:hover) + .app-tabs__tab:not([data-active="true"]):not(:hover)::before {
+  &:not([data-active="true"], :hover)
+    + .app-tabs__tab:not([data-active="true"], :hover)::before {
     content: "";
     position: absolute;
     left: -2px;
@@ -99,34 +128,6 @@
     width: var(--border-width-thin);
     background-color: var(--color-border-subtle);
   }
-}
-
-.app-tabs__tab-curve {
-  position: absolute;
-  bottom: -1px;
-  width: 6px;
-  height: 6px;
-  overflow: visible;
-  pointer-events: none;
-  z-index: 2;
-
-  &--left {
-    left: -6px;
-  }
-
-  &--right {
-    right: -6px;
-  }
-}
-
-.app-tabs__tab-curve-fill {
-  fill: var(--color-bg-primary);
-}
-
-.app-tabs__tab-curve-stroke {
-  fill: none;
-  stroke: var(--color-border-subtle);
-  stroke-width: var(--border-width-thin);
 }
 
 .app-tabs__tab-icon {
@@ -143,18 +144,46 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
+}
+
+.app-tabs__git-badge {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-left: 2px;
+  flex-shrink: 0;
+
+  &[data-status="M"] {
+    color: var(--color-text-warning);
+  }
+
+  &[data-status="A"] {
+    color: var(--color-text-success);
+  }
+
+  &[data-status="D"] {
+    color: var(--color-text-danger);
+  }
+
+  &[data-status="U"] {
+    color: var(--color-text-accent);
+  }
 }
 
 .app-tabs__dirty-dot,
 .app-tabs__conflict-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .app-tabs__dirty-dot {
-  background-color: var(--color-text-accent);
+  background-color: var(--color-text-muted);
 }
 
 .app-tabs__conflict-dot {
@@ -167,7 +196,7 @@
   justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: var(--border-radius-sm);
+  border-radius: 0.5rem;
   background: transparent;
   border: none;
   color: var(--color-text-muted);
@@ -192,7 +221,7 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: var(--border-radius-sm);
+  border-radius: 0.5rem;
   background: transparent;
   border: var(--border-width-thin) solid transparent;
   color: var(--color-text-muted);

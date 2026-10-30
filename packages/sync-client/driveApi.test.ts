@@ -31,4 +31,26 @@ describe("Drive app-data API", () => {
     expect(urls[1]).toContain("spaces=appDataFolder");
     expect(urls[1]).toContain("pageToken=start");
   });
+
+  it("routes multipart and media uploads to the Google Drive upload endpoint", async () => {
+    const urls: string[] = [];
+    const headersList: Headers[] = [];
+    const client = new DriveClient({
+      accessToken: "token",
+      http: {
+        request: async (input, init) => {
+          urls.push(String(input));
+          headersList.push(new Headers(init?.headers));
+          return response({ id: "file-123", name: "test.json" });
+        },
+      },
+    });
+
+    await client.uploadAppData("test.json", new Blob(["hello"]));
+    expect(urls[0]).toMatch(/^https:\/\/www\.googleapis\.com\/upload\/drive\/v3\/files\?uploadType=multipart/);
+    expect(headersList[0].get("Content-Type")).toContain("multipart/related; boundary=davinci-");
+
+    await client.uploadAppData("test.json", new Blob(["updated"]), {}, "file-123");
+    expect(urls[1]).toMatch(/^https:\/\/www\.googleapis\.com\/upload\/drive\/v3\/files\/file-123\?uploadType=media/);
+  });
 });

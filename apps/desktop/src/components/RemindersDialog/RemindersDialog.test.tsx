@@ -26,6 +26,8 @@ describe("RemindersDialog component", () => {
       snoozeUntilUtc: null,
       effectiveDueUtc: "2026-10-14T08:00:00.000Z",
       category: "missed",
+    channels: null,
+    deliveryError: null,
     },
     {
       id: 2,
@@ -40,6 +42,8 @@ describe("RemindersDialog component", () => {
       snoozeUntilUtc: null,
       effectiveDueUtc: "2026-10-14T18:00:00.000Z",
       category: "today",
+    channels: null,
+    deliveryError: null,
     },
     {
       id: 3,
@@ -54,6 +58,8 @@ describe("RemindersDialog component", () => {
       snoozeUntilUtc: null,
       effectiveDueUtc: "2026-10-25T09:00:00.000Z",
       category: "upcoming",
+    channels: null,
+    deliveryError: null,
     },
   ];
 
@@ -62,6 +68,7 @@ describe("RemindersDialog component", () => {
       missed: [mockItems[0]],
       today: [mockItems[1]],
       upcoming: [mockItems[2]],
+      done: [],
       all: mockItems,
     });
 
@@ -92,6 +99,7 @@ describe("RemindersDialog component", () => {
       missed: [],
       today: [mockItems[1]],
       upcoming: [],
+      done: [],
       all: [mockItems[1]],
     });
 
@@ -120,6 +128,7 @@ describe("RemindersDialog component", () => {
       missed: [],
       today: [mockItems[1]],
       upcoming: [],
+      done: [],
       all: [mockItems[1]],
     });
     const doneSpy = vi
@@ -151,6 +160,7 @@ describe("RemindersDialog component", () => {
       missed: [],
       today: [mockItems[1]],
       upcoming: [],
+      done: [],
       all: [mockItems[1]],
     });
     const snoozeSpy = vi
@@ -184,5 +194,21 @@ describe("RemindersDialog component", () => {
       },
       expect.any(String),
     );
+  });
+
+  it("opens add reminder form when Add a reminder button is clicked", async () => {
+    render(
+      <RemindersDialog
+        isOpen={true}
+        onOpenChange={vi.fn()}
+        onSelectNote={vi.fn()}
+      />,
+    );
+
+    const addBtn = screen.getByRole("button", { name: "Add a reminder" });
+    fireEvent.click(addBtn);
+
+    expect(screen.getByRole("form", { name: "Add a reminder" })).toBeDefined();
+    expect(screen.getByLabelText("Reminder Task Title")).toBeDefined();
   });
 });

@@ -162,4 +162,42 @@ describe("CalendarSyncEngine", () => {
     expect(result.error).toBe("auth-expired");
     expect(onError).toHaveBeenCalledWith(expect.any(GoogleAuthExpiredError));
   });
+
+  it("syncDateRange fetches visible window with singleEvents=true", async () => {
+    vi.mocked(store.getCalendarsFromDb).mockResolvedValueOnce([
+      { id: "primary", summary: "Personal", primary: true, selected: true },
+    ]);
+
+    const listSpy = vi.spyOn(mockClient, "listEvents").mockResolvedValue({
+      events: [
+        {
+          id: "evt-range-1",
+          calendarId: "primary",
+          title: "Range Event",
+          startIso: "2026-11-05T10:00:00Z",
+          endIso: "2026-11-05T11:00:00Z",
+          isAllDay: false,
+          status: "confirmed",
+          attendees: [],
+          updatedAt: Date.now(),
+        },
+      ],
+    });
+
+    const engine = new CalendarSyncEngine({
+      client: mockClient,
+      getAccessToken: async () => "valid-token",
+    });
+
+    const res = await engine.syncDateRange("2026-11-01T00:00:00Z", "2026-11-30T23:59:59Z");
+    expect(res.success).toBe(true);
+    expect(res.eventCount).toBe(1);
+    expect(listSpy).toHaveBeenCalledWith("valid-token", "primary", {
+      timeMin: "2026-11-01T00:00:00Z",
+      timeMax: "2026-11-30T23:59:59Z",
+      singleEvents: true,
+      orderBy: "startTime",
+    });
+    expect(store.saveEventsToDb).toHaveBeenCalled();
+  });
 });

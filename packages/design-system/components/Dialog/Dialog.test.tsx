@@ -38,4 +38,39 @@ describe("Dialog", () => {
       expect(screen.getByText("Dialog body")).toBeDefined();
     });
   });
+
+  it("prevents outside pointer dismiss when interacting with reminder toast", async () => {
+    const onOpenChange = vi.fn();
+    const onPointerDownOutside = vi.fn();
+
+    render(
+      <div>
+        <div data-reminder-toast="true">
+          <button id="toast-done-btn">Done</button>
+        </div>
+        <Dialog open={true} onOpenChange={onOpenChange}>
+          <DialogContent
+            title="Test Dialog"
+            onPointerDownOutside={onPointerDownOutside}
+          >
+            <div>Dialog body</div>
+          </DialogContent>
+        </Dialog>
+      </div>,
+    );
+
+    const toastBtn = document.getElementById("toast-done-btn");
+    expect(toastBtn).not.toBeNull();
+
+    // Clicking toast button should not trigger onPointerDownOutside custom handler
+    // nor close the dialog because of default prevention on toast targets
+    if (toastBtn) {
+      toastBtn.dispatchEvent(
+        new MouseEvent("pointerdown", { bubbles: true, cancelable: true }),
+      );
+    }
+
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(onPointerDownOutside).not.toHaveBeenCalled();
+  });
 });

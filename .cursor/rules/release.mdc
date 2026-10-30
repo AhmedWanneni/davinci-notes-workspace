@@ -1,0 +1,19 @@
+---
+description: Orchestrate desktop and website releases when user asks to cut or create a release
+globs: 
+alwaysApply: false
+---
+
+# Release Orchestration Rule
+
+When the user asks to "create a release", "cut a release", "ship a beta", or "hotfix release":
+
+1. **Single Source of Truth**: Follow the procedures documented in [`docs/releasing.md`](../../docs/releasing.md) and [`scripts/release/`](../../scripts/release/).
+2. **Step 1 — Preflight Audit**: Run `bash scripts/release/preflight-release.sh`. Halt if it fails.
+3. **Step 2 — Version & Changelog Proposal**: Propose SemVer bump based on commits since last tag and format notes with `bash scripts/release/generate-changelog.sh`.
+4. **Step 3 — Human Gate 1**: Stop and require explicit user approval for version and notes before committing or tagging.
+5. **Step 4 — Tag & Build Matrix**: Run `bash scripts/release/release.sh --yes --notes-file ./RELEASE_NOTES_DRAFT.md <version>`.
+6. **Step 5 — Verify Artifacts**: Run `bash scripts/release/wait-and-verify-release.sh <tag>` to monitor CI and verify all 6 installer binaries and `SHA256SUMS.txt`.
+7. **Step 6 — Human Gate 2**: Stop and ask for explicit user confirmation to publish.
+8. **Step 7 — Publish**: Run `gh release edit <tag> --draft=false`.
+9. **Rollback**: If cancelled or aborted, run `bash scripts/release/rollback.sh <tag>`.

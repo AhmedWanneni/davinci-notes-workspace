@@ -1,7 +1,11 @@
 export * from "./createReadOnlyEmbedView";
+export * from "./embedAudioExtension";
+export * from "./embedAudioTheme";
 export * from "./embedImageExtension";
 export * from "./embedLinkResolution";
 export * from "./imageExtension";
+export * from "./imageResizeOverlay";
+export * from "./imageResizeSyntax";
 export * from "./NoteEmbedWidget";
 export * from "./noteEmbedExtension";
 export * from "./noteEmbedPlaceholderWidgets";
@@ -13,4 +17,3 @@ export * from "./noteSectionExtraction";
 export * from "./tweetCard";
 export * from "./tweetEmbed";
 export * from "./youtubeEmbed";
-

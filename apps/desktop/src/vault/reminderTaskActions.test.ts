@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { toggleReminderInMarkdown } from "./reminderTaskActions";
+import {
+  toggleReminderInMarkdown,
+  editReminderInMarkdown,
+  deleteReminderInMarkdown,
+  addReminderToMarkdown,
+} from "./reminderTaskActions";
 
 describe("reminderTaskActions — toggleReminderInMarkdown", () => {
   it("toggles task from open to done by line index", () => {
@@ -25,7 +30,6 @@ describe("reminderTaskActions — toggleReminderInMarkdown", () => {
   });
 
   it("handles line shift via text fallback matching", () => {
-    // line param points to line 1, but actual task is on line 4
     const markdown = `# Intro\nExtra line 1\nExtra line 2\n- [ ] Pay bills (@2026-10-20)`;
     const updated = toggleReminderInMarkdown(
       markdown,
@@ -71,29 +75,52 @@ describe("reminderTaskActions — toggleReminderInMarkdown", () => {
 
   it("completing a recurring reminder three times in a row advances correctly", () => {
     let markdown = `- [ ] Daily standup (@2026-10-14 09:30 /daily)`;
-
-    // 1st completion -> Oct 15
-    markdown = toggleReminderInMarkdown(
-      markdown,
-      { line: 1, text: "Daily standup" },
-      true,
-    );
+    markdown = toggleReminderInMarkdown(markdown, { line: 1, text: "Daily standup" }, true);
     expect(markdown).toBe(`- [ ] Daily standup (@2026-10-15 09:30 /daily)`);
 
-    // 2nd completion -> Oct 16
-    markdown = toggleReminderInMarkdown(
-      markdown,
-      { line: 1, text: "Daily standup" },
-      true,
-    );
+    markdown = toggleReminderInMarkdown(markdown, { line: 1, text: "Daily standup" }, true);
     expect(markdown).toBe(`- [ ] Daily standup (@2026-10-16 09:30 /daily)`);
 
-    // 3rd completion -> Oct 17
-    markdown = toggleReminderInMarkdown(
-      markdown,
-      { line: 1, text: "Daily standup" },
-      true,
-    );
+    markdown = toggleReminderInMarkdown(markdown, { line: 1, text: "Daily standup" }, true);
     expect(markdown).toBe(`- [ ] Daily standup (@2026-10-17 09:30 /daily)`);
+  });
+});
+
+describe("reminderTaskActions — edit, delete, add", () => {
+  it("edits reminder text and token while preserving checkbox state", () => {
+    const markdown = `# Notes\n- [ ] Initial reminder (@2026-10-20)\n- [x] Done item`;
+    const updated = editReminderInMarkdown(
+      markdown,
+      { line: 2, text: "Initial reminder" },
+      { text: "Updated reminder", dueToken: "@2026-10-25 15:00 /daily" },
+    );
+    expect(updated).toBe(
+      `# Notes\n- [ ] Updated reminder (@2026-10-25 15:00 /daily)\n- [x] Done item`,
+    );
+  });
+
+  it("deletes a reminder task line", () => {
+    const markdown = `# Notes\n- [ ] Keep 1\n- [ ] Delete me (@2026-10-20)\n- [ ] Keep 2`;
+    const updated = deleteReminderInMarkdown(markdown, {
+      line: 3,
+      text: "Delete me",
+    });
+    expect(updated).toBe(`# Notes\n- [ ] Keep 1\n- [ ] Keep 2`);
+  });
+
+  it("adds a reminder to empty content and existing content", () => {
+    expect(
+      addReminderToMarkdown("", {
+        text: "Brand new",
+        dueToken: "@2026-10-30 09:00",
+      }),
+    ).toBe("- [ ] Brand new (@2026-10-30 09:00)");
+
+    expect(
+      addReminderToMarkdown("# Notes\n", {
+        text: "Second task",
+        dueToken: "@2026-11-01",
+      }),
+    ).toBe("# Notes\n- [ ] Second task (@2026-11-01)\n");
   });
 });

@@ -36,10 +36,33 @@ export default defineConfig({
         "packages/plugin-runtime/index.ts",
       ),
       "@app/theme-api": path.join(repoRoot, "packages/theme-api/index.ts"),
+      "@app/design-system": path.join(
+        repoRoot,
+        "packages/design-system/index.ts",
+      ),
+      "@app/canvas": path.join(repoRoot, "packages/canvas/index.ts"),
+      "@app/kanban": path.join(repoRoot, "packages/kanban/index.ts"),
+      "@app/database": path.join(repoRoot, "packages/database/index.ts"),
+      "@app/attachments": path.join(repoRoot, "packages/attachments/index.ts"),
       "@app/ai-api": path.join(repoRoot, "packages/ai-api/index.ts"),
       "@app/ai-runtime": path.join(repoRoot, "packages/ai-runtime/index.ts"),
-      "@app/syncthing-api": path.join(repoRoot, "packages/syncthing-api/index.ts"),
-      "@app/google-calendar-api": path.join(repoRoot, "packages/google-calendar-api/index.ts"),
+      "@app/ai-embeddings": path.join(
+        repoRoot,
+        "packages/ai-embeddings/index.ts",
+      ),
+      "@app/ai-qa": path.join(repoRoot, "packages/ai-qa/index.ts"),
+      "@app/syncthing-api": path.join(
+        repoRoot,
+        "packages/syncthing-api/index.ts",
+      ),
+      "@app/google-calendar-api": path.join(
+        repoRoot,
+        "packages/google-calendar-api/index.ts",
+      ),
+      "@app/platform-adapters": path.join(
+        repoRoot,
+        "packages/platform-adapters/index.ts",
+      ),
     },
   },
   test: {

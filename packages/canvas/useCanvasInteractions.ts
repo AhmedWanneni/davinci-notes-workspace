@@ -201,6 +201,7 @@ export function useCanvasInteractions({
 
   return {
     ...selectionOps,
+    ...groupOps,
     ...contextMenuHooks,
     createTextCardAtCenter,
     ...drag,

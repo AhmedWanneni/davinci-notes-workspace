@@ -8,17 +8,14 @@ import {
 import "@xyflow/react/dist/style.css";
 import { parseCanvas } from "./parseCanvas";
 import { jsonCanvasToReactFlow } from "./canvasTranslation";
-import { CanvasContextMenuOverlay } from "./CanvasContextMenuOverlay";
-import { CanvasControls } from "./CanvasControls";
 import { CanvasEditorContext } from "./CanvasEditorContext";
-import { CanvasEmptyState } from "./CanvasEmptyState";
-import { CanvasReactFlow } from "./CanvasReactFlow";
-import { normalizeCanvasPath } from "./nestedCanvasUtils";
+import { CanvasFlowArea } from "./CanvasFlowArea";
 import { useCanvasDropPaste } from "./useCanvasDropPaste";
 import { useCanvasExport } from "./useCanvasExport";
-
+import { useCanvasHistory } from "./useCanvasHistory";
 import { useCanvasInteractions } from "./useCanvasInteractions";
 import { useCanvasPersistence } from "./useCanvasPersistence";
+import { useCanvasEditorContextValue } from "./useCanvasEditorContextValue";
 import styles from "./CanvasView.module.scss";
 
 export interface CanvasViewProps {
@@ -32,6 +29,7 @@ export interface CanvasViewProps {
   onCreateNote?: (title: string, content?: string) => Promise<string>;
   resolveMediaUrl?: (path: string) => string | Promise<string>;
   onSaveMediaFile?: (fileName: string, data: Uint8Array) => Promise<string>;
+  onPickLocalImage?: () => Promise<string | null>;
   onExportImage?: (dataUrl: string) => Promise<void> | void;
   className?: string;
 }
@@ -47,6 +45,7 @@ function CanvasShell({
   onCreateNote,
   resolveMediaUrl,
   onSaveMediaFile,
+  onPickLocalImage,
   onExportImage,
   className,
 }: CanvasViewProps): JSX.Element {
@@ -76,58 +75,31 @@ function CanvasShell({
     setEdges,
   });
 
+  const { canUndo, canRedo, undo, redo, recordSnapshot } = useCanvasHistory({
+    nodes,
+    edges,
+    setNodes,
+    setEdges: setEdgesWithRef,
+    persistCanvas,
+  });
+
+  const handlePersistAndRecord = useCallback(
+    (nextNodes: typeof nodes, nextEdges: typeof edges) => {
+      persistCanvas(nextNodes, nextEdges);
+      recordSnapshot(nextNodes, nextEdges);
+    },
+    [persistCanvas, recordSnapshot],
+  );
+
   useEffect(() => {
     edgesRef.current = edges;
   }, [edges, edgesRef]);
 
-  const {
-    alignSelection,
-    contextMenu,
-    closeContextMenu,
-    createTextCardAtCenter,
-    createFileCard,
-    createLinkCard,
-    swapNodeFile,
-    swapNodeUrl,
-    convertTextCardToFile,
-    deleteNode,
-    distributeSelection,
-    handleContextCreateCard,
-    handleContextCreateFileCard,
-    handleContextCreateEmptyGroup,
-    handleContextCreateGroupFromSelection,
-    handleContextDeleteEdge,
-    handleContextEditEdgeLabel,
-    handleContextSelectEdgeColor,
-    handleContextSelectNodeColor,
-    handleContextConvertTextToFile,
-    handleContextOpenFile,
-    handleEdgesChange,
-    handleNodesChange,
-    onNodeDragStart,
-    onNodeDrag,
-    onNodeDragStop,
-    onLayoutChange,
-    onNodeTextChange,
-    onNodesDelete,
-    onNodeContextMenu,
-    onEdgeContextMenu,
-    onConnect,
-    onReconnect,
-    onReconnectStart,
-    onReconnectEnd,
-    onEdgeLabelChange,
-    onEdgeColorChange,
-    deleteEdge,
-    editingEdgeId,
-    setEditingEdgeId,
-    onPaneClick,
-    onPaneContextMenu,
-  } = useCanvasInteractions({
+  const interactions = useCanvasInteractions({
     setNodes,
     setEdges: setEdgesWithRef,
     edgesRef,
-    persistCanvas,
+    persistCanvas: handlePersistAndRecord,
     onCreateNote,
     onOpenFile,
     allNotePaths,
@@ -135,21 +107,17 @@ function CanvasShell({
 
   const { handleDragOver, handleDrop, handlePaste } = useCanvasDropPaste({
     allNotePaths,
-    createFileCard,
-    createLinkCard,
+    createFileCard: interactions.createFileCard,
+    createLinkCard: interactions.createLinkCard,
     screenToFlowPosition,
     onSaveMediaFile,
   });
 
   const handleDefaultExport = useCallback(
     (dataUrl: string) => {
-      if (onExportImage) {
-        onExportImage(dataUrl);
-        return;
-      }
-      // Default browser download fallback
+      if (onExportImage) return onExportImage(dataUrl);
       const link = document.createElement("a");
-      link.download = `canvas-export-${new Date().getTime()}.png`;
+      link.download = `canvas-export-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
     },
@@ -160,53 +128,43 @@ function CanvasShell({
     onExport: handleDefaultExport,
   });
 
-  const editorContextValue = useMemo(
-    () => ({
-      onNodeTextChange,
-      onLayoutChange,
-      onEdgeLabelChange,
-      onEdgeColorChange,
-      deleteEdge,
-      editingEdgeId,
-      setEditingEdgeId,
-      allNotePaths,
-      notesContent,
-      readNoteContent,
-      onOpenFile,
-      onNodeFileChange: swapNodeFile,
-      onNodeUrlChange: swapNodeUrl,
-      onExportViewport: exportViewport,
-      onExportFullCanvas: exportFullCanvas,
-      isExporting,
-      onCreateNote,
-      onConvertTextCardToFile: convertTextCardToFile,
-      resolveMediaUrl,
-      onSaveMediaFile,
-      ancestorCanvasPaths: path ? [normalizeCanvasPath(path)] : [],
-    }),
-    [
-      allNotePaths,
-      convertTextCardToFile,
-      deleteEdge,
-      editingEdgeId,
-      exportFullCanvas,
-      exportViewport,
-      isExporting,
-      notesContent,
-      onCreateNote,
-      onEdgeColorChange,
-      onEdgeLabelChange,
-      onLayoutChange,
-      onNodeTextChange,
-      onOpenFile,
-      onSaveMediaFile,
-      path,
-      readNoteContent,
-      resolveMediaUrl,
-      setEditingEdgeId,
-      swapNodeFile,
-      swapNodeUrl,
-    ],
+  const editorContextValue = useCanvasEditorContextValue({
+    onNodeTextChange: interactions.onNodeTextChange,
+    onLayoutChange: interactions.onLayoutChange,
+    onDeleteNode: interactions.deleteNode,
+    onNodeColorChange: interactions.setNodeColor,
+    onEdgeLabelChange: interactions.onEdgeLabelChange,
+    onEdgeColorChange: interactions.onEdgeColorChange,
+    deleteEdge: interactions.deleteEdge,
+    editingEdgeId: interactions.editingEdgeId,
+    setEditingEdgeId: interactions.setEditingEdgeId,
+    allNotePaths,
+    notesContent,
+    readNoteContent,
+    onOpenFile,
+    swapNodeFile: interactions.swapNodeFile,
+    swapNodeUrl: interactions.swapNodeUrl,
+    exportViewport,
+    exportFullCanvas,
+    isExporting,
+    onCreateNote,
+    convertTextCardToFile: interactions.convertTextCardToFile,
+    resolveMediaUrl,
+    onSaveMediaFile,
+    path,
+  });
+
+  const handleCreateFileCardAtCenter = useCallback(
+    (filePath: string) => {
+      interactions.createFileCard(
+        filePath,
+        screenToFlowPosition({
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+        }),
+      );
+    },
+    [interactions, screenToFlowPosition],
   );
 
   return (
@@ -218,61 +176,47 @@ function CanvasShell({
         onDrop={handleDrop}
         onPaste={handlePaste}
       >
-        <div className={styles["canvas-container"]}>
-          <CanvasReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={handleNodesChange}
-            onEdgesChange={handleEdgesChange}
-            onNodeDragStart={onNodeDragStart}
-            onNodeDrag={onNodeDrag}
-            onNodeDragStop={onNodeDragStop}
-            onNodesDelete={onNodesDelete}
-            onConnect={onConnect}
-            onReconnect={onReconnect}
-            onReconnectStart={onReconnectStart}
-            onReconnectEnd={onReconnectEnd}
-            onEdgeContextMenu={onEdgeContextMenu}
-            onPaneClick={onPaneClick}
-            onPaneContextMenu={onPaneContextMenu}
-            onNodeContextMenu={onNodeContextMenu}
-          />
-
-          {nodes.length === 0 && <CanvasEmptyState />}
-
-          {isExporting && (
-            <div className={styles["canvas-export-overlay"]} data-testid="export-overlay">
-              <div className={styles["canvas-export-overlay__content"]}>
-                <span>Exporting Canvas...</span>
-              </div>
-            </div>
-          )}
-
-          <CanvasControls
-            onCreateTextCard={createTextCardAtCenter}
-            onAlign={alignSelection}
-            onDistribute={distributeSelection}
-            onExportViewport={exportViewport}
-            onExportFullCanvas={exportFullCanvas}
-            isExporting={isExporting}
-          />
-
-          <CanvasContextMenuOverlay
-            contextMenu={contextMenu}
-            onCreateTextCard={handleContextCreateCard}
-            onCreateFileCard={handleContextCreateFileCard}
-            onCreateEmptyGroup={handleContextCreateEmptyGroup}
-            onCreateGroupFromSelection={handleContextCreateGroupFromSelection}
-            onDeleteNode={deleteNode}
-            onConvertTextToFile={handleContextConvertTextToFile}
-            onOpenFile={handleContextOpenFile}
-            onDeleteEdge={handleContextDeleteEdge}
-            onEditEdgeLabel={handleContextEditEdgeLabel}
-            onSelectEdgeColor={handleContextSelectEdgeColor}
-            onSelectNodeColor={handleContextSelectNodeColor}
-            onClose={closeContextMenu}
-          />
-        </div>
+        <CanvasFlowArea
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={interactions.handleNodesChange}
+          onEdgesChange={interactions.handleEdgesChange}
+          onNodeDragStart={interactions.onNodeDragStart}
+          onNodeDrag={interactions.onNodeDrag}
+          onNodeDragStop={interactions.onNodeDragStop}
+          onNodesDelete={interactions.onNodesDelete}
+          onConnect={interactions.onConnect}
+          onReconnect={interactions.onReconnect}
+          onReconnectStart={interactions.onReconnectStart}
+          onReconnectEnd={interactions.onReconnectEnd}
+          onEdgeContextMenu={interactions.onEdgeContextMenu}
+          onPaneClick={interactions.onPaneClick}
+          onPaneContextMenu={interactions.onPaneContextMenu}
+          onNodeContextMenu={interactions.onNodeContextMenu}
+          isExporting={isExporting}
+          allNotePaths={allNotePaths}
+          onCreateTextCard={interactions.createTextCardAtCenter}
+          onCreateFileCard={handleCreateFileCardAtCenter}
+          onPickMedia={onPickLocalImage}
+          onSaveMediaFile={onSaveMediaFile}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={undo}
+          onRedo={redo}
+          contextMenu={interactions.contextMenu}
+          handleContextCreateCard={interactions.handleContextCreateCard}
+          handleContextCreateFileCard={interactions.handleContextCreateFileCard}
+          handleContextCreateEmptyGroup={interactions.handleContextCreateEmptyGroup}
+          handleContextCreateGroupFromSelection={interactions.handleContextCreateGroupFromSelection}
+          deleteNode={interactions.deleteNode}
+          handleContextConvertTextToFile={interactions.handleContextConvertTextToFile}
+          handleContextOpenFile={interactions.handleContextOpenFile}
+          handleContextDeleteEdge={interactions.handleContextDeleteEdge}
+          handleContextEditEdgeLabel={interactions.handleContextEditEdgeLabel}
+          handleContextSelectEdgeColor={interactions.handleContextSelectEdgeColor}
+          handleContextSelectNodeColor={interactions.handleContextSelectNodeColor}
+          closeContextMenu={interactions.closeContextMenu}
+        />
       </div>
     </CanvasEditorContext.Provider>
   );

@@ -123,6 +123,27 @@ describe("performSaveNote guard & conflict resolution", () => {
     );
   });
 
+  it("saves in-memory edits directly when diskStateTracker entry is not yet set", async () => {
+    // lastKnown is intentionally unset (diskStates is empty)
+    statNoteMock.mockResolvedValue({ exists: true, mtime: 1000, size: 20 });
+    readNoteMock.mockResolvedValue({
+      path: "notes/test.md",
+      content: "# Title\n\nOld Disk",
+      mtime: 1000,
+      size: 20,
+    });
+    writeNoteMock.mockResolvedValue({ exists: true, mtime: 1100, size: 25 });
+
+    await performSaveNote("notes/test.md", get, set);
+
+    expect(writeNoteMock).toHaveBeenCalledWith(
+      "notes/test.md",
+      "# Title\n\nUser edits",
+    );
+    expect(state.dirtyNotes.has("notes/test.md")).toBe(false);
+    expect(state.conflictNotes.has("notes/test.md")).toBe(false);
+  });
+
   it("resolves conflict with keep_mine by overwriting disk", async () => {
     state.conflictNotes.set("notes/test.md", "# Conflict on disk");
     writeNoteMock.mockResolvedValue({ exists: true, mtime: 1500, size: 25 });

@@ -1,0 +1,22 @@
+.quick-capture-hints {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.quick-capture-hint-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.quick-capture-kbd {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-secondary-alt);
+  color: var(--color-text-muted);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
+}

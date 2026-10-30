@@ -1,0 +1,184 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import '../../styles/download.css';
+
+const REPO = 'AhmedWanneni/davinci-notes-workspace';
+const DEFAULT_BETA_VERSION = 'v0.1.0-beta.1';
+
+let releaseVersion = DEFAULT_BETA_VERSION;
+let releaseDate = 'Pre-release Channel';
+
+const fallbackAssets = {
+  macArm: `https://github.com/${REPO}/releases/download/${DEFAULT_BETA_VERSION}/Sophia_${DEFAULT_BETA_VERSION}_aarch64.dmg`,
+  macIntel: `https://github.com/${REPO}/releases/download/${DEFAULT_BETA_VERSION}/Sophia_${DEFAULT_BETA_VERSION}_x64.dmg`,
+  windows: `https://github.com/${REPO}/releases/download/${DEFAULT_BETA_VERSION}/Sophia_${DEFAULT_BETA_VERSION}_x64-setup.exe`,
+  linuxAppImage: `https://github.com/${REPO}/releases/download/${DEFAULT_BETA_VERSION}/sophia_${DEFAULT_BETA_VERSION}_amd64.AppImage`,
+  linuxDeb: `https://github.com/${REPO}/releases/download/${DEFAULT_BETA_VERSION}/sophia_${DEFAULT_BETA_VERSION}_amd64.deb`,
+  checksums: `https://github.com/${REPO}/releases/download/${DEFAULT_BETA_VERSION}/SHA256SUMS.txt`,
+};
+
+let assets = { ...fallbackAssets };
+
+try {
+  const res = await fetch(`https://api.github.com/repos/${REPO}/releases`, {
+    headers: { 'User-Agent': 'DaVinciNotes-Website-Builder' },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    const betaRelease = (data || []).find((r: any) => r.prerelease && !r.draft);
+    if (betaRelease) {
+      releaseVersion = betaRelease.tag_name || DEFAULT_BETA_VERSION;
+      if (betaRelease.published_at) {
+        releaseDate = new Date(betaRelease.published_at).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+      }
+      assets = {
+        macArm: `https://github.com/${REPO}/releases/download/${releaseVersion}/Sophia_${releaseVersion}_aarch64.dmg`,
+        macIntel: `https://github.com/${REPO}/releases/download/${releaseVersion}/Sophia_${releaseVersion}_x64.dmg`,
+        windows: `https://github.com/${REPO}/releases/download/${releaseVersion}/Sophia_${releaseVersion}_x64-setup.exe`,
+        linuxAppImage: `https://github.com/${REPO}/releases/download/${releaseVersion}/sophia_${releaseVersion}_amd64.AppImage`,
+        linuxDeb: `https://github.com/${REPO}/releases/download/${releaseVersion}/sophia_${releaseVersion}_amd64.deb`,
+        checksums: `https://github.com/${REPO}/releases/download/${releaseVersion}/SHA256SUMS.txt`,
+      };
+    }
+  }
+} catch {
+  // Use fallback defaults
+}
+---
+
+<BaseLayout
+  title="Download DaVinci Notes Beta — Early Access Pre-Releases"
+  description="Download beta pre-releases of DaVinci Notes / Sophia for macOS, Windows, and Linux. Preview upcoming features early."
+>
+  <SiteNav />
+
+  <main class="download-page">
+    <section class="download-hero">
+      <span class="download-badge" style="background: rgba(205, 71, 171, 0.15); border-color: rgba(205, 71, 171, 0.4); color: var(--logseq-pink);">
+        Beta Channel • {releaseVersion} • {releaseDate}
+      </span>
+      <h1 class="download-title">Download DaVinci Notes (Beta)</h1>
+      <p class="download-subtitle">
+        Preview bleeding-edge capabilities, experimental features, and early stabilization fixes.
+        Recommended for testing and development.
+      </p>
+
+      <div class="primary-cta-container">
+        <a
+          id="primary-download-btn"
+          href={assets.macArm}
+          class="btn-download-primary"
+          style="background: var(--logseq-pink); border-color: var(--logseq-pink);"
+        >
+          <span>Download Beta for macOS</span>
+          <span aria-hidden="true">↓</span>
+        </a>
+        <span id="detected-os-label" class="detected-os-text">
+          Detecting operating system...
+        </span>
+      </div>
+    </section>
+
+    <section class="platforms-grid">
+      <!-- macOS -->
+      <div class="platform-card">
+        <div class="platform-card-header">
+          <h2 class="platform-card-title">macOS (Beta)</h2>
+          <span class="file-type-badge">macOS 11+</span>
+        </div>
+        <p class="verification-text">DMG installers for Apple Silicon and Intel Macs</p>
+        <div class="platform-links-list">
+          <a href={assets.macArm} class="platform-link-row">
+            <span>Apple Silicon (.dmg)</span>
+            <span class="file-type-badge">arm64</span>
+          </a>
+          <a href={assets.macIntel} class="platform-link-row">
+            <span>Intel (.dmg)</span>
+            <span class="file-type-badge">x64</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Windows -->
+      <div class="platform-card">
+        <div class="platform-card-header">
+          <h2 class="platform-card-title">Windows (Beta)</h2>
+          <span class="file-type-badge">Windows 10/11</span>
+        </div>
+        <p class="verification-text">Setup installer for 64-bit systems</p>
+        <div class="platform-links-list">
+          <a href={assets.windows} class="platform-link-row">
+            <span>Setup Installer (.exe)</span>
+            <span class="file-type-badge">x64</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Linux -->
+      <div class="platform-card">
+        <div class="platform-card-header">
+          <h2 class="platform-card-title">Linux (Beta)</h2>
+          <span class="file-type-badge">Standard Distros</span>
+        </div>
+        <p class="verification-text">Universal AppImage and Debian/Ubuntu packages</p>
+        <div class="platform-links-list">
+          <a href={assets.linuxAppImage} class="platform-link-row">
+            <span>Universal AppImage (.AppImage)</span>
+            <span class="file-type-badge">x64</span>
+          </a>
+          <a href={assets.linuxDeb} class="platform-link-row">
+            <span>Debian / Ubuntu (.deb)</span>
+            <span class="file-type-badge">x64</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="verification-section">
+      <div class="verification-box">
+        <div class="verification-heading">🔒 Pre-Release Stability Notice</div>
+        <div class="verification-text">
+          Beta releases undergo continuous automated testing, but may contain experimental features.
+          <br /><br />
+          Prefer stable builds?
+          <a href="/download" style="color: var(--logseq-cyan); text-decoration: underline;">
+            Download Stable Release ←
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <SiteFooter />
+
+  <script is:inline define:vars={{ assets }}>
+    (function () {
+      const ua = navigator.userAgent || '';
+      const platform = (navigator.userAgentData?.platform || navigator.platform || '').toLowerCase();
+      const primaryBtn = document.getElementById('primary-download-btn');
+      const label = document.getElementById('detected-os-label');
+
+      if (!primaryBtn || !label) return;
+
+      if (/win/i.test(platform) || /windows/i.test(ua)) {
+        primaryBtn.href = assets.windows;
+        primaryBtn.innerHTML = '<span>Download Beta for Windows</span> <span aria-hidden="true">↓</span>';
+        label.textContent = 'Detected Windows (64-bit)';
+      } else if (/linux/i.test(platform) || /linux/i.test(ua)) {
+        primaryBtn.href = assets.linuxAppImage;
+        primaryBtn.innerHTML = '<span>Download Beta for Linux</span> <span aria-hidden="true">↓</span>';
+        label.textContent = 'Detected Linux (.AppImage)';
+      } else {
+        primaryBtn.href = assets.macArm;
+        primaryBtn.innerHTML = '<span>Download Beta for macOS</span> <span aria-hidden="true">↓</span>';
+        label.textContent = 'Detected macOS (Apple Silicon)';
+      }
+    })();
+  </script>
+</BaseLayout>

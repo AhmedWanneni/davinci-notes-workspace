@@ -4,6 +4,10 @@ import { fileURLToPath } from "node:url";
 export default defineConfig({
   resolve: {
     alias: {
+      react: fileURLToPath(new URL("./node_modules/react", import.meta.url)),
+      "react-dom": fileURLToPath(
+        new URL("./node_modules/react-dom", import.meta.url),
+      ),
       "@app/core-types": fileURLToPath(
         new URL("../core-types/index.ts", import.meta.url),
       ),
