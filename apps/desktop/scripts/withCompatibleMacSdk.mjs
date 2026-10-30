@@ -8,6 +8,9 @@ import { execFileSync, spawn } from "node:child_process";
 import { existsSync, readFileSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const PREFERRED_SDKS = [
   "/Library/Developer/CommandLineTools/SDKs/MacOSX26.5.sdk",
@@ -79,10 +82,20 @@ if (args.length === 0) {
   process.exit(1);
 }
 
+const localBin = join(__dirname, "..", "node_modules", ".bin");
+const rootBin = join(__dirname, "..", "..", "..", "node_modules", ".bin");
+const pathSeparator = process.platform === "win32" ? ";" : ":";
+
 const env = { ...process.env };
 if (sdkRoot) env.SDKROOT = sdkRoot;
+env.PATH = `${localBin}${pathSeparator}${rootBin}${pathSeparator}${process.env.PATH || ""}`;
 
-const child = spawn(args[0], args.slice(1), {
+const command =
+  args[0] === "tauri" && existsSync(join(localBin, "tauri"))
+    ? join(localBin, "tauri")
+    : args[0];
+
+const child = spawn(command, args.slice(1), {
   stdio: "inherit",
   env,
   shell: process.platform === "win32",

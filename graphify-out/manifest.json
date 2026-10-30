@@ -314,10 +314,10 @@
     "semantic_hash": "f4b984eac6b6307e31850ddd54c7f780"
   },
   "apps/desktop/scripts/withCompatibleMacSdk.mjs": {
-    "mtime": 1793298539.391791,
-    "seen": 1793365744.364785,
-    "ast_hash": "48ed45846641fdaafa5426ae5682f7ac",
-    "semantic_hash": "48ed45846641fdaafa5426ae5682f7ac"
+    "mtime": 1793373477.1716805,
+    "seen": 1793373585.251829,
+    "ast_hash": "c59277e4b2710c4759a9cb55e2f25e16",
+    "semantic_hash": ""
   },
   "apps/desktop/src-tauri/Cargo.toml": {
     "mtime": 1793299068.2515662,
@@ -5510,10 +5510,10 @@
     "semantic_hash": "7eac3898c584d7b4477a7899c2cb996f"
   },
   "apps/desktop/vite.config.ts": {
-    "mtime": 1793298539.6194208,
-    "seen": 1793365744.39026,
-    "ast_hash": "8a9be81296e779309f34390821460751",
-    "semantic_hash": "8a9be81296e779309f34390821460751"
+    "mtime": 1793373505.2628024,
+    "seen": 1793373585.293588,
+    "ast_hash": "9dc4071c88ba2276702765156aadd962",
+    "semantic_hash": ""
   },
   "apps/desktop/vitest.config.ts": {
     "mtime": 1793298539.6197727,
@@ -13289,9 +13289,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793373207.5630734,
-    "seen": 1793373244.3082979,
-    "ast_hash": "d25f419170746e4933be2658c7cf5c8d",
+    "mtime": 1793373556.3139865,
+    "seen": 1793373585.348632,
+    "ast_hash": "05fcf23885f4851a27edbf274bb165f4",
     "semantic_hash": ""
   },
   "README.md": {
@@ -15911,21 +15911,21 @@
     "semantic_hash": ""
   },
   "scripts/manage.sh": {
-    "mtime": 1793373163.6969283,
-    "seen": 1793373244.305862,
+    "mtime": 1793373294.8108902,
+    "seen": 1793373585.345397,
     "ast_hash": "d77995fd286d140e571b68299b01327d",
     "semantic_hash": ""
   },
   "scripts/tui.sh": {
-    "mtime": 1793373163.6969283,
-    "seen": 1793373244.306239,
+    "mtime": 1793373294.8108902,
+    "seen": 1793373585.345877,
     "ast_hash": "d77995fd286d140e571b68299b01327d",
     "semantic_hash": ""
   },
   "scripts/tui/build.sh": {
-    "mtime": 1793373117.4626868,
-    "seen": 1793373244.30624,
-    "ast_hash": "8166e993fbdd1aecdd006a362d755244",
+    "mtime": 1793373510.1411607,
+    "seen": 1793373585.3458781,
+    "ast_hash": "258f4764d76613e6262c2c6dd0065c65",
     "semantic_hash": ""
   },
   "scripts/tui/ci.sh": {
@@ -15947,8 +15947,8 @@
     "semantic_hash": ""
   },
   "scripts/tui/links.sh": {
-    "mtime": 1793373144.4735994,
-    "seen": 1793373244.306248,
+    "mtime": 1793373294.8140652,
+    "seen": 1793373585.3459961,
     "ast_hash": "fbda8cbb6abc749ea9e437396c88386f",
     "semantic_hash": ""
   },
@@ -15971,8 +15971,8 @@
     "semantic_hash": ""
   },
   "scripts/tui/installer.sh": {
-    "mtime": 1793373075.7202861,
-    "seen": 1793373244.306247,
+    "mtime": 1793373294.813296,
+    "seen": 1793373585.345995,
     "ast_hash": "81924bddee9b1e4b6bb77515f26eaf76",
     "semantic_hash": ""
   },

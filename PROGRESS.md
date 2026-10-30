@@ -13,6 +13,8 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Built a modular, zero-heavy-dependency terminal control center with ANSI styling, ASCII banner, real-time workspace status bar (branch, clean/dirty state, active version, host architecture, Syncthing presence).
    - Added CLI shortcuts: `-i` / `--installers`, `-l` / `--links`, `-b` / `--build`, `-c` / `--ci`, `-d` / `--dev`, `--health`, `--diagnostics`.
 2. **Local Multi-Platform Builds & One-Click Installer (`scripts/tui/build.sh`, `scripts/tui/installer.sh`)**:
+   - Resolved `spawn tauri ENOENT` by having `withCompatibleMacSdk.mjs` automatically resolve local `node_modules/.bin/tauri` and inject workspace bin paths into `env.PATH`.
+   - Tuned `chunkSizeWarningLimit: 800` in `apps/desktop/vite.config.ts` to suppress large vendor bundle warnings.
    - Implemented dedicated targets in the Build menu:
      - 🍏 **macOS Application**: Build Apple Silicon (`aarch64`) or Intel (`x86_64`) native `.dmg` and `.app` bundles with automated sidecar pre-fetching and SDK resolution.
      - 🪟 **Windows Installer**: Native compilation on Windows or 1-click cloud build/fetch to `./installers/`.
