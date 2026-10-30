@@ -4,7 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Syncthing Shared Vaults Visibility & 1-Click Vault Switching
+## Last Session — Release v0.3.0 Published & Website Deployed
+
+**Scope:** End-to-end 2-instance live P2P sync verification, release `v0.3.0` across 6 platform architectures, and live Cloudflare Pages website deployment.
+
+**What was done:**
+1. **End-to-End 2-Instance Live P2P Sync Test**:
+   - Automated script `apps/desktop/scripts/testTwoInstancesSync.mjs` spawned two isolated local Syncthing instances (`vault_1` with `1.md`, `2.md` and `vault_2` with `a.md`, `b.md`).
+   - Verified P2P mutual connection and TLS transfer into replica in 2.1s.
+   - Verified active workspace switching: switching to `vault_2` makes it `[ACTIVE VAULT]` and `vault_1` `[SYNCED VAULT]`.
+2. **Release v0.3.0 Published on GitHub**:
+   - Merged PR #31 (`feat/syncthing-devices-and-ux-polish`).
+   - Bumped all 6 manifests to `0.3.0`, created tag `v0.3.0`, and pushed to remote.
+   - Release workflow built and published all 6 platform packages: macOS ARM64 DMG, macOS x64 DMG, Windows x64 setup exe & MSI, Linux AppImage/deb/rpm with `SHA256SUMS.txt`.
+3. **Website Download Links & Live Cloudflare Deployment**:
+   - Updated download links and SHA256 checksums across all 19 Astro pages and install scripts (`install.sh`, `sophia.rb`, `Casks/sophia.rb`).
+   - Fixed Cloudflare Pages CI deployment workflow (`deploy-cloudflare.yml`) for Astro 5 with Node 22 and `pnpm dlx wrangler`.
+   - Directly deployed production build to Cloudflare Pages via authenticated wrangler (`https://sophia-notes.pages.dev/download/`). Verified live download links serving `Sophia_0.3.0`.
+
+---
+
+## Next Up
+- Monitor initial v0.3.0 downloads and user telemetry for P2P sync stability.
+- Add conflict resolution preview dialog when two devices edit the same file concurrently.
+- Mobile workspace sync status indicators.
+
+---
+
+## Previous Session — Syncthing Shared Vaults Visibility & 1-Click Vault Switching
 
 **Scope:** Provide clear visibility of shared Syncthing folders/vaults once paired and accepted, with 1-click access to open/switch into the vault directly in Sophia or reveal in the native file manager.
 
