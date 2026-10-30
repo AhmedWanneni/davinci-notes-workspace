@@ -2,6 +2,18 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-30: Desktop Updates — TUI Launcher, Packaging Workflows & Script Convenience
+
+- **Root & Desktop Convenience Scripts (`package.json`, `apps/desktop/package.json`)**:
+  - Added root scripts `"desktop:build"` and `"desktop:dev"` pointing directly to `@app/desktop` package workflows.
+  - Injected `--ignore-version-mismatches` into `apps/desktop` `dev` script to prevent version discrepancies between npm packages and Cargo crate from blocking local UI development.
+- **TUI Development Mode Launcher (`scripts/tui/dev.sh`)**:
+  - Configured option 1 to launch `@app/desktop dev` directly rather than invoking monorepo-wide `turbo run dev`.
+- **TUI Multi-Platform Packaging Polish (`scripts/tui/build.sh`)**:
+  - Added `--ignore-version-mismatches` to native Windows (`x86_64-pc-windows-msvc`) and Linux (`x86_64-unknown-linux-gnu`) compilation targets.
+
+---
+
 ### 2026-10-30: Rollback Color Experiments to Original Warm Kraft Palette
 
 - **Reverted Color Experiments**:

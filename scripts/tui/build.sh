@@ -62,7 +62,7 @@ build_windows_target() {
     ui_info "Detected Windows host. Running native Tauri build..."
     node apps/desktop/scripts/fetchSyncthing.mjs --target "x86_64-pc-windows-msvc"
     pnpm --filter @app/desktop build:web
-    (cd apps/desktop && pnpm tauri build --target "x86_64-pc-windows-msvc")
+    (cd apps/desktop && pnpm tauri build --ignore-version-mismatches --target "x86_64-pc-windows-msvc")
     installer_sync_from_tauri "$repo_root"
     ui_success "Windows build complete!"
   else
@@ -108,7 +108,7 @@ build_linux_target() {
     ui_info "Detected Linux host. Running native Tauri build..."
     node apps/desktop/scripts/fetchSyncthing.mjs --target "x86_64-unknown-linux-gnu"
     pnpm --filter @app/desktop build:web
-    (cd apps/desktop && pnpm tauri build --target "x86_64-unknown-linux-gnu")
+    (cd apps/desktop && pnpm tauri build --ignore-version-mismatches --target "x86_64-unknown-linux-gnu")
     installer_sync_from_tauri "$repo_root"
     ui_success "Linux build complete!"
   else
