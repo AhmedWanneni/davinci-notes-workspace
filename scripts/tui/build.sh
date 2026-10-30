@@ -27,9 +27,18 @@ build_macos_target() {
         local d_file
         d_file="$(ls -t "${b_dmg}/"*.dmg 2>/dev/null | head -1 || true)"
         if [[ -n "$d_file" ]]; then
-          ui_info "Packaging verified Sophia.app into DMG..."
+          ui_info "Packaging verified Sophia.app into standard DMG with Applications symlink..."
+          local staging_dmg="/tmp/sophia_dmg_staging_$$"
+          rm -rf "$staging_dmg"
+          mkdir -p "$staging_dmg"
+          cp -R "$b_app" "${staging_dmg}/Sophia.app"
+          ln -s /Applications "${staging_dmg}/Applications"
+          if [[ -f "${repo_root}/apps/desktop/src-tauri/icons/icon.icns" ]]; then
+            cp "${repo_root}/apps/desktop/src-tauri/icons/icon.icns" "${staging_dmg}/.VolumeIcon.icns"
+          fi
           rm -f "$d_file"
-          hdiutil create -volname "Sophia" -srcfolder "$b_app" -ov -format UDZO "$d_file" -quiet
+          hdiutil create -volname "Sophia" -srcfolder "$staging_dmg" -ov -format UDZO "$d_file" -quiet
+          rm -rf "$staging_dmg"
         fi
       fi
     fi
