@@ -27,6 +27,21 @@ pub struct SyncthingPendingDevice {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncthingConfiguredDevice {
+  #[serde(rename = "deviceId")]
+  pub device_id: String,
+  pub name: String,
+  pub connected: bool,
+  pub paused: bool,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub address: Option<String>,
+  #[serde(rename = "lastSeen", skip_serializing_if = "Option::is_none")]
+  pub last_seen: Option<String>,
+  #[serde(rename = "isVaultShared")]
+  pub is_vault_shared: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SyncthingPendingFolder {
   #[serde(rename = "folderId")]
   pub folder_id: String,
@@ -34,6 +49,21 @@ pub struct SyncthingPendingFolder {
   #[serde(rename = "offeredBy")]
   pub offered_by: String,
   pub time: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct SyncthingSharedVault {
+  #[serde(rename = "folderId")]
+  pub folder_id: String,
+  pub label: String,
+  pub path: String,
+  #[serde(rename = "sharedWithDeviceIds")]
+  pub shared_with_device_ids: Vec<String>,
+  pub paused: bool,
+  #[serde(rename = "isActiveVault")]
+  pub is_active_vault: bool,
+  #[serde(rename = "syncState", skip_serializing_if = "Option::is_none")]
+  pub sync_state: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

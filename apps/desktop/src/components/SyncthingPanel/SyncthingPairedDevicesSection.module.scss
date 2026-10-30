@@ -1,0 +1,113 @@
+.paired-devices-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border-normal);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-bg-secondary);
+}
+
+.paired-devices-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.paired-devices-card__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-normal);
+}
+
+.paired-devices-card__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.paired-devices-card__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-primary);
+}
+
+.paired-devices-card__item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.paired-devices-card__item-name-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.paired-devices-card__item-name {
+  font-weight: 500;
+  color: var(--color-text-normal);
+}
+
+.paired-devices-card__item-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.paired-devices-card__item-id {
+  font-family: var(--font-editor);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  user-select: all;
+}
+
+.paired-devices-card__copy-id-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: 11px;
+
+  &:hover {
+    color: var(--color-text-accent);
+  }
+}
+
+.paired-devices-card__item-hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.paired-devices-card__item-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  margin-top: var(--space-1);
+}
+
+.paired-devices-card__empty-state {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0;
+  line-height: 1.5;
+}

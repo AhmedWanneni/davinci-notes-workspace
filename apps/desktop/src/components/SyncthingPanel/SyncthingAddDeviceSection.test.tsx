@@ -30,8 +30,11 @@ describe("SyncthingAddDeviceSection", () => {
     const onAddedMock = vi.fn().mockResolvedValue(undefined);
     render(<SyncthingAddDeviceSection onAdded={onAddedMock} />);
 
-    expect(screen.getByLabelText("Device ID")).toBeDefined();
+    expect(screen.getByLabelText(/Device ID/)).toBeDefined();
     expect(screen.getByLabelText(/Device Name/)).toBeDefined();
+    expect(
+      screen.getByLabelText(/Automatically share active vault/),
+    ).toBeDefined();
     const btn = screen.getByLabelText("Add Device");
     expect(btn).toBeDefined();
     expect(btn.getAttribute("disabled")).not.toBeNull();

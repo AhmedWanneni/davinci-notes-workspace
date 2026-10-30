@@ -20,11 +20,31 @@ export interface SyncthingPendingDevice {
   time: string;
 }
 
+export interface SyncthingConfiguredDevice {
+  deviceId: string;
+  name: string;
+  connected: boolean;
+  paused: boolean;
+  address?: string;
+  lastSeen?: string;
+  isVaultShared: boolean;
+}
+
 export interface SyncthingPendingFolder {
   folderId: string;
   label: string;
   offeredBy: string;
   time: string;
+}
+
+export interface SyncthingSharedVault {
+  folderId: string;
+  label: string;
+  path: string;
+  sharedWithDeviceIds: string[];
+  paused: boolean;
+  isActiveVault: boolean;
+  syncState?: string;
 }
 
 export interface SyncthingCheckItem {

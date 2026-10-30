@@ -17,6 +17,8 @@ const baseActions = {
   restart: async () => {},
   refresh: async () => {},
   lastLogs: null,
+  configuredDevices: [],
+  sharedVaults: [],
 };
 
 export const Running: Story = {

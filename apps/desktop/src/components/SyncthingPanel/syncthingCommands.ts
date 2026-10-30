@@ -1,9 +1,16 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type {
+  SyncthingConfiguredDevice,
+  SyncthingSharedVault,
+  SyncthingCheckReport,
+} from "@app/syncthing-api";
 
 export type {
   SyncthingDetectResult,
   SyncthingStatusResult,
+  SyncthingConfiguredDevice,
+  SyncthingSharedVault,
   SyncthingPendingDevice,
   SyncthingPendingFolder,
   SyncthingCheckItem,
@@ -87,6 +94,16 @@ export async function syncthingAddDevice(
   return invoke<void>("syncthing_add_device", { id, name });
 }
 
+export async function syncthingListDevices(): Promise<
+  SyncthingConfiguredDevice[]
+> {
+  return invoke<SyncthingConfiguredDevice[]>("syncthing_list_devices");
+}
+
+export async function syncthingRemoveDevice(id: string): Promise<void> {
+  return invoke<void>("syncthing_remove_device", { id });
+}
+
 export async function syncthingPendingDevices() {
   return invoke("syncthing_pending_devices");
 }
@@ -121,6 +138,22 @@ export async function syncthingAcceptFolder(
   });
 }
 
-export async function syncthingCheckSync() {
-  return invoke("syncthing_check_sync");
+export async function syncthingCheckSync(): Promise<SyncthingCheckReport> {
+  return invoke<SyncthingCheckReport>("syncthing_check_sync");
+}
+
+export async function syncthingListSharedVaults(): Promise<
+  SyncthingSharedVault[]
+> {
+  return invoke<SyncthingSharedVault[]>("syncthing_list_shared_vaults");
+}
+
+export async function syncthingUnshareVaultFolder(
+  folderId: string,
+): Promise<void> {
+  return invoke<void>("syncthing_unshare_vault_folder", { folderId });
+}
+
+export async function showInFolder(path: string): Promise<void> {
+  return invoke<void>("show_in_folder", { path });
 }
