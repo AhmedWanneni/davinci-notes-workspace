@@ -52,5 +52,26 @@ describe("deviceId utilities", () => {
 
     const res5 = parseScannedDeviceId("");
     expect(res5.valid).toBe(false);
+
+    // Pairing URI support (e.g. davincinotes://pair?d=... or sophia://pair?d=...)
+    const compactJson = JSON.stringify({
+      v: 1,
+      id: rawId,
+      name: "Ahmed's MacBook Pro",
+      folderId: "davinci-c130e8cee8",
+      folderLabel: "Obsidian Vault",
+      code: "123456",
+    });
+    const b64 = Buffer.from(compactJson).toString("base64url");
+    const resPair = parseScannedDeviceId(`davincinotes://pair?d=${b64}`);
+    expect(resPair.valid).toBe(true);
+    expect(resPair.deviceId).toBe(rawId);
+    expect(resPair.deviceName).toBe("Ahmed's MacBook Pro");
+    expect(resPair.folderLabel).toBe("Obsidian Vault");
+
+    const resJson = parseScannedDeviceId(compactJson);
+    expect(resJson.valid).toBe(true);
+    expect(resJson.deviceId).toBe(rawId);
+    expect(resJson.deviceName).toBe("Ahmed's MacBook Pro");
   });
 });

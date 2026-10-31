@@ -41,17 +41,17 @@ export function validatePairingInput(raw: string): ValidatedPairingResult {
     };
   }
 
-  if (trimmed.startsWith("davincinotes://")) {
-    if (!trimmed.startsWith("davincinotes://pair")) {
-      return {
-        valid: false,
-        error: "Unsupported link format. Expected a pairing link.",
-      };
-    }
+  const isPairingUri =
+    trimmed.includes("://pair") ||
+    trimmed.includes("?d=") ||
+    trimmed.startsWith("davincinotes://") ||
+    trimmed.startsWith("sophia://") ||
+    trimmed.startsWith("davinci://");
 
+  if (isPairingUri) {
     let b64 = "";
-    if (trimmed.startsWith("davincinotes://pair?d=")) {
-      b64 = trimmed.slice("davincinotes://pair?d=".length);
+    if (trimmed.includes("?d=")) {
+      b64 = trimmed.split("?d=")[1].split("&")[0];
     } else {
       const qIndex = trimmed.indexOf("?");
       if (qIndex !== -1) {
@@ -135,16 +135,28 @@ export function validatePairingInput(raw: string): ValidatedPairingResult {
     };
   }
 
-  // Not a davincinotes:// scheme - check if raw Device ID
-  const cleanDevice = trimmed.toUpperCase().replace(/[\s-]/g, "");
+  // Not a pairing scheme - check if raw Device ID or syncthing URI
+  let devText = trimmed;
+  if (devText.toLowerCase().startsWith("syncthing://")) {
+    devText = devText.slice(12);
+  } else if (devText.toLowerCase().startsWith("syncthing:")) {
+    devText = devText.slice(10);
+  }
+  if (devText.includes("?id=")) {
+    devText = devText.split("?id=")[1].split("&")[0];
+  } else if (devText.includes("?")) {
+    devText = devText.split("?")[0];
+  }
+
+  const cleanDevice = devText.toUpperCase().replace(/[\s-]/g, "");
   if (cleanDevice.length === 56 && /^[A-Z0-9]{56}$/.test(cleanDevice)) {
     return {
       valid: true,
       type: "raw_device",
-      deviceId: trimmed,
+      deviceId: devText,
       payload: {
         v: 1,
-        id: trimmed,
+        id: devText,
         name: "Desktop",
         folderId: "davinci-default",
         folderLabel: "Vault",
