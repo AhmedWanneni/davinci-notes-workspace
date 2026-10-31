@@ -62,7 +62,7 @@ const COLOR_STYLES: Record<string, string> = {
   warning: "text-text-warning",
 };
 
-export const Text = React.forwardRef<RNText, TextProps>(
+export const Text = React.forwardRef<any, TextProps>(
   (
     {
       variant = "text",

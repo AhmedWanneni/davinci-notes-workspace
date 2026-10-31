@@ -16,7 +16,9 @@ export function useVaultForegroundSync({
   enabled = true,
 }: UseVaultForegroundSyncOptions): void {
   const previousStatsRef = useRef<ReconcileStats>({});
-  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const appStateRef = useRef<AppStateStatus>(
+    (AppState.currentState as AppStateStatus) || "active",
+  );
 
   useEffect(() => {
     if (!adapter || !enabled) return;

@@ -16,7 +16,7 @@ export interface NoteReaderViewProps {
   onWikilinkPress: (target: string, displayText?: string) => void;
   onTagPress: (tag: string) => void;
   onEditPress?: () => void;
-  scrollViewRef?: React.RefObject<ScrollView | null>;
+  scrollViewRef?: React.RefObject<any>;
 }
 
 export function NoteReaderView({
