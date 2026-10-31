@@ -39,7 +39,9 @@ describe("useAgentMention", () => {
       });
     });
 
-    expect(setInput).toHaveBeenCalledWith("Check note @Notes/Meeting.md ");
+    expect(result.current.mentions).toEqual([
+      expect.objectContaining({ path: "Notes/Meeting.md" }),
+    ]);
     expect(result.current.mentionQuery).toBeNull();
   });
 });

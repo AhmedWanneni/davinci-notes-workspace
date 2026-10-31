@@ -12,8 +12,19 @@ export interface ChatAttachmentItem {
   data?: string;
 }
 
+export interface MentionItem {
+  id: string;
+  type: "file" | "folder" | "current";
+  path: string;
+  label: string;
+}
+
 export interface AgentChatInputProps {
-  onSend: (prompt: string, attachments?: ChatAttachmentItem[]) => void;
+  onSend: (
+    prompt: string,
+    attachments?: ChatAttachmentItem[],
+    mentions?: MentionItem[],
+  ) => void;
   onCancel?: () => void;
   isStreaming: boolean;
   autoApply: boolean;
@@ -38,6 +49,8 @@ export interface ChatMessageItem {
   role: "user" | "assistant" | "tool";
   content: string;
   attachments?: ChatAttachmentItem[];
+  mentions?: MentionItem[];
+  mentionsContext?: string;
   toolCalls?: AgentToolCall[];
   toolResults?: AgentToolResult[];
   timestamp: number;

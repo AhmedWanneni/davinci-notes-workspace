@@ -110,13 +110,25 @@ export const ALLOWLIST = [
   },
   {
     file: "packages/design-system/components/DropdownMenu/DropdownMenu.module.scss",
-    pattern: "rgb(0 0 0 / 10%)",
+    pattern: "rgb(0 0 0 / 14%)",
     justification:
       "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
   },
   {
     file: "packages/design-system/components/DropdownMenu/DropdownMenu.module.scss",
-    pattern: "rgb(0 0 0 / 6%)",
+    pattern: "rgb(0 0 0 / 8%)",
+    justification:
+      "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
+  },
+  {
+    file: "packages/design-system/components/Popover/Popover.module.scss",
+    pattern: "rgb(0 0 0 / 14%)",
+    justification:
+      "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
+  },
+  {
+    file: "packages/design-system/components/Popover/Popover.module.scss",
+    pattern: "rgb(0 0 0 / 8%)",
     justification:
       "Compatibility fallback for the token-derived shadow layer on older Tauri webviews.",
   },

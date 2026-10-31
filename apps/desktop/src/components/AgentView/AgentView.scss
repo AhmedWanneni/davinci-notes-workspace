@@ -418,7 +418,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-1) var(--space-3);
-  background-color: var(--color-bg-tertiary);
+  background-color: var(--color-bg-secondary-alt);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
 }
 
@@ -473,7 +473,8 @@
   border-radius: var(--border-radius-md);
   background-color: var(--color-bg-secondary);
   overflow: hidden;
-  transition: border-color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition: border-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
 
   &[data-streaming="true"] {
     border-color: var(--color-border-focus);
@@ -494,7 +495,8 @@
   font-weight: var(--type-weight-medium);
   cursor: pointer;
   text-align: left;
-  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition: background-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
 
   &:hover {
     background-color: var(--color-bg-hover);
@@ -516,6 +518,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -685,7 +688,8 @@
   border-radius: var(--border-radius-md);
   overflow: hidden;
   font-size: var(--type-scale-xs);
-  transition: border-color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition: border-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
 
   &[data-status="error"] {
     border-color: var(--color-border-status-error);
@@ -701,7 +705,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-2) var(--space-3);
-  background-color: var(--color-bg-tertiary);
+  background-color: var(--color-bg-secondary-alt);
 }
 
 .agent-tool-card__toggle-btn {
@@ -2121,18 +2125,19 @@
   right: 2px;
   width: 18px;
   height: 18px;
-  border-radius: 9999px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: #fff;
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-bg-scrim);
+  color: var(--color-text-on-accent);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition: background-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.95);
+    background-color: var(--color-bg-secondary-alt);
   }
 }
 
@@ -2163,7 +2168,8 @@
   overflow: hidden;
   background: transparent;
   cursor: pointer;
-  transition: border-color var(--motion-duration-fast) var(--motion-ease-standard);
+  transition: border-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
 
   &:hover {
     border-color: var(--color-border-focus);
@@ -2181,7 +2187,7 @@
   position: fixed;
   inset: 0;
   z-index: 999;
-  background-color: rgba(0, 0, 0, 0.75);
+  background-color: var(--color-bg-scrim);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2204,7 +2210,7 @@
   right: 0;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--color-text-on-accent);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -2221,7 +2227,132 @@
 }
 
 .agent-image-modal__caption {
-  color: #eee;
+  color: var(--color-text-normal);
   font-size: var(--type-scale-xs);
   font-family: var(--font-ui);
+}
+
+/* Phase 5: Rich Context Mentions & Mention Menu */
+.agent-mention-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  background-color: var(--color-bg-secondary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+}
+
+.agent-mention-chip__icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.agent-mention-chip__label {
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agent-mention-chip__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 0;
+  margin-left: 2px;
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+
+  &:hover {
+    color: var(--color-text-normal);
+    background-color: var(--color-bg-hover);
+  }
+}
+
+.agent-chat-input__mentions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3) 0;
+}
+
+.agent-message__mentions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.agent-mention-menu {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  margin-bottom: var(--space-2);
+  background-color: var(--color-bg-primary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-1);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.agent-mention-menu__header {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
+  margin-bottom: 2px;
+}
+
+.agent-mention-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  background-color: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  color: var(--color-text-normal);
+  transition: background-color var(--motion-duration-fast)
+    var(--motion-ease-standard);
+
+  &[aria-selected="true"],
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
+}
+
+.agent-mention-menu__item-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.agent-mention-menu__item-title {
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.agent-mention-menu__item-path {
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }

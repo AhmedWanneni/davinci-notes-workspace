@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import { FileText, Folder } from "@phosphor-icons/react";
 import { Typography } from "@app/design-system";
+import fuzzysort from "fuzzysort";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import type { MentionItem } from "./agentTypes";
 
-export interface MentionItem {
-  id: string;
-  type: "file" | "folder";
-  path: string;
-  label: string;
-}
+export type { MentionItem } from "./agentTypes";
 
 export interface AgentMentionMenuProps {
   isOpen: boolean;
@@ -29,53 +26,71 @@ export function AgentMentionMenu({
 }: AgentMentionMenuProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
+  const activeNotePath = useWorkspaceStore((state) => state.activeNotePath);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const items = useMemo<MentionItem[]>(() => {
-    const q = query.trim().toLowerCase();
-    const result: MentionItem[] = [];
+    const q = query.trim();
+    const allCandidates: MentionItem[] = [];
 
-    // Search folders first if matching
     for (const folder of allFolderPaths) {
       const normalized = folder.endsWith("/") ? folder : `${folder}/`;
       const label = folder.split("/").filter(Boolean).pop() ?? folder;
-      if (!q || normalized.toLowerCase().includes(q)) {
-        result.push({
-          id: `folder:${normalized}`,
-          type: "folder",
-          path: normalized,
-          label,
-        });
-      }
-      if (result.length >= 15) break;
+      allCandidates.push({
+        id: `folder:${normalized}`,
+        type: "folder",
+        path: normalized,
+        label,
+      });
     }
 
-    // Search notes
     for (const note of allNotePaths) {
       const label = note.split("/").pop() ?? note;
-      if (!q || note.toLowerCase().includes(q)) {
-        result.push({
-          id: `file:${note}`,
-          type: "file",
-          path: note,
-          label,
-        });
-      }
-      if (result.length >= 20) break;
+      allCandidates.push({
+        id: `file:${note}`,
+        type: "file",
+        path: note,
+        label,
+      });
     }
 
-    // Sort: exact matches first, then startsWith, then includes
-    return result
-      .sort((a, b) => {
-        if (!q) return 0;
-        const aStart = a.label.toLowerCase().startsWith(q);
-        const bStart = b.label.toLowerCase().startsWith(q);
-        if (aStart && !bStart) return -1;
-        if (!aStart && bStart) return 1;
-        return a.label.localeCompare(b.label);
-      })
-      .slice(0, 8);
-  }, [allNotePaths, allFolderPaths, query]);
+    const currentItem: MentionItem | null = activeNotePath
+      ? {
+          id: `current:${activeNotePath}`,
+          type: "current",
+          path: activeNotePath,
+          label: `Current: ${activeNotePath.split("/").pop() ?? activeNotePath}`,
+        }
+      : null;
+
+    if (!q) {
+      const list = currentItem ? [currentItem] : [];
+      return [...list, ...allCandidates.slice(0, 7)];
+    }
+
+    const matches = fuzzysort.go(q, allCandidates, {
+      keys: ["label", "path"],
+      limit: 8,
+      threshold: -10000,
+    });
+
+    const results = matches.map((m) => m.obj);
+
+    if (currentItem) {
+      const qLower = q.toLowerCase();
+      if (
+        qLower === "current" ||
+        currentItem.label.toLowerCase().includes(qLower) ||
+        currentItem.path.toLowerCase().includes(qLower)
+      ) {
+        if (!results.some((r) => r.path === currentItem.path)) {
+          results.unshift(currentItem);
+        }
+      }
+    }
+
+    return results.slice(0, 8);
+  }, [allNotePaths, allFolderPaths, activeNotePath, query]);
 
   useEffect(() => {
     onItemCountChange?.(items.length);
@@ -100,32 +115,8 @@ export function AgentMentionMenu({
       className="agent-mention-menu"
       role="listbox"
       aria-label="Select file or folder"
-      style={{
-        position: "absolute",
-        bottom: "100%",
-        left: 0,
-        right: 0,
-        marginBottom: "var(--space-2)",
-        backgroundColor: "var(--color-bg-primary)",
-        border: "var(--border-width-thin) solid var(--color-border-subtle)",
-        borderRadius: "var(--border-radius-md)",
-        padding: "var(--space-1)",
-        maxHeight: "220px",
-        overflowY: "auto",
-        zIndex: 50,
-        display: "flex",
-        flexDirection: "column",
-        gap: "1px",
-      }}
     >
-      <div
-        style={{
-          padding: "var(--space-1) var(--space-2)",
-          borderBottom:
-            "var(--border-width-thin) solid var(--color-border-subtle)",
-          marginBottom: "2px",
-        }}
-      >
+      <div className="agent-mention-menu__header">
         <Typography variant="text" size="xs" color="muted">
           Referenced Files & Folders
         </Typography>
@@ -137,59 +128,21 @@ export function AgentMentionMenu({
           <button
             key={item.id}
             type="button"
+            className="agent-mention-menu__item"
             role="option"
             aria-selected={isSelected}
             onClick={() => onSelect(item)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-2)",
-              padding: "var(--space-1) var(--space-2)",
-              border: "none",
-              borderRadius: "var(--border-radius-sm)",
-              backgroundColor: isSelected
-                ? "var(--color-bg-hover)"
-                : "transparent",
-              cursor: "pointer",
-              textAlign: "left",
-              width: "100%",
-              color: "var(--color-text-normal)",
-            }}
           >
             {item.type === "folder" ? (
               <Folder size={14} color="var(--color-text-accent)" />
             ) : (
               <FileText size={14} color="var(--color-text-muted)" />
             )}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "var(--type-scale-xs)",
-                  fontWeight: "var(--type-weight-medium)",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
-                }}
-              >
+            <div className="agent-mention-menu__item-text">
+              <span className="agent-mention-menu__item-title">
                 {item.label}
               </span>
-              <span
-                style={{
-                  fontSize: "var(--type-scale-xs)",
-                  color: "var(--color-text-muted)",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
-                }}
-              >
-                {item.path}
-              </span>
+              <span className="agent-mention-menu__item-path">{item.path}</span>
             </div>
           </button>
         );

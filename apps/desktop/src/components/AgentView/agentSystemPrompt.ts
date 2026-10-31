@@ -33,7 +33,9 @@ export function buildAgentWorkingHistory(
       content:
         m.role === "tool" || m.toolCalls?.length
           ? truncateContent(m.content)
-          : m.content || "",
+          : m.mentionsContext
+            ? `${m.mentionsContext}\n\n${m.content || ""}`
+            : m.content || "",
       attachments: m.attachments,
       toolCalls: m.toolCalls,
       toolCallId: m.toolCallId,

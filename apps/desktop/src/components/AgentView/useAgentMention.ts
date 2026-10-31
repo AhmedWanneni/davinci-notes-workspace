@@ -1,11 +1,17 @@
-import { useState, type ChangeEvent, type KeyboardEvent, type RefObject } from "react";
-import type { MentionItem } from "./AgentMentionMenu";
+import {
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent,
+  type RefObject,
+} from "react";
+import type { MentionItem } from "./agentTypes";
 
 export function useAgentMention(
   input: string,
   setInput: (val: string) => void,
   textareaRef: RefObject<HTMLTextAreaElement | null>,
 ) {
+  const [mentions, setMentions] = useState<MentionItem[]>([]);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionStartIndex, setMentionStartIndex] = useState<number>(-1);
   const [mentionSelectedIndex, setMentionSelectedIndex] = useState(0);
@@ -27,22 +33,34 @@ export function useAgentMention(
     }
   };
 
+  const removeMention = (id: string) => {
+    setMentions((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  const clearMentions = () => {
+    setMentions([]);
+  };
+
   const handleSelectMention = (item: MentionItem) => {
-    if (mentionStartIndex === -1) return;
-    const before = input.slice(0, mentionStartIndex);
-    const cursor = textareaRef.current?.selectionStart ?? input.length;
-    const after = input.slice(cursor);
-    const inserted = `@${item.path} `;
-    const nextVal = `${before}${inserted}${after}`;
-    setInput(nextVal);
+    setMentions((prev) =>
+      prev.some((m) => m.id === item.id) ? prev : [...prev, item],
+    );
+
+    if (mentionStartIndex !== -1) {
+      const before = input.slice(0, mentionStartIndex);
+      const cursor = textareaRef.current?.selectionStart ?? input.length;
+      const after = input.slice(cursor);
+      const combined = `${before}${after}`.replace(/\s+$/, "");
+      const nextVal = combined ? `${combined} ` : "";
+      setInput(nextVal);
+    }
+
     setMentionQuery(null);
     setMentionStartIndex(-1);
 
     setTimeout(() => {
       if (textareaRef.current) {
-        const nextPos = before.length + inserted.length;
         textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(nextPos, nextPos);
       }
     }, 0);
   };
@@ -50,6 +68,11 @@ export function useAgentMention(
   const handleMentionKeyDown = (
     e: KeyboardEvent<HTMLTextAreaElement>,
   ): boolean => {
+    if (e.key === "Backspace" && input === "" && mentions.length > 0) {
+      setMentions((prev) => prev.slice(0, -1));
+      return true;
+    }
+
     if (mentionQuery === null || mentionItemCount === 0) return false;
 
     if (e.key === "ArrowDown") {
@@ -83,6 +106,10 @@ export function useAgentMention(
   };
 
   return {
+    mentions,
+    setMentions,
+    removeMention,
+    clearMentions,
     mentionQuery,
     mentionSelectedIndex,
     setMentionQuery,

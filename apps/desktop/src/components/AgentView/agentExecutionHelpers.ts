@@ -1,6 +1,11 @@
 import type { Dispatch, SetStateAction } from "react";
 import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes";
-import type { ChatMessageItem } from "./agentTypes";
+import type {
+  ChatMessageItem,
+  ChatAttachmentItem,
+  MentionItem,
+} from "./agentTypes";
+import { assembleContextAttachments } from "./agentContextAssembler";
 
 export function appendAssistantChunk(
   prev: ChatMessageItem[],
@@ -34,6 +39,55 @@ export function finalizeAssistantMessage(
 ): ChatMessageItem[] {
   const filtered = prev.filter((m) => m.id !== assistantMsgId);
   return [...filtered, { ...msg, isStreaming: false }];
+}
+
+export async function prepareUserMessage(
+  promptText: string,
+  attachments?: ChatAttachmentItem[],
+  mentions?: MentionItem[],
+  allNotePaths?: string[],
+): Promise<{ userMsg: ChatMessageItem; promptWithContext: string }> {
+  const contextXml =
+    mentions && mentions.length > 0
+      ? await assembleContextAttachments(mentions, { allNotePaths })
+      : undefined;
+
+  const userMsg: ChatMessageItem = {
+    id: `msg_u_${Date.now()}`,
+    role: "user",
+    content: promptText,
+    attachments,
+    mentions,
+    mentionsContext: contextXml,
+    timestamp: Date.now(),
+  };
+
+  const promptWithContext = contextXml
+    ? `${contextXml}\n\n${promptText}`
+    : promptText;
+
+  return { userMsg, promptWithContext };
+}
+
+export function findPriorUserPrompt(
+  messages: ChatMessageItem[],
+  assistantMsgId: string,
+): { prior: ChatMessageItem[]; prompt?: string } | null {
+  const idx = messages.findIndex((m) => m.id === assistantMsgId);
+  if (idx === -1) return null;
+  const userMsg = [...messages.slice(0, idx)]
+    .reverse()
+    .find((m) => m.role === "user");
+  if (!userMsg) return null;
+  return { prior: messages.slice(0, idx), prompt: userMsg.content };
+}
+
+export function findMessageSlice(
+  messages: ChatMessageItem[],
+  messageId: string,
+): ChatMessageItem[] | null {
+  const idx = messages.findIndex((m) => m.id === messageId);
+  return idx === -1 ? null : messages.slice(0, idx);
 }
 
 export async function executeCliAgentSession(

@@ -1,35 +1,36 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
-import {
-  ArrowUp,
-  Stop,
-  Plus,
-  Hand,
-  Lightning,
-  Globe,
-  Paperclip,
-  Warning,
-} from "@phosphor-icons/react";
-import { AgentModelSelect } from "./AgentModelSelect";
-import { AgentCapabilitiesPopover } from "./AgentCapabilitiesPopover";
+import { Warning } from "@phosphor-icons/react";
+import { AgentChatFooter } from "./AgentChatFooter";
 import { AgentMentionMenu } from "./AgentMentionMenu";
+import { AgentMentionChip } from "./AgentMentionChip";
 import { AgentImageThumbnail } from "./AgentImageThumbnail";
 import { useAgentMention } from "./useAgentMention";
 import { useChatAttachments } from "./useChatAttachments";
 import { isVisionSupported } from "./imageAttachmentUtils";
-import type { AIProviderId } from "../../ai/AISubsystem";
-import type { AgentShortcut } from "@app/ai-agent";
-import type { ChatAttachmentItem, AgentChatInputProps } from "./agentTypes";
+import type { AgentChatInputProps } from "./agentTypes";
 
 export function AgentChatInput(props: AgentChatInputProps) {
   const {
-    onSend, onCancel, isStreaming, autoApply, onToggleAutoApply,
-    currentProvider, currentModel, onSelectModel, selectedCliAgent,
-    onSelectCliAgent, webSearchEnabled, onToggleWebSearch,
-    onOpenSettings, shortcuts, disabled,
+    onSend,
+    onCancel,
+    isStreaming,
+    autoApply,
+    onToggleAutoApply,
+    currentProvider,
+    currentModel,
+    onSelectModel,
+    selectedCliAgent,
+    onSelectCliAgent,
+    webSearchEnabled,
+    onToggleWebSearch,
+    onOpenSettings,
+    shortcuts,
+    disabled,
   } = props;
   const [input, setInput] = useState("");
   const [isCapabilitiesOpen, setIsCapabilitiesOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const {
     attachments,
     setAttachments,
@@ -42,6 +43,9 @@ export function AgentChatInput(props: AgentChatInputProps) {
   } = useChatAttachments();
 
   const {
+    mentions,
+    removeMention,
+    clearMentions,
     mentionQuery,
     mentionSelectedIndex,
     setMentionQuery,
@@ -61,12 +65,24 @@ export function AgentChatInput(props: AgentChatInputProps) {
   }, [input]);
 
   const handleSubmit = () => {
-    if (disabled || (!input.trim() && attachments.length === 0) || isStreaming)
+    if (
+      disabled ||
+      (!input.trim() && attachments.length === 0 && mentions.length === 0) ||
+      isStreaming
+    )
       return;
-    if (attachments.length > 0) onSend(input.trim(), attachments);
-    else onSend(input.trim());
+    if (attachments.length > 0 || mentions.length > 0) {
+      onSend(
+        input.trim(),
+        attachments.length > 0 ? attachments : undefined,
+        mentions.length > 0 ? mentions : undefined,
+      );
+    } else {
+      onSend(input.trim());
+    }
     setInput("");
     setAttachments([]);
+    clearMentions();
     setMentionQuery(null);
   };
 
@@ -108,6 +124,18 @@ export function AgentChatInput(props: AgentChatInputProps) {
           onItemCountChange={setMentionItemCount}
         />
 
+        {mentions.length > 0 && (
+          <div className="agent-chat-input__mentions">
+            {mentions.map((m) => (
+              <AgentMentionChip
+                key={m.id}
+                mention={m}
+                onRemove={removeMention}
+              />
+            ))}
+          </div>
+        )}
+
         {attachments.length > 0 && (
           <div className="agent-chat-input__attachments">
             {attachments.map((att) => (
@@ -140,108 +168,30 @@ export function AgentChatInput(props: AgentChatInputProps) {
           aria-label="Agent prompt input"
         />
 
-        <div className="agent-chat-input__footer">
-          <div className="agent-chat-input__footer-left">
-            <button
-              type="button"
-              className="agent-chat-input__icon-btn"
-              onClick={() => fileInputRef.current?.click()}
-              aria-label="Attach images"
-              title="Attach images"
-            >
-              <Paperclip size={15} />
-            </button>
-
-            <div className="agent-chat-input__popover-anchor">
-              <button
-                type="button"
-                className={`agent-chat-input__icon-btn${isCapabilitiesOpen ? " agent-chat-input__icon-btn--active" : ""}`}
-                onClick={() => setIsCapabilitiesOpen(!isCapabilitiesOpen)}
-                aria-label="Agent options and capabilities"
-                title="Explore what the agent can do"
-              >
-                <Plus size={15} weight="bold" />
-              </button>
-              <AgentCapabilitiesPopover
-                isOpen={isCapabilitiesOpen}
-                onClose={() => setIsCapabilitiesOpen(false)}
-                shortcuts={shortcuts}
-                onSelectCapability={(preset) => {
-                  setInput(preset);
-                }}
-              />
-            </div>
-
-            <button
-              type="button"
-              className={`agent-chat-input__approval-pill${autoApply ? " agent-chat-input__approval-pill--auto" : ""}`}
-              onClick={() => onToggleAutoApply(!autoApply)}
-              aria-label={
-                autoApply ? "Auto-applying changes" : "Asking for approval"
-              }
-              title="Click to toggle between Ask for Approval and Auto-apply"
-            >
-              {autoApply ? (
-                <>
-                  <Lightning size={14} weight="fill" />
-                  <span>Auto-apply</span>
-                </>
-              ) : (
-                <>
-                  <Hand size={14} weight="regular" />
-                  <span>Ask for approval</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          <div className="agent-chat-input__footer-right">
-            <AgentModelSelect
-              currentModel={currentModel}
-              currentProvider={currentProvider}
-              onSelectModel={onSelectModel}
-              selectedCliAgent={selectedCliAgent}
-              onSelectCliAgent={onSelectCliAgent}
-              onOpenSettings={onOpenSettings}
-              disabled={isStreaming}
-            />
-
-            <button
-              type="button"
-              className={`agent-chat-input__icon-btn${webSearchEnabled ? " agent-chat-input__icon-btn--active" : ""}`}
-              onClick={() => onToggleWebSearch(!webSearchEnabled)}
-              title={
-                webSearchEnabled ? "Web search enabled" : "Enable web search"
-              }
-              aria-label="Toggle web search"
-            >
-              <Globe size={15} />
-            </button>
-
-            {isStreaming ? (
-              <button
-                type="button"
-                className="agent-chat-input__action-circle agent-chat-input__action-circle--stop"
-                onClick={onCancel}
-                aria-label="Stop generation"
-                title="Stop generation"
-              >
-                <Stop size={14} weight="fill" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="agent-chat-input__action-circle agent-chat-input__action-circle--send"
-                onClick={handleSubmit}
-                disabled={disabled || !input.trim()}
-                aria-label="Send message"
-                title="Send message"
-              >
-                <ArrowUp size={16} weight="bold" />
-              </button>
-            )}
-          </div>
-        </div>
+        <AgentChatFooter
+          fileInputRef={fileInputRef}
+          isCapabilitiesOpen={isCapabilitiesOpen}
+          setIsCapabilitiesOpen={setIsCapabilitiesOpen}
+          shortcuts={shortcuts}
+          onSelectCapability={(preset) => setInput(preset)}
+          autoApply={autoApply}
+          onToggleAutoApply={onToggleAutoApply}
+          currentModel={currentModel}
+          currentProvider={currentProvider}
+          onSelectModel={onSelectModel}
+          selectedCliAgent={selectedCliAgent}
+          onSelectCliAgent={onSelectCliAgent}
+          onOpenSettings={onOpenSettings}
+          webSearchEnabled={webSearchEnabled}
+          onToggleWebSearch={onToggleWebSearch}
+          isStreaming={isStreaming}
+          onCancel={onCancel}
+          onSubmit={handleSubmit}
+          sendDisabled={
+            disabled ||
+            (!input.trim() && attachments.length === 0 && mentions.length === 0)
+          }
+        />
       </div>
     </div>
   );

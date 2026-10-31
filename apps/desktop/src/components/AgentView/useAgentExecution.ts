@@ -21,11 +21,18 @@ import {
   appendAssistantChunk,
   finalizeAssistantMessage,
   executeCliAgentSession,
+  prepareUserMessage,
+  findPriorUserPrompt,
+  findMessageSlice,
 } from "./agentExecutionHelpers.js";
 import { runAgentStepLoop } from "./agentStepLoop.js";
 import { useCliAgentExecution } from "./useCliAgentExecution.js";
-import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes.js";
-import type { ChatMessageItem, StagedChangeItem, ChatAttachmentItem } from "./agentTypes.js";
+import type {
+  ChatMessageItem,
+  StagedChangeItem,
+  ChatAttachmentItem,
+  MentionItem,
+} from "./agentTypes.js";
 
 export interface UseAgentExecutionOptions {
   providerId?: AIProviderId;
@@ -48,25 +55,30 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (options?.autoApply !== undefined) {
-      setAutoApply(options.autoApply);
-    }
+    if (options?.autoApply !== undefined) setAutoApply(options.autoApply);
   }, [options?.autoApply]);
 
   const inspectionBackend = useRef(createDesktopInspectionBackend()).current;
   const mutationBackend = useRef(createDesktopMutationBackend()).current;
   const webSearchBackend = useRef(createDesktopWebSearchBackend()).current;
-
   const ledgerMethods = useAgentLedger(mutationBackend, setStagedChanges);
   const { handleApplyChange, handleApplyAllChanges } = ledgerMethods;
   const { cliSession, runCliPrompt, cancelActiveCliSession } =
     useCliAgentExecution();
 
   const sendMessage = useCallback(
-    async (promptText: string, attachments?: ChatAttachmentItem[]) => {
-      const userMsg: ChatMessageItem = {
-        id: `msg_u_${Date.now()}`, role: "user", content: promptText, attachments, timestamp: Date.now(),
-      };
+    async (
+      promptText: string,
+      attachments?: ChatAttachmentItem[],
+      mentions?: MentionItem[],
+    ) => {
+      const state = useWorkspaceStore.getState();
+      const { userMsg, promptWithContext } = await prepareUserMessage(
+        promptText,
+        attachments,
+        mentions,
+        state.allNotePaths,
+      );
       const nextMessages = [...messages, userMsg];
       setMessages(nextMessages);
       abortRef.current = new AbortController();
@@ -74,11 +86,10 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
       try {
         if (options?.selectedCliAgent) {
-          const vault =
-            options.vaultPath || useWorkspaceStore.getState().vaultPath || "";
+          const vault = options.vaultPath || state.vaultPath || "";
           await executeCliAgentSession(
             options.selectedCliAgent,
-            promptText,
+            promptWithContext,
             vault,
             runCliPrompt,
             setMessages,
@@ -139,10 +150,14 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           promptText,
           abortSignal: abortRef.current?.signal,
           onAssistantChunk: (chunk: string) => {
-            setMessages((prev) => appendAssistantChunk(prev, assistantMsgId, chunk));
+            setMessages((prev) =>
+              appendAssistantChunk(prev, assistantMsgId, chunk),
+            );
           },
           onAssistantMessage: (msg) => {
-            setMessages((prev) => finalizeAssistantMessage(prev, assistantMsgId, msg));
+            setMessages((prev) =>
+              finalizeAssistantMessage(prev, assistantMsgId, msg),
+            );
           },
           stepContext: {
             webSearchEnabled: options?.webSearchEnabled,
@@ -196,15 +211,15 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
   }, []);
 
   const handleBatchApply = useCallback(async () => {
-    const pending = stagedChanges.filter((i) => i.status === "pending");
-    await handleApplyAllChanges(pending);
+    await handleApplyAllChanges(
+      stagedChanges.filter((i) => i.status === "pending"),
+    );
   }, [handleApplyAllChanges, stagedChanges]);
 
   const handleEditMessage = useCallback(
     async (messageId: string, newText: string) => {
-      const idx = messages.findIndex((m) => m.id === messageId);
-      if (idx === -1) return;
-      const prior = messages.slice(0, idx);
+      const prior = findMessageSlice(messages, messageId);
+      if (!prior) return;
       setMessages(prior);
       await sendMessage(newText);
     },
@@ -213,15 +228,10 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
   const handleRegenerateMessage = useCallback(
     async (assistantMsgId: string) => {
-      const idx = messages.findIndex((m) => m.id === assistantMsgId);
-      if (idx === -1) return;
-      const userMsg = [...messages.slice(0, idx)]
-        .reverse()
-        .find((m) => m.role === "user");
-      if (!userMsg) return;
-      const prior = messages.slice(0, idx);
-      setMessages(prior);
-      await sendMessage(userMsg.content);
+      const match = findPriorUserPrompt(messages, assistantMsgId);
+      if (!match?.prompt) return;
+      setMessages(match.prior);
+      await sendMessage(match.prompt);
     },
     [messages, sendMessage],
   );

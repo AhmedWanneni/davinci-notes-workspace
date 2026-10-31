@@ -3,6 +3,7 @@ import { AgentMarkdownContent } from "./AgentMarkdownContent";
 import { AgentToolCard } from "./AgentToolCard";
 import { AgentMessageActions } from "./AgentMessageActions";
 import { AgentImageViewerModal } from "./AgentImageViewerModal";
+import { AgentMentionChip } from "./AgentMentionChip";
 import type { ChatMessageItem, ChatAttachmentItem } from "./agentTypes";
 
 export interface AgentMessageBubbleProps {
@@ -30,6 +31,14 @@ export function AgentMessageBubble({
       data-streaming={message.isStreaming || undefined}
     >
       <div className="agent-message__row">
+        {message.mentions && message.mentions.length > 0 && (
+          <div className="agent-message__mentions">
+            {message.mentions.map((m) => (
+              <AgentMentionChip key={m.id} mention={m} />
+            ))}
+          </div>
+        )}
+
         {message.attachments && message.attachments.length > 0 && (
           <div className="agent-message__attachments">
             {message.attachments.map((att) => (
