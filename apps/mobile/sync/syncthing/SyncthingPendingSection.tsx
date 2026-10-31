@@ -5,7 +5,7 @@ import {
   type SyncthingPendingDevice,
   type SyncthingPendingFolder,
 } from "@app/syncthing-api";
-import { Directory } from "expo-file-system";
+import { pickDirectory } from "../../vault/fs/vaultStorage";
 import { Badge, Button, Text } from "../../components/primitives";
 import { checkFolderAccess } from "./folderAccessChecker";
 
@@ -17,6 +17,13 @@ export interface SyncthingPendingSectionProps {
   onDismissDevice: (id: string) => Promise<void>;
   onAcceptFolder: (folderId: string, targetPath: string) => Promise<void>;
   onDismissFolder: (folderId: string) => Promise<void>;
+}
+
+interface AccessState {
+  checking: boolean;
+  accessible: boolean;
+  isNonEmpty?: boolean;
+  error?: string;
 }
 
 export const SyncthingPendingSection: React.FC<
@@ -31,12 +38,10 @@ export const SyncthingPendingSection: React.FC<
   onDismissFolder,
 }) => {
   const [targetPath, setTargetPath] = useState(defaultTargetPath);
-  const [accessState, setAccessState] = useState<{
-    checking: boolean;
-    accessible: boolean;
-    isNonEmpty?: boolean;
-    error?: string;
-  }>({ checking: false, accessible: true });
+  const [accessState, setAccessState] = useState<AccessState>({
+    checking: false,
+    accessible: true,
+  });
   const [busyId, setBusyId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -67,7 +72,7 @@ export const SyncthingPendingSection: React.FC<
 
   const handlePickDirectory = async () => {
     try {
-      const picked = await Directory.pickDirectoryAsync();
+      const picked = await pickDirectory();
       if (picked?.uri) {
         setTargetPath(picked.uri);
       }
@@ -127,11 +132,7 @@ export const SyncthingPendingSection: React.FC<
                   size="sm"
                   onPress={async () => {
                     setBusyId(dev.deviceId);
-                    try {
-                      await onAcceptDevice(dev.deviceId);
-                    } finally {
-                      setBusyId(null);
-                    }
+                    await onAcceptDevice(dev.deviceId).finally(() => setBusyId(null));
                   }}
                   disabled={busyId === dev.deviceId}
                   className="flex-1"
@@ -228,20 +229,12 @@ export const SyncthingPendingSection: React.FC<
                   onPress={async () => {
                     if (!accessState.accessible || !targetPath) return;
                     setBusyId(folder.folderId);
-                    await onAcceptFolder(folder.folderId, targetPath).finally(
-                      () => setBusyId(null),
-                    );
+                    await onAcceptFolder(folder.folderId, targetPath).finally(() => setBusyId(null));
                   }}
-                  disabled={
-                    !accessState.accessible ||
-                    !targetPath ||
-                    busyId === folder.folderId
-                  }
+                  disabled={!accessState.accessible || !targetPath || busyId === folder.folderId}
                   className="flex-1"
                 >
-                  {busyId === folder.folderId
-                    ? "Accepting..."
-                    : "Accept Folder"}
+                  {busyId === folder.folderId ? "Accepting..." : "Accept Folder"}
                 </Button>
               </View>
             </View>
