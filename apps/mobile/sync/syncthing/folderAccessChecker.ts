@@ -18,16 +18,27 @@ export async function checkFolderAccess(
     return { accessible: false, error: "Target path cannot be empty" };
   }
 
+  // Syncthing runs as a native background daemon that requires standard
+  // POSIX filesystem paths (file://). Android SAF document URIs (content://)
+  // cannot be accessed by the Syncthing sync engine.
+  if (clean.startsWith("content://")) {
+    return {
+      accessible: false,
+      error:
+        "Syncthing requires app sandbox storage. External Document Picker folders (content://) cannot be accessed directly by Syncthing.",
+    };
+  }
+
   try {
     const dir = new Directory(clean);
     if (!dir.exists) {
       try {
-        dir.create({ intermediates: true });
-      } catch {
+        dir.create({ intermediates: true, idempotent: true });
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
         return {
           accessible: false,
-          error:
-            "Cannot create target directory: permission denied. Select a folder using Document Picker or grant storage access.",
+          error: `Cannot create target directory: ${msg}`,
         };
       }
     }
@@ -36,11 +47,11 @@ export async function checkFolderAccess(
     let entries: string[] = [];
     try {
       entries = dir.list().map((e) => e.name);
-    } catch {
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
       return {
         accessible: false,
-        error:
-          "Cannot list folder contents. DaVinci Notes cannot read this path (SAF grant required).",
+        error: `Cannot list folder contents: ${msg}`,
       };
     }
 
@@ -54,23 +65,32 @@ export async function checkFolderAccess(
     );
     const isNonEmpty = significantFiles.length > 0;
 
-    // Verify write access with atomic probe
+    // Verify write access with atomic probe (must await async write in Expo SDK 58)
     const probe = new File(dir, ".davinci_access_probe.tmp");
     try {
-      probe.write("probe");
+      await probe.write("probe");
       if (!probe.exists) {
         return {
           accessible: false,
-          error: "Directory is read-only. DaVinci Notes requires write permission.",
+          error:
+            "Directory is read-only. DaVinci Notes requires write permission.",
         };
       }
-      probe.delete();
-    } catch {
+    } catch (writeErr: unknown) {
+      const msg =
+        writeErr instanceof Error ? writeErr.message : String(writeErr);
       return {
         accessible: false,
-        error:
-          "Target directory is not writable by DaVinci Notes. Re-pick using SAF or choose an accessible folder.",
+        error: `Target directory is not writable: ${msg}`,
       };
+    } finally {
+      try {
+        if (probe.exists) {
+          probe.delete();
+        }
+      } catch {
+        // probe cleanup
+      }
     }
 
     return { accessible: true, isNonEmpty };

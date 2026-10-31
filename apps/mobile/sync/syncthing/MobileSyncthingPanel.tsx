@@ -114,22 +114,22 @@ export const MobileSyncthingPanel: React.FC<MobileSyncthingPanelProps> = ({
         </View>
       ) : null}
 
-      {status === "running" && (
+      {status === "running" ? (
         <SyncthingPairedDevicesSection
           devices={configuredDevices}
           onRemoveDevice={removeDevice}
         />
-      )}
+      ) : null}
 
-      {status === "running" && (
+      {status === "running" ? (
         <SyncthingSharedVaultsSection
           vaults={sharedVaults}
           onOpenVault={handleOpenVault}
           onUnshareVault={unshareFolder}
         />
-      )}
+      ) : null}
 
-      {status === "running" && (
+      {status === "running" ? (
         <SyncthingPendingSection
           pendingDevices={pendingDevices}
           pendingFolders={pendingFolders}
@@ -139,7 +139,7 @@ export const MobileSyncthingPanel: React.FC<MobileSyncthingPanelProps> = ({
           onAcceptFolder={acceptFolder}
           onDismissFolder={dismissFolder}
         />
-      )}
+      ) : null}
 
       {status === "running" && deviceId ? (
         <SyncthingDeviceIdCard
@@ -200,6 +200,7 @@ export const MobileSyncthingPanel: React.FC<MobileSyncthingPanelProps> = ({
         status={status}
         hasSavedKey={hasSavedKey}
         defaultVaultPath={defaultVaultPath}
+        onVaultSynced={handleOpenVault}
         onSaveKey={saveKey}
         onRefresh={refresh}
         onClose={() => setScanToSyncVisible(false)}

@@ -13,8 +13,10 @@ import * as client from "./mobileSyncthingClient";
 
 describe("mobileSyncthingPairing", () => {
   const apiKey = "test-api-key";
-  const myDeviceId = "C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE";
-  const remoteDeviceId = "ABCDEFG-1234567-ABCDEFG-1234567-ABCDEFG-1234567-ABCDEFG-1234567";
+  const myDeviceId =
+    "C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE";
+  const remoteDeviceId =
+    "ABCDEFG-1234567-ABCDEFG-1234567-ABCDEFG-1234567-ABCDEFG-1234567";
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -38,7 +40,8 @@ describe("mobileSyncthingPairing", () => {
   });
 
   it("adds valid remote device successfully", async () => {
-    global.fetch = vi.fn()
+    global.fetch = vi
+      .fn()
       .mockResolvedValueOnce({
         ok: true,
         json: async () => [],
@@ -74,7 +77,9 @@ describe("mobileSyncthingPairing", () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: true });
     await mobileSyncthingDismissPendingDevice(apiKey, remoteDeviceId);
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining(`/rest/cluster/pending/devices?device=${encodeURIComponent(remoteDeviceId)}`),
+      expect.stringContaining(
+        `/rest/cluster/pending/devices?device=${encodeURIComponent(remoteDeviceId)}`,
+      ),
       expect.objectContaining({ method: "DELETE" }),
     );
   });
@@ -121,7 +126,8 @@ describe("mobileSyncthingPairing", () => {
   });
 
   it("accepts folder with target path and sendreceive mode", async () => {
-    global.fetch = vi.fn()
+    global.fetch = vi
+      .fn()
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -136,12 +142,16 @@ describe("mobileSyncthingPairing", () => {
         text: async () => "",
       });
 
-    await mobileSyncthingAcceptFolder(apiKey, "davinci-vault-1", "/storage/emulated/0/Vault");
+    await mobileSyncthingAcceptFolder(
+      apiKey,
+      "davinci-vault-1",
+      "file:///storage/emulated/0/My%20Vault",
+    );
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining("/rest/config/folders"),
       expect.objectContaining({
         method: "POST",
-        body: expect.stringContaining('"path":"/storage/emulated/0/Vault"'),
+        body: expect.stringContaining('"path":"/storage/emulated/0/My Vault"'),
       }),
     );
   });
@@ -188,7 +198,9 @@ describe("mobileSyncthingPairing", () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: true });
     await mobileSyncthingDismissPendingFolder(apiKey, "folder-123");
     expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining("/rest/cluster/pending/folders?folder=folder-123"),
+      expect.stringContaining(
+        "/rest/cluster/pending/folders?folder=folder-123",
+      ),
       expect.objectContaining({ method: "DELETE" }),
     );
   });

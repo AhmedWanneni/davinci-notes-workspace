@@ -16,6 +16,14 @@ describe("folderAccessChecker", () => {
     expect(res.error).toBe("Target path cannot be empty");
   });
 
+  it("returns error for content:// SAF uris", async () => {
+    const res = await checkFolderAccess(
+      "content://com.android.externalstorage.documents/tree/primary",
+    );
+    expect(res.accessible).toBe(false);
+    expect(res.error).toContain("Syncthing requires app sandbox storage");
+  });
+
   it("verifies accessible empty directory", async () => {
     const dir = new Directory(testDirUri);
     dir.create({ intermediates: true });
