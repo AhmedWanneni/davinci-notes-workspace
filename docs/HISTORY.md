@@ -2,6 +2,26 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: Mobile Syncthing Legacy FileSystem Compatibility (Hermes Directory Crash Fix)
+
+- **Root Cause Analysis (`ReferenceError: Property 'Directory' doesn't exist`)**:
+  - In React Native running under the Hermes JS engine in Expo Go SDK 58, the class-based JSI `Directory` constructor from next-generation `expo-file-system` throws reference errors when dynamically evaluated or constructed.
+  - While static types exist, Hermes cannot resolve `ExpoFileSystem.FileSystemDirectory` at runtime, causing screens attempting to instantiate `new Directory(...)` (such as `ScanToSyncConfirmSheet.tsx`, `folderAccessChecker.ts`, and `SyncthingPendingSection.tsx`) to crash immediately upon scanning QR codes.
+- **Legacy FileSystem Implementation (`apps/mobile/sync/syncthing/`)**:
+  - Converted `folderAccessChecker.ts` to standard `expo-file-system/legacy` methods (`getInfoAsync`, `makeDirectoryAsync`, `readDirectoryAsync`, `writeAsStringAsync`, `deleteAsync`), preserving write probe validation, error reporting, and Android SAF rejection.
+  - Converted `ScanToSyncConfirmSheet.tsx` to resolve app sandbox targets using `FileSystem.documentDirectory` instead of `new Directory(Paths.document, ...)`.
+  - Replaced `Directory.pickDirectoryAsync()` in `SyncthingPendingSection.tsx` with standard `pickDirectory()` from `vaultStorage.ts`.
+  - Compacted `SyncthingPendingSection.tsx` to 248 lines to adhere strictly to the 250-line rule in `AGENTS.md`.
+- **Vitest Mocking & Unit Tests**:
+  - Aliased `"expo-file-system/legacy"` to `tests/mocks/expoFileSystemMock.ts` in `apps/mobile/vitest.config.ts`.
+  - Updated `folderAccessChecker.test.ts` to verify legacy FileSystem compatibility.
+  - All 14 Syncthing test suites (67 tests) passing cleanly.
+- **Verification & Git Operations**:
+  - Merged PR #36 into `main` and synchronized workspace branch `feat/syncthing-devices-and-ux-polish`.
+  - Staged and committed synced peer vault notes into `packages/indexer/fixtures/vault`.
+
+---
+
 ### 2026-10-30: Syncthing Shared Vaults Visibility & 1-Click Vault Switching
 
 - **Shared Vaults & Folder Access Backend (`apps/desktop/src-tauri/src/`)**:
