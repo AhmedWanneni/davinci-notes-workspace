@@ -674,9 +674,9 @@
     "semantic_hash": "f1e07668b5555b0da68ca6574744e4be"
   },
   "apps/desktop/src-tauri/src/lib.rs": {
-    "mtime": 1793451563.7774415,
-    "seen": 1793452225.9303281,
-    "ast_hash": "d24d46fac5af5497faada4e3f4ff6706",
+    "mtime": 1793490912.1249273,
+    "seen": 1793491145.494354,
+    "ast_hash": "0f409fef515656a57dd9755b4b979e5f",
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/macos_panel.rs": {
@@ -926,9 +926,9 @@
     "semantic_hash": "ed9013d0fc12919428d087a297739598"
   },
   "apps/desktop/src-tauri/src/tray.rs": {
-    "mtime": 1793450522.2852046,
-    "seen": 1793452225.930379,
-    "ast_hash": "4478bdaeb2b44bab1cdcbdaeb0ff2e08",
+    "mtime": 1793491063.5400467,
+    "seen": 1793491145.496471,
+    "ast_hash": "756e6522402b789c799254d4ccff2c4b",
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/src/tray_commands.rs": {
@@ -1634,9 +1634,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentMessageBubble.tsx": {
-    "mtime": 1793489692.1231713,
-    "seen": 1793489840.764082,
-    "ast_hash": "55e7a06a199e3b0c1662bd4604cc04fa",
+    "mtime": 1793490898.293247,
+    "seen": 1793491145.503135,
+    "ast_hash": "eb25e1508d5f6f87a0524bac056930eb",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentMissedBanner.tsx": {
@@ -1766,9 +1766,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/agentTypes.ts": {
-    "mtime": 1793489440.5297794,
-    "seen": 1793489840.765721,
-    "ast_hash": "e0f68e809000676a405c88cca3aa6f75",
+    "mtime": 1793490895.1780002,
+    "seen": 1793491145.504981,
+    "ast_hash": "1905a1db633dd2b3d20556ed78a88783",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/desktopAgentBridge.ts": {
@@ -13265,9 +13265,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793488853.4692454,
-    "seen": 1793489421.9965491,
-    "ast_hash": "08dc4f33db7193c3ea05d3f2c83f3aa3",
+    "mtime": 1793491107.5388808,
+    "seen": 1793491145.5984771,
+    "ast_hash": "0d39011e32c53448c9ca5f668186fa3a",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13343,9 +13343,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793488859.8247013,
-    "seen": 1793489421.9970229,
-    "ast_hash": "32f4782f0cda9defafd0269d5e59d81e",
+    "mtime": 1793491114.9857094,
+    "seen": 1793491145.599044,
+    "ast_hash": "be5caa1a12d9d505604ca505a5fee73a",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -16523,9 +16523,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentPhase1LayoutComposer.test.tsx": {
-    "mtime": 1793487516.80445,
-    "seen": 1793487590.440876,
-    "ast_hash": "8b0964d0f396bb4fd55ff5bf333318e5",
+    "mtime": 1793490986.086167,
+    "seen": 1793491145.503407,
+    "ast_hash": "cd50770cde64dfb1114a27dcd2a42a36",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentScrollBottomBtn.stories.tsx": {
@@ -16553,9 +16553,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/useChatScroll.ts": {
-    "mtime": 1793487335.6891317,
-    "seen": 1793487590.442218,
-    "ast_hash": "7216b0145fdbd960505ea56b4584223d",
+    "mtime": 1793491007.742124,
+    "seen": 1793491145.505874,
+    "ast_hash": "975e435187cd2ec17787f4de757512cb",
     "semantic_hash": ""
   },
   "ai-chat-ui-feature-plan.md": {
@@ -16643,9 +16643,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentPhase4MultimodalImages.test.tsx": {
-    "mtime": 1793488723.4221253,
-    "seen": 1793488839.718286,
-    "ast_hash": "8da16e2b31ff015a006ab538c840e578",
+    "mtime": 1793490999.3368618,
+    "seen": 1793491145.503516,
+    "ast_hash": "4f386c43a7904f814b2aa5eb0ee9dc48",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/imageAttachmentUtils.ts": {
@@ -16685,9 +16685,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentMessageList.tsx": {
-    "mtime": 1793489703.1692843,
-    "seen": 1793489840.764085,
-    "ast_hash": "6a8ec69ba27c4c6a8e71ca3aeabc1b58",
+    "mtime": 1793490904.7387068,
+    "seen": 1793491145.503137,
+    "ast_hash": "25be3c097a560e4b94366b898dbf6c9c",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentPhase6VirtualizationAndPerf.test.tsx": {

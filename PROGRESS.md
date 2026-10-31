@@ -4,7 +4,32 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Chat Overhaul Phase 5 & Phase 6: Rich Context Mentions, Virtualization & Performance Hardening
+## Last Session — Fix Desktop Window Startup Visibility & TypeScript Component Types
+
+**Scope:** Resolve desktop application UI not opening / appearing upon launch:
+1. **Window Startup Visibility & macOS Activation**: Fix `apps/desktop/src-tauri/src/lib.rs` and `apps/desktop/src-tauri/src/tray.rs` where the main window was created with `decorations(false).transparent(true)` but was never explicitly brought forward, unminimized, or focused on launch.
+2. **Component Type Hardening & Lint Cleanups**: Fix type mismatches in `AgentMessageBubble.tsx` (guard actions role for user/assistant), `AgentMessageList.tsx` (`vaultName` fallback, `cliSession.status`), `agentTypes.ts` (exporting tool types, adding `toolCallId` and `name` properties to `ChatMessageItem`), and ESLint cleanup in tests and `useChatScroll.ts`.
+
+**What was done:**
+1. **Desktop Window Activation & Focus on Launch (`lib.rs`, `tray.rs`)**:
+   - In `apps/desktop/src-tauri/src/lib.rs`, captured `let main_window = window.build()?;` and invoked `tray::show_main_window(&main_window);` during setup.
+   - In `apps/desktop/src-tauri/src/tray.rs`, enhanced `show_main_window` to call `[NSApp activateIgnoringOtherApps:YES]` via `objc2_app_kit::NSApplication` when setting `ActivationPolicy::Regular`, ensuring the window is immediately foregrounded and visible instead of quietly staying in background/tray mode.
+2. **AgentView TypeScript & Lint Fixes (`AgentMessageBubble.tsx`, `AgentMessageList.tsx`, `agentTypes.ts`, tests)**:
+   - Exported `AgentToolCall` and `AgentToolResult` from `agentTypes.ts` and extended `ChatMessageItem` with `toolCallId` and `name`.
+   - Constrained `AgentMessageActions` rendering to `message.role === "user" || message.role === "assistant"`.
+   - Aligned `AgentMessageList`'s `cliSession.status` with `CliSessionState` (`"running" | "done" | "error"`).
+   - Removed unused test variables and unnecessary eslint disable directives.
+3. **Verification**:
+   - Verified with macOS AppleScript that `davinci-notes-desktop` immediately launches with `count of windows: 1`, `name: Sophia`, `visible: true`, `frontmost: true`.
+   - All 30 test files and 93 tests in `src/components/AgentView` pass.
+   - All ESLint checks on `src/components/AgentView` pass with 0 errors.
+
+**Next up:**
+- Ready for manual review and user acceptance on `feat/cli-agent-integration`.
+
+---
+
+## Prior Session — AI Chat Overhaul Phase 5 & Phase 6: Rich Context Mentions, Virtualization & Performance Hardening
 
 **Scope:** Complete the remaining phases (Phase 5 & Phase 6) of `ai-chat-ui-feature-plan.md`:
 1. **Phase 5: Rich Context Mentions Pipeline**: Interactive mention chips in composer and message bubbles (`AgentMentionChip.tsx`), fuzzy search across vault files and folders using `fuzzysort`, `@current` active note binding, token budgeting (24K token cap per note, 32K per folder outline), XML context attachments serialization (`agentContextAssembler.ts`), and extracted composer footer (`AgentChatFooter.tsx`).

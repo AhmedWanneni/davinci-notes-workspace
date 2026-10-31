@@ -78,21 +78,23 @@ function AgentMessageBubbleComponent({
           </div>
         )}
 
-        <AgentMessageActions
-          role={message.role}
-          content={message.content}
-          isStreaming={message.isStreaming}
-          onEdit={
-            onEditMessage
-              ? () => onEditMessage(message.id, message.content)
-              : undefined
-          }
-          onRegenerate={
-            onRegenerateMessage
-              ? () => onRegenerateMessage(message.id)
-              : undefined
-          }
-        />
+        {(message.role === "user" || message.role === "assistant") && (
+          <AgentMessageActions
+            role={message.role}
+            content={message.content}
+            isStreaming={message.isStreaming}
+            onEdit={
+              onEditMessage
+                ? () => onEditMessage(message.id, message.content)
+                : undefined
+            }
+            onRegenerate={
+              onRegenerateMessage
+                ? () => onRegenerateMessage(message.id)
+                : undefined
+            }
+          />
+        )}
       </div>
 
       {message.toolCalls && message.toolCalls.length > 0 && (

@@ -2,6 +2,21 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-01: Fix Desktop Window Startup Visibility & TypeScript Component Types
+
+- **Desktop Window Activation & Foregrounding on Launch (`lib.rs`, `tray.rs`)**:
+  - Captured main window builder result in `setup()` and explicitly invoked `tray::show_main_window(&main_window)`.
+  - In `show_main_window`, invoked `[NSApp activateIgnoringOtherApps:YES]` alongside `ActivationPolicy::Regular` to guarantee macOS brings the window to the front rather than launching silently into background tray accessory mode.
+- **AgentView TypeScript & Lint Fixes**:
+  - Exported `AgentToolCall` and `AgentToolResult` in `agentTypes.ts` and added `toolCallId` / `name` to `ChatMessageItem`.
+  - Constrained `AgentMessageActions` role prop to `"user" | "assistant"`.
+  - Aligned `AgentMessageList`'s `cliSession.status` with `CliSessionState` (`"running" | "done" | "error"`).
+- **Verification**:
+  - Confirmed via macOS System Events that `davinci-notes-desktop` immediately launches with `count of windows: 1`, `title: Sophia`, `visible: true`, `frontmost: true`.
+  - All 30 test files and 93 tests in `AgentView` pass. All ESLint checks pass with 0 errors.
+
+---
+
 ### 2026-11-01: AI Chat Overhaul Phase 5 & Phase 6: Rich Context Mentions, Virtualization & Performance Hardening
 
 - **Rich Context Mentions (`AgentMentionChip.tsx`, `AgentMentionMenu.tsx`, `agentContextAssembler.ts`, `useAgentMention.ts`)**:

@@ -16,7 +16,7 @@ export interface AgentMessageListProps {
   onRegenerateMessage: (id: string) => void;
   cliSession?: {
     agentName: string;
-    status: "idle" | "running" | "success" | "error";
+    status: "running" | "done" | "error";
     logs: string[];
   } | null;
   cancelActiveCliSession?: () => Promise<void>;
@@ -46,7 +46,7 @@ export function AgentMessageList({
     return (
       <div className="agent-view__messages" ref={scrollRef}>
         <AgentStarterPrompts
-          vaultName={vaultName}
+          vaultName={vaultName || ""}
           onSelectPrompt={onSendMessage}
         />
         {cliSession && (

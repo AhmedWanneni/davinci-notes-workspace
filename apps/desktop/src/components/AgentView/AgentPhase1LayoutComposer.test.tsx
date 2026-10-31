@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AgentChatInput } from "./AgentChatInput";
 import { AgentScrollBottomBtn } from "./AgentScrollBottomBtn";
@@ -22,7 +22,9 @@ describe("Phase 1: Claude-Style Layout & Composer Verification", () => {
       />,
     );
 
-    const textarea = screen.getByLabelText("Agent prompt input") as HTMLTextAreaElement;
+    const textarea = screen.getByLabelText(
+      "Agent prompt input",
+    ) as HTMLTextAreaElement;
     expect(textarea).toBeTruthy();
 
     // Verify initial rows is 1
@@ -54,7 +56,9 @@ describe("Phase 1: Claude-Style Layout & Composer Verification", () => {
 
     // Plain Enter DOES send
     fireEvent.keyDown(textarea, { key: "Enter", shiftKey: false });
-    expect(onSend).toHaveBeenCalledWith("Line 1\nLine 2\nLine 3\n...more lines");
+    expect(onSend).toHaveBeenCalledWith(
+      "Line 1\nLine 2\nLine 3\n...more lines",
+    );
   });
 
   it("Requirement 4 & 5: Scroll sentinel button visibility and jump to latest trigger", () => {
@@ -63,7 +67,9 @@ describe("Phase 1: Claude-Style Layout & Composer Verification", () => {
       <AgentScrollBottomBtn visible={false} onClick={scrollToBottom} />,
     );
 
-    expect(screen.queryByRole("button", { name: /jump to latest/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: /jump to latest/i }),
+    ).toBeNull();
 
     // User scrolled away -> button becomes visible
     rerender(<AgentScrollBottomBtn visible={true} onClick={scrollToBottom} />);

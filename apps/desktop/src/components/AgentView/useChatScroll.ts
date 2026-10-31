@@ -1,4 +1,10 @@
-import { useState, useEffect, useCallback, useRef, type RefObject } from "react";
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  type RefObject,
+} from "react";
 
 export interface UseChatScrollOptions {
   threshold?: number;
@@ -75,7 +81,7 @@ export function useChatScroll(
       });
       return () => cancelAnimationFrame(frameId);
     }
-  }, dependencies); // eslint-disable-line react-hooks/exhaustive-deps
+  }, dependencies);
 
   return {
     isAtBottom,

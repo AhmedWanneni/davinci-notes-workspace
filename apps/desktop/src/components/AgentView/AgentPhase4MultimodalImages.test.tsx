@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AgentImageThumbnail } from "./AgentImageThumbnail";
 import { AgentImageViewerModal } from "./AgentImageViewerModal";
@@ -63,7 +63,9 @@ describe("Phase 4: Multimodal Image Attachments & Vision Pipeline", () => {
     expect(screen.getByText("architecture.png")).toBeTruthy();
 
     // Close button
-    const closeBtn = screen.getByRole("button", { name: /close image viewer/i });
+    const closeBtn = screen.getByRole("button", {
+      name: /close image viewer/i,
+    });
     fireEvent.click(closeBtn);
     expect(onClose).toHaveBeenCalledTimes(1);
 
@@ -93,12 +95,14 @@ describe("Phase 4: Multimodal Image Attachments & Vision Pipeline", () => {
     );
 
     // Initially no attachments -> no warning
-    expect(screen.queryByText(/may not support image understanding/i)).toBeNull();
+    expect(
+      screen.queryByText(/may not support image understanding/i),
+    ).toBeNull();
   });
 
   it("Requirement 5: GeminiTransport sends inlineData for image attachments", async () => {
-    let capturedBody: any = null;
-    const mockFetch = vi.fn(async (url: string, init?: RequestInit) => {
+    let capturedBody: Record<string, unknown> | null = null;
+    const mockFetch = vi.fn(async (_url: string, init?: RequestInit) => {
       capturedBody = JSON.parse(init?.body as string);
       return new Response(
         JSON.stringify({
@@ -115,7 +119,7 @@ describe("Phase 4: Multimodal Image Attachments & Vision Pipeline", () => {
 
     const transport = new GeminiTransport({
       apiKey: "test-key",
-      fetchImpl: mockFetch as any,
+      fetchImpl: mockFetch as unknown as typeof fetch,
     });
 
     await transport.complete({

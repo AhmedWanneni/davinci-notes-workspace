@@ -1,4 +1,4 @@
-import type { AgentToolCall, AgentToolResult } from "@app/ai-api";
+export type { AgentToolCall, AgentToolResult } from "@app/ai-api";
 import type { MutationPlanResult, AgentShortcut } from "@app/ai-agent";
 import type { AIProviderId } from "../../ai/AISubsystem";
 
@@ -53,6 +53,8 @@ export interface ChatMessageItem {
   mentionsContext?: string;
   toolCalls?: AgentToolCall[];
   toolResults?: AgentToolResult[];
+  toolCallId?: string;
+  name?: string;
   timestamp: number;
   isStreaming?: boolean;
 }
