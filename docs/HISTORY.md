@@ -2,6 +2,27 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: AI Agent Dual Mode Controls & Global Settings Integration
+
+- **Dual-Mode Bottom Controls (`AgentModelSelect.tsx`)**:
+  - Transformed model selector dropdown into a segmented dual-mode selector allowing immediate switching between API models (Gemini, Ollama, OpenRouter) and Autonomous CLI Agents (`agy`, `claude`, `codex`, `opencode`).
+  - Active trigger displays `Model: <name>` or `Agent: <name>` with dedicated status badges.
+- **Settings Architecture & Unification**:
+  - Removed local drawer sidebar from `AgentView`; clicking the settings gear now opens the global app `SettingsDialog` directly to the `ai` tab.
+  - Added global `davinci-open-settings` event listener in `App.tsx` for cross-component navigation.
+  - Implemented `AIAgentSettingsSection.tsx` and embedded it into `AISettingsPanel.tsx` with toggles for Auto-apply Changes, Web Search, and Prompt Optimization, as well as the autonomous CLI agent detection cards.
+  - Dispatches `davinci-ai-state-changed` on preferences/agent updates to keep chat views in sync.
+- **Ergonomics & Polish**:
+  - Disabled auto-opening settings drawer on launch or unconfigured states.
+  - Cleaned up `AgentHeader.tsx` to provide always-accessible "+ New Chat" and history drawer triggers.
+- **Verification**:
+  - 20 test files passed (52 unit and component tests).
+  - ESLint 0 errors, public tokens audit 0 violations in all touched files.
+  - 250-line file cap preserved across all components.
+  - Updated codebase knowledge graph via `graphify update .`.
+
+---
+
 ### 2026-10-31: External Autonomous CLI Agent Integration (`agy`, `claude`, `codex`, `opencode`)
 
 - **Tauri Native Process Supervisor**:

@@ -4,33 +4,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — External Autonomous CLI Agent Integration (`agy`, `claude`, `codex`, `opencode`) for Desktop AI Agent View
+## Last Session — External Autonomous CLI Agent Integration & AI Settings Unification
 
-**Scope:** Allow users to use full autonomous CLI agents (`agy`, Anthropic `claude-code`, `codex`, `opencode`) directly from the desktop app's AI Agent chat view to execute real-world vault organization, restructuring, and roadmap generation.
+**Scope:** Provide dual-mode controls (Model vs Autonomous CLI Agent `agy`, `claude`, `codex`, `opencode`) in the AI Agent chat dock, eliminate local settings sidebars and automatic opening, unify agent preferences & CLI settings in the global Settings dialog (`ai` tab), and refine chat ergonomics with always-accessible "+ New Chat" and history drawer.
 
 **What was done:**
-1. **Tauri Rust Native Subprocess Supervisor**:
-   - Created `cli_agent_types.rs` defining supported agent IDs, catalog metadata, session status, and streaming events.
-   - Created `cli_agent_detector.rs` scanning system paths (`PATH`, `/opt/homebrew/bin`, `~/.local/bin`, `~/.cargo/bin`, `~/.npm-global/bin`) to detect installed CLI binaries and versions.
-   - Created `cli_agent_runner.rs` managing non-blocking asynchronous child processes (`tokio::process::Command` / stdio piping) running directly in the vault directory with user cancellation and line-by-line event categorization (`thought`, `action`, `text`, `error`).
-   - Created `cli_agent_commands.rs` exposing Tauri commands `cli_agent_detect`, `cli_agent_start`, and `cli_agent_cancel` (rejecting plugin runner callers via `command_auth`).
-   - Registered new commands in `apps/desktop/src-tauri/src/lib.rs`.
-2. **Frontend Desktop Integration & UI**:
-   - Created `cliAgentBridge.ts` providing typed IPC invocation and event subscription.
-   - Created `useCliAgentExecution.ts` managing session state, logs accumulation, and user abort.
-   - Created `AgentCliSection.tsx` for the settings panel displaying discovered CLI agents with `READY` vs `NOT FOUND` badges, version strings, and install commands.
-   - Created `AgentCliStatusCard.tsx` + `AgentCliStatusCard.module.scss` rendering real-time streaming agent thoughts, action logs, and a Stop button.
-   - Updated `useAgentExecution.ts`, `useAgentViewConfig.ts`, `AgentSettingsPanel.tsx`, and `AgentView.tsx` to seamlessly support switching between API models and external CLI agents.
-3. **Testing & Verification**:
-   - Wrote 3 Rust unit tests covering binary detection and serialization (`cargo test cli_agent` - 3 passed).
-   - Wrote Vitest unit and component tests for `cliAgentBridge.test.ts`, `AgentCliStatusCard.test.tsx`, and `AgentCliSection.test.tsx` (9 passed).
-   - Re-verified `AgentView.test.tsx` (5 passed).
-   - Enforced 250-line file cap, ESLint (0 errors), and Stylelint (0 errors).
+1. **Dual-Mode Bottom Controls (`AgentModelSelect.tsx`)**:
+   - Replaced single-model dropdown with segmented dual-mode selector allowing 1-click toggling between API models (Gemini, Ollama, OpenRouter) and Autonomous CLI Agents (`agy`, `claude`, `codex`, `opencode`).
+   - Trigger label dynamically indicates `Model: <name>` or `Agent: <name>`.
+   - Popover contains segmented selector tabs and direct link to global AI settings.
+2. **Global AI Settings Integration (`AIAgentSettingsSection.tsx` & `AISettingsPanel.tsx`)**:
+   - Removed local drawer sidebar from `AgentView`; clicking the settings gear now opens the global app `SettingsDialog` directly to the `ai` tab.
+   - Added `davinci-open-settings` event listener to `App.tsx` for seamless tab navigation from any UI trigger.
+   - Created `AIAgentSettingsSection.tsx` embedded in `AISettingsPanel.tsx`, exposing toggles for Auto-apply Changes, Web Search, and Prompt Optimization, alongside discovered system CLI agents with installation/readiness states.
+   - Dispatches `davinci-ai-state-changed` on changes so the Agent view refreshes automatically without requiring app restart.
+3. **Chat Ergonomics & Clean Interface**:
+   - Stopped settings from auto-opening on startup or unconfigured state (`useAgentViewConfig.ts`).
+   - Added prominent "+ New Chat" button in `AgentHeader.tsx` that instantly clears context and starts a fresh conversation.
+   - Kept conversation history drawer accessible at all times via history icon.
+4. **Verification & Quality**:
+   - 20 test files passed (52 tests passed in desktop AI & Agent suites).
+   - Strict 250-line file cap honored (`AgentView.tsx`: 245 lines, `AIAgentSettingsSection.tsx`: 138 lines).
+   - ESLint: 0 errors; Public tokens audit: 0 violations in all touched files.
    - Rebuilt knowledge graph via `graphify update .`.
 
 **Next up:**
 - Run live vault organization test with `agy` in an active test vault.
-- Add optional interactive permission dialog when CLI agent requests shell execution.
+- Add optional interactive confirmation dialog when CLI agent attempts destructive batch file moves or deletions.
 
 ---
 

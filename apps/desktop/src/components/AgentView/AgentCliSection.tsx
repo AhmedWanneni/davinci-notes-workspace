@@ -37,6 +37,11 @@ export function AgentCliSection({
     <section
       className="agent-settings-panel__section"
       data-testid="agent-cli-section"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "var(--space-2)",
+      }}
     >
       <div
         style={{
@@ -57,7 +62,7 @@ export function AgentCliSection({
               border: "none",
               cursor: "pointer",
               color: "var(--color-text-accent)",
-              fontSize: "var(--font-size-xs)",
+              fontSize: "var(--type-scale-xs)",
             }}
             onClick={() => onSelectCliAgent(null)}
           >
@@ -104,11 +109,11 @@ export function AgentCliSection({
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "var(--space-2) var(--space-3)",
-                  border: `var(--border-width-thin) solid ${isSelected ? "var(--color-border-accent)" : "var(--color-border-subtle)"}`,
+                  border: `var(--border-width-thin) solid ${isSelected ? "var(--color-border-focus)" : "var(--color-border-subtle)"}`,
                   backgroundColor: isSelected
-                    ? "var(--color-bg-tertiary)"
+                    ? "var(--color-bg-hover)"
                     : "var(--color-bg-secondary)",
-                  borderRadius: "var(--radius-sm)",
+                  borderRadius: "var(--border-radius-sm)",
                   cursor: agent.installed ? "pointer" : "default",
                   opacity: agent.installed ? 1 : 0.65,
                 }}
@@ -124,15 +129,15 @@ export function AgentCliSection({
                   <div>
                     <div
                       style={{
-                        fontSize: "var(--font-size-xs)",
-                        fontWeight: "var(--font-weight-medium)",
+                        fontSize: "var(--type-scale-xs)",
+                        fontWeight: "var(--type-weight-medium)",
                       }}
                     >
                       {agent.name}
                     </div>
                     <div
                       style={{
-                        fontSize: "var(--font-size-2xs)",
+                        fontSize: "var(--type-scale-xs)",
                         color: "var(--color-text-muted)",
                       }}
                     >
@@ -150,7 +155,7 @@ export function AgentCliSection({
                         display: "flex",
                         alignItems: "center",
                         gap: "4px",
-                        fontSize: "var(--font-size-2xs)",
+                        fontSize: "var(--type-scale-xs)",
                         color: "var(--color-text-success)",
                       }}
                     >
@@ -163,7 +168,7 @@ export function AgentCliSection({
                         display: "flex",
                         alignItems: "center",
                         gap: "4px",
-                        fontSize: "var(--font-size-2xs)",
+                        fontSize: "var(--type-scale-xs)",
                         color: "var(--color-text-muted)",
                       }}
                     >

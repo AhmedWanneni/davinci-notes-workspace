@@ -25,6 +25,8 @@ export interface AgentChatInputProps {
   currentProvider: AIProviderId;
   currentModel: string;
   onSelectModel: (model: string, provider: AIProviderId) => void;
+  selectedCliAgent?: string | null;
+  onSelectCliAgent?: (agentId: string | null) => void;
   webSearchEnabled: boolean;
   onToggleWebSearch: (enabled: boolean) => void;
   onOpenSettings: () => void;
@@ -43,6 +45,8 @@ export function AgentChatInput({
   currentProvider,
   currentModel,
   onSelectModel,
+  selectedCliAgent,
+  onSelectCliAgent,
   webSearchEnabled,
   onToggleWebSearch,
   onOpenSettings,
@@ -69,7 +73,10 @@ export function AgentChatInput({
     <div className="agent-chat-dock">
       {/* Context Chip Bar matching the screenshot */}
       <div className="agent-chat-dock__chips">
-        <div className="agent-chat-dock__chip" title={`Current Vault: ${vaultName}`}>
+        <div
+          className="agent-chat-dock__chip"
+          title={`Current Vault: ${vaultName}`}
+        >
           <Folder size={13} weight="bold" />
           <span>{vaultName}</span>
         </div>
@@ -87,10 +94,16 @@ export function AgentChatInput({
           type="button"
           className="agent-chat-dock__chip agent-chat-dock__chip--interactive"
           onClick={onOpenSettings}
-          title="AI Provider & Model"
+          title="AI Provider & Model / Agent Settings"
         >
           <Cpu size={13} weight="bold" />
-          <span>{currentProvider === "ollama" ? "Local Ollama" : currentModel || "AI Agent"}</span>
+          <span>
+            {selectedCliAgent
+              ? `Agent: ${selectedCliAgent}`
+              : currentProvider === "ollama"
+                ? "Local Ollama"
+                : currentModel || "AI Agent"}
+          </span>
         </button>
         <button
           type="button"
@@ -142,7 +155,9 @@ export function AgentChatInput({
               type="button"
               className={`agent-chat-input__approval-pill${autoApply ? " agent-chat-input__approval-pill--auto" : ""}`}
               onClick={() => onToggleAutoApply(!autoApply)}
-              aria-label={autoApply ? "Auto-applying changes" : "Asking for approval"}
+              aria-label={
+                autoApply ? "Auto-applying changes" : "Asking for approval"
+              }
               title="Click to toggle between Ask for Approval and Auto-apply"
             >
               {autoApply ? (
@@ -165,6 +180,8 @@ export function AgentChatInput({
               currentModel={currentModel}
               currentProvider={currentProvider}
               onSelectModel={onSelectModel}
+              selectedCliAgent={selectedCliAgent}
+              onSelectCliAgent={onSelectCliAgent}
               onOpenSettings={onOpenSettings}
               disabled={isStreaming}
             />
@@ -173,7 +190,9 @@ export function AgentChatInput({
               type="button"
               className={`agent-chat-input__icon-btn${webSearchEnabled ? " agent-chat-input__icon-btn--active" : ""}`}
               onClick={() => onToggleWebSearch(!webSearchEnabled)}
-              title={webSearchEnabled ? "Web search enabled" : "Enable web search"}
+              title={
+                webSearchEnabled ? "Web search enabled" : "Enable web search"
+              }
               aria-label="Toggle web search"
             >
               <Globe size={15} />

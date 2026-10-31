@@ -1,30 +1,32 @@
 import { Button, Typography } from "@app/design-system";
-import { Sparkle, Clock, Plus, Sliders, ChatCircleDots } from "@phosphor-icons/react";
+import {
+  Sparkle,
+  Clock,
+  Plus,
+  Sliders,
+  ChatCircleDots,
+} from "@phosphor-icons/react";
 
 export interface AgentHeaderProps {
-  hasMessages: boolean;
   onNewChat: () => void;
-  isSettingsOpen: boolean;
-  onToggleSettings: () => void;
   isConversationsOpen: boolean;
   onToggleConversations: () => void;
   conversationsCount: number;
   isHistoryOpen: boolean;
   onToggleHistory: () => void;
   historyCount: number;
+  onOpenSettings: () => void;
 }
 
 export function AgentHeader({
-  hasMessages,
   onNewChat,
-  isSettingsOpen,
-  onToggleSettings,
   isConversationsOpen,
   onToggleConversations,
   conversationsCount,
   isHistoryOpen,
   onToggleHistory,
   historyCount,
+  onOpenSettings,
 }: AgentHeaderProps) {
   return (
     <header className="agent-view__header">
@@ -36,16 +38,14 @@ export function AgentHeader({
       </div>
 
       <div className="agent-view__header-actions">
-        {hasMessages && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onNewChat}
-            aria-label="Start new conversation"
-          >
-            <Plus size={14} weight="bold" /> New Chat
-          </Button>
-        )}
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={onNewChat}
+          aria-label="Start new conversation"
+        >
+          <Plus size={14} weight="bold" /> New Chat
+        </Button>
 
         <Button
           variant={isConversationsOpen ? "primary" : "ghost"}
@@ -57,16 +57,16 @@ export function AgentHeader({
         </Button>
 
         <Button
-          variant={isSettingsOpen ? "primary" : "ghost"}
+          variant="ghost"
           size="sm"
-          onClick={onToggleSettings}
-          aria-label="Toggle agent settings"
+          onClick={onOpenSettings}
+          aria-label="Open AI and Agent settings"
         >
           <Sliders size={14} /> Settings
         </Button>
 
         <Button
-          variant={isHistoryOpen ? "primary" : "secondary"}
+          variant={isHistoryOpen ? "primary" : "ghost"}
           size="sm"
           onClick={onToggleHistory}
           aria-label="Toggle change history"

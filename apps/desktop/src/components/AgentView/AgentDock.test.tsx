@@ -7,7 +7,12 @@ vi.mock("../../ai/AISubsystem", () => ({
   validateAndSaveProviderKey: vi.fn().mockResolvedValue(undefined),
   saveOllamaConfig: vi.fn().mockResolvedValue(undefined),
   saveProviderModels: vi.fn().mockResolvedValue(undefined),
-  loadProviderModels: vi.fn().mockResolvedValue({ embeddingModel: "embeddinggemma", chatModel: "llama3:latest" }),
+  loadProviderModels: vi
+    .fn()
+    .mockResolvedValue({
+      embeddingModel: "embeddinggemma",
+      chatModel: "llama3:latest",
+    }),
   fetchOllamaModels: vi.fn().mockResolvedValue(["llama3:latest"]),
 }));
 
@@ -61,16 +66,21 @@ describe("Agent UI Controls", () => {
       );
     });
 
-    expect(screen.getByText("Gemini 2.0 Flash")).toBeTruthy();
+    expect(screen.getByText(/Gemini 2\.0 Flash/)).toBeTruthy();
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Gemini 2\.0 Flash/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /Gemini 2\.0 Flash/i }),
+      );
     });
     expect(screen.getByText("OpenRouter: Claude 3.5 Haiku")).toBeTruthy();
 
     await act(async () => {
       fireEvent.click(screen.getByText("OpenRouter: Claude 3.5 Haiku"));
     });
-    expect(onSelect).toHaveBeenCalledWith("anthropic/claude-3.5-haiku", "openrouter");
+    expect(onSelect).toHaveBeenCalledWith(
+      "anthropic/claude-3.5-haiku",
+      "openrouter",
+    );
   });
 
   it("renders capabilities popover and selects prompt preset", () => {
@@ -88,7 +98,9 @@ describe("Agent UI Controls", () => {
 
     fireEvent.click(screen.getByText("Create Summary or To-Do"));
     expect(onSelect).toHaveBeenCalledWith(
-      expect.stringContaining("Scan my recent notes and create a prioritized to-do list"),
+      expect.stringContaining(
+        "Scan my recent notes and create a prioritized to-do list",
+      ),
     );
   });
 

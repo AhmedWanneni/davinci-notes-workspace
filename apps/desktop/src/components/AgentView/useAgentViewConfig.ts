@@ -17,6 +17,12 @@ import {
 } from "../../ai/AISubsystem";
 import { loadAgentPreferences, saveAgentPreference } from "./agentPreferences";
 import { readNote } from "../../vault/vaultCommands";
+import {
+  getSetting,
+  getVaultIndexDb,
+  setSetting,
+  withDbLock,
+} from "../../vault";
 
 export function useAgentViewConfig() {
   const [currentProvider, setCurrentProvider] =
@@ -25,7 +31,6 @@ export function useAgentViewConfig() {
   const [webSearchEnabled, setWebSearchEnabled] = useState(true);
   const [autoApply, setAutoApply] = useState(true);
   const [rewriteEnabled, setRewriteEnabled] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConversationsOpen, setIsConversationsOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState(true);
   const [selectedCliAgent, setSelectedCliAgent] = useState<string | null>(null);
@@ -55,13 +60,17 @@ export function useAgentViewConfig() {
       setAutoApply(prefs.autoApply);
       setWebSearchEnabled(prefs.webSearchEnabled);
       setRewriteEnabled(prefs.rewriteEnabled);
+      const db = await getVaultIndexDb();
+      const savedAgent = await withDbLock(() =>
+        getSetting(db, "ai.agent.cliAgent"),
+      );
+      setSelectedCliAgent(
+        savedAgent && savedAgent.trim() ? savedAgent.trim() : null,
+      );
       const status = await loadAIProviderStatus(providerId);
-      const ready = status === "ready";
-      setIsConfigured(ready);
-      if (!ready) setIsSettingsOpen(true);
+      setIsConfigured(status === "ready");
     } catch {
       setIsConfigured(false);
-      setIsSettingsOpen(true);
     }
   }, []);
 
@@ -77,6 +86,10 @@ export function useAgentViewConfig() {
   useEffect(() => {
     void checkProviderConfig();
     void loadShortcuts();
+    const onStateChanged = () => void checkProviderConfig();
+    window.addEventListener("davinci-ai-state-changed", onStateChanged);
+    return () =>
+      window.removeEventListener("davinci-ai-state-changed", onStateChanged);
   }, [checkProviderConfig, loadShortcuts]);
 
   const handleModelSelect = useCallback(
@@ -114,6 +127,19 @@ export function useAgentViewConfig() {
     await saveAgentPreference("rewriteEnabled", enabled);
   }, []);
 
+  const handleSelectCliAgent = useCallback(async (agentId: string | null) => {
+    setSelectedCliAgent(agentId);
+    try {
+      const db = await getVaultIndexDb();
+      await withDbLock(() =>
+        setSetting(db, "ai.agent.cliAgent", agentId ?? ""),
+      );
+      window.dispatchEvent(new Event("davinci-ai-state-changed"));
+    } catch (err) {
+      console.warn("[agent] Failed to save CLI agent setting:", err);
+    }
+  }, []);
+
   return {
     currentProvider,
     setCurrentProvider,
@@ -125,8 +151,6 @@ export function useAgentViewConfig() {
     handleToggleAutoApply,
     rewriteEnabled,
     handleToggleRewrite,
-    isSettingsOpen,
-    setIsSettingsOpen,
     isConversationsOpen,
     setIsConversationsOpen,
     isConfigured,
@@ -135,6 +159,6 @@ export function useAgentViewConfig() {
     handleModelSelect,
     checkProviderConfig,
     selectedCliAgent,
-    setSelectedCliAgent,
+    setSelectedCliAgent: handleSelectCliAgent,
   };
 }
