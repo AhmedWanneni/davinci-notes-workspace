@@ -1,9 +1,7 @@
-import { Typography } from "@app/design-system";
 import {
   Wrench,
   CheckCircle,
   WarningCircle,
-  Sparkle,
 } from "@phosphor-icons/react";
 import { AgentMarkdownContent } from "./AgentMarkdownContent";
 import type { ChatMessageItem } from "./agentTypes";
@@ -48,38 +46,12 @@ export function AgentMessageBubble({
       className={`agent-message agent-message--${message.role}`}
       data-streaming={message.isStreaming || undefined}
     >
-      <div className="agent-message__header">
-        <div className="agent-message__author">
-          {!isUser && (
-            <Sparkle
-              size={13}
-              weight="fill"
-              className="agent-message__author-icon"
-            />
-          )}
-          <Typography
-            variant="text"
-            size="xs"
-            weight="medium"
-            color={isUser ? "muted" : "normal"}
-          >
-            {isUser ? "You" : "DaVinci Agent"}
-          </Typography>
-        </div>
-        <Typography variant="text" size="xs" color="muted">
-          {new Date(message.timestamp).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </Typography>
-      </div>
-
       {message.content && (
         <div className="agent-message__body">
           {isUser ? (
-            <Typography variant="text" size="sm">
+            <div className="agent-message__user-bubble">
               {message.content}
-            </Typography>
+            </div>
           ) : (
             <AgentMarkdownContent
               content={message.content}

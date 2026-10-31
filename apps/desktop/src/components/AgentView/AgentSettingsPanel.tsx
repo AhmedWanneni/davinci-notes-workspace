@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button, Input, Typography } from "@app/design-system";
-import { Sparkle, X, CheckCircle, WarningCircle, Cpu } from "@phosphor-icons/react";
+import {
+  Sparkle,
+  X,
+  CheckCircle,
+  WarningCircle,
+  Cpu,
+} from "@phosphor-icons/react";
 import {
   saveSelectedProvider,
   validateAndSaveProviderKey,
@@ -12,6 +18,7 @@ import {
 } from "../../ai/AISubsystem";
 import { PROVIDER_POPULAR_MODELS } from "./agentModelConstants";
 import { AgentIntegrationsSection } from "./AgentIntegrationsSection";
+import { AgentCliSection } from "./AgentCliSection";
 
 export interface AgentSettingsPanelProps {
   isOpen: boolean;
@@ -26,6 +33,8 @@ export interface AgentSettingsPanelProps {
   onToggleAutoApply: (enabled: boolean) => void;
   rewriteEnabled?: boolean;
   onToggleRewrite?: (enabled: boolean) => void;
+  selectedCliAgent?: string | null;
+  onSelectCliAgent?: (agentId: string | null) => void;
 }
 
 const PROVIDERS = [
@@ -47,16 +56,24 @@ export function AgentSettingsPanel({
   onToggleAutoApply,
   rewriteEnabled,
   onToggleRewrite,
+  selectedCliAgent,
+  onSelectCliAgent,
 }: AgentSettingsPanelProps) {
-  const [selectedProvider, setSelectedProvider] = useState<AIProviderId>(currentProvider);
+  const [selectedProvider, setSelectedProvider] =
+    useState<AIProviderId>(currentProvider);
   const [selectedModel, setSelectedModel] = useState(
-    currentModel || PROVIDER_POPULAR_MODELS[currentProvider]?.[0] || "gemini-2.0-flash",
+    currentModel ||
+      PROVIDER_POPULAR_MODELS[currentProvider]?.[0] ||
+      "gemini-2.0-flash",
   );
   const [ollamaModels, setOllamaModels] = useState<string[]>([]);
   const [apiKey, setApiKey] = useState("");
   const [ollamaUrl, setOllamaUrl] = useState("http://localhost:11434");
   const [isTesting, setIsTesting] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     setSelectedProvider(currentProvider);
@@ -73,7 +90,9 @@ export function AgentSettingsPanel({
           setOllamaModels(models);
           if (!models.includes(selectedModel)) {
             const match = models.find(
-              (m) => m.startsWith(selectedModel) || selectedModel.startsWith(m.split(":")[0]),
+              (m) =>
+                m.startsWith(selectedModel) ||
+                selectedModel.startsWith(m.split(":")[0]),
             );
             setSelectedModel(match ?? models[0]);
           }
@@ -105,30 +124,41 @@ export function AgentSettingsPanel({
   const availableModels =
     selectedProvider === "ollama" && ollamaModels.length > 0
       ? ollamaModels
-      : PROVIDER_POPULAR_MODELS[selectedProvider] ?? [];
+      : (PROVIDER_POPULAR_MODELS[selectedProvider] ?? []);
 
   const handleSaveAndTest = async () => {
     setIsTesting(true);
     setFeedback(null);
     try {
       await saveSelectedProvider(selectedProvider);
-      const activeModel = selectedModel.trim() || availableModels[0] || "gemini-2.0-flash";
+      const activeModel =
+        selectedModel.trim() || availableModels[0] || "gemini-2.0-flash";
       if (selectedProvider === "ollama") {
         await saveOllamaConfig(ollamaUrl, "embeddinggemma", activeModel);
       } else {
         const models = await loadProviderModels(selectedProvider);
-        await saveProviderModels(selectedProvider, models.embeddingModel, activeModel);
+        await saveProviderModels(
+          selectedProvider,
+          models.embeddingModel,
+          activeModel,
+        );
         if (apiKey.trim()) {
           await validateAndSaveProviderKey(selectedProvider, apiKey.trim());
         }
       }
       onProviderChanged(selectedProvider);
       onModelChanged?.(activeModel);
-      setFeedback({ type: "success", text: "Successfully connected and saved!" });
+      setFeedback({
+        type: "success",
+        text: "Successfully connected and saved!",
+      });
     } catch (err) {
       setFeedback({
         type: "error",
-        text: err instanceof Error ? err.message : "Connection failed. Please check your credentials.",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Connection failed. Please check your credentials.",
       });
     } finally {
       setIsTesting(false);
@@ -136,7 +166,11 @@ export function AgentSettingsPanel({
   };
 
   return (
-    <aside className="agent-settings-panel" role="region" aria-label="Agent Configuration">
+    <aside
+      className="agent-settings-panel"
+      role="region"
+      aria-label="Agent Configuration"
+    >
       <div className="agent-settings-panel__header">
         <div className="agent-settings-panel__title-group">
           <Sparkle size={18} weight="fill" />
@@ -167,8 +201,12 @@ export function AgentSettingsPanel({
                 className={`agent-settings-panel__provider-btn${selectedProvider === p.id ? " is-active" : ""}`}
                 onClick={() => handleProviderSelect(p.id)}
               >
-                <span className="agent-settings-panel__provider-name">{p.name}</span>
-                <span className="agent-settings-panel__provider-sub">{p.sub}</span>
+                <span className="agent-settings-panel__provider-name">
+                  {p.name}
+                </span>
+                <span className="agent-settings-panel__provider-sub">
+                  {p.sub}
+                </span>
               </button>
             ))}
           </div>
@@ -193,7 +231,9 @@ export function AgentSettingsPanel({
         <section className="agent-settings-panel__section">
           {selectedProvider === "ollama" ? (
             <div>
-              <label className="agent-settings-panel__label">Ollama Server Endpoint</label>
+              <label className="agent-settings-panel__label">
+                Ollama Server Endpoint
+              </label>
               <Input
                 value={ollamaUrl}
                 onChange={(e) => setOllamaUrl(e.target.value)}
@@ -217,7 +257,11 @@ export function AgentSettingsPanel({
               className={`agent-settings-panel__alert agent-settings-panel__alert--${feedback.type}`}
               role="alert"
             >
-              {feedback.type === "success" ? <CheckCircle size={15} /> : <WarningCircle size={15} />}
+              {feedback.type === "success" ? (
+                <CheckCircle size={15} />
+              ) : (
+                <WarningCircle size={15} />
+              )}
               <span>{feedback.text}</span>
             </div>
           )}
@@ -233,6 +277,13 @@ export function AgentSettingsPanel({
             {isTesting ? "Testing Connection..." : "Test & Save Connection"}
           </Button>
         </section>
+
+        {onSelectCliAgent && (
+          <AgentCliSection
+            selectedCliAgent={selectedCliAgent}
+            onSelectCliAgent={onSelectCliAgent}
+          />
+        )}
 
         <AgentIntegrationsSection
           webSearchEnabled={webSearchEnabled}

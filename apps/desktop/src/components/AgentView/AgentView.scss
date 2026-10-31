@@ -218,27 +218,41 @@
   width: 100%;
   margin: 0 auto;
   line-height: var(--type-leading-relaxed);
+  font-family: inherit;
 }
 
 .agent-message--user {
   align-self: flex-end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 80%;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+.agent-message__user-bubble {
   background-color: var(--color-bg-secondary);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-lg);
-  padding: var(--space-3) var(--space-4);
-  max-width: 38rem;
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-text-normal);
+  font-family: inherit;
+  font-size: var(--type-scale-sm);
+  line-height: var(--type-leading-relaxed);
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
 }
 
 .agent-message--assistant {
   align-self: flex-start;
-  padding: var(--space-1) 0;
+  padding: var(--space-2) 0;
+  width: 100%;
 }
 
 .agent-message__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
+  display: none;
 }
 
 .agent-message__author {
@@ -254,6 +268,8 @@
 .agent-message__body {
   color: var(--color-text-normal);
   font-size: var(--type-scale-sm);
+  font-family: inherit;
+  width: 100%;
 }
 
 .agent-message__cursor {
@@ -280,14 +296,17 @@
 .agent-markdown-content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  font-family: inherit;
   font-size: var(--type-scale-sm);
   line-height: var(--type-leading-relaxed);
+  color: var(--color-text-normal);
 }
 
 .agent-md-heading {
   color: var(--color-text-normal);
   font-weight: var(--type-weight-semibold);
+  font-family: inherit;
   margin: var(--space-2) 0 var(--space-1);
 
   &--h1 {
@@ -306,6 +325,8 @@
 .agent-md-paragraph {
   margin: 0;
   color: var(--color-text-normal);
+  line-height: var(--type-leading-relaxed);
+  font-family: inherit;
 }
 
 .agent-md-list {
@@ -314,10 +335,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  font-family: inherit;
 }
 
 .agent-md-list-item {
   color: var(--color-text-normal);
+  line-height: var(--type-leading-relaxed);
+  font-family: inherit;
 }
 
 .agent-md-code {
@@ -596,43 +620,6 @@
   flex-direction: column;
 }
 
-.agent-chat-dock__chips {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-left: var(--space-3);
-  margin-bottom: -1px;
-  z-index: 1;
-}
-
-.agent-chat-dock__chip {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px var(--space-3);
-  background-color: var(--color-bg-secondary);
-  border: var(--border-width-thin) solid var(--color-border-subtle);
-  border-bottom: none;
-  border-top-left-radius: var(--border-radius-md);
-  border-top-right-radius: var(--border-radius-md);
-  font-size: var(--type-scale-xs);
-  color: var(--color-text-muted);
-  font-family: var(--font-ui);
-  line-height: 1;
-  text-decoration: none;
-
-  &--interactive {
-    cursor: pointer;
-    background: var(--color-bg-secondary);
-    transition: all var(--motion-duration-fast) var(--motion-ease-standard);
-
-    &:hover {
-      background-color: var(--color-bg-hover);
-      color: var(--color-text-normal);
-    }
-  }
-}
-
 .agent-chat-input {
   max-width: 48rem;
   margin: 0 auto;
@@ -907,7 +894,7 @@
   position: absolute;
   bottom: calc(100% + var(--space-2));
   right: 0;
-  width: 240px;
+  width: 280px;
   background-color: var(--color-bg-primary);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-lg);
@@ -915,6 +902,40 @@
   z-index: 50;
   display: flex;
   flex-direction: column;
+}
+
+.agent-model-select__tabs {
+  display: flex;
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--border-radius-sm);
+  padding: 2px;
+  margin-bottom: var(--space-1);
+  gap: 2px;
+}
+
+.agent-model-select__tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: transparent;
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text-normal);
+  }
+
+  &.is-active {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-normal);
+    font-weight: var(--type-weight-semibold);
+  }
 }
 
 .agent-model-select__options {

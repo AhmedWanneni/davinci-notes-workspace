@@ -1,0 +1,49 @@
+.agent-cli-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--border-radius-sm);
+  margin-top: var(--space-2);
+  font-family: var(--font-editor);
+  font-size: var(--type-scale-xs);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: var(--type-weight-medium);
+    color: var(--color-text-normal);
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border: var(--border-width-thin) solid var(--color-border-focus);
+    color: var(--color-text-accent);
+    border-radius: var(--border-radius-sm);
+    font-size: var(--type-scale-xs);
+    text-transform: uppercase;
+  }
+
+  &__logs {
+    max-height: 160px;
+    overflow-y: auto;
+    color: var(--color-text-muted);
+    line-height: var(--type-leading-relaxed);
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  }
+
+  &__action-row {
+    color: var(--color-text-accent);
+  }
+
+  &__error-row {
+    color: var(--color-text-error);
+  }
+}

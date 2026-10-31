@@ -53,18 +53,20 @@ vi.mock("../../vault/vaultCommands", () => ({
 }));
 
 describe("AgentView Components", () => {
-  it("renders empty state and shortcuts bar when configured with no messages", async () => {
+  it("renders empty state and options button when configured with no messages", async () => {
     await act(async () => {
       render(<AgentView />);
     });
     expect(
-      screen.getByText("What would you like to explore or create?"),
-    ).toBeTruthy();
-    expect(screen.getByText("Shortcuts:")).toBeTruthy();
-    expect(screen.getByText("Weekly Review")).toBeTruthy();
-    expect(
       screen.getByPlaceholderText(/Ask a question or request changes/i),
     ).toBeTruthy();
+
+    const plusBtn = screen.getByRole("button", {
+      name: /Agent options and capabilities/i,
+    });
+    expect(plusBtn).toBeTruthy();
+    fireEvent.click(plusBtn);
+    expect(screen.getByText("What the Agent Can Do")).toBeTruthy();
   });
 
   it("triggers shortcut on click", () => {

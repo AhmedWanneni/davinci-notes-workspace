@@ -2,6 +2,90 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: Prompt File/Folder `@` Mentions & Clean Input Dock
+
+- **Clean Input Dock**:
+  - Removed `.agent-chat-dock__chips` (vault name, project name, agent/model label, settings link) from above the prompt input.
+  - Eliminated visual clutter above the prompt textarea.
+- **`@` Mention Autocomplete Popup (`AgentMentionMenu.tsx` & `useAgentMention.ts`)**:
+  - Added real-time `@query` detection via `useAgentMention` hook.
+  - Built floating popup querying `allNotePaths` and `allFolderPaths` from workspace store.
+  - Supported keyboard navigation (`ArrowUp`/`ArrowDown`, `Enter`/`Tab`, `Escape`).
+  - Selecting an item inserts `@path/to/note.md ` at cursor position.
+- **Verification**:
+  - 22 test files (55 tests) passed across `AgentView` and `AISettingsPanel`.
+  - ESLint 0 errors, Stylelint 0 errors, 0 design token violations.
+  - All files strictly under 250 lines.
+
+---
+
+### 2026-10-31: AI Agent Minimalist Redesign & Typography Polish
+
+- **Minimalist Chat Layout**:
+  - Removed "DaVinci Agent" and "You" labels as well as timestamps from message bubbles.
+  - Aligned user messages into clean right-aligned bubbles with smooth borders and subtle background.
+  - Aligned assistant responses into natural full-width markdown flow without boxes or borders.
+- **Font & Typography Consistency**:
+  - Configured message text, headings, paragraphs, and list items to inherit the note editor / app font stack (`font-family: inherit` over `var(--font-ui)`).
+  - Reserved `var(--font-editor)` strictly for inline `<code>` and code block `<pre>`.
+- **Shortcuts Migration**:
+  - Removed always-visible shortcuts bar from the chat dock.
+  - Embedded shortcuts as options in the `+` capabilities popover under a "Quick Shortcuts" section.
+- **Header Simplification**:
+  - Removed the "AI Vault Agent" logo and text.
+  - Removed the History button from the header.
+  - Simplified Settings trigger to an icon-only button (`<Sliders size={16} />`).
+- **Verification**:
+  - 20 test files (53 tests) passed.
+  - ESLint 0 errors, Stylelint 0 errors, 0 design token violations.
+  - All files strictly under 250 lines.
+
+---
+
+### 2026-10-31: AI Agent Dual Mode Controls & Global Settings Integration
+
+- **Dual-Mode Bottom Controls (`AgentModelSelect.tsx`)**:
+  - Transformed model selector dropdown into a segmented dual-mode selector allowing immediate switching between API models (Gemini, Ollama, OpenRouter) and Autonomous CLI Agents (`agy`, `claude`, `codex`, `opencode`).
+  - Active trigger displays `Model: <name>` or `Agent: <name>` with dedicated status badges.
+- **Settings Architecture & Unification**:
+  - Removed local drawer sidebar from `AgentView`; clicking the settings gear now opens the global app `SettingsDialog` directly to the `ai` tab.
+  - Added global `davinci-open-settings` event listener in `App.tsx` for cross-component navigation.
+  - Implemented `AIAgentSettingsSection.tsx` and embedded it into `AISettingsPanel.tsx` with toggles for Auto-apply Changes, Web Search, and Prompt Optimization, as well as the autonomous CLI agent detection cards.
+  - Dispatches `davinci-ai-state-changed` on preferences/agent updates to keep chat views in sync.
+- **Ergonomics & Polish**:
+  - Disabled auto-opening settings drawer on launch or unconfigured states.
+  - Cleaned up `AgentHeader.tsx` to provide always-accessible "+ New Chat" and history drawer triggers.
+- **Verification**:
+  - 20 test files passed (52 unit and component tests).
+  - ESLint 0 errors, public tokens audit 0 violations in all touched files.
+  - 250-line file cap preserved across all components.
+  - Updated codebase knowledge graph via `graphify update .`.
+
+---
+
+### 2026-10-31: External Autonomous CLI Agent Integration (`agy`, `claude`, `codex`, `opencode`)
+
+- **Tauri Native Process Supervisor**:
+  - Implemented `cli_agent_types.rs` defining supported CLI agent identifiers (`agy`, `claude`, `codex`, `opencode`), catalog metadata, stream events (`thought`, `action`, `text`, `error`, `done`), and session tracking.
+  - Implemented `cli_agent_detector.rs` scanning system paths (`PATH`, `/opt/homebrew/bin`, `~/.local/bin`, `~/.cargo/bin`, `~/.npm-global/bin`) to detect installed CLI binaries and versions.
+  - Implemented `cli_agent_runner.rs` managing asynchronous child processes (`Command` / stdio piping) with `cwd = vaultPath`, classifying line output in real time and supporting user cancellation.
+  - Implemented `cli_agent_commands.rs` exposing Tauri commands `cli_agent_detect`, `cli_agent_start`, and `cli_agent_cancel` (rejecting unauthorized callers via `command_auth`).
+  - Registered commands in `src-tauri/src/lib.rs`.
+- **Frontend Agent Integration & UI**:
+  - Created `cliAgentBridge.ts` providing typed IPC invocation and event subscription.
+  - Created `useCliAgentExecution.ts` managing session state, logs accumulation, and user abort.
+  - Created `AgentCliSection.tsx` for the settings panel displaying discovered CLI agents with `READY` vs `NOT FOUND` badges, version strings, and install commands.
+  - Created `AgentCliStatusCard.tsx` + `AgentCliStatusCard.module.scss` rendering real-time streaming agent thoughts, action logs, and a Stop button.
+  - Updated `useAgentExecution.ts`, `useAgentViewConfig.ts`, `AgentSettingsPanel.tsx`, and `AgentView.tsx` to seamlessly support switching between API models and external CLI agents.
+- **Verification**:
+  - 3 Rust unit tests in `cli_agent` passed (`cargo test cli_agent`).
+  - 9 Vitest unit and component tests passed (`cliAgentBridge.test.ts`, `AgentCliStatusCard.test.tsx`, `AgentCliSection.test.tsx`, `AgentView.test.tsx`).
+  - 0 ESLint errors and 0 Stylelint errors.
+  - All files strictly adhere to the 250-line maximum per `AGENTS.md`.
+  - Rebuilt code graph via `graphify update .`.
+
+---
+
 ### 2026-10-31: Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
 
 - **Toolchain & Metro Bundler Resolution**:
