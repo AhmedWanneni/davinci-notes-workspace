@@ -2,6 +2,24 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: Native OS Keychain Backend & Notification Channel Secret Fallback Fix
+
+- **Native Keychain Platform Features (`apps/desktop/src-tauri/Cargo.toml`)**:
+  - Identified root cause of `Missing Telegram credentials in OS keychain for "<name>"`: `keyring = "3.6.2"` had no platform-native features enabled, causing silent fallback to ephemeral `MockCredential` that drops secrets on entry drop.
+  - Added target-specific native dependencies:
+    - macOS: `keyring = { version = "3.6.2", features = ["apple-native"] }` (Apple Security Framework / Keychain)
+    - Windows: `keyring = { version = "3.6.2", features = ["windows-native"] }` (Windows Credential Manager)
+    - Linux: `keyring = { version = "3.6.2", features = ["linux-native-sync-persistent"] }` (Secret Service / DBus)
+- **Store Fallback (`apps/desktop/src/notifications/channelConfigStore.ts`)**:
+  - Updated `loadChannelSecret` to fall back to `memorySecretFallback` when native keychain returns `null` or when running outside native runtime environments.
+- **Verification**:
+  - Verified persistence across separate `Entry` instances.
+  - All 157 Rust unit tests passing (`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml`).
+  - All 5 notification Vitest test suites passing (`pnpm --filter @app/desktop test src/notifications`).
+  - Knowledge graph updated with `graphify update .`.
+
+---
+
 ### 2026-10-31: Prompt File/Folder `@` Mentions & Clean Input Dock
 
 - **Clean Input Dock**:

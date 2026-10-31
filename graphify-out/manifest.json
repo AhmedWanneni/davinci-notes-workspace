@@ -320,9 +320,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/Cargo.toml": {
-    "mtime": 1793450522.2241673,
-    "seen": 1793452225.93024,
-    "ast_hash": "abc312efee72aa9d13627069d95218fa",
+    "mtime": 1793481637.485314,
+    "seen": 1793481817.4152598,
+    "ast_hash": "01fd227a1d4d9f1a953f89975799f0c5",
     "semantic_hash": ""
   },
   "apps/desktop/src-tauri/build.rs": {
@@ -698,8 +698,8 @@
     "semantic_hash": "c6c7d1603c8513f5d1a1fd56a56cc0ca"
   },
   "apps/desktop/src-tauri/src/notification_auth.rs": {
-    "mtime": 1793450522.2782197,
-    "seen": 1793452225.930333,
+    "mtime": 1793481747.9545474,
+    "seen": 1793481817.418431,
     "ast_hash": "76477b8a5c7ac98cf244bac636a2a6ae",
     "semantic_hash": "76477b8a5c7ac98cf244bac636a2a6ae"
   },
@@ -4418,10 +4418,10 @@
     "semantic_hash": "d33ad7429663a34cdcf25a003472694e"
   },
   "apps/desktop/src/notifications/channelConfigStore.ts": {
-    "mtime": 1793450522.440561,
-    "seen": 1793452225.9311092,
-    "ast_hash": "857b7c013d09b979314e94724f966355",
-    "semantic_hash": "857b7c013d09b979314e94724f966355"
+    "mtime": 1793481758.6175296,
+    "seen": 1793481817.446866,
+    "ast_hash": "6b5573a8f328c64f8995adaf8d05d715",
+    "semantic_hash": ""
   },
   "apps/desktop/src/notifications/channelTypes.ts": {
     "mtime": 1793450522.4406996,
@@ -13265,9 +13265,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793460487.0267696,
-    "seen": 1793461128.028068,
-    "ast_hash": "b1ef9396876a99f5c3651ed03ccfc4bd",
+    "mtime": 1793461143.7071261,
+    "seen": 1793481817.5064058,
+    "ast_hash": "aa973b4e4d6817c5cea0f84cb184b0b7",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13343,9 +13343,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793460502.955961,
-    "seen": 1793461128.028508,
-    "ast_hash": "c10b13a172e9bde31230eb7e6069cb15",
+    "mtime": 1793461166.2785861,
+    "seen": 1793481817.50685,
+    "ast_hash": "db54614aea2c612f58d77088546c80d3",
     "semantic_hash": ""
   },
   "docs/README.md": {

@@ -4,7 +4,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Prompt `@` File/Folder Mention System & Clean Input Dock
+## Last Session — Native OS Keychain Backend & Notification Channel Secret Fallback Fix
+
+**Scope:** Fix Telegram, Slack, and external channel notification failures where credentials failed to persist in the OS keychain ("Missing Telegram credentials in OS keychain. Reconnect in Settings").
+
+**What was done:**
+1. **Target-Specific Native Keyring Backends (`Cargo.toml` & `Cargo.lock`)**:
+   - Resolved silent fallback to ephemeral `MockCredential` by configuring platform-native target features on `keyring`:
+     - macOS: `apple-native` (persisting to Apple Security Framework / Keychain)
+     - Windows: `windows-native` (Windows Credential Manager)
+     - Linux: `linux-native-sync-persistent` (Secret Service / DBus)
+2. **Channel Config Secret Fallback (`channelConfigStore.ts`)**:
+   - Updated `loadChannelSecret` to properly fall back to the in-memory secret cache if the native keychain returns `null` or when running outside native runtime environments.
+3. **Verification**:
+   - Verified native macOS Keychain persistence round-trip across separate `Entry` instances.
+   - All 157 Rust tests passing (`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml`).
+   - All 5 notification Vitest test suites passing (`pnpm --filter @app/desktop test src/notifications`).
+   - Knowledge graph updated via `graphify update .`.
+
+**Next up:**
+- Run live vault organization test with `agy` in an active test vault.
+- Add optional interactive confirmation dialog when CLI agent attempts destructive batch file moves or deletions.
+
+---
+
+## Prior Session — Prompt `@` File/Folder Mention System & Clean Input Dock
 
 **Scope:** Remove vault/agent/settings context chip labels from above the prompt input for a clean minimalist canvas, and implement an `@` mention autocomplete popup allowing users to reference specific vault files and folders directly in prompts like in standard AI developer agents.
 
