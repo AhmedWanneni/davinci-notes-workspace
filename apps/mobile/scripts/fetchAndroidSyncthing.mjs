@@ -8,6 +8,7 @@ import { execSync } from 'node:child_process';
 const SCRIPT_DIR = path.dirname(new URL(import.meta.url).pathname);
 const MOBILE_ROOT = path.resolve(SCRIPT_DIR, '..');
 const JNI_LIBS_DIR = path.join(MOBILE_ROOT, 'modules', 'expo-syncthing', 'android', 'src', 'main', 'jniLibs');
+const ASSETS_DIR = path.join(MOBILE_ROOT, 'assets', 'syncthing');
 
 // Pinned Syncthing version (syncthing-android v2.1.6.0 matching desktop v2.1.6)
 const PINNED_VERSION = 'v2.1.6.0';
@@ -46,10 +47,13 @@ export async function fetchAndroidSyncthing() {
   try {
     for (const [abi, info] of Object.entries(ARTIFACTS)) {
       const targetDir = path.join(JNI_LIBS_DIR, abi);
+      const assetsDir = path.join(ASSETS_DIR, abi);
       fs.mkdirSync(targetDir, { recursive: true });
+      fs.mkdirSync(assetsDir, { recursive: true });
       const targetSoPath = path.join(targetDir, 'libsyncthing.so');
+      const assetsSoPath = path.join(assetsDir, 'libsyncthing.so');
 
-      if (fs.existsSync(targetSoPath)) {
+      if (fs.existsSync(targetSoPath) && fs.existsSync(assetsSoPath)) {
         const currentSha = sha256File(targetSoPath);
         if (currentSha === info.expectedLibSha256) {
           console.log(`✓ ${abi}/libsyncthing.so already present and matches expected SHA-256.`);
@@ -63,7 +67,9 @@ export async function fetchAndroidSyncthing() {
 
       console.log(`Extracting ${info.libSoName} to ${targetSoPath}...`);
       execSync(`unzip -p "${apkPath}" "${info.libSoName}" > "${targetSoPath}"`, { stdio: 'inherit' });
+      fs.copyFileSync(targetSoPath, assetsSoPath);
       fs.chmodSync(targetSoPath, 0o755);
+      fs.chmodSync(assetsSoPath, 0o755);
 
       const actualSha = sha256File(targetSoPath);
       if (actualSha !== info.expectedLibSha256) {

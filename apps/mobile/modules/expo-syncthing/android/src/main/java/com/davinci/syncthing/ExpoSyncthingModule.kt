@@ -3,7 +3,6 @@ package com.davinci.syncthing
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import expo.modules.kotlin.modules.Module
@@ -29,17 +28,19 @@ class ExpoSyncthingModule : Module() {
             }
             ContextCompat.startForegroundService(context, serviceIntent)
 
-            // Wait briefly for process to initialize
             var attempts = 0
             while (attempts < 20) {
                 val svc = SyncthingForegroundService.instance
                 if (svc != null && svc.processManager.isRunning.get() && svc.processManager.port > 0) {
-                    val port = svc.processManager.port
-                    val devId = svc.processManager.deviceId
+                    val pm = svc.processManager
                     return@AsyncFunction mapOf(
                         "status" to "running",
-                        "port" to port,
-                        "deviceId" to devId
+                        "port" to pm.port,
+                        "deviceId" to pm.deviceId,
+                        "binaryPath" to pm.binaryPath,
+                        "binaryExists" to pm.binaryExists,
+                        "binaryExecutable" to pm.binaryExecutable,
+                        "logs" to pm.getRecentLogsList()
                     )
                 }
                 Thread.sleep(150)
@@ -47,12 +48,18 @@ class ExpoSyncthingModule : Module() {
             }
 
             val svc = SyncthingForegroundService.instance
-            val err = svc?.processManager?.lastError?.get() ?: "Starting Syncthing..."
+            val pm = svc?.processManager
+            val err = pm?.lastError?.get() ?: "Starting Syncthing..."
             mapOf(
-                "status" to if (svc?.processManager?.isRunning?.get() == true) "running" else "starting",
-                "port" to (svc?.processManager?.port ?: 0),
-                "deviceId" to (svc?.processManager?.deviceId ?: ""),
-                "reason" to err
+                "status" to if (pm?.isRunning?.get() == true) "running" else "starting",
+                "port" to (pm?.port ?: 0),
+                "deviceId" to (pm?.deviceId ?: ""),
+                "reason" to err,
+                "binaryPath" to (pm?.binaryPath ?: ""),
+                "binaryExists" to (pm?.binaryExists ?: false),
+                "binaryExecutable" to (pm?.binaryExecutable ?: false),
+                "exitCode" to pm?.lastExitCode,
+                "logs" to (pm?.getRecentLogsList() ?: emptyList<String>())
             )
         }
 
@@ -66,21 +73,42 @@ class ExpoSyncthingModule : Module() {
 
         AsyncFunction("status") {
             val svc = SyncthingForegroundService.instance
-            if (svc != null && svc.processManager.isRunning.get()) {
+            val pm = svc?.processManager
+            if (svc != null && pm != null && pm.isRunning.get()) {
                 mapOf(
                     "status" to "running",
-                    "port" to svc.processManager.port,
-                    "deviceId" to svc.processManager.deviceId
+                    "port" to pm.port,
+                    "deviceId" to pm.deviceId,
+                    "binaryPath" to pm.binaryPath,
+                    "binaryExists" to pm.binaryExists,
+                    "binaryExecutable" to pm.binaryExecutable,
+                    "logs" to pm.getRecentLogsList()
                 )
             } else {
-                val err = svc?.processManager?.lastError?.get()
+                val err = pm?.lastError?.get()
                 mapOf(
                     "status" to if (err != null) "crashed" else "stopped",
                     "port" to 0,
-                    "deviceId" to (svc?.processManager?.deviceId ?: ""),
-                    "reason" to err
+                    "deviceId" to (pm?.deviceId ?: ""),
+                    "reason" to err,
+                    "binaryPath" to (pm?.binaryPath ?: ""),
+                    "binaryExists" to (pm?.binaryExists ?: false),
+                    "binaryExecutable" to (pm?.binaryExecutable ?: false),
+                    "exitCode" to pm?.lastExitCode,
+                    "logs" to (pm?.getRecentLogsList() ?: emptyList<String>())
                 )
             }
+        }
+
+        AsyncFunction("getApiKey") {
+            val svc = SyncthingForegroundService.instance
+            svc?.processManager?.apiKey ?: ""
+        }
+
+        AsyncFunction("getGuiAddress") {
+            val svc = SyncthingForegroundService.instance
+            val port = svc?.processManager?.port ?: 0
+            if (port > 0) "http://127.0.0.1:$port" else ""
         }
 
         AsyncFunction("getDeviceId") {

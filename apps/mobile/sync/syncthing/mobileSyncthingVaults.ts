@@ -1,6 +1,7 @@
 import type { SyncthingSharedVault } from "@app/syncthing-api";
 import { normalizeDeviceId } from "@app/syncthing-api";
 import { mobileSyncthingFetch } from "./mobileSyncthingClient";
+import { toPosixPath } from "../../vault/pathUtils";
 
 export async function mobileSyncthingListSharedVaults(
   apiKey: string,
@@ -27,12 +28,14 @@ export async function mobileSyncthingListSharedVaults(
         .map((d) => d.deviceID || "")
         .filter((id) => id && normalizeDeviceId(id) !== cleanLocalId);
 
+      const normFolderPath = f.path ? toPosixPath(f.path) : "";
+      const normActivePath = activeVaultUri ? toPosixPath(activeVaultUri) : "";
       const isActive = Boolean(
-        activeVaultUri &&
-          f.path &&
-          (f.path === activeVaultUri ||
-            activeVaultUri.endsWith(f.path) ||
-            f.path.endsWith(activeVaultUri)),
+        normActivePath &&
+        normFolderPath &&
+        (normFolderPath === normActivePath ||
+          normActivePath.endsWith(normFolderPath) ||
+          normFolderPath.endsWith(normActivePath)),
       );
 
       return {

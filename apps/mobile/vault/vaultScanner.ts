@@ -3,7 +3,12 @@ import {
   isSyncthingConflictPath,
   isSyncthingTmpPath,
 } from "@app/syncthing-api";
-import { isMarkdownPath, isHiddenPath, normalizeVaultPath } from "./pathUtils";
+import {
+  isHiddenPath,
+  isMarkdownPath,
+  normalizeToValidFileUri,
+  normalizeVaultPath,
+} from "./pathUtils";
 import type { VaultScanResult } from "./types";
 
 interface ScanContext {
@@ -76,9 +81,10 @@ async function scanDirectoryRecursive(
 export async function scanVaultDirectory(
   vaultRootUri: string,
 ): Promise<VaultScanResult> {
-  const rootUri = vaultRootUri.endsWith("/")
-    ? vaultRootUri.slice(0, -1)
-    : vaultRootUri;
+  const normalized = normalizeToValidFileUri(vaultRootUri);
+  const rootUri = normalized.endsWith("/")
+    ? normalized.slice(0, -1)
+    : normalized;
 
   const ctx: ScanContext = {
     rootUri,

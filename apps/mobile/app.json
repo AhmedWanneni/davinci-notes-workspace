@@ -42,7 +42,7 @@
       "expo-secure-store",
       "expo-web-browser",
       "./plugins/withLocalhostNetworkSecurity",
-      "./plugins/withEmbeddedSyncthing",
+      "./plugins/withSyncthingAndroid",
       "expo-asset",
       "expo-audio",
       "expo-splash-screen"

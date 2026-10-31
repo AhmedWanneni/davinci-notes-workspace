@@ -4,6 +4,8 @@ import {
   stopEmbeddedSyncthing,
   getEmbeddedSyncthingStatus,
   getEmbeddedDeviceId,
+  getEmbeddedApiKey,
+  getEmbeddedGuiAddress,
   getEmbeddedQrDataUri,
   embeddedSyncthingRequest,
   setEmbeddedSyncthingConditions,
@@ -39,6 +41,14 @@ export class EmbeddedSyncthingBridge {
 
   static async getDeviceId(): Promise<string> {
     return await getEmbeddedDeviceId();
+  }
+
+  static async getApiKey(): Promise<string> {
+    return await getEmbeddedApiKey();
+  }
+
+  static async getGuiAddress(): Promise<string> {
+    return await getEmbeddedGuiAddress();
   }
 
   static async getQrDataUri(text: string): Promise<string> {

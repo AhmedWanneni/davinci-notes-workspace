@@ -151,6 +151,9 @@ export default function FilesScreen(): React.ReactElement {
           onRecover={() =>
             defaultVaultManager.recoverToDefaultSandbox().then(loadVault)
           }
+          onCreateNewFolder={() =>
+            defaultVaultManager.createSandboxVault("My Notes").then(loadVault)
+          }
         />
       ) : (
         <FlatList

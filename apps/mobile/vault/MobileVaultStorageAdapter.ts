@@ -1,6 +1,10 @@
 import { Directory, File, Paths } from "expo-file-system";
 import type { ManifestFile } from "@app/sync-client";
-import { assertSafeVaultPath, normalizeVaultPath } from "./pathUtils";
+import {
+  assertSafeVaultPath,
+  normalizeToValidFileUri,
+  normalizeVaultPath,
+} from "./pathUtils";
 import { scanVaultDirectory } from "./vaultScanner";
 import {
   atomicWriteEntry,
@@ -25,7 +29,10 @@ export class MobileVaultStorageAdapter implements VaultStorageAdapter {
   readonly rootDirectory: Directory;
 
   constructor(vaultUri: string, mode: VaultMode = "sandbox") {
-    this.vaultUri = vaultUri.endsWith("/") ? vaultUri.slice(0, -1) : vaultUri;
+    const normalized = normalizeToValidFileUri(vaultUri);
+    this.vaultUri = normalized.endsWith("/")
+      ? normalized.slice(0, -1)
+      : normalized;
     this.mode = mode;
     this.rootDirectory = new Directory(this.vaultUri);
   }

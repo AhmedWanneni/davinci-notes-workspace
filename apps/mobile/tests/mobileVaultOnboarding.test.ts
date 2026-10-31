@@ -30,7 +30,7 @@ describe("Mobile Vault Onboarding, Multi-Vault Registry & Adversarial Tests", ()
     const adapter = await manager.createSandboxVault("Personal Vault");
 
     expect(adapter).toBeDefined();
-    expect(adapter.vaultUri).toContain("Personal Vault");
+    expect(decodeURIComponent(adapter.vaultUri)).toContain("Personal Vault");
 
     const stat = await adapter.statFile("Welcome to DaVinci Notes.md");
     expect(stat.exists).toBe(true);

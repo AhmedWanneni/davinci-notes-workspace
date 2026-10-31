@@ -1,12 +1,13 @@
 package com.davinci.syncthing
 
 import android.content.Context
+import android.util.Log
 import java.io.File
 import java.net.ServerSocket
 import java.security.SecureRandom
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import kotlinx.coroutines.*
 
 class SyncthingProcessManager(private val context: Context) {
     private var process: Process? = null
@@ -16,9 +17,18 @@ class SyncthingProcessManager(private val context: Context) {
         private set
     var deviceId: String = ""
         private set
+    var binaryPath: String = ""
+        private set
+    var binaryExists: Boolean = false
+        private set
+    var binaryExecutable: Boolean = false
+        private set
+    var lastExitCode: Int? = null
+        private set
 
     val isRunning = AtomicBoolean(false)
     val lastError = AtomicReference<String?>(null)
+    val recentLogs = ConcurrentLinkedQueue<String>()
     private var crashTimestamps = mutableListOf<Long>()
 
     private val prefs = context.getSharedPreferences("davinci_syncthing_internal", Context.MODE_PRIVATE)
@@ -41,19 +51,39 @@ class SyncthingProcessManager(private val context: Context) {
     fun start(): Boolean {
         if (isRunning.get()) return true
 
-        // Crash loop guard: 3 crashes within 60 seconds
         val now = System.currentTimeMillis()
         crashTimestamps.removeAll { now - it > 60_000 }
         if (crashTimestamps.size >= 3) {
-            lastError.set("Crash loop detected: 3 failures in 60s. Halting automatic restart.")
+            val err = "Crash loop detected: 3 failures in 60s. Halting automatic restart."
+            lastError.set(err)
+            Log.e("SyncthingProcess", err)
             return false
         }
 
         val nativeLibDir = context.applicationInfo.nativeLibraryDir
         val binaryFile = File(nativeLibDir, "libsyncthing.so")
-        if (!binaryFile.exists() || !binaryFile.canExecute()) {
-            lastError.set("Syncthing native binary not found or not executable at: ${binaryFile.absolutePath}")
+        binaryPath = binaryFile.absolutePath
+        binaryExists = binaryFile.exists()
+        binaryExecutable = binaryFile.canExecute()
+
+        Log.i("SyncthingProcess", "Locating binary: path=$binaryPath, exists=$binaryExists, canExecute=$binaryExecutable")
+
+        if (!binaryExists) {
+            val err = "Syncthing native binary not found in native library directory: $binaryPath"
+            lastError.set(err)
+            Log.e("SyncthingProcess", err)
             return false
+        }
+
+        if (!binaryExecutable) {
+            binaryFile.setExecutable(true, false)
+            binaryExecutable = binaryFile.canExecute()
+            if (!binaryExecutable) {
+                val err = "Syncthing native binary exists but is not executable at: $binaryPath"
+                lastError.set(err)
+                Log.e("SyncthingProcess", err)
+                return false
+            }
         }
 
         val homeDir = File(context.filesDir, "syncthing")
@@ -61,8 +91,6 @@ class SyncthingProcessManager(private val context: Context) {
 
         port = findFreePort()
         apiKey = getOrGenerateApiKey()
-
-        // Strip default folder from config.xml if present
         stripDefaultFolder(homeDir)
 
         val pb = ProcessBuilder(
@@ -76,38 +104,66 @@ class SyncthingProcessManager(private val context: Context) {
             "--no-restart",
             "--log-file=-"
         )
+        pb.redirectErrorStream(true)
+        pb.environment()["HOME"] = homeDir.absolutePath
         pb.environment()["STNORESTART"] = "1"
         pb.environment()["STNOUPGRADE"] = "1"
         pb.directory(context.filesDir)
 
         try {
+            Log.i("SyncthingProcess", "Spawning Syncthing process on port $port...")
             val proc = pb.start()
             process = proc
             isRunning.set(true)
             lastError.set(null)
+            lastExitCode = null
 
-            // Capture logs and redact secrets
             Thread {
-                proc.inputStream.bufferedReader().useLines { lines ->
-                    lines.forEach { line ->
-                        if (line.contains("My ID: ")) {
-                            val id = line.substringAfter("My ID: ").trim().split(" ")[0]
-                            if (id.length >= 56) deviceId = id
+                try {
+                    proc.inputStream.bufferedReader().useLines { lines ->
+                        lines.forEach { line ->
+                            val sanitized = if (apiKey.isNotEmpty()) line.replace(apiKey, "[REDACTED]") else line
+                            appendLog(sanitized)
+                            if (line.contains("My ID: ")) {
+                                val id = line.substringAfter("My ID: ").trim().split(" ")[0]
+                                if (id.length >= 56) {
+                                    deviceId = id
+                                    Log.i("SyncthingProcess", "Syncthing ready, deviceId=$id")
+                                }
+                            }
                         }
                     }
-                }
-                if (isRunning.get()) {
+                } catch (_: Exception) {}
+
+                val exit = proc.waitFor()
+                lastExitCode = exit
+                isRunning.set(false)
+                Log.w("SyncthingProcess", "Syncthing process terminated with exit code $exit")
+
+                if (exit != 0) {
                     crashTimestamps.add(System.currentTimeMillis())
-                    isRunning.set(false)
+                    val recent = recentLogs.toList().takeLast(5).joinToString("\n")
+                    lastError.set("Syncthing exited unexpectedly (code $exit). Last logs:\n$recent")
                 }
             }.start()
 
             return true
         } catch (e: Exception) {
-            lastError.set(e.message)
+            val err = "Failed to spawn Syncthing process: ${e.message}"
+            lastError.set(err)
+            Log.e("SyncthingProcess", err, e)
             return false
         }
     }
+
+    private fun appendLog(line: String) {
+        recentLogs.add(line)
+        while (recentLogs.size > 50) {
+            recentLogs.poll()
+        }
+    }
+
+    fun getRecentLogsList(): List<String> = recentLogs.toList()
 
     fun stop() {
         isRunning.set(false)

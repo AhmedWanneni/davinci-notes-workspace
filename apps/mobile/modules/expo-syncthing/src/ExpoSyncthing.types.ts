@@ -9,6 +9,11 @@ export interface SyncthingStatusResult {
   port: number;
   deviceId: string;
   reason?: string;
+  binaryPath?: string;
+  binaryExists?: boolean;
+  binaryExecutable?: boolean;
+  exitCode?: number;
+  logs?: string[];
 }
 
 export interface SyncthingRunConditionsConfig {
