@@ -1,10 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes";
-import type {
-  ChatMessageItem,
-  ChatAttachmentItem,
-  MentionItem,
-} from "./agentTypes";
+import type { ChatMessageItem, ChatAttachmentItem, MentionItem } from "./agentTypes";
 import { assembleContextAttachments } from "./agentContextAssembler";
 
 export function appendAssistantChunk(
@@ -39,6 +35,52 @@ export function finalizeAssistantMessage(
 ): ChatMessageItem[] {
   const filtered = prev.filter((m) => m.id !== assistantMsgId);
   return [...filtered, { ...msg, isStreaming: false }];
+}
+
+export function createChunkBatcher(
+  assistantMsgId: string,
+  setMessages: Dispatch<SetStateAction<ChatMessageItem[]>>,
+) {
+  let chunkBuffer = "";
+  let rafId: ReturnType<typeof setTimeout> | number | null = null;
+
+  const scheduleRaf =
+    typeof requestAnimationFrame !== "undefined"
+      ? requestAnimationFrame
+      : (cb: () => void) => setTimeout(cb, 16);
+
+  const cancelRaf =
+    typeof cancelAnimationFrame !== "undefined"
+      ? cancelAnimationFrame
+      : clearTimeout;
+
+  const flush = () => {
+    if (!chunkBuffer) return;
+    const chunk = chunkBuffer;
+    chunkBuffer = "";
+    setMessages((prev) => appendAssistantChunk(prev, assistantMsgId, chunk));
+  };
+
+  const push = (chunk: string) => {
+    chunkBuffer += chunk;
+    if (rafId === null) {
+      rafId = scheduleRaf(() => {
+        rafId = null;
+        flush();
+      });
+    }
+  };
+
+  const finish = (msg: ChatMessageItem) => {
+    if (rafId !== null) {
+      cancelRaf(rafId as number);
+      rafId = null;
+    }
+    flush();
+    setMessages((prev) => finalizeAssistantMessage(prev, assistantMsgId, msg));
+  };
+
+  return { push, finish, flush };
 }
 
 export async function prepareUserMessage(

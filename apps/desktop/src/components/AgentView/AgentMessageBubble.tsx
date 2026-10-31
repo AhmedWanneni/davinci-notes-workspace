@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { AgentMarkdownContent } from "./AgentMarkdownContent";
 import { AgentToolCard } from "./AgentToolCard";
 import { AgentMessageActions } from "./AgentMessageActions";
@@ -14,7 +14,7 @@ export interface AgentMessageBubbleProps {
   onViewDiff?: (path: string) => void;
 }
 
-export function AgentMessageBubble({
+function AgentMessageBubbleComponent({
   message,
   onNavigateNote,
   onEditMessage,
@@ -121,3 +121,22 @@ export function AgentMessageBubble({
     </div>
   );
 }
+
+function areBubblePropsEqual(
+  prev: AgentMessageBubbleProps,
+  next: AgentMessageBubbleProps,
+): boolean {
+  if (prev.message.id !== next.message.id) return false;
+  if (prev.message.content !== next.message.content) return false;
+  if (prev.message.isStreaming !== next.message.isStreaming) return false;
+  if (prev.message.attachments !== next.message.attachments) return false;
+  if (prev.message.mentions !== next.message.mentions) return false;
+  if (prev.message.toolCalls !== next.message.toolCalls) return false;
+  if (prev.message.toolResults !== next.message.toolResults) return false;
+  return true;
+}
+
+export const AgentMessageBubble = memo(
+  AgentMessageBubbleComponent,
+  areBubblePropsEqual,
+);

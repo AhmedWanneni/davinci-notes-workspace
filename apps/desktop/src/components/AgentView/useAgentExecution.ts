@@ -18,8 +18,7 @@ import {
   executeRewriteAndClarify,
 } from "./agentPromptResolver.js";
 import {
-  appendAssistantChunk,
-  finalizeAssistantMessage,
+  createChunkBatcher,
   executeCliAgentSession,
   prepareUserMessage,
   findPriorUserPrompt,
@@ -142,6 +141,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
         );
 
         const assistantMsgId = `msg_a_${Date.now() + 1}`;
+        const batcher = createChunkBatcher(assistantMsgId, setMessages);
 
         await runAgentStepLoop({
           provider,
@@ -149,16 +149,8 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           activeTools,
           promptText,
           abortSignal: abortRef.current?.signal,
-          onAssistantChunk: (chunk: string) => {
-            setMessages((prev) =>
-              appendAssistantChunk(prev, assistantMsgId, chunk),
-            );
-          },
-          onAssistantMessage: (msg) => {
-            setMessages((prev) =>
-              finalizeAssistantMessage(prev, assistantMsgId, msg),
-            );
-          },
+          onAssistantChunk: batcher.push,
+          onAssistantMessage: batcher.finish,
           stepContext: {
             webSearchEnabled: options?.webSearchEnabled,
             autoApply,

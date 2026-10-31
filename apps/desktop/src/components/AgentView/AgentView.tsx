@@ -1,12 +1,10 @@
 import { useEffect, useRef } from "react";
 import { AgentHeader } from "./AgentHeader";
 import { AgentMissedBanner } from "./AgentMissedBanner";
-import { AgentMessageBubble } from "./AgentMessageBubble";
+import { AgentMessageList } from "./AgentMessageList";
 import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentChatInput } from "./AgentChatInput";
 import { AgentConversationsDrawer } from "./AgentConversationsDrawer";
-import { AgentStarterPrompts } from "./AgentStarterPrompts";
-import { AgentCliStatusCard } from "./AgentCliStatusCard";
 import { AgentScrollBottomBtn } from "./AgentScrollBottomBtn";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentSchedules } from "./useAgentSchedules";
@@ -149,31 +147,16 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
           />
         )}
 
-        <div className="agent-view__messages" ref={scrollRef}>
-          {messages.length === 0 ? (
-            <AgentStarterPrompts
-              vaultName={vaultName}
-              onSelectPrompt={(prompt) => void sendMessage(prompt)}
-            />
-          ) : (
-            messages.map((msg) => (
-              <AgentMessageBubble
-                key={msg.id}
-                message={msg}
-                onEditMessage={(id, text) => void handleEditMessage(id, text)}
-                onRegenerateMessage={(id) => void handleRegenerateMessage(id)}
-              />
-            ))
-          )}
-          {cliSession && (
-            <AgentCliStatusCard
-              agentName={cliSession.agentName}
-              status={cliSession.status}
-              logs={cliSession.logs}
-              onCancel={cancelActiveCliSession}
-            />
-          )}
-        </div>
+        <AgentMessageList
+          messages={messages}
+          scrollRef={scrollRef}
+          vaultName={vaultName}
+          onSendMessage={(prompt) => void sendMessage(prompt)}
+          onEditMessage={(id, text) => void handleEditMessage(id, text)}
+          onRegenerateMessage={(id) => void handleRegenerateMessage(id)}
+          cliSession={cliSession}
+          cancelActiveCliSession={cancelActiveCliSession}
+        />
 
         {stagedChanges.length > 0 && (
           <AgentDiffViewer

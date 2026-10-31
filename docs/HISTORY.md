@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-01: AI Chat Overhaul Phase 5 & Phase 6: Rich Context Mentions, Virtualization & Performance Hardening
+
+- **Rich Context Mentions (`AgentMentionChip.tsx`, `AgentMentionMenu.tsx`, `agentContextAssembler.ts`, `useAgentMention.ts`)**:
+  - Implemented `AgentMentionChip` with icon, truncated label, and remove button.
+  - Enhanced `AgentMentionMenu` with fuzzy matching (`fuzzysort`) and `@current` active note shortcut.
+  - Built `agentContextAssembler.ts` with strict hierarchical token budgeting (24K token cap / ~96KB per note, 32K token cap / ~128KB per folder outline + top 5 files), packaging attachments inside `<context_attachments>` XML envelope.
+  - Refactored `AgentChatInput.tsx` by extracting `AgentChatFooter.tsx` (145 lines), keeping `AgentChatInput.tsx` at 187 lines (<200 soft cap).
+- **Virtualization & Performance Hardening (`AgentMessageList.tsx`, `AgentMessageBubble.tsx`, `agentExecutionHelpers.ts`)**:
+  - Implemented `AgentMessageList` with `@tanstack/react-virtual` activating for conversations >=20 messages with dynamic measurement.
+  - Wrapped `AgentMessageBubble` in `React.memo` with custom prop comparator `areBubblePropsEqual` to eliminate re-renders on prior message turns during active streaming.
+  - Implemented `createChunkBatcher` in `agentExecutionHelpers.ts` to batch streaming tokens into animation frame ticks.
+  - Reduced `AgentView.tsx` from 236 lines down to 219 lines and `useAgentExecution.ts` to 249 lines (strictly under 250 cap).
+- **Verification**:
+  - All 30 test files and 93 tests passing in `apps/desktop/src/components/AgentView`.
+  - All files strictly adhere to 250-line hard cap and Obsidian-flat design system tokens.
+  - Knowledge graph updated with `graphify update .`.
+
+---
+
 ### 2026-10-31: AI Chat Overhaul Phase 4: Multimodal Image Attachments & Vision Pipeline
 
 - **Multimodal API & Transports (`AIProvider.ts`, `geminiTransport.ts`, `cloudTransport.ts`, `ollamaToolFallback.ts`)**:

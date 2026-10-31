@@ -4,35 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Chat Overhaul Phase 4: Multimodal Image Attachments & Vision Pipeline
+## Last Session — AI Chat Overhaul Phase 5 & Phase 6: Rich Context Mentions, Virtualization & Performance Hardening
 
-**Scope:** Implement Phase 4 of `ai-chat-ui-feature-plan.md`: extend `ChatMessage` to support multimodal image attachments, map attachments across Gemini (`inlineData`), Cloud/OpenRouter (`image_url`), and Ollama (`images` array) transports, implement drag-and-drop, clipboard paste, paperclip attachment, composer thumbnail chips, and click-to-zoom image viewer modal.
+**Scope:** Complete the remaining phases (Phase 5 & Phase 6) of `ai-chat-ui-feature-plan.md`:
+1. **Phase 5: Rich Context Mentions Pipeline**: Interactive mention chips in composer and message bubbles (`AgentMentionChip.tsx`), fuzzy search across vault files and folders using `fuzzysort`, `@current` active note binding, token budgeting (24K token cap per note, 32K per folder outline), XML context attachments serialization (`agentContextAssembler.ts`), and extracted composer footer (`AgentChatFooter.tsx`).
+2. **Phase 6: Virtualization & Performance Hardening**: Dynamic height message list virtualization with `@tanstack/react-virtual` for 20+ messages (`AgentMessageList.tsx`), `React.memo` with custom prop comparator on `AgentMessageBubble` preventing re-renders of turns 1..(N-1) during stream generation, and RAF/frame-throttled streaming token batcher (`createChunkBatcher`).
 
 **What was done:**
-1. **Multimodal API & Transports (`AIProvider.ts`, `geminiTransport.ts`, `cloudTransport.ts`, `ollamaToolFallback.ts`)**:
-   - Extended `ChatMessage` with `attachments?: ChatAttachment[]`.
-   - Updated `GeminiTransport` to format image attachments into Gemini's `inlineData: { mimeType, data }` parts.
-   - Updated `CloudTransport` to construct OpenAI/OpenRouter vision payloads (`{ type: "image_url", image_url: { url } }`).
-   - Updated `OllamaTransport` fallback payload to include `images: string[]` base64 array.
-2. **Composer Attachments & Vision Detection (`AgentChatInput.tsx`, `useChatAttachments.ts`, `imageAttachmentUtils.ts`)**:
-   - Added `useChatAttachments` hook handling clipboard paste (`onPaste`), drag-and-drop (`onDrop`), and file browser selection.
-   - Built thumbnail chip row (`AgentImageThumbnail.tsx`) with remove button.
-   - Added `isVisionSupported` detection displaying an alert chip if a non-vision model (e.g. `deepseek-r1`, `gemma-2`) is selected with attached images.
-3. **Click-to-Zoom Image Modal (`AgentImageViewerModal.tsx` & `AgentMessageBubble.tsx`)**:
-   - Built full-screen click-to-zoom viewer closing on `Escape` or backdrop click.
-   - Displayed image attachment thumbnails in sent user message bubbles and assistant messages.
-4. **Verification & Testing**:
-   - Tests in `AgentPhase4MultimodalImages.test.tsx` and `@app/ai-runtime` passing (34 tests).
-   - All 28 test files (80 tests) passing in `apps/desktop/src/components/AgentView`.
-   - Strict 250-line file cap honored (`AgentChatInput.tsx`: 248 lines, `useAgentExecution.ts`: 247 lines, `AgentMessageBubble.tsx`: 114 lines).
+1. **Context Mentions & Token Budgeting (`AgentMentionChip.tsx`, `AgentMentionMenu.tsx`, `agentContextAssembler.ts`, `useAgentMention.ts`)**:
+   - Built `AgentMentionChip.tsx` with note/folder icon, truncated label, and remove button.
+   - Enhanced `AgentMentionMenu.tsx` with fuzzy matching (`fuzzysort`), `@current` auto-binding for active note, and CUBE CSS styling.
+   - Created `agentContextAssembler.ts` enforcing strict token caps (24K tokens / ~96KB per note, 32K tokens / ~128KB per folder with tree outline + top 5 files), packaging into `<context_attachments>` XML tags.
+   - Refactored `AgentChatInput.tsx` (reduced from 248 to 187 lines) by extracting `AgentChatFooter.tsx` (145 lines).
+2. **Message List Virtualization & Streaming Frame Batching (`AgentMessageList.tsx`, `AgentMessageBubble.tsx`, `agentExecutionHelpers.ts`)**:
+   - Implemented `AgentMessageList.tsx` with `@tanstack/react-virtual` activating for conversations with >=20 messages, using dynamic element measurement (`measureElement`).
+   - Memoized `AgentMessageBubble` with `areBubblePropsEqual` ensuring unchanged previous message bubbles never re-render when new tokens stream into turn N.
+   - Built `createChunkBatcher` in `agentExecutionHelpers.ts` to batch streaming tokens into animation frame ticks, eliminating wasted React render passes.
+   - Decoupled `AgentView.tsx` from direct message list rendering, reducing it from 236 to 219 lines.
+3. **Verification & Testing**:
+   - All 30 test files and 93 tests passing in `apps/desktop/src/components/AgentView`.
+   - All tests in `packages/ai-runtime` passing (34 tests).
+   - Strict 250-line file cap honored across all modified and new files (`AgentView.tsx`: 219 lines, `AgentMessageList.tsx`: 120 lines, `AgentMessageBubble.tsx`: 142 lines, `useAgentExecution.ts`: 249 lines, `AgentChatInput.tsx`: 187 lines, `AgentChatFooter.tsx`: 145 lines, `useAgentMention.ts`: 116 lines, `agentContextAssembler.ts`: 87 lines).
    - Knowledge graph updated via `graphify update .`.
 
 **Next up:**
-- **Phase 5 (`ai-chat-ui-feature-plan.md`)**: Rich Context Mentions Pipeline (`@note` & `@folder` chip attachments, token budgeting, folder tree synthesis, and `@current` shortcut).
+- Run full preflight release validation if packaging a release, or proceed with user-directed tasks.
 
 ---
 
-## Prior Session — AI Chat Overhaul Phase 3: Collapsible Tool Cards, Diff Links & Message Actions
+## Prior Session — AI Chat Overhaul Phase 4: Multimodal Image Attachments & Vision Pipeline
 
 **Scope:** Implement Phase 3 of `ai-chat-ui-feature-plan.md`: replace plain tool cards with sleek collapsible status rows, link file modification actions directly to diff viewers, implement a hover message action toolbar (Copy, Edit user turns, Regenerate assistant turns), and support history truncation & resubmission.
 
