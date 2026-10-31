@@ -6081,9 +6081,9 @@
     "ast_empty": true
   },
   "apps/mobile/modules/expo-syncthing/index.ts": {
-    "mtime": 1793458359.9904914,
-    "seen": 1793458447.006353,
-    "ast_hash": "c5e44e1666b3fa9fc6347933a775d8b0",
+    "mtime": 1793459045.3467207,
+    "seen": 1793459905.2473018,
+    "ast_hash": "fd35e424b89edb5fbb7004e09b5ede61",
     "semantic_hash": ""
   },
   "apps/mobile/modules/expo-syncthing/package.json": {
@@ -6099,9 +6099,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/modules/expo-syncthing/src/ExpoSyncthingModule.ts": {
-    "mtime": 1793458355.0853937,
-    "seen": 1793458447.006437,
-    "ast_hash": "2455410108ed0578e9d3bbbb8eb522c3",
+    "mtime": 1793459045.353155,
+    "seen": 1793459905.247387,
+    "ast_hash": "d08ec61718d50d7d679e567bac0c3762",
     "semantic_hash": ""
   },
   "apps/mobile/modules/expo-syncthing/src/declarations.d.ts": {
@@ -6345,9 +6345,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/ScanToSyncConfirmSheet.tsx": {
-    "mtime": 1793442781.0917108,
-    "seen": 1793443205.463833,
-    "ast_hash": "99501b753f47ca2a59deee55af373d0c",
+    "mtime": 1793459651.6936028,
+    "seen": 1793459905.2487931,
+    "ast_hash": "43b1c1c2d10c9f4ba6e4878eec8ba841",
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/ScanToSyncModal.tsx": {
@@ -6843,9 +6843,9 @@
     "semantic_hash": "fa306ba75023a39a4824e1704c1ade13"
   },
   "apps/mobile/vault/MobileVaultStorageAdapter.ts": {
-    "mtime": 1793452439.0448163,
-    "seen": 1793458447.0109959,
-    "ast_hash": "f710ebe344eed22f97a411a4c9682146",
+    "mtime": 1793459045.4179463,
+    "seen": 1793459905.252146,
+    "ast_hash": "07868d3126a211ca1b40ced311639c88",
     "semantic_hash": ""
   },
   "apps/mobile/vault/VaultItemRow.tsx": {
@@ -6909,9 +6909,9 @@
     "semantic_hash": "5ea2bffc4dc8749515369bc8c13d2088"
   },
   "apps/mobile/vault/fs/vaultStorage.ts": {
-    "mtime": 1793458142.921639,
-    "seen": 1793458447.011355,
-    "ast_hash": "fd5d3494af210a62988147aca81fc298",
+    "mtime": 1793459045.4310706,
+    "seen": 1793459905.252522,
+    "ast_hash": "5d955763d9c9ac64d5762aca39885c79",
     "semantic_hash": ""
   },
   "apps/mobile/vault/h1Extractor.ts": {
@@ -6945,9 +6945,9 @@
     "semantic_hash": "06da95b445d43c230ab33a97cb26e54c"
   },
   "apps/mobile/vault/pathUtils.ts": {
-    "mtime": 1793452418.793783,
-    "seen": 1793458447.011523,
-    "ast_hash": "be9cce2b9f81028c37a9a8591898d88f",
+    "mtime": 1793459045.4439018,
+    "seen": 1793459905.252697,
+    "ast_hash": "0972ff0dfba1a24122b8978e0ebc461b",
     "semantic_hash": ""
   },
   "apps/mobile/vault/saveQueue.ts": {
@@ -6993,9 +6993,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/vault/vaultManager.ts": {
-    "mtime": 1793452681.722082,
-    "seen": 1793458447.011759,
-    "ast_hash": "9232d6e4a97dc5451dd63f33f9f9d8b0",
+    "mtime": 1793459045.4605713,
+    "seen": 1793459905.252936,
+    "ast_hash": "578a505d1ef80f63ef26ce5875f259e0",
     "semantic_hash": ""
   },
   "apps/mobile/vault/vaultReconciler.ts": {
@@ -7005,9 +7005,9 @@
     "semantic_hash": "94ad054b345df0b22baa62306fed1df5"
   },
   "apps/mobile/vault/vaultRegistryStore.ts": {
-    "mtime": 1793458156.3438728,
-    "seen": 1793458447.0117939,
-    "ast_hash": "167bd9253bffa9b74103e9b63de38a45",
+    "mtime": 1793459045.4648073,
+    "seen": 1793459905.25297,
+    "ast_hash": "1a89207729d0a2c78a75761f511c0044",
     "semantic_hash": ""
   },
   "apps/mobile/vault/vaultRegistryTypes.ts": {
@@ -7889,8 +7889,8 @@
     "semantic_hash": "2ade840e30624bed7f888bc5d2a79394"
   },
   "apps/website/.astro/content.d.ts": {
-    "mtime": 1793446098.6455069,
-    "seen": 1793446147.7341928,
+    "mtime": 1793458979.2264104,
+    "seen": 1793459905.258484,
     "ast_hash": "4aaaf7e07990466432e5a0fcf9b2e58c",
     "semantic_hash": "4aaaf7e07990466432e5a0fcf9b2e58c"
   },
@@ -7909,8 +7909,8 @@
     "ast_empty": true
   },
   "apps/website/.astro/types.d.ts": {
-    "mtime": 1793446098.645623,
-    "seen": 1793446147.7342641,
+    "mtime": 1793458979.226594,
+    "seen": 1793459905.2585568,
     "ast_hash": "f3d48b2aa569815a445d3509aa161559",
     "semantic_hash": ""
   },
@@ -13259,9 +13259,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793452989.1994143,
-    "seen": 1793458447.048108,
-    "ast_hash": "404164481dab5e3d48e99245d283e689",
+    "mtime": 1793459868.529343,
+    "seen": 1793459905.290245,
+    "ast_hash": "24c8f8fba047a2767aa8b37397818861",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13337,9 +13337,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793453004.9333897,
-    "seen": 1793458447.0484962,
-    "ast_hash": "63767ffe34583a6b30bcb47f0b572de1",
+    "mtime": 1793459880.6592646,
+    "seen": 1793459905.2906399,
+    "ast_hash": "f161e3ea85a388391480b9791dcc4874",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -16253,9 +16253,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/mobileSyncthingVaults.ts": {
-    "mtime": 1793452720.7545927,
-    "seen": 1793458447.0089412,
-    "ast_hash": "165c27abbe5aa73a0313e1cffc614f4a",
+    "mtime": 1793459045.3924103,
+    "seen": 1793459905.2500129,
+    "ast_hash": "765d5e5322b1f17f3f8e8c2ee1a76bf1",
     "semantic_hash": ""
   },
   "apps/mobile/tests/mocks/expoStatusBarMock.tsx": {
@@ -16403,33 +16403,39 @@
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/SyncthingPendingFolderRow.tsx": {
-    "mtime": 1793458221.996997,
-    "seen": 1793458447.008171,
-    "ast_hash": "f1b718948388f355ef3555fc3d9b2741",
+    "mtime": 1793459045.3777428,
+    "seen": 1793459905.2491689,
+    "ast_hash": "05d12965defe3307d7b59395804c59a8",
     "semantic_hash": ""
   },
   "apps/mobile/vault/fs/syncExternalDirectory.test.ts": {
-    "mtime": 1793458403.9965944,
-    "seen": 1793458447.011316,
-    "ast_hash": "c90fea9f0c87d4490f0aea17982ac63d",
+    "mtime": 1793459045.4215415,
+    "seen": 1793459905.252482,
+    "ast_hash": "e9c6b639a6b435b86820862578e96d64",
     "semantic_hash": ""
   },
   "apps/mobile/vault/fs/syncExternalDirectory.ts": {
-    "mtime": 1793458072.6193304,
-    "seen": 1793458447.011317,
-    "ast_hash": "4870b611fe089442aa282be3b422bd77",
+    "mtime": 1793459045.4246612,
+    "seen": 1793459905.252484,
+    "ast_hash": "43e896b8d8345d88f9763963cfbcba4f",
     "semantic_hash": ""
   },
   "apps/mobile/vault/pathUtils.test.ts": {
-    "mtime": 1793452407.5590491,
-    "seen": 1793458447.011522,
-    "ast_hash": "49e1f8226798f8bea5c68750b91f8792",
+    "mtime": 1793459045.4379847,
+    "seen": 1793459905.252695,
+    "ast_hash": "bcc094193a8e068bce9f07fb8a4942c7",
     "semantic_hash": ""
   },
   "apps/mobile/vault/vaultCreation.ts": {
-    "mtime": 1793458273.640765,
-    "seen": 1793458447.0117571,
-    "ast_hash": "d1abae4a868241ed2101fa0511c03978",
+    "mtime": 1793459045.4478202,
+    "seen": 1793459905.252934,
+    "ast_hash": "d29506f63a6b4adca7bde69b45510a4c",
+    "semantic_hash": ""
+  },
+  "apps/mobile/sync/syncthing/sandboxTargetResolver.ts": {
+    "mtime": 1793459637.658879,
+    "seen": 1793459905.250015,
+    "ast_hash": "9d0caf5c6d95a4df04ac252b89c5310e",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

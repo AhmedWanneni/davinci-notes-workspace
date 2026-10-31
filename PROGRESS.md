@@ -4,7 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — External Vault Connection & Synced Folder Creation (Index 52 Crash Fix)
+## Last Session — Scan-to-Sync Target Folder Resolution & Empty Folder Creation
+
+**Scope:** Fix the "Target folder is not empty" warning in phone's Scan-to-Sync confirmation sheet, add a 1-tap option to create a dedicated empty folder for the incoming sync, fix Android JSI HostFunction index 52 crashes on external vaults, build and release the production APK (`Sophia_0.3.0.apk`), and verify public download links.
+
+**What was done:**
+1. **Scan-to-Sync Clean Sandbox Target Resolution (`ScanToSyncConfirmSheet.tsx`, `sandboxTargetResolver.ts`)**:
+   - Resolved the issue where `ScanToSyncConfirmSheet` defaulted to the currently open active vault (which contains existing notes like `Welcome to DaVinci Notes.md`), causing the `"⚠️ Target folder is not empty"` warning with no option to create a new folder.
+   - Extracted `sandboxTargetResolver.ts` (`resolveSandboxTarget`, `createFreshSandboxFolder`) to maintain compliance with `AGENTS.md` (both files < 230 lines).
+   - Defaulted `targetPath` directly to a dedicated sandbox vault target (`vaults/<folderLabel>`).
+   - When a folder is non-empty, rendered a prominent **`"+ Create New Empty Folder"`** button inside the warning banner that provisions an incremental non-colliding directory (`vaults/<label>-1`, `vaults/<label>-2`, etc.).
+   - Added quick-action buttons: `"+ New Folder"` to create an isolated target on demand, and `"Use Active Vault"` to easily switch back if desired.
+2. **HostFunction Exception Hardening & External Vault Sync (`vaultStorage.ts`, `syncExternalDirectory.ts`, `vaultCreation.ts`)**:
+   - Handled Android SAF `content://` and invalid URI characters safely in `verifyDirectoryAccess` and `vaultRegistryStore.ts` to prevent native JSI `IllegalArgumentException: character in path at index 52` crashes in `expo.module.filesystem.FileSystemPath`.
+   - Added `syncExternalDirectoryToSandbox` and `pickAndCreateFolderToSyncExternalVault` to copy external notes into a clean app sandbox folder.
+   - Added `"+ Create New Folder"` in incoming Syncthing folder offers (`SyncthingPendingFolderRow.tsx`).
+3. **Release & Verification**:
+   - Production APK built via `cd apps/mobile/android && ./gradlew assembleRelease` -> `Sophia_0.3.0.apk` (71 MB).
+   - Asset uploaded to GitHub Release `v0.3.0` (`gh release upload v0.3.0 ./Sophia_0.3.0.apk --clobber`).
+   - Verified direct public download link returns HTTP 200 without authentication (`curl -ILs`).
+   - All 14 Syncthing test suites (67 tests) passed. TypeScript checks clean.
+
+**Next up:**
+- Verify user verification on Android device with the updated APK.
+- Deploy website updates if needed.
+
+---
+
+## Prior Session — External Vault Connection & Synced Folder Creation (Index 52 Crash Fix)
 
 **Scope:** Fix the runtime exception `Vault Inaccessible: Exception in hostfunction character in path at index 52 expo.module.filesystem.FileSystemPath` when connecting an external vault on Android, and provide the user with the ability to automatically create a new dedicated folder in app storage to sync external vaults into.
 

@@ -4,13 +4,16 @@ import {
   formatDeviceIdGroups,
   type SyncthingPairingPayload,
 } from "@app/syncthing-api";
-import * as FileSystem from "expo-file-system/legacy";
 import { useTheme } from "../../theme";
 import { Badge, Button, Text } from "../../components/primitives";
 import {
   checkFolderAccess,
   type FolderAccessCheckResult,
 } from "./folderAccessChecker";
+import {
+  resolveSandboxTarget,
+  createFreshSandboxFolder,
+} from "./sandboxTargetResolver";
 
 export interface ScanToSyncConfirmSheetProps {
   payload: SyncthingPairingPayload;
@@ -19,16 +22,6 @@ export interface ScanToSyncConfirmSheetProps {
   onConfirm: (targetPath: string) => Promise<void>;
   onBack: () => void;
   onCancel: () => void;
-}
-
-function resolveSandboxTarget(payload: SyncthingPairingPayload): string {
-  const safeName = (payload.folderLabel || payload.folderId || "Synced Vault")
-    .replace(/[/\\?%*:|"<>]/g, "-")
-    .trim();
-  const base = (
-    FileSystem.documentDirectory || "file:///app/sandbox/documents/"
-  ).replace(/\/+$/, "");
-  return `${base}/vaults/${encodeURIComponent(safeName || "Vault")}`;
 }
 
 export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
@@ -40,13 +33,8 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
   onCancel,
 }) => {
   const defaultSandbox = resolveSandboxTarget(payload);
-  const initialTarget =
-    defaultTargetPath.trim() && !defaultTargetPath.startsWith("content://")
-      ? defaultTargetPath.trim()
-      : defaultSandbox;
-
   const { tokens } = useTheme();
-  const [targetPath, setTargetPath] = useState(initialTarget);
+  const [targetPath, setTargetPath] = useState(defaultSandbox);
   const [accessResult, setAccessResult] =
     useState<FolderAccessCheckResult | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(true);
@@ -64,6 +52,12 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
       cancelled = true;
     };
   }, [targetPath]);
+
+  const handleCreateNewFolder = async () => {
+    setCheckingAccess(true);
+    const newTarget = await createFreshSandboxFolder(payload);
+    setTargetPath(newTarget);
+  };
 
   const canConfirm =
     !isBusy && !checkingAccess && accessResult?.accessible === true;
@@ -136,39 +130,64 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
           </View>
         ) : accessResult?.accessible ? (
           accessResult.isNonEmpty ? (
-            <View className="p-2 rounded bg-accent-warning/10 border border-accent-warning/30">
-              <Text size="xs" color="normal" weight="medium">
+            <View className="p-2.5 rounded bg-accent-warning/10 border border-accent-warning/30 mb-2">
+              <Text size="xs" color="normal" weight="semibold">
                 ⚠️ Target folder is not empty
               </Text>
-              <Text size="xs" color="muted" className="mt-0.5">
+              <Text size="xs" color="muted" className="mt-0.5 mb-2">
                 Existing files in this folder may be merged during sync.
               </Text>
-            </View>
-          ) : (
-            <Text size="xs" color="success">
-              ✓ Ready and empty (read/write access verified)
-            </Text>
-          )
-        ) : (
-          <View className="p-2 rounded bg-bg-status-error border border-border-status-error">
-            <Text size="xs" color="error" weight="medium">
-              Storage Access Error
-            </Text>
-            <Text size="xs" color="error" className="mt-0.5">
-              {accessResult?.error || "Cannot write to target folder."}
-            </Text>
-            {targetPath !== defaultSandbox ? (
               <Button
                 variant="secondary"
                 size="sm"
-                className="mt-2"
-                onPress={() => setTargetPath(defaultSandbox)}
+                onPress={handleCreateNewFolder}
               >
-                Use App Sandbox Storage
+                + Create New Empty Folder
               </Button>
-            ) : null}
+            </View>
+          ) : (
+            <Text size="xs" color="success" className="mb-2">
+              ✓ Ready and empty (clean sync target)
+            </Text>
+          )
+        ) : (
+          <View className="p-2 rounded bg-bg-status-error border border-border-status-error mb-2">
+            <Text size="xs" color="error" weight="medium">
+              Storage Access Error
+            </Text>
+            <Text size="xs" color="error" className="mt-0.5 mb-2">
+              {accessResult?.error || "Cannot write to target folder."}
+            </Text>
+            <Button
+              variant="secondary"
+              size="sm"
+              onPress={handleCreateNewFolder}
+            >
+              Create New Folder in App Storage
+            </Button>
           </View>
         )}
+
+        <View className="flex-row gap-2 mt-1">
+          <Button
+            variant="secondary"
+            size="sm"
+            onPress={handleCreateNewFolder}
+            className="flex-1"
+          >
+            + New Folder
+          </Button>
+          {defaultTargetPath && targetPath !== defaultTargetPath ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={() => setTargetPath(defaultTargetPath)}
+              className="flex-1"
+            >
+              Use Active Vault
+            </Button>
+          ) : null}
+        </View>
       </View>
 
       <View className="flex-row gap-2 mb-2">
