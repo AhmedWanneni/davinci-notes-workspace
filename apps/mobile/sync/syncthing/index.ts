@@ -3,6 +3,8 @@ export { SyncthingQrView } from "./SyncthingQrView";
 export { SyncthingKeyModal } from "./SyncthingKeyModal";
 export { SyncthingAddDeviceModal } from "./SyncthingAddDeviceModal";
 export { SyncthingPendingSection } from "./SyncthingPendingSection";
+export { SyncthingPairedDevicesSection } from "./SyncthingPairedDevicesSection";
+export { SyncthingSharedVaultsSection } from "./SyncthingSharedVaultsSection";
 export { SyncthingQrScanner } from "./SyncthingQrScanner";
 export { useMobileSyncthing } from "./useMobileSyncthing";
 export { checkFolderAccess } from "./folderAccessChecker";
@@ -22,6 +24,14 @@ export {
   mobileSyncthingDismissPendingFolder,
   mobileSyncthingConnectedDevices,
 } from "./mobileSyncthingPairing";
+export {
+  mobileSyncthingListDevices,
+  mobileSyncthingRemoveDevice,
+} from "./mobileSyncthingDevices";
+export {
+  mobileSyncthingListSharedVaults,
+  mobileSyncthingUnshareFolder,
+} from "./mobileSyncthingVaults";
 export {
   getSyncthingApiKey,
   setSyncthingApiKey,

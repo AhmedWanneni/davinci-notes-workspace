@@ -121,14 +121,34 @@ export async function mobileSyncthingPendingFolders(
 
   const raw = (await res.json()) as Record<
     string,
-    { label?: string; offeredBy?: string; time?: string }
+    {
+      label?: string;
+      offeredBy?: string | Record<string, { label?: string; time?: string }>;
+      time?: string;
+    }
   >;
-  return Object.entries(raw).map(([folderId, entry]) => ({
-    folderId,
-    label: entry.label || "Vault",
-    offeredBy: entry.offeredBy || "",
-    time: entry.time || "",
-  }));
+
+  const result: SyncthingPendingFolder[] = [];
+  for (const [folderId, entry] of Object.entries(raw)) {
+    if (typeof entry.offeredBy === "object" && entry.offeredBy !== null) {
+      for (const [devId, details] of Object.entries(entry.offeredBy)) {
+        result.push({
+          folderId,
+          label: details?.label || entry.label || "Vault",
+          offeredBy: devId,
+          time: details?.time || entry.time || "",
+        });
+      }
+    } else {
+      result.push({
+        folderId,
+        label: entry.label || "Vault",
+        offeredBy: typeof entry.offeredBy === "string" ? entry.offeredBy : "",
+        time: entry.time || "",
+      });
+    }
+  }
+  return result;
 }
 
 export async function mobileSyncthingDismissPendingFolder(
@@ -167,6 +187,9 @@ export async function mobileSyncthingAcceptFolder(
     path: targetPath,
     type: "sendreceive",
     devices,
+    rescanIntervalS: 60,
+    fsWatcherEnabled: true,
+    fsWatcherDelayS: 10,
   };
 
   const res = await mobileSyncthingFetch(apiKey, "/rest/config/folders", {

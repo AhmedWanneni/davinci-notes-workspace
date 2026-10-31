@@ -98,6 +98,28 @@ describe("mobileSyncthingPairing", () => {
     expect(folders[0].offeredBy).toBe(remoteDeviceId);
   });
 
+  it("lists pending folders with nested offeredBy map schema", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        "davinci-c130e8cee8": {
+          offeredBy: {
+            [remoteDeviceId]: {
+              time: "2026-10-30T23:26:00Z",
+              label: "Obsidian Vault",
+            },
+          },
+        },
+      }),
+    });
+
+    const folders = await mobileSyncthingPendingFolders(apiKey);
+    expect(folders).toHaveLength(1);
+    expect(folders[0].folderId).toBe("davinci-c130e8cee8");
+    expect(folders[0].label).toBe("Obsidian Vault");
+    expect(folders[0].offeredBy).toBe(remoteDeviceId);
+  });
+
   it("accepts folder with target path and sendreceive mode", async () => {
     global.fetch = vi.fn()
       .mockResolvedValueOnce({
