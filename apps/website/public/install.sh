@@ -4,7 +4,7 @@
 set -euo pipefail
 
 REPO="AhmedWanneni/davinci-notes-workspace"
-VERSION="0.1.0"
+VERSION="0.3.0"
 APP_NAME="Sophia"
 
 echo "=== Installing DaVinci Notes (${APP_NAME}) v${VERSION} ==="

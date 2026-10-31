@@ -1,6 +1,6 @@
 [package]
 name = "davinci-notes-desktop"
-version = "0.1.0"
+version = "0.3.0"
 description = "DaVinci Notes desktop shell"
 authors = ["DaVinci Notes"]
 edition = "2021"
