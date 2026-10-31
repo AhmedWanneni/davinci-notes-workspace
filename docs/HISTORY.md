@@ -2,6 +2,25 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: AI Chat Overhaul Phase 2: High-Performance Streaming Markdown, Code Blocks & Reasoning
+
+- **Streaming Block Lexer (`agentMarkdownParser.ts` & `agentInlineRenderer.tsx`)**:
+  - Implemented pure tokenizer extracting reasoning blocks, fenced code, tables, blockquotes, lists, headings, and citations.
+  - Handled unterminated streaming `<think>` and code blocks.
+  - Implemented inline formatting for code, bold, italic, strikethrough, wikilinks, and external links.
+- **Code Blocks & Reasoning (`AgentCodeBlock.tsx` & `AgentReasoningBlock.tsx`)**:
+  - Copyable code block with language indicator and copy status feedback.
+  - Collapsible reasoning block showing active spinner and "Thinking..." during stream, collapsing to "Thought process" on completion.
+- **Citations & Memoization (`AgentCitationsList.tsx` & `AgentMarkdownContent.tsx`)**:
+  - Domain citation badges with external link navigation.
+  - Per-block memoization preventing re-renders of previous blocks during rapid token streaming.
+- **Verification**:
+  - 26 test files (72 tests) passing in `apps/desktop/src/components/AgentView`.
+  - All files strictly under 200 lines.
+  - Knowledge graph updated with `graphify update .`.
+
+---
+
 ### 2026-10-31: AI Chat Overhaul Phase 1: Claude-Style Layout, Auto-Growing Composer & Scroll Sentinel
 
 - **Claude-Style Centered Column Layout (`AgentView.tsx` & `AgentView.scss`)**:

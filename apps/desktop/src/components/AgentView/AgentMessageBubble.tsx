@@ -55,6 +55,7 @@ export function AgentMessageBubble({
           ) : (
             <AgentMarkdownContent
               content={message.content}
+              isStreaming={message.isStreaming}
               onNavigateNote={onNavigateNote}
             />
           )}

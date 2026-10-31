@@ -4,7 +4,41 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Chat Overhaul Phase 1: Claude-Style Layout, Auto-Growing Composer & Scroll Sentinel
+## Last Session — AI Chat Overhaul Phase 2: High-Performance Streaming Markdown, Code Blocks & Reasoning
+
+**Scope:** Implement Phase 2 of `ai-chat-ui-feature-plan.md`: replace regex line-by-line parsing with a streaming block lexer, copyable code blocks with language chrome, collapsible `<think>`/reasoning blocks with thinking state, grounded citation pills, and memoized block rendering.
+
+**What was done:**
+1. **Streaming Block Lexer (`agentMarkdownParser.ts` & `agentInlineRenderer.tsx`)**:
+   - Built pure, unit-tested markdown block tokenizer (`parseMarkdownBlocks`) supporting:
+     - Closed and unclosed streaming `<think>...</think>` tags
+     - Closed and unclosed streaming code blocks with language identifiers
+     - Tables with headers, delimiter rows, and data rows
+     - Blockquotes (`> `) and ordered/unordered lists (`1. `, `- `)
+     - Grounded domain citations (`[1] https://...`)
+   - Built inline token renderer supporting bold, italic, strikethrough, inline code, wikilinks (`[[Note|Title]]`), and markdown hyperlinks.
+2. **Copyable Code Block Component (`AgentCodeBlock.tsx` & `AgentView.scss`)**:
+   - Code block with language label and clipboard copy button.
+   - Copies clean code to OS clipboard via `navigator.clipboard.writeText` and displays "Copied" check feedback for 2s.
+3. **Collapsible Reasoning / Thinking Block (`AgentReasoningBlock.tsx` & `AgentView.scss`)**:
+   - Collapsible thinking accordion: shows animated spinner and "Thinking..." while streaming.
+   - Automatically collapses when stream completes into "Thought process", expandable with a click.
+4. **Grounded Domain Citations (`AgentCitationsList.tsx`)**:
+   - Renders web search citations as compact pill badges with domain names and external links.
+5. **Memoized Block View (`AgentMarkdownContent.tsx`)**:
+   - Wraps individual markdown blocks in `React.memo` to eliminate re-rendering earlier blocks as subsequent tokens stream.
+6. **Verification & Testing**:
+   - Unit tests in `agentMarkdownParser.test.ts` and `AgentPhase2StreamingMarkdown.test.tsx`.
+   - All 26 test files (72 tests) passing in `apps/desktop/src/components/AgentView`.
+   - All files under 200 lines (`AgentMarkdownContent.tsx`: 145 lines, `agentMarkdownParser.ts`: 188 lines, `AgentCodeBlock.tsx`: 56 lines, `AgentReasoningBlock.tsx`: 57 lines).
+   - Knowledge graph updated via `graphify update .`.
+
+**Next up:**
+- **Phase 3 (`ai-chat-ui-feature-plan.md`)**: Collapsible Tool Cards, Diff Links & Message Actions (Copy, Edit prompt, Regenerate turn).
+
+---
+
+## Prior Session — AI Chat Overhaul Phase 1: Claude-Style Layout, Auto-Growing Composer & Scroll Sentinel
 
 **Scope:** Implement Phase 1 of `ai-chat-ui-feature-plan.md`: transform the chat layout into a Claude-style centered column (`max-width: 48rem`), user message bubbles vs assistant plain text flow, auto-growing composer with keyboard shortcuts, and zero-hijack scroll sentinel.
 
