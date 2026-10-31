@@ -4,30 +4,25 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Agent Minimalist Redesign & Chat Typography Polish
+## Last Session — Prompt `@` File/Folder Mention System & Clean Input Dock
 
-**Scope:** Transform AI Agent chat into a distraction-free, minimalist conversation experience matching notes editor typography: remove "DaVinci Agent", "You", and timestamp headers from bubbles; hide shortcuts into the `+` menu popover; remove the "AI Vault Agent" header logo/title and history button; make settings an icon-only trigger; align fonts with the app and note editor.
+**Scope:** Remove vault/agent/settings context chip labels from above the prompt input for a clean minimalist canvas, and implement an `@` mention autocomplete popup allowing users to reference specific vault files and folders directly in prompts like in standard AI developer agents.
 
 **What was done:**
-1. **Minimalist Chat Messages (`AgentMessageBubble.tsx` & `AgentView.scss`)**:
-   - Eliminated repetitive message headers ("You", "DaVinci Agent", avatars, and timestamps) from chat bubbles.
-   - User queries now render cleanly in right-aligned rounded bubble cards with relaxed line height.
-   - Assistant answers flow seamlessly in full-width, clean markdown directly on the view canvas.
-2. **Typography Alignment**:
-   - Fixed chat text and markdown headings/paragraphs to inherit the app and notes font stack (`font-family: inherit` over `var(--font-ui)`), ensuring full visual consistency with the note editor.
-   - Reserved `var(--font-editor)` strictly for inline `<code>` and code block `<pre>` snippets.
-3. **Hidden Shortcuts in `+` Menu (`AgentCapabilitiesPopover.tsx` & `AgentChatInput.tsx`)**:
-   - Removed the floating `AgentShortcutsBar` above the chat input dock to reduce visual clutter.
-   - Integrated quick shortcuts (`/weekly-review`, custom vault shortcuts) into the `+` button capabilities popover under a clean "Quick Shortcuts" section.
-4. **Minimal Header (`AgentHeader.tsx` & `AgentView.tsx`)**:
-   - Removed the "AI Vault Agent" logo and text from the header.
-   - Removed the History button from the header and cleaned up unused transaction drawer bindings in `AgentView.tsx`.
-   - Reduced the Settings action to an icon-only trigger (`<Sliders size={16} />`).
-   - Kept "+ New Chat" and previous "Chats" buttons readily accessible.
-5. **Verification & Quality**:
-   - 20 test files passed (53 tests passed across `AgentView` and `AISettingsPanel`).
+1. **Clean Input Dock (`AgentChatInput.tsx` & `AgentView.scss`)**:
+   - Removed `.agent-chat-dock__chips` (vault name, project name, agent/model label, settings link) from above the prompt input.
+   - Streamlined input area with zero visual baggage above the textarea.
+2. **`@` Mention Autocomplete Popup (`AgentMentionMenu.tsx` & `useAgentMention.ts`)**:
+   - Created `useAgentMention` hook detecting `@query` pattern at the current cursor position in real time.
+   - Built `AgentMentionMenu.tsx` floating above the prompt textarea, querying vault note paths and folder paths via `useWorkspaceStore`.
+   - Displays file icon (`FileText`) or folder icon (`Folder`), title, and relative path with matching highlight.
+   - Supported keyboard navigation: `ArrowUp`/`ArrowDown` cycling, `Enter`/`Tab` selection, and `Escape` dismissal.
+   - On selection, seamlessly replaces `@query` with `@path/to/file.md ` and restores cursor focus.
+3. **Verification & Quality**:
+   - 22 test files passed (55 tests passed across `AgentView` and `AISettingsPanel`).
+   - Wrote unit tests in `useAgentMention.test.ts` and `AgentMentionMenu.test.tsx` + Storybook story.
+   - Strict 250-line file cap honored (`AgentChatInput.tsx`: 204 lines, `AgentMentionMenu.tsx`: 199 lines, `useAgentMention.ts`: 94 lines).
    - ESLint 0 errors, Stylelint 0 errors, 0 design token violations.
-   - All components strictly below 250 lines (`AgentHeader.tsx`: 59 lines, `AgentMessageBubble.tsx`: 118 lines, `AgentView.tsx`: 227 lines).
    - Knowledge graph updated via `graphify update .`.
 
 **Next up:**

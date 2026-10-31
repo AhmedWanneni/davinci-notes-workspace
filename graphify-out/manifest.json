@@ -1556,9 +1556,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentChatInput.tsx": {
-    "mtime": 1793460112.1563075,
-    "seen": 1793460469.164842,
-    "ast_hash": "06c8c211789c84e44333e9c83924f2b8",
+    "mtime": 1793461009.6287377,
+    "seen": 1793461127.948701,
+    "ast_hash": "d2059183a55e47727450934202bdc11e",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentClarifyRule.test.tsx": {
@@ -1598,9 +1598,9 @@
     "semantic_hash": "239b617fd97bc760da1c6238e85a9e38"
   },
   "apps/desktop/src/components/AgentView/AgentDock.test.tsx": {
-    "mtime": 1793460351.741954,
-    "seen": 1793460469.1653278,
-    "ast_hash": "a5258902b190a3bf7565c14028913241",
+    "mtime": 1793461080.6043766,
+    "seen": 1793461127.949306,
+    "ast_hash": "3b5d77483e5a09cab049e9e170e27205",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AgentView/AgentHeader.tsx": {
@@ -13265,9 +13265,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793459280.1721654,
-    "seen": 1793460469.2386508,
-    "ast_hash": "fccb0517e625d8b5d8327db72168a617",
+    "mtime": 1793460487.0267696,
+    "seen": 1793461128.028068,
+    "ast_hash": "b1ef9396876a99f5c3651ed03ccfc4bd",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13343,9 +13343,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793459289.9060159,
-    "seen": 1793460469.239071,
-    "ast_hash": "ab80ec6307bb35854ce82d134dc45d16",
+    "mtime": 1793460502.955961,
+    "seen": 1793461128.028508,
+    "ast_hash": "c10b13a172e9bde31230eb7e6069cb15",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -16490,6 +16490,36 @@
     "mtime": 1793459113.755896,
     "seen": 1793459260.368674,
     "ast_hash": "50f3fe92744f0fad1e031b0233165299",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/AgentView/AgentMentionMenu.stories.tsx": {
+    "mtime": 1793460939.5393956,
+    "seen": 1793461127.949515,
+    "ast_hash": "29cd1b868b7101d9adefedb54dc897f1",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/AgentView/AgentMentionMenu.test.tsx": {
+    "mtime": 1793460945.8272023,
+    "seen": 1793461127.949517,
+    "ast_hash": "fed0092bbb85318a5381afbfe2d0c968",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/AgentView/AgentMentionMenu.tsx": {
+    "mtime": 1793460934.382272,
+    "seen": 1793461127.9495192,
+    "ast_hash": "59c605c2e2347a4a3806467b3ab31192",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/AgentView/useAgentMention.test.ts": {
+    "mtime": 1793461022.9520779,
+    "seen": 1793461127.950804,
+    "ast_hash": "905e00a43506bf6483b9f77e8057bfc5",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/AgentView/useAgentMention.ts": {
+    "mtime": 1793460994.0588515,
+    "seen": 1793461127.950806,
+    "ast_hash": "2d35f6c7dec83eaaa021452121d0d005",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

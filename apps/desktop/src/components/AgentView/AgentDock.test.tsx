@@ -22,7 +22,7 @@ import { AgentCapabilitiesPopover } from "./AgentCapabilitiesPopover";
 import { AgentSettingsPanel } from "./AgentSettingsPanel";
 
 describe("Agent UI Controls", () => {
-  it("renders dock context chips and triggers approval toggle", async () => {
+  it("renders input dock and triggers approval toggle", async () => {
     const onToggleAutoApply = vi.fn();
     const onSend = vi.fn();
 
@@ -44,7 +44,6 @@ describe("Agent UI Controls", () => {
       );
     });
 
-    expect(screen.getByText("research-vault")).toBeTruthy();
     expect(screen.getByText("Ask for approval")).toBeTruthy();
 
     await act(async () => {

@@ -2,6 +2,23 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: Prompt File/Folder `@` Mentions & Clean Input Dock
+
+- **Clean Input Dock**:
+  - Removed `.agent-chat-dock__chips` (vault name, project name, agent/model label, settings link) from above the prompt input.
+  - Eliminated visual clutter above the prompt textarea.
+- **`@` Mention Autocomplete Popup (`AgentMentionMenu.tsx` & `useAgentMention.ts`)**:
+  - Added real-time `@query` detection via `useAgentMention` hook.
+  - Built floating popup querying `allNotePaths` and `allFolderPaths` from workspace store.
+  - Supported keyboard navigation (`ArrowUp`/`ArrowDown`, `Enter`/`Tab`, `Escape`).
+  - Selecting an item inserts `@path/to/note.md ` at cursor position.
+- **Verification**:
+  - 22 test files (55 tests) passed across `AgentView` and `AISettingsPanel`.
+  - ESLint 0 errors, Stylelint 0 errors, 0 design token violations.
+  - All files strictly under 250 lines.
+
+---
+
 ### 2026-10-31: AI Agent Minimalist Redesign & Typography Polish
 
 - **Minimalist Chat Layout**:
