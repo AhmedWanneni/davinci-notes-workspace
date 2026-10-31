@@ -51,12 +51,16 @@ export function decodePairingUri(input: string): SyncthingPairingPayload | null 
   const trimmed = input.trim();
   let rawBase64 = "";
 
-  if (trimmed.startsWith("davincinotes://pair?d=")) {
+  if (trimmed.includes("://pair?d=") || trimmed.includes("://pair/?d=")) {
+    rawBase64 = trimmed.split("?d=")[1].split("&")[0];
+  } else if (trimmed.startsWith("davincinotes://pair?d=")) {
     rawBase64 = trimmed.slice("davincinotes://pair?d=".length);
-  } else if (trimmed.startsWith("davincinotes://pair?")) {
+  } else if (trimmed.includes("://pair?") || trimmed.includes("://pair/?")) {
     const qIndex = trimmed.indexOf("?");
     const params = new URLSearchParams(trimmed.slice(qIndex));
     rawBase64 = params.get("d") || "";
+  } else if (trimmed.includes("?d=")) {
+    rawBase64 = trimmed.split("?d=")[1].split("&")[0];
   } else {
     rawBase64 = trimmed;
   }

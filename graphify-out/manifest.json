@@ -5528,8 +5528,8 @@
     "semantic_hash": "621c017793d3eca0a45aa8056310f9fe"
   },
   "apps/mobile/app.json": {
-    "mtime": 1793407066.0204136,
-    "seen": 1793407470.157237,
+    "mtime": 1793407512.0230803,
+    "seen": 1793408170.90183,
     "ast_hash": "773570e7d006039a5024833922ef7aaa",
     "semantic_hash": ""
   },
@@ -5810,8 +5810,8 @@
     "semantic_hash": "4f521bccb5ffd605846039d890a0c6a6"
   },
   "apps/mobile/components/primitives/Input.tsx": {
-    "mtime": 1793407410.1344461,
-    "seen": 1793407470.158835,
+    "mtime": 1793407512.023237,
+    "seen": 1793408170.90345,
     "ast_hash": "7abf6fddb082fd9fc5c558a56e27a3b6",
     "semantic_hash": ""
   },
@@ -5828,8 +5828,8 @@
     "semantic_hash": "ba2b9e81b9e7289fee5e23e4e4985153"
   },
   "apps/mobile/components/primitives/Text.tsx": {
-    "mtime": 1793407413.3999143,
-    "seen": 1793407470.1589088,
+    "mtime": 1793407512.0233693,
+    "seen": 1793408170.9035258,
     "ast_hash": "cf693846c1c12f6bbf0ec4727359bcb5",
     "semantic_hash": ""
   },
@@ -6117,8 +6117,8 @@
     "semantic_hash": "28cd3951b137feb903ab68d6c16ef877"
   },
   "apps/mobile/package.json": {
-    "mtime": 1793407092.2796907,
-    "seen": 1793407470.160773,
+    "mtime": 1793407512.023517,
+    "seen": 1793408170.905421,
     "ast_hash": "28f45414c47d11494ad330402d57e323",
     "semantic_hash": ""
   },
@@ -6147,8 +6147,8 @@
     "semantic_hash": "c599525dbe8b95d82e3b4ebca285841e"
   },
   "apps/mobile/reader/NoteReaderView.tsx": {
-    "mtime": 1793407416.9518945,
-    "seen": 1793407470.160911,
+    "mtime": 1793407512.023654,
+    "seen": 1793408170.905561,
     "ast_hash": "b96eb929f00bc34633925becb993c6a4",
     "semantic_hash": ""
   },
@@ -6345,9 +6345,9 @@
     "semantic_hash": "b788ca6ab6bbdc87d644a41ad54390ae"
   },
   "apps/mobile/sync/syncthing/MobileSyncthingPanel.tsx": {
-    "mtime": 1793406087.944357,
-    "seen": 1793407470.161997,
-    "ast_hash": "31dc43f3ec03d59a5344ad1fe23d50fa",
+    "mtime": 1793408082.391813,
+    "seen": 1793408170.9066398,
+    "ast_hash": "896c50f5e136bb648401e303d667c4d1",
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/ScanToSyncConfirmSheet.tsx": {
@@ -6381,10 +6381,10 @@
     "semantic_hash": "6b5cc62b5661d3e819bf32ed6d3487cd"
   },
   "apps/mobile/sync/syncthing/SyncthingAddDeviceModal.tsx": {
-    "mtime": 1792835168.5393035,
-    "seen": 1793294971.339464,
-    "ast_hash": "026869d7275fb46fe5ae1433e3ede977",
-    "semantic_hash": "026869d7275fb46fe5ae1433e3ede977"
+    "mtime": 1793408120.859011,
+    "seen": 1793408170.906822,
+    "ast_hash": "56a3bf2e3ad5fe42ae07e4065602a9a7",
+    "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/SyncthingKeyModal.tsx": {
     "mtime": 1792835118.8141925,
@@ -6993,14 +6993,14 @@
     "semantic_hash": "40af810d42f07ace851be21b3dae37a8"
   },
   "apps/mobile/vault/useVaultForegroundSync.ts": {
-    "mtime": 1793407373.4751072,
-    "seen": 1793407470.165631,
+    "mtime": 1793407512.023949,
+    "seen": 1793408170.910774,
     "ast_hash": "4db8f5f3709198225cdddfaa6e1116d4",
     "semantic_hash": ""
   },
   "apps/mobile/vault/vaultManager.ts": {
-    "mtime": 1793407362.414195,
-    "seen": 1793407470.165633,
+    "mtime": 1793407512.0240982,
+    "seen": 1793408170.910775,
     "ast_hash": "33da9491a613680eb2925b0aedeb76ba",
     "semantic_hash": ""
   },
@@ -7041,8 +7041,8 @@
     "semantic_hash": "6f15550682274bdeb7e1e782861af320"
   },
   "apps/mobile/vitest.config.ts": {
-    "mtime": 1793407310.621464,
-    "seen": 1793407470.165838,
+    "mtime": 1793407512.0242453,
+    "seen": 1793408170.9109771,
     "ast_hash": "0eee2194cac8869f463e9f8a0efacd0c",
     "semantic_hash": ""
   },
@@ -8113,8 +8113,8 @@
     "semantic_hash": "759c05571d14e7526ee426966984d787"
   },
   "package.json": {
-    "mtime": 1793407143.073137,
-    "seen": 1793407470.173218,
+    "mtime": 1793407512.091381,
+    "seen": 1793408170.9186728,
     "ast_hash": "139962b842056e40f1830c463488f17e",
     "semantic_hash": ""
   },
@@ -12630,16 +12630,16 @@
     "semantic_hash": "3d01ff99aac475e179d02c5b13fa44ba"
   },
   "packages/syncthing-api/deviceId.test.ts": {
-    "mtime": 1792835118.9407794,
-    "seen": 1793294971.388714,
-    "ast_hash": "4182f3bbfa37970cc57cbee759b81074",
-    "semantic_hash": "4182f3bbfa37970cc57cbee759b81074"
+    "mtime": 1793408055.116159,
+    "seen": 1793408170.94339,
+    "ast_hash": "b21ce41d615299da18ba02da3b8a3a85",
+    "semantic_hash": ""
   },
   "packages/syncthing-api/deviceId.ts": {
-    "mtime": 1792835118.9416413,
-    "seen": 1793294971.388757,
-    "ast_hash": "d4595cc20969049a187e38a5ad062740",
-    "semantic_hash": "d4595cc20969049a187e38a5ad062740"
+    "mtime": 1793408020.8360553,
+    "seen": 1793408170.943391,
+    "ast_hash": "1beb73099d3eb1ecc7acdaaf5f58ba2e",
+    "semantic_hash": ""
   },
   "packages/syncthing-api/index.ts": {
     "mtime": 1793298541.0120862,
@@ -12660,10 +12660,10 @@
     "semantic_hash": "d38b8c68fb8b2e081605c57b718ce147"
   },
   "packages/syncthing-api/pairing.ts": {
-    "mtime": 1793298541.0123515,
-    "seen": 1793365744.4399948,
-    "ast_hash": "8531baf09db6e9e21c9ec1fbd8f1059b",
-    "semantic_hash": "8531baf09db6e9e21c9ec1fbd8f1059b"
+    "mtime": 1793408000.916365,
+    "seen": 1793408170.943485,
+    "ast_hash": "62e601c6d9a51345bc2e6a4f767aa716",
+    "semantic_hash": ""
   },
   "packages/syncthing-api/redact.test.ts": {
     "mtime": 1792835118.943829,
@@ -12696,10 +12696,10 @@
     "semantic_hash": "45d7b99553b35f65fe635e15eaaa8631"
   },
   "packages/syncthing-api/validatePairing.ts": {
-    "mtime": 1793298541.0125868,
-    "seen": 1793365744.440233,
-    "ast_hash": "4d6eb0658952ce527773ae44cc6b9e02",
-    "semantic_hash": "4d6eb0658952ce527773ae44cc6b9e02"
+    "mtime": 1793408042.212233,
+    "seen": 1793408170.9436412,
+    "ast_hash": "8efb5527761836fa78c8d562d9f0a191",
+    "semantic_hash": ""
   },
   "packages/theme-api/fixtures/invalid-version-manifest.json": {
     "mtime": 1792835118.9452868,
@@ -16325,8 +16325,8 @@
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/SyncthingSharedVaultsSection.tsx": {
-    "mtime": 1793407353.7511938,
-    "seen": 1793407470.162405,
+    "mtime": 1793407512.0237865,
+    "seen": 1793408170.907157,
     "ast_hash": "8a3120749edf44371cb14e6ca6a602ae",
     "semantic_hash": ""
   },
@@ -16379,8 +16379,8 @@
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {
-    "mtime": 1793407151.1305387,
-    "seen": 1793407470.215724,
+    "mtime": 1793407512.0920067,
+    "seen": 1793408170.961337,
     "ast_hash": "20c943d6ab5120d8a25cea1dd5d9fba4",
     "semantic_hash": ""
   },
