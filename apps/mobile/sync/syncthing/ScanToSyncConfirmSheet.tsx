@@ -4,7 +4,7 @@ import {
   formatDeviceIdGroups,
   type SyncthingPairingPayload,
 } from "@app/syncthing-api";
-import { Directory, Paths } from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { useTheme } from "../../theme";
 import { Badge, Button, Text } from "../../components/primitives";
 import {
@@ -25,8 +25,10 @@ function resolveSandboxTarget(payload: SyncthingPairingPayload): string {
   const safeName = (payload.folderLabel || payload.folderId || "Synced Vault")
     .replace(/[/\\?%*:|"<>]/g, "-")
     .trim();
-  const root = new Directory(Paths.document, "vaults");
-  return new Directory(root, safeName || "Vault").uri;
+  const base = (
+    FileSystem.documentDirectory || "file:///app/sandbox/documents/"
+  ).replace(/\/+$/, "");
+  return `${base}/vaults/${encodeURIComponent(safeName || "Vault")}`;
 }
 
 export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({

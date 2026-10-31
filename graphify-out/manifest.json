@@ -6345,20 +6345,20 @@
     "semantic_hash": "b788ca6ab6bbdc87d644a41ad54390ae"
   },
   "apps/mobile/sync/syncthing/MobileSyncthingPanel.tsx": {
-    "mtime": 1793409414.5223124,
-    "seen": 1793409526.291816,
-    "ast_hash": "0aceabbbb055d41397e62ad0972aea54",
+    "mtime": 1793409654.1752908,
+    "seen": 1793442657.19121,
+    "ast_hash": "f1b71477a4d159473edf9dddc2ccec2b",
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/ScanToSyncConfirmSheet.tsx": {
-    "mtime": 1793409414.5161877,
-    "seen": 1793409526.291817,
-    "ast_hash": "9c05505546bc0665d6ab3de1aab9b8e2",
+    "mtime": 1793442584.1750183,
+    "seen": 1793442657.191211,
+    "ast_hash": "99501b753f47ca2a59deee55af373d0c",
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/ScanToSyncModal.tsx": {
-    "mtime": 1793409414.5182836,
-    "seen": 1793409526.291818,
+    "mtime": 1793409654.175647,
+    "seen": 1793442657.1912131,
     "ast_hash": "96a3294b481e28c1c0aa9dac0487145b",
     "semantic_hash": ""
   },
@@ -6393,10 +6393,10 @@
     "semantic_hash": "ac6d196889455396147e07be3561554d"
   },
   "apps/mobile/sync/syncthing/SyncthingPendingSection.tsx": {
-    "mtime": 1793377475.478959,
-    "seen": 1793409526.29183,
-    "ast_hash": "85474ebd854b2230029c3322aaa989ee",
-    "semantic_hash": "85474ebd854b2230029c3322aaa989ee"
+    "mtime": 1793442518.7037892,
+    "seen": 1793442657.191481,
+    "ast_hash": "ed1a2f3307cf09b0a7c7f49b53eb7027",
+    "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/SyncthingQrScanner.tsx": {
     "mtime": 1792834807.27281,
@@ -6429,15 +6429,15 @@
     "semantic_hash": "0375a6e4f3d145bd62ac3e173cb14396"
   },
   "apps/mobile/sync/syncthing/folderAccessChecker.test.ts": {
-    "mtime": 1793409414.513883,
-    "seen": 1793409526.29184,
-    "ast_hash": "878ec7a613518966cf462eb4e438bdb5",
+    "mtime": 1793442594.6812727,
+    "seen": 1793442657.191715,
+    "ast_hash": "546c30a4c871364ceb23b198d99b74cd",
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/folderAccessChecker.ts": {
-    "mtime": 1793409414.5118518,
-    "seen": 1793409526.291841,
-    "ast_hash": "f46a5190ecaf552ffb06a6d23d023cae",
+    "mtime": 1793442589.5322726,
+    "seen": 1793442657.1917171,
+    "ast_hash": "d17f9f4165128634488659bfd8c16dbc",
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/index.ts": {
@@ -6483,14 +6483,14 @@
     "semantic_hash": "4a91a5adb35956591ec5d59ff6e7d4ee"
   },
   "apps/mobile/sync/syncthing/mobileSyncthingPairing.test.ts": {
-    "mtime": 1793409414.5264473,
-    "seen": 1793409526.291853,
-    "ast_hash": "57dc50139d9cf9548fa82fd6dada7683",
+    "mtime": 1793409654.1761024,
+    "seen": 1793442657.1920059,
+    "ast_hash": "e941177d9aa1ebc5ae99bfb36aac356a",
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/mobileSyncthingPairing.ts": {
-    "mtime": 1793409414.5245707,
-    "seen": 1793409526.2918541,
+    "mtime": 1793409654.1762564,
+    "seen": 1793442657.192008,
     "ast_hash": "ca196a02aa0e0f6bfd2226640849a7da",
     "semantic_hash": ""
   },
@@ -6531,9 +6531,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/useScanToSync.ts": {
-    "mtime": 1793409414.52038,
-    "seen": 1793409526.291866,
-    "ast_hash": "5e953e25de84c9b69f3744edb0f770dd",
+    "mtime": 1793409654.1764169,
+    "seen": 1793442657.192298,
+    "ast_hash": "fabcc906d240945a25be294c46041629",
     "semantic_hash": ""
   },
   "apps/mobile/sync/transferWithRetry.ts": {
@@ -7041,9 +7041,9 @@
     "semantic_hash": "6f15550682274bdeb7e1e782861af320"
   },
   "apps/mobile/vitest.config.ts": {
-    "mtime": 1793407505.7578528,
-    "seen": 1793409526.291965,
-    "ast_hash": "0eee2194cac8869f463e9f8a0efacd0c",
+    "mtime": 1793442578.1708367,
+    "seen": 1793442657.1950321,
+    "ast_hash": "ca337aec2432b89d9ccf5d2f5d2dcf70",
     "semantic_hash": ""
   },
   "apps/web-clipper/.eslintrc.cjs": {
@@ -7077,10 +7077,10 @@
     "semantic_hash": "bec9cc6982282efc609c2efc6168625b"
   },
   "apps/web-clipper/package.json": {
-    "mtime": 1792834582.9293795,
-    "seen": 1793409526.2919722,
-    "ast_hash": "2815ae9b5ad38fdba294260d87e3627f",
-    "semantic_hash": "2815ae9b5ad38fdba294260d87e3627f"
+    "mtime": 1793442642.7881274,
+    "seen": 1793442657.195182,
+    "ast_hash": "6acba8d30c36c2fc6180b3b125dd1ebf",
+    "semantic_hash": ""
   },
   "apps/web-clipper/src/capture/readActiveTabCapture.ts": {
     "mtime": 1792834582.9296825,
@@ -13265,9 +13265,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793406079.5742946,
-    "seen": 1793409526.293243,
-    "ast_hash": "0224e40bef7715c91fe18b09fab1e36b",
+    "mtime": 1793409704.3204782,
+    "seen": 1793442657.2261162,
+    "ast_hash": "6ba4b99bc82c6dedf5bba4c3ce3f5424",
     "semantic_hash": ""
   },
   "README.md": {
