@@ -1,5 +1,9 @@
 import type Database from "@tauri-apps/plugin-sql";
-import { getVaultIndexDb, withDbLock, withDbTransaction } from "../vault/sqliteIndex";
+import {
+  getVaultIndexDb,
+  withDbLock,
+  withDbTransaction,
+} from "../vault/sqliteIndex";
 import {
   DEFAULT_DESKTOP_DESTINATION,
   type ChannelDestinationMeta,
@@ -79,6 +83,9 @@ export async function loadChannelSecret<T extends ChannelSecretPayload>(
         destinationId,
       });
     } catch {
+      raw = null;
+    }
+    if (!raw) {
       raw = memorySecretFallback.get(destinationId) ?? null;
     }
   }
@@ -189,6 +196,8 @@ export async function removeChannelDestination(
   await clearChannelSecret(destinationId);
   const current = await loadChannelDestinations(dbOverride);
   const next = current.filter((d) => d.id !== destinationId);
-  emitNotificationLog(`Removed notification channel destination (${destinationId})`);
+  emitNotificationLog(
+    `Removed notification channel destination (${destinationId})`,
+  );
   return saveChannelDestinations(next, dbOverride);
 }

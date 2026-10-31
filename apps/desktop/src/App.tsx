@@ -614,6 +614,22 @@ export function App() {
       );
   }, [openNote]);
 
+  useEffect(() => {
+    const handleOpenSettingsEvent = (event: Event) => {
+      const detail = (event as CustomEvent<{ tab?: SettingsTabId }>).detail;
+      if (detail?.tab) {
+        setSettingsInitialTab(detail.tab);
+      }
+      setIsSettingsOpen(true);
+    };
+    window.addEventListener("davinci-open-settings", handleOpenSettingsEvent);
+    return () =>
+      window.removeEventListener(
+        "davinci-open-settings",
+        handleOpenSettingsEvent,
+      );
+  }, []);
+
   const handleDropFiles = async (
     targetFolder: string,
     files: readonly File[],
@@ -892,7 +908,12 @@ export function App() {
             </Suspense>
           ) : activeNotePath === AGENT_TAB_ID ? (
             <Suspense fallback={null}>
-              <LazyAgentView />
+              <LazyAgentView
+                onOpenSettings={() => {
+                  setSettingsInitialTab("ai");
+                  setIsSettingsOpen(true);
+                }}
+              />
             </Suspense>
           ) : activeNotePath === LISTENING_TAB_ID ? (
             <Suspense fallback={null}>

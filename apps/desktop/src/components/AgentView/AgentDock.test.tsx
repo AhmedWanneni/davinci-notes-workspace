@@ -7,7 +7,12 @@ vi.mock("../../ai/AISubsystem", () => ({
   validateAndSaveProviderKey: vi.fn().mockResolvedValue(undefined),
   saveOllamaConfig: vi.fn().mockResolvedValue(undefined),
   saveProviderModels: vi.fn().mockResolvedValue(undefined),
-  loadProviderModels: vi.fn().mockResolvedValue({ embeddingModel: "embeddinggemma", chatModel: "llama3:latest" }),
+  loadProviderModels: vi
+    .fn()
+    .mockResolvedValue({
+      embeddingModel: "embeddinggemma",
+      chatModel: "llama3:latest",
+    }),
   fetchOllamaModels: vi.fn().mockResolvedValue(["llama3:latest"]),
 }));
 
@@ -17,7 +22,7 @@ import { AgentCapabilitiesPopover } from "./AgentCapabilitiesPopover";
 import { AgentSettingsPanel } from "./AgentSettingsPanel";
 
 describe("Agent UI Controls", () => {
-  it("renders dock context chips and triggers approval toggle", async () => {
+  it("renders input dock and triggers approval toggle", async () => {
     const onToggleAutoApply = vi.fn();
     const onSend = vi.fn();
 
@@ -39,7 +44,6 @@ describe("Agent UI Controls", () => {
       );
     });
 
-    expect(screen.getByText("research-vault")).toBeTruthy();
     expect(screen.getByText("Ask for approval")).toBeTruthy();
 
     await act(async () => {
@@ -61,16 +65,21 @@ describe("Agent UI Controls", () => {
       );
     });
 
-    expect(screen.getByText("Gemini 2.0 Flash")).toBeTruthy();
+    expect(screen.getByText(/Gemini 2\.0 Flash/)).toBeTruthy();
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Gemini 2\.0 Flash/i }));
+      fireEvent.click(
+        screen.getByRole("button", { name: /Gemini 2\.0 Flash/i }),
+      );
     });
     expect(screen.getByText("OpenRouter: Claude 3.5 Haiku")).toBeTruthy();
 
     await act(async () => {
       fireEvent.click(screen.getByText("OpenRouter: Claude 3.5 Haiku"));
     });
-    expect(onSelect).toHaveBeenCalledWith("anthropic/claude-3.5-haiku", "openrouter");
+    expect(onSelect).toHaveBeenCalledWith(
+      "anthropic/claude-3.5-haiku",
+      "openrouter",
+    );
   });
 
   it("renders capabilities popover and selects prompt preset", () => {
@@ -88,8 +97,36 @@ describe("Agent UI Controls", () => {
 
     fireEvent.click(screen.getByText("Create Summary or To-Do"));
     expect(onSelect).toHaveBeenCalledWith(
-      expect.stringContaining("Scan my recent notes and create a prioritized to-do list"),
+      expect.stringContaining(
+        "Scan my recent notes and create a prioritized to-do list",
+      ),
     );
+  });
+
+  it("renders shortcuts inside capabilities popover when provided", () => {
+    const onSelect = vi.fn();
+    render(
+      <AgentCapabilitiesPopover
+        isOpen={true}
+        onClose={vi.fn()}
+        onSelectCapability={onSelect}
+        shortcuts={[
+          {
+            id: "daily",
+            title: "Daily Review",
+            prompt: "Prepare daily note",
+            description: "Daily review shortcut",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Quick Shortcuts")).toBeTruthy();
+    expect(screen.getByText("Daily Review")).toBeTruthy();
+    expect(screen.getByText("Daily review shortcut")).toBeTruthy();
+
+    fireEvent.click(screen.getByText("Daily Review"));
+    expect(onSelect).toHaveBeenCalledWith("Prepare daily note");
   });
 
   it("renders on-page settings panel and toggles provider", async () => {

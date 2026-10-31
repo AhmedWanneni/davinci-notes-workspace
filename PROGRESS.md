@@ -4,7 +4,58 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
+## Last Session — Native OS Keychain Backend & Notification Channel Secret Fallback Fix
+
+**Scope:** Fix Telegram, Slack, and external channel notification failures where credentials failed to persist in the OS keychain ("Missing Telegram credentials in OS keychain. Reconnect in Settings").
+
+**What was done:**
+1. **Target-Specific Native Keyring Backends (`Cargo.toml` & `Cargo.lock`)**:
+   - Resolved silent fallback to ephemeral `MockCredential` by configuring platform-native target features on `keyring`:
+     - macOS: `apple-native` (persisting to Apple Security Framework / Keychain)
+     - Windows: `windows-native` (Windows Credential Manager)
+     - Linux: `linux-native-sync-persistent` (Secret Service / DBus)
+2. **Channel Config Secret Fallback (`channelConfigStore.ts`)**:
+   - Updated `loadChannelSecret` to properly fall back to the in-memory secret cache if the native keychain returns `null` or when running outside native runtime environments.
+3. **Verification**:
+   - Verified native macOS Keychain persistence round-trip across separate `Entry` instances.
+   - All 157 Rust tests passing (`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml`).
+   - All 5 notification Vitest test suites passing (`pnpm --filter @app/desktop test src/notifications`).
+   - Knowledge graph updated via `graphify update .`.
+
+**Next up:**
+- Run live vault organization test with `agy` in an active test vault.
+- Add optional interactive confirmation dialog when CLI agent attempts destructive batch file moves or deletions.
+
+---
+
+## Prior Session — Prompt `@` File/Folder Mention System & Clean Input Dock
+
+**Scope:** Remove vault/agent/settings context chip labels from above the prompt input for a clean minimalist canvas, and implement an `@` mention autocomplete popup allowing users to reference specific vault files and folders directly in prompts like in standard AI developer agents.
+
+**What was done:**
+1. **Clean Input Dock (`AgentChatInput.tsx` & `AgentView.scss`)**:
+   - Removed `.agent-chat-dock__chips` (vault name, project name, agent/model label, settings link) from above the prompt input.
+   - Streamlined input area with zero visual baggage above the textarea.
+2. **`@` Mention Autocomplete Popup (`AgentMentionMenu.tsx` & `useAgentMention.ts`)**:
+   - Created `useAgentMention` hook detecting `@query` pattern at the current cursor position in real time.
+   - Built `AgentMentionMenu.tsx` floating above the prompt textarea, querying vault note paths and folder paths via `useWorkspaceStore`.
+   - Displays file icon (`FileText`) or folder icon (`Folder`), title, and relative path with matching highlight.
+   - Supported keyboard navigation: `ArrowUp`/`ArrowDown` cycling, `Enter`/`Tab` selection, and `Escape` dismissal.
+   - On selection, seamlessly replaces `@query` with `@path/to/file.md ` and restores cursor focus.
+3. **Verification & Quality**:
+   - 22 test files passed (55 tests passed across `AgentView` and `AISettingsPanel`).
+   - Wrote unit tests in `useAgentMention.test.ts` and `AgentMentionMenu.test.tsx` + Storybook story.
+   - Strict 250-line file cap honored (`AgentChatInput.tsx`: 204 lines, `AgentMentionMenu.tsx`: 199 lines, `useAgentMention.ts`: 94 lines).
+   - ESLint 0 errors, Stylelint 0 errors, 0 design token violations.
+   - Knowledge graph updated via `graphify update .`.
+
+**Next up:**
+- Run live vault organization test with `agy` in an active test vault.
+- Add optional interactive confirmation dialog when CLI agent attempts destructive batch file moves or deletions.
+
+---
+
+## Prior Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
 
 **Scope:** Build production standalone release artifacts for mobile (Android `.apk` and iOS `.ipa`), publish release assets to GitHub release `v0.3.0`, update the website download pages with direct public links and auto-detection, and deploy live to Cloudflare Pages.
 

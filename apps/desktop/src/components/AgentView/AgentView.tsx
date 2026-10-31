@@ -4,11 +4,9 @@ import { AgentMissedBanner } from "./AgentMissedBanner";
 import { AgentMessageBubble } from "./AgentMessageBubble";
 import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentChatInput } from "./AgentChatInput";
-import { AgentHistoryDrawer } from "./AgentHistoryDrawer";
 import { AgentConversationsDrawer } from "./AgentConversationsDrawer";
-import { AgentShortcutsBar } from "./AgentShortcutsBar";
 import { AgentStarterPrompts } from "./AgentStarterPrompts";
-import { AgentSettingsPanel } from "./AgentSettingsPanel";
+import { AgentCliStatusCard } from "./AgentCliStatusCard";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentSchedules } from "./useAgentSchedules";
 import { useAgentConversations } from "./useAgentConversations";
@@ -17,40 +15,47 @@ import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import type { ChatMessageItem } from "./agentTypes";
 import "./AgentView.scss";
 
-export function AgentView() {
+export interface AgentViewProps {
+  onOpenSettings?: () => void;
+}
+
+export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
   const {
     currentProvider,
-    setCurrentProvider,
     currentModel,
-    setCurrentModel,
     webSearchEnabled,
     handleToggleWebSearch,
     autoApply,
     handleToggleAutoApply,
     rewriteEnabled,
-    handleToggleRewrite,
-    isSettingsOpen,
-    setIsSettingsOpen,
     isConversationsOpen,
     setIsConversationsOpen,
     isConfigured,
-    setIsConfigured,
     shortcuts,
     handleModelSelect,
+    selectedCliAgent,
+    setSelectedCliAgent,
   } = useAgentViewConfig();
 
+  const handleOpenSettings = () => {
+    if (onOpenSettings) {
+      onOpenSettings();
+    } else {
+      window.dispatchEvent(
+        new CustomEvent("davinci-open-settings", { detail: { tab: "ai" } }),
+      );
+    }
+  };
+
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
-  const vaultName = vaultPath ? vaultPath.split(/[/\\]/).pop() || "davinci-notes" : "davinci-notes";
+  const vaultName = vaultPath
+    ? vaultPath.split(/[/\\]/).pop() || "davinci-notes"
+    : "davinci-notes";
 
   const {
     messages,
     stagedChanges,
     isStreaming,
-    ledger,
-    isHistoryOpen,
-    setIsHistoryOpen,
-    loadLedger,
-    rollback,
     handleApplyChange,
     handleRejectChange,
     handleApplyAllChanges,
@@ -58,6 +63,8 @@ export function AgentView() {
     abortExecution,
     clearMessages,
     setMessages,
+    cliSession,
+    cancelActiveCliSession,
   } = useAgentExecution({
     providerId: currentProvider,
     model: currentModel,
@@ -65,6 +72,8 @@ export function AgentView() {
     autoApply,
     rewriteEnabled,
     vaultName,
+    selectedCliAgent,
+    vaultPath: vaultPath ?? undefined,
   });
 
   const {
@@ -85,16 +94,15 @@ export function AgentView() {
   const lastLoadedConvIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    void loadLedger();
-  }, [loadLedger]);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
   }, [messages]);
 
   // Only load conversation messages when switching conversations to prevent infinite effect loops
   useEffect(() => {
-    if (activeConversation && activeConversation.id !== lastLoadedConvIdRef.current) {
+    if (
+      activeConversation &&
+      activeConversation.id !== lastLoadedConvIdRef.current
+    ) {
       lastLoadedConvIdRef.current = activeConversation.id;
       setMessages(activeConversation.messages as ChatMessageItem[]);
     }
@@ -112,24 +120,16 @@ export function AgentView() {
     <div className="agent-view" role="main" aria-label="AI Vault Agent">
       <div className="agent-view__main">
         <AgentHeader
-          hasMessages={messages.length > 0}
           onNewChat={() => {
-            void createNewConversation(
-              "New Chat",
-              activeConversation?.projectId,
-            );
+            void createNewConversation("New Chat", activeProject?.id);
             clearMessages();
           }}
-          isSettingsOpen={isSettingsOpen}
-          onToggleSettings={() => setIsSettingsOpen(!isSettingsOpen)}
           isConversationsOpen={isConversationsOpen}
           onToggleConversations={() =>
             setIsConversationsOpen(!isConversationsOpen)
           }
           conversationsCount={conversations.length}
-          isHistoryOpen={isHistoryOpen}
-          onToggleHistory={() => setIsHistoryOpen(!isHistoryOpen)}
-          historyCount={ledger.transactions.length}
+          onOpenSettings={handleOpenSettings}
         />
 
         {missedSchedules.length > 0 && (
@@ -155,6 +155,14 @@ export function AgentView() {
               <AgentMessageBubble key={msg.id} message={msg} />
             ))
           )}
+          {cliSession && (
+            <AgentCliStatusCard
+              agentName={cliSession.agentName}
+              status={cliSession.status}
+              logs={cliSession.logs}
+              onCancel={cancelActiveCliSession}
+            />
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -168,11 +176,6 @@ export function AgentView() {
         )}
 
         <div className="agent-view__controls">
-          <AgentShortcutsBar
-            shortcuts={shortcuts}
-            onTriggerShortcut={(sc) => void sendMessage(sc.prompt)}
-            disabled={isStreaming}
-          />
           <AgentChatInput
             onSend={sendMessage}
             onCancel={abortExecution}
@@ -184,11 +187,14 @@ export function AgentView() {
             currentProvider={currentProvider}
             currentModel={currentModel}
             onSelectModel={handleModelSelect}
+            selectedCliAgent={selectedCliAgent}
+            onSelectCliAgent={setSelectedCliAgent}
             webSearchEnabled={webSearchEnabled}
             onToggleWebSearch={handleToggleWebSearch}
-            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenSettings={handleOpenSettings}
             onOpenConversations={() => setIsConversationsOpen(true)}
-            disabled={!isConfigured && !currentModel}
+            shortcuts={shortcuts}
+            disabled={!isConfigured && !currentModel && !selectedCliAgent}
           />
         </div>
       </div>
@@ -211,31 +217,6 @@ export function AgentView() {
         onDeleteConversation={(id) => void removeConversation(id)}
         onAddProject={(name) => void addProject(name)}
         onAssignProject={(cId, pId) => void assignConversationProject(cId, pId)}
-      />
-
-      <AgentSettingsPanel
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        currentProvider={currentProvider}
-        onProviderChanged={(p) => {
-          setCurrentProvider(p);
-          setIsConfigured(true);
-        }}
-        currentModel={currentModel}
-        onModelChanged={(m) => setCurrentModel(m)}
-        webSearchEnabled={webSearchEnabled}
-        onToggleWebSearch={handleToggleWebSearch}
-        autoApply={autoApply}
-        onToggleAutoApply={handleToggleAutoApply}
-        rewriteEnabled={rewriteEnabled}
-        onToggleRewrite={handleToggleRewrite}
-      />
-
-      <AgentHistoryDrawer
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        transactions={ledger.transactions}
-        onRollback={rollback}
       />
     </div>
   );
