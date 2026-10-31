@@ -140,6 +140,7 @@ export class VaultManager {
     let target = registry.vaults.find((v) => v.uri === uri);
     const mode = uri.startsWith("content://") ? "saf" : "sandbox";
 
+    let nextVaults = registry.vaults;
     if (!target) {
       const parts = uri.replace(/\/+$/, "").split("/");
       target = {
@@ -148,10 +149,10 @@ export class VaultManager {
         mode,
         createdAt: Date.now(),
       };
-      registry.vaults.push(target);
+      nextVaults = [...registry.vaults, target];
     }
 
-    await this.saveRegistry({ ...registry, activeVaultUri: uri });
+    await this.saveRegistry({ ...registry, vaults: nextVaults, activeVaultUri: uri });
     this.activeAdapter = new MobileVaultStorageAdapter(uri, target.mode);
     return this.activeAdapter;
   }

@@ -23,7 +23,7 @@ const SIZE_CONTAINER: Record<string, string> = {
   lg: "h-[48px] px-4",
 };
 
-export const Input = React.forwardRef<RNTextInput, InputProps>(
+export const Input = React.forwardRef<any, InputProps>(
   (
     {
       variant = "default",
