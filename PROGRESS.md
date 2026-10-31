@@ -4,34 +4,39 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Release v0.3.0 Published & Website Deployed
+## Last Session — Syncthing Desktop Folder Parsing Fix & Mobile Sync Parity
 
-**Scope:** End-to-end 2-instance live P2P sync verification, release `v0.3.0` across 6 platform architectures, and live Cloudflare Pages website deployment.
+**Scope:** Fix incoming Syncthing folder offer acceptance on Desktop (handling Syncthing REST API's nested map schema and adding native directory picker), and bring full Syncthing parity to Mobile (`apps/mobile`), enabling mobile to view paired devices, see connection status, manage shared vaults, accept incoming folder invitations, and 1-click switch active vaults.
 
 **What was done:**
-1. **End-to-End 2-Instance Live P2P Sync Test**:
-   - Automated script `apps/desktop/scripts/testTwoInstancesSync.mjs` spawned two isolated local Syncthing instances (`vault_1` with `1.md`, `2.md` and `vault_2` with `a.md`, `b.md`).
-   - Verified P2P mutual connection and TLS transfer into replica in 2.1s.
-   - Verified active workspace switching: switching to `vault_2` makes it `[ACTIVE VAULT]` and `vault_1` `[SYNCED VAULT]`.
-2. **Release v0.3.0 Published on GitHub**:
-   - Merged PR #31 (`feat/syncthing-devices-and-ux-polish`).
-   - Bumped all 6 manifests to `0.3.0`, created tag `v0.3.0`, and pushed to remote.
-   - Release workflow built and published all 6 platform packages: macOS ARM64 DMG, macOS x64 DMG, Windows x64 setup exe & MSI, Linux AppImage/deb/rpm with `SHA256SUMS.txt`.
-3. **Website Download Links & Live Cloudflare Deployment**:
-   - Updated download links and SHA256 checksums across all 19 Astro pages and install scripts (`install.sh`, `sophia.rb`, `Casks/sophia.rb`).
-   - Fixed Cloudflare Pages CI deployment workflow (`deploy-cloudflare.yml`) for Astro 5 with Node 22 and `pnpm dlx wrangler`.
-   - Directly deployed production build to Cloudflare Pages via authenticated wrangler (`https://sophia-notes.pages.dev/download/`). Verified live download links serving `Sophia_0.3.0`.
+1. **Desktop Syncthing Pending Folders Schema Fix & Directory Picker (`apps/desktop`)**:
+   - Resolved silent failure when receiving folder invitations: Syncthing REST API `/rest/cluster/pending/folders` returns `{ "<folderId>": { "offeredBy": { "<devId>": { "label": "...", "time": "..." } } } }`.
+   - Updated `folders_pending.rs` with `OfferedByField` untagged enum supporting both nested map and string formats.
+   - Configured standard folder settings upon accept (`rescanIntervalS: 60`, `fsWatcherEnabled: true`, `fsWatcherDelayS: 10`).
+   - Added native folder "Browse..." button using `pickVaultFolder` in `SyncthingPendingFolderRow.tsx`.
+   - Unit tests: `parses_syncthing_pending_folders_map_schema` in Rust and all 6/6 tests in `SyncthingPendingSection.test.tsx` passed.
+2. **Mobile Syncthing Parity Implementation (`apps/mobile`)**:
+   - **Schema & Offer Handling**: Updated `mobileSyncthingPendingFolders` and `mobileSyncthingAcceptFolder` in `mobileSyncthingPairing.ts` with untagged map support and filesystem watcher defaults.
+   - **Devices Management**: Created `mobileSyncthingDevices.ts` and `mobileSyncthingDevices.test.ts` implementing `mobileSyncthingListDevices()` and `mobileSyncthingRemoveDevice()`.
+   - **Shared Vaults Management**: Created `mobileSyncthingVaults.ts` and `mobileSyncthingVaults.test.ts` implementing `mobileSyncthingListSharedVaults()` and `mobileSyncthingUnshareFolder()`.
+   - **Vault Switching**: Added `openDirectoryVault(uri, name)` in `vaultManager.ts` to seamlessly register and activate synced folders.
+   - **Mobile UI**:
+     - `SyncthingPairedDevicesSection.tsx` (renders device name, Connected badge, Vault Shared badge, truncated ID, copy, and unpair).
+     - `SyncthingSharedVaultsSection.tsx` (renders vault list, Active/Synced badge, device count, path, 1-click "Open Vault", and "Unshare").
+     - `SyncthingDeviceIdCard.tsx` (clean device ID presentation with copy button and QR view).
+   - **State Hook & Panel**:
+     - Updated `useMobileSyncthing.ts` and `MobileSyncthingPanel.tsx` exposing `configuredDevices`, `sharedVaults`, `removeDevice`, and `unshareFolder`.
+     - Strict adherence to `AGENTS.md` rules: all files are <= 250 lines (soft cap 150-200).
+3. **Verification**:
+   - Ran `pnpm --filter @app/mobile test sync/syncthing`: 14/14 test suites passed (66 passed, 1 skipped).
+   - Graphify knowledge graph rebuilt via `graphify update .`.
 
 ---
 
 ## Next Up
-- Monitor initial v0.3.0 downloads and user telemetry for P2P sync stability.
-- Add conflict resolution preview dialog when two devices edit the same file concurrently.
-- Mobile workspace sync status indicators.
+- Test multi-device real-time sync with mobile Android/iOS build.
+- Review website download assets and documentation for mobile pairing.
 
----
-
-## Previous Session — Syncthing Shared Vaults Visibility & 1-Click Vault Switching
 
 **Scope:** Provide clear visibility of shared Syncthing folders/vaults once paired and accepted, with 1-click access to open/switch into the vault directly in Sophia or reveal in the native file manager.
 

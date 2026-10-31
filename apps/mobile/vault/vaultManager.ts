@@ -132,6 +132,30 @@ export class VaultManager {
     return this.activeAdapter;
   }
 
+  async openDirectoryVault(
+    uri: string,
+    name?: string,
+  ): Promise<MobileVaultStorageAdapter | null> {
+    const registry = await this.getRegistry();
+    let target = registry.vaults.find((v) => v.uri === uri);
+    const mode = uri.startsWith("content://") ? "saf" : "sandbox";
+
+    if (!target) {
+      const parts = uri.replace(/\/+$/, "").split("/");
+      target = {
+        uri,
+        name: name?.trim() || parts[parts.length - 1] || "Synced Vault",
+        mode,
+        createdAt: Date.now(),
+      };
+      registry.vaults.push(target);
+    }
+
+    await this.saveRegistry({ ...registry, activeVaultUri: uri });
+    this.activeAdapter = new MobileVaultStorageAdapter(uri, target.mode);
+    return this.activeAdapter;
+  }
+
   async renameVault(uri: string, newDisplayName: string): Promise<void> {
     const trimmed = newDisplayName.trim();
     if (!trimmed) return;

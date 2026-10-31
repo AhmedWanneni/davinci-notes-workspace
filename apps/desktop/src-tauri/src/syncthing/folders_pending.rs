@@ -126,7 +126,10 @@ impl SyncthingClient {
       "label": label,
       "path": target_path.to_string_lossy().to_string(),
       "type": "sendreceive",
-      "devices": devices
+      "devices": devices,
+      "rescanIntervalS": 60,
+      "fsWatcherEnabled": true,
+      "fsWatcherDelayS": 10
     });
     let payload_str = serde_json::to_string(&payload).unwrap_or_default();
 
