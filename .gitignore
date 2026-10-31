@@ -63,10 +63,8 @@ apps/*/src-tauri/gen/
 *.apk
 *.aab
 
-apps/mobile/ios/Pods/
-apps/mobile/android/.gradle/
-apps/mobile/android/build/
-apps/mobile/android/app/build/
+apps/mobile/ios/
+apps/mobile/android/
 .expo/
 apps/mobile/.expo/
 

@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 
 class ExpoSyncthingModule : Module() {
     private val context: Context
@@ -89,10 +89,10 @@ class ExpoSyncthingModule : Module() {
         }
 
         AsyncFunction("getQrDataUri") { text: String ->
-            withContext(Dispatchers.IO) {
+            runBlocking(Dispatchers.IO) {
                 val svc = SyncthingForegroundService.instance
                 val port = svc?.processManager?.port ?: 0
-                if (port <= 0) return@withContext ""
+                if (port <= 0) return@runBlocking ""
                 try {
                     val encoded = java.net.URLEncoder.encode(text, "UTF-8")
                     val url = java.net.URL("http://127.0.0.1:$port/qr/?text=$encoded")
@@ -109,7 +109,7 @@ class ExpoSyncthingModule : Module() {
         }
 
         AsyncFunction("request") { method: String, path: String, body: String? ->
-            withContext(Dispatchers.IO) {
+            runBlocking(Dispatchers.IO) {
                 val svc = SyncthingForegroundService.instance
                     ?: throw IllegalStateException("Syncthing service is not running")
                 val port = svc.processManager.port
