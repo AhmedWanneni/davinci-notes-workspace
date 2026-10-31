@@ -38,6 +38,10 @@ export default defineConfig({
         __dirname,
         "tests/mocks/react-native-svg.ts",
       ),
+      "expo-file-system/legacy": path.resolve(
+        __dirname,
+        "tests/mocks/expoFileSystemMock.ts",
+      ),
       "expo-file-system": path.resolve(
         __dirname,
         "tests/mocks/expoFileSystemMock.ts",

@@ -4,7 +4,26 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Syncthing Desktop Folder Parsing Fix & Mobile Sync Parity
+## Last Session — Mobile Syncthing Pairing Storage Access & Sandbox Target Fix
+
+**Scope:** Resolve the `"Storage Access Error: Directory is read-only requires write permissions"` error encountered when scanning desktop pairing QR code on mobile (`ScanToSyncConfirmSheet.tsx` / `folderAccessChecker.ts`).
+
+**What was done:**
+1. **Asynchronous Write Probe Fix (`folderAccessChecker.ts`)**:
+   - In Expo SDK 58, `File.prototype.write` is asynchronous returning `Promise<void>`. The atomic write probe called `probe.write("probe")` without `await`, causing the synchronous `if (!probe.exists)` check to evaluate `false` before native disk write finished. Added `await probe.write("probe")` and safe probe cleanup in a `finally` block.
+2. **Android SAF vs App Sandbox Validation (`folderAccessChecker.ts`)**:
+   - Explicitly validated and rejected Android SAF `content://` URIs with helpful explanation (native background Syncthing daemon requires standard POSIX filesystem paths in app storage, not SAF content URIs).
+3. **Safe Target Resolution & Recovery UI (`ScanToSyncConfirmSheet.tsx`)**:
+   - Replaced fragile `${Paths.document.uri}/vault` string concatenation with `new Directory(Paths.document, "vaults", safeFolderName).uri` avoiding double slashes.
+   - Added a one-tap "Use App Sandbox Storage" fallback button if an external or invalid path is encountered.
+4. **Syncthing REST API Path Normalization (`mobileSyncthingPairing.ts`)**:
+   - Stripped `file://` scheme and decoded URI paths (`decodeURIComponent(targetPath.replace(/^file:\/\//, ""))`) before posting to Syncthing REST API `/rest/config/folders`.
+5. **Auto Vault Registration & Activation (`ScanToSyncModal.tsx`, `useScanToSync.ts`, `MobileSyncthingPanel.tsx`)**:
+   - When pairing and sync complete, automatically registers and activates the synced vault in `VaultManager` via `onVaultSynced`.
+6. **Verification**:
+   - All 14 Syncthing test suites passed (67 passed tests).
+   - Typecheck passed cleanly (`tsc --noEmit`).
+   - Merged PR #35 (`fix(mobile): resolve storage access check and default to app sandbox target for syncthing`).
 
 **Scope:** Fix incoming Syncthing folder offer acceptance on Desktop (handling Syncthing REST API's nested map schema and adding native directory picker), and bring full Syncthing parity to Mobile (`apps/mobile`), enabling mobile to view paired devices, see connection status, manage shared vaults, accept incoming folder invitations, and 1-click switch active vaults.
 

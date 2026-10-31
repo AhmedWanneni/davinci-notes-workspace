@@ -1,4 +1,4 @@
-import { Directory, File } from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 
 export interface FolderAccessCheckResult {
   accessible: boolean;
@@ -29,11 +29,15 @@ export async function checkFolderAccess(
     };
   }
 
+  const cleanDirUri = clean.endsWith("/") ? clean : `${clean}/`;
+
   try {
-    const dir = new Directory(clean);
-    if (!dir.exists) {
+    const info = await FileSystem.getInfoAsync(cleanDirUri);
+    if (!info.exists) {
       try {
-        dir.create({ intermediates: true, idempotent: true });
+        await FileSystem.makeDirectoryAsync(cleanDirUri, {
+          intermediates: true,
+        });
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         return {
@@ -46,7 +50,7 @@ export async function checkFolderAccess(
     // Verify read access
     let entries: string[] = [];
     try {
-      entries = dir.list().map((e) => e.name);
+      entries = await FileSystem.readDirectoryAsync(cleanDirUri);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       return {
@@ -65,11 +69,12 @@ export async function checkFolderAccess(
     );
     const isNonEmpty = significantFiles.length > 0;
 
-    // Verify write access with atomic probe (must await async write in Expo SDK 58)
-    const probe = new File(dir, ".davinci_access_probe.tmp");
+    // Verify write access with atomic probe
+    const probeUri = `${cleanDirUri}.davinci_access_probe.tmp`;
     try {
-      await probe.write("probe");
-      if (!probe.exists) {
+      await FileSystem.writeAsStringAsync(probeUri, "probe");
+      const probeInfo = await FileSystem.getInfoAsync(probeUri);
+      if (!probeInfo.exists) {
         return {
           accessible: false,
           error:
@@ -85,9 +90,7 @@ export async function checkFolderAccess(
       };
     } finally {
       try {
-        if (probe.exists) {
-          probe.delete();
-        }
+        await FileSystem.deleteAsync(probeUri, { idempotent: true });
       } catch {
         // probe cleanup
       }
