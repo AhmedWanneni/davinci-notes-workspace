@@ -1,13 +1,13 @@
 import { requireNativeModule } from "expo-modules-core";
-import type {
-  SyncthingStatusResult,
-} from "./ExpoSyncthing.types";
+import type { SyncthingStatusResult } from "./ExpoSyncthing.types";
 
 interface NativeExpoSyncthing {
   start(): Promise<SyncthingStatusResult>;
   stop(): Promise<void>;
   status(): Promise<SyncthingStatusResult>;
   getDeviceId(): Promise<string>;
+  getApiKey?(): Promise<string>;
+  getGuiAddress?(): Promise<string>;
   getQrDataUri(text: string): Promise<string>;
   request(method: string, path: string, body?: string | null): Promise<string>;
   setRunConditions(

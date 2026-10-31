@@ -1,6 +1,7 @@
 import { Directory, File, Paths } from "expo-file-system";
 import { sanitizeEntryName } from "./entryName";
 import { isContentUri } from "./vaultEntries";
+import { normalizeToValidFileUri } from "../pathUtils";
 
 /**
  * Vault-level filesystem operations (ADR-0196): sandbox vault creation,
@@ -43,7 +44,8 @@ export function createSandboxVaultDirectory(
 
 /** Rollback helper: removes a vault folder this app just created. */
 export function deleteVaultDirectory(uri: string): void {
-  const dir = new Directory(uri);
+  const normalized = normalizeToValidFileUri(uri);
+  const dir = new Directory(normalized);
   if (dir.exists) dir.delete();
 }
 
@@ -71,6 +73,12 @@ export async function pickDirectory(): Promise<PickedDirectory | null> {
   return { uri: picked.uri, name: picked.name || "External Folder" };
 }
 
+export function resolveSandboxVaultPath(name: string): string {
+  const safeName = sanitizeEntryName(name, { fallback: "Vault" });
+  const root = vaultsRoot();
+  return `${root.uri}/${encodeURIComponent(safeName)}`;
+}
+
 export interface DirectoryAccess {
   readonly isAccessible: boolean;
   readonly error?: string;
@@ -79,7 +87,15 @@ export interface DirectoryAccess {
 /** Checks a vault root exists and is still readable (SAF grant valid). */
 export function verifyDirectoryAccess(uri: string): DirectoryAccess {
   try {
-    const dir = new Directory(uri);
+    if (isContentUri(uri)) {
+      return {
+        isAccessible: false,
+        error:
+          "External Document Picker folders (content://) cannot be accessed directly. Please create a new folder in app storage to sync your files.",
+      };
+    }
+    const normalized = normalizeToValidFileUri(uri);
+    const dir = new Directory(normalized);
     if (!dir.exists) {
       return {
         isAccessible: false,
@@ -89,13 +105,23 @@ export function verifyDirectoryAccess(uri: string): DirectoryAccess {
     dir.list();
     return { isAccessible: true };
   } catch (err) {
+    const rawMsg = err instanceof Error ? err.message : String(err);
+    if (
+      /character in path|FileSystemPath|IllegalArgumentException|URI/i.test(
+        rawMsg,
+      )
+    ) {
+      return {
+        isAccessible: false,
+        error:
+          "Invalid or external folder path. Please create a new folder in app storage to sync your files.",
+      };
+    }
     return {
       isAccessible: false,
       error: isContentUri(uri)
         ? "Access to this folder was revoked. Re-open it to grant permission again."
-        : err instanceof Error
-          ? err.message
-          : "The vault folder cannot be read.",
+        : rawMsg || "The vault folder cannot be read.",
     };
   }
 }

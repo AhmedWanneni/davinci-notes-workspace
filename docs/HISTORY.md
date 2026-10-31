@@ -2,6 +2,55 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: External Vault Connection & Synced Folder Creation (Index 52 Crash Fix)
+
+- **HostFunction Exception Hardening (`vaultStorage.ts`, `vaultRegistryStore.ts`)**:
+  - Investigated `Vault Inaccessible: Exception in hostfunction character in path at index 52 expo.module.filesystem.FileSystemPath`.
+  - Identified that Android `expo-file-system` JSI (`FileSystemPath`, `Paths.info`, `new Directory`) passes URIs to `java.net.URI.create()`, which crashes on Android SAF `content://` URIs with colons (`primary:...`).
+  - Added robust guards in `verifyDirectoryAccess` across `vaultStorage.ts` and `vaultRegistryStore.ts` to detect and safely report external/content URI errors rather than throwing unhandled JSI hostfunction exceptions.
+- **Dedicated Synced Folder Creation (`vaultCreation.ts`, `syncExternalDirectory.ts`)**:
+  - Implemented `syncExternalDirectoryToSandbox` using `expo-file-system/legacy` to recursively copy notes, directories, and assets from external folders into newly provisioned app sandbox vault folders.
+  - Updated `pickExternalDirectoryVault` and `pickAndCreateFolderToSyncExternalVault` to create a dedicated sandbox vault directory (`vaults/<name>`) and sync external notes into it, providing 100% crash-free POSIX access and full Syncthing/Google Drive compatibility.
+- **Syncthing Folder Offer UX Polish (`SyncthingPendingFolderRow.tsx`)**:
+  - Split `SyncthingPendingSection.tsx` into modular row components (`SyncthingPendingFolderRow.tsx` and `SyncthingPendingDeviceRow.tsx`), keeping all files under 190 lines (strict compliance with `AGENTS.md` 250-line maximum).
+  - In incoming folder offers, added the **"Create New Folder"** action to provision an isolated sandbox target (`vaults/<folderLabel>`), eliminating the broken SAF picker requirement.
+  - Added validation warning if a user attempts to select a raw `content://` URI with a 1-tap fallback to create an app storage folder.
+- **Vault Inaccessible Recovery UI (`VaultInaccessibleBanner.tsx`)**:
+  - Added **"Create New Vault"** button to the banner alongside "Recover Default", giving users instant 1-tap recovery to a fresh sandbox vault without entering settings.
+- **Testing & Verification**:
+  - Added unit test suite `apps/mobile/vault/fs/syncExternalDirectory.test.ts`.
+  - All 14 Syncthing test suites (67 tests) and all 8 onboarding vault tests pass.
+  - Clean TypeScript check across the mobile workspace (`tsc --noEmit`).
+  - Rebuilt knowledge graph via `graphify update .`.
+
+---
+
+### 2026-10-31: Fix RFC 2396 URI Normalization for Synced & Shared Vaults on Android
+
+- **Root Cause Analysis (`IllegalArgumentException: Illegal character in path at index 52`)**:
+  - Syncthing REST API returns raw filesystem paths (e.g. `/data/user/0/com.davinci.notes/files/vaults/Personal Vault`).
+  - `expo-file-system`'s `Directory` and `File` construct `JavaFile(uri: Uri)`, which delegates to `File(URI.create(uri.toString()))`.
+  - Java's `java.net.URI.create()` strictly enforces RFC 2396 syntax and throws `IllegalArgumentException: Illegal character in path at index 52` when unencoded spaces or raw POSIX paths are passed.
+- **URI Normalization & Separation of Concerns**:
+  - `apps/mobile/vault/pathUtils.ts`: Added `normalizeToValidFileUri` (encodes segments to valid `file:///...` URIs, leaves `content://` untouched, avoids double-encoding) and `toPosixPath` (decodes `file://` to plain POSIX paths for Syncthing API).
+  - `apps/mobile/vault/pathUtils.test.ts`: Added comprehensive unit test suite covering raw paths with spaces, unencoded file URIs, pre-encoded URIs, SAF content URIs, and path traversal safeguards (17 tests passing).
+  - `apps/mobile/vault/vaultCreation.ts`: Created dedicated helper module for sandbox vault creation and SAF folder picking, keeping `vaultManager.ts` strictly within the 250-line hard cap (238 lines).
+  - `apps/mobile/vault/MobileVaultStorageAdapter.ts`: Normalizes `vaultUri` in constructor before initializing `rootDirectory`.
+  - `apps/mobile/vault/vaultScanner.ts`: Normalizes `vaultRootUri` in `scanVaultDirectory`.
+  - `apps/mobile/vault/fs/vaultStorage.ts`: Normalizes URIs in `verifyDirectoryAccess` and `deleteVaultDirectory`.
+  - `apps/mobile/vault/vaultRegistryStore.ts`: Normalizes URIs on load to auto-heal existing stored paths on user devices.
+  - `apps/mobile/vault/vaultManager.ts`: Normalizes URIs across all vault management methods.
+  - `apps/mobile/sync/syncthing/MobileSyncthingPanel.tsx`: Normalizes path in `handleOpenVault` before registering.
+  - `apps/mobile/sync/syncthing/mobileSyncthingVaults.ts`: Compares normalized POSIX paths when calculating `isActiveVault`.
+  - `apps/mobile/sync/syncthing/folderAccessChecker.ts`: Normalizes path before verifying folder existence and write access.
+- **Verification & Rebuild**:
+  - All 18 mobile test files and 101 unit tests pass (`pnpm --filter @app/mobile test vault sync/syncthing`).
+  - Compiled release APK (`./gradlew assembleRelease`, 65 MB) with extracted native binary.
+  - Successfully installed and verified launch on Android emulator (`emulator-5554`) with zero exceptions in logcat.
+  - Copied new APK to `./Sophia_0.3.0.apk`.
+
+---
+
 ### 2026-10-31: Automated Embedded Syncthing Daemon Config Plugin, Native Execution & Lifecycle Fix on Android
 
 - **Config Plugin & Prebuild Automation (`apps/mobile/plugins/withSyncthingAndroid.js`)**:
