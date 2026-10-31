@@ -2,6 +2,34 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: Automated Embedded Syncthing Daemon Config Plugin, Native Execution & Lifecycle Fix on Android
+
+- **Config Plugin & Prebuild Automation (`apps/mobile/plugins/withSyncthingAndroid.js`)**:
+  - Authored consolidated Expo config plugin replacing `withEmbeddedSyncthing.js`.
+  - Configured `withDangerousMod` to copy tracked `assets/syncthing/<abi>/libsyncthing.so` into `android/app/src/main/jniLibs/<abi>/` during prebuild, ensuring `expo prebuild --clean` is 100% resilient and self-contained.
+  - Automatically injects `<application android:extractNativeLibs="true">` into `AndroidManifest.xml`.
+  - Injects `expo.useLegacyPackaging=true` and `reactNativeArchitectures=arm64-v8a,x86_64` into `gradle.properties`.
+  - Injects `packagingOptions.jniLibs.useLegacyPackaging true` into `app/build.gradle`.
+- **Native Module Enhancements (`apps/mobile/modules/expo-syncthing`)**:
+  - Enhanced `SyncthingProcessManager.kt` to log binary existence and execute permissions with `Log.i("SyncthingProcess", ...)`.
+  - Implemented 50-line stdout/stderr ring buffer (`recentLogs`) and process exit code tracking (`lastExitCode`).
+  - Added `getApiKey()` and `getGuiAddress()` native methods to `ExpoSyncthingModule.kt` and `EmbeddedSyncthingBridge`.
+- **UI Diagnostics & Cleanup**:
+  - Updated `useScanToSync.ts` to surface rich failure diagnostics (`binaryPath`, `exists`, `canExecute`, `exitCode`) on error.
+  - Removed leftover "install Syncthing-Fork" instructions in `ScanToSyncSetupGuide.tsx`, `SyncthingKeyModal.tsx`, and `useMobileSyncthing.ts`.
+- **ADR-0251**:
+  - Created `docs/adr/0251-mobile-android-native-library-extraction-and-prebuild-plugin.md`.
+  - Indexed in `DECISIONS.md`.
+- **Verification & Rebuild**:
+  - Verified clean prebuild (`npx expo prebuild --clean`) copies binary and sets manifest/gradle properties automatically.
+  - Compiled release APK (`./gradlew assembleRelease`, 3m 4s).
+  - Verified `aapt2` confirms `extractNativeLibs=true`.
+  - Verified installation on ARM64 emulator: `libsyncthing.so` is extracted into `/data/app/.../lib/arm64/` with `-rwxr-xr-x`.
+  - Ran all 14 Syncthing test suites (67 tests passing).
+  - Re-uploaded `Sophia_0.3.0.apk` to GitHub Release `v0.3.0`.
+
+---
+
 ### 2026-10-31: Fix Android Native Binary Execution (`extractNativeLibs` & Legacy Packaging)
 
 - **Root Cause Analysis (`Syncthing native binary not found or not executable`)**:

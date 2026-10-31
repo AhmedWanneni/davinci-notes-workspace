@@ -4,7 +4,45 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Android Native Binary Execution (`extractNativeLibs` & Legacy Packaging)
+## Last Session — Automated Embedded Syncthing Daemon Config Plugin, Native Execution & Lifecycle Fix on Android
+
+**Scope:** Complete implementation of Phase A diagnosis and Phase B execution for embedded Syncthing daemon native execution on Android: automated Expo config plugin (`withSyncthingAndroid.js`), tracked assets, clean prebuild resiliency, rich error diagnostics, process ring buffer, ADR-0251, and production release build.
+
+**What was done:**
+1. **Consolidated Prebuild Plugin (`apps/mobile/plugins/withSyncthingAndroid.js`)**:
+   - Automated native binary copying from tracked `apps/mobile/assets/syncthing/<abi>/libsyncthing.so` into `android/app/src/main/jniLibs/<abi>/` during `withDangerousMod`.
+   - Guaranteed `android:extractNativeLibs="true"` in `AndroidManifest.xml` on `<application>`.
+   - Injected `expo.useLegacyPackaging=true` and `reactNativeArchitectures=arm64-v8a,x86_64` into `gradle.properties`.
+   - Enforced `packagingOptions.jniLibs.useLegacyPackaging true` in `app/build.gradle`.
+   - Registered permissions (`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`, `POST_NOTIFICATIONS`, `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, `INTERNET`) and declared `SyncthingForegroundService` and `SyncthingBootReceiver`.
+   - Replaced superseded `withEmbeddedSyncthing.js` in `app.json`.
+2. **Enhanced Native Process Manager & Expo Module (`apps/mobile/modules/expo-syncthing`)**:
+   - Refined `SyncthingProcessManager.kt` to log binary location, existence, and execution permissions with `Log.i("SyncthingProcess", ...)`.
+   - Implemented thread-safe ring buffer (`recentLogs`, 50-line capacity) capturing stdout/stderr, API-key redacted.
+   - Added process exit code capture (`lastExitCode`) to surface detailed crash diagnostics to the UI.
+   - Added `getApiKey()` and `getGuiAddress()` native methods to `ExpoSyncthingModule.kt` and `EmbeddedSyncthingBridge`.
+3. **UI / Diagnostic Improvements & Cleanup**:
+   - Updated `useScanToSync.ts` to surface rich failure diagnostics (`binaryPath`, `exists`, `canExecute`, `exitCode`) on error.
+   - Removed leftover "install Syncthing-Fork" instructions in `ScanToSyncSetupGuide.tsx`, `SyncthingKeyModal.tsx`, and `useMobileSyncthing.ts`.
+   - Maintained strict 250-line limits across all modified TypeScript files (`useScanToSync.ts` at 244 lines).
+4. **Documentation**:
+   - Added `docs/adr/0251-mobile-android-native-library-extraction-and-prebuild-plugin.md`.
+   - Indexed ADR-0251 in `DECISIONS.md`.
+5. **Verification**:
+   - Ran `npx expo prebuild --clean` and confirmed automatic binary copying and manifest injection with zero manual steps.
+   - Compiled production release APK via `./gradlew assembleRelease` (3m 4s).
+   - Confirmed `extractNativeLibs(0x010104ea)=true` inside final APK manifest with `aapt2`.
+   - Installed on ARM64 Android environment (`emulator-5554`) and verified `libsyncthing.so` extracted to `nativeLibraryDir` with `-rwxr-xr-x`.
+   - Verified all 14 Syncthing unit test suites (67 tests) pass cleanly.
+   - Re-uploaded `Sophia_0.3.0.apk` to GitHub Release `v0.3.0` and confirmed public HTTP 200 download status.
+
+**Next up:**
+- On-device verification of live note sync over Wi-Fi between desktop and physical Android device.
+- Ad-hoc / TestFlight distribution verification for `Sophia_0.3.0.ipa`.
+
+---
+
+## Prior Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
 
 **Scope:** Fix on-device startup crash where Syncthing failed to execute on Android devices ("Syncthing native binary not found or not executable at: /data/app/--OUsOh.../lib/arm64/libsyncthing.so"). Rebuild and re-upload `Sophia_0.3.0.apk`.
 

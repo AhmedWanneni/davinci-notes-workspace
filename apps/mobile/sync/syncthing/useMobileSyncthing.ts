@@ -89,7 +89,7 @@ export function useMobileSyncthing(
 
       if (!isEmb && !key) {
         setStatus("bad-key");
-        setErrorMessage("API key required to connect to Syncthing-Fork");
+        setErrorMessage("API key required to connect to Syncthing");
         resetActive();
         return;
       }

@@ -43,6 +43,16 @@ export async function getEmbeddedDeviceId(): Promise<string> {
   return await ExpoSyncthingNative.getDeviceId();
 }
 
+export async function getEmbeddedApiKey(): Promise<string> {
+  if (!ExpoSyncthingNative) return "";
+  return await ExpoSyncthingNative.getApiKey();
+}
+
+export async function getEmbeddedGuiAddress(): Promise<string> {
+  if (!ExpoSyncthingNative) return "";
+  return await ExpoSyncthingNative.getGuiAddress();
+}
+
 export async function getEmbeddedQrDataUri(text: string): Promise<string> {
   if (!ExpoSyncthingNative) return "";
   return await ExpoSyncthingNative.getQrDataUri(text);

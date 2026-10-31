@@ -5528,9 +5528,9 @@
     "semantic_hash": "621c017793d3eca0a45aa8056310f9fe"
   },
   "apps/mobile/app.json": {
-    "mtime": 1793407512.0230803,
-    "seen": 1793443205.463676,
-    "ast_hash": "773570e7d006039a5024833922ef7aaa",
+    "mtime": 1793449328.1524003,
+    "seen": 1793450408.9959528,
+    "ast_hash": "965eb4052fc58b2fcaf8eb5c7fddb237",
     "semantic_hash": ""
   },
   "apps/mobile/app/(tabs)/_layout.tsx": {
@@ -6038,9 +6038,9 @@
     "semantic_hash": "2ce63fefd423c7fce2f6c7a64c162e7a"
   },
   "apps/mobile/modules/expo-syncthing/android/src/main/java/com/davinci/syncthing/ExpoSyncthingModule.kt": {
-    "mtime": 1793446244.0036836,
-    "seen": 1793448343.3432992,
-    "ast_hash": "bdd75572fc2389297413f742b28e9596",
+    "mtime": 1793449394.103109,
+    "seen": 1793450408.999151,
+    "ast_hash": "4b94003836f7471eeb839dfac2278250",
     "semantic_hash": ""
   },
   "apps/mobile/modules/expo-syncthing/android/src/main/java/com/davinci/syncthing/SyncthingBootReceiver.kt": {
@@ -6056,9 +6056,9 @@
     "semantic_hash": "006e96a04dbc37f84466fbfc88aeb06c"
   },
   "apps/mobile/modules/expo-syncthing/android/src/main/java/com/davinci/syncthing/SyncthingProcessManager.kt": {
-    "mtime": 1793447751.2246904,
-    "seen": 1793448343.343426,
-    "ast_hash": "9014293d25035d9572daf825c2fb14ce",
+    "mtime": 1793449909.019285,
+    "seen": 1793450408.999317,
+    "ast_hash": "339e7e3cd8ebb73d6b06979f1a2e9d8a",
     "semantic_hash": ""
   },
   "apps/mobile/modules/expo-syncthing/android/src/main/java/com/davinci/syncthing/SyncthingRestAllowlist.kt": {
@@ -6081,10 +6081,10 @@
     "ast_empty": true
   },
   "apps/mobile/modules/expo-syncthing/index.ts": {
-    "mtime": 1793298540.418295,
-    "seen": 1793443205.463781,
-    "ast_hash": "007355dd9064ddfc9a0dc9941055691f",
-    "semantic_hash": "007355dd9064ddfc9a0dc9941055691f"
+    "mtime": 1793449539.6070676,
+    "seen": 1793450408.999488,
+    "ast_hash": "573270846517d0dc9f656c51bad70526",
+    "semantic_hash": ""
   },
   "apps/mobile/modules/expo-syncthing/package.json": {
     "mtime": 1793298540.418889,
@@ -6093,10 +6093,10 @@
     "semantic_hash": "eee084b37b38eaf9a10996c18a3535e7"
   },
   "apps/mobile/modules/expo-syncthing/src/ExpoSyncthing.types.ts": {
-    "mtime": 1793298540.4190605,
-    "seen": 1793443205.463783,
-    "ast_hash": "38672658dcdd86b92fd51e033a4d8bd5",
-    "semantic_hash": "38672658dcdd86b92fd51e033a4d8bd5"
+    "mtime": 1793449405.9233983,
+    "seen": 1793450408.999533,
+    "ast_hash": "2ebb2f8a102f11bd9f7cd9a933cb3a2b",
+    "semantic_hash": ""
   },
   "apps/mobile/modules/expo-syncthing/src/ExpoSyncthingModule.ts": {
     "mtime": 1793298540.4191427,
@@ -6120,12 +6120,6 @@
     "mtime": 1793446244.0038185,
     "seen": 1793448343.3438232,
     "ast_hash": "b251433fafdd75f47d84c19a64af6b40",
-    "semantic_hash": ""
-  },
-  "apps/mobile/plugins/withEmbeddedSyncthing.js": {
-    "mtime": 1793447246.755134,
-    "seen": 1793448343.343824,
-    "ast_hash": "1d6f3fda2ae270bce9eb607e81446533",
     "semantic_hash": ""
   },
   "apps/mobile/plugins/withLocalhostNetworkSecurity.js": {
@@ -6195,10 +6189,10 @@
     "semantic_hash": "3ac4929dfae17add36d09d6f7864cf2e"
   },
   "apps/mobile/scripts/fetchAndroidSyncthing.mjs": {
-    "mtime": 1793298540.4206586,
-    "seen": 1793443205.4638028,
-    "ast_hash": "c3d3bd593216bff22a01bbf042f7180d",
-    "semantic_hash": "c3d3bd593216bff22a01bbf042f7180d"
+    "mtime": 1793449697.5272877,
+    "seen": 1793450409.000095,
+    "ast_hash": "1967b5ed198c1a0db043e6af2a3140a8",
+    "semantic_hash": ""
   },
   "apps/mobile/scripts/verifyEmbeddedSyncthing.mjs": {
     "mtime": 1793298540.4207718,
@@ -6375,10 +6369,10 @@
     "semantic_hash": "6df0469aecc7445442722663795ffbc4"
   },
   "apps/mobile/sync/syncthing/ScanToSyncSetupGuide.tsx": {
-    "mtime": 1793298540.4225695,
-    "seen": 1793443205.463837,
-    "ast_hash": "6b5cc62b5661d3e819bf32ed6d3487cd",
-    "semantic_hash": "6b5cc62b5661d3e819bf32ed6d3487cd"
+    "mtime": 1793449599.7922754,
+    "seen": 1793450409.001228,
+    "ast_hash": "ab3a9941b3392a38ca31b4927dd051fe",
+    "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/SyncthingAddDeviceModal.tsx": {
     "mtime": 1793408205.6235292,
@@ -6387,10 +6381,10 @@
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/SyncthingKeyModal.tsx": {
-    "mtime": 1792835118.8141925,
-    "seen": 1793443205.463841,
-    "ast_hash": "ac6d196889455396147e07be3561554d",
-    "semantic_hash": "ac6d196889455396147e07be3561554d"
+    "mtime": 1793449609.2186272,
+    "seen": 1793450409.0013068,
+    "ast_hash": "ab355ae63ddf4bc3f86dca5061807c0b",
+    "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/SyncthingPendingSection.tsx": {
     "mtime": 1793442781.091895,
@@ -6423,10 +6417,10 @@
     "semantic_hash": "9de244d1b998fdc0f2d703c1c8e92dae"
   },
   "apps/mobile/sync/syncthing/embeddedSyncthingBridge.ts": {
-    "mtime": 1793298540.4237804,
-    "seen": 1793443205.463854,
-    "ast_hash": "0375a6e4f3d145bd62ac3e173cb14396",
-    "semantic_hash": "0375a6e4f3d145bd62ac3e173cb14396"
+    "mtime": 1793449556.420223,
+    "seen": 1793450409.001696,
+    "ast_hash": "9dbb7ced43b93ce47228c3ebf234499c",
+    "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/folderAccessChecker.test.ts": {
     "mtime": 1793442781.0920613,
@@ -6525,15 +6519,15 @@
     "semantic_hash": "64f029397cb39bd51d2605662a768621"
   },
   "apps/mobile/sync/syncthing/useMobileSyncthing.ts": {
-    "mtime": 1793406087.9450438,
-    "seen": 1793443205.463881,
-    "ast_hash": "5ad45e81bcbe8025620de884d619c85f",
+    "mtime": 1793449617.3330321,
+    "seen": 1793450409.002603,
+    "ast_hash": "2bb9c3ce26415555874ba1d2094d8ac9",
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/useScanToSync.ts": {
-    "mtime": 1793409674.90521,
-    "seen": 1793443205.463882,
-    "ast_hash": "fabcc906d240945a25be294c46041629",
+    "mtime": 1793449642.6384072,
+    "seen": 1793450409.002605,
+    "ast_hash": "a26d74006ae26f487178c3b6462b56ec",
     "semantic_hash": ""
   },
   "apps/mobile/sync/transferWithRetry.ts": {
@@ -13241,9 +13235,9 @@
     "semantic_hash": ""
   },
   "DECISIONS.md": {
-    "mtime": 1793375651.0398996,
-    "seen": 1793443205.4652789,
-    "ast_hash": "5553e458d782ecd04f95ba48e501d3e4",
+    "mtime": 1793449743.0358758,
+    "seen": 1793450409.0452979,
+    "ast_hash": "7f70c0e8d0f974c479060a06929b58fe",
     "semantic_hash": ""
   },
   "GEMINI.md": {
@@ -13265,9 +13259,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793448298.710736,
-    "seen": 1793448343.386107,
-    "ast_hash": "e11623c1ec0939c157852624369668a2",
+    "mtime": 1793450365.3617322,
+    "seen": 1793450409.045384,
+    "ast_hash": "e08e7dca272f512dffa8d30bd067170c",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13343,9 +13337,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793448317.2282643,
-    "seen": 1793448343.3864949,
-    "ast_hash": "9873dbc1a62744e0f4ec642ac55b5bb9",
+    "mtime": 1793450376.857159,
+    "seen": 1793450409.0458019,
+    "ast_hash": "b3c8cdce4aeb48ba0d310146041136c5",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -16388,6 +16382,18 @@
     "mtime": 1793446244.0045283,
     "seen": 1793448343.3569732,
     "ast_hash": "7ac0fa0e134f4ac76cb2409116fc3ef1",
+    "semantic_hash": ""
+  },
+  "apps/mobile/plugins/withSyncthingAndroid.js": {
+    "mtime": 1793450342.8995879,
+    "seen": 1793450408.9997308,
+    "ast_hash": "33d39516fbcfe7f4664570516c0cfe3e",
+    "semantic_hash": ""
+  },
+  "docs/adr/0251-mobile-android-native-library-extraction-and-prebuild-plugin.md": {
+    "mtime": 1793449733.230809,
+    "seen": 1793450409.055188,
+    "ast_hash": "567550c441ae3f75bd32c5ac6934105f",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {
