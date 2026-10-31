@@ -2,6 +2,30 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: AI Chat Overhaul Phase 1: Claude-Style Layout, Auto-Growing Composer & Scroll Sentinel
+
+- **Claude-Style Centered Column Layout (`AgentView.tsx` & `AgentView.scss`)**:
+  - Refactored message list to a centered `max-width: 48rem` column with clean responsive margins.
+  - User messages styled as right-aligned rounded subtle bubble cards (`max-width: 80%`, subtle background `var(--color-bg-secondary)` with thin border).
+  - Assistant messages flow naturally with 100% width, no bubble containment or boxy frames.
+- **Auto-Growing Textarea (`AgentChatInput.tsx` & `AgentView.scss`)**:
+  - Built auto-expanding textarea from 48px min-height up to 200px max-height based on `scrollHeight`.
+  - Dynamic overflow switching to internal scrollbar (`overflow-y: auto`) when exceeding 200px without layout jitter.
+  - Keyboard handling: `Enter` to submit, `Shift+Enter` for newline. Resets height immediately upon message submission.
+- **Scroll Sentinel & Stick-to-Bottom (`useChatScroll.ts` & `AgentScrollBottomBtn.tsx`)**:
+  - Implemented `useChatScroll` hook tracking `isAtBottom` hysteresis (<40px threshold).
+  - Removed aggressive `scrollIntoView({ behavior: 'smooth' })` loop; replaced with smooth non-hijacking `requestAnimationFrame` bottom-stick during stream.
+  - If user scrolls up >40px, auto-scroll freezes and a floating pill button ("Jump to latest ↓") appears above the composer dock.
+  - Clicking "Jump to latest ↓" smoothly returns to bottom and re-arms sticky auto-scroll.
+- **Verification & Testing**:
+  - Unit and integration tests in `useChatScroll.test.ts`, `AgentScrollBottomBtn.test.tsx`, and `AgentPhase1LayoutComposer.test.tsx`.
+  - Storybook story in `AgentScrollBottomBtn.stories.tsx`.
+  - All 24 test files (62 tests) passing in `apps/desktop/src/components/AgentView`.
+  - Strict 250-line file cap honored (`AgentView.tsx`: 229 lines, `AgentChatInput.tsx`: 213 lines, `useChatScroll.ts`: 86 lines, `AgentScrollBottomBtn.tsx`: 26 lines).
+  - Knowledge graph updated via `graphify update .`.
+
+---
+
 ### 2026-10-31: Native OS Keychain Backend & Notification Channel Secret Fallback Fix
 
 - **Native Keychain Platform Features (`apps/desktop/src-tauri/Cargo.toml`)**:

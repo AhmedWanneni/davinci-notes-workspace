@@ -1,4 +1,6 @@
 export { AgentView } from "./AgentView";
+export { AgentScrollBottomBtn } from "./AgentScrollBottomBtn";
+export { useChatScroll } from "./useChatScroll";
 export { AgentCliStatusCard } from "./AgentCliStatusCard";
 export { AgentCliSection } from "./AgentCliSection";
 export * from "./cliAgentTypes";

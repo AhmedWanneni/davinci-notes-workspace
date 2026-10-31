@@ -222,21 +222,23 @@
 }
 
 .agent-message--user {
-  align-self: flex-end;
+  align-self: center;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  max-width: 80%;
+  max-width: 48rem;
+  width: 100%;
   padding: 0;
   background: transparent;
   border: none;
 }
 
 .agent-message__user-bubble {
+  max-width: 80%;
   background-color: var(--color-bg-secondary);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-lg);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   color: var(--color-text-normal);
   font-family: inherit;
   font-size: var(--type-scale-sm);
@@ -246,9 +248,10 @@
 }
 
 .agent-message--assistant {
-  align-self: flex-start;
-  padding: var(--space-2) 0;
+  align-self: center;
+  max-width: 48rem;
   width: 100%;
+  padding: var(--space-2) 0;
 }
 
 .agent-message__header {
@@ -554,9 +557,37 @@
 }
 
 .agent-view__controls {
+  position: relative;
   padding: var(--space-2) var(--space-6) var(--space-4);
   background-color: var(--color-bg-primary);
   flex-shrink: 0;
+}
+
+.agent-scroll-bottom-btn {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 6px var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: 9999px;
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-medium);
+  cursor: pointer;
+  z-index: 10;
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-focus);
+    color: var(--color-text-accent);
+  }
 }
 
 .agent-shortcuts-bar {
@@ -644,6 +675,7 @@
 .agent-chat-input__textarea {
   width: 100%;
   min-height: 48px;
+  max-height: 200px;
   resize: none;
   border: none;
   background: transparent;
@@ -653,6 +685,7 @@
   line-height: var(--type-leading-normal);
   padding: 0;
   outline: none;
+  overflow-y: hidden;
 
   &::placeholder {
     color: var(--color-text-muted);

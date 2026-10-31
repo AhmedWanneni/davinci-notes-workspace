@@ -7,10 +7,12 @@ import { AgentChatInput } from "./AgentChatInput";
 import { AgentConversationsDrawer } from "./AgentConversationsDrawer";
 import { AgentStarterPrompts } from "./AgentStarterPrompts";
 import { AgentCliStatusCard } from "./AgentCliStatusCard";
+import { AgentScrollBottomBtn } from "./AgentScrollBottomBtn";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentSchedules } from "./useAgentSchedules";
 import { useAgentConversations } from "./useAgentConversations";
 import { useAgentViewConfig } from "./useAgentViewConfig";
+import { useChatScroll } from "./useChatScroll";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import type { ChatMessageItem } from "./agentTypes";
 import "./AgentView.scss";
@@ -90,12 +92,13 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
   } = useAgentConversations();
 
   const { missedSchedules, dismissMissed } = useAgentSchedules();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastLoadedConvIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
-  }, [messages]);
+  const { scrollRef, showScrollBottomBtn, scrollToBottom } = useChatScroll([
+    messages,
+    isStreaming,
+    cliSession?.logs?.length,
+  ]);
 
   // Only load conversation messages when switching conversations to prevent infinite effect loops
   useEffect(() => {
@@ -144,7 +147,7 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
           />
         )}
 
-        <div className="agent-view__messages">
+        <div className="agent-view__messages" ref={scrollRef}>
           {messages.length === 0 ? (
             <AgentStarterPrompts
               vaultName={vaultName}
@@ -163,7 +166,6 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
               onCancel={cancelActiveCliSession}
             />
           )}
-          <div ref={messagesEndRef} />
         </div>
 
         {stagedChanges.length > 0 && (
@@ -176,6 +178,10 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
         )}
 
         <div className="agent-view__controls">
+          <AgentScrollBottomBtn
+            visible={showScrollBottomBtn}
+            onClick={() => scrollToBottom(true)}
+          />
           <AgentChatInput
             onSend={sendMessage}
             onCancel={abortExecution}

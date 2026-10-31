@@ -4,7 +4,37 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Native OS Keychain Backend & Notification Channel Secret Fallback Fix
+## Last Session — AI Chat Overhaul Phase 1: Claude-Style Layout, Auto-Growing Composer & Scroll Sentinel
+
+**Scope:** Implement Phase 1 of `ai-chat-ui-feature-plan.md`: transform the chat layout into a Claude-style centered column (`max-width: 48rem`), user message bubbles vs assistant plain text flow, auto-growing composer with keyboard shortcuts, and zero-hijack scroll sentinel.
+
+**What was done:**
+1. **Claude-Style Centered Column Layout (`AgentView.tsx` & `AgentView.scss`)**:
+   - Refactored `.agent-message` to a comfortable centered `max-width: 48rem` column.
+   - User messages styled as right-aligned rounded subtle bubble cards (`max-width: 80%`, subtle background `var(--color-bg-secondary)` with thin border).
+   - Assistant messages flow naturally with 100% width, no bubble containment or boxy frames.
+2. **Auto-Growing Textarea (`AgentChatInput.tsx` & `AgentView.scss`)**:
+   - Built auto-expanding textarea from 48px min-height up to 200px max-height based on `scrollHeight`.
+   - Dynamic overflow switching to internal scrollbar (`overflow-y: auto`) when exceeding 200px.
+   - Keyboard handling: `Enter` to submit, `Shift+Enter` for newline. Resets height immediately upon message submission.
+3. **Scroll Sentinel & Stick-to-Bottom (`useChatScroll.ts` & `AgentScrollBottomBtn.tsx`)**:
+   - Implemented `useChatScroll` hook tracking `isAtBottom` hysteresis (<40px threshold).
+   - Removed aggressive `scrollIntoView({ behavior: 'smooth' })` loop; replaced with smooth non-hijacking `requestAnimationFrame` bottom-stick during stream.
+   - If user scrolls up >40px, auto-scroll freezes and a floating pill button ("Jump to latest ↓") appears above the composer dock.
+   - Clicking "Jump to latest ↓" smoothly returns to bottom and re-arms sticky auto-scroll.
+4. **Verification & Testing**:
+   - Unit and integration tests in `useChatScroll.test.ts`, `AgentScrollBottomBtn.test.tsx`, and `AgentPhase1LayoutComposer.test.tsx`.
+   - Storybook story in `AgentScrollBottomBtn.stories.tsx`.
+   - All 24 test files (62 tests) passing in `apps/desktop/src/components/AgentView`.
+   - Strict 250-line file cap honored (`AgentView.tsx`: 229 lines, `AgentChatInput.tsx`: 213 lines, `useChatScroll.ts`: 86 lines, `AgentScrollBottomBtn.tsx`: 26 lines).
+   - Knowledge graph updated via `graphify update .`.
+
+**Next up:**
+- **Phase 2 (`ai-chat-ui-feature-plan.md`)**: High-Performance Streaming Markdown, Code Blocks with syntax highlight & copy, Collapsible `<think>`/Reasoning Blocks, and Domain Citations.
+
+---
+
+## Prior Session — Native OS Keychain Backend & Notification Channel Secret Fallback Fix
 
 **Scope:** Fix Telegram, Slack, and external channel notification failures where credentials failed to persist in the OS keychain ("Missing Telegram credentials in OS keychain. Reconnect in Settings").
 

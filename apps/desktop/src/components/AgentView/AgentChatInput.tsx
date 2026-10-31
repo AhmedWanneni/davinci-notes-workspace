@@ -1,4 +1,4 @@
-import { useState, useRef, type KeyboardEvent } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import {
   ArrowUp,
   Stop,
@@ -66,6 +66,15 @@ export function AgentChatInput({
     handleMentionKeyDown,
   } = useAgentMention(input, setInput, textareaRef);
 
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    const nextHeight = Math.min(Math.max(textarea.scrollHeight, 48), 200);
+    textarea.style.height = `${nextHeight}px`;
+    textarea.style.overflowY = textarea.scrollHeight > 200 ? "auto" : "hidden";
+  }, [input]);
+
   const handleSubmit = () => {
     if (disabled || !input.trim() || isStreaming) return;
     onSend(input.trim());
@@ -101,7 +110,7 @@ export function AgentChatInput({
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Ask a question or request changes (type @ to reference files)..."
-          rows={2}
+          rows={1}
           disabled={disabled}
           aria-label="Agent prompt input"
         />
