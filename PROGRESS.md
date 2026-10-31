@@ -4,7 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Mobile Syncthing Pairing Storage Access & Sandbox Target Fix
+## Last Session — Mobile Syncthing Legacy FileSystem Compatibility (Hermes Directory Crash Fix)
+
+**Scope:** Fix Hermes runtime exception `Property 'Directory' doesn't exist` encountered when mobile devices scan desktop Syncthing pairing QR codes or navigate to Syncthing settings in Expo Go SDK 58.
+
+**What was done:**
+1. **Replaced Unstable JSI Directory Class with Legacy FileSystem (`apps/mobile`)**:
+   - In React Native under the Hermes engine on Expo Go SDK 58, the class-based JSI `Directory` constructor from next-gen `expo-file-system` throws runtime reference errors when instantiated dynamically (`new Directory(...)`).
+   - Refactored `folderAccessChecker.ts` to use standard, stable `expo-file-system/legacy` APIs (`FileSystem.getInfoAsync`, `FileSystem.makeDirectoryAsync`, `FileSystem.readDirectoryAsync`, `FileSystem.writeAsStringAsync`, `FileSystem.deleteAsync`).
+   - Refactored `ScanToSyncConfirmSheet.tsx` to resolve the vault target directory using `FileSystem.documentDirectory`:
+     ```ts
+     const base = (FileSystem.documentDirectory || "file:///app/sandbox/documents/").replace(/\/+$/, "");
+     return `${base}/vaults/${encodeURIComponent(safeName || "Vault")}`;
+     ```
+   - Refactored `SyncthingPendingSection.tsx` to replace `Directory.pickDirectoryAsync()` with `pickDirectory` from `vaultStorage.ts`.
+2. **Line Cap & Code Quality Compliance**:
+   - Maintained strict compliance with `AGENTS.md` 250-line maximum across all affected components (`SyncthingPendingSection.tsx` kept to 248 lines).
+3. **Vitest Mocking & Unit Tests**:
+   - Updated `apps/mobile/vitest.config.ts` aliasing `"expo-file-system/legacy"` to `tests/mocks/expoFileSystemMock.ts`.
+   - Updated `folderAccessChecker.test.ts` to exercise legacy FileSystem operations.
+   - All 14 Syncthing test suites (67 tests) passed.
+4. **Synchronization & Verification**:
+   - Merged PR #36 into `main` and synchronized workspace branch `feat/syncthing-devices-and-ux-polish`.
+   - Added synced fixture notes from peer desktop testing to `packages/indexer/fixtures/vault`.
+5. **Next up**:
+   - Verify mobile-to-desktop pairing on device in Expo Go after Metro bundle reload.
+   - Test end-to-end multi-device file syncing between Desktop and Mobile.
+
+---
+
+## Prior Session — Mobile Syncthing Pairing Storage Access & Sandbox Target Fix
 
 **Scope:** Resolve the `"Storage Access Error: Directory is read-only requires write permissions"` error encountered when scanning desktop pairing QR code on mobile (`ScanToSyncConfirmSheet.tsx` / `folderAccessChecker.ts`).
 
