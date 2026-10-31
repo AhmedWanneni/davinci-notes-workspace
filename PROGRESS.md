@@ -9,11 +9,11 @@ Updated at the end of every session. Read this first, before touching code. Full
 **Scope:** Fix the "Target folder is not empty" warning in phone's Scan-to-Sync confirmation sheet, add a 1-tap option to create a dedicated empty folder for the incoming sync, fix Android JSI HostFunction index 52 crashes on external vaults, build and release the production APK (`Sophia_0.3.0.apk`), and verify public download links.
 
 **What was done:**
-1. **Scan-to-Sync Clean Sandbox Target Resolution (`ScanToSyncConfirmSheet.tsx`, `sandboxTargetResolver.ts`)**:
-   - Resolved the issue where `ScanToSyncConfirmSheet` defaulted to the currently open active vault (which contains existing notes like `Welcome to DaVinci Notes.md`), causing the `"⚠️ Target folder is not empty"` warning with no option to create a new folder.
-   - Extracted `sandboxTargetResolver.ts` (`resolveSandboxTarget`, `createFreshSandboxFolder`) to maintain compliance with `AGENTS.md` (both files < 230 lines).
-   - Defaulted `targetPath` directly to a dedicated sandbox vault target (`vaults/<folderLabel>`).
-   - When a folder is non-empty, rendered a prominent **`"+ Create New Empty Folder"`** button inside the warning banner that provisions an incremental non-colliding directory (`vaults/<label>-1`, `vaults/<label>-2`, etc.).
+1. **Clean Sandbox Target Resolution across All Sync Flows (`ScanToSyncConfirmSheet.tsx`, `SyncthingPendingFolderRow.tsx`, `sandboxTargetResolver.ts`)**:
+   - Resolved the issue where sync confirmations defaulted to the currently open active vault (which contains existing notes like `Welcome to DaVinci Notes.md`), causing the `"⚠️ Target folder is not empty"` warning with no option to create a new folder.
+   - Extracted `sandboxTargetResolver.ts` (`resolveSandboxTarget`, `createFreshSandboxFolder`) to maintain compliance with `AGENTS.md` (all files < 230 lines).
+   - Applied clean dedicated sandbox targeting to BOTH sync entrypoints: QR Scan-to-Sync (`ScanToSyncConfirmSheet.tsx`) and Incoming Syncthing Folder Offers (`SyncthingPendingFolderRow.tsx`).
+   - In both surfaces, when a folder is non-empty, a prominent **`"+ Create New Empty Folder"`** button appears directly inside the warning box, provisioning an incremental non-colliding directory (`vaults/<label>-1`, `vaults/<label>-2`, etc.) and immediately selecting it.
    - Added quick-action buttons: `"+ New Folder"` to create an isolated target on demand, and `"Use Active Vault"` to easily switch back if desired.
 2. **HostFunction Exception Hardening & External Vault Sync (`vaultStorage.ts`, `syncExternalDirectory.ts`, `vaultCreation.ts`)**:
    - Handled Android SAF `content://` and invalid URI characters safely in `verifyDirectoryAccess` and `vaultRegistryStore.ts` to prevent native JSI `IllegalArgumentException: character in path at index 52` crashes in `expo.module.filesystem.FileSystemPath`.

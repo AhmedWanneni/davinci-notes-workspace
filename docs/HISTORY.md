@@ -4,11 +4,11 @@ Append-only record of completed work. Current state lives in `PROGRESS.md` — r
 
 ### 2026-10-31: Scan-to-Sync Target Folder Resolution & Empty Folder Creation
 
-- **Scan-to-Sync Target Folder Resolution (`ScanToSyncConfirmSheet.tsx`, `sandboxTargetResolver.ts`)**:
-  - Fixed issue where scanning a sync QR code defaulted to the currently active vault (containing existing notes like `Welcome to DaVinci Notes.md`), causing the `"⚠️ Target folder is not empty"` warning without an easy option to create a dedicated empty sync folder.
+- **Target Folder Resolution & Empty Folder Creation (`ScanToSyncConfirmSheet.tsx`, `SyncthingPendingFolderRow.tsx`, `sandboxTargetResolver.ts`)**:
+  - Fixed issue where sync flows defaulted to the currently active vault (containing existing notes like `Welcome to DaVinci Notes.md`), causing the `"⚠️ Target folder is not empty"` warning without an easy option to create a dedicated empty sync folder.
   - Extracted helper module `apps/mobile/sync/syncthing/sandboxTargetResolver.ts` (`resolveSandboxTarget`, `createFreshSandboxFolder`) to satisfy `AGENTS.md` limit (< 250 lines per file).
-  - Defaulted the sync target directly to a dedicated sandbox vault target (`vaults/<folderLabel>`).
-  - Added a prominent **`"+ Create New Empty Folder"`** button inside the warning banner that provisions an incremental non-colliding directory (`vaults/<label>-1`, `vaults/<label>-2`, etc.) and sets it as the active target immediately.
+  - Applied dedicated sandbox targeting to both QR Scan-to-Sync (`ScanToSyncConfirmSheet.tsx`) and incoming Syncthing folder offers in the sync panel (`SyncthingPendingFolderRow.tsx`).
+  - Added a prominent **`"+ Create New Empty Folder"`** button inside the warning banner across both surfaces that provisions an incremental non-colliding directory (`vaults/<label>-1`, `vaults/<label>-2`, etc.) and sets it as the active target immediately.
   - Added quick-action buttons: `"+ New Folder"` to create a fresh target on demand, and `"Use Active Vault"` to toggle back if the user intends to merge into the active vault.
 - **Production APK Build & Public Asset Distribution**:
   - Rebuilt Android release APK with updated UI and error handling (`apps/mobile/android/app/build/outputs/apk/release/app-release.apk`, 71 MB).

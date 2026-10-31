@@ -1,8 +1,13 @@
 import * as FileSystem from "expo-file-system/legacy";
-import type { SyncthingPairingPayload } from "@app/syncthing-api";
 
-export function resolveSandboxTarget(payload: SyncthingPairingPayload): string {
-  const safeName = (payload.folderLabel || payload.folderId || "Synced Vault")
+export interface FolderTargetInfo {
+  label?: string;
+  folderLabel?: string;
+  folderId?: string;
+}
+
+export function resolveSandboxTarget(folder: FolderTargetInfo): string {
+  const safeName = (folder.folderLabel || folder.label || folder.folderId || "Synced Vault")
     .replace(/[/\\?%*:|"<>]/g, "-")
     .trim();
   const base = (
@@ -12,9 +17,9 @@ export function resolveSandboxTarget(payload: SyncthingPairingPayload): string {
 }
 
 export async function createFreshSandboxFolder(
-  payload: SyncthingPairingPayload,
+  folder: FolderTargetInfo,
 ): Promise<string> {
-  const safeName = (payload.folderLabel || payload.folderId || "Synced Vault")
+  const safeName = (folder.folderLabel || folder.label || folder.folderId || "Synced Vault")
     .replace(/[/\\?%*:|"<>]/g, "-")
     .trim();
   const base = (
@@ -49,3 +54,4 @@ export async function createFreshSandboxFolder(
   }).catch(() => {});
   return fallback;
 }
+

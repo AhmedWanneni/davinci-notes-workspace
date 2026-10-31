@@ -7889,8 +7889,8 @@
     "semantic_hash": "2ade840e30624bed7f888bc5d2a79394"
   },
   "apps/website/.astro/content.d.ts": {
-    "mtime": 1793458979.2264104,
-    "seen": 1793459905.258484,
+    "mtime": 1793459935.5895166,
+    "seen": 1793460551.507751,
     "ast_hash": "4aaaf7e07990466432e5a0fcf9b2e58c",
     "semantic_hash": "4aaaf7e07990466432e5a0fcf9b2e58c"
   },
@@ -7909,8 +7909,8 @@
     "ast_empty": true
   },
   "apps/website/.astro/types.d.ts": {
-    "mtime": 1793458979.226594,
-    "seen": 1793459905.2585568,
+    "mtime": 1793459935.589764,
+    "seen": 1793460551.507825,
     "ast_hash": "f3d48b2aa569815a445d3509aa161559",
     "semantic_hash": ""
   },
@@ -13259,9 +13259,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793459868.529343,
-    "seen": 1793459905.290245,
-    "ast_hash": "24c8f8fba047a2767aa8b37397818861",
+    "mtime": 1793460517.401912,
+    "seen": 1793460551.539507,
+    "ast_hash": "ddac203132251a5549dfd1985052f5f5",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13337,9 +13337,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793459880.6592646,
-    "seen": 1793459905.2906399,
-    "ast_hash": "f161e3ea85a388391480b9791dcc4874",
+    "mtime": 1793460526.3664937,
+    "seen": 1793460551.539904,
+    "ast_hash": "136fb3f1ac10b5549a4606624a0ede9b",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -16403,9 +16403,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/SyncthingPendingFolderRow.tsx": {
-    "mtime": 1793459045.3777428,
-    "seen": 1793459905.2491689,
-    "ast_hash": "05d12965defe3307d7b59395804c59a8",
+    "mtime": 1793460327.904885,
+    "seen": 1793460551.498176,
+    "ast_hash": "49372e973f88e6cf52c2d18b9b7d14bb",
     "semantic_hash": ""
   },
   "apps/mobile/vault/fs/syncExternalDirectory.test.ts": {
@@ -16433,9 +16433,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/sync/syncthing/sandboxTargetResolver.ts": {
-    "mtime": 1793459637.658879,
-    "seen": 1793459905.250015,
-    "ast_hash": "9d0caf5c6d95a4df04ac252b89c5310e",
+    "mtime": 1793460299.1281521,
+    "seen": 1793460551.49905,
+    "ast_hash": "a4a11f54c29530491a206ddded65140d",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

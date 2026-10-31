@@ -11,6 +11,10 @@ import {
   checkFolderAccess,
   type FolderAccessCheckResult,
 } from "./folderAccessChecker";
+import {
+  resolveSandboxTarget,
+  createFreshSandboxFolder,
+} from "./sandboxTargetResolver";
 
 export interface SyncthingPendingFolderRowProps {
   folder: SyncthingPendingFolder;
@@ -20,26 +24,11 @@ export interface SyncthingPendingFolderRowProps {
   onDismiss: (folderId: string) => Promise<void>;
 }
 
-function resolveSandboxTarget(folder: SyncthingPendingFolder): string {
-  const safeName = (folder.label || folder.folderId || "Synced Vault")
-    .replace(/[/\\?%*:|"<>]/g, "-")
-    .trim();
-  const base = (
-    FileSystem.documentDirectory || "file:///app/sandbox/documents/"
-  ).replace(/\/+$/, "");
-  return `${base}/vaults/${encodeURIComponent(safeName || "Vault")}`;
-}
-
 export const SyncthingPendingFolderRow: React.FC<
   SyncthingPendingFolderRowProps
 > = ({ folder, defaultTargetPath, isBusy, onAccept, onDismiss }) => {
   const defaultSandbox = resolveSandboxTarget(folder);
-  const initialTarget =
-    defaultTargetPath && !defaultTargetPath.startsWith("content://")
-      ? defaultTargetPath
-      : defaultSandbox;
-
-  const [targetPath, setTargetPath] = useState(initialTarget);
+  const [targetPath, setTargetPath] = useState(defaultSandbox);
   const [accessResult, setAccessResult] =
     useState<FolderAccessCheckResult | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(false);
@@ -61,14 +50,9 @@ export const SyncthingPendingFolderRow: React.FC<
   }, [targetPath]);
 
   const handleCreateNewFolder = async () => {
-    try {
-      await FileSystem.makeDirectoryAsync(defaultSandbox, {
-        intermediates: true,
-      });
-      setTargetPath(defaultSandbox);
-    } catch {
-      setTargetPath(defaultSandbox);
-    }
+    setCheckingAccess(true);
+    const newTarget = await createFreshSandboxFolder(folder);
+    setTargetPath(newTarget);
   };
 
   const handlePickDirectory = async () => {
@@ -111,8 +95,18 @@ export const SyncthingPendingFolderRow: React.FC<
           onPress={handleCreateNewFolder}
           className="flex-1"
         >
-          Create New Folder
+          + New Folder
         </Button>
+        {defaultTargetPath && targetPath !== defaultTargetPath ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onPress={() => setTargetPath(defaultTargetPath)}
+            className="flex-1"
+          >
+            Use Active Vault
+          </Button>
+        ) : null}
         <Button
           variant="ghost"
           size="sm"
@@ -134,7 +128,7 @@ export const SyncthingPendingFolderRow: React.FC<
         <View className="p-2 rounded bg-bg-status-error border border-border-status-error mb-2">
           <Text size="xs" color="error">
             External Document Picker (content://) cannot be used by Syncthing.
-            Tap &ldquo;Create New Folder&rdquo; to sync in app storage.
+            Tap &ldquo;+ New Folder&rdquo; to sync in app storage.
           </Text>
         </View>
       ) : !accessResult?.accessible ? (
@@ -144,12 +138,26 @@ export const SyncthingPendingFolderRow: React.FC<
           </Text>
         </View>
       ) : accessResult?.isNonEmpty ? (
-        <View className="p-2 rounded bg-bg-status-warning border border-border-status-warning mb-2">
-          <Text size="xs" color="warning">
-            Target folder is not empty. Contents will be merged.
+        <View className="p-2.5 rounded bg-accent-warning/10 border border-accent-warning/30 mb-2">
+          <Text size="xs" color="normal" weight="semibold">
+            ⚠️ Target folder is not empty
           </Text>
+          <Text size="xs" color="muted" className="mt-0.5 mb-2">
+            Existing files in this folder may be merged during sync.
+          </Text>
+          <Button
+            variant="secondary"
+            size="sm"
+            onPress={handleCreateNewFolder}
+          >
+            + Create New Empty Folder
+          </Button>
         </View>
-      ) : null}
+      ) : (
+        <Text size="xs" color="success" className="mb-2">
+          ✓ Ready and empty (clean sync target)
+        </Text>
+      )}
 
       <View className="flex-row gap-2 mt-2">
         <Button
@@ -184,3 +192,4 @@ export const SyncthingPendingFolderRow: React.FC<
     </View>
   );
 };
+
