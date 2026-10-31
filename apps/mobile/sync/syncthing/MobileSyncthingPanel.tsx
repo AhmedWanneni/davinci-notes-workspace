@@ -1,22 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
-import * as Clipboard from "expo-clipboard";
-import { formatDeviceIdGroups } from "@app/syncthing-api";
 import { useTheme } from "../../theme";
 import { Badge, Button, Text } from "../../components/primitives";
 import { VaultManager } from "../../vault/vaultManager";
 import { useMobileSyncthing } from "./useMobileSyncthing";
 import { getSyncthingStatusViewData } from "./syncthingStatusViewData";
-import { SyncthingQrView } from "./SyncthingQrView";
+import { SyncthingDeviceIdCard } from "./SyncthingDeviceIdCard";
 import { SyncthingKeyModal } from "./SyncthingKeyModal";
 import { SyncthingAddDeviceModal } from "./SyncthingAddDeviceModal";
 import { SyncthingPendingSection } from "./SyncthingPendingSection";
+import { SyncthingPairedDevicesSection } from "./SyncthingPairedDevicesSection";
+import { SyncthingSharedVaultsSection } from "./SyncthingSharedVaultsSection";
 import { ScanToSyncModal } from "./ScanToSyncModal";
 import { SyncthingRunConditionsView } from "./SyncthingRunConditionsView";
-import { mobileSyncthingTriggerScan } from "./mobileSyncthingOperations";
-import { getSyncthingApiKey } from "./secureKeyStore";
 
-export const MobileSyncthingPanel: React.FC = () => {
+export interface MobileSyncthingPanelProps {
+  onVaultSwitched?: (vaultUri: string) => void;
+}
+
+export const MobileSyncthingPanel: React.FC<MobileSyncthingPanelProps> = ({
+  onVaultSwitched,
+}) => {
+  const [defaultVaultPath, setDefaultVaultPath] = useState("");
   const {
     status,
     version,
@@ -29,25 +34,25 @@ export const MobileSyncthingPanel: React.FC = () => {
     errorMessage,
     pendingDevices,
     pendingFolders,
+    configuredDevices,
+    sharedVaults,
     connectedDevices,
     refresh,
-    startService,
-    stopService,
     saveKey,
     clearKey,
     addDevice,
+    removeDevice,
     acceptDevice,
     dismissDevice,
     acceptFolder,
     dismissFolder,
-  } = useMobileSyncthing();
+    unshareFolder,
+  } = useMobileSyncthing(true, defaultVaultPath);
 
   const { tokens } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [addDeviceVisible, setAddDeviceVisible] = useState(false);
   const [scanToSyncVisible, setScanToSyncVisible] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [defaultVaultPath, setDefaultVaultPath] = useState("");
 
   useEffect(() => {
     const vm = new VaultManager();
@@ -61,11 +66,12 @@ export const MobileSyncthingPanel: React.FC = () => {
     });
   }, []);
 
-  const handleCopyId = async () => {
-    if (!deviceId) return;
-    await Clipboard.setStringAsync(deviceId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleOpenVault = async (path: string, label: string) => {
+    const vm = new VaultManager();
+    await vm.openDirectoryVault(path, label);
+    setDefaultVaultPath(path);
+    onVaultSwitched?.(path);
+    await refresh();
   };
 
   const statusInfo = getSyncthingStatusViewData(
@@ -82,7 +88,6 @@ export const MobileSyncthingPanel: React.FC = () => {
         borderColor: tokens.color.border.normal,
       }}
     >
-      {/* Header and status */}
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-2">
           <Text variant="h3" color="normal">
@@ -109,8 +114,22 @@ export const MobileSyncthingPanel: React.FC = () => {
         </View>
       ) : null}
 
-      {/* Incoming Requests and Offers */}
-      {status === "running" ? (
+      {status === "running" && (
+        <SyncthingPairedDevicesSection
+          devices={configuredDevices}
+          onRemoveDevice={removeDevice}
+        />
+      )}
+
+      {status === "running" && (
+        <SyncthingSharedVaultsSection
+          vaults={sharedVaults}
+          onOpenVault={handleOpenVault}
+          onUnshareVault={unshareFolder}
+        />
+      )}
+
+      {status === "running" && (
         <SyncthingPendingSection
           pendingDevices={pendingDevices}
           pendingFolders={pendingFolders}
@@ -120,51 +139,18 @@ export const MobileSyncthingPanel: React.FC = () => {
           onAcceptFolder={acceptFolder}
           onDismissFolder={dismissFolder}
         />
-      ) : null}
+      )}
 
-      {/* Device ID and QR Code when running */}
       {status === "running" && deviceId ? (
-        <View className="mb-4">
-          <Text size="xs" color="muted" weight="medium" className="mb-1">
-            This Device ID (scan from desktop to pair):
-          </Text>
-          <View
-            className="p-3 rounded border mb-2"
-            style={{
-              backgroundColor: tokens.color.bg.primary,
-              borderColor: tokens.color.border.subtle,
-            }}
-          >
-            <Text
-              size="xs"
-              color="normal"
-              className="font-mono leading-relaxed select-all"
-              selectable
-            >
-              {formatDeviceIdGroups(deviceId)}
-            </Text>
-          </View>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onPress={handleCopyId}
-            className="mb-2"
-          >
-            {copied ? "Copied to Clipboard!" : "Copy Device ID"}
-          </Button>
-
-          <SyncthingQrView
-            qrUrl={qrUrl}
-            isLoading={isLoading ? !qrUrl : false}
-          />
-        </View>
+        <SyncthingDeviceIdCard
+          deviceId={deviceId}
+          qrUrl={qrUrl}
+          isLoading={isLoading}
+        />
       ) : null}
 
-      {/* Run Conditions (when embedded) */}
       {isEmbedded ? <SyncthingRunConditionsView /> : null}
 
-      {/* Action controls */}
       <View
         className="flex-row gap-2 pt-2 border-t"
         style={{ borderTopColor: tokens.color.border.subtle }}
@@ -180,6 +166,14 @@ export const MobileSyncthingPanel: React.FC = () => {
           ) : (
             "Refresh"
           )}
+        </Button>
+
+        <Button
+          variant="secondary"
+          size="sm"
+          onPress={() => setAddDeviceVisible(true)}
+        >
+          Add Device
         </Button>
 
         {!isEmbedded ? (

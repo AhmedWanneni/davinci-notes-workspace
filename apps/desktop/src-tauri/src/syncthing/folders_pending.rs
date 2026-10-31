@@ -6,11 +6,28 @@ use super::client::SyncthingClient;
 use super::stignore::ensure_stignore;
 use super::types::{redact_secrets, SyncthingError, SyncthingPendingFolder};
 
+#[derive(serde::Deserialize, Default, Clone)]
+struct OfferedByDetails {
+  #[serde(default)]
+  label: Option<String>,
+  #[serde(default)]
+  time: Option<String>,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(untagged)]
+enum OfferedByField {
+  Map(HashMap<String, OfferedByDetails>),
+  Single(String),
+}
+
 #[derive(serde::Deserialize)]
 struct PendingFolderEntry {
-  #[serde(rename = "offeredBy")]
-  offered_by: Option<String>,
+  #[serde(default, rename = "offeredBy")]
+  offered_by: Option<OfferedByField>,
+  #[serde(default)]
   label: Option<String>,
+  #[serde(default)]
   time: Option<String>,
 }
 
@@ -39,12 +56,34 @@ impl SyncthingClient {
 
     let mut result = Vec::new();
     for (folder_id, entry) in raw {
-      result.push(SyncthingPendingFolder {
-        folder_id,
-        label: entry.label.unwrap_or_default(),
-        offered_by: entry.offered_by.unwrap_or_default(),
-        time: entry.time.unwrap_or_default(),
-      });
+      match entry.offered_by {
+        Some(OfferedByField::Map(devices)) => {
+          for (dev_id, details) in devices {
+            result.push(SyncthingPendingFolder {
+              folder_id: folder_id.clone(),
+              label: details.label.or(entry.label.clone()).unwrap_or_default(),
+              offered_by: dev_id,
+              time: details.time.or(entry.time.clone()).unwrap_or_default(),
+            });
+          }
+        }
+        Some(OfferedByField::Single(dev_id)) => {
+          result.push(SyncthingPendingFolder {
+            folder_id,
+            label: entry.label.unwrap_or_default(),
+            offered_by: dev_id,
+            time: entry.time.unwrap_or_default(),
+          });
+        }
+        None => {
+          result.push(SyncthingPendingFolder {
+            folder_id,
+            label: entry.label.unwrap_or_default(),
+            offered_by: String::new(),
+            time: entry.time.unwrap_or_default(),
+          });
+        }
+      }
     }
 
     Ok(result)
@@ -87,7 +126,10 @@ impl SyncthingClient {
       "label": label,
       "path": target_path.to_string_lossy().to_string(),
       "type": "sendreceive",
-      "devices": devices
+      "devices": devices,
+      "rescanIntervalS": 60,
+      "fsWatcherEnabled": true,
+      "fsWatcherDelayS": 10
     });
     let payload_str = serde_json::to_string(&payload).unwrap_or_default();
 
@@ -108,5 +150,38 @@ impl SyncthingClient {
     }
 
     Ok(())
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn parses_syncthing_pending_folders_map_schema() {
+    let json = r#"{
+      "davinci-c130e8cee8": {
+        "offeredBy": {
+          "DGPZOLY-CC6PEUF-BSZI7YM-OXBDBTI-LPLCC3K-JWU24IZ-NYBRYIF-L3JVTAS": {
+            "time": "2026-10-30T23:26:00Z",
+            "label": "Obsidian Vault",
+            "receiveEncrypted": false,
+            "remoteEncrypted": false
+          }
+        }
+      }
+    }"#;
+
+    let raw: HashMap<String, PendingFolderEntry> = serde_json::from_str(json).expect("should parse");
+    assert_eq!(raw.len(), 1);
+    let entry = raw.get("davinci-c130e8cee8").unwrap();
+    match &entry.offered_by {
+      Some(OfferedByField::Map(devices)) => {
+        assert_eq!(devices.len(), 1);
+        let details = devices.get("DGPZOLY-CC6PEUF-BSZI7YM-OXBDBTI-LPLCC3K-JWU24IZ-NYBRYIF-L3JVTAS").unwrap();
+        assert_eq!(details.label.as_deref(), Some("Obsidian Vault"));
+      }
+      _ => panic!("expected map variant"),
+    }
   }
 }
