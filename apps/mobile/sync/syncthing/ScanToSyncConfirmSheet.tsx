@@ -4,8 +4,8 @@ import {
   formatDeviceIdGroups,
   type SyncthingPairingPayload,
 } from "@app/syncthing-api";
-import { Paths } from "expo-file-system";
-import { darkColorTokens } from "@app/design-tokens/mobile";
+import { Directory, Paths } from "expo-file-system";
+import { useTheme } from "../../theme";
 import { Badge, Button, Text } from "../../components/primitives";
 import {
   checkFolderAccess,
@@ -21,6 +21,14 @@ export interface ScanToSyncConfirmSheetProps {
   onCancel: () => void;
 }
 
+function resolveSandboxTarget(payload: SyncthingPairingPayload): string {
+  const safeName = (payload.folderLabel || payload.folderId || "Synced Vault")
+    .replace(/[/\\?%*:|"<>]/g, "-")
+    .trim();
+  const root = new Directory(Paths.document, "vaults");
+  return new Directory(root, safeName || "Vault").uri;
+}
+
 export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
   payload,
   defaultTargetPath,
@@ -29,8 +37,14 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
   onBack,
   onCancel,
 }) => {
-  const resolvedTarget =
-    defaultTargetPath.trim() || `${Paths.document.uri}/vault`;
+  const defaultSandbox = resolveSandboxTarget(payload);
+  const initialTarget =
+    defaultTargetPath.trim() && !defaultTargetPath.startsWith("content://")
+      ? defaultTargetPath.trim()
+      : defaultSandbox;
+
+  const { tokens } = useTheme();
+  const [targetPath, setTargetPath] = useState(initialTarget);
   const [accessResult, setAccessResult] =
     useState<FolderAccessCheckResult | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(true);
@@ -38,7 +52,7 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
   useEffect(() => {
     let cancelled = false;
     setCheckingAccess(true);
-    void checkFolderAccess(resolvedTarget).then((res) => {
+    void checkFolderAccess(targetPath).then((res) => {
       if (!cancelled) {
         setAccessResult(res);
         setCheckingAccess(false);
@@ -47,7 +61,7 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [resolvedTarget]);
+  }, [targetPath]);
 
   const canConfirm =
     !isBusy && !checkingAccess && accessResult?.accessible === true;
@@ -64,7 +78,8 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
       </View>
 
       <Text size="xs" color="muted" className="mb-3 leading-relaxed">
-        Review desktop connection and vault details. Nothing is added until you confirm.
+        Review desktop connection and vault details. Nothing is added until you
+        confirm.
       </Text>
 
       {/* Desktop info card */}
@@ -79,7 +94,12 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
         <Text size="xs" color="muted" weight="medium" className="mb-0.5">
           Device ID:
         </Text>
-        <Text size="xs" color="normal" className="font-mono mb-2 leading-relaxed" selectable>
+        <Text
+          size="xs"
+          color="normal"
+          className="font-mono mb-2 leading-relaxed"
+          selectable
+        >
           {formatDeviceIdGroups(payload.id)}
         </Text>
 
@@ -96,13 +116,18 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
         <Text size="xs" color="muted" weight="medium" className="mb-0.5">
           Local Storage Target:
         </Text>
-        <Text size="xs" color="normal" className="font-mono mb-2" numberOfLines={2}>
-          {resolvedTarget}
+        <Text
+          size="xs"
+          color="normal"
+          className="font-mono mb-2"
+          numberOfLines={2}
+        >
+          {targetPath}
         </Text>
 
         {checkingAccess ? (
           <View className="flex-row items-center gap-2">
-            <ActivityIndicator size="small" color={darkColorTokens.text.accent} />
+            <ActivityIndicator size="small" color={tokens.color.text.accent} />
             <Text size="xs" color="muted">
               Checking storage read/write access...
             </Text>
@@ -130,6 +155,16 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
             <Text size="xs" color="error" className="mt-0.5">
               {accessResult?.error || "Cannot write to target folder."}
             </Text>
+            {targetPath !== defaultSandbox ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-2"
+                onPress={() => setTargetPath(defaultSandbox)}
+              >
+                Use App Sandbox Storage
+              </Button>
+            ) : null}
           </View>
         )}
       </View>
@@ -147,12 +182,12 @@ export const ScanToSyncConfirmSheet: React.FC<ScanToSyncConfirmSheetProps> = ({
         <Button
           variant="primary"
           size="sm"
-          onPress={() => onConfirm(resolvedTarget)}
+          onPress={() => onConfirm(targetPath)}
           disabled={!canConfirm}
           className="flex-1"
         >
           {isBusy ? (
-            <ActivityIndicator size="small" color={darkColorTokens.text.normal} />
+            <ActivityIndicator size="small" color={tokens.color.text.normal} />
           ) : (
             "Confirm & Pair"
           )}

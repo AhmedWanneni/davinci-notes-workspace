@@ -181,10 +181,15 @@ export async function mobileSyncthingAcceptFolder(
     devices.push({ deviceID: offeredBy });
   }
 
+  // Strip file:// scheme and decode URI for POSIX filesystem path
+  const normalizedPath = targetPath.startsWith("file://")
+    ? decodeURIComponent(targetPath.replace(/^file:\/\//, ""))
+    : targetPath;
+
   const payload = {
     id: folderId,
     label,
-    path: targetPath,
+    path: normalizedPath,
     type: "sendreceive",
     devices,
     rescanIntervalS: 60,
