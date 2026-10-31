@@ -1,0 +1,23 @@
+---
+const REPO = 'AhmedWanneni/davinci-notes-workspace';
+const targetUrl = `https://github.com/${REPO}/releases/latest/download/Sophia_0.3.0.ipa`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content={`0;url=${targetUrl}`} />
+    <title>Downloading DaVinci Notes for iOS (.ipa)...</title>
+  </head>
+  <body style="background: #150612; color: #f5e8d0; font-family: sans-serif; text-align: center; padding-top: 20vh;">
+    <p>Starting your download for iOS (.ipa)...</p>
+    <p>
+      If your download does not start automatically,
+      <a href={targetUrl} style="color: #d8a7b1;">click here</a>.
+    </p>
+    <script is:inline define:vars={{ targetUrl }}>
+      window.location.href = targetUrl;
+    </script>
+  </body>
+</html>

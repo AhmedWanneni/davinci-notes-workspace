@@ -4,7 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Mobile Syncthing Legacy FileSystem Compatibility (Hermes Directory Crash Fix)
+## Last Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
+
+**Scope:** Build production standalone release artifacts for mobile (Android `.apk` and iOS `.ipa`), publish release assets to GitHub release `v0.3.0`, update the website download pages with direct public links and auto-detection, and deploy live to Cloudflare Pages.
+
+**What was done:**
+1. **Resolved Native Mobile Build & Metro Bundler Blockers**:
+   - Upgraded mobile project bundling toolchain to resolve React Native 0.88 / Expo SDK 58 Metro transformer issues:
+     - Fixed `Cannot find module 'babel-preset-expo'` and `@babel/plugin-transform-react-jsx` by adding explicit devDependencies (`babel-preset-expo@~58.0.23`, `@babel/core@^7.29.7`, `@babel/plugin-transform-react-jsx@^7.29.7`) in `apps/mobile/package.json`.
+     - Fixed Xcode and Android build environment node binary resolution by configuring Node v22 (`/Users/ahmedwaanneni/.nvm/versions/node/v22.22.3/bin/node`) in `apps/mobile/ios/.xcode.env.local` and `apps/mobile/android/app/build.gradle` (bypassing Node 26 Metro incompatibility).
+     - Fixed Kotlin coroutine suspension error in `ExpoSyncthingModule.kt` (`AsyncFunction` lambdas) using `runBlocking(Dispatchers.IO)`.
+2. **Built Release Artifacts**:
+   - **Android**: Successfully executed `./gradlew assembleRelease` creating `apps/mobile/android/app/build/outputs/apk/release/app-release.apk` (187MB, bundled with embedded Syncthing daemon binaries for arm64-v8a and x86_64). Copied to `Sophia_0.3.0.apk`.
+   - **iOS**: Successfully built release workspace via `xcodebuild` (`generic/platform=iOS`, Hermes bytecode compiled), and packaged into standalone `Sophia_0.3.0.ipa` (16MB).
+3. **Published GitHub Release Assets (`v0.3.0`)**:
+   - Uploaded `Sophia_0.3.0.apk` and `Sophia_0.3.0.ipa` directly to GitHub Release `v0.3.0` using `gh release upload --clobber`.
+   - Verified both download URLs publicly return HTTP 200 without authentication.
+4. **Website Download Pages & Auto-Detection**:
+   - Updated `apps/website/src/pages/download/index.astro` adding Android APK and iOS IPA cards with dynamic fallback asset links.
+   - Updated client-side platform detection to recognize Android and iOS user agents and dynamically adapt the primary CTA button.
+   - Created direct redirect endpoints `/download/android` and `/download/ios`.
+   - Built static website (`pnpm --filter @app/website build`) and deployed directly to Cloudflare Pages (`wrangler pages deploy apps/website/dist --project-name=sophia-notes --branch=main`).
+   - Verified live site `https://sophia-notes.pages.dev/download` and direct redirects return HTTP 200.
+
+**Next up:**
+- On-device testing of standalone `Sophia_0.3.0.apk` on Android physical devices.
+- Ad-hoc / TestFlight distribution verification for `Sophia_0.3.0.ipa`.
+
+---
+
+## Prior Session — Mobile Syncthing Legacy FileSystem Compatibility (Hermes Directory Crash Fix)
 
 **Scope:** Fix Hermes runtime exception `Property 'Directory' doesn't exist` encountered when mobile devices scan desktop Syncthing pairing QR codes or navigate to Syncthing settings in Expo Go SDK 58.
 

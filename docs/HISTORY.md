@@ -2,6 +2,27 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
+
+- **Toolchain & Metro Bundler Resolution**:
+  - Investigated Metro bundling failure on React Native 0.88 / Expo SDK 58 where `TypeError: Cannot read properties of undefined (reading 'transformFile')` and missing `babel-preset-expo` caused both Android Gradle and Xcode release steps to fail.
+  - Added explicit devDependencies (`babel-preset-expo@~58.0.23`, `@babel/core@^7.29.7`, `@babel/plugin-transform-react-jsx@^7.29.7`) in `apps/mobile/package.json`.
+  - Configured Node v22 (`/Users/ahmedwaanneni/.nvm/versions/node/v22.22.3/bin/node`) in `apps/mobile/ios/.xcode.env.local` and `apps/mobile/android/app/build.gradle` to prevent child shells from inheriting system Node 26.
+  - Resolved Kotlin coroutine suspension requirement in `ExpoSyncthingModule.kt` by replacing non-suspending `withContext(Dispatchers.IO)` with `runBlocking(Dispatchers.IO)`.
+- **Standalone Mobile Artifact Creation**:
+  - **Android APK**: Ran `./gradlew assembleRelease` generating `apps/mobile/android/app/build/outputs/apk/release/app-release.apk` (187MB, bundled with native embedded Syncthing binaries for ARM64 and x86_64). Copied to `Sophia_0.3.0.apk`.
+  - **iOS IPA**: Ran `xcodebuild` (`configuration Release`, `generic/platform=iOS`, Hermes bytecode compiled), and packaged `DaVinciNotes.app` into `Sophia_0.3.0.ipa` (16MB).
+- **Public GitHub Release Upload**:
+  - Published `Sophia_0.3.0.apk` and `Sophia_0.3.0.ipa` to GitHub release `v0.3.0` (`gh release upload v0.3.0 Sophia_0.3.0.apk Sophia_0.3.0.ipa --clobber`).
+  - Verified public HTTP 200 availability via `curl -sI -L`.
+- **Website Downloads & Direct Cloudflare Deployment**:
+  - Updated `apps/website/src/pages/download/index.astro` adding Android APK and iOS IPA download cards with dynamic fallback asset links.
+  - Updated client-side platform detection script in `index.astro` to auto-detect Android and iOS user agents and dynamically swap the primary CTA button.
+  - Added fast redirect endpoints `/download/android` and `/download/ios`.
+  - Deployed directly to Cloudflare Pages (`wrangler pages deploy apps/website/dist --project-name=sophia-notes --branch=main`), verified live at `https://sophia-notes.pages.dev/download`.
+
+---
+
 ### 2026-10-31: Mobile Syncthing Legacy FileSystem Compatibility (Hermes Directory Crash Fix)
 
 - **Root Cause Analysis (`ReferenceError: Property 'Directory' doesn't exist`)**:

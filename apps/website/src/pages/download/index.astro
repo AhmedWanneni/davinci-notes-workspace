@@ -17,6 +17,8 @@ const fallbackAssets = {
   windows: `https://github.com/${REPO}/releases/latest/download/Sophia_${cleanVer}_x64-setup.exe`,
   linuxAppImage: `https://github.com/${REPO}/releases/latest/download/sophia_${cleanVer}_amd64.AppImage`,
   linuxDeb: `https://github.com/${REPO}/releases/latest/download/sophia_${cleanVer}_amd64.deb`,
+  androidApk: `https://github.com/${REPO}/releases/latest/download/Sophia_${cleanVer}.apk`,
+  iosIpa: `https://github.com/${REPO}/releases/latest/download/Sophia_${cleanVer}.ipa`,
   checksums: `https://github.com/${REPO}/releases/latest/download/SHA256SUMS.txt`,
 };
 
@@ -35,6 +37,12 @@ try {
         month: 'short',
         day: 'numeric',
       });
+    }
+    if (Array.isArray(data.assets)) {
+      const apkAsset = data.assets.find((a: any) => a.name.endsWith('.apk'));
+      if (apkAsset) assets.androidApk = apkAsset.browser_download_url;
+      const ipaAsset = data.assets.find((a: any) => a.name.endsWith('.ipa'));
+      if (ipaAsset) assets.iosIpa = ipaAsset.browser_download_url;
     }
   }
 } catch {
@@ -137,6 +145,42 @@ try {
           </a>
         </div>
       </div>
+
+      <!-- Android -->
+      <div class="platform-card">
+        <div class="platform-card-header">
+          <h2 class="platform-card-title">Android</h2>
+          <span class="file-type-badge">Android 10+</span>
+        </div>
+        <p class="verification-text">Direct APK package with embedded Syncthing (ARM64 & x86_64)</p>
+        <div class="platform-links-list">
+          <a href={assets.androidApk} class="platform-link-row">
+            <span>Direct APK (.apk)</span>
+            <span class="file-type-badge">Universal</span>
+          </a>
+        </div>
+        <p class="verification-text" style="margin-top: 8px; font-size: 0.72rem; opacity: 0.85;">
+          💡 <em>First-time install:</em> Tap <strong>Download</strong> and allow "Install from unknown sources" if prompted.
+        </p>
+      </div>
+
+      <!-- iOS -->
+      <div class="platform-card">
+        <div class="platform-card-header">
+          <h2 class="platform-card-title">iOS</h2>
+          <span class="file-type-badge">iOS 16+</span>
+        </div>
+        <p class="verification-text">iPhone & iPad package (Sideload / AltStore / TrollStore)</p>
+        <div class="platform-links-list">
+          <a href={assets.iosIpa} class="platform-link-row">
+            <span>iOS Package (.ipa)</span>
+            <span class="file-type-badge">Universal</span>
+          </a>
+        </div>
+        <p class="verification-text" style="margin-top: 8px; font-size: 0.72rem; opacity: 0.85;">
+          💡 Sideloadable via <strong>AltStore</strong>, <strong>SideStore</strong>, or <strong>TrollStore</strong>.
+        </p>
+      </div>
     </section>
 
     <section class="verification-section">
@@ -179,7 +223,15 @@ try {
 
       if (!primaryBtn || !label) return;
 
-      if (/win/i.test(platform) || /windows/i.test(ua)) {
+      if (/android/i.test(platform) || /android/i.test(ua)) {
+        primaryBtn.href = assets.androidApk;
+        primaryBtn.innerHTML = '<span>Download for Android (.apk)</span> <span aria-hidden="true">↓</span>';
+        label.textContent = 'Detected Android';
+      } else if (/iphone|ipad|ipod/i.test(platform) || /iphone|ipad|ipod/i.test(ua)) {
+        primaryBtn.href = assets.iosIpa;
+        primaryBtn.innerHTML = '<span>Download for iOS (.ipa)</span> <span aria-hidden="true">↓</span>';
+        label.textContent = 'Detected iOS';
+      } else if (/win/i.test(platform) || /windows/i.test(ua)) {
         primaryBtn.href = assets.windows;
         primaryBtn.innerHTML = '<span>Download for Windows</span> <span aria-hidden="true">↓</span>';
         label.textContent = 'Detected Windows (64-bit)';

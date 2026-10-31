@@ -6038,10 +6038,10 @@
     "semantic_hash": "2ce63fefd423c7fce2f6c7a64c162e7a"
   },
   "apps/mobile/modules/expo-syncthing/android/src/main/java/com/davinci/syncthing/ExpoSyncthingModule.kt": {
-    "mtime": 1793298539.6228693,
-    "seen": 1793443205.4637709,
-    "ast_hash": "44d4b02c571587c2b858129ae75224a9",
-    "semantic_hash": "44d4b02c571587c2b858129ae75224a9"
+    "mtime": 1793445370.0494957,
+    "seen": 1793446147.722489,
+    "ast_hash": "bdd75572fc2389297413f742b28e9596",
+    "semantic_hash": ""
   },
   "apps/mobile/modules/expo-syncthing/android/src/main/java/com/davinci/syncthing/SyncthingBootReceiver.kt": {
     "mtime": 1793298539.6229727,
@@ -6117,9 +6117,9 @@
     "semantic_hash": "28cd3951b137feb903ab68d6c16ef877"
   },
   "apps/mobile/package.json": {
-    "mtime": 1793407512.023517,
-    "seen": 1793443205.463788,
-    "ast_hash": "28f45414c47d11494ad330402d57e323",
+    "mtime": 1793445119.7052145,
+    "seen": 1793446147.723171,
+    "ast_hash": "b251433fafdd75f47d84c19a64af6b40",
     "semantic_hash": ""
   },
   "apps/mobile/plugins/withEmbeddedSyncthing.js": {
@@ -7895,8 +7895,8 @@
     "semantic_hash": "2ade840e30624bed7f888bc5d2a79394"
   },
   "apps/website/.astro/content.d.ts": {
-    "mtime": 1793376130.6346576,
-    "seen": 1793443205.4641469,
+    "mtime": 1793446098.6455069,
+    "seen": 1793446147.7341928,
     "ast_hash": "4aaaf7e07990466432e5a0fcf9b2e58c",
     "semantic_hash": "4aaaf7e07990466432e5a0fcf9b2e58c"
   },
@@ -7915,8 +7915,8 @@
     "ast_empty": true
   },
   "apps/website/.astro/types.d.ts": {
-    "mtime": 1793376130.6348915,
-    "seen": 1793443205.4641511,
+    "mtime": 1793446098.645623,
+    "seen": 1793446147.7342641,
     "ast_hash": "f3d48b2aa569815a445d3509aa161559",
     "semantic_hash": ""
   },
@@ -8041,9 +8041,9 @@
     "semantic_hash": ""
   },
   "apps/website/src/pages/download/index.astro": {
-    "mtime": 1793406092.1795757,
-    "seen": 1793443205.464215,
-    "ast_hash": "581c0801dab74f8f4b1b574bcd4a9fd3",
+    "mtime": 1793444047.688409,
+    "seen": 1793446147.736172,
+    "ast_hash": "b1a0784819bbdb0804fccbd9448da1b0",
     "semantic_hash": ""
   },
   "apps/website/src/pages/download/linux.astro": {
@@ -16378,10 +16378,22 @@
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": ""
   },
+  "apps/website/src/pages/download/android.astro": {
+    "mtime": 1793444057.2225308,
+    "seen": 1793446147.736131,
+    "ast_hash": "691a5945a54901ac34aab151c81dc6ae",
+    "semantic_hash": ""
+  },
+  "apps/website/src/pages/download/ios.astro": {
+    "mtime": 1793444063.2248836,
+    "seen": 1793446147.7361732,
+    "ast_hash": "7ac0fa0e134f4ac76cb2409116fc3ef1",
+    "semantic_hash": ""
+  },
   "pnpm-lock.yaml": {
-    "mtime": 1793407512.0920067,
-    "seen": 1793443205.465825,
-    "ast_hash": "20c943d6ab5120d8a25cea1dd5d9fba4",
+    "mtime": 1793445118.9621704,
+    "seen": 1793446147.779978,
+    "ast_hash": "a62bfdc77bc8b159ad40fb3e42f3ed2b",
     "semantic_hash": ""
   },
   "templates/davinci-plugin-starter/package-lock.json": {
