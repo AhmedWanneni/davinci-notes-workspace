@@ -176,6 +176,14 @@ export const MobileSyncthingPanel: React.FC<MobileSyncthingPanelProps> = ({
           Add Device
         </Button>
 
+        <Button
+          variant="primary"
+          size="sm"
+          onPress={() => setScanToSyncVisible(true)}
+        >
+          Scan to Sync
+        </Button>
+
         {!isEmbedded ? (
           <Button
             variant="ghost"

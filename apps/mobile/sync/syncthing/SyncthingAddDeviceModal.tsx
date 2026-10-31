@@ -40,17 +40,19 @@ export const SyncthingAddDeviceModal: React.FC<
     onClose();
   };
 
+  const switchTab = (nextTab: "scan" | "paste") => {
+    setTab(nextTab);
+    setErrorMessage(null);
+  };
+
   const handleScan = (rawText: string) => {
     setErrorMessage(null);
     const parsed = parseScannedDeviceId(rawText);
     if (!parsed.valid) {
-      setErrorMessage(
-        parsed.error ||
-          "The scanned QR code is not a valid Syncthing Device ID.",
-      );
+      setErrorMessage(parsed.error || "Invalid Syncthing Device ID.");
       return;
     }
-    // Never auto-add from QR: show ID and ask for confirmation
+    if (parsed.deviceName) setDeviceName(parsed.deviceName);
     setScannedId(parsed.deviceId);
     setAwaitingConfirm(true);
   };
@@ -61,11 +63,10 @@ export const SyncthingAddDeviceModal: React.FC<
     if (!text) return;
     const parsed = parseScannedDeviceId(text);
     if (!parsed.valid) {
-      setErrorMessage(
-        parsed.error || "Clipboard does not contain a valid Device ID.",
-      );
+      setErrorMessage(parsed.error || "Clipboard does not contain a valid Device ID.");
       return;
     }
+    if (parsed.deviceName) setDeviceName(parsed.deviceName);
     setPastedId(parsed.deviceId);
   };
 
@@ -155,10 +156,7 @@ export const SyncthingAddDeviceModal: React.FC<
             <Button
               variant={tab === "scan" ? "primary" : "ghost"}
               size="sm"
-              onPress={() => {
-                setTab("scan");
-                setErrorMessage(null);
-              }}
+              onPress={() => switchTab("scan")}
               className="flex-1"
             >
               Scan QR
@@ -166,10 +164,7 @@ export const SyncthingAddDeviceModal: React.FC<
             <Button
               variant={tab === "paste" ? "primary" : "ghost"}
               size="sm"
-              onPress={() => {
-                setTab("paste");
-                setErrorMessage(null);
-              }}
+              onPress={() => switchTab("paste")}
               className="flex-1"
             >
               Paste ID

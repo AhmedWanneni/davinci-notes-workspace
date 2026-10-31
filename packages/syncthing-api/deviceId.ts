@@ -1,3 +1,5 @@
+import { decodePairingUri } from "./pairing";
+
 /**
  * Normalizes a Device ID by stripping spaces, hyphens, and uppercase converting.
  */
@@ -31,20 +33,59 @@ export function formatDeviceIdGroups(raw: string): string {
 export interface ParseScannedIdResult {
   valid: boolean;
   deviceId: string;
+  deviceName?: string;
+  folderId?: string;
+  folderLabel?: string;
+  code?: string;
   error?: string;
 }
 
 /**
  * Parses and validates text scanned from a QR code or pasted from clipboard.
- * Accepts raw 56-char IDs, hyphenated IDs, or syncthing:// schemes.
+ * Accepts raw 56-char IDs, hyphenated IDs, syncthing:// schemes, or Sophia/DaVinci pairing URIs.
  */
 export function parseScannedDeviceId(raw: string): ParseScannedIdResult {
   if (!raw || raw.trim().length === 0) {
     return { valid: false, deviceId: "", error: "Device ID is empty" };
   }
 
-  let text = raw.trim();
-  // Strip syncthing:// or syncthing: URI schemes if present
+  const trimmed = raw.trim();
+
+  // 1. Try decoding as pairing URI (e.g. davincinotes://pair?d=..., sophia://pair?d=...)
+  const pairing = decodePairingUri(trimmed);
+  if (pairing && isValidDeviceIdFormat(pairing.id)) {
+    return {
+      valid: true,
+      deviceId: formatDeviceIdGroups(pairing.id),
+      deviceName: pairing.name,
+      folderId: pairing.folderId,
+      folderLabel: pairing.folderLabel,
+      code: pairing.code,
+    };
+  }
+
+  // 2. Try parsing as raw JSON with id field
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const obj = JSON.parse(trimmed);
+      if (obj && typeof obj.id === "string" && isValidDeviceIdFormat(obj.id)) {
+        return {
+          valid: true,
+          deviceId: formatDeviceIdGroups(obj.id),
+          deviceName: typeof obj.name === "string" ? obj.name : undefined,
+          folderId: typeof obj.folderId === "string" ? obj.folderId : undefined,
+          folderLabel:
+            typeof obj.folderLabel === "string" ? obj.folderLabel : undefined,
+          code: typeof obj.code === "string" ? obj.code : undefined,
+        };
+      }
+    } catch {
+      // not valid JSON, fall through
+    }
+  }
+
+  let text = trimmed;
+  // 3. Strip syncthing:// or syncthing: URI schemes if present
   if (text.toLowerCase().startsWith("syncthing://")) {
     text = text.slice(12);
   } else if (text.toLowerCase().startsWith("syncthing:")) {
