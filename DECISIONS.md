@@ -386,6 +386,7 @@ the list.
 | [0220](adr/0220-prompt-understanding-pipeline-architecture.md) | Prompt Understanding Pipeline Architecture & Multi-Stage Execution | Accepted |
 | [0221](adr/0221-destructive-action-ui-confirmation-gate.md) | Destructive Action UI Confirmation Gate & Action Constraints in `@app/ai-agent` | Accepted |
 | [0222](adr/0222-scoped-intent-prompts-and-tool-gating.md) | Scoped Intent Prompts and Tool Gating for Weak Models in `@app/ai-agent` | Accepted |
+| [0251](adr/0251-ai-chat-ui-overhaul-claude-layout-and-multimodal-context.md) | AI Chat UI Overhaul: Claude-style Centered Layout, Streaming Markdown, Multimodal Vision, and Rich Context Mentions | Proposed |
 
 ## Meeting Recorder & AI Listening
 
