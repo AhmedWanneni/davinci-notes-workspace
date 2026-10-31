@@ -17,9 +17,18 @@ export interface EmbeddingResponse {
   model: string;
 }
 
+export interface ChatAttachment {
+  id: string;
+  name: string;
+  mimeType: string;
+  url?: string;
+  data?: string;
+}
+
 export interface ChatMessage {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
+  attachments?: ChatAttachment[];
   toolCalls?: AgentToolCall[];
   toolCallId?: string;
   name?: string;

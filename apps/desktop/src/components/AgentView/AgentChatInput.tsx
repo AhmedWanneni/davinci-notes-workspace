@@ -6,55 +6,40 @@ import {
   Hand,
   Lightning,
   Globe,
+  Paperclip,
+  Warning,
 } from "@phosphor-icons/react";
 import { AgentModelSelect } from "./AgentModelSelect";
 import { AgentCapabilitiesPopover } from "./AgentCapabilitiesPopover";
 import { AgentMentionMenu } from "./AgentMentionMenu";
+import { AgentImageThumbnail } from "./AgentImageThumbnail";
 import { useAgentMention } from "./useAgentMention";
+import { useChatAttachments } from "./useChatAttachments";
+import { isVisionSupported } from "./imageAttachmentUtils";
 import type { AIProviderId } from "../../ai/AISubsystem";
 import type { AgentShortcut } from "@app/ai-agent";
+import type { ChatAttachmentItem, AgentChatInputProps } from "./agentTypes";
 
-export interface AgentChatInputProps {
-  onSend: (prompt: string) => void;
-  onCancel?: () => void;
-  isStreaming: boolean;
-  autoApply: boolean;
-  onToggleAutoApply: (enabled: boolean) => void;
-  vaultName?: string;
-  projectName?: string;
-  currentProvider: AIProviderId;
-  currentModel: string;
-  onSelectModel: (model: string, provider: AIProviderId) => void;
-  selectedCliAgent?: string | null;
-  onSelectCliAgent?: (agentId: string | null) => void;
-  webSearchEnabled: boolean;
-  onToggleWebSearch: (enabled: boolean) => void;
-  onOpenSettings: () => void;
-  onOpenConversations?: () => void;
-  shortcuts?: AgentShortcut[];
-  disabled?: boolean;
-}
-
-export function AgentChatInput({
-  onSend,
-  onCancel,
-  isStreaming,
-  autoApply,
-  onToggleAutoApply,
-  currentProvider,
-  currentModel,
-  onSelectModel,
-  selectedCliAgent,
-  onSelectCliAgent,
-  webSearchEnabled,
-  onToggleWebSearch,
-  onOpenSettings,
-  shortcuts,
-  disabled,
-}: AgentChatInputProps) {
+export function AgentChatInput(props: AgentChatInputProps) {
+  const {
+    onSend, onCancel, isStreaming, autoApply, onToggleAutoApply,
+    currentProvider, currentModel, onSelectModel, selectedCliAgent,
+    onSelectCliAgent, webSearchEnabled, onToggleWebSearch,
+    onOpenSettings, shortcuts, disabled,
+  } = props;
   const [input, setInput] = useState("");
   const [isCapabilitiesOpen, setIsCapabilitiesOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const {
+    attachments,
+    setAttachments,
+    fileInputRef,
+    addFiles,
+    handlePaste,
+    handleDrop,
+    handleDragOver,
+    removeAttachment,
+  } = useChatAttachments();
 
   const {
     mentionQuery,
@@ -76,9 +61,12 @@ export function AgentChatInput({
   }, [input]);
 
   const handleSubmit = () => {
-    if (disabled || !input.trim() || isStreaming) return;
-    onSend(input.trim());
+    if (disabled || (!input.trim() && attachments.length === 0) || isStreaming)
+      return;
+    if (attachments.length > 0) onSend(input.trim(), attachments);
+    else onSend(input.trim());
     setInput("");
+    setAttachments([]);
     setMentionQuery(null);
   };
 
@@ -91,9 +79,26 @@ export function AgentChatInput({
     }
   };
 
+  const visionWarning =
+    attachments.length > 0 && !isVisionSupported(currentModel);
+
   return (
     <div className="agent-chat-dock">
-      <div className="agent-chat-input__box" style={{ position: "relative" }}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        style={{ display: "none" }}
+        onChange={(e) => e.target.files && void addFiles(e.target.files)}
+      />
+
+      <div
+        className="agent-chat-input__box"
+        style={{ position: "relative" }}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+      >
         <AgentMentionMenu
           isOpen={mentionQuery !== null}
           query={mentionQuery ?? ""}
@@ -103,12 +108,32 @@ export function AgentChatInput({
           onItemCountChange={setMentionItemCount}
         />
 
+        {attachments.length > 0 && (
+          <div className="agent-chat-input__attachments">
+            {attachments.map((att) => (
+              <AgentImageThumbnail
+                key={att.id}
+                attachment={att}
+                onRemove={removeAttachment}
+              />
+            ))}
+          </div>
+        )}
+
+        {visionWarning && (
+          <div className="agent-chat-input__vision-warning">
+            <Warning size={13} weight="bold" />
+            <span>{currentModel} may not support image understanding</span>
+          </div>
+        )}
+
         <textarea
           ref={textareaRef}
           className="agent-chat-input__textarea"
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           placeholder="Ask a question or request changes (type @ to reference files)..."
           rows={1}
           disabled={disabled}
@@ -117,6 +142,16 @@ export function AgentChatInput({
 
         <div className="agent-chat-input__footer">
           <div className="agent-chat-input__footer-left">
+            <button
+              type="button"
+              className="agent-chat-input__icon-btn"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Attach images"
+              title="Attach images"
+            >
+              <Paperclip size={15} />
+            </button>
+
             <div className="agent-chat-input__popover-anchor">
               <button
                 type="button"

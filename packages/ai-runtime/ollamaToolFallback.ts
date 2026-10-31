@@ -137,7 +137,14 @@ export function buildOllamaChatPayload(
         content: `[Action: called ${m.toolCalls[0].name}]`,
       };
     }
-    return { role: m.role, content: m.content || "" };
+    const images = m.attachments
+      ?.filter((a) => a.data && a.mimeType.startsWith("image/"))
+      .map((a) => a.data!);
+    return {
+      role: m.role,
+      content: m.content || "",
+      ...(images && images.length > 0 ? { images } : {}),
+    };
   });
 
   if (

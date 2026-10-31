@@ -19,6 +19,7 @@ interface GeminiOptions {
 
 interface GeminiPart {
   text?: string;
+  inlineData?: { mimeType: string; data: string };
   functionCall?: { name: string; args?: Record<string, unknown> };
   functionResponse?: { name: string; response: Record<string, unknown> };
 }
@@ -172,9 +173,22 @@ export class GeminiTransport {
             ],
           };
         }
+        const parts: GeminiPart[] = [{ text: m.content }];
+        if (m.attachments) {
+          for (const att of m.attachments) {
+            if (att.data && att.mimeType.startsWith("image/")) {
+              parts.push({
+                inlineData: {
+                  mimeType: att.mimeType,
+                  data: att.data,
+                },
+              });
+            }
+          }
+        }
         return {
           role: m.role === "assistant" ? "model" : "user",
-          parts: [{ text: m.content }],
+          parts,
         };
       });
 

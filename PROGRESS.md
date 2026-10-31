@@ -4,7 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Chat Overhaul Phase 3: Collapsible Tool Cards, Diff Links & Message Actions
+## Last Session — AI Chat Overhaul Phase 4: Multimodal Image Attachments & Vision Pipeline
+
+**Scope:** Implement Phase 4 of `ai-chat-ui-feature-plan.md`: extend `ChatMessage` to support multimodal image attachments, map attachments across Gemini (`inlineData`), Cloud/OpenRouter (`image_url`), and Ollama (`images` array) transports, implement drag-and-drop, clipboard paste, paperclip attachment, composer thumbnail chips, and click-to-zoom image viewer modal.
+
+**What was done:**
+1. **Multimodal API & Transports (`AIProvider.ts`, `geminiTransport.ts`, `cloudTransport.ts`, `ollamaToolFallback.ts`)**:
+   - Extended `ChatMessage` with `attachments?: ChatAttachment[]`.
+   - Updated `GeminiTransport` to format image attachments into Gemini's `inlineData: { mimeType, data }` parts.
+   - Updated `CloudTransport` to construct OpenAI/OpenRouter vision payloads (`{ type: "image_url", image_url: { url } }`).
+   - Updated `OllamaTransport` fallback payload to include `images: string[]` base64 array.
+2. **Composer Attachments & Vision Detection (`AgentChatInput.tsx`, `useChatAttachments.ts`, `imageAttachmentUtils.ts`)**:
+   - Added `useChatAttachments` hook handling clipboard paste (`onPaste`), drag-and-drop (`onDrop`), and file browser selection.
+   - Built thumbnail chip row (`AgentImageThumbnail.tsx`) with remove button.
+   - Added `isVisionSupported` detection displaying an alert chip if a non-vision model (e.g. `deepseek-r1`, `gemma-2`) is selected with attached images.
+3. **Click-to-Zoom Image Modal (`AgentImageViewerModal.tsx` & `AgentMessageBubble.tsx`)**:
+   - Built full-screen click-to-zoom viewer closing on `Escape` or backdrop click.
+   - Displayed image attachment thumbnails in sent user message bubbles and assistant messages.
+4. **Verification & Testing**:
+   - Tests in `AgentPhase4MultimodalImages.test.tsx` and `@app/ai-runtime` passing (34 tests).
+   - All 28 test files (80 tests) passing in `apps/desktop/src/components/AgentView`.
+   - Strict 250-line file cap honored (`AgentChatInput.tsx`: 248 lines, `useAgentExecution.ts`: 247 lines, `AgentMessageBubble.tsx`: 114 lines).
+   - Knowledge graph updated via `graphify update .`.
+
+**Next up:**
+- **Phase 5 (`ai-chat-ui-feature-plan.md`)**: Rich Context Mentions Pipeline (`@note` & `@folder` chip attachments, token budgeting, folder tree synthesis, and `@current` shortcut).
+
+---
+
+## Prior Session — AI Chat Overhaul Phase 3: Collapsible Tool Cards, Diff Links & Message Actions
 
 **Scope:** Implement Phase 3 of `ai-chat-ui-feature-plan.md`: replace plain tool cards with sleek collapsible status rows, link file modification actions directly to diff viewers, implement a hover message action toolbar (Copy, Edit user turns, Regenerate assistant turns), and support history truncation & resubmission.
 

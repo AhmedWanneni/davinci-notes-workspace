@@ -25,7 +25,7 @@ import {
 import { runAgentStepLoop } from "./agentStepLoop.js";
 import { useCliAgentExecution } from "./useCliAgentExecution.js";
 import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes.js";
-import type { ChatMessageItem, StagedChangeItem } from "./agentTypes.js";
+import type { ChatMessageItem, StagedChangeItem, ChatAttachmentItem } from "./agentTypes.js";
 
 export interface UseAgentExecutionOptions {
   providerId?: AIProviderId;
@@ -63,8 +63,10 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
     useCliAgentExecution();
 
   const sendMessage = useCallback(
-    async (promptText: string) => {
-      const userMsg: ChatMessageItem = { id: `msg_u_${Date.now()}`, role: "user", content: promptText, timestamp: Date.now() };
+    async (promptText: string, attachments?: ChatAttachmentItem[]) => {
+      const userMsg: ChatMessageItem = {
+        id: `msg_u_${Date.now()}`, role: "user", content: promptText, attachments, timestamp: Date.now(),
+      };
       const nextMessages = [...messages, userMsg];
       setMessages(nextMessages);
       abortRef.current = new AbortController();

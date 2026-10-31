@@ -151,24 +151,43 @@ export class OpenAICompatibleTransport {
   private buildChatPayload(request: ChatRequest, stream: boolean) {
     return {
       model: this.options.chatModel,
-      messages: request.messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-        ...(m.toolCalls
-          ? {
-              tool_calls: m.toolCalls.map((tc) => ({
-                id: tc.id,
-                type: "function",
-                function: {
-                  name: tc.name,
-                  arguments: JSON.stringify(tc.arguments),
-                },
-              })),
-            }
-          : {}),
-        ...(m.toolCallId ? { tool_call_id: m.toolCallId } : {}),
-        ...(m.name ? { name: m.name } : {}),
-      })),
+      messages: request.messages.map((m) => {
+        const hasImages = Boolean(m.attachments && m.attachments.length > 0);
+        const content = hasImages
+          ? [
+              { type: "text", text: m.content },
+              ...m.attachments!
+                .filter((a) => a.mimeType.startsWith("image/"))
+                .map((a) => ({
+                  type: "image_url",
+                  image_url: {
+                    url:
+                      a.url ||
+                      (a.data ? `data:${a.mimeType};base64,${a.data}` : ""),
+                  },
+                })),
+            ]
+          : m.content;
+
+        return {
+          role: m.role,
+          content,
+          ...(m.toolCalls
+            ? {
+                tool_calls: m.toolCalls.map((tc) => ({
+                  id: tc.id,
+                  type: "function",
+                  function: {
+                    name: tc.name,
+                    arguments: JSON.stringify(tc.arguments),
+                  },
+                })),
+              }
+            : {}),
+          ...(m.toolCallId ? { tool_call_id: m.toolCallId } : {}),
+          ...(m.name ? { name: m.name } : {}),
+        };
+      }),
       stream,
       ...(request.tools
         ? {

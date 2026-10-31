@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { AgentMarkdownContent } from "./AgentMarkdownContent";
 import { AgentToolCard } from "./AgentToolCard";
 import { AgentMessageActions } from "./AgentMessageActions";
-import type { ChatMessageItem } from "./agentTypes";
+import { AgentImageViewerModal } from "./AgentImageViewerModal";
+import type { ChatMessageItem, ChatAttachmentItem } from "./agentTypes";
 
 export interface AgentMessageBubbleProps {
   message: ChatMessageItem;
@@ -18,6 +20,8 @@ export function AgentMessageBubble({
   onRegenerateMessage,
   onViewDiff,
 }: AgentMessageBubbleProps) {
+  const [zoomedAttachment, setZoomedAttachment] =
+    useState<ChatAttachmentItem | null>(null);
   const isUser = message.role === "user";
 
   return (
@@ -26,6 +30,26 @@ export function AgentMessageBubble({
       data-streaming={message.isStreaming || undefined}
     >
       <div className="agent-message__row">
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="agent-message__attachments">
+            {message.attachments.map((att) => (
+              <button
+                key={att.id}
+                type="button"
+                className="agent-message__attachment-btn"
+                onClick={() => setZoomedAttachment(att)}
+                title={`Click to zoom ${att.name}`}
+              >
+                <img
+                  src={att.url}
+                  alt={att.name}
+                  className="agent-message__attachment-img"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+
         {message.content && (
           <div className="agent-message__body">
             {isUser ? (
@@ -80,6 +104,11 @@ export function AgentMessageBubble({
           })}
         </div>
       )}
+
+      <AgentImageViewerModal
+        attachment={zoomedAttachment}
+        onClose={() => setZoomedAttachment(null)}
+      />
     </div>
   );
 }

@@ -2,6 +2,22 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: AI Chat Overhaul Phase 4: Multimodal Image Attachments & Vision Pipeline
+
+- **Multimodal API & Transports (`AIProvider.ts`, `geminiTransport.ts`, `cloudTransport.ts`, `ollamaToolFallback.ts`)**:
+  - Extended `ChatMessage` with `attachments?: ChatAttachment[]`.
+  - Mapped image attachments to Gemini `inlineData`, Cloud `image_url`, and Ollama `images`.
+- **Composer Attachments & Vision Detection (`AgentChatInput.tsx`, `useChatAttachments.ts`, `imageAttachmentUtils.ts`)**:
+  - Implemented `useChatAttachments` supporting paste, drag-and-drop, and file input.
+  - Added `AgentImageThumbnail` and vision capability warning badge.
+- **Click-to-Zoom Modal (`AgentImageViewerModal.tsx` & `AgentMessageBubble.tsx`)**:
+  - Interactive click-to-zoom modal with `Escape` shortcut and backdrop dismissal.
+- **Verification**:
+  - Tests in `AgentPhase4MultimodalImages.test.tsx` and all 28 test files in `AgentView` passing.
+  - Knowledge graph updated with `graphify update .`.
+
+---
+
 ### 2026-10-31: AI Chat Overhaul Phase 3: Collapsible Tool Cards, Diff Links & Message Actions
 
 - **Collapsible Tool Status Cards (`AgentToolCard.tsx` & `AgentView.scss`)**:
