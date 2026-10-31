@@ -11,6 +11,7 @@ export interface ScanToSyncModalProps {
   status: SyncthingState | "loading" | "checking";
   hasSavedKey: boolean;
   defaultVaultPath: string;
+  onVaultSynced?: (vaultUri: string, vaultName: string) => Promise<void>;
   onSaveKey?: (key: string) => Promise<void>;
   onRefresh: () => Promise<void>;
   onClose: () => void;
@@ -21,6 +22,7 @@ export const ScanToSyncModal: React.FC<ScanToSyncModalProps> = ({
   status,
   hasSavedKey,
   defaultVaultPath,
+  onVaultSynced,
   onRefresh,
   onClose,
 }) => {
@@ -28,6 +30,7 @@ export const ScanToSyncModal: React.FC<ScanToSyncModalProps> = ({
     step,
     stage,
     payload,
+    targetPath,
     progressPercent,
     errorMessage,
     isBusy,
@@ -43,6 +46,12 @@ export const ScanToSyncModal: React.FC<ScanToSyncModalProps> = ({
   };
 
   const handleDone = async () => {
+    if (targetPath && payload) {
+      await onVaultSynced?.(
+        targetPath,
+        payload.folderLabel || payload.folderId || "Synced Vault",
+      ).catch(() => {});
+    }
     await onRefresh();
     handleClose();
   };

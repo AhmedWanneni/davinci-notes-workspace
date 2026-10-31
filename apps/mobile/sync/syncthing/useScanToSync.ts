@@ -38,6 +38,7 @@ export function useScanToSync(
   const [step, setStep] = useState<ScanToSyncStep>("scanner");
   const [stage, setStage] = useState<ScanToSyncStage>("connecting");
   const [payload, setPayload] = useState<SyncthingPairingPayload | null>(null);
+  const [targetPath, setTargetPath] = useState<string>("");
   const [progressPercent, setProgressPercent] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isBusy, setIsBusy] = useState<boolean>(false);
@@ -47,6 +48,7 @@ export function useScanToSync(
   const resetFlow = useCallback(() => {
     abortRef.current = true;
     setPayload(null);
+    setTargetPath("");
     setProgressPercent(0);
     setErrorMessage(null);
     setIsBusy(false);
@@ -65,15 +67,14 @@ export function useScanToSync(
     }
   }, [isOpen, resetFlow]);
 
-  const handleScanSuccess = (
-    scannedPayload: SyncthingPairingPayload,
-  ) => {
+  const handleScanSuccess = (scannedPayload: SyncthingPairingPayload) => {
     setPayload(scannedPayload);
     setStep("confirm");
   };
 
-  const handleConfirm = async (targetPath: string) => {
+  const handleConfirm = async (selectedTarget: string) => {
     if (!payload) return;
+    setTargetPath(selectedTarget);
     setIsBusy(true);
     setStep("progress");
     setStage("connecting");
@@ -86,7 +87,9 @@ export function useScanToSync(
       if (EmbeddedSyncthingBridge.isAvailable()) {
         const startRes = await EmbeddedSyncthingBridge.start();
         if (startRes.status !== "running") {
-          throw new Error(startRes.reason || "Failed to start embedded Syncthing service.");
+          throw new Error(
+            startRes.reason || "Failed to start embedded Syncthing service.",
+          );
         }
       } else {
         const detect = await mobileSyncthingDetect();
@@ -106,7 +109,9 @@ export function useScanToSync(
         ? `${cleanBase}-${payload.code}`
         : cleanBase;
 
-      await mobileSyncthingSetLocalDeviceName(apiKey, phoneAnnounceName).catch(() => {});
+      await mobileSyncthingSetLocalDeviceName(apiKey, phoneAnnounceName).catch(
+        () => {},
+      );
 
       // Add desktop device if not yet added
       try {
@@ -144,7 +149,10 @@ export function useScanToSync(
         }
 
         // Check if desktop already accepted and folder is already configured
-        const alreadyConfigured = await mobileSyncthingIsFolderConfigured(apiKey, payload.folderId);
+        const alreadyConfigured = await mobileSyncthingIsFolderConfigured(
+          apiKey,
+          payload.folderId,
+        );
         if (alreadyConfigured) {
           matchedFolder = { folderId: payload.folderId };
           break;
@@ -157,18 +165,30 @@ export function useScanToSync(
 
       // Step 3: Accept folder and track completion
       setStage("syncing");
-      const isConfigured = await mobileSyncthingIsFolderConfigured(apiKey, payload.folderId);
+      const isConfigured = await mobileSyncthingIsFolderConfigured(
+        apiKey,
+        payload.folderId,
+      );
       if (!isConfigured && matchedFolder) {
-        await mobileSyncthingAcceptFolder(apiKey, payload.folderId, targetPath);
+        await mobileSyncthingAcceptFolder(
+          apiKey,
+          payload.folderId,
+          selectedTarget,
+        );
       }
-      await mobileSyncthingTriggerScan(apiKey, payload.folderId).catch(() => {});
+      await mobileSyncthingTriggerScan(apiKey, payload.folderId).catch(
+        () => {},
+      );
 
       const syncStart = Date.now();
       let isDone = false;
 
       while (!isDone && !abortRef.current) {
         if (Date.now() - syncStart > SYNC_TIMEOUT_MS) {
-          const connected = await mobileSyncthingIsDeviceConnected(apiKey, payload.id);
+          const connected = await mobileSyncthingIsDeviceConnected(
+            apiKey,
+            payload.id,
+          );
           if (!connected) {
             throw new Error(
               "Desktop not reachable. Ensure both devices are on the same local network.",
@@ -178,10 +198,17 @@ export function useScanToSync(
           break;
         }
 
-        const comp = await mobileSyncthingFolderCompletion(apiKey, payload.folderId, payload.id);
+        const comp = await mobileSyncthingFolderCompletion(
+          apiKey,
+          payload.folderId,
+          payload.id,
+        );
         setProgressPercent(comp.completion);
 
-        if (comp.completion === 100 || (comp.needBytes === 0 && comp.needItems === 0)) {
+        if (
+          comp.completion === 100 ||
+          (comp.needBytes === 0 && comp.needItems === 0)
+        ) {
           isDone = true;
           break;
         }
@@ -206,6 +233,7 @@ export function useScanToSync(
     step,
     stage,
     payload,
+    targetPath,
     progressPercent,
     errorMessage,
     isBusy,
