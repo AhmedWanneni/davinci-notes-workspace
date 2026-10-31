@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: Fix Android Native Binary Execution (`extractNativeLibs` & Legacy Packaging)
+
+- **Root Cause Analysis (`Syncthing native binary not found or not executable`)**:
+  - Investigated issue where mobile pairing failed with `Pairing Unsuccessful. Syncthing native binary not found or not executable at: /data/app/--OUsOh.../lib/arm64/libsyncthing.so`.
+  - In Android 10+ (API 29+) and modern AGP, `extractNativeLibs` defaults to `false`. When false, Android mounts APK libraries directly in memory and leaves `nativeLibraryDir` empty.
+  - Because `Syncthing` is an ELF executable spawned via `ProcessBuilder`, it cannot run from memory or writable app directories (`filesDir` is blocked by Android SELinux `W^X` policy). It must be extracted into `nativeLibraryDir` at install time.
+- **Expo Config Plugin & Manifest Fixes**:
+  - In `apps/mobile/plugins/withEmbeddedSyncthing.js`:
+    - Injected `android:extractNativeLibs="true"` into `<application>` in `AndroidManifest.xml`.
+    - Added `withGradleProperties` plugin to enforce `expo.useLegacyPackaging=true` in `gradle.properties`.
+  - In `apps/mobile/modules/expo-syncthing/android/src/main/AndroidManifest.xml`:
+    - Added `android:extractNativeLibs="true"` to `<application>`.
+  - In `apps/mobile/modules/expo-syncthing/android/src/main/java/com/davinci/syncthing/SyncthingProcessManager.kt`:
+    - Updated existence check and added explicit fallback `binaryFile.setExecutable(true, false)` if needed, with distinct error diagnostics.
+- **Verification & Rebuild**:
+  - Regenerated native Android project via `npx expo prebuild`.
+  - Built production release APK via `./gradlew assembleRelease` (6m 27s).
+  - Verified `aapt2 dump xmltree` confirms `android:extractNativeLibs(0x010104ea)=true`.
+  - Re-uploaded `Sophia_0.3.0.apk` to GitHub Release `v0.3.0` via `gh release upload --clobber`.
+  - Verified public HTTP 200 download response.
+
+---
+
 ### 2026-10-31: Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
 
 - **Toolchain & Metro Bundler Resolution**:

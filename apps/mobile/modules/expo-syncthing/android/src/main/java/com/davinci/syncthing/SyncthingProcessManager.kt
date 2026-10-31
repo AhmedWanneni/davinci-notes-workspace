@@ -51,9 +51,16 @@ class SyncthingProcessManager(private val context: Context) {
 
         val nativeLibDir = context.applicationInfo.nativeLibraryDir
         val binaryFile = File(nativeLibDir, "libsyncthing.so")
-        if (!binaryFile.exists() || !binaryFile.canExecute()) {
-            lastError.set("Syncthing native binary not found or not executable at: ${binaryFile.absolutePath}")
+        if (!binaryFile.exists()) {
+            lastError.set("Syncthing native binary not found in native library directory: ${binaryFile.absolutePath}")
             return false
+        }
+        if (!binaryFile.canExecute()) {
+            binaryFile.setExecutable(true, false)
+            if (!binaryFile.canExecute()) {
+                lastError.set("Syncthing native binary exists but is not executable at: ${binaryFile.absolutePath}")
+                return false
+            }
         }
 
         val homeDir = File(context.filesDir, "syncthing")

@@ -1,6 +1,7 @@
 const {
   withAndroidManifest,
   withAppBuildGradle,
+  withGradleProperties,
 } = require("expo/config-plugins");
 
 const REQUIRED_PERMISSIONS = [
@@ -32,6 +33,7 @@ function withSyncthingPermissions(config) {
 
     const app = manifest.application?.[0];
     if (app) {
+      app.$["android:extractNativeLibs"] = "true";
       if (!app.service) app.service = [];
       const serviceExists = app.service.some(
         (s) => s.$["android:name"] === "com.davinci.syncthing.SyncthingForegroundService"
@@ -94,6 +96,26 @@ function withSyncthingBuildGradle(config) {
   });
 }
 
+function withSyncthingGradleProperties(config) {
+  return withGradleProperties(config, (modConfig) => {
+    const item = modConfig.modResults.find(
+      (prop) => prop.type === "property" && prop.key === "expo.useLegacyPackaging"
+    );
+    if (item) {
+      item.value = "true";
+    } else {
+      modConfig.modResults.push({
+        type: "property",
+        key: "expo.useLegacyPackaging",
+        value: "true",
+      });
+    }
+    return modConfig;
+  });
+}
+
 module.exports = function withEmbeddedSyncthing(config) {
-  return withSyncthingBuildGradle(withSyncthingPermissions(config));
+  return withSyncthingGradleProperties(
+    withSyncthingBuildGradle(withSyncthingPermissions(config))
+  );
 };

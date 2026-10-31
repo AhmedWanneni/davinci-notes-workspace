@@ -4,7 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
+## Last Session — Fix Android Native Binary Execution (`extractNativeLibs` & Legacy Packaging)
+
+**Scope:** Fix on-device startup crash where Syncthing failed to execute on Android devices ("Syncthing native binary not found or not executable at: /data/app/--OUsOh.../lib/arm64/libsyncthing.so"). Rebuild and re-upload `Sophia_0.3.0.apk`.
+
+**What was done:**
+1. **Root Cause Analysis**:
+   - In modern Android (API 29+ / AGP 8+), `extractNativeLibs` defaults to `false` and `useLegacyPackaging` defaults to `false`.
+   - When disabled, Android package manager does not extract `.so` files to `nativeLibraryDir` (`/data/app/.../lib/arm64`), leaving it empty.
+   - Because Syncthing is an ELF binary executed via `ProcessBuilder`, it requires physical extraction into `nativeLibraryDir` (Android 10+ SELinux prevents `execve` inside writable app data directories).
+2. **Configuration & Plugin Fixes**:
+   - Updated `apps/mobile/plugins/withEmbeddedSyncthing.js`:
+     - Added `withGradleProperties` to enforce `expo.useLegacyPackaging=true`.
+     - Injected `android:extractNativeLibs="true"` into `<application>`.
+   - Updated `apps/mobile/modules/expo-syncthing/android/src/main/AndroidManifest.xml` with `android:extractNativeLibs="true"`.
+   - Updated `SyncthingProcessManager.kt` to differentiate existence from execution permission and invoke `binaryFile.setExecutable(true, false)` if needed.
+3. **Verified & Rebuilt Release APK**:
+   - Ran `npx expo prebuild` and verified `android:extractNativeLibs="true"` in AndroidManifest.
+   - Compiled release APK via `./gradlew assembleRelease` (6m 27s).
+   - Confirmed `extractNativeLibs(0x010104ea)=true` inside final APK manifest with `aapt2`.
+   - Re-uploaded `Sophia_0.3.0.apk` (83MB) to GitHub Release `v0.3.0` via `gh release upload --clobber`.
+   - Verified direct public download returns HTTP 200 without authentication.
+
+**Next up:**
+- On-device verification of Syncthing vault sync on Android physical devices.
+- Ad-hoc / TestFlight distribution verification for `Sophia_0.3.0.ipa`.
+
+---
+
+## Prior Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
 
 **Scope:** Build production standalone release artifacts for mobile (Android `.apk` and iOS `.ipa`), publish release assets to GitHub release `v0.3.0`, update the website download pages with direct public links and auto-detection, and deploy live to Cloudflare Pages.
 
