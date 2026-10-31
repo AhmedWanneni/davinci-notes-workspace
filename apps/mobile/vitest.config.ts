@@ -5,6 +5,11 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    server: {
+      deps: {
+        inline: [/expo/],
+      },
+    },
   },
   resolve: {
     alias: {
@@ -69,6 +74,10 @@ export default defineConfig({
       "expo-navigation-bar": path.resolve(
         __dirname,
         "tests/mocks/expoNavigationBarMock.ts",
+      ),
+      "expo-status-bar": path.resolve(
+        __dirname,
+        "tests/mocks/expoStatusBarMock.tsx",
       ),
       "react-native": "react-native-web",
     },

@@ -42,7 +42,10 @@
       "expo-secure-store",
       "expo-web-browser",
       "./plugins/withLocalhostNetworkSecurity",
-      "./plugins/withEmbeddedSyncthing"
+      "./plugins/withEmbeddedSyncthing",
+      "expo-asset",
+      "expo-audio",
+      "expo-splash-screen"
     ]
   }
 }

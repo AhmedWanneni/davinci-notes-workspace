@@ -94,7 +94,7 @@ export const SyncthingSharedVaultsSection: React.FC<
                     {isBusy ? (
                       <ActivityIndicator
                         size="small"
-                        color={tokens.color.text.inverse}
+                        color={tokens.color.text["on-accent"]}
                       />
                     ) : (
                       "Open Vault"
