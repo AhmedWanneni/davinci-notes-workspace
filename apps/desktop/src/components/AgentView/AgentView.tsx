@@ -4,9 +4,7 @@ import { AgentMissedBanner } from "./AgentMissedBanner";
 import { AgentMessageBubble } from "./AgentMessageBubble";
 import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentChatInput } from "./AgentChatInput";
-import { AgentHistoryDrawer } from "./AgentHistoryDrawer";
 import { AgentConversationsDrawer } from "./AgentConversationsDrawer";
-import { AgentShortcutsBar } from "./AgentShortcutsBar";
 import { AgentStarterPrompts } from "./AgentStarterPrompts";
 import { AgentCliStatusCard } from "./AgentCliStatusCard";
 import { useAgentExecution } from "./useAgentExecution";
@@ -58,11 +56,6 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
     messages,
     stagedChanges,
     isStreaming,
-    ledger,
-    isHistoryOpen,
-    setIsHistoryOpen,
-    loadLedger,
-    rollback,
     handleApplyChange,
     handleRejectChange,
     handleApplyAllChanges,
@@ -101,10 +94,6 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
   const lastLoadedConvIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    void loadLedger();
-  }, [loadLedger]);
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
   }, [messages]);
 
@@ -140,9 +129,6 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
             setIsConversationsOpen(!isConversationsOpen)
           }
           conversationsCount={conversations.length}
-          isHistoryOpen={isHistoryOpen}
-          onToggleHistory={() => setIsHistoryOpen(!isHistoryOpen)}
-          historyCount={ledger.transactions.length}
           onOpenSettings={handleOpenSettings}
         />
 
@@ -190,11 +176,6 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
         )}
 
         <div className="agent-view__controls">
-          <AgentShortcutsBar
-            shortcuts={shortcuts}
-            onTriggerShortcut={(sc) => void sendMessage(sc.prompt)}
-            disabled={isStreaming}
-          />
           <AgentChatInput
             onSend={sendMessage}
             onCancel={abortExecution}
@@ -212,6 +193,7 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
             onToggleWebSearch={handleToggleWebSearch}
             onOpenSettings={handleOpenSettings}
             onOpenConversations={() => setIsConversationsOpen(true)}
+            shortcuts={shortcuts}
             disabled={!isConfigured && !currentModel && !selectedCliAgent}
           />
         </div>
@@ -235,13 +217,6 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
         onDeleteConversation={(id) => void removeConversation(id)}
         onAddProject={(name) => void addProject(name)}
         onAssignProject={(cId, pId) => void assignConversationProject(cId, pId)}
-      />
-
-      <AgentHistoryDrawer
-        isOpen={isHistoryOpen}
-        onClose={() => setIsHistoryOpen(false)}
-        transactions={ledger.transactions}
-        onRollback={rollback}
       />
     </div>
   );

@@ -13,6 +13,7 @@ import {
 import { AgentModelSelect } from "./AgentModelSelect";
 import { AgentCapabilitiesPopover } from "./AgentCapabilitiesPopover";
 import type { AIProviderId } from "../../ai/AISubsystem";
+import type { AgentShortcut } from "@app/ai-agent";
 
 export interface AgentChatInputProps {
   onSend: (prompt: string) => void;
@@ -31,6 +32,7 @@ export interface AgentChatInputProps {
   onToggleWebSearch: (enabled: boolean) => void;
   onOpenSettings: () => void;
   onOpenConversations?: () => void;
+  shortcuts?: AgentShortcut[];
   disabled?: boolean;
 }
 
@@ -51,6 +53,7 @@ export function AgentChatInput({
   onToggleWebSearch,
   onOpenSettings,
   onOpenConversations,
+  shortcuts,
   disabled,
 }: AgentChatInputProps) {
   const [input, setInput] = useState("");
@@ -145,6 +148,7 @@ export function AgentChatInput({
               <AgentCapabilitiesPopover
                 isOpen={isCapabilitiesOpen}
                 onClose={() => setIsCapabilitiesOpen(false)}
+                shortcuts={shortcuts}
                 onSelectCapability={(preset) => {
                   setInput(preset);
                 }}

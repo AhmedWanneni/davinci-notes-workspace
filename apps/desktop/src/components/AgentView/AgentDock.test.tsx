@@ -104,6 +104,32 @@ describe("Agent UI Controls", () => {
     );
   });
 
+  it("renders shortcuts inside capabilities popover when provided", () => {
+    const onSelect = vi.fn();
+    render(
+      <AgentCapabilitiesPopover
+        isOpen={true}
+        onClose={vi.fn()}
+        onSelectCapability={onSelect}
+        shortcuts={[
+          {
+            id: "daily",
+            title: "Daily Review",
+            prompt: "Prepare daily note",
+            description: "Daily review shortcut",
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Quick Shortcuts")).toBeTruthy();
+    expect(screen.getByText("Daily Review")).toBeTruthy();
+    expect(screen.getByText("Daily review shortcut")).toBeTruthy();
+
+    fireEvent.click(screen.getByText("Daily Review"));
+    expect(onSelect).toHaveBeenCalledWith("Prepare daily note");
+  });
+
   it("renders on-page settings panel and toggles provider", async () => {
     const onClose = vi.fn();
     const onProviderChanged = vi.fn();

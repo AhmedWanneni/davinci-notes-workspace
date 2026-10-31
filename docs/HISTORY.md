@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: AI Agent Minimalist Redesign & Typography Polish
+
+- **Minimalist Chat Layout**:
+  - Removed "DaVinci Agent" and "You" labels as well as timestamps from message bubbles.
+  - Aligned user messages into clean right-aligned bubbles with smooth borders and subtle background.
+  - Aligned assistant responses into natural full-width markdown flow without boxes or borders.
+- **Font & Typography Consistency**:
+  - Configured message text, headings, paragraphs, and list items to inherit the note editor / app font stack (`font-family: inherit` over `var(--font-ui)`).
+  - Reserved `var(--font-editor)` strictly for inline `<code>` and code block `<pre>`.
+- **Shortcuts Migration**:
+  - Removed always-visible shortcuts bar from the chat dock.
+  - Embedded shortcuts as options in the `+` capabilities popover under a "Quick Shortcuts" section.
+- **Header Simplification**:
+  - Removed the "AI Vault Agent" logo and text.
+  - Removed the History button from the header.
+  - Simplified Settings trigger to an icon-only button (`<Sliders size={16} />`).
+- **Verification**:
+  - 20 test files (53 tests) passed.
+  - ESLint 0 errors, Stylelint 0 errors, 0 design token violations.
+  - All files strictly under 250 lines.
+
+---
+
 ### 2026-10-31: AI Agent Dual Mode Controls & Global Settings Integration
 
 - **Dual-Mode Bottom Controls (`AgentModelSelect.tsx`)**:

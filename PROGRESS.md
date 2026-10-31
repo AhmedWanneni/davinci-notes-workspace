@@ -4,29 +4,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — External Autonomous CLI Agent Integration & AI Settings Unification
+## Last Session — AI Agent Minimalist Redesign & Chat Typography Polish
 
-**Scope:** Provide dual-mode controls (Model vs Autonomous CLI Agent `agy`, `claude`, `codex`, `opencode`) in the AI Agent chat dock, eliminate local settings sidebars and automatic opening, unify agent preferences & CLI settings in the global Settings dialog (`ai` tab), and refine chat ergonomics with always-accessible "+ New Chat" and history drawer.
+**Scope:** Transform AI Agent chat into a distraction-free, minimalist conversation experience matching notes editor typography: remove "DaVinci Agent", "You", and timestamp headers from bubbles; hide shortcuts into the `+` menu popover; remove the "AI Vault Agent" header logo/title and history button; make settings an icon-only trigger; align fonts with the app and note editor.
 
 **What was done:**
-1. **Dual-Mode Bottom Controls (`AgentModelSelect.tsx`)**:
-   - Replaced single-model dropdown with segmented dual-mode selector allowing 1-click toggling between API models (Gemini, Ollama, OpenRouter) and Autonomous CLI Agents (`agy`, `claude`, `codex`, `opencode`).
-   - Trigger label dynamically indicates `Model: <name>` or `Agent: <name>`.
-   - Popover contains segmented selector tabs and direct link to global AI settings.
-2. **Global AI Settings Integration (`AIAgentSettingsSection.tsx` & `AISettingsPanel.tsx`)**:
-   - Removed local drawer sidebar from `AgentView`; clicking the settings gear now opens the global app `SettingsDialog` directly to the `ai` tab.
-   - Added `davinci-open-settings` event listener to `App.tsx` for seamless tab navigation from any UI trigger.
-   - Created `AIAgentSettingsSection.tsx` embedded in `AISettingsPanel.tsx`, exposing toggles for Auto-apply Changes, Web Search, and Prompt Optimization, alongside discovered system CLI agents with installation/readiness states.
-   - Dispatches `davinci-ai-state-changed` on changes so the Agent view refreshes automatically without requiring app restart.
-3. **Chat Ergonomics & Clean Interface**:
-   - Stopped settings from auto-opening on startup or unconfigured state (`useAgentViewConfig.ts`).
-   - Added prominent "+ New Chat" button in `AgentHeader.tsx` that instantly clears context and starts a fresh conversation.
-   - Kept conversation history drawer accessible at all times via history icon.
-4. **Verification & Quality**:
-   - 20 test files passed (52 tests passed in desktop AI & Agent suites).
-   - Strict 250-line file cap honored (`AgentView.tsx`: 245 lines, `AIAgentSettingsSection.tsx`: 138 lines).
-   - ESLint: 0 errors; Public tokens audit: 0 violations in all touched files.
-   - Rebuilt knowledge graph via `graphify update .`.
+1. **Minimalist Chat Messages (`AgentMessageBubble.tsx` & `AgentView.scss`)**:
+   - Eliminated repetitive message headers ("You", "DaVinci Agent", avatars, and timestamps) from chat bubbles.
+   - User queries now render cleanly in right-aligned rounded bubble cards with relaxed line height.
+   - Assistant answers flow seamlessly in full-width, clean markdown directly on the view canvas.
+2. **Typography Alignment**:
+   - Fixed chat text and markdown headings/paragraphs to inherit the app and notes font stack (`font-family: inherit` over `var(--font-ui)`), ensuring full visual consistency with the note editor.
+   - Reserved `var(--font-editor)` strictly for inline `<code>` and code block `<pre>` snippets.
+3. **Hidden Shortcuts in `+` Menu (`AgentCapabilitiesPopover.tsx` & `AgentChatInput.tsx`)**:
+   - Removed the floating `AgentShortcutsBar` above the chat input dock to reduce visual clutter.
+   - Integrated quick shortcuts (`/weekly-review`, custom vault shortcuts) into the `+` button capabilities popover under a clean "Quick Shortcuts" section.
+4. **Minimal Header (`AgentHeader.tsx` & `AgentView.tsx`)**:
+   - Removed the "AI Vault Agent" logo and text from the header.
+   - Removed the History button from the header and cleaned up unused transaction drawer bindings in `AgentView.tsx`.
+   - Reduced the Settings action to an icon-only trigger (`<Sliders size={16} />`).
+   - Kept "+ New Chat" and previous "Chats" buttons readily accessible.
+5. **Verification & Quality**:
+   - 20 test files passed (53 tests passed across `AgentView` and `AISettingsPanel`).
+   - ESLint 0 errors, Stylelint 0 errors, 0 design token violations.
+   - All components strictly below 250 lines (`AgentHeader.tsx`: 59 lines, `AgentMessageBubble.tsx`: 118 lines, `AgentView.tsx`: 227 lines).
+   - Knowledge graph updated via `graphify update .`.
 
 **Next up:**
 - Run live vault organization test with `agy` in an active test vault.
