@@ -1,9 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import {
-  executeRewriteStep,
-  shouldClarifyRequest,
-  type StructuredUserRequest,
-} from "@app/ai-agent";
+import type { StructuredUserRequest } from "@app/ai-agent";
 import {
   createDesktopInspectionBackend,
   createDesktopMutationBackend,
@@ -17,7 +13,15 @@ import {
 import { useWorkspaceStore } from "../../state/useWorkspaceStore.js";
 import { useAgentLedger } from "./useAgentLedger.js";
 import { buildAgentWorkingHistory } from "./agentSystemPrompt.js";
-import { resolveExecutionPromptAndTools } from "./agentPromptResolver.js";
+import {
+  resolveExecutionPromptAndTools,
+  executeRewriteAndClarify,
+} from "./agentPromptResolver.js";
+import {
+  appendAssistantChunk,
+  finalizeAssistantMessage,
+  executeCliAgentSession,
+} from "./agentExecutionHelpers.js";
 import { runAgentStepLoop } from "./agentStepLoop.js";
 import { useCliAgentExecution } from "./useCliAgentExecution.js";
 import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes.js";
@@ -60,12 +64,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
   const sendMessage = useCallback(
     async (promptText: string) => {
-      const userMsg: ChatMessageItem = {
-        id: `msg_u_${Date.now()}`,
-        role: "user",
-        content: promptText,
-        timestamp: Date.now(),
-      };
+      const userMsg: ChatMessageItem = { id: `msg_u_${Date.now()}`, role: "user", content: promptText, timestamp: Date.now() };
       const nextMessages = [...messages, userMsg];
       setMessages(nextMessages);
       abortRef.current = new AbortController();
@@ -73,27 +72,14 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
       try {
         if (options?.selectedCliAgent) {
-          const meta =
-            CLI_AGENT_CATALOG[options.selectedCliAgent as CliAgentId];
-          const name = meta?.name || options.selectedCliAgent;
           const vault =
             options.vaultPath || useWorkspaceStore.getState().vaultPath || "";
-          await runCliPrompt(
-            options.selectedCliAgent as CliAgentId,
-            name,
+          await executeCliAgentSession(
+            options.selectedCliAgent,
             promptText,
             vault,
-            (output) => {
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: `msg_a_${Date.now()}`,
-                  role: "assistant",
-                  content: output,
-                  timestamp: Date.now(),
-                },
-              ]);
-            },
+            runCliPrompt,
+            setMessages,
           );
           return;
         }
@@ -107,25 +93,16 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
         let structuredRequest: StructuredUserRequest | null = null;
         if (options?.rewriteEnabled) {
-          structuredRequest = await executeRewriteStep(
-            promptText,
-            async (prompt) => {
-              const res = await provider.complete({
-                messages: [{ role: "user", content: prompt }],
-              });
-              return res.content || "";
-            },
-          );
+          const res = await executeRewriteAndClarify(promptText, provider);
+          structuredRequest = res.structuredRequest;
           setLastStructuredRequest(structuredRequest);
-
-          const clarification = shouldClarifyRequest(structuredRequest);
-          if (clarification.needsClarification && clarification.question) {
+          if (res.clarificationQuestion) {
             setMessages((prev) => [
               ...prev,
               {
                 id: `msg_a_${Date.now()}`,
                 role: "assistant",
-                content: clarification.question!,
+                content: res.clarificationQuestion!,
                 timestamp: Date.now(),
               },
             ]);
@@ -160,32 +137,10 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           promptText,
           abortSignal: abortRef.current?.signal,
           onAssistantChunk: (chunk: string) => {
-            setMessages((prev) => {
-              const existing = prev.find((m) => m.id === assistantMsgId);
-              if (existing) {
-                return prev.map((m) =>
-                  m.id === assistantMsgId
-                    ? { ...m, content: m.content + chunk, isStreaming: true }
-                    : m,
-                );
-              }
-              return [
-                ...prev,
-                {
-                  id: assistantMsgId,
-                  role: "assistant",
-                  content: chunk,
-                  isStreaming: true,
-                  timestamp: Date.now(),
-                },
-              ];
-            });
+            setMessages((prev) => appendAssistantChunk(prev, assistantMsgId, chunk));
           },
           onAssistantMessage: (msg) => {
-            setMessages((prev) => {
-              const filtered = prev.filter((m) => m.id !== assistantMsgId);
-              return [...filtered, { ...msg, isStreaming: false }];
-            });
+            setMessages((prev) => finalizeAssistantMessage(prev, assistantMsgId, msg));
           },
           stepContext: {
             webSearchEnabled: options?.webSearchEnabled,
@@ -243,6 +198,32 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
     await handleApplyAllChanges(pending);
   }, [handleApplyAllChanges, stagedChanges]);
 
+  const handleEditMessage = useCallback(
+    async (messageId: string, newText: string) => {
+      const idx = messages.findIndex((m) => m.id === messageId);
+      if (idx === -1) return;
+      const prior = messages.slice(0, idx);
+      setMessages(prior);
+      await sendMessage(newText);
+    },
+    [messages, sendMessage],
+  );
+
+  const handleRegenerateMessage = useCallback(
+    async (assistantMsgId: string) => {
+      const idx = messages.findIndex((m) => m.id === assistantMsgId);
+      if (idx === -1) return;
+      const userMsg = [...messages.slice(0, idx)]
+        .reverse()
+        .find((m) => m.role === "user");
+      if (!userMsg) return;
+      const prior = messages.slice(0, idx);
+      setMessages(prior);
+      await sendMessage(userMsg.content);
+    },
+    [messages, sendMessage],
+  );
+
   return {
     messages,
     stagedChanges,
@@ -255,6 +236,8 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
     ...ledgerMethods,
     handleApplyAllChanges: handleBatchApply,
     sendMessage,
+    handleEditMessage,
+    handleRegenerateMessage,
     abortExecution,
     clearMessages,
     setMessages,

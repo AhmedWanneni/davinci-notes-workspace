@@ -62,6 +62,8 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
     handleRejectChange,
     handleApplyAllChanges,
     sendMessage,
+    handleEditMessage,
+    handleRegenerateMessage,
     abortExecution,
     clearMessages,
     setMessages,
@@ -155,7 +157,12 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
             />
           ) : (
             messages.map((msg) => (
-              <AgentMessageBubble key={msg.id} message={msg} />
+              <AgentMessageBubble
+                key={msg.id}
+                message={msg}
+                onEditMessage={(id, text) => void handleEditMessage(id, text)}
+                onRegenerateMessage={(id) => void handleRegenerateMessage(id)}
+              />
             ))
           )}
           {cliSession && (

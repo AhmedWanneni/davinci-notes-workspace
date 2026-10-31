@@ -221,6 +221,54 @@
   font-family: inherit;
 }
 
+.agent-message__row {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+
+  &:hover .agent-message-actions {
+    opacity: 1;
+  }
+}
+
+.agent-message-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity var(--motion-duration-fast) var(--motion-ease-standard);
+
+  .agent-message--user & {
+    align-self: flex-end;
+  }
+
+  .agent-message--assistant & {
+    align-self: flex-start;
+  }
+}
+
+.agent-message-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-secondary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    color: var(--color-text-normal);
+    border-color: var(--color-border-focus);
+    background-color: var(--color-bg-hover);
+  }
+}
+
 .agent-message--user {
   align-self: center;
   display: flex;
@@ -632,48 +680,84 @@
 }
 
 .agent-tool-card {
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-bg-secondary);
   border: var(--border-width-thin) solid var(--color-border-subtle);
   border-radius: var(--border-radius-md);
-  padding: var(--space-2) var(--space-3);
+  overflow: hidden;
   font-size: var(--type-scale-xs);
-  transition: border-color var(--motion-duration-fast)
-    var(--motion-ease-standard);
+  transition: border-color var(--motion-duration-fast) var(--motion-ease-standard);
 
-  &[data-error] {
+  &[data-status="error"] {
     border-color: var(--color-border-status-error);
-    background-color: var(--color-bg-status-error);
+  }
+
+  &[data-status="pending"] {
+    border-color: var(--color-border-focus);
   }
 }
 
 .agent-tool-card__header {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
-  user-select: none;
-  list-style: none;
-
-  &::-webkit-details-marker {
-    display: none;
-  }
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg-tertiary);
 }
 
-.agent-tool-card__icon {
-  color: var(--color-text-muted);
+.agent-tool-card__toggle-btn {
   display: flex;
   align-items: center;
-}
-
-.agent-tool-card__name {
-  font-weight: var(--type-weight-medium);
+  gap: var(--space-2);
+  background: transparent;
+  border: none;
   color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  font-size: var(--type-scale-xs);
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
   flex: 1;
 }
 
-.agent-tool-card__status {
+.agent-tool-card__title {
+  font-weight: var(--type-weight-medium);
+}
+
+.agent-tool-card__caret {
+  color: var(--color-text-faint);
   display: flex;
   align-items: center;
+}
+
+.agent-tool-card__status-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.agent-tool-card__diff-btn {
+  background-color: transparent;
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-accent);
+  font-size: var(--type-scale-xs);
+  padding: 1px 6px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-border-focus);
+    background-color: var(--color-bg-hover);
+  }
+}
+
+.agent-tool-card__status-icon {
+  display: flex;
+  align-items: center;
+}
+
+.agent-tool-card__spinner {
+  animation: agent-spin 1s linear infinite;
+  color: var(--color-text-accent);
 }
 
 .agent-tool-card__icon--success {
@@ -684,8 +768,14 @@
   color: var(--color-text-error);
 }
 
+.agent-tool-card__body {
+  padding: var(--space-2) var(--space-3);
+  border-top: var(--border-width-thin) solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary);
+}
+
 .agent-tool-card__args {
-  margin: var(--space-2) 0 0;
+  margin: 0;
   padding: var(--space-2);
   background-color: var(--color-bg-secondary);
   border-radius: var(--border-radius-sm);

@@ -11,6 +11,8 @@ import {
   type AgentIntent,
   type StructuredUserRequest,
   type VaultMutationBackend,
+  executeRewriteStep,
+  shouldClarifyRequest,
 } from "@app/ai-agent";
 import { buildAgentSystemPrompt } from "./agentSystemPrompt.js";
 import { prepareActiveTools } from "./executeAgentStepTool.js";
@@ -86,4 +88,26 @@ export async function resolveExecutionPromptAndTools(
   }
 
   return { systemPrompt, activeTools };
+}
+
+export async function executeRewriteAndClarify(
+  promptText: string,
+  provider: AIProvider,
+): Promise<{
+  structuredRequest: StructuredUserRequest;
+  clarificationQuestion?: string;
+}> {
+  const structuredRequest = await executeRewriteStep(promptText, async (prompt) => {
+    const res = await provider.complete({
+      messages: [{ role: "user", content: prompt }],
+    });
+    return res.content || "";
+  });
+  const clarification = shouldClarifyRequest(structuredRequest);
+  return {
+    structuredRequest,
+    clarificationQuestion: clarification.needsClarification
+      ? clarification.question
+      : undefined,
+  };
 }

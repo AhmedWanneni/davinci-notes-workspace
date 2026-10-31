@@ -2,6 +2,22 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: AI Chat Overhaul Phase 3: Collapsible Tool Cards, Diff Links & Message Actions
+
+- **Collapsible Tool Status Cards (`AgentToolCard.tsx` & `AgentView.scss`)**:
+  - Replaced raw details with status-aware accordion displaying tool category icons, title, status indicators (spinner, check, error), and expandable arguments/output.
+  - Linked file tools to `AgentDiffViewer` via "View diff" button.
+- **Message Actions Toolbar (`AgentMessageActions.tsx`)**:
+  - Hover action toolbar on messages: Copy markdown, Edit user prompts, and Regenerate assistant turns.
+- **Execution Loop Truncation (`useAgentExecution.ts` & `agentExecutionHelpers.ts`)**:
+  - Implemented `handleEditMessage` and `handleRegenerateMessage` with forward turn truncation.
+  - Extracted helper functions into `agentExecutionHelpers.ts` to strictly maintain <250 lines (`useAgentExecution.ts`: 245 lines).
+- **Verification**:
+  - All 27 test files (75 tests) passing in `apps/desktop/src/components/AgentView`.
+  - Knowledge graph updated with `graphify update .`.
+
+---
+
 ### 2026-10-31: AI Chat Overhaul Phase 2: High-Performance Streaming Markdown, Code Blocks & Reasoning
 
 - **Streaming Block Lexer (`agentMarkdownParser.ts` & `agentInlineRenderer.tsx`)**:

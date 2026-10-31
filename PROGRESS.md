@@ -4,7 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Chat Overhaul Phase 2: High-Performance Streaming Markdown, Code Blocks & Reasoning
+## Last Session — AI Chat Overhaul Phase 3: Collapsible Tool Cards, Diff Links & Message Actions
+
+**Scope:** Implement Phase 3 of `ai-chat-ui-feature-plan.md`: replace plain tool cards with sleek collapsible status rows, link file modification actions directly to diff viewers, implement a hover message action toolbar (Copy, Edit user turns, Regenerate assistant turns), and support history truncation & resubmission.
+
+**What was done:**
+1. **Collapsible Tool Status Cards (`AgentToolCard.tsx` & `AgentView.scss`)**:
+   - Sleek status card with tool-type icon (search, file, web, wrench), formatted action title, and expandable arguments/output.
+   - Real-time status indicators: spinner (`CircleNotch`) during streaming execution, green check (`CheckCircle`) on success, amber/red warning (`WarningCircle`) on error.
+   - Interactive "View diff" button linking file modification tools directly to `AgentDiffViewer`.
+2. **Hover Message Actions Toolbar (`AgentMessageActions.tsx` & `AgentView.scss`)**:
+   - Subtle hover toolbar on messages:
+     - Copy button with 2s "Copied" checkmark feedback.
+     - Edit button for user prompts to populate composer and resubmit.
+     - Regenerate button for assistant responses to clear the turn and request a fresh generation.
+3. **Execution Loop & History Truncation (`useAgentExecution.ts` & `agentExecutionHelpers.ts`)**:
+   - Added `handleEditMessage` (truncates history from the edited user turn and resubmits).
+   - Added `handleRegenerateMessage` (truncates assistant turn and re-runs preceding user prompt).
+   - Extracted helper functions (`appendAssistantChunk`, `finalizeAssistantMessage`, `executeCliAgentSession`) to enforce the 250-line file cap (`useAgentExecution.ts`: 245 lines).
+4. **Verification & Testing**:
+   - Unit tests in `AgentPhase3ToolCardsAndActions.test.tsx`.
+   - All 27 test files (75 tests) passing in `apps/desktop/src/components/AgentView`.
+   - All files under 250 lines (`AgentToolCard.tsx`: 105 lines, `AgentMessageActions.tsx`: 70 lines, `AgentMessageBubble.tsx`: 85 lines, `useAgentExecution.ts`: 245 lines).
+   - Knowledge graph updated via `graphify update .`.
+
+**Next up:**
+- **Phase 4 (`ai-chat-ui-feature-plan.md`)**: Multimodal Image Attachments & Vision Pipeline (attach button, drag-and-drop, clipboard paste, thumbnail chips, click-to-zoom modal, and provider vision mapping).
+
+---
+
+## Prior Session — AI Chat Overhaul Phase 2: High-Performance Streaming Markdown, Code Blocks & Reasoning
 
 **Scope:** Implement Phase 2 of `ai-chat-ui-feature-plan.md`: replace regex line-by-line parsing with a streaming block lexer, copyable code blocks with language chrome, collapsible `<think>`/reasoning blocks with thinking state, grounded citation pills, and memoized block rendering.
 
