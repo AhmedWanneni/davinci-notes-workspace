@@ -19,6 +19,8 @@ import { useAgentLedger } from "./useAgentLedger.js";
 import { buildAgentWorkingHistory } from "./agentSystemPrompt.js";
 import { resolveExecutionPromptAndTools } from "./agentPromptResolver.js";
 import { runAgentStepLoop } from "./agentStepLoop.js";
+import { useCliAgentExecution } from "./useCliAgentExecution.js";
+import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes.js";
 import type { ChatMessageItem, StagedChangeItem } from "./agentTypes.js";
 
 export interface UseAgentExecutionOptions {
@@ -28,6 +30,8 @@ export interface UseAgentExecutionOptions {
   autoApply?: boolean;
   vaultName?: string;
   rewriteEnabled?: boolean;
+  selectedCliAgent?: string | null;
+  vaultPath?: string;
 }
 
 export function useAgentExecution(options?: UseAgentExecutionOptions) {
@@ -51,6 +55,8 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
   const ledgerMethods = useAgentLedger(mutationBackend, setStagedChanges);
   const { handleApplyChange, handleApplyAllChanges } = ledgerMethods;
+  const { cliSession, runCliPrompt, cancelActiveCliSession } =
+    useCliAgentExecution();
 
   const sendMessage = useCallback(
     async (promptText: string) => {
@@ -66,6 +72,32 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
       setIsStreaming(true);
 
       try {
+        if (options?.selectedCliAgent) {
+          const meta =
+            CLI_AGENT_CATALOG[options.selectedCliAgent as CliAgentId];
+          const name = meta?.name || options.selectedCliAgent;
+          const vault =
+            options.vaultPath || useWorkspaceStore.getState().vaultPath || "";
+          await runCliPrompt(
+            options.selectedCliAgent as CliAgentId,
+            name,
+            promptText,
+            vault,
+            (output) => {
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: `msg_a_${Date.now()}`,
+                  role: "assistant",
+                  content: output,
+                  timestamp: Date.now(),
+                },
+              ]);
+            },
+          );
+          return;
+        }
+
         const providerId =
           options?.providerId ?? (await loadSelectedProvider());
         const provider = await createConfiguredProvider(
@@ -188,6 +220,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
       messages,
       mutationBackend,
       options,
+      runCliPrompt,
       webSearchBackend,
     ],
   );
@@ -195,8 +228,9 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const abortExecution = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
+    void cancelActiveCliSession();
     setIsStreaming(false);
-  }, []);
+  }, [cancelActiveCliSession]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -216,6 +250,8 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
     autoApply,
     setAutoApply,
     lastStructuredRequest,
+    cliSession,
+    cancelActiveCliSession,
     ...ledgerMethods,
     handleApplyAllChanges: handleBatchApply,
     sendMessage,

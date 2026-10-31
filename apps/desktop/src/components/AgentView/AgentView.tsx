@@ -9,6 +9,7 @@ import { AgentConversationsDrawer } from "./AgentConversationsDrawer";
 import { AgentShortcutsBar } from "./AgentShortcutsBar";
 import { AgentStarterPrompts } from "./AgentStarterPrompts";
 import { AgentSettingsPanel } from "./AgentSettingsPanel";
+import { AgentCliStatusCard } from "./AgentCliStatusCard";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentSchedules } from "./useAgentSchedules";
 import { useAgentConversations } from "./useAgentConversations";
@@ -37,10 +38,14 @@ export function AgentView() {
     setIsConfigured,
     shortcuts,
     handleModelSelect,
+    selectedCliAgent,
+    setSelectedCliAgent,
   } = useAgentViewConfig();
 
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
-  const vaultName = vaultPath ? vaultPath.split(/[/\\]/).pop() || "davinci-notes" : "davinci-notes";
+  const vaultName = vaultPath
+    ? vaultPath.split(/[/\\]/).pop() || "davinci-notes"
+    : "davinci-notes";
 
   const {
     messages,
@@ -58,6 +63,8 @@ export function AgentView() {
     abortExecution,
     clearMessages,
     setMessages,
+    cliSession,
+    cancelActiveCliSession,
   } = useAgentExecution({
     providerId: currentProvider,
     model: currentModel,
@@ -65,6 +72,8 @@ export function AgentView() {
     autoApply,
     rewriteEnabled,
     vaultName,
+    selectedCliAgent,
+    vaultPath: vaultPath ?? undefined,
   });
 
   const {
@@ -94,7 +103,10 @@ export function AgentView() {
 
   // Only load conversation messages when switching conversations to prevent infinite effect loops
   useEffect(() => {
-    if (activeConversation && activeConversation.id !== lastLoadedConvIdRef.current) {
+    if (
+      activeConversation &&
+      activeConversation.id !== lastLoadedConvIdRef.current
+    ) {
       lastLoadedConvIdRef.current = activeConversation.id;
       setMessages(activeConversation.messages as ChatMessageItem[]);
     }
@@ -154,6 +166,14 @@ export function AgentView() {
             messages.map((msg) => (
               <AgentMessageBubble key={msg.id} message={msg} />
             ))
+          )}
+          {cliSession && (
+            <AgentCliStatusCard
+              agentName={cliSession.agentName}
+              status={cliSession.status}
+              logs={cliSession.logs}
+              onCancel={cancelActiveCliSession}
+            />
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -229,6 +249,8 @@ export function AgentView() {
         onToggleAutoApply={handleToggleAutoApply}
         rewriteEnabled={rewriteEnabled}
         onToggleRewrite={handleToggleRewrite}
+        selectedCliAgent={selectedCliAgent}
+        onSelectCliAgent={setSelectedCliAgent}
       />
 
       <AgentHistoryDrawer

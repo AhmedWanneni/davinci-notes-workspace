@@ -4,7 +4,37 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
+## Last Session — External Autonomous CLI Agent Integration (`agy`, `claude`, `codex`, `opencode`) for Desktop AI Agent View
+
+**Scope:** Allow users to use full autonomous CLI agents (`agy`, Anthropic `claude-code`, `codex`, `opencode`) directly from the desktop app's AI Agent chat view to execute real-world vault organization, restructuring, and roadmap generation.
+
+**What was done:**
+1. **Tauri Rust Native Subprocess Supervisor**:
+   - Created `cli_agent_types.rs` defining supported agent IDs, catalog metadata, session status, and streaming events.
+   - Created `cli_agent_detector.rs` scanning system paths (`PATH`, `/opt/homebrew/bin`, `~/.local/bin`, `~/.cargo/bin`, `~/.npm-global/bin`) to detect installed CLI binaries and versions.
+   - Created `cli_agent_runner.rs` managing non-blocking asynchronous child processes (`tokio::process::Command` / stdio piping) running directly in the vault directory with user cancellation and line-by-line event categorization (`thought`, `action`, `text`, `error`).
+   - Created `cli_agent_commands.rs` exposing Tauri commands `cli_agent_detect`, `cli_agent_start`, and `cli_agent_cancel` (rejecting plugin runner callers via `command_auth`).
+   - Registered new commands in `apps/desktop/src-tauri/src/lib.rs`.
+2. **Frontend Desktop Integration & UI**:
+   - Created `cliAgentBridge.ts` providing typed IPC invocation and event subscription.
+   - Created `useCliAgentExecution.ts` managing session state, logs accumulation, and user abort.
+   - Created `AgentCliSection.tsx` for the settings panel displaying discovered CLI agents with `READY` vs `NOT FOUND` badges, version strings, and install commands.
+   - Created `AgentCliStatusCard.tsx` + `AgentCliStatusCard.module.scss` rendering real-time streaming agent thoughts, action logs, and a Stop button.
+   - Updated `useAgentExecution.ts`, `useAgentViewConfig.ts`, `AgentSettingsPanel.tsx`, and `AgentView.tsx` to seamlessly support switching between API models and external CLI agents.
+3. **Testing & Verification**:
+   - Wrote 3 Rust unit tests covering binary detection and serialization (`cargo test cli_agent` - 3 passed).
+   - Wrote Vitest unit and component tests for `cliAgentBridge.test.ts`, `AgentCliStatusCard.test.tsx`, and `AgentCliSection.test.tsx` (9 passed).
+   - Re-verified `AgentView.test.tsx` (5 passed).
+   - Enforced 250-line file cap, ESLint (0 errors), and Stylelint (0 errors).
+   - Rebuilt knowledge graph via `graphify update .`.
+
+**Next up:**
+- Run live vault organization test with `agy` in an active test vault.
+- Add optional interactive permission dialog when CLI agent requests shell execution.
+
+---
+
+## Prior Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
 
 **Scope:** Build production standalone release artifacts for mobile (Android `.apk` and iOS `.ipa`), publish release assets to GitHub release `v0.3.0`, update the website download pages with direct public links and auto-detection, and deploy live to Cloudflare Pages.
 

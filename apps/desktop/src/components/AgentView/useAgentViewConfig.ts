@@ -28,6 +28,7 @@ export function useAgentViewConfig() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isConversationsOpen, setIsConversationsOpen] = useState(false);
   const [isConfigured, setIsConfigured] = useState(true);
+  const [selectedCliAgent, setSelectedCliAgent] = useState<string | null>(null);
   const [shortcuts, setShortcuts] = useState<AgentShortcut[]>([]);
 
   const checkProviderConfig = useCallback(async () => {
@@ -133,5 +134,7 @@ export function useAgentViewConfig() {
     shortcuts,
     handleModelSelect,
     checkProviderConfig,
+    selectedCliAgent,
+    setSelectedCliAgent,
   };
 }

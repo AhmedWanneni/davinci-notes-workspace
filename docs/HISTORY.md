@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-10-31: External Autonomous CLI Agent Integration (`agy`, `claude`, `codex`, `opencode`)
+
+- **Tauri Native Process Supervisor**:
+  - Implemented `cli_agent_types.rs` defining supported CLI agent identifiers (`agy`, `claude`, `codex`, `opencode`), catalog metadata, stream events (`thought`, `action`, `text`, `error`, `done`), and session tracking.
+  - Implemented `cli_agent_detector.rs` scanning system paths (`PATH`, `/opt/homebrew/bin`, `~/.local/bin`, `~/.cargo/bin`, `~/.npm-global/bin`) to detect installed CLI binaries and versions.
+  - Implemented `cli_agent_runner.rs` managing asynchronous child processes (`Command` / stdio piping) with `cwd = vaultPath`, classifying line output in real time and supporting user cancellation.
+  - Implemented `cli_agent_commands.rs` exposing Tauri commands `cli_agent_detect`, `cli_agent_start`, and `cli_agent_cancel` (rejecting unauthorized callers via `command_auth`).
+  - Registered commands in `src-tauri/src/lib.rs`.
+- **Frontend Agent Integration & UI**:
+  - Created `cliAgentBridge.ts` providing typed IPC invocation and event subscription.
+  - Created `useCliAgentExecution.ts` managing session state, logs accumulation, and user abort.
+  - Created `AgentCliSection.tsx` for the settings panel displaying discovered CLI agents with `READY` vs `NOT FOUND` badges, version strings, and install commands.
+  - Created `AgentCliStatusCard.tsx` + `AgentCliStatusCard.module.scss` rendering real-time streaming agent thoughts, action logs, and a Stop button.
+  - Updated `useAgentExecution.ts`, `useAgentViewConfig.ts`, `AgentSettingsPanel.tsx`, and `AgentView.tsx` to seamlessly support switching between API models and external CLI agents.
+- **Verification**:
+  - 3 Rust unit tests in `cli_agent` passed (`cargo test cli_agent`).
+  - 9 Vitest unit and component tests passed (`cliAgentBridge.test.ts`, `AgentCliStatusCard.test.tsx`, `AgentCliSection.test.tsx`, `AgentView.test.tsx`).
+  - 0 ESLint errors and 0 Stylelint errors.
+  - All files strictly adhere to the 250-line maximum per `AGENTS.md`.
+  - Rebuilt code graph via `graphify update .`.
+
+---
+
 ### 2026-10-31: Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
 
 - **Toolchain & Metro Bundler Resolution**:
