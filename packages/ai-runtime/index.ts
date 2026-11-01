@@ -1,6 +1,9 @@
 export { CloudAIProvider, LocalAIProvider } from "./providers.js";
 export { GeminiTransport } from "./geminiTransport.js";
-export { CloudTransport } from "./cloudTransport.js";
+export {
+  CloudTransport,
+  OpenAICompatibleTransport,
+} from "./cloudTransport.js";
 export { OllamaTransport } from "./ollamaTransport.js";
 export type { CloudTransportOptions } from "./cloudTransport.js";
 export {

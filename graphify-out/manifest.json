@@ -974,9 +974,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/App.tsx": {
-    "mtime": 1793528569.6893327,
-    "seen": 1793528741.3443289,
-    "ast_hash": "b990fc01bb15ca17e8a4af403990d15e",
+    "mtime": 1793528779.967219,
+    "seen": 1793533120.623085,
+    "ast_hash": "1bbabd38e11646cbb3c012e1e3ec97af",
     "semantic_hash": ""
   },
   "apps/desktop/src/adapters/TauriDialogAdapter.ts": {
@@ -8617,9 +8617,9 @@
     "semantic_hash": "0e44ed63b504eb3247604dd41d2e8b03"
   },
   "packages/ai-runtime/cloudTransport.ts": {
-    "mtime": 1793488465.431798,
-    "seen": 1793488839.779225,
-    "ast_hash": "00cf122e6e3187f3f9715921e99e8bbc",
+    "mtime": 1793529119.2996864,
+    "seen": 1793533120.6799061,
+    "ast_hash": "8e31fa49875324b88f5a612518bbf387",
     "semantic_hash": ""
   },
   "packages/ai-runtime/conversationalMeta.ts": {
@@ -8647,9 +8647,9 @@
     "semantic_hash": ""
   },
   "packages/ai-runtime/index.ts": {
-    "mtime": 1793488742.245417,
-    "seen": 1793488839.779354,
-    "ast_hash": "6497a3e74789793e29b7cd4158db6a4f",
+    "mtime": 1793529123.4481893,
+    "seen": 1793533120.680041,
+    "ast_hash": "5e1daadd6b8a099921900ef7a5b1568a",
     "semantic_hash": ""
   },
   "packages/ai-runtime/ollamaToolFallback.test.ts": {
@@ -13265,9 +13265,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793491107.5388808,
-    "seen": 1793491145.5984771,
-    "ast_hash": "0d39011e32c53448c9ca5f668186fa3a",
+    "mtime": 1793528760.1738617,
+    "seen": 1793533120.707159,
+    "ast_hash": "42f7431912f2ba04bf74b4e2c1d5e1c4",
     "semantic_hash": ""
   },
   "README.md": {

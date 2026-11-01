@@ -251,6 +251,8 @@ export class OpenAICompatibleTransport {
   }
 }
 
+export { OpenAICompatibleTransport as CloudTransport };
+
 function parseRawToolCalls(raw?: RawToolCall[]): AgentToolCall[] {
   if (!raw) return [];
   return raw.map((item) => {
