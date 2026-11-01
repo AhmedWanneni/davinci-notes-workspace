@@ -4,6 +4,73 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Document Menu Bar, Table Code Toggle, Sublist Enter Outdent, Todo Toggle & Mermaid Padding Polish
+
+**Scope:** Polish editor interactions to match exact user specifications: reduce mermaid container bottom padding; add `</>` code button to code block cards and unboxed table header to toggle raw markdown editing; outdent empty indented sublist items back to parent level on Enter; render bolder `#ccc` grey bullets and numerals across all lists; keep interactive todo checkboxes on active lines with strikethrough and tighter margin; trigger list creation on `- ` and `1. `; and implement clean document-style `EditorMenuBar` (`Insert`, `Format`, `Tools`, `Help`) matching reference image with click-away close, video embed, and zero duplicate insert buttons.
+
+- **Mermaid Box Bottom Padding (`packages/editor/blocks/mermaid/mermaidTheme.ts`)**:
+  - Reduced container bottom padding from 18px to 4px (`padding: 16px 14px 4px 14px`).
+  - Set diagram content padding to 0 and line-height to 0, ensuring no empty gap below diagrams.
+- **Code Block & Table Code Toggle Buttons (`CodeCopyButtonWidget.ts`, `tableExtension.ts`, `tableTheme.ts`)**:
+  - Added `</>` button to code blocks alongside the copy button. Clicking it places cursor directly inside the fenced block to edit raw code.
+  - Tables remain unboxed (no outer card container) and now feature a top-right `</>` button that places the cursor in the table markdown to edit raw pipes.
+- **Sublist Enter Outdent & Auto List Creation (`packages/editor/live-preview/listKeymap.ts`)**:
+  - Pressing Enter on an empty indented item (`   3. `) completes the sublist and outdents to the parent level (`2. `), rather than deleting the line.
+  - Pressing Enter on a line with content stays at the current indent level (never creates a sublist on Enter; sublists only created on Tab).
+  - Pressing Space after `-` or `1.` at start of line auto-creates list items.
+- **Todo Checkbox & List Styling (`listExtension.ts`, `listTheme.ts`)**:
+  - Todo checkboxes remain visible and interactive even on active lines, instantly crossing out (`text-decoration: line-through`) completed task text with tighter margin (`4px`).
+  - Bullet dot is bolder (`font-weight: 700`, `16px`) and colored `#cccccc` across all list items (ordered and unordered).
+- **Docs-Style EditorMenuBar (`EditorMenuBar.tsx`, `EditorMenuBarDropdown.tsx`, `editorMenuConfig.ts`, `EditorArea.tsx`)**:
+  - Implemented top menu bar (`Insert`, `Format`, `Tools`, `Help`) with clean dropdown matching the attached reference image: Image, Table, Code block, Video, Link (`⌘K`), Symbols, Equation, Horizontal line, Page elements (`Updated`), and Comment (`⌘+Option+M`).
+  - Closes on click away or Escape key.
+  - Removed duplicate insert buttons in `EditorFormattingToolbar` and header; exactly one Insert menu exists.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (248 tests) and desktop tests passing.
+  - ESLint passing across `@app/editor` and `@app/desktop` with 0 errors.
+  - Production web bundle compiled cleanly in 10.4s.
+  - Codebase knowledge graph updated via `graphify update .`.
+  - All modified files strictly comply with `< 250` lines limit.
+
+---
+
+## Last Session — Editor Typography, List Guides & Keymap, Code Block Copy, Mermaid Sequence Card, Audio Capsule, and Agent Views
+
+**Scope:** Match all editor UI designs with reference images: nested sub-numeric list with vertical guide lines restarting at `1.` on Tab, alphabetic/roman/bullet lists with clean body typography, purple checkbox task list with document note icon, code blocks with rounded card and floating copy button, mermaid sequence diagram styling with lavender actors and `</>` button, modern audio capsule player with blue circular play button, waveform bars, time display and trash action; default hidden formatting toolbar with pencil toggle; bold/italic cursor placement; and verify alignment with prompt menu, project overview, and code block cards.
+
+- **Editor List Typography & Tree Guidelines (`packages/editor/live-preview/listTheme.ts`, `listExtension.ts`)**:
+  - Re-styled bullet (`•`) and ordered numerals/letters with clean, muted body typography (`var(--color-text-muted)`).
+  - Added vertical guideline connecting indented sub-lists (`cm-list-level-1::before`, `cm-list-level-2::before`) matching reference screenshot.
+  - Added support for alphabetic lists (`a. `, `b. `, etc.) and roman numerals (`i. `, `ii. `).
+  - Designed purple rounded square task checkboxes (`#8b5cf6` with crisp white checkmark), strikethrough completed text, and colocated document action icon (`.cm-task-note-icon`) next to task items.
+- **List Keyboard Navigation & Indentation (`packages/editor/live-preview/listKeymap.ts`, `listKeymap.test.ts`)**:
+  - Implemented `handleListTab`: pressing Tab on a numeric item indents and restarts the sub-list at `1.` matching reference screenshot.
+  - Implemented `handleListEnter`: continues numeric (`1.` -> `2.`), alphabetic (`a.` -> `b.`), roman (`i.` -> `ii.`), and task items, while clearing the marker when Enter is pressed on an empty item.
+  - Implemented `handleListShiftTab`: unindents list items cleanly.
+- **Editor Code Block Design (`packages/editor/blocks/code/`, `livePreviewExtension.ts`)**:
+  - Rendered code blocks as clean cards with rounded corners (8px), light secondary background, and 1px border.
+  - Implemented `CodeCopyButtonWidget` rendering floating `[ ⧉ ]` copy button at top right with click feedback.
+- **Mermaid Diagram Card & Sequence Styling (`packages/editor/blocks/mermaid/`)**:
+  - Added bordered card container around `.cm-mermaid-diagram` with subtle 1px border and rounded corners.
+  - Replaced hover button with top-right `</>` toggle button (`cm-mermaid-hover-hint`).
+  - Configured sequence diagram theme variables with lavender actor boxes (`#eeedfe`), dark borders, and dark circular sequence number badges `(1), (2), (3)`.
+- **Modern Audio Capsule Player (`packages/editor/embeds/EmbedAudioWidget.ts`, `embedAudioTheme.ts`)**:
+  - Redesigned audio embed into a modern horizontal capsule matching reference screenshot.
+  - Features circular blue play button (`( ▶ )`), vertical blue waveform bars with end fade, blue duration label (`0:20`), and trash delete icon `[ 🗑 ]`.
+- **Toolbar & Formatting Enhancements (`EditorArea.tsx`, `editorInsertCommands.ts`, `tableTheme.ts`)**:
+  - Formatting toolbar hidden by default with pencil toggle icon button in note header.
+  - Bold and italic insertion commands place the cursor between markers (`**|**`, `*|*`) when nothing is selected.
+  - Tables have transparent header and row backgrounds by default with subtle borders.
+  - Verified scrolling enabled across `.cm-scroller` and editor containers.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (247 tests) passing.
+  - ESLint passing across `@app/editor` and `@app/desktop` with 0 errors.
+  - Production web bundle compiled cleanly in 11.6s.
+  - Codebase knowledge graph updated via `graphify update .`.
+  - All modified files strictly comply with `< 250` lines rule (`max-lines`).
+
+---
+
 ## Last Session — Project Conversation Bugfix, Minimalist Header & Visual Alignment with Design Reference
 
 **Scope:** Fix the project selection bug where previous chat messages were erroneously copied into newly clicked projects; update conversation header to display only `{projectName} / {title}`; add direct `+` navigation to the Project Overview page from both the conversation header and sidebar nested list; align prompt menu divider and code card styling with the reference screenshots.

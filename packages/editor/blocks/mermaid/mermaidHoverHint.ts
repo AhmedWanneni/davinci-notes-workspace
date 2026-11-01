@@ -9,8 +9,8 @@ export function createHoverHint(options: HoverHintOptions): HTMLElement | null {
   const hint = document.createElement("div");
   hint.className = "cm-mermaid-hover-hint";
   hint.innerHTML = `
-    <button type="button" class="cm-mermaid-hint-btn cm-mermaid-edit-code-btn" title="Edit Mermaid code">
-      <span class="cm-mermaid-btn-icon">💻</span> Edit code
+    <button type="button" class="cm-mermaid-hint-btn cm-mermaid-edit-code-btn" title="Toggle Mermaid code" aria-label="Toggle Mermaid code">
+      &lt;/&gt;
     </button>
   `;
 

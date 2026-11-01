@@ -14,10 +14,10 @@ import {
   BookmarkSimple,
   CaretLeft,
   CaretRight,
-  DotsThree,
   FileText,
   Image as ImageIcon,
   Kanban as KanbanIcon,
+  PencilLine,
   Table as TableIcon,
 } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
@@ -27,7 +27,7 @@ import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { readNote, createNoteInVault } from "../../vault";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
 import { EditorConflictBanner } from "./EditorConflictBanner";
-import { EditorInsertTray } from "./EditorInsertTray";
+import { EditorMenuBar } from "./EditorMenuBar";
 import { SyncStatusButton } from "../SyncStatusButton";
 import { useEditorMediaHandlers } from "./useEditorMediaHandlers";
 import { NoteCoverImage } from "./NoteCoverImage";
@@ -55,9 +55,6 @@ const LazyDatabaseView = lazy(() =>
   import("@app/database").then((m) => ({
     default: m.DatabaseView,
   })),
-);
-const LazyInsertMenu = lazy(() =>
-  import("./InsertMenu").then((m) => ({ default: m.InsertMenu })),
 );
 const LazyInsertDialog = lazy(() =>
   import("./InsertDialog").then((m) => ({ default: m.InsertDialog })),
@@ -117,12 +114,7 @@ export function EditorArea({
   const resolveConflict = useWorkspaceStore((state) => state.resolveConflict);
   const editorViewRef = useRef<EditorView | null>(null);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
-  const [isInsertMenuOpen, setIsInsertMenuOpen] = useState(false);
-  const [isInsertTrayOpen, setIsInsertTrayOpen] = useState(false);
-  const [insertAnchor, setInsertAnchor] = useState<DOMRect | null>(null);
-  const insertSelectionRef = useRef<
-    import("@codemirror/state").EditorSelection | null
-  >(null);
+  const [showFormattingToolbar, setShowFormattingToolbar] = useState(false);
   const insertDialogRequest = useInsertDialogRequest();
   const [editingReminder, setEditingReminder] =
     useState<ReminderClickInfo | null>(null);
@@ -313,7 +305,6 @@ export function EditorArea({
     <div
       className={`editor-area__note-header${coverUrl ? " editor-area__note-header--overlay" : ""}`}
       data-tauri-drag-region
-      data-visible={isInsertMenuOpen || undefined}
     >
       <div className="editor-area__note-header-actions">
         <button
@@ -413,18 +404,32 @@ export function EditorArea({
         <button
           type="button"
           className="editor-area__note-header-button"
-          aria-label="Insert"
-          aria-expanded={isInsertMenuOpen}
-          onClick={(event) => {
-            const view = editorViewRef.current;
-            if (!view) return;
-            insertSelectionRef.current = view.state.selection;
-            setInsertAnchor(event.currentTarget.getBoundingClientRect());
-            setIsInsertMenuOpen(true);
-          }}
+          aria-label={
+            showFormattingToolbar
+              ? "Hide formatting toolbar"
+              : "Show formatting toolbar"
+          }
+          title={
+            showFormattingToolbar
+              ? "Hide formatting toolbar"
+              : "Show formatting toolbar"
+          }
+          data-active={showFormattingToolbar || undefined}
+          onClick={() => setShowFormattingToolbar((prev) => !prev)}
         >
-          <DotsThree size={16} weight="regular" />
+          <PencilLine
+            size={16}
+            weight={showFormattingToolbar ? "bold" : "regular"}
+          />
         </button>
+        <EditorMenuBar
+          view={editorViewRef.current}
+          onOpenImagePicker={handlePickLocalImage}
+          onToggleFormattingToolbar={() =>
+            setShowFormattingToolbar((prev) => !prev)
+          }
+          isFormattingToolbarVisible={showFormattingToolbar}
+        />
         {isCoverPickerOpen && (
           <Suspense fallback={null}>
             <LazyCoverImagePickerModal
@@ -436,19 +441,6 @@ export function EditorArea({
             />
           </Suspense>
         )}
-        {isInsertMenuOpen &&
-          insertAnchor &&
-          editorViewRef.current &&
-          insertSelectionRef.current && (
-            <Suspense fallback={null}>
-              <LazyInsertMenu
-                anchor={insertAnchor}
-                selection={insertSelectionRef.current}
-                view={editorViewRef.current}
-                onClose={() => setIsInsertMenuOpen(false)}
-              />
-            </Suspense>
-          )}
         {insertDialogRequest && (
           <Suspense fallback={null}>
             <LazyInsertDialog
@@ -732,25 +724,9 @@ export function EditorArea({
                 }
               />
             )}
-            <EditorFormattingToolbar
-              view={editorView ?? editorViewRef.current}
-              isInsertOpen={isInsertTrayOpen}
-              onOpenInsertMenu={() => {
-                setIsInsertTrayOpen((prev) => !prev);
-              }}
-              onOpenImagePicker={() => {
-                const view = editorView ?? editorViewRef.current;
-                if (!view) return;
-                const imageItem = findInsertItem("image");
-                if (imageItem) {
-                  runInsertItem(view, imageItem, view.state.selection);
-                }
-              }}
-            />
-            {isInsertTrayOpen && (
-              <EditorInsertTray
+            {showFormattingToolbar && (
+              <EditorFormattingToolbar
                 view={editorView ?? editorViewRef.current}
-                onClose={() => setIsInsertTrayOpen(false)}
                 onOpenImagePicker={() => {
                   const view = editorView ?? editorViewRef.current;
                   if (!view) return;

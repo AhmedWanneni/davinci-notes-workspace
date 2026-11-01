@@ -30,6 +30,17 @@ function initMermaid(mermaid: typeof import("mermaid").default) {
     startOnLoad: false,
     securityLevel: "strict",
     suppressErrorRendering: true,
+    theme: "base",
+    themeVariables: {
+      actorBkg: "#eeedfe",
+      actorBorder: "#cfcbfe",
+      actorTextColor: "#1c1c1c",
+      actorLineColor: "#cfcbfe",
+      signalColor: "#1c1c1c",
+      signalTextColor: "#1c1c1c",
+      sequenceNumberColor: "#ffffff",
+      sequenceNumberBkgColor: "#1c1c1c",
+    },
   });
   mermaidInitialized = true;
 }

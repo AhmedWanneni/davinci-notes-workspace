@@ -21,6 +21,8 @@ export const editorTheme = EditorView.theme({
   ".cm-scroller": {
     fontFamily: "inherit",
     lineHeight: "var(--editor-obsidian-body-line-height)",
+    overflow: "auto",
+    height: "100%",
   },
   ".cm-content": {
     padding:

@@ -1,5 +1,4 @@
 import { Extension, Range } from "@codemirror/state";
-import { indentWithTab } from "@codemirror/commands";
 import {
   Decoration,
   DecorationSet,
@@ -8,9 +7,12 @@ import {
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view";
+import { listTheme } from "./listTheme";
+import { listIndentKeymap } from "./listKeymap";
+import { keymap } from "@codemirror/view";
 
 const LIST_ITEM_PATTERN =
-  /^(\s*)([-*+]|\d+[.)])([ \t]+)(?:\[([^\]\n])\][ \t]*)?/gm;
+  /^(\s*)([-*+]|\d+[.)]|[a-zA-Z][.)]|[ivxIVX]+[.)])([ \t]+)(?:\[([^\]\n])\][ \t]*)?/gm;
 const completedTaskDeco = Decoration.mark({ class: "cm-task-completed" });
 const indentSpaceDeco = Decoration.mark({ class: "cm-list-indent-space" });
 
@@ -71,12 +73,32 @@ class TaskCheckboxWidget extends WidgetType {
   }
 }
 
+class TaskNoteActionWidget extends WidgetType {
+  toDOM(): HTMLElement {
+    const span = document.createElement("span");
+    span.className = "cm-task-note-icon";
+    span.title = "Task details / note";
+    span.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/>
+        <polyline points="9 1 9 5 13 5"/>
+        <line x1="6" y1="8" x2="10" y2="8"/>
+        <line x1="6" y1="11" x2="10" y2="11"/>
+      </svg>
+    `;
+    return span;
+  }
+
+  ignoreEvent(): boolean {
+    return false;
+  }
+}
+
 export interface ListExtensionOptions {
   isReadOnly?: boolean;
 }
 
-/** Native CodeMirror Tab/Shift+Tab bindings for list indentation. */
-export const listIndentKeymap = [indentWithTab];
+export { listIndentKeymap } from "./listKeymap";
 
 function isActiveLine(view: EditorView, lineNumber: number, readOnly: boolean) {
   return (
@@ -106,7 +128,7 @@ function getListDecorations(
       const marker = match[2];
       const taskMarker = match[4];
       const activeLine = isActiveLine(view, lineNumber, readOnly);
-      const ordered = /^\d/.test(marker);
+      const ordered = /^[0-9a-zA-ZivxIVX]+[.)]$/.test(marker);
 
       const spaces = match[1].replace(/\t/g, "  ").length;
       const level = Math.min(6, Math.floor(spaces / 2));
@@ -128,18 +150,30 @@ function getListDecorations(
         }).range(markerFrom, markerTo),
       );
 
-      if (taskMarker === undefined || activeLine) continue;
+      if (taskMarker === undefined) continue;
 
       const taskFrom = markerTo + match[3].length;
       const completed = taskMarker !== " ";
-      decorations.push(
-        Decoration.replace({
-          widget: new TaskCheckboxWidget(taskFrom, completed, readOnly),
-        }).range(taskFrom, taskFrom + 3),
-      );
+      const cursorHead = view.state.selection.main.head;
+      const isCursorInBrackets =
+        activeLine && cursorHead >= taskFrom && cursorHead <= taskFrom + 3;
+
+      if (!isCursorInBrackets) {
+        decorations.push(
+          Decoration.replace({
+            widget: new TaskCheckboxWidget(taskFrom, completed, readOnly),
+          }).range(taskFrom, taskFrom + 3),
+        );
+      }
       if (completed && taskFrom + 3 < line.to) {
         decorations.push(completedTaskDeco.range(taskFrom + 3, line.to));
       }
+      decorations.push(
+        Decoration.widget({
+          widget: new TaskNoteActionWidget(),
+          side: 1,
+        }).range(line.to),
+      );
     }
   }
 
@@ -171,51 +205,6 @@ function toggleTask(event: MouseEvent, view: EditorView): boolean {
   return true;
 }
 
-const listTheme = EditorView.theme({
-  ".cm-line.cm-list-line": {
-    paddingTop: "var(--editor-obsidian-spacing-list)",
-    paddingBottom: "var(--editor-obsidian-spacing-list)",
-    textIndent: "calc(-1 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-0": { paddingLeft: "var(--editor-list-indent)" },
-  ".cm-line.cm-list-level-1": {
-    paddingLeft: "calc(2 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-2": {
-    paddingLeft: "calc(3 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-3": {
-    paddingLeft: "calc(4 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-4": {
-    paddingLeft: "calc(5 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-5": {
-    paddingLeft: "calc(6 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-6": {
-    paddingLeft: "calc(7 * var(--editor-list-indent))",
-  },
-  ".cm-list-indent-space": {
-    display: "none !important",
-  },
-  ".cm-list-bullet, .cm-list-ordered": {
-    display: "inline-block",
-    width: "var(--editor-list-indent)",
-    minWidth: "var(--editor-list-indent)",
-    textAlign: "left",
-    textIndent: "0",
-    boxSizing: "border-box",
-  },
-  ".cm-list-ordered": {
-    fontVariantNumeric: "tabular-nums",
-  },
-  ".cm-task-checkbox": {
-    margin: "0 var(--space-2) 0 0",
-    verticalAlign: "middle",
-  },
-});
-
 /** Renders Markdown list markers and task checkboxes with hanging indents in live preview. */
 export function listExtension(options: ListExtensionOptions = {}): Extension {
   return [
@@ -243,5 +232,6 @@ export function listExtension(options: ListExtensionOptions = {}): Extension {
       },
     ),
     listTheme,
+    keymap.of(listIndentKeymap),
   ];
 }

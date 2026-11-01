@@ -7,6 +7,11 @@ function formatAudioTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+const WAVEFORM_BAR_HEIGHTS = [
+  12, 20, 14, 24, 18, 10, 26, 22, 16, 28, 20, 14, 18, 24, 16, 22, 12, 20, 16,
+  14, 18, 12, 14, 10,
+];
+
 export class EmbedAudioWidget extends WidgetType {
   constructor(
     readonly path: string,
@@ -27,77 +32,70 @@ export class EmbedAudioWidget extends WidgetType {
     container.setAttribute("role", "region");
     container.setAttribute("aria-label", "Audio player");
 
-    const header = document.createElement("div");
-    header.className = "cm-file-audio-embed__header";
+    // Circular blue play button
+    const playBtn = document.createElement("button");
+    playBtn.type = "button";
+    playBtn.className = "cm-file-audio-embed__play-btn";
+    playBtn.setAttribute("aria-label", "Play audio");
+    playBtn.innerHTML = `
+      <svg class="cm-play-icon" width="13" height="13" viewBox="0 0 16 16" fill="white">
+        <polygon points="4,2 14,8 4,14"/>
+      </svg>
+      <svg class="cm-pause-icon" width="13" height="13" viewBox="0 0 16 16" fill="white" style="display:none">
+        <rect x="3" y="2" width="3.5" height="12" rx="1"/>
+        <rect x="9.5" y="2" width="3.5" height="12" rx="1"/>
+      </svg>
+    `;
 
-    const titleGroup = document.createElement("div");
-    titleGroup.className = "cm-file-audio-embed__title-group";
+    // Waveform bars container
+    const waveform = document.createElement("div");
+    waveform.className = "cm-file-audio-embed__waveform";
+    const barEls: HTMLElement[] = [];
 
-    const icon = document.createElement("span");
-    icon.className = "cm-file-audio-embed__icon";
-    icon.textContent = "🎙️";
+    WAVEFORM_BAR_HEIGHTS.forEach((h, i) => {
+      const bar = document.createElement("div");
+      bar.className = "cm-file-audio-embed__bar";
+      bar.style.height = `${h}px`;
+      if (i >= WAVEFORM_BAR_HEIGHTS.length - 3) {
+        bar.style.opacity = `${0.35 + (WAVEFORM_BAR_HEIGHTS.length - i) * 0.2}`;
+      }
+      waveform.appendChild(bar);
+      barEls.push(bar);
+    });
 
-    const title = document.createElement("span");
-    title.className = "cm-file-audio-embed__title";
-    title.textContent = this.path.split(/[/\\]/).pop() ?? this.path;
+    // Time display
+    const timeLabel = document.createElement("span");
+    timeLabel.className = "cm-file-audio-embed__time";
+    timeLabel.textContent = "0:00";
 
-    titleGroup.appendChild(icon);
-    titleGroup.appendChild(title);
-    header.appendChild(titleGroup);
-
-    const rerunBtn = document.createElement("button");
-    rerunBtn.type = "button";
-    rerunBtn.className = "cm-file-audio-embed__rerun-btn";
-    rerunBtn.textContent = "Re-run AI";
-    rerunBtn.title = "Re-run transcription and AI note listening";
-    rerunBtn.onclick = (e) => {
+    // Trash delete button
+    const trashBtn = document.createElement("button");
+    trashBtn.type = "button";
+    trashBtn.className = "cm-file-audio-embed__trash-btn";
+    trashBtn.setAttribute("aria-label", "Delete audio");
+    trashBtn.title = "Delete audio";
+    trashBtn.innerHTML = `
+      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="2 4 14 4"/>
+        <path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h3A1.5 1.5 0 0 1 11 2.5V4"/>
+        <path d="M12.5 4v9.5a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5V4"/>
+        <line x1="6.5" y1="7.5" x2="6.5" y2="11.5"/>
+        <line x1="9.5" y1="7.5" x2="9.5" y2="11.5"/>
+      </svg>
+    `;
+    trashBtn.onclick = (e) => {
       e.stopPropagation();
       e.preventDefault();
       window.dispatchEvent(
-        new CustomEvent("davinci:re-run-audio-transcription", {
+        new CustomEvent("davinci:delete-audio-embed", {
           detail: { path: this.path },
         }),
       );
     };
-    header.appendChild(rerunBtn);
-    container.appendChild(header);
-
-    const controls = document.createElement("div");
-    controls.className = "cm-file-audio-embed__controls";
-
-    const playBtn = document.createElement("button");
-    playBtn.type = "button";
-    playBtn.className = "cm-file-audio-embed__play-btn";
-    playBtn.textContent = "▶ Play";
-    playBtn.setAttribute("aria-label", "Play audio");
-
-    const progressWrapper = document.createElement("div");
-    progressWrapper.className = "cm-file-audio-embed__progress-wrapper";
-
-    const progressTrack = document.createElement("div");
-    progressTrack.className = "cm-file-audio-embed__progress-track";
-
-    const progressBar = document.createElement("div");
-    progressBar.className = "cm-file-audio-embed__progress-bar";
-    progressTrack.appendChild(progressBar);
-
-    const timeLabel = document.createElement("span");
-    timeLabel.className = "cm-file-audio-embed__time";
-    timeLabel.textContent = "0:00 / 0:00";
-
-    progressWrapper.appendChild(progressTrack);
-    progressWrapper.appendChild(timeLabel);
-
-    controls.appendChild(playBtn);
-    controls.appendChild(progressWrapper);
-    container.appendChild(controls);
 
     const audio = document.createElement("audio");
-    audio.controls = true;
     audio.preload = "metadata";
     audio.src = this.resolveMediaUrl(this.path);
-    audio.className = "cm-file-audio-embed__player";
-    container.appendChild(audio);
 
     const togglePlayback = (e?: Event) => {
       if (e) {
@@ -113,20 +111,9 @@ export class EmbedAudioWidget extends WidgetType {
 
     playBtn.onclick = togglePlayback;
 
-    container.onclick = (e) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.closest(".cm-file-audio-embed__rerun-btn") ||
-        target.closest(".cm-file-audio-embed__progress-track")
-      ) {
-        return;
-      }
-      togglePlayback(e);
-    };
-
-    progressTrack.onclick = (e) => {
+    waveform.onclick = (e) => {
       e.stopPropagation();
-      const rect = progressTrack.getBoundingClientRect();
+      const rect = waveform.getBoundingClientRect();
       if (rect.width > 0 && audio.duration) {
         const ratio = Math.max(
           0,
@@ -136,37 +123,70 @@ export class EmbedAudioWidget extends WidgetType {
       }
     };
 
+    const playIcon = playBtn.querySelector<HTMLElement>(".cm-play-icon")!;
+    const pauseIcon = playBtn.querySelector<HTMLElement>(".cm-pause-icon")!;
+
     audio.onplay = () => {
-      playBtn.textContent = "⏸ Pause";
-      playBtn.setAttribute("aria-label", "Pause audio");
+      playIcon.style.display = "none";
+      pauseIcon.style.display = "block";
       container.classList.add("is-playing");
     };
 
     audio.onpause = () => {
-      playBtn.textContent = "▶ Play";
-      playBtn.setAttribute("aria-label", "Play audio");
+      playIcon.style.display = "block";
+      pauseIcon.style.display = "none";
       container.classList.remove("is-playing");
     };
 
     audio.onended = () => {
-      playBtn.textContent = "▶ Play";
-      playBtn.setAttribute("aria-label", "Play audio");
+      playIcon.style.display = "block";
+      pauseIcon.style.display = "none";
       container.classList.remove("is-playing");
-      progressBar.style.width = "0%";
-      timeLabel.textContent = `0:00 / ${formatAudioTime(audio.duration)}`;
+      barEls.forEach((b) => b.classList.remove("is-played"));
+      timeLabel.textContent = formatAudioTime(audio.duration || 0);
     };
 
     audio.ontimeupdate = () => {
       if (audio.duration) {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        progressBar.style.width = `${pct}%`;
-        timeLabel.textContent = `${formatAudioTime(audio.currentTime)} / ${formatAudioTime(audio.duration)}`;
+        const pct = audio.currentTime / audio.duration;
+        const playedCount = Math.floor(pct * barEls.length);
+        barEls.forEach((b, i) => {
+          if (i <= playedCount) {
+            b.classList.add("is-played");
+          } else {
+            b.classList.remove("is-played");
+          }
+        });
+        timeLabel.textContent = formatAudioTime(audio.currentTime);
       }
     };
 
     audio.onloadedmetadata = () => {
-      timeLabel.textContent = `0:00 / ${formatAudioTime(audio.duration)}`;
+      timeLabel.textContent = formatAudioTime(audio.duration || 0);
     };
+
+    container.appendChild(playBtn);
+    container.appendChild(waveform);
+    container.appendChild(timeLabel);
+    container.appendChild(trashBtn);
+
+    const rerunBtn = document.createElement("button");
+    rerunBtn.type = "button";
+    rerunBtn.className = "cm-file-audio-embed__rerun-btn";
+    rerunBtn.textContent = "Re-run AI";
+    rerunBtn.style.display = "none";
+    rerunBtn.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      window.dispatchEvent(
+        new CustomEvent("davinci:re-run-audio-transcription", {
+          detail: { path: this.path },
+        }),
+      );
+    };
+    container.appendChild(rerunBtn);
+
+    container.appendChild(audio);
 
     return container;
   }

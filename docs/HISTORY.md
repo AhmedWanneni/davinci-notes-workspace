@@ -7878,3 +7878,31 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - Updated `apps/website/src/components/SiteNav.astro` so mobile shows only the Sophia Notes brand and a hamburger toggle. The toggle opens the existing links in a vertical dropdown and exposes its state through `aria-expanded` and an updated accessible label.
 - Desktop navigation remains unchanged. No dependencies were added.
 - Verification was not run (not requested).
+
+
+## 2026-11-01 — Document Menu Bar, Table Code Toggle, Sublist Enter Outdent, Todo Toggle & Mermaid Padding Polish
+
+- **Mermaid Box Bottom Padding (`packages/editor/blocks/mermaid/mermaidTheme.ts`)**:
+  - Reduced container bottom padding from 18px to 4px (`padding: 16px 14px 4px 14px`).
+  - Set diagram content padding to 0 and line-height to 0, ensuring SVG sits tight to card boundaries without empty trailing space.
+- **Code Block & Table Code Toggle Buttons (`CodeCopyButtonWidget.ts`, `tableExtension.ts`, `tableTheme.ts`)**:
+  - Added `</>` button to code block action buttons alongside the copy button. Clicking it places the editor cursor inside the fenced code block to inspect/edit raw source.
+  - Tables remain unboxed (no outer card container) and now feature a top-right `</>` button in header rows that positions cursor in the table markdown to edit raw pipes.
+- **Sublist Enter Outdent & Auto List Creation (`packages/editor/live-preview/listKeymap.ts`)**:
+  - Pressing Enter on an empty indented item (`   3. `) completes the sublist and outdents to the parent level (`2. `), rather than deleting the line.
+  - Pressing Enter on a line with content stays at the current indent level (never creates a sublist on Enter; sublists only created on Tab).
+  - Pressing Space after `-` or `1.` at start of line auto-creates list items.
+- **Todo Checkbox & List Styling (`listExtension.ts`, `listTheme.ts`)**:
+  - Todo checkboxes remain visible and interactive even on active lines, instantly crossing out (`text-decoration: line-through`) completed task text with tighter margin (`4px`).
+  - Bullet dot is bolder (`font-weight: 700`, `16px`) and colored `#cccccc` across all list items (ordered and unordered).
+- **Docs-Style EditorMenuBar (`EditorMenuBar.tsx`, `EditorMenuBarDropdown.tsx`, `editorMenuConfig.ts`, `EditorArea.tsx`)**:
+  - Implemented top menu bar (`Insert`, `Format`, `Tools`, `Help`) with clean dropdown matching Google Docs / office suite design: Image, Table, Code block, Video, Link (`⌘K`), Symbols, Equation, Horizontal line, Page elements (`Updated`), and Comment (`⌘+Option+M`).
+  - Closes on click away or Escape key.
+  - Removed duplicate insert buttons in `EditorFormattingToolbar` and header; exactly one Insert menu exists.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (248 tests) and 25 `@app/desktop` EditorArea test files (103 tests) passing.
+  - ESLint passing across `@app/editor` and `@app/desktop` with 0 errors.
+  - Web bundle builds cleanly with zero errors.
+  - Codebase knowledge graph updated via `graphify update .`.
+  - All created/modified files strictly comply with `< 250` lines limit.
+

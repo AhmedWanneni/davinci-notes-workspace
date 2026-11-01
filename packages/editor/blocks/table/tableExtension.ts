@@ -64,6 +64,36 @@ class EmptyCellWidget extends WidgetType {
   }
 }
 
+class TableCodeToggleWidget extends WidgetType {
+  constructor(readonly tableFrom: number) {
+    super();
+  }
+  eq(other: TableCodeToggleWidget) {
+    return this.tableFrom === other.tableFrom;
+  }
+  toDOM(view: EditorView) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cm-table-code-btn";
+    btn.title = "View / edit table markdown code";
+    btn.setAttribute("aria-label", "View / edit table code");
+    btn.innerHTML = "&lt;/&gt;";
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      view.dispatch({
+        selection: { anchor: this.tableFrom },
+        scrollIntoView: true,
+      });
+      view.focus();
+    };
+    return btn;
+  }
+  ignoreEvent() {
+    return false;
+  }
+}
+
 function addTableDelimiters(
   view: EditorView,
   row: TableRow,
@@ -95,6 +125,15 @@ function getTableDecorations(view: EditorView): DecorationSet {
             ? rowLastDeco
             : rowDeco;
       decorations.push(lineDeco.range(row.from));
+
+      if (isHeader) {
+        decorations.push(
+          Decoration.widget({
+            widget: new TableCodeToggleWidget(table.from),
+            side: 1,
+          }).range(row.from),
+        );
+      }
 
       addTableDelimiters(view, row, decorations);
       row.cells.forEach((cell, column) => {
