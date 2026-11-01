@@ -2,6 +2,30 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-01: Alphabetic List Enter, Task Checkbox UI, Audio Playback, QuickCapture Footers, Table/Mermaid Code Toggles, Native PDF Export
+
+- **Alphabetic List Enter (`packages/editor/live-preview/lineBreakExtension.ts`)**:
+  - Excluded list lines (`LIST_LINE_REGEX.test(line.text) || LIST_LINE_REGEX.test(nextLine.text)`) from `softLineBreakExtension`.
+  - Prevents CommonMark soft break replacement from converting the newly inserted newline between list items into a space widget, so alphabetic list items advance immediately to a new line on Enter.
+- **Todo Checkbox UI Permanence (`packages/editor/live-preview/listExtension.ts`)**:
+  - Removed `isCursorInBrackets` condition from `getListDecorations` which unmounted `TaskCheckboxWidget` and displayed raw `[ ]`/`[x]` whenever clicked with the mouse.
+  - The rendered checkbox widget remains displayed at all times across clicks, state changes, and selections.
+- **Audio Playback Restoration (`packages/editor/embeds/EmbedAudioWidget.ts`)**:
+  - Added `ignoreEvent(): boolean { return true; }` to `EmbedAudioWidget` so CodeMirror 6 does not intercept click/pointerdown events on the play button, waveform, or trash button.
+- **QuickCapture Polish (`QuickCaptureHeader.tsx`, `QuickCaptureReminder.tsx`, `QuickCaptureRecordControls.tsx`)**:
+  - Removed close button from `QuickCaptureHeader.tsx` (only Quit remains in the header).
+  - Streamlined `QuickCaptureReminder.tsx` footer to remove hints and Cancel button, displaying only the right-aligned `Save reminder` button.
+  - Streamlined `QuickCaptureRecordControls.tsx` footer to remove the Cancel button, keeping action buttons right-aligned.
+- **Table Code View Toggle (`packages/editor/blocks/table/`)**:
+  - Created `TableCodeHeaderWidget.ts` with `tableCodeEditingField`, `setTableCodeEditing`, and `TableCodeHeaderWidget` ("Table Source" badge + "👁️ View Table" button).
+  - In `tableExtension.ts`, clicking `</>` switches the table into raw markdown pipe editing without any wrapping box; clicking "View Table" returns to visual rendered table cells.
+- **Mermaid Code View Toggle (`packages/editor/blocks/mermaid/`)**:
+  - In `mermaidHoverHint.ts`, removed `e.preventDefault()` on `mousedown` which cancelled the subsequent `click` event in WebKit/Tauri.
+  - In `mermaidWidget.ts`, set `ignoreEvent() { return true; }`.
+- **Native PDF Export (`apps/desktop/src-tauri/src/fs.rs`, `exportNoteToPdf.ts`)**:
+  - Added `print_webview` Tauri command in Rust invoking native `window.print()` (which brings up the macOS system print & "Save as PDF" dialog).
+  - Created `exportNoteToPdf.ts` bridging `invoke("print_webview")` with browser `window.print()` fallback and wired to `EditorMenuBar.tsx` and `EditorArea.tsx`.
+
 ### 2026-11-01: Preview/Code Mode Toggle, PDF Export, Category Insert Menu, HTML & Mermaid Code Toggle, Alphabetic List, QuickCapture Streamlining & Scroll Fix
 
 - **Preserved User Customizations (`AGENTS.md`, `QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`, `cm-rules.css`)**:

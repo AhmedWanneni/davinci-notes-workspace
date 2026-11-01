@@ -28,6 +28,7 @@ import { readNote, createNoteInVault } from "../../vault";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
 import { EditorConflictBanner } from "./EditorConflictBanner";
 import { EditorMenuBar } from "./EditorMenuBar";
+import { exportNoteToPdf } from "./exportNoteToPdf";
 import { SyncStatusButton } from "../SyncStatusButton";
 import { useEditorMediaHandlers } from "./useEditorMediaHandlers";
 import { NoteCoverImage } from "./NoteCoverImage";
@@ -428,7 +429,7 @@ export function EditorArea({
           onOpenImagePicker={handlePickLocalImage}
           editorMode={editorMode}
           onModeChange={setEditorMode}
-          onExportPdf={() => window.print()}
+          onExportPdf={() => void exportNoteToPdf()}
         />
         {isCoverPickerOpen && (
           <Suspense fallback={null}>

@@ -192,6 +192,7 @@
   width: 1px;
   height: 1px;
 }
+
 .insert-menu {
   width: 260px;
   max-height: min(70vh, 520px);
@@ -200,6 +201,7 @@
   border-radius: var(--border-radius-sm);
   box-shadow: none;
 }
+
 .insert-menu__search {
   width: 100%;
   box-sizing: border-box;
@@ -210,15 +212,18 @@
   padding: var(--space-2);
   font: inherit;
 }
+
 .insert-menu__group {
   margin-top: var(--space-3);
 }
+
 .insert-menu__group h2 {
   margin: 0 0 var(--space-1);
   color: var(--color-text-muted);
   font-size: var(--type-scale-xs);
   font-weight: var(--type-weight-semibold);
 }
+
 .insert-menu__item {
   display: block;
   width: 100%;
@@ -230,10 +235,12 @@
   text-align: left;
   font: inherit;
 }
+
 .insert-menu__item:hover,
 .insert-menu__item[data-active] {
   background: var(--color-bg-hover);
 }
+
 .insert-menu__subheading {
   margin: var(--space-2) 0 var(--space-1) var(--space-1);
   color: var(--color-text-muted);

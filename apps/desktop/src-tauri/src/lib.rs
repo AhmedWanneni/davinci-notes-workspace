@@ -156,6 +156,7 @@ pub fn run() {
       fs::rename_folder,
       fs::delete_note,
       fs::delete_folder,
+      fs::print_webview,
       git::initialize_local_git_repository,
       git::create_local_git_version,
       git_auth::save_git_pat,

@@ -14,8 +14,8 @@ describe("QuickCapture", () => {
     expect(screen.getByRole("button", { name: /save note/i })).toBeDefined();
     expect(screen.getByRole("tab", { name: /record/i })).toBeDefined();
     expect(
-      screen.getAllByRole("button", { name: /close quick capture/i }).length,
-    ).toBeGreaterThan(0);
+      screen.queryByRole("button", { name: /close quick capture/i }),
+    ).toBeNull();
     expect(
       screen.getAllByRole("button", { name: /quit application/i }).length,
     ).toBeGreaterThan(0);
@@ -98,19 +98,13 @@ describe("QuickCapture", () => {
     expect((textarea as HTMLTextAreaElement).value).toBe("Unsaved text");
   });
 
-  it("dismisses on clicking the Close button", async () => {
+  it("does not render a close button in the header", () => {
     const handleDismiss = vi.fn().mockResolvedValue(undefined);
     render(<QuickCapture onDismiss={handleDismiss} />);
 
-    const closeButtons = screen.getAllByRole("button", {
-      name: /close quick capture/i,
-    });
-    expect(closeButtons.length).toBeGreaterThan(0);
-    fireEvent.click(closeButtons[0]);
-
-    await waitFor(() => {
-      expect(handleDismiss).toHaveBeenCalled();
-    });
+    expect(
+      screen.queryByRole("button", { name: /close quick capture/i }),
+    ).toBeNull();
   });
 
   it("quits application on clicking Quit button", async () => {

@@ -9,6 +9,11 @@ import {
 } from "@codemirror/view";
 import { showTableMenu, insertTableCommand } from "./tableContextMenu";
 import {
+  TableCodeHeaderWidget,
+  tableCodeEditingField,
+  setTableCodeEditing,
+} from "./TableCodeHeaderWidget";
+import {
   allTables,
   escapedPipes,
   tableAtPosition,
@@ -78,19 +83,22 @@ class TableCodeToggleWidget extends WidgetType {
     btn.title = "View / edit table markdown code";
     btn.setAttribute("aria-label", "View / edit table code");
     btn.innerHTML = "&lt;/&gt;";
-    btn.onclick = (e) => {
+    btn.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+    });
+    btn.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
       view.dispatch({
+        effects: setTableCodeEditing.of(this.tableFrom),
         selection: { anchor: this.tableFrom },
-        scrollIntoView: true,
       });
       view.focus();
-    };
+    });
     return btn;
   }
   ignoreEvent() {
-    return false;
+    return true;
   }
 }
 
@@ -112,7 +120,20 @@ function addTableDelimiters(
 
 function getTableDecorations(view: EditorView): DecorationSet {
   const decorations: Range<Decoration>[] = [];
+  const codeEditingFrom = view.state.field(tableCodeEditingField, false);
+
   for (const table of allTables(view)) {
+    if (codeEditingFrom === table.from) {
+      decorations.push(
+        Decoration.widget({
+          widget: new TableCodeHeaderWidget(table.from),
+          side: -1,
+          block: true,
+        }).range(table.from),
+      );
+      continue;
+    }
+
     const totalRows = table.rows.length;
     table.rows.forEach((row, rowIndex) => {
       const isHeader = rowIndex === 0;
@@ -172,28 +193,38 @@ function getTableDecorations(view: EditorView): DecorationSet {
 }
 
 export function tableExtension(options: TableExtensionOptions = {}) {
-  return ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
-      constructor(view: EditorView) {
-        this.decorations = getTableDecorations(view);
-      }
-      update(update: ViewUpdate) {
-        if (update.docChanged || update.viewportChanged)
-          this.decorations = getTableDecorations(update.view);
-      }
-    },
-    {
-      decorations: (value) => value.decorations,
-      eventHandlers: {
-        contextmenu: (event, view) =>
-          showTableMenu(
-            event,
-            view,
-            Boolean(options.isReadOnly),
-            tableAtPosition,
-          ),
+  return [
+    tableCodeEditingField,
+    ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet;
+        constructor(view: EditorView) {
+          this.decorations = getTableDecorations(view);
+        }
+        update(update: ViewUpdate) {
+          if (
+            update.docChanged ||
+            update.viewportChanged ||
+            update.transactions.some((tr) =>
+              tr.effects.some((eff) => eff.is(setTableCodeEditing)),
+            )
+          ) {
+            this.decorations = getTableDecorations(update.view);
+          }
+        }
       },
-    },
-  );
+      {
+        decorations: (value) => value.decorations,
+        eventHandlers: {
+          contextmenu: (event, view) =>
+            showTableMenu(
+              event,
+              view,
+              Boolean(options.isReadOnly),
+              tableAtPosition,
+            ),
+        },
+      },
+    ),
+  ];
 }

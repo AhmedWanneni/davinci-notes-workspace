@@ -154,17 +154,12 @@ function getListDecorations(
 
       const taskFrom = markerTo + match[3].length;
       const completed = taskMarker !== " ";
-      const cursorHead = view.state.selection.main.head;
-      const isCursorInBrackets =
-        activeLine && cursorHead >= taskFrom && cursorHead <= taskFrom + 3;
 
-      if (!isCursorInBrackets) {
-        decorations.push(
-          Decoration.replace({
-            widget: new TaskCheckboxWidget(taskFrom, completed, readOnly),
-          }).range(taskFrom, taskFrom + 3),
-        );
-      }
+      decorations.push(
+        Decoration.replace({
+          widget: new TaskCheckboxWidget(taskFrom, completed, readOnly),
+        }).range(taskFrom, taskFrom + 3),
+      );
       if (completed && taskFrom + 3 < line.to) {
         decorations.push(completedTaskDeco.range(taskFrom + 3, line.to));
       }

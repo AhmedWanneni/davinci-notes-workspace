@@ -119,9 +119,8 @@ export class MermaidWidget extends WidgetType {
     return container;
   }
 
-  ignoreEvent(event: Event) {
-    const target = event.target as HTMLElement | null;
-    return Boolean(target?.closest("button, a, input, select, textarea"));
+  ignoreEvent() {
+    return true;
   }
 }
 

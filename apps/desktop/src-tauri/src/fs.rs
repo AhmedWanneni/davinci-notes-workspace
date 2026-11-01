@@ -245,6 +245,11 @@ pub fn get_file_tree(window: WebviewWindow, app: AppHandle) -> Result<Vec<FileTr
   Ok(build_file_tree(&paths))
 }
 
+#[tauri::command]
+pub fn print_webview(window: WebviewWindow) -> Result<(), String> {
+  window.print().map_err(|e| e.to_string())
+}
+
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NotePayload {

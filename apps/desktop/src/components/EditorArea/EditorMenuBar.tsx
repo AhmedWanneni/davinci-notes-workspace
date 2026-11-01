@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import type { EditorView } from "@codemirror/view";
 import { Eye, Code, FilePdf } from "@phosphor-icons/react";
 import { EditorMenuBarDropdown } from "./EditorMenuBarDropdown";
+import { exportNoteToPdf } from "./exportNoteToPdf";
 import styles from "./EditorMenuBar.module.scss";
 
 export interface EditorMenuBarProps {
@@ -61,7 +62,7 @@ export function EditorMenuBar({
     if (onExportPdf) {
       onExportPdf();
     } else {
-      window.print();
+      void exportNoteToPdf();
     }
   };
 

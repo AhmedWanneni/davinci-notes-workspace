@@ -20,7 +20,6 @@ export function createHoverHint(options: HoverHintOptions): HTMLElement | null {
   if (btn) {
     btn.addEventListener("mousedown", (e) => {
       e.stopPropagation();
-      e.preventDefault();
     });
     btn.addEventListener("click", (e) => {
       e.stopPropagation();

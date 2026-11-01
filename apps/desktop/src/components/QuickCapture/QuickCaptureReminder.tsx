@@ -168,18 +168,7 @@ export function QuickCaptureReminder({
       </div>
 
       <div className={styles["reminder-actions"]}>
-        <div className={styles["reminder-hints"]}>
-          <span>
-            <kbd className={styles["reminder-kbd"]}>⌘S</kbd> Save
-          </span>
-          <span>
-            <kbd className={styles["reminder-kbd"]}>Esc</kbd> Cancel
-          </span>
-        </div>
         <div className={styles["reminder-buttons"]}>
-          <Button size="sm" variant="secondary" onClick={onDismiss}>
-            Cancel
-          </Button>
           <Button
             size="sm"
             variant="primary"

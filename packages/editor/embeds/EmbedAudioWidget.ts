@@ -190,4 +190,8 @@ export class EmbedAudioWidget extends WidgetType {
 
     return container;
   }
+
+  ignoreEvent(): boolean {
+    return true;
+  }
 }
