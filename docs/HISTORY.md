@@ -2,6 +2,18 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-01: Canvas Crisp Text Rendering & Typography Optimization
+
+- **Text Card Typography (`packages/canvas/TextCardNode.module.scss`)**:
+  - Replaced monospace `--font-editor` with `--font-ui` (`-apple-system`, San Francisco) at `var(--type-weight-medium)` (500) and `1.4` line-height, eliminating fuzzy monospace rendering on macOS.
+  - Eliminated nested scroll backing layers (`overflow: hidden; word-break: break-word;` instead of `overflow: auto`).
+- **WebKit Compositing & Hardware Layering (`packages/canvas/CanvasView.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`, `GroupCardNode.module.scss`)**:
+  - Switched from `backface-visibility: visible` to `backface-visibility: hidden; transform: translateZ(0); text-rendering: geometricPrecision;` on `.react-flow__node` and all card containers.
+  - Enables dedicated GPU layer promotion so WebKit rasterizes node text directly with native glyph geometry instead of flattening it into a scaled parent bitmap.
+- **Viewport Scale & Subpixel Snapping (`packages/canvas/CanvasReactFlow.tsx`)**:
+  - Removed automatic `fitView={true}` on mount that was forcing fractional scaling factors (e.g. `0.784x`), defaulting to `fitView={false}` and `defaultViewport={{ x: 0, y: 0, zoom: 1 }}` (100% crisp 1:1 scale).
+  - Added `onMoveEnd` handler snapping translation `x` and `y` to whole integers to prevent subpixel panning blur.
+
 ### 2026-11-01: Canvas Smaller Text & Cards, Crisp Anti-Blur Rendering, and Graceful Backward Arrow Routing
 
 - **Canvas Card Typography & Dimensions (`packages/canvas/canvasConstants.ts`, `TextCardNode.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`)**:

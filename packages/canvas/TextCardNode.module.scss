@@ -2,8 +2,8 @@
   position: relative;
   width: 100%;
   height: 100%;
-  transform-style: flat;
-  backface-visibility: visible;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .text-card {
@@ -16,9 +16,11 @@
   display: flex;
   flex-direction: column;
   transition: border-color 120ms ease;
+  backface-visibility: hidden;
+  transform: translateZ(0);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
 }
 
 .text-card.is-selected {
@@ -29,17 +31,18 @@
 .text-card__body {
   flex: 1;
   padding: var(--space-1) var(--space-2);
-  font-family: var(--font-editor);
+  font-family: var(--font-ui);
   font-size: var(--type-scale-xs);
-  line-height: 1.35;
+  font-weight: var(--type-weight-medium);
+  line-height: 1.4;
   color: var(--color-text-normal);
   white-space: pre-wrap;
-  word-break: anywhere;
-  overflow: auto;
+  word-break: break-word;
+  overflow: hidden;
   cursor: grab;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
 }
 
 .text-card.is-editing .text-card__body {
@@ -61,13 +64,14 @@
   outline: none;
   resize: none;
   background: transparent;
-  font-family: var(--font-editor);
+  font-family: var(--font-ui);
   font-size: var(--type-scale-xs);
-  line-height: 1.35;
+  font-weight: var(--type-weight-medium);
+  line-height: 1.4;
   color: var(--color-text-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
 }
 
 .text-card__handle {

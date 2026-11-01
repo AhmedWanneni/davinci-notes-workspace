@@ -102,19 +102,18 @@
 :global(.react-flow) {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
 }
 
 :global(.react-flow__viewport) {
-  transform-style: flat;
-  backface-visibility: visible;
+  will-change: transform;
 }
 
 :global(.react-flow__node) {
-  transform-style: flat;
-  backface-visibility: visible;
+  backface-visibility: hidden !important;
+  transform: translateZ(0);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  text-rendering: geometricPrecision;
 }
 

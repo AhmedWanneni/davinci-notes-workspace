@@ -4,6 +4,24 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Canvas Crisp Text Rendering & Typography Optimization
+
+**Scope:** Resolved persistent canvas text blurriness:
+1. **Typography & Font Family (`packages/canvas/TextCardNode.module.scss`)**:
+   - Replaced monospace `--font-editor` (which created thin hairline strokes that blurred at small sizes) with `--font-ui` (`-apple-system`, San Francisco) at `var(--type-weight-medium)` (500) and `1.4` line-height.
+   - Eliminated nested scroll backing layers (`overflow: hidden; word-break: break-word;` instead of `overflow: auto`).
+2. **WebKit Compositing & Hardware Layering (`packages/canvas/CanvasView.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`, `GroupCardNode.module.scss`)**:
+   - Switched from `backface-visibility: visible` (which flattened all nodes into a single scaled viewport texture) to `backface-visibility: hidden; transform: translateZ(0); text-rendering: geometricPrecision;` on all cards and `.react-flow__node`.
+   - Enabled dedicated GPU layer promotion so WebKit rasterizes node text directly with native glyph geometry.
+3. **Viewport Scale & Subpixel Snapping (`packages/canvas/CanvasReactFlow.tsx`)**:
+   - Removed automatic `fitView={true}` on mount that was forcing fractional scaling factors (e.g. `0.784x`), defaulting to `fitView={false}` and `defaultViewport={{ x: 0, y: 0, zoom: 1 }}` (100% crisp 1:1 scale).
+   - Added `onMoveEnd` handler snapping translation `x` and `y` to whole integers to prevent subpixel panning blur.
+- **Verification & Code Quality**:
+   - All 30 `@app/canvas` test files (188 tests) passing.
+   - Linters and typechecks passing with 0 errors.
+
+---
+
 ## Last Session — Canvas Smaller Text & Cards, Crisp Rendering, and Graceful Backward Arrow Routing
 
 **Scope:** Resolved Canvas UI improvements requested in prompt #10:
