@@ -4,6 +4,25 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Numeric List Enter Alignment Fix & Smart Backspace Outdent
+
+**Scope:** Fix numeric list alignment when pressing Enter so active indented items remain vertically aligned with previous items and never appear indented as a false sub-list.
+
+- **Active Indent Space Hiding (`packages/editor/live-preview/listExtension.ts`)**:
+  - Removed `!activeLine` suppression from `indentSpaceDeco`. Indentation spaces are now unconditionally marked with `.cm-list-indent-space` (`display: none !important;`) on both active and inactive lines.
+  - Eliminated the horizontal jump where active lines previously displayed raw spaces, shifting list numerals by 24px and making continued items (e.g. `   6. ` after `   5. `) appear as a deeper sub-list.
+- **Keymap Priority & Smart Backspace (`packages/editor/createEditorExtensions.ts`, `listKeymap.ts`)**:
+  - Elevated `listIndentKeymap` to `Prec.high` ahead of `defaultKeymap`, ensuring `handleListEnter` and `handleListTab` are never intercepted by default indentation.
+  - Added `handleListBackspace`: pressing Backspace on an empty sub-list item (`   6. |`) automatically outdents back to the parent list level (`2. |`) or clears the line if top-level, matching Obsidian/Notion conventions.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (252 tests) passing.
+  - Desktop `src/state/listExtension.test.tsx` (7 tests) passing.
+  - Added unit test in `listExtension.test.ts` verifying indentation spaces remain hidden on active editable lines.
+  - 0 ESLint errors across packages; all files strictly `< 250` lines.
+  - Knowledge graph updated via `graphify update .`.
+
+---
+
 ## Last Session — Document Menu Bar, Table Code Toggle, Sublist Enter Outdent, Todo Toggle & Mermaid Padding Polish
 
 **Scope:** Polish editor interactions to match exact user specifications: reduce mermaid container bottom padding; add `</>` code button to code block cards and unboxed table header to toggle raw markdown editing; outdent empty indented sublist items back to parent level on Enter; render bolder `#ccc` grey bullets and numerals across all lists; keep interactive todo checkboxes on active lines with strikethrough and tighter margin; trigger list creation on `- ` and `1. `; and implement clean document-style `EditorMenuBar` (`Insert`, `Format`, `Tools`, `Help`) matching reference image with click-away close, video embed, and zero duplicate insert buttons.

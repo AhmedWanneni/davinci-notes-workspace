@@ -130,14 +130,14 @@ export function createEditorExtensions(
           : [],
       ),
     ),
+    Prec.high(keymap.of(listIndentKeymap)),
     keymap.of([
       { key: "Shift-Enter", run: insertHardLineBreak },
-      ...defaultKeymap,
-      ...historyKeymap,
       { key: "Tab", run: nextSnippetField },
       { key: "Shift-Tab", run: prevSnippetField },
       { key: "Escape", run: clearSnippet },
-      ...listIndentKeymap,
+      ...defaultKeymap,
+      ...historyKeymap,
     ]),
     markdown({
       extensions: [Table, Strikethrough, highlightExtension],

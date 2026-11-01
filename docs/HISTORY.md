@@ -7906,3 +7906,20 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Codebase knowledge graph updated via `graphify update .`.
   - All created/modified files strictly comply with `< 250` lines limit.
 
+
+## 2026-11-01 — Numeric List Enter Alignment Fix & Smart Backspace Outdent
+
+- **Active Indent Space Hiding (`packages/editor/live-preview/listExtension.ts`)**:
+  - Removed `!activeLine` suppression from `indentSpaceDeco`. Indentation spaces are now unconditionally marked with `.cm-list-indent-space` (`display: none !important;`) on both active and inactive lines.
+  - Eliminated the horizontal jump where active lines previously displayed raw spaces, shifting list numerals by 24px and making continued items (e.g. `   6. ` after `   5. `) appear as a deeper sub-list.
+- **Keymap Priority & Smart Backspace (`packages/editor/createEditorExtensions.ts`, `listKeymap.ts`)**:
+  - Elevated `listIndentKeymap` to `Prec.high` ahead of `defaultKeymap`, ensuring `handleListEnter` and `handleListTab` are never intercepted by default indentation.
+  - Added `handleListBackspace`: pressing Backspace on an empty sub-list item (`   6. |`) automatically outdents back to the parent list level (`2. |`) or clears the line if top-level, matching Obsidian/Notion conventions.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (252 tests) passing.
+  - Desktop `src/state/listExtension.test.tsx` (7 tests) passing.
+  - Added unit test in `listExtension.test.ts` verifying indentation spaces remain hidden on active editable lines.
+  - 0 ESLint errors across packages; all files strictly `< 250` lines.
+  - Knowledge graph updated via `graphify update .`.
+
+

@@ -6,6 +6,7 @@ import {
   handleListEnter,
   handleListTab,
   handleListShiftTab,
+  handleListBackspace,
 } from "./listKeymap";
 
 function createTestView(doc: string, cursorOffset: number) {
@@ -63,5 +64,29 @@ describe("listKeymap", () => {
     const handled = handleListEnter(view);
     expect(handled).toBe(true);
     expect(view.state.doc.toString()).toBe("1. Parent\n   1. Sub\n2. ");
+  });
+
+  it("continues sublist on Enter at the exact same indent level (does not indent further)", () => {
+    const text = "1. Parent\n   5. Sub item";
+    const view = createTestView(text, text.length);
+    const handled = handleListEnter(view);
+    expect(handled).toBe(true);
+    expect(view.state.doc.toString()).toBe("1. Parent\n   5. Sub item\n   6. ");
+  });
+
+  it("outdents empty sublist on Backspace", () => {
+    const text = "1. Parent\n   1. Sub\n   2. ";
+    const view = createTestView(text, text.length);
+    const handled = handleListBackspace(view);
+    expect(handled).toBe(true);
+    expect(view.state.doc.toString()).toBe("1. Parent\n   1. Sub\n2. ");
+  });
+
+  it("clears top-level empty list on Backspace", () => {
+    const text = "2. ";
+    const view = createTestView(text, text.length);
+    const handled = handleListBackspace(view);
+    expect(handled).toBe(true);
+    expect(view.state.doc.toString()).toBe("");
   });
 });

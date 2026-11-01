@@ -54,6 +54,22 @@ describe("listExtension styling and hanging indents", () => {
     }
   });
 
+  it("hides raw indentation spaces on active editable lines so markers remain vertically aligned", () => {
+    const doc = "   1. Indented numeric item";
+    // Cursor on active line in editable mode
+    const { view, cleanup } = createEditor(doc, 10, false);
+    try {
+      const hiddenSpace = view.dom.querySelector(".cm-list-indent-space");
+      expect(hiddenSpace).not.toBeNull();
+      expect(hiddenSpace?.textContent).toBe("   ");
+      const orderedWidget = view.dom.querySelector(".cm-list-ordered");
+      expect(orderedWidget).not.toBeNull();
+      expect(orderedWidget?.textContent).toBe("1.");
+    } finally {
+      cleanup();
+    }
+  });
+
   it("renders bullet widgets for unordered items and numeral widgets for ordered items", () => {
     const doc = "- Unordered\n1. Ordered";
     const { view, cleanup } = createEditor(doc, 0, true);

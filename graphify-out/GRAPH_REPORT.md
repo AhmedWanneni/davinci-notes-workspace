@@ -1,24 +1,24 @@
 # Graph Report - fix-fix-desktop-ui  (2026-11-01)
 
 ## Corpus Check
-- 2809 files · ~1,044,759 words
+- 2809 files · ~1,045,410 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 247 file(s) not represented in the graph (top: .scss 178, .css 40, (none) 8)
 
 ## Summary
-- 16373 nodes · 38790 edges · 947 communities (679 shown, 268 thin omitted)
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 3246 edges (avg confidence: 0.92)
+- 16377 nodes · 38799 edges · 937 communities (672 shown, 265 thin omitted)
+- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 3248 edges (avg confidence: 0.92)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `942fb8c9`
+- Built from commit: `76709547`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- AISubsystem.ts
+- shortcutsEngine.ts
 - desktop/src/App.tsx
-- applyClipToVault.ts
+- ClipPayload
 - markdownAnnotationsExtension.ts
 - MarkdownView
 - ai-agent/index.ts
@@ -28,13 +28,13 @@
 - packages/database/index.ts
 - MobileVaultStorageAdapter
 - lifecycle.rs
-- options/main.tsx
+- PairingPanel.tsx
 - useClipSession.ts
 - transcriptionClient.ts
 - ref_testing_library_react
 - EditorArea.tsx
 - getVaultIndexDb
-- PdfCardView.tsx
+- reject_plugin_runner
 - mobile/package.json
 - fastCaptureService.ts
 - ClipPopup.tsx
@@ -47,9 +47,9 @@
 - actionValidator.ts
 - kanban/index.ts
 - RemindersView.tsx
-- filterRegistry.ts
 - clipper-core/index.ts
-- ARTICLE_TEMPLATE
+- ClipTemplate
+- conversationStore.ts
 - dependencies
 - database/package.json
 - channelTypes.ts
@@ -70,10 +70,10 @@
 - MobileVaultStorageAdapter.ts
 - QuickCapture/index.ts
 - channelConfigStore.ts
-- ref_storybook_react
+- SyncthingQrPairingSection.tsx
 - FileTree
-- ClipPayload
-- AgentChatInput.tsx
+- DaVinci Notes — Web Clipper Feature Plan
+- AgentPromptMenu.tsx
 - ADR-0052: Canvas viewport culling, render virtualization, and performance optimization
 - GitSidebarPanel.tsx
 - cli_agent_runner.rs
@@ -90,16 +90,16 @@
 - useWorkspaceStore
 - LinkCardNode.tsx
 - audio_worker.rs
-- oauth.rs
-- .enablePluginOnce
+- Serialize
+- PluginLifecycleManager
 - PluginBrowser.tsx
 - executeAgentStepTool.ts
 - clipper_validate.rs
 - watcher.rs
-- EditorBuffer
+- prompts/index.ts
 - DavinciPlugin.ts
 - CanvasColor
-- OpfsFileSystemAdapter
+- desktopSyncEngine.ts
 - sync-client/index.ts
 - WebBookmarksSubView.tsx
 - Current Focus
@@ -108,40 +108,40 @@
 - FileSystemAdapter
 - steps
 - git-manager/package.json
-- MobileVaultStorageAdapter
+- tray_tests.rs
 - main_menu
 - indexer/package.json
 - canvas/package.json
-- ref_tauri_apps_api
+- createDesktopPlatformAdapters.ts
 - web/index.ts
 - PluginEditorRpcHost
 - web/package.json
-- editor.tsx
+- NoteStore
 - GitRemoteSetupPanel.tsx
 - clipper_test_harness.rs
 - clipper_server.rs
-- MobileDriveSyncStateStore
+- driveSyncPass.ts
 - desktopDriveAuth.ts
 - verifyQrPairingPayload.mjs
-- PluginLifecycleManager
+- plugin-api/index.ts
 - Detailed Session Notes
 - AgentMarkdownContent.tsx
 - createMeetingNote.ts
 - listExtension.ts
-- useAgentExecution.ts
+- AgentSettingsPanel.tsx
 - vaultInspectionTools.ts
 - desktop/package.json
 - tauri.conf.json
-- Session Log
+- Decision
 - builtinThemes.ts
 - treeIconStorage.ts
-- Current Focus
+- NoteReaderView.tsx
 - generate.mjs
 - tableExtension.ts
 - mathExtension.ts
 - cluster.mjs
 - host-api.d.ts
-- @storybook/react-vite
+- AppSidebar
 - buildGraph.ts
 - mermaidExtension.ts
 - paths
@@ -152,33 +152,33 @@
 - bookmarkTypes.ts
 - design-tokens/package.json
 - dependencies
-- EditorInsertTray.tsx
-- builtin_editor.rs
-- TemplateExpression.ts
+- CoverImagePickerModal.tsx
+- TuiState
+- 2026-09-01 — Sync Phase 2 Scope Correction
 - recent_vaults.rs
 - VaultWelcomeView.tsx
 - FileTreeEmojiPicker.tsx
 - content.d.ts
-- Project Configuration & Documentation
+- Popover.stories.tsx
 - cli/src/lib.rs
 - PluginEditorHostAdapter
 - ListeningView.tsx
 - iframePolicy.ts
 - ThemeRecord
 - platform-adapters/src/index.ts
-- TuiState
+- oauth.rs
 - highlighterAdversarial.test.ts
-- Plugin Ecosystem — Implementation Status
+- src-tauri/src/capture.rs
 - EditorAiSelectionPopover.tsx
 - with
 - InsertDialog.tsx
-- web/index.ts
-- syncthing/SyncthingPendingFolderRow.tsx
-- src-tauri/src/capture.rs
+- WindowControlsAdapter
+- clipper_test_harness.rs
+- capture_commands.rs
 - expo
 - git_manager_branches.rs
 - Mobile UI Redesign & Theme Architecture — Feature Plan
-- expoSplashScreenMock.ts
+- tray_commands.rs
 - core-types/index.ts
 - verifyEmbeddedSyncthing.mjs
 - kanban/package.json
@@ -202,7 +202,7 @@
 - embeds/index.ts
 - getVaultIndexDb
 - ClipTokenStore
-- tui_events.rs
+- pluginTestFixtures.ts
 - paths
 - ADR-0126: CodeMirror Vim package choice and lazy-load boundary
 - ai-qa/package.json
@@ -214,7 +214,7 @@
 - Public tokens
 - Phase 9: Search / Quick Switcher
 - "Create a Release" Agent Skill — Feature & Phased Implementation Plan (`release-skill-feature-plan.md`)
-- FocusPane
+- authorize_capture_window
 - clipper_ledger.rs
 - calendarTools.ts
 - gitTypes.ts
@@ -231,7 +231,7 @@
 - clipper_attachments.rs
 - withCompatibleMacSdk.mjs
 - ReminderNotificationToast.tsx
-- WatcherAdapter
+- DialogAdapter
 - website/package.json
 - with
 - Desktop App — Step-by-Step Build Plan
@@ -256,10 +256,10 @@
 - PROGRESS.md — Current State
 - useGitSyncStore.ts
 - 4. Implementation Phases (0 through 9)
-- packages/canvas/index.ts
+- FileCardNode.tsx
 - desktop/vite.config.ts
 - SyncthingProcessManager
-- 2026-09-26 — Public-token consumer reconciliation closeout
+- sanitize/package.json
 - web-clipper/tsconfig.json
 - release.yml
 - browserBookmarkImporter.ts
@@ -285,12 +285,12 @@
 - release_tag
 - scripts
 - File Tree Context Menu, Click-Away Dismissal, and Folder Actions (CRUD)
-- EditorDom.tsx
+- Current Focus
 - Beta Overview.md
 - rules
 - properties
 - cli/package.json
-- `@app/editor`
+- builtinThemeTokens.ts
 - TableGridPopover.tsx
 - WebBookmarksContentHeader.tsx
 - QuickCaptureRecord.tsx
@@ -309,7 +309,7 @@
 - davinci-plugin-network-probe-fixture/manifest.json
 - davinci-plugin-security-probe-fixture/manifest.json
 - davinci-plugin-view-rpc-fixture/manifest.json
-- UpdateSettingsCard.tsx
+- MobileThemeProvider.tsx
 - DavinciPlugin
 - clipSessionDeps.ts
 - expoNavigationBarMock.ts
@@ -369,7 +369,7 @@
 - `apps/desktop/src/components/SettingsDialog`
 - useFileTreeMenus.ts
 - editorInsertCommands.ts
-- formatDate.ts
+- web/src/App.tsx
 - description
 - isDesktopOnly
 - main
@@ -427,26 +427,26 @@
 - Google Calendar & Google Meet Integration — Feature & Phased Build Plan
 - syncthing/index.ts
 - ADR-0121: Add Drive app-data scope for hidden manifest storage
-- @xyflow/react
+- arrangeNodes.ts
 - ai-embeddings/package.json
 - DECISIONS.md — Architecture Decision Log (index)
 - useAgentSchedules.ts
 - 7. Phased Build Plan
 - 4. Phased Implementation Plan
 - Canvas Feature — Build Plan
-- WebBookmarkItem
+- vimExtension.ts
 - Release Management & Distribution Runbook
 - ADR-0178: Closed-app clip queue and drain-on-launch with dedupe
 - calendarReminderBridge.test.ts
 - Decision
 - Local-First Note App — Stack & Architecture
 - Proposed Changes
-- light-a/manifest.json
+- AttachmentFileSystem
 - Phase 7: File Tree Sidebar
-- 3. Technical Direction Evaluation & Critical Analysis
-- useGitConflictStore.ts
+- vaultWatchSession.ts
+- BackgroundSyncCoordinator
 - Editor.tsx
-- Sync Feature — Build Plan (Drive / Syncthing, No Backend)
+- Mobile Editor Spike Report: CodeMirror 6 in Expo DOM Component
 - devDependencies
 - 2. Base & Layout Migration
 - `apps/desktop` (Graph View Feature)
@@ -457,7 +457,7 @@
 - 0251. Mobile Android Native Library Extraction and Prebuild Plugin
 - RegisteredPluginCommand
 - GraphRenderer.tsx
-- path
+- theme_files.rs
 - EditorInsertTray.stories.tsx
 - Decision
 - ScheduledMessageRow.tsx
@@ -466,7 +466,7 @@
 - git_manager_sync.rs
 - Summary of What Was Done This Session
 - Coding Best Practices
-- git_manager_branches.rs
+- git_manager_conflicts.rs
 - scripts
 - WebVaultRegistryAdapter
 - attachments/package.json
@@ -488,13 +488,13 @@
 - ADR-0131: Plugin Execution Model: Capability-Scoped Permissions per Plugin
 - ADR-0167: Plugin Message Protocol and Declarative Views
 - ADR-0175: Clipper extension framework, location, and shared core package
-- hasPlatformAdapters
+- ref_vitest
 - Decision
 - Decisions
 - Decisions
 - app/_layout.tsx
 - Decisions
-- ADR-0035: Never edit an applied migration
+- HighlighterPanel.tsx
 - devDependencies
 - Attachments Feature — Build Plan
 - Editor Markdown Formatting — Build Plan
@@ -502,10 +502,10 @@
 - Stabilization Pass — Build Plan
 - Quick Start & Usage
 - transcription_commands.rs
-- ADR-0049: Native HTML5 Drag and Drop for canvas note embeds
+- CanvasNode.ts
 - DaVinci Notes Web Clipper — Store Listings & Privacy Declarations
 - ADR-0152: Local Git uses the system executable behind an opt-in boundary
-- deleteFolderInVault.test.ts
+- ADR-0176: Where the template engine runs and the clip payload contract
 - ADR-0170: Save-time external-change guard with append-aware merge (supersedes ADR-0161)
 - ADR-0166: Plugin Isolation and Plugin-Webview Capability Boundary
 - NoteOutline.tsx
@@ -517,8 +517,8 @@
 - useWorkspaceStore.ts
 - Phase Breakdown
 - Vim Keybindings — Build Plan
-- desktop/src/vault/index.ts
-- plans/README.md
+- renameNoteInVault
+- Goal Description
 - ADR-0188: Mobile Fast Capture Destination and Attachment Routing
 - ADR-0059: New-note H1 from filename; no auto-sync on rename
 - Decision
@@ -528,7 +528,7 @@
 - Embed Web Pages Feature — Build Plan
 - HTML Support Feature — Build Plan
 - QuickCaptureDestination.tsx
-- 6. Phased Implementation Roadmap
+- Release Management, Build Pipeline & Download Distribution — Feature & Phased Implementation Plan
 - EditorBuffer
 - Theme Ecosystem — Feature Plan
 - davinci-plugin-starter/package.json
@@ -539,13 +539,13 @@
 - ADR-0147: AI Remediation C citation opener closure
 - ADR-0185: Mobile shell: Expo
 - ADR-0192: Mobile Local Graph View Architecture, SVG Selection, and Node Bounds
-- NoteOutline.tsx
-- Editor styling audit: Obsidian comparison
+- AGENTS.md — Read This First
+- @storybook/react-vite
 - ADR-0046: Canvas group containment strategy — runtime parentNode + spec-compliant bbox serialization
 - ADR-0210: Bookmarks Storage, Identity, and Lifecycle Architecture
-- duplicateNoteInVault.test.ts
+- react-native-svg.ts
 - ADR-0136: AI embedding chunks and a dedicated embedding model
-- renameNoteInVault.test.ts
+- attachments/index.ts
 - ADR-0098: Embed iframe sandbox and permissions policy
 - ADR-0103: Tweet embeds use a script-free static card
 - ADR-0137: AI vectors use SQLite BLOBs with application-side cosine search
@@ -556,7 +556,7 @@
 - ADR-0193: Mobile Read-Only JSON Canvas Rendering and Cycle Detection
 - Consecutive heading
 - Editor Advanced Formatting — Build Plan
-- downloadNoteFile
+- ready
 - @app/plugin-api@workspace:*
 - ADR-0001: Use Tauri v2, not Electron
 - ADR-0002: Use React + TypeScript
@@ -597,7 +597,7 @@
 - InlineHtmlWidget
 - NestedCanvasCardView.tsx
 - ADR-0050: Path-based media references and native media elements for canvas cards
-- NormalizedCalendarEvent
+- ref_phosphor_icons_react
 - ADR-0021: Link model fields for index + SQLite
 - ADR-0064: Canonical note delete and duplicate
 - ADR-0023: `parseLinks` ignores links inside code
@@ -616,12 +616,13 @@
 - ADR-0145: AI Remediation C citation opener status
 - ADR-0156: Platform-native custom window chrome
 - ADR-0162: Unified custom window controls
-- PendingOp
+- Mobile App — Stack & Architecture
 - ADR-0165: Built-in theme loading and precedence
 - ADR-0040: Obsidian-style CSS Grid app shell
 - ADR-0174: Expanded Curated Editor Fonts and Vim Monospace Mode
 - ADR-0175: Editor Insert Registry and Lazy Menu
 - ADR-0180: Quick Capture Note Creation and Destination Options
+- mobile/vault/index.ts
 - ADR-0186: Shared tokens, per-platform components
 - ADR-0194: Mobile Expo SDK pin and dependency alignment
 - ADR-0204: DaVinci Notes CLI Architecture, Vault Discovery, and Quick Capture
@@ -651,6 +652,7 @@
 - ADR-0104: Embed Web Pages plan closeout
 - ADR-0105: YouTube thumbnail facade and click-to-play
 - ADR-0139: Suggested-link ranking and right-sidebar placement
+- 5. Phase plan
 - ADR-0146: AI Phase 7 lazy-boundary audit
 - ADR-0164: Public theme status-tint and shadow tokens
 - 159. Emoji Icon Storage and Offline Picker Boundary
@@ -658,13 +660,13 @@
 - ADR-0163: Public theme scrim token
 - ADR-0173: Curated Editor Fonts and Custom Font Input Sanitization
 - ADR-0141: OpenAI-compatible cloud transport and key failure handling
-- ADR-0042: Canvas translation layer, viewport non-persistence & debounced save
-- ADR-0196: Mobile vault storage and flow remediation
+- 1. Plugin Manifest Specification (`manifest.json`)
+- ADR-0204: Mobile Theme Token Surface and Layout Dimensions
 - Hibbll
 - 0216. Web Search Grounding & Untrusted Content Boundaries
 - 0218. Agent Shortcuts & Scheduled Tasks Engine
 - @radix-ui/react-popover
-- ADR-0226: Native Desktop Dual-Channel Audio Loopback Architecture
+- PropertiesBlock/PropertiesBlock.tsx
 - ADR-0236: Git Manager Diff Viewer and Hunk Staging
 - git-manager/index.ts
 - ADR-0238: Git Manager Branch Management and Dirty Tree Guard
@@ -683,7 +685,7 @@
 - ADR-0233: Git Manager Activation Setting and Lazy-Loaded Monorepo Boundary
 - scripts
 - 0.1.0
-- HISTORY.md
+- resolveAttachmentFolder
 - GitHub Copilot Instructions — DaVinci Notes (Sophia)
 - Menu Bar / System Tray Feature Plan
 - Open Source Licenses & Notices
@@ -694,18 +696,18 @@
 - ADR-0091: Contiguous nonblank HTML block boundaries
 - ADR-0092: Inline HTML rendering policy
 - ADR-0093: Markdown and HTML content boundary
-- EditorFormattingToolbar.stories.tsx
+- EditorFormattingToolbar.tsx
 - BookmarksView.stories.tsx
-- Migration Plan: apps/desktop CSS Modules to CUBE CSS
+- Decisions
 - Public-token default-style diff
 - ADR-0223: Google Calendar Two-Way Sync, ETag Concurrency, and Persistent Outbox Architecture
 - ADR-0231: Calendar Event Proximity Detection & Note-Taking Prompt
 - ADR-0232: Git Manager Phase 0 Verification Audit & Architecture Baseline
-- 1. Tooling & Core Utilities
+- Step 3: Theme Architecture & Engine Specification
 - ADR-0149: AI provider classification and provider-specific consent
 - PULL_REQUEST_TEMPLATE.md
 - 0.1.0
-- askYourVault.ts
+- 6. Phased Implementation Roadmap
 - 0.1.0
 - google-calendar-api/index.ts
 - Website Deployment & Public Distribution Rules (Mandatory for all AI agents)
@@ -719,16 +721,16 @@
 - ADR-0114: Typed embed-link resolution and explicit ambiguity
 - ADR-0115: Attachments plan Phases 1–7 closeout
 - Cloudflare Pages Deployment Guide
-- ADR-0058: Canonical note creation path — no `window.prompt()` in Tauri
-- ADR-0077: Tag badges in `@app/editor` preserve first-seen display casing and use a click stub
-- 157. File Tree Drag UI, Pure Validation, and Drop Target Feedback
+- desktop/src/vault/index.ts
+- 7. Prompt-per-Phase Skeleton
+- vaultRemindersOverlay.ts
 - eslint-plugin-import@^2.29.1
-- ADR-0169: UI decoupling from SQLite index and unhandled rejection resilience
-- ADR-0198: Syncthing desktop-mobile sync verification and conflict isolation
+- AttachmentLocationSettings.stories.tsx
+- ReminderRowItem.stories.tsx
 - ADR-0214: Dedicated Agent Tab (`davinci://agent`) and Lazy Subsystem Mounting
-- ADR-0230: Meeting Note Markdown Schema & Canonical Vault Persistence
+- AgentExecutionLogs.stories.tsx
 - ADR-0172: Tray Click-to-Capture Popover and Left-Click Setting
-- ADR-0117: Manifest hashing at the Rust/platform I/O boundary
+- useEditorAiSelection.ts
 - Design tokens
 - style-dictionary
 - @app/clipper-core@workspace:*
@@ -739,22 +741,22 @@
 - @app/indexer@workspace:*
 - ADR-0008: Manifest-diff file sync, not CRDT (Yjs)
 - @app/platform-adapters@workspace:*
-- 0204 — Platform Adapter Layer and Boundary Enforcement
+- Contributing Guidelines
 - @app/plugin-runtime@workspace:*
-- 2026-09-06 — Git Versioning Phase 0: Engine and Local-Only Architecture
+- ADR-0178: Editor Mermaid Diagram Templates and Sub-Grouping
 - d3-zoom@^3.0.0
 - @fontsource/ibm-plex-sans@5.3.0
-- 2026-09-06 — Git Versioning Phase 1: Automatic Local Versions
+- ADR-0201: Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization
 - @fontsource-variable/raleway@5.2.8
 - zustand@^5.0.3
-- ADR-0079: Separate full-text Search from the Command Palette
+- useWorkspaceStore
 - frimousse@0.3.0
 - @radix-ui/react-dialog@^1.1.23
-- Editor Markdown Formatting — Phase 8: Escaping Edge Cases (@app/editor) (ADR-0072)
+- ADR-0203: Calendar Reminder Alerts and Menu-Bar Tray Integration
 - @commitlint/cli@^21.2.1
 - @tauri-apps/plugin-fs@^2.5.1
 - withSyncthingAndroid.js
-- Phase 10 — Mermaid Diagrams (@app/editor) (ADR-0073)
+- 0217. Google Calendar Write Scope Upgrade & Task Sync
 - @testing-library/jest-dom@^7.0.0
 - @testing-library/react@^16.3.2
 - @app/design-system@workspace:*
@@ -779,26 +781,26 @@
 - .changeset/README.md
 - manual-theme-verification.md
 - Editor Markdown Formatting — Phase 2 line-break semantics (ADR-0063)
-- Bug Fix — Enter After Ambiguous Table Header (@app/editor)
-- ADR-0237: Git Manager History Graph and Commit Detail
+- ADR-0235: Git Manager Staging, Discard, and Commit Operations
+- 3.5 Editor & Dependent Packages
 - GEMINI.md
 - @commitlint/config-conventional@^21.2.0
 - eslint@^8.57.0
 - eslint-import-resolver-typescript@^3.6.1
 - typescript@^5.4.0
 - @typescript-eslint/parser@^7.1.0
-- Bug Fix / Feature — Live Editable Table Grid (@app/editor)
+- typography.ts
 - VersionHistoryScheduler.ts
 - catppuccin-frappe/README.md
 - catppuccin-latte/README.md
 - builtin-themes/README.md
-- Bug Fix — Inline Code Visual Styling (@app/editor)
+- Area 4: Code Signing, Notarization & Key Management
 - HowItWorksSection.astro
 - @app/sanitize@workspace:*
 - @codemirror/autocomplete@^6.18.3
 - getOrCreateDeviceId
 - 2026-10-24.md
-- Bug Fix — Ordered List Numbers Not Rendering (@app/editor) (ADR-0069)
+- ADR-0205: Mobile Obsidian-Parity Navigation Shell and Drawer Architecture
 - RoleSection.astro
 - SafeSpaceSection.astro
 - @codemirror/view@^6.34.1
@@ -822,7 +824,7 @@
 - Untitled 7.md
 - Untitled 8.md
 - Untitled 9lk.md
-- Tags Feature Phase 1 — Tag Parsing Rules & Data Model (@app/core-types) (ADR-0075, ADR-0076)
+- Area 6: Website Download Page (`/download`)
 - preflight-release.sh
 - @app/core-types@workspace:*
 - @codemirror/lang-javascript
@@ -831,13 +833,11 @@
 - mermaid@11.16.1
 - wait-and-verify-release.sh
 - 2026-10-26.md
-- Phase 11 — Math (@app/editor) (ADR-0074)
+- updateNoteCoverContent.ts
 - 2nnnb.md
-- Editor Markdown Formatting — Phase 7: Quotes, Footnotes & Comments (@app/editor) (ADR-0071)
+- ADR-0110: Attachment filename collision suffixes
 - nnoi.md
-- Editor Markdown Formatting — Phase 6: Code Blocks (@app/editor) (ADR-0070)
 - having.md
-- Editor Markdown Formatting — Phase 5: Lists & Tasks (@app/editor) (ADR-0068)
 - hello world Untitled 2.md
 - finalize-release
 - Untitle.md
@@ -845,22 +845,14 @@
 - ADR-0148: Vault-index transaction ownership and write serialization
 - Untitled 9.md
 - cn
-- Editor Markdown Formatting — Phase 1 audit (ADR-0062)
 - install.sh
-- Stabilization Phase 1 — canonical note delete and duplicate (ADR-0064)
-- Bug Fix — Consistent Editor Line Wrapping (@app/editor)
-- Editor Markdown Formatting — Phase 4: Links & Images (@app/editor) (ADR-0067)
-- Tags Feature Phase 2 — Inline Tag Detection & Rendering (@app/editor) (ADR-0077)
 - EmbeddingScheduler
-- parsePorcelainV2.ts
 - ADR-0078: Frontmatter tag bodies and merged note tag sets
 - AgentCliStatusCard.tsx
-- Last Session
-- 0.1.0
+- core-types/index.ts
 - ref_react
 - @radix-ui/react-checkbox
 - ADR-0206: Mobile Dynamic Theme Lifecycle and WebView PostMessage Bridge
-- EditorSettingsStorage
 - @app/canvas@workspace:*
 - @app/kanban@workspace:*
 - d3-force@^3.0.0
@@ -890,10 +882,10 @@
   PROGRESS.md → apps/desktop/src/ai/AISubsystem.ts
 - `Context` --references--> `AskYourVaultPanel()`  [INFERRED]
   docs/adr/0150-ai-ask-your-vault-host-mount.md → apps/desktop/src/ai/AskYourVaultPanel.tsx
+- `2026-09-04 - Complete shared vault-index writer audit` --references--> `disableAllAIConsent()`  [INFERRED]
+  docs/HISTORY.md → apps/desktop/src/ai/aiConsentState.ts
 - `Verification` --references--> `loadAISubsystem()`  [INFERRED]
   docs/adr/0132-ai-provider-abstraction-and-lazy-load-boundary.md → apps/desktop/src/ai/loadAISubsystem.ts
-- `1.1 Goals` --references--> `useBookmarks()`  [INFERRED]
-  plans/bookmarks-feature-plan.md → apps/desktop/src/bookmarks/useBookmarks.ts
 
 ## Import Cycles
 - 1-file cycle: `apps/desktop/src-tauri/src/command_auth.rs -> apps/desktop/src-tauri/src/command_auth.rs`
@@ -917,41 +909,41 @@
 - 3-file cycle: `apps/desktop/src/state/useWorkspaceStore.ts -> apps/desktop/src/vault/index.ts -> apps/desktop/src/vault/vaultSwitchOrchestrator.ts -> apps/desktop/src/state/useWorkspaceStore.ts`
 - 3-file cycle: `apps/desktop/src/state/useWorkspaceStore.ts -> apps/desktop/src/vault/h1DrivenRename.ts -> apps/desktop/src/vault/renameNoteInVault.ts -> apps/desktop/src/state/useWorkspaceStore.ts`
 
-## Communities (947 total, 268 thin omitted)
+## Communities (937 total, 265 thin omitted)
 
-### Community 0 - "AISubsystem.ts"
-Cohesion: 0.06
-Nodes (60): AIConsentScreen(), AIConsentScreenProps, disableAllAIConsent(), AIKeyEntryScreen(), AIKeyEntryScreenProps, AISetupFlow(), AISetupFlowProps, AI_PROVIDER_NAMES (+52 more)
+### Community 0 - "shortcutsEngine.ts"
+Cohesion: 0.33
+Nodes (7): applyShortcutTemplate(), DEFAULT_STARTER_SHORTCUTS, parseShortcuts(), serializeShortcuts(), SHORTCUTS_FILE_PATH, SHORTCUTS_VERSION, ShortcutsData
 
 ### Community 1 - "desktop/src/App.tsx"
-Cohesion: 0.04
-Nodes (56): CitationNavigationTarget, revealCitationLine(), App(), LazyAgentView, LazyBookmarksView, LazyCalendarLeaf, LazyCommandPalette, LazyGitDiffViewer (+48 more)
+Cohesion: 0.06
+Nodes (42): AIStatusIndicatorProps, AskYourVaultPanelProps, CitationNavigationTarget, revealCitationLine(), App(), LazyAgentView, LazyBookmarksView, LazyCalendarLeaf (+34 more)
 
-### Community 2 - "applyClipToVault.ts"
-Cohesion: 0.04
-Nodes (70): applyClipToVault(), BEHAVIOR_ACTIONS, ClipReceivedEvent, clipTargetPlan(), ClipWritePlan, rejected(), {
+### Community 2 - "ClipPayload"
+Cohesion: 0.05
+Nodes (56): applyClipToVault(), BEHAVIOR_ACTIONS, ClipReceivedEvent, clipTargetPlan(), ClipWritePlan, rejected(), {
   createNoteInVaultMock,
   appendToNoteInVaultMock,
   resolveUniqueNotePathMock,
   getStateMock,
   invokeMock,
-}, event() (+62 more)
+}, event() (+48 more)
 
 ### Community 3 - "markdownAnnotationsExtension.ts"
 Cohesion: 0.13
 Nodes (13): blockquoteLineDeco, codeBlockLineDeco, collectFootnoteNumbers(), commentDeco, footnoteDeco(), FootnoteDefinitionWidget, FootnoteWidget, getAnnotations() (+5 more)
 
 ### Community 4 - "MarkdownView"
-Cohesion: 0.04
-Nodes (65): ADR-0048: Reusing CodeMirror 6 read-only live-preview renderer for canvas file embeds, Consequences, Context, Decision, Status, ADR-0066: Inline Markdown Formatting & Highlight Extension, Consequences, Context (+57 more)
+Cohesion: 0.03
+Nodes (64): MockVimEditorView, ADR-0048: Reusing CodeMirror 6 read-only live-preview renderer for canvas file embeds, Consequences, Context, Decision, Status, ADR-0066: Inline Markdown Formatting & Highlight Extension, Consequences (+56 more)
 
 ### Community 5 - "ai-agent/index.ts"
-Cohesion: 0.03
-Nodes (109): deriveConversationContextTitle(), AgentConversationHeader(), AgentConversationHeaderProps, InProject, meta, Standalone, Story, saveActiveMessagesHelper() (+101 more)
+Cohesion: 0.04
+Nodes (84): AgentCapabilitiesPopoverProps, deriveConversationContextTitle(), AgentConversationHeader(), AgentConversationHeaderProps, InProject, meta, Standalone, Story (+76 more)
 
 ### Community 6 - "design-system/index.ts"
 Cohesion: 0.04
-Nodes (100): AskYourVaultPanel(), AgentHeader(), AgentHeaderProps, AgentHistoryDrawer(), AgentIntegrationsSectionProps, AgentMissedBanner(), AgentStarterPrompts(), AgentStarterPromptsProps (+92 more)
+Nodes (99): formatDeviceIdGroups(), isValidDeviceIdFormat(), Props, Default, meta, Story, SyncthingAddDeviceSection(), SyncthingCheckItemRow() (+91 more)
 
 ### Community 7 - "dependencies"
 Cohesion: 0.06
@@ -959,47 +951,47 @@ Nodes (33): dependencies, @app/attachments@workspace:*, @app/canvas@workspace:*,
 
 ### Community 8 - "path"
 Cohesion: 0.04
-Nodes (72): clear_ai_key(), entry(), load_ai_key(), save_ai_key(), SERVICE, reject_plugin_runner(), clear_notification_secret(), entry() (+64 more)
+Nodes (49): SyncthingClient, extract_xml_tag(), get_default_config_paths(), KEYCHAIN_SERVICE, KEYCHAIN_USER, load_keychain_key(), parse_config_xml(), resolve_local_syncthing_config() (+41 more)
 
 ### Community 9 - "packages/database/index.ts"
 Cohesion: 0.06
 Nodes (78): ADR-0209: Markdown Database Table Format and Lossless Write-Back, Consequences, Context, Decision, Status, 2026-10-25: Markdown Database Table View (Stored in One Note — Option A), editCell(), toggleCheckboxCell() (+70 more)
 
 ### Community 10 - "MobileVaultStorageAdapter"
-Cohesion: 0.09
-Nodes (27): BACKGROUND_SYNC_TASK_NAME, BackgroundExecutionResult, BackgroundSyncCoordinator, BackgroundSyncOptions, MobileManifestStorage, MobileSyncEngine, MobileSyncEngineOptions, calculatePendingChanges() (+19 more)
+Cohesion: 0.08
+Nodes (37): CanvasViewerProps, BACKGROUND_SYNC_TASK_NAME, BackgroundExecutionResult, BackgroundSyncOptions, ApplyConflictContext, ConflictApplyResult, processAndApplyConflict(), MobileManifestStorage (+29 more)
 
 ### Community 11 - "lifecycle.rs"
-Cohesion: 0.07
-Nodes (36): generate_random_api_key(), get_or_create_managed_api_key(), KEYCHAIN_SERVICE, KEYCHAIN_USER, load_fallback_key_file(), load_keychain_api_key(), save_fallback_key_file(), save_keychain_api_key() (+28 more)
+Cohesion: 0.05
+Nodes (42): create_temp_vault(), test_10k_vault_first_frame_benchmark(), test_tui_search_filtering(), test_tui_state_navigation_and_preview(), create_temp_vault(), test_conflict_detection_simulation(), generate_random_api_key(), get_or_create_managed_api_key() (+34 more)
 
-### Community 12 - "options/main.tsx"
-Cohesion: 0.06
-Nodes (25): container, OptionsPage(), HighlighterPanel(), HighlighterPanelProps, controller, Disabled, Enabled, meta (+17 more)
+### Community 12 - "PairingPanel.tsx"
+Cohesion: 0.11
+Nodes (11): PairingPanel(), PairingPanelProps, InvalidInput, Loading, meta, Paired, SaveFailed, Story (+3 more)
 
 ### Community 13 - "useClipSession.ts"
 Cohesion: 0.06
-Nodes (28): PageCapture, applyClipEdits(), ClipEdits, FALLBACK_NOTE_NAME, sanitizeFolder(), sanitizeNoteName(), ADR-0177, ADR-0178 (+20 more)
+Nodes (31): readActiveTabCapture(), PageCapture, readPage(), applyClipEdits(), ClipEdits, FALLBACK_NOTE_NAME, sanitizeFolder(), sanitizeNoteName() (+23 more)
 
 ### Community 14 - "transcriptionClient.ts"
-Cohesion: 0.23
-Nodes (17): AudioLevelPayload, getMeetingRecordingStatus(), listAudioInputDevices(), MeetingAudioResult, pauseMeetingRecording(), RecordingStatusResponse, resumeMeetingRecording(), safeInvoke() (+9 more)
+Cohesion: 0.21
+Nodes (18): AudioLevelPayload, getMeetingRecordingStatus(), listAudioInputDevices(), MeetingAudioResult, pauseMeetingRecording(), RecordingStatusResponse, resumeMeetingRecording(), safeInvoke() (+10 more)
 
 ### Community 15 - "ref_testing_library_react"
-Cohesion: 0.05
-Nodes (43): AppTabsProps, TabListDropdown(), TabListDropdownProps, renderToolbar(), Default, meta, Story, WithDriveSyncAndOpen (+35 more)
+Cohesion: 0.11
+Nodes (28): TabListDropdown(), TabListDropdownProps, Default, meta, Story, WithDriveSyncAndOpen, VaultSwitcher(), VaultSwitcherProps (+20 more)
 
 ### Community 16 - "EditorArea.tsx"
-Cohesion: 0.11
-Nodes (22): EditorAiSelectionTrigger(), EditorArea(), LazyCanvasView, LazyCoverImagePickerModal, LazyDatabaseView, LazyInsertDialog, LazyKanbanView, LazyReminderEditModal (+14 more)
+Cohesion: 0.10
+Nodes (28): useBookmarks(), EditorAiSelectionTrigger(), EditorArea(), LazyCanvasView, LazyCoverImagePickerModal, LazyDatabaseView, LazyInsertDialog, LazyKanbanView (+20 more)
 
 ### Community 17 - "getVaultIndexDb"
-Cohesion: 0.05
-Nodes (79): TauriSqliteAdapter, AIConsentFeature, loadAIConsent(), saveAIConsent(), createEmbeddingIndex(), saveAIProviderStatus(), saveAIProviderValidationStatus(), askConfiguredVault() (+71 more)
+Cohesion: 0.06
+Nodes (67): TauriSqliteAdapter, AIConsentFeature, loadAIConsent(), createEmbeddingIndex(), fetchOllamaModels(), loadAIProviderStatus(), loadOllamaBaseUrl(), loadProviderModels() (+59 more)
 
-### Community 18 - "PdfCardView.tsx"
-Cohesion: 0.21
-Nodes (17): 2026-08-16 — Canvas Feature Phase 9 — PDF Cards, generateLargeCanvas(), pdfjs-dist@^4.10.38, configureWorkerSrc(), PdfDocumentProxy, PdfPageProxy, PdfPageSize, PdfRenderTask (+9 more)
+### Community 18 - "reject_plugin_runner"
+Cohesion: 0.09
+Nodes (41): clear_ai_key(), entry(), load_ai_key(), save_ai_key(), SERVICE, reject_plugin_runner(), clear_notification_secret(), entry() (+33 more)
 
 ### Community 19 - "mobile/package.json"
 Cohesion: 0.02
@@ -1011,55 +1003,55 @@ Nodes (28): ShareTargetScreen(), formatDateStamp(), formatFileTimestamp(), forma
 
 ### Community 21 - "ClipPopup.tsx"
 Cohesion: 0.04
-Nodes (47): ClipPopupRoot(), container, PrepareClipContextOptions, CLIP_MODE_OPTIONS, ClipModeOption, ClipModeSelector(), ClipModeSelectorProps, Default (+39 more)
+Nodes (45): ClipPopupRoot(), container, ClipDraft, ClipPopup(), ClipPopupController, ClipPopupProps, ClipStatus, describeSource() (+37 more)
 
 ### Community 22 - "insert/index.ts"
 Cohesion: 0.04
-Nodes (80): executePaletteCommand(), DIAGRAM_SUBGROUPS, GROUP_ORDER, InsertGroup(), InsertMenu(), InsertMenuProps, Decision, 2026-10-12 — Editor Insert Menu Phase 3 Limited (Media Inserts, Declarative Dialogs & Attachment Pipeline) (+72 more)
+Nodes (81): InsertDialogProps, createDummyRequest(), DIAGRAM_SUBGROUPS, GROUP_ORDER, InsertGroup(), InsertMenuProps, ADR-0177: Editor Media Insert Items, Declarative Dialogs, and Attachment Pipeline Integration, Consequences (+73 more)
 
 ### Community 23 - "MobileVaultStorageAdapter"
-Cohesion: 0.03
-Nodes (106): atomicWriteNote(), checkForExternalConflict(), ConflictCheckResult, deleteNoteAndReindex(), MoveNoteResult, moveNoteWithCollisionHandling(), cleanupOrphanedTempFiles(), encoder (+98 more)
+Cohesion: 0.04
+Nodes (95): checkFolderAccess(), FolderAccessCheckResult, createFreshSandboxFolder(), FolderTargetInfo, resolveSandboxTarget(), ScanToSyncConfirmSheet(), SyncthingPendingFolderRow(), cleanupOrphanedTempFiles() (+87 more)
 
 ### Community 24 - "cloudTransport.ts"
-Cohesion: 0.05
-Nodes (37): createCloudProvider(), createLocalProvider(), Decision, ADR-0134: AI cloud consent flow, Consequences, Context, Decision, Status (+29 more)
+Cohesion: 0.04
+Nodes (64): AIConsentScreen(), AIConsentScreenProps, disableAllAIConsent(), saveAIConsent(), AIKeyEntryScreenProps, AISetupFlow(), AISetupFlowProps, AI_PROVIDER_NAMES (+56 more)
 
 ### Community 25 - "packages/indexer/index.ts"
-Cohesion: 0.03
-Nodes (96): buildTagTree(), TagNode, TagsDialog(), TagsDialogProps, TagTreeNode(), extractH1Title(), App(), AppProps (+88 more)
+Cohesion: 0.04
+Nodes (84): extractSnippet(), MAX_SEARCH_RESULTS, useQuickSearch(), indexVaultFull(), loadNotesFromPaths(), Decision, ADR-0084: General search execution and ranking, Decision (+76 more)
 
 ### Community 26 - "mobileTheme.ts"
-Cohesion: 0.06
-Nodes (66): BUILTIN_THEMES, darkBTokens, lightATokens, catppuccinFrappeTokens, catppuccinLatteTokens, defaultMobileLayout, generateThemeCss(), MobileThemeProviderProps (+58 more)
+Cohesion: 0.12
+Nodes (25): borderWidthTokens, ColorBgTokens, ColorBorderTokens, ColorInteractiveTokens, ColorTextTokens, colorTokens, darkColorTokens, desktopTokens (+17 more)
 
 ### Community 27 - "htmlBlockExtension.ts"
 Cohesion: 0.07
-Nodes (32): 2026-08-21 — Embed Files Phase 2: Image Embed Rendering, activatedEmbeds, buildHtmlBlockDecorations(), findHtmlBlocks(), HtmlBlock, HtmlBlockWidget, decorations(), embedImageExtension() (+24 more)
+Nodes (33): Decision 3: Images load asynchronously with `loading="lazy"` and `decoding="async"`, 2026-08-21 — Embed Files Phase 2: Image Embed Rendering, activatedEmbeds, buildHtmlBlockDecorations(), findHtmlBlocks(), HtmlBlock, HtmlBlockWidget, decorations() (+25 more)
 
 ### Community 28 - "actionValidator.ts"
-Cohesion: 0.07
-Nodes (34): mockComplete, mockDelete, mockWrite, resolveRewriteClarification(), ADR-0219: Zero-Dependency Schema Validator for Prompt Understanding, Consequences, Context, Decision (+26 more)
+Cohesion: 0.08
+Nodes (33): mockComplete, mockDelete, mockWrite, ADR-0219: Zero-Dependency Schema Validator for Prompt Understanding, Consequences, Context, Decision, Status (+25 more)
 
 ### Community 29 - "kanban/index.ts"
 Cohesion: 0.07
 Nodes (57): ADR-0208: Obsidian Kanban format compatibility and lossless write-back, Consequences, Context, Decision, Status, addCard(), deleteCard(), editCard() (+49 more)
 
 ### Community 30 - "RemindersView.tsx"
-Cohesion: 0.11
-Nodes (25): AVAILABLE_CHANNELS, ChannelPickerField(), ChannelPickerFieldProps, getTodayString(), ReminderFormData, ReminderFormModal(), ReminderFormModalProps, RemindersHeader() (+17 more)
+Cohesion: 0.09
+Nodes (29): AddReminderForm(), formatDate(), AVAILABLE_CHANNELS, ChannelPickerField(), ChannelPickerFieldProps, getTodayString(), ReminderFormData, ReminderFormModal() (+21 more)
 
-### Community 31 - "filterRegistry.ts"
-Cohesion: 0.12
-Nodes (36): 2026-10-17 — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration, 2026-10-17 — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration, firstFilter(), joinFilter(), lastFilter(), listFilter(), sliceFilter(), splitFilter() (+28 more)
+### Community 31 - "clipper-core/index.ts"
+Cohesion: 0.05
+Nodes (97): Web Clipper (planned), 2026-10-17 — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration, 2026-10-17 — Web Clipper Phase 5: Highlighter, safe markdown rendering, and popup integration, firstFilter(), joinFilter(), lastFilter(), listFilter(), sliceFilter() (+89 more)
 
-### Community 32 - "clipper-core/index.ts"
-Cohesion: 0.06
-Nodes (66): BEHAVIOR_LABELS, TemplateGeneralFieldsProps, buildClipPayload(), BuildClipPayloadInput, ADR-0178, CLIP_BEHAVIORS, CLIP_PAYLOAD_VERSION, ClipAckStatus (+58 more)
+### Community 32 - "ClipTemplate"
+Cohesion: 0.07
+Nodes (45): BEHAVIOR_LABELS, TemplateGeneralFieldsProps, buildClipPayload(), BuildClipPayloadInput, contentHash(), ADR-0178, CLIP_BEHAVIORS, CLIP_PAYLOAD_VERSION (+37 more)
 
-### Community 33 - "ARTICLE_TEMPLATE"
-Cohesion: 0.06
-Nodes (37): ChosenByHand, Matched, meta, NoRuleMatched, SingleTemplate, Story, TemplatePicker(), TemplatePickerProps (+29 more)
+### Community 33 - "conversationStore.ts"
+Cohesion: 0.08
+Nodes (38): AgentConversationsDrawerProps, ProjectActionContext, AgentSidebarPanel(), AgentSidebarPanelProps, Default, meta, Story, TOP_NAV_ITEMS (+30 more)
 
 ### Community 34 - "dependencies"
 Cohesion: 0.14
@@ -1070,12 +1062,12 @@ Cohesion: 0.07
 Nodes (39): dependencies, @app/core-types@workspace:*, @app/design-system@workspace:*, @tanstack/react-virtual@^3.14.9, yaml@^2.9.0, devDependencies, jsdom@^30.0.1, react@^19.2.8 (+31 more)
 
 ### Community 36 - "channelTypes.ts"
-Cohesion: 0.14
-Nodes (27): lastCallMeBotSendByPhone, resetCallMeBotRateLimiterForTests(), sendCallMeBotNotification(), formatSlackPayloadText(), isValidSlackWebhookUrl(), lastSentByWebhook, resetSlackRateLimiterForTests(), sanitizeSlackMentions() (+19 more)
+Cohesion: 0.13
+Nodes (29): lastCallMeBotSendByPhone, resetCallMeBotRateLimiterForTests(), sendCallMeBotNotification(), formatSlackPayloadText(), isValidSlackWebhookUrl(), lastSentByWebhook, resetSlackRateLimiterForTests(), sanitizeSlackMentions() (+21 more)
 
 ### Community 37 - "DocsCallout.astro"
-Cohesion: 0.11
-Nodes (17): icons, Props, Props, Props, NavTarget, Props, toc, toc (+9 more)
+Cohesion: 0.10
+Nodes (18): icons, Props, Props, Props, NavTarget, Props, toc, toc (+10 more)
 
 ### Community 38 - "ai-api/package.json"
 Cohesion: 0.16
@@ -1086,82 +1078,76 @@ Cohesion: 0.07
 Nodes (16): appRoot, destination, source, fixtureVaultPath, largeFixtureVaultPath, repoRoot, repoRoot, repoRoot (+8 more)
 
 ### Community 40 - "design-system/index.ts"
-Cohesion: 0.04
-Nodes (80): AISettingsPanel(), defaultModels, Feature, initialState, notifyAIStateChanged(), providerNames, AttachmentLocationSettings(), GitRemoteSetupPanel() (+72 more)
+Cohesion: 0.03
+Nodes (108): AIKeyEntryScreen(), AskYourVaultPanel(), AgentConversationsDrawer(), AgentHeader(), AgentHeaderProps, AgentHistoryDrawer(), AgentMissedBanner(), AgentOnboardingCard() (+100 more)
 
 ### Community 41 - "ChannelSetupFormCard.tsx"
-Cohesion: 0.31
-Nodes (10): ChannelCredentialFields(), ChannelCredentialFieldsProps, ChannelPrivacyGuide(), ChannelPrivacyGuideProps, ChannelSetupFormCard(), ChannelSetupFormCardProps, isValidWhatsAppPhone(), normalizeWhatsAppPhone() (+2 more)
+Cohesion: 0.19
+Nodes (14): ChannelCredentialFields(), ChannelCredentialFieldsProps, ChannelPrivacyGuide(), ChannelPrivacyGuideProps, ChannelSetupFormCard(), ChannelSetupFormCardProps, NotificationDestinationRowProps, Default (+6 more)
 
 ### Community 42 - "systemtime"
 Cohesion: 0.08
 Nodes (32): format_capture_entry(), format_iso_timestamp(), MAX_CAPTURE_LENGTH, make_test_vault(), TEST_DIR_COUNTER, test_existing_chosen_name_appends_losslessly(), test_folder_validation_defaults_and_custom(), test_folder_validation_rejects_symlink_escape() (+24 more)
 
 ### Community 43 - "AIProvider"
-Cohesion: 0.09
-Nodes (26): 2026-09-04 — AI Features Phase 7 re-audit (blocked), AIProvider, chunkNote(), NoteChunk, splitParagraph(), EmbeddingHash, EmbeddingIndex, EmbeddingUpdate (+18 more)
+Cohesion: 0.06
+Nodes (40): ADR-0150: Ask-your-vault host mount, Consequences, Context, Decision, 2026-09-03 - AI Features Phase 3, 2026-09-03 - AI Features Phase 4, 2026-09-04 — AI Features Phase 7 re-audit (blocked), 2026-09-04 - AI Provider Extension: Gemini, OpenRouter, and Ollama (+32 more)
 
 ### Community 44 - "formattingCommands.ts"
-Cohesion: 0.17
-Nodes (26): EditorFormattingToolbar(), EditorFormattingToolbarProps, FormatInlineGroup(), FormatInsertGroup(), FormatInsertGroupProps, FormatListGroup(), ToolbarRunProps, toggleLinePrefix() (+18 more)
+Cohesion: 0.22
+Nodes (19): FormatInlineGroup(), FormatInsertGroupProps, FormatListGroup(), ToolbarRunProps, toggleLinePrefix(), wrapEditorSelection(), handleBold(), handleBulletList() (+11 more)
 
 ### Community 45 - "WebBookmarkItem"
-Cohesion: 0.10
-Nodes (30): WebBookmarkViewConfig, BookmarkUIState, DEFAULT_VIEW_CONFIG, useBookmarkUIStore, BookmarksSidebarPanel(), computeNoteBookmarkCounts(), WebBookmarkEditModal(), WebBookmarkEditModalProps (+22 more)
+Cohesion: 0.14
+Nodes (22): WebBookmarkViewConfig, WebBookmarkEditModal(), filterAndSortBookmarks(), formatDate(), WebBookmarkListRow(), WebBookmarkListRowProps, formatDate(), WebBookmarksCardsView() (+14 more)
 
 ### Community 46 - "fs.rs"
-Cohesion: 0.06
-Nodes (59): delete_folder_in_vault(), deletes_a_nested_folder_on_disk_and_rejects_unsafe_paths(), is_hidden_or_system_path(), reject_symlink_components(), rename_folder_in_vault(), renames_a_nested_folder_on_disk(), resolve_folder_path(), TestVault (+51 more)
+Cohesion: 0.08
+Nodes (50): delete_folder_in_vault(), deletes_a_nested_folder_on_disk_and_rejects_unsafe_paths(), is_hidden_or_system_path(), reject_symlink_components(), rename_folder_in_vault(), renames_a_nested_folder_on_disk(), resolve_folder_path(), TestVault (+42 more)
 
 ### Community 47 - "CanvasViewer.tsx"
 Cohesion: 0.11
-Nodes (20): CanvasDocument, CanvasEdge, CanvasNode, MAX_CANVAS_NESTING_DEPTH, parseCanvasWithCycleDetection(), CanvasViewer(), CanvasViewerDom(), CanvasViewerDomProps (+12 more)
+Nodes (18): CanvasDocument, CanvasEdge, CanvasNode, MAX_CANVAS_NESTING_DEPTH, parseCanvasWithCycleDetection(), CanvasViewerDomProps, buildLocalGraph(), computeGraphLayout() (+10 more)
 
 ### Community 48 - "ref_vitest"
-Cohesion: 0.05
-Nodes (74): MockVimEditorView, createCodeEditor(), createEditor(), createTestEditor(), TestEditorOptions, createListEditor(), createEditor(), createMathEditor() (+66 more)
+Cohesion: 0.04
+Nodes (81): createCodeEditor(), createEditor(), createTestEditor(), createTestEditor(), TestEditorOptions, createListEditor(), createEditor(), createMathEditor() (+73 more)
 
 ### Community 49 - "canvasConstants.ts"
-Cohesion: 0.09
-Nodes (52): 3. Group hierarchy — Map-indexed traversals, Context, 2026-08-14 — Canvas Feature Phase 5 — Groups & Framing, 2026-08-17 — Canvas Feature Phase 12 — Export, CANVAS_SNAP_GRID, createFileCardId(), createGroupId(), DEFAULT_FILE_CARD_HEIGHT (+44 more)
+Cohesion: 0.08
+Nodes (58): 3. Group hierarchy — Map-indexed traversals, Context, 2026-08-14 — Canvas Feature Phase 5 — Groups & Framing, CANVAS_ALIGN_THRESHOLD, CANVAS_SNAP_GRID, createFileCardId(), createGroupId(), createTextCardId() (+50 more)
 
 ### Community 50 - "PROGRESS.md — Current State"
-Cohesion: 0.04
-Nodes (49): 2026-09-01 — Sync Phase 6 Sync Setup & Mode Configuration UI, 2026-09-01 — Sync Phase 7 Regression, Performance Pass & Sync Plan Closeout, 2026-09-02 - Plugin Ecosystem Phase 3, 2026-09-02 - Plugin Ecosystem Phase 4, 2026-09-02 - Plugin Ecosystem Phase 5, 2026-09-02 - Plugin Ecosystem Phase 6, 2026-09-02 - Plugin Ecosystem Phase 6 Registry Follow-up, 2026-09-02 - Plugin Ecosystem Phase 7 (+41 more)
+Cohesion: 0.02
+Nodes (102): 2026-09-01 — Sync Phase 6 Sync Setup & Mode Configuration UI, 2026-09-01 — Sync Phase 7 Regression, Performance Pass & Sync Plan Closeout, 2026-09-02 - Plugin Ecosystem Phase 3, 2026-09-02 - Plugin Ecosystem Phase 4, 2026-09-02 - Plugin Ecosystem Phase 5, 2026-09-02 - Plugin Ecosystem Phase 6 Registry Follow-up, 2026-09-02 - Plugin Ecosystem Phase 7, 2026-09-02 — Vim Keybindings Phase 2 (Settings Toggle & Real Wiring) (+94 more)
 
 ### Community 51 - "MobileVaultStorageAdapter.ts"
-Cohesion: 0.06
-Nodes (56): applyMigrations(), Migration, MIGRATIONS, clearVaultIndex(), createMobileSearchDatabase(), persistNotesBatch(), removeNotesBatch(), closeVaultIndexDb() (+48 more)
+Cohesion: 0.07
+Nodes (47): RootLayout(), hideSplashAfterInitialShell(), applyMigrations(), Migration, MIGRATIONS, clearVaultIndex(), createMobileSearchDatabase(), persistNotesBatch() (+39 more)
 
 ### Community 52 - "QuickCapture/index.ts"
-Cohesion: 0.09
-Nodes (32): rootElement, MAX_CAPTURE_CHARS, QuickCapture(), QuickCaptureProps, QuickCaptureFooter(), QuickCaptureFooterProps, QuickCaptureHeader(), QuickCaptureHeaderProps (+24 more)
+Cohesion: 0.10
+Nodes (30): MAX_CAPTURE_CHARS, QuickCapture(), QuickCaptureProps, QuickCaptureFooter(), QuickCaptureFooterProps, QuickCaptureHeader(), QuickCaptureHeaderProps, QuickCaptureMode (+22 more)
 
 ### Community 53 - "channelConfigStore.ts"
-Cohesion: 0.11
-Nodes (28): NotificationDestinationRow(), NotificationDestinationRowProps, NotificationsSettingsTab(), Default, meta, Story, mockStore, CHANNELS_SETTINGS_KEY (+20 more)
+Cohesion: 0.13
+Nodes (24): NotificationsSettingsTab(), CHANNELS_SETTINGS_KEY, clearChannelSecret(), emitNotificationLog(), ensureDesktopDefault(), loadChannelDestinations(), loadChannelSecret(), logListeners (+16 more)
 
-### Community 54 - "ref_storybook_react"
-Cohesion: 0.03
-Nodes (52): CloudAnswer, FailedKey, meta, Story, Connecting, Default, meta, Story (+44 more)
+### Community 54 - "SyncthingQrPairingSection.tsx"
+Cohesion: 0.21
+Nodes (8): formatCountdown(), ActiveWindow, ExpiredWindow, meta, RotatingCode, Story, SyncthingQrPairingSection(), SyncthingQrPairingSectionProps
 
 ### Community 55 - "FileTree"
+Cohesion: 0.09
+Nodes (27): FileTree(), FileTreeProps, CollapseAllIcon(), FileTreeToolbar(), FileTreeToolbarProps, Default, meta, SortDescending (+19 more)
+
+### Community 56 - "DaVinci Notes — Web Clipper Feature Plan"
 Cohesion: 0.13
-Nodes (20): FileTree(), FileTreeProps, CollapseAllIcon(), FileTreeToolbar(), FileTreeToolbarProps, Default, meta, SortDescending (+12 more)
+Nodes (14): 10. Decisions needing owner input, 11. Risks, 12. Recommended first phase prompt, 1. Goals / Non-goals, 2. Assumptions (stated, not hidden), 3. Architecture, 4. Payload schema (draft, v1), 6. High-risk phases that must stay in one session (+6 more)
 
-### Community 56 - "ClipPayload"
-Cohesion: 0.05
-Nodes (46): {
-  createNoteInVaultMock,
-  appendToNoteInVaultMock,
-  resolveUniqueNotePathMock,
-  getStateMock,
-  invokeMock,
-}, ADR-0176: Where the template engine runs and the clip payload contract, Consequences, Context, Decision (recommended), Open decisions, Option 1 — Extension renders everything; desktop writes bytes, Option 2 — Extension collects variables; desktop renders everything (+38 more)
-
-### Community 57 - "AgentChatInput.tsx"
-Cohesion: 0.10
-Nodes (24): AGENT_CAPABILITIES, AgentCapabilitiesPopover(), AgentCapabilitiesPopoverProps, AgentCapabilityOption, AgentChatInput(), AgentChatInputProps, AgentMentionMenu(), AgentMentionMenuProps (+16 more)
+### Community 57 - "AgentPromptMenu.tsx"
+Cohesion: 0.20
+Nodes (8): AGENT_CAPABILITIES, AgentPromptMenuProps, Default, meta, Story, CONNECTOR_OPTIONS, DESIGN_OPTIONS, MenuPromptItem
 
 ### Community 58 - "ADR-0052: Canvas viewport culling, render virtualization, and performance optimization"
 Cohesion: 0.20
@@ -1181,7 +1167,7 @@ Nodes (20): CALENDAR_SCOPES, CALENDAR_WRITE_SCOPES, getCalendarClientSecret(), g
 
 ### Community 62 - "RemindersDialog.tsx"
 Cohesion: 0.09
-Nodes (28): formatDueLabel(), ReminderRowItem(), ReminderRowItemProps, SNOOZE_PRESETS, Completed, meta, Overdue, Snoozed (+20 more)
+Nodes (31): formatDueLabel(), ReminderRowItem(), ReminderRowItemProps, SNOOZE_PRESETS, RemindersDialog(), RemindersDialogProps, Default, meta (+23 more)
 
 ### Community 63 - "orbitController.ts"
 Cohesion: 0.23
@@ -1192,20 +1178,20 @@ Cohesion: 0.10
 Nodes (30): dismiss_reminder(), reschedule_reminders(), SchedulerState, snooze_reminder(), catchup_missed_reminders_db(), compute_reminder_key(), dismiss_reminder_db(), get_db_path() (+22 more)
 
 ### Community 65 - "plugin-api/index.ts"
-Cohesion: 0.10
-Nodes (31): isUpdateAvailable(), resolvePluginRelease(), ADR-0131, 2026-09-02 — Plugin Ecosystem Phase 1: Manifest Specification & @app/plugin-api, AppCompatibilityResult, PLUGIN_MANIFEST_JSON_SCHEMA, PLUGIN_PERMISSIONS, ValidationError (+23 more)
+Cohesion: 0.17
+Nodes (19): isUpdateAvailable(), resolvePluginRelease(), ADR-0131, AppCompatibilityResult, PLUGIN_MANIFEST_JSON_SCHEMA, PLUGIN_PERMISSIONS, ValidationResult, compareSemver() (+11 more)
 
 ### Community 66 - "ref_node_fs"
-Cohesion: 0.09
+Cohesion: 0.10
 Nodes (19): computeFileSha256(), detectHostTargetTriple(), __dirname, downloadFile(), fetchSyncthingBinary(), __filename, PINNED_SYNCTHING_VERSION, runCli() (+11 more)
 
 ### Community 67 - "getDropEffect.ts"
-Cohesion: 0.20
-Nodes (12): DraggedNodeInfo, DropEffect, DropTargetInfo, getActiveDraggedNode(), getDropEffect(), getParentFolder(), isHiddenOrSystemPath(), setActiveDraggedNode() (+4 more)
+Cohesion: 0.14
+Nodes (16): DraggedNodeInfo, DropEffect, DropTargetInfo, getActiveDraggedNode(), getDropEffect(), getParentFolder(), isHiddenOrSystemPath(), setActiveDraggedNode() (+8 more)
 
 ### Community 68 - "DriveClient"
 Cohesion: 0.09
-Nodes (25): 4. Phase 3 — Manifest Storage, Delta Tracking & Transfer, 2026-09-01 — Sync Phase 2 Scope Correction & Phase 3 Implementation, DriveClient, buildMultipartBlob(), ChangesResponse, ContentUpload, defaultHttp, DriveApiError (+17 more)
+Nodes (26): 4. Phase 3 — Manifest Storage, Delta Tracking & Transfer, 2026-09-01 — Sync Phase 2 Scope Correction & Phase 3 Implementation, DriveClient, buildMultipartBlob(), ChangesResponse, ContentUpload, defaultHttp, DriveApiError (+18 more)
 
 ### Community 69 - "web-clipper/package.json"
 Cohesion: 0.15
@@ -1213,35 +1199,35 @@ Nodes (17): dependencies, @app/clipper-core@workspace:*, @app/design-system@work
 
 ### Community 70 - "vaultMutationTools.ts"
 Cohesion: 0.07
-Nodes (43): AgentHistoryDrawerProps, useAgentLedger(), ADR-0213: Vault Change Ledger and Transaction Rollback, Consequences, Context, Decision, Status, 2026-10-25: AI Agent Phase 2: Agent Safety Core, Change Ledger & Transaction Rollback (ADR-0212, ADR-0213) (+35 more)
+Nodes (44): AgentHistoryDrawerProps, useAgentLedger(), ADR-0213: Vault Change Ledger and Transaction Rollback, Consequences, Context, Decision, Status, 2026-10-25: AI Agent Phase 2: Agent Safety Core, Change Ledger & Transaction Rollback (ADR-0212, ADR-0213) (+36 more)
 
 ### Community 71 - "useWorkspaceStore"
-Cohesion: 0.06
-Nodes (69): reconcileVaultEmbeddings(), mockEvent, createDesktopMutationBackend(), useEditorMediaHandlers(), ImagePreviewInfoBar(), ImagePreviewInfoBarProps, ImagePreviewLeaf(), ImagePreviewLeafProps (+61 more)
+Cohesion: 0.04
+Nodes (83): reconcileVaultEmbeddings(), createCalendarTokenStore(), notifyCalendarAuthChanged(), mockEvent, ProcessClipAttachmentsOptions, AppSidebarHeader(), AppSidebarHeaderProps, AppTabItem() (+75 more)
 
 ### Community 72 - "LinkCardNode.tsx"
-Cohesion: 0.15
-Nodes (24): MIN_LINK_CARD_HEIGHT, MIN_LINK_CARD_WIDTH, LinkCardHeader, LinkCardHeaderComponent(), LinkCardHeaderProps, LinkCardNode, LinkCardNodeComponent(), LinkCardNodeData (+16 more)
+Cohesion: 0.10
+Nodes (40): 2026-08-16 — Canvas Feature Phase 9 — PDF Cards, CanvasBottomDock, CanvasBottomDockProps, MIN_LINK_CARD_HEIGHT, MIN_LINK_CARD_WIDTH, FileCardHeaderProps, LinkCardHeader, LinkCardHeaderComponent() (+32 more)
 
 ### Community 73 - "audio_worker.rs"
 Cohesion: 0.06
 Nodes (24): AudioCaptureManager, calculate_rms_level(), convert_to_mono(), create_wav_header(), f32_to_i16_pcm(), resample_linear(), TARGET_SAMPLE_RATE, test_convert_to_mono() (+16 more)
 
-### Community 74 - "oauth.rs"
-Cohesion: 0.04
-Nodes (58): AudioLevelPayload, MeetingAudioResult, CliAgentInfo, CliAgentStreamEvent, git_manager_get_remotes(), git_manager_get_tracking_status(), git_manager_set_remote(), GitRemoteInfo (+50 more)
+### Community 74 - "Serialize"
+Cohesion: 0.06
+Nodes (34): AudioLevelPayload, MeetingAudioResult, chromium_base_dir(), detect_browser_bookmarks(), DetectedBrowserInfo, find_chromium_bookmark_files(), find_firefox_places_files(), firefox_profiles_dir() (+26 more)
 
-### Community 75 - ".enablePluginOnce"
-Cohesion: 0.07
-Nodes (15): PluginViewLeaf(), PluginViewLeafProps, PluginViewModelRenderer(), PluginViewModelRendererProps, Counter, meta, Story, 2026-09-26 — Plugin declarative views (ADR-0167) (+7 more)
+### Community 75 - "PluginLifecycleManager"
+Cohesion: 0.05
+Nodes (21): PluginBrowserProps, 2026-09-02 - Plugin Ecosystem Phase 6, 2026-09-26 — Plugin discovery uses the vault-owned native boundary, 2026-09-27 — Plugin enable race, native mediated fetch, and security-probe reporting, API surface, Architecture, Current real-world state, Data / vault safety (+13 more)
 
 ### Community 76 - "PluginBrowser.tsx"
-Cohesion: 0.10
-Nodes (36): PluginBrowser(), PluginBrowserProps, ThemeBrowser(), DEFAULT_PLUGIN_REGISTRY_URL, fetchPluginRegistry(), httpClient, resolveLatestPluginRelease(), resolveLatestRegistryRelease() (+28 more)
+Cohesion: 0.11
+Nodes (34): PluginBrowser(), ThemeBrowser(), DEFAULT_PLUGIN_REGISTRY_URL, fetchPluginRegistry(), httpClient, resolveLatestPluginRelease(), resolveLatestRegistryRelease(), inspectPluginArchive() (+26 more)
 
 ### Community 77 - "executeAgentStepTool.ts"
-Cohesion: 0.06
-Nodes (54): AgentStepLoopOptions, runAgentStepLoop(), AgentToolCallList(), AgentToolCallListProps, formatToolCallSummary(), ExecuteAgentStepContext, formatFallbackContentFromHistory(), page() (+46 more)
+Cohesion: 0.09
+Nodes (37): AgentStepLoopOptions, runAgentStepLoop(), AgentToolCallListProps, ExecuteAgentStepContext, page(), Decision, 2026-10-25: AI Agent Performance Optimization & Memory Footprint Reduction, 2026-10-25: AI Agent Phase 1: Tool Calling Abstraction & Streaming Runtime (ADR-0211) (+29 more)
 
 ### Community 78 - "clipper_validate.rs"
 Cohesion: 0.05
@@ -1251,29 +1237,29 @@ Nodes (47): collapse_dot_runs(), DEFAULT_NAME_FALLBACK, FOLDER_SEGMENT_FALLBACK,
 Cohesion: 0.06
 Nodes (13): VaultWatcher, classify_vault_event(), DEBOUNCE_MS, is_git_ref(), is_supported_vault_file(), rename_paths(), vault_relative(), VaultChangeBatch (+5 more)
 
-### Community 80 - "EditorBuffer"
-Cohesion: 0.26
-Nodes (20): delete_line(), delete_to_line_end(), delete_word(), join_lines(), join_n_lines(), move_first_non_whitespace(), move_word_backward(), move_word_end() (+12 more)
+### Community 80 - "prompts/index.ts"
+Cohesion: 0.09
+Nodes (35): formatFallbackContentFromHistory(), 2026-10-25: Action Organization, Nested Folder Placement & Guard Against Conversational Meta Text, 2026-10-25: Compound Multi-Step Action Fallback & Stop-Word Note Naming Disambiguation, 2026-10-25: Organizing Existing Files into Folders & Enhanced Action Management, 2026-10-25: Search Content Note Population, Chat Persistence & Agent Long-Term Memory, buildChatPrompt(), buildCreateNotePrompt(), buildEditNotePrompt() (+27 more)
 
 ### Community 81 - "DavinciPlugin.ts"
-Cohesion: 0.07
-Nodes (18): DavinciPlugin, emptyPluginContext, PluginContext, PluginManifest, PluginCommand, PluginCommands, PluginNetwork, PluginNetworkRequest (+10 more)
+Cohesion: 0.05
+Nodes (29): PluginViewLeaf(), PluginViewLeafProps, PluginViewModelRenderer(), PluginViewModelRendererProps, Counter, meta, Story, DavinciPlugin (+21 more)
 
 ### Community 82 - "CanvasColor"
-Cohesion: 0.07
-Nodes (38): CanvasBottomDock, CanvasBottomDockProps, CanvasCardActionBarComponent(), CanvasCardActionBarProps, CANVAS_COLOR_PRESETS, CanvasColor, CanvasColorPreset, isCanvasColor() (+30 more)
+Cohesion: 0.06
+Nodes (43): CanvasCardActionBarComponent(), CanvasCardActionBarProps, CANVAS_COLOR_PRESETS, CanvasColor, CanvasColorPreset, MIN_TEXT_CARD_HEIGHT, MIN_TEXT_CARD_WIDTH, CanvasContextMenu() (+35 more)
 
-### Community 83 - "OpfsFileSystemAdapter"
-Cohesion: 0.23
-Nodes (3): populateFromDevFixture(), OpfsFileSystemAdapter, normalizeVaultPath()
+### Community 83 - "desktopSyncEngine.ts"
+Cohesion: 0.13
+Nodes (22): getDesktopDeviceId(), createDesktopTokenStore(), createGoogleTransport(), createPkceProvider(), fetchDriveAccountEmail(), getDriveAccessToken(), LoopbackEndpoint, OAuthCallback (+14 more)
 
 ### Community 84 - "sync-client/index.ts"
-Cohesion: 0.06
-Nodes (55): ADR-0189: Sync conflict resolution orchestration and zero-data-loss safety, Consequences, Context, Decision, Status, 5. Verified REST Endpoints, 2026-09-01 — Sync Phase 4 Conflict Resolution & Data Loss Prevention, Sync Phase 1 — Manifest Infrastructure Complete (+47 more)
+Cohesion: 0.07
+Nodes (44): ADR-0117: Manifest hashing at the Rust/platform I/O boundary, Decision, Status, ADR-0187: Mobile vault storage: hybrid sandbox by default with SAF fallback, Consequences, Context, Decision, Status (+36 more)
 
 ### Community 85 - "WebBookmarksSubView.tsx"
-Cohesion: 0.38
-Nodes (7): convertNotesToWebBookmarkItems(), extractPreview(), BookmarkCounts, SidebarSection, WebBookmarksSidebarProps, WebBookmarksSidebarFilters(), WebBookmarksSidebarFiltersProps
+Cohesion: 0.27
+Nodes (12): useBookmarkUIStore, BookmarksSidebarPanel(), computeNoteBookmarkCounts(), convertNotesToWebBookmarkItems(), extractPreview(), BookmarkCounts, computeBookmarkCounts(), SidebarSection (+4 more)
 
 ### Community 86 - "Current Focus"
 Cohesion: 0.06
@@ -1284,8 +1270,8 @@ Cohesion: 0.04
 Nodes (45): additionalProperties, maxLength, minLength, type, format, type, description, maxLength (+37 more)
 
 ### Community 88 - "GitBranchSwitcher.tsx"
-Cohesion: 0.15
-Nodes (16): 2026-10-29: Git Manager Source Control Layout & Side-by-Side Diff Editor (VS Code / Cursor Polish), createGitBranch(), deleteGitBranch(), fetchGitBranches(), stashGitChanges(), switchGitBranch(), GitBranchSwitcher(), GitBranchSwitcherProps (+8 more)
+Cohesion: 0.12
+Nodes (19): ADR-0237: Git Manager History Graph and Commit Detail, Consequences, Context, Decision, 2026-10-29: Git Manager Source Control Layout & Side-by-Side Diff Editor (VS Code / Cursor Polish), createGitBranch(), deleteGitBranch(), fetchGitBranches() (+11 more)
 
 ### Community 89 - "FileSystemAdapter"
 Cohesion: 0.04
@@ -1299,9 +1285,9 @@ Nodes (33): environment, name, runs-on, steps, concurrency, cancel-in-progress, 
 Cohesion: 0.05
 Nodes (51): dependencies, @app/core-types@workspace:*, @app/design-system@workspace:*, @app/design-tokens@workspace:*, @codemirror/merge@^6.8.0, @codemirror/state@^6.5.4, @codemirror/view@^6.36.7, @phosphor-icons/react@^2.1.10 (+43 more)
 
-### Community 92 - "MobileVaultStorageAdapter"
-Cohesion: 0.11
-Nodes (15): CanvasViewerProps, ApplyConflictContext, ConflictApplyResult, processAndApplyConflict(), MobileSyncIndexUpdater, downloadFileAtomicallyWithRetry(), executeWithRetry(), RetryOptions (+7 more)
+### Community 92 - "tray_tests.rs"
+Cohesion: 0.08
+Nodes (12): disambiguate_titles(), sanitize_title(), calculate_popover_position(), TrayIconBounds, WorkArea, disambiguate_titles_adds_parent_folder_for_duplicates(), popover_position_bottom_taskbar_anchors_above(), popover_position_clamped_to_screen_edges() (+4 more)
 
 ### Community 93 - "main_menu"
 Cohesion: 0.06
@@ -1313,75 +1299,75 @@ Nodes (22): dependencies, @app/core-types@workspace:*, yaml@^2.9.0, devDependenc
 
 ### Community 95 - "canvas/package.json"
 Cohesion: 0.06
-Nodes (45): dependencies, @app/core-types@workspace:*, @app/design-system@workspace:*, @app/editor@workspace:*, html-to-image@^1.11.13, @phosphor-icons/react@^2.1.10, @xyflow/react@^12.4.4, devDependencies (+37 more)
+Nodes (43): dependencies, @app/core-types@workspace:*, @app/design-system@workspace:*, @app/editor@workspace:*, html-to-image@^1.11.13, @phosphor-icons/react@^2.1.10, @xyflow/react@^12.4.4, devDependencies (+35 more)
 
-### Community 96 - "ref_tauri_apps_api"
-Cohesion: 0.05
-Nodes (37): createDesktopPlatformAdapters(), TauriDialogAdapter, TauriExternalUrlAdapter, TauriNotificationAdapter, TauriSecretStoreAdapter, TauriVaultRegistryAdapter, TauriWatcherAdapter, TauriWindowControlsAdapter (+29 more)
+### Community 96 - "createDesktopPlatformAdapters.ts"
+Cohesion: 0.10
+Nodes (9): createDesktopPlatformAdapters(), TauriExternalUrlAdapter, TauriNotificationAdapter, TauriSecretStoreAdapter, TauriVaultRegistryAdapter, TauriWatcherAdapter, TauriWindowControlsAdapter, AppNotificationOptions (+1 more)
 
 ### Community 97 - "web/index.ts"
 Cohesion: 0.12
 Nodes (18): 0205 — Hybrid Browser Vault Storage and Multi-Tab Web SQLite Serialization, Consequences, Context, Decision, SqliteQueryResult, localLockChain, ADR-0168, VAULT_INDEX_WEB_LOCK_NAME (+10 more)
 
 ### Community 98 - "PluginEditorRpcHost"
-Cohesion: 0.09
-Nodes (16): EditorSnapshot, PluginEditorRpcHost, JsonRecord, MediatedNetworkRequest, MediatedNetworkResponse, NativeNetworkRequester, optionalString(), PluginNetworkRpcHost (+8 more)
+Cohesion: 0.06
+Nodes (27): EditorSnapshot, PluginEditorRpcHost, JsonRecord, MediatedNetworkRequest, MediatedNetworkResponse, NativeNetworkRequester, optionalString(), PluginNetworkRpcHost (+19 more)
 
 ### Community 99 - "web/package.json"
 Cohesion: 0.07
 Nodes (41): devDependencies, @codemirror/lang-markdown@^6.3.1, @codemirror/state@^6.4.1, @codemirror/view@^6.34.1, jsdom@^29.0.1, postcss@^8.5.25, postcss-preset-env@^11.3.2, sass@^1.102.0 (+33 more)
 
-### Community 100 - "editor.tsx"
-Cohesion: 0.14
-Nodes (14): EditorScreen(), EditorConflictBanner(), buildEditorInjectedScript(), EditorPreviewView(), EditorSaveErrorBanner(), EditorSaveErrorBannerProps, FormattingToolbar(), applyNavigationBarVisibility() (+6 more)
-
 ### Community 101 - "GitRemoteSetupPanel.tsx"
-Cohesion: 0.16
+Cohesion: 0.17
 Nodes (14): MarkdownOnly, meta, Story, gitHistory, VersionHistoryPanel(), VersionHistoryPanelProps, DiffLine, lineDiff() (+6 more)
 
 ### Community 102 - "clipper_test_harness.rs"
-Cohesion: 0.06
-Nodes (28): a_disabled_clipper_holds_no_listener(), a_result_with_nothing_waiting_is_an_error(), an_unauthorized_response_leaks_nothing(), MemoryTokenStore, rotates_the_token_and_revokes_the_previous_one(), ClipDispatcher, CLIP_ROUTE, maps_a_webview_verdict_onto_the_response() (+20 more)
+Cohesion: 0.11
+Nodes (24): a_disabled_clipper_holds_no_listener(), a_result_with_nothing_waiting_is_an_error(), an_unauthorized_response_leaks_nothing(), MemoryTokenStore, rotates_the_token_and_revokes_the_previous_one(), maps_a_webview_verdict_onto_the_response(), refuses_a_huge_properties_map_without_panicking(), refuses_every_hostile_folder() (+16 more)
 
 ### Community 103 - "clipper_server.rs"
-Cohesion: 0.12
-Nodes (16): clipper_disable(), clipper_enable(), clipper_reveal_token(), clipper_revoke_token(), clipper_rotate_token(), clipper_status(), clipper_submit_result(), bind_loopback() (+8 more)
+Cohesion: 0.13
+Nodes (17): clipper_disable(), clipper_enable(), clipper_reveal_token(), clipper_revoke_token(), clipper_rotate_token(), clipper_status(), clipper_submit_result(), ClipDispatcher (+9 more)
+
+### Community 104 - "driveSyncPass.ts"
+Cohesion: 0.10
+Nodes (20): MobileDriveSyncStateStore, 5. Verified REST Endpoints, changesToFiles(), commitDriveManifestCursor(), DriveManifestSyncInput, DriveManifestSyncResult, DriveSyncStateStore, isManifest() (+12 more)
 
 ### Community 105 - "desktopDriveAuth.ts"
-Cohesion: 0.07
-Nodes (38): createDesktopTokenStore(), createGoogleTransport(), createPkceProvider(), fetchDriveAccountEmail(), getDriveAccessToken(), LoopbackEndpoint, OAuthCallback, openDriveAuthorizationUrl() (+30 more)
+Cohesion: 0.09
+Nodes (23): expo-web-browser@~58.0.7, createGoogleOAuthTransport(), createMobilePkceProvider(), DEFAULT_REDIRECT_URI, getDriveTokenManager(), GOOGLE_OAUTH_ENDPOINTS, loginWithDriveNativeSession(), MobileSecureTokenStore (+15 more)
 
 ### Community 106 - "verifyQrPairingPayload.mjs"
 Cohesion: 0.13
-Nodes (32): extractDeviceId(), makeTempDir(), run(), makeTempDir(), runQrVerification(), BINARY_PATH, DESKTOP_ROOT, fetchJson() (+24 more)
+Nodes (29): extractDeviceId(), makeTempDir(), run(), makeTempDir(), runQrVerification(), BINARY_PATH, DESKTOP_ROOT, fetchJson() (+21 more)
 
-### Community 107 - "PluginLifecycleManager"
-Cohesion: 0.09
-Nodes (24): PluginSettingsList(), PluginSettingsListProps, createPluginManager(), pluginInitializations, pluginRuntimeLoads, PluginState, usePluginStore, PluginData (+16 more)
+### Community 107 - "plugin-api/index.ts"
+Cohesion: 0.14
+Nodes (24): PluginSettingsList(), PluginSettingsListProps, PluginsSettingsTab(), PluginsSettingsTabProps, pluginInitializations, pluginRuntimeLoads, PluginState, usePluginStore (+16 more)
 
 ### Community 108 - "Detailed Session Notes"
 Cohesion: 0.10
-Nodes (21): 2026-09-01 — Drive OAuth UI Freeze Fix, 2026-09-02 — Plugin Ecosystem Phase 0: Plugin Execution Model Architecture (ADR-0131), 2026-09-03 — AI Features Phase 5: Ask-Your-Vault Q&A, 2026-09-03 — AI Features Phase 5 Gap 1: Cloud Transport and Consent State, 2026-09-03 — AI Features Phase 6: Settings and Cloud Indicator, 2026-09-04 — AI Features Phase 7: Performance and Regression Audit, 2026-09-04 - Vault-index transaction overlap fix, 2026-09-06 — Git Versioning Phase 2 (+13 more)
+Nodes (21): 2026-09-01 — Drive OAuth UI Freeze Fix, 2026-09-02 — Plugin Ecosystem Phase 0: Plugin Execution Model Architecture (ADR-0131), 2026-09-03 — AI Features Phase 5: Ask-Your-Vault Q&A, 2026-09-03 — AI Features Phase 5 Gap 1: Cloud Transport and Consent State, 2026-09-03 — AI Features Phase 6: Settings and Cloud Indicator, 2026-09-04 — AI Features Phase 7: Performance and Regression Audit, 2026-09-04 - Complete shared vault-index writer audit, 2026-09-04 - Vault-index transaction overlap fix (+13 more)
 
 ### Community 109 - "AgentMarkdownContent.tsx"
-Cohesion: 0.05
-Nodes (32): AgentCodeBlock(), AgentCodeBlockProps, meta, Story, Typescript, AgentExecutionLogs(), AgentExecutionLogsProps, Default (+24 more)
+Cohesion: 0.09
+Nodes (18): AgentCodeBlock(), AgentCodeBlockProps, meta, Story, Typescript, AgentMarkdownContent(), AgentMarkdownContentProps, renderInlineFormatting() (+10 more)
 
 ### Community 110 - "createMeetingNote.ts"
-Cohesion: 0.29
-Nodes (15): mockCalendar, mockEvent, createOrOpenMeetingNote(), buildMeetingNotePath(), escapeRegex(), formatAttendeesMarkdown(), formatMeetingTimeRange(), generateMeetingNoteMarkdown() (+7 more)
+Cohesion: 0.38
+Nodes (13): createOrOpenMeetingNote(), buildMeetingNotePath(), escapeRegex(), formatAttendeesMarkdown(), formatMeetingTimeRange(), generateMeetingNoteMarkdown(), getMeetingDateString(), isEventNoteMatch() (+5 more)
 
 ### Community 111 - "listExtension.ts"
-Cohesion: 0.11
-Nodes (12): Decision, completedTaskDeco, getListDecorations(), indentSpaceDeco, isActiveLine(), ListExtensionOptions, listLineDecos, ListMarkerWidget (+4 more)
+Cohesion: 0.08
+Nodes (16): ADR-0069: Keep Active Ordered-List Markers Visible, Consequences, Context, Decision, Status, completedTaskDeco, getListDecorations(), indentSpaceDeco (+8 more)
 
-### Community 112 - "useAgentExecution.ts"
-Cohesion: 0.05
-Nodes (53): mockComplete, mockDeleteNote, mockWriteNote, AgentCliSection(), AgentCliSectionProps, Default, meta, Story (+45 more)
+### Community 112 - "AgentSettingsPanel.tsx"
+Cohesion: 0.06
+Nodes (47): AIProviderId, AgentCapabilitiesPopover(), AgentCapabilityOption, AgentChatInput(), AgentChatInputProps, AgentCliSection(), AgentCliSectionProps, Default (+39 more)
 
 ### Community 113 - "vaultInspectionTools.ts"
 Cohesion: 0.06
-Nodes (45): rerunAudioTranscription(), RetranscribeResult, ADR-0212: Agent Safety Jail, Untrusted Data Boundary & Anti-Injection Architecture, Consequences, Context, Decision, Status, 2026-10-25: AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools (+37 more)
+Nodes (43): ADR-0212: Agent Safety Jail, Untrusted Data Boundary & Anti-Injection Architecture, Consequences, Context, Decision, Status, 2026-10-25: AI Agent Phase 3: Vault Inspection & Grounded Retrieval Tools, 2026-10-25: AI Agent Phase 5: Dedicated Agent Page UI, Chat Stream & Staged Review (ADR-0214), 2026-10-25: AI Agent Phase 7: LLM-Wiki Engine & Topic Synthesis Loop (ADR-0215) (+35 more)
 
 ### Community 114 - "desktop/package.json"
 Cohesion: 0.07
@@ -1391,9 +1377,9 @@ Nodes (43): devDependencies, @codemirror/lang-markdown@^6.3.1, @codemirror/state
 Cohesion: 0.06
 Nodes (33): debugApplicationIdSuffix, app, macOSPrivateApi, security, windows, enable, scope, build (+25 more)
 
-### Community 116 - "Session Log"
-Cohesion: 0.10
-Nodes (26): 1. The desktop re-validates and **rejects**; it never re-sanitises, 2. Error codes separate "too big" from "wrong shape", 3. Host and Origin are hardening; the token is the boundary, 4. The listener is inert until enabled, and stops without polling, 5. Rust never writes; it asks the webview and waits, 6. Two already-vendored crates, no new dependency class, 7. `clipper_*` is nine focused modules, not the plan's three, ADR-0180: Clipper receiver core — reject rather than re-sanitise, and the listener's shape (+18 more)
+### Community 116 - "Decision"
+Cohesion: 0.15
+Nodes (12): 2. Error codes separate "too big" from "wrong shape", 3. Host and Origin are hardening; the token is the boundary, 4. The listener is inert until enabled, and stops without polling, 5. Rust never writes; it asks the webview and waits, 6. Two already-vendored crates, no new dependency class, 7. `clipper_*` is nine focused modules, not the plan's three, ADR-0180: Clipper receiver core — reject rather than re-sanitise, and the listener's shape, Consequences (+4 more)
 
 ### Community 117 - "builtinThemes.ts"
 Cohesion: 0.10
@@ -1403,9 +1389,9 @@ Nodes (23): BuiltinDefinition, createBuiltinThemes(), definitions, requiredColor
 Cohesion: 0.13
 Nodes (23): useFileTreeIcons(), getMappedIcon(), IconMap, parseIconMap(), removeMappedIcon(), serializeIconMap(), setMappedIcon(), isEmojiIcon() (+15 more)
 
-### Community 119 - "Current Focus"
-Cohesion: 0.06
-Nodes (46): LeafSelectorPill(), MobileHeader(), NavigationDrawer(), NavigationDrawerProps, NoteActionSheet(), QuickActionBar(), QuickActionBarProps, VaultSwitcherBar() (+38 more)
+### Community 119 - "NoteReaderView.tsx"
+Cohesion: 0.15
+Nodes (19): EditorPreviewView(), EditorPreviewViewProps, MentionItem, BacklinksSheetProps, BlockNode, InlineNode, OutlineHeading, ParsedMarkdownDocument (+11 more)
 
 ### Community 120 - "generate.mjs"
 Cohesion: 0.07
@@ -1413,11 +1399,11 @@ Nodes (9): NativeWind Color Scheme & Dark Mode Class Resolution, __dirname, dist
 
 ### Community 121 - "tableExtension.ts"
 Cohesion: 0.06
-Nodes (42): generateMarkdownTable(), insertTableAtCursor(), 2026-10-26: In-Editor Table Rendering & In-Place Cell Editing Fix, 2026-10-26: Multi-Row Table Linebreak Collapse Fix & Clean Grid Rendering, dispatchTableChange(), insertTable(), insertTableCommand(), mutateTable() (+34 more)
+Nodes (41): generateMarkdownTable(), insertTableAtCursor(), 2026-10-26: In-Editor Table Rendering & In-Place Cell Editing Fix, 2026-10-26: Multi-Row Table Linebreak Collapse Fix & Clean Grid Rendering, dispatchTableChange(), insertTable(), insertTableCommand(), mutateTable() (+33 more)
 
 ### Community 122 - "mathExtension.ts"
 Cohesion: 0.10
-Nodes (18): activeBlock(), decorationsFor(), findBlocks(), inCode(), loadKatex(), MathBlock, mathBlocksField, MathContinuationWidget (+10 more)
+Nodes (17): activeBlock(), decorationsFor(), findBlocks(), inCode(), loadKatex(), MathBlock, mathBlocksField, MathContinuationWidget (+9 more)
 
 ### Community 123 - "cluster.mjs"
 Cohesion: 0.17
@@ -1427,21 +1413,25 @@ Nodes (29): DESKTOP_KEY, DESKTOP_URL, DESKTOP_VAULT, FOLDER_ID, getDeviceIds(), 
 Cohesion: 0.06
 Nodes (14): DavinciPlugin, PluginCommands, PluginContext, PluginData, PluginEditor, PluginEditorSnapshot, PluginManifest, PluginNetwork (+6 more)
 
-### Community 125 - "@storybook/react-vite"
-Cohesion: 0.18
-Nodes (9): CalendarActive, Default, GraphActive, meta, SidebarCollapsed, Story, @storybook/react-vite@^10.5.5, config (+1 more)
+### Community 125 - "AppSidebar"
+Cohesion: 0.10
+Nodes (21): AppSidebar(), LazyGitSidebarPanel, AppSidebarProps, useSidebarResize(), UseSidebarResizeOptions, IconRail(), IconRailProps, CalendarActive (+13 more)
 
 ### Community 126 - "buildGraph.ts"
 Cohesion: 0.13
-Nodes (20): note(), emptyNoteTagSet(), addBacklink(), addNoteToGraph(), buildGraph(), createEmptyGraph(), edgesForNote(), ensureNode() (+12 more)
+Nodes (19): Testing, addBacklink(), addNoteToGraph(), buildGraph(), createEmptyGraph(), edgesForNote(), ensureNode(), GraphEdge (+11 more)
 
 ### Community 127 - "mermaidExtension.ts"
-Cohesion: 0.07
-Nodes (21): ADR-0178: Editor Mermaid Diagram Templates and Sub-Grouping, Consequences, Context, Decision, Status, findMermaidBlocks(), getMermaidDecorations(), mermaidCodeEditingField (+13 more)
+Cohesion: 0.10
+Nodes (17): 2026-11-01: Claude-Style Prompt Bar, Multimodal Images, Mermaid/Tables & Save-to-Note Actions, findMermaidBlocks(), getMermaidDecorations(), mermaidCodeEditingField, setMermaidCodeEditing, createHoverHint(), HoverHintOptions, bindInternalLinks() (+9 more)
 
 ### Community 128 - "paths"
 Cohesion: 0.06
 Nodes (30): compilerOptions, esModuleInterop, module, moduleResolution, paths, skipLibCheck, strict, target (+22 more)
+
+### Community 129 - "FileSystemAccessAdapter"
+Cohesion: 0.08
+Nodes (8): FileStat, VaultFileEntry, DirectoryHandleLike, FileHandleLike, FileSystemAccessAdapter, OpfsFileSystemAdapter, VirtualFileNode, normalizeVaultPath()
 
 ### Community 130 - "BookmarksView.tsx"
 Cohesion: 0.13
@@ -1467,53 +1457,53 @@ Nodes (30): devDependencies, typescript@^5.4.0, vitest@^4.1.10, exports, ./css, 
 Cohesion: 0.05
 Nodes (41): dependencies, @app/ai-agent@workspace:*, @app/ai-api@workspace:*, @app/core-types@workspace:*, @app/git-manager@workspace:*, @app/plugin-api@workspace:*, @app/syncthing-api@workspace:*, emojibase-data@17.0.0 (+33 more)
 
-### Community 136 - "EditorInsertTray.tsx"
-Cohesion: 0.13
-Nodes (11): CoverImagePickerModal(), CoverImagePickerModalProps, TabType, COVER_PRESETS, CoverPreset, EditorInsertTrayProps, INSERT_CATALOG_ITEMS, INSERT_CATEGORIES (+3 more)
+### Community 136 - "CoverImagePickerModal.tsx"
+Cohesion: 0.28
+Nodes (5): CoverImagePickerModal(), CoverImagePickerModalProps, TabType, COVER_PRESETS, CoverPreset
 
-### Community 137 - "builtin_editor.rs"
-Cohesion: 0.14
-Nodes (12): BuiltinEditorState, handle_editor_key(), handle_editor_mouse(), render_editor_ui(), run_builtin_editor(), save_editor_file(), render_editor_pane(), render_file_tree() (+4 more)
+### Community 137 - "TuiState"
+Cohesion: 0.06
+Nodes (37): BuiltinEditorState, handle_editor_key(), handle_editor_mouse(), render_editor_ui(), run_builtin_editor(), save_editor_file(), run_tui(), handle_editor_command() (+29 more)
 
-### Community 138 - "TemplateExpression.ts"
-Cohesion: 0.17
-Nodes (18): FilterCall, parseArgumentValue(), parseFilterArguments(), parseFilterCall(), parseTemplateExpression(), splitTopLevel(), TemplateExpression, unquote() (+10 more)
+### Community 138 - "2026-09-01 — Sync Phase 2 Scope Correction"
+Cohesion: 0.08
+Nodes (26): 2026-08-13 — SQLite Lock Fix & Vault Indexing Batching, 2026-08-14 — Canvas Feature Phase 2 — Text Cards, 2026-08-14 — Canvas Feature Phase 4 — Selection & Arrangement, 2026-08-14 — Phase 13 — Staging Deploy & Release Candidate 1, 2026-08-16 — Canvas Feature Phase 6 — Markdown File Embed Cards, 2026-08-17 — Canvas Feature Phase 12 — Export, 2026-08-18 — Editor Markdown Formatting Phase 1 Audit (ADR-0062), 2026-08-18 — Editor Markdown Formatting Phase 2: Line-Break Semantics (ADR-0063) (+18 more)
 
 ### Community 139 - "recent_vaults.rs"
 Cohesion: 0.19
 Nodes (22): add_or_update_recent_vault(), build_summaries(), canonicalize_path_string(), check_directory_exists(), check_vault_exists(), derive_vault_name(), get_recent_vaults(), get_recent_vaults_file_path() (+14 more)
 
 ### Community 140 - "VaultWelcomeView.tsx"
-Cohesion: 0.12
+Cohesion: 0.13
 Nodes (15): formatRelativeTime(), RecentVaultsCard(), RecentVaultsCardProps, Default, meta, SingleVault, Story, Default (+7 more)
 
 ### Community 141 - "FileTreeEmojiPicker.tsx"
 Cohesion: 0.12
-Nodes (16): CategoryTab, FileTreeEmojiCategoryBar(), FileTreeEmojiCategoryBarProps, TABS, CATEGORY_MATCH, FileTreeEmojiPicker(), FileTreeEmojiPickerProps, Default (+8 more)
+Nodes (17): CategoryTab, FileTreeEmojiCategoryBar(), FileTreeEmojiCategoryBarProps, TABS, CATEGORY_MATCH, FileTreeEmojiPicker(), FileTreeEmojiPickerProps, Default (+9 more)
 
 ### Community 142 - "content.d.ts"
 Cohesion: 0.07
 Nodes (25): AllValuesOf, astro:content, CollectionEntry, CollectionKey, ContentConfig, DataEntryMap, ExtractCollectionFilterType, ExtractDataType (+17 more)
 
-### Community 143 - "Project Configuration & Documentation"
+### Community 143 - "Popover.stories.tsx"
 Cohesion: 0.10
-Nodes (20): Automated Tests, Desktop App (`apps/desktop`), Editor Package (`packages/editor`), Implementation Plan — Canvas Phase 6: Markdown File Embed Cards, Manual / Integration Verification, [MODIFY] [DECISIONS.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/DECISIONS.md), [MODIFY] [Editor.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/editor/Editor.tsx), [MODIFY] [EditorArea.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/EditorArea/EditorArea.tsx) (+12 more)
+Nodes (22): InsertMenu(), InputProps, Default, Disabled, meta, Sizes, Story, Variants (+14 more)
 
 ### Community 144 - "cli/src/lib.rs"
 Cohesion: 0.03
-Nodes (100): capture_note(), CaptureTarget, CustomNote, Daily, QuickNotes, find_unique_quick_note_path(), sanitize_custom_note_name(), test_capture_daily_note() (+92 more)
+Nodes (98): capture_note(), CaptureTarget, CustomNote, Daily, QuickNotes, find_unique_quick_note_path(), sanitize_custom_note_name(), test_capture_daily_note() (+90 more)
 
 ### Community 145 - "PluginEditorHostAdapter"
-Cohesion: 0.06
-Nodes (18): PluginRpcHostSession, 0206 — Browser Plugin Sandboxing via Null-Origin Iframe and MessageChannel RPC, Consequences, Context, Decision, PluginPermission, IFRAME_SANDBOX_POLICY, IframeHostOptions (+10 more)
+Cohesion: 0.07
+Nodes (17): 0206 — Browser Plugin Sandboxing via Null-Origin Iframe and MessageChannel RPC, Consequences, Context, Decision, 2026-09-02 — Plugin Ecosystem Phase 1: Manifest Specification & @app/plugin-api, PluginPermission, IFRAME_SANDBOX_POLICY, IframeHostOptions (+9 more)
 
 ### Community 146 - "ListeningView.tsx"
-Cohesion: 0.33
-Nodes (9): TranscriptSegmentItem, ListeningView(), SuggestedLinksPanel(), formatTimestamp(), TranscriptBubble(), TranscriptBubbleProps, TranscriptFeed(), TranscriptFeedProps (+1 more)
+Cohesion: 0.25
+Nodes (13): SuggestedLinkItem, TranscriptSegmentItem, ListeningView(), RetranscribeResult, SuggestedLinksPanel(), SuggestedLinksPanelProps, formatTimestamp(), TranscriptBubble() (+5 more)
 
 ### Community 147 - "iframePolicy.ts"
-Cohesion: 0.07
-Nodes (39): applyIframePolicy(), blockedMessage(), DEFAULT_SANDBOX, IframePolicyResult, isPrivateHost(), isPrivateIpv4(), policyIframe(), sandboxForHost() (+31 more)
+Cohesion: 0.17
+Nodes (18): applyIframePolicy(), blockedMessage(), DEFAULT_SANDBOX, IframePolicyResult, isPrivateHost(), isPrivateIpv4(), policyIframe(), sandboxForHost() (+10 more)
 
 ### Community 148 - "ThemeRecord"
 Cohesion: 0.15
@@ -1521,55 +1511,55 @@ Nodes (11): AppearanceSettingsTabProps, ThemeBrowserProps, themes, ThemeSettings
 
 ### Community 149 - "platform-adapters/src/index.ts"
 Cohesion: 0.07
-Nodes (19): Decision, 2026-10-22: Web (Browser) Version — Feature Plan & Phases 1–7 Complete (`web-version-feature-plan.md`, `@app/platform-adapters`, `apps/web/`, ADR-0204, ADR-0205, ADR-0206), DialogAdapter, DialogConfirmOptions, FilePickResult, FolderPickResult, ExternalUrlAdapter, NotificationAdapter (+11 more)
+Nodes (23): bootstrapWebApp(), 0204 — Platform Adapter Layer and Boundary Enforcement, Consequences, Context, Decision, 2026-10-22: Web (Browser) Version — Feature Plan & Phases 1–7 Complete (`web-version-feature-plan.md`, `@app/platform-adapters`, `apps/web/`, ADR-0204, ADR-0205, ADR-0206), ExternalUrlAdapter, NotificationAdapter (+15 more)
+
+### Community 150 - "oauth.rs"
+Cohesion: 0.13
+Nodes (20): accepts_google_desktop_loopback_root(), ACCOUNT, CALENDAR_SERVICE, clear_calendar_token(), clear_drive_token(), DRIVE_SERVICE, is_allowed_external_url(), load_calendar_token() (+12 more)
 
 ### Community 151 - "highlighterAdversarial.test.ts"
-Cohesion: 0.20
-Nodes (16): area(), main(), restoreWhenIdle(), HighlightRecord, MAX_HIGHLIGHT_TEXT_LENGTH, MAX_HIGHLIGHTS, MAX_HIGHLIGHTS_PER_URL, asRecord() (+8 more)
+Cohesion: 0.18
+Nodes (17): area(), main(), restoreWhenIdle(), HighlightRecord, MAX_HIGHLIGHT_TEXT_LENGTH, MAX_HIGHLIGHTS, MAX_HIGHLIGHTS_PER_URL, asRecord() (+9 more)
 
-### Community 152 - "Plugin Ecosystem — Implementation Status"
-Cohesion: 0.15
-Nodes (12): API surface, Architecture, Current real-world state, Data / vault safety, ⚠️ Lazy-loading — NOT implemented (contradicts standing performance principle), Plugin Ecosystem — Implementation Status, Recommended next step, ⚠️ Sandboxing & security — does not match the intended model (+4 more)
+### Community 152 - "src-tauri/src/capture.rs"
+Cohesion: 0.19
+Nodes (12): CaptureState, create_and_show_capture_window(), current_epoch_ms(), display_capture_window(), make_window_topmost(), reclamp_popover(), setup(), show_or_create_capture_window() (+4 more)
 
 ### Community 153 - "EditorAiSelectionPopover.tsx"
 Cohesion: 0.15
-Nodes (14): EditorAiSelectionActions(), EditorAiSelectionActionsProps, EditorAiSelectionPopover(), EditorAiSelectionPopoverProps, mockBounds, { mockExecute }, EditorAiSelectionTriggerProps, AI_SELECTION_QUICK_ACTIONS (+6 more)
+Nodes (18): EditorAiSelectionActions(), EditorAiSelectionActionsProps, EditorAiSelectionPopover(), EditorAiSelectionPopoverProps, mockBounds, { mockExecute }, EditorAiSelectionTriggerProps, AI_SELECTION_QUICK_ACTIONS (+10 more)
 
 ### Community 154 - "with"
 Cohesion: 0.08
 Nodes (25): name, runs-on, steps, concurrency, cancel-in-progress, group, jobs, build-and-deploy (+17 more)
 
 ### Community 155 - "InsertDialog.tsx"
-Cohesion: 0.18
-Nodes (12): InsertDialog(), InsertDialogProps, createDummyRequest(), formatDateString(), ReminderDatePicker(), ReminderDatePickerProps, ReminderEditModal(), ReminderEditModalProps (+4 more)
+Cohesion: 0.12
+Nodes (16): InsertDialog(), formatDateString(), ReminderDatePicker(), ReminderDatePickerProps, ReminderEditModal(), ReminderEditModalProps, SearchDialog(), 2026-10-24: Design Refinement: Popups, Version History Spacing, Git VC Settings, AI Connection Column, Borderless Properties (+8 more)
 
-### Community 156 - "web/index.ts"
-Cohesion: 0.11
-Nodes (9): FileStat, VaultFileEntry, AppNotificationOptions, createWebPlatformAdapters(), FileHandleLike, VirtualFileNode, WebNotificationAdapter, WebSecretStoreAdapter (+1 more)
-
-### Community 157 - "syncthing/SyncthingPendingFolderRow.tsx"
-Cohesion: 0.18
-Nodes (13): checkFolderAccess(), FolderAccessCheckResult, createFreshSandboxFolder(), FolderTargetInfo, resolveSandboxTarget(), SyncthingPendingFolderRow(), 0201: Expo Mobile "Scan to Sync" Orchestration and Pairing Validation, Consequences (+5 more)
-
-### Community 158 - "src-tauri/src/capture.rs"
-Cohesion: 0.05
-Nodes (59): get_meeting_recording_status(), list_audio_input_devices(), pause_meeting_recording(), resume_meeting_recording(), save_recorded_audio_to_vault(), start_meeting_recording(), stop_meeting_recording(), CaptureState (+51 more)
+### Community 158 - "capture_commands.rs"
+Cohesion: 0.13
+Nodes (27): get_capture_shortcut(), get_capture_target(), list_vault_folders_for_capture(), open_note_from_capture(), quick_capture_bring_to_front(), quick_capture_dismiss(), quick_capture_quit_app(), quick_capture_save() (+19 more)
 
 ### Community 159 - "expo"
 Cohesion: 0.09
 Nodes (22): package, permissions, expo, android, ios, name, orientation, plugins (+14 more)
 
 ### Community 160 - "git_manager_branches.rs"
-Cohesion: 0.06
-Nodes (47): create_temp_vault(), test_10k_vault_first_frame_benchmark(), test_tui_search_filtering(), test_tui_state_navigation_and_preview(), create_local_git_version(), create_local_version(), create_local_version_locked(), create_local_version_with_message() (+39 more)
+Cohesion: 0.04
+Nodes (70): create_local_git_version(), create_local_version(), create_local_version_locked(), create_local_version_with_message(), ensure_vault_gitignore(), GIT_OPERATION_LOCK, has_staged_changes(), checked_note() (+62 more)
 
 ### Community 161 - "Mobile UI Redesign & Theme Architecture — Feature Plan"
 Cohesion: 0.09
 Nodes (22): Adversarial Verification & Observable Results Matrix, Code Organization & Quality Audit, Decisions Already Made (Do Not Revisit), Design Tokens: Existing vs. New Tokens Required, Detailed Screen-by-Screen Breakdown, Device & Benchmark Baseline Measurements, Goals, Goals & Non-Goals (+14 more)
 
+### Community 162 - "tray_commands.rs"
+Cohesion: 0.18
+Nodes (15): get_keep_in_tray(), get_tray_click_action(), request_app_exit(), set_keep_in_tray(), set_tray_click_action(), TrayClickActionResponse, update_tray_recent_notes(), update_tray_reminders() (+7 more)
+
 ### Community 163 - "core-types/index.ts"
 Cohesion: 0.13
-Nodes (30): Decision, Colocation, 2026-08-20 — Tags Feature Phase 1: Tag Parsing Rules & Data Model, 2026-10-24: Vim Cursor Black Default & Settings, Editor Properties Light Grey Box, Reminders "Add a reminder", QuickCapture Reminder Section, Phase 6: Keyboard Accessory Formatting Toolbar (Screenshot 3 Parity), Phase 6 Prompt, Minor Changes, Frontmatter (+22 more)
+Nodes (26): ADR-0077: Tag badges in `@app/editor` preserve first-seen display casing and use a click stub, Consequences, Context, Decision, Decision, 2026-08-20 — Tags Feature Phase 1: Tag Parsing Rules & Data Model, 2026-08-20 — Tags Feature Phase 2: Inline Tag Detection & Rendering, Phase 6: Keyboard Accessory Formatting Toolbar (Screenshot 3 Parity) (+18 more)
 
 ### Community 164 - "verifyEmbeddedSyncthing.mjs"
 Cohesion: 0.11
@@ -1581,7 +1571,7 @@ Nodes (35): dependencies, @app/core-types@workspace:*, @app/design-system@worksp
 
 ### Community 166 - "VaultStorageAdapter"
 Cohesion: 0.04
-Nodes (40): VaultStorageAdapter, ADR-0187: Mobile vault storage: hybrid sandbox by default with SAF fallback, Consequences, Context, Decision, Status, 2026-10-16 — Mobile Vault Storage & Scanning (`apps/mobile/vault`), 1. Executive Summary & Scope (+32 more)
+Nodes (44): VaultStorageAdapter, 2026-08-23 — Sync Phase 1: Manifest Infrastructure, 2026-09-01 — Sync Phase 1 Manifest Infrastructure, 2026-10-16 — Mobile Vault Storage & Scanning (`apps/mobile/vault`), Sync Phase 1 — Manifest Infrastructure Complete, 1. Executive Summary & Scope, 2.10 Hermes Incompatibility: `BigInt` and `WeakRef`, 2.11 Circular Dependency Check (+36 more)
 
 ### Community 167 - "steps"
 Cohesion: 0.10
@@ -1604,32 +1594,32 @@ Cohesion: 0.17
 Nodes (5): CLIPPER_EVENT, DISPATCH_TIMEOUT, PendingClips, WebviewClipDispatcher, ValidatedClip
 
 ### Community 172 - "ClipEditor"
-Cohesion: 0.15
-Nodes (10): ClipEditor(), ClipEditorProps, Default, HostileMetadata, ListValuedProperties, meta, NoProperties, Story (+2 more)
+Cohesion: 0.11
+Nodes (16): ClipEditor(), ClipEditorProps, Default, HostileMetadata, ListValuedProperties, meta, NoProperties, Story (+8 more)
 
 ### Community 173 - "2026-09-01 — Sync Phase 2 Scope Correction"
-Cohesion: 0.04
-Nodes (48): 2026-08-13 — SQLite Lock Fix & Vault Indexing Batching, 2026-08-14 — Canvas Feature Phase 4 — Selection & Arrangement, 2026-08-14 — Phase 13 — Staging Deploy & Release Candidate 1, 2026-08-16 — Canvas Feature Phase 10 — Webpage Embed Cards, 2026-08-18 — Editor Markdown Formatting Phase 1 Audit (ADR-0062), 2026-08-18 — Editor Markdown Formatting Phase 2: Line-Break Semantics (ADR-0063), 2026-08-19 — Bug Fix — Enter After Ambiguous Table Header, 2026-08-19 — Live Editable Table Grid (+40 more)
+Cohesion: 0.06
+Nodes (36): 2026-08-16 — Canvas Feature Phase 10 — Webpage Embed Cards, createLinkCardId(), 1. Threat Model & Security Architecture, 2. Webpage Node Data Model (JSON Canvas 1.0 Spec), 3. Creation & Interaction Flow, `@app/canvas`, Automated Tests, Documentation & Architecture (+28 more)
 
 ### Community 174 - "meetingNoteActions.ts"
-Cohesion: 0.20
-Nodes (14): saveRecordedAudioToVault(), SuggestedLinkItem, SuggestedLinksPanelProps, formatOffset(), formatTime(), MeetingNoteParams, renderMeetingMarkdown(), saveMeetingNoteToVault() (+6 more)
+Cohesion: 0.23
+Nodes (12): saveRecordedAudioToVault(), formatOffset(), formatTime(), MeetingNoteParams, renderMeetingMarkdown(), saveMeetingNoteToVault(), 2026-10-29: Isolate Audio Recordings into Attachments Directory (Single Note Per Folder), 2026-10-29: Meeting Audio Persistence, Editor Audio Player & Re-run Action (+4 more)
 
 ### Community 175 - "editor/index.ts"
-Cohesion: 0.06
-Nodes (48): FONT_GROUPS, FontGroup, FontOption, EditorFontCategory, EditorFontDefinition, editorFontRegistry, getEditorFont(), loadEditorFont() (+40 more)
+Cohesion: 0.05
+Nodes (52): FONT_GROUPS, FontGroup, FontOption, EditorSettingsTab(), EditorFontCategory, EditorFontDefinition, editorFontRegistry, getEditorFont() (+44 more)
 
 ### Community 176 - "livePreviewExtension.ts"
 Cohesion: 0.09
-Nodes (17): CodeCopyButtonWidget, getNextMarker(), handleListEnter(), handleListShiftTab(), handleListTab(), codeLineDeco, codeLineFirstDeco, codeLineFirstLastDeco (+9 more)
+Nodes (20): CodeCopyButtonWidget, findParentPrefix(), getNextMarker(), handleListBackspace(), handleListEnter(), handleListShiftTab(), handleListTab(), ROMAN (+12 more)
 
 ### Community 177 - "terminal_guard.rs"
-Cohesion: 0.10
-Nodes (7): TerminalGuard, test_restore_terminal_does_not_panic(), test_update_cursor_style_does_not_panic(), VimMode, Command, Insert, Normal
+Cohesion: 0.09
+Nodes (12): TerminalGuard, test_restore_terminal_does_not_panic(), test_update_cursor_style_does_not_panic(), apply_patch_internal(), get_file_diff_internal(), git_manager_apply_patch(), git_manager_get_file_diff(), GitFileDiff (+4 more)
 
 ### Community 178 - "ListeningView/index.ts"
-Cohesion: 0.15
-Nodes (18): AudioMeter(), AudioMeterProps, CHUNK_INTERVAL_MS, DEFAULT_MEETINGS_FOLDER, LISTENING_TAB_ID, ListeningStatus, formatDuration(), ListeningHeader() (+10 more)
+Cohesion: 0.16
+Nodes (17): AudioMeter(), AudioMeterProps, CHUNK_INTERVAL_MS, DEFAULT_MEETINGS_FOLDER, LISTENING_TAB_ID, ListeningStatus, formatDuration(), ListeningHeader() (+9 more)
 
 ### Community 179 - "ResizeObserver"
 Cohesion: 0.11
@@ -1644,24 +1634,24 @@ Cohesion: 0.14
 Nodes (16): dependencies, @app/plugin-api@workspace:*, devDependencies, typescript@^5.4.0, vitest@^4.1.10, @app/plugin-api, typescript, vitest (+8 more)
 
 ### Community 182 - "reminderTaskActions.ts"
-Cohesion: 0.22
-Nodes (20): useRemindersViewData(), cancelScheduledMessage(), computeSnoozeTime(), categorizeReminderDue(), parseChannelsJson(), queryRemindersForView(), addReminderToMarkdown(), addReminderToVaultNote() (+12 more)
+Cohesion: 0.34
+Nodes (16): useRemindersViewData(), cancelScheduledMessage(), addReminderToMarkdown(), addReminderToVaultNote(), applyAndSaveNote(), deleteReminderInMarkdown(), deleteReminderInVault(), editReminderInMarkdown() (+8 more)
 
 ### Community 183 - "embeds/index.ts"
 Cohesion: 0.05
-Nodes (43): InsertNotePicker(), InsertNotePickerProps, ADR-0179: Note Embeds (![[Note]] and ![[Note#Heading]]) and Safety Guards, Consequences, Context, Decision, Status, audioDecorations() (+35 more)
+Nodes (41): InsertNotePicker(), ADR-0179: Note Embeds (![[Note]] and ![[Note#Heading]]) and Safety Guards, Consequences, Context, Decision, Status, audioDecorations(), embedAudioExtension() (+33 more)
 
 ### Community 184 - "getVaultIndexDb"
-Cohesion: 0.06
-Nodes (50): loadNoteIcons(), clearFtsRows(), removeFtsRow(), removeFtsRows(), replaceFtsRows(), dbWriteLock, VAULT_INDEX_DB, withDbRetry() (+42 more)
+Cohesion: 0.07
+Nodes (48): loadNoteIcons(), clearFtsRows(), removeFtsRow(), removeFtsRows(), replaceFtsRows(), dbWriteLock, VAULT_INDEX_DB, verifyJournalMode() (+40 more)
 
 ### Community 185 - "ClipTokenStore"
-Cohesion: 0.16
-Nodes (9): ACCOUNT, ClipTokenStore, ensure_token(), generate_token(), KeychainClipTokenStore, rotate_token(), SERVICE, generated_tokens_are_hex_and_unique() (+1 more)
+Cohesion: 0.15
+Nodes (10): ACCOUNT, ClipTokenStore, ensure_token(), generate_token(), KeychainClipTokenStore, rotate_token(), SERVICE, generated_tokens_are_hex_and_unique() (+2 more)
 
-### Community 186 - "tui_events.rs"
-Cohesion: 0.28
-Nodes (9): run_tui(), handle_editor_command(), handle_editor_insert(), handle_editor_key(), handle_external_edit(), handle_key(), handle_mouse(), handle_search_key() (+1 more)
+### Community 186 - "pluginTestFixtures.ts"
+Cohesion: 0.16
+Nodes (5): PluginData, rpc, addPluginFixture(), MemoryPluginFs, MemoryPluginStorage
 
 ### Community 187 - "paths"
 Cohesion: 0.07
@@ -1677,7 +1667,7 @@ Nodes (18): dependencies, @app/ai-api@workspace:*, @app/ai-embeddings@workspace:
 
 ### Community 190 - "packages/canvas/index.ts"
 Cohesion: 0.05
-Nodes (72): Decision, Decision, 2026-08-14 — Canvas Feature Phase 0 — Package Setup & Data Model, 2026-08-14 — Canvas Feature Phase 1 — Canvas Shell, 2026-08-14 — Canvas Feature Phase 2 — Text Cards, 2026-08-16 — Canvas Feature Phase 6 — Markdown File Embed Cards, CanvasData, CanvasEdge (+64 more)
+Nodes (64): ADR-0042: Canvas translation layer, viewport non-persistence & debounced save, Consequences, Context, Decision, Status, Decision, 2026-08-14 — Canvas Feature Phase 0 — Package Setup & Data Model, 2026-08-14 — Canvas Feature Phase 1 — Canvas Shell (+56 more)
 
 ### Community 191 - "dependencies"
 Cohesion: 0.10
@@ -1703,9 +1693,9 @@ Nodes (13): `apps/desktop` - Dependencies, `apps/desktop` - UI Components, Autom
 Cohesion: 0.09
 Nodes (23): 10. Prompt-per-Phase Skeleton for Implementation, 1. Prerequisites Audit (Relationship to `releases-feature-plan.md`), 2. Decisions Needed from the User (with Recommended Defaults), 3. "How I Will Use It" (User Interaction Walkthrough), 4. Cross-Agent Portability & Architecture, 5. Preflight Verification Engine (`scripts/release/preflight-release.sh`), 6. AI Judgment Guidance for Release Notes, 7. Website Auto-Update Architecture (Comparing Options A, B, C) (+15 more)
 
-### Community 198 - "FocusPane"
+### Community 198 - "authorize_capture_window"
 Cohesion: 0.20
-Nodes (11): FocusPane, Editor, Preview, Search, Tree, execute_vim_command(), test_execute_vim_command_save_and_quit(), VimCommandAction (+3 more)
+Nodes (12): get_meeting_recording_status(), list_audio_input_devices(), pause_meeting_recording(), resume_meeting_recording(), save_recorded_audio_to_vault(), start_meeting_recording(), stop_meeting_recording(), authorize_capture_window() (+4 more)
 
 ### Community 199 - "clipper_ledger.rs"
 Cohesion: 0.28
@@ -1716,8 +1706,8 @@ Cohesion: 0.31
 Nodes (9): AgentCalendarBackend, CALENDAR_CREATE_EVENT_TOOL, CALENDAR_LIST_EVENTS_TOOL, CALENDAR_SYNC_TASKS_TOOL, executeCalendarCreateEvent(), executeCalendarListEvents(), executeCalendarSyncTasks(), ExtractedTaskReminder (+1 more)
 
 ### Community 201 - "gitTypes.ts"
-Cohesion: 0.23
-Nodes (9): GitCommitDetailSheet(), GitCommitDetailSheetProps, calculateGraphLanes(), GitCommitDetail, GitCommitEntry, GitCommitFileChange, GitGraphLaneConnection, GitStatusSummary (+1 more)
+Cohesion: 0.15
+Nodes (13): GitCommitDetailSheet(), GitCommitDetailSheetProps, calculateGraphLanes(), ParsedPorcelainResult, parsePorcelainV2(), GitBranchInfo, GitCommitDetail, GitCommitEntry (+5 more)
 
 ### Community 202 - "1. Media Model, Utilities & Subcomponents (`packages/canvas`)"
 Cohesion: 0.06
@@ -1725,15 +1715,15 @@ Nodes (30): 1. Media Model, Utilities & Subcomponents (`packages/canvas`), 2. Ca
 
 ### Community 203 - "linkExtension.ts"
 Cohesion: 0.05
-Nodes (32): ADR-0062: Editor Markdown Formatting Gap Audit, Audit method, Consequences, Context, Decision, Gap table, Status, ADR-0063: Direct CodeMirror Soft-Line-Break Decorations (+24 more)
+Nodes (37): ADR-0062: Editor Markdown Formatting Gap Audit, Audit method, Consequences, Context, Decision, Gap table, Status, ADR-0063: Direct CodeMirror Soft-Line-Break Decorations (+29 more)
 
 ### Community 204 - "git_manager_log.rs"
 Cohesion: 0.25
 Nodes (10): get_commit_detail_internal(), get_log_internal(), git_manager_get_commit_details(), git_manager_get_log(), GitCommitDetail, GitCommitEntry, GitCommitFileChange, TEST_COUNTER (+2 more)
 
 ### Community 205 - "src/themes/index.ts"
-Cohesion: 0.30
-Nodes (9): useCaptureTheme(), applyThemeCss(), createDesktopThemeFsAdapter(), createDesktopThemeStorage(), PersistedTheme, readPersistedTheme(), restoreCachedBuiltinTheme(), commands (+1 more)
+Cohesion: 0.22
+Nodes (10): rootElement, useCaptureTheme(), applyThemeCss(), createDesktopThemeFsAdapter(), createDesktopThemeStorage(), PersistedTheme, readPersistedTheme(), restoreCachedBuiltinTheme() (+2 more)
 
 ### Community 206 - "env"
 Cohesion: 0.33
@@ -1756,8 +1746,8 @@ Cohesion: 0.13
 Nodes (16): devDependencies, typescript@^5.4.0, vitest@^4.1.10, typescript, vitest, main, name, scripts (+8 more)
 
 ### Community 211 - "Google Calendar Two-Way Integration — Feature & Phased Implementation Plan"
-Cohesion: 0.11
-Nodes (18): 2.1 Goals, 2.2 Non-Goals, 2. Goals and Non-Goals, 4.1 All-Day Events (Floating Date Boundary), 4.2 Timed Events & Time Zone Handling, 4. Time Zones and All-Day Events Specification, 5.1 Token Security and Storage Boundary, 5.2 Disconnect & Complete Data Purge (+10 more)
+Cohesion: 0.09
+Nodes (21): 2.1 Goals, 2.2 Non-Goals, 2. Goals and Non-Goals, 3.1 UI Engine Evaluation: Schedule-X vs. FullCalendar vs. React-Big-Calendar, 3.2 Authentication & OAuth Architecture, 3.3 API Call Placement: TypeScript vs. Rust, 3.4 Read Synchronization Architecture, 3.5 Write Synchronization, Outbox & Conflict Resolution (+13 more)
 
 ### Community 212 - "clipper_attachments.rs"
 Cohesion: 0.22
@@ -1768,12 +1758,12 @@ Cohesion: 0.18
 Nodes (13): activeSdkPath(), args, canLinkWithSdk(), child, __dirname, env, localBin, passthroughArgs (+5 more)
 
 ### Community 214 - "ReminderNotificationToast.tsx"
-Cohesion: 0.14
-Nodes (18): AddReminderForm(), formatDate(), ActiveToastReminder, mergeUniqueReminders(), normalizeReminder(), RawReminderPayload, ReminderNotificationToast(), ReminderNotificationToastProps (+10 more)
+Cohesion: 0.22
+Nodes (11): ActiveToastReminder, mergeUniqueReminders(), normalizeReminder(), RawReminderPayload, ReminderNotificationToast(), ReminderNotificationToastProps, EventCallback, listeners (+3 more)
 
-### Community 215 - "WatcherAdapter"
-Cohesion: 0.18
-Nodes (5): WatcherAdapter, WatcherChangeEvent, WatcherUnlistenFn, WebWatcherAdapter, Next Up (in order)
+### Community 215 - "DialogAdapter"
+Cohesion: 0.13
+Nodes (8): TauriDialogAdapter, openDialog, DialogAdapter, DialogConfirmOptions, FilePickResult, FolderPickResult, WebDialogAdapter, Next Up (in order)
 
 ### Community 216 - "website/package.json"
 Cohesion: 0.13
@@ -1796,8 +1786,8 @@ Cohesion: 0.16
 Nodes (4): hide_capture_panel(), is_capture_panel_visible(), setup_capture_panel(), show_capture_panel()
 
 ### Community 221 - "loadAISubsystem"
-Cohesion: 0.18
-Nodes (13): loadAISubsystem(), AiSelectionActionKind, buildAiSelectionSystemPrompt(), buildAiSelectionUserPrompt(), ExecuteAiSelectionOptions, executeAiSelectionPrompt(), { mockComplete, mockDispose }, ADR-0142: Close AI Phase 5 blocking gap 1 (+5 more)
+Cohesion: 0.25
+Nodes (7): loadAISubsystem(), ADR-0142: Close AI Phase 5 blocking gap 1, Consequences, Decision, Status, 2026-09-03 - AI Features Phase 0, 2026-10-26: AI Selection Comment & Inline Edit/Amend Widget (SearchDialog Style & Click-Away)
 
 ### Community 222 - "webSearchTool.ts"
 Cohesion: 0.18
@@ -1808,12 +1798,12 @@ Cohesion: 0.14
 Nodes (13): runs-on, steps, jobs, checks, name, on, name, run (+5 more)
 
 ### Community 224 - "CloudAIProvider"
-Cohesion: 0.10
-Nodes (17): ADR-0132: AI provider abstraction and lazy-load boundary, Consequences, Context, Status, Verification, ADR-0133: Local AI model feasibility gate, Consequences, Context (+9 more)
+Cohesion: 0.07
+Nodes (24): ADR-0132: AI provider abstraction and lazy-load boundary, Consequences, Context, Status, Verification, ADR-0133: Local AI model feasibility gate, Consequences, Context (+16 more)
 
 ### Community 226 - "TemplateEditor.tsx"
-Cohesion: 0.05
-Nodes (28): Edited, meta, Refused, Saving, Starter, Story, TemplateEditor(), TemplateEditorProps (+20 more)
+Cohesion: 0.08
+Nodes (19): Edited, meta, Refused, Saving, Starter, Story, TemplateEditor(), TemplateEditorProps (+11 more)
 
 ### Community 227 - "Native-Like macOS Menu Bar Popover Plan"
 Cohesion: 0.07
@@ -1845,31 +1835,31 @@ Nodes (12): compilerOptions, declaration, module, moduleResolution, noEmitOnErro
 
 ### Community 236 - "clipper_test_harness.rs"
 Cohesion: 0.11
-Nodes (20): tokens_match(), find_header_end(), HEADER_TERMINATOR, HttpReadError, Io, Malformed, TooLarge, HttpRequest (+12 more)
+Nodes (20): find_header_end(), HEADER_TERMINATOR, HttpReadError, Io, Malformed, TooLarge, HttpRequest, READ_CHUNK (+12 more)
 
 ### Community 237 - "PROGRESS.md — Current State"
 Cohesion: 0.02
-Nodes (99): OwlIcon(), OwlIconProps, Dark, Large, Light, meta, Story, Blocked / Open Questions (+91 more)
+Nodes (101): OwlIcon(), OwlIconProps, Dark, Large, Light, meta, Story, Blocked / Open Questions (+93 more)
 
 ### Community 238 - "useGitSyncStore.ts"
 Cohesion: 0.23
-Nodes (11): fetchGitRemote(), getGitRemotes(), getGitTrackingStatus(), pullGitRemote(), pushGitRemote(), GitSyncToolbar(), errMsg(), GitSyncState (+3 more)
+Nodes (12): fetchGitRemote(), getGitRemotes(), getGitTrackingStatus(), pullGitRemote(), pushGitRemote(), GitSyncToolbar(), errMsg(), GitSyncState (+4 more)
 
 ### Community 239 - "4. Implementation Phases (0 through 9)"
 Cohesion: 0.08
 Nodes (25): 1. Decisions to Lock (ADR-0232 through ADR-0236), 2.1 Rust Command Layer (`src-tauri/src/git_manager_commands.rs`), 2.2 `packages/git-manager` Monorepo Package, 2.3 Status Refresh & Watcher Strategy, 2.4 Database State Policy, 2. Architecture & Subsystem Boundaries, 3.1 Primary Navigation & App Shell, 3.2 Git Sidebar Sections (Obsidian/VS Code Parity) (+17 more)
 
-### Community 240 - "packages/canvas/index.ts"
-Cohesion: 0.08
-Nodes (37): 2026-08-16 — Canvas Feature Phase 7 — Image / Video Cards, CanvasCardActionBar, CanvasFsAdapter, FileCardHeader, FileCardHeaderProps, FileCardHeadingPicker(), FileCardHeadingPickerProps, FileCardNodeComponent() (+29 more)
+### Community 240 - "FileCardNode.tsx"
+Cohesion: 0.09
+Nodes (36): 2026-08-16 — Canvas Feature Phase 7 — Image / Video Cards, CanvasCardActionBar, FileCardHeader, FileCardHeadingPicker(), FileCardHeadingPickerProps, FileCardNode, FileCardNodeComponent(), FileCardNodeData (+28 more)
 
 ### Community 241 - "desktop/vite.config.ts"
 Cohesion: 0.12
 Nodes (12): __dirname, fixtureVaultPath, largeFixtureVaultPath, magentaThemePath, repoRoot, themeVerificationPlugin, desktopRoot, __dirname (+4 more)
 
-### Community 243 - "2026-09-26 — Public-token consumer reconciliation closeout"
-Cohesion: 0.15
-Nodes (13): 2026-09-26 — Fix mediated fetch receiver binding, 2026-09-26 — Plugin discovery uses the vault-owned native boundary, 2026-09-26 — Plugin editor RPC (ADR-0167), 2026-09-26 — Plugin mediated network permission enforcement, 2026-09-26 — Plugin RPC Phase 2b-2a synthetic plumbing activation, 2026-09-26 — Plugin starter migration and plugin-runner native command guard, 2026-09-26 — Public-token consumer reconciliation closeout, 2026-09-27 — Plugin enable race, native mediated fetch, and security-probe reporting (+5 more)
+### Community 243 - "sanitize/package.json"
+Cohesion: 0.11
+Nodes (21): dependencies, dompurify@^3.2.6, devDependencies, jsdom@^30.0.1, @types/dompurify@^3.2.0, typescript@^5.4.0, vitest@^4.1.10, jsdom (+13 more)
 
 ### Community 244 - "web-clipper/tsconfig.json"
 Cohesion: 0.17
@@ -1880,8 +1870,8 @@ Cohesion: 0.18
 Nodes (10): concurrency, cancel-in-progress, group, jobs, validate, name, permissions, contents (+2 more)
 
 ### Community 246 - "browserBookmarkImporter.ts"
-Cohesion: 0.17
-Nodes (18): autoImportFromBrowser(), BrowserImportSummary, cleanFolderPath(), decodeHtmlEntities(), DEFAULT_BROWSERS, DetectedBrowserInfo, detectInstalledBrowsers(), GENERIC_ROOT_FOLDERS (+10 more)
+Cohesion: 0.12
+Nodes (25): WebBookmarkItem, autoImportFromBrowser(), BrowserImportSummary, cleanFolderPath(), decodeHtmlEntities(), DEFAULT_BROWSERS, DetectedBrowserInfo, detectInstalledBrowsers() (+17 more)
 
 ### Community 247 - "devDependencies"
 Cohesion: 0.11
@@ -1892,12 +1882,12 @@ Cohesion: 0.17
 Nodes (12): scripts, build, build-storybook, build:web, dev, dev:web, lint, prepare:emoji-data (+4 more)
 
 ### Community 249 - "5. Phased Implementation Plan"
-Cohesion: 0.11
-Nodes (21): LogsSettingsTab(), 1.1 What Already Exists in the Codebase, 1.2 Gaps to Address, 1. Current State Assessment & Gap Analysis, 2. Constraints & Architectural Principles, 3.1 Notification Channels & Keychain Security Architecture, 3.2 CallMeBot Verification Summary (Verified October 2026), 3.3 SQLite Schema Migration 10 (`vault-index.db`) (+13 more)
+Cohesion: 0.10
+Nodes (23): LogsSettingsTab(), 1.1 What Already Exists in the Codebase, 1. Current State Assessment & Gap Analysis, 2. Constraints & Architectural Principles, 3.1 Notification Channels & Keychain Security Architecture, 3.2 CallMeBot Verification Summary (Verified October 2026), 3.3 SQLite Schema Migration 10 (`vault-index.db`), 3. Architecture & Data Model (+15 more)
 
 ### Community 250 - "EditorMenuBarDropdown.tsx"
-Cohesion: 0.16
-Nodes (13): EditorMenuBar(), EditorMenuBarProps, Default, meta, Story, ToolbarActive, EditorMenuBarDropdown(), EditorMenuBarDropdownProps (+5 more)
+Cohesion: 0.17
+Nodes (11): EditorMenuBarProps, Default, meta, Story, ToolbarActive, EditorMenuBarDropdown(), EditorMenuBarDropdownProps, renderItemIcon() (+3 more)
 
 ### Community 251 - "Meeting Recorder + AI Listening — Feature & Phased Implementation Plan"
 Cohesion: 0.08
@@ -1932,8 +1922,8 @@ Cohesion: 0.20
 Nodes (12): DragPreviewData, fileTreeDragPreview, getOrCreateDragPreviewElement(), getPreviewIconSvg(), updateDragPreview(), FileTreeList(), FileTreeListProps, fileIcon() (+4 more)
 
 ### Community 259 - "Project Configuration & Documentation"
-Cohesion: 0.12
-Nodes (16): Canvas Package (`packages/canvas`), [MODIFY] [CanvasContextMenu.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/CanvasContextMenu.tsx) & [useCanvasContextMenu.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/useCanvasContextMenu.ts), [MODIFY] [CanvasEditorContext.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/CanvasEditorContext.ts), [MODIFY] [canvasNodeTypes.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/canvasNodeTypes.ts), [MODIFY] [CanvasView.test.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/CanvasView.test.tsx), [MODIFY] [CanvasView.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/CanvasView.tsx), [MODIFY] [index.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/index.ts), [MODIFY] [package.json](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/package.json) (+8 more)
+Cohesion: 0.06
+Nodes (31): Canvas Package (`packages/canvas`), Desktop App (`apps/desktop`), Editor Package (`packages/editor`), [MODIFY] [canvasConstants.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/canvasConstants.ts), [MODIFY] [CanvasContextMenu.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/CanvasContextMenu.tsx) & [useCanvasContextMenu.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/useCanvasContextMenu.ts), [MODIFY] [CanvasEditorContext.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/CanvasEditorContext.ts), [MODIFY] [canvasNodeTypes.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/canvasNodeTypes.ts), [MODIFY] [CanvasView.test.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/CanvasView.test.tsx) (+23 more)
 
 ### Community 260 - "3. Block Components Migration (CUBE CSS + BEM + Radix Exceptions)"
 Cohesion: 0.08
@@ -1964,12 +1954,12 @@ Cohesion: 0.12
 Nodes (17): scripts, build, check:bundle-size, check:public-tokens, check:version-sync, deploy:cloudflare, desktop:build, desktop:dev (+9 more)
 
 ### Community 268 - "File Tree Context Menu, Click-Away Dismissal, and Folder Actions (CRUD)"
-Cohesion: 0.12
-Nodes (16): 2026-09-19 — Fix: Folder rename and delete no-op, 2026-09-19 — Follow-up: Immediate folder-delete tree update, 2026-09-20 — Emoji icons Task 1: offline picker dependency boundary, 2026-09-20 — External vault changes: watcher and reconcile hardening, 2026-09-20 — File tree emoji picker layout and persistence, 2026-09-20 — Follow-up: Clear deleted folder selection, 2026-09-20 — Follow-up: Immediate folder-rename tree update, 2026-09-20 — Unified custom window controls (+8 more)
-
-### Community 269 - "EditorDom.tsx"
 Cohesion: 0.08
-Nodes (30): EditorDom(), EditorDomProps, createMobileEditorExtensions(), executeToolbarAction(), FormattingToolbarProps, ToolbarItem, createDebouncedBridge(), DocChangeNotification (+22 more)
+Nodes (22): ADR-0176: Editor Slash Menu Trigger Rules and Shared Recent Store, Consequences, Context, Decision, Status, 2026-09-19 — Follow-up: Immediate folder-delete tree update, 2026-09-20 — Emoji icons Task 1: offline picker dependency boundary, 2026-09-20 — External vault changes: watcher and reconcile hardening (+14 more)
+
+### Community 269 - "Current Focus"
+Cohesion: 0.06
+Nodes (49): EditorScreen(), EditorConflictBanner(), EditorDom(), EditorDomProps, EditorHeader(), buildEditorInjectedScript(), EditorSaveErrorBanner(), executeToolbarAction() (+41 more)
 
 ### Community 270 - "Beta Overview.md"
 Cohesion: 0.15
@@ -1987,17 +1977,17 @@ Nodes (10): description, type, properties, authorUrl, styles, version, descripti
 Cohesion: 0.22
 Nodes (8): description, name, private, scripts, build, lint, test, version
 
-### Community 274 - "`@app/editor`"
-Cohesion: 0.13
-Nodes (15): `@app/editor`, Documentation & Tracking, [MODIFY] [DECISIONS.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/DECISIONS.md), [MODIFY] [Editor.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/editor/Editor.tsx), [MODIFY] [editorTheme.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/editor/editorTheme.ts), [MODIFY] [index.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/editor/index.ts), [MODIFY] [livePreviewExtension.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/editor/livePreviewExtension.ts), [MODIFY] [MarkdownView.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/editor/MarkdownView.tsx) (+7 more)
+### Community 274 - "builtinThemeTokens.ts"
+Cohesion: 0.25
+Nodes (15): BUILTIN_THEMES, lightATokens, catppuccinFrappeTokens, catppuccinLatteTokens, defaultMobileLayout, isDarkColor(), parseThemeTokensFromCss(), MobileLayoutTokens (+7 more)
 
 ### Community 275 - "TableGridPopover.tsx"
-Cohesion: 0.21
+Cohesion: 0.22
 Nodes (8): Default, LargeGrid, meta, Story, TableGridPicker(), TableGridPickerProps, TableGridPopover(), TableGridPopoverProps
 
 ### Community 276 - "WebBookmarksContentHeader.tsx"
-Cohesion: 0.15
-Nodes (14): WebBookmarkSortOption, WebBookmarkViewMode, WebBookmarksContentHeader(), WebBookmarksContentHeaderProps, SORT_OPTIONS, WebBookmarkSortMenu(), WebBookmarkSortMenuProps, WebBookmarksSubViewProps (+6 more)
+Cohesion: 0.13
+Nodes (15): WebBookmarkSortOption, WebBookmarkViewMode, BookmarkUIState, DEFAULT_VIEW_CONFIG, WebBookmarksContentHeader(), WebBookmarksContentHeaderProps, SORT_OPTIONS, WebBookmarkSortMenu() (+7 more)
 
 ### Community 277 - "QuickCaptureRecord.tsx"
 Cohesion: 0.31
@@ -2008,8 +1998,8 @@ Cohesion: 0.22
 Nodes (8): compilerOptions, jsx, noEmit, outDir, types, extends, include, ../../tsconfig.json
 
 ### Community 279 - "Git Workflow, CI/CD & Release Engineering"
-Cohesion: 0.07
-Nodes (23): 1. Branching Strategy, 2. Commit Convention, 3. Local Hooks (Husky + lint-staged), 4. CI Pipeline (GitHub Actions, matched to Turborepo), 5. Environments, 6. Versioning & Release, 7. Branch Protection Rules (GitHub), 8. PR Template (+15 more)
+Cohesion: 0.10
+Nodes (14): 1. Branching Strategy, 2. Commit Convention, 3. Local Hooks (Husky + lint-staged), 4. CI Pipeline (GitHub Actions, matched to Turborepo), 5. Environments, 6. Versioning & Release, 7. Branch Protection Rules (GitHub), 8. PR Template (+6 more)
 
 ### Community 281 - "Proposed Changes"
 Cohesion: 0.11
@@ -2059,17 +2049,23 @@ Nodes (8): author, description, id, main, minAppVersion, name, permissions, vers
 Cohesion: 0.22
 Nodes (8): author, description, id, main, minAppVersion, name, permissions, version
 
-### Community 293 - "UpdateSettingsCard.tsx"
-Cohesion: 0.29
-Nodes (8): UpdateSettingsCard(), checkAppUpdate(), downloadAndInstall(), isTauriEnvironment(), restartApp(), TauriUpdateInstance, UpdateCheckResult, UpdateInfo
+### Community 293 - "MobileThemeProvider.tsx"
+Cohesion: 0.20
+Nodes (14): darkBTokens, generateThemeCss(), MobileThemeProviderProps, TestChild(), DEFAULT_STATE, getCachedThemeState(), inMemoryThemeState, loadThemeStateToCache (+6 more)
 
 ### Community 295 - "clipSessionDeps.ts"
 Cohesion: 0.05
-Nodes (64): area(), saveSelectionHighlight(), triggerQueueDrain(), readActiveTabCapture(), readPage(), newClipId(), ADR-0178, isRestrictedUrl() (+56 more)
+Nodes (61): {
+  createNoteInVaultMock,
+  appendToNoteInVaultMock,
+  resolveUniqueNotePathMock,
+  getStateMock,
+  invokeMock,
+}, area(), saveSelectionHighlight(), triggerQueueDrain(), isRestrictedUrl(), QuickClipResult, quickClipTab(), { executeScriptMock } (+53 more)
 
 ### Community 297 - "HISTORY.md — Session Log & Detailed Notes"
 Cohesion: 0.02
-Nodes (120): G(), SvgProps, 2026-08-19 — Editor Line Wrapping Bug Fix, 2026-08-19 — Editor Markdown Formatting Phase 7: Quotes, Footnotes & Comments, 2026-08-19 — Editor Markdown Formatting Phase 8: Escaping Edge Cases, 2026-08-19 — Inline Code Visual Styling Bug Fix, 2026-08-20 — Bug Fix: Expose Live Vault Tag Index, 2026-08-20 — General Search Phase 0: Scope & Architecture (+112 more)
+Nodes (107): 2026-08-19 — Editor Line Wrapping Bug Fix, 2026-08-19 — Editor Markdown Formatting Phase 7: Quotes, Footnotes & Comments, 2026-08-19 — Editor Markdown Formatting Phase 8: Escaping Edge Cases, 2026-08-19 — Inline Code Visual Styling Bug Fix, 2026-08-20 — Bug Fix: Expose Live Vault Tag Index, 2026-08-20 — General Search Phase 0: Scope & Architecture, 2026-08-20 — General Search Phase 1: Full-Text Index, 2026-08-20 — General Search Phase 3: Query Execution & Ranking (+99 more)
 
 ### Community 298 - "scripts"
 Cohesion: 0.25
@@ -2104,8 +2100,8 @@ Cohesion: 0.22
 Nodes (8): compilerOptions, declaration, outDir, types, exclude, extends, include, ../../tsconfig.json
 
 ### Community 306 - "prompts/index.ts"
-Cohesion: 0.05
-Nodes (50): resolveExecutionPromptAndTools(), ResolvePromptAndToolsParams, mockComplete, mockReadNote, mockSearch, mockWriteNote, executeAgentStepTool(), prepareActiveTools() (+42 more)
+Cohesion: 0.07
+Nodes (39): resolveExecutionPromptAndTools(), ResolvePromptAndToolsParams, mockComplete, mockReadNote, mockSearch, mockWriteNote, AgentSystemPromptOptions, buildAgentSystemPrompt() (+31 more)
 
 ### Community 307 - "AppearanceSettingsTab.tsx"
 Cohesion: 0.39
@@ -2116,8 +2112,8 @@ Cohesion: 0.50
 Nodes (3): HERO_THOUGHTS, HeroThought, ThoughtKind
 
 ### Community 309 - "Last Session"
-Cohesion: 0.13
-Nodes (15): Completed, Completed, Completed, Completed, Completed, Completed, Completed, Completed (+7 more)
+Cohesion: 0.14
+Nodes (14): Completed, Completed, Completed, Completed, Completed, Completed, Completed, Completed (+6 more)
 
 ### Community 310 - "dark-b/manifest.json"
 Cohesion: 0.20
@@ -2140,8 +2136,8 @@ Cohesion: 0.25
 Nodes (7): compilerOptions, noEmit, outDir, types, extends, include, ../../tsconfig.json
 
 ### Community 315 - "useClipSession.ts"
-Cohesion: 0.06
-Nodes (68): ClipDraft, clip(), PARAGRAPH, ClipContext, prepareClipContext(), ClipBuildResult, extensionFilters(), renderClipPayload() (+60 more)
+Cohesion: 0.05
+Nodes (74): clip(), PARAGRAPH, ClipContext, prepareClipContext(), PrepareClipContextOptions, ClipBuildResult, extensionFilters(), renderClipPayload() (+66 more)
 
 ### Community 316 - "manifest.schema.json"
 Cohesion: 0.29
@@ -2180,8 +2176,8 @@ Cohesion: 0.13
 Nodes (6): currentPathEl, docButtons, docs, docViews, paths, capabilities
 
 ### Community 325 - "VaultIndexer.ts"
-Cohesion: 0.08
-Nodes (37): SyncConflictsPanel(), { deleteNoteInVault }, listIndexedNotePaths(), indexVaultFull(), isIndexedNotePath(), loadNotesFromPaths(), openAndIndexVaultFromPicker(), reconcileVaultChanges() (+29 more)
+Cohesion: 0.09
+Nodes (30): SyncConflictsPanel(), { deleteNoteInVault }, listIndexedNotePaths(), isIndexedNotePath(), openAndIndexVaultFromPicker(), reconcileVaultChanges(), clearVaultIndex, getVaultIndexDb (+22 more)
 
 ### Community 326 - "expo-syncthing/package.json"
 Cohesion: 0.33
@@ -2216,8 +2212,8 @@ Cohesion: 0.29
 Nodes (6): compilerOptions, outDir, types, extends, include, ../../tsconfig.json
 
 ### Community 334 - "ADR-0155: Generic Git remotes use HTTPS PATs in the OS keyring"
-Cohesion: 0.18
-Nodes (9): detectGitRemoteProvider(), GitRemoteProvider, KNOWN_PROVIDERS, ADR-0155: Generic Git remotes use HTTPS PATs in the OS keyring, Consequences, Context, Decision, Status (+1 more)
+Cohesion: 0.25
+Nodes (7): GitRemoteProvider, ADR-0155: Generic Git remotes use HTTPS PATs in the OS keyring, Consequences, Context, Decision, Status, Verification
 
 ### Community 335 - "google-calendar-api/tsconfig.json"
 Cohesion: 0.29
@@ -2256,8 +2252,8 @@ Cohesion: 0.29
 Nodes (6): compilerOptions, outDir, types, extends, include, ../../tsconfig.json
 
 ### Community 344 - "snapNodeAlignment.ts"
-Cohesion: 0.08
-Nodes (25): CANVAS_ALIGN_THRESHOLD, checkGuideDelta(), getNodeBounds(), NodeBounds, snapNodeToAlignment(), 1. Fixtures & Benchmarking, 2. Viewport Culling & React Flow Optimization, 3. Persistence, Debounce & Drag Optimizations (+17 more)
+Cohesion: 0.12
+Nodes (16): 1. Fixtures & Benchmarking, 2. Viewport Culling & React Flow Optimization, 4. Verification, Documentation & Decisions, Automated Tests, Canvas Phase 8 — Performance Checkpoint Plan, Manual / Devtools Profiling, [MODIFY] [CanvasView.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/packages/canvas/CanvasView.tsx), [MODIFY] [DECISIONS.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/DECISIONS.md) (+8 more)
 
 ### Community 345 - "BaseLayout.astro"
 Cohesion: 0.15
@@ -2276,20 +2272,20 @@ Cohesion: 0.70
 Nodes (4): check_manifest(), extract_cargo_version(), extract_json_val(), check-version-sync.sh script
 
 ### Community 350 - "`apps/desktop/src/components/SettingsDialog`"
-Cohesion: 0.10
-Nodes (20): `apps/desktop/src/components/SettingsDialog`, Automated Tests, Design System & Code Quality Compliance, Manual Verification, [MODIFY] [SettingsDialog.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/SettingsDialog/SettingsDialog.tsx), [NEW] [AppearanceSettingsTab.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/SettingsDialog/AppearanceSettingsTab.tsx), [NEW] [EditorSettingsTab.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/SettingsDialog/EditorSettingsTab.tsx), [NEW] [FilesLinksSettingsTab.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/SettingsDialog/FilesLinksSettingsTab.tsx) (+12 more)
+Cohesion: 0.09
+Nodes (21): `apps/desktop/src/components/SettingsDialog`, Automated Tests, Design System & Code Quality Compliance, Manual Verification, [MODIFY] [SettingsDialog.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/SettingsDialog/SettingsDialog.tsx), [NEW] [AppearanceSettingsTab.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/SettingsDialog/AppearanceSettingsTab.tsx), [NEW] [EditorSettingsTab.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/SettingsDialog/EditorSettingsTab.tsx), [NEW] [FilesLinksSettingsTab.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/components/SettingsDialog/FilesLinksSettingsTab.tsx) (+13 more)
 
 ### Community 351 - "useFileTreeMenus.ts"
-Cohesion: 0.25
-Nodes (10): FileTreeContextMenu(), FileTreeContextMenuProps, FileTreeMenuTargetType, FileTreeOverlays(), FileTreeOverlaysProps, useContextMenuDismiss(), UseContextMenuDismissOptions, FileTreeContextMenuState (+2 more)
+Cohesion: 0.26
+Nodes (9): FileTreeContextMenu(), FileTreeContextMenuProps, FileTreeMenuTargetType, FileTreeOverlaysProps, useContextMenuDismiss(), UseContextMenuDismissOptions, FileTreeContextMenuState, FileTreeIconTarget (+1 more)
 
 ### Community 352 - "editorInsertCommands.ts"
 Cohesion: 0.36
 Nodes (8): insertDate(), insertEditorBlock(), insertEditorText(), insertHorizontalRule(), insertTime(), prefixEditorLines(), selectedLineNumbers(), toggleHeading()
 
-### Community 353 - "formatDate.ts"
-Cohesion: 0.36
-Nodes (8): dateFilter(), escapeRegExp(), formatDate(), pad(), parseDateInput(), tokenValue(), buildPresetClock(), toLocalIso()
+### Community 353 - "web/src/App.tsx"
+Cohesion: 0.19
+Nodes (12): App(), AppProps, DegradedWebFeature, FEATURE_MESSAGES, FeatureNoticeBanner(), FeatureNoticeBannerProps, VaultChooserModal(), VaultChooserModalProps (+4 more)
 
 ### Community 354 - "description"
 Cohesion: 0.50
@@ -2304,8 +2300,8 @@ Cohesion: 0.50
 Nodes (4): description, minLength, type, main
 
 ### Community 357 - "README.md"
-Cohesion: 0.05
-Nodes (32): AGENTS.md — Read This First, Before Merging Checklist, Database Migrations, File Rules, Folder Structure, Git Branching & Pull Request Rules (Mandatory for all AI agents), Performance Principle (applies to every decision, every session), Project (+24 more)
+Cohesion: 0.06
+Nodes (27): ADR-0035: Never edit an applied migration, Consequences, Context, Decision, Status, ADR-0116: Sync via Drive/Syncthing, no owned backend, Consequences, Context (+19 more)
 
 ### Community 360 - "ADR-0025: Desktop vault indexing — JS-side `@app/indexer`, Rust for I/O only"
 Cohesion: 0.12
@@ -2324,20 +2320,20 @@ Cohesion: 0.67
 Nodes (3): description, type, minAppVersion
 
 ### Community 385 - "GraphIndex"
-Cohesion: 0.04
-Nodes (63): useBookmarks(), BacklinkItem, BacklinksPanel(), BacklinksPanelProps, extractSnippet(), buildPaletteCommands(), CommandPalette(), usePaletteResults() (+55 more)
+Cohesion: 0.05
+Nodes (50): BacklinkItem, BacklinksPanel(), BacklinksPanelProps, EmptyState(), EMPTY_GRAPH, GlobalGraphLeaf(), GlobalGraphLeafProps, Empty (+42 more)
 
 ### Community 444 - "DaVinci Notes (Sophia)"
 Cohesion: 0.10
 Nodes (21): 1. Clone & Install Dependencies, 2. Launch Development Environments, 3. Run Verification & Quality Gates, Architecture Principles & Documentation, 🎙️ Audio Meeting Recorder & AI Listening ([ADR-0226](docs/adr/0226-native-desktop-dual-channel-audio-loopback-architecture.md)), 🤖 Autonomous Local AI Agent ([ADR-0211](docs/adr/0211-modality-neutral-tool-calling-and-streaming.md)), ✍️ CodeMirror 6 Markdown Editor, Contributing (+13 more)
 
 ### Community 445 - "catppuccin-latte/manifest.json"
-Cohesion: 0.20
-Nodes (9): author, description, id, keywords, license, minAppVersion, name, styles (+1 more)
+Cohesion: 0.09
+Nodes (18): author, description, id, keywords, license, minAppVersion, name, styles (+10 more)
 
 ### Community 446 - "Button.stories.tsx"
 Cohesion: 0.02
-Nodes (77): Accent, AllVariants, ErrorVariant, meta, Neutral, Story, Success, Warning (+69 more)
+Nodes (97): CloudAnswer, FailedKey, meta, Story, EditRecurringEvent, meta, NewEvent, Story (+89 more)
 
 ### Community 447 - "Google Calendar & Google Meet Integration — Feature & Phased Build Plan"
 Cohesion: 0.13
@@ -2345,15 +2341,15 @@ Nodes (14): 1.1 Goals, 1.2 Non-Goals (Explicitly Out of Scope for MVP), 1. Goals
 
 ### Community 448 - "syncthing/index.ts"
 Cohesion: 0.06
-Nodes (69): syncthingDismissPendingDevice(), embeddedSyncthingRequest(), getEmbeddedApiKey(), getEmbeddedDeviceId(), getEmbeddedGuiAddress(), getEmbeddedQrDataUri(), getEmbeddedSyncthingStatus(), isBatteryOptimizationIgnored() (+61 more)
+Nodes (67): embeddedSyncthingRequest(), getEmbeddedApiKey(), getEmbeddedDeviceId(), getEmbeddedGuiAddress(), getEmbeddedQrDataUri(), getEmbeddedSyncthingStatus(), isBatteryOptimizationIgnored(), isEmbeddedSyncthingSupported() (+59 more)
 
 ### Community 449 - "ADR-0121: Add Drive app-data scope for hidden manifest storage"
 Cohesion: 0.11
 Nodes (16): ADR-0118: Drive `drive.file` OAuth verification and rollout, Consequences, Context, Decision, Sources, ADR-0120: Drive OAuth authentication and verification posture, Consequences, Context (+8 more)
 
-### Community 450 - "@xyflow/react"
-Cohesion: 0.07
-Nodes (32): ADR-0045: Canvas selection & arrangement semantics, Consequences, Context, Decision, Status, AlignDirection, alignNodes(), DistributeDirection (+24 more)
+### Community 450 - "arrangeNodes.ts"
+Cohesion: 0.14
+Nodes (16): ADR-0045: Canvas selection & arrangement semantics, Consequences, Context, Decision, Status, AlignDirection, alignNodes(), DistributeDirection (+8 more)
 
 ### Community 451 - "ai-embeddings/package.json"
 Cohesion: 0.13
@@ -2379,9 +2375,9 @@ Nodes (17): 1.2 Gaps and Inconsistencies Found, 1. Current State Assessment & Ga
 Cohesion: 0.11
 Nodes (17): Canvas Feature — Build Plan, How to Run This, Phase 0 — Package Setup & Data Model, Phase 10 — Webpage Embed Cards, Phase 11 — Nested Canvas Cards, Phase 12 — Export, Phase 13 — App Integration, Phase 1 — Canvas Shell (empty canvas, pan/zoom, save/load) (+9 more)
 
-### Community 457 - "WebBookmarkItem"
-Cohesion: 0.38
-Nodes (6): WebBookmarkItem, formatDate(), WebBookmarkRow(), WebBookmarkRowProps, WebBookmarksCategoryView(), WebBookmarksCategoryViewProps
+### Community 457 - "vimExtension.ts"
+Cohesion: 0.24
+Nodes (11): Decision Index & Architecture Summary, useVimModeSync(), VimExHandlersState, attachVimModeListener(), formatVimMode(), getLoadedVimExtension(), loadVimExtension(), registerVimExCommands() (+3 more)
 
 ### Community 458 - "Release Management & Distribution Runbook"
 Cohesion: 0.14
@@ -2407,29 +2403,25 @@ Nodes (16): Architecture Layers, Core Feature Set, Data Model, Explicit Non-Goal
 Cohesion: 0.12
 Nodes (16): Automated Tests, Canvas Feature: Phase 0 — Package Setup & Data Model, Desktop App Integration & Lazy-Loading Verification, Documentation & Decisions, [MODIFY] [apps/desktop/package.json](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/package.json), [MODIFY] [apps/desktop/src/App.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/App.tsx), [MODIFY] [apps/desktop/vite.config.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/vite.config.ts), [MODIFY] [DECISIONS.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/DECISIONS.md) (+8 more)
 
-### Community 464 - "light-a/manifest.json"
-Cohesion: 0.20
-Nodes (9): author, description, id, keywords, license, minAppVersion, name, styles (+1 more)
+### Community 464 - "AttachmentFileSystem"
+Cohesion: 0.19
+Nodes (10): 2026-08-21 — Attachments Phase 2: Filesystem Write & Filename Handling, Attachments Phase 1 — Accepted Formats & Location Model Complete, AttachmentData, AttachmentFileSystem, AttachmentWriteError, AttachmentWriteErrorCode, candidateName(), filenameParts() (+2 more)
 
 ### Community 465 - "Phase 7: File Tree Sidebar"
 Cohesion: 0.12
 Nodes (16): App Shell Wiring, Core Logic, Dependencies, Manual Verification, [MODIFY] apps/desktop/src/App.module.scss, [MODIFY] apps/desktop/src/App.tsx, [MODIFY] package.json (apps/desktop), [NEW] apps/desktop/src/components/FileTree/FileTree.module.scss (+8 more)
 
-### Community 466 - "3. Technical Direction Evaluation & Critical Analysis"
-Cohesion: 0.20
-Nodes (10): 3.1 UI Engine Evaluation: Schedule-X vs. FullCalendar vs. React-Big-Calendar, 3.2 Authentication & OAuth Architecture, 3.3 API Call Placement: TypeScript vs. Rust, 3.4 Read Synchronization Architecture, 3.5 Write Synchronization, Outbox & Conflict Resolution, 3.6 Recurring Events Scope, 3.7 Vault Reminders & Dated Notes Integration, 3. Technical Direction Evaluation & Critical Analysis (+2 more)
-
-### Community 467 - "useGitConflictStore.ts"
-Cohesion: 0.28
-Nodes (11): abortGitMerge(), continueGitMerge(), getGitConflictDetails(), popGitStash(), resolveGitConflict(), setGitRemote(), GitConflictResolver(), errMsg() (+3 more)
+### Community 466 - "vaultWatchSession.ts"
+Cohesion: 0.19
+Nodes (8): sleep(), VAULT_WATCHER_SETTLE_MS, vaultWatchCoordinator, activateVaultWatcher(), runWithVaultWatchSuppressed(), setVaultWatcherPaused, startVaultWatcher, vaultMutationLock
 
 ### Community 468 - "Editor.tsx"
 Cohesion: 0.05
-Nodes (27): EditorAreaProps, insertSuggestedLink(), Context, PasteAttachmentHandler, EditorExtensionConfig, EditorProps, externalChangeAnnotations, externalDocumentChange (+19 more)
+Nodes (31): EditorAreaProps, insertSuggestedLink(), PasteAttachmentHandler, EditorExtensionConfig, EditorProps, externalChangeAnnotations, externalDocumentChange, minimalDocumentChange() (+23 more)
 
-### Community 469 - "Sync Feature — Build Plan (Drive / Syncthing, No Backend)"
-Cohesion: 0.17
-Nodes (11): Phase 0 — Formal Supersession & Scope Lock, Phase 1 — Manifest Infrastructure (Shared by Both Modes), Phase 2 — Drive Mode: Auth, Phase 3 — Drive Mode: Manifest Sync & Blob Transfer, Phase 4 — Drive Mode: Conflict Resolution, Phase 5 — Syncthing Mode, Phase 6 — Mode Selection & Settings UI, Phase 7 — Regression & Performance Pass (+3 more)
+### Community 469 - "Mobile Editor Spike Report: CodeMirror 6 in Expo DOM Component"
+Cohesion: 0.12
+Nodes (15): 1. Executive Summary, 2.2 Blockers to Importing `@app/editor` Directly, 2. Editor Package Reuse & Blockers, 3.1 Text Retention Boundary, 3.2 Bridge Payload Comparison, 3. Bridge Metrics & Architecture, 4.1 Keyboard Resize & Cursor Visibility (`viewportHandler.ts`), 4.2 iOS Programmatic Focus Workaround (`iosFocusWorkaround.ts`) (+7 more)
 
 ### Community 470 - "devDependencies"
 Cohesion: 0.12
@@ -2456,44 +2448,44 @@ Cohesion: 0.12
 Nodes (15): 1. Goals & non-goals, 2. Two modes, not one abstraction forced over both, 3.1 Manifest & diff algorithm, 3.2 Conflict resolution, 3.3 Auth & storage, 3.4 Rate limits & efficiency, 3. Mode A — Google Drive, 4. Mode B — Syncthing (folder sync) (+7 more)
 
 ### Community 476 - "tray.rs"
-Cohesion: 0.05
-Nodes (41): CLEAN_QUIT_EVENT, get_keep_in_tray(), get_tray_click_action(), request_app_exit(), set_keep_in_tray(), set_tray_click_action(), TrayClickActionResponse, update_tray_recent_notes() (+33 more)
+Cohesion: 0.11
+Nodes (22): CLEAN_QUIT_EVENT, emit_tray_action(), get_tray_click_action_from_state_or_disk(), handle_window_close_requested(), hide_main_window(), MAIN_WINDOW, open_recent_note_from_tray(), open_reminder_from_tray() (+14 more)
 
 ### Community 477 - "0251. Mobile Android Native Library Extraction and Prebuild Plugin"
 Cohesion: 0.22
 Nodes (8): 0251. Mobile Android Native Library Extraction and Prebuild Plugin, 1. Dedicated Prebuild Plugin (`plugins/withSyncthingAndroid.js`), 2. ABI Scope & Bundle Constraints, 3. Native Execution & Diagnostic Feedback, Consequences, Context, Decisions, Status
 
 ### Community 478 - "RegisteredPluginCommand"
-Cohesion: 0.31
-Nodes (6): BuildPaletteCommandsOptions, PaletteTarget, CommandPaletteProps, ExecutePaletteCommandOptions, PaletteResultItem, RegisteredPluginCommand
+Cohesion: 0.26
+Nodes (9): buildPaletteCommands(), BuildPaletteCommandsOptions, PaletteTarget, CommandPaletteProps, executePaletteCommand(), ExecutePaletteCommandOptions, PaletteResultItem, usePaletteResults() (+1 more)
 
 ### Community 479 - "GraphRenderer.tsx"
-Cohesion: 0.22
-Nodes (8): GraphControls(), GraphControlsProps, GraphRenderer(), GraphRendererProps, SimEdge, SimNode, useGraphSimulation(), UseGraphSimulationParams
+Cohesion: 0.26
+Nodes (7): GraphControls(), GraphRenderer(), GraphRendererProps, SimEdge, SimNode, useGraphSimulation(), UseGraphSimulationParams
 
-### Community 480 - "path"
-Cohesion: 0.13
-Nodes (14): chromium_base_dir(), detect_browser_bookmarks(), DetectedBrowserInfo, find_chromium_bookmark_files(), find_firefox_places_files(), firefox_profiles_dir(), home_dir(), RawExportedLink (+6 more)
+### Community 480 - "theme_files.rs"
+Cohesion: 0.22
+Nodes (9): list_theme_directories(), list_theme_directories_in_vault(), lists_and_reads_themes_inside_a_vault(), read_theme_file(), read_theme_file_in_vault(), TEST_VAULT_ID, TestVault, THEMES_ROOT (+1 more)
 
 ### Community 481 - "EditorInsertTray.stories.tsx"
-Cohesion: 0.22
-Nodes (8): EditorInsertTray(), getItemIcon(), Default, meta, Story, WithMockView, 2026-10-26: Interactive Draggable Table Grid Picker & In-Editor Rendering Polish, Previous Session — Interactive Draggable Table Grid Picker & In-Editor Rendering Polish
+Cohesion: 0.15
+Nodes (13): EditorInsertTray(), EditorInsertTrayProps, getItemIcon(), Default, meta, Story, WithMockView, INSERT_CATALOG_ITEMS (+5 more)
 
 ### Community 482 - "Decision"
 Cohesion: 0.14
 Nodes (13): 1. Token Syntax: Slash-Delimited Recurrence Rule inside `(@...)`, 2. Next Occurrence Anchor: Computed from Due Date, 3. Completion Model: In-Place Roll-Forward, 4. Calendar Boundary Handling, 5. Multi-Device Sync Conflict Resolution, ADR-0184: Reminder recurrence syntax and completion model, Consequences, Context (+5 more)
 
 ### Community 483 - "ScheduledMessageRow.tsx"
-Cohesion: 0.30
-Nodes (9): renderChannelIcon(), renderStatusBadge(), ScheduledMessageRow(), ScheduledMessageRowProps, FilterOption, ScheduledMessagesSubViewProps, openWhatsAppClickToChat(), ScheduledMessageRecord (+1 more)
+Cohesion: 0.33
+Nodes (8): renderChannelIcon(), renderStatusBadge(), ScheduledMessageRow(), ScheduledMessageRowProps, FilterOption, ScheduledMessagesSubViewProps, ScheduledMessageRecord, ScheduledMessageStatus
 
 ### Community 484 - "Git Versioning & Optional Remote Sync — Build Plan"
 Cohesion: 0.14
 Nodes (13): Git Versioning & Optional Remote Sync — Build Plan, Phase 0 — Git Engine & Local-Only Architecture, Phase 1 — Automatic Local Version History, Phase 2 — History & Diff UI (Fully Usable With Zero Remote), Phase 3 — Generic Remote Credential Model, Phase 4 — Easy Remote Setup UX, Phase 5 — Push & Pull Mechanics, Phase 6 — Conflict Resolution (+5 more)
 
 ### Community 485 - "5. Detailed Area Specifications"
-Cohesion: 0.07
-Nodes (27): 5.10 Tauri Plugin Integration, 5.11 `latest.json` Schema (Tauri v2 Format), 5.12 In-App Update UI & User Flow, 5.13 Architecture & Constraints, 5.14 Zero-Dependency Client OS Detection (< 1.5 KB JS), 5.15 Stable Permalinks (Zero-Maintenance Routing), 5.1 Manifests in Scope, 5.2 Tooling Evaluation: Changesets vs Conventional Commits + Scripts (+19 more)
+Cohesion: 0.14
+Nodes (14): 5.1 Manifests in Scope, 5.2 Tooling Evaluation: Changesets vs Conventional Commits + Scripts, 5.3 Automated Extraction from Conventional Commits, 5.4 GitHub Actions Matrix Strategy (`.github/workflows/release.yml`), 5.5 Architecture & Bundle Size Trade-Offs, 5. Detailed Area Specifications, Area 10: Documentation & Runbooks, Area 1: Versioning & Single Source of Truth (+6 more)
 
 ### Community 486 - "git_manager_sync.rs"
 Cohesion: 0.10
@@ -2504,16 +2496,20 @@ Cohesion: 0.15
 Nodes (12): **1. Icon Rail Entry Point** ✅, **2. File Tree Integration — Verified Pre-Existing** ✅, **3. Tab Bar Integration** ✅, **4. Right Panel Behavior (ADR-0057) — Decision Logged** ✅, **5. ADR Written** ✅, **6. Lazy-Load Boundary Re-Verified (ADR-0041)** ✅, **7. Tests, Typecheck, Lint** ✅, **8. Documentation Updated** ✅ (+4 more)
 
 ### Community 488 - "Coding Best Practices"
-Cohesion: 0.13
-Nodes (15): Barrel Files, Coding Best Practices, Documentation, File Size, Folder Structure, Git Hygiene, Give AI sessions a conventions file, Naming (+7 more)
+Cohesion: 0.14
+Nodes (14): Barrel Files, Coding Best Practices, Documentation, File Size, Folder Structure, Git Hygiene, Give AI sessions a conventions file, Naming (+6 more)
 
-### Community 489 - "git_manager_branches.rs"
-Cohesion: 0.06
-Nodes (50): create_branch_internal(), delete_branch_internal(), git_manager_create_branch(), git_manager_delete_branch(), git_manager_list_branches(), git_manager_switch_branch(), GitBranchInfo, is_working_tree_dirty() (+42 more)
+### Community 489 - "git_manager_conflicts.rs"
+Cohesion: 0.20
+Nodes (14): init_repo(), test_adversarial_binary_conflict_and_resolution(), test_adversarial_delete_vs_modify(), test_adversarial_same_line_and_abort_hash_restoration(), TEST_COUNTER, test_external_edit_mid_merge_and_continue(), TestRepo, check_is_binary() (+6 more)
 
 ### Community 490 - "scripts"
 Cohesion: 0.15
 Nodes (13): scripts, build, build:all, build:firefox, build-storybook, dev, lint, postinstall (+5 more)
+
+### Community 491 - "WebVaultRegistryAdapter"
+Cohesion: 0.18
+Nodes (3): RecentVaultEntry, VaultRegistryAdapter, WebVaultRegistryAdapter
 
 ### Community 492 - "attachments/package.json"
 Cohesion: 0.18
@@ -2536,12 +2532,12 @@ Cohesion: 0.20
 Nodes (10): scripts, android, build, dev, ios, lint, start, test (+2 more)
 
 ### Community 498 - "DocsLayout.astro"
-Cohesion: 0.18
-Nodes (5): Props, TocItem, Props, TocItem, toc
+Cohesion: 0.20
+Nodes (4): Props, TocItem, Props, TocItem
 
 ### Community 499 - "ADR-0140: Ask-your-vault consent, retrieval, and citation contract"
-Cohesion: 0.25
-Nodes (6): ADR-0140: Ask-your-vault consent, retrieval, and citation contract, Blockers, Context, Decision, Status, vectorValues()
+Cohesion: 0.33
+Nodes (5): ADR-0140: Ask-your-vault consent, retrieval, and citation contract, Blockers, Context, Decision, Status
 
 ### Community 500 - "ADR-0174: Content extraction and HTML→Markdown libraries"
 Cohesion: 0.17
@@ -2564,8 +2560,8 @@ Cohesion: 0.29
 Nodes (6): Default, meta, SearchMode, SearchModeEmptyResults, Story, WithError
 
 ### Community 505 - "useTemplateLibrary.ts"
-Cohesion: 0.07
-Nodes (23): appendTemplate(), copyTemplate(), freshTemplate(), NEW_TEMPLATE_NAME, removeTemplate(), replaceTemplate(), withAddedProperty(), withoutPropertyAt() (+15 more)
+Cohesion: 0.04
+Nodes (48): container, OptionsPage(), controller, Loading, meta, NothingSelected, Ready, RefusedAndUnsaved (+40 more)
 
 ### Community 506 - "Decision"
 Cohesion: 0.18
@@ -2587,9 +2583,9 @@ Nodes (9): ADR-0167: Plugin Message Protocol and Declarative Views, Breaking API
 Cohesion: 0.18
 Nodes (10): A — Plain Manifest V3 + a hand-rolled build (Vite/esbuild), ADR-0175: Clipper extension framework, location, and shared core package, B — WXT (`wxt`), Consequences, Context, Decision (recommended), Open decisions, Options (+2 more)
 
-### Community 511 - "hasPlatformAdapters"
-Cohesion: 0.05
-Nodes (33): createCalendarTokenStore(), notifyCalendarAuthChanged(), AppErrorBoundary, Props, State, AppSidebarHeader(), AppSidebarHeaderProps, openExternal() (+25 more)
+### Community 511 - "ref_vitest"
+Cohesion: 0.02
+Nodes (46): mockComplete, mockDeleteNote, mockWriteNote, mockComplete, mockDeleteNote, mockWriteNote, mockCreateConfiguredProvider, mockCreateFolder (+38 more)
 
 ### Community 512 - "Decision"
 Cohesion: 0.18
@@ -2604,16 +2600,16 @@ Cohesion: 0.18
 Nodes (10): 0199. Syncthing Binary Bundling and Process Lifecycle Management, Consequences, Context, Decision 1: Bundled Binary vs Download-on-First-Enable, Decision 2: Process Spawning via Rust `std::process` vs `tauri-plugin-shell`, Decision 3: Process & Config Isolation, Decision 4: API Key Generation and Secrecy, Decision 5: Lifecycle & Shutdown (+2 more)
 
 ### Community 515 - "app/_layout.tsx"
-Cohesion: 0.05
-Nodes (37): ErrorBoundary(), RootLayout(), hideSplashAfterInitialShell(), RootNavigator(), expo-splash-screen@~58.0.12, BreakpointState, useBreakpoint(), MobileThemeProvider() (+29 more)
+Cohesion: 0.09
+Nodes (23): BreakpointState, useBreakpoint(), MobileThemeProvider(), 2026-10-20: Universal Mobile Dynamic Theming Across All Screens, 1. Navigation Shell & Structure, 2. Theming & Theme Switching, 3. Editor Chrome & Formatting Toolbar, 4. File Management & Sheets (+15 more)
 
 ### Community 516 - "Decisions"
 Cohesion: 0.18
 Nodes (10): 1. Virtual Tab Routing (`davinci://reminders`) & Lazy-Load Boundary, 2. Unified `notify(destination, payload)` Interface & Adapters, 3. Slack Mention Safety Policy, 4. OS Keychain Secret Storage & Redaction (`com.davinci.notes.notification-channels`), 5. Device-Local `scheduled_messages` Table (Migration 10) & Missed-While-Offline Policy, ADR-0224: Reminders Page (`davinci://reminders`), Notification Channels, Keychain Isolation, and Scheduled Messages, Consequences, Context (+2 more)
 
-### Community 517 - "ADR-0035: Never edit an applied migration"
-Cohesion: 0.33
-Nodes (5): ADR-0035: Never edit an applied migration, Consequences, Context, Decision, Status
+### Community 517 - "HighlighterPanel.tsx"
+Cohesion: 0.22
+Nodes (8): HighlighterPanel(), HighlighterPanelProps, controller, Disabled, Enabled, meta, Story, HighlightingSettingsController
 
 ### Community 518 - "devDependencies"
 Cohesion: 0.18
@@ -2632,8 +2628,8 @@ Cohesion: 0.18
 Nodes (10): Phase 1 — Tag Parsing Rules & Data Model, Phase 2 — Inline Tag Detection & Rendering (Editor), Phase 3 — YAML `tags` Property Support, Phase 4 — Vault-Wide Tag Index (Indexer), Phase 5 — Tag Search, Phase 6 — Tags View, Phase 7 — Regression & Integration Pass, Sequencing Notes (+2 more)
 
 ### Community 522 - "Stabilization Pass — Build Plan"
-Cohesion: 0.17
-Nodes (11): How to Run This, Methodology (applies to every phase), Phase 1 — Note CRUD, Phase 2 — Folder CRUD, Phase 3 — Wikilink & Backlink Creation Paths, Phase 4 — File Tree & Index Consistency Under Concurrent Change, Phase 5 — Open Editor State Across CRUD Operations, Phase 6 — Root Cause: Why Did Prior Verification Miss This? (+3 more)
+Cohesion: 0.11
+Nodes (15): Implement PDF Cards on Canvas, How to Run This, Methodology (applies to every phase), Phase 1 — Note CRUD, Phase 2 — Folder CRUD, Phase 3 — Wikilink & Backlink Creation Paths, Phase 4 — File Tree & Index Consistency Under Concurrent Change, Phase 5 — Open Editor State Across CRUD Operations (+7 more)
 
 ### Community 523 - "Quick Start & Usage"
 Cohesion: 0.20
@@ -2643,9 +2639,9 @@ Nodes (9): 1. Quick Capture, 2. Vault Browser (TUI), 3. Built-in Modeless Editor
 Cohesion: 0.29
 Nodes (3): send_whisper_transcription(), transcribe_audio_chunk(), transcribe_audio_file()
 
-### Community 525 - "ADR-0049: Native HTML5 Drag and Drop for canvas note embeds"
-Cohesion: 0.15
-Nodes (10): ADR-0049: Native HTML5 Drag and Drop for canvas note embeds, Consequences, Context, Decision, Status, ADR-0051: Canvas clipboard paste and external media import saved to vault attachments, Consequences, Context (+2 more)
+### Community 525 - "CanvasNode.ts"
+Cohesion: 0.13
+Nodes (21): ADR-0049: Native HTML5 Drag and Drop for canvas note embeds, Consequences, Context, Decision, Status, ADR-0051: Canvas clipboard paste and external media import saved to vault attachments, Consequences, Context (+13 more)
 
 ### Community 526 - "DaVinci Notes Web Clipper — Store Listings & Privacy Declarations"
 Cohesion: 0.20
@@ -2655,9 +2651,9 @@ Nodes (9): 1. Store Metadata, 2. Store Description, 3. Permissions Justification
 Cohesion: 0.29
 Nodes (6): ADR-0152: Local Git uses the system executable behind an opt-in boundary, Consequences, Context, Evaluation, Status, Verification
 
-### Community 528 - "deleteFolderInVault.test.ts"
-Cohesion: 0.29
-Nodes (6): deleteFolderMock, executeDbMock, getStateMock, removeNoteFromIndexMock, removeNotesBatchMock, setStateMock
+### Community 528 - "ADR-0176: Where the template engine runs and the clip payload contract"
+Cohesion: 0.15
+Nodes (12): ADR-0176: Where the template engine runs and the clip payload contract, Consequences, Context, Decision (recommended), Open decisions, Option 1 — Extension renders everything; desktop writes bytes, Option 2 — Extension collects variables; desktop renders everything, Option 3 — Split by responsibility, one shared engine (+4 more)
 
 ### Community 529 - "ADR-0170: Save-time external-change guard with append-aware merge (supersedes ADR-0161)"
 Cohesion: 0.20
@@ -2668,8 +2664,8 @@ Cohesion: 0.20
 Nodes (9): 1. Web Worker per plugin, 2. SES/locked-down Realm in the main webview, 3. Shared dedicated plugin-only webview, ADR-0166: Plugin Isolation and Plugin-Webview Capability Boundary, Consequences, Context, Decision, Options evaluated (+1 more)
 
 ### Community 531 - "NoteOutline.tsx"
-Cohesion: 0.15
-Nodes (12): 1. Icon Rail (`apps/desktop/src/components/IconRail/`), 2. Top Tab Bar (`apps/desktop/src/components/AppTabs/`), 3. File Tree Sidebar (`apps/desktop/src/components/AppSidebar/`), 6. Status Bar (`apps/desktop/src/components/StatusBar/`), Automated Tests, CSS Grid Shell:, Detailed Components to Build / Restructure, File Changes & Structure (+4 more)
+Cohesion: 0.14
+Nodes (13): 1. Icon Rail (`apps/desktop/src/components/IconRail/`), 2. Top Tab Bar (`apps/desktop/src/components/AppTabs/`), 3. File Tree Sidebar (`apps/desktop/src/components/AppSidebar/`), 5. Right Sidebar (`apps/desktop/src/components/RightSidebar/`), 6. Status Bar (`apps/desktop/src/components/StatusBar/`), Automated Tests, CSS Grid Shell:, Detailed Components to Build / Restructure (+5 more)
 
 ### Community 532 - "organizeBookmarksWithAI.ts"
 Cohesion: 0.36
@@ -2692,8 +2688,8 @@ Cohesion: 0.24
 Nodes (9): exports, react, react-dom, name, peerDependencies, react@^19.0.0, react-dom@^19.0.0, type (+1 more)
 
 ### Community 537 - "useWorkspaceStore.ts"
-Cohesion: 0.08
-Nodes (30): AIStatusIndicatorProps, AgentSaveNoteModalProps, computeNoteStats(), LazyAIStatusIndicator, StatusBar(), StatusBarProps, EditorSettingsState, GitSettingsState (+22 more)
+Cohesion: 0.07
+Nodes (36): InsertNotePickerProps, SemanticSearchResult, buildTagTree(), TagNode, TagsDialog(), TagsDialogProps, TagTreeNode(), EditorSettingsState (+28 more)
 
 ### Community 538 - "Phase Breakdown"
 Cohesion: 0.20
@@ -2703,25 +2699,25 @@ Nodes (9): Architecture Principles & Standing Constraints, DaVinci Notes CLI / T
 Cohesion: 0.20
 Nodes (9): Phase 1 — Package Evaluation & Lazy-Load Boundary, Phase 2 — Settings Toggle & Basic Wiring, Phase 3 — Core Modal Editing Verification, Phase 4 — Mode Indicator, Phase 5 — Ex Commands & App Integration, Phase 6 — Regression Pass, Sequencing Notes, Vim Keybindings — Build Plan (+1 more)
 
-### Community 540 - "desktop/src/vault/index.ts"
-Cohesion: 0.03
-Nodes (142): AppTabs(), RenameTarget, useFileTreeInlineRename(), UseFileTreeInlineRenameOptions, ClipperStatus, createNoteCrudActions(), createNoteSaveActions(), clearSaveTimer() (+134 more)
+### Community 540 - "renameNoteInVault"
+Cohesion: 0.04
+Nodes (92): RenameTarget, useFileTreeInlineRename(), UseFileTreeInlineRenameOptions, createNoteCrudActions(), clearSaveTimer(), migrateSaveTimer(), saveTimers, applyNoteRenameState() (+84 more)
 
-### Community 541 - "plans/README.md"
-Cohesion: 0.11
-Nodes (13): Implement Visual Card Grouping, Implement PDF Cards on Canvas, `apps/desktop/src/App.tsx` and `App.module.scss`, `apps/desktop/src/components/BacklinksPanel`, `apps/desktop/src/state/useWorkspaceStore.ts`, Goal Description, Manual Verification, Proposed Changes (+5 more)
+### Community 541 - "Goal Description"
+Cohesion: 0.22
+Nodes (8): `apps/desktop/src/App.tsx` and `App.module.scss`, `apps/desktop/src/components/BacklinksPanel`, `apps/desktop/src/state/useWorkspaceStore.ts`, Goal Description, Manual Verification, Proposed Changes, User Review Required, Verification Plan
 
 ### Community 542 - "ADR-0188: Mobile Fast Capture Destination and Attachment Routing"
 Cohesion: 0.22
 Nodes (8): 1. Shared & Captured Item Destination, 2. Attachment Folder & Naming Rules (ADR-0108 / ADR-0109 / ADR-0110 Parity), 3. Concurrency & Offline Independence, ADR-0188: Mobile Fast Capture Destination and Attachment Routing, Consequences, Context, Decision, Status
 
 ### Community 543 - "ADR-0059: New-note H1 from filename; no auto-sync on rename"
-Cohesion: 0.18
-Nodes (9): ADR-0059: New-note H1 from filename; no auto-sync on rename, Consequences, Context, Decision, Status, ADR-0060: Bidirectional H1 ↔ filename sync (Obsidian-style), Consequences, Context (+1 more)
+Cohesion: 0.29
+Nodes (5): ADR-0059: New-note H1 from filename; no auto-sync on rename, Consequences, Context, Decision, Status
 
 ### Community 544 - "Decision"
-Cohesion: 0.33
-Nodes (5): ADR 0181: App-Level Recent-Vaults Registry, Auto-Open Launch Behavior, and Safe Vault-Switch Lifecycle, Consequences, Context, Persistence Boundary Decision: App-Level JSON vs SQLite, Status
+Cohesion: 0.18
+Nodes (10): 2. Vault Switcher UI Component (`VaultSwitcher`), 3. Safe Teardown and Initialization Lifecycle (`vaultSwitchOrchestrator.ts`), 4. Concurrency Guard and Rollback, 5. Standing SQLite Lock Discipline, ADR 0181: App-Level Recent-Vaults Registry, Auto-Open Launch Behavior, and Safe Vault-Switch Lifecycle, Consequences, Context, Decision (+2 more)
 
 ### Community 545 - "release-skill-feature-plan.md"
 Cohesion: 0.05
@@ -2747,13 +2743,13 @@ Nodes (8): HTML Support Feature — Build Plan, Phase 1 — HTML Sanitization Co
 Cohesion: 0.24
 Nodes (6): QuickCaptureDestination(), QuickCaptureDestinationProps, Default, meta, Populated, Story
 
-### Community 551 - "6. Phased Implementation Roadmap"
-Cohesion: 0.08
-Nodes (24): 1. Decisions Needed from the User (Prior to Production Release), 2.1 Apple Developer & Notarization Credentials (macOS), 2.2 Tauri Updater Cryptographic Signing Keypair, 2.3 GitHub Repository Configuration & Secrets, 2. First-Time Setup Checklist (Human-Only Prerequisites), 3. Architecture Decisions to Lock (ADR-0242 through ADR-0247), 4. Subsystem Architecture & Release Pipeline Flow, 6. Phased Implementation Roadmap (+16 more)
+### Community 551 - "Release Management, Build Pipeline & Download Distribution — Feature & Phased Implementation Plan"
+Cohesion: 0.22
+Nodes (8): 1. Decisions Needed from the User (Prior to Production Release), 2.1 Apple Developer & Notarization Credentials (macOS), 2.2 Tauri Updater Cryptographic Signing Keypair, 2.3 GitHub Repository Configuration & Secrets, 2. First-Time Setup Checklist (Human-Only Prerequisites), 3. Architecture Decisions to Lock (ADR-0242 through ADR-0247), 4. Subsystem Architecture & Release Pipeline Flow, Release Management, Build Pipeline & Download Distribution — Feature & Phased Implementation Plan
 
 ### Community 552 - "EditorBuffer"
-Cohesion: 0.15
-Nodes (4): EditorBuffer, test_buffer_typing_and_backspace(), test_buffer_undo_and_redo(), UndoAction
+Cohesion: 0.08
+Nodes (31): EditorBuffer, test_buffer_typing_and_backspace(), test_buffer_undo_and_redo(), UndoAction, delete_line(), delete_to_line_end(), delete_word(), join_lines() (+23 more)
 
 ### Community 553 - "Theme Ecosystem — Feature Plan"
 Cohesion: 0.22
@@ -2762,10 +2758,6 @@ Nodes (8): Goal, Open items to resolve during Phase 1, Phase 1 — Public token 
 ### Community 554 - "davinci-plugin-starter/package.json"
 Cohesion: 0.25
 Nodes (8): devDependencies, typescript@^5.4.0, typescript, name, private, scripts, build, version
-
-### Community 555 - "TagWidget"
-Cohesion: 0.29
-Nodes (3): getTagDecorations(), isCodePosition(), TagWidget
 
 ### Community 556 - "meetingDetector.test.ts"
 Cohesion: 0.80
@@ -2791,13 +2783,13 @@ Nodes (7): ADR-0185: Mobile shell: Expo, Alternatives Considered, Consequences, 
 Cohesion: 0.25
 Nodes (7): 1. Rendering Technology Evaluation: react-native-svg vs react-native-skia, 2. Node Count Capping (`MAX_GRAPH_NODES = 50`), 3. Layout and Concurrency, ADR-0192: Mobile Local Graph View Architecture, SVG Selection, and Node Bounds, Consequences, Context, Decisions
 
-### Community 562 - "NoteOutline.tsx"
-Cohesion: 0.60
-Nodes (3): extractHeadings(), HeadingItem, NoteOutlineProps
+### Community 562 - "AGENTS.md — Read This First"
+Cohesion: 0.18
+Nodes (11): AGENTS.md — Read This First, Before Merging Checklist, Database Migrations, File Rules, Folder Structure, Git Branching & Pull Request Rules (Mandatory for all AI agents), Performance Principle (applies to every decision, every session), Project (+3 more)
 
-### Community 563 - "Editor styling audit: Obsidian comparison"
-Cohesion: 0.25
-Nodes (7): Assumptions and decisions to confirm, Comparison, CUBE CSS note: `Editor.module.scss`, Editor styling audit: Obsidian comparison, Hardcoded values and design-system bypasses, Tag presentation decision, Token boundary recommendations
+### Community 563 - "@storybook/react-vite"
+Cohesion: 0.18
+Nodes (9): Connected, Connecting, Disconnected, meta, Story, WithError, @storybook/react-vite@^10.5.5, config (+1 more)
 
 ### Community 564 - "ADR-0046: Canvas group containment strategy — runtime parentNode + spec-compliant bbox serialization"
 Cohesion: 0.40
@@ -2807,17 +2799,17 @@ Nodes (4): ADR-0046: Canvas group containment strategy — runtime parentNode + 
 Cohesion: 0.22
 Nodes (8): 1. Storage: Plain JSON file inside the vault, 3. Merge Safety: Union by Path with Newest `addedAt`, 4. Tab Integration and Lazy-Loaded UI, ADR-0210: Bookmarks Storage, Identity, and Lifecycle Architecture, Consequences, Context, Decisions, Status
 
-### Community 566 - "duplicateNoteInVault.test.ts"
-Cohesion: 0.33
-Nodes (5): getStateMock, persistNoteMock, readNoteMock, setStateMock, writeNoteMock
+### Community 566 - "react-native-svg.ts"
+Cohesion: 0.18
+Nodes (5): G(), SvgProps, 2026-09-02 — Vim Keybindings Phase 3 (Core Modal Editing Verification), 2026-10-22: DaVinci Notes CLI / TUI ("dn") — In-App Vim Editor with Persistent Sidebar & Fullscreen Toggle, 2026-10-22: DaVinci Notes CLI / TUI ("dn") — Vim Integration, Fullscreen Mode & Interactive TUI UX
 
 ### Community 567 - "ADR-0136: AI embedding chunks and a dedicated embedding model"
 Cohesion: 0.29
 Nodes (6): loadEmbeddingInfrastructure(), ADR-0136: AI embedding chunks and a dedicated embedding model, Consequences, Context, Decision, Status
 
-### Community 568 - "renameNoteInVault.test.ts"
-Cohesion: 0.33
-Nodes (5): getStateMock, readNoteMock, renameNoteMock, setStateMock, writeNoteMock
+### Community 568 - "attachments/index.ts"
+Cohesion: 0.38
+Nodes (5): ACCEPTED_ATTACHMENT_EXTENSIONS, isAcceptedAttachmentName(), AttachmentLocationMode, DEFAULT_ATTACHMENT_SETTINGS, parseAttachmentSettings()
 
 ### Community 569 - "ADR-0098: Embed iframe sandbox and permissions policy"
 Cohesion: 0.29
@@ -2855,9 +2847,9 @@ Nodes (6): Consecutive heading, Fifth level, Fourth level, Heading at the top, S
 Cohesion: 0.29
 Nodes (6): Editor Advanced Formatting — Build Plan, Phase 10 — Mermaid Diagrams, Phase 11 — Math (MathJax / LaTeX), Phase 12 — Regression & Integration Pass, Phase 9 — Tables, Sequencing Notes
 
-### Community 579 - "downloadNoteFile"
-Cohesion: 0.60
-Nodes (3): createNoteBlobUrl(), downloadNoteFile(), DownloadsApi
+### Community 579 - "ready"
+Cohesion: 0.22
+Nodes (9): ready(), ADR-0151: AI provider readiness requires its Keychain credential, Consequences, Context, Decision, 5.10 Tauri Plugin Integration, 5.11 `latest.json` Schema (Tauri v2 Format), 5.12 In-App Update UI & User Flow (+1 more)
 
 ### Community 580 - "@app/plugin-api@workspace:*"
 Cohesion: 0.20
@@ -3008,16 +3000,16 @@ Cohesion: 0.33
 Nodes (5): ADR-0047: Canvas group nesting depth & selection/move propagation, Consequences, Context, Decision, Status
 
 ### Community 618 - "NestedCanvasCardView.tsx"
-Cohesion: 0.12
+Cohesion: 0.14
 Nodes (20): 1. Dual Safety Mechanism (Cycle Detection + Hard Depth Cap), 2. JSON Canvas 1.0 Data Model, 3. Read-Only Preview Interaction Scope, ADR-0055: Canvas Nested Canvas Cards, Cycle Prevention, & Depth Capping, Consequences, Context, Decision, Status (+12 more)
 
 ### Community 619 - "ADR-0050: Path-based media references and native media elements for canvas cards"
 Cohesion: 0.33
 Nodes (5): ADR-0050: Path-based media references and native media elements for canvas cards, Consequences, Context, Decision, Status
 
-### Community 620 - "NormalizedCalendarEvent"
-Cohesion: 0.04
-Nodes (71): adjustGoogleAllDayEnd(), formatLocalScheduleXDateTime(), pad(), ScheduleXEvent, toGoogleAllDayEnd(), toScheduleXEvent(), toScheduleXEvents(), getVaultRemindersOverlayEvents() (+63 more)
+### Community 620 - "ref_phosphor_icons_react"
+Cohesion: 0.05
+Nodes (39): CalendarEmptyState(), CalendarEmptyStateProps, Connecting, Default, meta, Story, CalendarToolbar(), CalendarToolbarProps (+31 more)
 
 ### Community 621 - "ADR-0021: Link model fields for index + SQLite"
 Cohesion: 0.33
@@ -3091,9 +3083,9 @@ Nodes (5): ADR-0156: Platform-native custom window chrome, Consequences, Context
 Cohesion: 0.33
 Nodes (5): ADR-0162: Unified custom window controls, Consequences, Context, Decision, Status
 
-### Community 639 - "PendingOp"
-Cohesion: 0.29
-Nodes (7): PendingOp, Change, Delete, Go, None, Replace, Yank
+### Community 639 - "Mobile App — Stack & Architecture"
+Cohesion: 0.20
+Nodes (9): Architecture, Key Platform Differences from Desktop, Mobile App — Stack & Architecture, Navigation Model, Performance Priorities (in order of impact), Stack Summary, Storage Model, Suggested Build Order (+1 more)
 
 ### Community 640 - "ADR-0165: Built-in theme loading and precedence"
 Cohesion: 0.33
@@ -3114,6 +3106,10 @@ Nodes (5): ADR-0175: Editor Insert Registry and Lazy Menu, Consequences, Context
 ### Community 644 - "ADR-0180: Quick Capture Note Creation and Destination Options"
 Cohesion: 0.33
 Nodes (5): ADR-0180: Quick Capture Note Creation and Destination Options, Consequences, Context, Decision, Status
+
+### Community 645 - "mobile/vault/index.ts"
+Cohesion: 0.08
+Nodes (41): SettingsScreen(), FilesScreen(), HighlightedSnippet(), SearchScreen(), DisplayTag, TagsScreen(), KeyboardAwareContainer(), KeyboardAwareContainerProps (+33 more)
 
 ### Community 646 - "ADR-0186: Shared tokens, per-platform components"
 Cohesion: 0.33
@@ -3227,6 +3223,10 @@ Nodes (4): ADR-0105: YouTube thumbnail facade and click-to-play, Decision, Ratio
 Cohesion: 0.40
 Nodes (4): ADR-0139: Suggested-link ranking and right-sidebar placement, Decision, Rationale and limitation, Status
 
+### Community 675 - "5. Phase plan"
+Cohesion: 0.20
+Nodes (10): template(), 5. Phase plan, Phase 0 — ADRs + transport spike (HIGH-RISK / ATOMIC), Phase 1 — `packages/clipper-core`: template engine, variables, filters + tests, Phase 2 — Extension scaffold + extraction → Markdown + popup (design system), Phase 4 — Templates UI/settings, auto-apply rules, import/export, Phase 5 — Highlighter, Phase 6 — Attachments download / offline images (reuse Attachments) (+2 more)
+
 ### Community 676 - "ADR-0146: AI Phase 7 lazy-boundary audit"
 Cohesion: 0.40
 Nodes (4): ADR-0146: AI Phase 7 lazy-boundary audit, Consequences, Decision, Status
@@ -3255,13 +3255,13 @@ Nodes (4): ADR-0173: Curated Editor Fonts and Custom Font Input Sanitization, Co
 Cohesion: 0.33
 Nodes (5): ADR-0141: OpenAI-compatible cloud transport and key failure handling, Consequences, Context, Decision, Status
 
-### Community 683 - "ADR-0042: Canvas translation layer, viewport non-persistence & debounced save"
-Cohesion: 0.40
-Nodes (4): ADR-0042: Canvas translation layer, viewport non-persistence & debounced save, Consequences, Context, Status
+### Community 683 - "1. Plugin Manifest Specification (`manifest.json`)"
+Cohesion: 0.20
+Nodes (9): 1. Plugin Manifest Specification (`manifest.json`), 2. Version-Compatibility File (`versions.json`), 3. On-Disk Plugin Package Layout, 4. API Exports, Additional Fields (Design Rationale), @app/plugin-api, Required Fields, Standard Capability Fields (+1 more)
 
-### Community 684 - "ADR-0196: Mobile vault storage and flow remediation"
-Cohesion: 0.33
-Nodes (5): ADR-0196: Mobile vault storage and flow remediation, Consequences, Context, Decision, Status
+### Community 684 - "ADR-0204: Mobile Theme Token Surface and Layout Dimensions"
+Cohesion: 0.22
+Nodes (8): 1. Mobile Public Layout Dimensions Contract, 2. Pre-Compiled Built-in Themes Token Maps, 3. Safe CSS Custom Property Extraction, ADR-0204: Mobile Theme Token Surface and Layout Dimensions, Consequences, Context, Decisions, Status
 
 ### Community 685 - "Hibbll"
 Cohesion: 0.50
@@ -3279,17 +3279,17 @@ Nodes (4): 0218. Agent Shortcuts & Scheduled Tasks Engine, Consequences, Context
 Cohesion: 0.33
 Nodes (4): @radix-ui/react-popover@^1.1.23, react@^19.2.8, react, @radix-ui/react-popover
 
-### Community 689 - "ADR-0226: Native Desktop Dual-Channel Audio Loopback Architecture"
-Cohesion: 0.33
-Nodes (5): ADR-0226: Native Desktop Dual-Channel Audio Loopback Architecture, Consequences, Context, Decision, Status
+### Community 689 - "PropertiesBlock/PropertiesBlock.tsx"
+Cohesion: 0.43
+Nodes (5): getPropertyIcon(), HIDDEN_FRONTMATTER_KEYS, PropertiesBlock(), PropertiesBlockProps, renderPropertyValue()
 
 ### Community 690 - "ADR-0236: Git Manager Diff Viewer and Hunk Staging"
-Cohesion: 0.33
-Nodes (5): ADR-0236: Git Manager Diff Viewer and Hunk Staging, Consequences, Context, Decision, GitDiffViewer()
+Cohesion: 0.40
+Nodes (4): ADR-0236: Git Manager Diff Viewer and Hunk Staging, Consequences, Context, Decision
 
 ### Community 691 - "git-manager/index.ts"
-Cohesion: 0.21
-Nodes (18): applyGitPatch(), commitGit(), discardGitPaths(), fetchFileDiff(), fetchGitCommitDetails(), fetchGitLog(), fetchGitRepoInfo(), fetchGitStatus() (+10 more)
+Cohesion: 0.15
+Nodes (30): abortGitMerge(), applyGitPatch(), commitGit(), continueGitMerge(), discardGitPaths(), fetchFileDiff(), fetchGitCommitDetails(), fetchGitLog() (+22 more)
 
 ### Community 692 - "ADR-0238: Git Manager Branch Management and Dirty Tree Guard"
 Cohesion: 0.40
@@ -3328,8 +3328,8 @@ Cohesion: 0.18
 Nodes (8): DragSavedState, initHeroInteractive(), applyLaptopDownload(), detectLaptop(), DOWNLOAD_LINKS, DownloadCatalog, LaptopOs, LaptopProfile
 
 ### Community 701 - "Proposed Changes"
-Cohesion: 0.22
-Nodes (9): 4. Utilities & Lib Layers, 5. Documentation Updates, [MODIFY] [DECISIONS.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/DECISIONS.md), [MODIFY] [PROGRESS.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/PROGRESS.md), [NEW] [lib/_codemirror.scss](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/styles/lib/_codemirror.scss), [NEW] [lib/_radix.scss](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/styles/lib/_radix.scss), [NEW] [utilities/_layout.scss](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/styles/utilities/_layout.scss), [NEW] [utilities/_text.scss](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/styles/utilities/_text.scss) (+1 more)
+Cohesion: 0.13
+Nodes (15): 1. Tooling & Core Utilities, 4. Utilities & Lib Layers, 5. Documentation Updates, [DELETE] [scss-modules.d.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/scss-modules.d.ts), [MODIFY] [DECISIONS.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/DECISIONS.md), [MODIFY] [main.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/main.tsx), [MODIFY] [PROGRESS.md](file:///Users/ahmedwaanneni/Desktop/davinci-notes/PROGRESS.md), [NEW] [cn.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/styles/cn.ts) (+7 more)
 
 ### Community 703 - "DaVinci Notes — Release Notes `v0.1.0-rc.1`"
 Cohesion: 0.40
@@ -3351,9 +3351,9 @@ Nodes (5): scripts, build, lint, test, typecheck
 Cohesion: 0.40
 Nodes (4): 0.1.0, @app/indexer, Minor Changes, Patch Changes
 
-### Community 708 - "HISTORY.md"
-Cohesion: 0.09
-Nodes (18): ADR-0176: Editor Slash Menu Trigger Rules and Shared Recent Store, Consequences, Context, Decision, Status, ADR-0177: Editor Media Insert Items, Declarative Dialogs, and Attachment Pipeline Integration, Consequences, Context (+10 more)
+### Community 708 - "resolveAttachmentFolder"
+Cohesion: 0.32
+Nodes (6): ADR-0109: Attachment location settings and pure resolution, Status, 2026-08-21 — Attachments Phase 3: Paste Handling, cleanFolder(), noteFolder(), resolveAttachmentFolder()
 
 ### Community 709 - "GitHub Copilot Instructions — DaVinci Notes (Sophia)"
 Cohesion: 0.50
@@ -3395,17 +3395,17 @@ Nodes (3): ADR-0092: Inline HTML rendering policy, Decision, Status
 Cohesion: 0.50
 Nodes (3): ADR-0093: Markdown and HTML content boundary, Decision, Status
 
-### Community 719 - "EditorFormattingToolbar.stories.tsx"
-Cohesion: 0.40
-Nodes (4): Default, meta, Story, WithMockView
+### Community 719 - "EditorFormattingToolbar.tsx"
+Cohesion: 0.19
+Nodes (12): EditorFormattingToolbar(), EditorFormattingToolbarProps, Default, meta, Story, WithMockView, FormatInsertGroup(), handleCodeBlock() (+4 more)
 
 ### Community 720 - "BookmarksView.stories.tsx"
 Cohesion: 0.29
 Nodes (6): Default, Empty, meta, Story, WebLinksPage, WithMissingNotes
 
-### Community 721 - "Migration Plan: apps/desktop CSS Modules to CUBE CSS"
-Cohesion: 0.29
-Nodes (6): Automated Tests, Manual Verification, Migration Plan: apps/desktop CSS Modules to CUBE CSS, Proposed Folder & Architecture Structure, User Review Required, Verification Plan
+### Community 721 - "Decisions"
+Cohesion: 0.25
+Nodes (7): 2. Vault Drawer as the Comprehensive Hub, 4. 100% Theme Token Strictness, 5. Predictable Back-Navigation & Hardware Back Discipline, ADR-0207: Mobile Information Architecture and Minimalist Navigation, Consequences, Decisions, Status
 
 ### Community 722 - "Public-token default-style diff"
 Cohesion: 0.50
@@ -3423,9 +3423,9 @@ Nodes (5): ADR-0231: Calendar Event Proximity Detection & Note-Taking Prompt, Co
 Cohesion: 0.33
 Nodes (5): ADR-0232: Git Manager Phase 0 Verification Audit & Architecture Baseline, Context, Decision, Status, Verification Audit Results
 
-### Community 726 - "1. Tooling & Core Utilities"
-Cohesion: 0.33
-Nodes (6): 1. Tooling & Core Utilities, [DELETE] [scss-modules.d.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/scss-modules.d.ts), [MODIFY] [main.tsx](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/main.tsx), [NEW] [cn.ts](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/styles/cn.ts), [NEW] [_main.scss](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/src/styles/_main.scss), [NEW] [.stylelintrc.json](file:///Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop/.stylelintrc.json)
+### Community 726 - "Step 3: Theme Architecture & Engine Specification"
+Cohesion: 0.25
+Nodes (8): Architectural Evaluation of Options, Option 1: Parse CSS Custom Properties at Runtime into Native Token Map, Option 2: Build-Time Theme Compilation, Option 3: Pre-Computed Built-ins + Fast Runtime Regex Scanner (RECOMMENDED), Public Token Surface Additions (Proposed ADR-0204), Step 3: Theme Architecture & Engine Specification, The Central Architectural Challenge, Theme Persistence, Switching & Lifecycle
 
 ### Community 727 - "ADR-0149: AI provider classification and provider-specific consent"
 Cohesion: 0.40
@@ -3439,17 +3439,17 @@ Nodes (4): Architecture Decision Records (ADRs), Checklist, Commits & Changes Br
 Cohesion: 0.50
 Nodes (3): 0.1.0, @app/design-system, Minor Changes
 
-### Community 730 - "askYourVault.ts"
-Cohesion: 0.18
-Nodes (10): ADR-0150: Ask-your-vault host mount, Consequences, Context, Decision, AskCitation, askYourVault(), AskYourVaultOptions, AskYourVaultResult (+2 more)
+### Community 730 - "6. Phased Implementation Roadmap"
+Cohesion: 0.25
+Nodes (8): 6. Phased Implementation Roadmap, Phase 1: Versioning Single Source of Truth & Local Release Scripts, Phase 2: Multi-Platform CI Build Matrix & Draft Release Pipeline, Phase 3: Code Signing, Notarization & Cryptographic Keys, Phase 4: In-App Auto-Update & Tauri Updater Plugin, Phase 5: Website Static Download Page (`/download`) & Permalinks, Phase 6: End-to-End Orchestration CLI, Verification Harness & Rollback Runbook, Phase 7: Distribution Extras & Package Managers
 
 ### Community 731 - "0.1.0"
 Cohesion: 0.50
 Nodes (3): 0.1.0, @app/sync-client, Minor Changes
 
 ### Community 732 - "google-calendar-api/index.ts"
-Cohesion: 0.05
-Nodes (68): getCalendarClientId(), setDynamicCalendarClientId(), CalendarOutboxWorker, CalendarOutboxWorkerOptions, extractIso(), optimisticCreateEvent(), optimisticDeleteEvent(), optimisticUpdateEvent() (+60 more)
+Cohesion: 0.04
+Nodes (111): getCalendarClientId(), setDynamicCalendarClientId(), mockCalendar, mockEvent, CalendarOutboxWorker, CalendarOutboxWorkerOptions, extractIso(), optimisticCreateEvent() (+103 more)
 
 ### Community 733 - "Website Deployment & Public Distribution Rules (Mandatory for all AI agents)"
 Cohesion: 0.50
@@ -3467,41 +3467,37 @@ Nodes (3): DaVinci Notes Plugin Starter, Local development, Publish a release
 Cohesion: 0.29
 Nodes (6): 1. Quick Terminal Deployment (Interactive TUI), 2. GitHub Connection (Continuous Deployment), 3. GitHub Actions Automated Deployment, 4. Configuration File (`apps/website/wrangler.toml`), Cloudflare Pages Deployment Guide, Features:
 
-### Community 744 - "ADR-0058: Canonical note creation path — no `window.prompt()` in Tauri"
-Cohesion: 0.40
-Nodes (4): ADR-0058: Canonical note creation path — no `window.prompt()` in Tauri, Consequences, Context, Status
+### Community 744 - "desktop/src/vault/index.ts"
+Cohesion: 0.05
+Nodes (78): AppTabs(), ClipperStatus, loadGitVersioning(), createNoteSaveActions(), appendToNoteInVault(), ClipInsertPosition, findBodyStart(), joinBlocks() (+70 more)
 
-### Community 745 - "ADR-0077: Tag badges in `@app/editor` preserve first-seen display casing and use a click stub"
-Cohesion: 0.40
-Nodes (4): ADR-0077: Tag badges in `@app/editor` preserve first-seen display casing and use a click stub, Consequences, Context, Decision
+### Community 745 - "7. Prompt-per-Phase Skeleton"
+Cohesion: 0.25
+Nodes (8): 7. Prompt-per-Phase Skeleton, Phase 1 Prompt Stub, Phase 2 Prompt Stub, Phase 3 Prompt Stub, Phase 4 Prompt Stub, Phase 5 Prompt Stub, Phase 6 Prompt Stub, Phase 7 Prompt Stub
 
-### Community 746 - "157. File Tree Drag UI, Pure Validation, and Drop Target Feedback"
-Cohesion: 0.40
-Nodes (4): 157. File Tree Drag UI, Pure Validation, and Drop Target Feedback, Context, Decisions, Status
+### Community 746 - "vaultRemindersOverlay.ts"
+Cohesion: 0.48
+Nodes (4): getVaultRemindersOverlayEvents(), ReminderQueryDb, reminderRowToCalendarEvent(), VaultReminderRow
 
-### Community 748 - "ADR-0169: UI decoupling from SQLite index and unhandled rejection resilience"
-Cohesion: 0.40
-Nodes (4): ADR-0169: UI decoupling from SQLite index and unhandled rejection resilience, Consequences, Status, Verification
+### Community 748 - "AttachmentLocationSettings.stories.tsx"
+Cohesion: 0.29
+Nodes (6): meta, SameFolder, SpecifiedFolder, Story, Subfolder, VaultFolder
 
-### Community 749 - "ADR-0198: Syncthing desktop-mobile sync verification and conflict isolation"
-Cohesion: 0.40
-Nodes (4): ADR-0198: Syncthing desktop-mobile sync verification and conflict isolation, Consequences, Context, Status
+### Community 749 - "ReminderRowItem.stories.tsx"
+Cohesion: 0.29
+Nodes (6): Completed, meta, Overdue, Snoozed, Story, UpcomingToday
 
 ### Community 750 - "ADR-0214: Dedicated Agent Tab (`davinci://agent`) and Lazy Subsystem Mounting"
 Cohesion: 0.40
 Nodes (4): ADR-0214: Dedicated Agent Tab (`davinci://agent`) and Lazy Subsystem Mounting, Consequences, Context, Status
 
-### Community 751 - "ADR-0230: Meeting Note Markdown Schema & Canonical Vault Persistence"
+### Community 751 - "AgentExecutionLogs.stories.tsx"
 Cohesion: 0.40
-Nodes (4): ADR-0230: Meeting Note Markdown Schema & Canonical Vault Persistence, Consequences, Context, Status
+Nodes (4): Default, meta, Story, Streaming
 
 ### Community 752 - "ADR-0172: Tray Click-to-Capture Popover and Left-Click Setting"
 Cohesion: 0.33
 Nodes (5): ADR-0172: Tray Click-to-Capture Popover and Left-Click Setting, Consequences, Context, Decision, Status
-
-### Community 753 - "ADR-0117: Manifest hashing at the Rust/platform I/O boundary"
-Cohesion: 0.50
-Nodes (3): ADR-0117: Manifest hashing at the Rust/platform I/O boundary, Decision, Status
 
 ### Community 755 - "style-dictionary"
 Cohesion: 0.50
@@ -3511,29 +3507,29 @@ Nodes (3): style-dictionary@^5.5.0, sd, style-dictionary
 Cohesion: 0.33
 Nodes (5): ADR-0008: Manifest-diff file sync, not CRDT (Yjs), Consequences, Context, Decision, Status
 
-### Community 764 - "0204 — Platform Adapter Layer and Boundary Enforcement"
-Cohesion: 0.50
-Nodes (3): 0204 — Platform Adapter Layer and Boundary Enforcement, Consequences, Context
+### Community 764 - "Contributing Guidelines"
+Cohesion: 0.40
+Nodes (4): Branch Naming, Commit Conventions, Contributing Guidelines, Pull Request Rules
 
 ### Community 765 - "@app/plugin-runtime@workspace:*"
 Cohesion: 0.14
 Nodes (8): @app/plugin-runtime@workspace:*, d3-drag@^3.0.0, d3-selection@^3.0.0, @fontsource-variable/montserrat@5.2.8, @app/plugin-runtime, d3-drag, d3-selection, @fontsource-variable/montserrat
 
-### Community 766 - "2026-09-06 — Git Versioning Phase 0: Engine and Local-Only Architecture"
-Cohesion: 0.50
-Nodes (4): 2026-09-06 — Git Versioning Phase 0: Engine and Local-Only Architecture, Decision, Implementation and Verification, Scope Boundary
+### Community 766 - "ADR-0178: Editor Mermaid Diagram Templates and Sub-Grouping"
+Cohesion: 0.40
+Nodes (4): ADR-0178: Editor Mermaid Diagram Templates and Sub-Grouping, Consequences, Context, Status
 
-### Community 769 - "2026-09-06 — Git Versioning Phase 1: Automatic Local Versions"
-Cohesion: 0.50
-Nodes (4): 2026-09-06 — Git Versioning Phase 1: Automatic Local Versions, Decision, Scope Boundary, Verification
+### Community 769 - "ADR-0201: Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization"
+Cohesion: 0.40
+Nodes (4): ADR-0201: Calendar event SQLite caching, incremental syncToken lifecycle, and withDbLock serialization, Consequences, Context, Status
 
-### Community 772 - "ADR-0079: Separate full-text Search from the Command Palette"
-Cohesion: 0.33
-Nodes (5): ADR-0079: Separate full-text Search from the Command Palette, Consequences, Context, Decision, Status
+### Community 772 - "useWorkspaceStore"
+Cohesion: 0.08
+Nodes (42): BOOKMARKS_TAB_ID, AgentSaveNoteModal(), AgentSaveNoteModalProps, Default, meta, Story, CommandPalette(), useWorkspaceStore (+34 more)
 
-### Community 775 - "Editor Markdown Formatting — Phase 8: Escaping Edge Cases (@app/editor) (ADR-0072)"
-Cohesion: 0.50
-Nodes (4): Basic Markdown formatting plan closed, Completed, Editor Markdown Formatting — Phase 8: Escaping Edge Cases (@app/editor) (ADR-0072), Verification
+### Community 775 - "ADR-0203: Calendar Reminder Alerts and Menu-Bar Tray Integration"
+Cohesion: 0.40
+Nodes (4): ADR-0203: Calendar Reminder Alerts and Menu-Bar Tray Integration, Consequences, Context, Decisions
 
 ### Community 778 - "withSyncthingAndroid.js"
 Cohesion: 0.20
@@ -3544,33 +3540,33 @@ Nodes (5): fs, path, REQUIRED_PERMISSIONS, SUPPORTED_ABIS, {
   withDangerousMod,
 }
 
-### Community 779 - "Phase 10 — Mermaid Diagrams (@app/editor) (ADR-0073)"
-Cohesion: 0.50
-Nodes (4): Completed, Performance decision, Phase 10 — Mermaid Diagrams (@app/editor) (ADR-0073), Verification
+### Community 779 - "0217. Google Calendar Write Scope Upgrade & Task Sync"
+Cohesion: 0.40
+Nodes (4): 0217. Google Calendar Write Scope Upgrade & Task Sync, Consequences, Context, Decision
 
 ### Community 803 - "Editor Markdown Formatting — Phase 2 line-break semantics (ADR-0063)"
 Cohesion: 0.50
 Nodes (4): Completed, Deliberate scope boundary, Editor Markdown Formatting — Phase 2 line-break semantics (ADR-0063), Verification
 
-### Community 804 - "Bug Fix — Enter After Ambiguous Table Header (@app/editor)"
-Cohesion: 0.67
-Nodes (3): Bug Fix — Enter After Ambiguous Table Header (@app/editor), Reproduction and result, Verification
-
-### Community 805 - "ADR-0237: Git Manager History Graph and Commit Detail"
+### Community 804 - "ADR-0235: Git Manager Staging, Discard, and Commit Operations"
 Cohesion: 0.40
-Nodes (4): ADR-0237: Git Manager History Graph and Commit Detail, Consequences, Context, Decision
+Nodes (4): ADR-0235: Git Manager Staging, Discard, and Commit Operations, Consequences, Context, Decision
 
-### Community 812 - "Bug Fix / Feature — Live Editable Table Grid (@app/editor)"
-Cohesion: 0.67
-Nodes (3): Bug Fix / Feature — Live Editable Table Grid (@app/editor), Root cause and fix, Verification
+### Community 805 - "3.5 Editor & Dependent Packages"
+Cohesion: 0.40
+Nodes (5): 3.5 Editor & Dependent Packages, A. `packages/core-types` (`@app/core-types`), B. `packages/attachments` (`@app/attachments`), C. `packages/sanitize` (`@app/sanitize`), D. `packages/editor` (`@app/editor`)
+
+### Community 812 - "typography.ts"
+Cohesion: 0.40
+Nodes (4): fontTokens, typeLeadingTokens, typeScaleTokens, typeWeightTokens
 
 ### Community 813 - "VersionHistoryScheduler.ts"
-Cohesion: 0.23
-Nodes (4): loadGitVersioning(), CreateVersion, versionHistoryScheduler, Decision
+Cohesion: 0.21
+Nodes (8): resolveRewriteClarification(), createDesktopInspectionBackend(), createDesktopMutationBackend(), createDesktopWebSearchBackend(), useAgentExecution(), createLocalGitVersion(), CreateVersion, versionHistoryScheduler
 
-### Community 817 - "Bug Fix — Inline Code Visual Styling (@app/editor)"
-Cohesion: 0.67
-Nodes (3): Bug Fix — Inline Code Visual Styling (@app/editor), Root cause and fix, Verification
+### Community 817 - "Area 4: Code Signing, Notarization & Key Management"
+Cohesion: 0.40
+Nodes (5): 5.6 macOS Developer ID & Notarization Workflow, 5.7 Windows Authenticode & SmartScreen, 5.8 Tauri Updater Cryptographic Signing (Ed25519), 5.9 GitHub Secrets Checklist, Area 4: Code Signing, Notarization & Key Management
 
 ### Community 818 - "HowItWorksSection.astro"
 Cohesion: 0.50
@@ -3580,29 +3576,13 @@ Nodes (3): stepPanels, steps, stepTabs
 Cohesion: 0.36
 Nodes (4): DeviceIdentityStorage, DeviceIdRandomSource, encode(), getOrCreateDeviceId()
 
-### Community 823 - "Bug Fix — Ordered List Numbers Not Rendering (@app/editor) (ADR-0069)"
-Cohesion: 0.67
-Nodes (3): Bug Fix — Ordered List Numbers Not Rendering (@app/editor) (ADR-0069), Root cause and fix, Verification
+### Community 823 - "ADR-0205: Mobile Obsidian-Parity Navigation Shell and Drawer Architecture"
+Cohesion: 0.50
+Nodes (3): ADR-0205: Mobile Obsidian-Parity Navigation Shell and Drawer Architecture, Consequences, Status
 
-### Community 888 - "Tags Feature Phase 1 — Tag Parsing Rules & Data Model (@app/core-types) (ADR-0075, ADR-0076)"
-Cohesion: 0.67
-Nodes (3): Completed, Tags Feature Phase 1 — Tag Parsing Rules & Data Model (@app/core-types) (ADR-0075, ADR-0076), Verification
-
-### Community 897 - "Phase 11 — Math (@app/editor) (ADR-0074)"
-Cohesion: 0.67
-Nodes (3): Completed, Phase 11 — Math (@app/editor) (ADR-0074), Verification
-
-### Community 899 - "Editor Markdown Formatting — Phase 7: Quotes, Footnotes & Comments (@app/editor) (ADR-0071)"
-Cohesion: 0.67
-Nodes (3): Deviation, Editor Markdown Formatting — Phase 7: Quotes, Footnotes & Comments (@app/editor) (ADR-0071), Verification
-
-### Community 901 - "Editor Markdown Formatting — Phase 6: Code Blocks (@app/editor) (ADR-0070)"
-Cohesion: 0.67
-Nodes (3): Deviation, Editor Markdown Formatting — Phase 6: Code Blocks (@app/editor) (ADR-0070), Verification
-
-### Community 903 - "Editor Markdown Formatting — Phase 5: Lists & Tasks (@app/editor) (ADR-0068)"
-Cohesion: 0.67
-Nodes (3): Deviation from Step 0 plan, Editor Markdown Formatting — Phase 5: Lists & Tasks (@app/editor) (ADR-0068), Verification
+### Community 888 - "Area 6: Website Download Page (`/download`)"
+Cohesion: 0.50
+Nodes (4): 5.13 Architecture & Constraints, 5.14 Zero-Dependency Client OS Detection (< 1.5 KB JS), 5.15 Stable Permalinks (Zero-Maintenance Routing), Area 6: Website Download Page (`/download`)
 
 ### Community 905 - "finalize-release"
 Cohesion: 0.40
@@ -3613,20 +3593,8 @@ Cohesion: 0.29
 Nodes (6): ADR-0148: Vault-index transaction ownership and write serialization, Consequences, Context, Decision, Status, Verification
 
 ### Community 912 - "cn"
-Cohesion: 0.18
-Nodes (9): ClassValue, cn(), ADR-0038: CUBE CSS for desktop styling, Consequences, Context, Decision, Status, 2026-08-13 — CSS Modules → CUBE CSS Migration (`apps/desktop`) (+1 more)
-
-### Community 913 - "Editor Markdown Formatting — Phase 1 audit (ADR-0062)"
-Cohesion: 0.67
-Nodes (3): Editor Markdown Formatting — Phase 1 audit (ADR-0062), Scope discipline, What was audited
-
-### Community 916 - "Stabilization Phase 1 — canonical note delete and duplicate (ADR-0064)"
-Cohesion: 0.67
-Nodes (3): Remaining Phase 1 work, Stabilization Phase 1 — canonical note delete and duplicate (ADR-0064), Verification
-
-### Community 925 - "parsePorcelainV2.ts"
-Cohesion: 0.50
-Nodes (3): ParsedPorcelainResult, parsePorcelainV2(), GitFileStatusCode
+Cohesion: 0.11
+Nodes (15): ClassValue, cn(), ADR-0038: CUBE CSS for desktop styling, Consequences, Context, Decision, Status, 2026-08-13 — CSS Modules → CUBE CSS Migration (`apps/desktop`) (+7 more)
 
 ### Community 926 - "ADR-0078: Frontmatter tag bodies and merged note tag sets"
 Cohesion: 0.50
@@ -3636,41 +3604,37 @@ Nodes (3): ADR-0078: Frontmatter tag bodies and merged note tag sets, Consequenc
 Cohesion: 0.22
 Nodes (7): AgentCliStatusCard(), AgentCliStatusCardProps, Completed, ErrorState, meta, Running, Story
 
-### Community 928 - "Last Session"
-Cohesion: 0.50
-Nodes (4): Completed, Completed, Completed, Last Session
+### Community 929 - "core-types/index.ts"
+Cohesion: 0.15
+Nodes (18): note(), Colocation, 0.1.0, @app/core-types, Minor Changes, Frontmatter, name, Link (+10 more)
 
 ### Community 930 - "ref_react"
 Cohesion: 0.04
-Nodes (132): DailyNoteActionScreen(), ComponentGalleryScreen(), NewNoteActionScreen(), SettingsScreen(), FilesScreen(), TabLayout(), HighlightedSnippet(), SearchScreen() (+124 more)
+Nodes (128): DailyNoteActionScreen(), ComponentGalleryScreen(), ErrorBoundary(), RootNavigator(), NewNoteActionScreen(), TabLayout(), CanvasViewer(), CanvasViewerDom() (+120 more)
 
 ### Community 946 - "ADR-0206: Mobile Dynamic Theme Lifecycle and WebView PostMessage Bridge"
 Cohesion: 0.40
 Nodes (4): ADR-0206: Mobile Dynamic Theme Lifecycle and WebView PostMessage Bridge, Consequences, Context, Status
 
-### Community 954 - "EditorSettingsStorage"
-Cohesion: 0.15
-Nodes (10): ADR-0065: Editor settings contract belongs to `@app/editor`, Consequences, Context, Decision, Status, 2026-08-19 — Editor Settings Ownership Correction (ADR-0065), Completed, Editor Settings Ownership — package contract correction (ADR-0065) (+2 more)
-
 ## Knowledge Gaps
 - **164 isolated node(s):** `stylelint-config-standard-scss`, `davinci-cli`, `QuickNotes`, `Daily`, `External` (+159 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 6256 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **268 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 6257 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **265 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `SyncthingForegroundService` connect `SyncthingForegroundService` to `SyncthingProcessManager`, `Decisions`, `SyncthingBootReceiver.kt`, `SyncthingRunConditions.kt`?**
-  _High betweenness centrality (0.200) - this node is a cross-community bridge._
+  _High betweenness centrality (0.207) - this node is a cross-community bridge._
 - **Are the 226 inferred relationships involving `Current Focus` (e.g. with `createEmbeddingIndex()` and `loadAISubsystem()`) actually correct?**
   _`Current Focus` has 226 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `stylelint-config-standard-scss`, `davinci-cli`, `QuickNotes` to the rest of the system?**
   _164 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `AISubsystem.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.06493506493506493 - nodes in this community are weakly interconnected._
-- **Why does `SyncthingProcessManager` connect `SyncthingProcessManager` to `SyncthingForegroundService`, `SyncthingRestAllowlist.kt`?**
-  _High betweenness centrality (0.191) - this node is a cross-community bridge._
 - **Should `desktop/src/App.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.04310344827586207 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05714285714285714 - nodes in this community are weakly interconnected._
+- **Why does `SyncthingProcessManager` connect `SyncthingProcessManager` to `SyncthingForegroundService`, `SyncthingRestAllowlist.kt`?**
+  _High betweenness centrality (0.198) - this node is a cross-community bridge._
+- **Should `ClipPayload` be split into smaller, more focused modules?**
+  _Cohesion score 0.05405405405405406 - nodes in this community are weakly interconnected._
 - **Why does `Prior Session — Automated Embedded Syncthing Daemon Config Plugin, Native Execution & Lifecycle Fix on Android` connect `SyncthingBootReceiver.kt` to `syncthing/index.ts`, `PROGRESS.md — Current State`, `SyncthingForegroundService`?**
-  _High betweenness centrality (0.117) - this node is a cross-community bridge._
+  _High betweenness centrality (0.121) - this node is a cross-community bridge._

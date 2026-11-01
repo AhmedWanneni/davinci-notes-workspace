@@ -1,4 +1,4 @@
-import { Extension, Range } from "@codemirror/state";
+import { Extension, Prec, Range } from "@codemirror/state";
 import {
   Decoration,
   DecorationSet,
@@ -135,7 +135,7 @@ function getListDecorations(
       decorations.push(listLineDecos[level]!.range(line.from));
 
       const markerFrom = line.from + indentation;
-      if (!activeLine && indentation > 0) {
+      if (indentation > 0) {
         decorations.push(indentSpaceDeco.range(line.from, markerFrom));
       }
 
@@ -232,6 +232,6 @@ export function listExtension(options: ListExtensionOptions = {}): Extension {
       },
     ),
     listTheme,
-    keymap.of(listIndentKeymap),
+    Prec.high(keymap.of(listIndentKeymap)),
   ];
 }

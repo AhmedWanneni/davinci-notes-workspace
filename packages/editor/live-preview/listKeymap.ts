@@ -4,37 +4,40 @@ import { indentMore, indentLess } from "@codemirror/commands";
 const LIST_LINE_REGEX =
   /^(\s*)([-*+]|\d+[.)]|[a-zA-Z][.)]|[ivxIVX]+[.)])([ \t]+)(?:\[([ xX])\][ \t]*)?(.*)$/;
 
+const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
+
 function getNextMarker(marker: string): string {
   const numMatch = marker.match(/^(\d+)([.)])$/);
-  if (numMatch) {
-    const nextNum = parseInt(numMatch[1], 10) + 1;
-    return `${nextNum}${numMatch[2]}`;
-  }
+  if (numMatch) return `${parseInt(numMatch[1], 10) + 1}${numMatch[2]}`;
+
   const alphaMatch = marker.match(/^([a-zA-Z])([.)])$/);
   if (alphaMatch) {
-    const charCode = alphaMatch[1].charCodeAt(0);
-    const nextChar = String.fromCharCode(charCode + 1);
+    const nextChar = String.fromCharCode(alphaMatch[1].charCodeAt(0) + 1);
     return `${nextChar}${alphaMatch[2]}`;
   }
+
   const romanMatch = marker.match(/^([ivxIVX]+)([.)])$/);
   if (romanMatch) {
     const isUpper = romanMatch[1] === romanMatch[1].toUpperCase();
-    const map: Record<string, string> = {
-      i: "ii",
-      ii: "iii",
-      iii: "iv",
-      iv: "v",
-      v: "vi",
-      vi: "vii",
-      vii: "viii",
-      viii: "ix",
-      ix: "x",
-    };
-    const key = romanMatch[1].toLowerCase();
-    const next = map[key] || "i";
+    const idx = ROMAN.indexOf(romanMatch[1].toLowerCase());
+    const next = idx >= 0 && idx < ROMAN.length - 1 ? ROMAN[idx + 1] : "i";
     return `${isUpper ? next.toUpperCase() : next}${romanMatch[2]}`;
   }
   return marker;
+}
+
+function findParentPrefix(
+  state: EditorView["state"],
+  startLine: number,
+  indentLen: number,
+): string {
+  for (let l = startLine - 1; l >= 1; l--) {
+    const prevMatch = LIST_LINE_REGEX.exec(state.doc.line(l).text);
+    if (prevMatch && prevMatch[1].length < indentLen) {
+      return `${getNextMarker(prevMatch[2])} `;
+    }
+  }
+  return "";
 }
 
 export function handleListEnter(view: EditorView): boolean {
@@ -54,18 +57,11 @@ export function handleListEnter(view: EditorView): boolean {
     // If it's an indented sublist item (indent.length > 0):
     // Complete the sublist and outdent back to parent list level
     if (indent.length > 0) {
-      let parentMarker = "1.";
-      let foundParent = false;
-      for (let l = line.number - 1; l >= 1; l--) {
-        const prevLine = state.doc.line(l);
-        const prevMatch = LIST_LINE_REGEX.exec(prevLine.text);
-        if (prevMatch && prevMatch[1].length < indent.length) {
-          parentMarker = getNextMarker(prevMatch[2]);
-          foundParent = true;
-          break;
-        }
-      }
-      const outdentedPrefix = foundParent ? `${parentMarker} ` : "";
+      const outdentedPrefix = findParentPrefix(
+        state,
+        line.number,
+        indent.length,
+      );
       view.dispatch({
         changes: { from: line.from, to: line.to, insert: outdentedPrefix },
         selection: { anchor: line.from + outdentedPrefix.length },
@@ -156,6 +152,45 @@ export function handleListShiftTab(view: EditorView): boolean {
   return true;
 }
 
+export function handleListBackspace(view: EditorView): boolean {
+  const { state } = view;
+  if (!state.facet(EditorView.editable)) return false;
+
+  const sel = state.selection.main;
+  if (!sel.empty) return false;
+
+  const line = state.doc.lineAt(sel.head);
+  const match = LIST_LINE_REGEX.exec(line.text);
+  if (!match) return false;
+
+  const [_, indent, , , , content] = match;
+  if (!content.trim()) {
+    const prefixLen = line.text.length - content.length;
+    if (sel.head >= line.from + prefixLen) {
+      if (indent.length > 0) {
+        const outdentedPrefix = findParentPrefix(
+          state,
+          line.number,
+          indent.length,
+        );
+        view.dispatch({
+          changes: { from: line.from, to: line.to, insert: outdentedPrefix },
+          selection: { anchor: line.from + outdentedPrefix.length },
+          userEvent: "input.outdentList",
+        });
+        return true;
+      }
+      view.dispatch({
+        changes: { from: line.from, to: line.to, insert: "" },
+        selection: { anchor: line.from },
+        userEvent: "input.clearList",
+      });
+      return true;
+    }
+  }
+  return false;
+}
+
 export function handleListSpace(view: EditorView): boolean {
   const { state } = view;
   if (!state.facet(EditorView.editable)) return false;
@@ -200,6 +235,10 @@ export const listIndentKeymap: readonly KeyBinding[] = [
   {
     key: "Enter",
     run: handleListEnter,
+  },
+  {
+    key: "Backspace",
+    run: handleListBackspace,
   },
   {
     key: "Space",
