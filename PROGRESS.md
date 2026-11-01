@@ -4,6 +4,23 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Canvas Zoom Crispness & Vector Rasterization Fix
+
+**Scope:** Resolved blurriness during canvas zooming:
+1. **Elimination of 3D Texture Locking (`packages/canvas/CanvasView.module.scss`, `TextCardNode.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`, `GroupCardNode.module.scss`)**:
+   - Removed `transform: translateZ(0)` and `will-change: transform` across all node wrappers and cards, which previously forced WebKit to freeze nodes into static 1x raster bitmaps that became pixelated when scaled.
+   - Configured `-webkit-transform-style: preserve-3d; transform-style: preserve-3d;` on `.react-flow__renderer` and `.react-flow__viewport` to keep vector perspective space active during zoom transforms.
+2. **Dynamic Vector Glyph Repainting via `filter: blur(0px)`**:
+   - Applied `filter: blur(0px)` to `.text-card`, `.file-card`, `.link-card`, and `.group-card`.
+   - Forces WebKit to re-evaluate and re-render vector font outlines directly at the current zoom factor instead of interpolating a stretched bitmap texture.
+3. **Removed Nested Overflow Clipping**:
+   - Removed `overflow: hidden` from `.text-card__body` (already handled by the outer card container) to prevent nested clip-mask rasterization artifacts on macOS.
+- **Verification & Code Quality**:
+   - All 30 `@app/canvas` test files (188 tests) passing.
+   - Linting and typechecks passing with 0 errors.
+
+---
+
 ## Last Session — Canvas Crisp Text Rendering & Typography Optimization
 
 **Scope:** Resolved persistent canvas text blurriness:

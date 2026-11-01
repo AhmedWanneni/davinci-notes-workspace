@@ -2,8 +2,6 @@
   position: relative;
   width: 100%;
   height: 100%;
-  backface-visibility: hidden;
-  transform: translateZ(0);
 }
 
 .text-card {
@@ -16,8 +14,7 @@
   display: flex;
   flex-direction: column;
   transition: border-color 120ms ease;
-  backface-visibility: hidden;
-  transform: translateZ(0);
+  filter: blur(0px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
@@ -38,8 +35,8 @@
   color: var(--color-text-normal);
   white-space: pre-wrap;
   word-break: break-word;
-  overflow: hidden;
   cursor: grab;
+  filter: blur(0px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
@@ -69,6 +66,7 @@
   font-weight: var(--type-weight-medium);
   line-height: 1.4;
   color: var(--color-text-normal);
+  filter: blur(0px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;

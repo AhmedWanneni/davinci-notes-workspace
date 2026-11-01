@@ -105,15 +105,17 @@
   text-rendering: geometricPrecision;
 }
 
+:global(.react-flow__renderer),
 :global(.react-flow__viewport) {
-  will-change: transform;
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
 }
 
 :global(.react-flow__node) {
-  backface-visibility: hidden !important;
-  transform: translateZ(0);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   text-rendering: geometricPrecision;
 }
 

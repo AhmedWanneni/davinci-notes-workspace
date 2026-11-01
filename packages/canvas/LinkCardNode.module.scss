@@ -13,8 +13,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  backface-visibility: hidden;
-  transform: translateZ(0);
+  filter: blur(0px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: geometricPrecision;
