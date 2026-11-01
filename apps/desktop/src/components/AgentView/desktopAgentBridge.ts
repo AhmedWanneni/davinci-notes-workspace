@@ -7,14 +7,11 @@ import {
   parseDuckDuckGoHtml,
 } from "@app/ai-agent";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import {
-  createNoteInVault,
-  deleteFolderInVault,
-  deleteNoteInVault,
-  renameNoteInVault,
-  getVaultIndexDb,
-  withDbLock,
-} from "../../vault";
+import { createNoteInVault } from "../../vault/createNoteInVault";
+import { deleteFolderInVault } from "../../vault/deleteFolderInVault";
+import { deleteNoteInVault } from "../../vault/deleteNoteInVault";
+import { renameNoteInVault } from "../../vault/renameNoteInVault";
+import { getVaultIndexDb, withDbLock } from "../../vault/sqliteIndex";
 import { createFolder, readNote, writeNote } from "../../vault/vaultCommands";
 import {
   executeSearchQuery,

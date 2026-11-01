@@ -4,9 +4,12 @@ import { loadAgentPreferences, saveAgentPreference } from "./agentPreferences";
 const mockGetSetting = vi.fn();
 const mockSetSetting = vi.fn();
 
-vi.mock("../../vault", () => ({
+vi.mock("../../vault/sqliteIndex", () => ({
   getVaultIndexDb: vi.fn().mockResolvedValue({}),
   withDbLock: (fn: () => unknown) => fn(),
+}));
+
+vi.mock("../../vault/settingsCommands", () => ({
   getSetting: (...args: unknown[]) => mockGetSetting(...args),
   setSetting: (...args: unknown[]) => mockSetSetting(...args),
 }));

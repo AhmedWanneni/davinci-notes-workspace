@@ -17,12 +17,8 @@ import {
 } from "../../ai/AISubsystem";
 import { loadAgentPreferences, saveAgentPreference } from "./agentPreferences";
 import { readNote } from "../../vault/vaultCommands";
-import {
-  getSetting,
-  getVaultIndexDb,
-  setSetting,
-  withDbLock,
-} from "../../vault";
+import { getSetting, setSetting } from "../../vault/settingsCommands";
+import { getVaultIndexDb, withDbLock } from "../../vault/sqliteIndex";
 
 export function useAgentViewConfig() {
   const [currentProvider, setCurrentProvider] =

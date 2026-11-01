@@ -6,12 +6,8 @@ import {
   saveAgentPreference,
 } from "../AgentView/agentPreferences";
 import { AgentCliSection } from "../AgentView/AgentCliSection";
-import {
-  getSetting,
-  getVaultIndexDb,
-  setSetting,
-  withDbLock,
-} from "../../vault";
+import { getSetting, setSetting } from "../../vault/settingsCommands";
+import { getVaultIndexDb, withDbLock } from "../../vault/sqliteIndex";
 
 export function AIAgentSettingsSection() {
   const [prefs, setPrefs] = useState({

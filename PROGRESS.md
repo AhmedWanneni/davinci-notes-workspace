@@ -4,7 +4,31 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Desktop Window Startup Visibility & TypeScript Component Types
+## Last Session — Fix Desktop UI Blank/Unopened Window Caused by Circular Chunk Dependencies & Barrel Imports
+
+**Scope:** Resolve desktop application UI not opening / appearing blank when launched after adding Agent UI:
+1. **De-barrel Vault Imports in Agent & Settings Modules**: Replace imports from `../../vault` (the barrel `src/vault/index.ts`) in `desktopAgentBridge.ts`, `useAgentViewConfig.ts`, `agentContextAssembler.ts`, `agentPreferences.ts`, and `AIAgentSettingsSection.tsx` with direct imports to `../../vault/createNoteInVault`, `../../vault/deleteNoteInVault`, `../../vault/deleteFolderInVault`, `../../vault/renameNoteInVault`, `../../vault/sqliteIndex`, `../../vault/settingsCommands`, and `../../vault/vaultCommands`.
+2. **Fix Lazy Boundary in `App.tsx`**: Change `App.tsx:69` to `import { AGENT_TAB_ID } from "./components/AgentView/agentTypes"`, preventing synchronous evaluation of the entire `AgentView` module tree during app startup and reducing initial main bundle size by 24 kB. Replace `<Suspense fallback={null}>` with an explicit dark loading skeleton.
+3. **macOS Transparent Window Safeguards in `index.html`**: Set default inline style `html, body { background-color: #18181b; }` so that Tauri paints an opaque dark canvas immediately upon window creation. Added an inline pre-React error boundary in `index.html` to capture and render any early boot failures.
+
+**What was done:**
+1. **Eliminated Rollup Circular Chunk Warnings**:
+   - Refactored `desktopAgentBridge.ts`, `useAgentViewConfig.ts`, `agentContextAssembler.ts`, `agentPreferences.ts`, and `AIAgentSettingsSection.tsx` to directly import concrete submodules rather than re-exporting through the barrel.
+   - Vite/Rollup production build completed with 0 circular chunk warnings.
+2. **Preserved Code-Splitting in `App.tsx`**:
+   - Isolated `AGENT_TAB_ID` and `LISTENING_TAB_ID` imports to their specific constant files.
+   - Verified that `AgentView` now lives cleanly in its own dynamic chunk.
+3. **Updated Tests & Verified**:
+   - Updated `agentPreferences.test.ts` to mock targeted `sqliteIndex` and `settingsCommands` modules.
+   - All 30 test files and 93 tests in `src/components/AgentView` pass.
+   - All files adhere to line limits (under 200 lines).
+
+**Next up:**
+- Ready for manual review and user acceptance on `feat/cli-agent-integration`.
+
+---
+
+## Prior Session — Fix Desktop Window Startup Visibility & TypeScript Component Types
 
 **Scope:** Resolve desktop application UI not opening / appearing upon launch:
 1. **Window Startup Visibility & macOS Activation**: Fix `apps/desktop/src-tauri/src/lib.rs` and `apps/desktop/src-tauri/src/tray.rs` where the main window was created with `decorations(false).transparent(true)` but was never explicitly brought forward, unminimized, or focused on launch.

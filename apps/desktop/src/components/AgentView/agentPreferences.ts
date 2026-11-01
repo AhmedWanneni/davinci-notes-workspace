@@ -1,9 +1,5 @@
-import {
-  getSetting,
-  getVaultIndexDb,
-  setSetting,
-  withDbLock,
-} from "../../vault";
+import { getSetting, setSetting } from "../../vault/settingsCommands";
+import { getVaultIndexDb, withDbLock } from "../../vault/sqliteIndex";
 
 export interface AgentPreferences {
   autoApply: boolean;

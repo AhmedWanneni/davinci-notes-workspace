@@ -66,9 +66,9 @@ const LazyRemindersView = React.lazy(() =>
     default: m.RemindersView,
   })),
 );
-import { AGENT_TAB_ID } from "./components/AgentView";
+import { AGENT_TAB_ID } from "./components/AgentView/agentTypes";
 import { CALENDAR_TAB_ID } from "./calendar/calendarConstants";
-import { LISTENING_TAB_ID } from "./components/ListeningView";
+import { LISTENING_TAB_ID } from "./components/ListeningView/listeningConstants";
 const LazyListeningView = React.lazy(() =>
   import("./components/ListeningView").then((m) => ({
     default: m.ListeningView,
@@ -907,7 +907,22 @@ export function App() {
               />
             </Suspense>
           ) : activeNotePath === AGENT_TAB_ID ? (
-            <Suspense fallback={null}>
+            <Suspense
+              fallback={
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "var(--color-bg-primary)",
+                    color: "var(--color-text-muted)",
+                  }}
+                >
+                  Loading Agent...
+                </div>
+              }
+            >
               <LazyAgentView
                 onOpenSettings={() => {
                   setSettingsInitialTab("ai");

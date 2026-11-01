@@ -1,5 +1,5 @@
 import type { MentionItem } from "./agentTypes";
-import { readNote } from "../../vault";
+import { readNote } from "../../vault/vaultCommands";
 
 export const MAX_NOTE_TOKENS = 24_000;
 export const MAX_FOLDER_TOKENS = 32_000;
