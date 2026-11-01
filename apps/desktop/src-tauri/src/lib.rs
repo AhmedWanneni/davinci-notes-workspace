@@ -375,14 +375,9 @@ pub fn run() {
         }
       }
       #[cfg(target_os = "macos")]
-      tauri::RunEvent::Reopen {
-        has_visible_windows,
-        ..
-      } => {
-        if !has_visible_windows {
-          if let Some(window) = app_handle.get_webview_window(tray::MAIN_WINDOW) {
-            tray::show_main_window(&window);
-          }
+      tauri::RunEvent::Reopen { .. } => {
+        if let Some(window) = app_handle.get_webview_window(tray::MAIN_WINDOW) {
+          tray::show_main_window(&window);
         }
       }
       _ => {}
