@@ -1,0 +1,112 @@
+.todos-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  background-color: var(--color-bg-primary);
+  overflow: hidden;
+  font-family: var(--font-ui);
+}
+
+.todos-view__main {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.todos-view__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.todos-view__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.todos-view__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.todos-view__section-title {
+  font-size: var(--type-scale-base);
+  font-weight: 700;
+  color: var(--color-text-normal);
+  margin: 0;
+}
+
+.todos-view__section-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.todos-view__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text-normal);
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-subtle);
+  }
+}
+
+.todos-view__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.todos-view__add-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 10px;
+
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-bottom: 1px dashed var(--color-border-subtle);
+    padding: 4px 0;
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-sm);
+    color: var(--color-text-normal);
+    outline: none;
+
+    &:focus {
+      border-bottom-color: var(--color-interactive-accent);
+    }
+  }
+}
+
+.todos-view__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--color-text-muted);
+  font-size: var(--type-scale-sm);
+  gap: var(--space-2);
+}

@@ -66,6 +66,12 @@ const LazyRemindersView = React.lazy(() =>
     default: m.RemindersView,
   })),
 );
+import { TODOS_TAB_ID } from "./components/TodosView";
+const LazyTodosView = React.lazy(() =>
+  import("./components/TodosView").then((m) => ({
+    default: m.TodosView,
+  })),
+);
 import { AGENT_TAB_ID } from "./components/AgentView";
 import { CALENDAR_TAB_ID } from "./calendar/calendarConstants";
 import { LISTENING_TAB_ID } from "./components/ListeningView";
@@ -829,6 +835,7 @@ export function App() {
           isCalendarOpen={activeNotePath === CALENDAR_TAB_ID || isCalendarOpen}
           isBookmarksOpen={activeNotePath === BOOKMARKS_TAB_ID}
           isRemindersOpen={activeNotePath === REMINDERS_TAB_ID}
+          isTodosOpen={activeNotePath === TODOS_TAB_ID}
           isAgentOpen={activeNotePath === AGENT_TAB_ID}
           isListeningOpen={activeNotePath === LISTENING_TAB_ID}
           isAskVaultOpen={isRightSidebarOpen}
@@ -851,6 +858,11 @@ export function App() {
           onOpenReminders={() => {
             setIsGitManagerOpen(false);
             void openNote(REMINDERS_TAB_ID);
+          }}
+          onOpenTodos={() => {
+            setIsGitManagerOpen(false);
+            setIsLeftSidebarOpen(false);
+            void openNote(TODOS_TAB_ID);
           }}
           onOpenAgent={() => {
             setIsGitManagerOpen(false);
@@ -943,6 +955,17 @@ export function App() {
                 onOpenSettings={() => {
                   setSettingsInitialTab("notifications");
                   setIsSettingsOpen(true);
+                }}
+              />
+            </Suspense>
+          ) : activeNotePath === TODOS_TAB_ID ? (
+            <Suspense fallback={null}>
+              <LazyTodosView
+                onOpenNote={(path) => {
+                  void openNote(path);
+                }}
+                onClose={() => {
+                  void closeNote(TODOS_TAB_ID);
                 }}
               />
             </Suspense>

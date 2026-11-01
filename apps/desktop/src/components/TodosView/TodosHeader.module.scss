@@ -1,0 +1,116 @@
+.todos-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6) var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary);
+  font-family: var(--font-ui);
+}
+
+.todos-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.todos-header__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.todos-header__title {
+  font-size: var(--type-scale-lg);
+  font-weight: 700;
+  color: var(--color-text-normal);
+  margin: 0;
+}
+
+.todos-header__subtitle {
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+}
+
+.todos-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.todos-header__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-subtle);
+  width: 220px;
+
+  input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-xs);
+    color: var(--color-text-normal);
+    width: 100%;
+  }
+}
+
+.todos-header__focus-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary);
+  color: var(--color-interactive-accent);
+  font-size: var(--type-scale-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-interactive-accent);
+  }
+}
+
+.todos-header__filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.todos-header__filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 100ms ease;
+
+  &:hover {
+    color: var(--color-text-normal);
+    border-color: var(--color-border-normal);
+  }
+
+  &.is-active {
+    background-color: var(--color-interactive-accent);
+    border-color: var(--color-interactive-accent);
+    color: var(--color-text-on-accent);
+    font-weight: 600;
+  }
+}

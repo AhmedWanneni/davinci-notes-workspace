@@ -8022,3 +8022,33 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Knowledge graph updated via `graphify update .`.
 
 
+
+## 2026-11-02 — Vault Todos Dashboard & Focus Mode with Icon Rail Integration
+
+- **Todos Dashboard (`apps/desktop/src/components/TodosView`)**:
+  - Built comprehensive todo dashboard reading all notes in vault `todos/` folder (`useTodosData.ts`, `todoParser.ts`, `types.ts`).
+  - Workspaces and Projects sidebar (`TodosSidebar.tsx`, `TodosSidebar.module.scss`) with tree hierarchy, active state, and project creation.
+  - Header (`TodosHeader.tsx`, `TodosHeader.module.scss`) with search input, dynamic month filter pills (`All Tasks`, `Aug`, `Nov`, etc.), and prominent "Focus Mode" button.
+  - Task list with sections (`TodoItemRow.tsx`, `TodoItemRow.module.scss`, `TodosView.tsx`, `TodosView.module.scss`):
+    - Checkbox toggle with strike-through styling.
+    - Inline text editing with save-on-blur/Enter.
+    - Due date badges (`[01 Aug]`).
+    - Wikilink badges (`[[UX Guide]]`) with direct navigation to linked notes.
+    - Subtasks counter badges (`:= 3`).
+    - Label badges.
+    - Reminder scheduling button (`(@YYYY-MM-DD HH:MM)`).
+    - Focus mode icon button per item to isolate tasks.
+- **Focus Mode (`TodoFocusView.tsx`, `TodoFocusView.module.scss`)**:
+  - Clean, distraction-free view matching the second mockup with collapsible categories (`▼ Morning`, `▼ Workload`, `▼ Night`).
+  - Clean task checkboxes with emoji labels and inline task addition.
+  - Top action bar with "← Back to App" button returning to full app.
+- **App Integration & Navigation**:
+  - Added `CheckSquare` navigation button to `IconRail.tsx`, passing through `AppSidebar.tsx`.
+  - On opening Todos via IconRail, automatically closes the file tree (`setIsLeftSidebarOpen(false)`).
+  - Added `TODOS_TAB_ID = "__todos__"` tab handling in `AppTabs/AppTabItem.tsx` with dedicated icon and title.
+  - Lazy loaded `LazyTodosView` in `App.tsx`.
+- **Verification & Code Quality**:
+  - Unit tests in `todoParser.test.ts` (6 tests passing) and `TodosView.test.tsx` (5 tests passing).
+  - Component stories in `TodosView.stories.tsx` and `IconRail.stories.tsx`.
+  - Updated `IconRail.test.tsx` (10 tests passing).
+  - All 30 tests in touched components passing; 0 ESLint errors; strict file length constraints respected (all files under 200 lines).

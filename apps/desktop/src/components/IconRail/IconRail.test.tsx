@@ -72,6 +72,36 @@ describe("IconRail", () => {
     expect(onOpenReminders).toHaveBeenCalledOnce();
   });
 
+  it("renders todos button, triggers onOpenTodos, and reflects isTodosOpen", () => {
+    const onOpenTodos = vi.fn();
+    const { rerender } = renderIconRail({ onOpenTodos, isTodosOpen: false });
+
+    const todosBtn = screen.getByLabelText("Todos");
+    expect(todosBtn).toBeDefined();
+    expect(todosBtn.getAttribute("data-active")).toBeNull();
+
+    fireEvent.click(todosBtn);
+    expect(onOpenTodos).toHaveBeenCalledOnce();
+
+    rerender(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={false}
+          onToggleLeftSidebar={vi.fn()}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          onOpenTodos={onOpenTodos}
+          isTodosOpen={true}
+        />
+      </TooltipProvider>,
+    );
+
+    const activeTodosBtn = screen.getByLabelText("Todos");
+    expect(activeTodosBtn.getAttribute("data-active")).toBe("true");
+  });
+
   it("renders calendar button, triggers onOpenCalendar, and reflects isCalendarOpen", () => {
     const onOpenCalendar = vi.fn();
     const { rerender } = renderIconRail({

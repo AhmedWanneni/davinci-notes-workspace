@@ -4,6 +4,39 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Vault Todos Dashboard & Focus Mode with Icon Rail Integration
+
+**Scope:** Implemented dedicated Todos view and minimal Focus Mode matching the user's provided UI mockups:
+1. **Todos Dashboard (`apps/desktop/src/components/TodosView`)**:
+   - Built full todo dashboard reading all notes in vault `todos/` folder (`useTodosData.ts`, `todoParser.ts`, `types.ts`).
+   - Workspaces and Projects sidebar (`TodosSidebar.tsx`, `TodosSidebar.module.scss`) with tree hierarchy, active state, and project creation.
+   - Header (`TodosHeader.tsx`, `TodosHeader.module.scss`) with search input, dynamic month filter pills (`All Tasks`, `Aug`, `Nov`, etc.), and prominent "Focus Mode" button.
+   - Task list with sections (`TodoItemRow.tsx`, `TodoItemRow.module.scss`, `TodosView.tsx`, `TodosView.module.scss`):
+     - Checkbox toggle with strike-through styling.
+     - Inline text editing with save-on-blur/Enter.
+     - Due date badges (`[01 Aug]`).
+     - Wikilink badges (`[[UX Guide]]`) with direct navigation to linked notes.
+     - Subtasks counter badges (`:= 3`).
+     - Label badges.
+     - Reminder scheduling button (`(@YYYY-MM-DD HH:MM)`).
+     - Focus mode icon button per item to isolate tasks.
+2. **Focus Mode (`TodoFocusView.tsx`, `TodoFocusView.module.scss`)**:
+   - Clean, distraction-free view matching the second mockup with collapsible categories (`▼ Morning`, `▼ Workload`, `▼ Night`).
+   - Clean task checkboxes with emoji labels and inline task addition.
+   - Top action bar with "← Back to App" button returning to full app.
+3. **App Integration & Navigation**:
+   - Added `CheckSquare` navigation button to `IconRail.tsx`, passing through `AppSidebar.tsx`.
+   - On opening Todos via IconRail, automatically closes the file tree (`setIsLeftSidebarOpen(false)`).
+   - Added `TODOS_TAB_ID = "__todos__"` tab handling in `AppTabs/AppTabItem.tsx` with dedicated icon and title.
+   - Lazy loaded `LazyTodosView` in `App.tsx`.
+4. **Verification & Testing**:
+   - Unit tests in `todoParser.test.ts` (6 tests passing) and `TodosView.test.tsx` (5 tests passing).
+   - Component stories in `TodosView.stories.tsx` and `IconRail.stories.tsx`.
+   - Updated `IconRail.test.tsx` (10 tests passing).
+   - All 30 tests in touched components passing; 0 ESLint errors; strict file length constraints respected (all files under 200 lines).
+
+---
+
 ## Last Session — Canvas Zoom Crispness & Vector Rasterization Fix
 
 **Scope:** Resolved blurriness during canvas zooming:

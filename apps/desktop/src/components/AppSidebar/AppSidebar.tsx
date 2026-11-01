@@ -33,6 +33,7 @@ export function AppSidebar({
   isCalendarOpen,
   isBookmarksOpen,
   isRemindersOpen,
+  isTodosOpen,
   isAgentOpen,
   isListeningOpen,
   isAskVaultOpen,
@@ -49,6 +50,7 @@ export function AppSidebar({
   onCloseVault,
   onDailyNotes,
   onOpenReminders,
+  onOpenTodos,
   onCreateNote,
   onCreateFolder,
   onCreateCanvas,
@@ -139,6 +141,7 @@ export function AppSidebar({
           isCalendarOpen={isCalendarOpen}
           isBookmarksOpen={isBookmarksOpen}
           isRemindersOpen={isRemindersOpen}
+          isTodosOpen={isTodosOpen}
           isAgentOpen={isAgentOpen}
           isListeningOpen={isListeningOpen}
           isAskVaultOpen={isAskVaultOpen}
@@ -159,6 +162,7 @@ export function AppSidebar({
           onDailyNotes={onDailyNotes}
           onCreateCanvas={onCreateCanvas}
           onOpenReminders={onOpenReminders}
+          onOpenTodos={onOpenTodos}
         />
         {navigation}
         {isGitManagerOpen ? (

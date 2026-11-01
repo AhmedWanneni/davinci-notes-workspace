@@ -13,6 +13,7 @@ import {
   ChatCircleDots,
   Ear,
   GitBranch,
+  CheckSquare,
 } from "@phosphor-icons/react";
 import { IconRailButton } from "./IconRailButton";
 
@@ -27,6 +28,7 @@ export interface IconRailProps {
   onDailyNotes?: () => void;
   onCreateCanvas?: () => void;
   onOpenReminders?: () => void;
+  onOpenTodos?: () => void;
   onOpenCalendar?: () => void;
   onOpenBookmarks?: () => void;
   onOpenAgent?: () => void;
@@ -37,6 +39,7 @@ export interface IconRailProps {
   isCalendarOpen?: boolean;
   isBookmarksOpen?: boolean;
   isRemindersOpen?: boolean;
+  isTodosOpen?: boolean;
   isAgentOpen?: boolean;
   isListeningOpen?: boolean;
   isAskVaultOpen?: boolean;
@@ -55,6 +58,7 @@ export function IconRail({
   onDailyNotes,
   onCreateCanvas,
   onOpenReminders,
+  onOpenTodos,
   onOpenCalendar,
   onOpenBookmarks,
   onOpenAgent,
@@ -64,6 +68,7 @@ export function IconRail({
   isCalendarOpen,
   isBookmarksOpen,
   isRemindersOpen,
+  isTodosOpen,
   isAgentOpen,
   isListeningOpen,
   isAskVaultOpen,
@@ -198,6 +203,17 @@ export function IconRail({
             onClick={onOpenReminders}
           >
             <Bell size={18} weight={isRemindersOpen ? "fill" : "regular"} />
+          </IconRailButton>
+        )}
+
+        {onOpenTodos && (
+          <IconRailButton
+            label="Todos"
+            tooltip="Todos & Tasks"
+            isActive={isTodosOpen}
+            onClick={onOpenTodos}
+          >
+            <CheckSquare size={18} weight={isTodosOpen ? "fill" : "regular"} />
           </IconRailButton>
         )}
       </div>
