@@ -4,6 +4,30 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Canvas Smaller Text & Cards, Crisp Rendering, and Graceful Backward Arrow Routing
+
+**Scope:** Resolved Canvas UI improvements requested in prompt #10:
+1. **Canvas Text & Card Box Dimensions (`packages/canvas/canvasConstants.ts`, `TextCardNode.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`)**:
+   - Scaled card font sizes down to `var(--type-scale-xs)` (12px) with compact line-height and padding.
+   - Reduced default and min card dimensions to compact sizes aligned with grid snap multiples:
+     - Text: 168x48 (min 48x28).
+     - File: 240x168 (min 96x64).
+     - Group: 312x216.
+     - Link: 240x168 (min 96x64).
+2. **Crisp Rendering & Anti-Blur (`packages/canvas/CanvasView.module.scss`, `packages/canvas/CanvasReactFlow.tsx`)**:
+   - Eliminated GPU texture blurring across WebKit/Blink canvas transforms with `transform-style: flat`, `backface-visibility: visible`, and font antialiasing on `.react-flow`, `.react-flow__viewport`, and `.react-flow__node`.
+   - Enabled `snapToGrid={true}` with `CANVAS_SNAP_GRID` in `CanvasReactFlow` to prevent fractional subpixel blur.
+3. **Graceful Arched Backward Arrows (`packages/canvas/canvasEdgePath.ts`, `CanvasEdgeComponent.tsx`)**:
+   - Replaced collapsed/flat overlapping bezier paths when connecting cards backwards with `getCanvasEdgePath`.
+   - Backwards connections (horizontal `dx <= 0` or vertical `dy <= 0`) now sweep smoothly around cards in graceful cubic bezier curves with correctly positioned labels.
+   - Edge paths and marker arrowheads render smoothly with round linecaps.
+- **Verification & Code Quality**:
+   - All 30 `@app/canvas` test files (188 tests) passing.
+   - All 37 `@app/editor` test files (253 tests) passing.
+   - Linting and typechecks across `@app/canvas` and `@app/editor` passing with 0 errors.
+
+---
+
 ## Last Session — Alphabetic List Enter, Task Checkbox UI, Audio Playback, QuickCapture Footers, Table/Mermaid Code Toggles, Native PDF Export
 
 **Scope:** Resolved 7 editor and quick capture issues from prompt #10:

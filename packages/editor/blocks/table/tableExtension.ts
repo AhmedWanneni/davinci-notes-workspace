@@ -123,13 +123,14 @@ function getTableDecorations(view: EditorView): DecorationSet {
   const codeEditingFrom = view.state.field(tableCodeEditingField, false);
 
   for (const table of allTables(view)) {
-    if (codeEditingFrom === table.from) {
+    const tableFrom = table.rows[0]?.from ?? 0;
+    if (codeEditingFrom === tableFrom) {
       decorations.push(
         Decoration.widget({
-          widget: new TableCodeHeaderWidget(table.from),
+          widget: new TableCodeHeaderWidget(tableFrom),
           side: -1,
           block: true,
-        }).range(table.from),
+        }).range(tableFrom),
       );
       continue;
     }
@@ -150,7 +151,7 @@ function getTableDecorations(view: EditorView): DecorationSet {
       if (isHeader) {
         decorations.push(
           Decoration.widget({
-            widget: new TableCodeToggleWidget(table.from),
+            widget: new TableCodeToggleWidget(tableFrom),
             side: 1,
           }).range(row.from),
         );

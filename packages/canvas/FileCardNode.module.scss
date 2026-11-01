@@ -9,11 +9,15 @@
   height: 100%;
   border: 1px solid var(--color-border-subtle);
   background-color: var(--color-bg-primary);
-  border-radius: 10px;
+  border-radius: var(--border-radius-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: border-color 120ms ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transform-style: flat;
+  backface-visibility: visible;
 }
 
 .file-card.is-selected {
@@ -110,6 +114,12 @@
   overflow: auto;
   position: relative;
   background-color: var(--color-bg-secondary);
+  font-size: var(--type-scale-xs);
+
+  :global(.cm-editor),
+  :global(.cm-content) {
+    font-size: var(--type-scale-xs) !important;
+  }
 }
 
 .file-card__empty-state {

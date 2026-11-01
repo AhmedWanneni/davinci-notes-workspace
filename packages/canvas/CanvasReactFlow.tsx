@@ -16,6 +16,7 @@ import {
 } from "@xyflow/react";
 import { canvasNodeTypes } from "./canvasNodeTypes";
 import { canvasEdgeTypes } from "./canvasEdgeTypes";
+import { CANVAS_SNAP_GRID } from "./canvasConstants";
 
 export interface CanvasReactFlowProps {
   nodes: Node[];
@@ -87,6 +88,8 @@ export function CanvasReactFlow({
       selectionOnDrag={true}
       selectionMode={SelectionMode.Partial}
       multiSelectionKeyCode="Shift"
+      snapToGrid={true}
+      snapGrid={CANVAS_SNAP_GRID}
       panOnDrag={[1, 2]}
       panActivationKeyCode="Space"
       zoomOnScroll={true}

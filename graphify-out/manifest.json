@@ -3242,15 +3242,15 @@
     "semantic_hash": "02b1e465934d93cdfc702650d9184254"
   },
   "apps/desktop/src/components/QuickCapture/QuickCaptureRecordControls.tsx": {
-    "mtime": 1793570908.4267707,
-    "seen": 1793571034.84159,
-    "ast_hash": "0f7c82dc327e86a2a0acd28203468264",
+    "mtime": 1793571053.6724632,
+    "seen": 1793572103.5137632,
+    "ast_hash": "6497ad5830d724ea2373121462376c9b",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/QuickCapture/QuickCaptureReminder.test.tsx": {
-    "mtime": 1793570689.4245067,
-    "seen": 1793571034.8415911,
-    "ast_hash": "ae9e3aa3155b7517d6fd61ba4779a0ea",
+    "mtime": 1793571053.6774974,
+    "seen": 1793572103.513765,
+    "ast_hash": "0dd6fc469e5e863bb09b660f02268725",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/QuickCapture/QuickCaptureReminder.tsx": {
@@ -8869,10 +8869,10 @@
     "semantic_hash": "652abf78449debbc62c50b497ca29842"
   },
   "packages/canvas/CanvasEdgeComponent.tsx": {
-    "mtime": 1793543662.5119452,
-    "seen": 1793544766.55179,
-    "ast_hash": "004f69c21204569d6273c3e2cc6c059b",
-    "semantic_hash": "004f69c21204569d6273c3e2cc6c059b"
+    "mtime": 1793572017.42242,
+    "seen": 1793572103.570773,
+    "ast_hash": "daec3a1c74f22e32c1840f2870e96499",
+    "semantic_hash": ""
   },
   "packages/canvas/CanvasEditorContext.ts": {
     "mtime": 1793543662.5120196,
@@ -8911,10 +8911,10 @@
     "semantic_hash": "d7df0d52bf30aa21d919af2e87b15ce3"
   },
   "packages/canvas/CanvasReactFlow.tsx": {
-    "mtime": 1793543662.5125048,
-    "seen": 1793544766.551799,
-    "ast_hash": "90516edb7fad34c721f3c2eca87226f1",
-    "semantic_hash": "90516edb7fad34c721f3c2eca87226f1"
+    "mtime": 1793571854.076382,
+    "seen": 1793572103.57106,
+    "ast_hash": "0b1643210d42c8d220f6112c3d7cfeca",
+    "semantic_hash": ""
   },
   "packages/canvas/CanvasView.test.tsx": {
     "mtime": 1793543662.5132918,
@@ -9073,10 +9073,10 @@
     "semantic_hash": "a17e96d694898cb1d5fa7fce527cfa74"
   },
   "packages/canvas/canvasConstants.ts": {
-    "mtime": 1793543662.5165699,
-    "seen": 1793544766.551831,
-    "ast_hash": "7dee2f3bc8183781885c6c7236f363b9",
-    "semantic_hash": "7dee2f3bc8183781885c6c7236f363b9"
+    "mtime": 1793571770.7498634,
+    "seen": 1793572103.572298,
+    "ast_hash": "03217d7a51cf1de049ee68e5c7fe1da8",
+    "semantic_hash": ""
   },
   "packages/canvas/canvasEdgeConstants.test.ts": {
     "mtime": 1793543662.516651,
@@ -10542,9 +10542,9 @@
     "semantic_hash": ""
   },
   "packages/editor/blocks/html/htmlBlockExtension.ts": {
-    "mtime": 1793569248.548345,
-    "seen": 1793571034.891499,
-    "ast_hash": "49f288b1234bc3485e234c80f327811a",
+    "mtime": 1793571994.7808697,
+    "seen": 1793572103.5847108,
+    "ast_hash": "4090f3b01b98cc9af3c24df1d80c5054",
     "semantic_hash": ""
   },
   "packages/editor/blocks/html/htmlBlockTheme.ts": {
@@ -10662,9 +10662,9 @@
     "semantic_hash": "4554c1ebf401ad675808030b0a37ac94"
   },
   "packages/editor/blocks/table/tableExtension.ts": {
-    "mtime": 1793570835.6218843,
-    "seen": 1793571034.892094,
-    "ast_hash": "a32369200273cd5815bffeae050b3768",
+    "mtime": 1793571990.5861087,
+    "seen": 1793572103.5858061,
+    "ast_hash": "c4d56907dd35132b81de5e9d6e69eae3",
     "semantic_hash": ""
   },
   "packages/editor/blocks/table/tableParser.ts": {
@@ -17102,6 +17102,18 @@
     "mtime": 1793570774.2178319,
     "seen": 1793571034.89204,
     "ast_hash": "083ea4d4e973a4a7eae0fc21cdd9009a",
+    "semantic_hash": ""
+  },
+  "packages/canvas/canvasEdgePath.test.ts": {
+    "mtime": 1793571714.4088056,
+    "seen": 1793572103.572406,
+    "ast_hash": "542805492961c9252372b44e7383d963",
+    "semantic_hash": ""
+  },
+  "packages/canvas/canvasEdgePath.ts": {
+    "mtime": 1793571943.6019819,
+    "seen": 1793572103.572408,
+    "ast_hash": "d6e2532fa3bb961e95f25ec35de91962",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

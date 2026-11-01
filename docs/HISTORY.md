@@ -2,6 +2,26 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-01: Canvas Smaller Text & Cards, Crisp Anti-Blur Rendering, and Graceful Backward Arrow Routing
+
+- **Canvas Card Typography & Dimensions (`packages/canvas/canvasConstants.ts`, `TextCardNode.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`)**:
+  - Reduced text font sizes to `var(--type-scale-xs)` (12px) with compact padding and line-height across text cards, link cards, and embedded file card editors.
+  - Reduced default card sizes to compact grid-aligned multiples:
+    - Text: 168x48 (min 48x28).
+    - File: 240x168 (min 96x64).
+    - Group: 312x216.
+    - Link: 240x168 (min 96x64).
+- **Crisp Rendering & Anti-Blur (`packages/canvas/CanvasView.module.scss`, `packages/canvas/CanvasReactFlow.tsx`)**:
+  - Eliminated GPU texture blurring across WebKit/Blink canvas transforms with `transform-style: flat`, `backface-visibility: visible`, and font antialiasing on `.react-flow`, `.react-flow__viewport`, and `.react-flow__node`.
+  - Enabled `snapToGrid={true}` with `CANVAS_SNAP_GRID` in `CanvasReactFlow` to prevent fractional subpixel blur on Retina screens.
+- **Graceful Arched Backward Arrows (`packages/canvas/canvasEdgePath.ts`, `CanvasEdgeComponent.tsx`)**:
+  - Implemented `getCanvasEdgePath` in `packages/canvas/canvasEdgePath.ts` and unit-tested in `canvasEdgePath.test.ts`.
+  - When edges connect backwards (horizontal `dx <= 0` or vertical `dy <= 0`), replaces collapsed/overlapping flat lines with smooth, graceful cubic bezier arcs with clearance offsets and centered label coordinates.
+  - Connected `getCanvasEdgePath` to `CanvasEdgeComponent.tsx` and improved edge and arrow styling with `stroke-linecap: round; stroke-linejoin: round;`.
+- **Code Quality & Typecheck Alignment**:
+  - Fixed type definition imports and properties in `packages/editor/blocks/table/tableExtension.ts` and `packages/editor/blocks/html/htmlBlockExtension.ts`.
+  - All 30 `@app/canvas` test files (188 tests) and 37 `@app/editor` test files (253 tests) passing. All linters and typechecks passing with 0 errors.
+
 ### 2026-11-01: Alphabetic List Enter, Task Checkbox UI, Audio Playback, QuickCapture Footers, Table/Mermaid Code Toggles, Native PDF Export
 
 - **Alphabetic List Enter (`packages/editor/live-preview/lineBreakExtension.ts`)**:

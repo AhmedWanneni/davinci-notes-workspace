@@ -4,7 +4,7 @@ import {
   EditorView,
   WidgetType,
 } from "@codemirror/view";
-import { EditorState, StateField } from "@codemirror/state";
+import { EditorState, StateField, type Range } from "@codemirror/state";
 import { sanitizeHtml } from "@app/sanitize";
 import { mountTweetCard } from "../../embeds/tweetCard";
 import { tweetImageToStatusUrl } from "../../embeds/tweetEmbed";

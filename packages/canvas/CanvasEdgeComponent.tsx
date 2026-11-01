@@ -12,9 +12,9 @@ import {
 import {
   BaseEdge,
   EdgeLabelRenderer,
-  getBezierPath,
   type EdgeProps,
 } from "@xyflow/react";
+import { getCanvasEdgePath } from "./canvasEdgePath";
 import type { CanvasColor } from "./CanvasColor";
 import { getCanvasEdgeColorCss } from "./canvasEdgeConstants";
 import { useCanvasEditor } from "./CanvasEditorContext";
@@ -70,7 +70,7 @@ function CanvasEdgeRenderer({
     }
   }, [currentLabel, isEditing]);
 
-  const [edgePath, labelX, labelY] = getBezierPath({
+  const [edgePath, labelX, labelY] = getCanvasEdgePath({
     sourceX,
     sourceY,
     sourcePosition,
@@ -109,6 +109,9 @@ function CanvasEdgeRenderer({
   );
 
   const edgeColor = getCanvasEdgeColorCss(edgeData.color);
+  const activeColor = selected
+    ? "var(--color-interactive-accent)"
+    : edgeColor;
   const edgeStyle: CSSProperties = { ...style };
 
   const edgeClassName = [
@@ -127,7 +130,7 @@ function CanvasEdgeRenderer({
           path={edgePath}
           markerEnd={markerEnd}
           markerStart={markerStart}
-          style={{ stroke: edgeColor }}
+          style={{ stroke: activeColor }}
           className={styles["canvas-edge__path"]}
         />
         <path

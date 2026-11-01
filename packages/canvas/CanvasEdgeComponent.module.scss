@@ -6,6 +6,8 @@
   fill: none;
   stroke: var(--color-border-normal);
   stroke-width: 1.5px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   transition: stroke 150ms ease;
 }
 
