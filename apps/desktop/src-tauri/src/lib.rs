@@ -23,6 +23,10 @@ mod clipper_payload;
 mod clipper_routes;
 mod clipper_server;
 mod clipper_validate;
+mod cli_agent_types;
+mod cli_agent_detector;
+mod cli_agent_runner;
+mod cli_agent_commands;
 #[cfg(test)]
 mod capture_tests;
 #[cfg(test)]
@@ -264,6 +268,9 @@ pub fn run() {
       syncthing::syncthing_ensure_vault_registered,
       browser_bookmarks::detect_browser_bookmarks,
       browser_bookmarks::read_browser_bookmarks,
+      cli_agent_commands::cli_agent_detect,
+      cli_agent_commands::cli_agent_start,
+      cli_agent_commands::cli_agent_cancel,
     ])
     .on_window_event(|window, event| {
       if window.label() == tray::MAIN_WINDOW {

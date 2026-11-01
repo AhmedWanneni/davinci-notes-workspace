@@ -9,6 +9,7 @@ import {
 } from "../../ai/providerValidationFailure";
 import { SettingsRow } from "../SettingsDialog/SettingsRow";
 import styles from "../SettingsDialog/SettingsDialog.module.scss";
+import { AIAgentSettingsSection } from "./AIAgentSettingsSection";
 
 type Feature = "semantic-search" | "suggest-links" | "ask-vault";
 interface AIState {
@@ -383,6 +384,8 @@ export function AISettingsPanel() {
             />
           </SettingsRow>
         ))}
+
+      <AIAgentSettingsSection />
     </div>
   );
 }
