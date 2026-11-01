@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import { createNoteInVault, writeNote } from "../../vault";
+import { createFolderInVault, createNoteInVault, writeNote } from "../../vault";
 import {
   addLinkToTodoInContent,
   addReminderToTodoInContent,
@@ -10,79 +10,83 @@ import {
   updateTodoTextInContent,
 } from "./todoParser";
 import { SAMPLE_ADMIN_DASHBOARD, SAMPLE_DAILY_ROUTINE } from "./sampleTodos";
-import type { TodoItem, TodoProject, TodoWorkspace } from "./types";
+import type { TodoFolder, TodoItem, TodoProject, TodoStatusFilter } from "./types";
 
 export function useTodosData() {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
+  const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
-  const [selectedWorkspaceName, setSelectedWorkspaceName] = useState<string>("Design");
+
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const [isMotherboard, setIsMotherboard] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<TodoStatusFilter>("all");
+  const [motherboardLayout, setMotherboardLayout] = useState<"cards" | "list">("cards");
 
   const todoPaths = useMemo(() => {
     return allNotePaths.filter((p) => p.toLowerCase().startsWith("todos/"));
   }, [allNotePaths]);
 
-  // Seed initial sample todos if todos folder is empty
+  // Seed initial sample todos directly into todos folder if empty
   useEffect(() => {
     if (todoPaths.length === 0) {
-      void createNoteInVault("todos/Design/Admin Dashboard.md", SAMPLE_ADMIN_DASHBOARD);
-      void createNoteInVault("todos/Routines/Daily Focus.md", SAMPLE_DAILY_ROUTINE);
+      void createNoteInVault("todos/Admin Dashboard.md", SAMPLE_ADMIN_DASHBOARD);
+      void createNoteInVault("todos/Daily Focus.md", SAMPLE_DAILY_ROUTINE);
     }
   }, [todoPaths.length]);
 
-  const workspaces: TodoWorkspace[] = useMemo(() => {
-    const wsMap = new Map<string, TodoProject[]>();
-
-    for (const path of todoPaths) {
-      const parts = path.replace(/^todos\//i, "").split("/");
-      const workspace = parts.length > 1 ? parts[0] : "General";
+  const projects: TodoProject[] = useMemo(() => {
+    return todoPaths.map((path) => {
+      const rel = path.replace(/^todos\//i, "");
+      const parts = rel.split("/");
       const fileName = parts[parts.length - 1].replace(/\.md$/, "");
+      const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : undefined;
       const content = notesContent[path] ?? "";
-      const sections = parseNoteTodos(content, path, workspace, fileName);
+      const sections = parseNoteTodos(content, path, folder ?? "General", fileName);
 
-      const project: TodoProject = {
+      return {
         id: path,
         name: fileName,
         notePath: path,
-        workspace,
+        folder,
         sections,
       };
-
-      const existing = wsMap.get(workspace) ?? [];
-      existing.push(project);
-      wsMap.set(workspace, existing);
-    }
-
-    return Array.from(wsMap.entries()).map(([name, projects]) => ({
-      name,
-      projects,
-    }));
+    });
   }, [notesContent, todoPaths]);
 
-  const activeProject = useMemo(() => {
-    for (const ws of workspaces) {
-      for (const p of ws.projects) {
-        if (p.id === selectedProjectId || (!selectedProjectId && ws.name === selectedWorkspaceName)) {
-          return p;
-        }
-      }
+  const folders: TodoFolder[] = useMemo(() => {
+    const map = new Map<string, TodoProject[]>();
+    for (const p of projects) {
+      const fName = p.folder ?? "General";
+      const existing = map.get(fName) ?? [];
+      existing.push(p);
+      map.set(fName, existing);
     }
-    return workspaces[0]?.projects[0] ?? null;
-  }, [selectedProjectId, selectedWorkspaceName, workspaces]);
+    return Array.from(map.entries()).map(([name, pList]) => ({
+      name,
+      projects: pList,
+    }));
+  }, [projects]);
+
+  const activeProject = useMemo(() => {
+    if (isMotherboard) return null;
+    if (selectedProjectId) {
+      const found = projects.find((p) => p.id === selectedProjectId);
+      if (found) return found;
+    }
+    return projects[0] ?? null;
+  }, [isMotherboard, projects, selectedProjectId]);
 
   const allTodos = useMemo(() => {
     const list: TodoItem[] = [];
-    for (const ws of workspaces) {
-      for (const p of ws.projects) {
-        for (const s of p.sections) {
-          list.push(...s.todos);
-        }
+    for (const p of projects) {
+      for (const s of p.sections) {
+        list.push(...s.todos);
       }
     }
     return list;
-  }, [workspaces]);
+  }, [projects]);
 
   const monthsMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -149,18 +153,24 @@ export function useTodosData() {
     [notesContent, saveContent],
   );
 
-  const createProject = useCallback(async (workspace: string, projectName: string) => {
-    const cleanWs = workspace.trim() || "General";
+  const createProject = useCallback(async (projectName: string, parentFolder?: string) => {
     const cleanName = projectName.trim() || "New Project";
-    const targetPath = `todos/${cleanWs}/${cleanName}.md`;
+    const dir = parentFolder ? `todos/${parentFolder}` : "todos";
+    const targetPath = `${dir}/${cleanName}.md`;
     const defaultContent = `# ${cleanName}\n\n## Tasks\n- [ ] First task\n`;
     await createNoteInVault(targetPath, defaultContent);
-    setSelectedWorkspaceName(cleanWs);
+    setIsMotherboard(false);
     setSelectedProjectId(targetPath);
   }, []);
 
+  const createFolder = useCallback(async (folderName: string) => {
+    const cleanName = folderName.trim() || "New Folder";
+    await createFolderInVault(`todos/${cleanName}`);
+  }, []);
+
   return {
-    workspaces,
+    projects,
+    folders,
     activeProject,
     allTodos,
     monthsMap,
@@ -168,16 +178,22 @@ export function useTodosData() {
     setSearchQuery,
     selectedMonth,
     setSelectedMonth,
-    selectedWorkspaceName,
-    setSelectedWorkspaceName,
+    statusFilter,
+    setStatusFilter,
+    motherboardLayout,
+    setMotherboardLayout,
     selectedProjectId,
     setSelectedProjectId,
+    isMotherboard,
+    setIsMotherboard,
     toggleTodo,
     updateTodoText,
     addLinkToTodo,
     addReminderToTodo,
     addTodoToSection,
     createProject,
+    createFolder,
     allNotePaths,
+    allFolderPaths,
   };
 }

@@ -22,18 +22,18 @@ export const DefaultDashboard: Story = {
   beforeEach: () => {
     useWorkspaceStore.setState({
       allNotePaths: [
-        "todos/Design/Admin Dashboard.md",
-        "todos/Design/Marketing Site.md",
-        "todos/Design/Native App.md",
-        "todos/Routines/Daily Focus.md",
+        "todos/Admin Dashboard.md",
+        "todos/Marketing Site.md",
+        "todos/Native App.md",
+        "todos/Daily Focus.md",
       ],
       notesContent: {
-        "todos/Design/Admin Dashboard.md": SAMPLE_ADMIN_DASHBOARD,
-        "todos/Design/Marketing Site.md":
+        "todos/Admin Dashboard.md": SAMPLE_ADMIN_DASHBOARD,
+        "todos/Marketing Site.md":
           "## Landing Page\n- [ ] Hero copy update\n- [x] CTA button contrast",
-        "todos/Design/Native App.md":
+        "todos/Native App.md":
           "## Mobile Navigation\n- [ ] Tab bar styling\n- [ ] Deep linking setup",
-        "todos/Routines/Daily Focus.md": SAMPLE_DAILY_ROUTINE,
+        "todos/Daily Focus.md": SAMPLE_DAILY_ROUTINE,
       },
     });
   },

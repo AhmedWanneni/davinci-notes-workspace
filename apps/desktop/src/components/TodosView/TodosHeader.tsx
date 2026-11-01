@@ -1,5 +1,11 @@
 import type { JSX } from "react";
-import { MagnifyingGlass, Target } from "@phosphor-icons/react";
+import {
+  ListBullets,
+  MagnifyingGlass,
+  SquaresFour,
+  Target,
+} from "@phosphor-icons/react";
+import type { MotherboardLayout, TodoStatusFilter } from "./types";
 import styles from "./TodosHeader.module.scss";
 
 export interface TodosHeaderProps {
@@ -10,6 +16,11 @@ export interface TodosHeaderProps {
   monthsMap: Map<string, number>;
   selectedMonth: string;
   onSelectMonth: (m: string) => void;
+  statusFilter: TodoStatusFilter;
+  onSelectStatus: (status: TodoStatusFilter) => void;
+  layout: MotherboardLayout;
+  onSelectLayout: (layout: MotherboardLayout) => void;
+  isMotherboard?: boolean;
   totalTodos: number;
   onOpenFocusMode: () => void;
 }
@@ -22,6 +33,11 @@ export function TodosHeader({
   monthsMap,
   selectedMonth,
   onSelectMonth,
+  statusFilter,
+  onSelectStatus,
+  layout,
+  onSelectLayout,
+  isMotherboard,
   totalTodos,
   onOpenFocusMode,
 }: TodosHeaderProps): JSX.Element {
@@ -36,6 +52,27 @@ export function TodosHeader({
         </div>
 
         <div className={styles["todos-header__actions"]}>
+          {isMotherboard && (
+            <div className={styles["todos-header__layout-toggle"]}>
+              <button
+                type="button"
+                className={`${styles["todos-header__layout-btn"]} ${layout === "cards" ? styles["is-active"] : ""}`}
+                onClick={() => onSelectLayout("cards")}
+                title="Cards view"
+              >
+                <SquaresFour size={16} />
+              </button>
+              <button
+                type="button"
+                className={`${styles["todos-header__layout-btn"]} ${layout === "list" ? styles["is-active"] : ""}`}
+                onClick={() => onSelectLayout("list")}
+                title="List view"
+              >
+                <ListBullets size={16} />
+              </button>
+            </div>
+          )}
+
           <div className={styles["todos-header__search"]}>
             <MagnifyingGlass size={14} />
             <input
@@ -80,6 +117,37 @@ export function TodosHeader({
             <span>({count})</span>
           </button>
         ))}
+
+        <div className={styles["todos-header__filter-divider"]} />
+
+        <button
+          type="button"
+          className={`${styles["todos-header__filter-pill"]} ${statusFilter === "all" ? styles["is-active"] : ""}`}
+          onClick={() => onSelectStatus("all")}
+        >
+          <span>All Status</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles["todos-header__filter-pill"]} ${statusFilter === "pending" ? styles["is-active"] : ""}`}
+          onClick={() => onSelectStatus("pending")}
+        >
+          <span>Pending</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles["todos-header__filter-pill"]} ${statusFilter === "completed" ? styles["is-active"] : ""}`}
+          onClick={() => onSelectStatus("completed")}
+        >
+          <span>Completed</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles["todos-header__filter-pill"]} ${statusFilter === "dated" ? styles["is-active"] : ""}`}
+          onClick={() => onSelectStatus("dated")}
+        >
+          <span>With Due Date</span>
+        </button>
       </div>
     </header>
   );

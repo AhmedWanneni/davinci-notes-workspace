@@ -13259,9 +13259,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793574967.5864778,
-    "seen": 1793574969.358268,
-    "ast_hash": "b4e96713efdc0ffe0d446c19465b2e45",
+    "mtime": 1793576209.78799,
+    "seen": 1793576210.728501,
+    "ast_hash": "cec22c6089d8fe93631eee3ea813add3",
     "semantic_hash": ""
   },
   "README.md": {
@@ -17129,39 +17129,39 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosHeader.tsx": {
-    "mtime": 1793574202.8404016,
-    "seen": 1793574718.2683232,
-    "ast_hash": "00b5959bb0082b291a34d0c7dcac32dd",
+    "mtime": 1793576059.1273806,
+    "seen": 1793576210.6577249,
+    "ast_hash": "307e39f7b3629f0da03815a37c3c1dea",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosSidebar.tsx": {
-    "mtime": 1793574182.58339,
-    "seen": 1793574718.268325,
-    "ast_hash": "363718430915c6fe951660f014320928",
+    "mtime": 1793575985.2211494,
+    "seen": 1793576210.657729,
+    "ast_hash": "7bcb54021c45695142a61981d30c6283",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.stories.tsx": {
-    "mtime": 1793574424.8181384,
-    "seen": 1793574718.2683258,
-    "ast_hash": "7e9e9928d77686c33e6e58d0d27e05d6",
+    "mtime": 1793576121.9569938,
+    "seen": 1793576210.657731,
+    "ast_hash": "6b8d341c2d5614dea28ab30e224ace0d",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.test.tsx": {
-    "mtime": 1793574401.4806373,
-    "seen": 1793574718.268327,
-    "ast_hash": "071f0b4177f5766f3996967114d7bc30",
+    "mtime": 1793576102.958027,
+    "seen": 1793576210.6577332,
+    "ast_hash": "4725635a88c98c80ea5f97c50fe6772f",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.tsx": {
-    "mtime": 1793574662.539239,
-    "seen": 1793574718.268328,
-    "ast_hash": "71661058048229050796dfca4c11a717",
+    "mtime": 1793576154.7433102,
+    "seen": 1793576210.657734,
+    "ast_hash": "3cea0c46f32f49d80df0dced7c383630",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/index.ts": {
-    "mtime": 1793574897.4125123,
-    "seen": 1793574969.294328,
-    "ast_hash": "99bb9e74daf4cbd10f8e103937e7f19a",
+    "mtime": 1793576087.5151913,
+    "seen": 1793576210.6577358,
+    "ast_hash": "09191493da3f3c2874a244a447d7e68f",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/sampleTodos.ts": {
@@ -17183,15 +17183,27 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/types.ts": {
-    "mtime": 1793574064.6595786,
-    "seen": 1793574718.268335,
-    "ast_hash": "6270cf8e00cfa90a40ca7c9088807445",
+    "mtime": 1793575942.903489,
+    "seen": 1793576210.657919,
+    "ast_hash": "513cc70c602e47411a29184da0135b15",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/useTodosData.ts": {
-    "mtime": 1793574126.3546913,
-    "seen": 1793574718.268336,
-    "ast_hash": "02fde0a8230b034a17c3477ea6b5d7bf",
+    "mtime": 1793575971.212505,
+    "seen": 1793576210.657921,
+    "ast_hash": "98f59bef4e638ee16eafb38f998b484c",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/TodosView/TodoSectionBlock.tsx": {
+    "mtime": 1793576140.5440385,
+    "seen": 1793576210.657723,
+    "ast_hash": "9ee39dbf621b781f4bb3fe6f4068ceef",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/TodosView/TodosMotherboard.tsx": {
+    "mtime": 1793576032.0193496,
+    "seen": 1793576210.657728,
+    "ast_hash": "a4e8cb5a21211af9ea2b684de7cbb1e0",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

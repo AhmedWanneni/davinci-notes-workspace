@@ -6,6 +6,7 @@ import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 vi.mock("../../vault", () => ({
   createNoteInVault: vi.fn().mockResolvedValue(""),
+  createFolderInVault: vi.fn().mockResolvedValue(""),
   writeNote: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -33,39 +34,56 @@ describe("TodosView", () => {
     vi.clearAllMocks();
     useWorkspaceStore.setState({
       allNotePaths: [
-        "todos/Design/Admin Dashboard.md",
-        "todos/Routines/Daily Focus.md",
+        "todos/Admin Dashboard.md",
+        "todos/Daily Focus.md",
       ],
       notesContent: {
-        "todos/Design/Admin Dashboard.md": SAMPLE_MD_1,
-        "todos/Routines/Daily Focus.md": SAMPLE_MD_2,
+        "todos/Admin Dashboard.md": SAMPLE_MD_1,
+        "todos/Daily Focus.md": SAMPLE_MD_2,
       },
     });
   });
 
-  it("renders workspace, project, sections and todo items", async () => {
+  it("renders Motherboard, Projects, and sections without calendar or extra icons", async () => {
     await act(async () => {
       render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
     });
 
-    expect(screen.getByText("Workspaces")).toBeDefined();
-    expect(screen.getByText("Design")).toBeDefined();
+    expect(screen.getByText("Motherboard")).toBeDefined();
+    expect(screen.getByText("Projects")).toBeDefined();
     expect(screen.getAllByText("Admin Dashboard").length).toBeGreaterThan(0);
     expect(screen.getByText("V1 Concepts")).toBeDefined();
     expect(
       screen.getByText(/Create wireframes for new dash/i),
     ).toBeDefined();
-    expect(screen.getByText("01 Aug")).toBeDefined();
-    expect(screen.getByText("UX Guide")).toBeDefined();
+
+    // Verify calendar icon and '...' actions have been removed from section headers
+    expect(screen.queryByTitle("Calendar")).toBeNull();
+    expect(screen.queryByTitle("More actions")).toBeNull();
+  });
+
+  it("switches to Motherboard view when clicked in sidebar", async () => {
+    await act(async () => {
+      render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
+    });
+
+    const motherboardBtn = screen.getByText("Motherboard");
+    fireEvent.click(motherboardBtn);
+
+    expect(screen.getByTestId("motherboard-cards")).toBeDefined();
+    expect(screen.getByTitle("Cards view")).toBeDefined();
+    expect(screen.getByTitle("List view")).toBeDefined();
+
+    // Switch to List view on Motherboard
+    const listBtn = screen.getByTitle("List view");
+    fireEvent.click(listBtn);
+    expect(screen.getByTestId("motherboard-list")).toBeDefined();
   });
 
   it("switches project when clicked in the sidebar", async () => {
     await act(async () => {
       render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
     });
-
-    const routinesWorkspace = screen.getByText("Routines");
-    fireEvent.click(routinesWorkspace);
 
     const dailyFocusProject = screen.getByText("Daily Focus");
     fireEvent.click(dailyFocusProject);
@@ -86,7 +104,7 @@ describe("TodosView", () => {
     expect(screen.queryByText(/Outline in UX guide/i)).toBeNull();
   });
 
-  it("switches to focus mode and back to app", async () => {
+  it("switches to full-screen focus mode and back to app", async () => {
     await act(async () => {
       render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
     });

@@ -4,6 +4,29 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Todos Motherboard View, Full-Screen Focus Mode & Vault Folder Sync
+
+**Scope:** Fulfilled prompt #11 improvements for the Todos feature:
+1. **Full-Screen Isolated Focus Mode (`TodoFocusView.module.scss`, `TodoFocusView.tsx`)**:
+   - Upgraded `.focus-view` to `position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 999999;` to completely take over the viewport and hide all underlying application chrome (file tree, icon rail, app tabs, right sidebar, headers).
+   - Distraction-free checklist with "← Back to App" returning to the full application.
+2. **Direct Vault `todos/` Folder & Project Synchronization (`useTodosData.ts`, `TodosSidebar.tsx`)**:
+   - Removed "Workspaces" and "Invite Members" completely.
+   - Folders and Projects in the sidebar now directly reflect folders and markdown files inside the vault's `todos/` folder.
+   - Creating a project or folder in the Todos page writes directly into `todos/` via `createNoteInVault` and `createFolderInVault`.
+   - Creating or renaming folders/notes in `todos/` via the standard vault file tree is automatically reflected in the Todos page without a reload.
+3. **Cleaned Section Headers (`TodosView.tsx`, `TodoSectionBlock.tsx`)**:
+   - Removed the calendar button and the `...` (more actions) button from section headers as requested.
+4. **Motherboard View with Cards and List Layouts (`TodosMotherboard.tsx`, `TodosMotherboard.module.scss`, `TodosHeader.tsx`)**:
+   - Added a "Motherboard" dashboard view displaying all vault tasks across all projects with dynamic task count badge.
+   - Layout switcher in the header: **Cards view** (responsive grid of task cards with project badges, due dates, linked notes, subtasks, and focus action) and **List view**.
+   - Filtering by name/search, month pills (`All Tasks`, `Aug`, `Nov`), and status/date pills (`All Status`, `Pending`, `Completed`, `With Due Date`).
+5. **Verification & Quality**:
+   - All 31 unit tests passing (`TodosView`, `todoParser`, `IconRail`, `AppTabs`).
+   - 0 ESLint errors; all files strictly under 200 lines.
+
+---
+
 ## Last Session — Fix IconRail Navigation to Todos Page
 
 **Scope:** Resolved issue where clicking the rail icon did not open the Todos page:

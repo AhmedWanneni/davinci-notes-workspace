@@ -5,7 +5,7 @@ export interface TodoItem {
   notePath: string;
   lineIndex: number;
   section: string;
-  workspace?: string;
+  folder?: string;
   project?: string;
   dueDate?: string;
   month?: string;
@@ -24,13 +24,15 @@ export interface TodoProject {
   id: string;
   name: string;
   notePath: string;
-  workspace: string;
+  folder?: string;
   sections: TodoSection[];
 }
 
-export interface TodoWorkspace {
+export interface TodoFolder {
   name: string;
   projects: TodoProject[];
 }
 
-export type TodoViewMode = "workspace" | "month";
+export type TodoViewMode = "project" | "motherboard";
+export type MotherboardLayout = "cards" | "list";
+export type TodoStatusFilter = "all" | "pending" | "completed" | "dated";

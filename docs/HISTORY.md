@@ -8052,3 +8052,23 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Component stories in `TodosView.stories.tsx` and `IconRail.stories.tsx`.
   - Updated `IconRail.test.tsx` (10 tests passing).
   - All 30 tests in touched components passing; 0 ESLint errors; strict file length constraints respected (all files under 200 lines).
+
+## 2026-11-02 — Todos Motherboard View, Full-Screen Focus Mode & Vault Folder Sync
+
+- **Full-Screen Isolated Focus Mode (`TodoFocusView.module.scss`, `TodoFocusView.tsx`)**:
+  - Upgraded `.focus-view` to `position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 999999;` to completely take over the viewport and hide all underlying application chrome (file tree, icon rail, app tabs, right sidebar, headers).
+  - Distraction-free checklist with "← Back to App" returning to the full application.
+- **Direct Vault `todos/` Folder & Project Synchronization (`useTodosData.ts`, `TodosSidebar.tsx`)**:
+  - Removed "Workspaces" and "Invite Members" completely.
+  - Folders and Projects in the sidebar now directly reflect folders and markdown files inside the vault's `todos/` folder.
+  - Creating a project or folder in the Todos page writes directly into `todos/` via `createNoteInVault` and `createFolderInVault`.
+  - Creating or renaming folders/notes in `todos/` via the standard vault file tree is automatically reflected in the Todos page without a reload.
+- **Cleaned Section Headers (`TodosView.tsx`, `TodoSectionBlock.tsx`)**:
+  - Removed the calendar button and the `...` (more actions) button from section headers as requested.
+- **Motherboard View with Cards and List Layouts (`TodosMotherboard.tsx`, `TodosMotherboard.module.scss`, `TodosHeader.tsx`)**:
+  - Added a "Motherboard" dashboard view displaying all vault tasks across all projects with dynamic task count badge.
+  - Layout switcher in the header: **Cards view** (responsive grid of task cards with project badges, due dates, linked notes, subtasks, and focus action) and **List view**.
+  - Filtering by name/search, month pills (`All Tasks`, `Aug`, `Nov`), and status/date pills (`All Status`, `Pending`, `Completed`, `With Due Date`).
+- **Verification & Quality**:
+  - All 31 unit tests passing (`TodosView`, `todoParser`, `IconRail`, `AppTabs`).
+  - 0 ESLint errors; all files strictly under 200 lines.
