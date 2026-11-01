@@ -4,7 +4,39 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Scan-to-Sync Target Folder Resolution & Empty Folder Creation
+## Last Session — Fix Vim Mode Keymap Precedence and Store Wiring in Editor
+
+**Scope:** Resolve issue where Vim keybindings did not function in `<Editor />` when activated in Settings > Editor > "Vim Keybindings" (`useVimMode`).
+
+**Root Cause:**
+1. **Keymap Precedence Inversion (`packages/editor/createEditorExtensions.ts`)**: CodeMirror 6 evaluates keymaps and DOM event handlers in precedence order and registration order. Standard `keymap.of([ ...defaultKeymap, ...historyKeymap, ... ])` was placed at line 124 while `vimCompartment` was placed at line 206 without precedence modifiers. As a result, `defaultKeymap` intercepted navigation keys (`Escape`, arrows, `Backspace`, `Delete`) before Vim's ViewPlugin could process them.
+2. **Missing Workspace State Property (`apps/desktop/src/components/EditorArea/EditorArea.tsx`)**: Line 302 selected `state.vimMode` from `useWorkspaceStore`, but the store property is named `vimModeState`. Consequently, `vimMode` was permanently `undefined`, which also broke slash menu suppression in Normal mode.
+3. **Mount-Time Extension Initialization & Reconfiguration (`packages/editor/createEditorExtensions.ts` & `useVimModeSync.ts`)**: `createEditorExtensions` did not receive `useVimMode` and unconditionally initialized an empty compartment. When switching notes with Vim active, there was an unnecessary asynchronous reconfigure delay.
+
+**Key Changes:**
+- In [`createEditorExtensions.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/ai-agent/packages/editor/createEditorExtensions.ts):
+  - Moved `vimCompartment` above `keymap.of` and wrapped it in `Prec.high`.
+  - Added `useVimMode?: boolean` to `EditorExtensionsConfig` and initialized `vimCompartment` with `getLoadedVimExtension()` if already loaded.
+- In [`vimExtension.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/ai-agent/packages/editor/vim/vimExtension.ts):
+  - Added synchronous caching (`cachedVimExtension`) and exported [`getLoadedVimExtension()`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/ai-agent/packages/editor/vim/vimExtension.ts).
+- In [`useVimModeSync.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/ai-agent/packages/editor/vim/useVimModeSync.ts):
+  - Synchronously attaches the Vim mode listener if the extension is already loaded.
+- In [`EditorArea.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/ai-agent/apps/desktop/src/components/EditorArea/EditorArea.tsx):
+  - Fixed line 302: `const vimMode = useWorkspaceStore((state) => state.vimModeState);`.
+- In [`EditorVim.test.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/ai-agent/apps/desktop/src/components/EditorArea/EditorVim.test.tsx):
+  - Added unit test suite covering dynamic toggle, NORMAL/INSERT mode transitions, normal-mode editing commands (`x`), Escape return, and immediate mount-time initialization.
+
+**What was done & verified:**
+- All 36 `@app/editor` tests pass (`pnpm --filter @app/editor test`).
+- All tests in `EditorVim.test.tsx` and `StatusBar.test.tsx` pass.
+- All modified files remain strictly within line caps (<250 lines).
+
+**Next up:**
+- Open Pull Request `fix/vim-mode-editor`.
+
+---
+
+## Prior Session — Scan-to-Sync Target Folder Resolution & Empty Folder Creation
 
 **Scope:** Fix the "Target folder is not empty" warning in phone's Scan-to-Sync confirmation sheet, add a 1-tap option to create a dedicated empty folder for the incoming sync, fix Android JSI HostFunction index 52 crashes on external vaults, build and release the production APK (`Sophia_0.3.0.apk`), and verify public download links.
 

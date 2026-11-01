@@ -3,6 +3,7 @@ import type { EditorView } from "@codemirror/view";
 import { CodeMirror, getCM, Vim } from "@replit/codemirror-vim";
 import type { CodeMirrorV } from "@replit/codemirror-vim";
 
+let cachedVimExtension: Extension | null = null;
 let vimLoaderPromise: Promise<Extension> | null = null;
 
 /**
@@ -10,10 +11,19 @@ let vimLoaderPromise: Promise<Extension> | null = null;
  * Guarantees zero byte footprint on initial editor load when Vim mode is disabled.
  */
 export async function loadVimExtension(): Promise<Extension> {
-  vimLoaderPromise ??= import("@replit/codemirror-vim").then((module) =>
-    module.vim(),
-  );
+  if (cachedVimExtension) return cachedVimExtension;
+  vimLoaderPromise ??= import("@replit/codemirror-vim").then((module) => {
+    cachedVimExtension = module.vim();
+    return cachedVimExtension;
+  });
   return vimLoaderPromise;
+}
+
+/**
+ * Returns synchronously cached Vim extension if already loaded, or null.
+ */
+export function getLoadedVimExtension(): Extension | null {
+  return cachedVimExtension;
 }
 
 export function formatVimMode(evt: {

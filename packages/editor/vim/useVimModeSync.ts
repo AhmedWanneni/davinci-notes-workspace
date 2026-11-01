@@ -3,6 +3,7 @@ import type { Compartment } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import {
   attachVimModeListener,
+  getLoadedVimExtension,
   loadVimExtension,
   registerVimExCommands,
 } from "./vimExtension";
@@ -38,20 +39,34 @@ export function useVimModeSync(
 
     if (useVimMode) {
       registerVimExCommands(() => exHandlersRef.current!);
-      void loadVimExtension().then((extension) => {
-        if (!cancelled && viewRef.current === view) {
-          view.dispatch({
-            effects: vimCompartmentRef.current?.reconfigure(extension),
-            selection: view.state.selection,
+      const loaded = getLoadedVimExtension();
+      if (loaded) {
+        view.dispatch({
+          effects: vimCompartmentRef.current?.reconfigure(loaded),
+          selection: view.state.selection,
+        });
+        view.requestMeasure();
+        if (onVimModeChangeRef.current) {
+          cleanupListener = attachVimModeListener(view, (mode) => {
+            onVimModeChangeRef.current?.(mode);
           });
-          view.requestMeasure();
-          if (onVimModeChangeRef.current) {
-            cleanupListener = attachVimModeListener(view, (mode) => {
-              onVimModeChangeRef.current?.(mode);
-            });
-          }
         }
-      });
+      } else {
+        void loadVimExtension().then((extension) => {
+          if (!cancelled && viewRef.current === view) {
+            view.dispatch({
+              effects: vimCompartmentRef.current?.reconfigure(extension),
+              selection: view.state.selection,
+            });
+            view.requestMeasure();
+            if (onVimModeChangeRef.current) {
+              cleanupListener = attachVimModeListener(view, (mode) => {
+                onVimModeChangeRef.current?.(mode);
+              });
+            }
+          }
+        });
+      }
     } else {
       view.dispatch({
         effects: vimCompartmentRef.current?.reconfigure([]),

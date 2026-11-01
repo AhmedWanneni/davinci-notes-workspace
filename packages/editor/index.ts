@@ -162,7 +162,10 @@ export { htmlBlockExtension } from "./blocks/html/htmlBlockExtension";
 export { htmlBlockTheme } from "./blocks/html/htmlBlockTheme";
 export { htmlInlineExtension } from "./blocks/html/htmlInlineExtension";
 export { htmlInlineTheme } from "./blocks/html/htmlInlineTheme";
-export { loadVimExtension } from "./vim/vimExtension";
+export {
+  loadVimExtension,
+  getLoadedVimExtension,
+} from "./vim/vimExtension";
 export {
   noteEmbedExtension,
   noteEmbedTheme,

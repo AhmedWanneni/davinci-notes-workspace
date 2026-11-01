@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 import type { Extension } from "@codemirror/state";
-import { Compartment } from "@codemirror/state";
+import { Compartment, Prec } from "@codemirror/state";
 import {
   EditorView,
   keymap,
@@ -39,6 +39,7 @@ import {
   insertHardLineBreak,
   softLineBreakExtension,
 } from "./live-preview";
+import { getLoadedVimExtension } from "./vim/vimExtension";
 import { linkExtension } from "./links";
 import {
   embedAudioExtension,
@@ -83,6 +84,7 @@ export interface EditorExtensionConfig {
   noteContents?: Readonly<Record<string, string>>;
   slashMenuEnabled?: boolean;
   vimMode?: string | null;
+  useVimMode?: boolean;
   strictLineBreaks?: boolean;
   wikilinkCompartment: Compartment;
   autocompleteCompartment: Compartment;
@@ -121,6 +123,13 @@ export function createEditorExtensions(
     history(),
     drawSelection(),
     highlightActiveLine(),
+    Prec.high(
+      config.vimCompartment.of(
+        config.useVimMode && getLoadedVimExtension()
+          ? getLoadedVimExtension()!
+          : [],
+      ),
+    ),
     keymap.of([
       { key: "Shift-Enter", run: insertHardLineBreak },
       ...defaultKeymap,
@@ -203,7 +212,6 @@ export function createEditorExtensions(
         ],
       }),
     ),
-    config.vimCompartment.of([]),
     EditorView.updateListener.of((update) => {
       if (
         update.docChanged &&
