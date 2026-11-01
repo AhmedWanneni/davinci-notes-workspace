@@ -11,6 +11,7 @@ import {
   Browsers,
   ChatText,
   CaretRight,
+  ListBullets,
 } from "@phosphor-icons/react";
 import {
   MENU_ITEMS,
@@ -34,6 +35,8 @@ function renderItemIcon(icon: string) {
       return <CodeIcon size={16} />;
     case "video":
       return <VideoCamera size={16} />;
+    case "list":
+      return <ListBullets size={16} />;
     case "link":
       return <LinkIcon size={16} />;
     case "symbols":
@@ -77,6 +80,13 @@ export function EditorMenuBarDropdown({
   const handleSubitemClick = (sub: SubmenuItem) => {
     if (sub.id === "img-disk" && onOpenImagePicker) {
       onOpenImagePicker();
+      return;
+    }
+    if (sub.id === "video-item") {
+      const url = window.prompt("Enter YouTube or video URL:");
+      if (url && url.trim()) {
+        onInsert(`\n![Video](${url.trim()})\n`);
+      }
       return;
     }
     onInsert(sub.snippet, sub.cursorOffset);

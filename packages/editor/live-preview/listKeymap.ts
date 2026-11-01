@@ -1,44 +1,10 @@
 import { EditorView, type KeyBinding } from "@codemirror/view";
 import { indentMore, indentLess } from "@codemirror/commands";
-
-const LIST_LINE_REGEX =
-  /^(\s*)([-*+]|\d+[.)]|[a-zA-Z][.)]|[ivxIVX]+[.)])([ \t]+)(?:\[([ xX])\][ \t]*)?(.*)$/;
-
-const ROMAN = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"];
-
-function getNextMarker(marker: string): string {
-  const numMatch = marker.match(/^(\d+)([.)])$/);
-  if (numMatch) return `${parseInt(numMatch[1], 10) + 1}${numMatch[2]}`;
-
-  const alphaMatch = marker.match(/^([a-zA-Z])([.)])$/);
-  if (alphaMatch) {
-    const nextChar = String.fromCharCode(alphaMatch[1].charCodeAt(0) + 1);
-    return `${nextChar}${alphaMatch[2]}`;
-  }
-
-  const romanMatch = marker.match(/^([ivxIVX]+)([.)])$/);
-  if (romanMatch) {
-    const isUpper = romanMatch[1] === romanMatch[1].toUpperCase();
-    const idx = ROMAN.indexOf(romanMatch[1].toLowerCase());
-    const next = idx >= 0 && idx < ROMAN.length - 1 ? ROMAN[idx + 1] : "i";
-    return `${isUpper ? next.toUpperCase() : next}${romanMatch[2]}`;
-  }
-  return marker;
-}
-
-function findParentPrefix(
-  state: EditorView["state"],
-  startLine: number,
-  indentLen: number,
-): string {
-  for (let l = startLine - 1; l >= 1; l--) {
-    const prevMatch = LIST_LINE_REGEX.exec(state.doc.line(l).text);
-    if (prevMatch && prevMatch[1].length < indentLen) {
-      return `${getNextMarker(prevMatch[2])} `;
-    }
-  }
-  return "";
-}
+import {
+  LIST_LINE_REGEX,
+  getNextMarker,
+  findParentPrefix,
+} from "./listMarkerUtils";
 
 export function handleListEnter(view: EditorView): boolean {
   const { state } = view;
@@ -215,6 +181,17 @@ export function handleListSpace(view: EditorView): boolean {
   // If user typed "1." or "1)" at beginning of line
   const numMatch = /^(\s*)(\d+[.)])$/.exec(textBefore);
   if (numMatch) {
+    view.dispatch({
+      changes: { from: sel.head, insert: " " },
+      selection: { anchor: sel.head + 1 },
+      userEvent: "input.createList",
+    });
+    return true;
+  }
+
+  // If user typed "a." or "a)" at beginning of line
+  const alphaMatch = /^(\s*)([a-zA-Z][.)])$/.exec(textBefore);
+  if (alphaMatch) {
     view.dispatch({
       changes: { from: sel.head, insert: " " },
       selection: { anchor: sel.head + 1 },

@@ -114,6 +114,7 @@ export function EditorArea({
   const resolveConflict = useWorkspaceStore((state) => state.resolveConflict);
   const editorViewRef = useRef<EditorView | null>(null);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
+  const [editorMode, setEditorMode] = useState<"preview" | "code">("preview");
   const [showFormattingToolbar, setShowFormattingToolbar] = useState(false);
   const insertDialogRequest = useInsertDialogRequest();
   const [editingReminder, setEditingReminder] =
@@ -425,10 +426,9 @@ export function EditorArea({
         <EditorMenuBar
           view={editorViewRef.current}
           onOpenImagePicker={handlePickLocalImage}
-          onToggleFormattingToolbar={() =>
-            setShowFormattingToolbar((prev) => !prev)
-          }
-          isFormattingToolbarVisible={showFormattingToolbar}
+          editorMode={editorMode}
+          onModeChange={setEditorMode}
+          onExportPdf={() => window.print()}
         />
         {isCoverPickerOpen && (
           <Suspense fallback={null}>
@@ -756,8 +756,9 @@ export function EditorArea({
             />
             <div className="editor-area__body">
               <Editor
-                key={activeNotePath}
+                key={`${activeNotePath}-${editorMode}`}
                 value={cleanedContent}
+                isSourceMode={editorMode === "code"}
                 onChange={(newVal) => updateNoteContent(activeNotePath, newVal)}
                 notePaths={allNotePaths}
                 sourcePath={activeNotePath}

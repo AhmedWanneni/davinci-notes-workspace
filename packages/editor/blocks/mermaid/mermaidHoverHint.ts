@@ -9,17 +9,25 @@ export function createHoverHint(options: HoverHintOptions): HTMLElement | null {
   const hint = document.createElement("div");
   hint.className = "cm-mermaid-hover-hint";
   hint.innerHTML = `
-    <button type="button" class="cm-mermaid-hint-btn cm-mermaid-edit-code-btn" title="Toggle Mermaid code" aria-label="Toggle Mermaid code">
+    <button type="button" class="cm-mermaid-hint-btn cm-mermaid-edit-code-btn" title="Edit Mermaid code" aria-label="Edit Mermaid code">
       &lt;/&gt;
     </button>
   `;
 
-  hint
-    .querySelector(".cm-mermaid-edit-code-btn")
-    ?.addEventListener("click", (e) => {
+  const btn = hint.querySelector<HTMLButtonElement>(
+    ".cm-mermaid-edit-code-btn",
+  );
+  if (btn) {
+    btn.addEventListener("mousedown", (e) => {
       e.stopPropagation();
+      e.preventDefault();
+    });
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
       options.onEnterCodeEdit();
     });
+  }
 
   return hint;
 }

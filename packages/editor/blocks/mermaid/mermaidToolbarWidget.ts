@@ -23,9 +23,14 @@ export class MermaidCodeHeaderWidget extends WidgetType {
       .querySelector(".cm-mermaid-view-diagram-btn")
       ?.addEventListener("click", (e) => {
         e.stopPropagation();
+        e.preventDefault();
         this.onViewDiagram();
       });
 
     return bar;
+  }
+
+  ignoreEvent() {
+    return true;
   }
 }

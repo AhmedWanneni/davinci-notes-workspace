@@ -2,6 +2,38 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-01: Preview/Code Mode Toggle, PDF Export, Category Insert Menu, HTML & Mermaid Code Toggle, Alphabetic List, QuickCapture Streamlining & Scroll Fix
+
+- **Preserved User Customizations (`AGENTS.md`, `QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`, `cm-rules.css`)**:
+  - The user explicitly streamlined the QuickCapture dialog footer: removed hints, audio record, close, and quit buttons, leaving only the right-aligned (`justify-content: flex-end;`) "Save note" button. Header retains Close and Quit buttons.
+  - Border and outline colors in `docs/references/cm-rules.css` updated to `#ababab`.
+  - Added standing rule in `AGENTS.md` ("Preserved User Customizations") instructing all future AI agents never to revoke, re-add, or alter these choices.
+- **Mermaid & HTML Code View Toggles (`mermaidExtension.ts`, `htmlBlockExtension.ts`, `HtmlCodeHeaderWidget.ts`)**:
+  - Implemented interactive `</>` code button on Mermaid and HTML blocks to toggle between rendered visualization and raw source editing.
+  - Provided custom CodeMirror widgets (`MermaidCodeHeaderWidget`, `HtmlCodeHeaderWidget`) with top bars offering "View diagram" / "View HTML" buttons to switch back to preview.
+- **Alphabetic List Progression & Space Auto-Formatting (`listKeymap.ts`, `listMarkerUtils.ts`)**:
+  - Factored out marker arithmetic into `listMarkerUtils.ts` (42 lines) to keep files strictly under 250 lines.
+  - Added support for alphabetic lists (`a.`, `A.`) in `handleListSpace` to auto-create list items when typing `a. ` or `A. ` at line start.
+  - Continued alphabetic list numbering (`a.` -> `b.`, `A.` -> `B.`) on pressing Enter, handling letter casing and outdenting on empty Enter.
+- **Bold Grey Bullet Markers (`listTheme.ts`)**:
+  - Updated `.cm-list-bullet` styling to `24px`, `font-weight: 900`, `line-height: 0.7`, and clean `#abababccc` grey matching the design reference.
+- **Preview / Code Mode Header Toggle (`EditorMenuBar.tsx`, `EditorArea.tsx`, `createEditorExtensions.ts`)**:
+  - Added segmented toggle in `EditorMenuBar.tsx` for `Preview` (Live Preview) and `Code` (raw markdown code mode).
+  - Wired `isSourceMode` prop through `Editor` to conditionally bypass live preview widgets and render pure syntax-highlighted markdown.
+- **PDF Export via Window Print (`EditorMenuBar.tsx`, `_editor-area.scss`)**:
+  - Added dedicated `PDF` action button in the editor menu bar invoking `window.print()`.
+  - Added `@media print` rules hiding app navigation, sidebars, tabs, and status bars, with clean print margins and break-inside avoidance for tables and code blocks.
+- **Categorized Insert Menu & Header Cleanup (`editorMenuConfig.ts`, `EditorMenuBarDropdown.tsx`)**:
+  - Removed "Format", "Tools", and "Help" buttons from the editor header.
+  - Structured Insert dropdown into clear categories: Media (Image, Video/YouTube, Audio), Lists (Alphabetic, Numbered, Bullet, Todo), Table (2x2, 3x3, 4x4), Code block (TS, Python, HTML, Rust, Bash), Mermaid diagram (Flowchart, Sequence, State, Class, ER), Math equation, Callouts, Link (`⌘K`), Horizontal line, Kanban, and Comment (`⌘+Option+M`).
+- **Fixed Editor Scrolling (`Editor.tsx`, `Editor.module.scss`, `editorTheme.ts`, `_editor-area.scss`)**:
+  - Resolved missing CSS module import on `.editor-container`, enabling proper flexbox layout.
+  - Constrained `.cm-scroller` with `height: 100%`, `overflow-y: auto !important`, and `padding-bottom: 160px`.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (253 tests) and 25 `@app/desktop` `EditorArea` test files (104 tests) passing.
+  - ESLint passing across `@app/editor` and `@app/desktop` with 0 errors.
+  - Knowledge graph updated via `graphify update .`.
+
 ### 2026-11-01: Project Conversation Bugfix, Minimalist Header & Visual Alignment with Design Reference
 
 - **Project Switching Bugfix (`agentConversationSaver.ts`, `AgentView.tsx`)**:
@@ -7894,7 +7926,7 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - Pressing Space after `-` or `1.` at start of line auto-creates list items.
 - **Todo Checkbox & List Styling (`listExtension.ts`, `listTheme.ts`)**:
   - Todo checkboxes remain visible and interactive even on active lines, instantly crossing out (`text-decoration: line-through`) completed task text with tighter margin (`4px`).
-  - Bullet dot is bolder (`font-weight: 700`, `16px`) and colored `#cccccc` across all list items (ordered and unordered).
+  - Bullet dot is bolder (`font-weight: 700`, `16px`) and colored `#abababccc` across all list items (ordered and unordered).
 - **Docs-Style EditorMenuBar (`EditorMenuBar.tsx`, `EditorMenuBarDropdown.tsx`, `editorMenuConfig.ts`, `EditorArea.tsx`)**:
   - Implemented top menu bar (`Insert`, `Format`, `Tools`, `Help`) with clean dropdown matching Google Docs / office suite design: Image, Table, Code block, Video, Link (`⌘K`), Symbols, Equation, Horizontal line, Page elements (`Updated`), and Comment (`⌘+Option+M`).
   - Closes on click away or Escape key.

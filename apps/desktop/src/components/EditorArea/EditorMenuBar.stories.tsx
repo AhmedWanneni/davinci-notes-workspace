@@ -15,13 +15,13 @@ type Story = StoryObj<typeof EditorMenuBar>;
 export const Default: Story = {
   args: {
     view: null,
-    isFormattingToolbarVisible: false,
+    editorMode: "preview",
   },
 };
 
-export const ToolbarActive: Story = {
+export const CodeMode: Story = {
   args: {
     view: null,
-    isFormattingToolbarVisible: true,
+    editorMode: "code",
   },
 };

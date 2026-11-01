@@ -31,6 +31,11 @@ function initMermaid(mermaid: typeof import("mermaid").default) {
     securityLevel: "strict",
     suppressErrorRendering: true,
     theme: "base",
+    sequence: {
+      bottomMarginAdj: 0,
+      actorFontSize: 13,
+      messageFontSize: 12,
+    },
     themeVariables: {
       actorBkg: "#eeedfe",
       actorBorder: "#cfcbfe",
@@ -114,8 +119,9 @@ export class MermaidWidget extends WidgetType {
     return container;
   }
 
-  ignoreEvent() {
-    return false;
+  ignoreEvent(event: Event) {
+    const target = event.target as HTMLElement | null;
+    return Boolean(target?.closest("button, a, input, select, textarea"));
   }
 }
 

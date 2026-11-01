@@ -86,6 +86,7 @@ export interface EditorExtensionConfig {
   vimMode?: string | null;
   useVimMode?: boolean;
   strictLineBreaks?: boolean;
+  isSourceMode?: boolean;
   wikilinkCompartment: Compartment;
   autocompleteCompartment: Compartment;
   noteEmbedCompartment: Compartment;
@@ -144,54 +145,67 @@ export function createEditorExtensions(
       codeLanguages: codeBlockLanguage,
     }),
     syntaxHighlighting(editorHighlightStyle),
-    livePreviewExtension,
-    markdownAnnotationsExtension(),
-    ...(config.strictLineBreaks ? [softLineBreakExtension] : []),
-    listExtension(),
-    tableExtension(),
-    mermaidExtension({ onLinkClick: config.onLinkClick }),
-    mathExtension(),
-    imageExtension(),
+    ...(config.isSourceMode
+      ? []
+      : [
+          livePreviewExtension,
+          markdownAnnotationsExtension(),
+          ...(config.strictLineBreaks ? [softLineBreakExtension] : []),
+          listExtension(),
+          tableExtension(),
+          mermaidExtension({ onLinkClick: config.onLinkClick }),
+          mathExtension(),
+          imageExtension(),
+          embedAudioTheme,
+          noteEmbedTheme,
+          tagExtension({
+            onTagClick: (tagKey) => config.onTagClickRef.current?.(tagKey),
+          }),
+          reminderTheme,
+          reminderExtension({
+            onReminderClick: (info) =>
+              config.onReminderClickRef.current?.(info),
+          }),
+          htmlBlockExtension(),
+          htmlInlineExtension(),
+        ]),
     config.embedImageCompartment.of(
-      embedImageExtension({
-        notePaths: config.notePaths,
-        resolveMediaUrl: config.resolveMediaUrl,
-      }),
+      config.isSourceMode
+        ? []
+        : embedImageExtension({
+            notePaths: config.notePaths,
+            resolveMediaUrl: config.resolveMediaUrl,
+          }),
     ),
-    embedAudioTheme,
     config.embedAudioCompartment
       ? config.embedAudioCompartment.of(
-          embedAudioExtension({
+          config.isSourceMode
+            ? []
+            : embedAudioExtension({
+                notePaths: config.notePaths,
+                sourcePath: config.sourcePath,
+                resolveMediaUrl: config.resolveMediaUrl,
+              }),
+        )
+      : config.isSourceMode
+        ? []
+        : embedAudioExtension({
             notePaths: config.notePaths,
             sourcePath: config.sourcePath,
             resolveMediaUrl: config.resolveMediaUrl,
           }),
-        )
-      : embedAudioExtension({
-          notePaths: config.notePaths,
-          sourcePath: config.sourcePath,
-          resolveMediaUrl: config.resolveMediaUrl,
-        }),
-    noteEmbedTheme,
     config.noteEmbedCompartment.of(
-      noteEmbedExtension({
-        notePaths: config.notePaths,
-        sourcePath: config.sourcePath,
-        onLinkClick: config.onLinkClick,
-        resolveMediaUrl: config.resolveMediaUrl,
-        loadNoteContent: config.loadNoteContent,
-        noteContents: config.noteContents,
-      }),
+      config.isSourceMode
+        ? []
+        : noteEmbedExtension({
+            notePaths: config.notePaths,
+            sourcePath: config.sourcePath,
+            onLinkClick: config.onLinkClick,
+            resolveMediaUrl: config.resolveMediaUrl,
+            loadNoteContent: config.loadNoteContent,
+            noteContents: config.noteContents,
+          }),
     ),
-    tagExtension({
-      onTagClick: (tagKey) => config.onTagClickRef.current?.(tagKey),
-    }),
-    reminderTheme,
-    reminderExtension({
-      onReminderClick: (info) => config.onReminderClickRef.current?.(info),
-    }),
-    htmlBlockExtension(),
-    htmlInlineExtension(),
     config.wikilinkCompartment.of(
       linkExtension({
         notePaths: config.notePaths,

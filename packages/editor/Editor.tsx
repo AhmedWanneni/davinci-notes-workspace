@@ -21,6 +21,7 @@ import {
 } from "./integration";
 import { createEditorExtensions } from "./createEditorExtensions";
 import { useVimModeSync } from "./vim/useVimModeSync";
+import styles from "./Editor.module.scss";
 
 export interface EditorProps {
   value: string;
@@ -46,6 +47,7 @@ export interface EditorProps {
   slashMenuEnabled?: boolean;
   vimMode?: string | null;
   strictLineBreaks?: boolean;
+  isSourceMode?: boolean;
 }
 
 export function Editor({
@@ -72,6 +74,7 @@ export function Editor({
   slashMenuEnabled = true,
   vimMode,
   strictLineBreaks = false,
+  isSourceMode = false,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -115,6 +118,7 @@ export function Editor({
       vimMode,
       useVimMode,
       strictLineBreaks,
+      isSourceMode,
       wikilinkCompartment: wikilinkCompartmentRef.current,
       autocompleteCompartment: autocompleteCompartmentRef.current,
       noteEmbedCompartment: noteEmbedCompartmentRef.current,
@@ -223,5 +227,5 @@ export function Editor({
     noteContents,
   ]);
 
-  return <div ref={containerRef} className={"editor-container"} />;
+  return <div ref={containerRef} className={styles["editor-container"]} />;
 }

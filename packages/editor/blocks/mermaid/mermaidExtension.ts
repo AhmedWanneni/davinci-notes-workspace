@@ -72,8 +72,10 @@ function getMermaidDecorations(
         Decoration.widget({
           widget: new MermaidCodeHeaderWidget(() => {
             view.dispatch({ effects: setMermaidCodeEditing.of(null) });
+            view.focus();
           }),
           side: -1,
+          block: true,
         }).range(block.from),
       );
       continue;
@@ -87,7 +89,11 @@ function getMermaidDecorations(
           widget:
             lineNum === block.lineFrom
               ? new MermaidWidget(block, view, options, (from) => {
-                  view.dispatch({ effects: setMermaidCodeEditing.of(from) });
+                  view.dispatch({
+                    effects: setMermaidCodeEditing.of(from),
+                    selection: { anchor: from },
+                  });
+                  view.focus();
                 })
               : new MermaidContinuationWidget(),
         }).range(line.from, line.to),

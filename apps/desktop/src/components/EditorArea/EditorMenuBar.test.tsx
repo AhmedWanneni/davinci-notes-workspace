@@ -18,11 +18,11 @@ describe("EditorMenuBar", () => {
 
     // Dropdown items appear
     expect(screen.getByRole("menu")).not.toBeNull();
-    expect(screen.getByText("Image")).not.toBeNull();
+    expect(screen.getByText("Media")).not.toBeNull();
+    expect(screen.getByText("Lists")).not.toBeNull();
     expect(screen.getByText("Table")).not.toBeNull();
-    expect(screen.getByText("Video")).not.toBeNull();
-    expect(screen.getByText("Equation")).not.toBeNull();
-    expect(screen.getByText("Page elements")).not.toBeNull();
+    expect(screen.getByText("Math equation")).not.toBeNull();
+    expect(screen.getByText("Mermaid diagram")).not.toBeNull();
   });
 
   it("closes when clicking outside or pressing Escape", () => {
@@ -42,17 +42,27 @@ describe("EditorMenuBar", () => {
     expect(screen.queryByRole("menu")).toBeNull();
   });
 
-  it("invokes onToggleFormattingToolbar when clicking Format tab", () => {
-    const onToggle = vi.fn();
+  it("allows toggling between Preview and Code mode", () => {
+    const onModeChange = vi.fn();
     render(
       <EditorMenuBar
         view={null}
-        onToggleFormattingToolbar={onToggle}
-        isFormattingToolbarVisible={false}
+        editorMode="preview"
+        onModeChange={onModeChange}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Format" }));
-    expect(onToggle).toHaveBeenCalled();
+    const codeBtn = screen.getByRole("button", { name: /code/i });
+    fireEvent.click(codeBtn);
+    expect(onModeChange).toHaveBeenCalledWith("code");
+  });
+
+  it("calls export PDF handler on PDF button click", () => {
+    const onExportPdf = vi.fn();
+    render(<EditorMenuBar view={null} onExportPdf={onExportPdf} />);
+
+    const pdfBtn = screen.getByRole("button", { name: /export to pdf/i });
+    fireEvent.click(pdfBtn);
+    expect(onExportPdf).toHaveBeenCalledOnce();
   });
 });

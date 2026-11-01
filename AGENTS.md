@@ -60,6 +60,12 @@ Every module folder gets a barrel `index.ts` re-exporting its public surface. Co
 
 - **Class naming: kebab-case, not camelCase** — .card-header, .is-active, not .cardHeader, .isActive. Applies to all SCSS class names project-wide, including CSS Modules.
 
+## Preserved User Customizations (Do Not Revoke or Alter)
+
+The user has explicitly customized these design behaviors. All future AI agents MUST preserve them and never revert, re-add removed elements, or alter them:
+- **QuickCapture Footer (`QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`)**: The dialog footer is intentionally simplified to contain only the right-aligned (`justify-content: flex-end;`) "Save note" button. Hints, record button, close button, and quit button in the footer have been intentionally removed (Close and Quit remain in the header). Do NOT re-add them to the footer.
+- **Obsidian Theme Border Colors (`docs/references/cm-rules.css`)**: Outline and table border colors are explicitly set to `#ababab`. Preserve these values.
+
 ## Database Migrations
 
 - **Never edit an applied migration.** Once a migration file (e.g. `schema.sql` or `1_initial.sql`) has been committed and applied *even once* (including in your own local dev database), you must never edit it again. `tauri-plugin-sql` hashes migration strings; altering an applied migration will cause startup panics (`migration 1 was previously applied but has been modified`).

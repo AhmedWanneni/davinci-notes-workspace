@@ -4,6 +4,41 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Preview/Code Toggle, PDF Export, Category Insert Menu, HTML & Mermaid Code Toggle, Alphabetic List, QuickCapture Polish & Scrolling Fix
+
+**Scope:** Implement full editor enhancements requested in prompt #10 and track user customizations across QuickCapture and styling:
+- **Preserved User Customizations**:
+  - **QuickCapture Footer (`QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`)**: The user streamlined the footer to only feature the right-aligned (`justify-content: flex-end;`) "Save note" button, removing footer close/quit/hints/record buttons while preserving Close and Quit in the header. Added permanent preservation directive in `AGENTS.md`.
+  - **Custom Border Colors (`docs/references/cm-rules.css`)**: File upload and table border colors explicitly updated to `#ababab`.
+- **Mermaid & HTML Code View Toggles**:
+  - In Mermaid diagram blocks, clicking `</>` switches the diagram widget into raw Mermaid markdown code with an editor toolbar widget displaying a "View diagram" button to switch back.
+  - In HTML blocks, rendered HTML blocks feature a `</>` toggle button that switches the block into raw HTML code editing with an `HtmlCodeHeaderWidget` top bar ("HTML" badge + "View HTML" button) to return to preview.
+- **Alphabetic List Progression & Space Auto-List**:
+  - In `listKeymap.ts` and `listMarkerUtils.ts`, typing `a. ` or `A. ` at line start auto-creates an alphabetic list.
+  - Pressing Enter on an alphabetic list (`a. item`) advances to the next letter (`b. `), respecting casing and looping safely.
+- **Bold & Prominent Bullet Dots**:
+  - Updated `.cm-list-bullet` in `packages/editor/live-preview/listTheme.ts` to `24px`, `font-weight: 900`, `line-height: 0.7`, and clean `#cccccc` grey.
+- **Preview & Code Toggle in Editor Header**:
+  - Added segmented toggle in `EditorMenuBar.tsx` for `Preview` (Live Preview) and `Code` (raw syntax-highlighted markdown code mode).
+  - Configured `createEditorExtensions.ts` with `isSourceMode` to seamlessly switch CodeMirror between Live Preview widgets and pure markdown source editing.
+- **Convert / Export to PDF**:
+  - Added dedicated `PDF` action button in `EditorMenuBar.tsx` invoking `window.print()`.
+  - Added print stylesheet in `apps/desktop/src/styles/layout/_editor-area.scss` hiding sidebars, toolbars, headers, and tabs, leaving clean document typography with avoid-break rules on tables and diagrams.
+- **Cleaned Editor Header & Categorized Insert Menu**:
+  - Removed "Format", "Tools", and "Help" buttons from `EditorMenuBar.tsx`.
+  - Redesigned `editorMenuConfig.ts` with structured categories: Media (Image from disk/URL, Video/YouTube, Audio), Lists (Alphabetic, Numbered, Bullet, Todo), Table (2x2, 3x3, 4x4), Code block (TS, Python, HTML, Rust, Bash), Mermaid diagram (Flowchart, Sequence, State, Class, ER), Math equation (Block, Inline), Callouts (Note, Tip, Warning, Important), Link (`⌘K`), Horizontal line, Kanban, and Comment (`⌘+Option+M`).
+- **Fixed Editor Scrolling**:
+  - Fixed missing CSS module import in `packages/editor/Editor.tsx` using `styles["editor-container"]`.
+  - Set `.cm-scroller` in `Editor.module.scss` and `editorTheme.ts` to `height: 100%`, `overflow-y: auto !important`, and `padding-bottom: 160px`.
+  - Set `.editor-area__body` to `height: 100%` and `overflow: hidden`.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (253 tests) passing.
+  - All 25 `@app/desktop` `EditorArea` test files (104 tests) and 8 `QuickCapture` test files (38 tests) passing.
+  - 0 ESLint errors across packages; all modified files strictly `< 250` lines.
+  - Knowledge graph updated via `graphify update .`.
+
+---
+
 ## Last Session — Numeric List Enter Alignment Fix & Smart Backspace Outdent
 
 **Scope:** Fix numeric list alignment when pressing Enter so active indented items remain vertically aligned with previous items and never appear indented as a false sub-list.
@@ -25,7 +60,7 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ## Last Session — Document Menu Bar, Table Code Toggle, Sublist Enter Outdent, Todo Toggle & Mermaid Padding Polish
 
-**Scope:** Polish editor interactions to match exact user specifications: reduce mermaid container bottom padding; add `</>` code button to code block cards and unboxed table header to toggle raw markdown editing; outdent empty indented sublist items back to parent level on Enter; render bolder `#ccc` grey bullets and numerals across all lists; keep interactive todo checkboxes on active lines with strikethrough and tighter margin; trigger list creation on `- ` and `1. `; and implement clean document-style `EditorMenuBar` (`Insert`, `Format`, `Tools`, `Help`) matching reference image with click-away close, video embed, and zero duplicate insert buttons.
+**Scope:** Polish editor interactions to match exact user specifications: reduce mermaid container bottom padding; add `</>` code button to code block cards and unboxed table header to toggle raw markdown editing; outdent empty indented sublist items back to parent level on Enter; render bolder `#ababab` grey bullets and numerals across all lists; keep interactive todo checkboxes on active lines with strikethrough and tighter margin; trigger list creation on `- ` and `1. `; and implement clean document-style `EditorMenuBar` (`Insert`, `Format`, `Tools`, `Help`) matching reference image with click-away close, video embed, and zero duplicate insert buttons.
 
 - **Mermaid Box Bottom Padding (`packages/editor/blocks/mermaid/mermaidTheme.ts`)**:
   - Reduced container bottom padding from 18px to 4px (`padding: 16px 14px 4px 14px`).
@@ -39,7 +74,7 @@ Updated at the end of every session. Read this first, before touching code. Full
   - Pressing Space after `-` or `1.` at start of line auto-creates list items.
 - **Todo Checkbox & List Styling (`listExtension.ts`, `listTheme.ts`)**:
   - Todo checkboxes remain visible and interactive even on active lines, instantly crossing out (`text-decoration: line-through`) completed task text with tighter margin (`4px`).
-  - Bullet dot is bolder (`font-weight: 700`, `16px`) and colored `#cccccc` across all list items (ordered and unordered).
+  - Bullet dot is bolder (`font-weight: 700`, `16px`) and colored `#abababccc` across all list items (ordered and unordered).
 - **Docs-Style EditorMenuBar (`EditorMenuBar.tsx`, `EditorMenuBarDropdown.tsx`, `editorMenuConfig.ts`, `EditorArea.tsx`)**:
   - Implemented top menu bar (`Insert`, `Format`, `Tools`, `Help`) with clean dropdown matching the attached reference image: Image, Table, Code block, Video, Link (`⌘K`), Symbols, Equation, Horizontal line, Page elements (`Updated`), and Comment (`⌘+Option+M`).
   - Closes on click away or Escape key.

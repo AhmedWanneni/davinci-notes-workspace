@@ -4,34 +4,34 @@ export const listTheme = EditorView.theme({
   ".cm-line.cm-list-line": {
     paddingTop: "var(--editor-obsidian-spacing-list, 2px)",
     paddingBottom: "var(--editor-obsidian-spacing-list, 2px)",
-    textIndent: "calc(-1 * var(--editor-list-indent, 24px))",
+    textIndent: "calc(-1 * var(--editor-list-indent, 20px))",
     position: "relative",
   },
   ".cm-line.cm-list-level-0": {
-    paddingLeft: "var(--editor-list-indent, 24px)",
+    paddingLeft: "var(--editor-list-indent, 20px)",
   },
   ".cm-line.cm-list-level-1": {
-    paddingLeft: "calc(2 * var(--editor-list-indent, 24px))",
+    paddingLeft: "calc(2 * var(--editor-list-indent, 20px))",
   },
   ".cm-line.cm-list-level-2": {
-    paddingLeft: "calc(3 * var(--editor-list-indent, 24px))",
+    paddingLeft: "calc(3 * var(--editor-list-indent, 20px))",
   },
   ".cm-line.cm-list-level-3": {
-    paddingLeft: "calc(4 * var(--editor-list-indent, 24px))",
+    paddingLeft: "calc(4 * var(--editor-list-indent, 20px))",
   },
   ".cm-line.cm-list-level-4": {
-    paddingLeft: "calc(5 * var(--editor-list-indent, 24px))",
+    paddingLeft: "calc(5 * var(--editor-list-indent, 20px))",
   },
   ".cm-line.cm-list-level-5": {
-    paddingLeft: "calc(6 * var(--editor-list-indent, 24px))",
+    paddingLeft: "calc(6 * var(--editor-list-indent, 20px))",
   },
   ".cm-line.cm-list-level-6": {
-    paddingLeft: "calc(7 * var(--editor-list-indent, 24px))",
+    paddingLeft: "calc(7 * var(--editor-list-indent, 20px))",
   },
   ".cm-line.cm-list-level-1::before": {
     content: '""',
     position: "absolute",
-    left: "calc(var(--editor-list-indent, 24px) * 0.45)",
+    left: "calc(var(--editor-list-indent, 20px) * 0.45)",
     top: "0",
     bottom: "0",
     width: "1.5px",
@@ -41,7 +41,7 @@ export const listTheme = EditorView.theme({
   ".cm-line.cm-list-level-2::before": {
     content: '""',
     position: "absolute",
-    left: "calc(var(--editor-list-indent, 24px) * 1.45)",
+    left: "calc(var(--editor-list-indent, 20px) * 1.45)",
     top: "0",
     bottom: "0",
     width: "1.5px",
@@ -51,7 +51,7 @@ export const listTheme = EditorView.theme({
   ".cm-line.cm-list-level-3::before": {
     content: '""',
     position: "absolute",
-    left: "calc(var(--editor-list-indent, 24px) * 2.45)",
+    left: "calc(var(--editor-list-indent, 20px) * 2.45)",
     top: "0",
     bottom: "0",
     width: "1.5px",
@@ -63,25 +63,26 @@ export const listTheme = EditorView.theme({
   },
   ".cm-list-bullet, .cm-list-ordered": {
     display: "inline-block",
-    width: "var(--editor-list-indent, 24px)",
-    minWidth: "var(--editor-list-indent, 24px)",
+    width: "var(--editor-list-indent, 20px)",
+    minWidth: "var(--editor-list-indent, 20px)",
     textAlign: "left",
     textIndent: "0",
     boxSizing: "border-box",
     fontFamily: "var(--font-editor, inherit)",
-    color: "#cccccc !important",
+    color: "#ababab !important",
   },
   ".cm-list-bullet": {
-    fontSize: "16px",
-    fontWeight: "700",
-    lineHeight: "1",
-    color: "#cccccc !important",
+    fontSize: "20px",
+    fontWeight: "900",
+    lineHeight: "0.7",
+    verticalAlign: "-2px",
+    color: "#ababab !important",
   },
   ".cm-list-ordered": {
     fontVariantNumeric: "tabular-nums",
     fontSize: "inherit",
     fontWeight: "600",
-    color: "#cccccc !important",
+    color: "#ababab !important",
   },
   ".cm-task-checkbox": {
     appearance: "none",

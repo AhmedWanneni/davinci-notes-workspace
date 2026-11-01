@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import type { EditorView } from "@codemirror/view";
+import { Eye, Code, FilePdf } from "@phosphor-icons/react";
 import { EditorMenuBarDropdown } from "./EditorMenuBarDropdown";
 import styles from "./EditorMenuBar.module.scss";
 
@@ -8,13 +9,17 @@ export interface EditorMenuBarProps {
   onOpenImagePicker?: () => void;
   onToggleFormattingToolbar?: () => void;
   isFormattingToolbarVisible?: boolean;
+  editorMode?: "preview" | "code";
+  onModeChange?: (mode: "preview" | "code") => void;
+  onExportPdf?: () => void;
 }
 
 export function EditorMenuBar({
   view,
   onOpenImagePicker,
-  onToggleFormattingToolbar,
-  isFormattingToolbarVisible = false,
+  editorMode = "preview",
+  onModeChange,
+  onExportPdf,
 }: EditorMenuBarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -52,6 +57,14 @@ export function EditorMenuBar({
     setIsOpen(false);
   };
 
+  const handleExportPdf = () => {
+    if (onExportPdf) {
+      onExportPdf();
+    } else {
+      window.print();
+    }
+  };
+
   return (
     <nav className={styles["menu-bar"]} ref={menuRef} aria-label="Editor menu">
       <div className={styles["menu-bar__tabs"]}>
@@ -64,32 +77,49 @@ export function EditorMenuBar({
         >
           Insert
         </button>
+
+        <div className={styles["menu-bar__divider-v"]} />
+
+        <div
+          className={styles["menu-bar__segment-group"]}
+          role="group"
+          aria-label="Editor mode"
+        >
+          <button
+            type="button"
+            className={`${styles["menu-bar__segment-btn"]} ${
+              editorMode === "preview" ? styles["is-active"] : ""
+            }`}
+            onClick={() => onModeChange?.("preview")}
+            title="Live Preview mode"
+          >
+            <Eye size={13} />
+            Preview
+          </button>
+          <button
+            type="button"
+            className={`${styles["menu-bar__segment-btn"]} ${
+              editorMode === "code" ? styles["is-active"] : ""
+            }`}
+            onClick={() => onModeChange?.("code")}
+            title="Raw Markdown code mode"
+          >
+            <Code size={13} />
+            Code
+          </button>
+        </div>
+
+        <div className={styles["menu-bar__divider-v"]} />
+
         <button
           type="button"
-          className={`${styles["menu-bar__tab-btn"]} ${
-            isFormattingToolbarVisible ? styles["is-active"] : ""
-          }`}
-          onClick={onToggleFormattingToolbar}
+          className={styles["menu-bar__action-btn"]}
+          onClick={handleExportPdf}
+          title="Convert / Export note to PDF"
+          aria-label="Export to PDF"
         >
-          Format
-        </button>
-        <button
-          type="button"
-          className={styles["menu-bar__tab-btn"]}
-          onClick={() => handleInsert("%% Note note %%\n")}
-        >
-          Tools
-        </button>
-        <button
-          type="button"
-          className={styles["menu-bar__tab-btn"]}
-          onClick={() =>
-            window.alert(
-              "Markdown Shortcuts:\n- Heading: # Title\n- Bold: **text**\n- Italic: *text*\n- List: - item or 1. item\n- Task: - [ ] item\n- Code: ```js\n- Math: $formula$",
-            )
-          }
-        >
-          Help
+          <FilePdf size={14} />
+          PDF
         </button>
       </div>
 
