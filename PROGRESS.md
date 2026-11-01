@@ -4,7 +4,25 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Desktop UI Blank/Unopened Window Caused by Circular Chunk Dependencies & Barrel Imports
+## Last Session — UX Review Phase 0: Screen Inventory & Prompts
+
+**Scope:** Complete Phase 0 of the rule-based UX test of every screen (docs only, no code changes under `apps/` or `packages/`):
+1. **Screen Inventory (`design/UXReview/00-screen-inventory.md`)**: Comprehensive audit of 55 surfaces and components across 8 logical screen groups, specifying component paths, user entry triggers, and 7 test states (*Empty*, *Loading*, *Populated*, *Error*, *Long Content*, *Narrow Window*, and *Large 10k-Note Vault*).
+2. **Ready-to-Run Prompts (`design/UXReview/prompts/`)**: Created 8 standalone prompt files (`01-navigation-and-chrome.md` through `08-settings-and-quickcapture.md`) enforcing the full UX rubric (Nielsen H1–H10, Laws of UX, Gestalt Box Audit, Project Design Rules, A11y & Performance Feel).
+3. **Execution Branch & Commit**: Created branch `chore/ux-review-inventory` and committed Phase 0 deliverables.
+
+**What was done:**
+1. Audited the full UI shell, workspace views, sidebars, modals, settings tabs, and QuickCapture tray popover from source code.
+2. Verified that both `@app/desktop` web build and `@app/design-system` Storybook build successfully.
+3. Delivered `design/UXReview/00-screen-inventory.md` and 8 group prompts under `design/UXReview/prompts/`.
+
+**Next up:**
+- User review and approval of Phase 0 deliverables.
+- Proceed to Phase 1: Screen Group 01 (`01-navigation-and-chrome.md`).
+
+---
+
+## Prior Session — Fix Desktop UI Blank/Unopened Window Caused by Circular Chunk Dependencies & Barrel Imports
 
 **Scope:** Resolve desktop application UI not opening / appearing blank when launched after adding Agent UI:
 1. **De-barrel Vault Imports in Agent & Settings Modules**: Replace imports from `../../vault` (the barrel `src/vault/index.ts`) in `desktopAgentBridge.ts`, `useAgentViewConfig.ts`, `agentContextAssembler.ts`, `agentPreferences.ts`, and `AIAgentSettingsSection.tsx` with direct imports to `../../vault/createNoteInVault`, `../../vault/deleteNoteInVault`, `../../vault/deleteFolderInVault`, `../../vault/renameNoteInVault`, `../../vault/sqliteIndex`, `../../vault/settingsCommands`, and `../../vault/vaultCommands`.
