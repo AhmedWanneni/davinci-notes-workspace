@@ -4,7 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — UX Review Phase 0: Screen Inventory & Prompts
+## Last Session — Comprehensive Rule-Based UX Review of All 56 Screens (Completed)
+
+**Scope:** Complete the full rule-based UX audit of every screen and surface across Sophia Desktop (docs only, no code changes under `apps/` or `packages/`):
+1. **Screen Inventory (`design/UXReview/00-screen-inventory.md`)**: Catalog of 55 surfaces and components across 8 screen groups with 7 test states.
+2. **Screen Group Reviews (`design/UXReview/screens/`)**: Conducted empirical audits across all 8 groups (56 screens total), evaluated against Nielsen's 10 Heuristics, Laws of UX, Gestalt Box Audit, Project Design Rules, and Accessibility & Performance Feel.
+   - Group 01: Navigation & Chrome (7 screens)
+   - Group 02: File Tree & Sidebar (8 screens)
+   - Group 03: Editor & Formatting (9 screens)
+   - Group 04: Special Views (7 screens)
+   - Group 05: AI & Audio (5 screens)
+   - Group 06: Inspectors & Right Sidebar (7 screens)
+   - Group 07: Dialogs & Modals (7 screens)
+   - Group 08: Settings & QuickCapture (6 groups / modes)
+3. **Synthesis & Roadmap Deliverables**:
+   - `design/UXReview/README.md`: Index, reading guide, and rubric summary.
+   - `design/UXReview/99-summary.md`: Heatmap matrix, 5 cross-screen systemic patterns, Top 15 issues ranked by impact ÷ effort, 5-phase prompt-sized fix roadmap, and proposed "Box Budget" draft ADR.
+4. **Git Branch & Commits**: Scoped on `chore/ux-review-inventory` with granular group commits.
+
+**What was actually tested vs inferred:**
+- **Tested & observed in runtime / dev server**: App shell, IconRail clipping under narrow heights, WindowControls OS layout, FileTreeRow virtualized roving tabIndex trap, PropertiesBlock dead-click button and pill badges, AskYourVaultPanel textarea enter behavior, CommandPalette and SearchDialog microscopic close buttons, SearchDialog copy-paste placeholder mismatch, SyncConflictsPanel immediate file deletion risk, QuickCapture floating HUD and raw emoji tab header.
+- **Inferred from code reading**: Large vault performance thresholds (10k+ notes FTS5 / graph rendering limits), Syncthing P2P daemon pairing under multi-subnet network conditions, cloud OAuth failure edge cases.
+
+**Next up:**
+- User review of `design/UXReview/99-summary.md` and prioritization of Phase 1 remediation tasks (`CONFLICT-01` delete confirmation and `WIN-01` window controls order).
+
+---
+
+## Prior Session — UX Review Phase 0: Screen Inventory & Prompts
 
 **Scope:** Complete Phase 0 of the rule-based UX test of every screen (docs only, no code changes under `apps/` or `packages/`):
 1. **Screen Inventory (`design/UXReview/00-screen-inventory.md`)**: Comprehensive audit of 55 surfaces and components across 8 logical screen groups, specifying component paths, user entry triggers, and 7 test states (*Empty*, *Loading*, *Populated*, *Error*, *Long Content*, *Narrow Window*, and *Large 10k-Note Vault*).
