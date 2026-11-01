@@ -21,7 +21,7 @@
 
     <span class="nav-divider" aria-hidden="true"></span>
 
-    <div class="nav-links">
+    <div class="nav-links" id="site-nav-links">
       <a href="/#workbench" class="nav-link">Workbench</a>
       <a href="/#features" class="nav-link">Features</a>
       <a href="/#canvas-stage" class="nav-link">Canvas</a>
@@ -29,8 +29,26 @@
       <a href="/docs" class="nav-link">Docs</a>
       <a href="https://github.com" target="_blank" rel="noreferrer" class="nav-link">GitHub ↗</a>
     </div>
+
+    <button class="nav-menu-toggle" type="button" aria-label="Open navigation menu" aria-expanded="false" aria-controls="site-nav-links">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
   </nav>
 </header>
+
+<script>
+  const menuToggle = document.querySelector<HTMLButtonElement>('.nav-menu-toggle');
+  const navLinks = document.querySelector<HTMLElement>('.nav-links');
+
+  menuToggle?.addEventListener('click', () => {
+    const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+    menuToggle.setAttribute('aria-expanded', String(!isExpanded));
+    menuToggle.setAttribute('aria-label', isExpanded ? 'Open navigation menu' : 'Close navigation menu');
+    navLinks?.classList.toggle('is-open', !isExpanded);
+  });
+</script>
 
 <style>
   .sophia-nav-header {
@@ -140,9 +158,63 @@
     border-bottom-color: #c85e13;
   }
 
+  .nav-menu-toggle { display: none; }
+
   @media (max-width: 768px) {
-    .nav-stationery-bar { gap: 10px; padding: 6px 14px; }
-    .nav-links { gap: 10px; }
-    .nav-link { font-size: 0.85rem; }
+    .sophia-nav-header { padding: 0 16px; }
+
+    .nav-stationery-bar {
+      width: 100%;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 18px;
+    }
+
+    .nav-pin { display: none; }
+    .nav-divider { display: none; }
+
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+      padding: 8px 18px;
+      background-color: #f3e3c6;
+      border: 1.7px solid #281a0e;
+      border-radius: 4px 7px 5px 6px / 6px 4px 7px 5px;
+    }
+
+    .nav-links.is-open { display: flex; }
+
+    .nav-link {
+      padding: 10px 0;
+      font-size: 1rem;
+    }
+
+    .nav-menu-toggle {
+      display: flex;
+      width: 36px;
+      height: 36px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0;
+      color: #26180d;
+      background: transparent;
+      border: 1px solid currentColor;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .nav-menu-toggle span {
+      width: 17px;
+      height: 1.5px;
+      background-color: currentColor;
+    }
   }
 </style>

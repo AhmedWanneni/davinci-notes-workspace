@@ -4,7 +4,17 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Vim Mode Keymap Precedence and Store Wiring in Editor
+## Last Session — Make Website Stationery Navigation Responsive
+
+**Scope:** On mobile, simplify the stationery navigation bar to the Sophia Notes logo and a functional hamburger menu. Desktop navigation remains visible as before.
+
+- Updated `apps/website/src/components/SiteNav.astro` with a mobile menu toggle, accessible expanded state, and a compact dropdown containing the existing navigation links.
+- No dependencies added; behavior uses the existing Astro client script and CSS.
+- Verification: not run (not requested).
+
+---
+
+## Previous Session — Fix Vim Mode Keymap Precedence and Store Wiring in Editor
 
 **Scope:** Resolve issue where Vim keybindings did not function in `<Editor />` when activated in Settings > Editor > "Vim Keybindings" (`useVimMode`).
 
