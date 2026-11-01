@@ -176,6 +176,7 @@ Browsable index of all architecture decisions. Check this before "fixing" someth
 | [0193](adr/0193-mobile-readonly-canvas-and-cycle-prevention.md) | Mobile read-only JSON Canvas: lazy webview pan/zoom, ancestor chain cycle detection (max depth 3) | Accepted |
 | [0194](adr/0194-mobile-expo-sdk-pin-and-dependency-alignment.md) | Mobile Expo SDK pin and dependency alignment: pinned SDK 57 stable, React version ownership, expo-audio migration | Accepted |
 | [0195](adr/0195-mobile-vault-onboarding-and-registry.md) | Mobile vault onboarding, multi-vault registry, and storage selection | Accepted |
+| [0251](adr/0251-mobile-android-native-library-extraction-and-prebuild-plugin.md) | Mobile Android native library extraction and prebuild plugin | Accepted |
 
 ## Design System & Tooling
 

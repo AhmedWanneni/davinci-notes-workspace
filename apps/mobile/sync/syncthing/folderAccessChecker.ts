@@ -1,4 +1,5 @@
 import * as FileSystem from "expo-file-system/legacy";
+import { normalizeToValidFileUri } from "../../vault/pathUtils";
 
 export interface FolderAccessCheckResult {
   accessible: boolean;
@@ -29,7 +30,8 @@ export async function checkFolderAccess(
     };
   }
 
-  const cleanDirUri = clean.endsWith("/") ? clean : `${clean}/`;
+  const validUri = normalizeToValidFileUri(clean);
+  const cleanDirUri = validUri.endsWith("/") ? validUri : `${validUri}/`;
 
   try {
     const info = await FileSystem.getInfoAsync(cleanDirUri);

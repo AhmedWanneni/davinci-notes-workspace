@@ -1,6 +1,7 @@
 import { Paths, File } from "expo-file-system";
 import type { MobileVaultRegistry } from "./vaultRegistryTypes";
 import type { VaultMode } from "./types";
+import { normalizeToValidFileUri } from "./pathUtils";
 
 export interface LegacyVaultConfig {
   vaultUri: string;
@@ -16,17 +17,27 @@ export async function loadRegistryFromDisk(
     const regFile = new File(registryPath);
     if (regFile.exists) {
       const raw = await regFile.text();
-      return JSON.parse(raw) as MobileVaultRegistry;
+      const parsed = JSON.parse(raw) as MobileVaultRegistry;
+      return {
+        activeVaultUri: parsed.activeVaultUri
+          ? normalizeToValidFileUri(parsed.activeVaultUri)
+          : null,
+        vaults: (parsed.vaults || []).map((v) => ({
+          ...v,
+          uri: normalizeToValidFileUri(v.uri),
+        })),
+      };
     }
     const legacyFile = new File(legacyConfigPath);
     if (legacyFile.exists) {
       const raw = await legacyFile.text();
       const legacy = JSON.parse(raw) as LegacyVaultConfig;
+      const normLegacyUri = normalizeToValidFileUri(legacy.vaultUri);
       const initial: MobileVaultRegistry = {
-        activeVaultUri: legacy.vaultUri,
+        activeVaultUri: normLegacyUri,
         vaults: [
           {
-            uri: legacy.vaultUri,
+            uri: normLegacyUri,
             name: legacy.vaultName,
             mode: legacy.mode,
             createdAt: Date.now(),
@@ -54,7 +65,15 @@ export async function verifyDirectoryAccess(
   vaultUri: string,
 ): Promise<{ isAccessible: boolean; error?: string }> {
   try {
-    const info = Paths.info(vaultUri);
+    const norm = normalizeToValidFileUri(vaultUri);
+    if (!norm || norm.startsWith("content://")) {
+      return {
+        isAccessible: false,
+        error:
+          "External Document Picker folders (content://) cannot be accessed directly. Please create a new folder in app storage to sync your files.",
+      };
+    }
+    const info = Paths.info(norm);
     if (!info.exists) {
       return {
         isAccessible: false,
@@ -69,12 +88,21 @@ export async function verifyDirectoryAccess(
     }
     return { isAccessible: true };
   } catch (err) {
+    const rawMsg = err instanceof Error ? err.message : String(err);
+    if (
+      /character in path|FileSystemPath|IllegalArgumentException|URI/i.test(
+        rawMsg,
+      )
+    ) {
+      return {
+        isAccessible: false,
+        error:
+          "Invalid or external folder path. Please create a new folder in app storage to sync your files.",
+      };
+    }
     return {
       isAccessible: false,
-      error:
-        err instanceof Error
-          ? err.message
-          : "Permission revoked or folder inaccessible.",
+      error: rawMsg || "Permission revoked or folder inaccessible.",
     };
   }
 }

@@ -1,15 +1,17 @@
 import { Paths } from "expo-file-system";
 import { MobileVaultStorageAdapter } from "./MobileVaultStorageAdapter";
 import type { VaultInfo } from "./types";
-import type { MobileVaultRegistry, RegisteredVault } from "./vaultRegistryTypes";
-import { INITIAL_WELCOME_NOTE } from "./initialWelcomeNote";
+import type {
+  MobileVaultRegistry,
+  RegisteredVault,
+} from "./vaultRegistryTypes";
 import { loadRegistryFromDisk, saveRegistryToDisk } from "./vaultRegistryStore";
+import { verifyDirectoryAccess } from "./fs/vaultStorage";
+import { normalizeToValidFileUri, toPosixPath } from "./pathUtils";
 import {
-  createSandboxVaultDirectory,
-  deleteVaultDirectory,
-  pickDirectory,
-  verifyDirectoryAccess,
-} from "./fs/vaultStorage";
+  createNewSandboxVault,
+  pickExternalDirectoryVault,
+} from "./vaultCreation";
 
 const docDir = Paths.document.uri.endsWith("/")
   ? Paths.document.uri
@@ -17,6 +19,14 @@ const docDir = Paths.document.uri.endsWith("/")
 
 const REGISTRY_FILE = `${docDir}.davinci_vault_registry.json`;
 const LEGACY_CONFIG_FILE = `${docDir}.davinci_vault_config.json`;
+
+const NO_VAULT_INFO: VaultInfo = {
+  uri: "",
+  name: "No Vault",
+  mode: "sandbox",
+  isAccessible: false,
+  error: "No vault configured. Please create or open a vault.",
+};
 
 export class VaultManager {
   private activeAdapter: MobileVaultStorageAdapter | null = null;
@@ -35,40 +45,27 @@ export class VaultManager {
     return verifyDirectoryAccess(vaultUri);
   }
 
-  async createSandboxVault(name: string): Promise<MobileVaultStorageAdapter> {
-    const { uri: rawVaultUri, folderName } = createSandboxVaultDirectory(name);
-    let adapter: MobileVaultStorageAdapter;
-
-    try {
-      adapter = new MobileVaultStorageAdapter(rawVaultUri, "sandbox");
-      await adapter.createFolder("Attachments");
-      await adapter.writeNote(
-        "Welcome to DaVinci Notes.md",
-        INITIAL_WELCOME_NOTE,
-      );
-    } catch (err) {
-      deleteVaultDirectory(rawVaultUri);
-      throw err;
-    }
-
-    const vaultUri = adapter.vaultUri;
+  private async registerAndActivate(
+    vault: RegisteredVault,
+    adapter: MobileVaultStorageAdapter,
+  ): Promise<void> {
     const registry = await this.getRegistry();
-    const newVault: RegisteredVault = {
-      uri: vaultUri,
-      name: name.trim() || folderName,
-      mode: "sandbox",
-      createdAt: Date.now(),
-    };
     const updatedVaults = [
-      ...registry.vaults.filter((v) => v.uri !== vaultUri),
-      newVault,
+      ...registry.vaults.filter(
+        (v) => normalizeToValidFileUri(v.uri) !== vault.uri,
+      ),
+      vault,
     ];
     await this.saveRegistry({
-      activeVaultUri: vaultUri,
+      activeVaultUri: vault.uri,
       vaults: updatedVaults,
     });
-
     this.activeAdapter = adapter;
+  }
+
+  async createSandboxVault(name: string): Promise<MobileVaultStorageAdapter> {
+    const { adapter, vault } = await createNewSandboxVault(name);
+    await this.registerAndActivate(vault, adapter);
     return adapter;
   }
 
@@ -78,33 +75,10 @@ export class VaultManager {
     error?: string;
   }> {
     try {
-      const picked = await pickDirectory();
-      if (!picked || !picked.uri) {
-        return { success: false };
-      }
-
-      const adapter = new MobileVaultStorageAdapter(picked.uri, "saf");
-      const vaultUri = adapter.vaultUri;
-      const name = picked.name || "External Vault";
-
-      const registry = await this.getRegistry();
-      const newVault: RegisteredVault = {
-        uri: vaultUri,
-        name,
-        mode: "saf",
-        createdAt: Date.now(),
-      };
-      const updatedVaults = [
-        ...registry.vaults.filter((v) => v.uri !== vaultUri),
-        newVault,
-      ];
-      await this.saveRegistry({
-        activeVaultUri: vaultUri,
-        vaults: updatedVaults,
-      });
-
-      this.activeAdapter = adapter;
-      return { success: true, adapter };
+      const res = await pickExternalDirectoryVault();
+      if (!res) return { success: false };
+      await this.registerAndActivate(res.vault, res.adapter);
+      return { success: true, adapter: res.adapter };
     } catch (err) {
       return {
         success: false,
@@ -117,18 +91,21 @@ export class VaultManager {
   }
 
   async switchVault(uri: string): Promise<MobileVaultStorageAdapter | null> {
+    const normUri = normalizeToValidFileUri(uri);
     const registry = await this.getRegistry();
-    const target = registry.vaults.find((v) => v.uri === uri);
+    const target = registry.vaults.find(
+      (v) => normalizeToValidFileUri(v.uri) === normUri || v.uri === uri,
+    );
     if (!target) return null;
 
-    await this.saveRegistry({ ...registry, activeVaultUri: uri });
-    const access = await this.verifyVaultAccess(uri);
+    await this.saveRegistry({ ...registry, activeVaultUri: normUri });
+    const access = await this.verifyVaultAccess(normUri);
     if (!access.isAccessible) {
       this.activeAdapter = null;
       return null;
     }
 
-    this.activeAdapter = new MobileVaultStorageAdapter(uri, target.mode);
+    this.activeAdapter = new MobileVaultStorageAdapter(normUri, target.mode);
     return this.activeAdapter;
   }
 
@@ -136,46 +113,67 @@ export class VaultManager {
     uri: string,
     name?: string,
   ): Promise<MobileVaultStorageAdapter | null> {
+    const normUri = normalizeToValidFileUri(uri);
     const registry = await this.getRegistry();
-    let target = registry.vaults.find((v) => v.uri === uri);
-    const mode = uri.startsWith("content://") ? "saf" : "sandbox";
+    let target = registry.vaults.find(
+      (v) => normalizeToValidFileUri(v.uri) === normUri || v.uri === uri,
+    );
+    const mode = normUri.startsWith("content://") ? "saf" : "sandbox";
 
-    let nextVaults = registry.vaults;
     if (!target) {
-      const parts = uri.replace(/\/+$/, "").split("/");
+      const decoded = toPosixPath(normUri);
+      const parts = decoded.replace(/\/+$/, "").split("/");
       target = {
-        uri,
+        uri: normUri,
         name: name?.trim() || parts[parts.length - 1] || "Synced Vault",
         mode,
         createdAt: Date.now(),
       };
-      nextVaults = [...registry.vaults, target];
+    } else {
+      target = { ...target, uri: normUri };
     }
 
-    await this.saveRegistry({ ...registry, vaults: nextVaults, activeVaultUri: uri });
-    this.activeAdapter = new MobileVaultStorageAdapter(uri, target.mode);
+    const nextVaults = [
+      ...registry.vaults.filter(
+        (v) => normalizeToValidFileUri(v.uri) !== normUri,
+      ),
+      target,
+    ];
+    await this.saveRegistry({
+      ...registry,
+      vaults: nextVaults,
+      activeVaultUri: normUri,
+    });
+    this.activeAdapter = new MobileVaultStorageAdapter(normUri, target.mode);
     return this.activeAdapter;
   }
 
   async renameVault(uri: string, newDisplayName: string): Promise<void> {
     const trimmed = newDisplayName.trim();
     if (!trimmed) return;
+    const normUri = normalizeToValidFileUri(uri);
     const registry = await this.getRegistry();
     const updatedVaults = registry.vaults.map((v) =>
-      v.uri === uri ? { ...v, name: trimmed } : v,
+      normalizeToValidFileUri(v.uri) === normUri ? { ...v, name: trimmed } : v,
     );
     await this.saveRegistry({ ...registry, vaults: updatedVaults });
   }
 
   async removeVault(uri: string): Promise<void> {
+    const normUri = normalizeToValidFileUri(uri);
     const registry = await this.getRegistry();
-    const nextVaults = registry.vaults.filter((v) => v.uri !== uri);
+    const nextVaults = registry.vaults.filter(
+      (v) => normalizeToValidFileUri(v.uri) !== normUri,
+    );
     const nextActive =
-      registry.activeVaultUri === uri
+      normalizeToValidFileUri(registry.activeVaultUri || "") === normUri
         ? (nextVaults[0]?.uri ?? null)
         : registry.activeVaultUri;
     await this.saveRegistry({ activeVaultUri: nextActive, vaults: nextVaults });
-    if (this.activeAdapter?.vaultUri === uri) {
+    if (
+      this.activeAdapter &&
+      normalizeToValidFileUri(this.activeAdapter.vaultUri) === normUri
+    ) {
       this.activeAdapter = null;
     }
   }
@@ -187,29 +185,22 @@ export class VaultManager {
   }> {
     const registry = await this.getRegistry();
     if (!registry.vaults.length || !registry.activeVaultUri) {
-      return {
-        adapter: null,
-        info: {
-          uri: "",
-          name: "No Vault",
-          mode: "sandbox",
-          isAccessible: false,
-          error: "No vault configured. Please create or open a vault.",
-        },
-        hasAnyVaults: false,
-      };
+      return { adapter: null, info: NO_VAULT_INFO, hasAnyVaults: false };
     }
 
+    const normActiveUri = normalizeToValidFileUri(registry.activeVaultUri);
     const active =
-      registry.vaults.find((v) => v.uri === registry.activeVaultUri) ??
-      registry.vaults[0];
-    const access = await this.verifyVaultAccess(active.uri);
+      registry.vaults.find(
+        (v) => normalizeToValidFileUri(v.uri) === normActiveUri,
+      ) ?? registry.vaults[0];
+    const targetUri = normalizeToValidFileUri(active.uri);
+    const access = await this.verifyVaultAccess(targetUri);
 
     if (!access.isAccessible) {
       return {
         adapter: null,
         info: {
-          uri: active.uri,
+          uri: targetUri,
           name: active.name,
           mode: active.mode,
           isAccessible: false,
@@ -219,9 +210,12 @@ export class VaultManager {
       };
     }
 
-    if (!this.activeAdapter || this.activeAdapter.vaultUri !== active.uri) {
+    if (
+      !this.activeAdapter ||
+      normalizeToValidFileUri(this.activeAdapter.vaultUri) !== targetUri
+    ) {
       this.activeAdapter = new MobileVaultStorageAdapter(
-        active.uri,
+        targetUri,
         active.mode,
       );
     }
@@ -229,7 +223,7 @@ export class VaultManager {
     return {
       adapter: this.activeAdapter,
       info: {
-        uri: active.uri,
+        uri: targetUri,
         name: active.name,
         mode: active.mode,
         isAccessible: true,

@@ -322,7 +322,7 @@ pub fn run() {
       #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
       let window = window.decorations(false);
 
-      window.build()?;
+      let main_window = window.build()?;
 
       #[cfg(target_os = "macos")]
       {
@@ -332,6 +332,8 @@ pub fn run() {
 
       tray::setup(app.handle())?;
       capture::setup(app.handle())?;
+
+      tray::show_main_window(&main_window);
 
       if let Some(db_path) = reminder_db::get_db_path(app.handle()) {
         let scheduler = std::sync::Arc::new(reminder_scheduler::ReminderScheduler::new(
@@ -373,14 +375,9 @@ pub fn run() {
         }
       }
       #[cfg(target_os = "macos")]
-      tauri::RunEvent::Reopen {
-        has_visible_windows,
-        ..
-      } => {
-        if !has_visible_windows {
-          if let Some(window) = app_handle.get_webview_window(tray::MAIN_WINDOW) {
-            tray::show_main_window(&window);
-          }
+      tauri::RunEvent::Reopen { .. } => {
+        if let Some(window) = app_handle.get_webview_window(tray::MAIN_WINDOW) {
+          tray::show_main_window(&window);
         }
       }
       _ => {}

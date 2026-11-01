@@ -7,11 +7,13 @@ import { Button, Text } from "./primitives";
 export interface VaultInaccessibleBannerProps {
   error?: string;
   onRecover: () => void;
+  onCreateNewFolder?: () => void;
 }
 
 export function VaultInaccessibleBanner({
   error,
   onRecover,
+  onCreateNewFolder,
 }: VaultInaccessibleBannerProps): React.ReactElement {
   const { tokens } = useTheme();
 
@@ -26,9 +28,26 @@ export function VaultInaccessibleBanner({
       <Text variant="body" color="muted" className="mb-4">
         {error ?? "The vault folder is missing or permission was revoked."}
       </Text>
-      <Button variant="primary" onPress={onRecover}>
-        Recover Default Vault
-      </Button>
+      <View className="flex-row gap-2">
+        <Button
+          variant="primary"
+          size="sm"
+          onPress={onRecover}
+          className="flex-1"
+        >
+          Recover Default
+        </Button>
+        {onCreateNewFolder ? (
+          <Button
+            variant="secondary"
+            size="sm"
+            onPress={onCreateNewFolder}
+            className="flex-1"
+          >
+            Create New Vault
+          </Button>
+        ) : null}
+      </View>
     </View>
   );
 }

@@ -4,7 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Native OS Keychain Backend & Notification Channel Secret Fallback Fix
+## Last Session — Scan-to-Sync Target Folder Resolution & Empty Folder Creation
+
+**Scope:** Fix the "Target folder is not empty" warning in phone's Scan-to-Sync confirmation sheet, add a 1-tap option to create a dedicated empty folder for the incoming sync, fix Android JSI HostFunction index 52 crashes on external vaults, build and release the production APK (`Sophia_0.3.0.apk`), and verify public download links.
+
+**What was done:**
+1. **Clean Sandbox Target Resolution across All Sync Flows (`ScanToSyncConfirmSheet.tsx`, `SyncthingPendingFolderRow.tsx`, `sandboxTargetResolver.ts`)**:
+   - Resolved the issue where sync confirmations defaulted to the currently open active vault (which contains existing notes like `Welcome to DaVinci Notes.md`), causing the `"⚠️ Target folder is not empty"` warning with no option to create a new folder.
+   - Extracted `sandboxTargetResolver.ts` (`resolveSandboxTarget`, `createFreshSandboxFolder`) to maintain compliance with `AGENTS.md` (all files < 230 lines).
+   - Applied clean dedicated sandbox targeting to BOTH sync entrypoints: QR Scan-to-Sync (`ScanToSyncConfirmSheet.tsx`) and Incoming Syncthing Folder Offers (`SyncthingPendingFolderRow.tsx`).
+   - In both surfaces, when a folder is non-empty, a prominent **`"+ Create New Empty Folder"`** button appears directly inside the warning box, provisioning an incremental non-colliding directory (`vaults/<label>-1`, `vaults/<label>-2`, etc.) and immediately selecting it.
+   - Added quick-action buttons: `"+ New Folder"` to create an isolated target on demand, and `"Use Active Vault"` to easily switch back if desired.
+2. **HostFunction Exception Hardening & External Vault Sync (`vaultStorage.ts`, `syncExternalDirectory.ts`, `vaultCreation.ts`)**:
+   - Handled Android SAF `content://` and invalid URI characters safely in `verifyDirectoryAccess` and `vaultRegistryStore.ts` to prevent native JSI `IllegalArgumentException: character in path at index 52` crashes in `expo.module.filesystem.FileSystemPath`.
+   - Added `syncExternalDirectoryToSandbox` and `pickAndCreateFolderToSyncExternalVault` to copy external notes into a clean app sandbox folder.
+   - Added `"+ Create New Folder"` in incoming Syncthing folder offers (`SyncthingPendingFolderRow.tsx`).
+3. **Release & Verification**:
+   - Production APK built via `cd apps/mobile/android && ./gradlew assembleRelease` -> `Sophia_0.3.0.apk` (71 MB).
+   - Asset uploaded to GitHub Release `v0.3.0` (`gh release upload v0.3.0 ./Sophia_0.3.0.apk --clobber`).
+   - Verified direct public download link returns HTTP 200 without authentication (`curl -ILs`).
+   - All 14 Syncthing test suites (67 tests) passed. TypeScript checks clean.
+
+**Next up:**
+- Run live vault organization test with `agy` in an active test vault.
+- Add optional interactive confirmation dialog when CLI agent attempts destructive batch file moves or deletions.
+
+---
+
+## Prior Session — Native OS Keychain Backend & Notification Channel Secret Fallback Fix
 
 **Scope:** Fix Telegram, Slack, and external channel notification failures where credentials failed to persist in the OS keychain ("Missing Telegram credentials in OS keychain. Reconnect in Settings").
 
@@ -21,10 +48,6 @@ Updated at the end of every session. Read this first, before touching code. Full
    - All 157 Rust tests passing (`cargo test --manifest-path apps/desktop/src-tauri/Cargo.toml`).
    - All 5 notification Vitest test suites passing (`pnpm --filter @app/desktop test src/notifications`).
    - Knowledge graph updated via `graphify update .`.
-
-**Next up:**
-- Run live vault organization test with `agy` in an active test vault.
-- Add optional interactive confirmation dialog when CLI agent attempts destructive batch file moves or deletions.
 
 ---
 
@@ -49,9 +72,133 @@ Updated at the end of every session. Read this first, before touching code. Full
    - ESLint 0 errors, Stylelint 0 errors, 0 design token violations.
    - Knowledge graph updated via `graphify update .`.
 
+---
+
+## Prior Session — External Vault Connection & Synced Folder Creation (Index 52 Crash Fix)
+
+**Scope:** Fix the runtime exception `Vault Inaccessible: Exception in hostfunction character in path at index 52 expo.module.filesystem.FileSystemPath` when connecting an external vault on Android, and provide the user with the ability to automatically create a new dedicated folder in app storage to sync external vaults into.
+
+**What was done:**
+1. **HostFunction Exception Hardening (`vaultStorage.ts`, `vaultRegistryStore.ts`)**:
+   - `expo.modules.filesystem.FileSystemPath` and `Paths.info` on Android throw native `IllegalArgumentException` on SAF `content://` URIs or paths containing colon characters at index 52 (`primary:...`).
+   - Protected `verifyDirectoryAccess` in `apps/mobile/vault/fs/vaultStorage.ts` and `apps/mobile/vault/vaultRegistryStore.ts` to cleanly handle external/content URIs and catch native path parsing errors gracefully instead of crashing Hermes with an uncaught hostfunction exception.
+2. **Dedicated Synced Folder Creation (`vaultCreation.ts`, `syncExternalDirectory.ts`)**:
+   - Implemented `syncExternalDirectoryToSandbox` to safely and recursively copy Markdown notes, folders, and attachments from external directories (SAF) into app sandbox storage via `expo-file-system/legacy`.
+   - Updated `pickExternalDirectoryVault` and `pickAndCreateFolderToSyncExternalVault` so connecting an external vault automatically provisions a fast, crash-free POSIX sandbox vault (`vaults/<VaultName>`) with external notes safely synced into it.
+3. **Syncthing Folder Offer UX Polish (`SyncthingPendingFolderRow.tsx`)**:
+   - Extracted `SyncthingPendingFolderRow.tsx` and `SyncthingPendingDeviceRow.tsx` from `SyncthingPendingSection.tsx` to maintain strict compliance with `AGENTS.md` (all files < 190 lines).
+   - In incoming folder offers, added the **"Create New Folder"** action to provision an isolated sandbox target (`vaults/<folderLabel>`), eliminating the broken SAF picker requirement.
+   - Added validation warning if a user attempts to select a raw `content://` URI with a 1-tap fallback to create an app storage folder.
+4. **Vault Inaccessible Recovery UI (`VaultInaccessibleBanner.tsx`)**:
+   - Added **"Create New Vault"** button to the inaccessible banner alongside "Recover Default", giving users instant 1-tap recovery to a fresh sandbox vault without entering settings.
+5. **Verification**:
+   - Added unit test suite `apps/mobile/vault/fs/syncExternalDirectory.test.ts`.
+   - All 14 Syncthing test suites (67 tests) and all 8 onboarding vault tests pass.
+   - Clean TypeScript check across the mobile workspace (`tsc --noEmit`).
+   - Rebuilt knowledge graph via `graphify update .`.
+
 **Next up:**
-- Run live vault organization test with `agy` in an active test vault.
-- Add optional interactive confirmation dialog when CLI agent attempts destructive batch file moves or deletions.
+- Build and verify updated release APK with external folder sync flow.
+- Verify end-to-end device-to-desktop note sync with newly created sandbox folders.
+
+---
+
+## Prior Session — URI Normalization Fix for Synced & Shared Vaults on Android
+
+**Scope:** Fix runtime exception when opening synced/shared vaults on Android: `Vault Inaccessible. Exception in HostFunction Java.lang.IllegalArgumentException: Illegal character in path at index 52 expo.modules.filesystem ...`.
+
+**What was done:**
+1. **Root Cause Analysis**:
+   - Syncthing REST API (`/rest/config/folders`) returns raw POSIX filesystem paths (e.g. `/data/user/0/com.davinci.notes/files/vaults/Personal Vault`).
+   - `expo-file-system`'s `Directory` and `File` classes on Android delegate to `JavaFile(uri: Uri)`, which executes `File(URI.create(uri.toString()))`.
+   - `java.net.URI.create()` strictly enforces RFC 2396; unencoded spaces (`' '`) or raw POSIX paths throw `java.lang.IllegalArgumentException: Illegal character in path at index 52` when evaluated in native JNI calls from Hermes.
+2. **Implementation (`normalizeToValidFileUri` & `toPosixPath`)**:
+   - `apps/mobile/vault/pathUtils.ts`: Implemented `normalizeToValidFileUri` (encodes segments to valid `file:///...` URIs, leaves `content://` untouched, avoids double-encoding) and `toPosixPath` (decodes `file://` to plain POSIX paths for Syncthing API).
+   - `apps/mobile/vault/pathUtils.test.ts`: Added comprehensive unit test suite covering raw paths with spaces, unencoded file URIs, pre-encoded URIs, SAF content URIs, and path traversal safeguards (17 tests passing).
+   - `apps/mobile/vault/MobileVaultStorageAdapter.ts`: Normalizes `vaultUri` in constructor before initializing `rootDirectory`.
+   - `apps/mobile/vault/vaultScanner.ts`: Normalizes `vaultRootUri` in `scanVaultDirectory`.
+   - `apps/mobile/vault/fs/vaultStorage.ts`: Normalizes URIs in `verifyDirectoryAccess` and `deleteVaultDirectory`.
+   - `apps/mobile/vault/vaultRegistryStore.ts`: Normalizes URIs when loading registry from disk to automatically repair any existing corrupt/unencoded paths on user devices.
+   - `apps/mobile/vault/vaultCreation.ts`: Extracted sandbox creation and external folder picking into dedicated module to ensure `vaultManager.ts` complies with the 250-line hard cap (238 lines).
+   - `apps/mobile/vault/vaultManager.ts`: Normalizes URIs across `openDirectoryVault`, `switchVault`, `removeVault`, `renameVault`, and `getActiveAdapter`.
+   - `apps/mobile/sync/syncthing/MobileSyncthingPanel.tsx`: Normalizes path in `handleOpenVault` before registering.
+   - `apps/mobile/sync/syncthing/mobileSyncthingVaults.ts`: Compares normalized POSIX paths when calculating `isActiveVault`.
+   - `apps/mobile/sync/syncthing/folderAccessChecker.ts`: Normalizes path before verifying folder existence and write access.
+3. **Verification**:
+   - All 18 mobile test files and 101 unit tests pass (`pnpm --filter @app/mobile test vault sync/syncthing`).
+   - Clean production APK build (`./gradlew assembleRelease`, 65 MB) with extracted native binary.
+   - Successfully installed and verified launch on Android emulator (`emulator-5554`) with zero exceptions in logcat.
+   - Copied new APK to `./Sophia_0.3.0.apk` ready for public distribution.
+
+**Next up:**
+- Upload updated `Sophia_0.3.0.apk` to GitHub Release `v0.3.0`.
+- Verify public download link returns HTTP 200.
+
+---
+
+## Prior Session — Automated Embedded Syncthing Daemon Config Plugin, Native Execution & Lifecycle Fix on Android
+
+**Scope:** Complete implementation of Phase A diagnosis and Phase B execution for embedded Syncthing daemon native execution on Android: automated Expo config plugin (`withSyncthingAndroid.js`), tracked assets, clean prebuild resiliency, rich error diagnostics, process ring buffer, ADR-0251, and production release build.
+
+**What was done:**
+1. **Consolidated Prebuild Plugin (`apps/mobile/plugins/withSyncthingAndroid.js`)**:
+   - Automated native binary copying from tracked `apps/mobile/assets/syncthing/<abi>/libsyncthing.so` into `android/app/src/main/jniLibs/<abi>/` during `withDangerousMod`.
+   - Guaranteed `android:extractNativeLibs="true"` in `AndroidManifest.xml` on `<application>`.
+   - Injected `expo.useLegacyPackaging=true` and `reactNativeArchitectures=arm64-v8a,x86_64` into `gradle.properties`.
+   - Enforced `packagingOptions.jniLibs.useLegacyPackaging true` in `app/build.gradle`.
+   - Registered permissions (`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_DATA_SYNC`, `POST_NOTIFICATIONS`, `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, `INTERNET`) and declared `SyncthingForegroundService` and `SyncthingBootReceiver`.
+   - Replaced superseded `withEmbeddedSyncthing.js` in `app.json`.
+2. **Enhanced Native Process Manager & Expo Module (`apps/mobile/modules/expo-syncthing`)**:
+   - Refined `SyncthingProcessManager.kt` to log binary location, existence, and execution permissions with `Log.i("SyncthingProcess", ...)`.
+   - Implemented thread-safe ring buffer (`recentLogs`, 50-line capacity) capturing stdout/stderr, API-key redacted.
+   - Added process exit code capture (`lastExitCode`) to surface detailed crash diagnostics to the UI.
+   - Added `getApiKey()` and `getGuiAddress()` native methods to `ExpoSyncthingModule.kt` and `EmbeddedSyncthingBridge`.
+3. **UI / Diagnostic Improvements & Cleanup**:
+   - Updated `useScanToSync.ts` to surface rich failure diagnostics (`binaryPath`, `exists`, `canExecute`, `exitCode`) on error.
+   - Removed leftover "install Syncthing-Fork" instructions in `ScanToSyncSetupGuide.tsx`, `SyncthingKeyModal.tsx`, and `useMobileSyncthing.ts`.
+   - Maintained strict 250-line limits across all modified TypeScript files (`useScanToSync.ts` at 244 lines).
+4. **Documentation**:
+   - Added `docs/adr/0251-mobile-android-native-library-extraction-and-prebuild-plugin.md`.
+   - Indexed ADR-0251 in `DECISIONS.md`.
+5. **Verification**:
+   - Ran `npx expo prebuild --clean` and confirmed automatic binary copying and manifest injection with zero manual steps.
+   - Compiled production release APK via `./gradlew assembleRelease` (3m 4s).
+   - Confirmed `extractNativeLibs(0x010104ea)=true` inside final APK manifest with `aapt2`.
+   - Installed on ARM64 Android environment (`emulator-5554`) and verified `libsyncthing.so` extracted to `nativeLibraryDir` with `-rwxr-xr-x`.
+   - Verified all 14 Syncthing unit test suites (67 tests) pass cleanly.
+   - Re-uploaded `Sophia_0.3.0.apk` to GitHub Release `v0.3.0` and confirmed public HTTP 200 download status.
+
+**Next up:**
+- On-device verification of live note sync over Wi-Fi between desktop and physical Android device.
+- Ad-hoc / TestFlight distribution verification for `Sophia_0.3.0.ipa`.
+
+---
+
+## Prior Session — Standalone Mobile Release Builds (Android APK & iOS IPA), Website Downloads & Cloudflare Deployment
+
+**Scope:** Fix on-device startup crash where Syncthing failed to execute on Android devices ("Syncthing native binary not found or not executable at: /data/app/--OUsOh.../lib/arm64/libsyncthing.so"). Rebuild and re-upload `Sophia_0.3.0.apk`.
+
+**What was done:**
+1. **Root Cause Analysis**:
+   - In modern Android (API 29+ / AGP 8+), `extractNativeLibs` defaults to `false` and `useLegacyPackaging` defaults to `false`.
+   - When disabled, Android package manager does not extract `.so` files to `nativeLibraryDir` (`/data/app/.../lib/arm64`), leaving it empty.
+   - Because Syncthing is an ELF binary executed via `ProcessBuilder`, it requires physical extraction into `nativeLibraryDir` (Android 10+ SELinux prevents `execve` inside writable app data directories).
+2. **Configuration & Plugin Fixes**:
+   - Updated `apps/mobile/plugins/withEmbeddedSyncthing.js`:
+     - Added `withGradleProperties` to enforce `expo.useLegacyPackaging=true`.
+     - Injected `android:extractNativeLibs="true"` into `<application>`.
+   - Updated `apps/mobile/modules/expo-syncthing/android/src/main/AndroidManifest.xml` with `android:extractNativeLibs="true"`.
+   - Updated `SyncthingProcessManager.kt` to differentiate existence from execution permission and invoke `binaryFile.setExecutable(true, false)` if needed.
+3. **Verified & Rebuilt Release APK**:
+   - Ran `npx expo prebuild` and verified `android:extractNativeLibs="true"` in AndroidManifest.
+   - Compiled release APK via `./gradlew assembleRelease` (6m 27s).
+   - Confirmed `extractNativeLibs(0x010104ea)=true` inside final APK manifest with `aapt2`.
+   - Re-uploaded `Sophia_0.3.0.apk` (83MB) to GitHub Release `v0.3.0` via `gh release upload --clobber`.
+   - Verified direct public download returns HTTP 200 without authentication.
+
+**Next up:**
+- On-device verification of Syncthing vault sync on Android physical devices.
+- Ad-hoc / TestFlight distribution verification for `Sophia_0.3.0.ipa`.
 
 ---
 

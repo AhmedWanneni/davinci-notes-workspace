@@ -70,3 +70,58 @@ export function getFilenameStem(relativePath: string): string {
   const dot = filename.lastIndexOf(".");
   return dot > 0 ? filename.slice(0, dot) : filename;
 }
+
+/**
+ * Normalizes any POSIX path or file URI into an RFC 2396 compliant file:// URI.
+ * - Leaves content:// URIs untouched (Android SAF).
+ * - Decodes existing components to prevent double encoding (%20 -> %2520).
+ * - Encodes path segments so spaces (%20) avoid java.net.URI IllegalArgumentException.
+ */
+export function normalizeToValidFileUri(pathOrUri: string): string {
+  if (!pathOrUri) return "";
+  const trimmed = pathOrUri.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("content://")) {
+    return trimmed;
+  }
+
+  const rawPath = trimmed.replace(/^file:\/*/, "/");
+  let decodedPath = rawPath;
+  try {
+    decodedPath = decodeURIComponent(rawPath);
+  } catch {
+    decodedPath = rawPath;
+  }
+
+  const segments = decodedPath
+    .replace(/\\/g, "/")
+    .split("/")
+    .filter((s) => s.length > 0 && s !== ".");
+
+  const resolved: string[] = [];
+  for (const seg of segments) {
+    if (seg === "..") {
+      resolved.pop();
+    } else {
+      resolved.push(seg);
+    }
+  }
+
+  const encodedSegments = resolved.map((seg) => encodeURIComponent(seg));
+  return `file:///${encodedSegments.join("/")}`;
+}
+
+/**
+ * Converts a file:// URI or POSIX path to a plain decoded POSIX filesystem path.
+ */
+export function toPosixPath(fileUriOrPath: string): string {
+  if (!fileUriOrPath) return "";
+  const trimmed = fileUriOrPath.trim();
+  if (trimmed.startsWith("content://")) return trimmed;
+  const stripped = trimmed.replace(/^file:\/*/, "/");
+  try {
+    return decodeURIComponent(stripped);
+  } catch {
+    return stripped;
+  }
+}

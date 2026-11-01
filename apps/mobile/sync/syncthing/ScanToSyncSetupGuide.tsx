@@ -82,9 +82,9 @@ export const ScanToSyncSetupGuide: React.FC<ScanToSyncSetupGuideProps> = ({
           </Text>
           <View className="p-3 rounded border border-border-subtle bg-bg-base mb-3">
             <Text size="xs" color="muted" className="leading-relaxed">
-              1. Open or install Syncthing-Fork (or official Syncthing).{"\n"}
-              2. Ensure the background service is started and active.{"\n"}
-              3. Return here and tap "Check Again".
+              1. Embedded Syncthing daemon is initializing.{"\n"}
+              2. Ensure background sync permissions are granted.{"\n"}
+              3. Tap "Retry" to restart the daemon.
             </Text>
           </View>
           <Button
@@ -94,7 +94,7 @@ export const ScanToSyncSetupGuide: React.FC<ScanToSyncSetupGuideProps> = ({
             disabled={isBusy}
             className="mb-2"
           >
-            {isBusy ? "Checking..." : "Check Again"}
+            {isBusy ? "Starting..." : "Retry"}
           </Button>
         </View>
       ) : (
@@ -111,7 +111,7 @@ export const ScanToSyncSetupGuide: React.FC<ScanToSyncSetupGuideProps> = ({
           </View>
 
           <Text size="xs" color="muted" className="mb-2 leading-relaxed">
-            In Syncthing-Fork: tap Settings → Web GUI → API Key, copy the key, and paste below:
+            Enter your Syncthing Web GUI API key below to grant access:
           </Text>
 
           <View className="flex-row gap-2 mb-3">

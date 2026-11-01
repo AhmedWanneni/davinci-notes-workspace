@@ -3,6 +3,7 @@ import { View, ActivityIndicator } from "react-native";
 import { useTheme } from "../../theme";
 import { Badge, Button, Text } from "../../components/primitives";
 import { VaultManager } from "../../vault/vaultManager";
+import { normalizeToValidFileUri } from "../../vault/pathUtils";
 import { useMobileSyncthing } from "./useMobileSyncthing";
 import { getSyncthingStatusViewData } from "./syncthingStatusViewData";
 import { SyncthingDeviceIdCard } from "./SyncthingDeviceIdCard";
@@ -68,9 +69,10 @@ export const MobileSyncthingPanel: React.FC<MobileSyncthingPanelProps> = ({
 
   const handleOpenVault = async (path: string, label: string) => {
     const vm = new VaultManager();
-    await vm.openDirectoryVault(path, label);
-    setDefaultVaultPath(path);
-    onVaultSwitched?.(path);
+    const normalized = normalizeToValidFileUri(path);
+    await vm.openDirectoryVault(normalized, label);
+    setDefaultVaultPath(normalized);
+    onVaultSwitched?.(normalized);
     await refresh();
   };
 

@@ -1,7 +1,5 @@
 import { ExpoSyncthingNative } from "./src/ExpoSyncthingModule";
-import type {
-  SyncthingStatusResult,
-} from "./src/ExpoSyncthing.types";
+import type { SyncthingStatusResult } from "./src/ExpoSyncthing.types";
 
 export * from "./src/ExpoSyncthing.types";
 
@@ -43,6 +41,16 @@ export async function getEmbeddedDeviceId(): Promise<string> {
   return await ExpoSyncthingNative.getDeviceId();
 }
 
+export async function getEmbeddedApiKey(): Promise<string> {
+  if (!ExpoSyncthingNative || !ExpoSyncthingNative.getApiKey) return "";
+  return await ExpoSyncthingNative.getApiKey();
+}
+
+export async function getEmbeddedGuiAddress(): Promise<string> {
+  if (!ExpoSyncthingNative || !ExpoSyncthingNative.getGuiAddress) return "";
+  return await ExpoSyncthingNative.getGuiAddress();
+}
+
 export async function getEmbeddedQrDataUri(text: string): Promise<string> {
   if (!ExpoSyncthingNative) return "";
   return await ExpoSyncthingNative.getQrDataUri(text);
@@ -57,11 +65,7 @@ export async function embeddedSyncthingRequest(
     throw new Error("Embedded Syncthing is not supported on this platform");
   }
   const bodyStr =
-    typeof body === "string"
-      ? body
-      : body
-        ? JSON.stringify(body)
-        : null;
+    typeof body === "string" ? body : body ? JSON.stringify(body) : null;
   return await ExpoSyncthingNative.request(method, path, bodyStr);
 }
 
@@ -71,7 +75,11 @@ export async function setEmbeddedSyncthingConditions(
   background: boolean,
 ): Promise<void> {
   if (!ExpoSyncthingNative) return;
-  await ExpoSyncthingNative.setRunConditions(wifiOnly, chargingOnly, background);
+  await ExpoSyncthingNative.setRunConditions(
+    wifiOnly,
+    chargingOnly,
+    background,
+  );
 }
 
 export async function isBatteryOptimizationIgnored(): Promise<boolean> {

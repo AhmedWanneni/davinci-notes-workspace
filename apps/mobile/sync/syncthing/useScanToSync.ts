@@ -87,15 +87,14 @@ export function useScanToSync(
       if (EmbeddedSyncthingBridge.isAvailable()) {
         const startRes = await EmbeddedSyncthingBridge.start();
         if (startRes.status !== "running") {
-          throw new Error(
-            startRes.reason || "Failed to start embedded Syncthing service.",
-          );
+          const detail = `${startRes.reason || "Failed to start Syncthing"}${startRes.binaryPath ? ` (path: ${startRes.binaryPath}, exists=${startRes.binaryExists}, canExecute=${startRes.binaryExecutable})` : ""}${startRes.exitCode != null ? ` [code: ${startRes.exitCode}]` : ""}`;
+          throw new Error(detail);
         }
       } else {
         const detect = await mobileSyncthingDetect();
         if (!detect.running) {
           throw new Error(
-            "Syncthing daemon is not running on this phone. A development build (npx expo run:android) is required to run the embedded Syncthing daemon, or start Syncthing on port 8384.",
+            "Syncthing daemon is not running on this phone. Ensure embedded Syncthing is supported on your platform.",
           );
         }
         apiKey = (await getSyncthingApiKey()) || "";

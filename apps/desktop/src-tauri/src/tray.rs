@@ -122,7 +122,16 @@ fn setup_macos_tray(app: &AppHandle) -> tauri::Result<()> {
 
 pub fn show_main_window(window: &WebviewWindow) {
   #[cfg(target_os = "macos")]
-  let _ = window.app_handle().set_activation_policy(ActivationPolicy::Regular);
+  {
+    let _ = window.app_handle().set_activation_policy(ActivationPolicy::Regular);
+    unsafe {
+      let current_app: *mut tauri_nspanel::objc2::runtime::AnyObject =
+        tauri_nspanel::objc2::msg_send![tauri_nspanel::objc2::class!(NSRunningApplication), currentApplication];
+      if !current_app.is_null() {
+        let _: bool = tauri_nspanel::objc2::msg_send![current_app, activateWithOptions: 2usize];
+      }
+    }
+  }
   let _ = window.unminimize();
   let _ = window.show();
   let _ = window.set_focus();

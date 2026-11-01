@@ -55,12 +55,12 @@ export const SyncthingKeyModal: React.FC<SyncthingKeyModalProps> = ({
     <Sheet
       visible={visible}
       onClose={onClose}
-      title="Syncthing-Fork API Key"
+      title="Syncthing API Key"
       className="p-4"
     >
       <Text size="sm" color="muted" className="mb-3">
-        In Syncthing-Fork, tap Settings → Web GUI → API Key, copy the key, and
-        paste it below. Stored securely in device keychain.
+        Copy your Syncthing Web GUI API key and paste it below. Stored securely
+        in device keychain.
       </Text>
 
       <View className="mb-4">
