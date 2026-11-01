@@ -34,6 +34,16 @@ function initMermaid(mermaid: typeof import("mermaid").default) {
   mermaidInitialized = true;
 }
 
+export async function renderMermaidSvg(
+  id: string,
+  source: string,
+): Promise<string> {
+  const mermaid = await loadMermaid();
+  initMermaid(mermaid);
+  const result = await mermaid.render(id, source);
+  return result.svg;
+}
+
 export class MermaidWidget extends WidgetType {
   constructor(
     readonly block: MermaidBlock,

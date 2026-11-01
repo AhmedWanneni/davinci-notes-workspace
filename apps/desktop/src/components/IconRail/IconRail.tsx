@@ -19,6 +19,7 @@ import { IconRailButton } from "./IconRailButton";
 export interface IconRailProps {
   isLeftSidebarOpen: boolean;
   onToggleLeftSidebar: () => void;
+  onOpenFiles?: () => void;
   onOpenSearch: () => void;
   onOpenGlobalGraph: () => void;
   onOpenSettings: () => void;
@@ -46,6 +47,7 @@ export interface IconRailProps {
 export function IconRail({
   isLeftSidebarOpen,
   onToggleLeftSidebar,
+  onOpenFiles,
   onOpenSearch,
   onOpenGlobalGraph,
   onOpenSettings,
@@ -75,8 +77,18 @@ export function IconRail({
         <IconRailButton
           label="Files"
           tooltip="Files (Toggle sidebar)"
-          isActive={isLeftSidebarOpen}
-          onClick={onToggleLeftSidebar}
+          isActive={isLeftSidebarOpen && !isBookmarksOpen && !isGitManagerOpen}
+          onClick={() => {
+            if (isBookmarksOpen || isGitManagerOpen) {
+              if (onOpenFiles) {
+                onOpenFiles();
+              } else {
+                onToggleLeftSidebar();
+              }
+            } else {
+              onToggleLeftSidebar();
+            }
+          }}
         >
           <Files size={18} weight="regular" />
         </IconRailButton>

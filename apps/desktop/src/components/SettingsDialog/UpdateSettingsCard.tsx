@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   ArrowsClockwise,
-  CheckCircle,
   DownloadSimple,
   WarningCircle,
 } from "@phosphor-icons/react";
@@ -17,7 +16,13 @@ import styles from "./UpdateSettingsCard.module.scss";
 
 export function UpdateSettingsCard() {
   const [status, setStatus] = useState<
-    "idle" | "checking" | "available" | "downloading" | "ready" | "up-to-date" | "error"
+    | "idle"
+    | "checking"
+    | "available"
+    | "downloading"
+    | "ready"
+    | "up-to-date"
+    | "error"
   >("idle");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<number>(0);
@@ -47,7 +52,9 @@ export function UpdateSettingsCard() {
 
     const result = await downloadAndInstall((downloaded, total) => {
       if (total && total > 0) {
-        setDownloadProgress(Math.min(100, Math.round((downloaded / total) * 100)));
+        setDownloadProgress(
+          Math.min(100, Math.round((downloaded / total) * 100)),
+        );
       } else {
         setDownloadProgress(50);
       }
@@ -80,8 +87,10 @@ export function UpdateSettingsCard() {
             <span className={styles["status-badge"]}>
               {status === "checking" && "Checking for updates..."}
               {status === "up-to-date" && "You are running the latest version."}
-              {status === "available" && `Version v${updateInfo?.version} is available!`}
-              {status === "downloading" && `Downloading update (${downloadProgress}%)...`}
+              {status === "available" &&
+                `Version v${updateInfo?.version} is available!`}
+              {status === "downloading" &&
+                `Downloading update (${downloadProgress}%)...`}
               {status === "ready" && "Update downloaded and verified."}
               {status === "idle" && "Click below to check GitHub Releases."}
             </span>

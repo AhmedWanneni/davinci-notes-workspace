@@ -1,19 +1,41 @@
 import { type ReactNode } from "react";
+import { AgentCodeBlock } from "./AgentCodeBlock";
+import { AgentMermaidBlock } from "./AgentMermaidBlock";
+import { AgentTableBlock } from "./AgentTableBlock";
 
 export interface AgentMarkdownContentProps {
   content: string;
   onNavigateNote?: (notePath: string) => void;
+  onSaveAsNote?: (snippet: string) => void;
 }
 
 function renderInlineFormatting(
   text: string,
   onNavigateNote?: (path: string) => void,
 ): ReactNode[] {
-  // Matches `code`, **bold**, *italic*, and [[wikilink]]
-  const tokenRegex = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[\[[^\]]+\]\])/g;
+  // Matches ![alt](url), `code`, **bold**, *italic*, and [[wikilink]]
+  const tokenRegex =
+    /(!\[[^\]]*\]\([^)]+\)|`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[\[[^\]]+\]\])/g;
   const parts = text.split(tokenRegex);
 
   return parts.map((part, idx) => {
+    if (part.startsWith("![") && part.includes("](") && part.endsWith(")")) {
+      const match = part.match(/!\[([^\]]*)\]\(([^)]+)\)/);
+      if (match) {
+        return (
+          <span key={idx} className="agent-md-image-card">
+            <img
+              src={match[2]}
+              alt={match[1] || "Generated content"}
+              loading="lazy"
+            />
+            {match[1] && (
+              <span className="agent-md-image-caption">{match[1]}</span>
+            )}
+          </span>
+        );
+      }
+    }
     if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
       return (
         <code key={idx} className="agent-md-code">
@@ -49,6 +71,7 @@ function renderInlineFormatting(
 export function AgentMarkdownContent({
   content,
   onNavigateNote,
+  onSaveAsNote,
 }: AgentMarkdownContentProps) {
   if (!content) return null;
 
@@ -58,6 +81,7 @@ export function AgentMarkdownContent({
   let codeBuffer: string[] = [];
   let codeLang = "";
   let listBuffer: ReactNode[] = [];
+  let tableBuffer: string[] = [];
 
   const flushList = () => {
     if (listBuffer.length > 0) {
@@ -70,26 +94,48 @@ export function AgentMarkdownContent({
     }
   };
 
+  const flushTable = () => {
+    if (tableBuffer.length > 0) {
+      elements.push(
+        <AgentTableBlock
+          key={`table-${elements.length}`}
+          markdownTable={tableBuffer.join("\n")}
+        />,
+      );
+      tableBuffer = [];
+    }
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     if (line.startsWith("```")) {
+      flushList();
+      flushTable();
       if (inCodeBlock) {
-        elements.push(
-          <div key={`code-${i}`} className="agent-md-codeblock">
-            {codeLang && (
-              <div className="agent-md-codeblock__lang">{codeLang}</div>
-            )}
-            <pre className="agent-md-codeblock__pre">
-              <code>{codeBuffer.join("\n")}</code>
-            </pre>
-          </div>,
-        );
+        const fullCode = codeBuffer.join("\n");
+        if (codeLang.toLowerCase() === "mermaid") {
+          elements.push(
+            <AgentMermaidBlock
+              key={`mermaid-${i}`}
+              source={fullCode}
+              onSaveAsNote={onSaveAsNote}
+            />,
+          );
+        } else {
+          elements.push(
+            <AgentCodeBlock
+              key={`code-${i}`}
+              code={fullCode}
+              lang={codeLang}
+              onSaveAsNote={onSaveAsNote}
+            />,
+          );
+        }
         codeBuffer = [];
         inCodeBlock = false;
         codeLang = "";
       } else {
-        flushList();
         inCodeBlock = true;
         codeLang = line.slice(3).trim();
       }
@@ -99,6 +145,15 @@ export function AgentMarkdownContent({
     if (inCodeBlock) {
       codeBuffer.push(line);
       continue;
+    }
+
+    const trimmed = line.trim();
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      flushList();
+      tableBuffer.push(trimmed);
+      continue;
+    } else {
+      flushTable();
     }
 
     if (line.startsWith("- ") || line.startsWith("* ")) {
@@ -112,7 +167,7 @@ export function AgentMarkdownContent({
 
     flushList();
 
-    if (!line.trim()) {
+    if (!trimmed) {
       continue;
     }
 
@@ -144,14 +199,16 @@ export function AgentMarkdownContent({
   }
 
   flushList();
+  flushTable();
 
   if (inCodeBlock && codeBuffer.length > 0) {
     elements.push(
-      <div key="code-unterminated" className="agent-md-codeblock">
-        <pre className="agent-md-codeblock__pre">
-          <code>{codeBuffer.join("\n")}</code>
-        </pre>
-      </div>,
+      <AgentCodeBlock
+        key="code-unterminated"
+        code={codeBuffer.join("\n")}
+        lang={codeLang}
+        onSaveAsNote={onSaveAsNote}
+      />,
     );
   }
 

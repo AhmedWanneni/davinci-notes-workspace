@@ -99,6 +99,7 @@ export { codeBlockLayoutTheme } from "./blocks/code/codeBlockLayoutTheme";
 export { mermaidExtension } from "./blocks/mermaid/mermaidExtension";
 export type { MermaidExtensionOptions } from "./blocks/mermaid/mermaidExtension";
 export { mermaidTheme } from "./blocks/mermaid/mermaidTheme";
+export { renderMermaidSvg } from "./blocks/mermaid/mermaidWidget";
 export { mathExtension } from "./blocks/math/mathExtension";
 export type { MathExtensionOptions } from "./blocks/math/mathExtension";
 export { mathTheme } from "./blocks/math/mathTheme";
@@ -162,10 +163,7 @@ export { htmlBlockExtension } from "./blocks/html/htmlBlockExtension";
 export { htmlBlockTheme } from "./blocks/html/htmlBlockTheme";
 export { htmlInlineExtension } from "./blocks/html/htmlInlineExtension";
 export { htmlInlineTheme } from "./blocks/html/htmlInlineTheme";
-export {
-  loadVimExtension,
-  getLoadedVimExtension,
-} from "./vim/vimExtension";
+export { loadVimExtension, getLoadedVimExtension } from "./vim/vimExtension";
 export {
   noteEmbedExtension,
   noteEmbedTheme,

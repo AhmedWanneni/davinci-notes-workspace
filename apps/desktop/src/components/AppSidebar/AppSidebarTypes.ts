@@ -29,6 +29,7 @@ export interface AppSidebarProps {
   onOpenGlobalGraph?: () => void;
   onOpenCalendar?: () => void;
   onOpenBookmarks?: () => void;
+  onOpenFiles?: () => void;
   onOpenAgent?: () => void;
   onOpenListening?: () => void;
   onOpenAskVault?: () => void;

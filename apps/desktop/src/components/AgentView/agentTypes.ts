@@ -7,8 +7,10 @@ export interface ChatMessageItem {
   id: string;
   role: "user" | "assistant" | "tool";
   content: string;
+  images?: string[];
   toolCalls?: AgentToolCall[];
   toolResults?: AgentToolResult[];
+  logs?: string[];
   timestamp: number;
   isStreaming?: boolean;
 }

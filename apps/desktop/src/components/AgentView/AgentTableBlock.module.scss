@@ -1,0 +1,67 @@
+.table-wrap {
+  position: relative;
+  margin: 12px 0;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-primary);
+  overflow-x: auto;
+
+  &:hover .table-toolbar {
+    opacity: 1;
+  }
+}
+
+.table-toolbar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.table-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-normal);
+  font-size: 11px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+
+  th {
+    padding: 8px 12px;
+    font-weight: 600;
+    color: var(--color-text-normal);
+    background-color: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  td {
+    padding: 8px 12px;
+    color: var(--color-text-normal);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background-color: var(--color-bg-hover);
+  }
+}

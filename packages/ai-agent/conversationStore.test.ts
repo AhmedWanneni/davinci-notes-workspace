@@ -8,6 +8,9 @@ import {
   createProject,
   deleteProject,
   moveConversationToProject,
+  renameProject,
+  addProjectSource,
+  removeProjectSource,
 } from "./conversationStore";
 import type { AgentConversation } from "./conversationTypes";
 
@@ -37,7 +40,9 @@ describe("conversationStore", () => {
       projectId: "proj_general",
       createdAt: 1000,
       updatedAt: 1000,
-      messages: [{ id: "m1", role: "user", content: "Review budget", timestamp: 1000 }],
+      messages: [
+        { id: "m1", role: "user", content: "Review budget", timestamp: 1000 },
+      ],
     };
 
     data = addOrUpdateConversation(data, conv1);
@@ -52,8 +57,20 @@ describe("conversationStore", () => {
 
   it("deletes a conversation and adjusts active ID", () => {
     let data = createEmptyConversationsData();
-    const c1: AgentConversation = { id: "c1", title: "C1", createdAt: 1, updatedAt: 1, messages: [] };
-    const c2: AgentConversation = { id: "c2", title: "C2", createdAt: 2, updatedAt: 2, messages: [] };
+    const c1: AgentConversation = {
+      id: "c1",
+      title: "C1",
+      createdAt: 1,
+      updatedAt: 1,
+      messages: [],
+    };
+    const c2: AgentConversation = {
+      id: "c2",
+      title: "C2",
+      createdAt: 2,
+      updatedAt: 2,
+      messages: [],
+    };
     data = addOrUpdateConversation(data, c1);
     data = addOrUpdateConversation(data, c2);
 
@@ -69,7 +86,13 @@ describe("conversationStore", () => {
     data = withProj;
     expect(data.projects.some((p) => p.name === "Work")).toBe(true);
 
-    const c1: AgentConversation = { id: "c1", title: "C1", createdAt: 1, updatedAt: 1, messages: [] };
+    const c1: AgentConversation = {
+      id: "c1",
+      title: "C1",
+      createdAt: 1,
+      updatedAt: 1,
+      messages: [],
+    };
     data = addOrUpdateConversation(data, c1);
     data = moveConversationToProject(data, "c1", project.id);
     expect(data.conversations[0].projectId).toBe(project.id);
@@ -77,5 +100,34 @@ describe("conversationStore", () => {
     data = deleteProject(data, project.id);
     expect(data.projects.some((p) => p.id === project.id)).toBe(false);
     expect(data.conversations[0].projectId).toBe(null);
+  });
+
+  it("renames projects and manages project sources", () => {
+    let data = createEmptyConversationsData();
+    const { data: withProj, project } = createProject(data, "Gym");
+    data = withProj;
+
+    data = renameProject(data, project.id, "Fitness & Gym");
+    expect(data.projects.find((p) => p.id === project.id)?.name).toBe(
+      "Fitness & Gym",
+    );
+
+    data = addProjectSource(data, project.id, "Workouts/Routine.md");
+    data = addProjectSource(data, project.id, "Nutrition/Diet.md");
+    expect(data.projects.find((p) => p.id === project.id)?.sources).toEqual([
+      "Workouts/Routine.md",
+      "Nutrition/Diet.md",
+    ]);
+
+    // idempotent add
+    data = addProjectSource(data, project.id, "Nutrition/Diet.md");
+    expect(
+      data.projects.find((p) => p.id === project.id)?.sources?.length,
+    ).toBe(2);
+
+    data = removeProjectSource(data, project.id, "Workouts/Routine.md");
+    expect(data.projects.find((p) => p.id === project.id)?.sources).toEqual([
+      "Nutrition/Diet.md",
+    ]);
   });
 });

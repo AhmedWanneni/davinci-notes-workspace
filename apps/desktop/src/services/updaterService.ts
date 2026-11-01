@@ -11,10 +11,25 @@ export type UpdateCheckResult =
   | { status: "unavailable" }
   | { status: "error"; message: string };
 
-let pendingUpdate: any = null;
+interface TauriUpdateInstance {
+  downloadAndInstall: (
+    onEvent: (event: {
+      event: string;
+      data?: { contentLength?: number; chunkLength?: number };
+    }) => void,
+  ) => Promise<void>;
+}
+
+let pendingUpdate: TauriUpdateInstance | null = null;
 
 function isTauriEnvironment(): boolean {
-  return typeof window !== "undefined" && Boolean((window as any).__TAURI_INTERNALS__);
+  return (
+    typeof window !== "undefined" &&
+    Boolean(
+      (window as unknown as { __TAURI_INTERNALS__?: unknown })
+        .__TAURI_INTERNALS__,
+    )
+  );
 }
 
 export async function checkAppUpdate(): Promise<UpdateCheckResult> {
@@ -47,7 +62,7 @@ export async function checkAppUpdate(): Promise<UpdateCheckResult> {
 }
 
 export async function downloadAndInstall(
-  onProgress?: (downloaded: number, total: number | null) => void
+  onProgress?: (downloaded: number, total: number | null) => void,
 ): Promise<{ success: boolean; error?: string }> {
   if (!pendingUpdate) {
     return { success: false, error: "No pending update to download." };
@@ -57,7 +72,7 @@ export async function downloadAndInstall(
     let downloaded = 0;
     let total: number | null = null;
 
-    await pendingUpdate.downloadAndInstall((event: any) => {
+    await pendingUpdate.downloadAndInstall((event) => {
       if (event.event === "Started") {
         total = event.data?.contentLength ?? null;
       } else if (event.event === "Progress") {

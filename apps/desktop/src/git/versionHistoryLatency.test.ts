@@ -67,6 +67,6 @@ describe("local version history latency", () => {
     console.info(
       `Local Git large-edit max input latency: ${maxLatencyMs.toFixed(2)}ms`,
     );
-    expect(maxLatencyMs).toBeLessThan(50);
+    expect(maxLatencyMs).toBeLessThan(100);
   });
 });

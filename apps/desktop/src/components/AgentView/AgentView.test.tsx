@@ -27,12 +27,10 @@ vi.mock("./desktopAgentBridge", () => ({
 vi.mock("../../ai/AISubsystem", () => ({
   loadSelectedProvider: vi.fn().mockResolvedValue("gemini"),
   loadAIProviderStatus: vi.fn().mockResolvedValue("ready"),
-  loadProviderModels: vi
-    .fn()
-    .mockResolvedValue({
-      embeddingModel: "gemini-embedding-001",
-      chatModel: "gemini-2.0-flash",
-    }),
+  loadProviderModels: vi.fn().mockResolvedValue({
+    embeddingModel: "gemini-embedding-001",
+    chatModel: "gemini-2.0-flash",
+  }),
   loadOllamaBaseUrl: vi.fn().mockResolvedValue("http://localhost:11434"),
   fetchOllamaModels: vi.fn().mockResolvedValue(["llama3:latest"]),
   createConfiguredProvider: vi.fn().mockResolvedValue({
@@ -57,16 +55,14 @@ describe("AgentView Components", () => {
     await act(async () => {
       render(<AgentView />);
     });
-    expect(
-      screen.getByPlaceholderText(/Ask a question or request changes/i),
-    ).toBeTruthy();
+    expect(screen.getByPlaceholderText(/Write a message/i)).toBeTruthy();
 
     const plusBtn = screen.getByRole("button", {
       name: /Agent options and capabilities/i,
     });
     expect(plusBtn).toBeTruthy();
     fireEvent.click(plusBtn);
-    expect(screen.getByText("What the Agent Can Do")).toBeTruthy();
+    expect(screen.getByText(/Upload or add files/i)).toBeTruthy();
   });
 
   it("triggers shortcut on click", () => {

@@ -16,6 +16,7 @@ export interface AgentProject {
   id: string;
   name: string;
   createdAt: number;
+  sources?: string[];
 }
 
 export interface AgentConversation {

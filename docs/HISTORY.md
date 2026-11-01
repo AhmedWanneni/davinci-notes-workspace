@@ -2,6 +2,173 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-01: Project Conversation Bugfix, Minimalist Header & Visual Alignment with Design Reference
+
+- **Project Switching Bugfix (`agentConversationSaver.ts`, `AgentView.tsx`)**:
+  - Fixed issue where selecting a project without an active conversation caused leftover in-memory messages to be automatically saved into an unintended conversation under that project.
+  - Guarded `saveActiveMessagesHelper` to strictly require `activeConversationId`.
+  - Reset in-memory `messages` to `[]` whenever `activeConversationId` is null.
+- **Minimalist Conversation Header (`AgentConversationHeader.tsx`, `AgentView.scss`, `AgentConversationHeader.test.tsx`)**:
+  - Streamlined header to a compact, single-row display showing only `{projectName} / {title}` (or `{title}` if standalone).
+  - Removed subtitle text and superfluous breadcrumb prefixes.
+  - Added a dedicated `+` button in the header actions for project chats that navigates directly to the Project Overview page (`AgentProjectView`).
+- **Sidebar Nested Project `+ New chat` Button (`AgentSidebarProjectsSection.tsx`, `AgentSidebarPanel.module.scss`)**:
+  - Added a `+ New chat` row at the top of expanded project chat lists in the sidebar, providing an instant path to open the Project Overview page with context uploading and prompt bar.
+- **Visual Alignment with Design Reference (`AgentPromptMenu.tsx`, `AgentCodeBlock.tsx`, `AgentCodeBlock.module.scss`, `AgentProjectContextPanel.tsx`)**:
+  - Aligned prompt popup menu items with reference screenshot, maintaining a single clean divider line above "Web search".
+  - Code block cards updated to `#fafafa` background with subtle 1px border and floating copy button matching reference mockup.
+  - Added blue capacity indicator knob on the project context bar and ensured default project context card display.
+- **Verification & Code Quality**:
+  - All 35 AgentView test suites (92 tests) passing.
+  - ESLint passing with 0 errors and 0 warnings.
+  - Production build (`build:web`) compiling with 0 errors in 10.9s.
+  - Graphify knowledge graph updated (`graphify update .`).
+  - All files strictly under 250 lines (`max-lines`).
+
+### 2026-11-01: Contextual Conversation Titles, Project Hover `+` & Deletion, Editorial Header, Code Box & Enhanced Chat Search
+
+- **Contextual Conversation Title Generation (`agentContextTitle.ts`, `agentConversationSaver.ts`)**:
+  - Implemented `deriveConversationContextTitle` to clean user input (strips `@` mentions, slash commands, conversational prefixes like "please/can you") and generate clean, human-readable contextual titles (e.g. "Audio transcription tools", "Fix Syncthing native binary").
+- **Hover Project `+` Action & Project Deletions (`AgentSidebarProjectsSection.tsx`, `AgentSidebarPanel.module.scss`, `AgentProjectView.tsx`)**:
+  - Hovering over a project in the sidebar displays a `+` button on the right.
+  - Clicking `+` opens the 2-column project overview page (`AgentProjectView`) showing the project's shared context, instructions, memory, and recents, from which users can start new conversations under that project.
+  - Added delete option (`Trash` icon) on hover for conversations nested under a project in the sidebar and in the project's recents list.
+- **Editorial Conversation Header (`AgentConversationHeader.tsx`, `AgentView.tsx`, `AgentView.scss`)**:
+  - Matches reference design: top breadcrumbs (`Projects / [Project Name]`), large serif title, context subtitle, pin icon button `📌`, and more options `...` dropdown (Rename, Delete).
+- **Clean Document Code Box (`AgentCodeBlock.tsx`, `AgentCodeBlock.module.scss`)**:
+  - Redesigned code rendering into a clean card container with subtle 1px border, 10px border radius, monospaced typography, and floating top-right copy button with "Copied!" feedback, matching the reference screenshot.
+- **Polished Inline Mention Menu (`AgentMentionMenu.tsx`, `AgentMentionMenu.module.scss`)**:
+  - Repositioned as a floating popover above the prompt with clean borders, padding, and subtle shadows.
+  - Displays folder (`DIR`) and file (`NOTE`) badges with keyboard arrow/enter navigation.
+- **Enhanced Chat Search (`AgentSidebarSearchResults.tsx`, `AgentSidebarPanel.tsx`)**:
+  - Upgraded sidebar search with clear button (`✕`) and Escape key reset.
+  - Full-text search across conversation titles, message contents, and project names.
+  - Renders matched results with highlighted contextual message snippets (e.g. `"...found Syncthing native binary..."`) and project tags.
+- **Quality & Verification**:
+  - 35 AgentView test suites (92 tests) passing.
+  - 269 desktop test suites (1,064 tests) passing.
+  - ESLint passing with 0 errors and 0 warnings.
+  - Production build (`build:web`) compiling in 11.35s with 0 errors.
+  - All files strictly under 250 lines (`max-lines`).
+
+### 2026-11-01: AI Model Power Tiers, Real-Time Execution Logs & 2-Column Project Context Panel
+
+- **Model Power Tier Selector & `/model` Interceptor (`AgentPromptModelPicker.tsx`, `AgentPromptBar.tsx`, `useAgentStore.ts`)**:
+  - Implemented power tier picker (`Light` | `Medium` | `High`) for fine-grained capability control.
+  - Dynamically formatted button label `${Model} ${Power}` (e.g. `Sonnet 5.5 Medium`).
+  - Added typing interceptor for `/model` in the prompt input: automatically opens model popover and strips the command.
+  - Added `Chat` and `Cowork` toggle pills in prompt bar for switching interaction modes.
+- **Wider Prompt Bar with Reduced Border Radius (`AgentPromptBar.module.scss`, `AgentPromptActions.tsx`)**:
+  - Expanded prompt bar max-width to 860px.
+  - Reduced border radius to 12px for modern rectangular card styling with border-based depth.
+  - Extracted `AgentPromptActions.tsx` for mic, waveform, send, and stop buttons to maintain file length under 250 lines.
+- **Real-Time Agent Execution Logs & Continuous Thinking Loader (`AgentExecutionLogs.tsx`, `AgentMessageBubble.tsx`, `useAgentExecution.ts`, `agentStepLoop.ts`)**:
+  - Built collapsible `AgentExecutionLogs` card displaying real-time step activity (e.g. "Analyzing prompt...", "Calling tool list_notes...", "Processing tool results...").
+  - Auto-scrolls and stays expanded while streaming; displays event counts when completed.
+  - Coupled with the persistent `✨ Thinking...` loader so users always see current agent thinking activity and logs.
+- **Two-Column Project View & Context Panel (`AgentProjectView.tsx`, `AgentProjectContextPanel.tsx`, `AgentProjectView.module.scss`, `AgentProjectContextPanel.module.scss`)**:
+  - Redesigned project view into 2-column layout matching reference design (`uploaded_media_1793555019315.jpg`):
+    - **Header**: Breadcrumbs (`Projects / [Name]`), serif display title, subtitle description, pin button (`📌`), and more options (`...`).
+    - **Left Column**: Wide prompt card (`variant="project"` with "How can I help you today?", `Chat`/`Cowork` toggle, model & power pill, voice) and `Recents` list with relative timestamps ("34 minutes ago", "Yesterday", "3 days ago").
+    - **Right Column (`AgentProjectContextPanel`)**:
+      - **Instructions**: Project-specific prompt instructions with `+` edit modal.
+      - **Memory**: `🔒 Only you` badge and "View memory" trigger.
+      - **Context**: Capacity indicator (`% of project capacity used`), note cards with file size (`6kB`) and `TEXT` badge, delete button, and `@` mention / `+` file attachment trigger.
+- **Quality & Verification**:
+  - 32 AgentView test suites (82 tests) passing.
+  - 266 desktop test suites (1,054 tests) passing.
+  - ESLint passing with 0 errors and 0 warnings.
+  - Production build (`build:web`) compiling in 10.09s with 0 errors.
+  - All files strictly under 250 lines (`max-lines`).
+
+### 2026-11-01: Claude-Style Prompt Bar, Multimodal Images, Mermaid/Tables & Save-to-Note Actions
+
+- **Claude-Style Prompt Bar & Popover Menu (`AgentPromptBar.tsx`, `AgentPromptMenu.tsx`, `usePromptAttachments.ts`, `AgentPromptBar.module.scss`, `AgentPromptMenu.module.scss`)**:
+  - Matched prompt container layout: rounded pill container with `[+]` button, `Write a message...` placeholder, microphone with caret (`🎙️ ˅`), waveform button, bottom AI disclaimer on left, and model indicator on right.
+  - Implemented categorized `+` popover menu:
+    - `📎 Upload or add files` (with `⌘ U` shortcut) & `📷 Take a screenshot`.
+    - Flyout categories: `📁 Add to project >`, `📑 Skills >` (Agent capabilities), `🧩 Add connector >` (Google Calendar, Syncthing), `🎨 Design system >`, `🔌 Add plugins`.
+    - `🌐 Web search` with active checkmark `✓`.
+- **Image Support & Display (`AgentImageAttachmentPreview.tsx`, `AgentMessageBubble.tsx`, `AgentMarkdownContent.tsx`)**:
+  - User can attach images via file picker, paste from clipboard (`onPaste`), or screenshot.
+  - Preview thumbnail strip displayed inside prompt bar with remove `✕` buttons.
+  - Attached images rendered cleanly in user message bubbles.
+  - Assistant image responses and markdown images (`![alt](url)`) rendered with rounded border styling and captions.
+- **Mermaid Diagrams, Tables & Code Hover Copy (`AgentMermaidBlock.tsx`, `AgentTableBlock.tsx`, `AgentCodeBlock.tsx`, `AgentMarkdownContent.tsx`)**:
+  - Render Mermaid diagrams dynamically via `@app/editor`'s `renderMermaidSvg`, with "Diagram" / "Source" view toggles and hover "Copy code" button.
+  - Parse and render markdown tables (`| header |`) as styled editorial tables with hover "Copy table" action.
+  - Code blocks display language badge, hover "Copy code" button, and more options menu.
+- **Save to Note in Folder or Append to Existing Note (`AgentSaveNoteModal.tsx`, `AgentMessageBubble.tsx`)**:
+  - Added "Save to Note..." in the message toolbar's `(...)` menu and code/diagram blocks.
+  - Supports creating a new note in a chosen folder (with title) or appending response text to an existing vault note.
+- **Per-Agent Model Selection (`AgentPromptModelPicker.tsx`, `useAgentStore.ts`, `cliAgentTypes.ts`)**:
+  - Added model choices for CLI Agents (e.g. Claude Code Sonnet 3.7 / 3.5, Antigravity Gemini 2.0 / 1.5, Codex GPT-4o / o3-mini, OpenCode DeepSeek / Qwen).
+  - Selected agent and model are reflected in the prompt bar footer and passed into execution.
+- **Continuous Thinking Indicator**:
+  - Displays animated `✨ Thinking...` placeholder when waiting for assistant response and maintains an inline loading indicator until stream completely concludes.
+- **Quality & Verification**:
+  - All 263 test files and 1,045 tests in `@app/desktop` pass.
+  - ESLint passing with 0 errors and 0 warnings.
+  - Production build (`pnpm --filter @app/desktop build:web`) compiles with 0 errors.
+  - All files strictly under 250 lines (`max-lines`).
+
+### 2026-11-01: AI Agent Prompt Page & ChatGPT-Style Sidebar Redesign
+
+- **Sidebar Replacement & File Tree Return (`AgentSidebarPanel.tsx`, `AppSidebar.tsx`, `App.tsx`, `AppSidebarHeader.tsx`)**:
+  - Replaced `FileTree` with `AgentSidebarPanel` in `AppSidebar` when the AI agent is active (`activeNotePath === AGENT_TAB_ID`).
+  - Added return-to-files behavior in `App.tsx`: clicking "Files" on the sidebar header or `IconRail` closes `AGENT_TAB_ID` and restores `FileTree`. Moved `handleOpenFiles` unconditionally above early return `if (!vaultPath)` to ensure identical React hook execution order on every render.
+  - Opening any file or note automatically closes the AI Agent and restores `FileTree`.
+- **ChatGPT-Style Sidebar Panel (`AgentSidebarPanel.tsx`, `AgentSidebarProjectsSection.tsx`, `AgentSidebarRecentsSection.tsx`)**:
+  - Header: Logo + "ChatGPT" title, search filter toggle, and sidebar collapse button.
+  - Top Nav Items: `New chat`, `Images`, `Scheduled`, `Library`, `Plugins`, `Codex`, `Explore`.
+  - Projects Section: List of projects (e.g. `gym`, `Papers daily`, `Search`, `Prompts`, `messaging`) with "+" create button, active highlight, nested project chats or "No chats", and "Show more" toggle.
+  - Recents Section: Chronological recent chats with direct selection, active highlight, and quick deletion.
+- **AI Agent Main Views Redesign (`AgentPromptBar.tsx`, `AgentWelcomeView.tsx`, `AgentProjectView.tsx`, `AgentView.tsx`)**:
+  - **Floating Prompt Bar (`AgentPromptBar.tsx`)**: Rounded pill input with `+` attachment button, deep `Think` toggle button, microphone voice input button, and blue circular waveform button.
+  - **Welcome View (`AgentWelcomeView.tsx`, Image 0)**: Centered "Good to see you, [Name]." greeting, wide floating prompt bar, and 3 suggested action chips (`Create an image or sticker`, `Write or edit`, `Search the web`).
+  - **Project View (`AgentProjectView.tsx`, Image 1)**: Folder icon + Project title, `Share` button, `...` options menu (Rename, Delete), `Upgrade` button, `New chat in [project]` prompt bar, and `Chats` | `Sources` pill tabs. Supports attaching vault notes as continuous project context.
+  - **Active Chat View (`AgentView.tsx`, `AgentMessageBubble.tsx`, Image 2)**: Message stream with user bubble, assistant markdown content, tool calls, action toolbar (Copy, Speak/TTS, Thumbs up/down, Regenerate), and bottom prompt dock.
+- **Projects Feature Enhancements (`conversationTypes.ts`, `conversationStore.ts`, `useAgentStore.ts`, `agentProjectActions.ts`, `agentStorePersistence.ts`)**:
+  - Extended `AgentProject` with `sources?: string[]`.
+  - Added `renameProject`, `addProjectSource`, `removeProjectSource` helpers in `@app/ai-agent`.
+  - Created centralized Zustand store `useAgentStore.ts` to synchronize conversations, active projects, and project sources.
+- **Quality & Verification**:
+  - All files strictly under 250 lines (`max-lines`).
+  - ESLint passing with 0 errors and 0 warnings.
+  - Storybook stories and unit tests created for all new components.
+  - Knowledge graph updated via `graphify update .`.
+
+---
+
+### 2026-11-01: Unified Bookmarks Navigation & Sidebar Integration
+
+- **Unified Navigation (`useBookmarkUIStore.ts`, `BookmarksView.tsx`, `BookmarksHeader.tsx`)**:
+  - Removed separate tabs for Notes vs Web links; unified both in the same view.
+  - Added top dropdown switcher (`Notes ▾` / `Web links ▾`) with item counts to seamlessly switch modes.
+  - Added `noteBookmarkFilters.ts` to compute note bookmark counts by collection/folder and filter notes without tab switching.
+- **Sidebar Integration & Return to Files (`AppSidebar.tsx`, `BookmarksSidebarPanel.tsx`, `WebBookmarksSidebar.tsx`, `IconRail.tsx`, `App.tsx`)**:
+  - Replaced `FileTree` with `BookmarksSidebarPanel` in `AppSidebar` when bookmarks tab is open (`activeNotePath === BOOKMARKS_TAB_ID`).
+  - Added `handleOpenFiles` in `App.tsx` and `onOpenFiles` in `IconRail.tsx` & `AppSidebar.tsx`: clicking "Files" in `IconRail` or `AppSidebarHeader` switches back to the last active note and restores `FileTree`.
+  - In `BookmarksView.tsx`: Clicking on any bookmarked note or file opens the note directly in the editor and restores `<FileTree />`.
+  - Automatically restores `FileTree` when switching away to any note or view.
+  - Supported `hideSidebar={true}` in `BookmarksView` to avoid duplicate inner sidebar when rendered in the desktop app shell.
+  - All 26 test suites (112 tests) pass; ESLint 0 errors, 0 warnings; all files strictly under 250 lines.
+
+---
+
+### 2026-11-01: Redesign Web Bookmarks UI (Raindrop.io Style)
+
+- **Bookmarks Redesign (`apps/desktop/src/bookmarks`, `apps/desktop/src/components/BookmarksView`)**:
+  - Implemented the full Raindrop.io visual design across 4 view modes: List, Cards, Headlines, and Moodboard.
+  - Added Left Sidebar with Web Links / Notes switcher dropdown, "+" button to create collections, system sections ("All bookmarks", "Unsorted", "Trash"), user collections with item counters, and type filters ("Highlights", "Links", "Articles", "Images", "Videos", "Audios", "Documents", "# Without tags").
+  - Added Top Actions Bar with integrated search, filter menu toggle, "Ask" AI button (`Sparkle` icon), and "+ Add" bookmark button.
+  - Added Content Header with section icon/title, sort dropdown popup (By date asc/desc, By name asc/desc, Sites asc/desc), view menu popup with display toggles (Cover, Title, Note, Description, Highlights, Tags, Bookmark info, Cover size slider), and Netscape-format HTML export.
+  - Added full Bookmark Edit Modal supporting Title, URL, Collection/Folder, Note, Description, Tags, and Cover image URL.
+  - Split stylesheets into modular SCSS files (`WebBookmarksSidebar.module.scss`, `WebBookmarksHeader.module.scss`, `WebBookmarksDisplay.module.scss`).
+  - ESLint passing with 0 warnings/errors, all files strictly under 250 lines (`max-lines`), all 99 Vitest tests passing.
+
+---
+
 ### 2026-10-31: Scan-to-Sync Target Folder Resolution & Empty Folder Creation
 
 - **Target Folder Resolution & Empty Folder Creation (`ScanToSyncConfirmSheet.tsx`, `SyncthingPendingFolderRow.tsx`, `sandboxTargetResolver.ts`)**:

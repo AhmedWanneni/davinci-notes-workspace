@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   MagnifyingGlass,
   Plus,
   UploadSimple,
   Sparkle,
   ArrowCounterClockwise,
+  CaretDown,
 } from "@phosphor-icons/react";
 import type {
   BookmarksPageTab,
@@ -53,46 +54,45 @@ export function BookmarksHeader({
   onOrganizeWithAI,
   onUndoOrganization,
 }: BookmarksHeaderProps) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
   return (
     <header className={styles["bookmarks-view__header"]}>
       <div className={styles["bookmarks-view__header-top"]}>
         <div className={styles["bookmarks-view__title-group"]}>
-          <h1 className={styles["bookmarks-view__heading"]}>Bookmarks</h1>
-          <div
-            className={webStyles["page-tabs"]}
-            role="tablist"
-            aria-label="Bookmark pages"
-          >
+          <div style={{ position: "relative" }}>
             <button
               type="button"
-              role="tab"
-              aria-selected={activePage === "notes"}
-              className={`${webStyles["page-tab"]} ${activePage === "notes" ? webStyles["is-active"] : ""}`}
-              onClick={() => onPageChange("notes")}
+              className={styles["bookmarks-view__type-dropdown-btn"]}
+              onClick={() => setDropdownOpen((v) => !v)}
             >
-              Notes
-              <span
-                className={styles["bookmarks-view__badge"]}
-                aria-label={`${noteCount} bookmarks`}
-              >
-                {noteCount}
-              </span>
+              <span>{activePage === "links" ? "Web links" : "Notes"}</span>
+              <CaretDown size={14} weight="bold" />
             </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activePage === "links"}
-              className={`${webStyles["page-tab"]} ${activePage === "links" ? webStyles["is-active"] : ""}`}
-              onClick={() => onPageChange("links")}
-            >
-              Web Links
-              <span
-                className={styles["bookmarks-view__badge"]}
-                aria-label={`${linkCount} web links`}
-              >
-                {linkCount}
-              </span>
-            </button>
+            {dropdownOpen && (
+              <div className={styles["bookmarks-view__dropdown-menu"]}>
+                <button
+                  type="button"
+                  className={styles["bookmarks-view__dropdown-item"]}
+                  onClick={() => {
+                    onPageChange("notes");
+                    setDropdownOpen(false);
+                  }}
+                >
+                  Notes ({noteCount})
+                </button>
+                <button
+                  type="button"
+                  className={styles["bookmarks-view__dropdown-item"]}
+                  onClick={() => {
+                    onPageChange("links");
+                    setDropdownOpen(false);
+                  }}
+                >
+                  Web links ({linkCount})
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

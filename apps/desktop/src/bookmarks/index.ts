@@ -4,3 +4,4 @@ export * from "./bookmarkStore";
 export * from "./useBookmarks";
 export * from "./browserBookmarkImporter";
 export * from "./organizeBookmarksWithAI";
+export * from "./useBookmarkUIStore";

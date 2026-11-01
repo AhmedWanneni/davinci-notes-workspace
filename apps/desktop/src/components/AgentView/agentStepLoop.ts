@@ -22,6 +22,7 @@ export interface AgentStepLoopOptions {
   maxSteps?: number;
   onAssistantMessage: (msg: ChatMessageItem) => void;
   onAssistantChunk?: (chunk: string) => void;
+  onStepLog?: (log: string) => void;
 }
 
 export async function runAgentStepLoop(
@@ -37,6 +38,7 @@ export async function runAgentStepLoop(
     maxSteps = 5,
     onAssistantMessage,
     onAssistantChunk,
+    onStepLog,
   } = opts;
 
   let finalResponseReceived = false;
@@ -44,6 +46,11 @@ export async function runAgentStepLoop(
 
   for (let step = 0; step < maxSteps; step++) {
     if (abortSignal?.aborted) break;
+    onStepLog?.(
+      step === 0
+        ? "Analyzing prompt..."
+        : `Step ${step + 1}: processing tool results...`,
+    );
 
     let content = "";
     let effectiveToolCalls: AgentToolCall[] | undefined;
@@ -120,10 +127,7 @@ export async function runAgentStepLoop(
       !hasExecutedMutation &&
       content
     ) {
-      const fallbackCalls = extractConversationalToolCalls(
-        content,
-        promptText,
-      );
+      const fallbackCalls = extractConversationalToolCalls(content, promptText);
       if (fallbackCalls.length > 0) {
         effectiveToolCalls = fallbackCalls;
       }
@@ -137,6 +141,7 @@ export async function runAgentStepLoop(
       });
 
       for (const tc of effectiveToolCalls) {
+        onStepLog?.(`Calling tool ${tc.name}...`);
         const toolResult = await executeAgentStepTool(tc, {
           ...stepContext,
           workingHistory,

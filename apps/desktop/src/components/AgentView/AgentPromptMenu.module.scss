@@ -1,0 +1,118 @@
+.menu {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  z-index: 200;
+  min-width: 230px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 12px;
+  padding: 6px;
+  box-sizing: border-box;
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__item-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text-normal);
+    font-size: 13px;
+    font-weight: 450;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.1s ease;
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+  }
+
+  &__item-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__shortcut {
+    font-size: 11px;
+    color: var(--color-text-muted);
+    margin-left: auto;
+    font-family: inherit;
+  }
+
+  &__caret {
+    margin-left: auto;
+    color: var(--color-text-muted);
+  }
+
+  &__check {
+    margin-left: auto;
+    color: var(--color-interactive-accent);
+  }
+
+  &__divider {
+    height: 1px;
+    background-color: var(--color-border-subtle);
+    margin: 4px;
+  }
+
+  &__submenu {
+    position: absolute;
+    left: calc(100% + 6px);
+    top: 0;
+    min-width: 210px;
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 10px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 210;
+  }
+
+  &__sub-header {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 4px 8px 2px;
+  }
+
+  &__sub-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-normal);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: left;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+  }
+}

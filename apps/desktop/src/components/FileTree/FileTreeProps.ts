@@ -19,4 +19,15 @@ export interface FileTreeProps {
   onMoveFile?: (path: string, newParentFolder: string) => Promise<boolean>;
   onDropFiles?: (targetFolder: string, files: readonly File[]) => Promise<void>;
   onSelectedFolderChange?: (folderPath: string | null) => void;
+  vaultName?: string;
+  vaultPath?: string | null;
+  isCollapsed?: boolean;
+  onSwitchVault?: (path: string) => void | Promise<void>;
+  onOpenFolderPicker?: () => void | Promise<void>;
+  onCreateNewVault?: () => void | Promise<void>;
+  onOpenVaultFromDrive?: () => void | Promise<void>;
+  onSyncVault?: () => void | Promise<void>;
+  onOpenSettings?: () => void;
+  onOpenHelp?: () => void;
+  onOpenLogs?: () => void;
 }

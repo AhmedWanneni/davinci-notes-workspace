@@ -8,6 +8,8 @@ import {
   parseMemoryData,
   formatMemoryPrompt,
   WEB_SEARCH_TOOL,
+  executeRewriteStep,
+  shouldClarifyRequest,
   type AgentIntent,
   type StructuredUserRequest,
   type VaultMutationBackend,
@@ -86,4 +88,26 @@ export async function resolveExecutionPromptAndTools(
   }
 
   return { systemPrompt, activeTools };
+}
+
+export async function resolveRewriteClarification(
+  provider: AIProvider,
+  promptText: string,
+): Promise<{
+  structuredRequest: StructuredUserRequest;
+  clarificationQuestion?: string;
+}> {
+  const structuredRequest = await executeRewriteStep(promptText, async (p) => {
+    const res = await provider.complete({
+      messages: [{ role: "user", content: p }],
+    });
+    return res.content || "";
+  });
+  const clarification = shouldClarifyRequest(structuredRequest);
+  return {
+    structuredRequest,
+    clarificationQuestion: clarification.needsClarification
+      ? clarification.question
+      : undefined,
+  };
 }

@@ -1,9 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import {
-  executeRewriteStep,
-  shouldClarifyRequest,
-  type StructuredUserRequest,
-} from "@app/ai-agent";
+import type { StructuredUserRequest } from "@app/ai-agent";
 import {
   createDesktopInspectionBackend,
   createDesktopMutationBackend,
@@ -17,7 +13,10 @@ import {
 import { useWorkspaceStore } from "../../state/useWorkspaceStore.js";
 import { useAgentLedger } from "./useAgentLedger.js";
 import { buildAgentWorkingHistory } from "./agentSystemPrompt.js";
-import { resolveExecutionPromptAndTools } from "./agentPromptResolver.js";
+import {
+  resolveExecutionPromptAndTools,
+  resolveRewriteClarification,
+} from "./agentPromptResolver.js";
 import { runAgentStepLoop } from "./agentStepLoop.js";
 import { useCliAgentExecution } from "./useCliAgentExecution.js";
 import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes.js";
@@ -44,32 +43,52 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (options?.autoApply !== undefined) {
-      setAutoApply(options.autoApply);
-    }
+    if (options?.autoApply !== undefined) setAutoApply(options.autoApply);
   }, [options?.autoApply]);
 
   const inspectionBackend = useRef(createDesktopInspectionBackend()).current;
   const mutationBackend = useRef(createDesktopMutationBackend()).current;
   const webSearchBackend = useRef(createDesktopWebSearchBackend()).current;
-
   const ledgerMethods = useAgentLedger(mutationBackend, setStagedChanges);
-  const { handleApplyChange, handleApplyAllChanges } = ledgerMethods;
   const { cliSession, runCliPrompt, cancelActiveCliSession } =
     useCliAgentExecution();
 
   const sendMessage = useCallback(
-    async (promptText: string) => {
+    async (promptText: string, images?: string[]) => {
       const userMsg: ChatMessageItem = {
         id: `msg_u_${Date.now()}`,
         role: "user",
         content: promptText,
+        images,
         timestamp: Date.now(),
       };
       const nextMessages = [...messages, userMsg];
       setMessages(nextMessages);
       abortRef.current = new AbortController();
       setIsStreaming(true);
+
+      const assistantMsgId = `msg_a_${Date.now() + 1}`;
+      const logs: string[] = [];
+      const appendLog = (entry: string) => {
+        logs.push(entry);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantMsgId ? { ...m, logs: [...logs] } : m,
+          ),
+        );
+      };
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: assistantMsgId,
+          role: "assistant",
+          content: "",
+          logs: ["Analyzing request and context..."],
+          isStreaming: true,
+          timestamp: Date.now(),
+        },
+      ]);
 
       try {
         if (options?.selectedCliAgent) {
@@ -78,21 +97,25 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           const name = meta?.name || options.selectedCliAgent;
           const vault =
             options.vaultPath || useWorkspaceStore.getState().vaultPath || "";
+          appendLog(`Starting CLI Agent: ${name}...`);
           await runCliPrompt(
             options.selectedCliAgent as CliAgentId,
             name,
             promptText,
             vault,
             (output) => {
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: `msg_a_${Date.now()}`,
-                  role: "assistant",
-                  content: output,
-                  timestamp: Date.now(),
-                },
-              ]);
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantMsgId
+                    ? {
+                        ...m,
+                        content: output,
+                        logs: [...logs, "Completed CLI execution."],
+                        isStreaming: false,
+                      }
+                    : m,
+                ),
+              );
             },
           );
           return;
@@ -107,28 +130,22 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
         let structuredRequest: StructuredUserRequest | null = null;
         if (options?.rewriteEnabled) {
-          structuredRequest = await executeRewriteStep(
-            promptText,
-            async (prompt) => {
-              const res = await provider.complete({
-                messages: [{ role: "user", content: prompt }],
-              });
-              return res.content || "";
-            },
-          );
+          appendLog("Routing intent and checking clarification...");
+          const res = await resolveRewriteClarification(provider, promptText);
+          structuredRequest = res.structuredRequest;
           setLastStructuredRequest(structuredRequest);
-
-          const clarification = shouldClarifyRequest(structuredRequest);
-          if (clarification.needsClarification && clarification.question) {
-            setMessages((prev) => [
-              ...prev,
-              {
-                id: `msg_a_${Date.now()}`,
-                role: "assistant",
-                content: clarification.question!,
-                timestamp: Date.now(),
-              },
-            ]);
+          if (res.clarificationQuestion) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? {
+                      ...m,
+                      content: res.clarificationQuestion!,
+                      isStreaming: false,
+                    }
+                  : m,
+              ),
+            );
             return;
           }
         }
@@ -151,41 +168,35 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
           nextMessages,
         );
 
-        const assistantMsgId = `msg_a_${Date.now() + 1}`;
-
         await runAgentStepLoop({
           provider,
           workingHistory,
           activeTools,
           promptText,
           abortSignal: abortRef.current?.signal,
+          onStepLog: appendLog,
           onAssistantChunk: (chunk: string) => {
-            setMessages((prev) => {
-              const existing = prev.find((m) => m.id === assistantMsgId);
-              if (existing) {
-                return prev.map((m) =>
-                  m.id === assistantMsgId
-                    ? { ...m, content: m.content + chunk, isStreaming: true }
-                    : m,
-                );
-              }
-              return [
-                ...prev,
-                {
-                  id: assistantMsgId,
-                  role: "assistant",
-                  content: chunk,
-                  isStreaming: true,
-                  timestamp: Date.now(),
-                },
-              ];
-            });
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? { ...m, content: m.content + chunk, isStreaming: true }
+                  : m,
+              ),
+            );
           },
           onAssistantMessage: (msg) => {
-            setMessages((prev) => {
-              const filtered = prev.filter((m) => m.id !== assistantMsgId);
-              return [...filtered, { ...msg, isStreaming: false }];
-            });
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantMsgId
+                  ? {
+                      ...msg,
+                      id: assistantMsgId,
+                      logs: [...logs, "Done."],
+                      isStreaming: false,
+                    }
+                  : m,
+              ),
+            );
           },
           stepContext: {
             webSearchEnabled: options?.webSearchEnabled,
@@ -194,20 +205,22 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
             mutationBackend,
             inspectionBackend,
             allNotePaths: state.allNotePaths ?? [],
-            handleApplyChange,
+            handleApplyChange: ledgerMethods.handleApplyChange,
             setStagedChanges,
           },
         });
       } catch (err) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `msg_err_${Date.now()}`,
-            role: "assistant",
-            content: `Error: ${err instanceof Error ? err.message : "Failed to run agent"}`,
-            timestamp: Date.now(),
-          },
-        ]);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantMsgId
+              ? {
+                  ...m,
+                  content: `Error: ${err instanceof Error ? err.message : "Failed to run agent"}`,
+                  isStreaming: false,
+                }
+              : m,
+          ),
+        );
       } finally {
         abortRef.current = null;
         setIsStreaming(false);
@@ -215,8 +228,8 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
     },
     [
       autoApply,
-      handleApplyChange,
       inspectionBackend,
+      ledgerMethods.handleApplyChange,
       messages,
       mutationBackend,
       options,
@@ -240,8 +253,8 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
   const handleBatchApply = useCallback(async () => {
     const pending = stagedChanges.filter((i) => i.status === "pending");
-    await handleApplyAllChanges(pending);
-  }, [handleApplyAllChanges, stagedChanges]);
+    await ledgerMethods.handleApplyAllChanges(pending);
+  }, [ledgerMethods, stagedChanges]);
 
   return {
     messages,

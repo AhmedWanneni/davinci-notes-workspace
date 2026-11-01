@@ -723,6 +723,44 @@ export function App() {
     };
   }, []);
 
+  const handleOpenFiles = useCallback(() => {
+    if (isGitManagerOpen) {
+      setIsGitManagerOpen(false);
+    }
+    if (
+      activeNotePath === BOOKMARKS_TAB_ID ||
+      activeNotePath === AGENT_TAB_ID
+    ) {
+      const closingPath = activeNotePath;
+      const prevNote = openNotes
+        .slice()
+        .reverse()
+        .find(
+          (p) =>
+            p !== BOOKMARKS_TAB_ID &&
+            p !== AGENT_TAB_ID &&
+            !p.startsWith("internal://") &&
+            !p.startsWith("git-diff://") &&
+            !p.startsWith("davinci://"),
+        );
+      if (prevNote) {
+        void setActiveNote(prevNote);
+      } else if (allNotePaths.length > 0) {
+        void openNote(allNotePaths[0]);
+      }
+      void closeNote(closingPath);
+    }
+    setIsLeftSidebarOpen(true);
+  }, [
+    isGitManagerOpen,
+    activeNotePath,
+    openNotes,
+    allNotePaths,
+    setActiveNote,
+    openNote,
+    closeNote,
+  ]);
+
   if (!vaultPath) {
     return (
       <VaultWelcomeView
@@ -771,10 +809,13 @@ export function App() {
           onToggleLeftSidebar={() => {
             if (isGitManagerOpen) {
               setIsGitManagerOpen(false);
+            } else if (activeNotePath === BOOKMARKS_TAB_ID) {
+              handleOpenFiles();
             } else {
               setIsLeftSidebarOpen((prev) => !prev);
             }
           }}
+          onOpenFiles={handleOpenFiles}
           onOpenSearch={() => {
             setIsGitManagerOpen(false);
             setSearchInitialQuery("");
@@ -804,6 +845,7 @@ export function App() {
           }}
           onOpenBookmarks={() => {
             setIsGitManagerOpen(false);
+            setIsLeftSidebarOpen(true);
             void openNote(BOOKMARKS_TAB_ID);
           }}
           onOpenReminders={() => {
@@ -885,12 +927,10 @@ export function App() {
           ) : activeNotePath === BOOKMARKS_TAB_ID ? (
             <Suspense fallback={null}>
               <LazyBookmarksView
-                onOpenNote={(path, newTab) => {
-                  if (newTab) {
-                    void openNote(path);
-                  } else {
-                    void openNote(path);
-                  }
+                hideSidebar={true}
+                onOpenNote={(path) => {
+                  void closeNote(BOOKMARKS_TAB_ID);
+                  void openNote(path);
                 }}
               />
             </Suspense>

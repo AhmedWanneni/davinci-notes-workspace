@@ -2,8 +2,9 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { AppSidebarHeader } from "./AppSidebarHeader";
 import type { AppSidebarProps } from "./AppSidebarTypes";
 import { FileTree } from "../FileTree";
+import { BookmarksSidebarPanel } from "../BookmarksView";
+import { AgentSidebarPanel } from "../AgentView";
 import { IconRail } from "../IconRail";
-import { VaultSwitcher } from "../VaultSwitcher";
 import { useSidebarResize } from "./useSidebarResize";
 
 export type { AppSidebarProps } from "./AppSidebarTypes";
@@ -41,6 +42,7 @@ export function AppSidebar({
   onOpenGlobalGraph,
   onOpenCalendar,
   onOpenBookmarks,
+  onOpenFiles,
   onOpenAgent,
   onOpenListening,
   onOpenAskVault,
@@ -109,8 +111,21 @@ export function AppSidebar({
     >
       <AppSidebarHeader
         isMac={isMac}
-        currentTab={currentTab}
-        onTabChange={handleTabChange}
+        currentTab={
+          isBookmarksOpen ? "bookmarks" : isAgentOpen ? "agent" : currentTab
+        }
+        onTabChange={(tab) => {
+          if (tab === "bookmarks") {
+            onOpenBookmarks?.();
+          } else if (tab === "agent") {
+            onOpenAgent?.();
+          } else if (tab === "files") {
+            onOpenFiles?.();
+            handleTabChange(tab);
+          } else {
+            handleTabChange(tab);
+          }
+        }}
         onOpenSearch={onOpenSearch}
         onOpenTags={onOpenTags}
         onToggleLeftSidebar={onToggleLeftSidebar}
@@ -130,6 +145,7 @@ export function AppSidebar({
           isGitManagerOpen={isGitManagerOpen}
           isGitEnabled={isGitEnabled}
           onOpenGitManager={onOpenGitManager}
+          onOpenFiles={onOpenFiles}
           onToggleLeftSidebar={onToggleLeftSidebar ?? (() => {})}
           onOpenSearch={onOpenSearch ?? (() => {})}
           onOpenGlobalGraph={onOpenGlobalGraph ?? (() => {})}
@@ -165,6 +181,10 @@ export function AppSidebar({
               }}
             />
           </Suspense>
+        ) : isBookmarksOpen ? (
+          <BookmarksSidebarPanel />
+        ) : isAgentOpen ? (
+          <AgentSidebarPanel onToggleSidebar={onToggleLeftSidebar} />
         ) : (
           <FileTree
             filePaths={allNotePaths}
@@ -187,23 +207,20 @@ export function AppSidebar({
             onMoveFile={onMoveFile}
             onDropFiles={onDropFiles}
             onSelectedFolderChange={handleSelectedFolderChange}
+            vaultName={vaultName}
+            vaultPath={vaultPath}
+            isCollapsed={isCollapsed}
+            onSwitchVault={onSwitchVault}
+            onOpenFolderPicker={onOpenFolderPicker}
+            onCreateNewVault={onCreateNewVault}
+            onOpenVaultFromDrive={onOpenVaultFromDrive}
+            onSyncVault={onSyncVault}
+            onOpenSettings={onOpenSettings}
+            onOpenHelp={onOpenHelp}
+            onOpenLogs={onOpenLogs}
           />
         )}
       </div>
-
-      <VaultSwitcher
-        isCollapsed={isCollapsed}
-        vaultName={vaultName}
-        vaultPath={vaultPath ?? null}
-        onSwitchVault={onSwitchVault ?? (() => {})}
-        onOpenFolderPicker={onOpenFolderPicker ?? (() => {})}
-        onCreateNewVault={onCreateNewVault}
-        onOpenVaultFromDrive={onOpenVaultFromDrive}
-        onSyncVault={onSyncVault}
-        onOpenSettings={onOpenSettings}
-        onOpenHelp={onOpenHelp}
-        onOpenLogs={onOpenLogs}
-      />
 
       {!isCollapsed && (
         <div

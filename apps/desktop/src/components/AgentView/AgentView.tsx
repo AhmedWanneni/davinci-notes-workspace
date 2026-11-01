@@ -1,17 +1,17 @@
-import { useEffect, useRef } from "react";
-import { AgentHeader } from "./AgentHeader";
-import { AgentMissedBanner } from "./AgentMissedBanner";
+import { useEffect, useRef, useState } from "react";
+import { CaretDown } from "@phosphor-icons/react";
 import { AgentMessageBubble } from "./AgentMessageBubble";
 import { AgentDiffViewer } from "./AgentDiffViewer";
-import { AgentChatInput } from "./AgentChatInput";
-import { AgentConversationsDrawer } from "./AgentConversationsDrawer";
-import { AgentStarterPrompts } from "./AgentStarterPrompts";
-import { AgentCliStatusCard } from "./AgentCliStatusCard";
+import { AgentWelcomeView } from "./AgentWelcomeView";
+import { AgentProjectView } from "./AgentProjectView";
+import { AgentPromptBar } from "./AgentPromptBar";
+import { AgentConversationHeader } from "./AgentConversationHeader";
 import { useAgentExecution } from "./useAgentExecution";
-import { useAgentSchedules } from "./useAgentSchedules";
 import { useAgentConversations } from "./useAgentConversations";
 import { useAgentViewConfig } from "./useAgentViewConfig";
+import { useAgentStore } from "./useAgentStore";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import type { AIProviderId } from "../../ai/AISubsystem";
 import type { ChatMessageItem } from "./agentTypes";
 import "./AgentView.scss";
 
@@ -19,38 +19,24 @@ export interface AgentViewProps {
   onOpenSettings?: () => void;
 }
 
-export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
-  const {
-    currentProvider,
-    currentModel,
-    webSearchEnabled,
-    handleToggleWebSearch,
-    autoApply,
-    handleToggleAutoApply,
-    rewriteEnabled,
-    isConversationsOpen,
-    setIsConversationsOpen,
-    isConfigured,
-    shortcuts,
-    handleModelSelect,
-    selectedCliAgent,
-    setSelectedCliAgent,
-  } = useAgentViewConfig();
-
-  const handleOpenSettings = () => {
-    if (onOpenSettings) {
-      onOpenSettings();
-    } else {
-      window.dispatchEvent(
-        new CustomEvent("davinci-open-settings", { detail: { tab: "ai" } }),
-      );
-    }
-  };
+export function AgentView({
+  onOpenSettings: _onOpenSettings,
+}: AgentViewProps = {}) {
+  const { webSearchEnabled, autoApply, rewriteEnabled, shortcuts } =
+    useAgentViewConfig();
 
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
   const vaultName = vaultPath
-    ? vaultPath.split(/[/\\]/).pop() || "davinci-notes"
-    : "davinci-notes";
+    ? vaultPath.split(/[/\\]/).pop() || "Ahmed"
+    : "Ahmed";
+
+  const selectedModel = useAgentStore((s) => s.selectedModel);
+  const selectedProvider = useAgentStore((s) => s.selectedProvider);
+  const selectedCliAgent = useAgentStore((s) => s.selectedCliAgent);
+  const activeProjectId = useAgentStore((s) => s.activeProjectId);
+  const selectProject = useAgentStore((s) => s.selectProject);
+  const deleteConversation = useAgentStore((s) => s.deleteConversation);
+  const renameConversation = useAgentStore((s) => s.renameConversation);
 
   const {
     messages,
@@ -61,13 +47,10 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
     handleApplyAllChanges,
     sendMessage,
     abortExecution,
-    clearMessages,
     setMessages,
-    cliSession,
-    cancelActiveCliSession,
   } = useAgentExecution({
-    providerId: currentProvider,
-    model: currentModel,
+    providerId: selectedProvider as AIProviderId,
+    model: selectedModel,
     webSearchEnabled,
     autoApply,
     rewriteEnabled,
@@ -77,90 +60,130 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
   });
 
   const {
-    conversations,
     projects,
     activeConversation,
     activeConversationId,
     createNewConversation,
-    selectConversation,
     saveActiveMessages,
-    removeConversation,
-    addProject,
-    assignConversationProject,
   } = useAgentConversations();
 
-  const { missedSchedules, dismissMissed } = useAgentSchedules();
+  const [chatInput, setChatInput] = useState("");
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesScrollRef = useRef<HTMLDivElement>(null);
   const lastLoadedConvIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
 
-  // Only load conversation messages when switching conversations to prevent infinite effect loops
   useEffect(() => {
-    if (
-      activeConversation &&
-      activeConversation.id !== lastLoadedConvIdRef.current
-    ) {
-      lastLoadedConvIdRef.current = activeConversation.id;
-      setMessages(activeConversation.messages as ChatMessageItem[]);
-    }
-  }, [activeConversation, setMessages]);
+    const el = messagesScrollRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+      setShowScrollBottom(distance > 120);
+    };
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
-    if (messages.length > 0) void saveActiveMessages(messages);
-  }, [messages, saveActiveMessages]);
+    if (activeConversationId) {
+      if (
+        activeConversation &&
+        activeConversation.id !== lastLoadedConvIdRef.current
+      ) {
+        lastLoadedConvIdRef.current = activeConversation.id;
+        setMessages(activeConversation.messages as ChatMessageItem[]);
+      }
+    } else {
+      lastLoadedConvIdRef.current = null;
+      setMessages([]);
+    }
+  }, [activeConversationId, activeConversation, setMessages]);
+
+  useEffect(() => {
+    if (activeConversationId && messages.length > 0) {
+      void saveActiveMessages(messages);
+    }
+  }, [activeConversationId, messages, saveActiveMessages]);
 
   const activeProject = projects.find(
-    (p) => p.id === activeConversation?.projectId,
+    (p) => p.id === (activeProjectId || activeConversation?.projectId),
   );
+
+  if (activeProjectId && !activeConversationId) {
+    return (
+      <div className="agent-view" role="main" aria-label="AI Vault Agent">
+        <AgentProjectView
+          projectId={activeProjectId}
+          onSend={(prompt) => {
+            void createNewConversation("New Chat", activeProjectId);
+            void sendMessage(prompt);
+          }}
+          shortcuts={shortcuts}
+          isStreaming={isStreaming}
+        />
+      </div>
+    );
+  }
+
+  if (messages.length === 0) {
+    return (
+      <div className="agent-view" role="main" aria-label="AI Vault Agent">
+        <AgentWelcomeView
+          userName={vaultName}
+          onSend={(prompt) => void sendMessage(prompt)}
+          shortcuts={shortcuts}
+          isStreaming={isStreaming}
+        />
+      </div>
+    );
+  }
+
+  const chatTitle =
+    activeProject?.name || activeConversation?.title || "Search";
 
   return (
     <div className="agent-view" role="main" aria-label="AI Vault Agent">
       <div className="agent-view__main">
-        <AgentHeader
-          onNewChat={() => {
-            void createNewConversation("New Chat", activeProject?.id);
-            clearMessages();
+        <AgentConversationHeader
+          title={chatTitle}
+          projectName={activeProject?.name}
+          projectId={activeProject?.id}
+          onNavigateProject={(pId) => selectProject(pId)}
+          onRename={() => {
+            if (!activeConversationId) return;
+            const next = window.prompt("Rename conversation:", chatTitle);
+            if (next && next.trim())
+              void renameConversation(activeConversationId, next.trim());
           }}
-          isConversationsOpen={isConversationsOpen}
-          onToggleConversations={() =>
-            setIsConversationsOpen(!isConversationsOpen)
-          }
-          conversationsCount={conversations.length}
-          onOpenSettings={handleOpenSettings}
+          onDelete={() => {
+            if (!activeConversationId) return;
+            if (window.confirm(`Delete conversation "${chatTitle}"?`)) {
+              void deleteConversation(activeConversationId);
+            }
+          }}
         />
 
-        {missedSchedules.length > 0 && (
-          <AgentMissedBanner
-            task={missedSchedules[0]}
-            onRunNow={() => {
-              const task = missedSchedules[0];
-              dismissMissed();
-              void sendMessage(task.prompt);
-            }}
-            onDismiss={dismissMissed}
-          />
-        )}
-
-        <div className="agent-view__messages">
-          {messages.length === 0 ? (
-            <AgentStarterPrompts
-              vaultName={vaultName}
-              onSelectPrompt={(prompt) => void sendMessage(prompt)}
-            />
-          ) : (
-            messages.map((msg) => (
-              <AgentMessageBubble key={msg.id} message={msg} />
-            ))
-          )}
-          {cliSession && (
-            <AgentCliStatusCard
-              agentName={cliSession.agentName}
-              status={cliSession.status}
-              logs={cliSession.logs}
-              onCancel={cancelActiveCliSession}
+        <div className="agent-view__messages" ref={messagesScrollRef}>
+          {messages.map((msg) => (
+            <AgentMessageBubble key={msg.id} message={msg} />
+          ))}
+          {isStreaming && messages[messages.length - 1]?.role === "user" && (
+            <AgentMessageBubble
+              message={{
+                id: "streaming-thinking-placeholder",
+                role: "assistant",
+                content: "",
+                isStreaming: true,
+                timestamp: Date.now(),
+              }}
             />
           )}
           <div ref={messagesEndRef} />
@@ -175,49 +198,38 @@ export function AgentView({ onOpenSettings }: AgentViewProps = {}) {
           />
         )}
 
+        {showScrollBottom && (
+          <button
+            type="button"
+            className="agent-scroll-bottom-btn"
+            onClick={scrollToBottom}
+            aria-label="Scroll to bottom"
+          >
+            <CaretDown size={16} weight="bold" />
+          </button>
+        )}
+
         <div className="agent-view__controls">
-          <AgentChatInput
-            onSend={sendMessage}
-            onCancel={abortExecution}
-            isStreaming={isStreaming}
-            autoApply={autoApply}
-            onToggleAutoApply={handleToggleAutoApply}
-            vaultName={vaultName}
-            projectName={activeProject?.name}
-            currentProvider={currentProvider}
-            currentModel={currentModel}
-            onSelectModel={handleModelSelect}
-            selectedCliAgent={selectedCliAgent}
-            onSelectCliAgent={setSelectedCliAgent}
-            webSearchEnabled={webSearchEnabled}
-            onToggleWebSearch={handleToggleWebSearch}
-            onOpenSettings={handleOpenSettings}
-            onOpenConversations={() => setIsConversationsOpen(true)}
+          <AgentPromptBar
+            value={chatInput}
+            onChange={setChatInput}
+            onSubmit={() => {
+              if (chatInput.trim()) {
+                void sendMessage(chatInput.trim());
+                setChatInput("");
+              }
+            }}
+            onSendWithImages={(text, imgs) => {
+              void sendMessage(text, imgs);
+              setChatInput("");
+            }}
+            placeholder="Write a message..."
             shortcuts={shortcuts}
-            disabled={!isConfigured && !currentModel && !selectedCliAgent}
+            isStreaming={isStreaming}
+            onCancel={abortExecution}
           />
         </div>
       </div>
-
-      <AgentConversationsDrawer
-        isOpen={isConversationsOpen}
-        onClose={() => setIsConversationsOpen(false)}
-        conversations={conversations}
-        projects={projects}
-        activeConversationId={activeConversationId}
-        onSelectConversation={(id) => {
-          void selectConversation(id);
-          setIsConversationsOpen(false);
-        }}
-        onNewConversation={(projId) => {
-          void createNewConversation("New Chat", projId);
-          clearMessages();
-          setIsConversationsOpen(false);
-        }}
-        onDeleteConversation={(id) => void removeConversation(id)}
-        onAddProject={(name) => void addProject(name)}
-        onAssignProject={(cId, pId) => void assignConversationProject(cId, pId)}
-      />
     </div>
   );
 }
