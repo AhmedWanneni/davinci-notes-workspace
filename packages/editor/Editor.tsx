@@ -113,6 +113,7 @@ export function Editor({
       noteContents,
       slashMenuEnabled,
       vimMode,
+      useVimMode,
       strictLineBreaks,
       wikilinkCompartment: wikilinkCompartmentRef.current,
       autocompleteCompartment: autocompleteCompartmentRef.current,

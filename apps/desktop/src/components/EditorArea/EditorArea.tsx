@@ -299,7 +299,7 @@ export function EditorArea({
   const editorCustomFont = useWorkspaceStore((state) => state.editorCustomFont);
   const editorFontSize = useWorkspaceStore((state) => state.editorFontSize);
   const setVimModeState = useWorkspaceStore((state) => state.setVimModeState);
-  const vimMode = useWorkspaceStore((state) => state.vimMode);
+  const vimMode = useWorkspaceStore((state) => state.vimModeState);
   const saveNoteNow = useWorkspaceStore((state) => state.saveNoteNow);
   const closeNote = useWorkspaceStore((state) => state.closeNote);
   const closeAllNotes = useWorkspaceStore((state) => state.closeAllNotes);
