@@ -124,10 +124,11 @@ pub fn show_main_window(window: &WebviewWindow) {
   #[cfg(target_os = "macos")]
   {
     let _ = window.app_handle().set_activation_policy(ActivationPolicy::Regular);
-    if let Some(mtm) = tauri_nspanel::objc2::MainThreadMarker::new() {
-      let app = tauri_nspanel::objc2_app_kit::NSApplication::sharedApplication(mtm);
-      unsafe {
-        let _: () = tauri_nspanel::objc2::msg_send![&*app, activateIgnoringOtherApps: true];
+    unsafe {
+      let current_app: *mut tauri_nspanel::objc2::runtime::AnyObject =
+        tauri_nspanel::objc2::msg_send![tauri_nspanel::objc2::class!(NSRunningApplication), currentApplication];
+      if !current_app.is_null() {
+        let _: bool = tauri_nspanel::objc2::msg_send![current_app, activateWithOptions: 2usize];
       }
     }
   }
