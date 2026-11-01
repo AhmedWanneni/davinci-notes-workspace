@@ -861,8 +861,12 @@ export function App() {
           }}
           onOpenTodos={() => {
             setIsGitManagerOpen(false);
-            setIsLeftSidebarOpen(false);
-            void openNote(TODOS_TAB_ID);
+            if (activeNotePath === TODOS_TAB_ID) {
+              void closeNote(TODOS_TAB_ID);
+            } else {
+              setIsLeftSidebarOpen(false);
+              void openNote(TODOS_TAB_ID);
+            }
           }}
           onOpenAgent={() => {
             setIsGitManagerOpen(false);

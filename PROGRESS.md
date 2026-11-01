@@ -4,6 +4,20 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Fix IconRail Navigation to Todos Page
+
+**Scope:** Resolved issue where clicking the rail icon did not open the Todos page:
+1. **Virtual Tab URI Scheme (`apps/desktop/src/components/TodosView/index.ts`)**:
+   - Changed `TODOS_TAB_ID` from `"__todos__"` to `"davinci://todos"`.
+   - In `createNoteNavigationActions.ts`, any path that does not start with `davinci://`, `git-diff://`, or an image extension is treated as a physical disk file and passed to `readNote(path)`. With `"__todos__"`, `readNote` failed to find the file and aborted navigation before setting the active note tab. With `davinci://todos`, it is correctly identified as a virtual internal page and activated immediately.
+2. **IconRail Toggle Behavior (`apps/desktop/src/App.tsx`)**:
+   - Updated `onOpenTodos` to toggle the Todos tab closed (`closeNote(TODOS_TAB_ID)`) if already active, or collapse the sidebar and open `davinci://todos` if not currently active.
+3. **Verification**:
+   - All 30 unit tests across `TodosView`, `IconRail`, and `AppTabs` passing.
+   - 0 ESLint errors.
+
+---
+
 ## Last Session — Vault Todos Dashboard & Focus Mode with Icon Rail Integration
 
 **Scope:** Implemented dedicated Todos view and minimal Focus Mode matching the user's provided UI mockups:
