@@ -7704,3 +7704,10 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
   - `@app/web-clipper`: 33 files, 211 tests passing.
   - ESLint and `tsc --noEmit`: 0 errors.
   - `wxt build`: clean build in 932 ms (655.90 kB raw / 194.1 kB gzip).
+
+
+## 2026-10-31 — Responsive Website Stationery Navigation
+
+- Updated `apps/website/src/components/SiteNav.astro` so mobile shows only the Sophia Notes brand and a hamburger toggle. The toggle opens the existing links in a vertical dropdown and exposes its state through `aria-expanded` and an updated accessible label.
+- Desktop navigation remains unchanged. No dependencies were added.
+- Verification was not run (not requested).
