@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { AllMeetingsView } from "./AllMeetingsView";
 import { MeetingDetailView } from "./MeetingDetailView";
 import { MeetingAudioPlayer } from "./MeetingAudioPlayer";
@@ -141,6 +141,26 @@ describe("AllMeetingsView & MeetingDetailView", () => {
       expect(screen.getByTestId("meeting-audio-player")).toBeDefined();
       expect(screen.getByTestId("audio-play-btn")).toBeDefined();
       expect(screen.getByText("02:00")).toBeDefined();
+
+      const playBtn = screen.getByTestId("audio-play-btn");
+      act(() => {
+        fireEvent.click(playBtn);
+      });
+      expect(playBtn).toBeDefined();
+    });
+
+    it("renders Update AI Insights button when transcript segments exist", () => {
+      render(
+        <MeetingDetailView
+          meeting={sampleMeeting}
+          vaultPath="/Users/user/vault"
+          onBack={vi.fn()}
+        />,
+      );
+
+      const updateBtn = screen.getByTestId("update-ai-insights-btn");
+      expect(updateBtn).toBeDefined();
+      expect(screen.getByText("Update AI Insights")).toBeDefined();
     });
   });
 });

@@ -12,6 +12,7 @@ export type { MeetingAssistantPanelProps } from "./MeetingAssistantPanel";
 export { MeetingShowcaseEmpty } from "./MeetingShowcaseEmpty";
 export { useMeetingAssistant } from "./useMeetingAssistant";
 export type { AssistantMessage } from "./useMeetingAssistant";
+export { useMeetingAIUpdater } from "./useMeetingAIUpdater";
 export { parseMeetingMarkdown } from "./meetingsParser";
 export type { ParsedMeetingItem } from "./meetingsParser";
 export { TranscriptFeed } from "./TranscriptFeed";

@@ -6,7 +6,6 @@ import { TranscriptFeed } from "./TranscriptFeed";
 import { AllMeetingsView } from "./AllMeetingsView";
 import { MeetingDetailView } from "./MeetingDetailView";
 import { MeetingAssistantPanel } from "./MeetingAssistantPanel";
-import { MeetingShowcaseEmpty } from "./MeetingShowcaseEmpty";
 import { parseMeetingMarkdown, type ParsedMeetingItem } from "./meetingsParser";
 import { useListeningSession } from "./useListeningSession";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
@@ -179,7 +178,18 @@ export function ListeningView({
             {session.isTranscriptVisible ? (
               <TranscriptFeed segments={session.segments} isRecording={isRecording} />
             ) : (
-              <MeetingShowcaseEmpty />
+              <div className={styles["transcript-paused-banner"]}>
+                <Broadcast size={22} className={styles["paused-icon"]} />
+                <p className={styles["paused-text"]}>Live transcript is currently hidden.</p>
+                <button
+                  type="button"
+                  className={`${styles["btn"]} ${styles["btn--secondary"]}`}
+                  onClick={() => session.setIsTranscriptVisible(true)}
+                  data-testid="show-transcript-btn"
+                >
+                  Show Live Transcript
+                </button>
+              </div>
             )}
           </div>
         </main>

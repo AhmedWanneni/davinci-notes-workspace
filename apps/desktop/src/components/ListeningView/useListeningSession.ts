@@ -33,7 +33,7 @@ export function useListeningSession(
   const [actionItems, setActionItems] = useState<string[]>([]);
   const [summary, setSummary] = useState<string>("");
   const [createdNotePath, setCreatedNotePath] = useState<string | null>(null);
-  const [isTranscriptVisible, setIsTranscriptVisible] = useState(false);
+  const [isTranscriptVisible, setIsTranscriptVisible] = useState(true);
   const [isAIListeningActive, setIsAIListeningActive] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);

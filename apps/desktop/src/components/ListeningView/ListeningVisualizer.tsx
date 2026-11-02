@@ -62,15 +62,19 @@ export function ListeningVisualizer({
   const isPaused = status === "paused";
   const isLive = isRecording || isPaused;
 
-  // Generate 16 responsive audio bars
+  // Generate 32 responsive audio bars
   const totalLevel = isRecording
-    ? Math.min(1, Math.max(0.08, micLevel + systemLevel))
+    ? Math.min(1, Math.max(0.12, micLevel + systemLevel))
     : 0.05;
-  const barHeights = Array.from({ length: 16 }, (_, i) => {
-    if (!isRecording) return 4;
-    const wave = Math.sin((i / 16) * Math.PI) * totalLevel;
-    const jitter = Math.sin(i * 1.5 + Date.now() / 200) * 0.2 * totalLevel;
-    return Math.max(4, Math.min(28, Math.round((wave + jitter) * 28)));
+  const barHeights = Array.from({ length: 32 }, (_, i) => {
+    if (!isRecording) {
+      // Natural, elegant idle waveform curve
+      const idleWave = Math.sin((i / 32) * Math.PI * 2) * 5 + 9;
+      return Math.round(idleWave);
+    }
+    const wave = Math.sin((i / 32) * Math.PI) * totalLevel;
+    const jitter = Math.sin(i * 1.5 + Date.now() / 200) * 0.25 * totalLevel;
+    return Math.max(5, Math.min(26, Math.round((wave + jitter) * 26)));
   });
 
   return (

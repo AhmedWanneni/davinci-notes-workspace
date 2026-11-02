@@ -41,8 +41,9 @@ export function useAIListeningEngine({
   const summaryRef = useRef(liveSummary);
   summaryRef.current = liveSummary;
 
-  const runAIStep = useCallback(async () => {
-    if (!isActive || !isRecording || segmentsRef.current.length === 0) return;
+  const runAIStep = useCallback(async (force = false) => {
+    if (!isActive || segmentsRef.current.length === 0) return;
+    if (!isRecording && !force) return;
 
     // Cancel in-flight request if newer one starts
     if (abortControllerRef.current) {
@@ -191,6 +192,17 @@ export function useAIListeningEngine({
     setAiError(null);
   }, []);
 
+  // Auto-run AI step when segments arrive or update from audio file
+  useEffect(() => {
+    if (isActive && segments.length > 0 && !isRecording) {
+      void runAIStep(true);
+    }
+  }, [isActive, segments, isRecording, runAIStep]);
+
+  const triggerStep = useCallback(() => {
+    void runAIStep(true);
+  }, [runAIStep]);
+
   return {
     liveSummary,
     answers,
@@ -202,7 +214,7 @@ export function useAIListeningEngine({
     dismissAnswer,
     saveQuestion,
     dismissQuestion,
-    triggerStep: runAIStep,
+    triggerStep,
     resetAI,
   };
 }

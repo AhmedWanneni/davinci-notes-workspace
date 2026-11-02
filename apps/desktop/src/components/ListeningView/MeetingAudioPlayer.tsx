@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Play, Pause, SpeakerHigh, SpeakerSlash } from "@phosphor-icons/react";
+import { Play, Pause, SpeakerHigh, SpeakerSlash, WarningCircle } from "@phosphor-icons/react";
 import styles from "./ListeningView.module.scss";
 
 export interface MeetingAudioPlayerProps {
@@ -9,6 +9,7 @@ export interface MeetingAudioPlayerProps {
 }
 
 function formatDurationSec(sec: number): string {
+  if (!sec || isNaN(sec) || !isFinite(sec)) return "00:00";
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
@@ -25,17 +26,27 @@ export function MeetingAudioPlayer({
   const [totalDuration, setTotalDuration] = useState(durationSeconds);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (durationSeconds > 0) setTotalDuration(durationSeconds);
   }, [durationSeconds]);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      void audioRef.current.play();
+    try {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        setLoadError(false);
+        await audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (err) {
+      console.warn("Failed to play audio:", err);
+      setLoadError(true);
+      setIsPlaying(false);
     }
   };
 
@@ -46,9 +57,11 @@ export function MeetingAudioPlayer({
 
   const handleLoadedMetadata = () => {
     if (!audioRef.current) return;
-    if (audioRef.current.duration && !isNaN(audioRef.current.duration)) {
-      setTotalDuration(audioRef.current.duration);
+    const dur = audioRef.current.duration;
+    if (dur && isFinite(dur) && !isNaN(dur)) {
+      setTotalDuration(dur);
     }
+    setLoadError(false);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,11 +96,13 @@ export function MeetingAudioPlayer({
       <audio
         ref={audioRef}
         src={audioSrc}
+        preload="metadata"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onError={() => setLoadError(true)}
       />
 
       <div className={styles["player-left-group"]}>
@@ -110,11 +125,11 @@ export function MeetingAudioPlayer({
 
       <div className={styles["player-waveform-scrubber"]}>
         <div className={styles["mini-waveform-bars"]} aria-hidden="true">
-          {Array.from({ length: 28 }).map((_, idx) => {
+          {Array.from({ length: 32 }).map((_, idx) => {
             const progressRatio = totalDuration > 0 ? currentTime / totalDuration : 0;
-            const barRatio = idx / 28;
+            const barRatio = idx / 32;
             const isPlayed = barRatio <= progressRatio;
-            const height = 6 + Math.abs(Math.sin(idx * 0.7)) * 18;
+            const height = 8 + Math.abs(Math.sin(idx * 0.55)) * 18;
             return (
               <span
                 key={idx}
@@ -124,6 +139,11 @@ export function MeetingAudioPlayer({
             );
           })}
         </div>
+
+        <div
+          className={styles["scrubber-progress-line"]}
+          style={{ width: `${totalDuration > 0 ? (currentTime / totalDuration) * 100 : 0}%` }}
+        />
 
         <input
           type="range"
@@ -138,6 +158,12 @@ export function MeetingAudioPlayer({
       </div>
 
       <div className={styles["player-right-group"]}>
+        {loadError && (
+          <span className={styles["player-error-badge"]} title="Audio file failed to load">
+            <WarningCircle size={14} />
+          </span>
+        )}
+
         <button
           type="button"
           className={styles["speed-btn"]}
