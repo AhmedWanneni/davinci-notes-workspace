@@ -1,15 +1,8 @@
 import React from "react";
-import {
-  Record,
-  Pause,
-  Play,
-  Stop,
-  Trash,
-  Broadcast,
-  Sparkle,
-} from "@phosphor-icons/react";
+import { Broadcast, Sparkle } from "@phosphor-icons/react";
 import { Toggle } from "@app/design-system";
 import type { ListeningStatus } from "./listeningConstants";
+import { VisualizerControls } from "./VisualizerControls";
 import styles from "./ListeningView.module.scss";
 
 export interface ListeningVisualizerProps {
@@ -69,7 +62,10 @@ export function ListeningVisualizer({
 
   // Progress ratio across waveform (sweeps live as recording progresses)
   const progressRatio = isLive
-    ? Math.min(1, ((durationMs / 1000) % 60) / 60 || (durationMs > 0 ? 0.05 : 0))
+    ? Math.min(
+        1,
+        ((durationMs / 1000) % 60) / 60 || (durationMs > 0 ? 0.05 : 0),
+      )
     : 0;
 
   const barHeights = Array.from({ length: 48 }, (_, i) => {
@@ -159,69 +155,17 @@ export function ListeningVisualizer({
 
       {/* Row 2: Full-width audio recording bar with controls and live waveform progress */}
       <div className={styles["listening-visualizer__audio-row"]}>
-        <div className={styles["audio-row-controls"]}>
-          {status === "idle" && (
-            <button
-              type="button"
-              className={`${styles["btn"]} ${styles["btn--primary"]}`}
-              onClick={onStart}
-              data-testid="start-recording-btn"
-            >
-              <Record size={16} weight="fill" />
-              <span>Record</span>
-            </button>
-          )}
-
-          {isRecording && (
-            <button
-              type="button"
-              className={`${styles["btn"]} ${styles["btn--secondary"]}`}
-              onClick={onPause}
-              title="Pause recording"
-              data-testid="pause-recording-btn"
-            >
-              <Pause size={16} weight="bold" />
-              <span>Pause</span>
-            </button>
-          )}
-
-          {isPaused && (
-            <button
-              type="button"
-              className={`${styles["btn"]} ${styles["btn--secondary"]}`}
-              onClick={onResume}
-              title="Resume recording"
-              data-testid="resume-recording-btn"
-            >
-              <Play size={16} weight="bold" />
-              <span>Resume</span>
-            </button>
-          )}
-
-          {isLive && (
-            <>
-              <button
-                type="button"
-                className={`${styles["btn"]} ${styles["btn--danger-text"]}`}
-                onClick={onStop}
-                title="Stop and save note"
-                data-testid="stop-recording-btn"
-              >
-                <Stop size={16} weight="fill" />
-                <span>Stop</span>
-              </button>
-              <button
-                type="button"
-                className={`${styles["btn"]} ${styles["btn--ghost"]}`}
-                onClick={onDiscard}
-                title="Discard recording"
-                data-testid="discard-recording-btn"
-              >
-                <Trash size={16} />
-              </button>
-            </>
-          )}
-        </div>
+        <VisualizerControls
+          status={status}
+          isRecording={isRecording}
+          isPaused={isPaused}
+          isLive={isLive}
+          onStart={onStart}
+          onPause={onPause}
+          onResume={onResume}
+          onStop={onStop}
+          onDiscard={onDiscard}
+        />
 
         <div className={styles["audio-duration-badge"]}>
           {formatDuration(durationMs)}

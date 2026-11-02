@@ -2978,9 +2978,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/index.ts": {
-    "mtime": 1793644472.6010237,
-    "seen": 1793644672.837153,
-    "ast_hash": "cd8e0ebdc5919e55bbc1600e3635a320",
+    "mtime": 1793646585.890736,
+    "seen": 1793646693.502697,
+    "ast_hash": "701fda824fe7345f10c6873313d0e0d5",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/listeningConstants.ts": {
@@ -17267,9 +17267,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/ListeningVisualizer.tsx": {
-    "mtime": 1793644961.6100385,
-    "seen": 1793645080.9335098,
-    "ast_hash": "de312484af6c547eec74e3b001fef8c2",
+    "mtime": 1793646567.2666411,
+    "seen": 1793646693.501863,
+    "ast_hash": "aca786b57dc50a6192b681fe9baf134e",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/MeetingsSidebar.tsx": {
@@ -17411,9 +17411,27 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/useMeetingAIUpdater.ts": {
-    "mtime": 1793644635.2686272,
-    "seen": 1793644672.837856,
-    "ast_hash": "1da198df3345da5acc8b9b415f1efcab",
+    "mtime": 1793646023.5890489,
+    "seen": 1793646693.503587,
+    "ast_hash": "595002f46d23b861b0bddd0895148dbf",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/ListeningView/VisualizerControls.stories.tsx": {
+    "mtime": 1793646610.5951152,
+    "seen": 1793646693.5026932,
+    "ast_hash": "4fab9d341909172913b5616cb8488e2f",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/ListeningView/VisualizerControls.test.tsx": {
+    "mtime": 1793646627.0270185,
+    "seen": 1793646693.502694,
+    "ast_hash": "1bc19bda30db9ca7d1676e2ddb238c82",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/ListeningView/VisualizerControls.tsx": {
+    "mtime": 1793646552.3403933,
+    "seen": 1793646693.502696,
+    "ast_hash": "7a77a6a11ef5ef36117cc7b7962226f8",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

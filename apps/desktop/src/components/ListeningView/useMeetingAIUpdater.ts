@@ -2,10 +2,15 @@ import { useState, useCallback } from "react";
 import type { ParsedMeetingItem } from "./meetingsParser";
 import { loadAISubsystem } from "../../ai/loadAISubsystem";
 import { processAIListeningStep } from "@app/ai-agent";
-import { createNoteInVault } from "../../vault/vaultCommands";
-import { renderMeetingMarkdown, type MeetingNoteParams } from "../../vault/meetingNoteActions";
+import { createNoteInVault } from "../../vault/createNoteInVault";
+import {
+  renderMeetingMarkdown,
+  type MeetingNoteParams,
+} from "../../vault/meetingNoteActions";
 
-export function useMeetingAIUpdater(onMeetingUpdated?: (updated: ParsedMeetingItem) => void) {
+export function useMeetingAIUpdater(
+  onMeetingUpdated?: (updated: ParsedMeetingItem) => void,
+) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
 
@@ -28,7 +33,9 @@ export function useMeetingAIUpdater(onMeetingUpdated?: (updated: ParsedMeetingIt
         const rolling = meeting.transcript.map((t, idx) => ({
           id: `seg-${idx}`,
           text: t.text,
-          speaker: t.speaker.toLowerCase().includes("me") ? ("me" as const) : ("meeting" as const),
+          speaker: t.speaker.toLowerCase().includes("me")
+            ? ("me" as const)
+            : ("meeting" as const),
           timestampMs: idx * 5000,
         }));
 
@@ -46,7 +53,10 @@ export function useMeetingAIUpdater(onMeetingUpdated?: (updated: ParsedMeetingIt
         const newAnswers = result.answers
           ? [
               ...meeting.answers,
-              ...result.answers.map((a) => ({ question: a.question, answer: a.answer })),
+              ...result.answers.map((a) => ({
+                question: a.question,
+                answer: a.answer,
+              })),
             ]
           : meeting.answers;
 
@@ -84,7 +94,9 @@ export function useMeetingAIUpdater(onMeetingUpdated?: (updated: ParsedMeetingIt
         onMeetingUpdated?.(updatedMeeting);
       } catch (err) {
         console.error("Failed to update AI insights for meeting:", err);
-        setUpdateError((err as Error)?.message || "Failed to generate AI insights");
+        setUpdateError(
+          (err as Error)?.message || "Failed to generate AI insights",
+        );
       } finally {
         setIsUpdating(false);
       }

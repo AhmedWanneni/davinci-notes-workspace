@@ -4,7 +4,27 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Ask Fred AI Meeting Assistant Panel, All Meetings List & Board, Hidden FileTree
+## Last Session — Fix Horizontal Row Layout for Meeting Workspace Columns & Visualizer Refactor
+
+**Scope:** Resolved layout collapse where sidebar, middle recording workspace, and AI companion stacked vertically:
+1. **Horizontal Row Column Layout (`ListeningView.module.scss`)**:
+   - Fixed `.recording-workspace` to enforce `display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; height: 100% !important; flex: 1 1 0% !important;`.
+   - Fixed `.meetings-sidebar` width to `width: 220px !important; flex: 0 0 220px !important; height: 100% !important;` so it stays firmly docked as a full-height left column.
+   - Fixed `.recording-main-col`, `.all-meetings-view`, and `.meeting-detail-view` to `flex: 1 1 0% !important; min-width: 0 !important; height: 100% !important;` for clean fluid horizontal centering.
+   - Fixed `.ai-listening-panel`, `.ai-listening-panel--loading`, and `.meeting-assistant-panel` to `width: 360px !important; flex: 0 0 360px !important; height: 100% !important;` so the Ask Fred assistant stays docked on the right as a full-height column.
+   - Cleaned up duplicate `.listening-visualizer` CSS definitions.
+2. **Visualizer Component Split & File Cap (`ListeningVisualizer.tsx`, `VisualizerControls.tsx`)**:
+   - Extracted `VisualizerControls.tsx` (94 lines) to handle Record / Pause / Resume / Stop / Discard buttons, bringing `ListeningVisualizer.tsx` down to 207 lines (safely under the 250-line hard cap).
+   - Created Storybook story (`VisualizerControls.stories.tsx`) and interaction unit tests (`VisualizerControls.test.tsx`).
+3. **Build & Import Corrections**:
+   - Corrected `createNoteInVault` import in `useMeetingAIUpdater.ts` from `../../vault/createNoteInVault`.
+   - Verified clean production build (`pnpm --filter @app/desktop build:web`).
+4. **Verification & Quality**:
+   - 47 unit tests passing across all 11 test files in `src/components/ListeningView/`.
+   - 0 ESLint errors; all modified files strictly under the 250-line hard cap.
+   - Knowledge graph updated with `graphify update .`.
+
+---
 
 **Scope:** Fulfilled prompt requirements for the meeting workspace navigation, detail views, and right-side AI companion:
 1. **Right-Side AI Meeting Assistant Panel ("Ask Fred") (`MeetingAssistantPanel.tsx`, `useMeetingAssistant.ts`)**:

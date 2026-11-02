@@ -2,6 +2,7 @@ export { ListeningView } from "./ListeningView";
 export type { ListeningViewProps } from "./ListeningView";
 export { ListeningHeader } from "./ListeningHeader";
 export { ListeningVisualizer } from "./ListeningVisualizer";
+export { VisualizerControls } from "./VisualizerControls";
 export { MeetingsSidebar } from "./MeetingsSidebar";
 export { AllMeetingsView } from "./AllMeetingsView";
 export { MeetingDetailView } from "./MeetingDetailView";

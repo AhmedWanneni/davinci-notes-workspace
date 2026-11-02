@@ -9,25 +9,35 @@
 }
 
 .recording-workspace {
-  display: flex;
-  height: 100%;
-  width: 100%;
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  align-items: stretch !important;
+  height: 100% !important;
+  width: 100% !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
   background-color: var(--color-bg-primary);
   color: var(--color-text-normal);
-  overflow: hidden;
+  overflow: hidden !important;
+  position: relative;
 }
 
 /* 1. Left Meetings Sidebar */
 .meetings-sidebar {
-  width: 220px;
-  flex-shrink: 0;
+  width: 220px !important;
+  min-width: 220px !important;
+  max-width: 220px !important;
+  flex: 0 0 220px !important;
+  height: 100% !important;
   border-right: var(--border-width-thin) solid var(--color-border-subtle);
   background-color: var(--color-bg-primary);
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
   padding: var(--space-4) var(--space-3);
   gap: var(--space-5);
-  overflow-y: auto;
+  overflow-y: auto !important;
+  flex-shrink: 0 !important;
 }
 
 .meetings-sidebar__nav {
@@ -133,12 +143,12 @@
 
 /* 2. Center Column */
 .recording-main-col {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
   background-color: var(--color-bg-primary);
 }
 
@@ -184,16 +194,6 @@
 }
 
 /* Visualizer Top Bar */
-.listening-visualizer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
-  background-color: var(--color-bg-primary);
-  flex-shrink: 0;
-}
-
 .listening-visualizer {
   display: flex;
   flex-direction: column;
@@ -300,7 +300,9 @@
   max-width: 4px;
   border-radius: 2px;
   background-color: var(--color-border-subtle);
-  transition: height 0.1s ease, background-color 0.12s ease;
+  transition:
+    height 0.1s ease,
+    background-color 0.12s ease;
 
   &.is-active {
     background-color: var(--color-text-muted);
@@ -676,25 +678,32 @@
 
 /* 3. Right AI Live Panel */
 .ai-listening-panel {
-  width: 360px;
-  flex-shrink: 0;
+  width: 360px !important;
+  min-width: 360px !important;
+  max-width: 360px !important;
+  flex: 0 0 360px !important;
   border-left: var(--border-width-thin) solid var(--color-border-subtle);
   background-color: var(--color-bg-primary);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
 }
 
 .ai-listening-panel--loading {
-  width: 360px;
-  flex-shrink: 0;
+  width: 360px !important;
+  min-width: 360px !important;
+  max-width: 360px !important;
+  flex: 0 0 360px !important;
   border-left: var(--border-width-thin) solid var(--color-border-subtle);
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   font-size: var(--type-scale-xs);
   color: var(--color-text-muted);
+  height: 100% !important;
+  flex-shrink: 0 !important;
 }
 
 .ai-listening-panel__header {
@@ -809,6 +818,7 @@
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0;
   }
@@ -1149,7 +1159,7 @@
   line-height: 1.5;
   color: var(--color-text-normal);
   white-space: pre-wrap;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .assistant-message-time {
@@ -1243,12 +1253,12 @@
 
 /* All Meetings View */
 .all-meetings-view {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
   background-color: var(--color-bg-primary);
 }
 
@@ -1551,7 +1561,7 @@
 
   &:hover {
     border-color: var(--color-border-normal);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 5%);
   }
 }
 
@@ -1610,12 +1620,12 @@
 
 /* Meeting Detail View */
 .meeting-detail-view {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden auto !important;
   background-color: var(--color-bg-primary);
 }
 
@@ -1891,6 +1901,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

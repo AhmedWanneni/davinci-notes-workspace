@@ -2,6 +2,24 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-02: Fix Horizontal Row Layout for Meeting Workspace Columns & Visualizer Refactor
+
+- **Horizontal Row Column Layout (`ListeningView.module.scss`)**:
+  - Enforced `display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; height: 100% !important; flex: 1 1 0% !important;` on `.recording-workspace`.
+  - Docked `.meetings-sidebar` to `width: 220px !important; flex: 0 0 220px !important; height: 100% !important;`.
+  - Set `.recording-main-col`, `.all-meetings-view`, and `.meeting-detail-view` to `flex: 1 1 0% !important; min-width: 0 !important; height: 100% !important;` for fluid horizontal center column layout.
+  - Docked `.ai-listening-panel`, `.ai-listening-panel--loading`, and `.meeting-assistant-panel` to `width: 360px !important; flex: 0 0 360px !important; height: 100% !important;` to prevent vertical wrapping.
+- **Visualizer Component Split & File Cap (`ListeningVisualizer.tsx`, `VisualizerControls.tsx`)**:
+  - Extracted `VisualizerControls.tsx` (94 lines) to handle Record / Pause / Resume / Stop / Discard buttons, bringing `ListeningVisualizer.tsx` down to 207 lines (safely under the 250-line hard cap).
+  - Created Storybook story (`VisualizerControls.stories.tsx`) and interaction unit tests (`VisualizerControls.test.tsx`).
+- **Build & Import Corrections**:
+  - Corrected `createNoteInVault` import in `useMeetingAIUpdater.ts` from `../../vault/createNoteInVault`.
+  - Verified clean production build (`pnpm --filter @app/desktop build:web`).
+- **Verification & Quality**:
+  - 47 unit tests passing across all 11 test files in `src/components/ListeningView/`.
+  - 0 ESLint errors; all modified files strictly under the 250-line hard cap.
+  - Knowledge graph updated with `graphify update .`.
+
 ### 2026-11-02: Ask Fred AI Meeting Assistant Panel, All Meetings List & Board, Hidden FileTree
 
 - **Right-Side AI Meeting Assistant Panel ("Ask Fred") (`MeetingAssistantPanel.tsx`, `useMeetingAssistant.ts`)**:
