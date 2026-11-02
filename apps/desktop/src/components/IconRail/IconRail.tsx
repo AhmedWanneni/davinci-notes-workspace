@@ -82,9 +82,18 @@ export function IconRail({
         <IconRailButton
           label="Files"
           tooltip="Files (Toggle sidebar)"
-          isActive={isLeftSidebarOpen && !isBookmarksOpen && !isGitManagerOpen}
+          isActive={
+            isLeftSidebarOpen &&
+            !isBookmarksOpen &&
+            !isGitManagerOpen &&
+            !isTodosOpen
+          }
           onClick={() => {
-            if (isBookmarksOpen || isGitManagerOpen) {
+            if (isTodosOpen) {
+              if (onOpenFiles) {
+                onOpenFiles();
+              }
+            } else if (isBookmarksOpen || isGitManagerOpen) {
               if (onOpenFiles) {
                 onOpenFiles();
               } else {

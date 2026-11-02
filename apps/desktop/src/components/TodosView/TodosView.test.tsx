@@ -7,8 +7,25 @@ import * as vaultModule from "../../vault";
 
 vi.mock("../../vault", () => ({
   createNoteInVault: vi.fn().mockResolvedValue(""),
+  createFolder: vi.fn().mockResolvedValue(undefined),
   createFolderInVault: vi.fn().mockResolvedValue(""),
+  deleteFolderInVault: vi.fn().mockResolvedValue({ ok: true }),
+  deleteNoteInVault: vi.fn().mockResolvedValue({ ok: true }),
   writeNote: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@tauri-apps/api/window", () => ({
+  getCurrentWindow: vi.fn().mockReturnValue({
+    innerSize: vi.fn().mockResolvedValue({ width: 1200, height: 800 }),
+    setSize: vi.fn().mockResolvedValue(undefined),
+    isMaximized: vi.fn().mockResolvedValue(false),
+    unmaximize: vi.fn().mockResolvedValue(undefined),
+    maximize: vi.fn().mockResolvedValue(undefined),
+    center: vi.fn().mockResolvedValue(undefined),
+  }),
+  LogicalSize: vi
+    .fn()
+    .mockImplementation((w: number, h: number) => ({ width: w, height: h })),
 }));
 
 const SAMPLE_MD_1 = `## V1 Concepts
@@ -35,13 +52,14 @@ describe("TodosView", () => {
     vi.clearAllMocks();
     useWorkspaceStore.setState({
       vaultPath: "/Users/demo/MyVault",
+      allFolderPaths: ["todos", "todos/Design", "todos/Daily"],
       allNotePaths: [
-        "todos/Admin Dashboard.md",
-        "todos/Daily Focus.md",
+        "todos/Design/Admin Dashboard.md",
+        "todos/Daily/Daily Focus.md",
       ],
       notesContent: {
-        "todos/Admin Dashboard.md": SAMPLE_MD_1,
-        "todos/Daily Focus.md": SAMPLE_MD_2,
+        "todos/Design/Admin Dashboard.md": SAMPLE_MD_1,
+        "todos/Daily/Daily Focus.md": SAMPLE_MD_2,
       },
     });
   });
@@ -53,19 +71,18 @@ describe("TodosView", () => {
 
     expect(screen.getByText("Motherboard")).toBeDefined();
     expect(screen.getAllByText("MyVault").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Design").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Admin Dashboard").length).toBeGreaterThan(0);
     expect(screen.getByText("V1 Concepts")).toBeDefined();
-    expect(
-      screen.getByText(/Create wireframes for new dash/i),
-    ).toBeDefined();
+    expect(screen.getByText(/Create wireframes for new dash/i)).toBeDefined();
 
-    // Verify calendar icon and '...' actions have been removed from section headers
     expect(screen.queryByTitle("Calendar")).toBeNull();
     expect(screen.queryByTitle("More actions")).toBeNull();
   });
 
   it("does not automatically create notes if nothing exists in vault", async () => {
     useWorkspaceStore.setState({
+      allFolderPaths: [],
       allNotePaths: [],
       notesContent: {},
     });
@@ -90,7 +107,6 @@ describe("TodosView", () => {
     expect(screen.getByTitle("Cards view")).toBeDefined();
     expect(screen.getByTitle("List view")).toBeDefined();
 
-    // Switch to List view on Motherboard
     const listBtn = screen.getByTitle("List view");
     fireEvent.click(listBtn);
     expect(screen.getByTestId("motherboard-list")).toBeDefined();
@@ -101,11 +117,24 @@ describe("TodosView", () => {
       render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
     });
 
-    const dailyFocusProject = screen.getByText("Daily Focus");
-    fireEvent.click(dailyFocusProject);
+    const dailyProject = screen.getByText("Daily");
+    fireEvent.click(dailyProject);
 
     expect(screen.getByText("Morning")).toBeDefined();
     expect(screen.getByText(/Wake up on time/i)).toBeDefined();
+  });
+
+  it("deletes project from vault when delete icon is clicked", async () => {
+    await act(async () => {
+      render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
+    });
+
+    const deleteBtn = screen.getByLabelText("Delete project Design");
+    fireEvent.click(deleteBtn);
+
+    expect(vaultModule.deleteFolderInVault).toHaveBeenCalledWith(
+      "todos/Design",
+    );
   });
 
   it("filters todos by search input", async () => {
@@ -120,7 +149,7 @@ describe("TodosView", () => {
     expect(screen.queryByText(/Outline in UX guide/i)).toBeNull();
   });
 
-  it("switches to full-screen focus mode and back to app", async () => {
+  it("switches to compact focus mode and back to app with no bottom input", async () => {
     await act(async () => {
       render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
     });
@@ -129,7 +158,8 @@ describe("TodosView", () => {
     fireEvent.click(focusModeBtn);
 
     expect(screen.getByText("Back to App")).toBeDefined();
-    expect(screen.getByPlaceholderText("Create task")).toBeDefined();
+    expect(screen.getAllByText("Add task").length).toBeGreaterThan(0);
+    expect(screen.queryByPlaceholderText("Create task")).toBeNull();
 
     const backBtn = screen.getByText("Back to App");
     fireEvent.click(backBtn);

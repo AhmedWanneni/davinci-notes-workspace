@@ -18,6 +18,7 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
     vaultName,
     projects,
     activeProject,
+    activeNote,
     allTodos,
     monthsMap,
     searchQuery,
@@ -30,6 +31,8 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
     setMotherboardLayout,
     selectedProjectId,
     setSelectedProjectId,
+    selectedNotePath,
+    setSelectedNotePath,
     isMotherboard,
     setIsMotherboard,
     toggleTodo,
@@ -38,11 +41,16 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
     addReminderToTodo,
     addTodoToSection,
     createProject,
+    createTodoNote,
+    deleteProject,
+    deleteTodoNote,
     allNotePaths,
   } = useTodosData();
 
   const [isFocusMode, setIsFocusMode] = useState(false);
-  const [focusTargetProject, setFocusTargetProject] = useState<string | null>(null);
+  const [focusTargetProject, setFocusTargetProject] = useState<string | null>(
+    null,
+  );
 
   const matchesFilter = useCallback(
     (todo: TodoItem) => {
@@ -52,9 +60,7 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
         const linkMatch = todo.linkedNotePath?.toLowerCase().includes(q);
         if (!textMatch && !linkMatch) return false;
       }
-      if (selectedMonth !== "all" && todo.month !== selectedMonth) {
-        return false;
-      }
+      if (selectedMonth !== "all" && todo.month !== selectedMonth) return false;
       if (statusFilter === "pending" && todo.completed) return false;
       if (statusFilter === "completed" && !todo.completed) return false;
       if (statusFilter === "dated" && !todo.dueDate) return false;
@@ -63,25 +69,32 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
     [searchQuery, selectedMonth, statusFilter],
   );
 
-  const filteredAllTodos = useMemo(() => {
-    return allTodos.filter(matchesFilter);
-  }, [allTodos, matchesFilter]);
+  const filteredAllTodos = useMemo(
+    () => allTodos.filter(matchesFilter),
+    [allTodos, matchesFilter],
+  );
+
+  const currentSections = useMemo(() => {
+    if (activeNote) return activeNote.sections;
+    if (activeProject) return activeProject.sections;
+    return [];
+  }, [activeNote, activeProject]);
 
   const filteredSections: TodoSection[] = useMemo(() => {
-    if (!activeProject) return [];
-    return activeProject.sections
+    return currentSections
       .map((section) => ({
         ...section,
         todos: section.todos.filter(matchesFilter),
       }))
       .filter((s) => s.todos.length > 0 || !searchQuery.trim());
-  }, [activeProject, matchesFilter, searchQuery]);
+  }, [currentSections, matchesFilter, searchQuery]);
 
   const focusSections: TodoSection[] = useMemo(() => {
     if (focusTargetProject) {
       const p = projects.find((x) => x.id === focusTargetProject);
       if (p) return p.sections;
     }
+    if (activeNote) return activeNote.sections;
     if (activeProject) return activeProject.sections;
     const map = new Map<string, TodoItem[]>();
     for (const t of allTodos) {
@@ -91,7 +104,9 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
       map.set(groupName, existing);
     }
     return Array.from(map.entries()).map(([name, todos]) => ({ name, todos }));
-  }, [activeProject, allTodos, focusTargetProject, projects]);
+  }, [activeNote, activeProject, allTodos, focusTargetProject, projects]);
+
+  const currentNotePath = activeNote?.notePath ?? activeProject?.notePath ?? "";
 
   return (
     <div className={styles["todos-view"]} data-testid="todos-view">
@@ -99,20 +114,37 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
         vaultName={vaultName}
         projects={projects}
         selectedProjectId={selectedProjectId}
+        selectedNotePath={selectedNotePath}
         isMotherboard={isMotherboard}
         totalTodosCount={allTodos.length}
         onSelectProject={(id) => {
           setIsMotherboard(false);
           setSelectedProjectId(id);
+          const p = projects.find((x) => x.id === id);
+          if (p && p.notes.length > 0) setSelectedNotePath(p.notes[0].notePath);
+        }}
+        onSelectNote={(projId, notePath) => {
+          setIsMotherboard(false);
+          setSelectedProjectId(projId);
+          setSelectedNotePath(notePath);
         }}
         onSelectMotherboard={() => setIsMotherboard(true)}
         onCreateProject={(name) => void createProject(name)}
+        onCreateTodoNote={(fPath, name) => void createTodoNote(fPath, name)}
+        onDeleteProject={(id) => void deleteProject(id)}
+        onDeleteNote={(path) => void deleteTodoNote(path)}
       />
 
       <div className={styles["todos-view__main"]}>
         <TodosHeader
-          title={isMotherboard ? "Motherboard" : (activeProject?.name ?? "Tasks")}
-          subtitle={isMotherboard ? "All tasks across projects" : activeProject?.folder}
+          title={
+            isMotherboard
+              ? "Motherboard"
+              : (activeNote?.name ?? activeProject?.name ?? "Tasks")
+          }
+          subtitle={
+            isMotherboard ? "All tasks across projects" : activeProject?.name
+          }
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           monthsMap={monthsMap}
@@ -171,7 +203,8 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
                   }}
                   allNotePaths={allNotePaths}
                   onAddTodo={async (secName, text) => {
-                    if (activeProject) await addTodoToSection(activeProject.notePath, secName, text);
+                    if (currentNotePath)
+                      await addTodoToSection(currentNotePath, secName, text);
                   }}
                 />
               ))
@@ -190,7 +223,8 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
           }}
           onToggleTodo={toggleTodo}
           onAddTodo={(sName, text) => {
-            if (activeProject) void addTodoToSection(activeProject.notePath, sName, text);
+            if (currentNotePath)
+              void addTodoToSection(currentNotePath, sName, text);
           }}
         />
       )}

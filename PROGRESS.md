@@ -4,6 +4,32 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Vault Folders as Projects, Delete Project, Hide FileTree, Dynamic Focus Mode Window
+
+**Scope:** Fulfilled prompt #13 requirements for Todos & Focus Mode:
+1. **Projects Match Vault Todos Folder Names (`useTodosData.ts`, `types.ts`)**:
+   - Subfolders under `todos/` (e.g. `todos/Design/`, `todos/Marketing/`) are directly mapped as Projects with the exact folder name.
+   - Markdown files inside each folder represent todo lists/notes under that project (e.g. `Marketing Site.md`, `Admin Dashboard.md`).
+   - "Add Project" creates a folder under `todos/` in the vault via `createFolder` and an initial starter note via `createNoteInVault`.
+   - "Add Todo" creates a new `.md` file inside that project's folder (`createTodoNote`).
+2. **Delete Project Option (`TodosSidebar.tsx`, `useTodosData.ts`)**:
+   - Added hover delete trash button next to each project in the Todos sidebar.
+   - Calling delete deletes the folder and all child notes from the vault on disk via `deleteFolderInVault`, clearing SQLite indexes and workspace store.
+   - Also added delete trash button on individual todo notes.
+3. **Hide FileTree on Todos Page (`AppSidebar.tsx`, `App.tsx`, `IconRail.tsx`)**:
+   - When on the Todos page (`davinci://todos`), `isCollapsed={!isLeftSidebarOpen || activeNotePath === TODOS_TAB_ID}` and `isTodosOpen ? null : <FileTree>` ensures the vault FileTree is never rendered or leaked.
+   - Updated `IconRail` active indicator to exclude Todos and clicking "Files" seamlessly returns to notes.
+4. **Dynamic Focus Mode Window Sizing & Bottom Input Removal (`TodoFocusView.tsx`, `TodoFocusView.module.scss`)**:
+   - Focus Mode dynamically resizes the Tauri window to a compact mobile/widget size (`new LogicalSize(420, 780)`) and centers it on mount.
+   - Exiting via "Back to App" or Escape key restores the user's previous window size and maximized state.
+   - Removed bottom floating input bar (`.focus-view__floating-bar`) completely from `TodoFocusView.tsx` and `TodoFocusView.module.scss`.
+5. **Verification & Quality**:
+   - All 38 unit tests passing across TodosView, AppSidebar, IconRail, AppTabs.
+   - 0 ESLint errors; all files under line limits.
+   - Knowledge graph updated with `graphify update .`.
+
+---
+
 ## Last Session — Compact Focus Mode Redesign, Vault Name Projects & Clean Sidebar
 
 **Scope:** Addressed prompt #12 user adjustments:

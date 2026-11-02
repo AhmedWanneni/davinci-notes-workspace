@@ -20,10 +20,19 @@ export interface TodoSection {
   todos: TodoItem[];
 }
 
-export interface TodoProject {
+export interface TodoNote {
   id: string;
   name: string;
   notePath: string;
+  sections: TodoSection[];
+}
+
+export interface TodoProject {
+  id: string;
+  name: string;
+  folderPath: string;
+  notePath: string;
+  notes: TodoNote[];
   folder?: string;
   sections: TodoSection[];
 }

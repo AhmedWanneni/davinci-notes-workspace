@@ -1,17 +1,26 @@
-import { useState, useCallback, useMemo, type JSX } from "react";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useRef,
+  type JSX,
+} from "react";
 import {
   ArrowLeft,
-  ArrowUp,
   CaretDown,
   CaretLeft,
   CaretRight,
   CaretUp,
   Check,
-  Microphone,
   Plus,
 } from "@phosphor-icons/react";
 import type { TodoItem, TodoProject, TodoSection } from "./types";
-import { parseCardEmojiAndTitle, formatOrdinalDate, getSectionPillStyle } from "./todoFocusUtils";
+import {
+  parseCardEmojiAndTitle,
+  formatOrdinalDate,
+  getSectionPillStyle,
+} from "./todoFocusUtils";
 import styles from "./TodoFocusView.module.scss";
 
 export interface TodoFocusViewProps {
@@ -30,9 +39,82 @@ export function TodoFocusView({
 }: TodoFocusViewProps): JSX.Element {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date());
-  const [floatingInput, setFloatingInput] = useState("");
+  const originalSizeRef = useRef<{ width: number; height: number } | null>(
+    null,
+  );
+  const wasMaximizedRef = useRef(false);
 
-  const { dayName, dateStr } = useMemo(() => formatOrdinalDate(currentDate), [currentDate]);
+  const { dayName, dateStr } = useMemo(
+    () => formatOrdinalDate(currentDate),
+    [currentDate],
+  );
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const { getCurrentWindow, LogicalSize } =
+          await import("@tauri-apps/api/window");
+        const win = getCurrentWindow();
+        const isMax = await win.isMaximized();
+        wasMaximizedRef.current = isMax;
+        if (isMax) await win.unmaximize();
+        const size = await win.innerSize();
+        originalSizeRef.current = { width: size.width, height: size.height };
+        await win.setSize(new LogicalSize(420, 780));
+        await win.center();
+      } catch {
+        // Ignored outside Tauri
+      }
+    })();
+
+    return () => {
+      if (originalSizeRef.current) {
+        void (async () => {
+          try {
+            const { getCurrentWindow, LogicalSize } =
+              await import("@tauri-apps/api/window");
+            const win = getCurrentWindow();
+            const orig = originalSizeRef.current;
+            if (orig) {
+              await win.setSize(new LogicalSize(orig.width, orig.height));
+              if (wasMaximizedRef.current) await win.maximize();
+            }
+          } catch {
+            // Ignored outside Tauri
+          }
+        })();
+      }
+    };
+  }, []);
+
+  const handleClose = useCallback(async () => {
+    try {
+      const { getCurrentWindow, LogicalSize } =
+        await import("@tauri-apps/api/window");
+      const win = getCurrentWindow();
+      if (originalSizeRef.current) {
+        await win.setSize(
+          new LogicalSize(
+            originalSizeRef.current.width,
+            originalSizeRef.current.height,
+          ),
+        );
+        if (wasMaximizedRef.current) await win.maximize();
+        originalSizeRef.current = null;
+      }
+    } catch {
+      // Ignored outside Tauri
+    }
+    onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") void handleClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleClose]);
 
   const toggleSection = useCallback((name: string) => {
     setCollapsed((prev) => ({ ...prev, [name]: !prev[name] }));
@@ -46,20 +128,13 @@ export function TodoFocusView({
     });
   }, []);
 
-  const handleCreateTask = useCallback(() => {
-    if (!floatingInput.trim()) return;
-    const targetSection = sections[0]?.name ?? "Morning";
-    onAddTodo(targetSection, floatingInput.trim());
-    setFloatingInput("");
-  }, [floatingInput, onAddTodo, sections]);
-
   return (
     <div className={styles["focus-view"]} data-testid="todo-focus-view">
       <div className={styles["focus-view__top-bar"]}>
         <button
           type="button"
           className={styles["focus-view__back-btn"]}
-          onClick={onClose}
+          onClick={() => void handleClose()}
           aria-label="Back to whole app"
         >
           <ArrowLeft size={14} />
@@ -80,7 +155,9 @@ export function TodoFocusView({
 
           <div className={styles["focus-view__date-center"]}>
             <h1 className={styles["focus-view__day-title"]}>{dayName}</h1>
-            <span className={styles["focus-view__date-subtitle"]}>{dateStr}</span>
+            <span className={styles["focus-view__date-subtitle"]}>
+              {dateStr}
+            </span>
           </div>
 
           <button
@@ -117,8 +194,14 @@ export function TodoFocusView({
                   className={`${styles["focus-view__pill"]} ${styles[modifier]}`}
                   onClick={() => toggleSection(section.name)}
                 >
-                  <span>{icon} {section.name} ({section.todos.length})</span>
-                  {isCollapsed ? <CaretDown size={12} /> : <CaretUp size={12} />}
+                  <span>
+                    {icon} {section.name} ({section.todos.length})
+                  </span>
+                  {isCollapsed ? (
+                    <CaretDown size={12} />
+                  ) : (
+                    <CaretUp size={12} />
+                  )}
                 </button>
 
                 <button
@@ -134,8 +217,14 @@ export function TodoFocusView({
               {!isCollapsed && (
                 <div className={styles["focus-view__card-list"]}>
                   {section.todos.map((todo) => {
-                    const { emoji, title, subtitle } = parseCardEmojiAndTitle(todo.text, section.name);
-                    const displaySub = subtitle || todo.dueDate || (todo.linkedNotePath ? `[[${todo.linkedNotePath}]]` : "");
+                    const { emoji, title, subtitle } = parseCardEmojiAndTitle(
+                      todo.text,
+                      section.name,
+                    );
+                    const displaySub =
+                      subtitle ||
+                      todo.dueDate ||
+                      (todo.linkedNotePath ? `[[${todo.linkedNotePath}]]` : "");
 
                     return (
                       <div
@@ -143,11 +232,19 @@ export function TodoFocusView({
                         className={`${styles["focus-view__task-card"]} ${todo.completed ? styles["is-completed"] : ""}`}
                       >
                         <div className={styles["focus-view__card-left"]}>
-                          <div className={styles["focus-view__emoji-badge"]}>{emoji}</div>
+                          <div className={styles["focus-view__emoji-badge"]}>
+                            {emoji}
+                          </div>
                           <div className={styles["focus-view__card-details"]}>
-                            <span className={styles["focus-view__card-title"]}>{title}</span>
+                            <span className={styles["focus-view__card-title"]}>
+                              {title}
+                            </span>
                             {displaySub && (
-                              <span className={styles["focus-view__card-subtitle"]}>{displaySub}</span>
+                              <span
+                                className={styles["focus-view__card-subtitle"]}
+                              >
+                                {displaySub}
+                              </span>
                             )}
                           </div>
                         </div>
@@ -156,7 +253,9 @@ export function TodoFocusView({
                           type="button"
                           className={`${styles["focus-view__circle-checkbox"]} ${todo.completed ? styles["is-checked"] : ""}`}
                           onClick={() => onToggleTodo(todo)}
-                          aria-label={todo.completed ? "Mark incomplete" : "Mark complete"}
+                          aria-label={
+                            todo.completed ? "Mark incomplete" : "Mark complete"
+                          }
                         >
                           {todo.completed && <Check size={12} weight="bold" />}
                         </button>
@@ -168,32 +267,6 @@ export function TodoFocusView({
             </div>
           );
         })}
-      </div>
-
-      <div className={styles["focus-view__floating-bar"]}>
-        <div className={styles["focus-view__cursor-bar"]} />
-        <input
-          type="text"
-          className={styles["focus-view__floating-input"]}
-          placeholder="Create task"
-          value={floatingInput}
-          onChange={(e) => setFloatingInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleCreateTask();
-          }}
-        />
-        <button type="button" className={styles["focus-view__mic-btn"]} title="Voice input">
-          <Microphone size={18} />
-        </button>
-        <button
-          type="button"
-          className={styles["focus-view__submit-btn"]}
-          onClick={handleCreateTask}
-          title="Submit task"
-          aria-label="Submit task"
-        >
-          <ArrowUp size={16} weight="bold" />
-        </button>
       </div>
     </div>
   );

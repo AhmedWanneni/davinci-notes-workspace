@@ -189,7 +189,7 @@ export function AppSidebar({
           <BookmarksSidebarPanel />
         ) : isAgentOpen ? (
           <AgentSidebarPanel onToggleSidebar={onToggleLeftSidebar} />
-        ) : (
+        ) : isTodosOpen ? null : (
           <FileTree
             filePaths={allNotePaths}
             folderPaths={allFolderPaths}

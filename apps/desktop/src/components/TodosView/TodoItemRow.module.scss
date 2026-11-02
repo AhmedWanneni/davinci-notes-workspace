@@ -69,7 +69,7 @@
   font-size: var(--type-scale-sm);
   color: var(--color-text-normal);
   line-height: 1.4;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .todo-row__edit-input {

@@ -735,7 +735,8 @@ export function App() {
     }
     if (
       activeNotePath === BOOKMARKS_TAB_ID ||
-      activeNotePath === AGENT_TAB_ID
+      activeNotePath === AGENT_TAB_ID ||
+      activeNotePath === TODOS_TAB_ID
     ) {
       const closingPath = activeNotePath;
       const prevNote = openNotes
@@ -810,7 +811,7 @@ export function App() {
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
           log={log}
-          isCollapsed={!isLeftSidebarOpen}
+          isCollapsed={!isLeftSidebarOpen || activeNotePath === TODOS_TAB_ID}
           isMac={isMac}
           onToggleLeftSidebar={() => {
             if (isGitManagerOpen) {

@@ -99,7 +99,7 @@
   font-size: var(--type-scale-sm);
   line-height: 1.4;
   color: var(--color-text-normal);
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .motherboard__card-footer {
