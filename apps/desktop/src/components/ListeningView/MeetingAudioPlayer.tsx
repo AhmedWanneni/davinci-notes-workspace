@@ -125,11 +125,11 @@ export function MeetingAudioPlayer({
 
       <div className={styles["player-waveform-scrubber"]}>
         <div className={styles["mini-waveform-bars"]} aria-hidden="true">
-          {Array.from({ length: 32 }).map((_, idx) => {
+          {Array.from({ length: 48 }).map((_, idx) => {
             const progressRatio = totalDuration > 0 ? currentTime / totalDuration : 0;
-            const barRatio = idx / 32;
+            const barRatio = idx / 48;
             const isPlayed = barRatio <= progressRatio;
-            const height = 8 + Math.abs(Math.sin(idx * 0.55)) * 18;
+            const height = 8 + Math.abs(Math.sin(idx * 0.45)) * 18;
             return (
               <span
                 key={idx}

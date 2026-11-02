@@ -17267,9 +17267,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/ListeningVisualizer.tsx": {
-    "mtime": 1793644381.5856194,
-    "seen": 1793644672.8365781,
-    "ast_hash": "54496c2a74122867622e88756c9bc9a4",
+    "mtime": 1793644961.6100385,
+    "seen": 1793645080.9335098,
+    "ast_hash": "de312484af6c547eec74e3b001fef8c2",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/MeetingsSidebar.tsx": {
@@ -17333,9 +17333,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/MeetingAudioPlayer.tsx": {
-    "mtime": 1793644339.8652163,
-    "seen": 1793644672.836695,
-    "ast_hash": "de676a7b6c707a1853ef7da2c86ae534",
+    "mtime": 1793644987.3828382,
+    "seen": 1793645080.93362,
+    "ast_hash": "1330834f31cdfb33772174a794c56aa3",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/ListeningView/MeetingDetailView.tsx": {

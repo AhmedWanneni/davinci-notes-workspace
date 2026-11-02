@@ -62,19 +62,28 @@ export function ListeningVisualizer({
   const isPaused = status === "paused";
   const isLive = isRecording || isPaused;
 
-  // Generate 32 responsive audio bars
+  // 48 acoustic waveform bars across full width
   const totalLevel = isRecording
     ? Math.min(1, Math.max(0.12, micLevel + systemLevel))
     : 0.05;
-  const barHeights = Array.from({ length: 32 }, (_, i) => {
+
+  // Progress ratio across waveform (sweeps live as recording progresses)
+  const progressRatio = isLive
+    ? Math.min(1, ((durationMs / 1000) % 60) / 60 || (durationMs > 0 ? 0.05 : 0))
+    : 0;
+
+  const barHeights = Array.from({ length: 48 }, (_, i) => {
     if (!isRecording) {
-      // Natural, elegant idle waveform curve
-      const idleWave = Math.sin((i / 32) * Math.PI * 2) * 5 + 9;
-      return Math.round(idleWave);
+      // Natural, elegant acoustic soundwave silhouette curve
+      const idleWave =
+        Math.sin((i / 48) * Math.PI * 3) * 5 +
+        Math.cos((i / 48) * Math.PI) * 4 +
+        10;
+      return Math.round(Math.max(5, Math.min(26, idleWave)));
     }
-    const wave = Math.sin((i / 32) * Math.PI) * totalLevel;
+    const wave = Math.sin((i / 48) * Math.PI) * totalLevel;
     const jitter = Math.sin(i * 1.5 + Date.now() / 200) * 0.25 * totalLevel;
-    return Math.max(5, Math.min(26, Math.round((wave + jitter) * 26)));
+    return Math.max(5, Math.min(28, Math.round((wave + jitter) * 28)));
   });
 
   return (
@@ -82,6 +91,7 @@ export function ListeningVisualizer({
       className={styles["listening-visualizer"]}
       data-testid="listening-visualizer"
     >
+      {/* Row 1: Title input on left, Transcript & AI Listening toggles on same row */}
       <div className={styles["listening-visualizer__top-row"]}>
         <div className={styles["listening-visualizer__title-wrapper"]}>
           <input
@@ -94,7 +104,32 @@ export function ListeningVisualizer({
           />
         </div>
 
-        <div className={styles["listening-visualizer__status-badge"]}>
+        <div className={styles["listening-visualizer__options-row"]}>
+          <div className={styles["toggle-control-item"]}>
+            <Broadcast size={15} />
+            <span className={styles["toggle-label"]}>Transcript</span>
+            <Toggle
+              checked={isTranscriptVisible}
+              onCheckedChange={onToggleTranscript}
+              aria-label="Toggle live transcript"
+              data-testid="transcript-toggle"
+            />
+          </div>
+
+          <div className={styles["toggle-control-item"]}>
+            <Sparkle
+              size={15}
+              weight={isAIListeningActive ? "fill" : "regular"}
+            />
+            <span className={styles["toggle-label"]}>AI Listening</span>
+            <Toggle
+              checked={isAIListeningActive}
+              onCheckedChange={onToggleAIListening}
+              aria-label="Toggle AI Listening"
+              data-testid="ai-listening-toggle"
+            />
+          </div>
+
           {isRecording && (
             <span
               className={`${styles["status-pill"]} ${styles["status-pill--recording"]}`}
@@ -110,32 +145,21 @@ export function ListeningVisualizer({
               PAUSED {formatDuration(durationMs)}
             </span>
           )}
-          {status === "idle" && (
-            <span
-              className={`${styles["status-pill"]} ${styles["status-pill--idle"]}`}
-            >
-              READY
+
+          {isAIListeningActive && aiStatus === "streaming" && (
+            <span className={styles["ai-status-indicator"]}>Streaming...</span>
+          )}
+          {isAIListeningActive && aiStatus === "error" && (
+            <span className={styles["ai-status-indicator--error"]}>
+              {aiError || "AI unavailable"}
             </span>
           )}
         </div>
       </div>
 
-      <div className={styles["listening-visualizer__center-row"]}>
-        <div
-          className={styles["waveform-container"]}
-          aria-label="Live audio level waveform"
-          data-testid="audio-waveform-bars"
-        >
-          {barHeights.map((h, idx) => (
-            <span
-              key={idx}
-              className={`${styles["waveform-bar"]} ${isRecording ? styles["is-active"] : ""}`}
-              style={{ height: `${h}px` }}
-            />
-          ))}
-        </div>
-
-        <div className={styles["listening-visualizer__controls"]}>
+      {/* Row 2: Full-width audio recording bar with controls and live waveform progress */}
+      <div className={styles["listening-visualizer__audio-row"]}>
+        <div className={styles["audio-row-controls"]}>
           {status === "idle" && (
             <button
               type="button"
@@ -198,44 +222,44 @@ export function ListeningVisualizer({
             </>
           )}
         </div>
-      </div>
 
-      <div className={styles["listening-visualizer__toggles-row"]}>
-        <div className={styles["toggle-control-item"]}>
-          <Broadcast size={15} />
-          <span className={styles["toggle-label"]}>Transcript</span>
-          <Toggle
-            checked={isTranscriptVisible}
-            onCheckedChange={onToggleTranscript}
-            aria-label="Toggle live transcript"
-            data-testid="transcript-toggle"
-          />
+        <div className={styles["audio-duration-badge"]}>
+          {formatDuration(durationMs)}
         </div>
 
-        <div className={styles["toggle-control-item"]}>
-          <Sparkle
-            size={15}
-            weight={isAIListeningActive ? "fill" : "regular"}
-          />
-          <span className={styles["toggle-label"]}>AI Listening</span>
-          <Toggle
-            checked={isAIListeningActive}
-            onCheckedChange={onToggleAIListening}
-            aria-label="Toggle AI Listening"
-            data-testid="ai-listening-toggle"
-          />
-        </div>
+        {/* Full-width waveform track with live acoustic progress */}
+        <div
+          className={styles["full-width-waveform-container"]}
+          aria-label="Live audio level waveform"
+          data-testid="audio-waveform-bars"
+        >
+          <div className={styles["waveform-bars-track"]}>
+            {barHeights.map((h, idx) => {
+              const barRatio = idx / 48;
+              const isPassed = isLive && barRatio <= progressRatio;
+              return (
+                <span
+                  key={idx}
+                  className={`${styles["waveform-bar"]} ${
+                    isPassed
+                      ? styles["is-passed"]
+                      : isRecording
+                        ? styles["is-active"]
+                        : ""
+                  }`}
+                  style={{ height: `${h}px` }}
+                />
+              );
+            })}
+          </div>
 
-        {isAIListeningActive && aiStatus === "streaming" && (
-          <span className={styles["ai-status-indicator"]}>
-            Streaming insights...
-          </span>
-        )}
-        {isAIListeningActive && aiStatus === "error" && (
-          <span className={styles["ai-status-indicator--error"]}>
-            {aiError || "AI temporarily unavailable"}
-          </span>
-        )}
+          {isLive && (
+            <div
+              className={styles["waveform-progress-head"]}
+              style={{ left: `${Math.round(progressRatio * 100)}%` }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
