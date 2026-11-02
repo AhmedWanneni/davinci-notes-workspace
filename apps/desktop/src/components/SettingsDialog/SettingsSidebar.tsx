@@ -13,6 +13,7 @@ import {
   MagnifyingGlass,
   Globe,
   ListBullets,
+  Ear,
 } from "@phosphor-icons/react";
 import { Typography } from "@app/design-system";
 import styles from "./SettingsDialog.module.scss";
@@ -79,6 +80,7 @@ export const SETTINGS_SIDEBAR_ITEMS: SettingsSidebarItem[] = [
     category: "options",
   },
   { id: "ai", label: "AI Assistant", icon: Sparkle, category: "options" },
+  { id: "ai-listening", label: "AI Listening", icon: Ear, category: "options" },
   { id: "web-clipper", label: "Web Clipper", icon: Globe, category: "options" },
   {
     id: "plugins",

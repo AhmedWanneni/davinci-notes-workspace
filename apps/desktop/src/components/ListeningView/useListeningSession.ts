@@ -9,36 +9,12 @@ import type { ListeningStatus } from "./listeningConstants";
 import type {
   TranscriptSegmentItem,
   SuggestedLinkItem,
+  UseListeningSessionReturn,
 } from "./listeningTypes";
 import { saveMeetingNoteToVault } from "../../vault/meetingNoteActions";
 import { useAudioLevels } from "./useAudioLevels";
 import { rerunAudioTranscription } from "./rerunAudioTranscription";
-
-export interface UseListeningSessionReturn {
-  status: ListeningStatus;
-  title: string;
-  durationMs: number;
-  micLevel: number;
-  systemLevel: number;
-  segments: TranscriptSegmentItem[];
-  suggestedLinks: SuggestedLinkItem[];
-  actionItems: string[];
-  summary: string;
-  createdNotePath: string | null;
-  setTitle: (title: string) => void;
-  startSession: () => Promise<void>;
-  pauseSession: () => Promise<void>;
-  resumeSession: () => Promise<void>;
-  stopSession: (existingPaths?: string[]) => Promise<string | null>;
-  discardSession: () => Promise<void>;
-  addSegment: (segment: Omit<TranscriptSegmentItem, "id">) => void;
-  acceptLink: (id: string) => void;
-  dismissLink: (id: string) => void;
-  retranscribeAudio: (filePath: string) => Promise<void>;
-  setSuggestedLinks: React.Dispatch<React.SetStateAction<SuggestedLinkItem[]>>;
-  setActionItems: React.Dispatch<React.SetStateAction<string[]>>;
-  setSummary: React.Dispatch<React.SetStateAction<string>>;
-}
+import { useAIListeningEngine } from "./useAIListeningEngine";
 
 export function useListeningSession(
   initialTitle?: string,
@@ -57,8 +33,17 @@ export function useListeningSession(
   const [actionItems, setActionItems] = useState<string[]>([]);
   const [summary, setSummary] = useState<string>("");
   const [createdNotePath, setCreatedNotePath] = useState<string | null>(null);
+  const [isTranscriptVisible, setIsTranscriptVisible] = useState(false);
+  const [isAIListeningActive, setIsAIListeningActive] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isRecording = status === "recording";
+
+  const ai = useAIListeningEngine({
+    isRecording,
+    isActive: isAIListeningActive,
+    segments,
+  });
 
   useEffect(() => {
     if (status === "recording") {
@@ -105,20 +90,25 @@ export function useListeningSession(
       setSuggestedLinks([]);
       setActionItems([]);
       setCreatedNotePath(null);
+      ai.resetAI();
     } catch (err) {
       console.error("Failed to start recording:", err);
       setStatus("error");
     }
-  }, []);
+  }, [ai]);
 
   const pauseSession = useCallback(async () => {
     try {
       await pauseMeetingRecording();
       setStatus("paused");
+      // Trigger an AI step at pause point if active
+      if (isAIListeningActive) {
+        void ai.triggerStep();
+      }
     } catch (err) {
       console.error("Failed to pause recording:", err);
     }
-  }, []);
+  }, [ai, isAIListeningActive]);
 
   const resumeSession = useCallback(async () => {
     try {
@@ -136,8 +126,22 @@ export function useListeningSession(
         const audioResult = await stopMeetingRecording().catch(() => null);
         const tempWav =
           audioResult?.wavFilePath ||
-          (audioResult as unknown as { wav_file_path?: string })?.wav_file_path ||
+          (audioResult as unknown as { wav_file_path?: string })
+            ?.wav_file_path ||
           (audioResult as unknown as { wav_path?: string })?.wav_path;
+
+        const savedAnswers = ai.answers
+          .filter((a) => a.status === "saved")
+          .map((a) => ({
+            question: a.question,
+            answer: a.answer,
+            timestamp: a.timestamp,
+          }));
+
+        const savedQuestions = ai.questions
+          .filter((q) => q.status === "saved")
+          .map((q) => ({ question: q.question, timestamp: q.timestamp }));
+
         const savedPath = await saveMeetingNoteToVault(
           {
             title,
@@ -146,7 +150,9 @@ export function useListeningSession(
             segments,
             suggestedLinks,
             actionItems,
-            summary,
+            summary: ai.liveSummary || summary,
+            answers: savedAnswers,
+            questions: savedQuestions,
           },
           existingPaths,
           tempWav,
@@ -168,6 +174,7 @@ export function useListeningSession(
       suggestedLinks,
       actionItems,
       summary,
+      ai,
     ],
   );
 
@@ -178,11 +185,12 @@ export function useListeningSession(
       setDurationMs(0);
       setSegments([]);
       setSuggestedLinks([]);
+      ai.resetAI();
     } catch (err) {
       console.error("Failed to discard recording:", err);
       setStatus("idle");
     }
-  }, []);
+  }, [ai]);
 
   const retranscribeAudio = useCallback(async (filePath: string) => {
     try {
@@ -209,6 +217,21 @@ export function useListeningSession(
     actionItems,
     summary,
     createdNotePath,
+    isTranscriptVisible,
+    isAIListeningActive,
+    liveSummary: ai.liveSummary,
+    answers: ai.answers,
+    questions: ai.questions,
+    aiStatus: ai.aiStatus,
+    aiError: ai.aiError,
+    aiRequestCount: ai.requestCount,
+    setIsTranscriptVisible,
+    setIsAIListeningActive,
+    saveAnswer: ai.saveAnswer,
+    dismissAnswer: ai.dismissAnswer,
+    saveQuestion: ai.saveQuestion,
+    dismissQuestion: ai.dismissQuestion,
+    triggerAIStep: ai.triggerStep,
     setTitle,
     startSession,
     pauseSession,

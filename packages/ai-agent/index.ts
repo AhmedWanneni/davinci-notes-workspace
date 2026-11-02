@@ -20,3 +20,5 @@ export * from "./memory/index.js";
 export * from "./prompts/index.js";
 export * from "./understanding/index.js";
 export * from "./meetingListenerEngine.js";
+export * from "./aiListeningTypes.js";
+export * from "./aiListeningEngine.js";

@@ -4,6 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Recording Page UI Redesign & Real-Time AI Listening Streaming
+
+**Scope:** Fulfilled Recording Page UI redesign and AI Listening stream specifications:
+1. **Three-Column Reference Layout (`MeetingsSidebar.tsx`, `ListeningVisualizer.tsx`, `TranscriptFeed.tsx`, `AIListeningPanel.tsx`)**:
+   - Matches the reference image layout, spacing, colors, and controls strictly adhering to design system tokens.
+   - Left sidebar (`MeetingsSidebar`): `# My Meetings`, `All Meetings`, `Voice Agent Meetings` (active accent state), `Uploads` (with `NEW` badge), `All channels` section, and `+ Channel`.
+   - Center workspace: Top action bar (Filters & Search), `ListeningVisualizer` with 16 dynamic waveform bars, recording timer, recording controls (Record, Pause, Resume, Stop, Discard), and dual switches for `[Transcript]` and `[AI Listening]`.
+   - Smart Transcript feed (`TranscriptFeed`): Displayed directly under visualizer when toggled ON. Auto-scrolls to newest segments; automatically pauses auto-scrolling when user scrolls up, showing a "↓ Latest transcript" button to return to bottom. When toggled OFF, displays the clean reference conversation bubble showcase.
+2. **Real-Time AI Listening Engine & Lazy-Loaded Panel (`useAIListeningEngine.ts`, `aiListeningEngine.ts`, `AIListeningPanel`)**:
+   - Off by default: When toggle is OFF, 0 AI requests are sent and the panel is lazy-loaded (`React.lazy`), incurring 0 overhead.
+   - When ON, reads rolling transcript window (last 2.5 minutes + running summary) on a 25s throttle timer (never per word). Cancels in-flight requests via `AbortController` if superseded.
+   - Non-blocking error handling: Failures or rate limits display a discreet banner and never interrupt recording or transcription.
+   - Streams live summary, suggested answers to questions asked in conversation, and follow-up questions to steer the meeting.
+   - Each answer and question item is timestamped, with "Save to note" and "Dismiss" buttons.
+   - Reference query input at bottom with channel chip (`# Voice Agent Meetings`), quick skill icons, and send button.
+3. **Dedicated Settings Tab (`AIListeningSettingsTab.tsx`, `SettingsDialog.tsx`)**:
+   - New `AI Listening` tab in `SettingsDialog` with provider selection (Google Gemini, OpenAI-compatible, OpenRouter, Ollama), OS keychain API key storage, model configuration, and throttle interval.
+   - Displays clear warning on Google Gemini privacy regarding free-tier model training.
+4. **Markdown Persistence (`meetingNoteActions.ts`)**:
+   - Extended `renderMeetingMarkdown` to persist live summary, accepted/saved answers (`## Q&A`), suggested follow-up questions (`## Suggested Follow-up Questions`), and transcript into the meeting note markdown.
+5. **Verification & Quality**:
+   - 45 unit tests passing across `aiListeningEngine`, `AIListeningComponents`, `useAIListeningEngine`, `ListeningView`, `meetingNoteActions`, and `AIListeningSettingsTab`.
+   - Every file strictly under the 250-line hard cap (most under 150-200).
+   - Knowledge graph updated with `graphify update .`.
+   - Logged in [ADR-0252](docs/adr/0252-realtime-ai-listening-streaming-and-recording-ui.md) and indexed in `DECISIONS.md`.
+
+---
+
 ## Last Session — Empty Project Support, Focus Mode Dialog Card, Removed Vault Headers
 
 **Scope:** Fulfilled prompt #14 refinements for Todos & Focus Mode:

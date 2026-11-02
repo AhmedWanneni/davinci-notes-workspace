@@ -1,12 +1,16 @@
 export { ListeningView } from "./ListeningView";
 export type { ListeningViewProps } from "./ListeningView";
 export { ListeningHeader } from "./ListeningHeader";
+export { ListeningVisualizer } from "./ListeningVisualizer";
+export { MeetingsSidebar } from "./MeetingsSidebar";
 export { TranscriptFeed } from "./TranscriptFeed";
 export { TranscriptBubble } from "./TranscriptBubble";
 export { AudioMeter } from "./AudioMeter";
 export { MeetingPromptToast } from "./MeetingPromptToast";
 export type { MeetingPromptToastProps } from "./MeetingPromptToast";
 export { useListeningSession } from "./useListeningSession";
+export { useAIListeningEngine } from "./useAIListeningEngine";
+export { AIListeningPanel } from "./AIListeningPanel";
 export {
   parseVttTranscript,
   parseGoogleMeetTextTranscript,

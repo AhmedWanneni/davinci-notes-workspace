@@ -398,6 +398,7 @@ the list.
 | [0229](adr/0229-non-destructive-vault-grounding-and-wikilink-suggestion-engine.md) | Non-Destructive Vault Grounding & Wikilink Suggestion Engine with SQLite FTS5 | Accepted |
 | [0230](adr/0230-meeting-note-markdown-schema-and-canonical-vault-persistence.md) | Meeting Note Markdown Schema & Canonical Vault Persistence | Accepted |
 | [0231](adr/0231-calendar-event-proximity-detection-and-note-taking-prompt.md) | Calendar Event Proximity Detection & Note-Taking Prompt | Accepted |
+| [0252](adr/0252-realtime-ai-listening-streaming-and-recording-ui.md) | Real-time AI Listening Streaming Engine and Recording Page UI | Accepted |
 
 ## Git Manager
 

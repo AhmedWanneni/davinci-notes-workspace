@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { Sparkle, CheckSquare, PaperPlaneRight } from "@phosphor-icons/react";
-import { ListeningHeader } from "./ListeningHeader";
+import React, { Suspense, useEffect } from "react";
+import { FunnelSimple, MagnifyingGlass } from "@phosphor-icons/react";
+import { MeetingsSidebar } from "./MeetingsSidebar";
+import { ListeningVisualizer } from "./ListeningVisualizer";
 import { TranscriptFeed } from "./TranscriptFeed";
-import { SuggestedLinksPanel } from "./SuggestedLinksPanel";
 import { useListeningSession } from "./useListeningSession";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import styles from "./ListeningView.module.scss";
+
+const LazyAIListeningPanel = React.lazy(() =>
+  import("./AIListeningPanel").then((m) => ({ default: m.AIListeningPanel })),
+);
 
 export interface ListeningViewProps {
   initialTitle?: string;
@@ -26,20 +30,29 @@ export function ListeningView({
     micLevel,
     systemLevel,
     segments,
-    suggestedLinks,
-    actionItems,
+    isTranscriptVisible,
+    isAIListeningActive,
+    liveSummary,
+    answers,
+    questions,
+    aiStatus,
+    aiError,
+    setIsTranscriptVisible,
+    setIsAIListeningActive,
+    saveAnswer,
+    dismissAnswer,
+    saveQuestion,
+    dismissQuestion,
+    triggerAIStep,
     setTitle,
     startSession,
     pauseSession,
     resumeSession,
     stopSession,
     discardSession,
-    acceptLink,
-    dismissLink,
     retranscribeAudio,
   } = useListeningSession(initialTitle);
 
-  const [chatPrompt, setChatPrompt] = useState("");
   const isRecording = status === "recording";
 
   useEffect(() => {
@@ -73,113 +86,115 @@ export function ListeningView({
   };
 
   return (
-    <section
-      className={styles["listening-view"]}
-      aria-label="AI Listening Session"
+    <div
+      className={styles["recording-workspace"]}
+      aria-label="Meeting Recording Workspace"
+      data-testid="recording-workspace"
     >
-      <ListeningHeader
-        status={status}
-        title={title}
-        durationMs={durationMs}
-        micLevel={micLevel}
-        systemLevel={systemLevel}
-        onTitleChange={setTitle}
-        onStart={() => void startSession()}
-        onPause={() => void pauseSession()}
-        onResume={() => void resumeSession()}
-        onStop={() => void handleStopAndSave()}
-        onDiscard={() => void discardSession()}
-      />
+      <MeetingsSidebar />
 
-      <div className={styles["listening-view__body"]}>
-        <div className={styles["listening-view__transcript-pane"]}>
-          <div className={styles["pane-header"]}>
-            <h2 className={styles["pane-header__title"]}>Live Transcript</h2>
-            <span className={styles["pane-header__count"]}>
-              {segments.length} {segments.length === 1 ? "entry" : "entries"}
-            </span>
-          </div>
-          <TranscriptFeed segments={segments} isRecording={isRecording} />
+      <main className={styles["recording-main-col"]}>
+        <div className={styles["recording-top-action-bar"]}>
+          <button type="button" className={styles["action-bar-btn"]}>
+            <FunnelSimple size={14} weight="bold" />
+            <span>Filters</span>
+          </button>
+          <button
+            type="button"
+            className={styles["action-bar-icon-btn"]}
+            aria-label="Search meetings"
+          >
+            <MagnifyingGlass size={16} />
+          </button>
         </div>
 
-        <aside className={styles["listening-view__notes-pane"]}>
-          <div className={styles["pane-header"]}>
-            <div className={styles["pane-header__title-group"]}>
-              <Sparkle
-                size={16}
-                weight="fill"
-                className={styles["pane-header__sparkle"]}
-              />
-              <h2 className={styles["pane-header__title"]}>
-                AI Notes & Grounding
-              </h2>
-            </div>
-          </div>
+        <ListeningVisualizer
+          status={status}
+          title={title}
+          durationMs={durationMs}
+          micLevel={micLevel}
+          systemLevel={systemLevel}
+          isTranscriptVisible={isTranscriptVisible}
+          isAIListeningActive={isAIListeningActive}
+          aiStatus={aiStatus}
+          aiError={aiError}
+          onTitleChange={setTitle}
+          onStart={() => void startSession()}
+          onPause={() => void pauseSession()}
+          onResume={() => void resumeSession()}
+          onStop={() => void handleStopAndSave()}
+          onDiscard={() => void discardSession()}
+          onToggleTranscript={setIsTranscriptVisible}
+          onToggleAIListening={setIsAIListeningActive}
+        />
 
-          <div className={styles["listening-view__notes-content"]}>
-            <div className={styles["notes-card"]}>
-              <h3 className={styles["notes-card__title"]}>
-                <CheckSquare size={14} weight="bold" />
-                Action Items ({actionItems.length})
-              </h3>
-              {actionItems.length === 0 ? (
-                <p className={styles["notes-card__empty"]}>
-                  {isRecording
-                    ? "Action items will be detected automatically..."
-                    : "No action items identified yet."}
-                </p>
-              ) : (
-                <ul
-                  className={styles["suggested-links-list"]}
-                  aria-label="Action items"
-                >
-                  {actionItems.map((item, idx) => (
-                    <li key={idx} className={styles["suggested-link-item"]}>
-                      <span className={styles["suggested-link-item__body"]}>
-                        {item}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <SuggestedLinksPanel
-              links={suggestedLinks}
-              isRecording={isRecording}
-              onAccept={acceptLink}
-              onDismiss={dismissLink}
-            />
-          </div>
-
-          <footer className={styles["listening-view__chat-footer"]}>
-            <form
-              className={styles["chat-input-form"]}
-              onSubmit={(e) => {
-                e.preventDefault();
-                setChatPrompt("");
-              }}
+        <div className={styles["recording-content-area"]}>
+          {isTranscriptVisible ? (
+            <TranscriptFeed segments={segments} isRecording={isRecording} />
+          ) : (
+            <div
+              className={styles["meeting-empty-showcase"]}
+              data-testid="meeting-empty-showcase"
             >
-              <input
-                type="text"
-                className={styles["chat-input-form__input"]}
-                placeholder="Ask about this meeting or vault notes..."
-                value={chatPrompt}
-                onChange={(e) => setChatPrompt(e.target.value)}
-                aria-label="Meeting query"
-              />
-              <button
-                type="submit"
-                className={styles["chat-input-form__submit"]}
-                disabled={!chatPrompt.trim()}
-                aria-label="Send query"
-              >
-                <PaperPlaneRight size={14} weight="fill" />
-              </button>
-            </form>
-          </footer>
-        </aside>
-      </div>
-    </section>
+              <div className={styles["chat-bubble-previews"]}>
+                <div className={styles["preview-bubble"]}>
+                  <span className={styles["preview-avatar"]}>K</span>
+                  <div className={styles["preview-lines"]}>
+                    <span className={styles["line-long"]} />
+                    <span className={styles["line-short"]} />
+                  </div>
+                </div>
+                <div
+                  className={`${styles["preview-bubble"]} ${styles["preview-bubble--wide"]}`}
+                >
+                  <span className={styles["preview-avatar"]}>A</span>
+                  <div className={styles["preview-lines"]}>
+                    <span className={styles["line-full"]} />
+                    <span className={styles["line-med"]} />
+                  </div>
+                </div>
+                <div className={styles["preview-bubble"]}>
+                  <span className={styles["preview-avatar"]}>R</span>
+                  <div className={styles["preview-lines"]}>
+                    <span className={styles["line-long"]} />
+                  </div>
+                </div>
+              </div>
+
+              <h2 className={styles["showcase-title"]}>
+                Let a voice agent take your meetings
+              </h2>
+              <p className={styles["showcase-subtitle"]}>
+                Create a voice agent to attend meetings on your behalf, or
+                explore existing agents.
+              </p>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {isAIListeningActive && (
+        <Suspense
+          fallback={
+            <aside className={styles["ai-listening-panel--loading"]}>
+              Loading AI Listening...
+            </aside>
+          }
+        >
+          <LazyAIListeningPanel
+            summary={liveSummary}
+            answers={answers}
+            questions={questions}
+            isStreaming={aiStatus === "streaming"}
+            onSaveAnswer={saveAnswer}
+            onDismissAnswer={dismissAnswer}
+            onSaveQuestion={saveQuestion}
+            onDismissQuestion={dismissQuestion}
+            onSubmitPrompt={() => void triggerAIStep()}
+          />
+        </Suspense>
+      )}
+    </div>
   );
 }
+export default ListeningView;

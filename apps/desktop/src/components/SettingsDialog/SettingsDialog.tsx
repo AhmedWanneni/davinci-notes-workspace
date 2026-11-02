@@ -38,6 +38,11 @@ const LazyGitSettingsTab = React.lazy(() =>
     default: m.GitSettingsTab,
   })),
 );
+const LazyAIListeningSettingsTab = React.lazy(() =>
+  import("./AIListeningSettingsTab").then((m) => ({
+    default: m.AIListeningSettingsTab,
+  })),
+);
 
 const KNOWN_TABS = new Set([
   "general",
@@ -49,6 +54,7 @@ const KNOWN_TABS = new Set([
   "notifications",
   "calendar",
   "ai",
+  "ai-listening",
   "plugins",
   "web-clipper",
   "logs",
@@ -238,6 +244,15 @@ export function SettingsDialog({
                 <div className={styles["settings-tab-content"]}>
                   <React.Suspense fallback={<div>Loading AI Settings...</div>}>
                     <LazyAISettingsPanel />
+                  </React.Suspense>
+                </div>
+              )}
+              {activeTab === "ai-listening" && (
+                <div className={styles["settings-tab-content"]}>
+                  <React.Suspense
+                    fallback={<div>Loading AI Listening Settings...</div>}
+                  >
+                    <LazyAIListeningSettingsTab />
                   </React.Suspense>
                 </div>
               )}

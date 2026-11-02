@@ -98,6 +98,25 @@ describe("meetingNoteActions", () => {
     expect(md).toContain("![[2024-04-24 - Weekly Product Sync.wav]]");
   });
 
+  it("renders answers and suggested follow-up questions when provided", () => {
+    const paramsWithAI: MeetingNoteParams = {
+      ...baseParams,
+      answers: [
+        { question: "What is the launch date?", answer: "Next Tuesday." },
+      ],
+      questions: [
+        "Have we tested on Windows?",
+        { question: "Who will handle support?" },
+      ],
+    };
+    const md = renderMeetingMarkdown(paramsWithAI);
+    expect(md).toContain("## Q&A");
+    expect(md).toContain("**Q: What is the launch date?**\nA: Next Tuesday.");
+    expect(md).toContain("## Suggested Follow-up Questions");
+    expect(md).toContain("- Have we tested on Windows?");
+    expect(md).toContain("- Who will handle support?");
+  });
+
   it("saves audio to attachments folder so meetings folder contains only the note", async () => {
     const { saveRecordedAudioToVault } =
       await import("../adapters/transcriptionClient");
