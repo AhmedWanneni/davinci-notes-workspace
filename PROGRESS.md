@@ -4,6 +4,29 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Compact Focus Mode Redesign, Vault Name Projects & Clean Sidebar
+
+**Scope:** Addressed prompt #12 user adjustments:
+1. **Compact Mobile Widget Focus Mode (`TodoFocusView.tsx`, `TodoFocusView.module.scss`, `todoFocusUtils.ts`)**:
+   - Redesigned Focus Mode layout to match the provided mobile design mockup (`uploaded_media_1793626919814.jpg`) with compact container (`max-width: 420px; margin: 0 auto;`).
+   - Day title in elegant serif font ("Monday", etc.) with ordinal date ("July 28th, 2025") and `<` `>` day navigation arrows.
+   - Soft category pills (`☼ MORNING (4) ∨`, `☼ DAY (0) ∨`, `☾ EVENING (4) ∨`) with `+` action.
+   - Rounded task cards with emoji avatar on left, task title & time range/notes subtitle, and circular checkbox on right.
+   - Dashed `ADD TASK +` buttons under sections.
+   - Bottom floating input pill with purple cursor indicator (`| Create task`), microphone icon, and black circular `↑` send button.
+   - Clean `← Back to App` exit button.
+2. **Vault Name & Removed Add Folder / Labels (`useTodosData.ts`, `TodosSidebar.tsx`)**:
+   - Project section in sidebar is now titled with the vault's name (`vaultName`), representing folders in the vault.
+   - Removed "Add Folder" button from the todos sidebar (only "+ Add Project" exists).
+   - Removed "Labels" section completely from the sidebar.
+3. **No Unrequested Sample File Creation (`useTodosData.ts`)**:
+   - Removed automatic seeding of sample markdown files into the vault; if a file/folder does not exist, the app does not create it.
+4. **Verification & Quality**:
+   - All 32 unit tests passing (`TodosView`, `todoParser`, `IconRail`, `AppTabs`).
+   - 0 ESLint errors; all files strictly under 200 lines.
+
+---
+
 ## Last Session — Todos Motherboard View, Full-Screen Focus Mode & Vault Folder Sync
 
 **Scope:** Fulfilled prompt #11 improvements for the Todos feature:

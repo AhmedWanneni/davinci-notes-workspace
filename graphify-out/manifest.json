@@ -13337,9 +13337,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793574748.582314,
-    "seen": 1793574969.3587751,
-    "ast_hash": "a995d6e011a297c3ffa036d3a36f62d3",
+    "mtime": 1793576226.8597772,
+    "seen": 1793627393.56236,
+    "ast_hash": "7b547a632534d7631fd3dbae8f4aaec2",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -17117,9 +17117,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodoFocusView.tsx": {
-    "mtime": 1793574227.6945105,
-    "seen": 1793574718.268319,
-    "ast_hash": "6f585872127ecd7440af801594614fc7",
+    "mtime": 1793627320.0323246,
+    "seen": 1793627393.505682,
+    "ast_hash": "797b6a60d0394e5b06da5c703ad685c2",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodoItemRow.tsx": {
@@ -17135,9 +17135,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosSidebar.tsx": {
-    "mtime": 1793575985.2211494,
-    "seen": 1793576210.657729,
-    "ast_hash": "7bcb54021c45695142a61981d30c6283",
+    "mtime": 1793627079.011707,
+    "seen": 1793627393.505842,
+    "ast_hash": "68050fe318069d1e7589663734a2acc7",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.stories.tsx": {
@@ -17147,15 +17147,15 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.test.tsx": {
-    "mtime": 1793576102.958027,
-    "seen": 1793576210.6577332,
-    "ast_hash": "4725635a88c98c80ea5f97c50fe6772f",
+    "mtime": 1793627245.957863,
+    "seen": 1793627393.505885,
+    "ast_hash": "155f7a87b719a74830940f262ef6da67",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.tsx": {
-    "mtime": 1793576154.7433102,
-    "seen": 1793576210.657734,
-    "ast_hash": "3cea0c46f32f49d80df0dced7c383630",
+    "mtime": 1793627199.5890257,
+    "seen": 1793627393.505887,
+    "ast_hash": "241c41f968ee07f221381be28e5cda13",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/index.ts": {
@@ -17189,9 +17189,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/useTodosData.ts": {
-    "mtime": 1793575971.212505,
-    "seen": 1793576210.657921,
-    "ast_hash": "98f59bef4e638ee16eafb38f998b484c",
+    "mtime": 1793627050.1091962,
+    "seen": 1793627393.506089,
+    "ast_hash": "4291507c956319436bfc39f2dc56b282",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodoSectionBlock.tsx": {
@@ -17204,6 +17204,12 @@
     "mtime": 1793576032.0193496,
     "seen": 1793576210.657728,
     "ast_hash": "a4e8cb5a21211af9ea2b684de7cbb1e0",
+    "semantic_hash": ""
+  },
+  "apps/desktop/src/components/TodosView/todoFocusUtils.ts": {
+    "mtime": 1793627303.3196542,
+    "seen": 1793627393.5059662,
+    "ast_hash": "f6f790fccfbee527539a3daf3cae686c",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {

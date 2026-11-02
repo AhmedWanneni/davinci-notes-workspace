@@ -15,6 +15,7 @@ export interface TodosViewProps {
 
 export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
   const {
+    vaultName,
     projects,
     activeProject,
     allTodos,
@@ -37,7 +38,6 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
     addReminderToTodo,
     addTodoToSection,
     createProject,
-    createFolder,
     allNotePaths,
   } = useTodosData();
 
@@ -96,6 +96,7 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
   return (
     <div className={styles["todos-view"]} data-testid="todos-view">
       <TodosSidebar
+        vaultName={vaultName}
         projects={projects}
         selectedProjectId={selectedProjectId}
         isMotherboard={isMotherboard}
@@ -106,7 +107,6 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
         }}
         onSelectMotherboard={() => setIsMotherboard(true)}
         onCreateProject={(name) => void createProject(name)}
-        onCreateFolder={(name) => void createFolder(name)}
       />
 
       <div className={styles["todos-view__main"]}>

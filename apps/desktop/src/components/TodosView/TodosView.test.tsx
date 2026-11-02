@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { TodosView } from "./TodosView";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import * as vaultModule from "../../vault";
 
 vi.mock("../../vault", () => ({
   createNoteInVault: vi.fn().mockResolvedValue(""),
@@ -33,6 +34,7 @@ describe("TodosView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useWorkspaceStore.setState({
+      vaultPath: "/Users/demo/MyVault",
       allNotePaths: [
         "todos/Admin Dashboard.md",
         "todos/Daily Focus.md",
@@ -44,13 +46,13 @@ describe("TodosView", () => {
     });
   });
 
-  it("renders Motherboard, Projects, and sections without calendar or extra icons", async () => {
+  it("renders Motherboard, vault project name, and sections without calendar or extra icons", async () => {
     await act(async () => {
       render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
     });
 
     expect(screen.getByText("Motherboard")).toBeDefined();
-    expect(screen.getByText("Projects")).toBeDefined();
+    expect(screen.getAllByText("MyVault").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Admin Dashboard").length).toBeGreaterThan(0);
     expect(screen.getByText("V1 Concepts")).toBeDefined();
     expect(
@@ -60,6 +62,20 @@ describe("TodosView", () => {
     // Verify calendar icon and '...' actions have been removed from section headers
     expect(screen.queryByTitle("Calendar")).toBeNull();
     expect(screen.queryByTitle("More actions")).toBeNull();
+  });
+
+  it("does not automatically create notes if nothing exists in vault", async () => {
+    useWorkspaceStore.setState({
+      allNotePaths: [],
+      notesContent: {},
+    });
+
+    await act(async () => {
+      render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
+    });
+
+    expect(vaultModule.createNoteInVault).not.toHaveBeenCalled();
+    expect(screen.getByText(/No tasks found/i)).toBeDefined();
   });
 
   it("switches to Motherboard view when clicked in sidebar", async () => {
@@ -113,6 +129,7 @@ describe("TodosView", () => {
     fireEvent.click(focusModeBtn);
 
     expect(screen.getByText("Back to App")).toBeDefined();
+    expect(screen.getByPlaceholderText("Create task")).toBeDefined();
 
     const backBtn = screen.getByText("Back to App");
     fireEvent.click(backBtn);

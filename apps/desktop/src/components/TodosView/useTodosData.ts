@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import { createFolderInVault, createNoteInVault, writeNote } from "../../vault";
+import { createNoteInVault, writeNote } from "../../vault";
 import {
   addLinkToTodoInContent,
   addReminderToTodoInContent,
@@ -9,13 +9,18 @@ import {
   toggleTodoInContent,
   updateTodoTextInContent,
 } from "./todoParser";
-import { SAMPLE_ADMIN_DASHBOARD, SAMPLE_DAILY_ROUTINE } from "./sampleTodos";
 import type { TodoFolder, TodoItem, TodoProject, TodoStatusFilter } from "./types";
 
 export function useTodosData() {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const allFolderPaths = useWorkspaceStore((state) => state.allFolderPaths);
   const notesContent = useWorkspaceStore((state) => state.notesContent);
+  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
+
+  const vaultName = useMemo(() => {
+    if (!vaultPath) return "Vault";
+    return vaultPath.split(/[/\\]/).pop() || "Vault";
+  }, [vaultPath]);
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [isMotherboard, setIsMotherboard] = useState<boolean>(false);
@@ -28,22 +33,14 @@ export function useTodosData() {
     return allNotePaths.filter((p) => p.toLowerCase().startsWith("todos/"));
   }, [allNotePaths]);
 
-  // Seed initial sample todos directly into todos folder if empty
-  useEffect(() => {
-    if (todoPaths.length === 0) {
-      void createNoteInVault("todos/Admin Dashboard.md", SAMPLE_ADMIN_DASHBOARD);
-      void createNoteInVault("todos/Daily Focus.md", SAMPLE_DAILY_ROUTINE);
-    }
-  }, [todoPaths.length]);
-
   const projects: TodoProject[] = useMemo(() => {
     return todoPaths.map((path) => {
       const rel = path.replace(/^todos\//i, "");
       const parts = rel.split("/");
       const fileName = parts[parts.length - 1].replace(/\.md$/, "");
-      const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : undefined;
+      const folder = parts.length > 1 ? parts.slice(0, -1).join("/") : vaultName;
       const content = notesContent[path] ?? "";
-      const sections = parseNoteTodos(content, path, folder ?? "General", fileName);
+      const sections = parseNoteTodos(content, path, folder, fileName);
 
       return {
         id: path,
@@ -53,12 +50,12 @@ export function useTodosData() {
         sections,
       };
     });
-  }, [notesContent, todoPaths]);
+  }, [notesContent, todoPaths, vaultName]);
 
   const folders: TodoFolder[] = useMemo(() => {
     const map = new Map<string, TodoProject[]>();
     for (const p of projects) {
-      const fName = p.folder ?? "General";
+      const fName = p.folder ?? vaultName;
       const existing = map.get(fName) ?? [];
       existing.push(p);
       map.set(fName, existing);
@@ -67,7 +64,7 @@ export function useTodosData() {
       name,
       projects: pList,
     }));
-  }, [projects]);
+  }, [projects, vaultName]);
 
   const activeProject = useMemo(() => {
     if (isMotherboard) return null;
@@ -163,12 +160,8 @@ export function useTodosData() {
     setSelectedProjectId(targetPath);
   }, []);
 
-  const createFolder = useCallback(async (folderName: string) => {
-    const cleanName = folderName.trim() || "New Folder";
-    await createFolderInVault(`todos/${cleanName}`);
-  }, []);
-
   return {
+    vaultName,
     projects,
     folders,
     activeProject,
@@ -192,7 +185,6 @@ export function useTodosData() {
     addReminderToTodo,
     addTodoToSection,
     createProject,
-    createFolder,
     allNotePaths,
     allFolderPaths,
   };
