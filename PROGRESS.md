@@ -4,6 +4,26 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
+## Last Session — Empty Project Support, Focus Mode Dialog Card, Removed Vault Headers
+
+**Scope:** Fulfilled prompt #14 refinements for Todos & Focus Mode:
+1. **Empty Project Support (`useTodosData.ts`, `TodosView.tsx`, `TodosView.module.scss`)**:
+   - `createProject` now creates only the project folder under `todos/` without automatically generating starter note files.
+   - Empty projects are fully supported in the sidebar and main view with a helpful empty state and an "+ Add first todo note" button.
+2. **Focus Mode as a Separate Modal Dialog (`TodoFocusView.tsx`, `TodoFocusView.module.scss`)**:
+   - Focus Mode is rendered as a centered modal dialog card (`420px` wide, `740px` tall) over a blurred backdrop overlay, mimicking a separate mobile widget/dialog like QuickCapture.
+   - Includes top navigation with "← Back to App" and a dedicated Close (<kbd>X</kbd>) button, and closes on backdrop click or <kbd>Esc</kbd>.
+   - Removed window resizing tricks that failed silently under Tauri desktop.
+3. **Removed Vault Adding & Vault Header from Todos Page (`TodosSidebar.tsx`, `TodosView.tsx`)**:
+   - Replaced `{vaultName || "Projects"}` in the sidebar header with a clean, static **"Projects"** label.
+   - Removed the ambiguous `+` button from the section header that looked like "add vault"; project creation is handled solely by the unambiguous `+ Add Project` button below the list.
+4. **Verification & Quality**:
+   - All 39 unit tests passing across TodosView, AppSidebar, IconRail, AppTabs.
+   - 0 ESLint errors; 0 Stylelint errors.
+   - Knowledge graph updated with `graphify update .`.
+
+---
+
 ## Last Session — Vault Folders as Projects, Delete Project, Hide FileTree, Dynamic Focus Mode Window
 
 **Scope:** Fulfilled prompt #13 requirements for Todos & Focus Mode:

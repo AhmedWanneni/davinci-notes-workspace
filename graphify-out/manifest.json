@@ -974,8 +974,8 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/App.tsx": {
-    "mtime": 1793628381.7143862,
-    "seen": 1793628663.997644,
+    "mtime": 1793628700.7041724,
+    "seen": 1793629570.0977159,
     "ast_hash": "ed3cf7e67b0b4a78d01e45b4894761ab",
     "semantic_hash": ""
   },
@@ -1844,8 +1844,8 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/AppSidebar/AppSidebar.tsx": {
-    "mtime": 1793628369.0300777,
-    "seen": 1793628664.005951,
+    "mtime": 1793628700.7043488,
+    "seen": 1793629570.110898,
     "ast_hash": "82d78979059845777eee0992c0898d7b",
     "semantic_hash": ""
   },
@@ -2864,9 +2864,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/IconRail/IconRail.tsx": {
-    "mtime": 1793628390.2027514,
-    "seen": 1793628664.0136309,
-    "ast_hash": "7c5bb9d02144e850b32405a05bd0fccc",
+    "mtime": 1793628881.7128904,
+    "seen": 1793629570.12252,
+    "ast_hash": "6daf32fb5dd53a01c93fa7c843b4252d",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/IconRail/IconRailButton.tsx": {
@@ -13259,9 +13259,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1793627404.3742187,
-    "seen": 1793628664.07807,
-    "ast_hash": "9f1ff334ad33d5dc06f9023a15ea81c4",
+    "mtime": 1793628700.7039068,
+    "seen": 1793629570.22127,
+    "ast_hash": "fb357d197ff5bb887322f35661545128",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13337,9 +13337,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1793627417.2148383,
-    "seen": 1793628664.078495,
-    "ast_hash": "464645642c197c8b40616258ed62aa40",
+    "mtime": 1793628700.7064238,
+    "seen": 1793629570.221882,
+    "ast_hash": "15b76df72c98d76afaa418118bbd1db4",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -17117,9 +17117,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodoFocusView.tsx": {
-    "mtime": 1793628496.0290937,
-    "seen": 1793628664.022065,
-    "ast_hash": "88379c575ceb7d7d03602980f0a112ea",
+    "mtime": 1793629381.6759675,
+    "seen": 1793629570.135788,
+    "ast_hash": "1e1d154e48d6e64e71d649ab3b8c3d7a",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodoItemRow.tsx": {
@@ -17135,9 +17135,9 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosSidebar.tsx": {
-    "mtime": 1793628473.313973,
-    "seen": 1793628664.022224,
-    "ast_hash": "a94472f8a657e189c893457ba201c3b7",
+    "mtime": 1793629489.7240593,
+    "seen": 1793629570.1360278,
+    "ast_hash": "1874b784ff72c53487620762d8c67353",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.stories.tsx": {
@@ -17147,15 +17147,15 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.test.tsx": {
-    "mtime": 1793628588.2284646,
-    "seen": 1793628664.0222652,
-    "ast_hash": "2d6cafac673e70012f903f7d53e6ec37",
+    "mtime": 1793629469.7796726,
+    "seen": 1793629570.136107,
+    "ast_hash": "b39922081e00a8cd11ed272ee0da2c37",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodosView.tsx": {
-    "mtime": 1793628547.312445,
-    "seen": 1793628664.0222661,
-    "ast_hash": "8f970e47b3628dde18a33a2f68374c49",
+    "mtime": 1793629522.7395926,
+    "seen": 1793629570.136108,
+    "ast_hash": "66bb9af71070d3e7e64a00b8c5c95302",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/index.ts": {
@@ -17183,15 +17183,15 @@
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/types.ts": {
-    "mtime": 1793628398.9847558,
-    "seen": 1793628664.022464,
+    "mtime": 1793628700.705548,
+    "seen": 1793629570.136415,
     "ast_hash": "20bd355aff55ab2458a99da077ed7f84",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/useTodosData.ts": {
-    "mtime": 1793628423.2363372,
-    "seen": 1793628664.022466,
-    "ast_hash": "3aa04de66ab1bcbe8f23487e87166b38",
+    "mtime": 1793629275.4475,
+    "seen": 1793629570.136417,
+    "ast_hash": "590eae407f3ce85cf9206a3f040faf45",
     "semantic_hash": ""
   },
   "apps/desktop/src/components/TodosView/TodoSectionBlock.tsx": {

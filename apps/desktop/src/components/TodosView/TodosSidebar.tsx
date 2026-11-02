@@ -12,7 +12,6 @@ import type { TodoProject } from "./types";
 import styles from "./TodosSidebar.module.scss";
 
 export interface TodosSidebarProps {
-  vaultName: string;
   projects: TodoProject[];
   selectedProjectId: string;
   selectedNotePath?: string;
@@ -28,7 +27,6 @@ export interface TodosSidebarProps {
 }
 
 export function TodosSidebar({
-  vaultName,
   projects,
   selectedProjectId,
   selectedNotePath,
@@ -96,20 +94,8 @@ export function TodosSidebar({
             ) : (
               <CaretRight size={14} />
             )}
-            <span>{vaultName || "Projects"}</span>
+            <span>Projects</span>
           </div>
-          <button
-            type="button"
-            className={styles["todos-sidebar__add-btn"]}
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsCreatingProject(true);
-            }}
-            title="Add Project"
-            aria-label="Add project"
-          >
-            <Plus size={14} />
-          </button>
         </div>
 
         {isProjectsOpen && (

@@ -212,14 +212,9 @@ export function useTodosData() {
     if (!store.allFolderPaths.includes(folderPath)) {
       store.updateAllFolderPaths([...store.allFolderPaths, folderPath].sort());
     }
-    const starterNotePath = `${folderPath}/${cleanName}.md`;
-    await createNoteInVault(
-      starterNotePath,
-      `# ${cleanName}\n\n## Tasks\n- [ ] First task\n`,
-    );
     setIsMotherboard(false);
     setSelectedProjectId(folderPath);
-    setSelectedNotePath(starterNotePath);
+    setSelectedNotePath("");
   }, []);
 
   const createTodoNote = useCallback(

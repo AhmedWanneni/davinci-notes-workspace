@@ -15,7 +15,6 @@ export interface TodosViewProps {
 
 export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
   const {
-    vaultName,
     projects,
     activeProject,
     activeNote,
@@ -111,7 +110,6 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
   return (
     <div className={styles["todos-view"]} data-testid="todos-view">
       <TodosSidebar
-        vaultName={vaultName}
         projects={projects}
         selectedProjectId={selectedProjectId}
         selectedNotePath={selectedNotePath}
@@ -185,7 +183,22 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
           <main className={styles["todos-view__content"]}>
             {filteredSections.length === 0 ? (
               <div className={styles["todos-view__empty"]}>
-                <span>No tasks found matching your filter</span>
+                <span>
+                  {activeProject && activeProject.notes.length === 0
+                    ? `Project "${activeProject.name}" is empty`
+                    : "No tasks found matching your filter"}
+                </span>
+                {activeProject && activeProject.notes.length === 0 && (
+                  <button
+                    type="button"
+                    className={styles["todos-view__empty-action"]}
+                    onClick={() =>
+                      void createTodoNote(activeProject.folderPath, "Tasks")
+                    }
+                  >
+                    + Add first todo note
+                  </button>
+                )}
               </div>
             ) : (
               filteredSections.map((section) => (
