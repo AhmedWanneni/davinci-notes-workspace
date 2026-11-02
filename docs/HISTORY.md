@@ -2,6 +2,34 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-02: Ask Fred AI Meeting Assistant Panel, All Meetings List & Board, Hidden FileTree
+
+- **Right-Side AI Meeting Assistant Panel ("Ask Fred") (`MeetingAssistantPanel.tsx`, `useMeetingAssistant.ts`)**:
+  - Implemented the right-side Ask Fred panel matching the 3-column reference dashboard layout alongside `AllMeetingsView`.
+  - Header with Robot avatar badge, chat history button, new conversation (`+`) button, and close/collapse button.
+  - Welcome greeting (`Hi AHMED! Get ready for your meeting`) with sparkle icon.
+  - Quick action prompt chips:
+    - 📌 **Key initiatives**: Intelligently summarizes key roadmap initiatives and action items across meetings in the vault.
+    - 📝 **Summarize the channel**: Synthesizes a structured overview of all meetings recorded in the channel.
+    - 💬 **Product feedback**: Extracts customer/user feedback points and UX takeaways.
+  - Conversational chat thread with user bubbles, assistant bubbles, timestamps, and typing animation (`Thinking... ▋`).
+  - Query input box with `# All Meetings` channel chip, attachment (`+`), skills catalog (`Stack`), voice query (`Microphone`), and send (`ArrowUp`) controls.
+- **All Meetings Hub & Detail Views (`AllMeetingsView.tsx`, `MeetingsBoardView.tsx`, `MeetingDetailView.tsx`, `MeetingAudioPlayer.tsx`)**:
+  - All meetings loaded from the vault's `Meetings/` folder and parsed via `meetingsParser.ts`.
+  - Dual view modes: Filterable list view and Kanban board view ("This Week", "This Month", "Earlier").
+  - Meeting Detail view with audio playback, waveform simulation, time scrubber, speed controls, and organized AI thoughts / transcript tabs.
+- **Ghost Showcase Empty State (`MeetingShowcaseEmpty.tsx`)**:
+  - Reused across the recording view and the empty All Meetings state to display the ghost cards wireframe (`K`, `A`, `R` avatars) and "Let a voice agent take your meetings" showcase.
+- **Navigation & Sidebar Enhancements**:
+  - Hidden FileTree: Completely collapses the left sidebar FileTree when the listening/record page is active (`isListeningOpen`), matching Todos behavior.
+  - Simplified sidebar: Retains only "All Meetings" and "New Recording" with bottom Settings icon navigation.
+  - Direct Settings access: Gear icon opens `SettingsDialog` directly to the `ai-listening` tab.
+- **Verification & Quality**:
+  - 43 unit tests passing in `src/components/ListeningView/` across 10 test files.
+  - 0 ESLint errors; all files strictly under the 250-line hard cap (most under 150-200).
+  - Knowledge graph updated with `graphify update .`.
+
+
 ### 2026-11-02: Todos Empty Projects, Modal Dialog Focus Mode, and Removed Vault Headers
 
 - **Empty Project Support (`useTodosData.ts`, `TodosView.tsx`, `TodosView.module.scss`)**:

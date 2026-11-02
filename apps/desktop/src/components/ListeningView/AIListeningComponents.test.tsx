@@ -20,23 +20,27 @@ describe("AI Listening & Recording Page Components", () => {
   });
 
   describe("MeetingsSidebar", () => {
-    it("renders navigation channels and handles click", () => {
+    it("renders only All Meetings and New Recording, and handles settings click", () => {
       const onSelectChannel = vi.fn();
+      const onOpenSettings = vi.fn();
       render(
         <MeetingsSidebar
-          activeChannel="voice-agent"
+          activeChannel="all-meetings"
           onSelectChannel={onSelectChannel}
+          onOpenSettings={onOpenSettings}
         />,
       );
 
-      expect(screen.getByText("My Meetings")).toBeDefined();
       expect(screen.getByText("All Meetings")).toBeDefined();
-      expect(screen.getByText("Voice Agent Meetings")).toBeDefined();
-      expect(screen.getByText("Uploads")).toBeDefined();
-      expect(screen.getByText("NEW")).toBeDefined();
+      expect(screen.getByText("New Recording")).toBeDefined();
+      expect(screen.queryByText("My Meetings")).toBeNull();
+      expect(screen.queryByText("Voice Agent Meetings")).toBeNull();
 
-      fireEvent.click(screen.getByText("My Meetings"));
-      expect(onSelectChannel).toHaveBeenCalledWith("my-meetings");
+      fireEvent.click(screen.getByText("New Recording"));
+      expect(onSelectChannel).toHaveBeenCalledWith("record");
+
+      fireEvent.click(screen.getByTestId("sidebar-settings-btn"));
+      expect(onOpenSettings).toHaveBeenCalled();
     });
   });
 

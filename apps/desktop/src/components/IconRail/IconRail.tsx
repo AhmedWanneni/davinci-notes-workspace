@@ -86,10 +86,11 @@ export function IconRail({
             isLeftSidebarOpen &&
             !isBookmarksOpen &&
             !isGitManagerOpen &&
-            !isTodosOpen
+            !isTodosOpen &&
+            !isListeningOpen
           }
           onClick={() => {
-            if (isTodosOpen) {
+            if (isTodosOpen || isListeningOpen) {
               if (onOpenFiles) {
                 onOpenFiles();
               }

@@ -4,7 +4,40 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Recording Page UI Redesign & Real-Time AI Listening Streaming
+## Last Session — Ask Fred AI Meeting Assistant Panel, All Meetings List & Board, Hidden FileTree
+
+**Scope:** Fulfilled prompt requirements for the meeting workspace navigation, detail views, and right-side AI companion:
+1. **Right-Side AI Meeting Assistant Panel ("Ask Fred") (`MeetingAssistantPanel.tsx`, `useMeetingAssistant.ts`)**:
+   - Implemented the right-side Ask Fred panel matching the 3-column reference dashboard layout alongside `AllMeetingsView`.
+   - Header with Robot avatar badge, chat history button, new conversation (`+`) button, and close/collapse button.
+   - Welcome greeting (`Hi AHMED! Get ready for your meeting`) with sparkle icon.
+   - Quick action prompt chips:
+     - 📌 **Key initiatives**: Intelligently summarizes key roadmap initiatives and action items across meetings in the vault.
+     - 📝 **Summarize the channel**: Synthesizes a structured overview of all meetings recorded in the channel.
+     - 💬 **Product feedback**: Extracts customer/user feedback points and UX takeaways.
+   - Conversational chat thread with user bubbles, assistant bubbles, timestamps, and typing animation (`Thinking... ▋`).
+   - Query input box with `# All Meetings` channel chip, attachment (`+`), skills catalog (`Stack`), voice query (`Microphone`), and send (`ArrowUp`) controls.
+2. **All Meetings Hub & Detail Views (`AllMeetingsView.tsx`, `MeetingsBoardView.tsx`, `MeetingDetailView.tsx`, `MeetingAudioPlayer.tsx`)**:
+   - All meetings loaded from the vault's `Meetings/` folder and parsed via `meetingsParser.ts`.
+   - Dual view modes: Filterable list view and Kanban board view ("This Week", "This Month", "Earlier").
+   - Meeting Detail view displaying:
+     - Audio recording player with waveform simulation, play/pause, time scrubber, speed selector (1x-2x), and mute toggle.
+     - Tabbed navigation between AI Insights (Executive Summary, Action Items, Q&A, Follow-up Questions, Related Notes) and full Transcript with speaker tags and timestamps.
+     - Direct "Open Note" button to open the markdown file in the editor.
+3. **Ghost Showcase Empty State (`MeetingShowcaseEmpty.tsx`)**:
+   - Reused across the recording view and the empty All Meetings state to display the ghost cards wireframe (`K`, `A`, `R` avatars) and "Let a voice agent take your meetings" showcase.
+4. **Navigation & Sidebar Enhancements**:
+   - Hidden FileTree: Completely collapses the left sidebar FileTree when the listening/record page is active (`isListeningOpen`), matching Todos behavior.
+   - Simplified sidebar: Retains only "All Meetings" and "New Recording" with bottom Settings icon navigation.
+   - Direct Settings access: Gear icon opens `SettingsDialog` directly to the `ai-listening` tab.
+5. **Verification & Quality**:
+   - 43 unit tests passing in `src/components/ListeningView/` across 10 test files.
+   - 0 ESLint errors; all files strictly under the 250-line hard cap (most under 150-200).
+   - Knowledge graph updated with `graphify update .`.
+
+---
+
+## Previous Session — Recording Page UI Redesign & Real-Time AI Listening Streaming
 
 **Scope:** Fulfilled Recording Page UI redesign and AI Listening stream specifications:
 1. **Three-Column Reference Layout (`MeetingsSidebar.tsx`, `ListeningVisualizer.tsx`, `TranscriptFeed.tsx`, `AIListeningPanel.tsx`)**:

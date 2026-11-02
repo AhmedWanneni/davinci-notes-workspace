@@ -1,10 +1,16 @@
-import React, { Suspense, useEffect } from "react";
-import { FunnelSimple, MagnifyingGlass } from "@phosphor-icons/react";
+import React, { Suspense, useEffect, useState, useMemo } from "react";
+import { FunnelSimple, MagnifyingGlass, Gear } from "@phosphor-icons/react";
 import { MeetingsSidebar } from "./MeetingsSidebar";
 import { ListeningVisualizer } from "./ListeningVisualizer";
 import { TranscriptFeed } from "./TranscriptFeed";
+import { AllMeetingsView } from "./AllMeetingsView";
+import { MeetingDetailView } from "./MeetingDetailView";
+import { MeetingAssistantPanel } from "./MeetingAssistantPanel";
+import { MeetingShowcaseEmpty } from "./MeetingShowcaseEmpty";
+import { parseMeetingMarkdown, type ParsedMeetingItem } from "./meetingsParser";
 import { useListeningSession } from "./useListeningSession";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import { readNote } from "../../vault/vaultCommands";
 import styles from "./ListeningView.module.scss";
 
 const LazyAIListeningPanel = React.lazy(() =>
@@ -15,71 +21,65 @@ export interface ListeningViewProps {
   initialTitle?: string;
   initialAudioPath?: string;
   onNavigateToNote?: (path: string) => void;
+  onOpenSettings?: () => void;
 }
 
 export function ListeningView({
   initialTitle,
   initialAudioPath,
   onNavigateToNote,
+  onOpenSettings,
 }: ListeningViewProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
-  const {
-    status,
-    title,
-    durationMs,
-    micLevel,
-    systemLevel,
-    segments,
-    isTranscriptVisible,
-    isAIListeningActive,
-    liveSummary,
-    answers,
-    questions,
-    aiStatus,
-    aiError,
-    setIsTranscriptVisible,
-    setIsAIListeningActive,
-    saveAnswer,
-    dismissAnswer,
-    saveQuestion,
-    dismissQuestion,
-    triggerAIStep,
-    setTitle,
-    startSession,
-    pauseSession,
-    resumeSession,
-    stopSession,
-    discardSession,
-    retranscribeAudio,
-  } = useListeningSession(initialTitle);
+  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
 
-  const isRecording = status === "recording";
+  const [currentView, setCurrentView] = useState<"record" | "all-meetings" | "detail">("record");
+  const [selectedMeeting, setSelectedMeeting] = useState<ParsedMeetingItem | null>(null);
+  const [meetingNotesList, setMeetingNotesList] = useState<ParsedMeetingItem[]>([]);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+
+  const session = useListeningSession(initialTitle);
+  const isRecording = session.status === "recording";
+
+  // Load meeting notes from vault's Meetings/ folder
+  const meetingPaths = useMemo(
+    () => allNotePaths.filter((p) => p.startsWith("Meetings/") && p.endsWith(".md")),
+    [allNotePaths],
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const items: ParsedMeetingItem[] = [];
+      for (const p of meetingPaths) {
+        try {
+          const payload = await readNote(p);
+          if (payload?.content) {
+            items.push(parseMeetingMarkdown(p, payload.content));
+          }
+        } catch {
+          // Gracefully continue
+        }
+      }
+      if (!cancelled) {
+        items.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+        setMeetingNotesList(items);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [meetingPaths]);
 
   useEffect(() => {
     if (initialAudioPath) {
-      void retranscribeAudio(initialAudioPath);
+      void session.retranscribeAudio(initialAudioPath);
     }
-  }, [initialAudioPath, retranscribeAudio]);
-
-  useEffect(() => {
-    const handleReRun = (e: Event) => {
-      const customEvent = e as CustomEvent<{ path: string }>;
-      const audioPath = customEvent.detail?.path;
-      if (audioPath) {
-        void retranscribeAudio(audioPath);
-      }
-    };
-    window.addEventListener("davinci:re-run-audio-transcription", handleReRun);
-    return () => {
-      window.removeEventListener(
-        "davinci:re-run-audio-transcription",
-        handleReRun,
-      );
-    };
-  }, [retranscribeAudio]);
+  }, [initialAudioPath, session]);
 
   const handleStopAndSave = async () => {
-    const savedPath = await stopSession(allNotePaths);
+    const savedPath = await session.stopSession(allNotePaths);
     if (savedPath && onNavigateToNote) {
       onNavigateToNote(savedPath);
     }
@@ -91,89 +91,101 @@ export function ListeningView({
       aria-label="Meeting Recording Workspace"
       data-testid="recording-workspace"
     >
-      <MeetingsSidebar />
+      <MeetingsSidebar
+        activeChannel={currentView === "record" ? "record" : "all-meetings"}
+        onSelectChannel={(ch) => setCurrentView(ch)}
+        onOpenSettings={onOpenSettings}
+      />
 
-      <main className={styles["recording-main-col"]}>
-        <div className={styles["recording-top-action-bar"]}>
-          <button type="button" className={styles["action-bar-btn"]}>
-            <FunnelSimple size={14} weight="bold" />
-            <span>Filters</span>
-          </button>
-          <button
-            type="button"
-            className={styles["action-bar-icon-btn"]}
-            aria-label="Search meetings"
-          >
-            <MagnifyingGlass size={16} />
-          </button>
-        </div>
-
-        <ListeningVisualizer
-          status={status}
-          title={title}
-          durationMs={durationMs}
-          micLevel={micLevel}
-          systemLevel={systemLevel}
-          isTranscriptVisible={isTranscriptVisible}
-          isAIListeningActive={isAIListeningActive}
-          aiStatus={aiStatus}
-          aiError={aiError}
-          onTitleChange={setTitle}
-          onStart={() => void startSession()}
-          onPause={() => void pauseSession()}
-          onResume={() => void resumeSession()}
-          onStop={() => void handleStopAndSave()}
-          onDiscard={() => void discardSession()}
-          onToggleTranscript={setIsTranscriptVisible}
-          onToggleAIListening={setIsAIListeningActive}
+      {currentView === "detail" && selectedMeeting ? (
+        <MeetingDetailView
+          meeting={selectedMeeting}
+          vaultPath={vaultPath}
+          onBack={() => setCurrentView("all-meetings")}
+          onOpenNote={onNavigateToNote}
+          onOpenSettings={onOpenSettings}
         />
-
-        <div className={styles["recording-content-area"]}>
-          {isTranscriptVisible ? (
-            <TranscriptFeed segments={segments} isRecording={isRecording} />
-          ) : (
-            <div
-              className={styles["meeting-empty-showcase"]}
-              data-testid="meeting-empty-showcase"
-            >
-              <div className={styles["chat-bubble-previews"]}>
-                <div className={styles["preview-bubble"]}>
-                  <span className={styles["preview-avatar"]}>K</span>
-                  <div className={styles["preview-lines"]}>
-                    <span className={styles["line-long"]} />
-                    <span className={styles["line-short"]} />
-                  </div>
-                </div>
-                <div
-                  className={`${styles["preview-bubble"]} ${styles["preview-bubble--wide"]}`}
-                >
-                  <span className={styles["preview-avatar"]}>A</span>
-                  <div className={styles["preview-lines"]}>
-                    <span className={styles["line-full"]} />
-                    <span className={styles["line-med"]} />
-                  </div>
-                </div>
-                <div className={styles["preview-bubble"]}>
-                  <span className={styles["preview-avatar"]}>R</span>
-                  <div className={styles["preview-lines"]}>
-                    <span className={styles["line-long"]} />
-                  </div>
-                </div>
-              </div>
-
-              <h2 className={styles["showcase-title"]}>
-                Let a voice agent take your meetings
-              </h2>
-              <p className={styles["showcase-subtitle"]}>
-                Create a voice agent to attend meetings on your behalf, or
-                explore existing agents.
-              </p>
-            </div>
+      ) : currentView === "all-meetings" ? (
+        <>
+          <AllMeetingsView
+            meetings={meetingNotesList}
+            onSelectMeeting={(m) => {
+              setSelectedMeeting(m);
+              setCurrentView("detail");
+            }}
+            onStartNewRecording={() => setCurrentView("record")}
+            onOpenSettings={onOpenSettings}
+            isAssistantOpen={isAssistantOpen}
+            onToggleAssistant={() => setIsAssistantOpen((p) => !p)}
+          />
+          {isAssistantOpen && (
+            <MeetingAssistantPanel
+              meetings={meetingNotesList}
+              channelName="All Meetings"
+              onClose={() => setIsAssistantOpen(false)}
+            />
           )}
-        </div>
-      </main>
+        </>
+      ) : (
+        <main className={styles["recording-main-col"]}>
+          <div className={styles["recording-top-action-bar"]}>
+            <button type="button" className={styles["action-bar-btn"]}>
+              <FunnelSimple size={14} weight="bold" />
+              <span>Filters</span>
+            </button>
+            <div className={styles["top-bar-right-actions"]}>
+              <button
+                type="button"
+                className={styles["action-bar-icon-btn"]}
+                aria-label="Search meetings"
+              >
+                <MagnifyingGlass size={16} />
+              </button>
+              {onOpenSettings && (
+                <button
+                  type="button"
+                  className={styles["action-bar-icon-btn"]}
+                  onClick={onOpenSettings}
+                  title="Recording & AI Settings"
+                  data-testid="record-view-settings-btn"
+                >
+                  <Gear size={16} />
+                </button>
+              )}
+            </div>
+          </div>
 
-      {isAIListeningActive && (
+          <ListeningVisualizer
+            status={session.status}
+            title={session.title}
+            durationMs={session.durationMs}
+            micLevel={session.micLevel}
+            systemLevel={session.systemLevel}
+            isTranscriptVisible={session.isTranscriptVisible}
+            isAIListeningActive={session.isAIListeningActive}
+            aiStatus={session.aiStatus}
+            aiError={session.aiError}
+            onTitleChange={session.setTitle}
+            onStart={() => void session.startSession()}
+            onPause={() => void session.pauseSession()}
+            onResume={() => void session.resumeSession()}
+            onStop={() => void handleStopAndSave()}
+            onDiscard={() => void session.discardSession()}
+            onToggleTranscript={session.setIsTranscriptVisible}
+            onToggleAIListening={session.setIsAIListeningActive}
+          />
+
+          <div className={styles["recording-content-area"]}>
+            {session.isTranscriptVisible ? (
+              <TranscriptFeed segments={session.segments} isRecording={isRecording} />
+            ) : (
+              <MeetingShowcaseEmpty />
+            )}
+          </div>
+        </main>
+      )}
+
+      {currentView === "record" && session.isAIListeningActive && (
         <Suspense
           fallback={
             <aside className={styles["ai-listening-panel--loading"]}>
@@ -182,15 +194,15 @@ export function ListeningView({
           }
         >
           <LazyAIListeningPanel
-            summary={liveSummary}
-            answers={answers}
-            questions={questions}
-            isStreaming={aiStatus === "streaming"}
-            onSaveAnswer={saveAnswer}
-            onDismissAnswer={dismissAnswer}
-            onSaveQuestion={saveQuestion}
-            onDismissQuestion={dismissQuestion}
-            onSubmitPrompt={() => void triggerAIStep()}
+            summary={session.liveSummary}
+            answers={session.answers}
+            questions={session.questions}
+            isStreaming={session.aiStatus === "streaming"}
+            onSaveAnswer={session.saveAnswer}
+            onDismissAnswer={session.dismissAnswer}
+            onSaveQuestion={session.saveQuestion}
+            onDismissQuestion={session.dismissQuestion}
+            onSubmitPrompt={() => void session.triggerAIStep()}
           />
         </Suspense>
       )}

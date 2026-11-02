@@ -1,47 +1,38 @@
 import React from "react";
 import {
-  Hash,
   CalendarCheck,
-  Robot,
-  UploadSimple,
-  Plus,
+  Record,
+  Gear,
 } from "@phosphor-icons/react";
 import styles from "./ListeningView.module.scss";
 
 export interface MeetingsSidebarProps {
-  activeChannel?: string;
-  onSelectChannel?: (channel: string) => void;
+  activeChannel?: "all-meetings" | "record";
+  onSelectChannel?: (channel: "all-meetings" | "record") => void;
+  onOpenSettings?: () => void;
   className?: string;
 }
 
 export function MeetingsSidebar({
-  activeChannel = "voice-agent",
+  activeChannel = "all-meetings",
   onSelectChannel,
+  onOpenSettings,
   className = "",
 }: MeetingsSidebarProps) {
   return (
     <aside
       className={`${styles["meetings-sidebar"]} ${className}`}
       aria-label="Meetings navigation"
+      data-testid="meetings-sidebar"
     >
       <nav className={styles["meetings-sidebar__nav"]}>
-        <button
-          type="button"
-          className={`${styles["meetings-sidebar__item"]} ${
-            activeChannel === "my-meetings" ? styles["is-active"] : ""
-          }`}
-          onClick={() => onSelectChannel?.("my-meetings")}
-        >
-          <Hash size={16} />
-          <span>My Meetings</span>
-        </button>
-
         <button
           type="button"
           className={`${styles["meetings-sidebar__item"]} ${
             activeChannel === "all-meetings" ? styles["is-active"] : ""
           }`}
           onClick={() => onSelectChannel?.("all-meetings")}
+          data-testid="sidebar-all-meetings-btn"
         >
           <CalendarCheck size={16} />
           <span>All Meetings</span>
@@ -49,49 +40,30 @@ export function MeetingsSidebar({
 
         <button
           type="button"
-          className={`${styles["meetings-sidebar__item"]} ${styles["meetings-sidebar__item--agent"]} ${
-            activeChannel === "voice-agent" ? styles["is-active"] : ""
-          }`}
-          onClick={() => onSelectChannel?.("voice-agent")}
-        >
-          <Robot size={16} weight="fill" />
-          <span>Voice Agent Meetings</span>
-        </button>
-
-        <button
-          type="button"
           className={`${styles["meetings-sidebar__item"]} ${
-            activeChannel === "uploads" ? styles["is-active"] : ""
+            activeChannel === "record" ? styles["is-active"] : ""
           }`}
-          onClick={() => onSelectChannel?.("uploads")}
+          onClick={() => onSelectChannel?.("record")}
+          data-testid="sidebar-record-btn"
         >
-          <UploadSimple size={16} />
-          <span>Uploads</span>
-          <span className={styles["badge-new"]}>NEW</span>
+          <Record size={16} weight="fill" />
+          <span>New Recording</span>
         </button>
       </nav>
 
-      <div className={styles["meetings-sidebar__channels-section"]}>
-        <div className={styles["channels-header"]}>
-          <span className={styles["channels-header__title"]}>All channels</span>
-        </div>
-
-        <div className={styles["channels-empty-card"]}>
-          <div className={styles["channels-empty-card__icon"]}>
-            <Hash size={18} />
-          </div>
-          <p className={styles["channels-empty-card__text"]}>
-            Create channels to organize your conversations
-          </p>
+      <div className={styles["meetings-sidebar__footer"]}>
+        {onOpenSettings && (
           <button
             type="button"
-            className={styles["channels-add-btn"]}
-            onClick={() => onSelectChannel?.("create-channel")}
+            className={styles["meetings-sidebar__settings-btn"]}
+            onClick={onOpenSettings}
+            title="Recording & AI Listening Settings"
+            data-testid="sidebar-settings-btn"
           >
-            <Plus size={14} />
-            <span>Channel</span>
+            <Gear size={16} />
+            <span>Record Settings</span>
           </button>
-        </div>
+        )}
       </div>
     </aside>
   );

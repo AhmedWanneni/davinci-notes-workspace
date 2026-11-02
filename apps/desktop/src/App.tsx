@@ -811,7 +811,11 @@ export function App() {
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
           log={log}
-          isCollapsed={!isLeftSidebarOpen || activeNotePath === TODOS_TAB_ID}
+          isCollapsed={
+            !isLeftSidebarOpen ||
+            activeNotePath === TODOS_TAB_ID ||
+            activeNotePath === LISTENING_TAB_ID
+          }
           isMac={isMac}
           onToggleLeftSidebar={() => {
             if (isGitManagerOpen) {
@@ -985,7 +989,13 @@ export function App() {
             </Suspense>
           ) : activeNotePath === LISTENING_TAB_ID ? (
             <Suspense fallback={null}>
-              <LazyListeningView />
+              <LazyListeningView
+                onOpenSettings={() => {
+                  setSettingsInitialTab("ai-listening");
+                  setIsSettingsOpen(true);
+                }}
+                onNavigateToNote={(path) => void openNote(path)}
+              />
             </Suspense>
           ) : activeNotePath === CALENDAR_TAB_ID || isCalendarOpen ? (
             <Suspense fallback={null}>
