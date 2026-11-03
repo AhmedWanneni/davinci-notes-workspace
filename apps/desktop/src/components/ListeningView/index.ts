@@ -24,6 +24,13 @@ export type { MeetingPromptToastProps } from "./MeetingPromptToast";
 export { useListeningSession } from "./useListeningSession";
 export { useAIListeningEngine } from "./useAIListeningEngine";
 export { AIListeningPanel } from "./AIListeningPanel";
+export { AIListeningPrivacyModal } from "./AIListeningPrivacyModal";
+export { RecordingTopBar } from "./RecordingTopBar";
+export { useLiveSpeechRecognition } from "./useLiveSpeechRecognition";
+export { useLiveSummaries } from "./useLiveSummaries";
+export type { RollingSummaryItem, SummaryInterval } from "./useLiveSummaries";
+export { useMeetingAgentChat } from "./useMeetingAgentChat";
+export { searchMeetingTranscript } from "./searchMeetingTranscript";
 export {
   parseVttTranscript,
   parseGoogleMeetTextTranscript,

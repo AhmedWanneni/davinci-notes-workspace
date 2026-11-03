@@ -5,8 +5,11 @@ export type {
   TodoProject,
   TodoSection,
   TodoFolder,
+  TodoViewMode,
   MotherboardLayout,
   TodoStatusFilter,
+  ReminderFilter,
+  ScheduledFilter,
 } from "./types";
 
 export const TODOS_TAB_ID = "davinci://todos";

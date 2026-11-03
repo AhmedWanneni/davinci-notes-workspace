@@ -11,6 +11,7 @@ import {
   Kanban,
   DownloadSimple,
   Tag,
+  CheckSquare,
 } from "@phosphor-icons/react";
 import type {
   WebBookmarkSortOption,
@@ -28,7 +29,9 @@ export interface WebBookmarksContentHeaderProps {
   onSortChange: (sort: WebBookmarkSortOption) => void;
   viewConfig: WebBookmarkViewConfig;
   onViewConfigChange: (cfg: WebBookmarkViewConfig) => void;
-  onExport: () => void;
+  onExport?: () => void;
+  showSelectCheckbox?: boolean;
+  onToggleSelectCheckbox?: () => void;
 }
 
 export function WebBookmarksContentHeader({
@@ -38,6 +41,8 @@ export function WebBookmarksContentHeader({
   viewConfig,
   onViewConfigChange,
   onExport,
+  showSelectCheckbox = false,
+  onToggleSelectCheckbox,
 }: WebBookmarksContentHeaderProps) {
   const [sortOpen, setSortOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
@@ -129,6 +134,20 @@ export function WebBookmarksContentHeader({
       </div>
 
       <div className={styles["wb-header__controls"]}>
+        {onToggleSelectCheckbox && (
+          <button
+            type="button"
+            className={`${styles["wb-header__btn"]} ${showSelectCheckbox ? styles["is-active"] : ""}`}
+            onClick={onToggleSelectCheckbox}
+            title={showSelectCheckbox ? "Hide selection checkboxes" : "Select bookmarks"}
+            aria-label="Select bookmarks"
+            aria-pressed={showSelectCheckbox}
+          >
+            <CheckSquare size={16} weight={showSelectCheckbox ? "fill" : "regular"} />
+            <span>Select</span>
+          </button>
+        )}
+
         <div ref={sortRef} style={{ position: "relative" }}>
           <button
             type="button"
@@ -169,15 +188,17 @@ export function WebBookmarksContentHeader({
           )}
         </div>
 
-        <button
-          type="button"
-          className={styles["wb-header__btn"]}
-          onClick={onExport}
-          title="Export Bookmarks"
-        >
-          <DownloadSimple size={16} weight="regular" />
-          <span>Export</span>
-        </button>
+        {onExport && (
+          <button
+            type="button"
+            className={styles["wb-header__btn"]}
+            onClick={onExport}
+            title="Export Bookmarks"
+          >
+            <DownloadSimple size={16} weight="regular" />
+            <span>Export</span>
+          </button>
+        )}
       </div>
     </div>
   );

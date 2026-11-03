@@ -3,11 +3,12 @@ import { useBookmarkStore } from "../../bookmarks/bookmarkStore";
 import { useBookmarkUIStore } from "../../bookmarks/useBookmarkUIStore";
 import { WebBookmarksSidebar } from "./WebBookmarksSidebar";
 import { computeBookmarkCounts } from "./webBookmarkFilters";
-import { computeNoteBookmarkCounts } from "./noteBookmarkFilters";
+import { useNoteBookmarkItems } from "./useNoteBookmarkItems";
 
 export function BookmarksSidebarPanel() {
   const bookmarks = useBookmarkStore((state) => state.bookmarks);
   const webBookmarks = useBookmarkStore((state) => state.webBookmarks);
+  const noteItems = useNoteBookmarkItems();
 
   const pageTab = useBookmarkUIStore((state) => state.pageTab);
   const activeSection = useBookmarkUIStore((state) => state.activeSection);
@@ -17,11 +18,11 @@ export function BookmarksSidebarPanel() {
   );
   const setShowAddBar = useBookmarkUIStore((state) => state.setShowAddBar);
 
-  const counts = useMemo(() => {
-    return pageTab === "links"
-      ? computeBookmarkCounts(webBookmarks)
-      : computeNoteBookmarkCounts(bookmarks);
-  }, [pageTab, webBookmarks, bookmarks]);
+  const counts = useMemo(
+    () =>
+      computeBookmarkCounts(pageTab === "links" ? webBookmarks : noteItems),
+    [pageTab, webBookmarks, noteItems],
+  );
 
   const handleAddCollection = () => {
     const name = window.prompt("New collection name:");

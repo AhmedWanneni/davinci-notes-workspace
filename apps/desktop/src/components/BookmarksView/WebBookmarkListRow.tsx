@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import {
   FolderSimple,
-  Eye,
+  ArrowSquareOut,
   Trash,
-  Globe,
   ArrowCounterClockwise,
 } from "@phosphor-icons/react";
 import type {
   WebBookmarkItem,
   WebBookmarkViewConfig,
 } from "../../bookmarks/bookmarkTypes";
+import { WebBookmarkCover } from "./WebBookmarkCover";
 import styles from "./WebBookmarksDisplay.module.scss";
 
 export interface WebBookmarkListRowProps {
@@ -19,6 +19,8 @@ export interface WebBookmarkListRowProps {
   onEdit: (item: WebBookmarkItem) => void;
   onRemove: (id: string) => void;
   onRestore?: (id: string) => void;
+  isNotes?: boolean;
+  showCheckbox?: boolean;
 }
 
 function formatDate(timestamp: number): string {
@@ -48,6 +50,8 @@ export function WebBookmarkListRow({
   onEdit,
   onRemove,
   onRestore,
+  isNotes = false,
+  showCheckbox = false,
 }: WebBookmarkListRowProps) {
   const [isSelected, setIsSelected] = useState(false);
 
@@ -73,33 +77,29 @@ export function WebBookmarkListRow({
         if (e.key === "Enter") onOpenExternal(item.url);
       }}
     >
-      <div
-        className={styles["wb-list-row__checkbox-wrap"]}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={(e) => setIsSelected(e.target.checked)}
-          aria-label={`Select ${item.title}`}
-          className={styles["wb-list-row__checkbox"]}
-        />
-      </div>
+      {showCheckbox && (
+        <div
+          className={styles["wb-list-row__checkbox-wrap"]}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => setIsSelected(e.target.checked)}
+            aria-label={`Select ${item.title}`}
+            className={styles["wb-list-row__checkbox"]}
+          />
+        </div>
+      )}
 
       {viewConfig.showCover && (
         <div className={styles["wb-list-row__cover-wrap"]}>
-          {item.cover ? (
-            <img
-              src={item.cover}
-              alt=""
-              className={styles["wb-list-row__cover-img"]}
-              loading="lazy"
-            />
-          ) : (
-            <div className={styles["wb-list-row__cover-placeholder"]}>
-              <Globe size={18} weight="regular" />
-            </div>
-          )}
+          <WebBookmarkCover
+            url={item.url}
+            cover={item.cover}
+            favicon={item.favicon}
+            title={item.title}
+          />
         </div>
       )}
 
@@ -126,6 +126,20 @@ export function WebBookmarkListRow({
             </span>
             <span className={styles["wb-list-row__dot"]}>•</span>
             <span className={styles["wb-list-row__domain"]}>{domain}</span>
+            {!isNotes && (
+              <button
+                type="button"
+                className={styles["wb-link-btn"]}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenExternal(item.url);
+                }}
+                title="Open bookmark link in browser"
+                aria-label="Open bookmark link in browser"
+              >
+                <ArrowSquareOut size={12} />
+              </button>
+            )}
             <span className={styles["wb-list-row__dot"]}>•</span>
             <span className={styles["wb-list-row__date"]}>
               {formatDate(item.addedAt)}
@@ -161,22 +175,27 @@ export function WebBookmarkListRow({
           </>
         ) : (
           <>
-            <button
-              type="button"
-              className={styles["wb-list-row__action-btn"]}
-              onClick={() => onOpenExternal(item.url)}
-              title="Open link"
-            >
-              <Eye size={15} />
-            </button>
-            <button
-              type="button"
-              className={styles["wb-list-row__edit-btn"]}
-              onClick={() => onEdit(item)}
-              title="Edit bookmark"
-            >
-              Edit
-            </button>
+            {!isNotes && (
+              <>
+                <button
+                  type="button"
+                  className={styles["wb-list-row__action-btn"]}
+                  onClick={() => onOpenExternal(item.url)}
+                  title="Open link in browser"
+                  aria-label="Open link in browser"
+                >
+                  <ArrowSquareOut size={15} />
+                </button>
+                <button
+                  type="button"
+                  className={styles["wb-list-row__edit-btn"]}
+                  onClick={() => onEdit(item)}
+                  title="Edit bookmark"
+                >
+                  Edit
+                </button>
+              </>
+            )}
             <button
               type="button"
               className={styles["wb-list-row__action-btn"]}

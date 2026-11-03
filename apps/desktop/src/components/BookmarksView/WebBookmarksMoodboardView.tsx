@@ -1,9 +1,8 @@
 import React from "react";
 import {
   FolderSimple,
-  Eye,
+  ArrowSquareOut,
   Trash,
-  Globe,
   PencilSimple,
   ArrowCounterClockwise,
 } from "@phosphor-icons/react";
@@ -11,11 +10,13 @@ import type {
   WebBookmarkItem,
   WebBookmarkViewConfig,
 } from "../../bookmarks/bookmarkTypes";
+import { WebBookmarkCover } from "./WebBookmarkCover";
 import styles from "./WebBookmarksDisplay.module.scss";
 
 export interface WebBookmarksMoodboardViewProps {
   items: readonly WebBookmarkItem[];
   viewConfig: WebBookmarkViewConfig;
+  isNotes?: boolean;
   onOpenExternal: (url: string) => void;
   onEdit: (item: WebBookmarkItem) => void;
   onRemove: (id: string) => void;
@@ -37,6 +38,7 @@ function formatDate(timestamp: number): string {
 export function WebBookmarksMoodboardView({
   items,
   viewConfig,
+  isNotes = false,
   onOpenExternal,
   onEdit,
   onRemove,
@@ -68,18 +70,12 @@ export function WebBookmarksMoodboardView({
           >
             {viewConfig.showCover && (
               <div className={styles["wb-moodboard-card__cover-wrap"]}>
-                {item.cover ? (
-                  <img
-                    src={item.cover}
-                    alt=""
-                    className={styles["wb-moodboard-card__cover-img"]}
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className={styles["wb-moodboard-card__placeholder"]}>
-                    <Globe size={40} weight="regular" />
-                  </div>
-                )}
+                <WebBookmarkCover
+                  url={item.url}
+                  cover={item.cover}
+                  favicon={item.favicon}
+                  title={item.title}
+                />
                 <div
                   className={styles["wb-card__hover-actions"]}
                   onClick={(e) => e.stopPropagation()}
@@ -107,22 +103,27 @@ export function WebBookmarksMoodboardView({
                     </>
                   ) : (
                     <>
-                      <button
-                        type="button"
-                        className={styles["wb-card__icon-btn"]}
-                        onClick={() => onOpenExternal(item.url)}
-                        title="Open"
-                      >
-                        <Eye size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        className={styles["wb-card__icon-btn"]}
-                        onClick={() => onEdit(item)}
-                        title="Edit"
-                      >
-                        <PencilSimple size={14} />
-                      </button>
+                      {!isNotes && (
+                        <>
+                          <button
+                            type="button"
+                            className={styles["wb-card__icon-btn"]}
+                            onClick={() => onOpenExternal(item.url)}
+                            title="Open link in browser"
+                            aria-label="Open link in browser"
+                          >
+                            <ArrowSquareOut size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className={styles["wb-card__icon-btn"]}
+                            onClick={() => onEdit(item)}
+                            title="Edit"
+                          >
+                            <PencilSimple size={14} />
+                          </button>
+                        </>
+                      )}
                       <button
                         type="button"
                         className={styles["wb-card__icon-btn"]}
@@ -162,6 +163,20 @@ export function WebBookmarksMoodboardView({
                   </span>
                   <span className={styles["wb-card__dot"]}>•</span>
                   <span className={styles["wb-card__domain"]}>{domain}</span>
+                  {!isNotes && (
+                    <button
+                      type="button"
+                      className={styles["wb-link-btn"]}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenExternal(item.url);
+                      }}
+                      title="Open bookmark link in browser"
+                      aria-label="Open bookmark link in browser"
+                    >
+                      <ArrowSquareOut size={12} />
+                    </button>
+                  )}
                   <span className={styles["wb-card__dot"]}>•</span>
                   <span className={styles["wb-card__date"]}>
                     {formatDate(item.addedAt)}

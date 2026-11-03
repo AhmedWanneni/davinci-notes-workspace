@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { FolderSimple, Plus, Trash } from "@phosphor-icons/react";
+import { FolderOpen, FolderSimple, Plus, Trash } from "@phosphor-icons/react";
 import type { AgentConversation, AgentProject } from "@app/ai-agent";
 import styles from "./AgentSidebarPanel.module.scss";
 
 export interface AgentSidebarProjectsSectionProps {
   projects: AgentProject[];
+  conversations?: AgentConversation[];
   activeProjectId: string | null;
   activeConversationId: string | null;
   activeProjectChats: AgentConversation[];
@@ -18,6 +19,7 @@ export interface AgentSidebarProjectsSectionProps {
 
 export function AgentSidebarProjectsSection({
   projects,
+  conversations,
   activeProjectId,
   activeConversationId,
   activeProjectChats,
@@ -36,18 +38,26 @@ export function AgentSidebarProjectsSection({
   >({});
 
   const handleCreate = () => {
-    if (!newProjectName.trim()) return;
-    onCreateProject(newProjectName.trim());
+    const trimmed = newProjectName.trim();
+    if (!trimmed) {
+      setNewProjectPrompt(false);
+      return;
+    }
+    onCreateProject(trimmed);
     setNewProjectName("");
     setNewProjectPrompt(false);
   };
 
   const toggleExpand = (id: string) => {
-    setExpandedProjects((prev) => ({ ...prev, [id]: !prev[id] }));
+    const currentlySelected = activeProjectId === id;
+    setExpandedProjects((prev) => {
+      const currentVal = prev[id] ?? currentlySelected;
+      return { ...prev, [id]: currentlySelected ? !currentVal : true };
+    });
     onSelectProject(id);
   };
 
-  const visibleProjects = showAllProjects ? projects : projects.slice(0, 5);
+  const visibleProjects = showAllProjects ? projects : projects.slice(0, 6);
 
   return (
     <div className={styles["agent-sidebar__section"]}>
@@ -66,14 +76,23 @@ export function AgentSidebarProjectsSection({
 
       {newProjectPrompt && (
         <div className={styles["agent-sidebar__new-project-row"]}>
+          <FolderOpen
+            size={16}
+            weight="regular"
+            className={styles["agent-sidebar__new-project-icon"]}
+          />
           <input
             type="text"
             className={styles["agent-sidebar__input-inline"]}
             value={newProjectName}
             onChange={(e) => setNewProjectName(e.target.value)}
+            onBlur={handleCreate}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleCreate();
-              if (e.key === "Escape") setNewProjectPrompt(false);
+              if (e.key === "Escape") {
+                setNewProjectName("");
+                setNewProjectPrompt(false);
+              }
             }}
             placeholder="Project name..."
             autoFocus
@@ -85,6 +104,14 @@ export function AgentSidebarProjectsSection({
         {visibleProjects.map((p) => {
           const isSelected = activeProjectId === p.id;
           const isExpanded = expandedProjects[p.id] ?? isSelected;
+          const projectChats = conversations
+            ? conversations.filter((c) => c.projectId === p.id)
+            : isSelected
+              ? activeProjectChats
+              : [];
+          const FolderIcon =
+            isExpanded || isSelected ? FolderOpen : FolderSimple;
+
           return (
             <div key={p.id} className={styles["agent-sidebar__project-group"]}>
               <div className={styles["agent-sidebar__project-row-wrap"]}>
@@ -93,7 +120,7 @@ export function AgentSidebarProjectsSection({
                   className={`${styles["agent-sidebar__project-item"]} ${isSelected ? styles["is-active"] : ""}`}
                   onClick={() => toggleExpand(p.id)}
                 >
-                  <FolderSimple size={16} weight="regular" />
+                  <FolderIcon size={17} weight="regular" />
                   <span className={styles["agent-sidebar__item-name"]}>
                     {p.name}
                   </span>
@@ -103,6 +130,7 @@ export function AgentSidebarProjectsSection({
                   className={styles["agent-sidebar__project-add-chat-btn"]}
                   onClick={(e) => {
                     e.stopPropagation();
+                    setExpandedProjects((prev) => ({ ...prev, [p.id]: true }));
                     if (onCreateNewChatInProject) {
                       onCreateNewChatInProject(p.id);
                     } else {
@@ -116,61 +144,40 @@ export function AgentSidebarProjectsSection({
                 </button>
               </div>
 
-              {isExpanded && isSelected && (
+              {isExpanded && projectChats.length > 0 && (
                 <div className={styles["agent-sidebar__project-nested"]}>
-                  <button
-                    type="button"
-                    className={styles["agent-sidebar__chat-nested-add"]}
-                    onClick={() => {
-                      if (onCreateNewChatInProject) {
-                        onCreateNewChatInProject(p.id);
-                      } else {
-                        onOpenProjectOverview(p.id);
-                      }
-                    }}
-                    title={`New conversation in ${p.name}`}
-                  >
-                    <Plus size={12} weight="bold" />
-                    <span>New chat</span>
-                  </button>
-                  {activeProjectChats.length === 0 ? (
-                    <span className={styles["agent-sidebar__empty-nested"]}>
-                      No chats
-                    </span>
-                  ) : (
-                    activeProjectChats.map((c) => (
-                      <div
-                        key={c.id}
-                        className={styles["agent-sidebar__chat-nested-row"]}
+                  {projectChats.map((c) => (
+                    <div
+                      key={c.id}
+                      className={styles["agent-sidebar__chat-nested-row"]}
+                    >
+                      <button
+                        type="button"
+                        className={`${styles["agent-sidebar__chat-nested-item"]} ${
+                          c.id === activeConversationId
+                            ? styles["is-active"]
+                            : ""
+                        }`}
+                        onClick={() => onSelectConversation(c.id)}
                       >
-                        <button
-                          type="button"
-                          className={`${styles["agent-sidebar__chat-nested-item"]} ${
-                            c.id === activeConversationId
-                              ? styles["is-active"]
-                              : ""
-                          }`}
-                          onClick={() => onSelectConversation(c.id)}
-                        >
-                          <span className={styles["agent-sidebar__chat-title"]}>
-                            {c.title}
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          className={styles["agent-sidebar__delete-chat-btn"]}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteConversation(c.id);
-                          }}
-                          title="Delete conversation"
-                          aria-label={`Delete ${c.title}`}
-                        >
-                          <Trash size={12} />
-                        </button>
-                      </div>
-                    ))
-                  )}
+                        <span className={styles["agent-sidebar__chat-title"]}>
+                          {c.title}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        className={styles["agent-sidebar__delete-chat-btn"]}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteConversation(c.id);
+                        }}
+                        title="Delete conversation"
+                        aria-label={`Delete ${c.title}`}
+                      >
+                        <Trash size={12} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -178,7 +185,7 @@ export function AgentSidebarProjectsSection({
         })}
       </div>
 
-      {projects.length > 5 && (
+      {projects.length > 6 && (
         <button
           type="button"
           className={styles["agent-sidebar__show-more"]}

@@ -80,7 +80,10 @@ export async function resolveExecutionPromptAndTools(
   }
 
   try {
-    const rawMem = await mutationBackend.readNote(AGENT_MEMORY_PATH);
+    const memoryPath = options?.projectId
+      ? `.sophia/agent-memory-${options.projectId}.json`
+      : AGENT_MEMORY_PATH;
+    const rawMem = await mutationBackend.readNote(memoryPath);
     const memText = formatMemoryPrompt(parseMemoryData(rawMem));
     if (memText) systemPrompt = `${systemPrompt}\n\n${memText}`;
   } catch {

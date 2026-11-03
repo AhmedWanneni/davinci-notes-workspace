@@ -47,9 +47,12 @@ export function AgentView({
     saveActiveMessages,
   } = useAgentConversations();
 
-  const currentProjectId =
-    activeProjectId || activeConversation?.projectId || null;
-  const activeProject = projects.find((p) => p.id === currentProjectId);
+  const currentProjectId = activeConversation
+    ? (activeConversation.projectId ?? null)
+    : activeProjectId;
+  const activeProject = currentProjectId
+    ? projects.find((p) => p.id === currentProjectId)
+    : undefined;
 
   const {
     messages,
@@ -70,11 +73,12 @@ export function AgentView({
     vaultName,
     selectedCliAgent,
     vaultPath: vaultPath ?? undefined,
-    projectSources: activeProject?.sources,
-    projectInstructions:
-      activeProject?.instructions ??
-      (currentProjectId ? projectInstructions[currentProjectId] : undefined),
-    projectName: activeProject?.name,
+    projectId: currentProjectId ?? undefined,
+    projectSources: currentProjectId ? activeProject?.sources : undefined,
+    projectInstructions: currentProjectId
+      ? (activeProject?.instructions ?? projectInstructions[currentProjectId])
+      : undefined,
+    projectName: currentProjectId ? activeProject?.name : undefined,
   });
 
   const [chatInput, setChatInput] = useState("");

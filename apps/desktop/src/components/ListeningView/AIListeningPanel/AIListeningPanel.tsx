@@ -4,10 +4,13 @@ import type {
   AIListeningAnswerItem,
   AIListeningFollowupQuestion,
 } from "@app/ai-agent";
+import type { ChatMessageItem } from "../../AgentView/agentTypes";
+import type { RollingSummaryItem, SummaryInterval } from "../useLiveSummaries";
 import { LiveSummaryCard } from "./LiveSummaryCard";
 import { SuggestedAnswersList } from "./SuggestedAnswersList";
 import { SuggestedQuestionsList } from "./SuggestedQuestionsList";
-import { AIListeningInput } from "./AIListeningInput";
+import { RollingSummariesAccordion } from "./RollingSummariesAccordion";
+import { MeetingAgentChatFeed } from "./MeetingAgentChatFeed";
 import styles from "../ListeningView.module.scss";
 
 export interface AIListeningPanelProps {
@@ -22,6 +25,21 @@ export interface AIListeningPanelProps {
   onDismissQuestion: (id: string) => void;
   onSubmitPrompt: (query: string) => void;
   className?: string;
+
+  // Path A: Live Summaries
+  rollingSummaries?: RollingSummaryItem[];
+  summaryInterval?: SummaryInterval;
+  onIntervalChange?: (interval: SummaryInterval) => void;
+  onSummarizeNow?: () => void;
+  isAIListeningPaused?: boolean;
+  onTogglePauseAI?: () => void;
+  summaryStatusMessage?: string | null;
+
+  // Path B: Meeting Agent Chat
+  chatMessages?: ChatMessageItem[];
+  isChatExecuting?: boolean;
+  onAskChatQuestion?: (query: string) => Promise<void>;
+  agentConversationId?: string;
 }
 
 export function AIListeningPanel({
@@ -36,6 +54,17 @@ export function AIListeningPanel({
   onDismissQuestion,
   onSubmitPrompt,
   className = "",
+  rollingSummaries = [],
+  summaryInterval = "2m",
+  onIntervalChange = () => {},
+  onSummarizeNow = () => {},
+  isAIListeningPaused = false,
+  onTogglePauseAI = () => {},
+  summaryStatusMessage = null,
+  chatMessages = [],
+  isChatExecuting = false,
+  onAskChatQuestion = async () => {},
+  agentConversationId = "",
 }: AIListeningPanelProps) {
   return (
     <aside
@@ -77,6 +106,19 @@ export function AIListeningPanel({
           onChipClick={(chipPrompt) => onSubmitPrompt(chipPrompt)}
         />
 
+        {/* Path A: Rolling Summaries Accordion */}
+        <RollingSummariesAccordion
+          summaries={rollingSummaries}
+          activeSummary={summary}
+          isSummarizing={isStreaming}
+          statusMessage={summaryStatusMessage}
+          interval={summaryInterval}
+          isPaused={isAIListeningPaused}
+          onIntervalChange={onIntervalChange}
+          onSummarizeNow={onSummarizeNow}
+          onTogglePause={onTogglePauseAI}
+        />
+
         <SuggestedAnswersList
           answers={answers}
           onSave={onSaveAnswer}
@@ -88,15 +130,15 @@ export function AIListeningPanel({
           onSave={onSaveQuestion}
           onDismiss={onDismissQuestion}
         />
-      </div>
 
-      <footer className={styles["ai-listening-panel__footer"]}>
-        <AIListeningInput
-          channelName={channelName}
-          onSubmit={onSubmitPrompt}
-          disabled={isStreaming}
+        {/* Path B: Dedicated Meeting Agent Chat Feed */}
+        <MeetingAgentChatFeed
+          messages={chatMessages}
+          isExecuting={isChatExecuting}
+          onAskQuestion={onAskChatQuestion}
+          conversationId={agentConversationId}
         />
-      </footer>
+      </div>
     </aside>
   );
 }

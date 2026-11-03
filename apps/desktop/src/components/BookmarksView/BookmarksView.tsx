@@ -1,22 +1,17 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useBookmarks } from "../../bookmarks/useBookmarks";
 import { useBookmarkUIStore } from "../../bookmarks/useBookmarkUIStore";
 import type {
   BookmarksPageTab,
-  BookmarkSortOption,
   WebBookmarkItem,
 } from "../../bookmarks/bookmarkTypes";
 import { organizeBookmarksWithAI } from "../../bookmarks/organizeBookmarksWithAI";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import { loadTreeIcons } from "../../icons/treeIconStorage";
-import { BookmarksHeader } from "./BookmarksHeader";
-import { NoteBookmarksSubView } from "./NoteBookmarksSubView";
 import { WebBookmarksSubView } from "./WebBookmarksSubView";
 import { WebBookmarkAddBar } from "./WebBookmarkAddBar";
 import { WebBookmarkImportModal } from "./WebBookmarkImportModal";
-import { useBookmarkKeyboardNav } from "./useBookmarkKeyboardNav";
-import { filterAndSortNoteBookmarks } from "./noteBookmarkFilters";
+import { useNoteBookmarkItems } from "./useNoteBookmarkItems";
 import styles from "./BookmarksView.module.scss";
 
 export interface BookmarksViewProps {
@@ -43,7 +38,7 @@ export function BookmarksView({
     undoLastOrganization,
   } = useBookmarks();
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
-  const notesContent = useWorkspaceStore((state) => state.notesContent);
+  const noteItems = useNoteBookmarkItems();
 
   const {
     pageTab,
@@ -56,41 +51,14 @@ export function BookmarksView({
   } = useBookmarkUIStore();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState<BookmarkSortOption>("recent");
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [icons, setIcons] = useState<Record<string, string>>({});
   const [isOrganizingAI, setIsOrganizingAI] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialPage) {
       setPageTab(initialPage);
     }
   }, [initialPage, setPageTab]);
-
-  useEffect(() => {
-    void loadTreeIcons().then(setIcons);
-  }, []);
-
-  const filteredAndSorted = useMemo(() => {
-    return filterAndSortNoteBookmarks(
-      bookmarks,
-      activeSection,
-      searchQuery,
-      sortOption,
-    );
-  }, [bookmarks, activeSection, searchQuery, sortOption]);
-
-  useBookmarkKeyboardNav({
-    items: pageTab === "notes" ? filteredAndSorted : [],
-    selectedIndex,
-    setSelectedIndex,
-    onOpen: onOpenNote,
-    onRemove: removeBookmark,
-    searchInputRef,
-  });
 
   const handleOpenExternal = useCallback(
     (url: string) => {
@@ -103,7 +71,7 @@ export function BookmarksView({
         onOpenNote(url, false);
         return;
       }
-      invoke("open_external_url", { url }).catch(() => {
+      invoke("open_bookmark_url", { url }).catch(() => {
         window.open(url, "_blank", "noopener,noreferrer");
       });
     },
@@ -137,64 +105,43 @@ export function BookmarksView({
 
   return (
     <div className={styles["bookmarks-view"]}>
-      {pageTab === "links" ? (
-        <WebBookmarksSubView
-          items={webBookmarks}
-          searchQuery={searchQuery}
-          statusMessage={statusMessage}
-          isOrganizingAI={isOrganizingAI}
-          canUndoOrganization={canUndoOrganization}
-          onUndoOrganization={() => {
-            undoLastOrganization();
-            setStatusMessage("Reverted AI organization changes.");
-          }}
-          onDismissStatus={() => setStatusMessage(null)}
-          onOpenAddBar={() => setShowAddBar(true)}
-          onOpenImportModal={() => setShowImportModal(true)}
-          onOpenExternal={handleOpenExternal}
-          onOrganizeItems={(items) => void handleOrganizeWithAI(items)}
-          onUpdate={updateWebBookmark}
-          onRemove={removeWebBookmark}
-          onSearchChange={setSearchQuery}
-          pageTab={pageTab}
-          onPageTabChange={setPageTab}
-          noteCount={bookmarks.length}
-          hideSidebar={hideSidebar}
-        />
-      ) : (
-        <>
-          <BookmarksHeader
-            activePage={pageTab}
-            onPageChange={setPageTab}
-            noteCount={bookmarks.length}
-            linkCount={webBookmarks.length}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            searchInputRef={searchInputRef}
-            sortOption={sortOption}
-            onSortChange={setSortOption}
-            onOpenAddLink={() => setShowAddBar(true)}
-            onOpenImportModal={() => setShowImportModal(true)}
-          />
-          <NoteBookmarksSubView
-            bookmarks={bookmarks}
-            filteredAndSorted={filteredAndSorted}
-            searchQuery={searchQuery}
-            selectedIndex={selectedIndex}
-            icons={icons}
-            allNotePaths={allNotePaths}
-            notesContent={notesContent}
-            onOpenNote={onOpenNote}
-            onRemoveBookmark={removeBookmark}
-          />
-        </>
-      )}
+      <WebBookmarksSubView
+        variant={pageTab === "links" ? "links" : "notes"}
+        items={pageTab === "links" ? webBookmarks : noteItems}
+        searchQuery={searchQuery}
+        statusMessage={statusMessage}
+        isOrganizingAI={isOrganizingAI}
+        canUndoOrganization={canUndoOrganization}
+        onUndoOrganization={() => {
+          undoLastOrganization();
+          setStatusMessage("Reverted AI organization changes.");
+        }}
+        onDismissStatus={() => setStatusMessage(null)}
+        onOpenAddBar={() => setShowAddBar(true)}
+        onOpenImportModal={() => setShowImportModal(true)}
+        onOpenExternal={handleOpenExternal}
+        onOrganizeItems={(items) => void handleOrganizeWithAI(items)}
+        onUpdate={updateWebBookmark}
+        onRemove={pageTab === "links" ? removeWebBookmark : removeBookmark}
+        onSearchChange={setSearchQuery}
+        pageTab={pageTab}
+        onPageTabChange={setPageTab}
+        noteCount={bookmarks.length}
+        hideSidebar={hideSidebar}
+      />
 
       {showAddBar && (
         <WebBookmarkAddBar
           onAdd={(input) => {
             addWebBookmark(input);
             setShowAddBar(false);
+          }}
+          onAddBatch={(items) => {
+            const { addedCount } = importWebBookmarks(items);
+            setShowAddBar(false);
+            setStatusMessage(
+              `Added ${items.length} bookmark${items.length === 1 ? "" : "s"} (${addedCount} new).`,
+            );
           }}
           onCancel={() => setShowAddBar(false)}
         />

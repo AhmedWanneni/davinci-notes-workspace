@@ -16,12 +16,15 @@ export interface WebBookmarksSidebarFiltersProps {
   counts: BookmarkCounts;
   isSectionActive: (s: SidebarSection) => boolean;
   onSelectSection: (s: SidebarSection) => void;
+  /** Restrict the list to these filter ids (used by the notes page). */
+  onlyIds?: readonly string[];
 }
 
 export function WebBookmarksSidebarFilters({
   counts,
   isSectionActive,
   onSelectSection,
+  onlyIds,
 }: WebBookmarksSidebarFiltersProps) {
   const filterList = [
     {
@@ -78,8 +81,12 @@ export function WebBookmarksSidebarFilters({
     <div className={styles["wb-sidebar__group"]}>
       <div className={styles["wb-sidebar__group-title"]}>Filters</div>
       {filterList
+        .filter((f) => !onlyIds || onlyIds.includes(f.id))
         .filter(
-          (f) => f.count > 0 || f.id === "without-tags" || f.id === "links",
+          (f) =>
+            f.count > 0 ||
+            f.id === "without-tags" ||
+            (f.id === "links" && !onlyIds),
         )
         .map((f) => {
           const active = isSectionActive({

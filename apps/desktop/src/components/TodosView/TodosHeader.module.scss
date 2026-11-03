@@ -110,6 +110,25 @@
   }
 }
 
+.todos-header__primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-interactive-accent);
+  background-color: var(--color-interactive-accent);
+  color: var(--color-text-on-accent);
+  font-size: var(--type-scale-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
 .todos-header__filters {
   display: flex;
   align-items: center;

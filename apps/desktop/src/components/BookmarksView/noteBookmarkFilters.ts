@@ -1,9 +1,7 @@
 import type {
   BookmarkItem,
   WebBookmarkItem,
-  WebBookmarkSortOption,
 } from "../../bookmarks/bookmarkTypes";
-import type { BookmarkCounts, SidebarSection } from "./webBookmarkFilters";
 
 export function extractPreview(
   content: string | undefined,
@@ -27,104 +25,34 @@ export function extractPreview(
   return cleanLines.length > 0 ? cleanLines.join(" ") : undefined;
 }
 
-export function computeNoteBookmarkCounts(
-  items: readonly BookmarkItem[],
-): BookmarkCounts {
-  let all = 0;
-  let unsorted = 0;
-  let trash = 0;
-  const colMap = new Map<string, number>();
-
-  for (const item of items) {
-    if (item.missing) {
-      trash += 1;
-      continue;
-    }
-    all += 1;
-    const parts = item.path.split("/");
-    parts.pop();
-    const folder = parts.join("/");
-    if (!folder) {
-      unsorted += 1;
-    } else {
-      colMap.set(folder, (colMap.get(folder) ?? 0) + 1);
-    }
-  }
-
-  const collections = Array.from(colMap.entries()).sort((a, b) =>
-    a[0].localeCompare(b[0]),
-  );
-
-  return {
-    all,
-    unsorted,
-    trash,
-    collections,
-    highlights: 0,
-    links: 0,
-    articles: 0,
-    images: 0,
-    videos: 0,
-    audios: 0,
-    documents: all,
-    withoutTags: all,
-  };
+export interface NoteBookmarkSources {
+  notesContent: Record<string, string>;
+  /** Maps a note path to its tag keys (from the vault tag index). */
+  noteTags?: ReadonlyMap<string, ReadonlySet<string>> | null;
+  /** When non-empty, bookmarked paths missing from it are treated as missing. */
+  allNotePaths?: readonly string[];
 }
 
-export function filterAndSortNoteBookmarks(
-  bookmarks: readonly BookmarkItem[],
-  section: SidebarSection,
-  searchQuery: string,
-  sortOption: WebBookmarkSortOption,
-): BookmarkItem[] {
-  const query = searchQuery.trim().toLowerCase();
-
-  const filtered = bookmarks.filter((b) => {
-    if (section.type === "trash") {
-      if (!b.missing) return false;
-    } else if (section.type === "unsorted") {
-      const parts = b.path.split("/");
-      parts.pop();
-      if (parts.join("/")) return false;
-    } else if (section.type === "collection") {
-      const parts = b.path.split("/");
-      parts.pop();
-      if (parts.join("/") !== section.folder) return false;
-    }
-
-    if (!query) return true;
-    const parts = b.path.split("/");
-    const fileName = parts.pop() ?? b.path;
-    const title = fileName.replace(/\.(md|canvas)$/i, "").toLowerCase();
-    return title.includes(query) || b.path.toLowerCase().includes(query);
-  });
-
-  return [...filtered].sort((a, b) => {
-    if (sortOption === "name-asc" || sortOption === "alpha") {
-      return a.path.localeCompare(b.path);
-    }
-    if (sortOption === "name-desc") {
-      return b.path.localeCompare(a.path);
-    }
-    if (sortOption === "date-asc") {
-      return a.addedAt - b.addedAt;
-    }
-    return b.addedAt - a.addedAt;
-  });
-}
-
+/**
+ * Adapts bookmarked vault notes to the web-link item shape so the notes page
+ * reuses the exact same list/cards/headlines/moodboard views, sidebar
+ * collections, filters and sorting as web links.
+ */
 export function convertNotesToWebBookmarkItems(
   notes: readonly BookmarkItem[],
-  notesContent: Record<string, string>,
+  { notesContent, noteTags, allNotePaths }: NoteBookmarkSources,
 ): WebBookmarkItem[] {
+  const known =
+    allNotePaths && allNotePaths.length > 0 ? new Set(allNotePaths) : null;
+
   return notes.map((b) => {
     const parts = b.path.split("/");
     const fileName = parts.pop() ?? b.path;
     const folder = parts.join("/");
     const title = fileName.replace(/\.(md|canvas)$/i, "");
-    const preview = notesContent[b.path]
-      ? extractPreview(notesContent[b.path])
-      : undefined;
+    const preview = extractPreview(notesContent[b.path]);
+    const tags = Array.from(noteTags?.get(b.path) ?? []).sort();
+    const missing = b.missing === true || (known !== null && !known.has(b.path));
 
     return {
       id: b.path,
@@ -133,9 +61,10 @@ export function convertNotesToWebBookmarkItems(
       folder: folder || undefined,
       domain: "vault note",
       description: preview,
+      ...(tags.length > 0 ? { tags } : {}),
       addedAt: b.addedAt,
-      trashed: b.missing,
-      type: "document",
+      trashed: missing,
+      type: "document" as const,
     };
   });
 }

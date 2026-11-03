@@ -61,11 +61,6 @@ const LazyBookmarksView = React.lazy(() =>
 import { REMINDERS_TAB_ID } from "./reminders/reminderConstants";
 import { startReminderChannelOrchestrator } from "./reminders/reminderChannelOrchestrator";
 import { startScheduledMessageOrchestrator } from "./reminders/scheduledMessageOrchestrator";
-const LazyRemindersView = React.lazy(() =>
-  import("./components/RemindersView").then((m) => ({
-    default: m.RemindersView,
-  })),
-);
 import { TODOS_TAB_ID } from "./components/TodosView";
 const LazyTodosView = React.lazy(() =>
   import("./components/TodosView").then((m) => ({
@@ -957,9 +952,13 @@ export function App() {
             </Suspense>
           ) : activeNotePath === REMINDERS_TAB_ID ? (
             <Suspense fallback={null}>
-              <LazyRemindersView
+              <LazyTodosView
+                initialView="reminders"
                 onOpenNote={(path) => {
                   void openNote(path);
+                }}
+                onClose={() => {
+                  void closeNote(REMINDERS_TAB_ID);
                 }}
                 onOpenSettings={() => {
                   setSettingsInitialTab("notifications");
@@ -975,6 +974,10 @@ export function App() {
                 }}
                 onClose={() => {
                   void closeNote(TODOS_TAB_ID);
+                }}
+                onOpenSettings={() => {
+                  setSettingsInitialTab("notifications");
+                  setIsSettingsOpen(true);
                 }}
               />
             </Suspense>

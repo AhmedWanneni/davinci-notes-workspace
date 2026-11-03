@@ -31,6 +31,7 @@ export interface UseAgentExecutionOptions {
   rewriteEnabled?: boolean;
   selectedCliAgent?: string | null;
   vaultPath?: string;
+  projectId?: string;
   projectSources?: string[];
   projectInstructions?: string;
   projectName?: string;

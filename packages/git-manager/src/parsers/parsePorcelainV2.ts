@@ -36,8 +36,8 @@ export function parsePorcelainV2(raw: string): ParsedPorcelainResult {
         const xy = parts[1];
         // Path starts from index 8 onwards (in case path has spaces, though in -z mode path is intact)
         const path = parts.slice(8).join(" ");
-        const stagedCode = xy[0] as GitFileStatusCode;
-        const unstagedCode = xy[1] as GitFileStatusCode;
+        const stagedCode = xy[0] as GitFileStatusCode | ".";
+        const unstagedCode = xy[1] as GitFileStatusCode | ".";
 
         if (stagedCode !== ".") {
           staged.push({
@@ -66,8 +66,8 @@ export function parsePorcelainV2(raw: string): ParsedPorcelainResult {
         const xy = parts[1];
         const path = parts.slice(9).join(" ");
         const origPath = tokens[i + 1] || "";
-        const stagedCode = xy[0] as GitFileStatusCode;
-        const unstagedCode = xy[1] as GitFileStatusCode;
+        const stagedCode = xy[0] as GitFileStatusCode | ".";
+        const unstagedCode = xy[1] as GitFileStatusCode | ".";
 
         if (stagedCode !== ".") {
           staged.push({

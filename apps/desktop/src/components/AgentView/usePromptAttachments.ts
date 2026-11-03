@@ -1,14 +1,51 @@
 import { useState, useRef, type ChangeEvent, type ClipboardEvent } from "react";
 
+export interface PromptAttachmentItem {
+  id: string;
+  kind: "file" | "skill" | "rule" | "note";
+  name: string;
+  badge: string;
+  content: string;
+}
+
+function getFileBadge(fileName: string): string {
+  const parts = fileName.split(".");
+  if (parts.length > 1) {
+    const ext = parts[parts.length - 1].trim().toUpperCase();
+    if (ext && ext.length <= 6) return ext;
+  }
+  return "FILE";
+}
+
 export function usePromptAttachments(onAppendText?: (text: string) => void) {
   const [attachedImages, setAttachedImages] = useState<string[]>([]);
+  const [attachedItems, setAttachedItems] = useState<PromptAttachmentItem[]>(
+    [],
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const removeImage = (idx: number) => {
     setAttachedImages((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const clearImages = () => setAttachedImages([]);
+  const addAttachmentItem = (item: Omit<PromptAttachmentItem, "id"> & { id?: string }) => {
+    const id = item.id || `att_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    setAttachedItems((prev) => {
+      if (prev.some((existing) => existing.name === item.name && existing.kind === item.kind)) {
+        return prev;
+      }
+      return [...prev, { ...item, id }];
+    });
+  };
+
+  const removeAttachmentItem = (id: string) => {
+    setAttachedItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const clearImages = () => {
+    setAttachedImages([]);
+    setAttachedItems([]);
+  };
 
   const handlePaste = (e: ClipboardEvent<HTMLTextAreaElement>) => {
     const items = e.clipboardData?.items;
@@ -41,16 +78,22 @@ export function usePromptAttachments(onAppendText?: (text: string) => void) {
           if (url) setAttachedImages((prev) => [...prev, url]);
         };
         reader.readAsDataURL(file);
-      } else if (onAppendText) {
+      } else {
         const reader = new FileReader();
         reader.onload = (ev) => {
-          const text = ev.target?.result as string;
-          if (text) onAppendText(text);
+          const text = (ev.target?.result as string) || "";
+          addAttachmentItem({
+            kind: "file",
+            name: file.name,
+            badge: getFileBadge(file.name),
+            content: text,
+          });
         };
         reader.readAsText(file);
       }
     }
     e.target.value = "";
+    void onAppendText;
   };
 
   const handleTakeScreenshot = () => {
@@ -82,8 +125,11 @@ export function usePromptAttachments(onAppendText?: (text: string) => void) {
 
   return {
     attachedImages,
+    attachedItems,
     fileInputRef,
     removeImage,
+    addAttachmentItem,
+    removeAttachmentItem,
     clearImages,
     handlePaste,
     handleFileInput,

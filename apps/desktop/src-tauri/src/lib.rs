@@ -197,6 +197,7 @@ pub fn run() {
       oauth::start_oauth_listener,
       oauth::wait_for_oauth_callback,
       oauth::open_external_url,
+      oauth::open_bookmark_url,
       oauth::save_drive_token,
       oauth::load_drive_token,
       oauth::clear_drive_token,

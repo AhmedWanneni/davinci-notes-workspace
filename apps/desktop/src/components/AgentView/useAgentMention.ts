@@ -11,6 +11,7 @@ export function useAgentMention(
   input: string,
   setInput: (val: string) => void,
   textareaRef: RefObject<HTMLTextAreaElement | null>,
+  onAttachLibraryItem?: (item: LibraryItem) => void,
 ) {
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionStartIndex, setMentionStartIndex] = useState<number>(-1);
@@ -78,6 +79,24 @@ export function useAgentMention(
     const before = input.slice(0, slashStartIndex);
     const cursor = textareaRef.current?.selectionStart ?? input.length;
     const after = input.slice(cursor);
+
+    if (
+      onAttachLibraryItem &&
+      (item.type === "skill" || item.type === "rule")
+    ) {
+      onAttachLibraryItem(item);
+      const nextVal = `${before}${after}`;
+      setInput(nextVal);
+      setSlashQuery(null);
+      setSlashStartIndex(-1);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          textareaRef.current.setSelectionRange(before.length, before.length);
+        }
+      }, 0);
+      return;
+    }
 
     let text = item.content;
     if (item.type === "rule") {

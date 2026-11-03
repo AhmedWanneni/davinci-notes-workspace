@@ -24,3 +24,13 @@ Rules:
     2. **ADR Links**: Clickable markdown links to all relevant Architecture Decision Records in `docs/adr/`.
     3. **Commits Breakdown**: Clear breakdown of the commits included in the PR.
     4. **Checklist**: Completed Before Merging Checklist from `AGENTS.md`.
+
+## Dialog & Modal Design Standard (Mandatory for all AI agents)
+
+All modals, popups, and dialogs MUST follow the `SettingsDialog` and `EditorMenuBarDropdown` design pattern:
+- **"Less Boxes Always"**: Unboxed flat list rows with subtle hover backgrounds (`var(--color-bg-hover)`), icon on the left, label in the middle, and trailing metadata/chevrons on the right. Zero nested boxed card grids or heavy container borders. Sections separated by hairline dividers (`height: 1px; background-color: var(--color-border-subtle); margin: 6px 0;`).
+- **Colors, Shadow, Fonts & Padding**: Background `var(--color-bg-primary)`, floating soft elevation `box-shadow: 0 4px 20px rgb(0 0 0 / 10%)`, perimeter border `1px solid var(--color-border-subtle)`, radius `10px`. Container `padding: 6px 0;`, list rows `padding: 7px 14px;` with `gap: 10px;`. Item text `font-size: 13px; font-weight: 400;`, shortcuts `font-size: 11px; color: var(--color-text-muted);`.
+- Wrapped with `@radix-ui/react-dialog` (`Root`, `Portal`, `Overlay`, `Content`).
+- macOS window header with native traffic light controls (`close`, `minimize`, `maximize`), centered title (`font-size: 13px; font-weight: 600;`), and `60px` spacer.
+- Entrance animations: `overlay-show` and `content-show` (scale `0.96` to `1`).
+- See `.agents/rules/dialog-design.md` and `.claude/skills/create-dialog/SKILL.md` for templates and guidelines.

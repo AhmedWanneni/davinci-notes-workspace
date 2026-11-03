@@ -1,11 +1,20 @@
 import type { JSX } from "react";
 import {
+  Bell,
   ListBullets,
   MagnifyingGlass,
+  PaperPlaneTilt,
   SquaresFour,
   Target,
 } from "@phosphor-icons/react";
-import type { MotherboardLayout, TodoStatusFilter } from "./types";
+import type {
+  MotherboardLayout,
+  ReminderFilter,
+  ScheduledFilter,
+  TodoStatusFilter,
+  TodoViewMode,
+} from "./types";
+import { TodosHeaderFilters } from "./TodosHeaderFilters";
 import styles from "./TodosHeader.module.scss";
 
 export interface TodosHeaderProps {
@@ -13,16 +22,37 @@ export interface TodosHeaderProps {
   subtitle?: string;
   searchQuery: string;
   onSearchChange: (q: string) => void;
-  monthsMap: Map<string, number>;
-  selectedMonth: string;
-  onSelectMonth: (m: string) => void;
-  statusFilter: TodoStatusFilter;
-  onSelectStatus: (status: TodoStatusFilter) => void;
-  layout: MotherboardLayout;
-  onSelectLayout: (layout: MotherboardLayout) => void;
+  monthsMap?: Map<string, number>;
+  selectedMonth?: string;
+  onSelectMonth?: (m: string) => void;
+  statusFilter?: TodoStatusFilter;
+  onSelectStatus?: (status: TodoStatusFilter) => void;
+  layout?: MotherboardLayout;
+  onSelectLayout?: (layout: MotherboardLayout) => void;
   isMotherboard?: boolean;
-  totalTodos: number;
-  onOpenFocusMode: () => void;
+  totalTodos?: number;
+  onOpenFocusMode?: () => void;
+  viewMode?: TodoViewMode;
+  reminderFilter?: ReminderFilter;
+  onSelectReminderFilter?: (filter: ReminderFilter) => void;
+  scheduledFilter?: ScheduledFilter;
+  onSelectScheduledFilter?: (filter: ScheduledFilter) => void;
+  onNewReminder?: () => void;
+  onNewScheduledMessage?: () => void;
+  remindersCounts?: {
+    all: number;
+    overdue: number;
+    today: number;
+    upcoming: number;
+    completed: number;
+  };
+  scheduledCounts?: {
+    all: number;
+    scheduled: number;
+    needsSend: number;
+    missed: number;
+    sent: number;
+  };
 }
 
 export function TodosHeader({
@@ -30,29 +60,38 @@ export function TodosHeader({
   subtitle,
   searchQuery,
   onSearchChange,
-  monthsMap,
-  selectedMonth,
+  monthsMap = new Map(),
+  selectedMonth = "all",
   onSelectMonth,
-  statusFilter,
+  statusFilter = "all",
   onSelectStatus,
-  layout,
+  layout = "cards",
   onSelectLayout,
   isMotherboard,
-  totalTodos,
+  totalTodos = 0,
   onOpenFocusMode,
+  viewMode = "motherboard",
+  reminderFilter = "all",
+  onSelectReminderFilter,
+  scheduledFilter = "all",
+  onSelectScheduledFilter,
+  onNewReminder,
+  onNewScheduledMessage,
+  remindersCounts,
+  scheduledCounts,
 }: TodosHeaderProps): JSX.Element {
-  const months = Array.from(monthsMap.entries());
-
   return (
     <header className={styles["todos-header"]} data-testid="todos-header">
       <div className={styles["todos-header__top"]}>
         <div className={styles["todos-header__title-group"]}>
           <h1 className={styles["todos-header__title"]}>{title}</h1>
-          {subtitle && <span className={styles["todos-header__subtitle"]}>{subtitle}</span>}
+          {subtitle && (
+            <span className={styles["todos-header__subtitle"]}>{subtitle}</span>
+          )}
         </div>
 
         <div className={styles["todos-header__actions"]}>
-          {isMotherboard && (
+          {viewMode === "motherboard" && isMotherboard && onSelectLayout && (
             <div className={styles["todos-header__layout-toggle"]}>
               <button
                 type="button"
@@ -77,78 +116,71 @@ export function TodosHeader({
             <MagnifyingGlass size={14} />
             <input
               type="text"
-              placeholder="Search tasks..."
+              placeholder={
+                viewMode === "reminders"
+                  ? "Search reminders..."
+                  : viewMode === "scheduled"
+                    ? "Search scheduled..."
+                    : "Search tasks..."
+              }
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              aria-label="Search tasks"
+              aria-label="Search"
             />
           </div>
 
-          <button
-            type="button"
-            className={styles["todos-header__focus-btn"]}
-            onClick={onOpenFocusMode}
-            title="Open Focus Mode"
-          >
-            <Target size={16} />
-            <span>Focus Mode</span>
-          </button>
+          {viewMode === "reminders" && onNewReminder && (
+            <button
+              type="button"
+              className={styles["todos-header__primary-btn"]}
+              onClick={onNewReminder}
+            >
+              <Bell size={14} weight="fill" />
+              <span>Add Reminder</span>
+            </button>
+          )}
+
+          {viewMode === "scheduled" && onNewScheduledMessage && (
+            <button
+              type="button"
+              className={styles["todos-header__primary-btn"]}
+              onClick={onNewScheduledMessage}
+            >
+              <PaperPlaneTilt size={14} weight="fill" />
+              <span>Schedule Message</span>
+            </button>
+          )}
+
+          {(viewMode === "motherboard" || viewMode === "project") &&
+            onOpenFocusMode && (
+              <button
+                type="button"
+                className={styles["todos-header__focus-btn"]}
+                onClick={onOpenFocusMode}
+                title="Open Focus Mode"
+              >
+                <Target size={16} />
+                <span>Focus Mode</span>
+              </button>
+            )}
         </div>
       </div>
 
-      <div className={styles["todos-header__filters"]}>
-        <button
-          type="button"
-          className={`${styles["todos-header__filter-pill"]} ${selectedMonth === "all" ? styles["is-active"] : ""}`}
-          onClick={() => onSelectMonth("all")}
-        >
-          <span>All Tasks</span>
-          <span>({totalTodos})</span>
-        </button>
-
-        {months.map(([month, count]) => (
-          <button
-            key={month}
-            type="button"
-            className={`${styles["todos-header__filter-pill"]} ${selectedMonth === month ? styles["is-active"] : ""}`}
-            onClick={() => onSelectMonth(month)}
-          >
-            <span>{month}</span>
-            <span>({count})</span>
-          </button>
-        ))}
-
-        <div className={styles["todos-header__filter-divider"]} />
-
-        <button
-          type="button"
-          className={`${styles["todos-header__filter-pill"]} ${statusFilter === "all" ? styles["is-active"] : ""}`}
-          onClick={() => onSelectStatus("all")}
-        >
-          <span>All Status</span>
-        </button>
-        <button
-          type="button"
-          className={`${styles["todos-header__filter-pill"]} ${statusFilter === "pending" ? styles["is-active"] : ""}`}
-          onClick={() => onSelectStatus("pending")}
-        >
-          <span>Pending</span>
-        </button>
-        <button
-          type="button"
-          className={`${styles["todos-header__filter-pill"]} ${statusFilter === "completed" ? styles["is-active"] : ""}`}
-          onClick={() => onSelectStatus("completed")}
-        >
-          <span>Completed</span>
-        </button>
-        <button
-          type="button"
-          className={`${styles["todos-header__filter-pill"]} ${statusFilter === "dated" ? styles["is-active"] : ""}`}
-          onClick={() => onSelectStatus("dated")}
-        >
-          <span>With Due Date</span>
-        </button>
-      </div>
+      <TodosHeaderFilters
+        viewMode={viewMode}
+        reminderFilter={reminderFilter}
+        onSelectReminderFilter={onSelectReminderFilter}
+        scheduledFilter={scheduledFilter}
+        onSelectScheduledFilter={onSelectScheduledFilter}
+        selectedMonth={selectedMonth}
+        onSelectMonth={onSelectMonth}
+        monthsMap={monthsMap}
+        statusFilter={statusFilter}
+        onSelectStatus={onSelectStatus}
+        totalTodos={totalTodos}
+        remindersCounts={remindersCounts}
+        scheduledCounts={scheduledCounts}
+      />
     </header>
   );
 }

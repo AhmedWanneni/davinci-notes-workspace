@@ -14,6 +14,57 @@ vi.mock("../../vault", () => ({
   writeNote: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("../../vault/remindersViewQueries", () => ({
+  queryRemindersForView: vi.fn().mockResolvedValue({
+    all: [
+      {
+        id: 1,
+        reminderKey: "rem-1",
+        notePath: "todos/Daily/Daily Focus.md",
+        line: 2,
+        dueAtUtc: "2026-11-03T18:00:00Z",
+        tz: "UTC",
+        text: "Daily walk reminder",
+        done: false,
+        status: null,
+        snoozeUntilUtc: null,
+        effectiveDueUtc: "2026-11-03T18:00:00Z",
+        category: "today",
+        channels: ["desktop"],
+        deliveryError: null,
+      },
+    ],
+    today: [],
+    upcoming: [],
+    missed: [],
+    done: [],
+  }),
+  upsertReminderChannelState: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("../../reminders/scheduledMessagesStore", () => ({
+  listScheduledMessages: vi.fn().mockResolvedValue([
+    {
+      id: "sched-1",
+      channelKind: "telegram",
+      recipientLabel: "@john",
+      messageText: "Automated report",
+      dueAtUtc: "2026-11-04T12:00:00Z",
+      recurrenceRule: null,
+      allowMentions: false,
+      status: "scheduled",
+      createdAt: 1700000000000,
+      updatedAt: 1700000000000,
+      lastSentAt: null,
+      lastError: null,
+    },
+  ]),
+  createScheduledMessage: vi.fn().mockResolvedValue({}),
+  cancelScheduledMessage: vi.fn().mockResolvedValue({}),
+  markScheduledMessageSent: vi.fn().mockResolvedValue({}),
+  markScheduledMessageFailed: vi.fn().mockResolvedValue({}),
+}));
+
 const SAMPLE_MD_1 = `## V1 Concepts
 - [ ] Create wireframes for new dash [01 Aug]
 - [ ] Outline in UX guide [[UX Guide]]
@@ -188,5 +239,33 @@ describe("TodosView", () => {
     fireEvent.click(linkBadge);
 
     expect(onOpenNoteMock).toHaveBeenCalledWith("UX Guide");
+  });
+
+  it("switches to Reminders view and displays reminder items", async () => {
+    await act(async () => {
+      render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
+    });
+
+    const remindersSidebarBtn = screen.getByText("Reminders");
+    await act(async () => {
+      fireEvent.click(remindersSidebarBtn);
+    });
+
+    expect(screen.getByText("Daily walk reminder")).toBeDefined();
+    expect(screen.getByText("Add Reminder")).toBeDefined();
+  });
+
+  it("switches to Scheduled Messages view and displays scheduled items", async () => {
+    await act(async () => {
+      render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
+    });
+
+    const scheduledSidebarBtn = screen.getByText("Scheduled Messages");
+    await act(async () => {
+      fireEvent.click(scheduledSidebarBtn);
+    });
+
+    expect(screen.getByText("Automated report")).toBeDefined();
+    expect(screen.getByText("@john")).toBeDefined();
   });
 });

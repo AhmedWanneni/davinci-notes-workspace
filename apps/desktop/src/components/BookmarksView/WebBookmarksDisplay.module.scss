@@ -331,6 +331,73 @@
   color: var(--color-text-faint);
 }
 
+.wb-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--motion-duration-fast) ease;
+}
+
+.wb-cover-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  width: 100%;
+  height: 100%;
+  color: var(--color-text-faint);
+  background-color: var(--color-bg-secondary);
+  font-size: var(--type-size-xs, 0.75rem);
+}
+
+.wb-cover-favicon-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-bg-secondary);
+}
+
+.wb-cover-favicon-img {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius-sm);
+  object-fit: contain;
+}
+
+.wb-cover-domain {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  max-width: 90%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wb-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: color var(--motion-duration-fast), background-color var(--motion-duration-fast);
+
+  &:hover {
+    color: var(--color-accent);
+    background-color: var(--color-bg-hover);
+  }
+}
+
 .wb-card__hover-actions {
   position: absolute;
   top: var(--space-2);

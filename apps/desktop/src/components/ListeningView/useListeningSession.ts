@@ -15,10 +15,11 @@ import { saveMeetingNoteToVault } from "../../vault/meetingNoteActions";
 import { useAudioLevels } from "./useAudioLevels";
 import { rerunAudioTranscription } from "./rerunAudioTranscription";
 import { useAIListeningEngine } from "./useAIListeningEngine";
+import { useLiveSpeechRecognition } from "./useLiveSpeechRecognition";
+import { useLiveSummaries } from "./useLiveSummaries";
+import { useMeetingAgentChat } from "./useMeetingAgentChat";
 
-export function useListeningSession(
-  initialTitle?: string,
-): UseListeningSessionReturn {
+export function useListeningSession(initialTitle?: string): UseListeningSessionReturn {
   const [status, setStatus] = useState<ListeningStatus>("idle");
   const [title, setTitle] = useState<string>(
     () =>
@@ -39,27 +40,6 @@ export function useListeningSession(
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isRecording = status === "recording";
 
-  const ai = useAIListeningEngine({
-    isRecording,
-    isActive: isAIListeningActive,
-    segments,
-  });
-
-  useEffect(() => {
-    if (status === "recording") {
-      timerRef.current = setInterval(
-        () => setDurationMs((p) => p + 1000),
-        1000,
-      );
-    } else if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [status]);
-
   const addSegment = useCallback((seg: Omit<TranscriptSegmentItem, "id">) => {
     const newSeg: TranscriptSegmentItem = {
       ...seg,
@@ -68,17 +48,27 @@ export function useListeningSession(
     setSegments((prev) => [...prev, newSeg]);
   }, []);
 
-  const acceptLink = useCallback((id: string) => {
-    setSuggestedLinks((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, accepted: true } : l)),
-    );
-  }, []);
+  const speech = useLiveSpeechRecognition({ isRecording, onSegment: addSegment });
+  const ai = useAIListeningEngine({ isRecording, isActive: isAIListeningActive, segments });
+  const summaries = useLiveSummaries({ isRecording, isActive: isAIListeningActive, segments, durationMs });
+  const agentChat = useMeetingAgentChat({
+    meetingTitle: title,
+    meetingNotePath: createdNotePath || `Meetings/${title.replace(/[/\\?%*:|"<>]/g, "-")}.md`,
+    segments,
+    summaries: summaries.rollingSummaries,
+  });
 
-  const dismissLink = useCallback((id: string) => {
-    setSuggestedLinks((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, accepted: false } : l)),
-    );
-  }, []);
+  useEffect(() => {
+    if (status === "recording") {
+      timerRef.current = setInterval(() => setDurationMs((p) => p + 1000), 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [status]);
 
   const startSession = useCallback(async () => {
     try {
@@ -91,24 +81,22 @@ export function useListeningSession(
       setActionItems([]);
       setCreatedNotePath(null);
       ai.resetAI();
+      summaries.resetSummaries();
     } catch (err) {
       console.error("Failed to start recording:", err);
       setStatus("error");
     }
-  }, [ai]);
+  }, [ai, summaries]);
 
   const pauseSession = useCallback(async () => {
     try {
       await pauseMeetingRecording();
       setStatus("paused");
-      // Trigger an AI step at pause point if active
-      if (isAIListeningActive) {
-        void ai.triggerStep();
-      }
+      if (isAIListeningActive) void summaries.summarizeNow();
     } catch (err) {
       console.error("Failed to pause recording:", err);
     }
-  }, [ai, isAIListeningActive]);
+  }, [isAIListeningActive, summaries]);
 
   const resumeSession = useCallback(async () => {
     try {
@@ -126,18 +114,19 @@ export function useListeningSession(
         const audioResult = await stopMeetingRecording().catch(() => null);
         const tempWav =
           audioResult?.wavFilePath ||
-          (audioResult as unknown as { wav_file_path?: string })
-            ?.wav_file_path ||
+          (audioResult as unknown as { wav_file_path?: string })?.wav_file_path ||
           (audioResult as unknown as { wav_path?: string })?.wav_path;
+
+        let finalSummary = summaries.finalSummary || ai.liveSummary || summary;
+        if (segments.length > 0) {
+          const fullText = segments.map((s) => `${s.speaker}: ${s.text}`).join("\n");
+          const generated = await summaries.generateFinalSummary(fullText);
+          if (generated) finalSummary = generated;
+        }
 
         const savedAnswers = ai.answers
           .filter((a) => a.status === "saved")
-          .map((a) => ({
-            question: a.question,
-            answer: a.answer,
-            timestamp: a.timestamp,
-          }));
-
+          .map((a) => ({ question: a.question, answer: a.answer, timestamp: a.timestamp }));
         const savedQuestions = ai.questions
           .filter((q) => q.status === "saved")
           .map((q) => ({ question: q.question, timestamp: q.timestamp }));
@@ -150,7 +139,7 @@ export function useListeningSession(
             segments,
             suggestedLinks,
             actionItems,
-            summary: ai.liveSummary || summary,
+            summary: finalSummary,
             answers: savedAnswers,
             questions: savedQuestions,
           },
@@ -166,16 +155,7 @@ export function useListeningSession(
         return null;
       }
     },
-    [
-      title,
-      startedAt,
-      durationMs,
-      segments,
-      suggestedLinks,
-      actionItems,
-      summary,
-      ai,
-    ],
+    [title, startedAt, durationMs, segments, suggestedLinks, actionItems, summary, ai, summaries],
   );
 
   const discardSession = useCallback(async () => {
@@ -186,11 +166,12 @@ export function useListeningSession(
       setSegments([]);
       setSuggestedLinks([]);
       ai.resetAI();
+      summaries.resetSummaries();
     } catch (err) {
       console.error("Failed to discard recording:", err);
       setStatus("idle");
     }
-  }, [ai]);
+  }, [ai, summaries]);
 
   const retranscribeAudio = useCallback(async (filePath: string) => {
     try {
@@ -219,19 +200,23 @@ export function useListeningSession(
     createdNotePath,
     isTranscriptVisible,
     isAIListeningActive,
-    liveSummary: ai.liveSummary,
+    liveSummary:
+      summaries.rollingSummaries[summaries.rollingSummaries.length - 1]?.summary ||
+      ai.liveSummary,
     answers: ai.answers,
     questions: ai.questions,
-    aiStatus: ai.aiStatus,
-    aiError: ai.aiError,
-    aiRequestCount: ai.requestCount,
+    aiStatus: summaries.status === "streaming" ? "streaming" : ai.aiStatus,
+    aiError: summaries.error || ai.aiError,
+    aiRequestCount: summaries.requestCount + ai.requestCount,
     setIsTranscriptVisible,
     setIsAIListeningActive,
     saveAnswer: ai.saveAnswer,
     dismissAnswer: ai.dismissAnswer,
     saveQuestion: ai.saveQuestion,
     dismissQuestion: ai.dismissQuestion,
-    triggerAIStep: ai.triggerStep,
+    triggerAIStep: async () => {
+      await summaries.summarizeNow();
+    },
     setTitle,
     startSession,
     pauseSession,
@@ -239,11 +224,25 @@ export function useListeningSession(
     stopSession,
     discardSession,
     addSegment,
-    acceptLink,
-    dismissLink,
+    acceptLink: (id) =>
+      setSuggestedLinks((p) => p.map((l) => (l.id === id ? { ...l, accepted: true } : l))),
+    dismissLink: (id) =>
+      setSuggestedLinks((p) => p.map((l) => (l.id === id ? { ...l, accepted: false } : l))),
     retranscribeAudio,
     setSuggestedLinks,
     setActionItems,
     setSummary,
+    rollingSummaries: summaries.rollingSummaries,
+    summaryInterval: summaries.intervalSetting,
+    setSummaryInterval: summaries.setIntervalSetting,
+    summarizeNow: summaries.summarizeNow,
+    isAIListeningPaused: summaries.isPaused,
+    togglePauseAI: () => summaries.setIsPaused((p) => !p),
+    summaryStatusMessage: summaries.error,
+    chatMessages: agentChat.messages,
+    isChatExecuting: agentChat.isExecuting,
+    askChatQuestion: agentChat.askQuestion,
+    agentConversationId: agentChat.conversationId,
+    simulateSpeechSegment: speech.simulateSpeechSegment,
   };
 }

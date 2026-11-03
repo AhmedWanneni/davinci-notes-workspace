@@ -12,7 +12,7 @@ export async function saveActiveMessagesHelper(
   conversations: AgentConversation[],
   projects: AgentProject[],
   activeConversationId: string | null,
-  activeProjectId: string | null,
+  _activeProjectId?: string | null,
 ): Promise<{
   conversations: AgentConversation[];
   activeConversationId: string | null;
@@ -40,7 +40,7 @@ export async function saveActiveMessagesHelper(
   const updatedConv: AgentConversation = {
     ...target,
     title,
-    projectId: target.projectId || activeProjectId,
+    projectId: target.projectId ?? null,
     updatedAt: Date.now(),
     messages: messages.map((m) => ({
       id: m.id,

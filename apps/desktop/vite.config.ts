@@ -179,6 +179,10 @@ export default defineConfig({
         find: "@app/platform-adapters",
         replacement: path.join(repoRoot, "packages/platform-adapters/index.ts"),
       },
+      {
+        find: "@app/git-manager",
+        replacement: path.join(repoRoot, "packages/git-manager/index.ts"),
+      },
     ],
   },
   server: {

@@ -45,7 +45,7 @@ export function AgentSidebarPanel({
   const [showSearch, setShowSearch] = useState(false);
 
   const handleStartNewChat = () => {
-    void createNewConversation("New Chat", activeProjectId);
+    void createNewConversation("New Chat", null);
     setActiveNavSection("chat");
   };
 
@@ -63,9 +63,7 @@ export function AgentSidebarPanel({
       : true,
   );
 
-  const recentChats = filteredConversations.filter(
-    (c) => !activeProjectId || c.projectId !== activeProjectId,
-  );
+  const recentChats = filteredConversations.filter((c) => !c.projectId);
 
   const activeProjectChats = activeProjectId
     ? filteredConversations.filter((c) => c.projectId === activeProjectId)
@@ -155,6 +153,7 @@ export function AgentSidebarPanel({
 
             <AgentSidebarProjectsSection
               projects={projects}
+              conversations={filteredConversations}
               activeProjectId={activeProjectId}
               activeConversationId={activeConversationId}
               activeProjectChats={activeProjectChats}

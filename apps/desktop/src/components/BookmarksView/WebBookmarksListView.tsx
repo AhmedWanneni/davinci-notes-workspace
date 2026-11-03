@@ -13,6 +13,8 @@ export interface WebBookmarksListViewProps {
   onEdit: (item: WebBookmarkItem) => void;
   onRemove: (id: string) => void;
   onRestore?: (id: string) => void;
+  isNotes?: boolean;
+  showCheckboxes?: boolean;
 }
 
 export function WebBookmarksListView({
@@ -22,6 +24,8 @@ export function WebBookmarksListView({
   onEdit,
   onRemove,
   onRestore,
+  isNotes = false,
+  showCheckboxes = false,
 }: WebBookmarksListViewProps) {
   return (
     <div className={styles["wb-list-view"]} role="list">
@@ -34,6 +38,8 @@ export function WebBookmarksListView({
           onEdit={onEdit}
           onRemove={onRemove}
           onRestore={onRestore}
+          isNotes={isNotes}
+          showCheckbox={showCheckboxes}
         />
       ))}
     </div>

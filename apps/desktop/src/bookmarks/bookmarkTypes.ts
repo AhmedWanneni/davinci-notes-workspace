@@ -50,6 +50,25 @@ export interface BookmarksData {
 
 export type BookmarksPageTab = "notes" | "links";
 export type BookmarkSortOption = "recent" | "alpha" | "modified";
+
+export type SidebarSection =
+  | { type: "all" }
+  | { type: "unsorted" }
+  | { type: "trash" }
+  | { type: "collection"; folder: string }
+  | {
+      type: "filter";
+      filter:
+        | "highlights"
+        | "links"
+        | "articles"
+        | "images"
+        | "videos"
+        | "audios"
+        | "documents"
+        | "without-tags";
+    };
+
 export type WebBookmarkSortOption =
   | "recent"
   | "alpha"

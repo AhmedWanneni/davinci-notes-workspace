@@ -111,6 +111,28 @@
   }
 }
 
+.wb-topbar__browser-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 30px;
+  padding: 0 var(--space-3);
+  border-radius: var(--border-radius-sm);
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-normal);
+  cursor: pointer;
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all var(--motion-duration-fast);
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-bg-tertiary);
+    border-color: var(--color-border-subtle);
+  }
+}
+
 .wb-header {
   display: flex;
   align-items: center;
@@ -168,6 +190,12 @@
   &:hover {
     color: var(--color-text-normal);
     background-color: var(--color-bg-hover);
+  }
+
+  &.is-active {
+    color: var(--color-accent);
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-border-subtle);
   }
 }
 

@@ -1,19 +1,29 @@
-import { useState, useMemo, useCallback, type JSX } from "react";
+import { useState, useMemo, type JSX } from "react";
 import { TodosSidebar } from "./TodosSidebar";
 import { TodosHeader } from "./TodosHeader";
-import { TodosMotherboard } from "./TodosMotherboard";
-import { TodoSectionBlock } from "./TodoSectionBlock";
-import { TodoFocusView } from "./TodoFocusView";
+import { TodosMainContent } from "./TodosMainContent";
+import { TodosModals } from "./TodosModals";
+import { useFilteredTodos } from "./useFilteredTodos";
+import { useTodosReminders } from "./useTodosReminders";
 import { useTodosData } from "./useTodosData";
-import type { TodoItem, TodoSection } from "./types";
+import type { TodoViewMode } from "./types";
 import styles from "./TodosView.module.scss";
 
 export interface TodosViewProps {
-  onOpenNote?: (path: string) => void;
+  initialView?: TodoViewMode;
+  onOpenNote?: (path: string, line?: number) => void;
   onClose?: () => void;
+  onOpenSettings?: () => void;
 }
 
-export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
+export function TodosView({
+  initialView = "project",
+  onOpenNote,
+}: TodosViewProps): JSX.Element {
+  const [viewMode, setViewMode] = useState<TodoViewMode>(initialView);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [focusTargetProject, setFocusTargetProject] = useState<string | null>(null);
+
   const {
     projects,
     activeProject,
@@ -32,7 +42,6 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
     setSelectedProjectId,
     selectedNotePath,
     setSelectedNotePath,
-    isMotherboard,
     setIsMotherboard,
     toggleTodo,
     updateTodoText,
@@ -46,66 +55,57 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
     allNotePaths,
   } = useTodosData();
 
-  const [isFocusMode, setIsFocusMode] = useState(false);
-  const [focusTargetProject, setFocusTargetProject] = useState<string | null>(
-    null,
+  const {
+    reminders,
+    scheduledMessages,
+    reminderFilter,
+    setReminderFilter,
+    scheduledFilter,
+    setScheduledFilter,
+    isReminderModalOpen,
+    setIsReminderModalOpen,
+    editingReminder,
+    setEditingReminder,
+    isComposerOpen,
+    setIsComposerOpen,
+    remindersCounts,
+    scheduledCounts,
+    handleToggleDone,
+    handleSnooze,
+    handleDeleteReminder,
+    handleSaveReminder,
+    handleSaveScheduled,
+    handleCancelScheduled,
+    handleSendNowScheduled,
+    handleQuickAddReminder,
+  } = useTodosReminders();
+
+  const { filteredAllTodos, filteredSections, focusSections } = useFilteredTodos(
+    allTodos,
+    activeNote,
+    activeProject,
+    searchQuery,
+    selectedMonth,
+    statusFilter,
+    focusTargetProject,
+    projects,
   );
-
-  const matchesFilter = useCallback(
-    (todo: TodoItem) => {
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const textMatch = todo.text.toLowerCase().includes(q);
-        const linkMatch = todo.linkedNotePath?.toLowerCase().includes(q);
-        if (!textMatch && !linkMatch) return false;
-      }
-      if (selectedMonth !== "all" && todo.month !== selectedMonth) return false;
-      if (statusFilter === "pending" && todo.completed) return false;
-      if (statusFilter === "completed" && !todo.completed) return false;
-      if (statusFilter === "dated" && !todo.dueDate) return false;
-      return true;
-    },
-    [searchQuery, selectedMonth, statusFilter],
-  );
-
-  const filteredAllTodos = useMemo(
-    () => allTodos.filter(matchesFilter),
-    [allTodos, matchesFilter],
-  );
-
-  const currentSections = useMemo(() => {
-    if (activeNote) return activeNote.sections;
-    if (activeProject) return activeProject.sections;
-    return [];
-  }, [activeNote, activeProject]);
-
-  const filteredSections: TodoSection[] = useMemo(() => {
-    return currentSections
-      .map((section) => ({
-        ...section,
-        todos: section.todos.filter(matchesFilter),
-      }))
-      .filter((s) => s.todos.length > 0 || !searchQuery.trim());
-  }, [currentSections, matchesFilter, searchQuery]);
-
-  const focusSections: TodoSection[] = useMemo(() => {
-    if (focusTargetProject) {
-      const p = projects.find((x) => x.id === focusTargetProject);
-      if (p) return p.sections;
-    }
-    if (activeNote) return activeNote.sections;
-    if (activeProject) return activeProject.sections;
-    const map = new Map<string, TodoItem[]>();
-    for (const t of allTodos) {
-      const groupName = t.project ?? t.section ?? "General";
-      const existing = map.get(groupName) ?? [];
-      existing.push(t);
-      map.set(groupName, existing);
-    }
-    return Array.from(map.entries()).map(([name, todos]) => ({ name, todos }));
-  }, [activeNote, activeProject, allTodos, focusTargetProject, projects]);
 
   const currentNotePath = activeNote?.notePath ?? activeProject?.notePath ?? "";
+
+  const headerTitle = useMemo(() => {
+    if (viewMode === "reminders") return "Reminders";
+    if (viewMode === "scheduled") return "Scheduled Messages";
+    if (viewMode === "motherboard") return "Motherboard";
+    return activeNote?.name ?? activeProject?.name ?? "Tasks";
+  }, [viewMode, activeNote, activeProject]);
+
+  const headerSubtitle = useMemo(() => {
+    if (viewMode === "reminders") return "Task reminders & alerts across your notes";
+    if (viewMode === "scheduled") return "Automated & scheduled messages to external channels";
+    if (viewMode === "motherboard") return "All tasks across projects";
+    return activeProject?.name;
+  }, [viewMode, activeProject]);
 
   return (
     <div className={styles["todos-view"]} data-testid="todos-view">
@@ -113,20 +113,28 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
         projects={projects}
         selectedProjectId={selectedProjectId}
         selectedNotePath={selectedNotePath}
-        isMotherboard={isMotherboard}
+        viewMode={viewMode}
+        isMotherboard={viewMode === "motherboard"}
         totalTodosCount={allTodos.length}
+        remindersCount={remindersCounts.overdue + remindersCounts.today + remindersCounts.upcoming}
+        overdueCount={remindersCounts.overdue}
+        scheduledCount={scheduledCounts.scheduled + scheduledCounts.needsSend}
+        onSelectMotherboard={() => { setViewMode("motherboard"); setIsMotherboard(true); }}
+        onSelectReminders={() => { setViewMode("reminders"); setIsMotherboard(false); }}
+        onSelectScheduled={() => { setViewMode("scheduled"); setIsMotherboard(false); }}
         onSelectProject={(id) => {
+          setViewMode("project");
           setIsMotherboard(false);
           setSelectedProjectId(id);
           const p = projects.find((x) => x.id === id);
           if (p && p.notes.length > 0) setSelectedNotePath(p.notes[0].notePath);
         }}
         onSelectNote={(projId, notePath) => {
+          setViewMode("project");
           setIsMotherboard(false);
           setSelectedProjectId(projId);
           setSelectedNotePath(notePath);
         }}
-        onSelectMotherboard={() => setIsMotherboard(true)}
         onCreateProject={(name) => void createProject(name)}
         onCreateTodoNote={(fPath, name) => void createTodoNote(fPath, name)}
         onDeleteProject={(id) => void deleteProject(id)}
@@ -135,16 +143,19 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
 
       <div className={styles["todos-view__main"]}>
         <TodosHeader
-          title={
-            isMotherboard
-              ? "Motherboard"
-              : (activeNote?.name ?? activeProject?.name ?? "Tasks")
-          }
-          subtitle={
-            isMotherboard ? "All tasks across projects" : activeProject?.name
-          }
+          title={headerTitle}
+          subtitle={headerSubtitle}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          viewMode={viewMode}
+          reminderFilter={reminderFilter}
+          onSelectReminderFilter={setReminderFilter}
+          scheduledFilter={scheduledFilter}
+          onSelectScheduledFilter={setScheduledFilter}
+          onNewReminder={() => { setEditingReminder(null); setIsReminderModalOpen(true); }}
+          onNewScheduledMessage={() => setIsComposerOpen(true)}
+          remindersCounts={remindersCounts}
+          scheduledCounts={scheduledCounts}
           monthsMap={monthsMap}
           selectedMonth={selectedMonth}
           onSelectMonth={setSelectedMonth}
@@ -152,95 +163,85 @@ export function TodosView({ onOpenNote }: TodosViewProps): JSX.Element {
           onSelectStatus={setStatusFilter}
           layout={motherboardLayout}
           onSelectLayout={setMotherboardLayout}
-          isMotherboard={isMotherboard}
-          totalTodos={isMotherboard ? filteredAllTodos.length : allTodos.length}
-          onOpenFocusMode={() => {
-            setFocusTargetProject(null);
+          isMotherboard={viewMode === "motherboard"}
+          totalTodos={filteredAllTodos.length}
+          onOpenFocusMode={() => { setFocusTargetProject(null); setIsFocusMode(true); }}
+        />
+
+        <TodosMainContent
+          viewMode={viewMode}
+          reminders={reminders}
+          scheduledMessages={scheduledMessages}
+          searchQuery={searchQuery}
+          reminderFilter={reminderFilter}
+          scheduledFilter={scheduledFilter}
+          filteredAllTodos={filteredAllTodos}
+          motherboardLayout={motherboardLayout}
+          activeProject={activeProject}
+          filteredSections={filteredSections}
+          allNotePaths={allNotePaths}
+          currentNotePath={currentNotePath}
+          onToggleTodo={toggleTodo}
+          onUpdateText={updateTodoText}
+          onAddLink={addLinkToTodo}
+          onAddReminder={addReminderToTodo}
+          onOpenNote={onOpenNote}
+          onSelectProject={(path) => {
+            setViewMode("project");
+            setIsMotherboard(false);
+            setSelectedProjectId(path);
+          }}
+          onEnterFocus={(todo) => {
+            setFocusTargetProject(todo?.notePath ?? activeProject?.id ?? null);
             setIsFocusMode(true);
           }}
+          onToggleReminderDone={handleToggleDone}
+          onSaveReminder={handleSaveReminder}
+          onSnoozeReminder={handleSnooze}
+          onEditReminder={(item) => {
+            setEditingReminder(item);
+            setIsReminderModalOpen(true);
+          }}
+          onDeleteReminder={handleDeleteReminder}
+          onOpenFullReminderModal={() => {
+            setEditingReminder(null);
+            setIsReminderModalOpen(true);
+          }}
+          onAddQuickReminder={handleQuickAddReminder}
+          onSendNowScheduled={handleSendNowScheduled}
+          onCancelScheduled={handleCancelScheduled}
+          onNewScheduledMessage={() => setIsComposerOpen(true)}
+          onAddTodoToSection={addTodoToSection}
+          onCreateTodoNote={createTodoNote}
         />
-
-        {isMotherboard ? (
-          <TodosMotherboard
-            todos={filteredAllTodos}
-            layout={motherboardLayout}
-            onToggleTodo={toggleTodo}
-            onUpdateText={updateTodoText}
-            onAddLink={addLinkToTodo}
-            onAddReminder={addReminderToTodo}
-            onOpenNote={onOpenNote}
-            onSelectProject={(path) => {
-              setIsMotherboard(false);
-              setSelectedProjectId(path);
-            }}
-            onEnterFocus={(todo) => {
-              setFocusTargetProject(todo?.notePath ?? null);
-              setIsFocusMode(true);
-            }}
-            allNotePaths={allNotePaths}
-          />
-        ) : (
-          <main className={styles["todos-view__content"]}>
-            {filteredSections.length === 0 ? (
-              <div className={styles["todos-view__empty"]}>
-                <span>
-                  {activeProject && activeProject.notes.length === 0
-                    ? `Project "${activeProject.name}" is empty`
-                    : "No tasks found matching your filter"}
-                </span>
-                {activeProject && activeProject.notes.length === 0 && (
-                  <button
-                    type="button"
-                    className={styles["todos-view__empty-action"]}
-                    onClick={() =>
-                      void createTodoNote(activeProject.folderPath, "Tasks")
-                    }
-                  >
-                    + Add first todo note
-                  </button>
-                )}
-              </div>
-            ) : (
-              filteredSections.map((section) => (
-                <TodoSectionBlock
-                  key={section.name}
-                  section={section}
-                  onToggle={toggleTodo}
-                  onUpdateText={updateTodoText}
-                  onAddLink={addLinkToTodo}
-                  onAddReminder={addReminderToTodo}
-                  onOpenNote={onOpenNote}
-                  onEnterFocus={() => {
-                    setFocusTargetProject(activeProject?.id ?? null);
-                    setIsFocusMode(true);
-                  }}
-                  allNotePaths={allNotePaths}
-                  onAddTodo={async (secName, text) => {
-                    if (currentNotePath)
-                      await addTodoToSection(currentNotePath, secName, text);
-                  }}
-                />
-              ))
-            )}
-          </main>
-        )}
       </div>
 
-      {isFocusMode && (
-        <TodoFocusView
-          project={activeProject}
-          sections={focusSections}
-          onClose={() => {
-            setIsFocusMode(false);
-            setFocusTargetProject(null);
-          }}
-          onToggleTodo={toggleTodo}
-          onAddTodo={(sName, text) => {
-            if (currentNotePath)
-              void addTodoToSection(currentNotePath, sName, text);
-          }}
-        />
-      )}
+      <TodosModals
+        isFocusMode={isFocusMode}
+        onCloseFocus={() => {
+          setIsFocusMode(false);
+          setFocusTargetProject(null);
+        }}
+        activeProject={activeProject}
+        focusSections={focusSections}
+        onToggleTodo={toggleTodo}
+        onAddTodoToSection={(sName, text) => {
+          if (currentNotePath) void addTodoToSection(currentNotePath, sName, text);
+        }}
+        isReminderModalOpen={isReminderModalOpen}
+        onCloseReminderModal={() => {
+          setIsReminderModalOpen(false);
+          setEditingReminder(null);
+        }}
+        onSaveReminder={async (data) => {
+          await handleSaveReminder(data, editingReminder);
+        }}
+        editingReminder={editingReminder}
+        allNotePaths={allNotePaths}
+        isComposerOpen={isComposerOpen}
+        onCloseComposer={() => setIsComposerOpen(false)}
+        onSaveScheduled={handleSaveScheduled}
+      />
     </div>
   );
 }

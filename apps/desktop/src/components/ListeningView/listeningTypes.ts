@@ -3,6 +3,8 @@ import type {
   AIListeningAnswerItem,
   AIListeningFollowupQuestion,
 } from "@app/ai-agent";
+import type { RollingSummaryItem, SummaryInterval } from "./useLiveSummaries";
+import type { ChatMessageItem } from "../AgentView/agentTypes";
 
 export interface TranscriptSegmentItem {
   id: string;
@@ -75,4 +77,20 @@ export interface UseListeningSessionReturn {
   setSuggestedLinks: React.Dispatch<React.SetStateAction<SuggestedLinkItem[]>>;
   setActionItems: React.Dispatch<React.SetStateAction<string[]>>;
   setSummary: React.Dispatch<React.SetStateAction<string>>;
+
+  // Path A: Live Summaries
+  rollingSummaries: RollingSummaryItem[];
+  summaryInterval: SummaryInterval;
+  setSummaryInterval: (interval: SummaryInterval) => void;
+  summarizeNow: () => void;
+  isAIListeningPaused: boolean;
+  togglePauseAI: () => void;
+  summaryStatusMessage: string | null;
+
+  // Path B: Meeting Agent Chat
+  chatMessages: ChatMessageItem[];
+  isChatExecuting: boolean;
+  askChatQuestion: (query: string) => Promise<void>;
+  agentConversationId: string;
+  simulateSpeechSegment: (text: string, speaker?: "me" | "meeting" | "system") => void;
 }

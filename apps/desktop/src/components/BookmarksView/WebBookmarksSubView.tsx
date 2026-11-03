@@ -13,10 +13,7 @@ import { useBookmarkUIStore } from "../../bookmarks/useBookmarkUIStore";
 import { WebBookmarksSidebar } from "./WebBookmarksSidebar";
 import { WebBookmarksTopBar } from "./WebBookmarksTopBar";
 import { WebBookmarksContentHeader } from "./WebBookmarksContentHeader";
-import { WebBookmarksListView } from "./WebBookmarksListView";
-import { WebBookmarksCardsView } from "./WebBookmarksCardsView";
-import { WebBookmarksMoodboardView } from "./WebBookmarksMoodboardView";
-import { WebBookmarksHeadlinesView } from "./WebBookmarksHeadlinesView";
+import { WebBookmarksViewSwitch } from "./WebBookmarksViewSwitch";
 import { WebBookmarkEditModal } from "./WebBookmarkEditModal";
 import { WebBookmarksEmptyState } from "./WebBookmarksEmptyState";
 import styles from "./WebBookmarksDisplay.module.scss";
@@ -41,6 +38,12 @@ export interface WebBookmarksSubViewProps {
   onPageTabChange?: (tab: "links" | "notes") => void;
   noteCount?: number;
   hideSidebar?: boolean;
+  /**
+   * "notes" renders bookmarked vault notes with the same layout as web links:
+   * no add/AI/export actions, "edit" opens the note, and removing a bookmark
+   * is final (there is no restorable trash for notes).
+   */
+  variant?: "links" | "notes";
 }
 
 const DEFAULT_VIEW_CONFIG: WebBookmarkViewConfig = {
@@ -75,13 +78,16 @@ export function WebBookmarksSubView({
   onPageTabChange,
   noteCount = 0,
   hideSidebar = false,
+  variant = "links",
 }: WebBookmarksSubViewProps) {
+  const isNotes = variant === "notes";
   const activeSection = useBookmarkUIStore((s) => s.activeSection);
   const setActiveSection = useBookmarkUIStore((s) => s.setActiveSection);
   const [sortOption, setSortOption] =
     useState<WebBookmarkSortOption>(initialSort);
   const [viewConfig, setViewConfig] =
     useState<WebBookmarkViewConfig>(DEFAULT_VIEW_CONFIG);
+  const [showCheckboxes, setShowCheckboxes] = useState(false);
   const [editingItem, setEditingItem] = useState<WebBookmarkItem | null>(null);
 
   const counts = useMemo(() => computeBookmarkCounts(items), [items]);
@@ -107,8 +113,13 @@ export function WebBookmarksSubView({
     exportBookmarksToHtml(filteredItems, title);
   };
 
+  const handleEdit = (item: WebBookmarkItem) => {
+    if (isNotes) onOpenExternal(item.url);
+    else setEditingItem(item);
+  };
+
   const handleTrashOrRemove = (id: string) => {
-    if (activeSection.type === "trash") {
+    if (isNotes || activeSection.type === "trash") {
       onRemove(id);
     } else {
       onUpdate(id, { trashed: true });
@@ -135,7 +146,9 @@ export function WebBookmarksSubView({
           onSearchChange={onSearchChange}
           onAskAI={() => void onOrganizeItems?.(filteredItems)}
           onOpenAdd={onOpenAddBar}
+          onOpenAddFromBrowser={onOpenImportModal}
           isOrganizingAI={isOrganizingAI}
+          variant={variant}
         />
 
         {statusMessage && (
@@ -170,7 +183,9 @@ export function WebBookmarksSubView({
           onSortChange={setSortOption}
           viewConfig={viewConfig}
           onViewConfigChange={setViewConfig}
-          onExport={handleExport}
+          onExport={isNotes ? undefined : handleExport}
+          showSelectCheckbox={showCheckboxes}
+          onToggleSelectCheckbox={() => setShowCheckboxes((prev) => !prev)}
         />
 
         <div className={styles["wb-content-scroll"]}>
@@ -179,41 +194,20 @@ export function WebBookmarksSubView({
               isAllEmpty={items.length === 0}
               onOpenImportModal={onOpenImportModal}
               onOpenAddBar={onOpenAddBar}
-            />
-          ) : viewConfig.mode === "cards" ? (
-            <WebBookmarksCardsView
-              items={filteredItems}
-              viewConfig={viewConfig}
-              onOpenExternal={onOpenExternal}
-              onEdit={setEditingItem}
-              onRemove={handleTrashOrRemove}
-              onRestore={(id) => onUpdate(id, { trashed: false })}
-            />
-          ) : viewConfig.mode === "moodboard" ? (
-            <WebBookmarksMoodboardView
-              items={filteredItems}
-              viewConfig={viewConfig}
-              onOpenExternal={onOpenExternal}
-              onEdit={setEditingItem}
-              onRemove={handleTrashOrRemove}
-              onRestore={(id) => onUpdate(id, { trashed: false })}
-            />
-          ) : viewConfig.mode === "headlines" ? (
-            <WebBookmarksHeadlinesView
-              items={filteredItems}
-              viewConfig={viewConfig}
-              onOpenExternal={onOpenExternal}
-              onEdit={setEditingItem}
-              onRemove={handleTrashOrRemove}
+              variant={variant}
             />
           ) : (
-            <WebBookmarksListView
+            <WebBookmarksViewSwitch
               items={filteredItems}
               viewConfig={viewConfig}
               onOpenExternal={onOpenExternal}
-              onEdit={setEditingItem}
+              onEdit={handleEdit}
               onRemove={handleTrashOrRemove}
-              onRestore={(id) => onUpdate(id, { trashed: false })}
+              onRestore={
+                isNotes ? undefined : (id) => onUpdate(id, { trashed: false })
+              }
+              isNotes={isNotes}
+              showCheckboxes={showCheckboxes}
             />
           )}
         </div>

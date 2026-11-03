@@ -1,20 +1,22 @@
 import React from "react";
 import {
   FolderSimple,
-  Eye,
+  ArrowSquareOut,
   Trash,
-  Globe,
+  FileText,
   PencilSimple,
 } from "@phosphor-icons/react";
 import type {
   WebBookmarkItem,
   WebBookmarkViewConfig,
 } from "../../bookmarks/bookmarkTypes";
+import { getWebsiteFaviconUrl } from "../../bookmarks/bookmarkStorage";
 import styles from "./WebBookmarksDisplay.module.scss";
 
 export interface WebBookmarksHeadlinesViewProps {
   items: readonly WebBookmarkItem[];
   viewConfig: WebBookmarkViewConfig;
+  isNotes?: boolean;
   onOpenExternal: (url: string) => void;
   onEdit: (item: WebBookmarkItem) => void;
   onRemove: (id: string) => void;
@@ -23,6 +25,7 @@ export interface WebBookmarksHeadlinesViewProps {
 export function WebBookmarksHeadlinesView({
   items,
   viewConfig: _viewConfig,
+  isNotes = false,
   onOpenExternal,
   onEdit,
   onRemove,
@@ -52,7 +55,22 @@ export function WebBookmarksHeadlinesView({
             }}
           >
             <div className={styles["wb-headline-row__icon"]}>
-              <Globe size={14} weight="regular" />
+              {item.favicon || getWebsiteFaviconUrl(item.url) ? (
+                <img
+                  src={item.favicon || getWebsiteFaviconUrl(item.url)}
+                  alt=""
+                  style={{
+                    width: "14px",
+                    height: "14px",
+                    objectFit: "contain",
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              ) : (
+                <FileText size={14} weight="regular" />
+              )}
             </div>
 
             <div
@@ -70,28 +88,47 @@ export function WebBookmarksHeadlinesView({
               <span className={styles["wb-headline-row__domain"]}>
                 {domain}
               </span>
+              {!isNotes && (
+                <button
+                  type="button"
+                  className={styles["wb-link-btn"]}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenExternal(item.url);
+                  }}
+                  title="Open bookmark link in browser"
+                  aria-label="Open bookmark link in browser"
+                >
+                  <ArrowSquareOut size={12} />
+                </button>
+              )}
             </div>
 
             <div
               className={styles["wb-headline-row__actions"]}
               onClick={(e) => e.stopPropagation()}
             >
-              <button
-                type="button"
-                className={styles["wb-card__icon-btn"]}
-                onClick={() => onOpenExternal(item.url)}
-                title="Open"
-              >
-                <Eye size={13} />
-              </button>
-              <button
-                type="button"
-                className={styles["wb-card__icon-btn"]}
-                onClick={() => onEdit(item)}
-                title="Edit"
-              >
-                <PencilSimple size={13} />
-              </button>
+              {!isNotes && (
+                <>
+                  <button
+                    type="button"
+                    className={styles["wb-card__icon-btn"]}
+                    onClick={() => onOpenExternal(item.url)}
+                    title="Open link in browser"
+                    aria-label="Open link in browser"
+                  >
+                    <ArrowSquareOut size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles["wb-card__icon-btn"]}
+                    onClick={() => onEdit(item)}
+                    title="Edit"
+                  >
+                    <PencilSimple size={13} />
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 className={styles["wb-card__icon-btn"]}

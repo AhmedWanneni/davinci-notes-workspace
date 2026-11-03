@@ -3,6 +3,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { AgentProjectContextPanel } from "./AgentProjectContextPanel";
 import { useAgentStore } from "./useAgentStore";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 describe("AgentProjectContextPanel", () => {
   beforeEach(() => {
@@ -56,6 +57,58 @@ describe("AgentProjectContextPanel", () => {
       "Speak like a pirate",
     );
     expect(screen.getByText("Speak like a pirate")).toBeTruthy();
+  });
+
+  it("allows importing project instructions from a vault note and isolates per project", async () => {
+    act(() => {
+      useWorkspaceStore.setState({
+        notesContent: {
+          "Rules/CodingStyle.md": "Always write functional TypeScript.",
+        },
+      });
+    });
+
+    const { rerender } = render(
+      <AgentProjectContextPanel
+        projectId="proj-1"
+        sources={[]}
+        vaultNotes={["Rules/CodingStyle.md"]}
+        onAddSource={vi.fn()}
+        onRemoveSource={vi.fn()}
+      />,
+    );
+
+    const importBtn = screen.getByRole("button", {
+      name: /Import instructions from vault/i,
+    });
+    fireEvent.click(importBtn);
+
+    const input = screen.getByPlaceholderText(/Import note from vault/i);
+    fireEvent.change(input, { target: { value: "Rules/CodingStyle.md" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Import" }));
+    });
+
+    expect(useAgentStore.getState().projectInstructions["proj-1"]).toBe(
+      "Always write functional TypeScript.",
+    );
+    expect(
+      screen.getByText("Always write functional TypeScript."),
+    ).toBeTruthy();
+
+    // Switching to proj-2 must not leak proj-1 instructions
+    rerender(
+      <AgentProjectContextPanel
+        projectId="proj-2"
+        sources={[]}
+        vaultNotes={["Rules/CodingStyle.md"]}
+        onAddSource={vi.fn()}
+        onRemoveSource={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByText("Always write functional TypeScript."),
+    ).toBeNull();
   });
 
   it("allows adding and removing context sources", () => {

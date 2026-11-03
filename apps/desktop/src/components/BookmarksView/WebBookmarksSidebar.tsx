@@ -187,13 +187,12 @@ export function WebBookmarksSidebar({
           </div>
         )}
 
-        {pageTab === "links" && (
-          <WebBookmarksSidebarFilters
-            counts={counts}
-            isSectionActive={isSectionActive}
-            onSelectSection={onSelectSection}
-          />
-        )}
+        <WebBookmarksSidebarFilters
+          counts={counts}
+          isSectionActive={isSectionActive}
+          onSelectSection={onSelectSection}
+          onlyIds={pageTab === "links" ? undefined : ["without-tags"]}
+        />
       </div>
     </aside>
   );

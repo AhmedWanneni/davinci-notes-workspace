@@ -1,4 +1,10 @@
-import { useRef, useState, type KeyboardEvent, type ChangeEvent } from "react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  type KeyboardEvent,
+  type ChangeEvent,
+} from "react";
 import { Plus } from "@phosphor-icons/react";
 import { AgentPromptMenu } from "./AgentPromptMenu";
 import { AgentMentionMenu } from "./AgentMentionMenu";
@@ -9,7 +15,7 @@ import { AgentPromptActions } from "./AgentPromptActions";
 import { usePromptAttachments } from "./usePromptAttachments";
 import { useAgentMention } from "./useAgentMention";
 import { useAgentStore } from "./useAgentStore";
-import type { AgentShortcut } from "@app/ai-agent";
+import type { AgentShortcut, LibraryItem } from "@app/ai-agent";
 import styles from "./AgentPromptBar.module.scss";
 
 export interface AgentPromptBarProps {
@@ -33,7 +39,7 @@ export function AgentPromptBar({
   onSubmit,
   onSendWithImages,
   onCancel,
-  placeholder = "Write a message...",
+  placeholder = "How can I help you today?",
   isStreaming = false,
   disabled = false,
   shortcuts: _shortcuts = [],
@@ -45,11 +51,16 @@ export function AgentPromptBar({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const setModelPickerOpen = useAgentStore((s) => s.setModelPickerOpen);
   const libraryItems = useAgentStore((s) => s.libraryItems);
+  const chatMode = useAgentStore((s) => s.chatMode);
+  const setChatMode = useAgentStore((s) => s.setChatMode);
 
   const {
     attachedImages,
+    attachedItems,
     fileInputRef,
     removeImage,
+    addAttachmentItem,
+    removeAttachmentItem,
     clearImages,
     handlePaste,
     handleFileInput,
@@ -57,6 +68,16 @@ export function AgentPromptBar({
   } = usePromptAttachments((text) =>
     onChange(value ? `${value}\n\n${text}` : text),
   );
+
+  const handleAttachLibraryItem = (item: LibraryItem) => {
+    addAttachmentItem({
+      id: item.id,
+      kind: item.type === "rule" ? "rule" : "skill",
+      name: item.title,
+      badge: item.type.toUpperCase(),
+      content: item.content,
+    });
+  };
 
   const {
     mentionQuery,
@@ -71,17 +92,43 @@ export function AgentPromptBar({
     handleSelectMention,
     handleSelectSlash,
     handleMentionKeyDown,
-  } = useAgentMention(value, onChange, textareaRef);
+  } = useAgentMention(value, onChange, textareaRef, handleAttachLibraryItem);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    const nextHeight = Math.min(Math.max(el.scrollHeight, 36), 220);
+    el.style.height = `${nextHeight}px`;
+  }, [value]);
 
   const handleSend = () => {
-    if (
-      disabled ||
-      isStreaming ||
-      (!value.trim() && attachedImages.length === 0)
-    )
-      return;
-    if (onSendWithImages) onSendWithImages(value.trim(), attachedImages);
-    else onSubmit();
+    const hasAttachments =
+      attachedImages.length > 0 || attachedItems.length > 0;
+    if (disabled || isStreaming || (!value.trim() && !hasAttachments)) return;
+
+    const attachmentsPrefix = attachedItems
+      .map((item) => {
+        const label =
+          item.kind === "skill"
+            ? "Skill"
+            : item.kind === "rule"
+              ? "Rule"
+              : "Attached File";
+        return `[${label}: ${item.name}]\n${item.content}`;
+      })
+      .join("\n\n");
+
+    const finalPrompt = [attachmentsPrefix, value.trim()]
+      .filter(Boolean)
+      .join("\n\n");
+
+    if (onSendWithImages) {
+      onSendWithImages(finalPrompt, attachedImages);
+    } else {
+      if (attachmentsPrefix) onChange(finalPrompt);
+      onSubmit();
+    }
     clearImages();
     setMentionQuery(null);
     setSlashQuery(null);
@@ -105,28 +152,8 @@ export function AgentPromptBar({
     handleInputChange(e);
   };
 
-  const canSend = Boolean(value.trim() || attachedImages.length > 0);
-
-  const menuButton = (
-    <div className={styles["prompt-bar__anchor"]}>
-      <button
-        type="button"
-        className={styles["prompt-bar__add-btn"]}
-        onClick={() => setIsMenuOpen((v) => !v)}
-        aria-label="Agent options and capabilities"
-        title="Add attachment or options"
-      >
-        <Plus size={16} weight="bold" />
-      </button>
-      <AgentPromptMenu
-        isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-        onUploadFiles={() => fileInputRef.current?.click()}
-        onTakeScreenshot={handleTakeScreenshot}
-        onSelectPrompt={(p) => onChange(p)}
-        variant={variant}
-      />
-    </div>
+  const canSend = Boolean(
+    value.trim() || attachedImages.length > 0 || attachedItems.length > 0,
   );
 
   return (
@@ -138,7 +165,7 @@ export function AgentPromptBar({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,.md,.txt,.pdf"
+        accept="image/*,.html,.htm,.md,.txt,.pdf,.json,.csv,.ts,.tsx,.js,.py"
         multiple
         style={{ display: "none" }}
         onChange={handleFileInput}
@@ -161,84 +188,65 @@ export function AgentPromptBar({
         libraryItems={libraryItems}
       />
 
-      {variant === "project" ? (
-        <div
-          className={`${styles["prompt-bar__inner"]} ${styles["is-project"]}`}
-        >
-          <AgentImageAttachmentPreview
-            images={attachedImages}
-            onRemove={removeImage}
+      <div
+        className={`${styles["prompt-bar__inner"]} ${styles["is-project"]}`}
+      >
+        <AgentImageAttachmentPreview
+          images={attachedImages}
+          items={attachedItems}
+          onRemove={removeImage}
+          onRemoveItem={removeAttachmentItem}
+        />
+        <div className={styles["prompt-bar__project-top"]}>
+          <textarea
+            ref={textareaRef}
+            className={styles["prompt-bar__textarea"]}
+            value={value}
+            onChange={handleTextChange}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            placeholder={placeholder}
+            rows={1}
+            disabled={disabled}
+            autoFocus={autoFocus}
+            aria-label="Agent prompt input"
           />
-          <div className={styles["prompt-bar__project-top"]}>
-            <textarea
-              ref={textareaRef}
-              className={styles["prompt-bar__textarea"]}
-              value={value}
-              onChange={handleTextChange}
-              onKeyDown={handleKeyDown}
-              onPaste={handlePaste}
-              placeholder={placeholder || "How can I help you today?"}
-              rows={2}
-              disabled={disabled}
-              autoFocus={autoFocus}
-              aria-label="Agent prompt input"
-            />
-          </div>
-          <div className={styles["prompt-bar__project-bottom"]}>
-            <div className={styles["prompt-bar__project-left"]}>
-              {menuButton}
-            </div>
-            <div className={styles["prompt-bar__project-right"]}>
-              <AgentPromptModelPicker />
-              <AgentPromptActions
-                isStreaming={isStreaming}
-                canSend={canSend}
-                onVoiceClick={onVoiceClick}
-                onCancel={onCancel}
-                onSend={handleSend}
+        </div>
+        <div className={styles["prompt-bar__project-bottom"]}>
+          <div className={styles["prompt-bar__project-left"]}>
+            <div className={styles["prompt-bar__anchor"]}>
+              <button
+                type="button"
+                className={styles["prompt-bar__add-btn"]}
+                onClick={() => setIsMenuOpen((v) => !v)}
+                aria-label="Agent options and capabilities"
+                title="Add attachment or options"
+              >
+                <Plus size={16} weight="bold" />
+              </button>
+              <AgentPromptMenu
+                isOpen={isMenuOpen}
+                onClose={() => setIsMenuOpen(false)}
+                onUploadFiles={() => fileInputRef.current?.click()}
+                onTakeScreenshot={handleTakeScreenshot}
+                onSelectPrompt={(p) => onChange(p)}
+                onAttachLibraryItem={handleAttachLibraryItem}
+                variant={variant}
               />
             </div>
+          </div>
+          <div className={styles["prompt-bar__project-right"]}>
+            <AgentPromptModelPicker />
+            <AgentPromptActions
+              isStreaming={isStreaming}
+              canSend={canSend}
+              onVoiceClick={onVoiceClick}
+              onCancel={onCancel}
+              onSend={handleSend}
+            />
           </div>
         </div>
-      ) : (
-        <>
-          <div className={styles["prompt-bar__inner"]}>
-            <AgentImageAttachmentPreview
-              images={attachedImages}
-              onRemove={removeImage}
-            />
-            <div className={styles["prompt-bar__row"]}>
-              {menuButton}
-              <textarea
-                ref={textareaRef}
-                className={styles["prompt-bar__textarea"]}
-                value={value}
-                onChange={handleTextChange}
-                onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
-                placeholder={placeholder}
-                rows={1}
-                disabled={disabled}
-                autoFocus={autoFocus}
-                aria-label="Agent prompt input"
-              />
-              <AgentPromptActions
-                isStreaming={isStreaming}
-                canSend={canSend}
-                onVoiceClick={onVoiceClick}
-                onCancel={onCancel}
-                onSend={handleSend}
-              />
-            </div>
-          </div>
-          <div className={styles["prompt-bar__footer"]}>
-            <span className={styles["prompt-bar__disclaimer"]}>
-              Sophia is AI and can make mistakes. Please double-check responses.
-            </span>
-            <AgentPromptModelPicker />
-          </div>
-        </>
-      )}
+      </div>
     </div>
   );
 }

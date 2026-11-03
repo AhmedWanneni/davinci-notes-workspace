@@ -1,5 +1,5 @@
 
-> @app/desktop@0.1.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/apps/desktop
+> @app/desktop@0.3.0 lint /Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop
 > eslint . --ext .ts,.tsx
 
 =============
@@ -15,4 +15,3 @@ YOUR TYPESCRIPT VERSION: 5.9.3
 Please only submit bug reports when using the officially supported version.
 
 =============
- ELIFECYCLE  Command failed.

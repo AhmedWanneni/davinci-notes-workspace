@@ -8,6 +8,7 @@ import {
   Target,
 } from "@phosphor-icons/react";
 import type { TodoItem } from "./types";
+import { TodoReminderQuickPicker } from "./TodoReminderQuickPicker";
 import styles from "./TodoItemRow.module.scss";
 
 export interface TodoItemRowProps {
@@ -34,6 +35,7 @@ export function TodoItemRow({
   const [isEditing, setIsEditing] = useState(false);
   const [draftText, setDraftText] = useState(todo.text);
   const [showLinkPicker, setShowLinkPicker] = useState(false);
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
 
   const handleCommitEdit = useCallback(() => {
     setIsEditing(false);
@@ -53,11 +55,6 @@ export function TodoItemRow({
     },
     [handleCommitEdit, todo.text],
   );
-
-  const handleQuickReminder = useCallback(() => {
-    const today = new Date().toISOString().split("T")[0];
-    onAddReminder(todo, today);
-  }, [onAddReminder, todo]);
 
   return (
     <div
@@ -143,14 +140,22 @@ export function TodoItemRow({
           <LinkIcon size={14} />
         </button>
 
-        <button
-          type="button"
-          className={`${styles["todo-row__btn"]} ${todo.hasReminder ? styles["is-active"] : ""}`}
-          onClick={handleQuickReminder}
-          title={todo.hasReminder ? "Reminder active" : "Add reminder"}
-        >
-          <Bell size={14} weight={todo.hasReminder ? "fill" : "regular"} />
-        </button>
+        <div style={{ position: "relative" }}>
+          <button
+            type="button"
+            className={`${styles["todo-row__btn"]} ${todo.hasReminder ? styles["is-active"] : ""}`}
+            onClick={() => setShowReminderPicker((v) => !v)}
+            title={todo.hasReminder ? "Reminder active" : "Add reminder"}
+          >
+            <Bell size={14} weight={todo.hasReminder ? "fill" : "regular"} />
+          </button>
+          <TodoReminderQuickPicker
+            isOpen={showReminderPicker}
+            onClose={() => setShowReminderPicker(false)}
+            onSetReminder={(dateStr) => onAddReminder(todo, dateStr)}
+            hasReminder={todo.hasReminder}
+          />
+        </div>
 
         {onEnterFocus && (
           <button

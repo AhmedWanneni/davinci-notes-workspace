@@ -5,6 +5,7 @@ import {
   BookBookmark,
   NotePencil,
 } from "@phosphor-icons/react";
+import type { LibraryItem } from "@app/ai-agent";
 import { useAgentStore } from "./useAgentStore";
 import { AgentPromptSubmenu, AgentPromptMenuWrap } from "./AgentPromptSubmenu";
 import { AgentPromptExtraOptions } from "./AgentPromptExtraOptions";
@@ -16,6 +17,7 @@ export interface AgentPromptMenuProps {
   onUploadFiles: () => void;
   onTakeScreenshot: () => void;
   onSelectPrompt: (prompt: string) => void;
+  onAttachLibraryItem?: (item: LibraryItem) => void;
   variant?: "chat" | "project" | "standard";
 }
 
@@ -25,6 +27,7 @@ export function AgentPromptMenu({
   onUploadFiles,
   onTakeScreenshot,
   onSelectPrompt,
+  onAttachLibraryItem,
   variant = "standard",
 }: AgentPromptMenuProps) {
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
@@ -156,6 +159,10 @@ export function AgentPromptMenu({
               id: item.id,
               label: item.title,
               onClick: () => {
+                if (onAttachLibraryItem) {
+                  onAttachLibraryItem(item);
+                  return;
+                }
                 const text =
                   item.type === "prompt"
                     ? item.content

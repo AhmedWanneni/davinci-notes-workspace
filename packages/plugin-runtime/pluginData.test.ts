@@ -1,4 +1,3 @@
-// @ts-nocheck -- Requires real runner-side plugin execution, deferred to 2b-2d.
 import { describe, expect, it } from "vitest";
 import { DavinciPlugin } from "@app/plugin-api";
 import { PluginLifecycleManager } from "./PluginLifecycleManager.js";

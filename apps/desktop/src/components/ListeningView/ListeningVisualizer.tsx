@@ -120,7 +120,10 @@ export function ListeningVisualizer({
             <span className={styles["toggle-label"]}>AI Listening</span>
             <Toggle
               checked={isAIListeningActive}
-              onCheckedChange={onToggleAIListening}
+              onCheckedChange={(checked) => {
+                console.log("[AI-Listening-Trace] [1. toggle] AI Listening toggle changed to:", checked);
+                onToggleAIListening(checked);
+              }}
               aria-label="Toggle AI Listening"
               data-testid="ai-listening-toggle"
             />

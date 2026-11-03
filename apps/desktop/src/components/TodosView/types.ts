@@ -13,6 +13,7 @@ export interface TodoItem {
   subtasksCount?: number;
   label?: string;
   hasReminder?: boolean;
+  workspace?: string;
 }
 
 export interface TodoSection {
@@ -42,6 +43,8 @@ export interface TodoFolder {
   projects: TodoProject[];
 }
 
-export type TodoViewMode = "project" | "motherboard";
+export type TodoViewMode = "project" | "motherboard" | "reminders" | "scheduled";
 export type MotherboardLayout = "cards" | "list";
 export type TodoStatusFilter = "all" | "pending" | "completed" | "dated";
+export type ReminderFilter = "all" | "overdue" | "today" | "upcoming" | "completed";
+export type ScheduledFilter = "all" | "scheduled" | "needs_manual_send" | "missed" | "sent";
