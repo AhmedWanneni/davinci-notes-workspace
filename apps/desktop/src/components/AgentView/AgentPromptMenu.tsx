@@ -4,16 +4,16 @@ import {
   Camera,
   FolderSimple,
   BookBookmark,
+  NotePencil,
   Plugs,
   Palette,
   Plug,
   Globe,
-  CaretRight,
   Check,
 } from "@phosphor-icons/react";
 import { useAgentStore } from "./useAgentStore";
-import { AGENT_CAPABILITIES } from "./AgentCapabilitiesPopover";
 import { CONNECTOR_OPTIONS, DESIGN_OPTIONS } from "./agentPromptMenuConfig";
+import { AgentPromptSubmenu, AgentPromptMenuWrap } from "./AgentPromptSubmenu";
 import styles from "./AgentPromptMenu.module.scss";
 
 export interface AgentPromptMenuProps {
@@ -34,14 +34,16 @@ export function AgentPromptMenu({
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const projects = useAgentStore((s) => s.projects);
+  const libraryItems = useAgentStore((s) => s.libraryItems) ?? [];
+  const projects = useAgentStore((s) => s.projects) ?? [];
   const selectProject = useAgentStore((s) => s.selectProject);
+  const setActiveNavSection = useAgentStore((s) => s.setActiveNavSection);
   const webSearchEnabled = useAgentStore((s) => s.webSearchEnabled);
   const toggleWebSearch = useAgentStore((s) => s.toggleWebSearch);
 
   useEffect(() => {
     if (!isOpen) {
-      setActiveSubmenu(null);
+      if (activeSubmenu !== null) setActiveSubmenu(null);
       return;
     }
     const handleClick = (e: MouseEvent) => {
@@ -51,9 +53,14 @@ export function AgentPromptMenu({
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [isOpen, onClose]);
+  }, [isOpen, activeSubmenu, onClose]);
 
   if (!isOpen) return null;
+
+  const promptTemplates = libraryItems.filter((i) => i.type === "prompt");
+  const skillsAndRules = libraryItems.filter((i) => i.type !== "prompt");
+  const toggleSubmenu = (k: string) =>
+    setActiveSubmenu((curr) => (curr === k ? null : k));
 
   return (
     <div
@@ -88,162 +95,110 @@ export function AgentPromptMenu({
           <span className={styles["menu__item-text"]}>Take a screenshot</span>
         </button>
 
-        <div
-          className={styles["menu__item-wrap"]}
-          onMouseEnter={() => setActiveSubmenu("project")}
+        <AgentPromptMenuWrap
+          icon={<NotePencil size={16} weight="regular" />}
+          label="Prompt templates"
+          submenuKey="templates"
+          activeSubmenu={activeSubmenu}
+          onToggle={toggleSubmenu}
         >
-          <button
-            type="button"
-            className={styles["menu__item"]}
-            onClick={() =>
-              setActiveSubmenu((v) => (v === "project" ? null : "project"))
-            }
-          >
-            <FolderSimple size={16} weight="regular" />
-            <span className={styles["menu__item-text"]}>Add to project</span>
-            <CaretRight
-              size={13}
-              weight="bold"
-              className={styles["menu__caret"]}
-            />
-          </button>
-          {activeSubmenu === "project" && (
-            <div className={styles["menu__submenu"]}>
-              <div className={styles["menu__sub-header"]}>Select Project</div>
-              {projects.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={styles["menu__sub-item"]}
-                  onClick={() => {
-                    selectProject(p.id);
-                    onClose();
-                  }}
-                >
-                  <FolderSimple size={14} />
-                  <span>{p.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          <AgentPromptSubmenu
+            header="Vault Prompt Templates"
+            items={promptTemplates.slice(0, 8).map((item) => ({
+              id: item.id,
+              label: item.title,
+              onClick: () => onSelectPrompt(item.content),
+            }))}
+            footerLink={{
+              label: "Browse All in Library →",
+              onClick: () => setActiveNavSection("library"),
+            }}
+            onClose={onClose}
+          />
+        </AgentPromptMenuWrap>
 
-        <div
-          className={styles["menu__item-wrap"]}
-          onMouseEnter={() => setActiveSubmenu("skills")}
+        <AgentPromptMenuWrap
+          icon={<BookBookmark size={16} weight="regular" />}
+          label="Skills & Rules"
+          submenuKey="skills"
+          activeSubmenu={activeSubmenu}
+          onToggle={toggleSubmenu}
         >
-          <button
-            type="button"
-            className={styles["menu__item"]}
-            onClick={() =>
-              setActiveSubmenu((v) => (v === "skills" ? null : "skills"))
-            }
-          >
-            <BookBookmark size={16} weight="regular" />
-            <span className={styles["menu__item-text"]}>Skills</span>
-            <CaretRight
-              size={13}
-              weight="bold"
-              className={styles["menu__caret"]}
-            />
-          </button>
-          {activeSubmenu === "skills" && (
-            <div className={styles["menu__submenu"]}>
-              <div className={styles["menu__sub-header"]}>Agent Skills</div>
-              {AGENT_CAPABILITIES.map((cap, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className={styles["menu__sub-item"]}
-                  onClick={() => {
-                    onSelectPrompt(cap.prompt);
-                    onClose();
-                  }}
-                >
-                  <span>{cap.title}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          <AgentPromptSubmenu
+            header="Vault Skills & Rules"
+            items={skillsAndRules.slice(0, 8).map((item) => ({
+              id: item.id,
+              label: item.title,
+              onClick: () => {
+                const text =
+                  item.type === "prompt"
+                    ? item.content
+                    : `[${item.type.toUpperCase()}: ${item.title}]\n${item.content}`;
+                onSelectPrompt(text);
+              },
+            }))}
+            footerLink={{
+              label: "Browse All in Library →",
+              onClick: () => setActiveNavSection("library"),
+            }}
+            onClose={onClose}
+          />
+        </AgentPromptMenuWrap>
 
-        <div
-          className={styles["menu__item-wrap"]}
-          onMouseEnter={() => setActiveSubmenu("connector")}
+        <AgentPromptMenuWrap
+          icon={<FolderSimple size={16} weight="regular" />}
+          label="Add to project"
+          submenuKey="project"
+          activeSubmenu={activeSubmenu}
+          onToggle={toggleSubmenu}
         >
-          <button
-            type="button"
-            className={styles["menu__item"]}
-            onClick={() =>
-              setActiveSubmenu((v) => (v === "connector" ? null : "connector"))
-            }
-          >
-            <Plugs size={16} weight="regular" />
-            <span className={styles["menu__item-text"]}>Add connector</span>
-            <CaretRight
-              size={13}
-              weight="bold"
-              className={styles["menu__caret"]}
-            />
-          </button>
-          {activeSubmenu === "connector" && (
-            <div className={styles["menu__submenu"]}>
-              <div className={styles["menu__sub-header"]}>Connectors</div>
-              {CONNECTOR_OPTIONS.map((opt, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={styles["menu__sub-item"]}
-                  onClick={() => {
-                    onSelectPrompt(opt.prompt);
-                    onClose();
-                  }}
-                >
-                  <span>{opt.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          <AgentPromptSubmenu
+            header="Select Project"
+            items={projects.map((p) => ({
+              id: p.id,
+              label: p.name,
+              icon: <FolderSimple size={14} />,
+              onClick: () => selectProject(p.id),
+            }))}
+            onClose={onClose}
+          />
+        </AgentPromptMenuWrap>
 
-        <div
-          className={styles["menu__item-wrap"]}
-          onMouseEnter={() => setActiveSubmenu("design")}
+        <AgentPromptMenuWrap
+          icon={<Plugs size={16} weight="regular" />}
+          label="Add connector"
+          submenuKey="connector"
+          activeSubmenu={activeSubmenu}
+          onToggle={toggleSubmenu}
         >
-          <button
-            type="button"
-            className={styles["menu__item"]}
-            onClick={() =>
-              setActiveSubmenu((v) => (v === "design" ? null : "design"))
-            }
-          >
-            <Palette size={16} weight="regular" />
-            <span className={styles["menu__item-text"]}>Design system</span>
-            <CaretRight
-              size={13}
-              weight="bold"
-              className={styles["menu__caret"]}
-            />
-          </button>
-          {activeSubmenu === "design" && (
-            <div className={styles["menu__submenu"]}>
-              <div className={styles["menu__sub-header"]}>Design Tokens</div>
-              {DESIGN_OPTIONS.map((opt, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  className={styles["menu__sub-item"]}
-                  onClick={() => {
-                    onSelectPrompt(opt.prompt);
-                    onClose();
-                  }}
-                >
-                  <span>{opt.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+          <AgentPromptSubmenu
+            header="Connectors"
+            items={CONNECTOR_OPTIONS.map((opt, idx) => ({
+              id: idx,
+              label: opt.label,
+              onClick: () => onSelectPrompt(opt.prompt),
+            }))}
+            onClose={onClose}
+          />
+        </AgentPromptMenuWrap>
+
+        <AgentPromptMenuWrap
+          icon={<Palette size={16} weight="regular" />}
+          label="Design system"
+          submenuKey="design"
+          activeSubmenu={activeSubmenu}
+          onToggle={toggleSubmenu}
+        >
+          <AgentPromptSubmenu
+            header="Design Tokens"
+            items={DESIGN_OPTIONS.map((opt, idx) => ({
+              id: idx,
+              label: opt.label,
+              onClick: () => onSelectPrompt(opt.prompt),
+            }))}
+            onClose={onClose}
+          />
+        </AgentPromptMenuWrap>
 
         <button
           type="button"

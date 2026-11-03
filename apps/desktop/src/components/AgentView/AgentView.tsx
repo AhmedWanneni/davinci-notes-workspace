@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { CaretDown } from "@phosphor-icons/react";
-import { AgentMessageBubble } from "./AgentMessageBubble";
-import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentWelcomeView } from "./AgentWelcomeView";
 import { AgentProjectView } from "./AgentProjectView";
-import { AgentPromptBar } from "./AgentPromptBar";
-import { AgentConversationHeader } from "./AgentConversationHeader";
+import { AgentActiveChat } from "./AgentActiveChat";
+import { AgentLibraryBoard, AgentLibraryErrorBoundary } from "./Library";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentConversations } from "./useAgentConversations";
 import { useAgentViewConfig } from "./useAgentViewConfig";
@@ -34,9 +31,25 @@ export function AgentView({
   const selectedProvider = useAgentStore((s) => s.selectedProvider);
   const selectedCliAgent = useAgentStore((s) => s.selectedCliAgent);
   const activeProjectId = useAgentStore((s) => s.activeProjectId);
+  const activeNavSection = useAgentStore((s) => s.activeNavSection);
+  const projectInstructions = useAgentStore((s) => s.projectInstructions);
+  const pendingPromptText = useAgentStore((s) => s.pendingPromptText);
+  const setPendingPromptText = useAgentStore((s) => s.setPendingPromptText);
   const selectProject = useAgentStore((s) => s.selectProject);
   const deleteConversation = useAgentStore((s) => s.deleteConversation);
   const renameConversation = useAgentStore((s) => s.renameConversation);
+
+  const {
+    projects,
+    activeConversation,
+    activeConversationId,
+    createNewConversation,
+    saveActiveMessages,
+  } = useAgentConversations();
+
+  const currentProjectId =
+    activeProjectId || activeConversation?.projectId || null;
+  const activeProject = projects.find((p) => p.id === currentProjectId);
 
   const {
     messages,
@@ -57,74 +70,76 @@ export function AgentView({
     vaultName,
     selectedCliAgent,
     vaultPath: vaultPath ?? undefined,
+    projectSources: activeProject?.sources,
+    projectInstructions:
+      activeProject?.instructions ??
+      (currentProjectId ? projectInstructions[currentProjectId] : undefined),
+    projectName: activeProject?.name,
   });
 
-  const {
-    projects,
-    activeConversation,
-    activeConversationId,
-    createNewConversation,
-    saveActiveMessages,
-  } = useAgentConversations();
-
   const [chatInput, setChatInput] = useState("");
-  const [showScrollBottom, setShowScrollBottom] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesScrollRef = useRef<HTMLDivElement>(null);
   const lastLoadedConvIdRef = useRef<string | null>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView?.({ behavior: "smooth" });
-  };
+  const lastSavedKeyRef = useRef<string>("");
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (pendingPromptText) {
+      setChatInput((prev) =>
+        prev ? `${prev}\n\n${pendingPromptText}` : pendingPromptText,
+      );
+      setPendingPromptText(null);
+    }
+  }, [pendingPromptText, setPendingPromptText]);
 
   useEffect(() => {
-    const el = messagesScrollRef.current;
-    if (!el) return;
-    const handleScroll = () => {
-      const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
-      setShowScrollBottom(distance > 120);
-    };
-    el.addEventListener("scroll", handleScroll);
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (activeConversationId) {
-      if (
-        activeConversation &&
-        activeConversation.id !== lastLoadedConvIdRef.current
-      ) {
-        lastLoadedConvIdRef.current = activeConversation.id;
-        setMessages(activeConversation.messages as ChatMessageItem[]);
-      }
-    } else {
+    if (
+      activeConversationId &&
+      activeConversation &&
+      activeConversation.id !== lastLoadedConvIdRef.current
+    ) {
+      lastLoadedConvIdRef.current = activeConversation.id;
+      setMessages(activeConversation.messages as ChatMessageItem[]);
+    } else if (!activeConversationId) {
       lastLoadedConvIdRef.current = null;
       setMessages([]);
     }
   }, [activeConversationId, activeConversation, setMessages]);
 
   useEffect(() => {
-    if (activeConversationId && messages.length > 0) {
-      void saveActiveMessages(messages);
-    }
-  }, [activeConversationId, messages, saveActiveMessages]);
+    if (!activeConversationId || messages.length === 0 || isStreaming) return;
+    const lastMsg = messages[messages.length - 1];
+    const key = `${activeConversationId}:${messages.length}:${lastMsg?.id || ""}:${lastMsg?.content?.length || 0}`;
+    if (key === lastSavedKeyRef.current) return;
+    lastSavedKeyRef.current = key;
+    void saveActiveMessages(messages);
+  }, [activeConversationId, messages, isStreaming, saveActiveMessages]);
 
-  const activeProject = projects.find(
-    (p) => p.id === (activeProjectId || activeConversation?.projectId),
-  );
+  if (activeNavSection === "library") {
+    return (
+      <div
+        className="agent-view"
+        role="main"
+        aria-label="AI Vault Agent Library"
+      >
+        <AgentLibraryErrorBoundary>
+          <AgentLibraryBoard />
+        </AgentLibraryErrorBoundary>
+      </div>
+    );
+  }
 
-  if (activeProjectId && !activeConversationId) {
+  if (currentProjectId && (!activeConversationId || messages.length === 0)) {
     return (
       <div className="agent-view" role="main" aria-label="AI Vault Agent">
         <AgentProjectView
-          projectId={activeProjectId}
-          onSend={(prompt) => {
-            void createNewConversation("New Chat", activeProjectId);
-            void sendMessage(prompt);
+          projectId={currentProjectId}
+          onSend={(prompt, imgs) => {
+            if (!activeConversationId) {
+              void createNewConversation("New Chat", currentProjectId).then(
+                () => void sendMessage(prompt, imgs),
+              );
+            } else {
+              void sendMessage(prompt, imgs);
+            }
           }}
           shortcuts={shortcuts}
           isStreaming={isStreaming}
@@ -150,86 +165,37 @@ export function AgentView({
     activeProject?.name || activeConversation?.title || "Search";
 
   return (
-    <div className="agent-view" role="main" aria-label="AI Vault Agent">
-      <div className="agent-view__main">
-        <AgentConversationHeader
-          title={chatTitle}
-          projectName={activeProject?.name}
-          projectId={activeProject?.id}
-          onNavigateProject={(pId) => selectProject(pId)}
-          onRename={() => {
-            if (!activeConversationId) return;
-            const next = window.prompt("Rename conversation:", chatTitle);
-            if (next && next.trim())
-              void renameConversation(activeConversationId, next.trim());
-          }}
-          onDelete={() => {
-            if (!activeConversationId) return;
-            if (window.confirm(`Delete conversation "${chatTitle}"?`)) {
-              void deleteConversation(activeConversationId);
-            }
-          }}
-        />
-
-        <div className="agent-view__messages" ref={messagesScrollRef}>
-          {messages.map((msg) => (
-            <AgentMessageBubble key={msg.id} message={msg} />
-          ))}
-          {isStreaming && messages[messages.length - 1]?.role === "user" && (
-            <AgentMessageBubble
-              message={{
-                id: "streaming-thinking-placeholder",
-                role: "assistant",
-                content: "",
-                isStreaming: true,
-                timestamp: Date.now(),
-              }}
-            />
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {stagedChanges.length > 0 && (
-          <AgentDiffViewer
-            stagedItems={stagedChanges}
-            onAccept={handleApplyChange}
-            onReject={handleRejectChange}
-            onAcceptAll={handleApplyAllChanges}
-          />
-        )}
-
-        {showScrollBottom && (
-          <button
-            type="button"
-            className="agent-scroll-bottom-btn"
-            onClick={scrollToBottom}
-            aria-label="Scroll to bottom"
-          >
-            <CaretDown size={16} weight="bold" />
-          </button>
-        )}
-
-        <div className="agent-view__controls">
-          <AgentPromptBar
-            value={chatInput}
-            onChange={setChatInput}
-            onSubmit={() => {
-              if (chatInput.trim()) {
-                void sendMessage(chatInput.trim());
-                setChatInput("");
-              }
-            }}
-            onSendWithImages={(text, imgs) => {
-              void sendMessage(text, imgs);
-              setChatInput("");
-            }}
-            placeholder="Write a message..."
-            shortcuts={shortcuts}
-            isStreaming={isStreaming}
-            onCancel={abortExecution}
-          />
-        </div>
-      </div>
-    </div>
+    <AgentActiveChat
+      chatTitle={chatTitle}
+      activeProject={activeProject}
+      onNavigateProject={(pId) => selectProject(pId)}
+      onRename={() => {
+        if (!activeConversationId) return;
+        const next = window.prompt("Rename conversation:", chatTitle);
+        if (next?.trim())
+          void renameConversation(activeConversationId, next.trim());
+      }}
+      onDelete={() => {
+        if (!activeConversationId) return;
+        if (window.confirm(`Delete conversation "${chatTitle}"?`))
+          void deleteConversation(activeConversationId);
+      }}
+      messages={messages}
+      isStreaming={isStreaming}
+      stagedChanges={stagedChanges}
+      onAcceptChange={handleApplyChange}
+      onRejectChange={handleRejectChange}
+      onAcceptAllChanges={handleApplyAllChanges}
+      chatInput={chatInput}
+      onChangeChatInput={setChatInput}
+      onSendChat={(text, imgs) => {
+        if (text.trim() || (imgs && imgs.length > 0)) {
+          void sendMessage(text, imgs);
+          setChatInput("");
+        }
+      }}
+      shortcuts={shortcuts}
+      onCancel={abortExecution}
+    />
   );
 }

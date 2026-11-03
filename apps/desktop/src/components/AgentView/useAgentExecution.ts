@@ -31,6 +31,9 @@ export interface UseAgentExecutionOptions {
   rewriteEnabled?: boolean;
   selectedCliAgent?: string | null;
   vaultPath?: string;
+  projectSources?: string[];
+  projectInstructions?: string;
+  projectName?: string;
 }
 
 export function useAgentExecution(options?: UseAgentExecutionOptions) {

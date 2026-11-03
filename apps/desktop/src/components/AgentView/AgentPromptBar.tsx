@@ -2,6 +2,7 @@ import { useRef, useState, type KeyboardEvent, type ChangeEvent } from "react";
 import { Plus } from "@phosphor-icons/react";
 import { AgentPromptMenu } from "./AgentPromptMenu";
 import { AgentMentionMenu } from "./AgentMentionMenu";
+import { AgentSlashMenu } from "./AgentSlashMenu";
 import { AgentPromptModelPicker } from "./AgentPromptModelPicker";
 import { AgentImageAttachmentPreview } from "./AgentImageAttachmentPreview";
 import { AgentPromptActions } from "./AgentPromptActions";
@@ -45,6 +46,7 @@ export function AgentPromptBar({
   const chatMode = useAgentStore((s) => s.chatMode);
   const setChatMode = useAgentStore((s) => s.setChatMode);
   const setModelPickerOpen = useAgentStore((s) => s.setModelPickerOpen);
+  const libraryItems = useAgentStore((s) => s.libraryItems);
 
   const {
     attachedImages,
@@ -63,21 +65,28 @@ export function AgentPromptBar({
     mentionSelectedIndex,
     setMentionQuery,
     setMentionItemCount,
+    slashQuery,
+    slashSelectedIndex,
+    setSlashQuery,
+    setSlashItemCount,
     handleInputChange,
     handleSelectMention,
+    handleSelectSlash,
     handleMentionKeyDown,
   } = useAgentMention(value, onChange, textareaRef);
 
   const handleSend = () => {
-    if (disabled || isStreaming) return;
-    if (!value.trim() && attachedImages.length === 0) return;
-    if (onSendWithImages) {
-      onSendWithImages(value.trim(), attachedImages);
-    } else {
-      onSubmit();
-    }
+    if (
+      disabled ||
+      isStreaming ||
+      (!value.trim() && attachedImages.length === 0)
+    )
+      return;
+    if (onSendWithImages) onSendWithImages(value.trim(), attachedImages);
+    else onSubmit();
     clearImages();
     setMentionQuery(null);
+    setSlashQuery(null);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -142,6 +151,15 @@ export function AgentPromptBar({
         onSelect={handleSelectMention}
         onClose={() => setMentionQuery(null)}
         onItemCountChange={setMentionItemCount}
+      />
+      <AgentSlashMenu
+        isOpen={slashQuery !== null}
+        query={slashQuery ?? ""}
+        selectedIndex={slashSelectedIndex}
+        onSelect={handleSelectSlash}
+        onClose={() => setSlashQuery(null)}
+        onItemCountChange={setSlashItemCount}
+        libraryItems={libraryItems}
       />
 
       {variant === "project" ? (

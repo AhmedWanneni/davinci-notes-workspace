@@ -1,12 +1,11 @@
 import { create } from "zustand";
 import {
-  AGENT_CONVERSATIONS_PATH,
-  parseConversationsData,
+  addOrUpdateConversation,
   deleteConversation as deleteConversationHelper,
   type AgentConversation,
   type AgentProject,
+  type LibraryItem,
 } from "@app/ai-agent";
-import { readNote } from "../../vault/vaultCommands";
 import { persistToVault } from "./agentStorePersistence";
 import { saveActiveMessagesHelper } from "./agentConversationSaver";
 import {
@@ -16,11 +15,19 @@ import {
   handleProjectSource,
   handleAssignProject,
 } from "./agentProjectActions";
+import {
+  DEFAULT_LIBRARY_ITEMS,
+  handleAddOrUpdateLibraryItem,
+  handleDeleteLibraryItem,
+  handleSetProjectInstructions,
+} from "./Library";
+import { loadAgentData } from "./agentStoreLoader";
 import type { ChatMessageItem } from "./agentTypes";
 
 export interface AgentStoreState {
   conversations: AgentConversation[];
   projects: AgentProject[];
+  libraryItems: LibraryItem[];
   activeConversationId: string | null;
   activeProjectId: string | null;
   projectTab: "chats" | "sources";
@@ -37,6 +44,7 @@ export interface AgentStoreState {
   selectedCliAgent: string | null;
   cliAgentModels: Record<string, string>;
   projectInstructions: Record<string, string>;
+  pendingPromptText: string | null;
 
   loadConversations: () => Promise<void>;
   selectConversation: (id: string | null) => void;
@@ -66,11 +74,16 @@ export interface AgentStoreState {
   setSelectedCliAgent: (agentId: string | null) => void;
   setCliAgentModel: (agentId: string, model: string) => void;
   saveActiveMessages: (messages: ChatMessageItem[]) => Promise<void>;
+  setPendingPromptText: (text: string | null) => void;
+  insertIntoActivePrompt: (text: string) => void;
+  addOrUpdateLibraryItem: (item: LibraryItem) => Promise<void>;
+  deleteLibraryItem: (id: string) => Promise<void>;
 }
 
 export const useAgentStore = create<AgentStoreState>((set, get) => ({
   conversations: [],
   projects: [{ id: "proj_general", name: "General", createdAt: Date.now() }],
+  libraryItems: DEFAULT_LIBRARY_ITEMS,
   activeConversationId: null,
   activeProjectId: null,
   projectTab: "chats",
@@ -92,6 +105,7 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
     opencode: "deepseek-coder",
   },
   projectInstructions: {},
+  pendingPromptText: null,
 
   setSelectedModel: (model, provider) =>
     set({
@@ -107,33 +121,32 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
   setPowerTier: (tier) => set({ powerTier: tier }),
   setChatMode: (mode) => set({ chatMode: mode }),
   setModelPickerOpen: (open) => set({ isModelPickerOpen: open }),
-  setProjectInstructions: (projectId, instructions) =>
+  setPendingPromptText: (text) => set({ pendingPromptText: text }),
+  insertIntoActivePrompt: (text) =>
+    set((s) => ({
+      pendingPromptText: s.pendingPromptText
+        ? `${s.pendingPromptText}\n\n${text}`
+        : text,
+      activeNavSection: "chat",
+    })),
+
+  setProjectInstructions: (projectId, instructions) => {
     set((s) => ({
       projectInstructions: {
         ...s.projectInstructions,
         [projectId]: instructions,
       },
-    })),
+    }));
+    void handleSetProjectInstructions(get(), projectId, instructions).then(
+      (projects) => {
+        set({ projects });
+      },
+    );
+  },
 
   loadConversations: async () => {
-    try {
-      const file = await readNote(AGENT_CONVERSATIONS_PATH);
-      const parsed = parseConversationsData(file.content);
-      set({
-        conversations: parsed.conversations,
-        projects: parsed.projects,
-        activeConversationId: parsed.activeConversationId,
-        isLoaded: true,
-      });
-    } catch {
-      const empty = parseConversationsData(null);
-      set({
-        conversations: empty.conversations,
-        projects: empty.projects,
-        activeConversationId: null,
-        isLoaded: true,
-      });
-    }
+    const data = await loadAgentData();
+    set(data);
   },
 
   selectConversation: (id) => {
@@ -157,12 +170,19 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
       messages: [],
     };
     const nextData = addOrUpdateConversation(
-      { version: 1, activeConversationId: newConv.id, projects, conversations },
+      {
+        version: 1,
+        activeConversationId: newConv.id,
+        projects,
+        conversations,
+        libraryItems: get().libraryItems,
+      },
       newConv,
     );
     set({
       conversations: nextData.conversations,
       activeConversationId: newConv.id,
+      activeProjectId: targetProjId ?? null,
       activeNavSection: "chat",
     });
     await persistToVault(nextData, true);
@@ -172,7 +192,13 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
   deleteConversation: async (id) => {
     const { conversations, projects, activeConversationId } = get();
     const nextData = deleteConversationHelper(
-      { version: 1, activeConversationId, projects, conversations },
+      {
+        version: 1,
+        activeConversationId,
+        projects,
+        conversations,
+        libraryItems: get().libraryItems,
+      },
       id,
     );
     set({
@@ -192,21 +218,26 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
       updatedAt: Date.now(),
     };
     const nextData = addOrUpdateConversation(
-      { version: 1, activeConversationId, projects, conversations },
+      {
+        version: 1,
+        activeConversationId,
+        projects,
+        conversations,
+        libraryItems: get().libraryItems,
+      },
       updated,
     );
     set({ conversations: nextData.conversations });
     await persistToVault(nextData);
   },
 
-  selectProject: (projectId) => {
+  selectProject: (projectId) =>
     set({
       activeProjectId: projectId,
       activeConversationId: null,
       activeNavSection: "project",
       projectTab: "chats",
-    });
-  },
+    }),
 
   createProject: async (name) => {
     const { projects, activeProjectId } = await handleCreateProject(
@@ -217,40 +248,26 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
     return projects[projects.length - 1];
   },
 
-  renameProject: async (id, name) => {
-    const projects = await handleRenameProject(get(), id, name);
-    set({ projects });
-  },
-
-  deleteProject: async (id) => {
-    const res = await handleDeleteProject(get(), id);
-    set(res);
-  },
-
-  assignProject: async (convId, projectId) => {
-    const conversations = await handleAssignProject(get(), convId, projectId);
-    set({ conversations });
-  },
-
-  addProjectSource: async (projectId, path) => {
-    const projects = await handleProjectSource(get(), projectId, path, "add");
-    set({ projects });
-  },
-
-  removeProjectSource: async (projectId, path) => {
-    const projects = await handleProjectSource(
-      get(),
-      projectId,
-      path,
-      "remove",
-    );
-    set({ projects });
-  },
-
+  renameProject: async (id, name) =>
+    set({ projects: await handleRenameProject(get(), id, name) }),
+  deleteProject: async (id) => set(await handleDeleteProject(get(), id)),
+  assignProject: async (convId, projectId) =>
+    set({ conversations: await handleAssignProject(get(), convId, projectId) }),
+  addProjectSource: async (projectId, path) =>
+    set({ projects: await handleProjectSource(get(), projectId, path, "add") }),
+  removeProjectSource: async (projectId, path) =>
+    set({
+      projects: await handleProjectSource(get(), projectId, path, "remove"),
+    }),
   setProjectTab: (tab) => set({ projectTab: tab }),
   setActiveNavSection: (section) => set({ activeNavSection: section }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   toggleThinkMode: () => set((s) => ({ thinkMode: !s.thinkMode })),
+
+  addOrUpdateLibraryItem: async (item) =>
+    set({ libraryItems: await handleAddOrUpdateLibraryItem(get(), item) }),
+  deleteLibraryItem: async (id) =>
+    set({ libraryItems: await handleDeleteLibraryItem(get(), id) }),
 
   saveActiveMessages: async (messages) => {
     const { conversations, projects, activeConversationId, activeProjectId } =

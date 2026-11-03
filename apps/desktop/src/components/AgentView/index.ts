@@ -20,3 +20,5 @@ export { AgentProjectContextPanel } from "./AgentProjectContextPanel";
 export { AgentPromptActions } from "./AgentPromptActions";
 export { AgentConversationHeader } from "./AgentConversationHeader";
 export { AgentSidebarSearchResults } from "./AgentSidebarSearchResults";
+export { AgentSlashMenu } from "./AgentSlashMenu";
+export * from "./Library";

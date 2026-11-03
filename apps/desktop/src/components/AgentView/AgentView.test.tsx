@@ -6,6 +6,7 @@ import { AgentMessageBubble } from "./AgentMessageBubble";
 import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentHistoryDrawer } from "./AgentHistoryDrawer";
 import { AgentShortcutsBar } from "./AgentShortcutsBar";
+import { useAgentStore } from "./useAgentStore";
 import type { ChatMessageItem, StagedChangeItem } from "./agentTypes";
 
 vi.mock("./desktopAgentBridge", () => ({
@@ -46,6 +47,7 @@ vi.mock("../../ai/AISubsystem", () => ({
 }));
 
 vi.mock("../../vault/vaultCommands", () => ({
+  listNotes: vi.fn().mockResolvedValue([]),
   readNote: vi.fn().mockRejectedValue(new Error("File not found")),
   writeNote: vi.fn().mockResolvedValue(undefined),
 }));
@@ -193,5 +195,16 @@ describe("AgentView Components", () => {
 
     fireEvent.click(screen.getByLabelText("Undo Create weekly plan"));
     expect(onRollback).toHaveBeenCalledWith("tx_1");
+  });
+
+  it("renders library board without error when activeNavSection is library", async () => {
+    act(() => {
+      useAgentStore.setState({ activeNavSection: "library" });
+    });
+    await act(async () => {
+      render(<AgentView />);
+    });
+    expect(screen.getByRole("region", { name: "Library Board" })).toBeTruthy();
+    expect(screen.getByText("ADD NEW")).toBeTruthy();
   });
 });

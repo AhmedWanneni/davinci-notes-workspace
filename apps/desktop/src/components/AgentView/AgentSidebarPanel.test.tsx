@@ -39,22 +39,45 @@ describe("AgentSidebarPanel", () => {
     });
   });
 
-  it("renders header, top nav, projects, and recents", () => {
+  it("renders top nav, projects, and recents without header", () => {
     render(<AgentSidebarPanel />);
 
-    expect(screen.getByText("ChatGPT")).toBeTruthy();
+    // Header with ChatGPT brand is removed
+    expect(screen.queryByText("ChatGPT")).toBeNull();
+
+    // Top nav items
     expect(screen.getByText("New chat")).toBeTruthy();
+    expect(screen.getAllByText("Search").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText("Library")).toBeTruthy();
     expect(screen.getByText("Images")).toBeTruthy();
     expect(screen.getByText("Scheduled")).toBeTruthy();
-    expect(screen.getByText("Library")).toBeTruthy();
+
+    // Removed nav items
+    expect(screen.queryByText("Plugins")).toBeNull();
+    expect(screen.queryByText("Codex")).toBeNull();
+    expect(screen.queryByText("Explore")).toBeNull();
 
     expect(screen.getByText("Projects")).toBeTruthy();
     expect(screen.getByText("gym")).toBeTruthy();
     expect(screen.getByText("Papers daily")).toBeTruthy();
-    expect(screen.getByText("Search")).toBeTruthy();
 
     expect(screen.getByText("Recents")).toBeTruthy();
     expect(screen.getByText("Coursera Free Access Details")).toBeTruthy();
+  });
+
+  it("toggles search input when clicking search nav item", () => {
+    render(<AgentSidebarPanel />);
+
+    expect(
+      screen.queryByPlaceholderText("Search chats & messages..."),
+    ).toBeNull();
+
+    const searchNavBtn = screen.getAllByText("Search")[0];
+    fireEvent.click(searchNavBtn);
+
+    expect(
+      screen.getByPlaceholderText("Search chats & messages..."),
+    ).toBeTruthy();
   });
 
   it("selects a project and displays its nested chats", () => {
@@ -80,17 +103,27 @@ describe("AgentSidebarPanel", () => {
     expect(await screen.findByText("messaging")).toBeTruthy();
   });
 
-  it("clicks + on a project to open project overview and deletes a nested chat", () => {
+  it("clicks + on a project to create a conversation under that project and deletes a nested chat", async () => {
     render(<AgentSidebarPanel />);
 
     const addChatBtn = screen.getByLabelText("New conversation in gym");
-    fireEvent.click(addChatBtn);
+    await act(async () => {
+      fireEvent.click(addChatBtn);
+    });
 
     expect(useAgentStore.getState().activeProjectId).toBe("proj-gym");
-    expect(useAgentStore.getState().activeConversationId).toBeNull();
+    const activeConv = useAgentStore
+      .getState()
+      .conversations.find(
+        (c) => c.id === useAgentStore.getState().activeConversationId,
+      );
+    expect(activeConv).toBeTruthy();
+    expect(activeConv?.projectId).toBe("proj-gym");
 
     const deleteChatBtn = screen.getByLabelText("Delete Gym Workout Plan");
-    fireEvent.click(deleteChatBtn);
+    await act(async () => {
+      fireEvent.click(deleteChatBtn);
+    });
 
     expect(
       useAgentStore.getState().conversations.find((c) => c.id === "conv-2"),

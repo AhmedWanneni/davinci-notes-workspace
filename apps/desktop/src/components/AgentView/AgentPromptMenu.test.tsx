@@ -57,4 +57,29 @@ describe("AgentPromptMenu", () => {
     );
     expect(container.firstChild).toBeNull();
   });
+
+  it("opens prompt templates submenu and selects a prompt template", () => {
+    const onSelectPrompt = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <AgentPromptMenu
+        isOpen={true}
+        onClose={onClose}
+        onUploadFiles={vi.fn()}
+        onTakeScreenshot={vi.fn()}
+        onSelectPrompt={onSelectPrompt}
+      />,
+    );
+
+    const templatesBtn = screen.getByRole("button", {
+      name: /prompt templates/i,
+    });
+    fireEvent.click(templatesBtn);
+
+    expect(screen.getByText("Vault Prompt Templates")).toBeTruthy();
+    const item = screen.getByText("Synthesize Project Wiki Note");
+    fireEvent.click(item);
+    expect(onSelectPrompt).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
+  });
 });

@@ -1,6 +1,5 @@
 import { useEffect, useMemo } from "react";
 import { useAgentStore } from "./useAgentStore";
-import type { ChatMessageItem } from "./agentTypes";
 
 export function useAgentConversations() {
   const conversations = useAgentStore((s) => s.conversations);
@@ -32,7 +31,7 @@ export function useAgentConversations() {
     loadConversations,
     createNewConversation,
     selectConversation,
-    saveActiveMessages: (msgs: ChatMessageItem[]) => saveActiveMessages(msgs),
+    saveActiveMessages,
     removeConversation: deleteConversation,
     renameConversation,
     addProject: createProject,

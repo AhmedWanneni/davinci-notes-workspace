@@ -13,6 +13,7 @@ export interface AgentSidebarProjectsSectionProps {
   onSelectConversation: (id: string) => void;
   onDeleteConversation: (id: string) => void;
   onCreateProject: (name: string) => void;
+  onCreateNewChatInProject?: (id: string) => void;
 }
 
 export function AgentSidebarProjectsSection({
@@ -25,6 +26,7 @@ export function AgentSidebarProjectsSection({
   onSelectConversation,
   onDeleteConversation,
   onCreateProject,
+  onCreateNewChatInProject,
 }: AgentSidebarProjectsSectionProps) {
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [newProjectPrompt, setNewProjectPrompt] = useState(false);
@@ -101,7 +103,11 @@ export function AgentSidebarProjectsSection({
                   className={styles["agent-sidebar__project-add-chat-btn"]}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onOpenProjectOverview(p.id);
+                    if (onCreateNewChatInProject) {
+                      onCreateNewChatInProject(p.id);
+                    } else {
+                      onOpenProjectOverview(p.id);
+                    }
                   }}
                   title={`New conversation in ${p.name}`}
                   aria-label={`New conversation in ${p.name}`}
@@ -115,7 +121,13 @@ export function AgentSidebarProjectsSection({
                   <button
                     type="button"
                     className={styles["agent-sidebar__chat-nested-add"]}
-                    onClick={() => onOpenProjectOverview(p.id)}
+                    onClick={() => {
+                      if (onCreateNewChatInProject) {
+                        onCreateNewChatInProject(p.id);
+                      } else {
+                        onOpenProjectOverview(p.id);
+                      }
+                    }}
                     title={`New conversation in ${p.name}`}
                   >
                     <Plus size={12} weight="bold" />

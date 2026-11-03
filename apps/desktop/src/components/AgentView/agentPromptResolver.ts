@@ -87,6 +87,29 @@ export async function resolveExecutionPromptAndTools(
     // memory not initialized yet
   }
 
+  if (options?.projectInstructions?.trim()) {
+    systemPrompt = `${systemPrompt}\n\n## Project Instructions (${options.projectName || "Project"})\n${options.projectInstructions.trim()}`;
+  }
+
+  if (options?.projectSources && options.projectSources.length > 0) {
+    const loadedSources: string[] = [];
+    for (const sourcePath of options.projectSources) {
+      try {
+        const raw = await mutationBackend.readNote(sourcePath);
+        if (raw) {
+          loadedSources.push(`### File: ${sourcePath}\n${raw.slice(0, 3000)}`);
+        }
+      } catch {
+        loadedSources.push(
+          `### File: ${sourcePath}\n(Referenced project context note)`,
+        );
+      }
+    }
+    if (loadedSources.length > 0) {
+      systemPrompt = `${systemPrompt}\n\n## Project Context Sources (${options.projectName || "Project"})\n${loadedSources.join("\n\n")}`;
+    }
+  }
+
   return { systemPrompt, activeTools };
 }
 

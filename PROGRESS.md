@@ -4,25 +4,79 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Fix Horizontal Row Layout for Meeting Workspace Columns & Visualizer Refactor
+## Last Session — AI Library Vault Storage, Slash Menu & Prompt Menu Integration
 
-**Scope:** Resolved layout collapse where sidebar, middle recording workspace, and AI companion stacked vertically:
-1. **Horizontal Row Column Layout (`ListeningView.module.scss`)**:
-   - Fixed `.recording-workspace` to enforce `display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: stretch !important; height: 100% !important; flex: 1 1 0% !important;`.
-   - Fixed `.meetings-sidebar` width to `width: 220px !important; flex: 0 0 220px !important; height: 100% !important;` so it stays firmly docked as a full-height left column.
-   - Fixed `.recording-main-col`, `.all-meetings-view`, and `.meeting-detail-view` to `flex: 1 1 0% !important; min-width: 0 !important; height: 100% !important;` for clean fluid horizontal centering.
-   - Fixed `.ai-listening-panel`, `.ai-listening-panel--loading`, and `.meeting-assistant-panel` to `width: 360px !important; flex: 0 0 360px !important; height: 100% !important;` so the Ask Fred assistant stays docked on the right as a full-height column.
-   - Cleaned up duplicate `.listening-visualizer` CSS definitions.
-2. **Visualizer Component Split & File Cap (`ListeningVisualizer.tsx`, `VisualizerControls.tsx`)**:
-   - Extracted `VisualizerControls.tsx` (94 lines) to handle Record / Pause / Resume / Stop / Discard buttons, bringing `ListeningVisualizer.tsx` down to 207 lines (safely under the 250-line hard cap).
-   - Created Storybook story (`VisualizerControls.stories.tsx`) and interaction unit tests (`VisualizerControls.test.tsx`).
-3. **Build & Import Corrections**:
-   - Corrected `createNoteInVault` import in `useMeetingAIUpdater.ts` from `../../vault/createNoteInVault`.
-   - Verified clean production build (`pnpm --filter @app/desktop build:web`).
-4. **Verification & Quality**:
-   - 47 unit tests passing across all 11 test files in `src/components/ListeningView/`.
-   - 0 ESLint errors; all modified files strictly under the 250-line hard cap.
-   - Knowledge graph updated with `graphify update .`.
+1. **Library items stored as markdown files in vault** (`ai-library/` folder):
+   - Prompts → `ai-library/prompts/{title}.md`, Skills → `ai-library/skills/`, Rules → `ai-library/rules/`.
+   - Project-scoped items → `ai-library/{ProjectName}/{type}/{title}.md`.
+   - Created `libraryMarkdown.ts` (parser/serializer with YAML frontmatter), `libraryVaultStorage.ts` (load/save/delete from vault), and `agentLibraryActions.ts` (Zustand action helpers).
+2. **"Open in Editor" button on library cards** — opens the `.md` file in the editor tab via `openNote`.
+3. **Slash menu (`AgentSlashMenu.tsx`)** — typing `/` in prompt bar shows autocomplete of prompts/skills/rules from library; keyboard-navigable.
+4. **Prompt menu submenus** — "Prompt templates" and "Skills & Rules" sections in the `+` menu, with "Browse All in Library →" link.
+5. **Extracted `agentStoreLoader.ts`** — moved `loadConversations` logic out of `useAgentStore.ts` (262→223 lines, under 250 cap).
+6. **Verification**:
+   - 40 AgentView test files (109 tests) all pass.
+   - 20 ai-agent test files (113 tests) all pass.
+   - Production web build succeeds (11.20s).
+
+---
+
+## Next Up
+
+- End-to-end verification in running desktop app (add prompt creates `.md`, slash menu works, "Open in Editor" works).
+- Run `graphify update .` to sync knowledge graph.
+- Stage, commit, and create PR.
+
+---
+
+## Previous Session — Browser Bookmark Importer Fix, Website Covers & Direct Link Navigation
+
+**Scope:** Fulfilled user requests for browser bookmarks import, website cover preview thumbnails, and direct external link navigation:
+1. **Browser Bookmark Import Fix (`WebBookmarkImportModal.tsx`, `WebBookmarkBrowserGrid.tsx`, `browserBookmarkImporter.ts`)**:
+   - Added direct 1-click "Import" action button on every detected browser row in `WebBookmarkBrowserGrid.tsx` for immediate 1-click import.
+   - Automatically pre-selects and loads the summary for the first detected browser on modal mount, ensuring the primary "Import" button is never inert or blocked.
+   - Handled both camelCase `{ browserId }` and snake_case `{ browser_id }` Tauri IPC parameter casing, with dev/testing fallback in non-Tauri environments.
+   - Refactored parsers into `browserBookmarkParsers.ts` and `browserBookmarkFallback.ts` to strictly maintain the <250 line constraint across all modules.
+2. **Website Cover Previews (`WebBookmarkCover.tsx`, `bookmarkStorage.ts`, `WebBookmarksCardsView.tsx`, `WebBookmarkListRow.tsx`, `WebBookmarksMoodboardView.tsx`, `WebBookmarksHeadlinesView.tsx`)**:
+   - Implemented `WebBookmarkCover.tsx` featuring a 3-tier cascading fallback:
+     1. High-resolution website cover/screenshot (`https://image.thum.io/get/width/600/crop/800/noanimate/${url}`).
+     2. Cascading high-resolution favicon fallback (`https://www.google.com/s2/favicons?domain=${domain}&sz=128`).
+     3. Domain badge & Globe placeholder if network fails or offline.
+   - Updated `bookmarkStorage.ts` to persist `cover`, `note`, and `trashed` properties.
+   - Integrated `WebBookmarkCover` across Cards, List rows, Headlines, and Moodboard views.
+3. **Direct Link Navigation Icon (`ArrowSquareOut`)**:
+   - Added explicit external link buttons (`ArrowSquareOut` from `@phosphor-icons/react`) with tooltip "Open link in browser" and `aria-label="Open link in browser"`.
+   - Clicking the link icon immediately opens the external URL in the browser via `onOpenExternal(item.url)`.
+   - Placed link icons next to domain names and in row/card action bars.
+4. **Verification & Testing**:
+   - Added unit test suite `WebBookmarkCover.test.tsx` and Storybook story `WebBookmarkCover.stories.tsx`.
+   - Added end-to-end user interaction tests in `WebBookmarksView.test.tsx` verifying direct link opening and 1-click browser import.
+   - All 63 tests across 11 test files in `src/bookmarks` and `src/components/BookmarksView` pass with 100% green status.
+
+---
+
+## Next Up
+
+- Optional drag-and-drop support for re-ordering or moving bookmarks between collections.
+- Visual regression snapshots for `WebBookmarkImportModal`.
+
+   - Untracked files (`?`) display `U` in green `#2ea043` matching VS Code status conventions.
+   - Added `#` icon support for CSS/SCSS styles, atom icon `⚛` for React JSX/TSX, info circle `(i)` for markdown/README, and `TS` badge for TypeScript/JavaScript.
+   - Pinned `.git-status-row__trailing` with `margin-left: auto; flex-shrink: 0;` to guarantee status badges remain right-aligned and visible.
+   - Added `scss-modules.d.ts` to `packages/git-manager` and updated graphify knowledge graph.
+8. **Diff Viewer Font Size (`gitDiffTheme.ts`, `GitDiffViewer.module.scss`)**:
+   - Updated CodeMirror diff viewer font size from `24px` to `20px` and enabled scrolling within the diff viewer container.   - Scaled `.cm-content`, `.cm-line`, `.cm-mergeView`, `.cm-mergeViewEditors`, and gutter line numbers (`.cm-gutterElement`) to `24px`.
+9. **Quality & Verification**:
+   - All 14 test files (50 tests) in `@app/git-manager` passing.
+   - Desktop production build verified (`pnpm --filter @app/desktop build:web`) in 10.10s.
+   - Knowledge graph updated (`graphify update .`).
+
+---
+
+## Next Up
+
+- Add optional staging hunk-by-hunk gutter click in diff viewer.
+- Add Stash and Cherry-pick quick actions to the `...` more actions menu in `GitChangesSection`.
 
 ---
 

@@ -14,6 +14,7 @@ describe("AgentProjectView", () => {
             title: "Audio transcription tools",
             messages: [],
             createdAt: Date.now() - 34 * 60000,
+            updatedAt: Date.now() - 34 * 60000,
             projectId: "proj-gym",
           },
         ],

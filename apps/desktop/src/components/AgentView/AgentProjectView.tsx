@@ -42,10 +42,21 @@ export function AgentProjectView({
   const renameProject = useAgentStore((s) => s.renameProject);
   const addProjectSource = useAgentStore((s) => s.addProjectSource);
   const removeProjectSource = useAgentStore((s) => s.removeProjectSource);
+  const pendingPromptText = useAgentStore((s) => s.pendingPromptText);
+  const setPendingPromptText = useAgentStore((s) => s.setPendingPromptText);
 
   const [prompt, setPrompt] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (pendingPromptText) {
+      setPrompt((prev) =>
+        prev ? `${prev}\n\n${pendingPromptText}` : pendingPromptText,
+      );
+      setPendingPromptText(null);
+    }
+  }, [pendingPromptText, setPendingPromptText]);
 
   useEffect(() => {
     if (!showMenu) return;
@@ -166,6 +177,7 @@ export function AgentProjectView({
             shortcuts={shortcuts}
             isStreaming={isStreaming}
             variant="project"
+            autoFocus
           />
 
           <h2 className={styles["project-view__recents-header"]}>Recents</h2>

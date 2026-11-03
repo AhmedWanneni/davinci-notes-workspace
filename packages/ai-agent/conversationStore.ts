@@ -3,6 +3,7 @@ import {
   type AgentConversation,
   type AgentConversationsData,
   type AgentProject,
+  type LibraryItem,
 } from "./conversationTypes";
 
 export function createEmptyConversationsData(): AgentConversationsData {
@@ -11,6 +12,7 @@ export function createEmptyConversationsData(): AgentConversationsData {
     activeConversationId: null,
     projects: [{ id: "proj_general", name: "General", createdAt: Date.now() }],
     conversations: [],
+    libraryItems: [],
   };
 }
 
@@ -28,6 +30,9 @@ export function parseConversationsData(
       projects: Array.isArray(parsed.projects) ? parsed.projects : [],
       conversations: Array.isArray(parsed.conversations)
         ? parsed.conversations
+        : [],
+      libraryItems: Array.isArray(parsed.libraryItems)
+        ? parsed.libraryItems
         : [],
     };
   } catch {
@@ -177,5 +182,44 @@ export function removeProjectSource(
         sources: (p.sources ?? []).filter((s) => s !== sourcePath),
       };
     }),
+  };
+}
+
+export function setProjectInstructions(
+  data: AgentConversationsData,
+  projectId: string,
+  instructions: string,
+): AgentConversationsData {
+  return {
+    ...data,
+    projects: data.projects.map((p) =>
+      p.id === projectId ? { ...p, instructions: instructions.trim() } : p,
+    ),
+  };
+}
+
+export function addOrUpdateLibraryItem(
+  data: AgentConversationsData,
+  item: LibraryItem,
+): AgentConversationsData {
+  const current = data.libraryItems ?? [];
+  const idx = current.findIndex((i) => i.id === item.id);
+  const updated = [...current];
+  if (idx >= 0) {
+    updated[idx] = item;
+  } else {
+    updated.unshift(item);
+  }
+  return { ...data, libraryItems: updated };
+}
+
+export function deleteLibraryItem(
+  data: AgentConversationsData,
+  itemId: string,
+): AgentConversationsData {
+  const current = data.libraryItems ?? [];
+  return {
+    ...data,
+    libraryItems: current.filter((i) => i.id !== itemId),
   };
 }

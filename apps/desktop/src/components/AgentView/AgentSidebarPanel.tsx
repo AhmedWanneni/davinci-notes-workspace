@@ -1,15 +1,10 @@
 import { useState } from "react";
 import {
-  Sparkle,
   MagnifyingGlass,
-  SidebarSimple,
   NotePencil,
   Image as ImageIcon,
   Clock,
   Books,
-  At,
-  Code,
-  DotsThree,
   X,
 } from "@phosphor-icons/react";
 import { useAgentStore } from "./useAgentStore";
@@ -23,15 +18,15 @@ export interface AgentSidebarPanelProps {
 }
 
 const TOP_NAV_ITEMS = [
+  { id: "search", label: "Search", icon: MagnifyingGlass },
+  { id: "library", label: "Library", icon: Books },
   { id: "images", label: "Images", icon: ImageIcon },
   { id: "scheduled", label: "Scheduled", icon: Clock },
-  { id: "library", label: "Library", icon: Books },
-  { id: "plugins", label: "Plugins", icon: At },
-  { id: "codex", label: "Codex", icon: Code },
-  { id: "explore", label: "Explore", icon: DotsThree },
 ];
 
-export function AgentSidebarPanel({ onToggleSidebar }: AgentSidebarPanelProps) {
+export function AgentSidebarPanel({
+  onToggleSidebar: _onToggleSidebar,
+}: AgentSidebarPanelProps) {
   const conversations = useAgentStore((s) => s.conversations);
   const projects = useAgentStore((s) => s.projects);
   const activeConversationId = useAgentStore((s) => s.activeConversationId);
@@ -51,6 +46,15 @@ export function AgentSidebarPanel({ onToggleSidebar }: AgentSidebarPanelProps) {
 
   const handleStartNewChat = () => {
     void createNewConversation("New Chat", activeProjectId);
+    setActiveNavSection("chat");
+  };
+
+  const handleNavClick = (id: string) => {
+    if (id === "search") {
+      setShowSearch((v) => !v);
+      return;
+    }
+    setActiveNavSection(id);
   };
 
   const filteredConversations = conversations.filter((c) =>
@@ -69,39 +73,6 @@ export function AgentSidebarPanel({ onToggleSidebar }: AgentSidebarPanelProps) {
 
   return (
     <aside className={styles["agent-sidebar"]} aria-label="AI Agent Sidebar">
-      <header className={styles["agent-sidebar__header"]}>
-        <div className={styles["agent-sidebar__brand"]}>
-          <Sparkle
-            size={18}
-            weight="fill"
-            className={styles["agent-sidebar__logo"]}
-          />
-          <span className={styles["agent-sidebar__title"]}>ChatGPT</span>
-        </div>
-        <div className={styles["agent-sidebar__header-actions"]}>
-          <button
-            type="button"
-            className={styles["agent-sidebar__icon-btn"]}
-            onClick={() => setShowSearch((v) => !v)}
-            aria-label="Search chats"
-            title="Search chats"
-          >
-            <MagnifyingGlass size={16} />
-          </button>
-          {onToggleSidebar && (
-            <button
-              type="button"
-              className={styles["agent-sidebar__icon-btn"]}
-              onClick={onToggleSidebar}
-              aria-label="Close sidebar"
-              title="Close sidebar"
-            >
-              <SidebarSimple size={16} />
-            </button>
-          )}
-        </div>
-      </header>
-
       {showSearch && (
         <div className={styles["agent-sidebar__search-row"]}>
           <MagnifyingGlass
@@ -164,13 +135,16 @@ export function AgentSidebarPanel({ onToggleSidebar }: AgentSidebarPanelProps) {
               </button>
               {TOP_NAV_ITEMS.map((item) => {
                 const Icon = item.icon;
-                const isActive = activeNavSection === item.id;
+                const isActive =
+                  item.id === "search"
+                    ? showSearch
+                    : activeNavSection === item.id;
                 return (
                   <button
                     key={item.id}
                     type="button"
                     className={`${styles["agent-sidebar__nav-item"]} ${isActive ? styles["is-active"] : ""}`}
-                    onClick={() => setActiveNavSection(item.id)}
+                    onClick={() => handleNavClick(item.id)}
                   >
                     <Icon size={16} weight="regular" />
                     <span>{item.label}</span>
@@ -186,6 +160,10 @@ export function AgentSidebarPanel({ onToggleSidebar }: AgentSidebarPanelProps) {
               activeProjectChats={activeProjectChats}
               onSelectProject={(id) => selectProject(id)}
               onOpenProjectOverview={(id) => selectProject(id)}
+              onCreateNewChatInProject={(id) => {
+                void createNewConversation("New Chat", id);
+                setActiveNavSection("chat");
+              }}
               onSelectConversation={(id) => selectConversation(id)}
               onDeleteConversation={(id) => void deleteConversation(id)}
               onCreateProject={(name) => void createProject(name)}
