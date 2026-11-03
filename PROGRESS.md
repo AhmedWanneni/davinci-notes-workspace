@@ -4,28 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Library Vault Storage, Slash Menu & Prompt Menu Integration
+## Last Session — AI Library Markdown Vault Direct Editing & Project Prompt Bar Specialization
 
-1. **Library items stored as markdown files in vault** (`ai-library/` folder):
-   - Prompts → `ai-library/prompts/{title}.md`, Skills → `ai-library/skills/`, Rules → `ai-library/rules/`.
-   - Project-scoped items → `ai-library/{ProjectName}/{type}/{title}.md`.
-   - Created `libraryMarkdown.ts` (parser/serializer with YAML frontmatter), `libraryVaultStorage.ts` (load/save/delete from vault), and `agentLibraryActions.ts` (Zustand action helpers).
-2. **"Open in Editor" button on library cards** — opens the `.md` file in the editor tab via `openNote`.
-3. **Slash menu (`AgentSlashMenu.tsx`)** — typing `/` in prompt bar shows autocomplete of prompts/skills/rules from library; keyboard-navigable.
-4. **Prompt menu submenus** — "Prompt templates" and "Skills & Rules" sections in the `+` menu, with "Browse All in Library →" link.
-5. **Extracted `agentStoreLoader.ts`** — moved `loadConversations` logic out of `useAgentStore.ts` (262→223 lines, under 250 cap).
-6. **Verification**:
-   - 40 AgentView test files (109 tests) all pass.
-   - 20 ai-agent test files (113 tests) all pass.
-   - Production web build succeeds (11.20s).
+1. **AI Library Items Open in Vault Markdown Editor Directly**:
+   - Clicking a library card or list row (or the "Open in Editor" / Edit action) now opens its corresponding Markdown file in the vault using `useWorkspaceStore.openNote` rather than opening a modal dialog.
+   - When editing an unsaved item, it automatically writes to `ai-library/` first, assigns a `filePath`, and opens the note in the editor.
+   - Extracted `AgentLibraryListRow.tsx` for list view rendering to maintain single responsibility and keep `AgentLibraryBoard.tsx` at 193 lines (well under the 250-line cap).
+2. **Project Prompt Bar Mode Selection Removed**:
+   - Removed the "code" and "cowork" chat mode toggles from the prompt bar (`AgentPromptBar.tsx`) under project contexts.
+3. **Project Prompt Bar `+` Menu Options**:
+   - Configured the `+` menu (`AgentPromptMenu.tsx`) in project mode to specifically offer:
+     - **Attach files** (triggers file picker)
+     - **Take a screenshot** (triggers screenshot action)
+     - **Prompts** (expandable submenu showing vault prompt templates)
+     - **Skills** (expandable submenu showing vault skills and rules)
+     - Direct "Browse All in Library →" link.
+   - Extracted global connector/design options into `AgentPromptExtraOptions.tsx`.
+4. **Adaptive Popover Placement**:
+   - Added dynamic position checking in `AgentPromptMenu.tsx` (`is-placement-bottom` class) so that if the menu is near the top of the viewport or would be obscured by the app header, it opens downwards rather than upwards.
+5. **Verification**:
+   - All 40 test files (110 tests) in `src/components/AgentView` pass.
+   - Zero ESLint and Stylelint errors in `AgentView`.
+   - All modified files stay strictly below the 250-line cap.
+   - Graphify knowledge graph updated via `graphify update .`.
 
 ---
 
 ## Next Up
 
-- End-to-end verification in running desktop app (add prompt creates `.md`, slash menu works, "Open in Editor" works).
-- Run `graphify update .` to sync knowledge graph.
-- Stage, commit, and create PR.
+- Stage, commit, and open pull request on `feat/ai-agent-library-board-project-chats`.
+- Run preflight checks if cutting a release.
 
 ---
 

@@ -2,6 +2,216 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-03: AI Library Markdown Vault Direct Editing & Project Prompt Bar Specialization
+
+- **Library Item Direct Vault Editing (`AgentLibraryBoard.tsx`, `AgentLibraryCard.tsx`, `AgentLibraryListRow.tsx`)**:
+  - Replaced the modal dialog edit flow with direct Markdown file editing in the vault (`useWorkspaceStore.openNote`).
+  - Clicking on a card or list row title or the edit/file icon opens the markdown file directly in an editor tab.
+  - For unsaved items, writes the markdown document into `ai-library/` first, assigns the file path, and immediately opens it in the editor.
+  - Extracted `AgentLibraryListRow.tsx` (107 lines) to cleanly handle row rendering and keep `AgentLibraryBoard.tsx` at 193 lines (under 250 cap).
+- **Project Prompt Bar Mode Selection Removed (`AgentPromptBar.tsx`)**:
+  - Removed code / cowork mode switcher from the prompt bar under project views.
+- **Project Prompt Bar `+` Menu Specialization (`AgentPromptMenu.tsx`, `AgentPromptExtraOptions.tsx`)**:
+  - Focused the project `+` popover on: **Attach files**, **Take a screenshot**, **Prompts**, and **Skills**.
+  - Submenu headers renamed to "Vault Prompt Templates" and "Vault Skills & Rules" with "Browse All in Library →" link.
+  - Extracted global connector and design options to `AgentPromptExtraOptions.tsx` (122 lines).
+- **Adaptive Popover Placement (`AgentPromptMenu.tsx`, `AgentPromptMenu.module.scss`)**:
+  - Dynamic positioning logic detects proximity to the viewport top and flips the menu downwards (`.is-placement-bottom`) to prevent menu clipping by top application chrome.
+- **Verification**: All 40 AgentView unit tests (110 tests) pass. Stylelint and ESLint 100% clean. Graphify graph updated.
+
+### 2026-11-03: Fix App Blocking / Freezing When Clicking "Library" in AI Agent Sidebar
+
+- **Root Cause**:
+  1. `useAgentConversations.ts`: Line 35 returned an inline wrapper `saveActiveMessages: (msgs) => saveActiveMessages(msgs)` that created a new closure on every render.
+  2. `AgentView.tsx`: Had an effect saving active messages whenever `saveActiveMessages` or `messages` changed without checking if messages had actually changed (`lastSavedKeyRef`) or if streaming was active. When `activeNavSection` was set to `"library"`, `AgentView` re-rendered, recreating the closure and firing `saveActiveMessages` in an infinite re-render loop that wrote to disk continuously and froze the main JS thread.
+  3. `AgentLibraryBoard.tsx` & `AgentLibraryTopBar.tsx`: Did not defensively handle missing/undefined `libraryItems` or `projects`, which could lead to unhandled TypeErrors.
+- **Fixes Applied**:
+  1. **Stable Save Reference (`useAgentConversations.ts`)**: Direct reference to Zustand's stable `saveActiveMessages`.
+  2. **Idempotent Save Effect (`AgentView.tsx`)**: Guarded saving with `lastSavedKeyRef` and `!isStreaming`.
+  3. **Defensive Defaults (`AgentLibraryBoard.tsx`, `AgentLibraryTopBar.tsx`, `AgentLibraryCard.tsx`)**: Ensured arrays default to `DEFAULT_LIBRARY_ITEMS` and `[]` and sanitized timestamps.
+  4. **Error Boundary (`AgentLibraryErrorBoundary.tsx`)**: Created dedicated error boundary to catch and safely recover from any runtime error in Library view.
+  5. **Refactored `AgentActiveChat.tsx`**: Extracted active chat UI to keep `AgentView.tsx` under the 250-line hard cap (186 lines).
+- **Verification**: All 17 Vitest unit tests pass. Production web build succeeds in 11.3s.
+
+### 2026-11-03: Fix Bookmark Link Opening & Unify Notes Bookmarks with Web Link Layout
+
+- **Open-link fix (`oauth.rs`, `lib.rs`, `BookmarksView.tsx`)**: root cause was `open_external_url` only allowing an OAuth/meeting host allowlist, so every saved bookmark URL was refused (and the `window.open` fallback does nothing in Tauri). Added a dedicated `open_bookmark_url` command (still rejects the plugin runner; accepts only `http(s)` links, no whitespace) with a Rust unit test. `open_external_url` allowlist is unchanged.
+- **Notes bookmarks now share the web-link UI**: `BookmarksView` renders both tabs through `WebBookmarksSubView` (`variant="notes"`), so notes get List/Cards/Headlines/Moodboard, covers, sort menu, search, sidebar collections (vault folders), Unsorted, Trash (missing notes) and a Without-tags filter (tags from the vault tag index). Notes variant hides Add/Add-from-browser/AI/Export; edit and link icon open the note; remove un-bookmarks.
+- New: `useNoteBookmarkItems.ts`, `WebBookmarksViewSwitch.tsx`; `convertNotesToWebBookmarkItems` now carries tags and missing state; `WebBookmarkCover` shows a note icon for non-web items. Removed `BookmarksHeader`, `BookmarkRow`, `NoteBookmarksSubView`, `useBookmarkKeyboardNav`.
+- Tests: rewrote `BookmarksView.test.tsx` for the unified notes UI (collections, tag filter, trash, open, remove); all bookmark suites pass.
+
+### 2026-11-03: Browser Bookmark Importer Fix, Website Covers & Direct Link Navigation
+
+- **Browser Bookmark Import Fix (`WebBookmarkImportModal.tsx`, `WebBookmarkBrowserGrid.tsx`, `browserBookmarkImporter.ts`, `browserBookmarkParsers.ts`, `browserBookmarkFallback.ts`)**:
+  - Added direct 1-click "Import" action button on every detected browser row in `WebBookmarkBrowserGrid.tsx` for immediate 1-click import.
+  - Automatically pre-selects and loads the summary for the first detected browser on modal mount, ensuring the primary "Import" button is never inert or blocked.
+  - Handled both camelCase `{ browserId }` and snake_case `{ browser_id }` Tauri IPC parameter casing, with dev/testing fallback in non-Tauri environments.
+  - Refactored parsers into `browserBookmarkParsers.ts` and `browserBookmarkFallback.ts` to strictly maintain the <250 line constraint across all modules.
+- **Website Cover Previews (`WebBookmarkCover.tsx`, `bookmarkStorage.ts`, `WebBookmarksCardsView.tsx`, `WebBookmarkListRow.tsx`, `WebBookmarksMoodboardView.tsx`, `WebBookmarksHeadlinesView.tsx`)**:
+  - Implemented `WebBookmarkCover.tsx` featuring a 3-tier cascading fallback:
+    1. High-resolution website cover/screenshot (`https://image.thum.io/get/width/600/crop/800/noanimate/${url}`).
+    2. Cascading high-resolution favicon fallback (`https://www.google.com/s2/favicons?domain=${domain}&sz=128`).
+    3. Domain badge & Globe placeholder if network fails or offline.
+  - Updated `bookmarkStorage.ts` to persist `cover`, `note`, and `trashed` properties.
+  - Integrated `WebBookmarkCover` across Cards, List rows, Headlines, and Moodboard views.
+- **Direct Link Navigation Icon (`ArrowSquareOut`)**:
+  - Added explicit external link buttons (`ArrowSquareOut` from `@phosphor-icons/react`) with tooltip "Open link in browser" and `aria-label="Open link in browser"`.
+  - Clicking the link icon immediately opens the external URL in the browser via `onOpenExternal(item.url)`.
+  - Placed link icons next to domain names and in row/card action bars.
+- **Verification & Testing**:
+  - Added unit test suite `WebBookmarkCover.test.tsx` and Storybook story `WebBookmarkCover.stories.tsx`.
+  - Added end-to-end user interaction tests in `WebBookmarksView.test.tsx` verifying direct link opening and 1-click browser import.
+  - All 63 tests across 11 test files in `src/bookmarks` and `src/components/BookmarksView` pass with 100% green status.
+
+### 2026-11-03: "Less Boxes Always" Visual Standard & Menu/Dialog Pattern
+
+- **"Less Boxes Always" Visual Redesign (`WebBookmarkImportModal.tsx`, `WebBookmarkBrowserGrid.tsx`, `WebBookmarkImportModal.module.scss`)**:
+  - Replaced chunky card grids and dashed box containers with flat, unboxed list rows matching the reference menu design (`EditorMenuBarDropdown`).
+  - Colors: `var(--color-bg-primary)` surface, `var(--color-bg-hover)` row hover, hairline `1px solid var(--color-border-subtle)` dividers.
+  - Shadow: Floating soft elevation `box-shadow: 0 4px 20px rgb(0 0 0 / 10%)` with perimeter hairline border.
+  - Fonts & Padding: Compact container `padding: 6px 0;` (or `6px 8px;`), item rows `padding: 7px 14px;` (or `8px 12px;`), `gap: 10px;`, item text `font-size: 13px; font-weight: 400;`, shortcuts/metadata `font-size: 11px; color: var(--color-text-muted);`.
+  - Prohibited heavy nested boxes, card borders, and chunky badges across popups and dialogs.
+- **Skills and Rules Enforcement**:
+  - Updated [`.agents/rules/dialog-design.md`](../.agents/rules/dialog-design.md), [`.claude/skills/create-dialog/SKILL.md`](../.claude/skills/create-dialog/SKILL.md), [`.agents/skills/create-dialog/SKILL.md`](../.agents/skills/create-dialog/SKILL.md), [`AGENTS.md`](../AGENTS.md), and [`GEMINI.md`](../GEMINI.md).
+- **Verification**:
+  - All 20 tests in `src/components/BookmarksView` and 38 tests in `src/bookmarks` pass with zero warnings.
+
+### 2026-11-03: Align Dialog Design with SettingsDialog Pattern & Add Dialog Skill/Rule
+
+- **Dialog Redesign (`WebBookmarkImportModal.tsx`, `WebBookmarkBrowserGrid.tsx`, `WebBookmarkImportModal.module.scss`, `WebBookmarkImportModal.stories.tsx`)**:
+  - Re-implemented the browser import modal using `@radix-ui/react-dialog` (`Root`, `Portal`, `Overlay`, `Content`).
+  - Added native macOS window header: 44px height, traffic lights window affordances (`Close` `#ff5f56`, `Minimize` `#ffbd2e`, `Maximize` `#27c93f`), centered title (`var(--type-scale-sm)`, `var(--type-weight-semibold)`), and `60px` spacer.
+  - Styled with `var(--color-bg-primary)`, `border: var(--border-width-thin) solid var(--color-border-subtle)`, `border-radius: var(--border-radius-lg)`, and `overlay-show` / `content-show` entrance animations (depth achieved via borders, zero box-shadows or gradients).
+  - Extracted `WebBookmarkBrowserGrid.tsx` (64 lines) to keep `WebBookmarkImportModal.tsx` at 216 lines (under 250 hard cap).
+  - Added Storybook story `WebBookmarkImportModal.stories.tsx`.
+- **Permanent Agent Rules & Skills**:
+  - Created [`.agents/rules/dialog-design.md`](../.agents/rules/dialog-design.md) (automatically active for all future AI agents).
+  - Created [`.claude/skills/create-dialog/SKILL.md`](../.claude/skills/create-dialog/SKILL.md) and [`.agents/skills/create-dialog/SKILL.md`](../.agents/skills/create-dialog/SKILL.md) with complete blueprints and copy-pasteable TSX/SCSS templates.
+  - Updated [`AGENTS.md`](../AGENTS.md) and [`GEMINI.md`](../GEMINI.md) making the `SettingsDialog` standard mandatory across the codebase.
+- **Verification**:
+  - All 20 tests in `src/components/BookmarksView` and 38 tests in `src/bookmarks` pass with zero warnings.
+
+### 2026-11-03: "Add from browser" Button Next to "Add Link" & Browser Selection Modal
+
+- **"Add from browser" Button (`WebBookmarksTopBar.tsx`, `WebBookmarksHeader.module.scss`, `WebBookmarksSubView.tsx`, `BookmarksHeader.tsx`)**:
+  - Added the dedicated `Add from browser` button right next to `Add link` / `Add Link` across the bookmarks headers.
+  - Clicking `Add from browser` directly opens the browser selection dialog where the user can choose from Google Chrome, Brave, Firefox, Arc, Microsoft Edge, and Vivaldi.
+  - Automatically reads bookmarks from the chosen browser, displays count and folders, and provides 1-click import with smart categorization/AI option.
+- **Verification**:
+  - Added unit test in `WebBookmarksView.test.tsx` verifying the presence and action of `Add from browser` next to `Add Link`.
+  - All 20 tests in `src/components/BookmarksView` pass with zero warnings.
+
+### 2026-11-02: Bookmark Link Browser Selector & Auto-Import Flow
+
+- **Browser Selection in Bookmark Link Flow (`WebBookmarkAddBar.tsx`, `WebBookmarkManualForm.tsx`, `WebBookmarkBrowserPicker.tsx`, `WebBookmarkBrowserList.tsx`, `WebBookmarkAddBar.module.scss`)**:
+  - Enhanced the Add Web Bookmark flow with dual mode tabs: `Manual link` and `Add from browser`, plus an inline "From browser..." button in the manual entry form.
+  - Implemented `WebBookmarkBrowserPicker.tsx` (86 lines) with asynchronous detection of installed browsers (`detectInstalledBrowsers`) and interactive cards/chips as well as an accessible `<select>` dropdown for choosing between Google Chrome, Brave, Firefox, Arc, Microsoft Edge, and Vivaldi.
+  - Implemented `WebBookmarkBrowserList.tsx` (121 lines) to display bookmarks retrieved from the selected browser (`autoImportFromBrowser`). Supports real-time search filtering, 1-click "Add" for individual bookmarks, "Edit" to populate the URL, title, tags, and category into the manual form, batch "Add all (N)" action, and "Switch browser" navigation.
+  - Extracted manual entry form into `WebBookmarkManualForm.tsx` (109 lines) ensuring all components strictly stay under the 200 soft cap and 250 hard cap (`WebBookmarkAddBar.tsx` is 181 lines).
+- **Batch Addition Integration (`BookmarksView.tsx`)**:
+  - Connected `onAddBatch` to `importWebBookmarks` in `BookmarksView.tsx` with user-facing status feedback.
+- **Tests & Stories (`WebBookmarkAddBar.test.tsx`, `WebBookmarkAddBar.stories.tsx`)**:
+  - Added unit test suite covering manual submission, invalid URL validation, switching to browser mode, choosing a browser, filtering bookmarks list, adding single/all bookmarks, using in form, and error handling.
+  - Added Storybook stories for ManualMode and BrowserMode.
+  - All 10 test suites (57 tests) passing cleanly.
+
+### 2026-11-02: AI Agent Sidebar Modernization, Project Chat Flow, Context Strict Isolation & Library Board
+
+- **Removed Header in AI Agent Sidebar (`AgentSidebarPanel.tsx`, `AgentSidebarPanel.module.scss`)**:
+  - Removed top header containing "ChatGPT" branding, magnifying glass icon button, and sidebar collapse button.
+  - Removed obsolete header styles in SCSS modules.
+- **Replaced Plugins, Codex, Explore with Search (`AgentSidebarPanel.tsx`, `AgentSidebarPanel.test.tsx`)**:
+  - Excised `plugins`, `codex`, and `explore` from sidebar nav.
+  - Added interactive `Search` item in the top nav items alongside `Library`, `Images`, and `Scheduled`.
+  - Clicking `Search` toggles and focuses the search input in the sidebar for searching chats and messages.
+- **Project New Chat Flow (`AgentSidebarPanel.tsx`, `AgentSidebarProjectsSection.tsx`, `AgentView.tsx`, `AgentProjectView.tsx`)**:
+  - Clicking "New chat" while under an active project or clicking the "+" / "New chat" button within a project creates a new conversation scoped to that project (`projectId: activeProjectId`).
+  - `AgentView` renders `AgentProjectView` for empty/new conversations in that project, maintaining the new conversation prompt UI while keeping that project's previous conversation history (`Recents`) directly underneath and the project context panel on the right.
+  - When the user sends their first message, it seamlessly transitions into the active conversation messages view.
+- **Strict Project Context Isolation (`conversationTypes.ts`, `conversationStore.ts`, `agentPromptResolver.ts`, `useAgentExecution.ts`, `AgentProjectContextIsolation.test.ts`)**:
+  - Added `instructions?: string` to `AgentProject`, persisted in `.davinci/agent/conversations.json`.
+  - `addProjectSource` and `setProjectInstructions` strictly isolate files and instructions to the target project.
+  - `agentPromptResolver` injects project context sources and instructions into the LLM system prompt exclusively during executions of conversations belonging to that project; conversations outside that project or in other projects have zero leak of context sources or instructions.
+  - Created comprehensive unit tests in `AgentProjectContextIsolation.test.ts` and `conversationStore.test.ts` asserting strict multi-project isolation.
+- **Library Board (`AgentLibraryBoard.tsx`, `AgentLibraryCard.tsx`, `AgentLibraryTopBar.tsx`, `AgentLibraryModal.tsx`, `AgentLibraryBoard.module.scss`)**:
+  - Modeled directly after the reference image UI, adapted to the project's design tokens and editorial Swiss aesthetic.
+  - Top filter row: "Filter by" label with interactive project pills (`All Projects`, `General`, project name tags) and type pills (`All Types`, `Prompts`, `Skills`, `Rules`).
+  - Top right: selection summary (`N selected | Select All`), batch actions ("Use in Prompt", "Delete"), and view mode switchers (4-column responsive Grid vs List view).
+  - Prominent "+ ADD NEW" button opening a creation modal allowing users to create or edit prompts, skills, and rules scoped to specific projects or globally.
+  - Cards display category badge (`PROMPT`, `SKILL`, `RULE`), project tag, truncated description, relative timestamp, and actions (Use in Prompt, Edit, Delete).
+- **Prompt Integration (`useAgentStore.ts`, `AgentPromptMenu.tsx`, `AgentLibraryBoard.tsx`)**:
+  - Users can integrate single library cards directly into the chat prompt via the card's "Use in prompt" button.
+  - Users can select multiple items across projects and click "Use Selected" in the top bar to concatenate rules, skills, and prompts into the active prompt.
+  - Added Library items into the chat prompt bar's `+` attachments menu (`AgentPromptMenu.tsx`) for instant in-chat insertion.
+- **Quality & Verification**:
+  - All 19 test files (108 tests) in `@app/ai-agent` pass.
+  - All 38 test files (102 tests) in `src/components/AgentView` pass.
+  - All files strictly adhere to soft cap 200 / hard cap 250 lines rule.
+
+- **Removed Agent Review & GitLens Sections (`GitSidebarPanel.tsx`)**:
+  - Removed dummy placeholder accordion sections for `Agent Review` and `GitLens` along with their states (`isAgentReviewOpen`, `isGitlensOpen`).
+  - Preserved `GitGraphSection` on-demand via the branch/graph icon in the top header toolbar, keeping the default view 100% aligned with the reference screenshot.
+- **Top `CHANGES` Header Toolbar (`GitChangesSection.tsx`, `GitSidebarPanel.module.scss`)**:
+  - Styled top header with `CHANGES` uppercase label and chevron down (`v`).
+  - Added full 8-action icon toolbar:
+    - `ListDashes` (View as Tree / List)
+    - `SquareSplitHorizontal` (Open All Changes)
+    - `Sparkle` (Generate commit message)
+    - `DownloadSimple` (Pull changes)
+    - `GitFork` (Toggle Git Graph section)
+    - `Check` (Commit)
+    - `ArrowClockwise` (Refresh)
+    - `DotsThree` (More Actions)
+- **Commit Input & Blue Split Commit Button (`GitCommitBox.tsx`, `GitCommitBox.module.scss`, `vite.config.ts`)**:
+  - Replaced purple button with standard VS Code blue `#0078d4` split button (`✓ Commit` + dropdown chevron) with subtle white divider.
+  - Fixed button overflow and washed-out text: added `min-width: 0 !important; overflow: hidden !important;`, prevented flex items from stretching out of bounds, and ensured high-contrast white text and checkmark icon even when disabled.
+  - Connected auto-staging on commit: typing a message and clicking Commit when only unstaged changes exist stages and commits seamlessly (VS Code behavior).
+  - Added `@app/git-manager` to `apps/desktop/vite.config.ts` alias map to ensure live source resolution and instant HMR in the desktop dev server.
+  - Textarea styled with compact 32px height, crisp blue `#007acc` border, centered sparkle generator icon, and dynamic placeholder `Message (⌘↩ to commit on "feat/webs...")`.
+- **Header Single-Row Enforcement & Changes List (`GitChangesSection.tsx`, `GitSidebarPanel.module.scss`, `GitStatusRow.module.scss`)**:
+  - Added `flex-wrap: nowrap !important; overflow: hidden;` to `.git-accordion-header` so action icons never wrap onto a second line.
+  - Enforced `min-width: 0` and ellipsis truncation on file row directory paths so status badges (`M`) remain pinned on the right.
+  - Rendered collapsible `v Changes` title-case section with circular pill count badge `(3)` on the right.
+  - Added file-specific icons:
+    - `TS` badge in blue `#3178c6` for TypeScript/JavaScript files.
+    - `(i)` info icon in blue `#0969da` for README/markdown docs.
+    - `⚛` Atom icon in cyan `#00b4d8` for React `.tsx`/`.jsx` components.
+  - Directory paths muted with ellipsis truncation (`apps/website/src/modu...`).
+  - Status badge on right (`M` in amber `#c67c00`).
+- **Quality & Verification**:
+  - All 14 test files (50 tests) in `@app/git-manager` passing.
+  - Added `GitSidebarPanel.test.tsx` verifying removal of Agent Review/GitLens and presence of toolbar/changes list.
+  - ESLint clean across all touched files; all files strictly under 250-line hard cap.
+  - Desktop production build verified (`pnpm --filter @app/desktop build:web`) in 10.32s.
+  - Knowledge graph updated (`graphify update .`).
+
+### 2026-11-02: AI Listening Pipeline Fix, Rolling Summaries Accordion, Agent Meeting Chat & Privacy Gate
+
+- **Pipeline Diagnosis & Speech Feed (`useLiveSpeechRecognition.ts`)**:
+  - Traced pipeline failure: `toggle (1) -> state (2) -> trigger (3)` operated as intended, but step 4 (`transcript buffer`) failed because `segmentsRef.current.length === 0` (no speech-to-text recognition was feeding live audio into segments during recording).
+  - Implemented `useLiveSpeechRecognition.ts` with Web Speech API recognition and testable speech simulation fallback.
+- **Path A — Lightweight Live Summaries (`useLiveSummaries.ts`, `RollingSummariesAccordion.tsx`)**:
+  - Runs directly through configured provider via plain completion (no agent loop, no tools, zero overhead).
+  - Trigger constraints: >= 2 min (intervals: 1m, 2m [default], 5m, manual) AND >= 150 new words. Skips entirely during silence or with toggle off.
+  - Single in-flight lock to prevent concurrent summary calls; non-blocking status banner with retry on next interval tick.
+  - Rolling summaries accordion UI: Timestamp labels (`00:00 - 02:00`), latest expanded by default without stealing focus or auto-scrolling; older summaries collapsed.
+  - Summary controls: Interval setting dropdown, "Summarize now" immediate trigger, and pause toggle.
+  - Final summary on stop: Full raw transcript serves as the source of truth; generates final comprehensive summary on session stop and writes it into the vault meeting note.
+- **Path B — Questions On-Demand via Agent (`useMeetingAgentChat.ts`, `MeetingAgentChatFeed.tsx`)**:
+  - Chat box in AI panel connecting to full AI agent with tools and vault access.
+  - Dedicated conversation thread in `useAgentStore` appearing on the agent page (`davinci://agent`).
+  - Context injected: Searchable raw transcript via SQLite FTS5 index under `withDbLock` per ADR-0168 (with in-memory BM25 fallback), rolling summaries, and meeting note path.
+- **Privacy Warning Modal (`AIListeningPrivacyModal.tsx`)**:
+  - Modal displayed before enabling AI Listening: strong privacy warning for Google Gemini (free tier human review / product improvement), standard notice for cloud providers (OpenAI / Anthropic), auto-accept bypass for local Ollama.
+- **Quality & Verification**:
+  - Verified 6-minute clip test (`sixMinuteMeetingClip.test.ts`) reporting items (a)-(f).
+  - 74 tests passing across all 21 test files in `src/components/ListeningView/`.
+  - Stylelint clean with 0 errors/warnings; token-based design only.
+  - Every file strictly under 250-line hard cap.
+  - Storybook stories for all new components.
+  - Web build verified (`pnpm --filter @app/desktop build:web`).
+  - Knowledge graph updated (`graphify update .`).
+
 ### 2026-11-02: Fix Horizontal Row Layout for Meeting Workspace Columns & Visualizer Refactor
 
 - **Horizontal Row Column Layout (`ListeningView.module.scss`)**:

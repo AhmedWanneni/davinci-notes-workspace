@@ -65,7 +65,14 @@ export function AgentLibraryCard({
       aria-label={`${item.type}: ${item.title}`}
     >
       <div className={styles["library-card__top"]}>
-        <h3 className={styles["library-card__title"]}>{item.title}</h3>
+        <h3
+          className={styles["library-card__title"]}
+          onClick={onEdit}
+          style={{ cursor: "pointer" }}
+          title="Click to open and edit in editor"
+        >
+          {item.title}
+        </h3>
         <button
           type="button"
           className={`${styles["library-card__select-btn"]} ${isSelected ? styles["is-checked"] : ""}`}
@@ -138,7 +145,7 @@ export function AgentLibraryCard({
             type="button"
             className={styles["library-card__action-btn"]}
             onClick={onEdit}
-            title="Edit item"
+            title="Edit in editor"
             aria-label={`Edit ${item.title}`}
           >
             <PencilSimple size={12} />

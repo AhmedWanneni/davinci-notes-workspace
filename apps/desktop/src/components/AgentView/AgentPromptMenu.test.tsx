@@ -82,4 +82,32 @@ describe("AgentPromptMenu", () => {
     expect(onSelectPrompt).toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });
+
+  it("renders project variant with focused items: attach file, screenshot, prompts, skills", () => {
+    const { container } = render(
+      <AgentPromptMenu
+        isOpen={true}
+        onClose={vi.fn()}
+        onUploadFiles={vi.fn()}
+        onTakeScreenshot={vi.fn()}
+        onSelectPrompt={vi.fn()}
+        variant="project"
+      />,
+    );
+
+    expect(screen.getByText("Attach files")).toBeTruthy();
+    expect(screen.getByText("Take a screenshot")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^prompts/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^skills/i })).toBeTruthy();
+    expect(screen.getByText("Browse All in Library →")).toBeTruthy();
+
+    // Standard options should not be present in project variant
+    expect(screen.queryByText("Add to project")).toBeNull();
+    expect(screen.queryByText("Add connector")).toBeNull();
+
+    // Project variant defaults to bottom placement
+    expect((container.firstChild as HTMLElement).className).toMatch(
+      /is-placement-bottom/,
+    );
+  });
 });

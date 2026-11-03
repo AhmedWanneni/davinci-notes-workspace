@@ -1,13 +1,5 @@
 import { useState, useMemo } from "react";
-import {
-  Plus,
-  Trash,
-  PaperPlaneTilt,
-  Check,
-  Circle,
-  PencilSimple,
-  FileText,
-} from "@phosphor-icons/react";
+import { Plus } from "@phosphor-icons/react";
 import type { LibraryItem, LibraryItemType } from "@app/ai-agent";
 import { useAgentStore } from "../useAgentStore";
 import { useWorkspaceStore } from "../../../state/useWorkspaceStore";
@@ -16,8 +8,10 @@ import {
   formatSingleLibraryPrompt,
   formatBatchLibraryPrompts,
 } from "./agentLibraryActions";
+import { saveLibraryItemToVault } from "./libraryVaultStorage";
 import { AgentLibraryTopBar } from "./AgentLibraryTopBar";
 import { AgentLibraryCard } from "./AgentLibraryCard";
+import { AgentLibraryListRow } from "./AgentLibraryListRow";
 import { AgentLibraryModal } from "./AgentLibraryModal";
 import styles from "./AgentLibraryBoard.module.scss";
 
@@ -39,7 +33,6 @@ export function AgentLibraryBoard() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<LibraryItem | null>(null);
 
   const filteredItems = useMemo(() => {
     return libraryItems.filter((item) => {
@@ -75,6 +68,16 @@ export function AgentLibraryBoard() {
       selectedIds.forEach((id) => void deleteLibraryItem(id));
       setSelectedIds(new Set());
     }
+  };
+
+  const handleEditItem = (item: LibraryItem) => {
+    if (item.filePath) {
+      void openNote(item.filePath);
+      return;
+    }
+    void saveLibraryItemToVault(item, projects).then((saved) => {
+      if (saved.filePath) void openNote(saved.filePath);
+    });
   };
 
   const handleSaveModal = (itemPartial: Partial<LibraryItem>) => {
@@ -131,10 +134,7 @@ export function AgentLibraryBoard() {
         <button
           type="button"
           className={styles["library-board__add-new-btn"]}
-          onClick={() => {
-            setEditingItem(null);
-            setIsModalOpen(true);
-          }}
+          onClick={() => setIsModalOpen(true)}
         >
           <Plus size={15} weight="bold" />
           <span>ADD NEW</span>
@@ -155,10 +155,7 @@ export function AgentLibraryBoard() {
               isSelected={selectedIds.has(item.id)}
               onToggleSelect={() => toggleSelect(item.id)}
               onUseInPrompt={() => handleUseSingleInPrompt(item)}
-              onEdit={() => {
-                setEditingItem(item);
-                setIsModalOpen(true);
-              }}
+              onEdit={() => handleEditItem(item)}
               onDelete={() => void deleteLibraryItem(item.id)}
               onOpenNote={(path) => void openNote(path)}
             />
@@ -167,91 +164,30 @@ export function AgentLibraryBoard() {
       ) : (
         <div className={styles["library-board__list"]}>
           {filteredItems.map((item) => (
-            <div
+            <AgentLibraryListRow
               key={item.id}
-              className={`${styles["library-board__list-row"]} ${selectedIds.has(item.id) ? styles["is-selected"] : ""}`}
-            >
-              <div className={styles["library-board__list-left"]}>
-                <button
-                  type="button"
-                  className={styles["library-card__select-btn"]}
-                  onClick={() => toggleSelect(item.id)}
-                >
-                  {selectedIds.has(item.id) ? (
-                    <Check size={12} weight="bold" />
-                  ) : (
-                    <Circle size={10} />
-                  )}
-                </button>
-                <span className={styles["library-board__list-title"]}>
-                  {item.title}
-                </span>
-                <span className={styles["library-card__project-tag"]}>
-                  {getProjectName(item.projectId)}
-                </span>
-                {item.filePath && (
-                  <span
-                    className={styles["library-card__path-tag"]}
-                    title={`Open file: ${item.filePath}`}
-                    onClick={() => void openNote(item.filePath!)}
-                  >
-                    {item.filePath}
-                  </span>
-                )}
-              </div>
-              <div className={styles["library-card__actions"]}>
-                {item.filePath && (
-                  <button
-                    type="button"
-                    className={styles["library-card__action-btn"]}
-                    onClick={() => void openNote(item.filePath!)}
-                    title={`Open ${item.filePath} in editor`}
-                    aria-label={`Open ${item.title} in editor`}
-                  >
-                    <FileText size={12} />
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className={`${styles["library-card__action-btn"]} ${styles["is-primary"]}`}
-                  onClick={() => handleUseSingleInPrompt(item)}
-                  title="Use in prompt"
-                >
-                  <PaperPlaneTilt size={12} weight="fill" />
-                </button>
-                <button
-                  type="button"
-                  className={styles["library-card__action-btn"]}
-                  onClick={() => {
-                    setEditingItem(item);
-                    setIsModalOpen(true);
-                  }}
-                  title="Edit item"
-                >
-                  <PencilSimple size={12} />
-                </button>
-                <button
-                  type="button"
-                  className={`${styles["library-card__action-btn"]} ${styles["is-danger"]}`}
-                  onClick={() => void deleteLibraryItem(item.id)}
-                  title="Delete item"
-                >
-                  <Trash size={12} />
-                </button>
-              </div>
-            </div>
+              item={item}
+              projectName={getProjectName(item.projectId)}
+              isSelected={selectedIds.has(item.id)}
+              onToggleSelect={() => toggleSelect(item.id)}
+              onUseInPrompt={() => handleUseSingleInPrompt(item)}
+              onEdit={() => handleEditItem(item)}
+              onDelete={() => void deleteLibraryItem(item.id)}
+              onOpenNote={(path) => void openNote(path)}
+            />
           ))}
         </div>
       )}
 
-      <AgentLibraryModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSaveModal}
-        projects={projects}
-        initialItem={editingItem}
-        defaultProjectId={projectFilter}
-      />
+      {isModalOpen && (
+        <AgentLibraryModal
+          isOpen={isModalOpen}
+          initialItem={null}
+          projects={projects}
+          onClose={() => setIsModalOpen(false)}
+          onSave={handleSaveModal}
+        />
+      )}
     </div>
   );
 }

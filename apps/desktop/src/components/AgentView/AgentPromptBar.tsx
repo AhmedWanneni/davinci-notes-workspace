@@ -43,8 +43,6 @@ export function AgentPromptBar({
 }: AgentPromptBarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const chatMode = useAgentStore((s) => s.chatMode);
-  const setChatMode = useAgentStore((s) => s.setChatMode);
   const setModelPickerOpen = useAgentStore((s) => s.setModelPickerOpen);
   const libraryItems = useAgentStore((s) => s.libraryItems);
 
@@ -126,6 +124,7 @@ export function AgentPromptBar({
         onUploadFiles={() => fileInputRef.current?.click()}
         onTakeScreenshot={handleTakeScreenshot}
         onSelectPrompt={(p) => onChange(p)}
+        variant={variant}
       />
     </div>
   );
@@ -188,22 +187,6 @@ export function AgentPromptBar({
           <div className={styles["prompt-bar__project-bottom"]}>
             <div className={styles["prompt-bar__project-left"]}>
               {menuButton}
-              <div className={styles["prompt-bar__mode-toggle"]}>
-                <button
-                  type="button"
-                  className={`${styles["prompt-bar__mode-btn"]} ${chatMode === "chat" ? styles["is-active"] : ""}`}
-                  onClick={() => setChatMode("chat")}
-                >
-                  Chat
-                </button>
-                <button
-                  type="button"
-                  className={`${styles["prompt-bar__mode-btn"]} ${chatMode === "cowork" ? styles["is-active"] : ""}`}
-                  onClick={() => setChatMode("cowork")}
-                >
-                  Cowork
-                </button>
-              </div>
             </div>
             <div className={styles["prompt-bar__project-right"]}>
               <AgentPromptModelPicker />

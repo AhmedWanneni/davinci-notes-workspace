@@ -2,18 +2,12 @@ import { useState, useRef, useEffect } from "react";
 import {
   Paperclip,
   Camera,
-  FolderSimple,
   BookBookmark,
   NotePencil,
-  Plugs,
-  Palette,
-  Plug,
-  Globe,
-  Check,
 } from "@phosphor-icons/react";
 import { useAgentStore } from "./useAgentStore";
-import { CONNECTOR_OPTIONS, DESIGN_OPTIONS } from "./agentPromptMenuConfig";
 import { AgentPromptSubmenu, AgentPromptMenuWrap } from "./AgentPromptSubmenu";
+import { AgentPromptExtraOptions } from "./AgentPromptExtraOptions";
 import styles from "./AgentPromptMenu.module.scss";
 
 export interface AgentPromptMenuProps {
@@ -22,6 +16,7 @@ export interface AgentPromptMenuProps {
   onUploadFiles: () => void;
   onTakeScreenshot: () => void;
   onSelectPrompt: (prompt: string) => void;
+  variant?: "chat" | "project" | "standard";
 }
 
 export function AgentPromptMenu({
@@ -30,8 +25,12 @@ export function AgentPromptMenu({
   onUploadFiles,
   onTakeScreenshot,
   onSelectPrompt,
+  variant = "standard",
 }: AgentPromptMenuProps) {
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const [placement, setPlacement] = useState<"top" | "bottom">(
+    variant === "project" ? "bottom" : "top",
+  );
   const menuRef = useRef<HTMLDivElement>(null);
 
   const libraryItems = useAgentStore((s) => s.libraryItems) ?? [];
@@ -46,6 +45,30 @@ export function AgentPromptMenu({
       if (activeSubmenu !== null) setActiveSubmenu(null);
       return;
     }
+    const updatePlacement = () => {
+      if (!menuRef.current) return;
+      const parent = menuRef.current.parentElement;
+      if (parent) {
+        const parentRect = parent.getBoundingClientRect();
+        if (parentRect.top < 340) {
+          setPlacement("bottom");
+          return;
+        }
+      }
+      const rect = menuRef.current.getBoundingClientRect();
+      if (rect.top < 20) {
+        setPlacement("bottom");
+      } else {
+        setPlacement("top");
+      }
+    };
+    updatePlacement();
+    window.addEventListener("resize", updatePlacement);
+    return () => window.removeEventListener("resize", updatePlacement);
+  }, [isOpen, variant]);
+
+  useEffect(() => {
+    if (!isOpen) return;
     const handleClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         onClose();
@@ -53,10 +76,11 @@ export function AgentPromptMenu({
     };
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
-  }, [isOpen, activeSubmenu, onClose]);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
+  const isProject = variant === "project";
   const promptTemplates = libraryItems.filter((i) => i.type === "prompt");
   const skillsAndRules = libraryItems.filter((i) => i.type !== "prompt");
   const toggleSubmenu = (k: string) =>
@@ -64,7 +88,7 @@ export function AgentPromptMenu({
 
   return (
     <div
-      className={styles["menu"]}
+      className={`${styles["menu"]} ${placement === "bottom" ? styles["is-placement-bottom"] : ""}`}
       ref={menuRef}
       role="menu"
       aria-label="Prompt attachments and options"
@@ -79,7 +103,9 @@ export function AgentPromptMenu({
           }}
         >
           <Paperclip size={16} weight="regular" />
-          <span className={styles["menu__item-text"]}>Upload or add files</span>
+          <span className={styles["menu__item-text"]}>
+            {isProject ? "Attach files" : "Upload or add files"}
+          </span>
           <span className={styles["menu__shortcut"]}>⌘ U</span>
         </button>
 
@@ -97,7 +123,7 @@ export function AgentPromptMenu({
 
         <AgentPromptMenuWrap
           icon={<NotePencil size={16} weight="regular" />}
-          label="Prompt templates"
+          label={isProject ? "Prompts" : "Prompt templates"}
           submenuKey="templates"
           activeSubmenu={activeSubmenu}
           onToggle={toggleSubmenu}
@@ -119,7 +145,7 @@ export function AgentPromptMenu({
 
         <AgentPromptMenuWrap
           icon={<BookBookmark size={16} weight="regular" />}
-          label="Skills & Rules"
+          label={isProject ? "Skills" : "Skills & Rules"}
           submenuKey="skills"
           activeSubmenu={activeSubmenu}
           onToggle={toggleSubmenu}
@@ -145,91 +171,37 @@ export function AgentPromptMenu({
           />
         </AgentPromptMenuWrap>
 
-        <AgentPromptMenuWrap
-          icon={<FolderSimple size={16} weight="regular" />}
-          label="Add to project"
-          submenuKey="project"
-          activeSubmenu={activeSubmenu}
-          onToggle={toggleSubmenu}
-        >
-          <AgentPromptSubmenu
-            header="Select Project"
-            items={projects.map((p) => ({
-              id: p.id,
-              label: p.name,
-              icon: <FolderSimple size={14} />,
-              onClick: () => selectProject(p.id),
-            }))}
+        {isProject ? (
+          <>
+            <div className={styles["menu__divider"]} />
+            <button
+              type="button"
+              className={styles["menu__item"]}
+              onClick={() => {
+                setActiveNavSection("library");
+                onClose();
+              }}
+            >
+              <span
+                className={styles["menu__item-text"]}
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Browse All in Library →
+              </span>
+            </button>
+          </>
+        ) : (
+          <AgentPromptExtraOptions
+            projects={projects}
+            activeSubmenu={activeSubmenu}
+            onToggleSubmenu={toggleSubmenu}
+            onSelectPrompt={onSelectPrompt}
+            onSelectProject={selectProject}
+            webSearchEnabled={webSearchEnabled}
+            onToggleWebSearch={toggleWebSearch}
             onClose={onClose}
           />
-        </AgentPromptMenuWrap>
-
-        <AgentPromptMenuWrap
-          icon={<Plugs size={16} weight="regular" />}
-          label="Add connector"
-          submenuKey="connector"
-          activeSubmenu={activeSubmenu}
-          onToggle={toggleSubmenu}
-        >
-          <AgentPromptSubmenu
-            header="Connectors"
-            items={CONNECTOR_OPTIONS.map((opt, idx) => ({
-              id: idx,
-              label: opt.label,
-              onClick: () => onSelectPrompt(opt.prompt),
-            }))}
-            onClose={onClose}
-          />
-        </AgentPromptMenuWrap>
-
-        <AgentPromptMenuWrap
-          icon={<Palette size={16} weight="regular" />}
-          label="Design system"
-          submenuKey="design"
-          activeSubmenu={activeSubmenu}
-          onToggle={toggleSubmenu}
-        >
-          <AgentPromptSubmenu
-            header="Design Tokens"
-            items={DESIGN_OPTIONS.map((opt, idx) => ({
-              id: idx,
-              label: opt.label,
-              onClick: () => onSelectPrompt(opt.prompt),
-            }))}
-            onClose={onClose}
-          />
-        </AgentPromptMenuWrap>
-
-        <button
-          type="button"
-          className={styles["menu__item"]}
-          onClick={() => {
-            onSelectPrompt(
-              "List and explore community plugins installed in vault.",
-            );
-            onClose();
-          }}
-        >
-          <Plug size={16} weight="regular" />
-          <span className={styles["menu__item-text"]}>Add plugins</span>
-        </button>
-
-        <div className={styles["menu__divider"]} />
-
-        <button
-          type="button"
-          className={styles["menu__item"]}
-          onClick={() => {
-            toggleWebSearch();
-            onClose();
-          }}
-        >
-          <Globe size={16} weight="regular" />
-          <span className={styles["menu__item-text"]}>Web search</span>
-          {webSearchEnabled && (
-            <Check size={14} weight="bold" className={styles["menu__check"]} />
-          )}
-        </button>
+        )}
       </div>
     </div>
   );

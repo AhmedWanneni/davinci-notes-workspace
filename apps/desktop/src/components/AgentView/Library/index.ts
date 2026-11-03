@@ -1,6 +1,7 @@
 export { AgentLibraryBoard } from "./AgentLibraryBoard";
 export { AgentLibraryErrorBoundary } from "./AgentLibraryErrorBoundary";
 export { AgentLibraryCard } from "./AgentLibraryCard";
+export { AgentLibraryListRow } from "./AgentLibraryListRow";
 export { AgentLibraryTopBar } from "./AgentLibraryTopBar";
 export { AgentLibraryModal } from "./AgentLibraryModal";
 export { DEFAULT_LIBRARY_ITEMS } from "./agentLibraryDefaults";

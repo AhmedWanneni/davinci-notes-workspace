@@ -10,6 +10,11 @@
   padding: 6px;
   box-sizing: border-box;
 
+  &.is-placement-bottom {
+    bottom: auto;
+    top: calc(100% + 8px);
+  }
+
   &__main {
     display: flex;
     flex-direction: column;
@@ -85,6 +90,8 @@
     flex-direction: column;
     gap: 2px;
     z-index: 210;
+    max-height: min(360px, 70vh);
+    overflow-y: auto;
   }
 
   &__sub-header {
