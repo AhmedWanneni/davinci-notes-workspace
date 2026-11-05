@@ -91,6 +91,8 @@ export {
 } from "./theme/markdownAnnotationTheme";
 export {
   insertTableCommand,
+  setTableCodeEditing,
+  tableCodeEditingField,
   tableExtension,
 } from "./blocks/table/tableExtension";
 export type { TableExtensionOptions } from "./blocks/table/tableExtension";
@@ -163,6 +165,19 @@ export { htmlBlockExtension } from "./blocks/html/htmlBlockExtension";
 export { htmlBlockTheme } from "./blocks/html/htmlBlockTheme";
 export { htmlInlineExtension } from "./blocks/html/htmlInlineExtension";
 export { htmlInlineTheme } from "./blocks/html/htmlInlineTheme";
+export {
+  widgetExtension,
+  widgetTheme,
+  findWidgetBlocks,
+  buildWidgetHtml,
+  registerWidgetMount,
+  extractThemeTokens,
+} from "./blocks/widget";
+export type {
+  WidgetBlock,
+  WidgetExtensionOptions,
+  WidgetResizePayload,
+} from "./blocks/widget";
 export { loadVimExtension, getLoadedVimExtension } from "./vim/vimExtension";
 export {
   noteEmbedExtension,

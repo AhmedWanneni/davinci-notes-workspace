@@ -2,16 +2,24 @@ import { type ReactNode } from "react";
 import { AgentCodeBlock } from "./AgentCodeBlock";
 import { AgentMermaidBlock } from "./AgentMermaidBlock";
 import { AgentTableBlock } from "./AgentTableBlock";
+import { AgentWidgetBlock } from "./AgentWidgetBlock";
+import { AgentWidgetPlaceholder } from "./AgentWidgetPlaceholder";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 export interface AgentMarkdownContentProps {
   content: string;
+  isStreaming?: boolean;
   onNavigateNote?: (notePath: string) => void;
+  onNavigateFolder?: (folderPath: string) => void;
   onSaveAsNote?: (snippet: string) => void;
 }
 
 function renderInlineFormatting(
   text: string,
   onNavigateNote?: (path: string) => void,
+  onNavigateFolder?: (folderPath: string) => void,
+  allFolderPaths: string[] = [],
+  allNotePaths: string[] = [],
 ): ReactNode[] {
   // Matches ![alt](url), `code`, **bold**, *italic*, and [[wikilink]]
   const tokenRegex =
@@ -37,9 +45,42 @@ function renderInlineFormatting(
       }
     }
     if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
+      const inner = part.slice(1, -1).trim();
+      const cleanInner = inner.replace(/^\/+|\/+$/g, "");
+      const isKnownFolder =
+        Boolean(cleanInner) &&
+        (allFolderPaths.includes(cleanInner) ||
+          (inner.endsWith("/") && !cleanInner.includes(" ")));
+      const isKnownNote =
+        Boolean(cleanInner) &&
+        (allNotePaths.includes(cleanInner) ||
+          allNotePaths.includes(`${cleanInner}.md`) ||
+          cleanInner.endsWith(".md"));
+
+      if (isKnownFolder || isKnownNote) {
+        return (
+          <button
+            key={idx}
+            type="button"
+            className="agent-md-wikilink"
+            onClick={() =>
+              isKnownFolder
+                ? onNavigateFolder?.(cleanInner)
+                : onNavigateNote?.(cleanInner)
+            }
+            title={
+              isKnownFolder
+                ? `Open folder: ${cleanInner}`
+                : `Open note: ${cleanInner}`
+            }
+          >
+            {inner}
+          </button>
+        );
+      }
       return (
         <code key={idx} className="agent-md-code">
-          {part.slice(1, -1)}
+          {inner}
         </code>
       );
     }
@@ -52,15 +93,27 @@ function renderInlineFormatting(
     if (part.startsWith("[[") && part.endsWith("]]") && part.length >= 4) {
       const rawTarget = part.slice(2, -2);
       const [target, label] = rawTarget.split("|");
+      const trimmedTarget = target.trim();
+      const cleanFolder = trimmedTarget.replace(/^\/+|\/+$/g, "");
+      const isFolder =
+        allFolderPaths.includes(cleanFolder) || trimmedTarget.endsWith("/");
       return (
         <button
           key={idx}
           type="button"
           className="agent-md-wikilink"
-          onClick={() => onNavigateNote?.(target.trim())}
-          title={`Open note: ${target.trim()}`}
+          onClick={() =>
+            isFolder
+              ? onNavigateFolder?.(cleanFolder)
+              : onNavigateNote?.(trimmedTarget)
+          }
+          title={
+            isFolder
+              ? `Open folder: ${cleanFolder}`
+              : `Open note: ${trimmedTarget}`
+          }
         >
-          {label?.trim() || target.trim()}
+          {label?.trim() || trimmedTarget}
         </button>
       );
     }
@@ -70,10 +123,22 @@ function renderInlineFormatting(
 
 export function AgentMarkdownContent({
   content,
+  isStreaming,
   onNavigateNote,
+  onNavigateFolder,
   onSaveAsNote,
 }: AgentMarkdownContentProps) {
+  const allFolderPaths = useWorkspaceStore((s) => s.allFolderPaths);
+  const allNotePaths = useWorkspaceStore((s) => s.allNotePaths);
   if (!content) return null;
+  const fmt = (txt: string) =>
+    renderInlineFormatting(
+      txt,
+      onNavigateNote,
+      onNavigateFolder,
+      allFolderPaths,
+      allNotePaths,
+    );
 
   const lines = content.split("\n");
   const elements: ReactNode[] = [];
@@ -114,7 +179,20 @@ export function AgentMarkdownContent({
       flushTable();
       if (inCodeBlock) {
         const fullCode = codeBuffer.join("\n");
-        if (codeLang.toLowerCase() === "mermaid") {
+        const lowerLang = codeLang.toLowerCase();
+        if (lowerLang === "widget") {
+          elements.push(
+            isStreaming ? (
+              <AgentWidgetPlaceholder key={`widget-ph-${i}`} />
+            ) : (
+              <AgentWidgetBlock
+                key={`widget-${i}`}
+                source={fullCode}
+                onSaveAsNote={onSaveAsNote}
+              />
+            ),
+          );
+        } else if (lowerLang === "mermaid") {
           elements.push(
             <AgentMermaidBlock
               key={`mermaid-${i}`}
@@ -152,47 +230,43 @@ export function AgentMarkdownContent({
       flushList();
       tableBuffer.push(trimmed);
       continue;
-    } else {
-      flushTable();
     }
+    flushTable();
 
     if (line.startsWith("- ") || line.startsWith("* ")) {
       listBuffer.push(
         <li key={`li-${i}`} className="agent-md-list-item">
-          {renderInlineFormatting(line.slice(2), onNavigateNote)}
+          {fmt(line.slice(2))}
         </li>,
       );
       continue;
     }
 
     flushList();
-
-    if (!trimmed) {
-      continue;
-    }
+    if (!trimmed) continue;
 
     if (line.startsWith("### ")) {
       elements.push(
         <h4 key={`h3-${i}`} className="agent-md-heading agent-md-heading--h3">
-          {renderInlineFormatting(line.slice(4), onNavigateNote)}
+          {fmt(line.slice(4))}
         </h4>,
       );
     } else if (line.startsWith("## ")) {
       elements.push(
         <h3 key={`h2-${i}`} className="agent-md-heading agent-md-heading--h2">
-          {renderInlineFormatting(line.slice(3), onNavigateNote)}
+          {fmt(line.slice(3))}
         </h3>,
       );
     } else if (line.startsWith("# ")) {
       elements.push(
         <h2 key={`h1-${i}`} className="agent-md-heading agent-md-heading--h1">
-          {renderInlineFormatting(line.slice(2), onNavigateNote)}
+          {fmt(line.slice(2))}
         </h2>,
       );
     } else {
       elements.push(
         <p key={`p-${i}`} className="agent-md-paragraph">
-          {renderInlineFormatting(line, onNavigateNote)}
+          {fmt(line)}
         </p>,
       );
     }
@@ -202,14 +276,18 @@ export function AgentMarkdownContent({
   flushTable();
 
   if (inCodeBlock && codeBuffer.length > 0) {
-    elements.push(
-      <AgentCodeBlock
-        key="code-unterminated"
-        code={codeBuffer.join("\n")}
-        lang={codeLang}
-        onSaveAsNote={onSaveAsNote}
-      />,
-    );
+    if (codeLang.toLowerCase() === "widget") {
+      elements.push(<AgentWidgetPlaceholder key="widget-unterminated" />);
+    } else {
+      elements.push(
+        <AgentCodeBlock
+          key="code-unterminated"
+          code={codeBuffer.join("\n")}
+          lang={codeLang}
+          onSaveAsNote={onSaveAsNote}
+        />,
+      );
+    }
   }
 
   return <div className="agent-markdown-content">{elements}</div>;

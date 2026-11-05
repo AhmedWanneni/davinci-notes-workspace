@@ -4,7 +4,34 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Editor Typography (Pure San Francisco / SF Pro), Lavender Selection & Fixed-Width Vim Block Cursor
+## Last Session — Interactive Animated & Graph Widgets for AI Agent (Chat & CodeMirror 6 Notes)
+
+1. **Shared Zero-Dependency Renderer (`packages/editor/blocks/widget/`)**:
+   - `widgetHtmlBuilder.ts` (124 lines): Generates complete self-contained HTML for sandboxed iframes. Injects design token CSS variables (`--color-bg-primary`, `--color-text-normal`, `--color-border-subtle`, `--color-accent`) for dark/light theme parity, auto-resizing script communicating via `postMessage`, and strict iframe Content Security Policy:
+     `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; form-action 'none';`
+   - `widgetIframeManager.ts` (166 lines): Lifecycle manager enforcing a cap of 6 live iframes (`MAX_ACTIVE_WIDGET_IFRAMES`). Leverages `IntersectionObserver` to track viewport visibility; offscreen widgets unmount their iframes and render a suspended placeholder to preserve GPU/memory. Clamps heights between 60px and 500px (`DEFAULT_WIDGET_MAX_HEIGHT`).
+   - `widgetTheme.ts` (44 lines): Theme styles for `.cm-widget-block`, `.cm-widget-iframe`, `.cm-widget-placeholder`, and error states.
+   - `widgetWidget.ts` (45 lines): CodeMirror `WidgetType` implementation (`WidgetBlockWidget`). Returns `true` on `eq()` when source is identical and in `updateDOM()` to prevent iframe reloads when typing elsewhere in the note.
+   - `widgetExtension.ts` (82 lines): CodeMirror 6 extension registering `StateField<DecorationSet>`. Cursor-gated: when cursor is inside the fenced block (`cursor >= block.from && cursor <= block.to`), raw markdown source is revealed for editing; when cursor is outside, replaces block with the sandboxed widget. Notes without widgets return `Decoration.none` and load 0 iframes (0 KB overhead).
+2. **AI Chat Integration (`apps/desktop/src/components/AgentView/`)**:
+   - `AgentWidgetBlock.tsx` (128 lines) & `AgentWidgetBlock.module.scss`: Tabbed widget view ("Widget" preview and "Source" code) with Copy code and Save-to-note actions.
+   - `AgentWidgetPlaceholder.tsx` (21 lines) & `AgentWidgetPlaceholder.module.scss`: Pulse loading placeholder ("Generating interactive widget...").
+   - `AgentMarkdownContent.tsx` (242 lines): Detects ````widget ```` blocks. Displays the placeholder while streaming (`isStreaming: true`) or when block is unterminated, mounting the live iframe only once the code block is closed and streaming finishes.
+   - `AgentMessageBubble.tsx` (236 lines): Wires `isStreaming` down to `AgentMarkdownContent`.
+3. **Agent System Prompt & ADR**:
+   - `agentSystemPrompt.ts` (82 lines): Instructs the agent on when and how to emit ````widget ```` blocks (self-contained, no external libraries/CDN, theme CSS variables, play/pause controls for animations, explanations around the block).
+   - `docs/adr/0253-interactive-widgets-and-iframe-sandboxing.md`: Documented architecture decision for `widget` block format and sandbox security rules; indexed in `DECISIONS.md`.
+4. **Verification & Quality**:
+   - All 47 test files (297 tests) in `@app/editor` pass cleanly (including `widgetHtmlBuilder.test.ts`, `widgetExtension.test.ts`, `widgetIframeManager.test.ts`, and `widgetAdversarialSecurity.test.ts`).
+   - Chat streaming placeholder & tab switching verified in `AgentWidgetBlock.test.tsx` (4 tests).
+   - Adversarial security verified: `parent.__TAURI_INTERNALS__.invoke`, outbound `fetch`, and `localStorage`/`cookie` access all fail under opaque `null` origin and `connect-src 'none'`.
+   - Desktop production build (`pnpm --filter @app/desktop build:web`) succeeded in 11.14s; total bundle impact of widget renderer is <6 KB uncompressed (<1.8 KB gzip).
+   - All modified/created files verified strictly under the 250-line hard cap (range: 15 to 244 lines).
+   - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Editor Typography (Pure San Francisco / SF Pro), Lavender Selection & Fixed-Width Vim Block Cursor
 
 1. **Pure San Francisco (SF Pro) Document Typography (`packages/design-tokens/src/typography.ts`, `packages/builtin-themes/`)**:
    - The editor note content font is strictly set to **San Francisco (SF Pro)**: `-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;` for body prose, headings, and lists.

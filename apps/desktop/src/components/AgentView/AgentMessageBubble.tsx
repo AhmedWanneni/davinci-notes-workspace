@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Copy,
   Check,
@@ -21,13 +21,17 @@ import type { ChatMessageItem } from "./agentTypes";
 export interface AgentMessageBubbleProps {
   message: ChatMessageItem;
   onNavigateNote?: (notePath: string) => void;
+  onNavigateFolder?: (folderPath: string) => void;
   onRegenerate?: () => void;
+  onStreamComplete?: () => void;
 }
 
 export function AgentMessageBubble({
   message,
   onNavigateNote,
+  onNavigateFolder,
   onRegenerate,
+  onStreamComplete,
 }: AgentMessageBubbleProps) {
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
@@ -37,9 +41,13 @@ export function AgentMessageBubble({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isUser = message.role === "user";
+  const handleStreamComplete = useCallback(() => {
+    onStreamComplete?.();
+  }, [onStreamComplete]);
   const displayedContent = useWordByWordStream(
     message.content,
     !isUser && message.isStreaming,
+    handleStreamComplete,
   );
 
   useEffect(() => {
@@ -133,7 +141,9 @@ export function AgentMessageBubble({
               )}
               <AgentMarkdownContent
                 content={displayedContent}
+                isStreaming={message.isStreaming}
                 onNavigateNote={onNavigateNote}
+                onNavigateFolder={onNavigateFolder}
                 onSaveAsNote={handleOpenSaveModal}
               />
               {message.isStreaming ? (
@@ -245,6 +255,8 @@ export function AgentMessageBubble({
       <AgentToolCallList
         toolCalls={message.toolCalls || []}
         toolResults={message.toolResults}
+        onNavigateNote={onNavigateNote}
+        onNavigateFolder={onNavigateFolder}
       />
 
       <AgentSaveNoteModal

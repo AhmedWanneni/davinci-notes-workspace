@@ -38,6 +38,7 @@ import {
   tagExtension,
   insertHardLineBreak,
   softLineBreakExtension,
+  frontmatterHideExtension,
 } from "./live-preview";
 import { getLoadedVimExtension } from "./vim/vimExtension";
 import { linkExtension } from "./links";
@@ -53,6 +54,7 @@ import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
 import { tableExtension, tableTheme } from "./blocks/table";
 import { mermaidExtension, mermaidTheme } from "./blocks/mermaid";
 import { mathExtension, mathTheme } from "./blocks/math";
+import { widgetExtension, widgetTheme } from "./blocks/widget";
 import {
   htmlBlockExtension,
   htmlBlockTheme,
@@ -109,6 +111,7 @@ export function createEditorExtensions(
     codeBlockLayoutTheme,
     mermaidTheme,
     mathTheme,
+    widgetTheme,
     tagTheme,
     htmlBlockTheme,
     htmlInlineTheme,
@@ -132,13 +135,13 @@ export function createEditorExtensions(
       ),
     ),
     Prec.high(keymap.of(listIndentKeymap)),
+    Prec.high(keymap.of(historyKeymap)),
     keymap.of([
       { key: "Shift-Enter", run: insertHardLineBreak },
       { key: "Tab", run: nextSnippetField },
       { key: "Shift-Tab", run: prevSnippetField },
       { key: "Escape", run: clearSnippet },
       ...defaultKeymap,
-      ...historyKeymap,
     ]),
     markdown({
       extensions: [Table, Strikethrough, highlightExtension],
@@ -148,6 +151,7 @@ export function createEditorExtensions(
     ...(config.isSourceMode
       ? []
       : [
+          frontmatterHideExtension(),
           livePreviewExtension,
           markdownAnnotationsExtension(),
           ...(config.strictLineBreaks ? [softLineBreakExtension] : []),
@@ -168,6 +172,7 @@ export function createEditorExtensions(
           }),
           htmlBlockExtension(),
           htmlInlineExtension(),
+          widgetExtension(),
         ]),
     config.embedImageCompartment.of(
       config.isSourceMode
@@ -177,23 +182,18 @@ export function createEditorExtensions(
             resolveMediaUrl: config.resolveMediaUrl,
           }),
     ),
-    config.embedAudioCompartment
-      ? config.embedAudioCompartment.of(
-          config.isSourceMode
-            ? []
-            : embedAudioExtension({
-                notePaths: config.notePaths,
-                sourcePath: config.sourcePath,
-                resolveMediaUrl: config.resolveMediaUrl,
-              }),
-        )
-      : config.isSourceMode
+    (() => {
+      const audio = config.isSourceMode
         ? []
         : embedAudioExtension({
             notePaths: config.notePaths,
             sourcePath: config.sourcePath,
             resolveMediaUrl: config.resolveMediaUrl,
-          }),
+          });
+      return config.embedAudioCompartment
+        ? config.embedAudioCompartment.of(audio)
+        : audio;
+    })(),
     config.noteEmbedCompartment.of(
       config.isSourceMode
         ? []

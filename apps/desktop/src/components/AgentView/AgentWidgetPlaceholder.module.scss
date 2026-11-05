@@ -1,0 +1,35 @@
+.widget-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 14px 16px;
+  border-radius: var(--border-radius-md, 8px);
+  border: 1px dashed var(--color-border-subtle);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-family: var(--font-ui);
+
+  &__icon {
+    color: var(--color-text-accent);
+    animation: widget-pulse 1.5s ease-in-out infinite;
+  }
+
+  &__text {
+    font-weight: 500;
+  }
+}
+
+@keyframes widget-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}

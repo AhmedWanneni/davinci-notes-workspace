@@ -12,6 +12,8 @@ export { AgentPromptModelPicker } from "./AgentPromptModelPicker";
 export { AgentPromptMenu } from "./AgentPromptMenu";
 export { AgentSaveNoteModal } from "./AgentSaveNoteModal";
 export { AgentMermaidBlock } from "./AgentMermaidBlock";
+export { AgentWidgetBlock } from "./AgentWidgetBlock";
+export { AgentWidgetPlaceholder } from "./AgentWidgetPlaceholder";
 export { AgentCodeBlock } from "./AgentCodeBlock";
 export { AgentTableBlock } from "./AgentTableBlock";
 export { AgentExecutionLogs } from "./AgentExecutionLogs";
@@ -21,4 +23,13 @@ export { AgentPromptActions } from "./AgentPromptActions";
 export { AgentConversationHeader } from "./AgentConversationHeader";
 export { AgentSidebarSearchResults } from "./AgentSidebarSearchResults";
 export { AgentSlashMenu } from "./AgentSlashMenu";
+export { AgentAvailabilityBanner } from "./AgentAvailabilityBanner";
+export * from "./slashCommandCatalog";
 export * from "./Library";
+export {
+  extractFactToRemember,
+  getProjectMemoryPath,
+  autoSavePromptMemory,
+  loadMemoryContext,
+} from "./agentMemoryPersistence";
+export { resolveProjectSisterConversationsContext } from "./agentProjectContextResolver";

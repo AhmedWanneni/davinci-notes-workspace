@@ -2,6 +2,145 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-05: Interactive Animated & Graph Widgets for AI Agent (Chat & CodeMirror 6 Notes)
+
+- **Shared Zero-Dependency Renderer (`packages/editor/blocks/widget/`)**:
+  - Created `widgetHtmlBuilder.ts` (124 lines): Constructs full HTML document for sandboxed iframes. Dynamically resolves host design token CSS variables (`--color-bg-primary`, `--color-text-normal`, `--color-border-subtle`, `--color-accent`), injects responsive viewport and dark/light mode styles, embeds auto-resizing script utilizing `ResizeObserver` communicating via `postMessage`, and injects strict Content Security Policy:
+    `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; form-action 'none';`
+  - Created `widgetIframeManager.ts` (166 lines): Lifecycle manager enforcing a cap of 6 live iframes (`MAX_ACTIVE_WIDGET_IFRAMES`). Leverages `IntersectionObserver` to track viewport visibility; offscreen widgets unmount their iframes and render a suspended placeholder to preserve GPU/memory. Clamps heights between 60px and 500px (`DEFAULT_WIDGET_MAX_HEIGHT`).
+  - Created `widgetTheme.ts` (44 lines): Theme styles for `.cm-widget-block`, `.cm-widget-iframe`, `.cm-widget-placeholder`, and error states.
+  - Created `widgetWidget.ts` (45 lines): CodeMirror `WidgetType` implementation (`WidgetBlockWidget`). Returns `true` on `eq()` when source is identical and in `updateDOM()` to prevent iframe reloads when typing elsewhere in the note.
+  - Created `widgetExtension.ts` (82 lines): CodeMirror 6 extension registering `StateField<DecorationSet>`. Cursor-gated: when cursor is inside the fenced block (`cursor >= block.from && cursor <= block.to`), raw markdown source is revealed for editing; when cursor is outside, replaces block with the sandboxed widget. Notes without widgets return `Decoration.none` and load 0 iframes (0 KB overhead).
+- **AI Chat Integration (`apps/desktop/src/components/AgentView/`)**:
+  - Created `AgentWidgetBlock.tsx` (128 lines) & `AgentWidgetBlock.module.scss`: Tabbed widget view ("Widget" preview and "Source" code) with Copy code and Save-to-note actions.
+  - Created `AgentWidgetPlaceholder.tsx` (21 lines) & `AgentWidgetPlaceholder.module.scss`: Pulse loading placeholder ("Generating interactive widget...").
+  - Updated `AgentMarkdownContent.tsx` (242 lines): Detects ````widget ```` blocks. Displays the placeholder while streaming (`isStreaming: true`) or when block is unterminated, mounting the live iframe only once the code block is closed and streaming finishes.
+  - Updated `AgentMessageBubble.tsx` (236 lines): Wires `isStreaming` down to `AgentMarkdownContent`.
+- **Agent System Prompt & ADR**:
+  - Updated `agentSystemPrompt.ts` (82 lines): Instructs the agent on when and how to emit ````widget ```` blocks (self-contained, no external libraries/CDN, theme CSS variables, play/pause controls for animations, explanations around the block).
+  - Authored `docs/adr/0253-interactive-widgets-and-iframe-sandboxing.md`: Documented architecture decision for `widget` block format and sandbox security rules; indexed in `DECISIONS.md`.
+- **Verification & Quality**:
+  - All 47 test files (297 tests) in `@app/editor` pass cleanly (including `widgetHtmlBuilder.test.ts`, `widgetExtension.test.ts`, `widgetIframeManager.test.ts`, and `widgetAdversarialSecurity.test.ts`).
+  - Chat streaming placeholder & tab switching verified in `AgentWidgetBlock.test.tsx` (4 tests).
+  - Adversarial security verified: `parent.__TAURI_INTERNALS__.invoke`, outbound `fetch`, and `localStorage`/`cookie` access all fail under opaque `null` origin and `connect-src 'none'`.
+  - Desktop production build (`pnpm --filter @app/desktop build:web`) succeeded in 11.14s; total bundle impact of widget renderer is <6 KB uncompressed (<1.8 KB gzip).
+  - All modified/created files verified strictly under the 250-line hard cap (range: 15 to 244 lines).
+  - Knowledge graph updated via `graphify update .`.
+
+### 2026-11-04: Record Page AI Agent Integration (Synced with AI Agent Page) & Free Speech-to-Text Transcription (Groq Whisper + Local Whisper CLI + Web Speech)
+
+- **Record Page AI Agent Integration (`RecordAgentPicker.tsx`, `resolveRecordPageAIProvider.ts`, `useMeetingAgentChat.ts`, `useAIListeningEngine.ts`, `useLiveSummaries.ts`, `useMeetingAIUpdater.ts`, `useMeetingAssistant.ts`, `MeetingAgentChatFeed.tsx`)**:
+  - Created `RecordAgentPicker.tsx` (242 lines), `RecordAgentPicker.module.scss` (132 lines), and `RecordAgentPicker.stories.tsx` following the `SettingsDialog` / `EditorMenuBarDropdown` "Less Boxes Always" standard, synced with `useAgentStore` (`Sophia Assistant`, `OpenCode`, `Claude Code`, `Codex CLI`, `Antigravity CLI`, Groq Llama 3.3, Gemini, OpenRouter, Ollama).
+  - Mounted `RecordAgentPicker` in `RecordingTopBar.tsx`, `AIListeningPanel.tsx`, and `MeetingAssistantPanel.tsx`.
+  - Created `resolveRecordPageAIProvider.ts` (192 lines) to bridge `useAgentStore` into an `AIProvider` interface with Groq LLM support and CLI agent fallback (`runCliAgentNonStreaming`) so `useAIListeningEngine`, `useLiveSummaries`, `useMeetingAIUpdater`, and `useMeetingAssistant` all execute using the active agent from the AI Agent page.
+  - Updated `useMeetingAgentChat.ts` (144 lines) and `useListeningSession.ts` (241 lines) to pass `selectedCliAgent`, `selectedProvider`, `selectedModel`, `webSearchEnabled`, `vaultName`, `vaultPath`, `conversations`, and `activeConversationId` from `useAgentStore` and `useWorkspaceStore` to `useAgentExecution`, and made `davinci://agent` clickable in `MeetingAgentChatFeed.tsx` (134 lines).
+- **Free Speech-to-Text Transcription with Groq Whisper, Free Local Whisper CLI & Web Speech (`ai_auth.rs`, `transcription_local.rs`, `transcription_cloud.rs`, `transcription_commands.rs`, `transcriptionClient.ts`, `useLiveSpeechRecognition.ts`, `TranscriptionSettingsCard.tsx`, `AIListeningSettingsTab.tsx`)**:
+  - Updated `ai_auth.rs` (75 lines) with `resolve_whisper_api_key` to resolve Groq/OpenAI keys from OS Keychain (`ai-transcription:groq`, `groq`, `ai-listening:groq`, `whisper`, `openai-compatible`, `openai`) or env vars (`GROQ_API_KEY`, `OPENAI_API_KEY`).
+  - Created `transcription_local.rs` (135 lines) for free offline Whisper CLI execution (`mlx_whisper`, `whisper-cli`, `whisper-cpp`, `whisper`) and silence hallucination filtering.
+  - Updated `transcription_cloud.rs` (102 lines) to default to Groq's free-tier `whisper-large-v3-turbo` with automatic fallback to local Whisper CLI.
+  - Added `transcribe_live_recording_chunk` and `detect_transcription_tools` Tauri commands in `transcription_commands.rs` (172 lines) and `lib.rs` to slice new 16kHz PCM audio from `AudioCaptureManager.pcm_buffer` during live recording and transcribe via Groq Whisper or local Whisper CLI.
+  - Updated `useLiveSpeechRecognition.ts` (211 lines) and `rerunAudioTranscription.ts` (130 lines) to poll `transcribeLiveRecordingChunk` every 4 seconds alongside Browser Web Speech API, normalize segment fields (`startMs`/`endMs`/`isFinal`), and run post-stop fallback transcription (`transcribeRemainingAudioOnStop`).
+  - Updated `TranscriptionSettingsCard.tsx` (210 lines) and `AIListeningSettingsTab.tsx` (244 lines) with transcription engine selector (`auto`, `groq-whisper`, `local-whisper`, `web-speech`), Groq Whisper model selector (`whisper-large-v3-turbo`, `whisper-large-v3`, `distil-whisper-large-v3-en`), OS Keychain API key storage, and local tool detection badges.
+- **Verification**:
+  - Added `RecordAgentAndGroqWhisper.test.tsx` (4 tests) — all 81 tests across 23 test files in `ListeningView` and `SettingsDialog` pass; `cargo check` clean; all modified files strictly under 250 lines.
+
+### 2026-11-04: Complete Vault Instructions Execution, Created Folder Display & Direct Click-to-Open Folder Navigation
+
+- **Universal Complete Vault Instruction Execution (`agentCliVaultSync.ts`, `agentCliRunner.ts`, `agentStepLoop.ts`, `agentDispatchSession.ts`, `cli_agent_runner.rs`)**:
+  - Created `agentCliVaultSync.ts` (236 lines) to parse `<vault_action>` tags (`create_folder`, `create_note`, `edit_note`, `append_to_note`, `move_note`) and conversational tool calls (`extractConversationalToolCalls`), immediately executing them on the opened vault via `mutationBackend` with live progress logs.
+  - Added post-execution filesystem diffing (`listFolders()` / `listNotes()`) for CLI agents so direct disk writes are synced into `useWorkspaceStore` and surfaced as applied tool calls.
+  - Added `ensureParentFolderToolCalls` so creating a nested note (`Story/Nadine.md`) automatically surfaces the created parent folder (`Story`) as an applied `create_folder` item.
+  - Updated `agentStepLoop.ts` (235 lines) to attach all executed `toolCalls` and `toolResults` across multi-step runs to the assistant message.
+  - Updated `cli_agent_runner.rs` (223 lines) to strip ANSI codes from stderr and classify status lines (`> build ...`) as `"thought"`.
+- **Interactive Folder & Note Links in Chat (`AgentToolCallList.tsx`, `AgentMarkdownContent.tsx`, `AgentMessageBubble.tsx`, `AgentActiveChat.tsx`)**:
+  - Updated `AgentToolCallList.tsx` (239 lines) so created folders render a clickable `Folder created: "<path>" — Open folder →` row that reveals the folder in `FileTree`, expands an inline list of files inside the folder, and offers a button to reveal in the OS file manager (`show_in_folder`).
+  - Updated `AgentMarkdownContent.tsx` (242 lines) so inline backticked folder/note paths and `[[wikilinks]]` open the corresponding folder or note when clicked.
+  - Wired `onNavigateNote` and `onNavigateFolder` in `AgentActiveChat.tsx` (151 lines) and `AgentMessageBubble.tsx` (235 lines).
+- **File Explorer Reveal & Highlight (`useWorkspaceStore.ts`, `useTreeExpandedFolders.ts`, `FileTree.tsx`, `FileTreeList.tsx`, `AppSidebar.tsx`, `App.tsx`)**:
+  - Added `revealFolderInTree(folderPath)` in `useWorkspaceStore.ts` (178 lines) and `"davinci:reveal-folder"` event handling in `AppSidebar.tsx` (246 lines) and `App.tsx` to open the left sidebar to `FileTree` with the target folder expanded and highlighted.
+- **Verification**:
+  - Added `AgentFolderLinkAndCompleteInstructions.test.tsx` (3 tests) — all 16 tests across 5 test files pass.
+  - `cargo check` clean; all modified files strictly under the 250-line hard cap.
+
+### 2026-11-04: Fix Conversation Message Persistence on Page Close & Immediate Vault Note Creation/Editing with Real-Time Progress
+
+- **Fixed Conversation Messages Disappearing When Closing & Re-Opening the AI Agent Page (`useAgentExecution.ts`, `agentDispatchSession.ts`, `agentLlmRunner.ts`, `AgentView.tsx`)**:
+  - **Root Cause**: `useAgentExecution.ts` had a branch in its `finally` block that set `waitingForRevealRef.current = true` instead of calling `setIsStreaming(false)`. Because `completeResponseReveal` was never invoked anywhere in the UI, `isStreaming` remained `true` permanently after a message completed, blocking `AgentView.tsx`'s save `useEffect` (`if (... || isStreaming) return;`). Closing and re-opening the AI Agent page unmounted `AgentView` and lost all newly added messages.
+  - **Fixes**:
+    - Removed the dead `waitingForRevealRef` trap in `useAgentExecution.ts` so `setIsStreaming(false)` always runs in `finally`.
+    - Added immediate `useAgentStore.getState().saveActiveMessages(nextMessages)` as soon as a user sends a message (`useAgentExecution.ts`), and immediately upon assistant completion in both `agentDispatchSession.ts` and `agentLlmRunner.ts`.
+    - Added `messagesRef` and `activeConversationIdRef` in `AgentView.tsx` to flush active messages on component unmount (`useEffect` cleanup) and re-hydrate messages when switching back to the AI Agent tab.
+- **Fixed Vault Note Creation/Editing & Real-Time Step Progress (`cli_agent_runner.rs`, `executeAgentStepTool.ts`, `agentStepLoop.ts`, `agentCliRunner.ts`)**:
+  - **CLI Agent Headless Write Flags (`cli_agent_runner.rs`)**: Added non-interactive auto-approval flags (`opencode run --auto <prompt>`, `claude -p <prompt> --dangerously-skip-permissions`, `codex exec --dangerously-bypass-approvals-and-sandbox <prompt>`) so CLI agents write directly to the vault directory without blocking on interactive stdin prompts.
+  - **Unblocked `edit_note` & `move_note` (`executeAgentStepTool.ts`)**: Allowed `edit_note` and `move_note` to execute immediately when `autoApply` is enabled instead of halting with `confirmation_required`.
+  - **Granular Real-Time Progress Logs (`agentStepLoop.ts`)**: Emitted descriptive live progress events before and after each tool call (`Creating note "X" in vault...`, `Updating note "X" in vault...`, `✓ Applied create_note on "X"`, etc.) so the user sees every vault action in real time.
+- **Verification**:
+  - Created `AgentVaultOperationsAndPersistence.test.ts` (2 tests) — all 32 tests across 8 AgentView test files pass.
+  - Rust compilation (`cargo check`) clean.
+  - All modified files verified under the 250-line hard cap.
+  - Graphify knowledge graph updated (`graphify update .`).
+
+### 2026-11-04: Active Vault Anchoring & Direct Read/Edit Operations for AI Agents
+
+- **Active Vault Anchoring for AI Agents (`agentSystemPrompt.ts`, `agentPromptResolver.ts`, `AgentView.tsx`)**:
+  - Anchored both internal LLMs and CLI tools directly to the currently opened vault in the application (`vaultPath`, `vaultName`, and `allNotePaths`).
+  - System prompt expanded to sample up to 60 notes and includes explicit instructions that the agent is embedded in and ALWAYS points to the active opened vault workspace.
+  - Proactive inspection: The agent is instructed to proactively consult `search_vault` and `read_note` before answering questions about user notes, stories, characters, or tasks.
+- **Permanent Vault Tools Availability (`agentPromptResolver.ts`)**:
+  - Removed intent-based tool filtering that previously stripped all vault tools when an input was classified as "chat".
+  - Internal LLM now permanently retains all vault inspection tools (`read_note`, `search_vault`, `list_vault_tree`) and mutation tools (`create_note`, `edit_note`, `append_to_note`, `create_folder`, `move_note`, `save_memory`).
+- **CLI Agent Active Vault Workspace Context (`agentCliRunner.ts`, `agentDispatchSession.ts`)**:
+  - Injected the `[Active Vault Workspace]` block into all CLI prompts (`opencode`, `codex`, `agy`, `claude`), informing them of the vault name, absolute vault directory path, note inventory, and instructions that they execute directly in this workspace and have full permissions to inspect, read, search, create, and edit notes on disk.
+- **Resilient Vault Path Resolution (`desktopAgentBridge.ts`)**:
+  - Implemented `normalizeVaultPath` in `desktopAgentBridge.ts`: Handles path resolution across relative paths, missing `.md` extensions, leading slashes, and case-insensitive matching against `allNotePaths`.
+  - Applied to `readNote`, `writeNote`, `deleteNote`, and `moveNote`.
+- **Verification**:
+  - Unit tests passed: `AgentVaultAnchoring.test.ts` (3 tests), `agentSystemPrompt.test.ts` (3 tests), `agentCliRunner.test.ts` (2 tests), `projectMemoryIsolation.test.ts` (6 tests), `agentSlashCommandHandler.test.ts` (8 tests), `AgentAvailabilityBanner.test.tsx` (3 tests), `AgentSidebarPanel.test.tsx` (5 tests) — 30/30 passed.
+  - Rust compilation (`cargo check`) clean in 0.95s.
+  - Line counts: All files strictly verified under the 250-line hard cap (range: 64 to 236 lines).
+  - Graphify knowledge graph updated (`graphify update .`).
+
+### 2026-11-04: Project Cross-Conversation Memory Sharing & Persistence
+
+- **Cross-Conversation Context Sharing within Same Project (`agentProjectContextResolver.ts`, `agentPromptResolver.ts`, `agentCliRunner.ts`)**:
+  - Implemented `agentProjectContextResolver.ts` (60 lines) to collect recent conversation turns from sister chats in the same project and format them into `[Shared Project Conversations Context]`.
+  - Injected this shared context into both the internal LLM system prompt (`agentPromptResolver.ts`) and CLI agent invocations (`agentCliRunner.ts`).
+  - When opening a new chat in a project, the AI immediately remembers what was discussed in other conversations belonging to that same project (e.g. character details, facts, requirements), while maintaining strict project boundary isolation.
+- **Universal Memory Auto-Persistence (`agentMemoryPersistence.ts`, `agentDispatchSession.ts`)**:
+  - Implemented `agentMemoryPersistence.ts` (109 lines) providing robust fact extraction for natural language statements like `"Nadine is the maid in my story... remember that."`, `"remember that..."`, `"keep in mind that..."`, and `"don't forget that..."`.
+  - Hooked auto-persistence into `agentDispatchSession.ts` to idempotently persist facts into `.sophia/agent-memory-${projectId}.json` (or `.sophia/agent-memory.json` if global) regardless of whether internal LLM or CLI agent is running.
+- **Fixed Sidebar "New Chat" Project Detachment (`AgentSidebarPanel.tsx`)**:
+  - Fixed `handleStartNewChat` in `AgentSidebarPanel.tsx` which previously forced `projectId: null`.
+  - Now preserves `activeProjectId ?? null` so clicking "New chat" while viewing a project retains the active project context and memory.
+- **Verification**:
+  - Unit tests passed in `projectMemoryIsolation.test.ts` (6 tests), `agentCliRunner.test.ts` (2 tests), `AgentSidebarPanel.test.tsx` (5 tests).
+  - All files strictly verified under the 250-line hard cap (range: 28 to 230 lines).
+  - Rust compilation (`cargo check`) clean in 0.99s.
+  - Graphify knowledge graph updated (`graphify update .`).
+
+### 2026-11-04: AI Agent LLM Availability, Live CLI Streaming, Slash Commands & Project Memory
+
+- **LLM & CLI Agent Availability Detection (`AgentAvailabilityBanner.tsx`, `AgentAvailabilityBanner.module.scss`, `AgentPromptModelPicker.tsx`, `AgentView.tsx`)**:
+  - Implemented `AgentAvailabilityBanner` adhering to the "Less Boxes Always" standard (flat, subtle hairline-divided bar without boxy containers).
+  - Automatically identifies whether cloud LLM is missing API keys or offline, Ollama is unreachable, or a selected CLI agent (`codex`, `agy`, `claude`, `opencode`) is not installed or not in PATH.
+  - Provides instant 1-click actions: copy install command, open Settings, or switch back to built-in Sophia Assistant.
+  - Added availability badges (`Installed` vs `Not Installed`, `Ready` vs `Needs API Key`) to `AgentPromptModelPicker.tsx`.
+- **Real CLI Agent Execution & Live Streaming (`cli_agent_runner.rs`, `useCliAgentExecution.ts`, `agentCliRunner.ts`)**:
+  - Fixed CLI invocation arguments in Rust (`codex exec <prompt>`, `agy -p <prompt>`, `claude -p <prompt>`, `opencode run <prompt>`).
+  - Added enriched PATH environment variable to child processes spawned from Tauri so that GUI desktop app inherits `~/.local/bin`, `/opt/homebrew/bin`, `/usr/local/bin`, etc.
+  - Streamed thoughts, actions, and output lines in real time to message logs and chat bubble without mocked data.
+- **Comprehensive Prompt Slash Commands (`slashCommandCatalog.ts`, `agentSlashCommandHandler.ts`, `AgentSlashMenu.tsx`, `useAgentMention.ts`, `agentDispatchSession.ts`)**:
+  - Integrated built-in slash commands directly into prompt bar and slash autocomplete menu: `/plan`, `/grill-me`, `/usage`, `/models`, `/web`, `/clear`, `/help`.
+  - Supported forwarding commands to internal LLM and CLI agents with structured prompt augmentations.
+- **Project Memory Isolation & Context Upload (`executeAgentStepTool.ts`, `agentPromptResolver.ts`, `AgentProjectContextPanel.tsx`, `AgentProjectInstructionsSection.tsx`)**:
+  - Project conversations strictly share `.sophia/agent-memory-${projectId}.json` and project context sources across all chats within the project, independent of other projects.
+  - Added direct file uploader in `AgentProjectContextPanel.tsx` to upload documents directly into project context (`.sophia/projects/${projectId}/context/`), immediately shared across all chats in that project.
+- **Verification**:
+  - 23 tests across 6 test suites passed.
+  - Full desktop release build and DMG bundling succeeded (`pnpm --filter @app/desktop build`).
+  - All files strictly under the 250-line hard cap (range: 59–231 lines).
+  - Graphify knowledge graph updated via `graphify update .`.
+
 ### 2026-11-03: AI Library Markdown Vault Direct Editing & Project Prompt Bar Specialization
 
 - **Library Item Direct Vault Editing (`AgentLibraryBoard.tsx`, `AgentLibraryCard.tsx`, `AgentLibraryListRow.tsx`)**:
