@@ -4,7 +4,7 @@ const sharedAnnotations = {
   ".cm-blockquote-line": {
     borderLeft:
       "2.5px solid var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
-    paddingLeft: "18px",
+    paddingLeft: "24px",
     paddingTop: "2px",
     paddingBottom: "2px",
     backgroundColor: "transparent",
