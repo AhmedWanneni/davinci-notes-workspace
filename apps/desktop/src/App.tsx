@@ -475,9 +475,11 @@ export function App() {
 
   useEffect(() => {
     let cancelled = false;
-    const effectiveFont =
-      useVimMode && vimMonospaceMode ? "jetbrains-mono" : editorFont;
-    void loadEditorFont(effectiveFont, editorCustomFont)
+    if (useVimMode && vimMonospaceMode) {
+      document.body.style.setProperty("--font-editor", "var(--font-mono)");
+      return;
+    }
+    void loadEditorFont(editorFont, editorCustomFont)
       .then((font) => {
         if (!cancelled) {
           document.body.style.setProperty("--font-editor", font.cssFamily);
@@ -485,7 +487,7 @@ export function App() {
       })
       .catch(() => {
         if (!cancelled) {
-          document.body.style.setProperty("--font-editor", "var(--font-ui)");
+          document.body.style.setProperty("--font-editor", "var(--font-text)");
         }
       });
     return () => {

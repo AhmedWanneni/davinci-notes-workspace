@@ -4,11 +4,11 @@ import { getEditorFont, loadEditorFont } from "./editorFontRegistry";
 describe("editor font registry", () => {
   it("falls back to the system font for an unknown persisted id", () => {
     expect(getEditorFont("removed-font").id).toBe("system");
-    expect(getEditorFont("removed-font").cssFamily).toBe("var(--font-ui)");
+    expect(getEditorFont("removed-font").cssFamily).toBe("var(--font-text)");
   });
 
   it("exposes only allowlisted font family values for curated options", () => {
-    expect(getEditorFont("system").cssFamily).toBe("var(--font-ui)");
+    expect(getEditorFont("system").cssFamily).toBe("var(--font-text)");
     expect(getEditorFont("inter").cssFamily).toContain("Inter Variable");
     expect(getEditorFont("ibm-plex-sans").cssFamily).toContain("IBM Plex Sans");
     expect(getEditorFont("literata").cssFamily).toContain("Literata Variable");
@@ -18,13 +18,16 @@ describe("editor font registry", () => {
     expect(getEditorFont("jetbrains-mono").cssFamily).toContain(
       "JetBrains Mono Variable",
     );
+    expect(getEditorFont("geist-mono").cssFamily).toContain(
+      "Geist Mono Variable",
+    );
     expect(getEditorFont("montserrat").cssFamily).toContain(
       "Montserrat Variable",
     );
     expect(getEditorFont("raleway").cssFamily).toContain("Raleway Variable");
     expect(getEditorFont("roboto").cssFamily).toContain("Roboto Variable");
     expect(getEditorFont("serif").cssFamily).toContain("Georgia");
-    expect(getEditorFont("monospace").cssFamily).toContain("monospace");
+    expect(getEditorFont("monospace").cssFamily).toBe("var(--font-mono)");
   });
 
   it("resolves sanitized custom font family when custom is selected", () => {

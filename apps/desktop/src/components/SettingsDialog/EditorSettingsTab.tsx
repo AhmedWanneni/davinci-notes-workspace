@@ -193,7 +193,7 @@ export function EditorSettingsTab() {
 
         <SettingsRow
           title="Use monospace font in vim mode"
-          description="Maintain uniform cursor width across characters by switching to JetBrains Mono in Vim mode."
+          description="Maintain uniform cursor width across characters by switching to monospace font in Vim mode."
         >
           <Toggle
             checked={vimMonospaceMode}

@@ -30,7 +30,11 @@ export const FONT_GROUPS: FontGroup[] = [
   },
   {
     label: "Monospace",
-    options: [{ value: "jetbrains-mono", label: "JetBrains Mono" }],
+    options: [
+      { value: "monospace", label: "Monospace (System)" },
+      { value: "geist-mono", label: "Geist Mono" },
+      { value: "jetbrains-mono", label: "JetBrains Mono" },
+    ],
   },
   {
     label: "Display",

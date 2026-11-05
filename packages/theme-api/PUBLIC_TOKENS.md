@@ -76,6 +76,8 @@ The defaults are the current generated values from
 |---|---|---|
 | `--font-ui` | Application interface font stack | `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif` |
 | `--font-editor` | Editor and code font stack | `'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace` |
+| `--font-text` | Editor prose font stack | `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif` |
+| `--font-mono` | Editor monospace and code font stack | `ui-monospace, "SF Mono", "Geist Mono", Menlo, Consolas, monospace` |
 | `--type-scale-xs` | Extra-small text size | `0.75rem` |
 | `--type-scale-sm` | Small text size | `0.875rem` |
 | `--type-scale-base` | Base text size | `1rem` |

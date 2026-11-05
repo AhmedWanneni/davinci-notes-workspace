@@ -6,7 +6,7 @@ export const editorTheme = EditorView.theme({
     height: "100%",
     backgroundColor: "var(--color-bg-primary)",
     color: "var(--color-text-normal)",
-    fontFamily: "var(--font-editor)",
+    fontFamily: "var(--font-editor, var(--font-text))",
     // This is a vault-scoped runtime setting, rather than a theme token.
     fontSize: "var(--editor-font-size)",
     lineHeight: "var(--editor-obsidian-body-line-height)",
@@ -21,7 +21,7 @@ export const editorTheme = EditorView.theme({
   ".cm-scroller": {
     fontFamily: "inherit",
     lineHeight: "var(--editor-obsidian-body-line-height)",
-    overflowY: "auto !important",
+    overflowY: "auto",
     overflowX: "hidden",
     height: "100%",
     paddingBottom: "160px",
@@ -45,16 +45,30 @@ export const editorTheme = EditorView.theme({
   },
   ".cm-fat-cursor": {
     position: "absolute",
-    backgroundColor: "var(--color-editor-cursor, #000000) !important",
-    color: "var(--color-bg-primary, #ffffff) !important",
-    border: "none",
+    display: "inline-block",
+    boxSizing: "border-box",
+    minWidth: "0.6em",
+    minHeight: "1.2em",
+    textAlign: "center",
     whiteSpace: "pre",
+    overflow: "hidden",
+    backgroundColor:
+      "var(--color-editor-cursor, var(--color-text-normal)) !important",
+    color: "var(--color-bg-primary) !important",
+    border: "none",
   },
   "&:not(.cm-focused) .cm-fat-cursor": {
     backgroundColor: "transparent !important",
-    outline: "solid 1px var(--color-editor-cursor, #000000) !important",
+    outline:
+      "solid 1px var(--color-editor-cursor, var(--color-text-normal)) !important",
     color: "inherit !important",
   },
+  "[data-vim-monospace='true'] & .cm-fat-cursor, &.cm-vim-monospace .cm-fat-cursor, [data-vim-monospace='true'] .cm-fat-cursor":
+    {
+      width: "1ch !important",
+      minWidth: "1ch !important",
+      maxWidth: "1ch !important",
+    },
   "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection":
     {
       backgroundColor: "var(--color-bg-active) !important",
@@ -63,7 +77,8 @@ export const editorTheme = EditorView.theme({
     backgroundColor: "transparent",
   },
   ".cm-wikilink": {
-    color: "var(--color-text-accent)",
+    color:
+      "var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
     textDecoration: "none",
     cursor: "pointer",
   },
@@ -72,11 +87,14 @@ export const editorTheme = EditorView.theme({
   },
   ".cm-wikilink-unresolved": {
     textDecoration: "none",
-    borderBottom: "1px dashed var(--color-text-accent)",
+    borderBottom:
+      "1px dashed var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
   },
   ".cm-link": {
-    color: "var(--color-text-accent)",
+    color:
+      "var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
     textDecoration: "underline",
+    textUnderlineOffset: "2px",
     cursor: "pointer",
   },
   ".cm-link:hover": {
@@ -84,17 +102,39 @@ export const editorTheme = EditorView.theme({
   },
   ".cm-link-unresolved": {
     textDecoration: "none",
-    borderBottom: "1px dashed var(--color-text-accent)",
+    borderBottom:
+      "1px dashed var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
   },
   ".cm-link-external": {
-    color: "var(--color-text-accent)",
+    color:
+      "var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
     textDecoration: "underline",
+    textUnderlineOffset: "2px",
     cursor: "pointer",
+  },
+  ".cm-link-external::after": {
+    content: '""',
+    display: "inline-block",
+    width: "13px",
+    height: "13px",
+    marginLeft: "3px",
+    verticalAlign: "-1.5px",
+    backgroundImage:
+      `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E")`,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    backgroundSize: "contain",
+    opacity: "0.85",
+    textDecoration: "none",
   },
   ".cm-list-bullet, .cm-list-ordered": {
     display: "inline-block",
     minWidth: "var(--space-4)",
     color: "var(--color-text-muted)",
+  },
+  ".cm-list-ordered": {
+    width: "auto",
+    whiteSpace: "nowrap",
   },
   ".cm-list-bullet": {
     textAlign: "center",
@@ -142,7 +182,7 @@ export const readOnlyEditorTheme = EditorView.theme({
     height: "100%",
     backgroundColor: "transparent",
     color: "var(--color-text-normal)",
-    fontFamily: "var(--font-editor)",
+    fontFamily: "var(--font-editor, var(--font-text))",
     fontSize: "var(--editor-obsidian-body-font-size)",
     lineHeight: "var(--editor-obsidian-body-line-height)",
   },
@@ -169,7 +209,8 @@ export const readOnlyEditorTheme = EditorView.theme({
       backgroundColor: "var(--color-bg-active) !important",
     },
   ".cm-wikilink": {
-    color: "var(--color-text-accent)",
+    color:
+      "var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
     textDecoration: "none",
     cursor: "pointer",
   },
@@ -178,11 +219,14 @@ export const readOnlyEditorTheme = EditorView.theme({
   },
   ".cm-wikilink-unresolved": {
     textDecoration: "none",
-    borderBottom: "1px dashed var(--color-text-accent)",
+    borderBottom:
+      "1px dashed var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
   },
   ".cm-link": {
-    color: "var(--color-text-accent)",
+    color:
+      "var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
     textDecoration: "underline",
+    textUnderlineOffset: "2px",
     cursor: "pointer",
   },
   ".cm-link:hover": {
@@ -190,12 +234,30 @@ export const readOnlyEditorTheme = EditorView.theme({
   },
   ".cm-link-unresolved": {
     textDecoration: "none",
-    borderBottom: "1px dashed var(--color-text-accent)",
+    borderBottom:
+      "1px dashed var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
   },
   ".cm-link-external": {
-    color: "var(--color-text-accent)",
+    color:
+      "var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
     textDecoration: "underline",
+    textUnderlineOffset: "2px",
     cursor: "pointer",
+  },
+  ".cm-link-external::after": {
+    content: '""',
+    display: "inline-block",
+    width: "13px",
+    height: "13px",
+    marginLeft: "3px",
+    verticalAlign: "-1.5px",
+    backgroundImage:
+      `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6'/%3E%3Cpolyline points='15 3 21 3 21 9'/%3E%3Cline x1='10' y1='14' x2='21' y2='3'/%3E%3C/svg%3E")`,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    backgroundSize: "contain",
+    opacity: "0.85",
+    textDecoration: "none",
   },
   ".cm-list-bullet, .cm-list-ordered": {
     display: "inline-block",

@@ -5,6 +5,7 @@ export const editorFonts = [
   "literata",
   "source-serif-4",
   "jetbrains-mono",
+  "geist-mono",
   "montserrat",
   "raleway",
   "custom",

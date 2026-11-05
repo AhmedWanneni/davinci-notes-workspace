@@ -649,14 +649,15 @@ export function EditorArea({
 
   return (
     <div
-      className="editor-area"
+      className={`editor-area${useVimMode && vimMonospaceMode ? " editor-area--vim-mono" : ""}`}
+      data-vim-monospace={String(Boolean(useVimMode && vimMonospaceMode))}
       style={
         {
           "--editor-font-size": `${editorFontSize}px`,
-          "--font-editor": getEditorFont(
-            useVimMode && vimMonospaceMode ? "jetbrains-mono" : editorFont,
-            editorCustomFont,
-          ).cssFamily,
+          "--font-editor":
+            useVimMode && vimMonospaceMode
+              ? "var(--font-mono)"
+              : getEditorFont(editorFont, editorCustomFont).cssFamily,
         } as CSSProperties
       }
     >

@@ -1,6 +1,8 @@
 export interface FontTokens {
     readonly ui: string;
     readonly editor: string;
+    readonly text: string;
+    readonly mono: string;
 }
 export interface TypeScaleTokens {
     readonly xs: string;

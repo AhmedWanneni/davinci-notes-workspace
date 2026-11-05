@@ -4,7 +4,36 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — "Format Note" & Selection Markdown Normalizer (Zero-Dependency Custom Formatter)
+## Last Session — Editor Typography (San Francisco / SF Pro), Stable Vim Cursor & Monospace Mode
+
+1. **Design System Font Tokens (`packages/design-tokens/src/typography.ts`, `packages/theme-api/PUBLIC_TOKENS.md`, `packages/builtin-themes/`)**:
+   - Added `--font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;` for prose (matching native San Francisco / SF Pro on macOS).
+   - Added `--font-mono: ui-monospace, "SF Mono", "Geist Mono", Menlo, Consolas, monospace;` for code blocks, inline code, and Vim mode.
+   - Updated all built-in themes (`light-a`, `dark-b`, `catppuccin-latte`, `catppuccin-frappe`) and regenerated token files (`139 desktop variables`).
+   - Updated `editorHighlightStyle.ts` (`tag: t.monospace`) and `codeBlockLayoutTheme.ts` to strictly consume `var(--font-mono)`.
+2. **Stable Vim Cursor Metrics (`packages/editor/theme/editorTheme.ts`, `.cm-fat-cursor`)**:
+   - Fixed width in monospace mode to strictly `1ch` (`width: 1ch !important; min-width: 1ch !important; max-width: 1ch !important; text-align: center; overflow: hidden;`). Cursor width is identical across `i`, `l`, `m`, `w`, spaces, and punctuation with zero jitter.
+   - Stable size on empty lines and line endings: non-breaking space `\xa0` stays exactly `1ch`.
+   - Constant height following line height via CodeMirror's `pos.bottom - pos.top` computation with `min-height: 1.2em` safety net across headings and body lines.
+   - Insert mode removes `.cm-vimMode`, displaying standard thin 2px line cursor (`.cm-cursor`).
+   - Proportional fallback mode (`vimMonospaceMode` off): applies `min-width: 0.6em; width: auto;` ensuring cursor never collapses on narrow characters while never occluding subsequent glyphs.
+3. **Vim Monospace Font Switching & Seamless State Preservation (`EditorArea.tsx`, `App.tsx`, `EditorSettingsTab.tsx`)**:
+   - When Vim mode is active and `vimMonospaceMode` is ON (default ON), editor content font switches dynamically to `--font-mono` (Apple SF Mono on macOS).
+   - If toggled OFF, editor reverts to the user's proportional font choice (`--font-text` / SF Pro).
+   - Applied dynamically via CSS variables and `data-vim-monospace` attribute on the editor container — switching does not remount the editor, does not lose cursor/scroll position, and causes zero visual flash.
+4. **Self-Hosted Bundled Font Option (Geist Mono)**:
+   - Added `@fontsource-variable/geist-mono` single variable Latin subset WOFF2 (23,128 bytes normal, 25,248 bytes italic).
+   - Configured `apps/desktop/src/fonts/geist-mono.css` and registered in `editorFontRegistry.ts` under Monospace category (`Geist Mono`).
+   - Lazy-loaded solely when chosen in Settings > Editor (`0 KB` added to startup bundle).
+5. **Verification**:
+   - Added `vimCursorStable.test.ts` (5 tests) verifying 1ch cursor stability across characters, empty lines, line endings, mode transitions, and toggle state preservation.
+   - All 43 test files (279 tests) across `@app/editor` pass.
+   - All 28 test files (113 tests) across `@app/desktop` EditorArea and Settings pass.
+   - Lint and typecheck clean across packages.
+
+---
+
+## Previous Session — "Format Note" & Selection Markdown Normalizer (Zero-Dependency Custom Formatter)
 
 1. **Zero-Dependency Markdown Normalizer (`packages/editor/format/`)**:
    - Built a custom markdown normalizer with pure functions and zero runtime dependencies:

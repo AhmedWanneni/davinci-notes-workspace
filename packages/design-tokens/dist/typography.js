@@ -1,6 +1,8 @@
 export const fontTokens = {
     ui: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    editor: "'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace",
+    editor: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif",
+    text: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif",
+    mono: 'ui-monospace, "SF Mono", "Geist Mono", Menlo, Consolas, monospace',
 };
 export const typeScaleTokens = {
     xs: "0.75rem",

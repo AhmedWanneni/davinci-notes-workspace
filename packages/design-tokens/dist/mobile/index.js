@@ -162,7 +162,9 @@ export const fullMobileTokens = {
   "typography": {
     "font": {
       "ui": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-      "editor": "'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace"
+      "editor": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif",
+      "text": "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif",
+      "mono": "ui-monospace, \"SF Mono\", \"Geist Mono\", Menlo, Consolas, monospace"
     },
     "scale": {
       "xs": "0.75rem",
@@ -276,19 +278,19 @@ export const fullMobileTokens = {
     "listIndent": "1.5em",
     "obsidian": {
       "bodyFontSize": "1rem",
-      "bodyLineHeight": "1.5",
+      "bodyLineHeight": "1.6",
       "contentMaxWidth": "43.75rem",
       "contentLinePaddingInline": "0",
       "heading": {
         "h1": {
-          "size": "1.618em",
+          "size": "1.802em",
           "weight": "700",
-          "lineHeight": "1.2"
+          "lineHeight": "1.25"
         },
         "h2": {
           "size": "1.462em",
           "weight": "680",
-          "lineHeight": "1.2"
+          "lineHeight": "1.25"
         },
         "h3": {
           "size": "1.318em",
