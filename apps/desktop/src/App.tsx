@@ -124,6 +124,9 @@ export function App() {
   const isGlobalGraphOpen = useWorkspaceStore(
     (state) => state.isGlobalGraphOpen,
   );
+  const graphFolderFilter = useWorkspaceStore(
+    (state) => state.graphFolderFilter,
+  );
   const setIsGlobalGraphOpen = useWorkspaceStore(
     (state) => state.setIsGlobalGraphOpen,
   );
@@ -504,8 +507,13 @@ export function App() {
       }
       if (isMod && e.shiftKey && e.key.toLowerCase() === "f") {
         e.preventDefault();
-        setSearchInitialQuery("");
-        setIsSearchOpen((prev) => !prev);
+        const active = activeNoteRef.current;
+        if (active && !active.startsWith("davinci://")) {
+          window.dispatchEvent(new CustomEvent("davinci:format-note"));
+        } else {
+          setSearchInitialQuery("");
+          setIsSearchOpen((prev) => !prev);
+        }
       }
       if (isMod && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "d") {
         const active = activeNoteRef.current;
@@ -724,6 +732,16 @@ export function App() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleRevealFolder = () => {
+      setIsGitManagerOpen(false);
+      setIsLeftSidebarOpen(true);
+    };
+    window.addEventListener("davinci:reveal-folder", handleRevealFolder);
+    return () =>
+      window.removeEventListener("davinci:reveal-folder", handleRevealFolder);
+  }, []);
+
   const handleOpenFiles = useCallback(() => {
     if (isGitManagerOpen) {
       setIsGitManagerOpen(false);
@@ -870,7 +888,12 @@ export function App() {
           }}
           onOpenAgent={() => {
             setIsGitManagerOpen(false);
-            void openNote(AGENT_TAB_ID);
+            if (activeNotePath === AGENT_TAB_ID) {
+              handleOpenFiles();
+            } else {
+              setIsLeftSidebarOpen(true);
+              void openNote(AGENT_TAB_ID);
+            }
           }}
           onOpenListening={() => {
             setIsGitManagerOpen(false);
@@ -1019,6 +1042,9 @@ export function App() {
             <Suspense fallback={null}>
               <LazyGlobalGraphLeaf
                 graph={graph}
+                folderFilter={graphFolderFilter}
+                allNotePaths={allNotePaths}
+                onClearFolderFilter={() => setIsGlobalGraphOpen(true, null)}
                 onClose={() => setIsGlobalGraphOpen(false)}
                 onNavigate={(path) => void openNote(path)}
               />
@@ -1161,6 +1187,9 @@ export function App() {
               if (activeNotePath && !activeNotePath.startsWith("davinci://")) {
                 void toggleBookmark(activeNotePath);
               }
+            }}
+            onFormatNote={() => {
+              window.dispatchEvent(new CustomEvent("davinci:format-note"));
             }}
             onOpenBookmarks={() => void openNote(BOOKMARKS_TAB_ID)}
             onDriveSignIn={() => void signInDrive()}

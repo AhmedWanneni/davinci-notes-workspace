@@ -15,6 +15,7 @@ export interface WorkspaceSaveContext {
   dirtyNotes: Set<string>;
   conflictNotes: Map<string, string>;
   vaultUpdateCounter: number;
+  formatOnSave?: boolean;
 }
 
 export type WorkspaceSaveUpdater = (

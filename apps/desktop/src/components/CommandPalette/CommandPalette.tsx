@@ -29,6 +29,7 @@ export interface CommandPaletteProps {
   onSaveVersionNow?: () => void;
   onToggleBookmark?: () => void;
   onOpenBookmarks?: () => void;
+  onFormatNote?: () => void;
   pluginCommands?: RegisteredPluginCommand[];
   onInvokePluginCommand?: (id: string) => void;
   editorView?: EditorView | null;
@@ -53,6 +54,7 @@ export function CommandPalette({
   onSaveVersionNow,
   onToggleBookmark,
   onOpenBookmarks,
+  onFormatNote,
   pluginCommands = [],
   onInvokePluginCommand,
   editorView,
@@ -129,6 +131,7 @@ export function CommandPalette({
       onDriveSignIn,
       onDriveDisconnect,
       onDriveRefresh,
+      onFormatNote,
       editorView,
       editorSelection: editorSelectionRef.current,
       onInsertSuccess,

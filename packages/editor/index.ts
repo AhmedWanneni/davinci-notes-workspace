@@ -178,3 +178,10 @@ export type { NoteEmbedOptions } from "./embeds";
 export { Strikethrough, Table } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";
 export { undo, redo, history } from "@codemirror/commands";
+export { formatMarkdown, formatEditorDocument } from "./format";
+export type {
+  FormatMarkdownOptions,
+  FormatMarkdownResult,
+  FormatEditorOptions,
+  FormatEditorResult,
+} from "./format";

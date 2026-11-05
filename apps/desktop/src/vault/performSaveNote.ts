@@ -1,3 +1,4 @@
+import { formatMarkdown } from "@app/editor";
 import type { GraphIndex, TagIndex } from "@app/indexer";
 import type {
   WorkspaceSaveContext,
@@ -82,7 +83,16 @@ export async function performSaveNote(
       return;
     }
 
-    const content = notesContent[path];
+    let content = notesContent[path];
+    if (state.formatOnSave && path.endsWith(".md")) {
+      const formatResult = formatMarkdown(content);
+      if (formatResult.changed) {
+        content = formatResult.formatted;
+        set((curr) => ({
+          notesContent: { ...curr.notesContent, [path]: content },
+        }));
+      }
+    }
     const lastKnown = diskStateTracker.get(path);
 
     // Fast check: stat first to avoid disk reads when nothing changed

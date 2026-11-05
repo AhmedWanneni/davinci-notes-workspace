@@ -48,6 +48,12 @@ export function buildPaletteCommands({
   if (hasActiveNote) {
     targets.push({
       isCommand: true,
+      id: "action:format-note",
+      title: "Format note",
+      recencyScore: 560,
+    });
+    targets.push({
+      isCommand: true,
       id: "action:toggle-bookmark",
       title: isBookmarked
         ? "Remove bookmark from current note"

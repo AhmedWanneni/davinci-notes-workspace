@@ -4,28 +4,121 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — AI Library Markdown Vault Direct Editing & Project Prompt Bar Specialization
+## Last Session — "Format Note" & Selection Markdown Normalizer (Zero-Dependency Custom Formatter)
 
-1. **AI Library Items Open in Vault Markdown Editor Directly**:
-   - Clicking a library card or list row (or the "Open in Editor" / Edit action) now opens its corresponding Markdown file in the vault using `useWorkspaceStore.openNote` rather than opening a modal dialog.
-   - When editing an unsaved item, it automatically writes to `ai-library/` first, assigns a `filePath`, and opens the note in the editor.
-   - Extracted `AgentLibraryListRow.tsx` for list view rendering to maintain single responsibility and keep `AgentLibraryBoard.tsx` at 193 lines (well under the 250-line cap).
-2. **Project Prompt Bar Mode Selection Removed**:
-   - Removed the "code" and "cowork" chat mode toggles from the prompt bar (`AgentPromptBar.tsx`) under project contexts.
-3. **Project Prompt Bar `+` Menu Options**:
-   - Configured the `+` menu (`AgentPromptMenu.tsx`) in project mode to specifically offer:
-     - **Attach files** (triggers file picker)
-     - **Take a screenshot** (triggers screenshot action)
-     - **Prompts** (expandable submenu showing vault prompt templates)
-     - **Skills** (expandable submenu showing vault skills and rules)
-     - Direct "Browse All in Library →" link.
-   - Extracted global connector/design options into `AgentPromptExtraOptions.tsx`.
-4. **Adaptive Popover Placement**:
-   - Added dynamic position checking in `AgentPromptMenu.tsx` (`is-placement-bottom` class) so that if the menu is near the top of the viewport or would be obscured by the app header, it opens downwards rather than upwards.
+1. **Zero-Dependency Markdown Normalizer (`packages/editor/format/`)**:
+   - Built a custom markdown normalizer with pure functions and zero runtime dependencies:
+     - `formatMarkdown.ts`: Main orchestrator preserving line wrapping, removing excess blanks, normalizing headers/lists/tables, and ensuring clean document endings.
+     - `protectedRegions.ts`: Masks and byte-identically preserves YAML frontmatter, fenced code blocks, inline code, wikilinks `[[note|alias]]`, embeds `![[...]]`, tags `#tag`, callouts `> [!note]`, comments `%%...%%`, and the primary H1 title (preventing unwanted title-driven file renames per ADR-0060).
+     - `tableFormatter.ts`: Automatically formats markdown table columns with neat column padding and standard separator alignments.
+     - `listFormatter.ts`: Normalizes unordered list markers to `- ` with clean 2-space nesting while preserving task checkboxes `[ ]`/`[x]`.
+     - `spacingFormatter.ts`: Trims trailing line whitespace, collapses 3+ empty lines down to 1, and enforces clean structural spacing around headings, lists, code blocks, and tables.
+2. **CodeMirror Transaction & Single-Undo Integration (`formatEditorDocument.ts`)**:
+   - Implemented `formatEditorDocument(view, options)` with minimal diff computation (`minimalDocumentChange`), preventing unnecessary document disruption and preserving cursor/selection and scroll offsets.
+   - Dispatches changes within a single CodeMirror transaction tagged `userEvent: "format"`. A single `Cmd+Z` / `Ctrl+Z` immediately reverts the entire format in one step.
+   - Detects whether text is selected to toggle between "Format note" and "Format selection".
+3. **UI Entry Points & Settings (`EditorArea.tsx`, `EditorMenuBar.tsx`, `EditorContextMenu.tsx`, `FormatToast.tsx`, `CommandPalette.tsx`, `EditorSettingsTab.tsx`)**:
+   - Added "Format note" to the editor header `...` menu (`EditorMenuBar.tsx`).
+   - Added "Format note" command to the Command Palette (`⌘⇧P` / `Ctrl+Shift+P`) and wired global shortcut `Cmd+Shift+F` / `Ctrl+Shift+F`.
+   - Added right-click context menu (`EditorContextMenu.tsx`) following "Less Boxes Always" flat-row design offering "Format selection" (when selected) or "Format note".
+   - Added floating status toast (`FormatToast.tsx`) displaying `"Formatted · Undo"` with 1-click instant undo button, or `"Already tidy"` when no modifications were needed.
+   - Added "Format on save" toggle in Settings > Editor (`EditorSettingsTab.tsx`), stored persistently in SQLite settings and integrated into note-saving lifecycle (`performSaveNote.ts` wrapped in `withVaultWatchSuppressed` to guarantee zero file-watcher feedback loops).
+4. **Verification**:
+   - Idempotence: Second format pass returns `changed: false` with 0 diffs.
+   - Benchmark: 9,009-line / 170k-character benchmark note formatted in **65.23 ms** (first pass) and **59.30 ms** (second pass) — well under 100ms threshold without blocking typing.
+   - Protected regions: Fixture note verified byte-identical across frontmatter, H1, wikilinks, embeds, callouts, inline code, fenced code, and comments.
+   - All unit and integration test suites pass (13/13 tests in `@app/editor/format`, 274/274 in `@app/editor`, 172/172 across desktop editor/command palette).
+
+---
+
+## Previous Session — Record Page AI Agent Integration & Free Groq Whisper / Local Transcription Setup
+
+1. **Record Page Unified AI Agent Integration (`RecordAgentPicker.tsx`, `resolveRecordPageAIProvider.ts`, `useMeetingAgentChat.ts`, `useMeetingAssistant.ts`, `useAIListeningEngine.ts`, `useLiveSummaries.ts`, `useMeetingAIUpdater.ts`)**:
+   - Created `RecordAgentPicker.tsx` (242 lines) and `RecordAgentPicker.module.scss` (132 lines) following the canonical `EditorMenuBarDropdown` / "Less Boxes Always" flat-row design standard, embedded in `RecordingTopBar.tsx`, `AIListeningPanel.tsx`, and `MeetingAssistantPanel.tsx`.
+   - Syncs directly with `useAgentStore` so the Record page uses the exact same AI Agents available on the AI Agent page (`Sophia Assistant`, `OpenCode`, `Claude Code`, `Codex CLI`, `Antigravity CLI (agy)`, plus Cloud/Groq and local Ollama models).
+   - Created `resolveRecordPageAIProvider.ts` (192 lines) to route Record page AI operations (`useAIListeningEngine`, `useLiveSummaries`, `useMeetingAIUpdater`, `useMeetingAssistant`) through the selected CLI agent (`startCliAgentSession` + `subscribeCliAgentStream`), Groq Cloud free-tier LLM (`llama-3.3-70b-versatile`), or configured Sophia LLM provider.
+   - Updated `useMeetingAgentChat.ts` (144 lines) to pass `selectedCliAgent`, `selectedProvider`, `selectedModel`, `webSearchEnabled`, `vaultPath`, `vaultName`, `conversations`, and `activeConversationId` from `useAgentStore` and `useWorkspaceStore` into `useAgentExecution`, and fixed `isChatExecuting` wiring in `useListeningSession.ts`.
+   - Made the `davinci://agent` badge in `MeetingAgentChatFeed.tsx` clickable to navigate directly to the synced conversation thread on the AI Agent page.
+2. **Free Groq Whisper & Local Whisper Speech-to-Text Transcription (`transcription_local.rs`, `transcription_cloud.rs`, `transcription_commands.rs`, `ai_auth.rs`, `TranscriptionSettingsCard.tsx`, `useLiveSpeechRecognition.ts`, `rerunAudioTranscription.ts`)**:
+   - Added `transcription_local.rs` (135 lines) in Rust to detect and run free offline Whisper CLI binaries (`mlx_whisper`, `whisper-cli`, `whisper-cpp`, `whisper`) and filter Whisper silence hallucinations.
+   - Updated `transcription_cloud.rs` (102 lines) and `ai_auth.rs` (75 lines) to default to Groq Whisper's fast free-tier model (`whisper-large-v3-turbo` at `https://api.groq.com/openai/v1/audio/transcriptions`), automatically resolving keys from OS Keychain (`ai-transcription:groq`, `groq`, `ai-listening:groq`, `whisper`) or environment (`GROQ_API_KEY`) and falling back to local Whisper CLI when offline or keyless.
+   - Added `transcribe_live_recording_chunk` and `detect_transcription_tools` Tauri commands in `transcription_commands.rs` (172 lines) to slice active 16kHz PCM audio from `AudioCaptureManager.pcm_buffer`, check RMS speech energy, and transcribe live chunks during recording.
+   - Created `TranscriptionSettingsCard.tsx` (210 lines) in `AIListeningSettingsTab.tsx` (244 lines) to configure the Free Transcription Engine (`auto`, `groq-whisper`, `local-whisper`, `web-speech`), Groq Whisper model (`whisper-large-v3-turbo`, `whisper-large-v3`, `distil-whisper-large-v3-en`), and OS Keychain Groq API key.
+   - Updated `useLiveSpeechRecognition.ts` (211 lines) and `useListeningSession.ts` (247 lines) to combine live Whisper chunk polling with Browser Web Speech API and normalize segment timestamps (`startMs`, `endMs`, `timestampMs`).
+3. **Verification**:
+   - Added `RecordAgentAndGroqWhisper.test.tsx` (4 tests) and `RecordAgentPicker.stories.tsx`.
+   - All 23 test files (81 tests) across `ListeningView` and `AIListeningSettingsTab` pass.
+   - `cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml` passed with 0 errors.
+   - All modified files verified under the 250-line hard cap.
+
+---
+
+## Previous Session — Complete Vault Instructions Execution, Created Folder Display & Direct Click-to-Open Folder Navigation
+
+1. **Universal Complete Vault Instruction Execution (`agentCliVaultSync.ts`, `agentCliRunner.ts`, `agentStepLoop.ts`, `agentDispatchSession.ts`)**:
+   - Created `agentCliVaultSync.ts` (236 lines) to parse `<vault_action>` tags (`create_folder`, `create_note`, `edit_note`, `append_to_note`, `move_note`) and conversational tool calls (`extractConversationalToolCalls`), immediately applying them to the active vault via `mutationBackend` with real-time progress logs.
+   - Syncs any direct filesystem changes made by CLI agents on disk (`listFolders()` / `listNotes()`) into `useWorkspaceStore` (`updateAllFolderPaths` / `updateAllPaths`) and records applied `toolCalls` & `toolResults`.
+   - Implemented `ensureParentFolderToolCalls`: Automatically surfaces parent folders as applied `create_folder` actions whenever nested notes (e.g. `Story/Nadine.md`) are created, ensuring the created folder is always displayed to the user.
+   - Updated `agentStepLoop.ts` (235 lines) to collect all executed `toolCalls` and `toolResults` across multi-step tool executions and attach them to the assistant message.
+   - Updated `cli_agent_runner.rs` (223 lines) to strip ANSI escape sequences and classify non-error status lines (`> build ...`) as `"thought"` instead of `"error"`.
+2. **Created Folder Display & Click-to-Open Navigation (`AgentToolCallList.tsx`, `AgentMarkdownContent.tsx`, `AgentMessageBubble.tsx`, `AgentActiveChat.tsx`)**:
+   - Upgraded `AgentToolCallList.tsx` (239 lines) with interactive flat action rows:
+     - Created folders show `Folder created: "<path>"` with `"Open folder →"`. Clicking the folder row immediately opens/reveals the folder in the application's File Explorer (`FileTree`), expands an inline list of notes inside that folder for instant 1-click note access, and provides a `"Reveal in system file manager"` button (`show_in_folder`).
+     - Created/updated notes show `Created note "<path>"` / `Updated note "<path>"` with `"Open note →"`, opening the note directly in the editor when clicked.
+   - Enhanced `AgentMarkdownContent.tsx` (242 lines) so inline backticked folder/note paths (e.g. `` `Story` `` or `` `Story/Nadine.md` ``) and `[[wikilinks]]` pointing to folders or notes are clickable and open the folder or note.
+   - Wired `onNavigateNote` and `onNavigateFolder` in `AgentActiveChat.tsx` (151 lines) and `AgentMessageBubble.tsx` (235 lines).
+3. **File Explorer Folder Reveal & Auto-Expansion (`useWorkspaceStore.ts`, `useTreeExpandedFolders.ts`, `FileTree.tsx`, `FileTreeList.tsx`, `AppSidebar.tsx`, `App.tsx`)**:
+   - Added `revealedFolderPath`, `revealFolderNonce`, and `revealFolderInTree(folderPath)` in `useWorkspaceStore.ts` (178 lines), dispatching `"davinci:reveal-folder"`.
+   - Updated `AppSidebar.tsx` (246 lines) and `App.tsx` so clicking a folder link in `AgentView` automatically opens the left sidebar and switches to `FileTree` while keeping the conversation open.
+   - Updated `useTreeExpandedFolders.ts` (108 lines), `FileTree.tsx` (220 lines), and `FileTreeList.tsx` (164 lines) to automatically expand the target folder (and its ancestors) and highlight it as active/selected.
+4. **Verification**:
+   - Added `AgentFolderLinkAndCompleteInstructions.test.tsx` (3 tests) — all 16 tests across 5 core AgentView test suites pass.
+   - `cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml` passed cleanly.
+   - All modified files verified under the 250-line hard cap.
+
+---
+
+## Previous Session — Fix Conversation Message Persistence on Page Close & Immediate Vault Note Creation/Editing with Real-Time Progress
+
+1. **Fixed Conversation Messages Disappearing When Closing & Re-Opening the AI Agent Page (`useAgentExecution.ts`, `agentDispatchSession.ts`, `agentLlmRunner.ts`, `AgentView.tsx`)**:
+   - **Root Cause**: In `useAgentExecution.ts`, `finally` set `waitingForRevealRef.current = true` instead of calling `setIsStreaming(false)`. Because `completeResponseReveal` was never triggered in the UI, `isStreaming` remained `true` forever after the first message completed, which blocked `AgentView.tsx`'s persistence `useEffect` (`if (!activeConversationId || messages.length === 0 || isStreaming) return;`). When closing the AI Agent tab, `AgentView` unmounted without ever persisting the new turns.
+   - **Fixes**:
+     - Always call `setIsStreaming(false)` in `useAgentExecution.ts`'s `finally` block so the streaming state cleanly resets after each turn.
+     - Immediately persist user turns via `useAgentStore.getState().saveActiveMessages(nextMessages)` as soon as a message is submitted.
+     - Immediately persist assistant turns inside `agentDispatchSession.ts` (CLI completion) and `agentLlmRunner.ts` (LLM completion).
+     - Added unmount cleanup in `AgentView.tsx` using `messagesRef` and `activeConversationIdRef` to flush any unsaved messages if the user closes the AI Agent page mid-conversation, plus hydration recovery when re-mounting `AgentView`.
+2. **Fixed Vault Note Creation/Editing & Added Real-Time Progress (`cli_agent_runner.rs`, `executeAgentStepTool.ts`, `agentStepLoop.ts`, `agentCliRunner.ts`)**:
+   - **CLI Headless Write Permissions (`cli_agent_runner.rs`)**: Added non-interactive auto-approval flags so CLI agents can create and edit files in the vault without hanging on stdin permission prompts (`opencode run --auto <prompt>`, `claude -p <prompt> --dangerously-skip-permissions`, `codex exec --dangerously-bypass-approvals-and-sandbox <prompt>`).
+   - **Immediate Vault Mutations (`executeAgentStepTool.ts`)**: Removed the `isDestructive` confirmation block on `edit_note` and `move_note` when `autoApply` is enabled so note edits and creations execute directly on the vault.
+   - **Granular Live Progress Logs (`agentStepLoop.ts`)**: Added real-time step-by-step progress log emission before and after every tool execution (`Creating note "X" in vault...`, `Updating note "X" in vault...`, `Appending to note "X" in vault...`, `✓ Applied create_note on "X"`, etc.) so the user sees live progress in the Activity panel and action badges.
+3. **Verification**:
+   - Added unit test suite `AgentVaultOperationsAndPersistence.test.ts` testing multi-turn persistence on previously opened conversations and live vault note creation/editing progress events.
+   - All 32 unit tests across 8 AgentView test suites pass (`pnpm --filter @app/desktop exec vitest run ...`).
+   - `cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml` passed cleanly.
+   - All modified files verified under the 250-line hard cap.
+   - Graphify knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Active Vault Anchoring & Direct Read/Edit Operations for AI Agents
+
+1. **Active Vault Anchoring for AI Agents**:
+   - Anchored internal LLM (Sophia Assistant) and CLI agents (`opencode`, `codex`, `agy`, `claude`) directly to the currently opened vault in the application.
+   - Updated `agentSystemPrompt.ts`: System prompt now includes `vaultName`, exact filesystem `vaultPath`, note inventory of up to 60 notes, and strict instructions that the agent is embedded in and ALWAYS points to the active opened vault.
+   - Proactive vault inspection: The agent is instructed to proactively consult `search_vault` and `read_note` before answering questions about user notes, stories, characters, or tasks.
+2. **Permanent Unrestricted Vault Tool Access**:
+   - In `agentPromptResolver.ts`, removed intent-based tool stripping where "chat" intent previously stripped all vault tools.
+   - The agent now permanently retains the full suite of vault inspection tools (`read_note`, `search_vault`, `list_vault_tree`) and mutation tools (`create_note`, `edit_note`, `append_to_note`, `create_folder`, `move_note`, `save_memory`).
+3. **CLI Agent Opened Vault Workspace Context**:
+   - In `agentCliRunner.ts` and `agentDispatchSession.ts`, injected the `[Active Vault Workspace]` block into all CLI prompts.
+   - Supplies the CLI agent with the active vault name, vault directory path, note inventory, and instructions that it executes directly inside the opened vault and has full permission to read and edit notes on disk.
+4. **Resilient Vault Path Resolution (`desktopAgentBridge.ts`)**:
+   - Added `normalizeVaultPath`: Handles path resolution across relative paths, missing `.md` extensions, leading slashes, and case-insensitive matching against `allNotePaths`.
+   - Applied to `readNote`, `writeNote`, `deleteNote`, and `moveNote` in `desktopAgentBridge.ts`.
 5. **Verification**:
-   - All 40 test files (110 tests) in `src/components/AgentView` pass.
-   - Zero ESLint and Stylelint errors in `AgentView`.
-   - All modified files stay strictly below the 250-line cap.
+   - Unit tests passed: `AgentVaultAnchoring.test.ts` (3 tests), `agentSystemPrompt.test.ts` (3 tests), `agentCliRunner.test.ts` (2 tests), `projectMemoryIsolation.test.ts` (6 tests), `agentSlashCommandHandler.test.ts` (8 tests), `AgentAvailabilityBanner.test.tsx` (3 tests), `AgentSidebarPanel.test.tsx` (5 tests) — 30/30 passed.
+   - `cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml` passed in 0.95s.
+   - Line counts: All files strictly verified under 250-line hard cap (range: 64 to 236 lines).
    - Graphify knowledge graph updated via `graphify update .`.
 
 ---
@@ -34,6 +127,18 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 - Stage, commit, and open pull request on `feat/ai-agent-library-board-project-chats`.
 - Run preflight checks if cutting a release.
+
+---
+
+## Previous Session — Project-Wide Cross-Conversation Memory & Shared Context Sharing
+
+---
+
+## Previous Session — AI Agent LLM Availability, Live CLI Streaming, Slash Commands & Project Memory
+
+---
+
+## Previous Session — AI Library Markdown Vault Direct Editing & Project Prompt Bar Specialization
 
 ---
 

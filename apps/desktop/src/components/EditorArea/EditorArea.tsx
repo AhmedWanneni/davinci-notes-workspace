@@ -22,7 +22,11 @@ import {
 } from "@phosphor-icons/react";
 import { parseFrontmatter } from "@app/indexer";
 import { EmptyState } from "../EmptyState";
-import { PropertiesBlock } from "../PropertiesBlock";
+import {
+  PropertiesBlock,
+  upsertNoteProperty,
+  removeNoteProperty,
+} from "../PropertiesBlock";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { readNote, createNoteInVault } from "../../vault";
 import type { PluginLifecycleManager } from "@app/plugin-runtime";
@@ -35,6 +39,11 @@ import { NoteCoverImage } from "./NoteCoverImage";
 import { useNoteCoverImage } from "./useNoteCoverImage";
 import { stripNoteMetadata } from "./stripNoteMetadata";
 import { useBookmarks } from "../../bookmarks";
+import { getEditorFont } from "../../fonts/editorFontRegistry";
+import {
+  getPlatformAdapters,
+  hasPlatformAdapters,
+} from "@app/platform-adapters";
 
 const LazyCoverImagePickerModal = lazy(() =>
   import("./CoverImagePickerModal").then((m) => ({
@@ -73,11 +82,14 @@ import {
   findInsertItem,
   type ReminderClickInfo,
   pathStem,
+  formatEditorDocument,
 } from "@app/editor";
 import { EditorFormattingToolbar } from "./EditorFormattingToolbar";
 import { EditorAiSelectionTrigger } from "./EditorAiSelectionTrigger";
 import { EditorAiSelectionPopover } from "./EditorAiSelectionPopover";
 import { useEditorAiSelection } from "./useEditorAiSelection";
+import { EditorContextMenu } from "./EditorContextMenu";
+import { FormatToast } from "./FormatToast";
 
 export interface EditorAreaProps {
   activeNotePath: string | null;
@@ -113,10 +125,97 @@ export function EditorArea({
   const goForward = useWorkspaceStore((state) => state.goForward);
   const conflictNotes = useWorkspaceStore((state) => state.conflictNotes);
   const resolveConflict = useWorkspaceStore((state) => state.resolveConflict);
+  const activeNoteSessionId = useWorkspaceStore(
+    (state) => state.activeNoteSessionId,
+  );
   const editorViewRef = useRef<EditorView | null>(null);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
+
+  const handleExternalLinkClick = useCallback((url: string) => {
+    if (hasPlatformAdapters()) {
+      void getPlatformAdapters().externalUrl.openUrl(url);
+    } else if (typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  }, []);
   const [editorMode, setEditorMode] = useState<"preview" | "code">("preview");
+  const [editorPadding, setEditorPadding] = useState<"default" | "wide">(() => {
+    try {
+      return window.localStorage.getItem("davinci-editor-padding") === "wide"
+        ? "wide"
+        : "default";
+    } catch {
+      return "default";
+    }
+  });
+  const [showProperties, setShowProperties] = useState<boolean>(() => {
+    try {
+      return (
+        window.localStorage.getItem("davinci-editor-show-properties") === "true"
+      );
+    } catch {
+      return false;
+    }
+  });
   const [showFormattingToolbar, setShowFormattingToolbar] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    hasUndo?: boolean;
+    onUndo?: () => void;
+  } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    hasSelection: boolean;
+  } | null>(null);
+
+  const handleFormat = useCallback(
+    (selectionOnly = false) => {
+      const view = editorView ?? editorViewRef.current;
+      if (!view) return;
+      const result = formatEditorDocument(view, { selectionOnly });
+      if (result.changed) {
+        setToast({
+          message: "Formatted",
+          hasUndo: true,
+          onUndo: result.undo,
+        });
+      } else {
+        setToast({
+          message: "Already tidy",
+          hasUndo: false,
+        });
+      }
+    },
+    [editorView],
+  );
+
+  const handleContextMenu = useCallback(
+    (e: React.MouseEvent) => {
+      const view = editorView ?? editorViewRef.current;
+      if (!view) return;
+      e.preventDefault();
+      const sel = view.state.selection.main;
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        hasSelection: sel.from !== sel.to,
+      });
+    },
+    [editorView],
+  );
+
+  useEffect(() => {
+    const handleFormatEvent = (e: Event) => {
+      const custom = e as CustomEvent<{ selectionOnly?: boolean }>;
+      handleFormat(Boolean(custom.detail?.selectionOnly));
+    };
+    window.addEventListener("davinci:format-note", handleFormatEvent);
+    return () => {
+      window.removeEventListener("davinci:format-note", handleFormatEvent);
+    };
+  }, [handleFormat]);
+
   const insertDialogRequest = useInsertDialogRequest();
   const [editingReminder, setEditingReminder] =
     useState<ReminderClickInfo | null>(null);
@@ -219,6 +318,33 @@ export function EditorArea({
   const [databaseParseError, setDatabaseParseError] = useState<string | null>(
     null,
   );
+
+  const handleEditorPaddingChange = useCallback(
+    (padding: "default" | "wide") => {
+      setEditorPadding(padding);
+      try {
+        window.localStorage.setItem("davinci-editor-padding", padding);
+      } catch {
+        // Keep the choice for this session when storage is unavailable.
+      }
+    },
+    [],
+  );
+
+  const handleToggleProperties = useCallback(() => {
+    setShowProperties((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(
+          "davinci-editor-show-properties",
+          next ? "true" : "false",
+        );
+      } catch {
+        // Keep the choice for this session when storage is unavailable.
+      }
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (isDatabaseNote && content) {
@@ -430,6 +556,11 @@ export function EditorArea({
           editorMode={editorMode}
           onModeChange={setEditorMode}
           onExportPdf={() => void exportNoteToPdf()}
+          editorPadding={editorPadding}
+          onEditorPaddingChange={handleEditorPaddingChange}
+          showProperties={showProperties}
+          onToggleProperties={handleToggleProperties}
+          onFormatNote={() => handleFormat(false)}
         />
         {isCoverPickerOpen && (
           <Suspense fallback={null}>
@@ -519,7 +650,15 @@ export function EditorArea({
   return (
     <div
       className="editor-area"
-      style={{ "--editor-font-size": `${editorFontSize}px` } as CSSProperties}
+      style={
+        {
+          "--editor-font-size": `${editorFontSize}px`,
+          "--font-editor": getEditorFont(
+            useVimMode && vimMonospaceMode ? "jetbrains-mono" : editorFont,
+            editorCustomFont,
+          ).cssFamily,
+        } as CSSProperties
+      }
     >
       {activeNotePath ? (
         isCanvas ? (
@@ -704,13 +843,7 @@ export function EditorArea({
                 {noteHeader}
               </NoteCoverImage>
             ) : null}
-            <div className="editor-area__header">
-              {!coverUrl && noteHeader}
-              <PropertiesBlock
-                frontmatter={frontmatter}
-                onLinkClick={onLinkClick}
-              />
-            </div>
+            <div className="editor-area__header">{!coverUrl && noteHeader}</div>
             {hasConflict && activeNotePath && (
               <EditorConflictBanner
                 path={activeNotePath}
@@ -755,15 +888,48 @@ export function EditorArea({
                 void openNote("davinci://agent");
               }}
             />
-            <div className="editor-area__body">
+            <div
+              className={`editor-area__body${editorPadding === "wide" ? " editor-area__body--readable-width" : ""}`}
+              onContextMenu={handleContextMenu}
+            >
+              {editorMode === "preview" && showProperties && (
+                <div className="editor-area__properties-wrap">
+                  <PropertiesBlock
+                    frontmatter={frontmatter}
+                    onLinkClick={onLinkClick}
+                    onAddProperty={(key, val) => {
+                      if (!activeNotePath) return;
+                      updateNoteContent(
+                        activeNotePath,
+                        upsertNoteProperty(content ?? "", key, val),
+                      );
+                    }}
+                    onUpdateProperty={(key, val) => {
+                      if (!activeNotePath) return;
+                      updateNoteContent(
+                        activeNotePath,
+                        upsertNoteProperty(content ?? "", key, val),
+                      );
+                    }}
+                    onRemoveProperty={(key) => {
+                      if (!activeNotePath) return;
+                      updateNoteContent(
+                        activeNotePath,
+                        removeNoteProperty(content ?? "", key),
+                      );
+                    }}
+                  />
+                </div>
+              )}
               <Editor
-                key={`${activeNotePath}-${editorMode}`}
+                key={`${activeNoteSessionId}-${editorMode}`}
                 value={cleanedContent}
                 isSourceMode={editorMode === "code"}
                 onChange={(newVal) => updateNoteContent(activeNotePath, newVal)}
                 notePaths={allNotePaths}
                 sourcePath={activeNotePath}
                 onLinkClick={onLinkClick}
+                onExternalLinkClick={handleExternalLinkClick}
                 onTagClick={onTagClick}
                 onReminderClick={setEditingReminder}
                 onPasteAttachment={handlePasteAttachment}
@@ -790,6 +956,24 @@ export function EditorArea({
                 }}
               />
             </div>
+            {contextMenu && (
+              <EditorContextMenu
+                x={contextMenu.x}
+                y={contextMenu.y}
+                hasSelection={contextMenu.hasSelection}
+                onFormatSelection={() => handleFormat(true)}
+                onFormatNote={() => handleFormat(false)}
+                onClose={() => setContextMenu(null)}
+              />
+            )}
+            {toast && (
+              <FormatToast
+                message={toast.message}
+                hasUndo={toast.hasUndo}
+                onUndo={toast.onUndo}
+                onDismiss={() => setToast(null)}
+              />
+            )}
           </div>
         )
       ) : (
