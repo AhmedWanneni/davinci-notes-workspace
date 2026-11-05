@@ -58,7 +58,6 @@ function addSoftLineBreaks(
       line.to < state.doc.length &&
       !hasTrailingHardBreak(line.text) &&
       !line.text.trim().startsWith("|") &&
-      !LIST_LINE_REGEX.test(line.text) &&
       (!nextLine || !LIST_LINE_REGEX.test(nextLine.text)) &&
       isParagraphBreak(tree, line.to)
     ) {

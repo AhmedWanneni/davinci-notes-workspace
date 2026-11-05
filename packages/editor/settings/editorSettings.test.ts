@@ -161,7 +161,7 @@ describe("editorSettings", () => {
       await saveEditorSetting(storage, "editorFontSize", 18);
       await saveEditorSetting(storage, "strictLineBreaks", true);
       await saveEditorSetting(storage, "useVimMode", true);
-      await saveEditorSetting(storage, "vimMonospaceMode", false);
+      await saveEditorSetting(storage, "vimMonospaceMode", true);
 
       const loaded = await loadEditorSettings(storage);
       expect(loaded.editorFont).toBe("custom");
@@ -169,7 +169,7 @@ describe("editorSettings", () => {
       expect(loaded.editorFontSize).toBe(18);
       expect(loaded.strictLineBreaks).toBe(true);
       expect(loaded.useVimMode).toBe(true);
-      expect(loaded.vimMonospaceMode).toBe(false);
+      expect(loaded.vimMonospaceMode).toBe(true);
     });
 
     it("sanitizes invalid custom font names upon loading", async () => {

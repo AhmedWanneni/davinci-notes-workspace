@@ -42,7 +42,7 @@ export const defaultEditorSettings: EditorSettings = {
   editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
   strictLineBreaks: false,
   useVimMode: false,
-  vimMonospaceMode: true,
+  vimMonospaceMode: false,
   slashMenuEnabled: true,
   formatOnSave: false,
 };

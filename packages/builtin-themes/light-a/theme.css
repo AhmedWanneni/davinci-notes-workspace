@@ -41,9 +41,9 @@
   --space-4: 16px;
   --space-6: 24px;
   --space-8: 32px;
-  --font-ui: -apple-system, blinkmacsystemfont, "Segoe UI", roboto, helvetica, arial, sans-serif;
+  --font-ui: -apple-system, blinkmacsystemfont, "SF Pro Text", "SF Pro", "Segoe UI", roboto, helvetica, arial, sans-serif;
   --font-editor: var(--font-text);
-  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Geist Mono", Menlo, Consolas, monospace;
   --type-scale-xs: 0.75rem;
   --type-scale-sm: 0.875rem;
