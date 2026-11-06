@@ -2,6 +2,35 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-06: Prevent Unwanted Auxiliary File Creation in AI Agent (Codex, agy, Claude, Sophia)
+
+- **Conversational Fallback Disambiguation (`packages/ai-runtime`)**:
+  - Refactored `conversationalToolFallback.ts` (216 lines) to avoid hyperactive tool extraction:
+    - Added `HAS_NOTE_CREATION_INTENT` regex guarding `deriveNoteNameFromTopic`: note names are now only derived from topics if the user prompt actually expressed note/file creation intent.
+    - Prohibits synthesizing `create_note` when user only requests creating a folder (e.g. `"create folder Recipes"` or `"create folder for recipes"`).
+    - Added `EDIT_INTENT_PATTERN` so edit/update requests (`"update file ideas.md with new thoughts"`) emit `edit_note` instead of falling through to create extraneous files (e.g. `new.md`).
+    - Extracted `conversationalMoveFallback.ts` (46 lines) and `conversationalPathUtils.ts` (18 lines) ensuring strict ESLint `max-lines` compliance (<250 lines).
+    - Added comprehensive unit tests in `conversationalToolFallback.test.ts` (182 lines, 17 tests).
+- **Autonomous CLI Agent Strict Scope & Prompting (`apps/desktop/src/components/AgentView`)**:
+  - Created `buildCliAgentPrompt.ts` (114 lines): Extracted CLI prompt construction with strict scope and negative constraints:
+    - Exact action only: Touch only requested file/folder.
+    - Folder creation: When asked to create a folder, create ONLY that folder (`mkdir`); NEVER seed `README.md`, `index.md`, `.gitkeep`, or notes inside it.
+    - File updates: Modify only the target file; NEVER generate backups (`.bak`, `.old`), companion summaries, or changelogs.
+    - Forbidden files: Explicitly bans `walkthrough.md`, `implementation_plan.md`, `README.md`, test files, or scratchpads.
+  - Refactored `agentCliRunner.ts` (187 lines): Integrated `buildCliAgentPrompt`, reducing file size from 245 lines down to 187 lines.
+  - Created `agentArtifactFilter.ts` (23 lines) & `agentArtifactFilter.test.ts` (33 lines, 5 tests): Added filter for agent developer artifacts (`walkthrough.md`, `implementation_plan.md`, `README.md` unless requested, `.bak`, `.tmp`, `.log`).
+  - Updated `agentCliVaultSync.ts` (232 lines): Integrated `isIgnoredAgentArtifact` so rogue disk artifacts from CLI agents are pruned via `mutationBackend.deleteNote` and omitted from `useWorkspaceStore` and `toolCalls`.
+  - Updated `agentSystemPrompt.ts` (87 lines): Added `STRICT MINIMAL MUTATION & SINGLE RESPONSIBILITY` instructions for Sophia internal LLM runner.
+- **Prompt Templates & Agent Package Alignment (`packages/ai-agent`)**:
+  - Updated `createNotePrompt.ts` (29 lines): Explicitly instructed that multi-step sequencing applies only when user explicitly asks for both folder and note; folder-only requests must ONLY execute `create_folder`.
+  - Updated `editNotePrompt.ts` (12 lines): Added strict single-note target constraint forbidding auxiliary summary or backup notes.
+- **Verification & Quality**:
+  - All 37 tests in `@app/ai-runtime` pass cleanly.
+  - All 113 tests in `@app/ai-agent` pass cleanly.
+  - All 10 tests across `agentCliRunner.test.ts`, `agentSystemPrompt.test.ts`, and `agentArtifactFilter.test.ts` pass cleanly.
+  - All files strictly verified <= 250 lines.
+  - AST knowledge graph updated via `graphify update .`.
+
 ### 2026-11-05: Interactive Animated & Graph Widgets for AI Agent (Chat & CodeMirror 6 Notes)
 
 - **Shared Zero-Dependency Renderer (`packages/editor/blocks/widget/`)**:

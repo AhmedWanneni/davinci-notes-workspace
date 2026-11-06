@@ -1,6 +1,5 @@
 import {
   AIProviderError,
-  type AgentToolCall,
   type ChatRequest,
   type ChatResponse,
   type ChatStreamChunk,
@@ -82,8 +81,14 @@ export class OllamaTransport {
 
   async complete(request: ChatRequest): Promise<ChatResponse> {
     const model = this.options.chatModel;
-    const supportsNativeTools = OllamaTransport.toolSupportCache.get(model) !== false;
-    const payload = buildOllamaChatPayload(request, model, false, supportsNativeTools);
+    const supportsNativeTools =
+      OllamaTransport.toolSupportCache.get(model) !== false;
+    const payload = buildOllamaChatPayload(
+      request,
+      model,
+      false,
+      supportsNativeTools,
+    );
     let body: OllamaBody;
     try {
       body = (await this.post("/api/chat", payload)) as OllamaBody;
@@ -126,8 +131,14 @@ export class OllamaTransport {
 
   async *completeStream(request: ChatRequest): AsyncIterable<ChatStreamChunk> {
     const model = this.options.chatModel;
-    const supportsNativeTools = OllamaTransport.toolSupportCache.get(model) !== false;
-    const payload = buildOllamaChatPayload(request, model, true, supportsNativeTools);
+    const supportsNativeTools =
+      OllamaTransport.toolSupportCache.get(model) !== false;
+    const payload = buildOllamaChatPayload(
+      request,
+      model,
+      true,
+      supportsNativeTools,
+    );
     let response: Response;
     try {
       response = await this.rawPost("/api/chat", payload);

@@ -3,9 +3,9 @@ import { executeCliAgentSession } from "./agentCliRunner";
 import type { ChatMessageItem } from "./agentTypes";
 
 vi.mock("./cliAgentBridge", () => ({
-  detectCliAgents: vi.fn().mockResolvedValue([
-    { id: "opencode", installed: true, name: "OpenCode" },
-  ]),
+  detectCliAgents: vi
+    .fn()
+    .mockResolvedValue([{ id: "opencode", installed: true, name: "OpenCode" }]),
 }));
 
 describe("agentCliRunner conversation history and memory", () => {
@@ -50,10 +50,21 @@ describe("agentCliRunner conversation history and memory", () => {
     });
 
     expect(sentPrompt).toContain("[Conversation History]");
-    expect(sentPrompt).toContain("User: Nadine is the maid in my story i will create. remember that.");
-    expect(sentPrompt).toContain("Assistant: Got it — Nadine is the maid in your story.");
+    expect(sentPrompt).toContain(
+      "User: Nadine is the maid in my story i will create. remember that.",
+    );
+    expect(sentPrompt).toContain(
+      "Assistant: Got it — Nadine is the maid in your story.",
+    );
     expect(sentPrompt).toContain("[Active Vault Workspace]");
     expect(sentPrompt).toContain("Vault Directory Path: /test/vault");
+    expect(sentPrompt).toContain("STRICT MINIMAL MUTATION & SCOPE CONSTRAINTS");
+    expect(sentPrompt).toContain(
+      "Exact action only: Only create or update the EXACT file(s) or folder(s)",
+    );
+    expect(sentPrompt).toContain(
+      "NEVER create README.md, index.md, walkthrough.md",
+    );
     expect(sentPrompt).toContain("[Current User Request]");
     expect(sentPrompt).toContain("who is Nadine");
   });
@@ -94,7 +105,8 @@ describe("agentCliRunner conversation history and memory", () => {
       projectId: "story-project",
     });
 
-    const projectMemory = writtenNotes[".sophia/agent-memory-story-project.json"];
+    const projectMemory =
+      writtenNotes[".sophia/agent-memory-story-project.json"];
     expect(projectMemory).toBeDefined();
     expect(projectMemory).toContain("Nadine is the royal maid in the story");
     expect(sentPrompt).toContain("Nadine is the royal maid in the story");

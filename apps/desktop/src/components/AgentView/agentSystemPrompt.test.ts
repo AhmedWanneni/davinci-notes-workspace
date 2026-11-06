@@ -60,6 +60,10 @@ describe("agentSystemPrompt memory optimizations and vault anchoring", () => {
     expect(prompt).toContain("Note_59.md");
     expect(prompt).not.toContain("Note_60.md");
     expect(prompt).toContain("and 40 more notes");
+    expect(prompt).toContain("STRICT MINIMAL MUTATION & SINGLE RESPONSIBILITY");
+    expect(prompt).toContain(
+      "When asked to create a folder, execute ONLY create_folder",
+    );
     expect(prompt).toContain("INTERACTIVE WIDGETS & VISUAL EXPLAINERS");
     expect(prompt).toContain("```widget");
   });

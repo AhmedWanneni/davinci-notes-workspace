@@ -3,6 +3,7 @@ import type { VaultMutationBackend } from "@app/ai-agent";
 import { extractConversationalToolCalls } from "@app/ai-runtime";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { listFolders, listNotes } from "../../vault/vaultCommands";
+import { isIgnoredAgentArtifact } from "./agentArtifactFilter";
 
 export interface VaultSyncResult {
   cleanedOutput: string;
@@ -37,11 +38,28 @@ export function parseVaultActionTags(text: string): {
       const content = (body ?? "").trim();
 
       if (type === "create_folder" && path) {
-        calls.push({ id: `va_folder_${Date.now()}_${idx++}`, name: "create_folder", arguments: { path } });
-      } else if ((type === "create_note" || type === "edit_note" || type === "append_to_note") && path) {
-        calls.push({ id: `va_note_${Date.now()}_${idx++}`, name: type, arguments: { path, content } });
+        calls.push({
+          id: `va_folder_${Date.now()}_${idx++}`,
+          name: "create_folder",
+          arguments: { path },
+        });
+      } else if (
+        (type === "create_note" ||
+          type === "edit_note" ||
+          type === "append_to_note") &&
+        path
+      ) {
+        calls.push({
+          id: `va_note_${Date.now()}_${idx++}`,
+          name: type,
+          arguments: { path, content },
+        });
       } else if (type === "move_note" && fromPath && toPath) {
-        calls.push({ id: `va_move_${Date.now()}_${idx++}`, name: "move_note", arguments: { fromPath, toPath } });
+        calls.push({
+          id: `va_move_${Date.now()}_${idx++}`,
+          name: "move_note",
+          arguments: { fromPath, toPath },
+        });
       }
       return "";
     })
@@ -63,18 +81,32 @@ export function ensureParentFolderToolCalls(
   );
 
   for (const tc of toolCalls) {
-    if (tc.name === "create_note" || tc.name === "edit_note" || tc.name === "move_note") {
-      const rawPath = String(tc.arguments?.path || tc.arguments?.toPath || "").trim();
+    if (
+      tc.name === "create_note" ||
+      tc.name === "edit_note" ||
+      tc.name === "move_note"
+    ) {
+      const rawPath = String(
+        tc.arguments?.path || tc.arguments?.toPath || "",
+      ).trim();
       if (rawPath.includes("/")) {
         const folderPath = rawPath.split("/").slice(0, -1).join("/");
         if (folderPath && !existingFolders.has(folderPath)) {
           existingFolders.add(folderPath);
           const id = `folder_parent_${Date.now()}_${existingFolders.size}`;
-          nextCalls.unshift({ id, name: "create_folder", arguments: { path: folderPath } });
+          nextCalls.unshift({
+            id,
+            name: "create_folder",
+            arguments: { path: folderPath },
+          });
           nextResults.unshift({
             toolCallId: id,
             name: "create_folder",
-            content: JSON.stringify({ status: "applied", action: "create_folder", path: folderPath }),
+            result: JSON.stringify({
+              status: "applied",
+              action: "create_folder",
+              path: folderPath,
+            }),
           });
         }
       }
@@ -117,7 +149,9 @@ export async function applyAndSyncCliVaultActions(params: {
       try {
         if (tc.name === "create_folder" && pathArg) {
           appendLog(`Creating folder "${pathArg}" in vault...`);
-          await mutationBackend.createFolder(pathArg);
+          if (mutationBackend.createFolder) {
+            await mutationBackend.createFolder(pathArg);
+          }
           appendLog(`✓ Applied create_folder on "${pathArg}"`);
         } else if (
           (tc.name === "create_note" || tc.name === "edit_note") &&
@@ -131,7 +165,9 @@ export async function applyAndSyncCliVaultActions(params: {
           appendLog(`✓ Applied ${tc.name} on "${pathArg}"`);
         } else if (tc.name === "append_to_note" && pathArg) {
           appendLog(`Updating note "${pathArg}" in vault...`);
-          const existing = (await mutationBackend.readNote(pathArg)) ?? "";
+          const existing = mutationBackend.readNote
+            ? ((await mutationBackend.readNote(pathArg)) ?? "")
+            : "";
           const addition = String(tc.arguments?.content ?? "");
           await mutationBackend.writeNote(
             pathArg,
@@ -141,7 +177,7 @@ export async function applyAndSyncCliVaultActions(params: {
         } else if (tc.name === "move_note") {
           const from = String(tc.arguments?.fromPath || "").trim();
           const to = String(tc.arguments?.toPath || "").trim();
-          if (from && to) {
+          if (from && to && mutationBackend.moveNote) {
             appendLog(`Moving "${from}" → "${to}" in vault...`);
             await mutationBackend.moveNote(from, to);
             appendLog(`✓ Applied move_note on "${to}"`);
@@ -151,7 +187,7 @@ export async function applyAndSyncCliVaultActions(params: {
         toolResults.push({
           toolCallId: tc.id,
           name: tc.name,
-          content: JSON.stringify({
+          result: JSON.stringify({
             status: "applied",
             action: tc.name,
             path: pathArg || tc.arguments?.toPath,
@@ -173,33 +209,63 @@ export async function applyAndSyncCliVaultActions(params: {
     ]);
     const state = useWorkspaceStore.getState();
     if (Array.isArray(diskFolders)) {
-      state.updateAllFolderPaths(Array.from(new Set([...state.allFolderPaths, ...diskFolders])).sort());
+      state.updateAllFolderPaths(
+        Array.from(new Set([...state.allFolderPaths, ...diskFolders])).sort(),
+      );
       for (const f of diskFolders) {
-        if (!beforeFolders.includes(f) && !toolCalls.some((c) => c.name === "create_folder" && c.arguments?.path === f)) {
+        if (
+          !beforeFolders.includes(f) &&
+          !toolCalls.some(
+            (c) => c.name === "create_folder" && c.arguments?.path === f,
+          )
+        ) {
           const id = `cli_disk_folder_${Date.now()}_${f}`;
           toolCalls.push({ id, name: "create_folder", arguments: { path: f } });
           toolResults.push({
             toolCallId: id,
             name: "create_folder",
-            content: JSON.stringify({ status: "applied", action: "create_folder", path: f }),
+            result: JSON.stringify({
+              status: "applied",
+              action: "create_folder",
+              path: f,
+            }),
           });
           appendLog(`✓ Applied create_folder on "${f}"`);
         }
       }
     }
     if (Array.isArray(diskNotes)) {
-      state.updateAllPaths(Array.from(new Set([...state.allNotePaths, ...diskNotes])).sort());
+      const validDiskNotes = diskNotes.filter(
+        (n) => !isIgnoredAgentArtifact(n, promptText),
+      );
+      state.updateAllPaths(
+        Array.from(new Set([...state.allNotePaths, ...validDiskNotes])).sort(),
+      );
       for (const n of diskNotes) {
+        if (isIgnoredAgentArtifact(n, promptText)) {
+          if (mutationBackend?.deleteNote) {
+            void mutationBackend.deleteNote(n).catch(() => {});
+          }
+          continue;
+        }
         if (
           !beforeNotes.includes(n) &&
-          !toolCalls.some((c) => (c.name === "create_note" || c.name === "edit_note") && c.arguments?.path === n)
+          !toolCalls.some(
+            (c) =>
+              (c.name === "create_note" || c.name === "edit_note") &&
+              c.arguments?.path === n,
+          )
         ) {
           const id = `cli_disk_note_${Date.now()}_${n}`;
           toolCalls.push({ id, name: "create_note", arguments: { path: n } });
           toolResults.push({
             toolCallId: id,
             name: "create_note",
-            content: JSON.stringify({ status: "applied", action: "create_note", path: n }),
+            result: JSON.stringify({
+              status: "applied",
+              action: "create_note",
+              path: n,
+            }),
           });
           appendLog(`✓ Applied create_note on "${n}"`);
         }

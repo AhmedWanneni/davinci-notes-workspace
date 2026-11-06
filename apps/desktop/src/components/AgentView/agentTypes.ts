@@ -10,6 +10,8 @@ export interface ChatMessageItem {
   images?: string[];
   toolCalls?: AgentToolCall[];
   toolResults?: AgentToolResult[];
+  toolCallId?: string;
+  name?: string;
   logs?: string[];
   timestamp: number;
   isStreaming?: boolean;

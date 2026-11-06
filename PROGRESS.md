@@ -4,7 +4,35 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Unified Desktop Dialog System (`WindowDialog` & Design Alignment)
+## Last Session — Prevent Unwanted Auxiliary File Creation in AI Agent (Codex, agy, Claude, Sophia)
+
+1. **Conversational Fallback Disambiguation (`packages/ai-runtime`)**:
+   - `conversationalToolFallback.ts` (216 lines): Guarded `deriveNoteNameFromTopic` with `HAS_NOTE_CREATION_INTENT`. Prohibits synthesizing `create_note` when user only requests creating a folder (e.g. `"create folder Recipes"` or `"create folder for recipes"`). Added `EDIT_INTENT_PATTERN` so edit/update requests (`"update file ideas.md with new thoughts"`) emit `edit_note` instead of creating extraneous files (e.g. `new.md`).
+   - `conversationalMoveFallback.ts` (46 lines): Extracted move tool call parser to maintain strict line cap (< 250 lines).
+   - `conversationalPathUtils.ts` (18 lines): Extracted `cleanPath` and `INVALID_WORDS` shared utilities.
+   - `conversationalToolFallback.test.ts` (182 lines, 17 tests): Added unit tests verifying folder-only requests create zero notes, and file updates do not produce auxiliary notes.
+2. **Autonomous CLI Agent Strict Scope & Prompting (`apps/desktop/src/components/AgentView`)**:
+   - `buildCliAgentPrompt.ts` (114 lines): Extracted CLI prompt construction with strict scope and negative constraints:
+     - Exact action only: Touch only requested file/folder.
+     - Folder creation: When asked to create a folder, create ONLY that folder (`mkdir`); NEVER seed `README.md`, `index.md`, `.gitkeep`, or notes inside it.
+     - File updates: Modify only the target file; NEVER generate backups (`.bak`, `.old`), companion summaries, or changelogs.
+     - Forbidden files: Explicitly bans `walkthrough.md`, `implementation_plan.md`, `README.md`, test files, or scratchpads.
+   - `agentCliRunner.ts` (187 lines): Integrated `buildCliAgentPrompt`, reducing file size from 245 lines down to 187 lines.
+   - `agentArtifactFilter.ts` (23 lines) & `agentArtifactFilter.test.ts` (33 lines, 5 tests): Added filter for agent developer artifacts (`walkthrough.md`, `implementation_plan.md`, `README.md` unless requested, `.bak`, `.tmp`, `.log`).
+   - `agentCliVaultSync.ts` (232 lines): Integrated `isIgnoredAgentArtifact` so rogue disk artifacts from CLI agents are pruned via `mutationBackend.deleteNote` and omitted from `useWorkspaceStore` and `toolCalls`.
+   - `agentSystemPrompt.ts` (87 lines): Added `STRICT MINIMAL MUTATION & SINGLE RESPONSIBILITY` instructions for Sophia internal LLM runner.
+3. **Prompt Templates & Agent Package Alignment (`packages/ai-agent`)**:
+   - `createNotePrompt.ts` (29 lines): Explicitly instructed that multi-step sequencing applies only when user explicitly asks for both folder and note; folder-only requests must ONLY execute `create_folder`.
+   - `editNotePrompt.ts` (12 lines): Added strict single-note target constraint forbidding auxiliary summary or backup notes.
+4. **Verification**:
+   - All 37 tests in `@app/ai-runtime` pass cleanly.
+   - All 113 tests in `@app/ai-agent` pass cleanly.
+   - All 10 tests across `agentCliRunner.test.ts`, `agentSystemPrompt.test.ts`, and `agentArtifactFilter.test.ts` pass cleanly.
+   - AST knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Unified Desktop Dialog System (`WindowDialog` & Design Alignment)
 
 1. **Canonical Base Dialog Component (`apps/desktop/src/components/WindowDialog/`)**:
    - `WindowDialog.tsx` (131 lines): Canonical Radix Dialog wrapper implementing uniform dialog geometry, size presets (`sm: 440px`, `md: 500px`, `lg: 640px`, `xl: 920px`, `auto`), positioning (`center`, `top: 15%`), macOS window header (44px) with traffic lights (`#ff5f56`, `#ffbd2e`, `#27c93f`), centered title, customizable header actions, and footer.

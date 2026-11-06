@@ -33,7 +33,8 @@ describe("conversationalToolFallback", () => {
   });
 
   it("extracts create_kanban_board from conversational claim", () => {
-    const text = 'I have created a new kanban board named "Sprint 4" in the vault.';
+    const text =
+      'I have created a new kanban board named "Sprint 4" in the vault.';
     const call = extractConversationalToolCall(text);
     expect(call).not.toBeNull();
     expect(call?.name).toBe("create_kanban_board");
@@ -42,7 +43,8 @@ describe("conversationalToolFallback", () => {
   });
 
   it("extracts create_database_table from conversational claim", () => {
-    const text = 'I have created a database table named "Invoices" in the vault.';
+    const text =
+      'I have created a database table named "Invoices" in the vault.';
     const call = extractConversationalToolCall(text);
     expect(call).not.toBeNull();
     expect(call?.name).toBe("create_database_table");
@@ -61,7 +63,8 @@ describe("conversationalToolFallback", () => {
 
   it("extracts create_note when user asks for a file named sisi", () => {
     const userPrompt = "create a file named sisi";
-    const text = "I've created a new file named \"sisi\" in the vault. The note is empty initially.";
+    const text =
+      'I\'ve created a new file named "sisi" in the vault. The note is empty initially.';
     const call = extractConversationalToolCall(text, userPrompt);
     expect(call).not.toBeNull();
     expect(call?.name).toBe("create_note");
@@ -146,5 +149,35 @@ What are the theatre books you'd like to add to the note?`;
     expect(call?.name).toBe("move_note");
     expect(call?.arguments.fromPath).toBe("old.md");
     expect(call?.arguments.toPath).toBe("Archive/old.md");
+  });
+
+  it("does not create extraneous note when user only asks to create a folder", () => {
+    const userPrompt = "create folder Recipes";
+    const text = "Sure! I have created the folder Recipes in the vault.";
+    const calls = extractConversationalToolCalls(text, userPrompt);
+    expect(calls.length).toBe(1);
+    expect(calls[0].name).toBe("create_folder");
+    expect(calls[0].arguments.path).toBe("Recipes");
+  });
+
+  it("does not create extraneous note when prompt has preposition like 'create folder for recipes'", () => {
+    const userPrompt = "create folder for recipes";
+    const text = "I've created the folder recipes.";
+    const calls = extractConversationalToolCalls(text, userPrompt);
+    expect(calls.length).toBe(1);
+    expect(calls[0].name).toBe("create_folder");
+    expect(calls[0].arguments.path).toBe("recipes");
+    expect(calls.some((c) => c.name === "create_note")).toBe(false);
+  });
+
+  it("extracts edit_note without creating auxiliary new notes on update prompt", () => {
+    const userPrompt = "update file ideas.md with new thoughts";
+    const text =
+      "I've updated the file ideas.md.\n\n```markdown\n# Updated Ideas\n- New thought 1\n```";
+    const calls = extractConversationalToolCalls(text, userPrompt);
+    expect(calls.length).toBe(1);
+    expect(calls[0].name).toBe("edit_note");
+    expect(calls[0].arguments.path).toBe("ideas.md");
+    expect(calls.some((c) => c.name === "create_note")).toBe(false);
   });
 });

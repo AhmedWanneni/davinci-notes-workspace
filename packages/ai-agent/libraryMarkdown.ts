@@ -125,7 +125,10 @@ export function parseMarkdownToLibraryItem(
   const { frontmatter, content } = parseLibraryItemFrontmatter(markdown);
 
   const cleanFileName = filePath.split("/").pop()?.replace(/\.md$/i, "").trim();
-  const title = (frontmatter.title || cleanFileName || "Untitled").trim();
+  const rawTitle = Array.isArray(frontmatter.title)
+    ? frontmatter.title.join(", ")
+    : frontmatter.title || cleanFileName || "Untitled";
+  const title = String(rawTitle).trim();
 
   let inferredType: LibraryItemType = "prompt";
   if (
@@ -141,7 +144,9 @@ export function parseMarkdownToLibraryItem(
   }
 
   let projectId: string | null = null;
-  const projectHint = frontmatter.project || "";
+  const projectHint = Array.isArray(frontmatter.project)
+    ? frontmatter.project[0] || ""
+    : frontmatter.project || "";
   if (projectHint && projectHint !== "General") {
     const match = knownProjects.find(
       (p) => p.name.toLowerCase() === projectHint.toLowerCase(),
@@ -164,19 +169,24 @@ export function parseMarkdownToLibraryItem(
     }
   }
 
-  const cleanId =
+  const rawId =
     frontmatter.id ||
     `lib_${cleanFileName?.toLowerCase().replace(/\s+/g, "_") || Date.now()}`;
+  const cleanId = String(Array.isArray(rawId) ? rawId[0] : rawId);
   const tags: string[] = Array.isArray(frontmatter.tags)
     ? frontmatter.tags
     : [];
+  const rawDesc = frontmatter.description || "";
+  const description = String(
+    Array.isArray(rawDesc) ? rawDesc.join("\n") : rawDesc,
+  );
 
   return {
     id: cleanId,
     projectId,
     type: inferredType,
     title,
-    description: frontmatter.description || "",
+    description,
     content: content.trim(),
     tags,
     filePath,

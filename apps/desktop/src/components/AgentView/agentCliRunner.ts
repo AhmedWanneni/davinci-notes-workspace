@@ -1,6 +1,9 @@
 import type { AgentToolCall, AgentToolResult } from "@app/ai-api";
-import type { AgentConversation, VaultMutationBackend } from "@app/ai-agent";
-import type { WebSearchBackend } from "./desktopAgentBridge";
+import type {
+  AgentConversation,
+  VaultMutationBackend,
+  WebSearchBackend,
+} from "@app/ai-agent";
 import { detectCliAgents } from "./cliAgentBridge";
 import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes";
 import type { CliRunCallbacks } from "./useCliAgentExecution";
@@ -9,6 +12,7 @@ import {
   autoSavePromptMemory,
   loadMemoryContext,
 } from "./agentMemoryPersistence";
+import { buildCliAgentPrompt } from "./buildCliAgentPrompt";
 import { resolveProjectSisterConversationsContext } from "./agentProjectContextResolver";
 import { applyAndSyncCliVaultActions } from "./agentCliVaultSync";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
@@ -102,7 +106,8 @@ export async function executeCliAgentSession(
         appendLog(`Retrieved ${results.length} web sources.`);
         webSearchContext = results
           .map(
-            (r, i) => `${i + 1}. ${r.title}\nURL: ${r.url}\n${r.snippet}`,
+            (r: { title: string; url: string; snippet: string }, i: number) =>
+              `${i + 1}. ${r.title}\nURL: ${r.url}\n${r.snippet}`,
           )
           .join("\n\n");
       } else {
@@ -121,8 +126,7 @@ export async function executeCliAgentSession(
     .filter((m) => m.content && m.content.trim())
     .slice(-10)
     .map(
-      (m) =>
-        `${m.role === "user" ? "User" : "Assistant"}: ${m.content.trim()}`,
+      (m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content.trim()}`,
     )
     .join("\n\n");
 
@@ -134,83 +138,25 @@ export async function executeCliAgentSession(
     projectName,
   });
 
-  // 6. Construct comprehensive prompt with active vault workspace, history, memory and request
-  const promptSections: string[] = [];
-
   const vName =
     projectName ||
     vaultName ||
     (vaultPath ? vaultPath.split(/[/\\]/).pop() || "Vault" : "Vault");
-  const noteList =
-    allNotePaths && allNotePaths.length > 0
-      ? `Available notes in vault (${allNotePaths.length} notes):\n${allNotePaths
-          .slice(0, 60)
-          .map((n) => `- ${n}`)
-          .join("\n")}${allNotePaths.length > 60 ? `\n...and ${allNotePaths.length - 60} more notes` : ""}`
-      : "The vault currently contains no notes.";
 
-  promptSections.push(
-    `[Active Vault Workspace]\n` +
-      `Vault Name: ${vName}\n` +
-      `Vault Directory Path: ${vaultPath}\n` +
-      `You are executing directly inside the user's active local vault directory (${vaultPath}).\n` +
-      `${noteList}\n\n` +
-      `VAULT INSTRUCTIONS:\n` +
-      `- You ALWAYS point to this opened vault workspace. Every file operation targets this vault.\n` +
-      `- You have full permission to inspect, read, search, create, and edit notes in this vault directory.\n` +
-      `- When answering questions about user notes, characters, stories, ideas, or projects, read the vault files directly.\n` +
-      `- When asked to add, create, or update files, folders, or notes, DO NOT merely describe what you would write. You MUST write or edit the actual files in this vault directory immediately so they appear in the vault.\n` +
-      `- To guarantee your vault operations are applied and linked in the UI, also emit <vault_action> tags for any folder or note you create/edit/move:\n` +
-      `  <vault_action type="create_folder" path="FolderName" />\n` +
-      `  <vault_action type="create_note" path="FolderName/Note.md">Markdown content here</vault_action>\n` +
-      `  <vault_action type="edit_note" path="FolderName/Note.md">Updated markdown content</vault_action>\n` +
-      `  <vault_action type="move_note" from="Old.md" to="FolderName/Old.md" />`,
-  );
-
-  if (memoryContext.trim()) {
-    promptSections.push(
-      `[Long-Term Memory & Saved Context]\n${memoryContext.trim()}`,
-    );
-  }
-
-  if (projectName || projectInstructions?.trim()) {
-    const projHeader = projectName ? ` (${projectName})` : "";
-    const instr = projectInstructions?.trim() || "";
-    if (instr) {
-      promptSections.push(`[Project Instructions${projHeader}]\n${instr}`);
-    }
-  }
-
-  if (sisterContext.trim()) {
-    promptSections.push(sisterContext.trim());
-  }
-
-  if (projectSources.length > 0 && mutationBackend) {
-    const sourceTexts: string[] = [];
-    for (const src of projectSources.slice(0, 5)) {
-      try {
-        const raw = await mutationBackend.readNote(src);
-        if (raw) sourceTexts.push(`### File: ${src}\n${raw.slice(0, 1500)}`);
-      } catch {
-        // ignore unreadable sources
-      }
-    }
-    if (sourceTexts.length > 0) {
-      promptSections.push(`[Project Sources]\n${sourceTexts.join("\n\n")}`);
-    }
-  }
-
-  if (webSearchContext.trim()) {
-    promptSections.push(`[Web Search Results]\n${webSearchContext.trim()}`);
-  }
-
-  if (historyTurns.trim()) {
-    promptSections.push(`[Conversation History]\n${historyTurns.trim()}`);
-  }
-
-  promptSections.push(`[Current User Request]\n${promptText}`);
-
-  const finalPrompt = promptSections.join("\n\n");
+  const finalPrompt = await buildCliAgentPrompt({
+    vaultName: vName,
+    vaultPath,
+    allNotePaths,
+    memoryContext,
+    projectName,
+    projectInstructions,
+    sisterContext,
+    projectSources,
+    mutationBackend,
+    webSearchContext,
+    historyTurns,
+    promptText,
+  });
 
   appendLog(`Launching ${name} with conversation context...`);
 
