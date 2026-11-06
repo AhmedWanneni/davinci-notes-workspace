@@ -20,6 +20,7 @@ import {
 import type { StagedChangeItem } from "./agentTypes";
 
 export interface ExecuteAgentStepContext {
+  projectId?: string;
   webSearchEnabled?: boolean;
   autoApply: boolean;
   webSearchBackend: WebSearchBackend;
@@ -100,11 +101,19 @@ export async function executeAgentStepTool(
       (tc.arguments.category as AgentMemoryEntry["category"]) ?? "general";
     if (rawContent) {
       try {
-        const rawJson = await ctx.mutationBackend.readNote(AGENT_MEMORY_PATH);
+        const memoryPath = ctx.projectId
+          ? `.sophia/agent-memory-${ctx.projectId}.json`
+          : AGENT_MEMORY_PATH;
+        let rawJson = "";
+        try {
+          rawJson = await ctx.mutationBackend.readNote(memoryPath);
+        } catch {
+          rawJson = "";
+        }
         const data = parseMemoryData(rawJson);
         const { data: nextData } = addMemoryEntry(data, rawContent, cat);
         await ctx.mutationBackend.writeNote(
-          AGENT_MEMORY_PATH,
+          memoryPath,
           serializeMemoryData(nextData),
         );
         return {
@@ -179,14 +188,15 @@ export async function executeAgentStepTool(
       status: "pending",
     };
 
-    // Destructive actions ALWAYS require user confirmation in the UI even if autoApply is enabled
-    if (isDestructive) {
+    // Only permanently deleting files requires explicit user confirmation when autoApply is disabled
+    const requiresConfirmation = tc.name === "delete_note" && !ctx.autoApply;
+    if (requiresConfirmation) {
       ctx.setStagedChanges((prev) => [...prev, stagedItem]);
       return {
         status: "confirmation_required",
         action: tc.name,
         path: plan.changeRecord.path,
-        message: `Action "${tc.name}" on "${plan.changeRecord.path}" is destructive and requires user confirmation. Staged for review.`,
+        message: `Action "${tc.name}" on "${plan.changeRecord.path}" requires user confirmation. Staged for review.`,
       };
     }
 

@@ -173,8 +173,9 @@ describe("slashMenuSource transaction semantics and dismissal", () => {
     );
 
     const docAfter = view.state.doc.toString();
-    expect(docAfter).not.toContain("/tab");
-    expect(docAfter).toContain("| Header 1 | Header 2 | Header 3 |");
+    expect(docAfter.startsWith("/tab")).toBe(false);
+    expect(docAfter).toContain("<table>");
+    expect(docAfter).toContain("<th>Header 1</th>");
 
     expect(undo(view)).toBe(true);
     expect(view.state.doc.toString()).toBe("/tab");

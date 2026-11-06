@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AgentConversationHeader } from "./AgentConversationHeader";
 
 describe("AgentConversationHeader", () => {
-  it("renders project tag, title, plus button, and pin button", () => {
+  it("renders the project tag and title without plus or pin controls", () => {
     const onNav = vi.fn();
     render(
       <AgentConversationHeader
@@ -21,20 +21,12 @@ describe("AgentConversationHeader", () => {
     expect(
       screen.getByRole("button", { name: "Obsidian tauri app" }),
     ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: "New chat in project" }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: "Pin conversation" }),
-    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "New chat in project" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Pin conversation" })).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "Obsidian tauri app" }));
     expect(onNav).toHaveBeenCalledWith("proj-1");
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "New chat in project" }),
-    );
-    expect(onNav).toHaveBeenCalledWith("proj-1");
   });
 
   it("handles dropdown actions: Rename and Delete", () => {

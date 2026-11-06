@@ -7,10 +7,10 @@ import {
   CalendarCheck,
   FrameCorners,
   Bell,
+  ChatCircleDots,
   Gear,
   SignOut,
   Sparkle,
-  ChatCircleDots,
   Ear,
   GitBranch,
   CheckSquare,
@@ -87,10 +87,11 @@ export function IconRail({
             !isBookmarksOpen &&
             !isGitManagerOpen &&
             !isTodosOpen &&
-            !isListeningOpen
+            !isListeningOpen &&
+            !isAgentOpen
           }
           onClick={() => {
-            if (isTodosOpen || isListeningOpen) {
+            if (isTodosOpen || isListeningOpen || isAgentOpen) {
               if (onOpenFiles) {
                 onOpenFiles();
               }
@@ -139,6 +140,7 @@ export function IconRail({
           <IconRailButton
             label="AI Agent"
             isActive={isAgentOpen}
+            ariaPressed={isAgentOpen}
             onClick={onOpenAgent}
           >
             <Sparkle size={18} weight={isAgentOpen ? "fill" : "regular"} />
@@ -156,18 +158,6 @@ export function IconRail({
           </IconRailButton>
         )}
 
-        {onOpenAskVault && (
-          <IconRailButton
-            label="Ask Your Vault"
-            isActive={isAskVaultOpen}
-            onClick={onOpenAskVault}
-          >
-            <ChatCircleDots
-              size={18}
-              weight={isAskVaultOpen ? "fill" : "regular"}
-            />
-          </IconRailButton>
-        )}
 
         <IconRailButton
           label="Search"
@@ -205,18 +195,7 @@ export function IconRail({
             <FrameCorners size={18} weight="regular" />
           </IconRailButton>
         )}
-
-        {onOpenReminders && (
-          <IconRailButton
-            label="Reminders"
-            isActive={isRemindersOpen}
-            onClick={onOpenReminders}
-          >
-            <Bell size={18} weight={isRemindersOpen ? "fill" : "regular"} />
-          </IconRailButton>
-        )}
-
-        {onOpenTodos && (
+              {onOpenTodos && (
           <IconRailButton
             label="Todos"
             tooltip="Todos & Tasks"

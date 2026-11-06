@@ -74,6 +74,7 @@ mod theme_files;
 mod transcription;
 mod transcription_cloud;
 mod transcription_commands;
+mod transcription_local;
 mod tray;
 mod tray_commands;
 mod tray_config;
@@ -228,6 +229,8 @@ pub fn run() {
       audio_commands::get_meeting_recording_status,
       audio_commands::list_audio_input_devices,
       audio_commands::save_recorded_audio_to_vault,
+      transcription_commands::detect_transcription_tools,
+      transcription_commands::transcribe_live_recording_chunk,
       transcription_commands::transcribe_audio_chunk,
       transcription_commands::transcribe_audio_file,
       plugin_network::plugin_network_request,
@@ -259,6 +262,7 @@ pub fn run() {
       reminder_commands::dismiss_reminder,
       syncthing::syncthing_detect, syncthing::syncthing_status, syncthing::syncthing_qr_png,
       syncthing::syncthing_add_device, syncthing::syncthing_list_devices, syncthing::syncthing_remove_device,
+      syncthing::syncthing_set_local_device_name,
       syncthing::syncthing_pending_devices,
       syncthing::syncthing_accept_device, syncthing::syncthing_dismiss_pending_device,
       syncthing::syncthing_share_vault_folder, syncthing::syncthing_pending_folders,

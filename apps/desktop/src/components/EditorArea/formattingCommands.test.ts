@@ -129,7 +129,8 @@ describe("formattingCommands", () => {
 
     const v2 = createTestView("");
     handleTable(v2);
-    expect(v2.state.doc.toString()).toContain("| Header 1 | Header 2 |");
+    expect(v2.state.doc.toString()).toContain("<table>");
+    expect(v2.state.doc.toString()).toContain("<th>Header 1</th>");
     v2.destroy();
 
     const v3 = createTestView("");

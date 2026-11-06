@@ -18,6 +18,8 @@ export interface AgentPromptMenuProps {
   onTakeScreenshot: () => void;
   onSelectPrompt: (prompt: string) => void;
   onAttachLibraryItem?: (item: LibraryItem) => void;
+  webSearchEnabled: boolean;
+  onToggleWebSearch: () => void;
   variant?: "chat" | "project" | "standard";
 }
 
@@ -28,6 +30,8 @@ export function AgentPromptMenu({
   onTakeScreenshot,
   onSelectPrompt,
   onAttachLibraryItem,
+  webSearchEnabled = false,
+  onToggleWebSearch,
   variant = "standard",
 }: AgentPromptMenuProps) {
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
@@ -40,8 +44,6 @@ export function AgentPromptMenu({
   const projects = useAgentStore((s) => s.projects) ?? [];
   const selectProject = useAgentStore((s) => s.selectProject);
   const setActiveNavSection = useAgentStore((s) => s.setActiveNavSection);
-  const webSearchEnabled = useAgentStore((s) => s.webSearchEnabled);
-  const toggleWebSearch = useAgentStore((s) => s.toggleWebSearch);
 
   useEffect(() => {
     if (!isOpen) {
@@ -202,10 +204,9 @@ export function AgentPromptMenu({
             projects={projects}
             activeSubmenu={activeSubmenu}
             onToggleSubmenu={toggleSubmenu}
-            onSelectPrompt={onSelectPrompt}
             onSelectProject={selectProject}
             webSearchEnabled={webSearchEnabled}
-            onToggleWebSearch={toggleWebSearch}
+            onToggleWebSearch={onToggleWebSearch ?? (() => {})}
             onClose={onClose}
           />
         )}

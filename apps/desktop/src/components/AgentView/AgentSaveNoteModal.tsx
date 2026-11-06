@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { X, FolderSimple, FileText, Check, Plus } from "@phosphor-icons/react";
+import { FolderSimple, FileText, Check, Plus } from "@phosphor-icons/react";
+import { WindowDialog } from "../WindowDialog";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { createNoteInVault } from "../../vault/createNoteInVault";
 import styles from "./AgentSaveNoteModal.module.scss";
@@ -84,29 +85,13 @@ export function AgentSaveNoteModal({
   };
 
   return (
-    <div
-      className={styles["backdrop"]}
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Save Response to Vault"
+      size="md"
     >
-      <div className={styles["modal"]} onClick={(e) => e.stopPropagation()}>
-        <div className={styles["modal__header"]}>
-          <div className={styles["modal__title-group"]}>
-            <FileText size={18} weight="regular" />
-            <span className={styles["modal__title"]}>
-              Save Response to Vault
-            </span>
-          </div>
-          <button
-            type="button"
-            className={styles["modal__close-btn"]}
-            onClick={onClose}
-          >
-            <X size={16} />
-          </button>
-        </div>
-
+      <div style={{ padding: "16px 20px" }}>
         <div className={styles["modal__tabs"]}>
           <button
             type="button"
@@ -210,6 +195,6 @@ export function AgentSaveNoteModal({
           </div>
         )}
       </div>
-    </div>
+    </WindowDialog>
   );
 }

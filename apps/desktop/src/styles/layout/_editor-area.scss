@@ -133,11 +133,65 @@
 
 .editor-area__body {
   flex: 1;
-  height: 100%;
+  width: 100%;
   min-height: 0;
-  overflow: hidden;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+
+  .editor-area__properties-wrap {
+    flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--space-6) var(--space-8) 0;
+  }
+
+  > .editor-container {
+    flex: 1 0 auto;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cm-editor {
+    flex: 1 0 auto;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .cm-editor .cm-scroller {
+    flex: 1 0 auto;
+    height: auto !important;
+    overflow-y: visible !important;
+  }
+
+  .cm-editor .cm-scroller .cm-content {
+    width: 100%;
+    min-height: 60vh;
+  }
+}
+
+.editor-area__body--readable-width {
+  .editor-area__properties-wrap {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cm-editor .cm-scroller {
+    width: 100%;
+  }
+
+  .cm-editor .cm-scroller .cm-content {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 @media print {

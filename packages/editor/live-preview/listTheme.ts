@@ -71,18 +71,21 @@ export const listTheme = EditorView.theme({
     fontFamily: "var(--font-editor, inherit)",
     color: "#ababab !important",
   },
-  ".cm-list-bullet": {
-    fontSize: "20px",
-    fontWeight: "900",
-    lineHeight: "0.7",
-    verticalAlign: "-2px",
-    color: "#ababab !important",
-  },
   ".cm-list-ordered": {
+    width: "auto",
+    minWidth: "var(--editor-list-indent, 20px)",
+    whiteSpace: "nowrap",
     fontVariantNumeric: "tabular-nums",
     fontSize: "inherit",
     fontWeight: "600",
     color: "#ababab !important",
+  },
+  ".cm-list-bullet": {
+    fontSize: "14px",
+    fontWeight: "600",
+    lineHeight: "1",
+    verticalAlign: "0",
+    color: "var(--color-text-muted, #ababab) !important",
   },
   ".cm-task-checkbox": {
     appearance: "none",

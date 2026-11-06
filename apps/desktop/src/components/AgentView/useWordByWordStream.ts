@@ -3,10 +3,13 @@ import { useState, useEffect, useRef } from "react";
 export function useWordByWordStream(
   rawText: string,
   isStreaming?: boolean,
+  onComplete?: () => void,
 ): string {
   const [displayedText, setDisplayedText] = useState(rawText);
   const wordsRef = useRef<string[]>([]);
   const indexRef = useRef(0);
+  const completionRef = useRef(onComplete);
+  completionRef.current = onComplete;
 
   useEffect(() => {
     if (!isStreaming) {
@@ -25,8 +28,12 @@ export function useWordByWordStream(
           wordsRef.current.length,
         );
         setDisplayedText(wordsRef.current.slice(0, indexRef.current).join(""));
+        if (indexRef.current >= wordsRef.current.length)
+          completionRef.current?.();
       }
     }, 25);
+
+    if (words.length === 0) completionRef.current?.();
 
     return () => clearInterval(timer);
   }, [rawText, isStreaming]);

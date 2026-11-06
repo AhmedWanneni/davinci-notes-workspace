@@ -54,6 +54,17 @@ describe("embedAudioExtension", () => {
       .mockImplementation(() => Promise.resolve());
     playBtn.click();
     expect(playSpy).toHaveBeenCalled();
+    player.dispatchEvent(new Event("play"));
+    expect(playBtn.getAttribute("aria-label")).toBe("Pause audio");
+
+    Object.defineProperty(player, "duration", { configurable: true, value: 120 });
+    Object.defineProperty(player, "currentTime", { configurable: true, value: 30 });
+    player.dispatchEvent(new Event("timeupdate"));
+    expect(widgetEl.querySelector(".cm-file-audio-embed__time")?.textContent).toBe("0:30 / 2:00");
+    expect(widgetEl.querySelector(".cm-file-audio-embed__waveform")?.getAttribute("style")).toContain("25%");
+
+    player.dispatchEvent(new Event("pause"));
+    expect(playBtn.getAttribute("aria-label")).toBe("Play audio");
 
     view.destroy();
   });

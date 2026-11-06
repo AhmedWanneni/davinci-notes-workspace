@@ -1,25 +1,7 @@
 .command-palette__dialog {
-  background-color: var(--color-bg-primary);
-  border-radius: var(--border-radius-lg);
-  border: var(--border-width-thin) solid var(--color-border-subtle);
-  position: fixed;
-  top: 15%;
-  left: 50%;
-  transform: translate(-50%, 0);
-  width: 90vw;
-  max-width: 600px;
-  max-height: 65vh;
-  z-index: 101;
-  animation: command-palette-content-show var(--motion-duration-base)
-    var(--motion-ease-standard);
-  font-family: var(--font-ui);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-
-  &:focus {
-    outline: none;
-  }
 }
 
 .command-palette__input-wrapper {

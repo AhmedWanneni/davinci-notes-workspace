@@ -2,6 +2,7 @@ import type {
   AIProvider,
   AgentToolCall,
   AgentToolDefinition,
+  AgentToolResult,
   ChatMessage,
 } from "@app/ai-api";
 import { VAULT_MUTATION_TOOLS } from "@app/ai-agent";
@@ -10,6 +11,10 @@ import {
   executeAgentStepTool,
   type ExecuteAgentStepContext,
 } from "./executeAgentStepTool.js";
+import {
+  ensureParentFolderToolCalls,
+  parseVaultActionTags,
+} from "./agentCliVaultSync.js";
 import type { ChatMessageItem } from "./agentTypes.js";
 
 export interface AgentStepLoopOptions {
@@ -25,6 +30,18 @@ export interface AgentStepLoopOptions {
   onStepLog?: (log: string) => void;
 }
 
+function formatStepStartLog(tc: AgentToolCall): string {
+  const pathArg = String(tc.arguments?.path || tc.arguments?.toPath || "");
+  if (tc.name === "create_note") return `Creating note "${pathArg || "note"}" in vault...`;
+  if (tc.name === "edit_note" || tc.name === "append_to_note")
+    return `Updating note "${pathArg || "note"}" in vault...`;
+  if (tc.name === "create_folder") return `Creating folder "${pathArg || "folder"}" in vault...`;
+  if (tc.name === "read_note") return `Reading note "${pathArg || "note"}" from vault...`;
+  if (tc.name === "search_vault") return `Searching vault for "${tc.arguments?.query || ""}"...`;
+  if (tc.name === "save_memory") return `Saving memory: "${tc.arguments?.content || ""}"...`;
+  return `Executing ${tc.name}...`;
+}
+
 export async function runAgentStepLoop(
   opts: AgentStepLoopOptions,
 ): Promise<void> {
@@ -35,7 +52,7 @@ export async function runAgentStepLoop(
     stepContext,
     promptText,
     abortSignal,
-    maxSteps = 5,
+    maxSteps = 8,
     onAssistantMessage,
     onAssistantChunk,
     onStepLog,
@@ -43,6 +60,24 @@ export async function runAgentStepLoop(
 
   let finalResponseReceived = false;
   let hasExecutedMutation = false;
+  const collectedToolCalls: AgentToolCall[] = [];
+  const collectedToolResults: AgentToolResult[] = [];
+
+  const emitFinalMessage = (text: string) => {
+    const enriched = ensureParentFolderToolCalls(
+      collectedToolCalls,
+      collectedToolResults,
+    );
+    onAssistantMessage({
+      id: `msg_a_${Date.now()}`,
+      role: "assistant",
+      content: text,
+      toolCalls: enriched.toolCalls.length > 0 ? enriched.toolCalls : undefined,
+      toolResults:
+        enriched.toolResults.length > 0 ? enriched.toolResults : undefined,
+      timestamp: Date.now(),
+    });
+  };
 
   for (let step = 0; step < maxSteps; step++) {
     if (abortSignal?.aborted) break;
@@ -106,76 +141,56 @@ export async function runAgentStepLoop(
 
         if (streamedCalls.length > 0) effectiveToolCalls = streamedCalls;
       } catch {
-        const res = await provider.complete({
-          messages: workingHistory,
-          tools: activeTools,
-        });
+        const res = await provider.complete({ messages: workingHistory, tools: activeTools });
         content = res.content || "";
         effectiveToolCalls = res.toolCalls;
       }
     } else {
-      const res = await provider.complete({
-        messages: workingHistory,
-        tools: activeTools,
-      });
+      const res = await provider.complete({ messages: workingHistory, tools: activeTools });
       content = res.content || "";
       effectiveToolCalls = res.toolCalls;
     }
 
-    if (
-      (!effectiveToolCalls || effectiveToolCalls.length === 0) &&
-      !hasExecutedMutation &&
-      content
-    ) {
-      const fallbackCalls = extractConversationalToolCalls(content, promptText);
-      if (fallbackCalls.length > 0) {
-        effectiveToolCalls = fallbackCalls;
+    if ((!effectiveToolCalls || effectiveToolCalls.length === 0) && !hasExecutedMutation && content) {
+      const { calls: tagCalls, cleanedText } = parseVaultActionTags(content);
+      if (tagCalls.length > 0) {
+        effectiveToolCalls = tagCalls;
+        content = cleanedText;
+      } else {
+        const fallbackCalls = extractConversationalToolCalls(content, promptText);
+        if (fallbackCalls.length > 0) effectiveToolCalls = fallbackCalls;
       }
     }
 
     if (effectiveToolCalls && effectiveToolCalls.length > 0) {
-      workingHistory.push({
-        role: "assistant",
-        content: content || "",
-        toolCalls: effectiveToolCalls,
-      });
+      workingHistory.push({ role: "assistant", content: content || "", toolCalls: effectiveToolCalls });
 
       for (const tc of effectiveToolCalls) {
-        onStepLog?.(`Calling tool ${tc.name}...`);
-        const toolResult = await executeAgentStepTool(tc, {
-          ...stepContext,
-          workingHistory,
-        });
+        const pathArg = String(tc.arguments?.path || tc.arguments?.toPath || "");
+        onStepLog?.(formatStepStartLog(tc));
+        const toolResult = await executeAgentStepTool(tc, { ...stepContext, workingHistory });
+        const isApplied = toolResult && typeof toolResult === "object" && (toolResult as { status?: string }).status === "applied";
 
-        if (
-          VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name) ||
-          tc.name.startsWith("create_")
-        ) {
+        if (isApplied) onStepLog?.(`✓ Applied ${tc.name} on "${pathArg}"`);
+        else if (tc.name === "save_memory") onStepLog?.(`✓ Memory saved`);
+
+        if (VAULT_MUTATION_TOOLS.some((t) => t.name === tc.name) || tc.name.startsWith("create_")) {
           hasExecutedMutation = true;
         }
 
-        workingHistory.push({
-          role: "tool",
-          name: tc.name,
-          toolCallId: tc.id,
-          content:
-            typeof toolResult === "string"
-              ? toolResult
-              : JSON.stringify(toolResult),
-        });
+        const serializedResult = typeof toolResult === "string" ? toolResult : JSON.stringify(toolResult);
+        const isErr = Boolean(
+          toolResult &&
+            typeof toolResult === "object" &&
+            ((toolResult as { error?: unknown }).error || (toolResult as { status?: string }).status === "rejected"),
+        );
+
+        collectedToolCalls.push(tc);
+        collectedToolResults.push({ toolCallId: tc.id, name: tc.name, content: serializedResult, isError: isErr || undefined });
+        workingHistory.push({ role: "tool", name: tc.name, toolCallId: tc.id, content: serializedResult });
       }
     } else {
-      const replyContent =
-        content ||
-        (hasExecutedMutation
-          ? "The requested note has been created in your vault."
-          : "Done.");
-      onAssistantMessage({
-        id: `msg_a_${Date.now()}`,
-        role: "assistant",
-        content: replyContent,
-        timestamp: Date.now(),
-      });
+      emitFinalMessage(content || (hasExecutedMutation ? "The requested changes have been applied to your vault." : "Done."));
       finalResponseReceived = true;
       break;
     }
@@ -187,15 +202,8 @@ export async function runAgentStepLoop(
       lastMsg.role === "assistant" && lastMsg.content
         ? lastMsg.content
         : hasExecutedMutation
-          ? "The requested note has been created in your vault."
+          ? "The requested changes have been applied to your vault."
           : "";
-    if (text) {
-      onAssistantMessage({
-        id: `msg_a_${Date.now()}`,
-        role: "assistant",
-        content: text,
-        timestamp: Date.now(),
-      });
-    }
+    if (text) emitFinalMessage(text);
   }
 }

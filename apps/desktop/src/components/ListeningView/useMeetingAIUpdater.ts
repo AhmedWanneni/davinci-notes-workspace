@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import type { ParsedMeetingItem } from "./meetingsParser";
-import { loadAISubsystem } from "../../ai/loadAISubsystem";
 import { processAIListeningStep } from "@app/ai-agent";
 import { createNoteInVault } from "../../vault/createNoteInVault";
 import {
   renderMeetingMarkdown,
   type MeetingNoteParams,
 } from "../../vault/meetingNoteActions";
+import { resolveRecordPageAIProvider } from "./resolveRecordPageAIProvider";
 
 export function useMeetingAIUpdater(
   onMeetingUpdated?: (updated: ParsedMeetingItem) => void,
@@ -25,9 +25,7 @@ export function useMeetingAIUpdater(
       setUpdateError(null);
 
       try {
-        const ai = await loadAISubsystem();
-        const selectedId = await ai.loadSelectedProvider();
-        const provider = await ai.createConfiguredProvider(selectedId);
+        const provider = await resolveRecordPageAIProvider();
 
         // Map meeting transcript to rolling segments
         const rolling = meeting.transcript.map((t, idx) => ({

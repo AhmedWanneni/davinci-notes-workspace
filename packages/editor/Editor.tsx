@@ -2,7 +2,11 @@ import { useEffect, useRef } from "react";
 import { EditorState, Compartment } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
-import { autocompleteExtension, type ReminderClickInfo } from "./live-preview";
+import {
+  autocompleteExtension,
+  findFrontmatterEndLineInDoc,
+  type ReminderClickInfo,
+} from "./live-preview";
 import { linkExtension } from "./links";
 import {
   embedAudioExtension,
@@ -134,6 +138,15 @@ export function Editor({
       state: startState,
       parent: containerRef.current,
     });
+    const endLine = findFrontmatterEndLineInDoc(view.state.doc);
+    if (!isSourceMode && endLine !== null) {
+      const fmEnd = view.state.doc.line(endLine).to;
+      if (view.state.selection.main.head <= fmEnd) {
+        view.dispatch({
+          selection: { anchor: Math.min(view.state.doc.length, fmEnd + 1) },
+        });
+      }
+    }
 
     viewRef.current = view;
     onViewReady?.(view);
@@ -227,5 +240,10 @@ export function Editor({
     noteContents,
   ]);
 
-  return <div ref={containerRef} className={styles["editor-container"]} />;
+  return (
+    <div
+      ref={containerRef}
+      className={`${styles["editor-container"]} editor-container`}
+    />
+  );
 }

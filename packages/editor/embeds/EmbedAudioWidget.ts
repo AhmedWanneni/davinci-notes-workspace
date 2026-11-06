@@ -66,36 +66,31 @@ export class EmbedAudioWidget extends WidgetType {
     // Time display
     const timeLabel = document.createElement("span");
     timeLabel.className = "cm-file-audio-embed__time";
-    timeLabel.textContent = "0:00";
+    timeLabel.textContent = "0:00 / 0:00";
+    timeLabel.setAttribute("aria-live", "off");
 
-    // Trash delete button
-    const trashBtn = document.createElement("button");
-    trashBtn.type = "button";
-    trashBtn.className = "cm-file-audio-embed__trash-btn";
-    trashBtn.setAttribute("aria-label", "Delete audio");
-    trashBtn.title = "Delete audio";
-    trashBtn.innerHTML = `
-      <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="2 4 14 4"/>
-        <path d="M5 4V2.5A1.5 1.5 0 0 1 6.5 1h3A1.5 1.5 0 0 1 11 2.5V4"/>
-        <path d="M12.5 4v9.5a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5V4"/>
-        <line x1="6.5" y1="7.5" x2="6.5" y2="11.5"/>
-        <line x1="9.5" y1="7.5" x2="9.5" y2="11.5"/>
-      </svg>
-    `;
-    trashBtn.onclick = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      window.dispatchEvent(
-        new CustomEvent("davinci:delete-audio-embed", {
-          detail: { path: this.path },
-        }),
-      );
-    };
+    const progress = document.createElement("div");
+    progress.className = "cm-file-audio-embed__progress";
+    progress.setAttribute("aria-hidden", "true");
+    waveform.appendChild(progress);
 
     const audio = document.createElement("audio");
     audio.preload = "metadata";
     audio.src = this.resolveMediaUrl(this.path);
+
+    const updateTime = () => {
+      timeLabel.textContent = `${formatAudioTime(audio.currentTime)} / ${formatAudioTime(audio.duration)}`;
+    };
+
+    const updateProgress = () => {
+      const ratio = Number.isFinite(audio.duration) && audio.duration > 0
+        ? Math.max(0, Math.min(1, audio.currentTime / audio.duration))
+        : 0;
+      waveform.style.setProperty("--audio-progress", `${ratio * 100}%`);
+      const playedCount = Math.floor(ratio * barEls.length);
+      barEls.forEach((bar, index) => bar.classList.toggle("is-played", index < playedCount));
+      updateTime();
+    };
 
     const togglePlayback = (e?: Event) => {
       if (e) {
@@ -126,49 +121,28 @@ export class EmbedAudioWidget extends WidgetType {
     const playIcon = playBtn.querySelector<HTMLElement>(".cm-play-icon")!;
     const pauseIcon = playBtn.querySelector<HTMLElement>(".cm-pause-icon")!;
 
-    audio.onplay = () => {
-      playIcon.style.display = "none";
-      pauseIcon.style.display = "block";
-      container.classList.add("is-playing");
+    const showPlayingState = (playing: boolean) => {
+      playIcon.style.display = playing ? "none" : "block";
+      pauseIcon.style.display = playing ? "block" : "none";
+      playBtn.setAttribute("aria-label", playing ? "Pause audio" : "Play audio");
+      container.classList.toggle("is-playing", playing);
     };
 
-    audio.onpause = () => {
-      playIcon.style.display = "block";
-      pauseIcon.style.display = "none";
-      container.classList.remove("is-playing");
-    };
+    audio.onplay = () => showPlayingState(true);
+    audio.onpause = () => showPlayingState(false);
 
     audio.onended = () => {
-      playIcon.style.display = "block";
-      pauseIcon.style.display = "none";
-      container.classList.remove("is-playing");
-      barEls.forEach((b) => b.classList.remove("is-played"));
-      timeLabel.textContent = formatAudioTime(audio.duration || 0);
+      showPlayingState(false);
+      audio.currentTime = 0;
+      updateProgress();
     };
 
-    audio.ontimeupdate = () => {
-      if (audio.duration) {
-        const pct = audio.currentTime / audio.duration;
-        const playedCount = Math.floor(pct * barEls.length);
-        barEls.forEach((b, i) => {
-          if (i <= playedCount) {
-            b.classList.add("is-played");
-          } else {
-            b.classList.remove("is-played");
-          }
-        });
-        timeLabel.textContent = formatAudioTime(audio.currentTime);
-      }
-    };
-
-    audio.onloadedmetadata = () => {
-      timeLabel.textContent = formatAudioTime(audio.duration || 0);
-    };
+    audio.ontimeupdate = updateProgress;
+    audio.onloadedmetadata = updateProgress;
 
     container.appendChild(playBtn);
     container.appendChild(waveform);
     container.appendChild(timeLabel);
-    container.appendChild(trashBtn);
 
     const rerunBtn = document.createElement("button");
     rerunBtn.type = "button";

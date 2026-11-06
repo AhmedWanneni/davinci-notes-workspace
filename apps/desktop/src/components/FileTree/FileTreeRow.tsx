@@ -2,6 +2,7 @@ import {
   BookmarkSimple,
   CaretDown,
   CaretRight,
+  DotsThreeVertical,
   FileText,
   Folder,
   FolderOpen,
@@ -222,6 +223,21 @@ export function FileTreeRow({
       )}
       {isConflict && <span className="file-tree__conflict-chip">Conflict</span>}
       {isDirty && <span className="file-tree__dirty-dot" />}
+      {!isFile && !isRenaming && (
+        <button
+          type="button"
+          className="file-tree__folder-more-btn"
+          aria-label={`Folder actions for ${item.node.name}`}
+          title={`Folder actions for ${item.node.name}`}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onContextMenu(event);
+          }}
+        >
+          <DotsThreeVertical size={15} weight="bold" />
+        </button>
+      )}
     </div>
   );
 }

@@ -34,9 +34,9 @@ describe("SyncSettingsPanel Component", () => {
       />,
     );
 
-    expect(screen.getByText("Google Drive Sync Active")).toBeDefined();
-    expect(screen.getByText("Account: leonardo@davinci.app")).toBeDefined();
+    expect(screen.getByText("leonardo@davinci.app")).toBeDefined();
     expect(screen.getByText("Connected")).toBeDefined();
+    expect(screen.queryByText("Google Drive Sync Active")).toBeNull();
 
     fireEvent.click(screen.getByText("Sync Now"));
     expect(onDriveSyncNow).toHaveBeenCalled();

@@ -1,22 +1,6 @@
-.library-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: rgb(0 0 0 / 50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
-}
-
 .library-modal {
-  width: 100%;
-  max-width: 520px;
-  background-color: var(--color-bg-primary);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
-  padding: 24px;
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 
   &__header {
     display: flex;

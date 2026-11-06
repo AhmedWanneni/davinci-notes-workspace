@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Dialog, DialogContent } from "@app/design-system";
 import { X } from "@phosphor-icons/react";
 import type { SearchResult } from "@app/indexer";
+import { WindowDialog } from "../WindowDialog";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 export interface SemanticSearchResult {
@@ -116,8 +116,13 @@ export function SearchDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="search-dialog__dialog" showCloseButton={false}>
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={() => onOpenChange(false)}
+      position="top"
+      size="lg"
+      ariaLabel="Search notes"
+      header={
         <div className="search-dialog__input-wrapper">
           <input
             ref={inputRef}
@@ -137,100 +142,103 @@ export function SearchDialog({
             <X size={10} weight="bold" />
           </button>
         </div>
-        {semanticSearchEnabled && semanticSearch && (
-          <div
-            className="search-dialog__mode-switch"
-            role="group"
-            aria-label="Search mode"
-          >
-            <button
-              type="button"
-              aria-pressed={mode === "exact"}
-              onClick={() => setMode("exact")}
-            >
-              Exact
-            </button>
-            <button
-              type="button"
-              aria-pressed={mode === "semantic"}
-              onClick={() => setMode("semantic")}
-            >
-              Semantic
-            </button>
-          </div>
-        )}
-        <ul
-          className="search-dialog__list"
-          role="listbox"
-          aria-label="Search results"
-        >
-          {results.map((result, index) => (
-            <li
-              key={result.path}
-              className="search-dialog__item"
-              data-selected={index === selectedIndex || undefined}
-              role="option"
-              aria-selected={index === selectedIndex}
-              onMouseEnter={() => setSelectedIndex(index)}
-              onClick={() => {
-                onSelectNote(result.path);
-                onOpenChange(false);
-              }}
-            >
-              <span className="search-dialog__result-copy">
-                <div className="search-dialog__row-header">
-                  <span className="search-dialog__title">{result.title}</span>
-                  {result.path !== result.title && (
-                    <span className="search-dialog__path">{result.path}</span>
-                  )}
-                </div>
-                {result.snippet && (
-                  <span
-                    className="search-dialog__snippet"
-                    dangerouslySetInnerHTML={{ __html: result.snippet }}
-                  />
-                )}
-              </span>
-            </li>
-          ))}
-          {semanticResults.map((result, index) => (
-            <li
-              key={`${result.path}:${result.startLine}`}
-              className="search-dialog__item"
-              data-selected={index === selectedIndex || undefined}
-              role="option"
-              aria-selected={index === selectedIndex}
-              onMouseEnter={() => setSelectedIndex(index)}
-              onClick={openSelected}
-            >
-              <span className="search-dialog__result-copy">
-                <div className="search-dialog__row-header">
-                  <span className="search-dialog__title">{result.path}</span>
-                  <span className="search-dialog__path">
-                    Semantic match{result.heading ? ` - ${result.heading}` : ""}
-                  </span>
-                </div>
-                <span className="search-dialog__snippet">
-                  Lines {result.startLine}-{result.endLine}
-                </span>
-              </span>
-            </li>
-          ))}
-          {results.length === 0 &&
-            semanticResults.length === 0 && (
-              <li className="search-dialog__empty">
-                {!query.trim()
-                  ? "No files to display. Type to search."
-                  : "No matching notes."}
-              </li>
-            )}
-        </ul>
-        <div className="search-dialog__footer">
+      }
+      footer={
+        <div className="search-dialog__footer" style={{ width: "100%", margin: 0, padding: 0, border: "none" }}>
           <span>↑↓ to navigate</span>
           <span>↵ to use</span>
           <span>esc to dismiss</span>
         </div>
-      </DialogContent>
-    </Dialog>
+      }
+    >
+      {semanticSearchEnabled && semanticSearch && (
+        <div
+          className="search-dialog__mode-switch"
+          role="group"
+          aria-label="Search mode"
+        >
+          <button
+            type="button"
+            aria-pressed={mode === "exact"}
+            onClick={() => setMode("exact")}
+          >
+            Exact
+          </button>
+          <button
+            type="button"
+            aria-pressed={mode === "semantic"}
+            onClick={() => setMode("semantic")}
+          >
+            Semantic
+          </button>
+        </div>
+      )}
+      <ul
+        className="search-dialog__list"
+        role="listbox"
+        aria-label="Search results"
+      >
+        {results.map((result, index) => (
+          <li
+            key={result.path}
+            className="search-dialog__item"
+            data-selected={index === selectedIndex || undefined}
+            role="option"
+            aria-selected={index === selectedIndex}
+            onMouseEnter={() => setSelectedIndex(index)}
+            onClick={() => {
+              onSelectNote(result.path);
+              onOpenChange(false);
+            }}
+          >
+            <span className="search-dialog__result-copy">
+              <div className="search-dialog__row-header">
+                <span className="search-dialog__title">{result.title}</span>
+                {result.path !== result.title && (
+                  <span className="search-dialog__path">{result.path}</span>
+                )}
+              </div>
+              {result.snippet && (
+                <span
+                  className="search-dialog__snippet"
+                  dangerouslySetInnerHTML={{ __html: result.snippet }}
+                />
+              )}
+            </span>
+          </li>
+        ))}
+        {semanticResults.map((result, index) => (
+          <li
+            key={`${result.path}:${result.startLine}`}
+            className="search-dialog__item"
+            data-selected={index === selectedIndex || undefined}
+            role="option"
+            aria-selected={index === selectedIndex}
+            onMouseEnter={() => setSelectedIndex(index)}
+            onClick={openSelected}
+          >
+            <span className="search-dialog__result-copy">
+              <div className="search-dialog__row-header">
+                <span className="search-dialog__title">{result.path}</span>
+                <span className="search-dialog__path">
+                  Semantic match{result.heading ? ` - ${result.heading}` : ""}
+                </span>
+              </div>
+              <span className="search-dialog__snippet">
+                Lines {result.startLine}-{result.endLine}
+              </span>
+            </span>
+          </li>
+        ))}
+        {results.length === 0 &&
+          semanticResults.length === 0 && (
+            <li className="search-dialog__empty">
+              {!query.trim()
+                ? "No files to display. Type to search."
+                : "No matching notes."}
+            </li>
+          )}
+      </ul>
+    </WindowDialog>
   );
 }

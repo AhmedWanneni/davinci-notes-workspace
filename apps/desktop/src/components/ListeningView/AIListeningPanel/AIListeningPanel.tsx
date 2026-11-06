@@ -11,6 +11,7 @@ import { SuggestedAnswersList } from "./SuggestedAnswersList";
 import { SuggestedQuestionsList } from "./SuggestedQuestionsList";
 import { RollingSummariesAccordion } from "./RollingSummariesAccordion";
 import { MeetingAgentChatFeed } from "./MeetingAgentChatFeed";
+import { RecordAgentPicker } from "../RecordAgentPicker";
 import styles from "../ListeningView.module.scss";
 
 export interface AIListeningPanelProps {
@@ -81,6 +82,7 @@ export function AIListeningPanel({
         </div>
 
         <div className={styles["ai-assistant-header-actions"]}>
+          <RecordAgentPicker />
           <button
             type="button"
             className={styles["header-action-btn"]}
@@ -103,7 +105,12 @@ export function AIListeningPanel({
         <LiveSummaryCard
           summary={summary}
           isStreaming={isStreaming}
-          onChipClick={(chipPrompt) => onSubmitPrompt(chipPrompt)}
+          onChipClick={(chipPrompt) => {
+            onSubmitPrompt(chipPrompt);
+            if (chipPrompt.trim()) {
+              void onAskChatQuestion(chipPrompt);
+            }
+          }}
         />
 
         {/* Path A: Rolling Summaries Accordion */}

@@ -1,0 +1,91 @@
+.connect-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.connect-options__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 58px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-normal);
+  font-size: 13px;
+
+  > svg {
+    flex: 0 0 auto;
+    color: var(--color-text-muted);
+  }
+
+  > span {
+    flex: 1;
+  }
+}
+
+.connect-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background-color: var(--color-bg-scrim);
+  animation: connect-overlay-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.connect-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  width: min(520px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 32px));
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-lg);
+  background-color: var(--color-bg-primary);
+  box-shadow: 0 4px 20px rgb(0 0 0 / 10%);
+  animation: connect-content-show 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.connect-dialog--mobile {
+  width: fit-content;
+  min-width: 0;
+  max-width: calc(100vw - 32px);
+}
+
+.connect-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: 0 var(--space-3) 0 var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.connect-dialog__title {
+  color: var(--color-text-normal);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.connect-dialog__content {
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+@keyframes connect-overlay-show {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes connect-content-show {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}

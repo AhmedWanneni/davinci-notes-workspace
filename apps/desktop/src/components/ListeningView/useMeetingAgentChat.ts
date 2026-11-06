@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useAgentStore } from "../AgentView/useAgentStore";
 import { useAgentExecution } from "../AgentView/useAgentExecution";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import type { AIProviderId } from "../../ai/AISubsystem";
 import { searchMeetingTranscript } from "./searchMeetingTranscript";
 import type { TranscriptSegmentItem } from "./listeningTypes";
 import type { RollingSummaryItem } from "./useLiveSummaries";
@@ -34,6 +36,16 @@ export function useMeetingAgentChat({
   const createNewConversation = useAgentStore((s) => s.createNewConversation);
   const selectConversation = useAgentStore((s) => s.selectConversation);
   const saveActiveMessages = useAgentStore((s) => s.saveActiveMessages);
+  const selectedModel = useAgentStore((s) => s.selectedModel);
+  const selectedProvider = useAgentStore((s) => s.selectedProvider);
+  const selectedCliAgent = useAgentStore((s) => s.selectedCliAgent);
+  const webSearchEnabled = useAgentStore((s) => s.webSearchEnabled);
+  const conversations = useAgentStore((s) => s.conversations);
+
+  const vaultPath = useWorkspaceStore((s) => s.vaultPath);
+  const vaultName = vaultPath
+    ? vaultPath.split(/[/\\]/).pop() || "Vault"
+    : "Vault";
 
   const {
     messages,
@@ -44,7 +56,15 @@ export function useMeetingAgentChat({
     handleAcceptChange,
     handleRejectChange,
   } = useAgentExecution({
-    autoApply: false,
+    providerId: selectedProvider as AIProviderId,
+    model: selectedModel,
+    webSearchEnabled,
+    autoApply: true,
+    vaultName,
+    selectedCliAgent,
+    vaultPath: vaultPath ?? undefined,
+    conversations,
+    activeConversationId: conversationId ?? undefined,
   });
 
   // Ensure conversation exists in AgentStore so it appears on the Agent page
@@ -111,10 +131,11 @@ User Question: ${q}`;
   );
 
   return {
-    conversationId,
+    conversationId: conversationId ?? "",
     messages,
     setMessages,
     isStreaming,
+    isExecuting: isStreaming,
     stagedChanges,
     askQuestion,
     handleAcceptChange,

@@ -1,5 +1,6 @@
 import React from "react";
-import { FunnelSimple, MagnifyingGlass, Gear } from "@phosphor-icons/react";
+import { FunnelSimple, MagnifyingGlass, Gear, Broadcast } from "@phosphor-icons/react";
+import { RecordAgentPicker } from "./RecordAgentPicker";
 import styles from "./ListeningView.module.scss";
 
 export interface RecordingTopBarProps {
@@ -14,6 +15,17 @@ export function RecordingTopBar({ onOpenSettings }: RecordingTopBarProps) {
         <span>Filters</span>
       </button>
       <div className={styles["top-bar-right-actions"]}>
+        <button
+          type="button"
+          className={styles["action-bar-btn"]}
+          onClick={onOpenSettings}
+          title="Configure Free Transcription (Groq Whisper / Local Whisper / Web Speech)"
+          data-testid="record-transcript-engine-badge"
+        >
+          <Broadcast size={13} />
+          <span>Groq Whisper · Free</span>
+        </button>
+        <RecordAgentPicker />
         <button
           type="button"
           className={styles["action-bar-icon-btn"]}

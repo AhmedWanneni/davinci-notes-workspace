@@ -165,6 +165,7 @@ export function FileTree({
           rowVirtualizer={rowVirtualizer}
           visibleNodes={visibleNodes}
           activePath={activePath}
+          selectedFolder={selectedFolder}
           dirtyPaths={dirtyPaths}
           icons={icons}
           draggedPath={draggedPath}

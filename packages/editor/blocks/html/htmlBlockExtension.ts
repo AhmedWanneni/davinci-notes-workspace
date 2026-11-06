@@ -13,6 +13,7 @@ import {
   youtubeImageToIframe,
   youtubeThumbnailUrl,
 } from "../../embeds/youtubeEmbed";
+import { attachTableEditor } from "./tableCellEditing";
 
 export interface HtmlBlock {
   from: number;
@@ -88,6 +89,7 @@ class HtmlBlockWidget extends WidgetType {
   constructor(
     readonly sanitizedHtml: string,
     readonly blockFrom: number,
+    readonly blockTo: number,
     readonly tweetUrl?: string,
   ) {
     super();
@@ -95,8 +97,15 @@ class HtmlBlockWidget extends WidgetType {
   eq(other: HtmlBlockWidget) {
     return (
       this.sanitizedHtml === other.sanitizedHtml &&
-      this.blockFrom === other.blockFrom
+      this.blockFrom === other.blockFrom &&
+      this.blockTo === other.blockTo
     );
+  }
+  updateDOM(dom: HTMLElement) {
+    if (dom.contains(document.activeElement)) {
+      return true;
+    }
+    return false;
   }
   toDOM(view: EditorView) {
     const element = document.createElement("div");
@@ -123,6 +132,15 @@ class HtmlBlockWidget extends WidgetType {
       element.append(placeholder);
     } else {
       element.innerHTML = this.sanitizedHtml;
+    }
+
+    const table = element.querySelector<HTMLTableElement>("table");
+    if (table) {
+      attachTableEditor(
+        table,
+        () => ({ from: this.blockFrom, to: this.blockTo }),
+        view,
+      );
     }
 
     const codeBtn = document.createElement("button");
@@ -266,6 +284,7 @@ function buildHtmlBlockDecorations(state: EditorState): DecorationSet {
   const ranges: Range<Decoration>[] = [];
 
   for (const block of findHtmlBlocks(state)) {
+    const isTable = /^<table\b/i.test(block.source.trim());
     if (editable && codeEditingFrom === block.from) {
       ranges.push(
         Decoration.widget({
@@ -277,7 +296,7 @@ function buildHtmlBlockDecorations(state: EditorState): DecorationSet {
       continue;
     }
 
-    if (editable && cursor > block.from && cursor < block.to) {
+    if (!isTable && editable && cursor > block.from && cursor < block.to) {
       continue;
     }
 
@@ -288,6 +307,7 @@ function buildHtmlBlockDecorations(state: EditorState): DecorationSet {
             youtubeImageToIframe(block.source) ?? block.source.trim(),
           ),
           block.from,
+          block.to,
           tweetImageToStatusUrl(block.source) ?? undefined,
         ),
         block: true,

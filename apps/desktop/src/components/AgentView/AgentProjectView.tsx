@@ -11,6 +11,7 @@ export interface AgentProjectViewProps {
   onSend: (prompt: string, images?: string[]) => void;
   shortcuts?: AgentShortcut[];
   isStreaming?: boolean;
+  onCancel?: () => void;
   vaultNotes?: string[];
 }
 
@@ -32,6 +33,7 @@ export function AgentProjectView({
   onSend,
   shortcuts = [],
   isStreaming = false,
+  onCancel,
   vaultNotes = [],
 }: AgentProjectViewProps) {
   const projects = useAgentStore((s) => s.projects);
@@ -176,6 +178,7 @@ export function AgentProjectView({
             placeholder="How can I help you today?"
             shortcuts={shortcuts}
             isStreaming={isStreaming}
+            onCancel={onCancel}
             variant="project"
             autoFocus
           />

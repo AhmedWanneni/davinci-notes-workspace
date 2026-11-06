@@ -73,6 +73,7 @@ Every popup, modal, dropdown menu, or dialog in the application MUST follow the 
 ## Preserved User Customizations (Do Not Revoke or Alter)
 
 The user has explicitly customized these design behaviors. All future AI agents MUST preserve them and never revert, re-add removed elements, or alter them:
+- **Calendar & Meetings Header Removal (`CalendarLeaf.tsx`, `CalendarView.module.scss`)**: The top header (`.calendar-leaf__header`) with the title "Calendar & Meetings" and icon has been intentionally removed from `CalendarLeaf.tsx` so the view starts directly with the toolbar. Do NOT re-add the header.
 - **QuickCapture Footer (`QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`)**: The dialog footer is intentionally simplified to contain only the right-aligned (`justify-content: flex-end;`) "Save note" button. Hints, record button, close button, and quit button in the footer have been intentionally removed (Close and Quit remain in the header). Do NOT re-add them to the footer.
 - **Obsidian Theme Border Colors (`docs/references/cm-rules.css`)**: Outline and table border colors are explicitly set to `#ababab`. Preserve these values.
 

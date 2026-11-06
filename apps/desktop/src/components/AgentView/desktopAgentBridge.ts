@@ -23,6 +23,28 @@ import {
 } from "@app/indexer";
 import { createLocalGitVersion } from "../../git/createLocalGitVersion";
 
+export function normalizeVaultPath(
+  inputPath: string,
+  allNotes: string[] = [],
+): string {
+  const clean = inputPath.trim().replace(/^[./\\]+/, "");
+  if (!clean) return inputPath;
+  if (allNotes.includes(clean)) return clean;
+  if (!clean.endsWith(".md") && !clean.endsWith(".canvas")) {
+    if (allNotes.includes(`${clean}.md`)) return `${clean}.md`;
+  }
+  const lower = clean.toLowerCase();
+  const match = allNotes.find(
+    (n) => n.toLowerCase() === lower || n.toLowerCase() === `${lower}.md`,
+  );
+  if (match) return match;
+  return clean.endsWith(".md") ||
+    clean.endsWith(".json") ||
+    clean.endsWith(".canvas")
+    ? clean
+    : `${clean}.md`;
+}
+
 export function createDesktopInspectionBackend(): VaultInspectionBackend {
   return {
     async listPaths(folderPath?: string) {
@@ -42,11 +64,17 @@ export function createDesktopInspectionBackend(): VaultInspectionBackend {
 
     async readNote(path: string) {
       const state = useWorkspaceStore.getState();
-      if (typeof state.notesContent[path] === "string") {
-        return state.notesContent[path];
+      const resolved = normalizeVaultPath(path, state.allNotePaths);
+      if (typeof state.notesContent[resolved] === "string") {
+        return state.notesContent[resolved];
       }
-      const file = await readNote(path);
-      return file.content;
+      try {
+        const file = await readNote(resolved);
+        return file.content;
+      } catch {
+        const fallback = await readNote(path);
+        return fallback.content;
+      }
     },
 
     async searchFts(
@@ -96,10 +124,11 @@ export function createDesktopMutationBackend(): VaultMutationBackend {
     async readNote(path: string): Promise<string | null> {
       try {
         const state = useWorkspaceStore.getState();
-        if (typeof state.notesContent[path] === "string") {
-          return state.notesContent[path];
+        const resolved = normalizeVaultPath(path, state.allNotePaths);
+        if (typeof state.notesContent[resolved] === "string") {
+          return state.notesContent[resolved];
         }
-        const file = await readNote(path);
+        const file = await readNote(resolved);
         return file.content;
       } catch {
         return null;
@@ -107,32 +136,32 @@ export function createDesktopMutationBackend(): VaultMutationBackend {
     },
 
     async writeNote(path: string, content: string): Promise<void> {
-      const parts = path.split("/");
+      const state = useWorkspaceStore.getState();
+      const resolved = normalizeVaultPath(path, state.allNotePaths);
+      const parts = resolved.split("/");
       if (parts.length > 1) {
         const folderPath = parts.slice(0, -1).join("/");
-        const st = useWorkspaceStore.getState();
-        if (!st.allFolderPaths.includes(folderPath)) {
+        if (!state.allFolderPaths.includes(folderPath)) {
           try {
             await createFolder(folderPath);
           } catch {
             // folder may already exist
           }
-          const updated = [...st.allFolderPaths, folderPath].sort();
-          st.updateAllFolderPaths(updated);
+          const updated = [...state.allFolderPaths, folderPath].sort();
+          state.updateAllFolderPaths(updated);
         }
       }
 
-      const state = useWorkspaceStore.getState();
-      if (state.allNotePaths.includes(path)) {
-        await writeNote(path, content);
+      if (state.allNotePaths.includes(resolved)) {
+        await writeNote(resolved, content);
         useWorkspaceStore.setState((s) => ({
-          notesContent: { ...s.notesContent, [path]: content },
+          notesContent: { ...s.notesContent, [resolved]: content },
         }));
       } else {
-        await createNoteInVault(path, content);
+        await createNoteInVault(resolved, content);
       }
       try {
-        await createLocalGitVersion([path], false);
+        await createLocalGitVersion([resolved], false);
       } catch {
         // Git versioning is optional
       }
@@ -156,18 +185,23 @@ export function createDesktopMutationBackend(): VaultMutationBackend {
     },
 
     async deleteNote(path: string): Promise<void> {
-      await deleteNoteInVault(path);
+      const state = useWorkspaceStore.getState();
+      const resolved = normalizeVaultPath(path, state.allNotePaths);
+      await deleteNoteInVault(resolved);
       try {
-        await createLocalGitVersion([path], false);
+        await createLocalGitVersion([resolved], false);
       } catch {
         // Git versioning is optional
       }
     },
 
     async moveNote(fromPath: string, toPath: string): Promise<void> {
-      await renameNoteInVault(fromPath, toPath);
+      const state = useWorkspaceStore.getState();
+      const resolvedFrom = normalizeVaultPath(fromPath, state.allNotePaths);
+      const resolvedTo = normalizeVaultPath(toPath, state.allNotePaths);
+      await renameNoteInVault(resolvedFrom, resolvedTo);
       try {
-        await createLocalGitVersion([fromPath, toPath], false);
+        await createLocalGitVersion([resolvedFrom, resolvedTo], false);
       } catch {
         // Git versioning is optional
       }

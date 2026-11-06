@@ -1,0 +1,87 @@
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0;
+  overflow-y: auto;
+  font-family: var(--font-ui);
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+}
+
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px 14px;
+}
+
+.field-label {
+  flex-shrink: 0;
+  width: 96px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.field-input,
+.field-textarea {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  color: var(--color-text-normal);
+  font-family: inherit;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
+
+  &:focus {
+    border-color: var(--color-border-subtle);
+    outline: none;
+  }
+}
+
+.field-textarea {
+  min-height: 96px;
+  line-height: 1.5;
+  resize: vertical;
+  border-color: var(--color-border-subtle);
+}
+
+.menu-divider {
+  height: 1px;
+  margin: 6px 0;
+  background-color: var(--color-border-subtle);
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 14px 6px;
+}
+
+.save-btn {
+  padding: 7px 14px;
+  color: var(--color-bg-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: var(--color-text-normal);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}

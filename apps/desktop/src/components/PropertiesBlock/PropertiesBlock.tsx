@@ -1,147 +1,91 @@
 import React, { useState } from "react";
-import {
-  CaretDown,
-  CaretRight,
-  Tag,
-  CalendarBlank,
-  User,
-  Link as LinkIcon,
-  List,
-  Plus,
-} from "@phosphor-icons/react";
+import { CaretDown, CaretRight, Plus, Check, X } from "@phosphor-icons/react";
 import type { Frontmatter } from "@app/core-types";
-import { Badge, Typography } from "@app/design-system";
+import { Typography } from "@app/design-system";
+import {
+  getPropertyIcon,
+  renderPropertyValue,
+} from "./PropertyValueRenderer";
+import {
+  formatPropertyValueForInput,
+  normalizeEditedPropertyValue,
+} from "./frontmatterMutator";
 
 export interface PropertiesBlockProps {
   frontmatter: Frontmatter;
   onLinkClick?: (target: string) => void;
-}
-
-function getPropertyIcon(key: string, value: unknown): React.ReactNode {
-  const lowerKey = key.toLowerCase();
-  if (lowerKey.includes("tag")) return <Tag size={14} />;
-  if (
-    lowerKey.includes("date") ||
-    lowerKey.includes("created") ||
-    lowerKey.includes("modified") ||
-    lowerKey.includes("updated")
-  ) {
-    return <CalendarBlank size={14} />;
-  }
-  if (
-    lowerKey.includes("author") ||
-    lowerKey.includes("user") ||
-    lowerKey.includes("creator")
-  ) {
-    return <User size={14} />;
-  }
-  if (typeof value === "string" && value.includes("[[")) {
-    return <LinkIcon size={14} />;
-  }
-  return <List size={14} />;
-}
-
-function renderPropertyValue(
-  value: unknown,
-  key: string,
-  onLinkClick?: (target: string) => void,
-): React.ReactNode {
-  if (value === null || value === undefined) {
-    return <span className="properties-block__empty-value">empty</span>;
-  }
-
-  // Tags special handling
-  if (key.toLowerCase().includes("tag")) {
-    const tags = Array.isArray(value)
-      ? value
-      : typeof value === "string"
-        ? value.split(/[\s,]+/).filter(Boolean)
-        : [String(value)];
-    return (
-      <div className="properties-block__tags">
-        {tags.map((tag, idx) => {
-          const cleanTag = String(tag).replace(/^#/, "");
-          return (
-            <Badge key={idx} variant="accent">
-              {`#${cleanTag}`}
-            </Badge>
-          );
-        })}
-      </div>
-    );
-  }
-
-  // Arrays
-  if (Array.isArray(value)) {
-    return (
-      <div className="properties-block__array">
-        {value.map((item, idx) => (
-          <span key={idx} className="properties-block__array-item">
-            {renderPropertyValue(item, "", onLinkClick)}
-            {idx < value.length - 1 && (
-              <span className="properties-block__separator">, </span>
-            )}
-          </span>
-        ))}
-      </div>
-    );
-  }
-
-  // Wikilink string e.g. [[Note Name]]
-  if (typeof value === "string") {
-    const wikiMatch = value.match(/^\[\[(.*?)\]\]$/);
-    if (wikiMatch) {
-      const target = wikiMatch[1];
-      return (
-        <a
-          href="#"
-          className="properties-block__link"
-          onClick={(e) => {
-            e.preventDefault();
-            onLinkClick?.(target);
-          }}
-        >
-          {target}
-        </a>
-      );
-    }
-    return <span className="properties-block__text">{value}</span>;
-  }
-
-  if (typeof value === "boolean") {
-    return (
-      <span className="properties-block__bool">{value ? "true" : "false"}</span>
-    );
-  }
-
-  return <span className="properties-block__text">{String(value)}</span>;
+  onAddProperty?: (key: string, value: unknown) => void;
+  onUpdateProperty?: (key: string, value: unknown) => void;
+  onRemoveProperty?: (key: string) => void;
 }
 
 const HIDDEN_FRONTMATTER_KEYS = new Set([
-  "cover",
-  "banner",
-  "cover_y",
-  "banner_y",
-  "coverY",
-  "bannerY",
-  "icon",
-  "kanban-plugin",
-  "database",
-  "columns",
+  "cover", "banner", "cover_y", "banner_y", "coverY", "bannerY",
+  "icon", "kanban-plugin", "database", "columns",
 ]);
 
 export function PropertiesBlock({
   frontmatter,
   onLinkClick,
+  onAddProperty,
+  onUpdateProperty,
+  onRemoveProperty,
 }: PropertiesBlockProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newKey, setNewKey] = useState("");
+  const [newValue, setNewValue] = useState("");
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
+
   const entries = Object.entries(frontmatter).filter(
     ([key]) => !HIDDEN_FRONTMATTER_KEYS.has(key),
   );
   const propertyCount = entries.length;
 
-  if (propertyCount === 0) {
-    return null;
+  const handleConfirmAdd = () => {
+    const cleanKey = newKey.trim();
+    if (!cleanKey) {
+      setIsAdding(false);
+      return;
+    }
+    const parsed = normalizeEditedPropertyValue(cleanKey, newValue);
+    onAddProperty?.(cleanKey, parsed);
+    setNewKey("");
+    setNewValue("");
+    setIsAdding(false);
+    setIsExpanded(true);
+  };
+
+  const handleStartEdit = (key: string, value: unknown) => {
+    if (!onUpdateProperty) return;
+    setEditingKey(key);
+    setEditingValue(formatPropertyValueForInput(key, value));
+  };
+
+  const handleConfirmEdit = (key: string, prevValue: unknown) => {
+    const parsed = normalizeEditedPropertyValue(key, editingValue, prevValue);
+    onUpdateProperty?.(key, parsed);
+    setEditingKey(null);
+  };
+
+  if (propertyCount === 0 && !isAdding) {
+    if (!onAddProperty) return null;
+    return (
+      <div className="properties-block properties-block--empty">
+        <button
+          type="button"
+          className="properties-block__add-btn"
+          onClick={() => {
+            setIsAdding(true);
+            setIsExpanded(true);
+          }}
+        >
+          <Plus size={12} />
+          <span>Add property</span>
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -172,26 +116,122 @@ export function PropertiesBlock({
             {entries.map(([key, value]) => (
               <div key={key} className="properties-block__row">
                 <div className="properties-block__key">
-                  <span
-                    className="properties-block__key-icon"
-                    aria-hidden="true"
-                  >
+                  <span className="properties-block__key-icon" aria-hidden="true">
                     {getPropertyIcon(key, value)}
                   </span>
                   <span className="properties-block__key-label">{key}</span>
                 </div>
-                <div className="properties-block__value">
-                  {renderPropertyValue(value, key, onLinkClick)}
+                <div
+                  className="properties-block__value"
+                  onClick={() => {
+                    if (editingKey !== key) handleStartEdit(key, value);
+                  }}
+                >
+                  {editingKey === key ? (
+                    <input
+                      type="text"
+                      className="properties-block__input"
+                      value={editingValue}
+                      autoFocus
+                      aria-label={`Edit ${key} value`}
+                      onChange={(e) => setEditingValue(e.target.value)}
+                      onBlur={() => handleConfirmEdit(key, value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleConfirmEdit(key, value);
+                        } else if (e.key === "Escape") {
+                          setEditingKey(null);
+                        }
+                      }}
+                    />
+                  ) : (
+                    renderPropertyValue(value, key, onLinkClick)
+                  )}
                 </div>
+                {onRemoveProperty && (
+                  <button
+                    type="button"
+                    className="properties-block__remove-btn"
+                    title={`Remove ${key}`}
+                    aria-label={`Remove ${key}`}
+                    onClick={() => onRemoveProperty(key)}
+                  >
+                    <X size={12} />
+                  </button>
+                )}
               </div>
             ))}
+
+            {isAdding && (
+              <div className="properties-block__row properties-block__row--adding">
+                <div className="properties-block__key">
+                  <input
+                    type="text"
+                    className="properties-block__input properties-block__input--key"
+                    placeholder="Property name"
+                    aria-label="Property name"
+                    value={newKey}
+                    autoFocus
+                    onChange={(e) => setNewKey(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleConfirmAdd();
+                      } else if (e.key === "Escape") {
+                        setIsAdding(false);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="properties-block__value">
+                  <input
+                    type="text"
+                    className="properties-block__input"
+                    placeholder="Value"
+                    aria-label="Property value"
+                    value={newValue}
+                    onChange={(e) => setNewValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleConfirmAdd();
+                      } else if (e.key === "Escape") {
+                        setIsAdding(false);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="properties-block__add-actions">
+                  <button
+                    type="button"
+                    className="properties-block__action-btn"
+                    aria-label="Save property"
+                    onClick={handleConfirmAdd}
+                  >
+                    <Check size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    className="properties-block__action-btn"
+                    aria-label="Cancel add property"
+                    onClick={() => setIsAdding(false)}
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="properties-block__footer">
             <button
               type="button"
               className="properties-block__add-btn"
-              title="Inline property editing available in future release"
+              onClick={() => {
+                setIsAdding(true);
+                setIsExpanded(true);
+              }}
             >
               <Plus size={12} />
               <span>Add property</span>

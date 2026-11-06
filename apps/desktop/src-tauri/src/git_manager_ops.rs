@@ -9,17 +9,28 @@ use crate::{
 
 pub(crate) fn stage_paths_internal(vault_root: &Path, paths: &[String]) -> Result<(), String> {
     with_git_lock(|| {
-        if paths.is_empty() {
-            require_success(vault_root, &["add", "-A"])?;
-        } else {
-            let mut args = vec!["add", "-A", "--"];
-            for p in paths {
-                args.push(p.as_str());
+        for path in paths {
+            if !is_supported_git_path(path) {
+                return Err(format!("Unsupported vault file type: {path}"));
             }
-            require_success(vault_root, &args)?;
         }
+        if paths.is_empty() {
+            return Err("Stage All is disabled; select supported files individually".to_string());
+        }
+        let mut args = vec!["add", "-A", "--"];
+        for p in paths {
+            args.push(p.as_str());
+        }
+        require_success(vault_root, &args)?;
         Ok(())
     })
+}
+
+fn is_supported_git_path(path: &str) -> bool {
+    let lower_path = path.to_ascii_lowercase();
+    [".md", ".json", ".png", ".jpg", ".sh"]
+        .iter()
+        .any(|suffix| lower_path.ends_with(suffix))
 }
 
 pub(crate) fn unstage_paths_internal(vault_root: &Path, paths: &[String]) -> Result<(), String> {
@@ -215,6 +226,14 @@ mod tests {
         assert_eq!(amend_hash.len(), 40);
         let log = run_git(path, &["log", "-1", "--pretty=%s"]).unwrap();
         assert_eq!(String::from_utf8_lossy(&log.stdout).trim(), "feat: first note amended");
+    }
+
+    #[test]
+    fn stage_rejects_unsupported_file_types() {
+        let repo = TestRepo::new();
+        fs::write(repo.0.join("notes.pdf"), "pdf").unwrap();
+        let result = stage_paths_internal(&repo.0, &["notes.pdf".to_string()]);
+        assert!(result.unwrap_err().contains("Unsupported vault file type"));
     }
 
     #[test]

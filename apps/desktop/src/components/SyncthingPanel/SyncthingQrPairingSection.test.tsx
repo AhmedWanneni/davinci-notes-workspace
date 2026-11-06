@@ -33,8 +33,9 @@ describe("SyncthingQrPairingSection", () => {
       />,
     );
 
-    expect(screen.getByText("Waiting for phone...")).toBeDefined();
-    expect(screen.getByText("Window: 04:45")).toBeDefined();
+    expect(screen.queryByText("Waiting for phone...")).toBeNull();
+    expect(screen.getByText("04:45")).toBeDefined();
+    expect(screen.getByTestId("qr-footer").contains(screen.getByRole("button", { name: "Rotate pairing code" }))).toBe(true);
     expect(screen.getByTestId("pairing-code").textContent).toContain("482 910");
     expect(screen.getByTestId("syncthing-qr-image")).toBeDefined();
   });

@@ -253,9 +253,13 @@ export function AgentPromptModelPicker() {
                             {agent.description}
                           </span>
                         </div>
-                        {isInstalled && (
+                        {isInstalled ? (
                           <span className={styles["picker__badge"]}>
                             Installed
+                          </span>
+                        ) : (
+                          <span className={styles["picker__badge-warning"]}>
+                            Not Installed
                           </span>
                         )}
                         {isSelected && (

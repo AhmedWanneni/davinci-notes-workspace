@@ -9,7 +9,7 @@ use tauri::{AppHandle, Manager, WebviewWindow};
 
 use crate::{command_auth::reject_plugin_runner, state::VaultState};
 
-const VAULT_GITIGNORE: &str = "# Managed by DaVinci Notes local version history.\n# Only Markdown notes are source of truth for local history.\n*\n!**/\n!**/*.md\n";
+const VAULT_GITIGNORE: &str = "# Managed by DaVinci Notes local version history.\n# Only Markdown, JSON, PNG/JPG, and shell files are included.\n*\n!**/\n!**/*.md\n!**/*.json\n!**/*.png\n!**/*.jpg\n!**/*.sh\n";
 static GIT_OPERATION_LOCK: Mutex<()> = Mutex::new(());
 
 pub(crate) fn with_git_lock<T, F>(f: F) -> Result<T, String>
@@ -49,11 +49,28 @@ pub(crate) fn require_success(vault_root: &Path, args: &[&str]) -> Result<Output
 
 fn ensure_vault_gitignore(vault_root: &Path) -> Result<(), String> {
     let path = vault_root.join(".gitignore");
-    if path.exists() {
+    let existing = if path.exists() {
+        fs::read_to_string(&path)
+            .map_err(|error| format!("Could not read vault Git ignore rules: {error}"))?
+    } else {
+        String::new()
+    };
+    let missing_rules: Vec<&str> = VAULT_GITIGNORE
+        .lines()
+        .filter(|line| !line.starts_with('#') && !existing.lines().any(|rule| rule == *line))
+        .collect();
+    if missing_rules.is_empty() && path.exists() {
         return Ok(());
     }
-
-    fs::write(path, VAULT_GITIGNORE)
+    let mut updated = existing;
+    if !updated.is_empty() && !updated.ends_with('\n') {
+        updated.push('\n');
+    }
+    if !missing_rules.is_empty() {
+        updated.push_str(&missing_rules.join("\n"));
+        updated.push('\n');
+    }
+    fs::write(path, updated)
         .map_err(|error| format!("Could not create the vault Git ignore policy: {error}"))
 }
 

@@ -1,8 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { TranscriptSegmentItem } from "./listeningTypes";
-import { loadAISubsystem } from "../../ai/loadAISubsystem";
-import { getVaultIndexDb, getSetting, withDbLock } from "../../vault";
-import { AI_LISTENING_PROVIDER_KEY } from "../SettingsDialog/AIListeningSettingsTab";
+import { resolveRecordPageAIProvider } from "./resolveRecordPageAIProvider";
 
 export interface RollingSummaryItem {
   id: string;
@@ -87,18 +85,7 @@ export function useLiveSummaries({
       const timeRange = `${formatMinSec(startTimeMs)} - ${formatMinSec(endTimeMs)}`;
 
       try {
-        const db = await getVaultIndexDb().catch(() => null);
-        let providerId = "gemini";
-        if (db) {
-          const saved = await withDbLock(() => getSetting(db, AI_LISTENING_PROVIDER_KEY)).catch(() => null);
-          if (saved) providerId = saved;
-        }
-
-        const ai = await loadAISubsystem();
-        const provider = await ai.createConfiguredProvider(providerId as any).catch(async () => {
-          const current = await ai.loadSelectedProvider();
-          return ai.createConfiguredProvider(current);
-        });
+        const provider = await resolveRecordPageAIProvider();
 
         const previousSummary = rollingSummaries[rollingSummaries.length - 1]?.summary || "";
         const prompt = `You are a real-time meeting summarizer. Given the previous summary and the new transcript segment, produce a concise, high-value summary of what was discussed in this interval. Keep it brief (2-4 bullet points or sentences).
@@ -171,18 +158,7 @@ ${newText}`;
       .join("\n");
 
     try {
-      const db = await getVaultIndexDb().catch(() => null);
-      let providerId = "gemini";
-      if (db) {
-        const saved = await withDbLock(() => getSetting(db, AI_LISTENING_PROVIDER_KEY)).catch(() => null);
-        if (saved) providerId = saved;
-      }
-
-      const ai = await loadAISubsystem();
-      const provider = await ai.createConfiguredProvider(providerId as any).catch(async () => {
-        const current = await ai.loadSelectedProvider();
-        return ai.createConfiguredProvider(current);
-      });
+      const provider = await resolveRecordPageAIProvider();
 
       const response = await provider.complete({
         messages: [

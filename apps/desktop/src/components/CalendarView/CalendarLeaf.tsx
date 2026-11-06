@@ -204,12 +204,6 @@ export function CalendarLeaf({
 
   return (
     <div className={styles["calendar-leaf"]} data-testid="calendar-leaf">
-      <div className={styles["calendar-leaf__header"]}>
-        <div className={styles["calendar-leaf__title-group"]}>
-          <div className={styles["calendar-leaf__icon-wrapper"]}><CalendarCheck size={18} weight="regular" /></div>
-          <Typography variant="h2" size="sm" weight="semibold" className={styles["calendar-leaf__heading"]}>Calendar & Meetings</Typography>
-        </div>
-      </div>
 
       <CalendarToolbar
         currentView={view}

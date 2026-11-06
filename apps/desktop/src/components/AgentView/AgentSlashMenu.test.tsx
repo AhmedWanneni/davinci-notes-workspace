@@ -45,7 +45,10 @@ describe("AgentSlashMenu", () => {
     expect(screen.queryByText("Synthesize Project Wiki Note")).toBeNull();
 
     fireEvent.click(screen.getByText("Meeting Summary & Action Items"));
-    expect(onSelect).toHaveBeenCalledWith(sampleItems[0]);
+    expect(onSelect).toHaveBeenCalledWith({
+      kind: "library",
+      item: sampleItems[0],
+    });
   });
 
   it("does not render when isOpen is false", () => {

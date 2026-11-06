@@ -11,6 +11,7 @@ import {
 } from "@phosphor-icons/react";
 import type { ParsedMeetingItem } from "./meetingsParser";
 import { useMeetingAssistant } from "./useMeetingAssistant";
+import { RecordAgentPicker } from "./RecordAgentPicker";
 import { AIListeningInput } from "./AIListeningPanel/AIListeningInput";
 import styles from "./ListeningView.module.scss";
 
@@ -52,6 +53,7 @@ export function MeetingAssistantPanel({
         </div>
 
         <div className={styles["ai-assistant-header-actions"]}>
+          <RecordAgentPicker />
           <button
             type="button"
             className={styles["header-action-btn"]}

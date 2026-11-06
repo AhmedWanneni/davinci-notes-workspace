@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   MagnifyingGlass,
   NotePencil,
-  Image as ImageIcon,
   Clock,
   Books,
   X,
@@ -20,7 +19,6 @@ export interface AgentSidebarPanelProps {
 const TOP_NAV_ITEMS = [
   { id: "search", label: "Search", icon: MagnifyingGlass },
   { id: "library", label: "Library", icon: Books },
-  { id: "images", label: "Images", icon: ImageIcon },
   { id: "scheduled", label: "Scheduled", icon: Clock },
 ];
 
@@ -45,7 +43,8 @@ export function AgentSidebarPanel({
   const [showSearch, setShowSearch] = useState(false);
 
   const handleStartNewChat = () => {
-    void createNewConversation("New Chat", null);
+    // Preserve the active project so the new chat inherits project memory & context
+    void createNewConversation("New Chat", activeProjectId ?? null);
     setActiveNavSection("chat");
   };
 

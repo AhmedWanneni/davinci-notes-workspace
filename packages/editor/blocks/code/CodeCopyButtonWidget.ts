@@ -1,4 +1,5 @@
 import { WidgetType, EditorView } from "@codemirror/view";
+import { setMermaidCodeEditing } from "../mermaid/mermaidToolbarWidget";
 
 export class CodeCopyButtonWidget extends WidgetType {
   constructor(
@@ -16,21 +17,40 @@ export class CodeCopyButtonWidget extends WidgetType {
     const wrap = document.createElement("div");
     wrap.className = "cm-code-actions";
 
+    const isMermaid = /^(?:\s*)(`{3,}|~{3,})\s*mermaid\b/iu.test(this.code);
+
     const codeBtn = document.createElement("button");
     codeBtn.type = "button";
-    codeBtn.className = "cm-code-action-btn cm-code-toggle-btn";
-    codeBtn.title = "View / edit code";
-    codeBtn.setAttribute("aria-label", "View / edit code");
-    codeBtn.innerHTML = "&lt;/&gt;";
-    codeBtn.onclick = (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      view.dispatch({
-        selection: { anchor: this.fromPos },
-        scrollIntoView: true,
-      });
-      view.focus();
-    };
+    if (isMermaid) {
+      codeBtn.className =
+        "cm-code-action-btn cm-code-toggle-btn cm-mermaid-view-diagram-btn";
+      codeBtn.title = "View diagram";
+      codeBtn.setAttribute("aria-label", "View diagram");
+      codeBtn.innerHTML =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+      codeBtn.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        view.dispatch({
+          effects: setMermaidCodeEditing.of(null),
+        });
+        view.focus();
+      };
+    } else {
+      codeBtn.className = "cm-code-action-btn cm-code-toggle-btn";
+      codeBtn.title = "View / edit code";
+      codeBtn.setAttribute("aria-label", "View / edit code");
+      codeBtn.innerHTML = "&lt;/&gt;";
+      codeBtn.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        view.dispatch({
+          selection: { anchor: this.fromPos },
+          scrollIntoView: true,
+        });
+        view.focus();
+      };
+    }
 
     const copyBtn = document.createElement("button");
     copyBtn.type = "button";
@@ -67,3 +87,4 @@ export class CodeCopyButtonWidget extends WidgetType {
     return false;
   }
 }
+

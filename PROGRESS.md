@@ -4,7 +4,44 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Interactive Animated & Graph Widgets for AI Agent (Chat & CodeMirror 6 Notes)
+## Last Session — Unified Desktop Dialog System (`WindowDialog` & Design Alignment)
+
+1. **Canonical Base Dialog Component (`apps/desktop/src/components/WindowDialog/`)**:
+   - `WindowDialog.tsx` (131 lines): Canonical Radix Dialog wrapper implementing uniform dialog geometry, size presets (`sm: 440px`, `md: 500px`, `lg: 640px`, `xl: 920px`, `auto`), positioning (`center`, `top: 15%`), macOS window header (44px) with traffic lights (`#ff5f56`, `#ffbd2e`, `#27c93f`), centered title, customizable header actions, and footer.
+   - `WindowDialog.module.scss` (112 lines): Floating soft elevation (`box-shadow: 0 4px 20px rgb(0 0 0 / 10%)`), `10px` border radius, `var(--color-bg-primary)` background, `1px solid var(--color-border-subtle)` hairline perimeter, smooth `overlay-show` and `content-show` scaling animations.
+   - `WindowDialog.test.tsx` (4 tests) & `WindowDialog.stories.tsx`: Complete unit test coverage and Storybook story variants.
+   - `packages/design-system/components/Dialog/Dialog.module.scss`: Aligned base design system token to `10px` border-radius and `0 4px 20px rgb(0 0 0 / 10%)` shadow.
+2. **Complete Dialog Migration (18 Modals Across Entire Desktop App)**:
+   - Migrated all dialogs to inherit directly from `<WindowDialog>`:
+     1. `SettingsDialog` (`size="xl"`, custom tab layout)
+     2. `RemindersDialog` (`size="md"`, header add action)
+     3. `SearchDialog` (`position="top"`, `size="lg"`, custom search input header, shortcuts footer)
+     4. `TagsDialog` (`size="sm"`)
+     5. `InsertDialog` (`size="md"`, multi-tab insert creator with `InsertCreatorForm`)
+     6. `CoverImagePickerModal` (`size="md"`, gallery/upload/link tabs)
+     7. `ReminderDatePicker` & `ReminderEditModal` (`size="sm"`)
+     8. `WebBookmarkImportModal` (`size="md"`)
+     9. `WebBookmarkEditModal` (`size="md"`)
+     10. `EventModal` (`size="md"`, calendar event management)
+     11. `AIListeningPrivacyModal` (`size="md"`)
+     12. `AgentSaveNoteModal` (`size="md"`)
+     13. `AgentLibraryModal` (`size="md"`)
+     14. `ScheduleTaskModal` (`size="md"`)
+     15. `ReminderFormModal` (`size="md"`)
+     16. `ScheduledMessageComposerModal` (`size="md"`)
+     17. `SyncthingDevicesDialog` (`size="lg"`)
+     18. `CommandPalette` (`position="top"`, `size="lg"`, instant command runner)
+3. **Refactoring & File Cap Compliance**:
+   - Extracted `InsertCreatorForm.tsx` (77 lines) from `InsertDialog.tsx` to remain strictly within the 250-line hard cap.
+   - Cleaned redundant SCSS modals and backdrops across `CoverImagePickerModal.module.scss`, `WebBookmarksDisplay.module.scss`, `EventModal.module.scss`, and `ScheduleTaskModal.module.scss`.
+   - Every file strictly verified <= 250 lines (range: 47 to 250 lines).
+4. **Verification**:
+   - All 11 test suites (54 tests) pass cleanly across Vitest without regressions.
+   - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Interactive Animated & Graph Widgets for AI Agent (Chat & CodeMirror 6 Notes)
 
 1. **Shared Zero-Dependency Renderer (`packages/editor/blocks/widget/`)**:
    - `widgetHtmlBuilder.ts` (124 lines): Generates complete self-contained HTML for sandboxed iframes. Injects design token CSS variables (`--color-bg-primary`, `--color-text-normal`, `--color-border-subtle`, `--color-accent`) for dark/light theme parity, auto-resizing script communicating via `postMessage`, and strict iframe Content Security Policy:

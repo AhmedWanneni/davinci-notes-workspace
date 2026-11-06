@@ -26,9 +26,13 @@ export class TableCodeHeaderWidget extends WidgetType {
     const bar = document.createElement("div");
     bar.className = "cm-table-code-bar";
     bar.innerHTML = `
-      <span class="cm-table-code-badge">Table Source</span>
-      <button type="button" class="cm-table-view-btn" aria-label="View rendered table">
-        👁️ View Table
+      <span class="cm-table-code-badge">Table</span>
+      <button type="button" class="cm-table-view-btn" title="Preview mode" aria-label="Preview mode">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        <span>Preview</span>
       </button>
     `;
     const btn = bar.querySelector<HTMLButtonElement>(".cm-table-view-btn");

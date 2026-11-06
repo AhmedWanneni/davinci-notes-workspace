@@ -51,20 +51,20 @@ export function MeetingsSidebar({
         </button>
       </nav>
 
-      <div className={styles["meetings-sidebar__footer"]}>
-        {onOpenSettings && (
+      {onOpenSettings && (
+        <div className={styles["meetings-sidebar__footer"]}>
           <button
             type="button"
-            className={styles["meetings-sidebar__settings-btn"]}
+            className={styles["meetings-sidebar__item"]}
             onClick={onOpenSettings}
-            title="Recording & AI Listening Settings"
+            title="AI Listening & Transcript Settings"
             data-testid="sidebar-settings-btn"
           >
             <Gear size={16} />
-            <span>Record Settings</span>
+            <span>Settings</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

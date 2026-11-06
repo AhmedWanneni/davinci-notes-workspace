@@ -1,16 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { AgentWelcomeView } from "./AgentWelcomeView";
 import { AgentProjectView } from "./AgentProjectView";
 import { AgentActiveChat } from "./AgentActiveChat";
+import { AgentAvailabilityBanner } from "./AgentAvailabilityBanner";
 import { AgentLibraryBoard, AgentLibraryErrorBoundary } from "./Library";
+import { useScheduledRunDispatch } from "./Scheduled/useScheduledRunDispatch";
 import { useAgentExecution } from "./useAgentExecution";
 import { useAgentConversations } from "./useAgentConversations";
+import { useAgentMessageSync } from "./useAgentMessageSync";
 import { useAgentViewConfig } from "./useAgentViewConfig";
 import { useAgentStore } from "./useAgentStore";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import type { AIProviderId } from "../../ai/AISubsystem";
-import type { ChatMessageItem } from "./agentTypes";
 import "./AgentView.scss";
+
+const LazyAgentScheduledView = lazy(() =>
+  import("./Scheduled/AgentScheduledView").then((m) => ({
+    default: m.AgentScheduledView,
+  })),
+);
 
 export interface AgentViewProps {
   onOpenSettings?: () => void;
@@ -19,13 +27,17 @@ export interface AgentViewProps {
 export function AgentView({
   onOpenSettings: _onOpenSettings,
 }: AgentViewProps = {}) {
-  const { webSearchEnabled, autoApply, rewriteEnabled, shortcuts } =
-    useAgentViewConfig();
+  const {
+    webSearchEnabled,
+    autoApply,
+    rewriteEnabled,
+    shortcuts,
+  } = useAgentViewConfig();
 
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
   const vaultName = vaultPath
-    ? vaultPath.split(/[/\\]/).pop() || "Ahmed"
-    : "Ahmed";
+    ? vaultPath.split(/[/\\]/).pop() || "Vault"
+    : "Vault";
 
   const selectedModel = useAgentStore((s) => s.selectedModel);
   const selectedProvider = useAgentStore((s) => s.selectedProvider);
@@ -43,6 +55,7 @@ export function AgentView({
     projects,
     activeConversation,
     activeConversationId,
+    conversations,
     createNewConversation,
     saveActiveMessages,
   } = useAgentConversations();
@@ -79,11 +92,29 @@ export function AgentView({
       ? (activeProject?.instructions ?? projectInstructions[currentProjectId])
       : undefined,
     projectName: currentProjectId ? activeProject?.name : undefined,
+    conversations: currentProjectId ? conversations : undefined,
+    activeConversationId: activeConversationId ?? undefined,
   });
 
   const [chatInput, setChatInput] = useState("");
-  const lastLoadedConvIdRef = useRef<string | null>(null);
-  const lastSavedKeyRef = useRef<string>("");
+
+  useAgentMessageSync({
+    activeConversationId,
+    activeConversation,
+    messages,
+    isStreaming,
+    setMessages,
+    saveActiveMessages,
+  });
+
+  // Fires scheduled prompts at their time (single timer, no polling).
+  useScheduledRunDispatch({
+    isStreaming,
+    messages,
+    activeConversationId,
+    setMessages,
+    sendMessage,
+  });
 
   useEffect(() => {
     if (pendingPromptText) {
@@ -94,28 +125,13 @@ export function AgentView({
     }
   }, [pendingPromptText, setPendingPromptText]);
 
-  useEffect(() => {
-    if (
-      activeConversationId &&
-      activeConversation &&
-      activeConversation.id !== lastLoadedConvIdRef.current
-    ) {
-      lastLoadedConvIdRef.current = activeConversation.id;
-      setMessages(activeConversation.messages as ChatMessageItem[]);
-    } else if (!activeConversationId) {
-      lastLoadedConvIdRef.current = null;
-      setMessages([]);
-    }
-  }, [activeConversationId, activeConversation, setMessages]);
-
-  useEffect(() => {
-    if (!activeConversationId || messages.length === 0 || isStreaming) return;
-    const lastMsg = messages[messages.length - 1];
-    const key = `${activeConversationId}:${messages.length}:${lastMsg?.id || ""}:${lastMsg?.content?.length || 0}`;
-    if (key === lastSavedKeyRef.current) return;
-    lastSavedKeyRef.current = key;
-    void saveActiveMessages(messages);
-  }, [activeConversationId, messages, isStreaming, saveActiveMessages]);
+  const availabilityBanner = (
+    <AgentAvailabilityBanner
+      providerId={selectedProvider as AIProviderId}
+      selectedCliAgent={selectedCliAgent}
+      onOpenSettings={_onOpenSettings}
+    />
+  );
 
   if (activeNavSection === "library") {
     return (
@@ -131,9 +147,20 @@ export function AgentView({
     );
   }
 
+  if (activeNavSection === "scheduled") {
+    return (
+      <div className="agent-view" role="main" aria-label="AI Agent Scheduled">
+        <Suspense fallback={null}>
+          <LazyAgentScheduledView />
+        </Suspense>
+      </div>
+    );
+  }
+
   if (currentProjectId && (!activeConversationId || messages.length === 0)) {
     return (
       <div className="agent-view" role="main" aria-label="AI Vault Agent">
+        {availabilityBanner}
         <AgentProjectView
           projectId={currentProjectId}
           onSend={(prompt, imgs) => {
@@ -147,6 +174,7 @@ export function AgentView({
           }}
           shortcuts={shortcuts}
           isStreaming={isStreaming}
+          onCancel={abortExecution}
         />
       </div>
     );
@@ -155,51 +183,55 @@ export function AgentView({
   if (messages.length === 0) {
     return (
       <div className="agent-view" role="main" aria-label="AI Vault Agent">
+        {availabilityBanner}
         <AgentWelcomeView
           userName={vaultName}
           onSend={(prompt) => void sendMessage(prompt)}
           shortcuts={shortcuts}
           isStreaming={isStreaming}
+          onCancel={abortExecution}
         />
       </div>
     );
   }
 
-  const chatTitle =
-    activeProject?.name || activeConversation?.title || "Search";
+  const chatTitle = activeConversation?.title || "New Chat";
 
   return (
-    <AgentActiveChat
-      chatTitle={chatTitle}
-      activeProject={activeProject}
-      onNavigateProject={(pId) => selectProject(pId)}
-      onRename={() => {
-        if (!activeConversationId) return;
-        const next = window.prompt("Rename conversation:", chatTitle);
-        if (next?.trim())
-          void renameConversation(activeConversationId, next.trim());
-      }}
-      onDelete={() => {
-        if (!activeConversationId) return;
-        if (window.confirm(`Delete conversation "${chatTitle}"?`))
-          void deleteConversation(activeConversationId);
-      }}
-      messages={messages}
-      isStreaming={isStreaming}
-      stagedChanges={stagedChanges}
-      onAcceptChange={handleApplyChange}
-      onRejectChange={handleRejectChange}
-      onAcceptAllChanges={handleApplyAllChanges}
-      chatInput={chatInput}
-      onChangeChatInput={setChatInput}
-      onSendChat={(text, imgs) => {
-        if (text.trim() || (imgs && imgs.length > 0)) {
-          void sendMessage(text, imgs);
-          setChatInput("");
-        }
-      }}
-      shortcuts={shortcuts}
-      onCancel={abortExecution}
-    />
+    <div className="agent-view-active-wrap" style={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", overflow: "hidden" }}>
+      {availabilityBanner}
+      <AgentActiveChat
+        chatTitle={chatTitle}
+        activeProject={activeProject}
+        onNavigateProject={(pId) => selectProject(pId)}
+        onRename={() => {
+          if (!activeConversationId) return;
+          const next = window.prompt("Rename conversation:", chatTitle);
+          if (next?.trim())
+            void renameConversation(activeConversationId, next.trim());
+        }}
+        onDelete={() => {
+          if (!activeConversationId) return;
+          if (window.confirm(`Delete conversation "${chatTitle}"?`))
+            void deleteConversation(activeConversationId);
+        }}
+        messages={messages}
+        isStreaming={isStreaming}
+        stagedChanges={stagedChanges}
+        onAcceptChange={handleApplyChange}
+        onRejectChange={handleRejectChange}
+        onAcceptAllChanges={handleApplyAllChanges}
+        chatInput={chatInput}
+        onChangeChatInput={setChatInput}
+        onSendChat={(text, imgs) => {
+          if (text.trim() || (imgs && imgs.length > 0)) {
+            void sendMessage(text, imgs);
+            setChatInput("");
+          }
+        }}
+        shortcuts={shortcuts}
+        onCancel={abortExecution}
+      />
+    </div>
   );
 }

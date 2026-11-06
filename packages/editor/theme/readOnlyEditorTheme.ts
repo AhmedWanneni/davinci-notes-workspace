@@ -107,6 +107,9 @@ export const readOnlyEditorTheme = EditorView.theme({
   ".cm-markdown-syntax": {
     display: "none !important",
   },
+  ".cm-wikilink-brackets, .cm-wikilink-target-hidden, .cm-link-mark, .cm-link-target-hidden": {
+    display: "none !important",
+  },
   ".cm-hr-line": {
     position: "relative",
     padding: "var(--space-2) 0",

@@ -159,6 +159,12 @@ export const editorTheme = EditorView.theme({
   ".cm-activeLine .cm-markdown-syntax, .cm-activeLine .cm-markdown-syntax *": {
     color: "var(--color-text-faint)",
   },
+  ".cm-wikilink-brackets, .cm-wikilink-target-hidden, .cm-link-mark, .cm-link-target-hidden": {
+    display: "none !important",
+  },
+  ".cm-editor .cm-activeLine .cm-wikilink-brackets, .cm-editor .cm-activeLine .cm-wikilink-target-hidden, .cm-editor .cm-activeLine .cm-link-mark, .cm-editor .cm-activeLine .cm-link-target-hidden": {
+    display: "none !important",
+  },
   ".cm-hr-line": {
     position: "relative",
     padding: "var(--space-3) 0",

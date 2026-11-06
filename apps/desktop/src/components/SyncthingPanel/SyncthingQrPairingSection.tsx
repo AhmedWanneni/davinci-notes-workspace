@@ -1,6 +1,6 @@
 import React from "react";
-import { Badge, Button, Typography } from "@app/design-system";
-import { ArrowClockwise, QrCode } from "@phosphor-icons/react";
+import { Button } from "@app/design-system";
+import { ArrowClockwise } from "@phosphor-icons/react";
 import styles from "./SyncthingQrPairingSection.module.scss";
 
 export interface SyncthingQrPairingSectionProps {
@@ -37,43 +37,9 @@ export function SyncthingQrPairingSection({
 
   return (
     <div className={styles["qr-section"]} data-testid="syncthing-qr-section">
-      <div className={styles["qr-header"]}>
-        <div className={styles["qr-title"]}>
-          <QrCode size={16} />
-          <Typography variant="h4" size="sm">
-            Scan to Connect Phone
-          </Typography>
-        </div>
-        <Badge variant={isExpired ? "warning" : "neutral"}>
-          {isExpired ? "Code Expired" : `Window: ${formatCountdown(secondsLeft)}`}
-        </Badge>
+      <div className={styles["qr-code-pill"]} data-testid="pairing-code">
+        {formattedCode}
       </div>
-
-      <div className={styles["qr-waiting-bar"]}>
-        <div className={styles["qr-status-text"]}>
-          <span className={styles["qr-pulse-dot"]} />
-          <span>Waiting for phone...</span>
-        </div>
-
-        <div className={styles["qr-code-pill"]} data-testid="pairing-code">
-          Code: {formattedCode}
-        </div>
-
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onRotateCode}
-          disabled={isGenerating}
-          aria-label="Rotate pairing code"
-        >
-          <ArrowClockwise
-            size={14}
-            className={isGenerating ? styles["is-spinning"] : ""}
-          />
-          Rotate
-        </Button>
-      </div>
-
       <div className={styles["qr-quiet-zone"]}>
         <img
           src={qrDataUrl}
@@ -82,10 +48,23 @@ export function SyncthingQrPairingSection({
           data-testid="syncthing-qr-image"
         />
       </div>
-
-      <p className={styles["qr-caption"]}>
-        Scan with Sophia on your phone to automatically pair and synchronize your vault.
-      </p>
+      <div className={styles["qr-footer"]} data-testid="qr-footer">
+        <span className={isExpired ? styles["qr-expired"] : styles["qr-countdown"]}>
+          {isExpired ? "Code Expired" : formatCountdown(secondsLeft)}
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onRotateCode}
+          disabled={isGenerating}
+          aria-label="Rotate pairing code"
+        >
+          <ArrowClockwise
+            size={16}
+            className={isGenerating ? styles["is-spinning"] : ""}
+          />
+        </Button>
+      </div>
     </div>
   );
 }

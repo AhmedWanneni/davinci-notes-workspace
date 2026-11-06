@@ -101,7 +101,7 @@ export function handleLink(view: EditorView): void {
 
 export function handleTable(view: EditorView): void {
   const table =
-    "| Header 1 | Header 2 | Header 3 |\n| --- | --- | --- |\n| Cell 1 | Cell 2 | Cell 3 |";
+    "<table>\n  <thead>\n    <tr>\n      <th>Header 1</th>\n      <th>Header 2</th>\n      <th>Header 3</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Cell 1</td>\n      <td>Cell 2</td>\n      <td>Cell 3</td>\n    </tr>\n  </tbody>\n</table>";
   insertEditorBlock(view, table, table.length);
 }
 

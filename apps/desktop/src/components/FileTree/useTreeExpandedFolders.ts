@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getParentFolder } from "./getDropEffect";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 interface UseTreeExpandedFoldersOptions {
   activePath: string | null;
@@ -23,6 +24,24 @@ export function useTreeExpandedFolders({
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     () => new Set(),
   );
+  const revealedFolderPath = useWorkspaceStore(
+    (s) => s.revealedFolderPath,
+  );
+  const revealFolderNonce = useWorkspaceStore((s) => s.revealFolderNonce);
+
+  useEffect(() => {
+    if (!revealedFolderPath) return;
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      let currentPath = "";
+      for (const part of revealedFolderPath.split("/")) {
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        next.add(currentPath);
+      }
+      return next;
+    });
+    onSelectedFolderChange?.(revealedFolderPath);
+  }, [revealedFolderPath, revealFolderNonce]);
 
   useEffect(() => {
     if (!pendingRenameFolder) return;

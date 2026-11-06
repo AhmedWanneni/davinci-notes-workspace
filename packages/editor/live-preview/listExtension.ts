@@ -57,7 +57,7 @@ class TaskCheckboxWidget extends WidgetType {
     );
   }
 
-  toDOM(): HTMLElement {
+  toDOM(view: EditorView): HTMLElement {
     const checkbox = document.createElement("input");
     checkbox.className = "cm-task-checkbox";
     checkbox.type = "checkbox";
@@ -65,11 +65,20 @@ class TaskCheckboxWidget extends WidgetType {
     checkbox.disabled = this.readOnly;
     checkbox.dataset.markerFrom = String(this.markerFrom);
     checkbox.setAttribute("aria-label", "Toggle task");
+    checkbox.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    checkbox.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleTaskByMarkerFrom(this.markerFrom, view);
+    });
     return checkbox;
   }
 
   ignoreEvent(): boolean {
-    return false;
+    return true;
   }
 }
 
@@ -139,7 +148,7 @@ function getListDecorations(
         decorations.push(indentSpaceDeco.range(line.from, markerFrom));
       }
 
-      if (activeLine && !ordered) continue;
+      if (activeLine && !ordered && taskMarker === undefined) continue;
       const markerTo =
         markerFrom +
         marker.length +
@@ -176,16 +185,7 @@ function getListDecorations(
   return Decoration.set(decorations, true);
 }
 
-function toggleTask(event: MouseEvent, view: EditorView): boolean {
-  const checkbox = event.target;
-  if (
-    !(checkbox instanceof HTMLInputElement) ||
-    !checkbox.classList.contains("cm-task-checkbox")
-  ) {
-    return false;
-  }
-
-  const markerFrom = Number(checkbox.dataset.markerFrom);
+function toggleTaskByMarkerFrom(markerFrom: number, view: EditorView): boolean {
   const currentMarker = view.state.doc.sliceString(markerFrom, markerFrom + 3);
   if (!/^\[[^\]\n]\]$/.test(currentMarker)) return true;
 
@@ -198,6 +198,19 @@ function toggleTask(event: MouseEvent, view: EditorView): boolean {
     userEvent: "input.toggleTask",
   });
   return true;
+}
+
+function toggleTask(event: MouseEvent, view: EditorView): boolean {
+  const checkbox = event.target;
+  if (
+    !(checkbox instanceof HTMLInputElement) ||
+    !checkbox.classList.contains("cm-task-checkbox")
+  ) {
+    return false;
+  }
+
+  const markerFrom = Number(checkbox.dataset.markerFrom);
+  return toggleTaskByMarkerFrom(markerFrom, view);
 }
 
 /** Renders Markdown list markers and task checkboxes with hanging indents in live preview. */

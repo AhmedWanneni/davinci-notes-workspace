@@ -1,5 +1,6 @@
 import React from "react";
-import { ShieldWarning, Check, X } from "@phosphor-icons/react";
+import { Check, X } from "@phosphor-icons/react";
+import { WindowDialog } from "../WindowDialog";
 import styles from "./ListeningView.module.scss";
 
 export interface AIListeningPrivacyModalProps {
@@ -21,59 +22,14 @@ export function AIListeningPrivacyModal({
   const isLocal = provider.toLowerCase().includes("ollama");
 
   return (
-    <div
-      className={styles["privacy-modal-overlay"]}
-      data-testid="ai-privacy-modal-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="privacy-modal-title"
-    >
-      <div className={styles["privacy-modal-card"]}>
-        <div className={styles["privacy-modal-header"]}>
-          <div
-            className={
-              isGemini
-                ? `${styles["privacy-icon-badge"]} ${styles["privacy-icon-badge--warning"]}`
-                : styles["privacy-icon-badge"]
-            }
-          >
-            <ShieldWarning size={22} weight="bold" />
-          </div>
-          <div>
-            <h3 id="privacy-modal-title" className={styles["privacy-modal-title"]}>
-              AI Listening Privacy Notice
-            </h3>
-            <p className={styles["privacy-modal-subtitle"]}>
-              Active Provider: <strong>{provider}</strong>
-            </p>
-          </div>
-        </div>
-
-        <div className={styles["privacy-modal-body"]}>
-          {isGemini ? (
-            <div className={styles["privacy-warning-box"]}>
-              <p className={styles["privacy-strong-text"]}>
-                <strong>Attention:</strong> Google Gemini free tier may process meeting transcripts
-                and allow human review to train and improve Google products.
-              </p>
-              <p className={styles["privacy-detail-text"]}>
-                Do not stream sensitive, proprietary, or personal data. You can switch to Ollama for
-                100% offline local AI or configure a private BYOK key in Record Settings.
-              </p>
-            </div>
-          ) : isLocal ? (
-            <p className={styles["privacy-detail-text"]}>
-              Ollama runs locally on your machine. No meeting data leaves your device.
-            </p>
-          ) : (
-            <p className={styles["privacy-detail-text"]}>
-              Live transcript segments and questions will be securely sent to {provider} to generate
-              summaries. Review your provider&apos;s data retention policy.
-            </p>
-          )}
-        </div>
-
-        <div className={styles["privacy-modal-actions"]}>
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={onCancel}
+      title="AI Listening Privacy Notice"
+      subtitle={<span>Active Provider: <strong>{provider}</strong></span>}
+      size="md"
+      footer={
+        <div className={styles["privacy-modal-actions"]} style={{ width: "100%", margin: 0, padding: 0 }}>
           <button
             type="button"
             className={`${styles["btn"]} ${styles["btn--secondary"]}`}
@@ -93,8 +49,32 @@ export function AIListeningPrivacyModal({
             <span>Enable AI Listening</span>
           </button>
         </div>
+      }
+    >
+      <div className={styles["privacy-modal-body"]} style={{ padding: "16px 20px" }}>
+        {isGemini ? (
+          <div className={styles["privacy-warning-box"]}>
+            <p className={styles["privacy-strong-text"]}>
+              <strong>Attention:</strong> Google Gemini free tier may process meeting transcripts
+              and allow human review to train and improve Google products.
+            </p>
+            <p className={styles["privacy-detail-text"]}>
+              Do not stream sensitive, proprietary, or personal data. You can switch to Ollama for
+              100% offline local AI or configure a private BYOK key in Record Settings.
+            </p>
+          </div>
+        ) : isLocal ? (
+          <p className={styles["privacy-detail-text"]}>
+            Ollama runs locally on your machine. No meeting data leaves your device.
+          </p>
+        ) : (
+          <p className={styles["privacy-detail-text"]}>
+            Live transcript segments and questions will be securely sent to {provider} to generate
+            summaries. Review your provider&apos;s data retention policy.
+          </p>
+        )}
       </div>
-    </div>
+    </WindowDialog>
   );
 }
 export default AIListeningPrivacyModal;

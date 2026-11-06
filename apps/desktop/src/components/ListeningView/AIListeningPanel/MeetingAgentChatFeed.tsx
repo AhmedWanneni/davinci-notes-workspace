@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { PaperPlaneTilt, Sparkle, User, ArrowSquareOut } from "@phosphor-icons/react";
 import type { ChatMessageItem } from "../../AgentView/agentTypes";
+import { useAgentStore } from "../../AgentView/useAgentStore";
+import { useWorkspaceStore } from "../../../state/useWorkspaceStore";
+import { getActiveRecordAgentLabel } from "../resolveRecordPageAIProvider";
 import styles from "../ListeningView.module.scss";
 
 export interface MeetingAgentChatFeedProps {
@@ -26,20 +29,39 @@ export function MeetingAgentChatFeed({
     await onAskQuestion(query);
   };
 
+  const selectedCliAgent = useAgentStore((s) => s.selectedCliAgent);
+  const selectedModel = useAgentStore((s) => s.selectedModel);
+  const selectConversation = useAgentStore((s) => s.selectConversation);
+  const openNote = useWorkspaceStore((s) => s.openNote);
+
+  const activeAgentLabel = getActiveRecordAgentLabel();
+  void selectedCliAgent;
+  void selectedModel;
+
+  const handleOpenInAgentPage = () => {
+    if (conversationId) {
+      selectConversation(conversationId);
+    }
+    openNote("davinci://agent");
+  };
+
   return (
     <div className={styles["meeting-agent-chat-section"]} data-testid="meeting-agent-chat-feed">
       <div className={styles["chat-section-header"]}>
         <div className={styles["chat-header-title"]}>
           <Sparkle size={14} weight="fill" />
-          <span>Ask Agent</span>
+          <span>Ask Agent ({activeAgentLabel})</span>
         </div>
-        <span
+        <button
+          type="button"
           className={styles["agent-page-link"]}
-          title={`Synced to agent thread ${conversationId}`}
+          title={`Open synced thread ${conversationId || ""} in AI Agent page`}
+          onClick={handleOpenInAgentPage}
+          data-testid="open-in-agent-page-btn"
         >
           <ArrowSquareOut size={12} />
           <span>davinci://agent</span>
-        </span>
+        </button>
       </div>
 
       <div className={styles["chat-messages-container"]} data-testid="meeting-chat-messages">

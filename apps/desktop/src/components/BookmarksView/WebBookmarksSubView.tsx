@@ -12,7 +12,6 @@ import { exportBookmarksToHtml } from "./WebBookmarksExport";
 import { useBookmarkUIStore } from "../../bookmarks/useBookmarkUIStore";
 import { WebBookmarksSidebar } from "./WebBookmarksSidebar";
 import { WebBookmarksTopBar } from "./WebBookmarksTopBar";
-import { WebBookmarksContentHeader } from "./WebBookmarksContentHeader";
 import { WebBookmarksViewSwitch } from "./WebBookmarksViewSwitch";
 import { WebBookmarkEditModal } from "./WebBookmarkEditModal";
 import { WebBookmarksEmptyState } from "./WebBookmarksEmptyState";
@@ -149,6 +148,14 @@ export function WebBookmarksSubView({
           onOpenAddFromBrowser={onOpenImportModal}
           isOrganizingAI={isOrganizingAI}
           variant={variant}
+          section={activeSection}
+          sortOption={sortOption}
+          onSortChange={setSortOption}
+          viewConfig={viewConfig}
+          onViewConfigChange={setViewConfig}
+          onExport={isNotes ? undefined : handleExport}
+          showSelectCheckbox={showCheckboxes}
+          onToggleSelectCheckbox={() => setShowCheckboxes((prev) => !prev)}
         />
 
         {statusMessage && (
@@ -176,17 +183,6 @@ export function WebBookmarksSubView({
             </div>
           </div>
         )}
-
-        <WebBookmarksContentHeader
-          section={activeSection}
-          sortOption={sortOption}
-          onSortChange={setSortOption}
-          viewConfig={viewConfig}
-          onViewConfigChange={setViewConfig}
-          onExport={isNotes ? undefined : handleExport}
-          showSelectCheckbox={showCheckboxes}
-          onToggleSelectCheckbox={() => setShowCheckboxes((prev) => !prev)}
-        />
 
         <div className={styles["wb-content-scroll"]}>
           {items.length === 0 || filteredItems.length === 0 ? (

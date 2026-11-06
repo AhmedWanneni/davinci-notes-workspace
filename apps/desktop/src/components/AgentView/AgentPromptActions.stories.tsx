@@ -12,8 +12,6 @@ type Story = StoryObj<typeof AgentPromptActions>;
 export const Idle: Story = {
   args: {
     isStreaming: false,
-    canSend: false,
-    onVoiceClick: () => {},
     onCancel: () => {},
     onSend: () => {},
   },
@@ -22,8 +20,6 @@ export const Idle: Story = {
 export const ReadyToSend: Story = {
   args: {
     isStreaming: false,
-    canSend: true,
-    onVoiceClick: () => {},
     onCancel: () => {},
     onSend: () => {},
   },
@@ -32,8 +28,6 @@ export const ReadyToSend: Story = {
 export const Streaming: Story = {
   args: {
     isStreaming: true,
-    canSend: true,
-    onVoiceClick: () => {},
     onCancel: () => {},
     onSend: () => {},
   },

@@ -7,6 +7,13 @@ export interface ParsedPorcelainResult {
   untracked: GitFileChange[];
 }
 
+const ALLOWED_FILE_SUFFIXES = [".md", ".json", ".png", ".jpg", ".sh"];
+
+function isAllowedVaultFile(path: string): boolean {
+  const lowerPath = path.toLocaleLowerCase();
+  return ALLOWED_FILE_SUFFIXES.some((suffix) => lowerPath.endsWith(suffix));
+}
+
 export function parsePorcelainV2(raw: string): ParsedPorcelainResult {
   const staged: GitFileChange[] = [];
   const unstaged: GitFileChange[] = [];
@@ -130,5 +137,17 @@ export function parsePorcelainV2(raw: string): ParsedPorcelainResult {
     i++;
   }
 
-  return { staged, unstaged, conflicts, untracked };
+  const filterChanges = (changes: GitFileChange[]) =>
+    changes.filter(
+      (change) =>
+        isAllowedVaultFile(change.path) &&
+        (!change.oldPath || isAllowedVaultFile(change.oldPath)),
+    );
+
+  return {
+    staged: filterChanges(staged),
+    unstaged: filterChanges(unstaged),
+    conflicts: filterChanges(conflicts),
+    untracked: filterChanges(untracked),
+  };
 }

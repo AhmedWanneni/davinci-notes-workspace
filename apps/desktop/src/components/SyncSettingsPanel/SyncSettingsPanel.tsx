@@ -6,6 +6,7 @@ export type SyncMode = "off" | "drive" | "folder";
 export interface SyncSettingsPanelProps {
   mode: SyncMode;
   onSelectMode: (mode: SyncMode) => void;
+  showFolderOption?: boolean;
   // Drive state & actions
   driveAccountEmail?: string | null;
   isDriveSignedIn?: boolean;
@@ -24,6 +25,7 @@ export interface SyncSettingsPanelProps {
 export function SyncSettingsPanel({
   mode,
   onSelectMode,
+  showFolderOption = true,
   driveAccountEmail,
   isDriveSignedIn = false,
   isDriveSyncing = false,
@@ -39,16 +41,6 @@ export function SyncSettingsPanel({
   if (mode === "off") {
     return (
       <div className={styles["sync-settings"]}>
-        <div className={styles["sync-settings__banner-info"]}>
-          <Typography variant="h3" size="sm">
-            Vault Synchronization
-          </Typography>
-          <Typography variant="text" size="xs" color="muted">
-            Synchronization is currently off for this vault. Choose a sync mode
-            below.
-          </Typography>
-        </div>
-
         <div className={styles["sync-settings__options"]}>
           {/* Card A: Google Drive (Recommended, Prominent) */}
           <div
@@ -85,7 +77,7 @@ export function SyncSettingsPanel({
           </div>
 
           {/* Card B: Folder Tool (Bring Your Own Tool, Secondary) */}
-          <div
+          {showFolderOption && <div
             className={styles["sync-settings__card"]}
             data-testid="sync-option-folder"
           >
@@ -112,7 +104,7 @@ export function SyncSettingsPanel({
                 Enable Folder Sync Mode
               </Button>
             </div>
-          </div>
+          </div>}
         </div>
       </div>
     );
@@ -121,21 +113,18 @@ export function SyncSettingsPanel({
   if (mode === "drive") {
     return (
       <div className={styles["sync-settings"]}>
-        <div className={styles["sync-settings__status-banner"]}>
-          <div className={styles["sync-settings__banner-info"]}>
-            <Typography variant="h3" size="sm">
-              Google Drive Sync Active
-            </Typography>
+        {isDriveSignedIn ? (
+          <div className={styles["sync-settings__drive-account"]}>
             <Typography variant="text" size="xs" color="muted">
-              {isDriveSignedIn
-                ? `Account: ${driveAccountEmail || "Connected"}${lastSyncedAt ? ` · Last synced ${new Date(lastSyncedAt).toLocaleTimeString()}` : ""}`
-                : "Authentication required to sync"}
+              {driveAccountEmail || "Connected"}{lastSyncedAt ? ` · Last synced ${new Date(lastSyncedAt).toLocaleTimeString()}` : ""}
             </Typography>
+            <Badge variant="success">Connected</Badge>
           </div>
-          <Badge variant={isDriveSignedIn ? "success" : "warning"}>
-            {isDriveSignedIn ? "Connected" : "Signed Out"}
-          </Badge>
-        </div>
+        ) : (
+          <Typography variant="text" size="xs" color="muted">
+            Authentication required to sync
+          </Typography>
+        )}
 
         {syncError && (
           <div

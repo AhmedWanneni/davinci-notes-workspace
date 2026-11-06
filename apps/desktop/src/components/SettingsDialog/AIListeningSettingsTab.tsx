@@ -3,6 +3,12 @@ import { Typography } from "@app/design-system";
 import { Eye, EyeSlash, ShieldWarning, Check } from "@phosphor-icons/react";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
+import {
+  TranscriptionSettingsCard,
+  AI_TRANSCRIPTION_ENGINE_KEY,
+  AI_TRANSCRIPTION_MODEL_KEY,
+  AI_TRANSCRIPTION_ENDPOINT_KEY,
+} from "./TranscriptionSettingsCard";
 import { createDesktopAISecretStore } from "../../ai/desktopAISecretStore";
 import {
   getVaultIndexDb,
@@ -12,8 +18,18 @@ import {
 } from "../../vault";
 import styles from "./SettingsDialog.module.scss";
 
+export {
+  AI_TRANSCRIPTION_ENGINE_KEY,
+  AI_TRANSCRIPTION_MODEL_KEY,
+  AI_TRANSCRIPTION_ENDPOINT_KEY,
+};
+
 export type AIListeningProviderId =
-  "gemini" | "openai-compatible" | "openrouter" | "ollama";
+  | "gemini"
+  | "groq"
+  | "openai-compatible"
+  | "openrouter"
+  | "ollama";
 
 export const AI_LISTENING_PROVIDER_KEY = "ai.listening.provider";
 export const AI_LISTENING_MODEL_KEY = "ai.listening.model";
@@ -21,6 +37,7 @@ export const AI_LISTENING_THROTTLE_KEY = "ai.listening.throttle_sec";
 
 export const DEFAULT_LISTENING_MODELS: Record<AIListeningProviderId, string> = {
   gemini: "gemini-2.0-flash",
+  groq: "llama-3.3-70b-versatile",
   "openai-compatible": "gpt-4o-mini",
   openrouter: "openai/gpt-4o-mini",
   ollama: "gemma3",
@@ -124,6 +141,7 @@ export function AIListeningSettingsTab() {
             data-testid="ai-listening-provider-select"
           >
             <option value="gemini">Google Gemini</option>
+            <option value="groq">Groq Cloud (Free Tier)</option>
             <option value="openai-compatible">OpenAI-compatible</option>
             <option value="openrouter">OpenRouter</option>
             <option value="ollama">Ollama (local)</option>
@@ -219,6 +237,8 @@ export function AIListeningSettingsTab() {
           </button>
         </div>
       </SettingsCard>
+
+      <TranscriptionSettingsCard />
     </div>
   );
 }

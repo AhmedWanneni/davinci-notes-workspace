@@ -96,7 +96,8 @@
 
   &__dropdown {
     position: absolute;
-    top: calc(100% + 4px);
+    position: fixed;
+    top: 0;
     left: 0;
     z-index: 100;
     min-width: 240px;
@@ -206,6 +207,109 @@
 
     &:hover {
       background-color: var(--color-bg-hover);
+    }
+  }
+}
+
+.menu-bar {
+  &__more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+
+    &:hover,
+    &.is-active {
+      color: var(--color-text-normal);
+      background-color: var(--color-bg-hover);
+    }
+  }
+
+  &__more-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 100;
+    min-width: 210px;
+    max-width: min(320px, calc(100vw - 16px));
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+    padding: 6px 0;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgb(0 0 0 / 10%);
+  }
+
+  &__more-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 7px 14px;
+    color: var(--color-text-normal);
+    background: transparent;
+    border: 0;
+    text-align: left;
+    font-size: 13px;
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+
+    span {
+      margin-left: auto;
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__check {
+    display: inline-flex;
+    width: 15px;
+    justify-content: center;
+    color: var(--color-text-muted);
+  }
+
+  &__mode-group {
+    display: flex;
+    gap: 2px;
+    padding: 4px 8px;
+  }
+
+  &__insert-popover {
+    position: fixed;
+    z-index: 110;
+
+    :global(.menu-bar__dropdown) {
+      position: fixed;
+      min-width: min(240px, calc(100vw - 16px));
+      max-width: calc(100vw - 16px);
+      max-height: calc(100vh - 16px);
+      overflow: auto;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: 8px;
+      background-color: var(--color-bg-primary);
+      box-shadow: 0 4px 20px rgb(0 0 0 / 10%);
+    }
+  }
+
+  &__insert-popover.is-align-right {
+    :global(.menu-bar__dropdown) {
+      border-top-left-radius: 0;
+    }
+  }
+
+  &__insert-popover.is-align-left {
+    :global(.menu-bar__dropdown) {
+      border-top-right-radius: 0;
     }
   }
 }

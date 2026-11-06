@@ -10,6 +10,7 @@ import { AIListeningPrivacyModal } from "./AIListeningPrivacyModal";
 import { RecordingTopBar } from "./RecordingTopBar";
 import { parseMeetingMarkdown, type ParsedMeetingItem } from "./meetingsParser";
 import { useListeningSession } from "./useListeningSession";
+import { useAgentStore } from "../AgentView/useAgentStore";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { readNote } from "../../vault/vaultCommands";
 import styles from "./ListeningView.module.scss";
@@ -39,8 +40,9 @@ export function ListeningView({
   const [meetingNotesList, setMeetingNotesList] = useState<ParsedMeetingItem[]>([]);
   const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
-  const [activeProvider] = useState<string>("gemini");
-  const [hasAcknowledgedPrivacy, setHasAcknowledgedPrivacy] = useState(false);
+  const selectedCliAgent = useAgentStore((s) => s.selectedCliAgent);
+  const selectedProvider = useAgentStore((s) => s.selectedProvider);
+  const activeProvider = selectedCliAgent || selectedProvider || "gemini";
 
   const session = useListeningSession(initialTitle);
   const isRecording = session.status === "recording";
@@ -83,21 +85,12 @@ export function ListeningView({
 
   const handleToggleAIListening = useCallback(
     (active: boolean) => {
-      if (!active) {
-        session.setIsAIListeningActive(false);
-        return;
-      }
-      if (!activeProvider.toLowerCase().includes("ollama") && !hasAcknowledgedPrivacy) {
-        setIsPrivacyModalOpen(true);
-        return;
-      }
-      session.setIsAIListeningActive(true);
+      session.setIsAIListeningActive(active);
     },
-    [activeProvider, hasAcknowledgedPrivacy, session],
+    [session],
   );
 
   const handleConfirmPrivacy = useCallback(() => {
-    setHasAcknowledgedPrivacy(true);
     setIsPrivacyModalOpen(false);
     session.setIsAIListeningActive(true);
   }, [session]);

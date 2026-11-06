@@ -1,6 +1,7 @@
 import { FileTreeContextMenu } from "./FileTreeContextMenu";
 import { FileTreeEmojiPopover } from "./FileTreeEmojiPopover";
 import { useBookmarks } from "../../bookmarks";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import type {
   FileTreeContextMenuState,
   FileTreeIconTarget,
@@ -12,6 +13,7 @@ export interface FileTreeOverlaysProps {
   onNoteClick: (path: string) => void;
   onCreateNote?: (parentFolder?: string) => void | Promise<unknown>;
   onCreateFolder: (parentFolder: string) => Promise<string | null>;
+  onOpenFolderGraph?: (folderPath: string) => void;
   onStartRename: (path: string, kind: "note" | "folder") => void;
   onDuplicateNote?: (path: string) => Promise<boolean>;
   onConfirmDelete: (path: string, isFolder: boolean) => Promise<void>;
@@ -26,6 +28,7 @@ export function FileTreeOverlays({
   onNoteClick,
   onCreateNote,
   onCreateFolder,
+  onOpenFolderGraph,
   onStartRename,
   onDuplicateNote,
   onConfirmDelete,
@@ -34,6 +37,14 @@ export function FileTreeOverlays({
   onSetIcon,
 }: FileTreeOverlaysProps) {
   const { isBookmarked, toggleBookmark } = useBookmarks();
+  const openFolderGraphInStore = useWorkspaceStore(
+    (state) => state.openFolderGraph,
+  );
+  const handleOpenFolderGraph =
+    onOpenFolderGraph ??
+    ((folderPath: string) => {
+      openFolderGraphInStore(folderPath);
+    });
   return (
     <>
       {contextMenu && (
@@ -45,6 +56,7 @@ export function FileTreeOverlays({
           onOpenNote={onNoteClick}
           onNewNote={(parentFolder) => void onCreateNote?.(parentFolder)}
           onNewFolder={onCreateFolder}
+          onOpenFolderGraph={handleOpenFolderGraph}
           onRenameNote={(path) => onStartRename(path, "note")}
           onRenameFolder={(path) => onStartRename(path, "folder")}
           onDuplicateNote={onDuplicateNote}

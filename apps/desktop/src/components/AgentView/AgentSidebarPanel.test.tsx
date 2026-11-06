@@ -49,7 +49,7 @@ describe("AgentSidebarPanel", () => {
     expect(screen.getByText("New chat")).toBeTruthy();
     expect(screen.getAllByText("Search").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Library")).toBeTruthy();
-    expect(screen.getByText("Images")).toBeTruthy();
+    expect(screen.queryByText("Images")).toBeNull();
     expect(screen.getByText("Scheduled")).toBeTruthy();
 
     // Removed nav items

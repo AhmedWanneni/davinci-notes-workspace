@@ -136,27 +136,6 @@
     flex-shrink: 0;
   }
 
-  &__mic-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-    height: 30px;
-    padding: 0 6px;
-    border-radius: 15px;
-    border: none;
-    background: transparent;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-
-    &:hover {
-      background-color: var(--color-bg-hover);
-      color: var(--color-text-normal);
-    }
-  }
-
-  &__waveform-btn,
   &__send-btn,
   &__stop-btn {
     display: inline-flex;
@@ -171,7 +150,6 @@
     transition: opacity 0.15s ease;
   }
 
-  &__waveform-btn,
   &__send-btn {
     background-color: var(--color-interactive-accent);
 

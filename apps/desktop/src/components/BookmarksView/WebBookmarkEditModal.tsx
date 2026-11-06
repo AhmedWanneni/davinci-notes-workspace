@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { X } from "@phosphor-icons/react";
 import type { WebBookmarkItem } from "../../bookmarks/bookmarkTypes";
+import { WindowDialog } from "../WindowDialog";
 import styles from "./WebBookmarksDisplay.module.scss";
 
 export interface WebBookmarkEditModalProps {
@@ -57,27 +57,14 @@ export function WebBookmarkEditModal({
   };
 
   return (
-    <div className={styles["wb-modal-overlay"]} onClick={onClose}>
-      <div
-        className={styles["wb-modal"]}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Edit bookmark"
-      >
-        <div className={styles["wb-modal__header"]}>
-          <h2 className={styles["wb-modal__title"]}>Edit Bookmark</h2>
-          <button
-            type="button"
-            className={styles["wb-modal__close-btn"]}
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className={styles["wb-modal__form"]}>
+    <WindowDialog
+      isOpen={true}
+      onClose={onClose}
+      title="Edit Bookmark"
+      ariaLabel="Edit bookmark"
+      size="md"
+    >
+      <form onSubmit={handleSubmit} className={styles["wb-modal__form"]} style={{ padding: "16px 20px" }}>
           <div className={styles["wb-modal__field"]}>
             <label className={styles["wb-modal__label"]}>Title</label>
             <input
@@ -172,7 +159,6 @@ export function WebBookmarkEditModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </WindowDialog>
   );
 }

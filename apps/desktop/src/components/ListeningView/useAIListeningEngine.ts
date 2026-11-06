@@ -5,13 +5,9 @@ import type {
   RollingTranscriptSegment,
 } from "@app/ai-agent";
 import { extractRollingWindow, processAIListeningStep } from "@app/ai-agent";
-import { loadAISubsystem } from "../../ai/loadAISubsystem";
 import { getVaultIndexDb, getSetting, withDbLock } from "../../vault";
-import {
-  AI_LISTENING_PROVIDER_KEY,
-  AI_LISTENING_THROTTLE_KEY,
-  type AIListeningProviderId,
-} from "../SettingsDialog/AIListeningSettingsTab";
+import { AI_LISTENING_THROTTLE_KEY } from "../SettingsDialog/AIListeningSettingsTab";
+import { resolveRecordPageAIProvider } from "./resolveRecordPageAIProvider";
 
 export interface UseAIListeningEngineProps {
   isRecording: boolean;
@@ -52,22 +48,7 @@ export function useAIListeningEngine({
       setAiError(null);
 
       try {
-        const db = await getVaultIndexDb().catch(() => null);
-        let providerId = "gemini";
-        if (db) {
-          const saved = await withDbLock(() => getSetting(db, AI_LISTENING_PROVIDER_KEY)).catch(
-            () => null,
-          );
-          if (saved) providerId = saved;
-        }
-
-        const ai = await loadAISubsystem();
-        const provider = await ai
-          .createConfiguredProvider(providerId as AIListeningProviderId)
-          .catch(async () => {
-            const current = await ai.loadSelectedProvider();
-            return ai.createConfiguredProvider(current);
-          });
+        const provider = await resolveRecordPageAIProvider();
 
         const rolling = extractRollingWindow(segmentsRef.current, 150_000);
         if (rolling.length === 0) {

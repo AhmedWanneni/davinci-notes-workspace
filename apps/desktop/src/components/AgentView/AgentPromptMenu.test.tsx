@@ -14,6 +14,8 @@ describe("AgentPromptMenu", () => {
         onUploadFiles={onUploadFiles}
         onTakeScreenshot={vi.fn()}
         onSelectPrompt={vi.fn()}
+        webSearchEnabled={false}
+        onToggleWebSearch={vi.fn()}
       />,
     );
 
@@ -35,6 +37,8 @@ describe("AgentPromptMenu", () => {
         onUploadFiles={vi.fn()}
         onTakeScreenshot={onTakeScreenshot}
         onSelectPrompt={vi.fn()}
+        webSearchEnabled={false}
+        onToggleWebSearch={vi.fn()}
       />,
     );
 
@@ -53,6 +57,8 @@ describe("AgentPromptMenu", () => {
         onUploadFiles={vi.fn()}
         onTakeScreenshot={vi.fn()}
         onSelectPrompt={vi.fn()}
+        webSearchEnabled={false}
+        onToggleWebSearch={vi.fn()}
       />,
     );
     expect(container.firstChild).toBeNull();
@@ -68,6 +74,8 @@ describe("AgentPromptMenu", () => {
         onUploadFiles={vi.fn()}
         onTakeScreenshot={vi.fn()}
         onSelectPrompt={onSelectPrompt}
+        webSearchEnabled={false}
+        onToggleWebSearch={vi.fn()}
       />,
     );
 
@@ -91,6 +99,8 @@ describe("AgentPromptMenu", () => {
         onUploadFiles={vi.fn()}
         onTakeScreenshot={vi.fn()}
         onSelectPrompt={vi.fn()}
+        webSearchEnabled={false}
+        onToggleWebSearch={vi.fn()}
         variant="project"
       />,
     );
@@ -104,6 +114,8 @@ describe("AgentPromptMenu", () => {
     // Standard options should not be present in project variant
     expect(screen.queryByText("Add to project")).toBeNull();
     expect(screen.queryByText("Add connector")).toBeNull();
+    expect(screen.queryByText("Design system")).toBeNull();
+    expect(screen.queryByText("Add plugins")).toBeNull();
 
     // Project variant defaults to bottom placement
     expect((container.firstChild as HTMLElement).className).toMatch(

@@ -8,7 +8,7 @@ import {
   sanitizeFilenameStem,
 } from "./sanitizeFilenameStem";
 
-export const H1_RENAME_DEBOUNCE_MS = 750;
+export const H1_RENAME_DEBOUNCE_MS = 2000;
 
 const h1RenameTimers: Record<string, NodeJS.Timeout> = {};
 

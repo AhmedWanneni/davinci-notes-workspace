@@ -4,7 +4,7 @@ const sharedAnnotations = {
   ".cm-blockquote-line": {
     borderLeft:
       "2.5px solid var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
-    paddingLeft: "24px",
+    paddingLeft: "1rem",
     paddingTop: "2px",
     paddingBottom: "2px",
     backgroundColor: "transparent",
@@ -55,6 +55,10 @@ const sharedAnnotations = {
 
 export const markdownAnnotationTheme = EditorView.theme({
   ...sharedAnnotations,
+  ".cm-line.cm-blockquote-line": {
+    paddingLeft: "1rem",
+    paddingRight: "var(--space-4)",
+  },
   ".cm-markdown-comment": {
     color: "var(--color-text-muted)",
     backgroundColor: "var(--color-bg-secondary)",
@@ -63,6 +67,10 @@ export const markdownAnnotationTheme = EditorView.theme({
 
 export const readOnlyMarkdownAnnotationTheme = EditorView.theme({
   ...sharedAnnotations,
+  ".cm-line.cm-blockquote-line": {
+    paddingLeft: "1rem",
+    paddingRight: "var(--space-4)",
+  },
   ".cm-markdown-comment": {
     display: "none",
   },

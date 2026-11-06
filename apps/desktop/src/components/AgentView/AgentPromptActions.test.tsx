@@ -4,30 +4,21 @@ import { describe, expect, it, vi } from "vitest";
 import { AgentPromptActions } from "./AgentPromptActions";
 
 describe("AgentPromptActions", () => {
-  it("renders voice button and waveform when cannot send", () => {
-    const onVoice = vi.fn();
+  it("renders the send control without microphone controls", () => {
     render(
       <AgentPromptActions
         isStreaming={false}
-        canSend={false}
-        onVoiceClick={onVoice}
         onSend={vi.fn()}
       />,
     );
-
-    expect(screen.getByRole("button", { name: "Voice input" })).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: "Start voice mode" }),
-    ).toBeTruthy();
-
-    fireEvent.click(screen.getByRole("button", { name: "Start voice mode" }));
-    expect(onVoice).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Send message" })).toBeTruthy();
+    expect(screen.queryByLabelText(/voice|microphone/i)).toBeNull();
   });
 
-  it("renders send button when canSend is true", () => {
+  it("renders the send button", () => {
     const onSend = vi.fn();
     render(
-      <AgentPromptActions isStreaming={false} canSend={true} onSend={onSend} />,
+      <AgentPromptActions isStreaming={false} onSend={onSend} />,
     );
 
     expect(screen.getByRole("button", { name: "Send message" })).toBeTruthy();
@@ -35,21 +26,35 @@ describe("AgentPromptActions", () => {
     expect(onSend).toHaveBeenCalledTimes(1);
   });
 
-  it("renders stop button when streaming", () => {
+  it("shows a pause control to stop the agent while streaming", () => {
     const onCancel = vi.fn();
     render(
       <AgentPromptActions
         isStreaming={true}
-        canSend={true}
         onCancel={onCancel}
         onSend={vi.fn()}
       />,
     );
 
     expect(
-      screen.getByRole("button", { name: "Stop generation" }),
+      screen.getByRole("button", { name: "Stop agent" }),
     ).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Stop generation" }));
+    fireEvent.click(screen.getByRole("button", { name: "Stop agent" }));
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("replaces send with pause when the working state starts", () => {
+    const onCancel = vi.fn();
+    const { rerender } = render(
+      <AgentPromptActions isStreaming={false} onSend={vi.fn()} />,
+    );
+    expect(screen.getByRole("button", { name: "Send message" })).toBeTruthy();
+
+    rerender(
+      <AgentPromptActions isStreaming={true} onCancel={onCancel} onSend={vi.fn()} />,
+    );
+    const pause = screen.getByRole("button", { name: "Stop agent" });
+    fireEvent.click(pause);
+    expect(onCancel).toHaveBeenCalledOnce();
   });
 });

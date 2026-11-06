@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button, Input, Typography } from "@app/design-system";
-import { Check, Info, PlusCircle, WarningCircle } from "@phosphor-icons/react";
+import { Check, PlusCircle, WarningCircle } from "@phosphor-icons/react";
 import {
   syncthingAddDevice,
   syncthingShareVaultFolder,
@@ -9,7 +9,6 @@ import styles from "./SyncthingAddDeviceSection.module.scss";
 
 interface Props {
   onAdded: () => Promise<void>;
-  localDeviceId?: string;
 }
 
 export function isValidDeviceIdFormat(id: string): boolean {
@@ -27,7 +26,7 @@ export function formatDeviceIdGroups(raw: string): string {
   return groups.join("-");
 }
 
-export function SyncthingAddDeviceSection({ onAdded, localDeviceId }: Props) {
+export function SyncthingAddDeviceSection({ onAdded }: Props) {
   const [deviceIdInput, setDeviceIdInput] = useState("");
   const [deviceNameInput, setDeviceNameInput] = useState("");
   const [autoShareVault, setAutoShareVault] = useState(true);
@@ -79,25 +78,10 @@ export function SyncthingAddDeviceSection({ onAdded, localDeviceId }: Props) {
       <div className={styles["add-device-card__header"]}>
         <div className={styles["add-device-card__title"]}>
           <PlusCircle size={16} />
-          <Typography variant="h4" size="sm">
-            Add Another Computer / Device
-          </Typography>
-        </div>
-      </div>
-
-      <div className={styles["add-device-card__notice"]}>
-        <Info size={16} />
-        <div>
-          <strong>Syncthing requires two-way authorization.</strong>
-          <p>
-            After adding this device, you must also paste or accept this Mac's
-            Device ID on that device to connect.
-          </p>
-          {Boolean(localDeviceId) && (
-            <code>
-              {localDeviceId?.slice(0, 7)}...{localDeviceId?.slice(-7)}
-            </code>
-          )}
+          <div className={styles["add-device-card__heading"]}>
+            <Typography variant="h4" size="sm">Connect computer</Typography>
+            <span>Enter its device ID, then accept this computer on the other device.</span>
+          </div>
         </div>
       </div>
 

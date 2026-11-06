@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Sparkle, UploadSimple } from "@phosphor-icons/react";
+import { WindowDialog } from "../WindowDialog";
 import {
   autoImportFromBrowser,
   DEFAULT_BROWSERS,
@@ -116,31 +116,36 @@ export function WebBookmarkImportModal({
   };
 
   return (
-    <DialogPrimitive.Root open onOpenChange={(open) => !open && onClose()}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className={styles["dialog-overlay"]} />
-        <DialogPrimitive.Content
-          className={styles["dialog-root"]}
-          aria-label="Add Bookmarks from Browser"
-        >
-          <div className={styles["window-header"]}>
-            <div className={styles["traffic-lights"]}>
-              <button
-                type="button"
-                className={`${styles["traffic-dot"]} ${styles["traffic-dot--close"]}`}
-                onClick={onClose}
-                aria-label="Close dialog"
-              />
-              <span className={`${styles["traffic-dot"]} ${styles["traffic-dot--minimize"]}`} />
-              <span className={`${styles["traffic-dot"]} ${styles["traffic-dot--maximize"]}`} />
-            </div>
-            <div className={styles["window-title"]}>
-              Add Bookmarks from Browser
-            </div>
-            <div className={styles["header-spacer"]} />
-          </div>
-
-          <div className={styles["dialog-body"]}>
+    <WindowDialog
+      isOpen={true}
+      onClose={onClose}
+      title="Add Bookmarks from Browser"
+      size="md"
+      footer={
+        <div style={{ display: "flex", gap: 8, width: "100%", justifyContent: "flex-end" }}>
+          <button
+            type="button"
+            className={styles["action-btn"]}
+            onClick={onClose}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={`${styles["action-btn"]} ${styles["is-primary"]}`}
+            disabled={loadingBrowser !== null}
+            onClick={() => void handleFooterImport()}
+          >
+            {loadingBrowser
+              ? "Reading..."
+              : summary
+                ? `Import ${summary.items.length} Links`
+                : "Import Bookmarks"}
+          </button>
+        </div>
+      }
+    >
+      <div className={styles["dialog-body"]}>
             <div className={styles["section-header"]}>
               Choose your browser to automatically import bookmarks:
             </div>
@@ -210,30 +215,6 @@ export function WebBookmarkImportModal({
               </div>
             )}
           </div>
-
-          <div className={styles["dialog-footer"]}>
-            <button
-              type="button"
-              className={styles["action-btn"]}
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className={`${styles["action-btn"]} ${styles["is-primary"]}`}
-              disabled={loadingBrowser !== null}
-              onClick={() => void handleFooterImport()}
-            >
-              {loadingBrowser
-                ? "Reading..."
-                : summary
-                  ? `Import ${summary.items.length} Links`
-                  : "Import Bookmarks"}
-            </button>
-          </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+    </WindowDialog>
   );
 }

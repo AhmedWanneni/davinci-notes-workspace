@@ -71,6 +71,7 @@ export const htmlBlockTheme = EditorView.theme({
     width: "100%",
     borderCollapse: "collapse",
     border: "var(--border-width-thin) solid var(--color-border-subtle)",
+    margin: "var(--space-2) 0",
   },
   ".cm-html-block tr": {
     borderBottom: "var(--border-width-thin) solid var(--color-border-subtle)",
@@ -78,9 +79,27 @@ export const htmlBlockTheme = EditorView.theme({
   ".cm-html-block tr:last-child": {
     borderBottom: "0",
   },
-  ".cm-html-block td": {
-    padding: "var(--space-1) var(--space-2)",
+  ".cm-html-block th": {
+    padding: "var(--space-2) var(--space-3)",
+    fontWeight: "var(--type-weight-semibold, 600)",
+    textAlign: "left",
     borderRight: "var(--border-width-thin) solid var(--color-border-subtle)",
+    borderBottom: "var(--border-width-thin) solid var(--color-border-subtle)",
+    backgroundColor: "var(--color-bg-secondary, rgba(0, 0, 0, 0.02))",
+    color: "var(--color-text-normal)",
+  },
+  ".cm-html-block th:last-child": {
+    borderRight: "0",
+  },
+  ".cm-html-block td": {
+    padding: "var(--space-2) var(--space-3)",
+    borderRight: "var(--border-width-thin) solid var(--color-border-subtle)",
+    color: "var(--color-text-normal)",
+  },
+  ".cm-html-block th:focus, .cm-html-block td:focus": {
+    outline: "none",
+    boxShadow: "inset 0 0 0 1.5px var(--editor-obsidian-color-link, #7c3aed)",
+    backgroundColor: "var(--color-bg-hover, rgba(124, 58, 237, 0.05))",
   },
   ".cm-html-block td:last-child": {
     borderRight: "0",

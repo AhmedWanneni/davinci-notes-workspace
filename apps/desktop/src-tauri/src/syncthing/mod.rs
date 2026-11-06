@@ -9,6 +9,7 @@ pub mod folders_pending;
 pub mod lifecycle;
 pub mod lifecycle_starter;
 pub mod lifecycle_stopper;
+mod local_device_name;
 pub mod process;
 pub mod stignore;
 pub mod sync_check;
@@ -22,6 +23,7 @@ mod tests;
 mod lifecycle_tests;
 
 pub use commands::*;
+pub use local_device_name::*;
 pub use lifecycle::SyncthingManager;
 #[allow(unused_imports)]
 pub use types::*;

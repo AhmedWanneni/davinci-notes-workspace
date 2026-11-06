@@ -83,6 +83,18 @@ describe("listExtension styling and hanging indents", () => {
     }
   });
 
+  it("keeps multi-digit ordered markers inline", () => {
+    const { view, cleanup } = createEditor("10. Ordered item", 0, true);
+    try {
+      const ordered = view.dom.querySelector(".cm-list-ordered") as HTMLElement;
+      expect(ordered?.textContent).toBe("10.");
+      expect(view.dom.querySelector(".cm-list-line .cm-list-ordered")?.textContent).toBe("10.");
+      expect(document.querySelector("style")?.textContent).toContain("white-space: nowrap");
+    } finally {
+      cleanup();
+    }
+  });
+
   it("toggles task checkboxes and dispatches transaction updating Markdown", () => {
     const doc = "- [ ] Task to complete";
     const { view, cleanup } = createEditor(doc, 0, true);
@@ -96,6 +108,30 @@ describe("listExtension styling and hanging indents", () => {
       // Simulate click
       checkbox.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       expect(view.state.doc.toString()).toBe("- [x] Task to complete");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("keeps task checkbox rendered on active editable line and checks without revealing raw code", () => {
+    const doc = "- [ ] Active todo item";
+    const { view, cleanup } = createEditor(doc, 10, false);
+    try {
+      const checkbox = view.dom.querySelector(
+        "input.cm-task-checkbox",
+      ) as HTMLInputElement;
+      expect(checkbox).not.toBeNull();
+      expect(checkbox.checked).toBe(false);
+      expect(view.dom.textContent).not.toContain("[ ]");
+
+      checkbox.click();
+      expect(view.state.doc.toString()).toBe("- [x] Active todo item");
+
+      const updatedCheckbox = view.dom.querySelector(
+        "input.cm-task-checkbox",
+      ) as HTMLInputElement;
+      expect(updatedCheckbox).not.toBeNull();
+      expect(updatedCheckbox.checked).toBe(true);
     } finally {
       cleanup();
     }

@@ -25,6 +25,42 @@ export interface AudioLevelPayload {
   elapsedSeconds: number;
 }
 
+export interface LiveChunkTranscriptionResult {
+  nextSample: number;
+  segments: TranscriptSegment[];
+  engineUsed: string;
+}
+
+export interface TranscriptionToolsStatus {
+  groqConfigured: boolean;
+  localWhisperInstalled: boolean;
+  localWhisperBinary?: string | null;
+}
+
+export type FreeTranscriptionEngine =
+  | "auto"
+  | "groq-whisper"
+  | "local-whisper"
+  | "web-speech";
+
+export const GROQ_WHISPER_ENDPOINT =
+  "https://api.groq.com/openai/v1/audio/transcriptions";
+
+export const GROQ_WHISPER_MODELS = [
+  {
+    id: "whisper-large-v3-turbo",
+    label: "Groq Whisper Large v3 Turbo (Fastest · Free Tier)",
+  },
+  {
+    id: "whisper-large-v3",
+    label: "Groq Whisper Large v3 (High Accuracy · Free Tier)",
+  },
+  {
+    id: "distil-whisper-large-v3-en",
+    label: "Groq Distil-Whisper v3 English (Ultra-Fast · Free Tier)",
+  },
+] as const;
+
 async function safeInvoke<T>(
   command: string,
   args?: Record<string, unknown>,
@@ -93,4 +129,35 @@ export async function transcribeAudioFile(
     endpoint,
     model,
   });
+}
+
+export async function transcribeLiveRecordingChunk(
+  startSample: number,
+  apiKey?: string,
+  endpoint?: string,
+  model?: string,
+): Promise<LiveChunkTranscriptionResult> {
+  return safeInvoke<LiveChunkTranscriptionResult>(
+    "transcribe_live_recording_chunk",
+    {
+      startSample,
+      apiKey,
+      endpoint,
+      model,
+    },
+  );
+}
+
+export async function detectTranscriptionTools(): Promise<TranscriptionToolsStatus> {
+  try {
+    return await safeInvoke<TranscriptionToolsStatus>(
+      "detect_transcription_tools",
+    );
+  } catch {
+    return {
+      groqConfigured: false,
+      localWhisperInstalled: false,
+      localWhisperBinary: null,
+    };
+  }
 }

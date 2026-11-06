@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { X } from "@phosphor-icons/react";
 import type { AgentProject, LibraryItem, LibraryItemType } from "@app/ai-agent";
+import { WindowDialog } from "../../WindowDialog";
 import styles from "./AgentLibraryModal.module.scss";
 
 export interface AgentLibraryModalProps {
@@ -59,27 +59,13 @@ export function AgentLibraryModal({
   };
 
   return (
-    <div
-      className={styles["library-modal-backdrop"]}
-      role="dialog"
-      aria-modal="true"
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={initialItem ? "Edit Library Item" : "Create New Library Item"}
+      size="md"
     >
-      <div className={styles["library-modal"]}>
-        <div className={styles["library-modal__header"]}>
-          <h2 className={styles["library-modal__title"]}>
-            {initialItem ? "Edit Library Item" : "Create New Library Item"}
-          </h2>
-          <button
-            type="button"
-            className={styles["library-modal__close-btn"]}
-            onClick={onClose}
-            aria-label="Close modal"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <form className={styles["library-modal__form"]} onSubmit={handleSubmit}>
+      <form className={styles["library-modal__form"]} onSubmit={handleSubmit} style={{ padding: "16px 20px" }}>
           <div className={styles["library-modal__field"]}>
             <label className={styles["library-modal__label"]}>Type</label>
             <div className={styles["library-modal__type-group"]}>
@@ -170,7 +156,6 @@ export function AgentLibraryModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </WindowDialog>
   );
 }

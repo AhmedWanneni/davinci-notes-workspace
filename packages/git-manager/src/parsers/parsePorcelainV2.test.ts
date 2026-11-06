@@ -109,6 +109,28 @@ describe("parsePorcelainV2", () => {
     });
   });
 
+  it("shows only Markdown, JSON, PNG/JPG, and shell files", () => {
+    const raw = [
+      "? note.MD",
+      "? config.json",
+      "? image.PNG",
+      "? photo.jpg",
+      "? script.sh",
+      "? archive.pdf",
+      "? image.jpeg",
+      "? script.bash",
+      "",
+    ].join("\0");
+    const result = parsePorcelainV2(raw);
+    expect(result.untracked.map((change) => change.path)).toEqual([
+      "note.MD",
+      "config.json",
+      "image.PNG",
+      "photo.jpg",
+      "script.sh",
+    ]);
+  });
+
   it("handles complex paths with unicode, emojis, and spaces", () => {
     const raw = [
       "1 .M N... 100644 100644 100644 abcdef1 abcdef2 Notes/💡 Ideas & Projects/2026 Étude — François & Müller.md",

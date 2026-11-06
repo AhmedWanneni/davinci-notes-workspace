@@ -12,6 +12,7 @@ import { AgentSlashMenu } from "./AgentSlashMenu";
 import { AgentPromptModelPicker } from "./AgentPromptModelPicker";
 import { AgentImageAttachmentPreview } from "./AgentImageAttachmentPreview";
 import { AgentPromptActions } from "./AgentPromptActions";
+import { useAgentViewConfig } from "./useAgentViewConfig";
 import { usePromptAttachments } from "./usePromptAttachments";
 import { useAgentMention } from "./useAgentMention";
 import { useAgentStore } from "./useAgentStore";
@@ -28,7 +29,6 @@ export interface AgentPromptBarProps {
   isStreaming?: boolean;
   disabled?: boolean;
   shortcuts?: AgentShortcut[];
-  onVoiceClick?: () => void;
   autoFocus?: boolean;
   variant?: "standard" | "project";
 }
@@ -43,16 +43,14 @@ export function AgentPromptBar({
   isStreaming = false,
   disabled = false,
   shortcuts: _shortcuts = [],
-  onVoiceClick,
   autoFocus = false,
   variant = "standard",
 }: AgentPromptBarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { webSearchEnabled, handleToggleWebSearch } = useAgentViewConfig();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const setModelPickerOpen = useAgentStore((s) => s.setModelPickerOpen);
   const libraryItems = useAgentStore((s) => s.libraryItems);
-  const chatMode = useAgentStore((s) => s.chatMode);
-  const setChatMode = useAgentStore((s) => s.setChatMode);
 
   const {
     attachedImages,
@@ -105,7 +103,11 @@ export function AgentPromptBar({
   const handleSend = () => {
     const hasAttachments =
       attachedImages.length > 0 || attachedItems.length > 0;
-    if (disabled || isStreaming || (!value.trim() && !hasAttachments)) return;
+    if (isStreaming) {
+      onCancel?.();
+      return;
+    }
+    if (disabled || (!value.trim() && !hasAttachments)) return;
 
     const attachmentsPrefix = attachedItems
       .map((item) => {
@@ -151,10 +153,6 @@ export function AgentPromptBar({
     }
     handleInputChange(e);
   };
-
-  const canSend = Boolean(
-    value.trim() || attachedImages.length > 0 || attachedItems.length > 0,
-  );
 
   return (
     <div
@@ -231,6 +229,8 @@ export function AgentPromptBar({
                 onTakeScreenshot={handleTakeScreenshot}
                 onSelectPrompt={(p) => onChange(p)}
                 onAttachLibraryItem={handleAttachLibraryItem}
+                webSearchEnabled={webSearchEnabled}
+                onToggleWebSearch={() => void handleToggleWebSearch(!webSearchEnabled)}
                 variant={variant}
               />
             </div>
@@ -239,8 +239,6 @@ export function AgentPromptBar({
             <AgentPromptModelPicker />
             <AgentPromptActions
               isStreaming={isStreaming}
-              canSend={canSend}
-              onVoiceClick={onVoiceClick}
               onCancel={onCancel}
               onSend={handleSend}
             />

@@ -5,6 +5,7 @@ import {
   type RefObject,
 } from "react";
 import type { LibraryItem } from "@app/ai-agent";
+import type { UnifiedSlashItem } from "./AgentSlashMenu";
 import type { MentionItem } from "./AgentMentionMenu";
 
 export function useAgentMention(
@@ -74,12 +75,29 @@ export function useAgentMention(
     }, 0);
   };
 
-  const handleSelectSlash = (item: LibraryItem) => {
+  const handleSelectSlash = (entry: UnifiedSlashItem) => {
     if (slashStartIndex === -1) return;
     const before = input.slice(0, slashStartIndex);
     const cursor = textareaRef.current?.selectionStart ?? input.length;
     const after = input.slice(cursor);
 
+    if (entry.kind === "command") {
+      const inserted = `${entry.item.name} `;
+      const nextVal = `${before}${inserted}${after}`;
+      setInput(nextVal);
+      setSlashQuery(null);
+      setSlashStartIndex(-1);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          const nextPos = before.length + inserted.length;
+          textareaRef.current.focus();
+          textareaRef.current.setSelectionRange(nextPos, nextPos);
+        }
+      }, 0);
+      return;
+    }
+
+    const item = entry.item;
     if (
       onAttachLibraryItem &&
       (item.type === "skill" || item.type === "rule")
@@ -140,7 +158,7 @@ export function useAgentMention(
       if (e.key === "Enter" || e.key === "Tab") {
         e.preventDefault();
         const selectedEl = document.querySelector(
-          "[role='listbox'][aria-label*='library'] [aria-selected='true']",
+          "[role='listbox'][aria-label*='AI command'] [aria-selected='true'], [role='listbox'][aria-label*='library'] [aria-selected='true']",
         ) as HTMLElement | null;
         if (selectedEl) {
           selectedEl.click();

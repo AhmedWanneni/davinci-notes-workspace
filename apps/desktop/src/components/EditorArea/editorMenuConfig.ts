@@ -140,31 +140,31 @@ export const MENU_ITEMS: MenuItemConfig[] = [
       {
         id: "el-flow",
         label: "Flowchart",
-        snippet: "\n```mermaid\nflowchart TD\n  A[Start] --> B[End]\n```\n",
+        snippet: "```mermaid\nflowchart TD\n  A[Start] --> B[End]\n```",
       },
       {
         id: "el-seq",
         label: "Sequence Diagram",
         snippet:
-          "\n```mermaid\nsequenceDiagram\n  autonumber\n  User->>Client: Click\n  Client->>Server: Request\n  Server-->>Client: Response\n```\n",
+          "```mermaid\nsequenceDiagram\n  autonumber\n  User->>Client: Click\n  Client->>Server: Request\n  Server-->>Client: Response\n```",
       },
       {
         id: "el-state",
         label: "State Diagram",
         snippet:
-          "\n```mermaid\nstateDiagram-v2\n  [*] --> Active\n  Active --> [*]\n```\n",
+          "```mermaid\nstateDiagram-v2\n  [*] --> Active\n  Active --> [*]\n```",
       },
       {
         id: "el-class",
         label: "Class Diagram",
         snippet:
-          "\n```mermaid\nclassDiagram\n  class System {\n    +start()\n  }\n```\n",
+          "```mermaid\nclassDiagram\n  class System {\n    +start()\n  }\n```",
       },
       {
         id: "el-er",
         label: "Entity-Relationship (ER)",
         snippet:
-          "\n```mermaid\nerDiagram\n  CUSTOMER ||--o{ ORDER : places\n```\n",
+          "```mermaid\nerDiagram\n  CUSTOMER ||--o{ ORDER : places\n```",
       },
     ],
   },

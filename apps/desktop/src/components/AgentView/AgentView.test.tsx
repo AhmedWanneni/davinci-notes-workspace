@@ -26,6 +26,13 @@ vi.mock("./desktopAgentBridge", () => ({
 }));
 
 vi.mock("../../ai/AISubsystem", () => ({
+  AI_PROVIDER_NAMES: {
+    gemini: "Google Gemini",
+    "openai-compatible": "OpenAI-compatible cloud",
+    openrouter: "OpenRouter",
+    ollama: "Ollama (local server)",
+  },
+  hasStoredProviderCredential: vi.fn().mockResolvedValue(true),
   loadSelectedProvider: vi.fn().mockResolvedValue("gemini"),
   loadAIProviderStatus: vi.fn().mockResolvedValue("ready"),
   loadProviderModels: vi.fn().mockResolvedValue({
@@ -116,7 +123,7 @@ describe("AgentView Components", () => {
 
     render(<AgentMessageBubble message={assistantMsg} />);
     expect(screen.getByText("Here is your summary.")).toBeTruthy();
-    expect(screen.getByText(/Read "Notes\/Project\.md"/)).toBeTruthy();
+    expect(screen.getByText(/Read (note )?"Notes\/Project\.md"/)).toBeTruthy();
   });
 
   it("renders staged diff viewer with accept and reject buttons", () => {

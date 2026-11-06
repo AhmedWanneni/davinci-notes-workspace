@@ -2,7 +2,20 @@ import createDOMPurify from "dompurify";
 import type { WindowLike } from "dompurify";
 import { applyIframePolicy } from "./iframePolicy";
 
-const ALLOWED_TAGS = ["u", "s", "span", "div", "table", "tr", "td", "iframe"];
+const ALLOWED_TAGS = [
+  "u",
+  "s",
+  "span",
+  "div",
+  "table",
+  "thead",
+  "tbody",
+  "tfoot",
+  "tr",
+  "th",
+  "td",
+  "iframe",
+];
 const ALLOWED_ATTR = ["class", "style", "src", "sandbox", "allow", "referrerpolicy"];
 const STYLE_PROPERTIES = new Set([
   "color",

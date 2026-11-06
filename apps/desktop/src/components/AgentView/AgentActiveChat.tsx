@@ -5,6 +5,8 @@ import { AgentConversationHeader } from "./AgentConversationHeader";
 import { AgentMessageBubble } from "./AgentMessageBubble";
 import { AgentDiffViewer } from "./AgentDiffViewer";
 import { AgentPromptBar } from "./AgentPromptBar";
+import { normalizeVaultPath } from "./desktopAgentBridge";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import type { ChatMessageItem, StagedChangeItem } from "./agentTypes";
 
 export interface AgentActiveChatProps {
@@ -81,7 +83,21 @@ export function AgentActiveChat({
 
         <div className="agent-view__messages" ref={messagesScrollRef}>
           {messages.map((msg) => (
-            <AgentMessageBubble key={msg.id} message={msg} />
+            <AgentMessageBubble
+              key={msg.id}
+              message={msg}
+              onNavigateNote={(notePath) => {
+                const state = useWorkspaceStore.getState();
+                const resolved = normalizeVaultPath(
+                  notePath,
+                  state.allNotePaths,
+                );
+                void state.openNote(resolved);
+              }}
+              onNavigateFolder={(folderPath) => {
+                useWorkspaceStore.getState().revealFolderInTree(folderPath);
+              }}
+            />
           ))}
           {isStreaming && messages[messages.length - 1]?.role === "user" && (
             <AgentMessageBubble

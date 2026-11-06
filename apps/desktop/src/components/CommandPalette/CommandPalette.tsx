@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import type { EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { Dialog, DialogContent } from "@app/design-system";
 import { X } from "@phosphor-icons/react";
 import { useRecentInsertIds } from "@app/editor";
+import { WindowDialog } from "../WindowDialog";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { useBookmarks } from "../../bookmarks";
 import { EmptyState } from "../EmptyState";
@@ -37,32 +37,15 @@ export interface CommandPaletteProps {
   recentInsertIds?: readonly string[];
 }
 
-export function CommandPalette({
-  isOpen,
-  onOpenChange,
-  onSelectNote,
-  onOpenSettings,
-  onOpenTags,
-  onOpenReminders,
-  onOpenListening,
-  onStartRecording,
-  onStopRecording,
-  onOpenLogs,
-  onDriveSignIn,
-  onDriveDisconnect,
-  onDriveRefresh,
-  onSaveVersionNow,
-  onToggleBookmark,
-  onOpenBookmarks,
-  onFormatNote,
-  pluginCommands = [],
-  onInvokePluginCommand,
-  editorView,
-  onInsertSuccess,
-  recentInsertIds = [],
-}: CommandPaletteProps) {
-  const { allNotePaths, openNotes, activeNotePath, useVimMode, setUseVimMode } =
-    useWorkspaceStore();
+export function CommandPalette(props: CommandPaletteProps) {
+  const {
+    isOpen, onOpenChange, onSelectNote, onOpenSettings, onOpenTags, onOpenReminders,
+    onOpenListening, onStartRecording, onStopRecording, onOpenLogs, onDriveSignIn,
+    onDriveDisconnect, onDriveRefresh, onSaveVersionNow, onToggleBookmark, onOpenBookmarks,
+    onFormatNote, pluginCommands = [], onInvokePluginCommand, editorView, onInsertSuccess,
+    recentInsertIds = [],
+  } = props;
+  const { allNotePaths, openNotes, activeNotePath, useVimMode, setUseVimMode } = useWorkspaceStore();
   const { isBookmarked } = useBookmarks();
   const isCurrentBookmarked = isBookmarked(activeNotePath);
   const [query, setQuery] = useState("");
@@ -185,17 +168,13 @@ export function CommandPalette({
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) handleClose();
-        else onOpenChange(true);
-      }}
-    >
-      <DialogContent
-        className="command-palette__dialog"
-        showCloseButton={false}
-      >
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={handleClose}
+      position="top"
+      size="lg"
+      ariaLabel="Command palette"
+      header={
         <div className="command-palette__input-wrapper">
           <input
             ref={inputRef}
@@ -215,12 +194,21 @@ export function CommandPalette({
             <X size={10} weight="bold" />
           </button>
         </div>
-        <ul
-          className="command-palette__list"
-          ref={listRef}
-          role="listbox"
-          aria-label="Command palette results"
-        >
+      }
+      footer={
+        <div className="command-palette__footer" style={{ width: "100%", margin: 0, padding: 0, border: "none" }}>
+          <span>↑↓ to navigate</span>
+          <span>↵ to use</span>
+          <span>esc to dismiss</span>
+        </div>
+      }
+    >
+      <ul
+        className="command-palette__list"
+        ref={listRef}
+        role="listbox"
+        aria-label="Command palette results"
+      >
           {results.map((result, index) => {
             const isSelected = index === selectedIndex;
             const isCommand = result.obj.isCommand;
@@ -257,12 +245,6 @@ export function CommandPalette({
             </li>
           )}
         </ul>
-        <div className="command-palette__footer">
-          <span>↑↓ to navigate</span>
-          <span>↵ to use</span>
-          <span>esc to dismiss</span>
-        </div>
-      </DialogContent>
-    </Dialog>
+    </WindowDialog>
   );
 }

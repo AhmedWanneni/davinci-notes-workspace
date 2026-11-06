@@ -1,16 +1,20 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { ParsedMeetingItem } from "./meetingsParser";
+import { useAgentStore } from "../AgentView/useAgentStore";
+import { resolveRecordPageAIProvider } from "./resolveRecordPageAIProvider";
 
 export interface AssistantMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  agentLabel?: string;
 }
 
 export function useMeetingAssistant(meetings: ParsedMeetingItem[]) {
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const convIdRef = useRef<string | null>(null);
 
   const generateAnswer = useCallback(
     (prompt: string): string => {
@@ -100,20 +104,110 @@ export function useMeetingAssistant(meetings: ParsedMeetingItem[]) {
       setMessages((prev) => [...prev, userMsg]);
       setIsStreaming(true);
 
-      // Fast, smooth AI response delivery
-      setTimeout(() => {
+      const aiMsgId = `ai-${Date.now() + 1}`;
+      let resolvedByAgent = false;
+
+      // Fast local synthesis fallback (ensures offline & fake-timer resilience)
+      const fallbackTimer = setTimeout(() => {
+        if (resolvedByAgent) return;
         const responseText = generateAnswer(cleanPrompt);
         const aiMsg: AssistantMessage = {
-          id: `ai-${Date.now()}`,
+          id: aiMsgId,
           role: "assistant",
           content: responseText,
           timestamp: timeStr,
         };
-        setMessages((prev) => [...prev, aiMsg]);
+        setMessages((prev) => {
+          const exists = prev.some((m) => m.id === aiMsgId);
+          return exists ? prev : [...prev, aiMsg];
+        });
         setIsStreaming(false);
       }, 350);
+
+      // Dispatch to the active AI Agent from the AI Agent Page (CLI Agent or Sophia LLM)
+      void (async () => {
+        try {
+          const provider = await resolveRecordPageAIProvider();
+          const meetingsContext =
+            meetings.length > 0
+              ? meetings
+                  .slice(0, 8)
+                  .map(
+                    (m) =>
+                      `### ${m.title} (${m.date || "Recent"})\n` +
+                      `Summary: ${m.summary || "N/A"}\n` +
+                      (m.actionItems.length > 0
+                        ? `Action Items: ${m.actionItems.join("; ")}\n`
+                        : "") +
+                      (m.transcript.length > 0
+                        ? `Transcript excerpt: ${m.transcript
+                            .slice(0, 6)
+                            .map((t) => `${t.speaker}: ${t.text}`)
+                            .join(" | ")}`
+                        : ""),
+                  )
+                  .join("\n\n")
+              : "No recorded meetings in vault yet.";
+
+          const response = await provider.complete({
+            messages: [
+              {
+                role: "system",
+                content:
+                  "You are the user's AI Meeting Agent (synced with the AI Agent page). Answer questions about their recorded meetings concisely and accurately using markdown.",
+              },
+              {
+                role: "user",
+                content: `Meetings Context:\n${meetingsContext}\n\nUser Request: ${cleanPrompt}`,
+              },
+            ],
+            temperature: 0.2,
+          });
+
+          const text = response?.content?.trim();
+          if (text) {
+            resolvedByAgent = true;
+            clearTimeout(fallbackTimer);
+            const aiMsg: AssistantMessage = {
+              id: aiMsgId,
+              role: "assistant",
+              content: text,
+              timestamp: timeStr,
+            };
+            setMessages((prev) => {
+              const exists = prev.some((m) => m.id === aiMsgId);
+              const next = exists
+                ? prev.map((m) => (m.id === aiMsgId ? aiMsg : m))
+                : [...prev, aiMsg];
+
+              const store = useAgentStore.getState();
+              void (async () => {
+                if (!convIdRef.current) {
+                  const c = await store.createNewConversation(
+                    `Meetings: ${cleanPrompt.slice(0, 32)}`,
+                  );
+                  convIdRef.current = c.id;
+                }
+                await useAgentStore.getState().saveActiveMessages(
+                  next.map((m) => ({
+                    id: m.id,
+                    role: m.role,
+                    content: m.content,
+                    timestamp: Date.now(),
+                  })),
+                );
+              })().catch(() => {});
+
+              return next;
+            });
+            setIsStreaming(false);
+          }
+        } catch {
+          // Handled gracefully by fallbackTimer
+        }
+      })();
     },
-    [generateAnswer],
+    [generateAnswer, meetings],
   );
 
   const clearMessages = useCallback(() => {

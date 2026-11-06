@@ -31,7 +31,6 @@ export function insertItem(
   const padding = result.block
     ? blockPadding(view.state.doc.toString(), range.from, range.to)
     : { before: "", after: "" };
-
   snippet(`${padding.before}${result.text}${padding.after}`)(
     view,
     null,

@@ -1,6 +1,7 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { createHoverHint } from "./mermaidHoverHint";
 import { bindInternalLinks } from "./mermaidSvgInteractions";
+import { setMermaidCodeEditing } from "./mermaidToolbarWidget";
 
 export interface MermaidBlock {
   from: number;
@@ -63,9 +64,8 @@ export async function renderMermaidSvg(
 export class MermaidWidget extends WidgetType {
   constructor(
     readonly block: MermaidBlock,
-    readonly view: EditorView,
     readonly options: MermaidExtensionOptions,
-    readonly onEnterCodeEdit: (from: number) => void,
+    readonly onEnterCodeEdit?: (from: number) => void,
   ) {
     super();
   }
@@ -74,7 +74,7 @@ export class MermaidWidget extends WidgetType {
     return this.block.source === other.block.source;
   }
 
-  toDOM() {
+  toDOM(view: EditorView) {
     const container = document.createElement("div");
     container.className = "cm-mermaid-diagram";
 
@@ -84,7 +84,17 @@ export class MermaidWidget extends WidgetType {
 
     const hint = createHoverHint({
       isReadOnly: this.options.isReadOnly,
-      onEnterCodeEdit: () => this.onEnterCodeEdit(this.block.from),
+      onEnterCodeEdit: () => {
+        if (this.onEnterCodeEdit) {
+          this.onEnterCodeEdit(this.block.from);
+        } else {
+          view.dispatch({
+            effects: setMermaidCodeEditing.of(this.block.from),
+            selection: { anchor: this.block.from },
+          });
+          view.focus();
+        }
+      },
     });
 
     if (hint) {
@@ -134,3 +144,4 @@ export class MermaidContinuationWidget extends WidgetType {
     return true;
   }
 }
+

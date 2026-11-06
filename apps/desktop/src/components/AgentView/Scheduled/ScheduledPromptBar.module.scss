@@ -1,0 +1,64 @@
+.prompt-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 24px;
+
+  &:focus-within {
+    border-color: var(--color-border-focus);
+  }
+
+  &__plus,
+  &__send {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: none;
+    cursor: pointer;
+  }
+
+  &__plus {
+    width: 30px;
+    height: 30px;
+    color: var(--color-text-normal);
+    background: transparent;
+    border-radius: 50%;
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 0;
+    color: var(--color-text-normal);
+    font-family: inherit;
+    font-size: 15px;
+    background: transparent;
+    border: none;
+    outline: none;
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__send {
+    width: 32px;
+    height: 32px;
+    color: var(--color-bg-primary);
+    background-color: var(--color-text-accent);
+    border-radius: 50%;
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+  }
+}

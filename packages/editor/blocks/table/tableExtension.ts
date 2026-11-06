@@ -22,8 +22,10 @@ import {
   type TableCell,
   type TableRow,
 } from "./tableParser";
+import { tableKeymapExtension, tableInputHandler } from "./tableKeymap";
+import { tableCellMouseSelection, tableCellKeymap } from "./tableCellSelection";
 
-export { insertTableCommand };
+export { insertTableCommand, setTableCodeEditing, tableCodeEditingField };
 export type { Alignment, TableBlock, TableCell, TableRow };
 
 export interface TableExtensionOptions {
@@ -80,9 +82,14 @@ class TableCodeToggleWidget extends WidgetType {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "cm-table-code-btn";
-    btn.title = "View / edit table markdown code";
-    btn.setAttribute("aria-label", "View / edit table code");
-    btn.innerHTML = "&lt;/&gt;";
+    btn.title = "Code mode (</>)";
+    btn.setAttribute("aria-label", "Code mode");
+    btn.innerHTML = `
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="16 18 22 12 16 6"/>
+        <polyline points="8 6 2 12 8 18"/>
+      </svg>
+    `;
     btn.addEventListener("mousedown", (e) => {
       e.stopPropagation();
     });
@@ -129,7 +136,6 @@ function getTableDecorations(view: EditorView): DecorationSet {
         Decoration.widget({
           widget: new TableCodeHeaderWidget(tableFrom),
           side: -1,
-          block: true,
         }).range(tableFrom),
       );
       continue;
@@ -196,6 +202,10 @@ function getTableDecorations(view: EditorView): DecorationSet {
 export function tableExtension(options: TableExtensionOptions = {}) {
   return [
     tableCodeEditingField,
+    tableKeymapExtension,
+    tableCellKeymap,
+    tableInputHandler,
+    tableCellMouseSelection,
     ViewPlugin.fromClass(
       class {
         decorations: DecorationSet;

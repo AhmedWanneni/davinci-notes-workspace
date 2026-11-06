@@ -1,12 +1,13 @@
 .wb-topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: var(--space-2) var(--space-6);
   border-bottom: var(--border-width-thin) solid var(--color-border-subtle);
   background-color: var(--color-bg-primary);
   gap: var(--space-3);
   min-height: 48px;
+  flex-wrap: wrap;
 }
 
 .wb-topbar__search-wrap {
@@ -14,7 +15,10 @@
   display: flex;
   align-items: center;
   flex: 1;
-  max-width: 440px;
+  max-width: 360px;
+  min-width: 180px;
+  flex-shrink: 1;
+  margin-right: auto;
 }
 
 .wb-topbar__search-icon {
@@ -64,6 +68,75 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.wb-topbar__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.wb-topbar__section {
+  margin-right: auto;
+  color: var(--color-text-muted);
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.wb-topbar__menu-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.wb-topbar__control-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  height: 30px;
+  padding: 0 var(--space-2);
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--type-size-xs, 0.75rem);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &.is-active {
+    color: var(--color-text-normal);
+    border-color: var(--color-border-subtle);
+    background: var(--color-bg-hover);
+  }
+}
+
+@media (max-width: 900px) {
+  .wb-topbar {
+    padding-inline: var(--space-3);
+  }
+
+  .wb-topbar__search-wrap {
+    max-width: none;
+    flex-basis: 100%;
+  }
+
+  .wb-topbar__controls {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+
+  .wb-topbar__section {
+    margin-right: auto;
+  }
 }
 
 .wb-topbar__ask-btn {
@@ -94,20 +167,20 @@
 .wb-topbar__add-btn {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  justify-content: center;
+  width: 30px;
   height: 30px;
-  padding: 0 var(--space-3);
+  padding: 0;
   border-radius: var(--border-radius-sm);
   border: none;
-  background-color: var(--color-accent);
-  color: var(--color-bg-primary);
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-accent);
   cursor: pointer;
-  font-size: var(--type-size-xs, 0.75rem);
-  font-weight: 600;
-  transition: opacity var(--motion-duration-fast);
+  transition: background-color var(--motion-duration-fast), color var(--motion-duration-fast);
 
   &:hover {
-    opacity: 0.9;
+    background-color: var(--color-accent);
+    color: var(--color-bg-primary);
   }
 }
 

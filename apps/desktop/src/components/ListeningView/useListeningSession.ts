@@ -1,21 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  startMeetingRecording,
-  pauseMeetingRecording,
-  resumeMeetingRecording,
-  stopMeetingRecording,
+  startMeetingRecording, pauseMeetingRecording, resumeMeetingRecording, stopMeetingRecording,
 } from "../../adapters/transcriptionClient";
 import type { ListeningStatus } from "./listeningConstants";
-import type {
-  TranscriptSegmentItem,
-  SuggestedLinkItem,
-  UseListeningSessionReturn,
-} from "./listeningTypes";
+import type { TranscriptSegmentItem, SuggestedLinkItem, UseListeningSessionReturn } from "./listeningTypes";
 import { saveMeetingNoteToVault } from "../../vault/meetingNoteActions";
 import { useAudioLevels } from "./useAudioLevels";
-import { rerunAudioTranscription } from "./rerunAudioTranscription";
+import { rerunAudioTranscription, normalizeSpeechSegment, transcribeRemainingAudioOnStop } from "./rerunAudioTranscription";
 import { useAIListeningEngine } from "./useAIListeningEngine";
-import { useLiveSpeechRecognition } from "./useLiveSpeechRecognition";
+import { useLiveSpeechRecognition, type LiveSpeechSegmentPayload } from "./useLiveSpeechRecognition";
 import { useLiveSummaries } from "./useLiveSummaries";
 import { useMeetingAgentChat } from "./useMeetingAgentChat";
 
@@ -40,15 +33,19 @@ export function useListeningSession(initialTitle?: string): UseListeningSessionR
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isRecording = status === "recording";
 
-  const addSegment = useCallback((seg: Omit<TranscriptSegmentItem, "id">) => {
-    const newSeg: TranscriptSegmentItem = {
-      ...seg,
-      id: `seg_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    };
-    setSegments((prev) => [...prev, newSeg]);
-  }, []);
+  const addSegment = useCallback(
+    (seg: Omit<TranscriptSegmentItem, "id"> | LiveSpeechSegmentPayload) => {
+      setSegments((prev) => [...prev, normalizeSpeechSegment(seg as any)]);
+    },
+    [],
+  );
 
-  const speech = useLiveSpeechRecognition({ isRecording, onSegment: addSegment });
+  const speech = useLiveSpeechRecognition({
+    isRecording,
+    isPaused: status === "paused",
+    startedAt,
+    onSegment: addSegment,
+  });
   const ai = useAIListeningEngine({ isRecording, isActive: isAIListeningActive, segments });
   const summaries = useLiveSummaries({ isRecording, isActive: isAIListeningActive, segments, durationMs });
   const agentChat = useMeetingAgentChat({
@@ -82,8 +79,7 @@ export function useListeningSession(initialTitle?: string): UseListeningSessionR
       setCreatedNotePath(null);
       ai.resetAI();
       summaries.resetSummaries();
-    } catch (err) {
-      console.error("Failed to start recording:", err);
+    } catch {
       setStatus("error");
     }
   }, [ai, summaries]);
@@ -93,33 +89,38 @@ export function useListeningSession(initialTitle?: string): UseListeningSessionR
       await pauseMeetingRecording();
       setStatus("paused");
       if (isAIListeningActive) void summaries.summarizeNow();
-    } catch (err) {
-      console.error("Failed to pause recording:", err);
-    }
+    } catch {}
   }, [isAIListeningActive, summaries]);
 
   const resumeSession = useCallback(async () => {
     try {
       await resumeMeetingRecording();
       setStatus("recording");
-    } catch (err) {
-      console.error("Failed to resume recording:", err);
-    }
+    } catch {}
   }, []);
 
   const stopSession = useCallback(
     async (existingPaths: string[] = []): Promise<string | null> => {
       try {
         setStatus("processing");
-        const audioResult = await stopMeetingRecording().catch(() => null);
+        const res = await stopMeetingRecording().catch(() => null);
         const tempWav =
-          audioResult?.wavFilePath ||
-          (audioResult as unknown as { wav_file_path?: string })?.wav_file_path ||
-          (audioResult as unknown as { wav_path?: string })?.wav_path;
+          res?.wavFilePath ||
+          (res as unknown as { wav_file_path?: string })?.wav_file_path ||
+          (res as unknown as { wav_path?: string })?.wav_path;
+
+        let finalSegments = segments;
+        if (finalSegments.length === 0 && tempWav) {
+          const fallbackSegs = await transcribeRemainingAudioOnStop(tempWav);
+          if (fallbackSegs.length > 0) {
+            finalSegments = fallbackSegs;
+            setSegments(finalSegments);
+          }
+        }
 
         let finalSummary = summaries.finalSummary || ai.liveSummary || summary;
-        if (segments.length > 0) {
-          const fullText = segments.map((s) => `${s.speaker}: ${s.text}`).join("\n");
+        if (finalSegments.length > 0) {
+          const fullText = finalSegments.map((s) => `${s.speaker}: ${s.text}`).join("\n");
           const generated = await summaries.generateFinalSummary(fullText);
           if (generated) finalSummary = generated;
         }
@@ -136,7 +137,7 @@ export function useListeningSession(initialTitle?: string): UseListeningSessionR
             title,
             startedAt: startedAt ?? Date.now(),
             durationMs,
-            segments,
+            segments: finalSegments,
             suggestedLinks,
             actionItems,
             summary: finalSummary,
@@ -149,8 +150,7 @@ export function useListeningSession(initialTitle?: string): UseListeningSessionR
         setCreatedNotePath(savedPath);
         setStatus("idle");
         return savedPath;
-      } catch (err) {
-        console.error("Failed to stop and save note:", err);
+      } catch {
         setStatus("idle");
         return null;
       }
@@ -159,18 +159,13 @@ export function useListeningSession(initialTitle?: string): UseListeningSessionR
   );
 
   const discardSession = useCallback(async () => {
-    try {
-      await stopMeetingRecording().catch(() => {});
-      setStatus("idle");
-      setDurationMs(0);
-      setSegments([]);
-      setSuggestedLinks([]);
-      ai.resetAI();
-      summaries.resetSummaries();
-    } catch (err) {
-      console.error("Failed to discard recording:", err);
-      setStatus("idle");
-    }
+    await stopMeetingRecording().catch(() => {});
+    setStatus("idle");
+    setDurationMs(0);
+    setSegments([]);
+    setSuggestedLinks([]);
+    ai.resetAI();
+    summaries.resetSummaries();
   }, [ai, summaries]);
 
   const retranscribeAudio = useCallback(async (filePath: string) => {
@@ -181,8 +176,7 @@ export function useListeningSession(initialTitle?: string): UseListeningSessionR
       setActionItems(result.actionItems);
       setSummary(result.summary);
       setStatus("idle");
-    } catch (err) {
-      console.error("Failed to rerun audio transcription:", err);
+    } catch {
       setStatus("error");
     }
   }, []);
@@ -240,9 +234,9 @@ export function useListeningSession(initialTitle?: string): UseListeningSessionR
     togglePauseAI: () => summaries.setIsPaused((p) => !p),
     summaryStatusMessage: summaries.error,
     chatMessages: agentChat.messages,
-    isChatExecuting: agentChat.isExecuting,
+    isChatExecuting: agentChat.isStreaming,
     askChatQuestion: agentChat.askQuestion,
-    agentConversationId: agentChat.conversationId,
+    agentConversationId: agentChat.conversationId || "",
     simulateSpeechSegment: speech.simulateSpeechSegment,
   };
 }

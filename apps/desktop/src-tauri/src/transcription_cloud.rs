@@ -1,7 +1,9 @@
 use reqwest::multipart::{Form, Part};
 use serde_json::Value;
 
+use crate::ai_auth::resolve_whisper_api_key;
 use crate::transcription::TranscriptSegment;
+use crate::transcription_local::{is_whisper_hallucination, transcribe_wav_with_local_whisper};
 
 pub async fn send_whisper_transcription(
   wav_bytes: Vec<u8>,
@@ -9,15 +11,28 @@ pub async fn send_whisper_transcription(
   endpoint_override: Option<&str>,
   model_override: Option<&str>,
 ) -> Result<Vec<TranscriptSegment>, String> {
-  let endpoint = endpoint_override.unwrap_or("https://api.groq.com/openai/v1/audio/transcriptions");
-  let model = model_override.unwrap_or("whisper-large-v3");
+  if endpoint_override == Some("local") || model_override == Some("local-whisper") {
+    return transcribe_wav_with_local_whisper(&wav_bytes);
+  }
+
+  let resolved_key = resolve_whisper_api_key(api_key);
+  let Some(effective_key) = resolved_key else {
+    return transcribe_wav_with_local_whisper(&wav_bytes);
+  };
+
+  let endpoint = endpoint_override
+    .filter(|s| !s.trim().is_empty())
+    .unwrap_or("https://api.groq.com/openai/v1/audio/transcriptions");
+  let model = model_override
+    .filter(|s| !s.trim().is_empty())
+    .unwrap_or("whisper-large-v3-turbo");
 
   let client = reqwest::Client::builder()
     .timeout(std::time::Duration::from_secs(45))
     .build()
     .map_err(|e| e.to_string())?;
 
-  let part = Part::bytes(wav_bytes)
+  let part = Part::bytes(wav_bytes.clone())
     .file_name("audio.wav")
     .mime_str("audio/wav")
     .map_err(|e| e.to_string())?;
@@ -29,7 +44,7 @@ pub async fn send_whisper_transcription(
 
   let response = client
     .post(endpoint)
-    .header("Authorization", format!("Bearer {}", api_key.trim()))
+    .header("Authorization", format!("Bearer {}", effective_key.trim()))
     .multipart(form)
     .send()
     .await
@@ -39,6 +54,9 @@ pub async fn send_whisper_transcription(
   let text = response.text().await.map_err(|e| e.to_string())?;
 
   if !status.is_success() {
+    if let Ok(local_segs) = transcribe_wav_with_local_whisper(&wav_bytes) {
+      return Ok(local_segs);
+    }
     return Err(format!("Transcription failed (HTTP {status}): {text}"));
   }
 
@@ -57,25 +75,25 @@ pub async fn send_whisper_transcription(
       let start_sec = item.get("start").and_then(|s| s.as_f64()).unwrap_or(0.0);
       let end_sec = item.get("end").and_then(|s| s.as_f64()).unwrap_or(0.0);
 
-      if !seg_text.is_empty() {
+      if !seg_text.is_empty() && !is_whisper_hallucination(&seg_text) {
         segments.push(TranscriptSegment {
           id: idx as u32,
           text: seg_text,
           start_ms: (start_sec * 1000.0) as u64,
           end_ms: (end_sec * 1000.0) as u64,
-          speaker: None,
+          speaker: Some("me".to_string()),
         });
       }
     }
   } else if let Some(full_text) = json.get("text").and_then(|t| t.as_str()) {
     let trimmed = full_text.trim();
-    if !trimmed.is_empty() {
+    if !trimmed.is_empty() && !is_whisper_hallucination(trimmed) {
       segments.push(TranscriptSegment {
         id: 0,
         text: trimmed.to_string(),
         start_ms: 0,
         end_ms: 0,
-        speaker: None,
+        speaker: Some("me".to_string()),
       });
     }
   }

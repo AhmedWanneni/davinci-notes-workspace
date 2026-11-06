@@ -11,6 +11,7 @@ export interface FileTreeContextMenuProps {
   onOpenNote?: (path: string) => void;
   onNewNote: (parentFolder: string) => void;
   onNewFolder: (parentFolder: string) => void;
+  onOpenFolderGraph?: (folderPath: string) => void;
   onRenameNote?: (path: string) => void;
   onRenameFolder?: (path: string) => void;
   onDuplicateNote?: (path: string) => void;
@@ -29,6 +30,7 @@ export function FileTreeContextMenu({
   onOpenNote,
   onNewNote,
   onNewFolder,
+  onOpenFolderGraph,
   onRenameNote,
   onRenameFolder,
   onDuplicateNote,
@@ -160,6 +162,19 @@ export function FileTreeContextMenu({
           >
             <span>New folder</span>
           </button>
+          {onOpenFolderGraph && (
+            <button
+              type="button"
+              className="file-tree__context-menu-item"
+              role="menuitem"
+              onClick={() => {
+                onOpenFolderGraph(targetPath);
+                onClose();
+              }}
+            >
+              <span>Show folder graph</span>
+            </button>
+          )}
           {(onRenameFolder || onDeleteFolder) && (
             <div
               className="file-tree__context-menu-separator"

@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import { getPlatformAdapters } from "@app/platform-adapters";
 import { useWorkspaceStore } from "../state/useWorkspaceStore";
 import { createNoteInVault } from "./createNoteInVault";
 import { createFolderInVault } from "./createFolderInVault";
@@ -14,7 +15,6 @@ interface VaultFileCreationOptions {
 
 export function useVaultFileCreation({ append }: VaultFileCreationOptions) {
   const noteCreationQueue = useRef<Promise<void>>(Promise.resolve());
-  const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const openNote = useWorkspaceStore((state) => state.openNote);
   const updateAllPaths = useWorkspaceStore((state) => state.updateAllPaths);
 
@@ -126,22 +126,53 @@ export function useVaultFileCreation({ append }: VaultFileCreationOptions) {
 
   const handleLinkClick = useCallback(
     async (targetRaw: string) => {
-      const targetLower = targetRaw.toLowerCase();
-      const foundPath = allNotePaths.find((path) => {
-        const stem =
-          path
-            .replace(/\.(md|canvas)$/i, "")
-            .split("/")
-            .pop() ?? path;
-        return stem.toLowerCase() === targetLower;
+      const target = targetRaw.trim();
+      if (/^https?:\/\//i.test(target)) {
+        await getPlatformAdapters().externalUrl.openUrl(target);
+        return;
+      }
+
+      const cleanTarget = target.split("#")[0]!.split("^")[0]!.trim();
+      if (!cleanTarget) return;
+
+      const targetWithoutExt = cleanTarget.replace(/\.md$/i, "");
+      const targetStem = targetWithoutExt.split("/").pop() ?? targetWithoutExt;
+      const targetStemLower = targetStem.toLowerCase();
+
+      const currentPaths = useWorkspaceStore.getState().allNotePaths;
+      const sourcePath = useWorkspaceStore.getState().activeNotePath;
+      const relativeTarget = sourcePath?.includes("/")
+        ? `${sourcePath.slice(0, sourcePath.lastIndexOf("/") + 1)}${cleanTarget}`
+        : cleanTarget;
+      const candidates = [relativeTarget, cleanTarget];
+      const foundPath = currentPaths.find((path) => {
+        const pathLower = path.toLowerCase();
+        const pathWithoutExt = pathLower.replace(/\.md$/i, "");
+        const pathStem = pathWithoutExt.split("/").pop() ?? pathWithoutExt;
+
+        return (
+          candidates.some((candidate) => {
+            const candidateLower = candidate.toLowerCase();
+            const candidateWithoutExt = candidateLower.replace(/\.md$/i, "");
+            return pathLower === candidateLower || pathWithoutExt === candidateWithoutExt;
+          }) ||
+          pathStem === targetStemLower ||
+          candidates.some((candidate) => {
+            const candidateLower = candidate.toLowerCase();
+            const candidateWithoutExt = candidateLower.replace(/\.(md|canvas)$/i, "");
+            return (
+              pathLower.endsWith(`/${candidateLower}`) ||
+              pathWithoutExt.endsWith(`/${candidateWithoutExt}`)
+            );
+          })
+        );
       });
+
       if (foundPath) {
         await openNote(foundPath);
-      } else {
-        await createNewNote(targetRaw);
       }
     },
-    [allNotePaths, createNewNote, openNote],
+    [openNote],
   );
 
   return {

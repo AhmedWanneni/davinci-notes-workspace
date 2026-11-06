@@ -217,4 +217,25 @@ describe("htmlBlockExtension", () => {
     viewBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(current.dom.querySelector(".cm-html-code-bar")).toBeNull();
   });
+
+  it("never changes table to code when clicked, only when </> is clicked", () => {
+    const current = createView(
+      "before\n<table>\n<tr><td>Cell</td></tr>\n</table>\nafter",
+    );
+    const tableLine = current.state.doc.line(2);
+    expect(current.dom.querySelector(".cm-html-block table")).not.toBeNull();
+
+    // Moving cursor into table range does not reveal code
+    current.dispatch({ selection: EditorSelection.cursor(tableLine.from + 5) });
+    expect(current.dom.querySelector(".cm-html-block table")).not.toBeNull();
+    expect(current.dom.querySelector(".cm-html-code-bar")).toBeNull();
+
+    // Clicking </> toggle reveals code
+    const toggleBtn = current.dom.querySelector<HTMLButtonElement>(
+      ".cm-html-toggle-btn",
+    );
+    expect(toggleBtn).not.toBeNull();
+    toggleBtn?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    expect(current.dom.querySelector(".cm-html-code-bar")).not.toBeNull();
+  });
 });

@@ -6,11 +6,14 @@ import { BookmarksSidebarPanel } from "../BookmarksView";
 import { AgentSidebarPanel } from "../AgentView";
 import { IconRail } from "../IconRail";
 import { useSidebarResize } from "./useSidebarResize";
+import type { GitFileChange } from "@app/git-manager";
 
 export type { AppSidebarProps } from "./AppSidebarTypes";
 
 const LazyGitSidebarPanel = lazy(() =>
-  import("@app/git-manager").then((m) => ({ default: m.GitSidebarPanel })),
+  import("@app/git-manager").then((module) => ({
+    default: module.GitSidebarPanel,
+  })),
 );
 
 export function AppSidebar({
@@ -85,6 +88,13 @@ export function AppSidebar({
   const [currentTab, setCurrentTab] = useState<
     "files" | "search" | "bookmarks"
   >(activeTab);
+  const [showFilesInAgent, setShowFilesInAgent] = useState(false);
+
+  useEffect(() => {
+    const onReveal = () => setShowFilesInAgent(true);
+    window.addEventListener("davinci:reveal-folder", onReveal);
+    return () => window.removeEventListener("davinci:reveal-folder", onReveal);
+  }, []);
 
   const handleSelectedFolderChange = (folderPath: string | null) => {
     setSelectedFolderPath(folderPath);
@@ -103,6 +113,8 @@ export function AppSidebar({
     }
   }, [allFolderPaths, onSelectedFolderChange, selectedFolderPath]);
 
+  const isAgentPanelActive = isAgentOpen && !showFilesInAgent;
+
   return (
     <aside
       className="app-sidebar"
@@ -114,14 +126,20 @@ export function AppSidebar({
       <AppSidebarHeader
         isMac={isMac}
         currentTab={
-          isBookmarksOpen ? "bookmarks" : isAgentOpen ? "agent" : currentTab
+          isBookmarksOpen
+            ? "bookmarks"
+            : isAgentPanelActive
+              ? "agent"
+              : currentTab
         }
         onTabChange={(tab) => {
           if (tab === "bookmarks") {
             onOpenBookmarks?.();
           } else if (tab === "agent") {
+            setShowFilesInAgent(false);
             onOpenAgent?.();
           } else if (tab === "files") {
+            setShowFilesInAgent(false);
             onOpenFiles?.();
             handleTabChange(tab);
           } else {
@@ -168,26 +186,20 @@ export function AppSidebar({
         {isGitManagerOpen ? (
           <Suspense
             fallback={
-              <div
-                style={{
-                  padding: "var(--space-4)",
-                  color: "var(--color-text-muted)",
-                }}
-              >
+              <div style={{ padding: "var(--space-4)", color: "var(--color-text-muted)" }}>
                 Loading Source Control...
               </div>
             }
           >
             <LazyGitSidebarPanel
-              onOpenDiff={(change) => {
-                const uri = `git-diff://${change.path}?staged=${change.staged ? "1" : "0"}&status=${change.statusCode}`;
-                onNoteClick(uri);
-              }}
+              onOpenDiff={(change: GitFileChange) =>
+                onNoteClick(`git-diff://${change.path}?staged=${change.staged ? "1" : "0"}&status=${change.statusCode}`)
+              }
             />
           </Suspense>
         ) : isBookmarksOpen ? (
           <BookmarksSidebarPanel />
-        ) : isAgentOpen ? (
+        ) : isAgentPanelActive ? (
           <AgentSidebarPanel onToggleSidebar={onToggleLeftSidebar} />
         ) : isTodosOpen || isListeningOpen ? null : (
           <FileTree

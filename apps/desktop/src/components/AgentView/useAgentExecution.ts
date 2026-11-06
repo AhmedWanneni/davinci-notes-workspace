@@ -5,21 +5,13 @@ import {
   createDesktopMutationBackend,
   createDesktopWebSearchBackend,
 } from "./desktopAgentBridge.js";
-import {
-  createConfiguredProvider,
-  loadSelectedProvider,
-  type AIProviderId,
-} from "../../ai/AISubsystem.js";
+import type { AIProviderId } from "../../ai/AISubsystem.js";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore.js";
 import { useAgentLedger } from "./useAgentLedger.js";
-import { buildAgentWorkingHistory } from "./agentSystemPrompt.js";
-import {
-  resolveExecutionPromptAndTools,
-  resolveRewriteClarification,
-} from "./agentPromptResolver.js";
-import { runAgentStepLoop } from "./agentStepLoop.js";
 import { useCliAgentExecution } from "./useCliAgentExecution.js";
-import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes.js";
+import { resolveSlashCommand } from "./agentSlashCommandHandler.js";
+import { dispatchAgentSession } from "./agentDispatchSession.js";
+import { useAgentStore } from "./useAgentStore.js";
 import type { ChatMessageItem, StagedChangeItem } from "./agentTypes.js";
 
 export interface UseAgentExecutionOptions {
@@ -35,6 +27,8 @@ export interface UseAgentExecutionOptions {
   projectSources?: string[];
   projectInstructions?: string;
   projectName?: string;
+  conversations?: import("@app/ai-agent").AgentConversation[];
+  activeConversationId?: string;
 }
 
 export function useAgentExecution(options?: UseAgentExecutionOptions) {
@@ -45,6 +39,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const [lastStructuredRequest, setLastStructuredRequest] =
     useState<StructuredUserRequest | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const waitingForRevealRef = useRef(false);
 
   useEffect(() => {
     if (options?.autoApply !== undefined) setAutoApply(options.autoApply);
@@ -59,6 +54,43 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
 
   const sendMessage = useCallback(
     async (promptText: string, images?: string[]) => {
+      const slash = resolveSlashCommand(promptText, {
+        providerId: options?.providerId,
+        model: options?.model,
+        selectedCliAgent: options?.selectedCliAgent,
+        projectName: options?.projectName,
+        projectId: options?.projectId,
+        webSearchEnabled: options?.webSearchEnabled,
+      });
+
+      if (slash.handled) {
+        if (slash.action === "clear") {
+          setMessages([]);
+          setStagedChanges([]);
+          setLastStructuredRequest(null);
+          return;
+        }
+        if (slash.action === "models") {
+          useAgentStore.getState().setModelPickerOpen(true);
+          return;
+        }
+        if (slash.directResponse) {
+          const uId = `msg_u_${Date.now()}`;
+          const aId = `msg_a_${Date.now() + 1}`;
+          setMessages((prev) => [
+            ...prev,
+            { id: uId, role: "user", content: promptText, timestamp: Date.now() },
+            { id: aId, role: "assistant", content: slash.directResponse!, isStreaming: false, timestamp: Date.now() + 1 },
+          ]);
+          return;
+        }
+      }
+
+      const activePromptText = slash.processedPrompt || promptText;
+      const isWebSearch = Boolean(
+        options?.webSearchEnabled || slash.forceWebSearch,
+      );
+
       const userMsg: ChatMessageItem = {
         id: `msg_u_${Date.now()}`,
         role: "user",
@@ -68,6 +100,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
       };
       const nextMessages = [...messages, userMsg];
       setMessages(nextMessages);
+      void useAgentStore.getState().saveActiveMessages(nextMessages);
       abortRef.current = new AbortController();
       setIsStreaming(true);
 
@@ -95,123 +128,25 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
       ]);
 
       try {
-        if (options?.selectedCliAgent) {
-          const meta =
-            CLI_AGENT_CATALOG[options.selectedCliAgent as CliAgentId];
-          const name = meta?.name || options.selectedCliAgent;
-          const vault =
-            options.vaultPath || useWorkspaceStore.getState().vaultPath || "";
-          appendLog(`Starting CLI Agent: ${name}...`);
-          await runCliPrompt(
-            options.selectedCliAgent as CliAgentId,
-            name,
-            promptText,
-            vault,
-            (output) => {
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantMsgId
-                    ? {
-                        ...m,
-                        content: output,
-                        logs: [...logs, "Completed CLI execution."],
-                        isStreaming: false,
-                      }
-                    : m,
-                ),
-              );
-            },
-          );
-          return;
-        }
-
-        const providerId =
-          options?.providerId ?? (await loadSelectedProvider());
-        const provider = await createConfiguredProvider(
-          providerId,
-          options?.model,
-        );
-
-        let structuredRequest: StructuredUserRequest | null = null;
-        if (options?.rewriteEnabled) {
-          appendLog("Routing intent and checking clarification...");
-          const res = await resolveRewriteClarification(provider, promptText);
-          structuredRequest = res.structuredRequest;
-          setLastStructuredRequest(structuredRequest);
-          if (res.clarificationQuestion) {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantMsgId
-                  ? {
-                      ...m,
-                      content: res.clarificationQuestion!,
-                      isStreaming: false,
-                    }
-                  : m,
-              ),
-            );
-            return;
-          }
-        }
-
-        const state = useWorkspaceStore.getState();
-        const { systemPrompt, activeTools } =
-          await resolveExecutionPromptAndTools({
-            options,
-            structuredRequest,
-            provider,
-            promptText,
-            vaultPath: state.vaultPath,
-            allNotePaths: state.allNotePaths ?? [],
-            allFolderPaths: state.allFolderPaths ?? [],
-            mutationBackend,
-          });
-
-        const workingHistory = buildAgentWorkingHistory(
-          systemPrompt,
+        await dispatchAgentSession({
+          options,
+          activePromptText,
+          systemAugmentation: slash.systemAugmentation,
+          isWebSearch,
           nextMessages,
-        );
-
-        await runAgentStepLoop({
-          provider,
-          workingHistory,
-          activeTools,
-          promptText,
+          assistantMsgId,
           abortSignal: abortRef.current?.signal,
-          onStepLog: appendLog,
-          onAssistantChunk: (chunk: string) => {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantMsgId
-                  ? { ...m, content: m.content + chunk, isStreaming: true }
-                  : m,
-              ),
-            );
-          },
-          onAssistantMessage: (msg) => {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantMsgId
-                  ? {
-                      ...msg,
-                      id: assistantMsgId,
-                      logs: [...logs, "Done."],
-                      isStreaming: false,
-                    }
-                  : m,
-              ),
-            );
-          },
-          stepContext: {
-            webSearchEnabled: options?.webSearchEnabled,
-            autoApply,
-            webSearchBackend,
-            mutationBackend,
-            inspectionBackend,
-            allNotePaths: state.allNotePaths ?? [],
-            handleApplyChange: ledgerMethods.handleApplyChange,
-            setStagedChanges,
-          },
+          logs,
+          appendLog,
+          setMessages,
+          setLastStructuredRequest,
+          mutationBackend,
+          inspectionBackend,
+          webSearchBackend,
+          autoApply,
+          handleApplyChange: ledgerMethods.handleApplyChange,
+          setStagedChanges,
+          runCliPrompt,
         });
       } catch (err) {
         setMessages((prev) =>
@@ -227,6 +162,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
         );
       } finally {
         abortRef.current = null;
+        waitingForRevealRef.current = false;
         setIsStreaming(false);
       }
     },
@@ -245,9 +181,17 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
   const abortExecution = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
+    waitingForRevealRef.current = false;
     void cancelActiveCliSession();
     setIsStreaming(false);
   }, [cancelActiveCliSession]);
+
+  const completeResponseReveal = useCallback(() => {
+    if (!waitingForRevealRef.current) return;
+    waitingForRevealRef.current = false;
+    abortRef.current = null;
+    setIsStreaming(false);
+  }, []);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -273,6 +217,7 @@ export function useAgentExecution(options?: UseAgentExecutionOptions) {
     handleApplyAllChanges: handleBatchApply,
     sendMessage,
     abortExecution,
+    completeResponseReveal,
     clearMessages,
     setMessages,
   };

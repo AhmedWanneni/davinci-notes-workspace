@@ -7,15 +7,6 @@
   overflow: hidden;
 }
 
-.calendar-leaf__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-3) var(--space-6);
-  border-bottom: var(--border-width-thin) solid var(--color-border-normal);
-  background-color: var(--color-bg-primary);
-}
-
 .calendar-leaf__title-group {
   display: flex;
   align-items: center;

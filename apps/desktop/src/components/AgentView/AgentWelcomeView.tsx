@@ -13,6 +13,7 @@ export interface AgentWelcomeViewProps {
   onSend: (prompt: string) => void;
   shortcuts?: AgentShortcut[];
   isStreaming?: boolean;
+  onCancel?: () => void;
 }
 
 const QUICK_ACTIONS = [
@@ -41,6 +42,7 @@ export function AgentWelcomeView({
   onSend,
   shortcuts = [],
   isStreaming = false,
+  onCancel,
 }: AgentWelcomeViewProps) {
   const [prompt, setPrompt] = useState("");
 
@@ -77,6 +79,7 @@ export function AgentWelcomeView({
             placeholder="Write a message..."
             shortcuts={shortcuts}
             isStreaming={isStreaming}
+            onCancel={onCancel}
             autoFocus
           />
         </div>

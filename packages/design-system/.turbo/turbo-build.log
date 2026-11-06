@@ -12,6 +12,3 @@ scss
 
 css
 ✔︎ tokens/dist/variables.css
-
-js
-✔︎ tokens/dist/tokens.ts

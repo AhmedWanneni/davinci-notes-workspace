@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { PushPin, DotsThree, Plus } from "@phosphor-icons/react";
+import { DotsThree } from "@phosphor-icons/react";
 
 export interface AgentConversationHeaderProps {
   title: string;
@@ -59,27 +59,6 @@ export function AgentConversationHeader({
         </div>
 
         <div className="agent-chat-header__actions">
-          {projectId && (
-            <button
-              type="button"
-              className="agent-chat-header__icon-btn"
-              onClick={() => onNavigateProject?.(projectId)}
-              aria-label="New chat in project"
-              title="Open project overview & history"
-            >
-              <Plus size={16} weight="bold" />
-            </button>
-          )}
-
-          <button
-            type="button"
-            className="agent-chat-header__icon-btn"
-            aria-label="Pin conversation"
-            title="Pin conversation"
-          >
-            <PushPin size={17} weight="bold" />
-          </button>
-
           <div className="agent-chat-header__menu-wrap" ref={menuRef}>
             <button
               type="button"

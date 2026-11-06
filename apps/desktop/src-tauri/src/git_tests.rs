@@ -47,6 +47,31 @@ fn initializes_an_offline_repository_that_stages_only_markdown() {
 }
 
 #[test]
+fn extends_existing_gitignore_without_removing_rules_and_whitelists_supported_files() {
+    let vault = TestVault::new();
+    fs::write(vault.0.join(".gitignore"), "# existing rule\ncustom.tmp\n")
+        .expect("existing ignore rules should be written");
+    for name in ["note.md", "data.json", "image.png", "image.jpg", "script.sh"] {
+        fs::write(vault.0.join(name), "supported").expect("supported file should be written");
+    }
+    for name in ["photo.jpeg", "archive.pdf", "script.bash", "vault-index.db"] {
+        fs::write(vault.0.join(name), "ignored").expect("unsupported file should be written");
+    }
+
+    initialize_local_repository(&vault.0).expect("Git should initialize the vault");
+    require_success(&vault.0, &["add", "--all"]).expect("staging should work");
+    let staged = require_success(&vault.0, &["diff", "--cached", "--name-only"])
+        .expect("staged paths should be readable");
+    assert_eq!(
+        String::from_utf8_lossy(&staged.stdout),
+        ".gitignore\ndata.json\nimage.jpg\nimage.png\nnote.md\nscript.sh\n"
+    );
+    let ignore = fs::read_to_string(vault.0.join(".gitignore"))
+        .expect("gitignore should remain readable");
+    assert!(ignore.contains("# existing rule\ncustom.tmp\n"));
+}
+
+#[test]
 fn creates_one_readable_commit_for_a_multi_note_save_batch() {
     let vault = TestVault::new();
     fs::write(vault.0.join("one.md"), "# One\n").expect("first note should be written");

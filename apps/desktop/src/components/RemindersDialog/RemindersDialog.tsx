@@ -1,14 +1,12 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Dialog, DialogContent } from "@app/design-system";
 import {
   Bell,
   WarningCircle,
   CalendarCheck,
   CalendarPlus,
   Plus,
-  X,
 } from "@phosphor-icons/react";
+import { WindowDialog } from "../WindowDialog";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import { getVaultIndexDb } from "../../vault/sqliteIndex";
 import {
@@ -133,93 +131,75 @@ export function RemindersDialog({
   }, [activeTab, currentItems.length]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className={styles.dialog} showCloseButton={false}>
-        <DialogPrimitive.Title className={styles["dialog-title-accessible"]}>
-          Reminders
-        </DialogPrimitive.Title>
-
-        <div className={styles.header}>
-          <div className={styles["header-left"]}>
-            <span className={styles["header-icon-wrap"]}>
-              <Bell size={16} weight="bold" />
-            </span>
-            <h2 className={styles["header-title"]}>Reminders</h2>
-            <span className={styles["header-count"]}>{data.all.length}</span>
-          </div>
-          <div className={styles["header-right"]}>
-            <button
-              type="button"
-              className={styles["header-add-btn"]}
-              onClick={() => setIsAdding((prev) => !prev)}
-              aria-label="Add a reminder"
-            >
-              <Plus size={12} weight="bold" />
-              <span>Add a reminder</span>
-            </button>
-            <button
-              type="button"
-              className={styles["header-close"]}
-              onClick={() => onOpenChange(false)}
-              aria-label="Close reminders dialog"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        </div>
-
-        {isAdding && (
-          <AddReminderForm
-            onAdded={() => {
-              setIsAdding(false);
-              void loadReminders();
-            }}
-            onCancel={() => setIsAdding(false)}
-            defaultNotePath={activePath}
-          />
-        )}
-
-        <div className={styles.tabs} role="tablist">
-          {TABS.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === key}
-              className={`${styles.tab} ${
-                key === "missed" && data.missed.length > 0
-                  ? styles["tab--has-missed"]
-                  : ""
-              } ${activeTab === key ? styles["tab--active"] : ""}`}
-              onClick={() => setActiveTab(key)}
-            >
-              <Icon size={14} />
-              <span>{label}</span>
-              <span className={styles.badge}>{data[key].length}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className={styles.content}>
-          {loading && data.all.length === 0 ? (
-            <div className={styles.loading}>Loading reminders...</div>
-          ) : (
-            <RemindersList
-              items={currentItems}
-              onNavigate={handleNavigate}
-              onToggleDone={handleToggleDone}
-              onSnooze={handleSnooze}
-            />
-          )}
-        </div>
-
-        <div className={styles.footer}>
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={() => onOpenChange(false)}
+      title="Reminders"
+      size="md"
+      headerRight={
+        <button
+          type="button"
+          className={styles["header-add-btn"]}
+          onClick={() => setIsAdding((prev) => !prev)}
+          aria-label="Add a reminder"
+        >
+          <Plus size={12} weight="bold" />
+          <span>Add a reminder</span>
+        </button>
+      }
+      footer={
+        <div className={styles.footer} style={{ width: "100%", margin: 0, padding: 0, border: "none" }}>
           <div className={styles["footer-summary"]}>{footerSummary}</div>
           <div className={styles["footer-hints"]}>
             <kbd className={styles.kbd}>Esc</kbd> to close
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      }
+    >
+      {isAdding && (
+        <AddReminderForm
+          onAdded={() => {
+            setIsAdding(false);
+            void loadReminders();
+          }}
+          onCancel={() => setIsAdding(false)}
+          defaultNotePath={activePath}
+        />
+      )}
+
+      <div className={styles.tabs} role="tablist">
+        {TABS.map(({ key, label, icon: Icon }) => (
+          <button
+            key={key}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === key}
+            className={`${styles.tab} ${
+              key === "missed" && data.missed.length > 0
+                ? styles["tab--has-missed"]
+                : ""
+            } ${activeTab === key ? styles["tab--active"] : ""}`}
+            onClick={() => setActiveTab(key)}
+          >
+            <Icon size={14} />
+            <span>{label}</span>
+            <span className={styles.badge}>{data[key].length}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className={styles.content}>
+        {loading && data.all.length === 0 ? (
+          <div className={styles.loading}>Loading reminders...</div>
+        ) : (
+          <RemindersList
+            items={currentItems}
+            onNavigate={handleNavigate}
+            onToggleDone={handleToggleDone}
+            onSnooze={handleSnooze}
+          />
+        )}
+      </div>
+    </WindowDialog>
   );
 }

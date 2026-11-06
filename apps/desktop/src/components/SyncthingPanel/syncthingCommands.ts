@@ -94,6 +94,10 @@ export async function syncthingAddDevice(
   return invoke<void>("syncthing_add_device", { id, name });
 }
 
+export async function syncthingSetLocalDeviceName(name: string): Promise<void> {
+  return invoke<void>("syncthing_set_local_device_name", { name });
+}
+
 export async function syncthingListDevices(): Promise<
   SyncthingConfiguredDevice[]
 > {
