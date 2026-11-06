@@ -2,6 +2,26 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-06: Clickable Links & Direct Navigation for Agent-Edited Files
+
+- **Conversational Edit Recovery (`packages/ai-runtime`)**:
+  - Implemented `conversationalEditFallback.ts` (37 lines) exporting `extractEditToolCall` which catches edit/update requests from user prompts (e.g. `"update file ideas.md"`, `"in notes/todo.md add buy milk"`) or conversational assistant output (`"I have updated the file Story/Nadine.md"`, `"Updated note Meeting.md"`).
+  - Integrated into `conversationalToolFallback.ts` as highest-priority check before creation checks, preventing edit claims from turning into note creation.
+  - Added unit test suite `conversationalEditFallback.test.ts` (64 lines, 6 tests) covering prompt patterns, assistant patterns, and codeblock content extraction.
+- **Dedicated Edited Files Bar in Chat (`apps/desktop/src/components/AgentView`)**:
+  - Created `AgentEditedFilesBar.tsx` (73 lines): Renders a clean flat row above the message bubble for any notes edited during the turn (`[FileText] Story/Nadine.md  Open note →`).
+  - Clicking invokes `onNavigateNote(path)` -> `normalizeVaultPath` -> `useWorkspaceStore.getState().openNote(resolved)` to immediately open and view the file in the desktop editor.
+  - Extracted `AgentMessageActions.tsx` (147 lines) from `AgentMessageBubble.tsx`, reducing `AgentMessageBubble.tsx` to 150 lines (strictly complying with 150-200 soft cap).
+- **Markdown Link Note Navigation (`apps/desktop/src/components/AgentView`)**:
+  - Created `agentMarkdownInlineRenderer.tsx` (180 lines): Parses inline tokens including standard markdown links `[label](target)`. If the target points to a `.md` file or known note in the vault, renders as a clickable button navigating to the note; renders external web URLs as standard links with `rel="noreferrer noopener"`.
+  - Refactored `AgentMarkdownContent.tsx` (188 lines) to focus solely on block-level AST traversal and rendering, dropping file size from 294 lines down to 188 lines (hard cap 250).
+- **Verification & Quality**:
+  - Added `AgentEditedFilesAccess.test.tsx` (135 lines, 6 tests) covering tool calls extraction, text claims extraction, inline markdown navigation, and message bubble navigation.
+  - All 43 tests in `@app/ai-runtime` pass.
+  - All files strictly verified <= 188 lines (soft cap 150-200, hard cap 250).
+  - Zero ESLint errors or TypeScript violations.
+  - AST knowledge graph updated via `graphify update .`.
+
 ### 2026-11-06: Prevent Unwanted Auxiliary File Creation in AI Agent (Codex, agy, Claude, Sophia)
 
 - **Conversational Fallback Disambiguation (`packages/ai-runtime`)**:

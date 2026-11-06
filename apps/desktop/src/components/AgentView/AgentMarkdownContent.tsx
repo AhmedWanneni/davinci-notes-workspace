@@ -4,6 +4,7 @@ import { AgentMermaidBlock } from "./AgentMermaidBlock";
 import { AgentTableBlock } from "./AgentTableBlock";
 import { AgentWidgetBlock } from "./AgentWidgetBlock";
 import { AgentWidgetPlaceholder } from "./AgentWidgetPlaceholder";
+import { renderInlineFormatting } from "./agentMarkdownInlineRenderer";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 export interface AgentMarkdownContentProps {
@@ -12,113 +13,6 @@ export interface AgentMarkdownContentProps {
   onNavigateNote?: (notePath: string) => void;
   onNavigateFolder?: (folderPath: string) => void;
   onSaveAsNote?: (snippet: string) => void;
-}
-
-function renderInlineFormatting(
-  text: string,
-  onNavigateNote?: (path: string) => void,
-  onNavigateFolder?: (folderPath: string) => void,
-  allFolderPaths: string[] = [],
-  allNotePaths: string[] = [],
-): ReactNode[] {
-  // Matches ![alt](url), `code`, **bold**, *italic*, and [[wikilink]]
-  const tokenRegex =
-    /(!\[[^\]]*\]\([^)]+\)|`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[\[[^\]]+\]\])/g;
-  const parts = text.split(tokenRegex);
-
-  return parts.map((part, idx) => {
-    if (part.startsWith("![") && part.includes("](") && part.endsWith(")")) {
-      const match = part.match(/!\[([^\]]*)\]\(([^)]+)\)/);
-      if (match) {
-        return (
-          <span key={idx} className="agent-md-image-card">
-            <img
-              src={match[2]}
-              alt={match[1] || "Generated content"}
-              loading="lazy"
-            />
-            {match[1] && (
-              <span className="agent-md-image-caption">{match[1]}</span>
-            )}
-          </span>
-        );
-      }
-    }
-    if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
-      const inner = part.slice(1, -1).trim();
-      const cleanInner = inner.replace(/^\/+|\/+$/g, "");
-      const isKnownFolder =
-        Boolean(cleanInner) &&
-        (allFolderPaths.includes(cleanInner) ||
-          (inner.endsWith("/") && !cleanInner.includes(" ")));
-      const isKnownNote =
-        Boolean(cleanInner) &&
-        (allNotePaths.includes(cleanInner) ||
-          allNotePaths.includes(`${cleanInner}.md`) ||
-          cleanInner.endsWith(".md"));
-
-      if (isKnownFolder || isKnownNote) {
-        return (
-          <button
-            key={idx}
-            type="button"
-            className="agent-md-wikilink"
-            onClick={() =>
-              isKnownFolder
-                ? onNavigateFolder?.(cleanInner)
-                : onNavigateNote?.(cleanInner)
-            }
-            title={
-              isKnownFolder
-                ? `Open folder: ${cleanInner}`
-                : `Open note: ${cleanInner}`
-            }
-          >
-            {inner}
-          </button>
-        );
-      }
-      return (
-        <code key={idx} className="agent-md-code">
-          {inner}
-        </code>
-      );
-    }
-    if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
-      return <strong key={idx}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith("*") && part.endsWith("*") && part.length >= 2) {
-      return <em key={idx}>{part.slice(1, -1)}</em>;
-    }
-    if (part.startsWith("[[") && part.endsWith("]]") && part.length >= 4) {
-      const rawTarget = part.slice(2, -2);
-      const [target, label] = rawTarget.split("|");
-      const trimmedTarget = target.trim();
-      const cleanFolder = trimmedTarget.replace(/^\/+|\/+$/g, "");
-      const isFolder =
-        allFolderPaths.includes(cleanFolder) || trimmedTarget.endsWith("/");
-      return (
-        <button
-          key={idx}
-          type="button"
-          className="agent-md-wikilink"
-          onClick={() =>
-            isFolder
-              ? onNavigateFolder?.(cleanFolder)
-              : onNavigateNote?.(trimmedTarget)
-          }
-          title={
-            isFolder
-              ? `Open folder: ${cleanFolder}`
-              : `Open note: ${trimmedTarget}`
-          }
-        >
-          {label?.trim() || trimmedTarget}
-        </button>
-      );
-    }
-    return part;
-  });
 }
 
 export function AgentMarkdownContent({
@@ -131,14 +25,14 @@ export function AgentMarkdownContent({
   const allFolderPaths = useWorkspaceStore((s) => s.allFolderPaths);
   const allNotePaths = useWorkspaceStore((s) => s.allNotePaths);
   if (!content) return null;
+
   const fmt = (txt: string) =>
-    renderInlineFormatting(
-      txt,
+    renderInlineFormatting(txt, {
       onNavigateNote,
       onNavigateFolder,
       allFolderPaths,
       allNotePaths,
-    );
+    });
 
   const lines = content.split("\n");
   const elements: ReactNode[] = [];

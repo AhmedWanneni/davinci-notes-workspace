@@ -2,14 +2,12 @@ import type { AgentToolCall } from "@app/ai-api";
 import { isConversationalMeta } from "./conversationalMeta.js";
 import { cleanPath, INVALID_WORDS } from "./conversationalPathUtils.js";
 import { extractMoveToolCalls } from "./conversationalMoveFallback.js";
+import { extractEditToolCall } from "./conversationalEditFallback.js";
 
 export { isConversationalMeta };
 
 const HAS_NOTE_CREATION_INTENT =
   /\b(?:create|make|add|new|write)\b[^\n\r]*\b(?:note|file|document|doc|page)\b/i;
-
-const EDIT_INTENT_PATTERN =
-  /\b(?:edit|update|replace|rewrite|modify)\b\s+(?:the\s+)?(?:(?:note|file|document|doc|page)\s+)?["'‘“]?([a-zA-Z0-9_./-]+\.md|[a-zA-Z0-9_./-]+)(?:["'’”\s]|$)/i;
 
 function extractCodeBlock(text: string): string {
   const codeBlockMatch = /```(?:markdown|md)?\s*\n([\s\S]*?)\n```/.exec(text);
@@ -76,18 +74,10 @@ export function extractConversationalToolCalls(
   }
 
   // Check for edit / update intent first to prevent updates from becoming note creations
-  const editMatch = EDIT_INTENT_PATTERN.exec(prompt);
-  if (editMatch && editMatch[1]) {
-    const rawTarget = editMatch[1].trim().replace(/^["'‘“]+|["'’”.,!]+$/g, "");
-    if (rawTarget && !INVALID_WORDS.has(rawTarget.toLowerCase())) {
-      const editPath = cleanPath(rawTarget);
-      results.push({
-        id: `call_conv_edit_${Date.now()}`,
-        name: "edit_note",
-        arguments: { path: editPath, content: extractCodeBlock(text) },
-      });
-      return results;
-    }
+  const editCall = extractEditToolCall(prompt, text, extractCodeBlock);
+  if (editCall) {
+    results.push(editCall);
+    return results;
   }
 
   // Check for folder creation in prompt or text

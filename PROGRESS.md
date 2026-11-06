@@ -4,7 +4,28 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Prevent Unwanted Auxiliary File Creation in AI Agent (Codex, agy, Claude, Sophia)
+## Last Session — Clickable Links & Direct Navigation for Agent-Edited Files
+
+1. **Conversational Edit Recovery (`packages/ai-runtime`)**:
+   - `conversationalEditFallback.ts` (37 lines): Implemented `extractEditToolCall` recognizing edit/update intents in both user prompt (`"update file ideas.md"`, `"in notes/todo.md add buy milk"`) and assistant output (`"I have updated the file Story/Nadine.md"`, `"Updated note Meeting.md"`).
+   - `conversationalEditFallback.test.ts` (64 lines, 6 tests): Verified edit extraction, code block extraction, and integration with `extractConversationalToolCalls`.
+2. **Dedicated Edited Files Bar in Chat (`apps/desktop/src/components/AgentView`)**:
+   - `AgentEditedFilesBar.tsx` (73 lines): Prominently surfaces all files edited during an agent turn with a clean flat list row (`[FileText] Story/Nadine.md  Open note →`) adhering to the "Less Boxes Always" design standard. Clicking immediately invokes `onNavigateNote(path)` -> `useWorkspaceStore.getState().openNote(resolved)` to open the file in the editor.
+   - `AgentMessageActions.tsx` (147 lines): Extracted message action buttons (copy, text-to-speech, feedback thumbs, regenerate, "Save to Note...") into a dedicated component.
+   - `AgentMessageBubble.tsx` (150 lines): Integrated `AgentEditedFilesBar` and `AgentMessageActions`, dropping file size from 269 lines to 150 lines (strictly within the 150-200 line cap).
+3. **Markdown Link Note Navigation (`apps/desktop/src/components/AgentView`)**:
+   - `agentMarkdownInlineRenderer.tsx` (180 lines): Extracted inline formatting and added parsing for standard markdown links `[label](target)` pointing to `.md` files or known notes, turning them into clickable navigation buttons calling `onNavigateNote(target)` alongside existing wikilinks `[[target]]` and folder links.
+   - `AgentMarkdownContent.tsx` (188 lines): Refactored block element parsing, bringing file length down from 294 lines to 188 lines (hard cap 250).
+4. **Verification**:
+   - `AgentEditedFilesAccess.test.tsx` (135 lines, 6 tests) passing.
+   - All 43 tests in `@app/ai-runtime` passing.
+   - All files strictly verified <= 188 lines (soft cap 150-200, hard cap 250).
+   - Zero ESLint errors or TypeScript violations.
+   - AST knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Prevent Unwanted Auxiliary File Creation in AI Agent (Codex, agy, Claude, Sophia)
 
 1. **Conversational Fallback Disambiguation (`packages/ai-runtime`)**:
    - `conversationalToolFallback.ts` (216 lines): Guarded `deriveNoteNameFromTopic` with `HAS_NOTE_CREATION_INTENT`. Prohibits synthesizing `create_note` when user only requests creating a folder (e.g. `"create folder Recipes"` or `"create folder for recipes"`). Added `EDIT_INTENT_PATTERN` so edit/update requests (`"update file ideas.md with new thoughts"`) emit `edit_note` instead of creating extraneous files (e.g. `new.md`).

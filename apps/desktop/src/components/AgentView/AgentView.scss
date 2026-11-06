@@ -719,6 +719,95 @@
   }
 }
 
+.agent-md-link {
+  color: var(--color-text-accent);
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--color-interactive-accent-hover);
+  }
+}
+
+.agent-edited-files {
+  margin-bottom: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border: var(--border-width-thin) solid var(--color-border-subtle);
+  border-radius: var(--border-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1-5);
+}
+
+.agent-edited-files__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-scale-xs);
+  font-weight: var(--type-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.agent-edited-files__icon {
+  color: var(--color-text-accent);
+}
+
+.agent-edited-files__title {
+  letter-spacing: 0.02em;
+}
+
+.agent-edited-files__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.agent-edited-files__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-normal);
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-accent);
+
+    .agent-edited-files__action {
+      color: var(--color-text-accent);
+    }
+  }
+}
+
+.agent-edited-files__name {
+  font-family: var(--font-editor);
+  font-weight: var(--type-weight-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-edited-files__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--type-scale-xs);
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
 .agent-message__tools {
   display: flex;
   flex-direction: column;
