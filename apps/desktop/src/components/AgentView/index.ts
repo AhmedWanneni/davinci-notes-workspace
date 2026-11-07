@@ -8,6 +8,8 @@ export * from "./cliAgentBridge";
 export { AGENT_TAB_ID } from "./agentTypes";
 export type { ChatMessageItem, StagedChangeItem } from "./agentTypes";
 export { AgentPromptBar } from "./AgentPromptBar";
+export { AgentTokenBudgetIndicator } from "./AgentTokenBudgetIndicator";
+export { AgentUsageDialog } from "./AgentUsageDialog";
 export { AgentPromptModelPicker } from "./AgentPromptModelPicker";
 export { AgentPromptMenu } from "./AgentPromptMenu";
 export { AgentMessageBubble } from "./AgentMessageBubble";

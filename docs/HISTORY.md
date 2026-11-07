@@ -2,6 +2,30 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-07: Agent Usage Dialog, Prompt Token Runout Warning & Persistent User Choice
+
+- **Persistent User Agent Choice (`apps/desktop/src/components/AgentView`)**:
+  - Created `agentUserChoicePersistence.ts` (89 lines): Provides synchronous `localStorage` and SQLite persistence for selected agents and models (`davinci.agent.selectedCliAgent`, `davinci.agent.selectedModel`, `davinci.agent.selectedProvider`).
+  - Refactored `useAgentStore.ts` (204 lines): Synchronously initializes from `getInitialAgentChoice()`. Persists upon `setSelectedCliAgent` and `setSelectedModel`. Preserves the user's active agent across new conversations, conversation switching, page closing, and application reload.
+  - Extracted `agentStoreTypes.ts` (54 lines) and `agentConversationActions.ts` (99 lines), reducing `useAgentStore.ts` from 284 lines to 204 lines.
+  - Updated `useAgentViewConfig.ts` (168 lines) to sync local CLI state with `useAgentStore` in real time.
+- **Model & Agent Usage Tracker and Dialog (`apps/desktop/src/components/AgentView`)**:
+  - Created `agentUsageTracker.ts` (206 lines): Tracks requests, input tokens, output tokens, total tokens, context capacity, and timestamps for every autonomous CLI agent (agy, codex, claude, opencode) and cloud/local model (Gemini, Claude, GPT-4o, Ollama). Automatically recorded upon LLM step completion (`agentStepLoop.ts`) and CLI session completion (`agentCliRunner.ts`).
+  - Created `AgentUsageDialog.tsx` (151 lines) & `AgentUsageDialog.module.scss`: Built with `WindowDialog` adhering to the canonical "Less Boxes Always" standard. Displays top summary cards, flat rows with duotone icons, request and token breakdowns, context limits, and 1-click statistics reset.
+  - Updated `AgentSidebarPanel.tsx` (201 lines) & `AgentSidebarPanel.module.scss`: Added bottom sidebar action button ("Model & Agent Usage") with `ChartBar` icon to trigger the usage dialog.
+- **Prompt Token Budget & Runout Warning Indicator (`apps/desktop/src/components/AgentView`)**:
+  - Created `agentTokenEstimator.ts` (99 lines): Maps context windows across all models (1M, 200k, 128k, 32k) and calculates active conversation token load plus pending prompt text.
+  - Created `AgentTokenBudgetIndicator.tsx` (75 lines) & `AgentTokenBudgetIndicator.module.scss`: Real-time token budget badge embedded directly in `AgentPromptBar.tsx`.
+    - Normal (<70%): Discreet indicator showing used / max tokens (e.g. `1.2k / 128k`).
+    - Warning (>=70%): Amber warning badge: `⚠️ High context (78%) · Agent nearing token limit`.
+    - Critical (>=90%): Red pulsing warning badge: `⚠️ Almost out of tokens (93%) · Run /compact or start new chat`.
+  - Created `promptAttachmentsUtils.ts` (24 lines): Extracted attachment prefix builder, keeping `AgentPromptBar.tsx` strictly at 240 lines (hard cap 250).
+- **Verification & Quality**:
+  - 17 unit tests passing across `agentUserChoicePersistence.test.ts`, `agentTokenEstimator.test.ts`, `agentUsageTracker.test.ts`, `AgentUsageDialog.test.tsx`, and `AgentTokenBudgetIndicator.test.tsx`.
+  - All files strictly verified under 250 lines (soft cap 150–200).
+  - Zero ESLint errors or TypeScript violations.
+  - AST knowledge graph updated via `graphify update .`.
+
 ### 2026-11-06: Clickable Links & Direct Navigation for Agent-Edited Files
 
 - **Conversational Edit Recovery (`packages/ai-runtime`)**:

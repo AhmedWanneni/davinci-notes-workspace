@@ -8,10 +8,9 @@ import { detectCliAgents } from "./cliAgentBridge";
 import { CLI_AGENT_CATALOG, type CliAgentId } from "./cliAgentTypes";
 import type { CliRunCallbacks } from "./useCliAgentExecution";
 import type { ChatMessageItem } from "./agentTypes";
-import {
-  autoSavePromptMemory,
-  loadMemoryContext,
-} from "./agentMemoryPersistence";
+import { autoSavePromptMemory, loadMemoryContext } from "./agentMemoryPersistence";
+import { recordAgentUsage } from "./agentUsageTracker";
+import { estimateTokens } from "./agentTokenEstimator";
 import { buildCliAgentPrompt } from "./buildCliAgentPrompt";
 import { resolveProjectSisterConversationsContext } from "./agentProjectContextResolver";
 import { applyAndSyncCliVaultActions } from "./agentCliVaultSync";
@@ -172,6 +171,13 @@ export async function executeCliAgentSession(
       appendChunk(chunk);
     },
     onComplete: (output) => {
+      recordAgentUsage({
+        id: agentId,
+        name,
+        type: "cli_agent",
+        inputTokens: estimateTokens(finalPrompt),
+        outputTokens: estimateTokens(output),
+      });
       void applyAndSyncCliVaultActions({
         output,
         promptText,

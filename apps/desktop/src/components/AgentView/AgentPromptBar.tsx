@@ -10,13 +10,16 @@ import { AgentPromptMenu } from "./AgentPromptMenu";
 import { AgentMentionMenu } from "./AgentMentionMenu";
 import { AgentSlashMenu } from "./AgentSlashMenu";
 import { AgentPromptModelPicker } from "./AgentPromptModelPicker";
+import { AgentTokenBudgetIndicator } from "./AgentTokenBudgetIndicator";
 import { AgentImageAttachmentPreview } from "./AgentImageAttachmentPreview";
 import { AgentPromptActions } from "./AgentPromptActions";
 import { useAgentViewConfig } from "./useAgentViewConfig";
 import { usePromptAttachments } from "./usePromptAttachments";
 import { useAgentMention } from "./useAgentMention";
 import { useAgentStore } from "./useAgentStore";
+import { buildPromptWithAttachments } from "./promptAttachmentsUtils";
 import type { AgentShortcut, LibraryItem } from "@app/ai-agent";
+import type { ChatMessageItem } from "./agentTypes";
 import styles from "./AgentPromptBar.module.scss";
 
 export interface AgentPromptBarProps {
@@ -31,6 +34,7 @@ export interface AgentPromptBarProps {
   shortcuts?: AgentShortcut[];
   autoFocus?: boolean;
   variant?: "standard" | "project";
+  messages?: ChatMessageItem[];
 }
 
 export function AgentPromptBar({
@@ -45,6 +49,7 @@ export function AgentPromptBar({
   shortcuts: _shortcuts = [],
   autoFocus = false,
   variant = "standard",
+  messages,
 }: AgentPromptBarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { webSearchEnabled, handleToggleWebSearch } = useAgentViewConfig();
@@ -109,21 +114,10 @@ export function AgentPromptBar({
     }
     if (disabled || (!value.trim() && !hasAttachments)) return;
 
-    const attachmentsPrefix = attachedItems
-      .map((item) => {
-        const label =
-          item.kind === "skill"
-            ? "Skill"
-            : item.kind === "rule"
-              ? "Rule"
-              : "Attached File";
-        return `[${label}: ${item.name}]\n${item.content}`;
-      })
-      .join("\n\n");
-
-    const finalPrompt = [attachmentsPrefix, value.trim()]
-      .filter(Boolean)
-      .join("\n\n");
+    const { attachmentsPrefix, finalPrompt } = buildPromptWithAttachments(
+      value,
+      attachedItems,
+    );
 
     if (onSendWithImages) {
       onSendWithImages(finalPrompt, attachedImages);
@@ -230,12 +224,18 @@ export function AgentPromptBar({
                 onSelectPrompt={(p) => onChange(p)}
                 onAttachLibraryItem={handleAttachLibraryItem}
                 webSearchEnabled={webSearchEnabled}
-                onToggleWebSearch={() => void handleToggleWebSearch(!webSearchEnabled)}
+                onToggleWebSearch={() =>
+                  void handleToggleWebSearch(!webSearchEnabled)
+                }
                 variant={variant}
               />
             </div>
           </div>
           <div className={styles["prompt-bar__project-right"]}>
+            <AgentTokenBudgetIndicator
+              promptText={value}
+              messages={messages}
+            />
             <AgentPromptModelPicker />
             <AgentPromptActions
               isStreaming={isStreaming}

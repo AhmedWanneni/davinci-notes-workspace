@@ -11,10 +11,8 @@ import {
   executeAgentStepTool,
   type ExecuteAgentStepContext,
 } from "./executeAgentStepTool.js";
-import {
-  ensureParentFolderToolCalls,
-  parseVaultActionTags,
-} from "./agentCliVaultSync.js";
+import { ensureParentFolderToolCalls, parseVaultActionTags } from "./agentCliVaultSync.js";
+import { recordAgentUsage } from "./agentUsageTracker.js";
 import type { ChatMessageItem } from "./agentTypes.js";
 
 export interface AgentStepLoopOptions {
@@ -64,6 +62,18 @@ export async function runAgentStepLoop(
   const collectedToolResults: AgentToolResult[] = [];
 
   const emitFinalMessage = (text: string) => {
+    const inTokens = Math.ceil(
+      workingHistory.reduce((acc, m) => acc + (m.content || "").length, 0) /
+        3.8,
+    );
+    const outTokens = Math.ceil((text || "").length / 3.8);
+    recordAgentUsage({
+      id: provider.id || "cloud_model",
+      name: provider.name || provider.id || "Sophia Assistant",
+      type: "cloud_model",
+      inputTokens: inTokens,
+      outputTokens: outTokens,
+    });
     const enriched = ensureParentFolderToolCalls(
       collectedToolCalls,
       collectedToolResults,

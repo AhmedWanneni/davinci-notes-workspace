@@ -143,6 +143,7 @@ export function AgentActiveChat({
             shortcuts={shortcuts}
             isStreaming={isStreaming}
             onCancel={onCancel}
+            messages={messages}
           />
         </div>
       </div>

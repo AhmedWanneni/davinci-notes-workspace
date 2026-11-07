@@ -5,11 +5,13 @@ import {
   Clock,
   Books,
   X,
+  ChartBar,
 } from "@phosphor-icons/react";
 import { useAgentStore } from "./useAgentStore";
 import { AgentSidebarProjectsSection } from "./AgentSidebarProjectsSection";
 import { AgentSidebarRecentsSection } from "./AgentSidebarRecentsSection";
 import { AgentSidebarSearchResults } from "./AgentSidebarSearchResults";
+import { AgentUsageDialog } from "./AgentUsageDialog";
 import styles from "./AgentSidebarPanel.module.scss";
 
 export interface AgentSidebarPanelProps {
@@ -41,6 +43,7 @@ export function AgentSidebarPanel({
   const setSearchQuery = useAgentStore((s) => s.setSearchQuery);
 
   const [showSearch, setShowSearch] = useState(false);
+  const [usageModalOpen, setUsageModalOpen] = useState(false);
 
   const handleStartNewChat = () => {
     // Preserve the active project so the new chat inherits project memory & context
@@ -176,6 +179,23 @@ export function AgentSidebarPanel({
           </>
         )}
       </div>
+
+      <div className={styles["agent-sidebar__footer"]}>
+        <button
+          type="button"
+          className={styles["agent-sidebar__usage-btn"]}
+          onClick={() => setUsageModalOpen(true)}
+          title="View model and agent token usage"
+        >
+          <ChartBar size={16} weight="regular" />
+          <span>Model & Agent Usage</span>
+        </button>
+      </div>
+
+      <AgentUsageDialog
+        isOpen={usageModalOpen}
+        onClose={() => setUsageModalOpen(false)}
+      />
     </aside>
   );
 }

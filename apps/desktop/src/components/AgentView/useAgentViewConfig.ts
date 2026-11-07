@@ -64,9 +64,12 @@ export function useAgentViewConfig() {
       const savedAgent = await withDbLock(() =>
         getSetting(db, "ai.agent.cliAgent"),
       );
-      setSelectedCliAgent(
-        savedAgent && savedAgent.trim() ? savedAgent.trim() : null,
-      );
+      const effectiveAgent =
+        savedAgent && savedAgent.trim() ? savedAgent.trim() : null;
+      setSelectedCliAgent(effectiveAgent);
+      if (effectiveAgent !== useAgentStore.getState().selectedCliAgent) {
+        useAgentStore.getState().setSelectedCliAgent(effectiveAgent);
+      }
       const status = await loadAIProviderStatus(providerId);
       setIsConfigured(status === "ready");
     } catch {
@@ -129,6 +132,7 @@ export function useAgentViewConfig() {
 
   const handleSelectCliAgent = useCallback(async (agentId: string | null) => {
     setSelectedCliAgent(agentId);
+    useAgentStore.getState().setSelectedCliAgent(agentId);
     try {
       const db = await getVaultIndexDb();
       await withDbLock(() =>

@@ -1,12 +1,4 @@
 import { create } from "zustand";
-import {
-  addOrUpdateConversation,
-  deleteConversation as deleteConversationHelper,
-  type AgentConversation,
-  type AgentProject,
-  type LibraryItem,
-} from "@app/ai-agent";
-import { persistToVault } from "./agentStorePersistence";
 import { saveActiveMessagesHelper } from "./agentConversationSaver";
 import {
   handleCreateProject,
@@ -22,63 +14,21 @@ import {
   handleSetProjectInstructions,
 } from "./Library";
 import { loadAgentData } from "./agentStoreLoader";
-import type { ChatMessageItem } from "./agentTypes";
+import {
+  getInitialAgentChoice,
+  persistAgentChoice,
+  loadAgentChoiceFromDb,
+} from "./agentUserChoicePersistence";
+import {
+  handleCreateConversation,
+  handleDeleteConversation,
+  handleRenameConversation,
+} from "./agentConversationActions";
+import type { AgentStoreState } from "./agentStoreTypes";
 
-export interface AgentStoreState {
-  conversations: AgentConversation[];
-  projects: AgentProject[];
-  libraryItems: LibraryItem[];
-  activeConversationId: string | null;
-  activeProjectId: string | null;
-  projectTab: "chats" | "sources";
-  activeNavSection: string;
-  searchQuery: string;
-  thinkMode: boolean;
-  webSearchEnabled: boolean;
-  powerTier: "light" | "medium" | "high";
-  chatMode: "chat" | "cowork";
-  isModelPickerOpen: boolean;
-  isLoaded: boolean;
-  selectedModel: string;
-  selectedProvider: string;
-  selectedCliAgent: string | null;
-  cliAgentModels: Record<string, string>;
-  projectInstructions: Record<string, string>;
-  pendingPromptText: string | null;
+export type { AgentStoreState };
 
-  loadConversations: () => Promise<void>;
-  selectConversation: (id: string | null) => void;
-  createNewConversation: (
-    title?: string,
-    projectId?: string | null,
-  ) => Promise<AgentConversation>;
-  deleteConversation: (id: string) => Promise<void>;
-  renameConversation: (id: string, title: string) => Promise<void>;
-  selectProject: (projectId: string | null) => void;
-  createProject: (name: string) => Promise<AgentProject>;
-  renameProject: (id: string, name: string) => Promise<void>;
-  deleteProject: (id: string) => Promise<void>;
-  assignProject: (convId: string, projectId: string | null) => Promise<void>;
-  addProjectSource: (projectId: string, path: string) => Promise<void>;
-  removeProjectSource: (projectId: string, path: string) => Promise<void>;
-  setProjectTab: (tab: "chats" | "sources") => void;
-  setActiveNavSection: (section: string) => void;
-  setSearchQuery: (query: string) => void;
-  toggleThinkMode: () => void;
-  toggleWebSearch: () => void;
-  setPowerTier: (tier: "light" | "medium" | "high") => void;
-  setChatMode: (mode: "chat" | "cowork") => void;
-  setModelPickerOpen: (open: boolean) => void;
-  setProjectInstructions: (projectId: string, instructions: string) => void;
-  setSelectedModel: (model: string, provider: string) => void;
-  setSelectedCliAgent: (agentId: string | null) => void;
-  setCliAgentModel: (agentId: string, model: string) => void;
-  saveActiveMessages: (messages: ChatMessageItem[]) => Promise<void>;
-  setPendingPromptText: (text: string | null) => void;
-  insertIntoActivePrompt: (text: string) => void;
-  addOrUpdateLibraryItem: (item: LibraryItem) => Promise<void>;
-  deleteLibraryItem: (id: string) => Promise<void>;
-}
+const initialChoice = getInitialAgentChoice();
 
 export const useAgentStore = create<AgentStoreState>((set, get) => ({
   conversations: [],
@@ -95,9 +45,9 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
   chatMode: "chat",
   isModelPickerOpen: false,
   isLoaded: false,
-  selectedModel: "gemini-2.0-flash",
-  selectedProvider: "gemini",
-  selectedCliAgent: null,
+  selectedModel: initialChoice.selectedModel,
+  selectedProvider: initialChoice.selectedProvider,
+  selectedCliAgent: initialChoice.selectedCliAgent,
   cliAgentModels: {
     agy: "gemini-2.0-flash",
     claude: "claude-3-7-sonnet",
@@ -107,13 +57,22 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
   projectInstructions: {},
   pendingPromptText: null,
 
-  setSelectedModel: (model, provider) =>
+  setSelectedModel: (model, provider) => {
     set({
       selectedModel: model,
       selectedProvider: provider,
       selectedCliAgent: null,
-    }),
-  setSelectedCliAgent: (agentId) => set({ selectedCliAgent: agentId }),
+    });
+    void persistAgentChoice({
+      selectedModel: model,
+      selectedProvider: provider,
+      selectedCliAgent: null,
+    });
+  },
+  setSelectedCliAgent: (agentId) => {
+    set({ selectedCliAgent: agentId });
+    void persistAgentChoice({ selectedCliAgent: agentId });
+  },
   setCliAgentModel: (agentId, model) =>
     set((s) => ({ cliAgentModels: { ...s.cliAgentModels, [agentId]: model } })),
   toggleWebSearch: () =>
@@ -145,8 +104,18 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
   },
 
   loadConversations: async () => {
-    const data = await loadAgentData();
-    set(data);
+    const [data, dbChoice] = await Promise.all([
+      loadAgentData(),
+      loadAgentChoiceFromDb(),
+    ]);
+    const current = get();
+    set({
+      ...data,
+      selectedCliAgent:
+        dbChoice.selectedCliAgent !== undefined
+          ? dbChoice.selectedCliAgent
+          : current.selectedCliAgent,
+    });
   },
 
   selectConversation: (id) => {
@@ -159,76 +128,27 @@ export const useAgentStore = create<AgentStoreState>((set, get) => ({
   },
 
   createNewConversation: async (title = "New Chat", projectId) => {
-    const { conversations, projects, activeProjectId } = get();
-    const targetProjId = projectId !== undefined ? projectId : activeProjectId;
-    const newConv: AgentConversation = {
-      id: `conv_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      title,
-      projectId: targetProjId ?? null,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      messages: [],
-    };
-    const nextData = addOrUpdateConversation(
-      {
-        version: 1,
-        activeConversationId: newConv.id,
-        projects,
-        conversations,
-        libraryItems: get().libraryItems,
-      },
-      newConv,
-    );
+    const res = await handleCreateConversation(get(), title, projectId);
     set({
-      conversations: nextData.conversations,
-      activeConversationId: newConv.id,
-      activeProjectId: targetProjId ?? null,
+      conversations: res.conversations,
+      activeConversationId: res.activeConversationId,
+      activeProjectId: res.activeProjectId,
       activeNavSection: "chat",
     });
-    await persistToVault(nextData, true);
-    return newConv;
+    return res.newConv;
   },
 
   deleteConversation: async (id) => {
-    const { conversations, projects, activeConversationId } = get();
-    const nextData = deleteConversationHelper(
-      {
-        version: 1,
-        activeConversationId,
-        projects,
-        conversations,
-        libraryItems: get().libraryItems,
-      },
-      id,
-    );
+    const res = await handleDeleteConversation(get(), id);
     set({
-      conversations: nextData.conversations,
-      activeConversationId: nextData.activeConversationId,
+      conversations: res.conversations,
+      activeConversationId: res.activeConversationId,
     });
-    await persistToVault(nextData, true);
   },
 
   renameConversation: async (id, title) => {
-    const { conversations, projects, activeConversationId } = get();
-    const target = conversations.find((c) => c.id === id);
-    if (!target) return;
-    const updated = {
-      ...target,
-      title: title.trim() || "Untitled",
-      updatedAt: Date.now(),
-    };
-    const nextData = addOrUpdateConversation(
-      {
-        version: 1,
-        activeConversationId,
-        projects,
-        conversations,
-        libraryItems: get().libraryItems,
-      },
-      updated,
-    );
-    set({ conversations: nextData.conversations });
-    await persistToVault(nextData);
+    const conversations = await handleRenameConversation(get(), id, title);
+    set({ conversations });
   },
 
   selectProject: (projectId) =>
