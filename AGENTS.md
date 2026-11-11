@@ -60,6 +60,23 @@ Every module folder gets a barrel `index.ts` re-exporting its public surface. Co
 
 - **Class naming: kebab-case, not camelCase** — .card-header, .is-active, not .cardHeader, .isActive. Applies to all SCSS class names project-wide, including CSS Modules.
 
+## Dialog & Modal Design Standard (SettingsDialog Pattern & Less Boxes Always)
+
+Every popup, modal, dropdown menu, or dialog in the application MUST follow the canonical pattern established in `apps/desktop/src/components/SettingsDialog` and `apps/desktop/src/components/EditorArea/EditorMenuBarDropdown`:
+- **"Less Boxes Always" Principle**: Never wrap individual choices inside heavy boxed cards, card grids, or nested bordered rectangles. Use unboxed flat list rows with subtle hover backgrounds (`var(--color-bg-hover)`), icon on the left (`16px-18px`), label in the middle, and subtle trailing metadata/chevrons on the right (`CaretRight` or shortcut `⌘K`). Separate sections with hairline dividers (`height: 1px; background-color: var(--color-border-subtle); margin: 6px 0;`).
+- **Colors & Shadow**: Background `var(--color-bg-primary)`, floating soft elevation `box-shadow: 0 4px 20px rgb(0 0 0 / 10%)`, perimeter border `1px solid var(--color-border-subtle)`, radius `10px` (`var(--border-radius-md)` / `var(--border-radius-lg)`).
+- **Fonts & Padding**: Container `padding: 6px 0;` (or `6px 8px;`); list rows `padding: 7px 14px;` (or `8px 12px;`) with `gap: 10px;`; item text `font-size: 13px; font-weight: 400; color: var(--color-text-normal);`; metadata/shortcuts `font-size: 11px; color: var(--color-text-muted);`.
+- **Radix UI Primitives & macOS Window Header**: Built with `@radix-ui/react-dialog` (`Root`, `Portal`, `Overlay`, `Content`). macOS window header with height `44px`, native traffic lights (`Close` red `#ff5f56`, `Minimize` yellow `#ffbd2e`, `Maximize` green `#27c93f`), centered title (`font-size: 13px; font-weight: 600;`), and a `60px` right spacer.
+- **Entrance Animations**: `overlay-show` and `content-show` (scaling `0.96` to `1` in `150ms cubic-bezier(0.16, 1, 0.3, 1)`).
+- **Follow the Skill/Rule**: Consult `.agents/rules/dialog-design.md` and `.claude/skills/create-dialog/SKILL.md`.
+
+## Preserved User Customizations (Do Not Revoke or Alter)
+
+The user has explicitly customized these design behaviors. All future AI agents MUST preserve them and never revert, re-add removed elements, or alter them:
+- **Calendar & Meetings Header Removal (`CalendarLeaf.tsx`, `CalendarView.module.scss`)**: The top header (`.calendar-leaf__header`) with the title "Calendar & Meetings" and icon has been intentionally removed from `CalendarLeaf.tsx` so the view starts directly with the toolbar. Do NOT re-add the header.
+- **QuickCapture Footer (`QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`)**: The dialog footer is intentionally simplified to contain only the right-aligned (`justify-content: flex-end;`) "Save note" button. Hints, record button, close button, and quit button in the footer have been intentionally removed (Close and Quit remain in the header). Do NOT re-add them to the footer.
+- **Obsidian Theme Border Colors (`docs/references/cm-rules.css`)**: Outline and table border colors are explicitly set to `#ababab`. Preserve these values.
+
 ## Database Migrations
 
 - **Never edit an applied migration.** Once a migration file (e.g. `schema.sql` or `1_initial.sql`) has been committed and applied *even once* (including in your own local dev database), you must never edit it again. `tauri-plugin-sql` hashes migration strings; altering an applied migration will cause startup panics (`migration 1 was previously applied but has been modified`).

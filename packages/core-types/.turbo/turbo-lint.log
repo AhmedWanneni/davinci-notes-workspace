@@ -1,5 +1,5 @@
 
-> @app/core-types@0.1.0 lint /Users/ahmedwaanneni/Desktop/davinci-notes/packages/core-types
+> @app/core-types@0.1.0 lint /Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/packages/core-types
 > eslint . --ext .ts,.tsx
 
 =============

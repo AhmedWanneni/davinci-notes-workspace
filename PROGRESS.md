@@ -4,7 +4,1045 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Make Website Stationery Navigation Responsive
+## Last Session — Performance Audit & Optimization (PERFORMANCE.md Hard Rules 4 & 6)
+
+1. **Lazy Loading Non-Critical Sidebars in `AppSidebar` (`PERFORMANCE.md` Hard Rule 4)**:
+   - **Root Cause**: `AppSidebar.tsx` was statically importing `AgentSidebarPanel` (from `AgentView`), `TodosSidebarPanel` (from `TodosView`), `MeetingsSidebar` (from `ListeningView`), and `BookmarksSidebarPanel` (from `BookmarksView`). This defeated code-splitting by bundling AI agents, LLM streamers, audio recording, web speech APIs, visualizers, and the todo parser into the initial bundle evaluated on application startup.
+   - **Fix**: Extracted [`AppSidebarPanels.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/AppSidebar/AppSidebarPanels.tsx) (153 lines) which dynamically lazy-loads `LazyGitSidebarPanel`, `LazyBookmarksSidebarPanel`, `LazyAgentSidebarPanel`, `LazyTodosSidebarPanel`, and `LazyMeetingsSidebar` using direct file imports (avoiding broad barrel files) wrapped with `<Suspense fallback={null}>`.
+   - **Bundle & Startup Impact**: On first paint, only `FileTree` and `IconRail` are loaded. Modules for AI agents, voice recordings, and todos are fetched on demand only when the user explicitly opens their respective sidebar panels.
+   - Refactored [`AppSidebar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/AppSidebar/AppSidebar.tsx) from 232 lines to 209 lines, well within file size caps.
+
+2. **Scoped State Subscriptions in `useTodosData` (`PERFORMANCE.md` Hard Rules 2 & 6)**:
+   - **Root Cause**: `useTodosData.ts` subscribed directly to the global `notesContent` dictionary (`useWorkspaceStore((state) => state.notesContent)`). Every single keystroke typed into ANY note in the entire vault triggered `useTodosData`, synchronously executing `buildTodoProjects` and re-rendering `TodosSidebarPanel` and `TodosView` on rapid typing events.
+   - **Fix**: Replaced broad subscription with `useShallow` from `zustand/react/shallow` scoping specifically to `todos/` note paths:
+     ```ts
+     const todoNotesContent = useWorkspaceStore(
+       useShallow((state) => {
+         const subset: Record<string, string> = {};
+         for (const [k, v] of Object.entries(state.notesContent)) {
+           if (k.toLowerCase().startsWith("todos/")) {
+             subset[k] = v;
+           }
+         }
+         return subset;
+       }),
+     );
+     ```
+   - Stable callback actions: `toggleTodo`, `updateTodoText`, `addLinkToTodo`, `addReminderToTodo`, and `addTodoToSection` now read note contents via `useWorkspaceStore.getState().notesContent[notePath]`, eliminating `notesContent` from callback dependencies and keeping function references stable.
+   - Typing latency across regular vault notes is now decoupled from the todo parser and dashboard.
+
+3. **Verification**:
+   - 15 test suites and 64 tests passing across `IconRail`, `TodosView`, `AppSidebar`, and `AppTabs`.
+   - ESLint check: zero errors on all touched components.
+   - All files strictly under 250 lines (soft cap 150–200): `AppSidebar.tsx` (209), `AppSidebarPanels.tsx` (153), `useTodosData.ts` (197), `TodosView.tsx` (198).
+   - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Unified AppSidebar Integration Across All Views & FileTree Sidebar Synchronization
+
+1. **Unified Sidebar Architecture Following FileTree (`AppSidebar` & `AppSidebarHeader`)**:
+   - `AppSidebar.tsx` (232 lines): Integrated `TodosSidebarPanel` and `MeetingsSidebar` directly inside `AppSidebar` alongside `FileTree`, `BookmarksSidebarPanel`, `LazyGitSidebarPanel`, and `AgentSidebarPanel`.
+   - `AppSidebarHeader.tsx`: Single synchronized top header bar across all views (macOS traffic lights, search/file/bookmark buttons, drag region, and `<SidebarSimple size={18} />` collapse button).
+   - `App.tsx`: Removed the hardcoded collapse hack (`isCollapsed={!isLeftSidebarOpen}`). All views share the exact same `AppSidebar` container, resizer handle, and synchronized open/closed state.
+   - `TodosView.tsx` (198 lines) & `ListeningView.tsx` (235 lines): In desktop mode, views display their main content areas cleanly while `AppSidebar` hosts their sidebars (`showSidebar={false}`). Standalone rendering is preserved for isolated tests and Storybook (`showSidebar={true}`).
+2. **IconRail Cleanup & Symmetrical Navigation**:
+   - `IconRail.tsx` (32 lines) & `IconRailTopGroup.tsx` (189 lines): Removed unwanted icons (`Reminders` with `Bell`, `Ask Your Vault` with `ChatCircleDots`). Reverted to the clean standard icon set: Files, Bookmarks, Git (if enabled), AI Agent, AI Listening, Search, Graph view, Daily note, Calendar, New canvas, Todos, Settings, Close vault.
+   - Rail buttons symmetrically synchronize: clicking an already active item toggles `AppSidebar` open/closed; clicking an inactive item opens the sidebar and switches the active panel.
+   - `AppTabs.tsx`: Top header expand button (`app-tabs__sidebar-toggle-btn` with `<SidebarSimple size={15} />`) seamlessly expands the sidebar regardless of which view is active.
+3. **State Management & Shared UI Store**:
+   - `useTodosUIStore.ts` (46 lines): Zustand store holding `viewMode`, `selectedProjectId`, `selectedNotePath`, `isMotherboard`, filters, and layout, enabling reactive synchronization between `TodosSidebarPanel` in `AppSidebar` and `TodosView` in workspace.
+   - `buildTodoProjects.ts` (68 lines) & `useTodosData.ts` (186 lines): Extracted project hierarchy builder from note contents, keeping all data files well under the 250 hard cap.
+   - `TodosSidebar.module.scss` & `ListeningView.module.scss`: Added `&--in-app-sidebar` styles (`width: 100%`, `flex: 1`, `border-right: none`) matching `FileTree` layout, typography, colors, and border standards.
+4. **Bugfix — Automatic Bookmarks Page Closure Upon Navigation**:
+   - `App.tsx`: Added `closeBookmarksIfOpen` callback. When the user is on the Bookmarks page and selects any other page (Git via `handleToggleGitManager`, Calendar, Todos, AI Agent, AI Listening, Global Graph, Daily notes, or any file note in `FileTree`/`AppTabs`), `BOOKMARKS_TAB_ID` (`davinci://bookmarks`) is cleanly closed and the workspace switches to the selected page/fallback note.
+   - `AppSidebar.test.tsx` (231 lines): Added regression unit test verifying git sidebar panel takes precedence over bookmarks when git is toggled.
+5. **Verification**:
+   - All 64 unit tests passing across 15 test files (`IconRail`, `TodosView`, `AppSidebar`, `AppTabs`).
+   - Clean ESLint check: zero errors or warnings on all touched files.
+   - All files strictly verified under 250 lines (soft cap 150–200).
+   - AST knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Agent Usage Dialog, Prompt Token Runout Warning & Persistent User Choice
+
+1. **Persistent User Agent Choice (`apps/desktop/src/components/AgentView`)**:
+   - `agentUserChoicePersistence.ts` (89 lines): Implemented synchronous `localStorage` and SQLite persistence for selected agents and models (`davinci.agent.selectedCliAgent`, `davinci.agent.selectedModel`, `davinci.agent.selectedProvider`).
+   - `useAgentStore.ts` (204 lines): Synchronously initializes from `getInitialAgentChoice()`. Persists upon `setSelectedCliAgent` and `setSelectedModel`. Preserves the user's active agent across new conversations, conversation switching, page closing, and application reload.
+   - `agentStoreTypes.ts` (54 lines) & `agentConversationActions.ts` (99 lines): Extracted store types and conversation CRUD actions, reducing `useAgentStore.ts` from 284 lines to 204 lines.
+   - `useAgentViewConfig.ts` (168 lines): Synced local CLI state with `useAgentStore` so both stores stay in lockstep.
+2. **Model & Agent Usage Tracker and Dialog (`apps/desktop/src/components/AgentView`)**:
+   - `agentUsageTracker.ts` (206 lines): Tracks requests, input tokens, output tokens, total tokens, context capacity, and timestamps for every autonomous CLI agent (agy, codex, claude, opencode) and cloud/local model (Gemini, Claude, GPT-4o, Ollama). Automatically recorded upon LLM step completion (`agentStepLoop.ts`) and CLI session completion (`agentCliRunner.ts`).
+   - `AgentUsageDialog.tsx` (151 lines) & `AgentUsageDialog.module.scss`: Built with `WindowDialog` adhering to the canonical "Less Boxes Always" standard. Displays top summary cards, flat rows with duotone icons, request and token breakdowns, context limits, and 1-click statistics reset.
+   - `AgentSidebarPanel.tsx` (201 lines) & `AgentSidebarPanel.module.scss`: Added bottom sidebar action button ("Model & Agent Usage") with `ChartBar` icon to trigger the usage dialog.
+3. **Prompt Token Budget & Runout Warning Indicator (`apps/desktop/src/components/AgentView`)**:
+   - `agentTokenEstimator.ts` (99 lines): Maps context windows across all models (1M, 200k, 128k, 32k) and calculates active conversation token load plus pending prompt text.
+   - `AgentTokenBudgetIndicator.tsx` (75 lines) & `AgentTokenBudgetIndicator.module.scss`: Real-time token budget badge embedded directly in `AgentPromptBar.tsx`.
+     - Normal (<70%): Discreet indicator showing used / max tokens (e.g. `1.2k / 128k`).
+     - Warning (>=70%): Amber warning badge: `⚠️ High context (78%) · Agent nearing token limit`.
+     - Critical (>=90%): Red pulsing warning badge: `⚠️ Almost out of tokens (93%) · Run /compact or start new chat`.
+   - `promptAttachmentsUtils.ts` (24 lines): Extracted attachment prefix builder, keeping `AgentPromptBar.tsx` strictly at 240 lines (hard cap 250).
+4. **Verification**:
+   - 17 unit tests passing across `agentUserChoicePersistence.test.ts`, `agentTokenEstimator.test.ts`, `agentUsageTracker.test.ts`, `AgentUsageDialog.test.tsx`, and `AgentTokenBudgetIndicator.test.tsx`.
+   - All files strictly verified under 250 lines (soft cap 150–200).
+   - Zero ESLint errors or TypeScript violations.
+   - AST knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Clickable Links & Direct Navigation for Agent-Edited Files
+
+1. **Conversational Edit Recovery (`packages/ai-runtime`)**:
+   - `conversationalEditFallback.ts` (37 lines): Implemented `extractEditToolCall` recognizing edit/update intents in both user prompt (`"update file ideas.md"`, `"in notes/todo.md add buy milk"`) and assistant output (`"I have updated the file Story/Nadine.md"`, `"Updated note Meeting.md"`).
+   - `conversationalEditFallback.test.ts` (64 lines, 6 tests): Verified edit extraction, code block extraction, and integration with `extractConversationalToolCalls`.
+2. **Dedicated Edited Files Bar in Chat (`apps/desktop/src/components/AgentView`)**:
+   - `AgentEditedFilesBar.tsx` (73 lines): Prominently surfaces all files edited during an agent turn with a clean flat list row (`[FileText] Story/Nadine.md  Open note →`) adhering to the "Less Boxes Always" design standard. Clicking immediately invokes `onNavigateNote(path)` -> `useWorkspaceStore.getState().openNote(resolved)` to open the file in the editor.
+   - `AgentMessageActions.tsx` (147 lines): Extracted message action buttons (copy, text-to-speech, feedback thumbs, regenerate, "Save to Note...") into a dedicated component.
+   - `AgentMessageBubble.tsx` (150 lines): Integrated `AgentEditedFilesBar` and `AgentMessageActions`, dropping file size from 269 lines to 150 lines (strictly within the 150-200 line cap).
+3. **Markdown Link Note Navigation (`apps/desktop/src/components/AgentView`)**:
+   - `agentMarkdownInlineRenderer.tsx` (180 lines): Extracted inline formatting and added parsing for standard markdown links `[label](target)` pointing to `.md` files or known notes, turning them into clickable navigation buttons calling `onNavigateNote(target)` alongside existing wikilinks `[[target]]` and folder links.
+   - `AgentMarkdownContent.tsx` (188 lines): Refactored block element parsing, bringing file length down from 294 lines to 188 lines (hard cap 250).
+4. **Verification**:
+   - `AgentEditedFilesAccess.test.tsx` (135 lines, 6 tests) passing.
+   - All 43 tests in `@app/ai-runtime` passing.
+   - All files strictly verified <= 188 lines (soft cap 150-200, hard cap 250).
+   - Zero ESLint errors or TypeScript violations.
+   - AST knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Prevent Unwanted Auxiliary File Creation in AI Agent (Codex, agy, Claude, Sophia)
+
+1. **Conversational Fallback Disambiguation (`packages/ai-runtime`)**:
+   - `conversationalToolFallback.ts` (216 lines): Guarded `deriveNoteNameFromTopic` with `HAS_NOTE_CREATION_INTENT`. Prohibits synthesizing `create_note` when user only requests creating a folder (e.g. `"create folder Recipes"` or `"create folder for recipes"`). Added `EDIT_INTENT_PATTERN` so edit/update requests (`"update file ideas.md with new thoughts"`) emit `edit_note` instead of creating extraneous files (e.g. `new.md`).
+   - `conversationalMoveFallback.ts` (46 lines): Extracted move tool call parser to maintain strict line cap (< 250 lines).
+   - `conversationalPathUtils.ts` (18 lines): Extracted `cleanPath` and `INVALID_WORDS` shared utilities.
+   - `conversationalToolFallback.test.ts` (182 lines, 17 tests): Added unit tests verifying folder-only requests create zero notes, and file updates do not produce auxiliary notes.
+2. **Autonomous CLI Agent Strict Scope & Prompting (`apps/desktop/src/components/AgentView`)**:
+   - `buildCliAgentPrompt.ts` (114 lines): Extracted CLI prompt construction with strict scope and negative constraints:
+     - Exact action only: Touch only requested file/folder.
+     - Folder creation: When asked to create a folder, create ONLY that folder (`mkdir`); NEVER seed `README.md`, `index.md`, `.gitkeep`, or notes inside it.
+     - File updates: Modify only the target file; NEVER generate backups (`.bak`, `.old`), companion summaries, or changelogs.
+     - Forbidden files: Explicitly bans `walkthrough.md`, `implementation_plan.md`, `README.md`, test files, or scratchpads.
+   - `agentCliRunner.ts` (187 lines): Integrated `buildCliAgentPrompt`, reducing file size from 245 lines down to 187 lines.
+   - `agentArtifactFilter.ts` (23 lines) & `agentArtifactFilter.test.ts` (33 lines, 5 tests): Added filter for agent developer artifacts (`walkthrough.md`, `implementation_plan.md`, `README.md` unless requested, `.bak`, `.tmp`, `.log`).
+   - `agentCliVaultSync.ts` (232 lines): Integrated `isIgnoredAgentArtifact` so rogue disk artifacts from CLI agents are pruned via `mutationBackend.deleteNote` and omitted from `useWorkspaceStore` and `toolCalls`.
+   - `agentSystemPrompt.ts` (87 lines): Added `STRICT MINIMAL MUTATION & SINGLE RESPONSIBILITY` instructions for Sophia internal LLM runner.
+3. **Prompt Templates & Agent Package Alignment (`packages/ai-agent`)**:
+   - `createNotePrompt.ts` (29 lines): Explicitly instructed that multi-step sequencing applies only when user explicitly asks for both folder and note; folder-only requests must ONLY execute `create_folder`.
+   - `editNotePrompt.ts` (12 lines): Added strict single-note target constraint forbidding auxiliary summary or backup notes.
+4. **Verification**:
+   - All 37 tests in `@app/ai-runtime` pass cleanly.
+   - All 113 tests in `@app/ai-agent` pass cleanly.
+   - All 10 tests across `agentCliRunner.test.ts`, `agentSystemPrompt.test.ts`, and `agentArtifactFilter.test.ts` pass cleanly.
+   - AST knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Unified Desktop Dialog System (`WindowDialog` & Design Alignment)
+
+1. **Canonical Base Dialog Component (`apps/desktop/src/components/WindowDialog/`)**:
+   - `WindowDialog.tsx` (131 lines): Canonical Radix Dialog wrapper implementing uniform dialog geometry, size presets (`sm: 440px`, `md: 500px`, `lg: 640px`, `xl: 920px`, `auto`), positioning (`center`, `top: 15%`), macOS window header (44px) with traffic lights (`#ff5f56`, `#ffbd2e`, `#27c93f`), centered title, customizable header actions, and footer.
+   - `WindowDialog.module.scss` (112 lines): Floating soft elevation (`box-shadow: 0 4px 20px rgb(0 0 0 / 10%)`), `10px` border radius, `var(--color-bg-primary)` background, `1px solid var(--color-border-subtle)` hairline perimeter, smooth `overlay-show` and `content-show` scaling animations.
+   - `WindowDialog.test.tsx` (4 tests) & `WindowDialog.stories.tsx`: Complete unit test coverage and Storybook story variants.
+   - `packages/design-system/components/Dialog/Dialog.module.scss`: Aligned base design system token to `10px` border-radius and `0 4px 20px rgb(0 0 0 / 10%)` shadow.
+2. **Complete Dialog Migration (18 Modals Across Entire Desktop App)**:
+   - Migrated all dialogs to inherit directly from `<WindowDialog>`:
+     1. `SettingsDialog` (`size="xl"`, custom tab layout)
+     2. `RemindersDialog` (`size="md"`, header add action)
+     3. `SearchDialog` (`position="top"`, `size="lg"`, custom search input header, shortcuts footer)
+     4. `TagsDialog` (`size="sm"`)
+     5. `InsertDialog` (`size="md"`, multi-tab insert creator with `InsertCreatorForm`)
+     6. `CoverImagePickerModal` (`size="md"`, gallery/upload/link tabs)
+     7. `ReminderDatePicker` & `ReminderEditModal` (`size="sm"`)
+     8. `WebBookmarkImportModal` (`size="md"`)
+     9. `WebBookmarkEditModal` (`size="md"`)
+     10. `EventModal` (`size="md"`, calendar event management)
+     11. `AIListeningPrivacyModal` (`size="md"`)
+     12. `AgentSaveNoteModal` (`size="md"`)
+     13. `AgentLibraryModal` (`size="md"`)
+     14. `ScheduleTaskModal` (`size="md"`)
+     15. `ReminderFormModal` (`size="md"`)
+     16. `ScheduledMessageComposerModal` (`size="md"`)
+     17. `SyncthingDevicesDialog` (`size="lg"`)
+     18. `CommandPalette` (`position="top"`, `size="lg"`, instant command runner)
+3. **Refactoring & File Cap Compliance**:
+   - Extracted `InsertCreatorForm.tsx` (77 lines) from `InsertDialog.tsx` to remain strictly within the 250-line hard cap.
+   - Cleaned redundant SCSS modals and backdrops across `CoverImagePickerModal.module.scss`, `WebBookmarksDisplay.module.scss`, `EventModal.module.scss`, and `ScheduleTaskModal.module.scss`.
+   - Every file strictly verified <= 250 lines (range: 47 to 250 lines).
+4. **Verification**:
+   - All 11 test suites (54 tests) pass cleanly across Vitest without regressions.
+   - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Interactive Animated & Graph Widgets for AI Agent (Chat & CodeMirror 6 Notes)
+
+1. **Shared Zero-Dependency Renderer (`packages/editor/blocks/widget/`)**:
+   - `widgetHtmlBuilder.ts` (124 lines): Generates complete self-contained HTML for sandboxed iframes. Injects design token CSS variables (`--color-bg-primary`, `--color-text-normal`, `--color-border-subtle`, `--color-accent`) for dark/light theme parity, auto-resizing script communicating via `postMessage`, and strict iframe Content Security Policy:
+     `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; form-action 'none';`
+   - `widgetIframeManager.ts` (166 lines): Lifecycle manager enforcing a cap of 6 live iframes (`MAX_ACTIVE_WIDGET_IFRAMES`). Leverages `IntersectionObserver` to track viewport visibility; offscreen widgets unmount their iframes and render a suspended placeholder to preserve GPU/memory. Clamps heights between 60px and 500px (`DEFAULT_WIDGET_MAX_HEIGHT`).
+   - `widgetTheme.ts` (44 lines): Theme styles for `.cm-widget-block`, `.cm-widget-iframe`, `.cm-widget-placeholder`, and error states.
+   - `widgetWidget.ts` (45 lines): CodeMirror `WidgetType` implementation (`WidgetBlockWidget`). Returns `true` on `eq()` when source is identical and in `updateDOM()` to prevent iframe reloads when typing elsewhere in the note.
+   - `widgetExtension.ts` (82 lines): CodeMirror 6 extension registering `StateField<DecorationSet>`. Cursor-gated: when cursor is inside the fenced block (`cursor >= block.from && cursor <= block.to`), raw markdown source is revealed for editing; when cursor is outside, replaces block with the sandboxed widget. Notes without widgets return `Decoration.none` and load 0 iframes (0 KB overhead).
+2. **AI Chat Integration (`apps/desktop/src/components/AgentView/`)**:
+   - `AgentWidgetBlock.tsx` (128 lines) & `AgentWidgetBlock.module.scss`: Tabbed widget view ("Widget" preview and "Source" code) with Copy code and Save-to-note actions.
+   - `AgentWidgetPlaceholder.tsx` (21 lines) & `AgentWidgetPlaceholder.module.scss`: Pulse loading placeholder ("Generating interactive widget...").
+   - `AgentMarkdownContent.tsx` (242 lines): Detects ````widget ```` blocks. Displays the placeholder while streaming (`isStreaming: true`) or when block is unterminated, mounting the live iframe only once the code block is closed and streaming finishes.
+   - `AgentMessageBubble.tsx` (236 lines): Wires `isStreaming` down to `AgentMarkdownContent`.
+3. **Agent System Prompt & ADR**:
+   - `agentSystemPrompt.ts` (82 lines): Instructs the agent on when and how to emit ````widget ```` blocks (self-contained, no external libraries/CDN, theme CSS variables, play/pause controls for animations, explanations around the block).
+   - `docs/adr/0253-interactive-widgets-and-iframe-sandboxing.md`: Documented architecture decision for `widget` block format and sandbox security rules; indexed in `DECISIONS.md`.
+4. **Verification & Quality**:
+   - All 47 test files (297 tests) in `@app/editor` pass cleanly (including `widgetHtmlBuilder.test.ts`, `widgetExtension.test.ts`, `widgetIframeManager.test.ts`, and `widgetAdversarialSecurity.test.ts`).
+   - Chat streaming placeholder & tab switching verified in `AgentWidgetBlock.test.tsx` (4 tests).
+   - Adversarial security verified: `parent.__TAURI_INTERNALS__.invoke`, outbound `fetch`, and `localStorage`/`cookie` access all fail under opaque `null` origin and `connect-src 'none'`.
+   - Desktop production build (`pnpm --filter @app/desktop build:web`) succeeded in 11.14s; total bundle impact of widget renderer is <6 KB uncompressed (<1.8 KB gzip).
+   - All modified/created files verified strictly under the 250-line hard cap (range: 15 to 244 lines).
+   - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Editor Typography (Pure San Francisco / SF Pro), Lavender Selection & Fixed-Width Vim Block Cursor
+
+1. **Pure San Francisco (SF Pro) Document Typography (`packages/design-tokens/src/typography.ts`, `packages/builtin-themes/`)**:
+   - The editor note content font is strictly set to **San Francisco (SF Pro)**: `-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;` for body prose, headings, and lists.
+   - Preserves proportional typography at all times: the editor does not switch document text to monospace when Vim mode is active.
+   - Code blocks and inline code continue to cleanly use `var(--font-mono)`.
+2. **Fixed-Width Vim Block Cursor Without Document Monospace Churn (`packages/editor/theme/editorTheme.ts`)**:
+   - Unconditionally styles `.cm-fat-cursor` with `font-family: var(--font-mono) !important; width: 1ch !important; min-width: 1ch !important; max-width: 1ch !important; text-align: center; overflow: hidden;`.
+   - The block cursor maintains a fixed constant width (`1ch` in SF Mono, ~9.6px at 16px font-size) across every character (`i`, `l`, `m`, `w`, whitespace, empty lines, end of line, punctuation) while the document text around it remains proportional San Francisco.
+   - Height strictly follows line height across headings and body text.
+   - Insert mode continues to toggle to the thin 2px line cursor (`.cm-cursor`).
+3. **Editor Theme Parity & File Caps (`editorTheme.ts`, `readOnlyEditorTheme.ts`)**:
+   - Selection background updated to Obsidian-parity soft lavender purple: `color-mix(in srgb, var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed)) 25%, transparent) !important`, matching the reference screenshot.
+   - Extracted `readOnlyEditorTheme` into its own file (`packages/editor/theme/readOnlyEditorTheme.ts`, 124 lines), bringing `editorTheme.ts` down to 178 lines to strictly comply with the 200-line soft cap.
+   - Fixed soft line break extension in list item continuation lines (`packages/editor/live-preview/lineBreakExtension.ts`).
+4. **Verification**:
+   - All 43 test files (279 tests) across `@app/editor` pass cleanly.
+   - All 44 test files (210 tests) across `@app/desktop` EditorArea and state pass cleanly.
+   - Zero lint, typecheck, or build regressions in `@app/editor`.
+
+---
+
+## Previous Session — "Format Note" & Selection Markdown Normalizer (Zero-Dependency Custom Formatter)
+
+1. **Zero-Dependency Markdown Normalizer (`packages/editor/format/`)**:
+   - Built a custom markdown normalizer with pure functions and zero runtime dependencies:
+     - `formatMarkdown.ts`: Main orchestrator preserving line wrapping, removing excess blanks, normalizing headers/lists/tables, and ensuring clean document endings.
+     - `protectedRegions.ts`: Masks and byte-identically preserves YAML frontmatter, fenced code blocks, inline code, wikilinks `[[note|alias]]`, embeds `![[...]]`, tags `#tag`, callouts `> [!note]`, comments `%%...%%`, and the primary H1 title (preventing unwanted title-driven file renames per ADR-0060).
+     - `tableFormatter.ts`: Automatically formats markdown table columns with neat column padding and standard separator alignments.
+     - `listFormatter.ts`: Normalizes unordered list markers to `- ` with clean 2-space nesting while preserving task checkboxes `[ ]`/`[x]`.
+     - `spacingFormatter.ts`: Trims trailing line whitespace, collapses 3+ empty lines down to 1, and enforces clean structural spacing around headings, lists, code blocks, and tables.
+2. **CodeMirror Transaction & Single-Undo Integration (`formatEditorDocument.ts`)**:
+   - Implemented `formatEditorDocument(view, options)` with minimal diff computation (`minimalDocumentChange`), preventing unnecessary document disruption and preserving cursor/selection and scroll offsets.
+   - Dispatches changes within a single CodeMirror transaction tagged `userEvent: "format"`. A single `Cmd+Z` / `Ctrl+Z` immediately reverts the entire format in one step.
+   - Detects whether text is selected to toggle between "Format note" and "Format selection".
+3. **UI Entry Points & Settings (`EditorArea.tsx`, `EditorMenuBar.tsx`, `EditorContextMenu.tsx`, `FormatToast.tsx`, `CommandPalette.tsx`, `EditorSettingsTab.tsx`)**:
+   - Added "Format note" to the editor header `...` menu (`EditorMenuBar.tsx`).
+   - Added "Format note" command to the Command Palette (`⌘⇧P` / `Ctrl+Shift+P`) and wired global shortcut `Cmd+Shift+F` / `Ctrl+Shift+F`.
+   - Added right-click context menu (`EditorContextMenu.tsx`) following "Less Boxes Always" flat-row design offering "Format selection" (when selected) or "Format note".
+   - Added floating status toast (`FormatToast.tsx`) displaying `"Formatted · Undo"` with 1-click instant undo button, or `"Already tidy"` when no modifications were needed.
+   - Added "Format on save" toggle in Settings > Editor (`EditorSettingsTab.tsx`), stored persistently in SQLite settings and integrated into note-saving lifecycle (`performSaveNote.ts` wrapped in `withVaultWatchSuppressed` to guarantee zero file-watcher feedback loops).
+4. **Verification**:
+   - Idempotence: Second format pass returns `changed: false` with 0 diffs.
+   - Benchmark: 9,009-line / 170k-character benchmark note formatted in **65.23 ms** (first pass) and **59.30 ms** (second pass) — well under 100ms threshold without blocking typing.
+   - Protected regions: Fixture note verified byte-identical across frontmatter, H1, wikilinks, embeds, callouts, inline code, fenced code, and comments.
+   - All unit and integration test suites pass (13/13 tests in `@app/editor/format`, 274/274 in `@app/editor`, 172/172 across desktop editor/command palette).
+
+---
+
+## Previous Session — Record Page AI Agent Integration & Free Groq Whisper / Local Transcription Setup
+
+1. **Record Page Unified AI Agent Integration (`RecordAgentPicker.tsx`, `resolveRecordPageAIProvider.ts`, `useMeetingAgentChat.ts`, `useMeetingAssistant.ts`, `useAIListeningEngine.ts`, `useLiveSummaries.ts`, `useMeetingAIUpdater.ts`)**:
+   - Created `RecordAgentPicker.tsx` (242 lines) and `RecordAgentPicker.module.scss` (132 lines) following the canonical `EditorMenuBarDropdown` / "Less Boxes Always" flat-row design standard, embedded in `RecordingTopBar.tsx`, `AIListeningPanel.tsx`, and `MeetingAssistantPanel.tsx`.
+   - Syncs directly with `useAgentStore` so the Record page uses the exact same AI Agents available on the AI Agent page (`Sophia Assistant`, `OpenCode`, `Claude Code`, `Codex CLI`, `Antigravity CLI (agy)`, plus Cloud/Groq and local Ollama models).
+   - Created `resolveRecordPageAIProvider.ts` (192 lines) to route Record page AI operations (`useAIListeningEngine`, `useLiveSummaries`, `useMeetingAIUpdater`, `useMeetingAssistant`) through the selected CLI agent (`startCliAgentSession` + `subscribeCliAgentStream`), Groq Cloud free-tier LLM (`llama-3.3-70b-versatile`), or configured Sophia LLM provider.
+   - Updated `useMeetingAgentChat.ts` (144 lines) to pass `selectedCliAgent`, `selectedProvider`, `selectedModel`, `webSearchEnabled`, `vaultPath`, `vaultName`, `conversations`, and `activeConversationId` from `useAgentStore` and `useWorkspaceStore` into `useAgentExecution`, and fixed `isChatExecuting` wiring in `useListeningSession.ts`.
+   - Made the `davinci://agent` badge in `MeetingAgentChatFeed.tsx` clickable to navigate directly to the synced conversation thread on the AI Agent page.
+2. **Free Groq Whisper & Local Whisper Speech-to-Text Transcription (`transcription_local.rs`, `transcription_cloud.rs`, `transcription_commands.rs`, `ai_auth.rs`, `TranscriptionSettingsCard.tsx`, `useLiveSpeechRecognition.ts`, `rerunAudioTranscription.ts`)**:
+   - Added `transcription_local.rs` (135 lines) in Rust to detect and run free offline Whisper CLI binaries (`mlx_whisper`, `whisper-cli`, `whisper-cpp`, `whisper`) and filter Whisper silence hallucinations.
+   - Updated `transcription_cloud.rs` (102 lines) and `ai_auth.rs` (75 lines) to default to Groq Whisper's fast free-tier model (`whisper-large-v3-turbo` at `https://api.groq.com/openai/v1/audio/transcriptions`), automatically resolving keys from OS Keychain (`ai-transcription:groq`, `groq`, `ai-listening:groq`, `whisper`) or environment (`GROQ_API_KEY`) and falling back to local Whisper CLI when offline or keyless.
+   - Added `transcribe_live_recording_chunk` and `detect_transcription_tools` Tauri commands in `transcription_commands.rs` (172 lines) to slice active 16kHz PCM audio from `AudioCaptureManager.pcm_buffer`, check RMS speech energy, and transcribe live chunks during recording.
+   - Created `TranscriptionSettingsCard.tsx` (210 lines) in `AIListeningSettingsTab.tsx` (244 lines) to configure the Free Transcription Engine (`auto`, `groq-whisper`, `local-whisper`, `web-speech`), Groq Whisper model (`whisper-large-v3-turbo`, `whisper-large-v3`, `distil-whisper-large-v3-en`), and OS Keychain Groq API key.
+   - Updated `useLiveSpeechRecognition.ts` (211 lines) and `useListeningSession.ts` (247 lines) to combine live Whisper chunk polling with Browser Web Speech API and normalize segment timestamps (`startMs`, `endMs`, `timestampMs`).
+3. **Verification**:
+   - Added `RecordAgentAndGroqWhisper.test.tsx` (4 tests) and `RecordAgentPicker.stories.tsx`.
+   - All 23 test files (81 tests) across `ListeningView` and `AIListeningSettingsTab` pass.
+   - `cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml` passed with 0 errors.
+   - All modified files verified under the 250-line hard cap.
+
+---
+
+## Previous Session — Complete Vault Instructions Execution, Created Folder Display & Direct Click-to-Open Folder Navigation
+
+1. **Universal Complete Vault Instruction Execution (`agentCliVaultSync.ts`, `agentCliRunner.ts`, `agentStepLoop.ts`, `agentDispatchSession.ts`)**:
+   - Created `agentCliVaultSync.ts` (236 lines) to parse `<vault_action>` tags (`create_folder`, `create_note`, `edit_note`, `append_to_note`, `move_note`) and conversational tool calls (`extractConversationalToolCalls`), immediately applying them to the active vault via `mutationBackend` with real-time progress logs.
+   - Syncs any direct filesystem changes made by CLI agents on disk (`listFolders()` / `listNotes()`) into `useWorkspaceStore` (`updateAllFolderPaths` / `updateAllPaths`) and records applied `toolCalls` & `toolResults`.
+   - Implemented `ensureParentFolderToolCalls`: Automatically surfaces parent folders as applied `create_folder` actions whenever nested notes (e.g. `Story/Nadine.md`) are created, ensuring the created folder is always displayed to the user.
+   - Updated `agentStepLoop.ts` (235 lines) to collect all executed `toolCalls` and `toolResults` across multi-step tool executions and attach them to the assistant message.
+   - Updated `cli_agent_runner.rs` (223 lines) to strip ANSI escape sequences and classify non-error status lines (`> build ...`) as `"thought"` instead of `"error"`.
+2. **Created Folder Display & Click-to-Open Navigation (`AgentToolCallList.tsx`, `AgentMarkdownContent.tsx`, `AgentMessageBubble.tsx`, `AgentActiveChat.tsx`)**:
+   - Upgraded `AgentToolCallList.tsx` (239 lines) with interactive flat action rows:
+     - Created folders show `Folder created: "<path>"` with `"Open folder →"`. Clicking the folder row immediately opens/reveals the folder in the application's File Explorer (`FileTree`), expands an inline list of notes inside that folder for instant 1-click note access, and provides a `"Reveal in system file manager"` button (`show_in_folder`).
+     - Created/updated notes show `Created note "<path>"` / `Updated note "<path>"` with `"Open note →"`, opening the note directly in the editor when clicked.
+   - Enhanced `AgentMarkdownContent.tsx` (242 lines) so inline backticked folder/note paths (e.g. `` `Story` `` or `` `Story/Nadine.md` ``) and `[[wikilinks]]` pointing to folders or notes are clickable and open the folder or note.
+   - Wired `onNavigateNote` and `onNavigateFolder` in `AgentActiveChat.tsx` (151 lines) and `AgentMessageBubble.tsx` (235 lines).
+3. **File Explorer Folder Reveal & Auto-Expansion (`useWorkspaceStore.ts`, `useTreeExpandedFolders.ts`, `FileTree.tsx`, `FileTreeList.tsx`, `AppSidebar.tsx`, `App.tsx`)**:
+   - Added `revealedFolderPath`, `revealFolderNonce`, and `revealFolderInTree(folderPath)` in `useWorkspaceStore.ts` (178 lines), dispatching `"davinci:reveal-folder"`.
+   - Updated `AppSidebar.tsx` (246 lines) and `App.tsx` so clicking a folder link in `AgentView` automatically opens the left sidebar and switches to `FileTree` while keeping the conversation open.
+   - Updated `useTreeExpandedFolders.ts` (108 lines), `FileTree.tsx` (220 lines), and `FileTreeList.tsx` (164 lines) to automatically expand the target folder (and its ancestors) and highlight it as active/selected.
+4. **Verification**:
+   - Added `AgentFolderLinkAndCompleteInstructions.test.tsx` (3 tests) — all 16 tests across 5 core AgentView test suites pass.
+   - `cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml` passed cleanly.
+   - All modified files verified under the 250-line hard cap.
+
+---
+
+## Previous Session — Fix Conversation Message Persistence on Page Close & Immediate Vault Note Creation/Editing with Real-Time Progress
+
+1. **Fixed Conversation Messages Disappearing When Closing & Re-Opening the AI Agent Page (`useAgentExecution.ts`, `agentDispatchSession.ts`, `agentLlmRunner.ts`, `AgentView.tsx`)**:
+   - **Root Cause**: In `useAgentExecution.ts`, `finally` set `waitingForRevealRef.current = true` instead of calling `setIsStreaming(false)`. Because `completeResponseReveal` was never triggered in the UI, `isStreaming` remained `true` forever after the first message completed, which blocked `AgentView.tsx`'s persistence `useEffect` (`if (!activeConversationId || messages.length === 0 || isStreaming) return;`). When closing the AI Agent tab, `AgentView` unmounted without ever persisting the new turns.
+   - **Fixes**:
+     - Always call `setIsStreaming(false)` in `useAgentExecution.ts`'s `finally` block so the streaming state cleanly resets after each turn.
+     - Immediately persist user turns via `useAgentStore.getState().saveActiveMessages(nextMessages)` as soon as a message is submitted.
+     - Immediately persist assistant turns inside `agentDispatchSession.ts` (CLI completion) and `agentLlmRunner.ts` (LLM completion).
+     - Added unmount cleanup in `AgentView.tsx` using `messagesRef` and `activeConversationIdRef` to flush any unsaved messages if the user closes the AI Agent page mid-conversation, plus hydration recovery when re-mounting `AgentView`.
+2. **Fixed Vault Note Creation/Editing & Added Real-Time Progress (`cli_agent_runner.rs`, `executeAgentStepTool.ts`, `agentStepLoop.ts`, `agentCliRunner.ts`)**:
+   - **CLI Headless Write Permissions (`cli_agent_runner.rs`)**: Added non-interactive auto-approval flags so CLI agents can create and edit files in the vault without hanging on stdin permission prompts (`opencode run --auto <prompt>`, `claude -p <prompt> --dangerously-skip-permissions`, `codex exec --dangerously-bypass-approvals-and-sandbox <prompt>`).
+   - **Immediate Vault Mutations (`executeAgentStepTool.ts`)**: Removed the `isDestructive` confirmation block on `edit_note` and `move_note` when `autoApply` is enabled so note edits and creations execute directly on the vault.
+   - **Granular Live Progress Logs (`agentStepLoop.ts`)**: Added real-time step-by-step progress log emission before and after every tool execution (`Creating note "X" in vault...`, `Updating note "X" in vault...`, `Appending to note "X" in vault...`, `✓ Applied create_note on "X"`, etc.) so the user sees live progress in the Activity panel and action badges.
+3. **Verification**:
+   - Added unit test suite `AgentVaultOperationsAndPersistence.test.ts` testing multi-turn persistence on previously opened conversations and live vault note creation/editing progress events.
+   - All 32 unit tests across 8 AgentView test suites pass (`pnpm --filter @app/desktop exec vitest run ...`).
+   - `cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml` passed cleanly.
+   - All modified files verified under the 250-line hard cap.
+   - Graphify knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Active Vault Anchoring & Direct Read/Edit Operations for AI Agents
+
+1. **Active Vault Anchoring for AI Agents**:
+   - Anchored internal LLM (Sophia Assistant) and CLI agents (`opencode`, `codex`, `agy`, `claude`) directly to the currently opened vault in the application.
+   - Updated `agentSystemPrompt.ts`: System prompt now includes `vaultName`, exact filesystem `vaultPath`, note inventory of up to 60 notes, and strict instructions that the agent is embedded in and ALWAYS points to the active opened vault.
+   - Proactive vault inspection: The agent is instructed to proactively consult `search_vault` and `read_note` before answering questions about user notes, stories, characters, or tasks.
+2. **Permanent Unrestricted Vault Tool Access**:
+   - In `agentPromptResolver.ts`, removed intent-based tool stripping where "chat" intent previously stripped all vault tools.
+   - The agent now permanently retains the full suite of vault inspection tools (`read_note`, `search_vault`, `list_vault_tree`) and mutation tools (`create_note`, `edit_note`, `append_to_note`, `create_folder`, `move_note`, `save_memory`).
+3. **CLI Agent Opened Vault Workspace Context**:
+   - In `agentCliRunner.ts` and `agentDispatchSession.ts`, injected the `[Active Vault Workspace]` block into all CLI prompts.
+   - Supplies the CLI agent with the active vault name, vault directory path, note inventory, and instructions that it executes directly inside the opened vault and has full permission to read and edit notes on disk.
+4. **Resilient Vault Path Resolution (`desktopAgentBridge.ts`)**:
+   - Added `normalizeVaultPath`: Handles path resolution across relative paths, missing `.md` extensions, leading slashes, and case-insensitive matching against `allNotePaths`.
+   - Applied to `readNote`, `writeNote`, `deleteNote`, and `moveNote` in `desktopAgentBridge.ts`.
+5. **Verification**:
+   - Unit tests passed: `AgentVaultAnchoring.test.ts` (3 tests), `agentSystemPrompt.test.ts` (3 tests), `agentCliRunner.test.ts` (2 tests), `projectMemoryIsolation.test.ts` (6 tests), `agentSlashCommandHandler.test.ts` (8 tests), `AgentAvailabilityBanner.test.tsx` (3 tests), `AgentSidebarPanel.test.tsx` (5 tests) — 30/30 passed.
+   - `cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml` passed in 0.95s.
+   - Line counts: All files strictly verified under 250-line hard cap (range: 64 to 236 lines).
+   - Graphify knowledge graph updated via `graphify update .`.
+
+---
+
+## Next Up
+
+- Stage, commit, and open pull request on `feat/ai-agent-library-board-project-chats`.
+- Run preflight checks if cutting a release.
+
+---
+
+## Previous Session — Project-Wide Cross-Conversation Memory & Shared Context Sharing
+
+---
+
+## Previous Session — AI Agent LLM Availability, Live CLI Streaming, Slash Commands & Project Memory
+
+---
+
+## Previous Session — AI Library Markdown Vault Direct Editing & Project Prompt Bar Specialization
+
+---
+
+## Previous Session — Browser Bookmark Importer Fix, Website Covers & Direct Link Navigation
+
+**Scope:** Fulfilled user requests for browser bookmarks import, website cover preview thumbnails, and direct external link navigation:
+1. **Browser Bookmark Import Fix (`WebBookmarkImportModal.tsx`, `WebBookmarkBrowserGrid.tsx`, `browserBookmarkImporter.ts`)**:
+   - Added direct 1-click "Import" action button on every detected browser row in `WebBookmarkBrowserGrid.tsx` for immediate 1-click import.
+   - Automatically pre-selects and loads the summary for the first detected browser on modal mount, ensuring the primary "Import" button is never inert or blocked.
+   - Handled both camelCase `{ browserId }` and snake_case `{ browser_id }` Tauri IPC parameter casing, with dev/testing fallback in non-Tauri environments.
+   - Refactored parsers into `browserBookmarkParsers.ts` and `browserBookmarkFallback.ts` to strictly maintain the <250 line constraint across all modules.
+2. **Website Cover Previews (`WebBookmarkCover.tsx`, `bookmarkStorage.ts`, `WebBookmarksCardsView.tsx`, `WebBookmarkListRow.tsx`, `WebBookmarksMoodboardView.tsx`, `WebBookmarksHeadlinesView.tsx`)**:
+   - Implemented `WebBookmarkCover.tsx` featuring a 3-tier cascading fallback:
+     1. High-resolution website cover/screenshot (`https://image.thum.io/get/width/600/crop/800/noanimate/${url}`).
+     2. Cascading high-resolution favicon fallback (`https://www.google.com/s2/favicons?domain=${domain}&sz=128`).
+     3. Domain badge & Globe placeholder if network fails or offline.
+   - Updated `bookmarkStorage.ts` to persist `cover`, `note`, and `trashed` properties.
+   - Integrated `WebBookmarkCover` across Cards, List rows, Headlines, and Moodboard views.
+3. **Direct Link Navigation Icon (`ArrowSquareOut`)**:
+   - Added explicit external link buttons (`ArrowSquareOut` from `@phosphor-icons/react`) with tooltip "Open link in browser" and `aria-label="Open link in browser"`.
+   - Clicking the link icon immediately opens the external URL in the browser via `onOpenExternal(item.url)`.
+   - Placed link icons next to domain names and in row/card action bars.
+4. **Verification & Testing**:
+   - Added unit test suite `WebBookmarkCover.test.tsx` and Storybook story `WebBookmarkCover.stories.tsx`.
+   - Added end-to-end user interaction tests in `WebBookmarksView.test.tsx` verifying direct link opening and 1-click browser import.
+   - All 63 tests across 11 test files in `src/bookmarks` and `src/components/BookmarksView` pass with 100% green status.
+
+---
+
+## Next Up
+
+- Optional drag-and-drop support for re-ordering or moving bookmarks between collections.
+- Visual regression snapshots for `WebBookmarkImportModal`.
+
+   - Untracked files (`?`) display `U` in green `#2ea043` matching VS Code status conventions.
+   - Added `#` icon support for CSS/SCSS styles, atom icon `⚛` for React JSX/TSX, info circle `(i)` for markdown/README, and `TS` badge for TypeScript/JavaScript.
+   - Pinned `.git-status-row__trailing` with `margin-left: auto; flex-shrink: 0;` to guarantee status badges remain right-aligned and visible.
+   - Added `scss-modules.d.ts` to `packages/git-manager` and updated graphify knowledge graph.
+8. **Diff Viewer Font Size (`gitDiffTheme.ts`, `GitDiffViewer.module.scss`)**:
+   - Updated CodeMirror diff viewer font size from `24px` to `20px` and enabled scrolling within the diff viewer container.   - Scaled `.cm-content`, `.cm-line`, `.cm-mergeView`, `.cm-mergeViewEditors`, and gutter line numbers (`.cm-gutterElement`) to `24px`.
+9. **Quality & Verification**:
+   - All 14 test files (50 tests) in `@app/git-manager` passing.
+   - Desktop production build verified (`pnpm --filter @app/desktop build:web`) in 10.10s.
+   - Knowledge graph updated (`graphify update .`).
+
+---
+
+## Next Up
+
+- Add optional staging hunk-by-hunk gutter click in diff viewer.
+- Add Stash and Cherry-pick quick actions to the `...` more actions menu in `GitChangesSection`.
+
+---
+
+**Scope:** Fulfilled prompt requirements for the meeting workspace navigation, detail views, and right-side AI companion:
+1. **Right-Side AI Meeting Assistant Panel ("Ask Fred") (`MeetingAssistantPanel.tsx`, `useMeetingAssistant.ts`)**:
+   - Implemented the right-side Ask Fred panel matching the 3-column reference dashboard layout alongside `AllMeetingsView`.
+   - Header with Robot avatar badge, chat history button, new conversation (`+`) button, and close/collapse button.
+   - Welcome greeting (`Hi AHMED! Get ready for your meeting`) with sparkle icon.
+   - Quick action prompt chips:
+     - 📌 **Key initiatives**: Intelligently summarizes key roadmap initiatives and action items across meetings in the vault.
+     - 📝 **Summarize the channel**: Synthesizes a structured overview of all meetings recorded in the channel.
+     - 💬 **Product feedback**: Extracts customer/user feedback points and UX takeaways.
+   - Conversational chat thread with user bubbles, assistant bubbles, timestamps, and typing animation (`Thinking... ▋`).
+   - Query input box with `# All Meetings` channel chip, attachment (`+`), skills catalog (`Stack`), voice query (`Microphone`), and send (`ArrowUp`) controls.
+2. **All Meetings Hub & Detail Views (`AllMeetingsView.tsx`, `MeetingsBoardView.tsx`, `MeetingDetailView.tsx`, `MeetingAudioPlayer.tsx`)**:
+   - All meetings loaded from the vault's `Meetings/` folder and parsed via `meetingsParser.ts`.
+   - Dual view modes: Filterable list view and Kanban board view ("This Week", "This Month", "Earlier").
+   - Meeting Detail view displaying:
+     - Audio recording player with waveform simulation, play/pause, time scrubber, speed selector (1x-2x), and mute toggle.
+     - Tabbed navigation between AI Insights (Executive Summary, Action Items, Q&A, Follow-up Questions, Related Notes) and full Transcript with speaker tags and timestamps.
+     - Direct "Open Note" button to open the markdown file in the editor.
+3. **Ghost Showcase Empty State (`MeetingShowcaseEmpty.tsx`)**:
+   - Reused across the recording view and the empty All Meetings state to display the ghost cards wireframe (`K`, `A`, `R` avatars) and "Let a voice agent take your meetings" showcase.
+4. **Navigation & Sidebar Enhancements**:
+   - Hidden FileTree: Completely collapses the left sidebar FileTree when the listening/record page is active (`isListeningOpen`), matching Todos behavior.
+   - Simplified sidebar: Retains only "All Meetings" and "New Recording" with bottom Settings icon navigation.
+   - Direct Settings access: Gear icon opens `SettingsDialog` directly to the `ai-listening` tab.
+5. **Verification & Quality**:
+   - 43 unit tests passing in `src/components/ListeningView/` across 10 test files.
+   - 0 ESLint errors; all files strictly under the 250-line hard cap (most under 150-200).
+   - Knowledge graph updated with `graphify update .`.
+
+---
+
+## Previous Session — Recording Page UI Redesign & Real-Time AI Listening Streaming
+
+**Scope:** Fulfilled Recording Page UI redesign and AI Listening stream specifications:
+1. **Three-Column Reference Layout (`MeetingsSidebar.tsx`, `ListeningVisualizer.tsx`, `TranscriptFeed.tsx`, `AIListeningPanel.tsx`)**:
+   - Matches the reference image layout, spacing, colors, and controls strictly adhering to design system tokens.
+   - Left sidebar (`MeetingsSidebar`): `# My Meetings`, `All Meetings`, `Voice Agent Meetings` (active accent state), `Uploads` (with `NEW` badge), `All channels` section, and `+ Channel`.
+   - Center workspace: Top action bar (Filters & Search), `ListeningVisualizer` with 16 dynamic waveform bars, recording timer, recording controls (Record, Pause, Resume, Stop, Discard), and dual switches for `[Transcript]` and `[AI Listening]`.
+   - Smart Transcript feed (`TranscriptFeed`): Displayed directly under visualizer when toggled ON. Auto-scrolls to newest segments; automatically pauses auto-scrolling when user scrolls up, showing a "↓ Latest transcript" button to return to bottom. When toggled OFF, displays the clean reference conversation bubble showcase.
+2. **Real-Time AI Listening Engine & Lazy-Loaded Panel (`useAIListeningEngine.ts`, `aiListeningEngine.ts`, `AIListeningPanel`)**:
+   - Off by default: When toggle is OFF, 0 AI requests are sent and the panel is lazy-loaded (`React.lazy`), incurring 0 overhead.
+   - When ON, reads rolling transcript window (last 2.5 minutes + running summary) on a 25s throttle timer (never per word). Cancels in-flight requests via `AbortController` if superseded.
+   - Non-blocking error handling: Failures or rate limits display a discreet banner and never interrupt recording or transcription.
+   - Streams live summary, suggested answers to questions asked in conversation, and follow-up questions to steer the meeting.
+   - Each answer and question item is timestamped, with "Save to note" and "Dismiss" buttons.
+   - Reference query input at bottom with channel chip (`# Voice Agent Meetings`), quick skill icons, and send button.
+3. **Dedicated Settings Tab (`AIListeningSettingsTab.tsx`, `SettingsDialog.tsx`)**:
+   - New `AI Listening` tab in `SettingsDialog` with provider selection (Google Gemini, OpenAI-compatible, OpenRouter, Ollama), OS keychain API key storage, model configuration, and throttle interval.
+   - Displays clear warning on Google Gemini privacy regarding free-tier model training.
+4. **Markdown Persistence (`meetingNoteActions.ts`)**:
+   - Extended `renderMeetingMarkdown` to persist live summary, accepted/saved answers (`## Q&A`), suggested follow-up questions (`## Suggested Follow-up Questions`), and transcript into the meeting note markdown.
+5. **Verification & Quality**:
+   - 45 unit tests passing across `aiListeningEngine`, `AIListeningComponents`, `useAIListeningEngine`, `ListeningView`, `meetingNoteActions`, and `AIListeningSettingsTab`.
+   - Every file strictly under the 250-line hard cap (most under 150-200).
+   - Knowledge graph updated with `graphify update .`.
+   - Logged in [ADR-0252](docs/adr/0252-realtime-ai-listening-streaming-and-recording-ui.md) and indexed in `DECISIONS.md`.
+
+---
+
+## Last Session — Empty Project Support, Focus Mode Dialog Card, Removed Vault Headers
+
+**Scope:** Fulfilled prompt #14 refinements for Todos & Focus Mode:
+1. **Empty Project Support (`useTodosData.ts`, `TodosView.tsx`, `TodosView.module.scss`)**:
+   - `createProject` now creates only the project folder under `todos/` without automatically generating starter note files.
+   - Empty projects are fully supported in the sidebar and main view with a helpful empty state and an "+ Add first todo note" button.
+2. **Focus Mode as a Separate Modal Dialog (`TodoFocusView.tsx`, `TodoFocusView.module.scss`)**:
+   - Focus Mode is rendered as a centered modal dialog card (`420px` wide, `740px` tall) over a blurred backdrop overlay, mimicking a separate mobile widget/dialog like QuickCapture.
+   - Includes top navigation with "← Back to App" and a dedicated Close (<kbd>X</kbd>) button, and closes on backdrop click or <kbd>Esc</kbd>.
+   - Removed window resizing tricks that failed silently under Tauri desktop.
+3. **Removed Vault Adding & Vault Header from Todos Page (`TodosSidebar.tsx`, `TodosView.tsx`)**:
+   - Replaced `{vaultName || "Projects"}` in the sidebar header with a clean, static **"Projects"** label.
+   - Removed the ambiguous `+` button from the section header that looked like "add vault"; project creation is handled solely by the unambiguous `+ Add Project` button below the list.
+4. **Verification & Quality**:
+   - All 39 unit tests passing across TodosView, AppSidebar, IconRail, AppTabs.
+   - 0 ESLint errors; 0 Stylelint errors.
+   - Knowledge graph updated with `graphify update .`.
+
+---
+
+## Last Session — Vault Folders as Projects, Delete Project, Hide FileTree, Dynamic Focus Mode Window
+
+**Scope:** Fulfilled prompt #13 requirements for Todos & Focus Mode:
+1. **Projects Match Vault Todos Folder Names (`useTodosData.ts`, `types.ts`)**:
+   - Subfolders under `todos/` (e.g. `todos/Design/`, `todos/Marketing/`) are directly mapped as Projects with the exact folder name.
+   - Markdown files inside each folder represent todo lists/notes under that project (e.g. `Marketing Site.md`, `Admin Dashboard.md`).
+   - "Add Project" creates a folder under `todos/` in the vault via `createFolder` and an initial starter note via `createNoteInVault`.
+   - "Add Todo" creates a new `.md` file inside that project's folder (`createTodoNote`).
+2. **Delete Project Option (`TodosSidebar.tsx`, `useTodosData.ts`)**:
+   - Added hover delete trash button next to each project in the Todos sidebar.
+   - Calling delete deletes the folder and all child notes from the vault on disk via `deleteFolderInVault`, clearing SQLite indexes and workspace store.
+   - Also added delete trash button on individual todo notes.
+3. **Hide FileTree on Todos Page (`AppSidebar.tsx`, `App.tsx`, `IconRail.tsx`)**:
+   - When on the Todos page (`davinci://todos`), `isCollapsed={!isLeftSidebarOpen || activeNotePath === TODOS_TAB_ID}` and `isTodosOpen ? null : <FileTree>` ensures the vault FileTree is never rendered or leaked.
+   - Updated `IconRail` active indicator to exclude Todos and clicking "Files" seamlessly returns to notes.
+4. **Dynamic Focus Mode Window Sizing & Bottom Input Removal (`TodoFocusView.tsx`, `TodoFocusView.module.scss`)**:
+   - Focus Mode dynamically resizes the Tauri window to a compact mobile/widget size (`new LogicalSize(420, 780)`) and centers it on mount.
+   - Exiting via "Back to App" or Escape key restores the user's previous window size and maximized state.
+   - Removed bottom floating input bar (`.focus-view__floating-bar`) completely from `TodoFocusView.tsx` and `TodoFocusView.module.scss`.
+5. **Verification & Quality**:
+   - All 38 unit tests passing across TodosView, AppSidebar, IconRail, AppTabs.
+   - 0 ESLint errors; all files under line limits.
+   - Knowledge graph updated with `graphify update .`.
+
+---
+
+## Last Session — Compact Focus Mode Redesign, Vault Name Projects & Clean Sidebar
+
+**Scope:** Addressed prompt #12 user adjustments:
+1. **Compact Mobile Widget Focus Mode (`TodoFocusView.tsx`, `TodoFocusView.module.scss`, `todoFocusUtils.ts`)**:
+   - Redesigned Focus Mode layout to match the provided mobile design mockup (`uploaded_media_1793626919814.jpg`) with compact container (`max-width: 420px; margin: 0 auto;`).
+   - Day title in elegant serif font ("Monday", etc.) with ordinal date ("July 28th, 2025") and `<` `>` day navigation arrows.
+   - Soft category pills (`☼ MORNING (4) ∨`, `☼ DAY (0) ∨`, `☾ EVENING (4) ∨`) with `+` action.
+   - Rounded task cards with emoji avatar on left, task title & time range/notes subtitle, and circular checkbox on right.
+   - Dashed `ADD TASK +` buttons under sections.
+   - Bottom floating input pill with purple cursor indicator (`| Create task`), microphone icon, and black circular `↑` send button.
+   - Clean `← Back to App` exit button.
+2. **Vault Name & Removed Add Folder / Labels (`useTodosData.ts`, `TodosSidebar.tsx`)**:
+   - Project section in sidebar is now titled with the vault's name (`vaultName`), representing folders in the vault.
+   - Removed "Add Folder" button from the todos sidebar (only "+ Add Project" exists).
+   - Removed "Labels" section completely from the sidebar.
+3. **No Unrequested Sample File Creation (`useTodosData.ts`)**:
+   - Removed automatic seeding of sample markdown files into the vault; if a file/folder does not exist, the app does not create it.
+4. **Verification & Quality**:
+   - All 32 unit tests passing (`TodosView`, `todoParser`, `IconRail`, `AppTabs`).
+   - 0 ESLint errors; all files strictly under 200 lines.
+
+---
+
+## Last Session — Todos Motherboard View, Full-Screen Focus Mode & Vault Folder Sync
+
+**Scope:** Fulfilled prompt #11 improvements for the Todos feature:
+1. **Full-Screen Isolated Focus Mode (`TodoFocusView.module.scss`, `TodoFocusView.tsx`)**:
+   - Upgraded `.focus-view` to `position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 999999;` to completely take over the viewport and hide all underlying application chrome (file tree, icon rail, app tabs, right sidebar, headers).
+   - Distraction-free checklist with "← Back to App" returning to the full application.
+2. **Direct Vault `todos/` Folder & Project Synchronization (`useTodosData.ts`, `TodosSidebar.tsx`)**:
+   - Removed "Workspaces" and "Invite Members" completely.
+   - Folders and Projects in the sidebar now directly reflect folders and markdown files inside the vault's `todos/` folder.
+   - Creating a project or folder in the Todos page writes directly into `todos/` via `createNoteInVault` and `createFolderInVault`.
+   - Creating or renaming folders/notes in `todos/` via the standard vault file tree is automatically reflected in the Todos page without a reload.
+3. **Cleaned Section Headers (`TodosView.tsx`, `TodoSectionBlock.tsx`)**:
+   - Removed the calendar button and the `...` (more actions) button from section headers as requested.
+4. **Motherboard View with Cards and List Layouts (`TodosMotherboard.tsx`, `TodosMotherboard.module.scss`, `TodosHeader.tsx`)**:
+   - Added a "Motherboard" dashboard view displaying all vault tasks across all projects with dynamic task count badge.
+   - Layout switcher in the header: **Cards view** (responsive grid of task cards with project badges, due dates, linked notes, subtasks, and focus action) and **List view**.
+   - Filtering by name/search, month pills (`All Tasks`, `Aug`, `Nov`), and status/date pills (`All Status`, `Pending`, `Completed`, `With Due Date`).
+5. **Verification & Quality**:
+   - All 31 unit tests passing (`TodosView`, `todoParser`, `IconRail`, `AppTabs`).
+   - 0 ESLint errors; all files strictly under 200 lines.
+
+---
+
+## Last Session — Fix IconRail Navigation to Todos Page
+
+**Scope:** Resolved issue where clicking the rail icon did not open the Todos page:
+1. **Virtual Tab URI Scheme (`apps/desktop/src/components/TodosView/index.ts`)**:
+   - Changed `TODOS_TAB_ID` from `"__todos__"` to `"davinci://todos"`.
+   - In `createNoteNavigationActions.ts`, any path that does not start with `davinci://`, `git-diff://`, or an image extension is treated as a physical disk file and passed to `readNote(path)`. With `"__todos__"`, `readNote` failed to find the file and aborted navigation before setting the active note tab. With `davinci://todos`, it is correctly identified as a virtual internal page and activated immediately.
+2. **IconRail Toggle Behavior (`apps/desktop/src/App.tsx`)**:
+   - Updated `onOpenTodos` to toggle the Todos tab closed (`closeNote(TODOS_TAB_ID)`) if already active, or collapse the sidebar and open `davinci://todos` if not currently active.
+3. **Verification**:
+   - All 30 unit tests across `TodosView`, `IconRail`, and `AppTabs` passing.
+   - 0 ESLint errors.
+
+---
+
+## Last Session — Vault Todos Dashboard & Focus Mode with Icon Rail Integration
+
+**Scope:** Implemented dedicated Todos view and minimal Focus Mode matching the user's provided UI mockups:
+1. **Todos Dashboard (`apps/desktop/src/components/TodosView`)**:
+   - Built full todo dashboard reading all notes in vault `todos/` folder (`useTodosData.ts`, `todoParser.ts`, `types.ts`).
+   - Workspaces and Projects sidebar (`TodosSidebar.tsx`, `TodosSidebar.module.scss`) with tree hierarchy, active state, and project creation.
+   - Header (`TodosHeader.tsx`, `TodosHeader.module.scss`) with search input, dynamic month filter pills (`All Tasks`, `Aug`, `Nov`, etc.), and prominent "Focus Mode" button.
+   - Task list with sections (`TodoItemRow.tsx`, `TodoItemRow.module.scss`, `TodosView.tsx`, `TodosView.module.scss`):
+     - Checkbox toggle with strike-through styling.
+     - Inline text editing with save-on-blur/Enter.
+     - Due date badges (`[01 Aug]`).
+     - Wikilink badges (`[[UX Guide]]`) with direct navigation to linked notes.
+     - Subtasks counter badges (`:= 3`).
+     - Label badges.
+     - Reminder scheduling button (`(@YYYY-MM-DD HH:MM)`).
+     - Focus mode icon button per item to isolate tasks.
+2. **Focus Mode (`TodoFocusView.tsx`, `TodoFocusView.module.scss`)**:
+   - Clean, distraction-free view matching the second mockup with collapsible categories (`▼ Morning`, `▼ Workload`, `▼ Night`).
+   - Clean task checkboxes with emoji labels and inline task addition.
+   - Top action bar with "← Back to App" button returning to full app.
+3. **App Integration & Navigation**:
+   - Added `CheckSquare` navigation button to `IconRail.tsx`, passing through `AppSidebar.tsx`.
+   - On opening Todos via IconRail, automatically closes the file tree (`setIsLeftSidebarOpen(false)`).
+   - Added `TODOS_TAB_ID = "__todos__"` tab handling in `AppTabs/AppTabItem.tsx` with dedicated icon and title.
+   - Lazy loaded `LazyTodosView` in `App.tsx`.
+4. **Verification & Testing**:
+   - Unit tests in `todoParser.test.ts` (6 tests passing) and `TodosView.test.tsx` (5 tests passing).
+   - Component stories in `TodosView.stories.tsx` and `IconRail.stories.tsx`.
+   - Updated `IconRail.test.tsx` (10 tests passing).
+   - All 30 tests in touched components passing; 0 ESLint errors; strict file length constraints respected (all files under 200 lines).
+
+---
+
+## Last Session — Canvas Zoom Crispness & Vector Rasterization Fix
+
+**Scope:** Resolved blurriness during canvas zooming:
+1. **Elimination of 3D Texture Locking (`packages/canvas/CanvasView.module.scss`, `TextCardNode.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`, `GroupCardNode.module.scss`)**:
+   - Removed `transform: translateZ(0)` and `will-change: transform` across all node wrappers and cards, which previously forced WebKit to freeze nodes into static 1x raster bitmaps that became pixelated when scaled.
+   - Configured `-webkit-transform-style: preserve-3d; transform-style: preserve-3d;` on `.react-flow__renderer` and `.react-flow__viewport` to keep vector perspective space active during zoom transforms.
+2. **Dynamic Vector Glyph Repainting via `filter: blur(0px)`**:
+   - Applied `filter: blur(0px)` to `.text-card`, `.file-card`, `.link-card`, and `.group-card`.
+   - Forces WebKit to re-evaluate and re-render vector font outlines directly at the current zoom factor instead of interpolating a stretched bitmap texture.
+3. **Removed Nested Overflow Clipping**:
+   - Removed `overflow: hidden` from `.text-card__body` (already handled by the outer card container) to prevent nested clip-mask rasterization artifacts on macOS.
+- **Verification & Code Quality**:
+   - All 30 `@app/canvas` test files (188 tests) passing.
+   - Linting and typechecks passing with 0 errors.
+
+---
+
+## Last Session — Canvas Crisp Text Rendering & Typography Optimization
+
+**Scope:** Resolved persistent canvas text blurriness:
+1. **Typography & Font Family (`packages/canvas/TextCardNode.module.scss`)**:
+   - Replaced monospace `--font-editor` (which created thin hairline strokes that blurred at small sizes) with `--font-ui` (`-apple-system`, San Francisco) at `var(--type-weight-medium)` (500) and `1.4` line-height.
+   - Eliminated nested scroll backing layers (`overflow: hidden; word-break: break-word;` instead of `overflow: auto`).
+2. **WebKit Compositing & Hardware Layering (`packages/canvas/CanvasView.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`, `GroupCardNode.module.scss`)**:
+   - Switched from `backface-visibility: visible` (which flattened all nodes into a single scaled viewport texture) to `backface-visibility: hidden; transform: translateZ(0); text-rendering: geometricPrecision;` on all cards and `.react-flow__node`.
+   - Enabled dedicated GPU layer promotion so WebKit rasterizes node text directly with native glyph geometry.
+3. **Viewport Scale & Subpixel Snapping (`packages/canvas/CanvasReactFlow.tsx`)**:
+   - Removed automatic `fitView={true}` on mount that was forcing fractional scaling factors (e.g. `0.784x`), defaulting to `fitView={false}` and `defaultViewport={{ x: 0, y: 0, zoom: 1 }}` (100% crisp 1:1 scale).
+   - Added `onMoveEnd` handler snapping translation `x` and `y` to whole integers to prevent subpixel panning blur.
+- **Verification & Code Quality**:
+   - All 30 `@app/canvas` test files (188 tests) passing.
+   - Linters and typechecks passing with 0 errors.
+
+---
+
+## Last Session — Canvas Smaller Text & Cards, Crisp Rendering, and Graceful Backward Arrow Routing
+
+**Scope:** Resolved Canvas UI improvements requested in prompt #10:
+1. **Canvas Text & Card Box Dimensions (`packages/canvas/canvasConstants.ts`, `TextCardNode.module.scss`, `FileCardNode.module.scss`, `LinkCardNode.module.scss`)**:
+   - Scaled card font sizes down to `var(--type-scale-xs)` (12px) with compact line-height and padding.
+   - Reduced default and min card dimensions to compact sizes aligned with grid snap multiples:
+     - Text: 168x48 (min 48x28).
+     - File: 240x168 (min 96x64).
+     - Group: 312x216.
+     - Link: 240x168 (min 96x64).
+2. **Crisp Rendering & Anti-Blur (`packages/canvas/CanvasView.module.scss`, `packages/canvas/CanvasReactFlow.tsx`)**:
+   - Eliminated GPU texture blurring across WebKit/Blink canvas transforms with `transform-style: flat`, `backface-visibility: visible`, and font antialiasing on `.react-flow`, `.react-flow__viewport`, and `.react-flow__node`.
+   - Enabled `snapToGrid={true}` with `CANVAS_SNAP_GRID` in `CanvasReactFlow` to prevent fractional subpixel blur.
+3. **Graceful Arched Backward Arrows (`packages/canvas/canvasEdgePath.ts`, `CanvasEdgeComponent.tsx`)**:
+   - Replaced collapsed/flat overlapping bezier paths when connecting cards backwards with `getCanvasEdgePath`.
+   - Backwards connections (horizontal `dx <= 0` or vertical `dy <= 0`) now sweep smoothly around cards in graceful cubic bezier curves with correctly positioned labels.
+   - Edge paths and marker arrowheads render smoothly with round linecaps.
+- **Verification & Code Quality**:
+   - All 30 `@app/canvas` test files (188 tests) passing.
+   - All 37 `@app/editor` test files (253 tests) passing.
+   - Linting and typechecks across `@app/canvas` and `@app/editor` passing with 0 errors.
+
+---
+
+## Last Session — Alphabetic List Enter, Task Checkbox UI, Audio Playback, QuickCapture Footers, Table/Mermaid Code Toggles, Native PDF Export
+
+**Scope:** Resolved 7 editor and quick capture issues from prompt #10:
+1. **Alphabetic List Enter (`packages/editor/live-preview/lineBreakExtension.ts`)**:
+   - Excluded list lines (`LIST_LINE_REGEX.test(line.text) || LIST_LINE_REGEX.test(nextLine.text)`) from `softLineBreakExtension`.
+   - Prevents CommonMark soft line break replacement from converting the newly inserted newline into a space, allowing alphabetic list items (`a. item -> Enter -> b. item`) to advance to the next line immediately.
+2. **Todo Checkbox Widget Permanence (`packages/editor/live-preview/listExtension.ts`)**:
+   - Removed `isCursorInBrackets` condition in `getListDecorations` that previously unmounted `TaskCheckboxWidget` and exposed raw markdown `[ ]`/`[x]` whenever clicked with the mouse.
+   - The interactive checkbox widget now remains rendered at all times across clicks and edits.
+3. **Audio Playback Restoration (`packages/editor/embeds/EmbedAudioWidget.ts`)**:
+   - Added `ignoreEvent(): boolean { return true; }` to `EmbedAudioWidget` so CodeMirror does not intercept click and pointerdown events on the play button, waveform, or trash button.
+4. **QuickCapture Footer Consistency & Header Cleanup**:
+   - Removed the close button from `QuickCaptureHeader.tsx` (only Quit remains in header).
+   - Cleaned `QuickCaptureReminder.tsx` footer to remove hints and Cancel button, keeping only the right-aligned `Save reminder` button.
+   - Cleaned `QuickCaptureRecordControls.tsx` footer to remove the Cancel button, keeping action buttons right-aligned.
+5. **Table Code Toggle (`packages/editor/blocks/table/`)**:
+   - Added `TableCodeHeaderWidget.ts` with `tableCodeEditingField`, `setTableCodeEditing`, and `TableCodeHeaderWidget` displaying a "Table Source" badge and "👁️ View Table" button.
+   - In `tableExtension.ts`, clicking `</>` switches the table into raw markdown pipe editing without wrapping it in a box; clicking "View Table" returns to visual rendered table cells.
+6. **Mermaid Code Toggle (`packages/editor/blocks/mermaid/`)**:
+   - In `mermaidHoverHint.ts`, removed `e.preventDefault()` on `mousedown` which previously cancelled the subsequent `click` event in WebKit/Tauri.
+   - In `mermaidWidget.ts`, set `ignoreEvent() { return true; }`.
+7. **Native PDF Export (`apps/desktop/src-tauri/src/fs.rs`, `exportNoteToPdf.ts`)**:
+   - Added `print_webview` Tauri command in Rust invoking native `window.print()` (which displays the native macOS print & "Save as PDF" dialog).
+   - Created `exportNoteToPdf.ts` bridging `invoke("print_webview")` with browser `window.print()` fallback and wired to `EditorMenuBar.tsx` and `EditorArea.tsx`.
+- **Verification & Code Quality**:
+   - All 37 `@app/editor` test files (253 tests) passing.
+   - All 26 `@app/desktop` `EditorArea` test files (106 tests) and 8 `QuickCapture` test files (38 tests) passing.
+   - All linters (`@app/editor` eslint, `@app/desktop` eslint, stylelint) passing with 0 errors.
+   - Rust `cargo check` passing with 0 errors.
+
+---
+
+## Last Session — Preview/Code Toggle, PDF Export, Category Insert Menu, HTML & Mermaid Code Toggle, Alphabetic List, QuickCapture Polish & Scrolling Fix
+
+**Scope:** Implement full editor enhancements requested in prompt #10 and track user customizations across QuickCapture and styling:
+- **Preserved User Customizations**:
+  - **QuickCapture Footer (`QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`)**: The user streamlined the footer to only feature the right-aligned (`justify-content: flex-end;`) "Save note" button, removing footer close/quit/hints/record buttons while preserving Close and Quit in the header. Added permanent preservation directive in `AGENTS.md`.
+  - **Custom Border Colors (`docs/references/cm-rules.css`)**: File upload and table border colors explicitly updated to `#ababab`.
+- **Mermaid & HTML Code View Toggles**:
+  - In Mermaid diagram blocks, clicking `</>` switches the diagram widget into raw Mermaid markdown code with an editor toolbar widget displaying a "View diagram" button to switch back.
+  - In HTML blocks, rendered HTML blocks feature a `</>` toggle button that switches the block into raw HTML code editing with an `HtmlCodeHeaderWidget` top bar ("HTML" badge + "View HTML" button) to return to preview.
+- **Alphabetic List Progression & Space Auto-List**:
+  - In `listKeymap.ts` and `listMarkerUtils.ts`, typing `a. ` or `A. ` at line start auto-creates an alphabetic list.
+  - Pressing Enter on an alphabetic list (`a. item`) advances to the next letter (`b. `), respecting casing and looping safely.
+- **Bold & Prominent Bullet Dots**:
+  - Updated `.cm-list-bullet` in `packages/editor/live-preview/listTheme.ts` to `24px`, `font-weight: 900`, `line-height: 0.7`, and clean `#cccccc` grey.
+- **Preview & Code Toggle in Editor Header**:
+  - Added segmented toggle in `EditorMenuBar.tsx` for `Preview` (Live Preview) and `Code` (raw syntax-highlighted markdown code mode).
+  - Configured `createEditorExtensions.ts` with `isSourceMode` to seamlessly switch CodeMirror between Live Preview widgets and pure markdown source editing.
+- **Convert / Export to PDF**:
+  - Added dedicated `PDF` action button in `EditorMenuBar.tsx` invoking `window.print()`.
+  - Added print stylesheet in `apps/desktop/src/styles/layout/_editor-area.scss` hiding sidebars, toolbars, headers, and tabs, leaving clean document typography with avoid-break rules on tables and diagrams.
+- **Cleaned Editor Header & Categorized Insert Menu**:
+  - Removed "Format", "Tools", and "Help" buttons from `EditorMenuBar.tsx`.
+  - Redesigned `editorMenuConfig.ts` with structured categories: Media (Image from disk/URL, Video/YouTube, Audio), Lists (Alphabetic, Numbered, Bullet, Todo), Table (2x2, 3x3, 4x4), Code block (TS, Python, HTML, Rust, Bash), Mermaid diagram (Flowchart, Sequence, State, Class, ER), Math equation (Block, Inline), Callouts (Note, Tip, Warning, Important), Link (`⌘K`), Horizontal line, Kanban, and Comment (`⌘+Option+M`).
+- **Fixed Editor Scrolling**:
+  - Fixed missing CSS module import in `packages/editor/Editor.tsx` using `styles["editor-container"]`.
+  - Set `.cm-scroller` in `Editor.module.scss` and `editorTheme.ts` to `height: 100%`, `overflow-y: auto !important`, and `padding-bottom: 160px`.
+  - Set `.editor-area__body` to `height: 100%` and `overflow: hidden`.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (253 tests) passing.
+  - All 25 `@app/desktop` `EditorArea` test files (104 tests) and 8 `QuickCapture` test files (38 tests) passing.
+  - 0 ESLint errors across packages; all modified files strictly `< 250` lines.
+  - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Last Session — Numeric List Enter Alignment Fix & Smart Backspace Outdent
+
+**Scope:** Fix numeric list alignment when pressing Enter so active indented items remain vertically aligned with previous items and never appear indented as a false sub-list.
+
+- **Active Indent Space Hiding (`packages/editor/live-preview/listExtension.ts`)**:
+  - Removed `!activeLine` suppression from `indentSpaceDeco`. Indentation spaces are now unconditionally marked with `.cm-list-indent-space` (`display: none !important;`) on both active and inactive lines.
+  - Eliminated the horizontal jump where active lines previously displayed raw spaces, shifting list numerals by 24px and making continued items (e.g. `   6. ` after `   5. `) appear as a deeper sub-list.
+- **Keymap Priority & Smart Backspace (`packages/editor/createEditorExtensions.ts`, `listKeymap.ts`)**:
+  - Elevated `listIndentKeymap` to `Prec.high` ahead of `defaultKeymap`, ensuring `handleListEnter` and `handleListTab` are never intercepted by default indentation.
+  - Added `handleListBackspace`: pressing Backspace on an empty sub-list item (`   6. |`) automatically outdents back to the parent list level (`2. |`) or clears the line if top-level, matching Obsidian/Notion conventions.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (252 tests) passing.
+  - Desktop `src/state/listExtension.test.tsx` (7 tests) passing.
+  - Added unit test in `listExtension.test.ts` verifying indentation spaces remain hidden on active editable lines.
+  - 0 ESLint errors across packages; all files strictly `< 250` lines.
+  - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Last Session — Document Menu Bar, Table Code Toggle, Sublist Enter Outdent, Todo Toggle & Mermaid Padding Polish
+
+**Scope:** Polish editor interactions to match exact user specifications: reduce mermaid container bottom padding; add `</>` code button to code block cards and unboxed table header to toggle raw markdown editing; outdent empty indented sublist items back to parent level on Enter; render bolder `#ababab` grey bullets and numerals across all lists; keep interactive todo checkboxes on active lines with strikethrough and tighter margin; trigger list creation on `- ` and `1. `; and implement clean document-style `EditorMenuBar` (`Insert`, `Format`, `Tools`, `Help`) matching reference image with click-away close, video embed, and zero duplicate insert buttons.
+
+- **Mermaid Box Bottom Padding (`packages/editor/blocks/mermaid/mermaidTheme.ts`)**:
+  - Reduced container bottom padding from 18px to 4px (`padding: 16px 14px 4px 14px`).
+  - Set diagram content padding to 0 and line-height to 0, ensuring no empty gap below diagrams.
+- **Code Block & Table Code Toggle Buttons (`CodeCopyButtonWidget.ts`, `tableExtension.ts`, `tableTheme.ts`)**:
+  - Added `</>` button to code blocks alongside the copy button. Clicking it places cursor directly inside the fenced block to edit raw code.
+  - Tables remain unboxed (no outer card container) and now feature a top-right `</>` button that places the cursor in the table markdown to edit raw pipes.
+- **Sublist Enter Outdent & Auto List Creation (`packages/editor/live-preview/listKeymap.ts`)**:
+  - Pressing Enter on an empty indented item (`   3. `) completes the sublist and outdents to the parent level (`2. `), rather than deleting the line.
+  - Pressing Enter on a line with content stays at the current indent level (never creates a sublist on Enter; sublists only created on Tab).
+  - Pressing Space after `-` or `1.` at start of line auto-creates list items.
+- **Todo Checkbox & List Styling (`listExtension.ts`, `listTheme.ts`)**:
+  - Todo checkboxes remain visible and interactive even on active lines, instantly crossing out (`text-decoration: line-through`) completed task text with tighter margin (`4px`).
+  - Bullet dot is bolder (`font-weight: 700`, `16px`) and colored `#abababccc` across all list items (ordered and unordered).
+- **Docs-Style EditorMenuBar (`EditorMenuBar.tsx`, `EditorMenuBarDropdown.tsx`, `editorMenuConfig.ts`, `EditorArea.tsx`)**:
+  - Implemented top menu bar (`Insert`, `Format`, `Tools`, `Help`) with clean dropdown matching the attached reference image: Image, Table, Code block, Video, Link (`⌘K`), Symbols, Equation, Horizontal line, Page elements (`Updated`), and Comment (`⌘+Option+M`).
+  - Closes on click away or Escape key.
+  - Removed duplicate insert buttons in `EditorFormattingToolbar` and header; exactly one Insert menu exists.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (248 tests) and desktop tests passing.
+  - ESLint passing across `@app/editor` and `@app/desktop` with 0 errors.
+  - Production web bundle compiled cleanly in 10.4s.
+  - Codebase knowledge graph updated via `graphify update .`.
+  - All modified files strictly comply with `< 250` lines limit.
+
+---
+
+## Last Session — Editor Typography, List Guides & Keymap, Code Block Copy, Mermaid Sequence Card, Audio Capsule, and Agent Views
+
+**Scope:** Match all editor UI designs with reference images: nested sub-numeric list with vertical guide lines restarting at `1.` on Tab, alphabetic/roman/bullet lists with clean body typography, purple checkbox task list with document note icon, code blocks with rounded card and floating copy button, mermaid sequence diagram styling with lavender actors and `</>` button, modern audio capsule player with blue circular play button, waveform bars, time display and trash action; default hidden formatting toolbar with pencil toggle; bold/italic cursor placement; and verify alignment with prompt menu, project overview, and code block cards.
+
+- **Editor List Typography & Tree Guidelines (`packages/editor/live-preview/listTheme.ts`, `listExtension.ts`)**:
+  - Re-styled bullet (`•`) and ordered numerals/letters with clean, muted body typography (`var(--color-text-muted)`).
+  - Added vertical guideline connecting indented sub-lists (`cm-list-level-1::before`, `cm-list-level-2::before`) matching reference screenshot.
+  - Added support for alphabetic lists (`a. `, `b. `, etc.) and roman numerals (`i. `, `ii. `).
+  - Designed purple rounded square task checkboxes (`#8b5cf6` with crisp white checkmark), strikethrough completed text, and colocated document action icon (`.cm-task-note-icon`) next to task items.
+- **List Keyboard Navigation & Indentation (`packages/editor/live-preview/listKeymap.ts`, `listKeymap.test.ts`)**:
+  - Implemented `handleListTab`: pressing Tab on a numeric item indents and restarts the sub-list at `1.` matching reference screenshot.
+  - Implemented `handleListEnter`: continues numeric (`1.` -> `2.`), alphabetic (`a.` -> `b.`), roman (`i.` -> `ii.`), and task items, while clearing the marker when Enter is pressed on an empty item.
+  - Implemented `handleListShiftTab`: unindents list items cleanly.
+- **Editor Code Block Design (`packages/editor/blocks/code/`, `livePreviewExtension.ts`)**:
+  - Rendered code blocks as clean cards with rounded corners (8px), light secondary background, and 1px border.
+  - Implemented `CodeCopyButtonWidget` rendering floating `[ ⧉ ]` copy button at top right with click feedback.
+- **Mermaid Diagram Card & Sequence Styling (`packages/editor/blocks/mermaid/`)**:
+  - Added bordered card container around `.cm-mermaid-diagram` with subtle 1px border and rounded corners.
+  - Replaced hover button with top-right `</>` toggle button (`cm-mermaid-hover-hint`).
+  - Configured sequence diagram theme variables with lavender actor boxes (`#eeedfe`), dark borders, and dark circular sequence number badges `(1), (2), (3)`.
+- **Modern Audio Capsule Player (`packages/editor/embeds/EmbedAudioWidget.ts`, `embedAudioTheme.ts`)**:
+  - Redesigned audio embed into a modern horizontal capsule matching reference screenshot.
+  - Features circular blue play button (`( ▶ )`), vertical blue waveform bars with end fade, blue duration label (`0:20`), and trash delete icon `[ 🗑 ]`.
+- **Toolbar & Formatting Enhancements (`EditorArea.tsx`, `editorInsertCommands.ts`, `tableTheme.ts`)**:
+  - Formatting toolbar hidden by default with pencil toggle icon button in note header.
+  - Bold and italic insertion commands place the cursor between markers (`**|**`, `*|*`) when nothing is selected.
+  - Tables have transparent header and row backgrounds by default with subtle borders.
+  - Verified scrolling enabled across `.cm-scroller` and editor containers.
+- **Verification & Code Quality**:
+  - All 37 `@app/editor` test files (247 tests) passing.
+  - ESLint passing across `@app/editor` and `@app/desktop` with 0 errors.
+  - Production web bundle compiled cleanly in 11.6s.
+  - Codebase knowledge graph updated via `graphify update .`.
+  - All modified files strictly comply with `< 250` lines rule (`max-lines`).
+
+---
+
+## Last Session — Project Conversation Bugfix, Minimalist Header & Visual Alignment with Design Reference
+
+**Scope:** Fix the project selection bug where previous chat messages were erroneously copied into newly clicked projects; update conversation header to display only `{projectName} / {title}`; add direct `+` navigation to the Project Overview page from both the conversation header and sidebar nested list; align prompt menu divider and code card styling with the reference screenshots.
+
+- **Project Switching Bugfix (`agentConversationSaver.ts`, `AgentView.tsx`)**:
+  - Fixed issue where selecting a project without an active conversation caused leftover in-memory messages to be automatically saved into an unintended conversation under that project.
+  - Guarded `saveActiveMessagesHelper` to strictly require `activeConversationId`.
+  - Reset in-memory `messages` to `[]` whenever `activeConversationId` is null.
+- **Minimalist Conversation Header (`AgentConversationHeader.tsx`, `AgentView.scss`, `AgentConversationHeader.test.tsx`)**:
+  - Streamlined header to a compact, single-row display showing only `{projectName} / {title}` (or `{title}` if standalone).
+  - Removed subtitle text and superfluous breadcrumb prefixes.
+  - Added a dedicated `+` button in the header actions for project chats that navigates directly to the Project Overview page (`AgentProjectView`).
+- **Sidebar Nested Project `+ New chat` Button (`AgentSidebarProjectsSection.tsx`, `AgentSidebarPanel.module.scss`)**:
+  - Added a `+ New chat` row at the top of expanded project chat lists in the sidebar, providing an instant path to open the Project Overview page with context uploading and prompt bar.
+- **Visual Alignment with Design Reference (`AgentPromptMenu.tsx`, `AgentCodeBlock.tsx`, `AgentCodeBlock.module.scss`, `AgentProjectContextPanel.tsx`)**:
+  - Aligned prompt popup menu items with reference screenshot, maintaining a single clean divider line above "Web search".
+  - Code block cards updated to `#fafafa` background with subtle 1px border and floating copy button matching reference mockup.
+  - Added blue capacity indicator knob on the project context bar and ensured default project context card display.
+- **Verification & Code Quality**:
+  - All 35 AgentView test suites (92 tests) passing.
+  - ESLint passing with 0 errors and 0 warnings.
+  - Production build (`build:web`) compiling with 0 errors in 10.9s.
+  - Graphify knowledge graph updated (`graphify update .`).
+  - All files strictly under 250 lines (`max-lines`).
+
+---
+
+## Last Session — Contextual Conversation Titles, Project Hover `+` & Deletion, Editorial Header, Code Box & Enhanced Chat Search
+
+**Scope:** Automatically derive contextual conversation titles from prompt content; add hover `+` button on projects to open project overview and start contextual chats; add deletion option for project conversations; align conversation header with reference design; redesign code blocks into clean card boxes with floating copy action; polish inline `@` file/folder mention picker; and improve chat search with full message content and snippet matches.
+
+- **Contextual Conversation Title Generation (`agentContextTitle.ts`, `agentConversationSaver.ts`)**:
+  - Implemented `deriveConversationContextTitle` to clean user input (strips `@` mentions, slash commands, conversational prefixes like "please/can you") and generate clean, human-readable contextual titles (e.g. "Audio transcription tools", "Fix Syncthing native binary").
+- **Hover Project `+` Action & Project Deletions (`AgentSidebarProjectsSection.tsx`, `AgentSidebarPanel.module.scss`, `AgentProjectView.tsx`)**:
+  - Hovering over a project in the sidebar displays a `+` button on the right.
+  - Clicking `+` opens the 2-column project overview page (`AgentProjectView`) showing the project's shared context, instructions, memory, and recents, from which users can start new conversations under that project.
+  - Added delete option (`Trash` icon) on hover for conversations nested under a project in the sidebar and in the project's recents list.
+- **Editorial Conversation Header (`AgentConversationHeader.tsx`, `AgentView.tsx`, `AgentView.scss`)**:
+  - Matches reference design: top breadcrumbs (`Projects / [Project Name]`), large serif title, context subtitle, pin icon button `📌`, and more options `...` dropdown (Rename, Delete).
+- **Clean Document Code Box (`AgentCodeBlock.tsx`, `AgentCodeBlock.module.scss`)**:
+  - Redesigned code rendering into a clean card container with subtle 1px border, 10px border radius, monospaced typography, and floating top-right copy button with "Copied!" feedback, matching the reference screenshot.
+- **Polished Inline Mention Menu (`AgentMentionMenu.tsx`, `AgentMentionMenu.module.scss`)**:
+  - Repositioned as a floating popover above the prompt with clean borders, padding, and subtle shadows.
+  - Displays folder (`DIR`) and file (`NOTE`) badges with keyboard arrow/enter navigation.
+- **Enhanced Chat Search (`AgentSidebarSearchResults.tsx`, `AgentSidebarPanel.tsx`)**:
+  - Upgraded sidebar search with clear button (`✕`) and Escape key reset.
+  - Full-text search across conversation titles, message contents, and project names.
+  - Renders matched results with highlighted contextual message snippets (e.g. `"...found Syncthing native binary..."`) and project tags.
+- **Verification & Code Quality**:
+  - All 35 AgentView test suites (92 tests) passing.
+  - All 269 desktop test suites (1,064 tests) passing.
+  - ESLint passing with 0 errors and 0 warnings.
+  - Production build (`build:web`) compiling in 11.35s with 0 errors.
+  - All files strictly under 250 lines (`max-lines`).
+
+---
+
+**Scope:** Implement model power tiers (Light, Medium, High) with `/model` typing interceptor, widen prompt bar with subtle 12px border radius, show live execution activity logs alongside continuous thinking status, and redesign the Project View into a 2-column layout matching the reference design with instructions, memory, and context note cards.
+
+- **Model Power Tier Selector & `/model` Typing Interceptor (`AgentPromptModelPicker.tsx`, `AgentPromptBar.tsx`, `useAgentStore.ts`)**:
+  - Added power tier selection (`Light` | `Medium` | `High`) inside `AgentPromptModelPicker`.
+  - Display label dynamically formatted as `${Model} ${Tier}` (e.g. `Sonnet 5.5 Medium`).
+  - Typing `/model` anywhere in the prompt bar automatically triggers the model popover and clears the keyword.
+  - Added `Chat` and `Cowork` mode toggle pills in the prompt bar for switching interaction modes.
+- **Wider Prompt Bar with Reduced Border Radius (`AgentPromptBar.module.scss`, `AgentPromptActions.tsx`)**:
+  - Increased `max-width` from 720px to 860px.
+  - Changed `border-radius` to 12px for modern rectangular card appearance with depth via borders (no box shadows).
+  - Modularized prompt actions (`AgentPromptActions.tsx`) to enforce < 250 line limit.
+- **Real-Time Agent Execution Logs & Continuous Loader (`AgentExecutionLogs.tsx`, `AgentMessageBubble.tsx`, `useAgentExecution.ts`, `agentStepLoop.ts`)**:
+  - Created collapsible activity card (`AgentExecutionLogs`) displaying live step events (e.g. "Analyzing prompt...", "Calling tool list_notes...", "Processing tool results...").
+  - Auto-scrolls and stays expanded while streaming; displays event counts when completed.
+  - Coupled with the persistent `✨ Thinking...` loader so users always see current agent thinking activity and logs.
+- **Two-Column Project View & Context Panel (`AgentProjectView.tsx`, `AgentProjectContextPanel.tsx`, `AgentProjectView.module.scss`, `AgentProjectContextPanel.module.scss`)**:
+  - **Header**: Breadcrumbs (`Projects / [Name]`), serif display title, subtitle description, pin button (`📌`), and more options (`...`).
+  - **Left Column**: Wide prompt card (`variant="project"` with "How can I help you today?", `Chat`/`Cowork` toggle, model & power pill, voice) and `Recents` list with relative timestamps ("34 minutes ago", "Yesterday", "3 days ago").
+  - **Right Column (`AgentProjectContextPanel`)**:
+    - **Instructions**: Project-specific prompt instructions with `+` edit modal.
+    - **Memory**: `🔒 Only you` badge and "View memory" trigger.
+    - **Context**: Capacity indicator (`% of project capacity used`), note cards with file size (`6kB`) and `TEXT` badge, delete button, and `@` mention / `+` file attachment trigger.
+- **Verification & Code Quality**:
+  - All 32 AgentView test suites (82 tests) passing.
+  - All 266 desktop test suites (1,054 tests) passing.
+  - ESLint passing with 0 errors and 0 warnings.
+  - Production build (`build:web`) compiling in 10.09s with 0 errors.
+  - Strict compliance with file line limits: all files under 250 lines.
+
+---
+
+**Scope:** Match Claude-style prompt bar and `+` menu design, add user/assistant image upload & display, render interactive Mermaid diagrams and styled tables with hover copy actions, add "Save to Note..." (in folder or append to note), enable per-agent model selection, and always show thinking status during generation.
+
+- **Claude-Style Prompt Bar & Popover Menu (`AgentPromptBar.tsx`, `AgentPromptMenu.tsx`, `usePromptAttachments.ts`, `AgentPromptBar.module.scss`, `AgentPromptMenu.module.scss`)**:
+  - Matched prompt container layout: rounded pill container with `[+]` button, `Write a message...` placeholder, microphone with caret (`🎙️ ˅`), waveform button, bottom AI disclaimer on left, and model indicator on right.
+  - Implemented categorized `+` popover menu:
+    - `📎 Upload or add files` (with `⌘ U` shortcut) & `📷 Take a screenshot`.
+    - Flyout categories: `📁 Add to project >`, `📑 Skills >` (Agent capabilities), `🧩 Add connector >` (Google Calendar, Syncthing), `🎨 Design system >`, `🔌 Add plugins`.
+    - `🌐 Web search` with active checkmark `✓`.
+- **Image Support & Display (`AgentImageAttachmentPreview.tsx`, `AgentMessageBubble.tsx`, `AgentMarkdownContent.tsx`)**:
+  - User can attach images via file picker, paste from clipboard (`onPaste`), or screenshot.
+  - Preview thumbnail strip displayed inside prompt bar with remove `✕` buttons.
+  - Attached images rendered cleanly in user message bubbles.
+  - Assistant image responses and markdown images (`![alt](url)`) rendered with rounded border styling and captions.
+- **Mermaid Diagrams, Tables & Code Hover Copy (`AgentMermaidBlock.tsx`, `AgentTableBlock.tsx`, `AgentCodeBlock.tsx`, `AgentMarkdownContent.tsx`)**:
+  - Render Mermaid diagrams dynamically via `@app/editor`'s `renderMermaidSvg`, with "Diagram" / "Source" view toggles and hover "Copy code" button.
+  - Parse and render markdown tables (`| header |`) as styled editorial tables with hover "Copy table" action.
+  - Code blocks display language badge, hover "Copy code" button, and more options menu.
+- **Save to Note in Folder or Append to Existing Note (`AgentSaveNoteModal.tsx`, `AgentMessageBubble.tsx`)**:
+  - Added "Save to Note..." in the message toolbar's `(...)` menu and code/diagram blocks.
+  - Supports creating a new note in a chosen folder (with title) or appending response text to an existing vault note.
+- **Per-Agent Model Selection (`AgentPromptModelPicker.tsx`, `useAgentStore.ts`, `cliAgentTypes.ts`)**:
+  - Added model choices for CLI Agents (e.g. Claude Code Sonnet 3.7 / 3.5, Antigravity Gemini 2.0 / 1.5, Codex GPT-4o / o3-mini, OpenCode DeepSeek / Qwen).
+  - Selected agent and model are reflected in the prompt bar footer and passed into execution.
+- **Continuous Thinking Indicator**:
+  - Displays animated `✨ Thinking...` placeholder when waiting for assistant response and maintains an inline loading indicator until stream completely concludes.
+- **Verification & Quality**:
+  - All 263 test files and 1,045 tests in `@app/desktop` pass.
+  - ESLint passing with 0 errors and 0 warnings.
+  - Production build (`pnpm --filter @app/desktop build:web`) compiles in 11.4s with 0 errors.
+  - All modified and new files under 250 lines (`max-lines`).
+
+---
+
+## Previous Session — AI Agent Prompt Page & ChatGPT-Style Sidebar Redesign
+
+**Scope:** Redesign `apps/desktop/src/ai` and `apps/desktop/src/components/AgentView` to match ChatGPT-style reference designs; hide `FileTree` and display `AgentSidebarPanel` in the left sidebar when the AI Agent is open; restore `FileTree` and close Agent when returning to files; implement full Projects features (project creation, nested chats, project view, and attached sources).
+
+- **Sidebar Replacement & File Tree Return (`AgentSidebarPanel.tsx`, `AppSidebar.tsx`, `App.tsx`, `AppSidebarHeader.tsx`)**:
+  - In [`AppSidebar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/AppSidebar/AppSidebar.tsx): When `isAgentOpen` is true (`activeNotePath === AGENT_TAB_ID`), `<FileTree />` is replaced with `<AgentSidebarPanel />`.
+  - In [`App.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/App.tsx) and [`AppSidebarHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/AppSidebar/AppSidebarHeader.tsx): When clicking "Files" on the top sidebar header or rail, `handleOpenFiles` closes `AGENT_TAB_ID` and returns immediately to the files/note view. Moved `handleOpenFiles` unconditionally above `if (!vaultPath)` to ensure React hook order consistency across renders.
+  - Clicking any note or file in the quick switcher, omnibar, or editor tabs restores `FileTree`.
+- **ChatGPT-Style Sidebar Panel (`AgentSidebarPanel.tsx`, `AgentSidebarProjectsSection.tsx`, `AgentSidebarRecentsSection.tsx`, `AgentSidebarPanel.module.scss`)**:
+  - Header: Logo icon + "ChatGPT" title, search toggle, and sidebar collapse button.
+  - Top Nav Items: `New chat` (pill button), `Images`, `Scheduled`, `Library`, `Plugins`, `Codex`, `Explore`.
+  - Projects Section: List of projects (e.g. `gym`, `Papers daily`, `Search`, `Prompts`, `messaging`) with "+" create button, active highlight, nested project chats or "No chats", and "Show more" toggle.
+  - Recents Section: Chronological recent chats with direct selection, active highlight, and quick deletion.
+- **AI Agent Main Views Redesign (`AgentPromptBar.tsx`, `AgentWelcomeView.tsx`, `AgentProjectView.tsx`, `AgentView.tsx`)**:
+  - **Floating Prompt Bar (`AgentPromptBar.tsx`)**: Rounded pill input with `+` attachment button, custom placeholder, deep `Think` toggle button, microphone voice input button, and blue circular waveform button.
+  - **Welcome View (`AgentWelcomeView.tsx`, Image 0)**: Centered "Good to see you, [Name]." greeting, wide floating prompt bar, and 3 suggested action chips (`Create an image or sticker`, `Write or edit`, `Search the web`).
+  - **Project View (`AgentProjectView.tsx`, Image 1)**: Folder icon + Project title, `Share` button, `...` options menu (Rename, Delete), `Upgrade` button, `New chat in [project]` prompt bar, and `Chats` | `Sources` pill tabs. Supports attaching vault notes as continuous project context.
+  - **Active Chat View (`AgentView.tsx`, `AgentMessageBubble.tsx`, Image 2)**: Message stream with user bubble, assistant markdown content, tool calls, action toolbar (Copy, Speak/TTS, Thumbs up/down, Regenerate), and bottom prompt dock.
+- **Projects Feature Enhancements (`conversationTypes.ts`, `conversationStore.ts`, `useAgentStore.ts`, `agentProjectActions.ts`, `agentStorePersistence.ts`)**:
+  - Added project sources support (`sources?: string[]`) to `AgentProject`.
+  - Added `renameProject`, `addProjectSource`, `removeProjectSource` helpers with unit tests in `@app/ai-agent`.
+  - Created centralized Zustand store [`useAgentStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/AgentView/useAgentStore.ts) to synchronize conversations, active projects, and project sources across sidebar and main view.
+- **Quality & Verification**:
+  - All files strictly under 250 lines (`AgentSidebarPanel.tsx`: 160, `AgentSidebarProjectsSection.tsx`: 119, `AgentSidebarRecentsSection.tsx`: 55, `AgentWelcomeView.tsx`: 95, `AgentProjectView.tsx`: 240, `AgentPromptBar.tsx`: 170, `AgentView.tsx`: 216, `useAgentStore.ts`: 236, `agentProjectActions.ts`: 90, `agentStorePersistence.ts`: 32, `AppSidebar.tsx`: 232).
+  - ESLint passing with 0 errors and 0 warnings.
+  - Storybook stories created for `AgentSidebarPanel`, `AgentWelcomeView`, and `AgentProjectView`.
+  - Vitest test suites passing across all agent components and sidebar panels.
+  - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Unified Bookmarks Navigation & Sidebar Integration
+
+**Scope:** Remove tabs for Notes vs Web Links; unify them in the same page view using the top dropdown ("Web links ▾" / "Notes ▾"); hide `FileTree` and display `BookmarksSidebarPanel` in the left sidebar when bookmarks view is active.
+
+- **Unified Navigation (`useBookmarkUIStore.ts`, `BookmarksView.tsx`, `BookmarksHeader.tsx`)**:
+  - Created [`useBookmarkUIStore.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/bookmarks/useBookmarkUIStore.ts) to manage bookmarks view UI state (`pageTab`, `activeSection`, `searchQuery`, `sortOption`, `viewConfig`, modals).
+  - Completely removed the `page-tabs` tab buttons ("Notes" and "Web Links") from [`BookmarksHeader.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/BookmarksView/BookmarksHeader.tsx).
+  - Added the top dropdown switcher (`Notes ▾` / `Web links ▾`) so switching between notes and web links happens in-place within the same unified view.
+  - Added [`noteBookmarkFilters.ts`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/BookmarksView/noteBookmarkFilters.ts) to compute note counts and filter notes by collection/trash/search without tab switching.
+- **Sidebar Replacement & Return to Files (`AppSidebar.tsx`, `BookmarksSidebarPanel.tsx`, `WebBookmarksSidebar.tsx`, `IconRail.tsx`, `App.tsx`, `_sidebar.scss`)**:
+  - In [`AppSidebar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/AppSidebar/AppSidebar.tsx): When `isBookmarksOpen` is true (`activeNotePath === BOOKMARKS_TAB_ID`), `<FileTree />` is hidden and replaced by `<BookmarksSidebarPanel />` next to `<IconRail />`.
+  - Added return-to-files handling (`handleOpenFiles` in `App.tsx` and `onOpenFiles` in `AppSidebar.tsx` and `IconRail.tsx`): Clicking "Files" in `IconRail` or `AppSidebarHeader` switches active note back to the last open note and restores `<FileTree />` in the sidebar.
+  - In [`BookmarksView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/BookmarksView/BookmarksView.tsx): Clicking any bookmarked note or file opens the note directly in the editor and restores `<FileTree />`.
+  - In [`BookmarksSidebarPanel.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/BookmarksView/BookmarksSidebarPanel.tsx): Renders `<WebBookmarksSidebar />` with `inAppSidebar={true}` and dynamic counts for web links and notes based on `pageTab`.
+  - In [`BookmarksView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/BookmarksView/BookmarksView.tsx) and [`WebBookmarksSubView.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/BookmarksView/WebBookmarksSubView.tsx): Supported `hideSidebar={true}` so the main content view expands to 100% width with no duplicate inner sidebar.
+  - In [`_sidebar.scss`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/styles/layout/_sidebar.scss): Added `aside[class*="wb-sidebar"]` to the collapsed hiding rules.
+- **Quality & Verification**:
+  - All files strictly under 250 lines (`AppSidebar.tsx`: 222, `BookmarksView.tsx`: 211, `WebBookmarksSubView.tsx`: 232, `BookmarksHeader.tsx`: 202, `noteBookmarkFilters.ts`: 135, `BookmarksSidebarPanel.tsx`: 46).
+  - ESLint passing with 0 errors and 0 warnings.
+  - All 25 test suites (103 tests) passing across bookmarks, file tree, and sidebar components.
+  - Updated AST knowledge graph via `graphify update .`.
+
+---
+
+## Previous Session — Redesign Web Bookmarks UI (Raindrop.io Style)
+
+**Scope:** Redesign the bookmarks interface in `apps/desktop/src/bookmarks` and `src/components/BookmarksView` to match the 4 provided reference designs (Raindrop.io style).
+
+- **Type & Domain Extensions (`bookmarkTypes.ts`, `webBookmarkActions.ts`)**:
+  - Extended `WebBookmarkItem` & `WebBookmarkInput` with `cover`, `type` (`"link" | "article" | "image" | "video" | "audio" | "document"`), `note`, `highlights`, and `trashed`.
+  - Added full sort options: `date-desc`, `date-asc`, `name-asc`, `name-desc`, `domain-asc`, `domain-desc`.
+  - Added view modes: `list`, `cards`, `headlines`, `moodboard` and view customization toggles (`WebBookmarkViewConfig`: cover, title, note, description, highlights, tags, bookmark info, cover size).
+- **Navigation & Filtering (`WebBookmarksSidebar.tsx`, `WebBookmarksSidebarFilters.tsx`, `webBookmarkFilters.ts`)**:
+  - Implemented left sidebar with switch dropdown (Web links ▾ / Notes), "+" create collection, system categories ("All bookmarks", "Unsorted", "Trash"), user collections with counts, and type filters ("Highlights", "Links", "Articles", "Images", "Videos", "Audios", "Documents", "# Without tags").
+- **Top Actions & Content Header (`WebBookmarksTopBar.tsx`, `WebBookmarksContentHeader.tsx`, `WebBookmarkSortMenu.tsx`, `WebBookmarkViewMenu.tsx`)**:
+  - Search bar with filter toggle, "Ask" AI button, and "+ Add" bookmark button.
+  - Section title, sort dropdown popup, view mode switcher with customization checkboxes and cover size slider, and HTML export button.
+- **Display Layouts (`WebBookmarksListView.tsx`, `WebBookmarkListRow.tsx`, `WebBookmarksCardsView.tsx`, `WebBookmarksMoodboardView.tsx`, `WebBookmarksHeadlinesView.tsx`)**:
+  - **List View**: Horizontal rows with thumbnail, domain, collection pill, relative date, selection checkbox, quick hover actions (preview, edit, trash/restore).
+  - **Cards View**: Grid cards with cover preview, type badges, tags, and action overlays.
+  - **Moodboard View**: Responsive masonry columns with variable cover heights.
+  - **Headlines View**: Compact textual single-line table list.
+- **Modals & Export (`WebBookmarkEditModal.tsx`, `WebBookmarksExport.ts`)**:
+  - Full edit modal supporting title, url, collection, note, description, tags, and cover image.
+  - HTML bookmark export utility adhering to standard Netscape Bookmark format.
+- **Styling & Quality**:
+  - Modular SCSS (`WebBookmarksSidebar.module.scss`, `WebBookmarksHeader.module.scss`, `WebBookmarksDisplay.module.scss`) using design system tokens.
+  - Strict line-cap compliance: all TS/TSX files strictly under 250 lines (soft cap 150–200).
+  - ESLint 0 errors, 0 warnings.
+  - 100% test pass rate across 23 test suites and 99 unit/integration tests in bookmarks and file tree components.
+
+---
+
+## Previous Session — Move VaultSwitcher to Bottom of FileTree
+
+**Scope:** Move `<VaultSwitcher />` from `<AppSidebar />` into the bottom of `<FileTree />`, wiring all required props through and cleaning up sidebar layout styles.
+
+- **`AppSidebar.tsx`**: Removed standalone `<VaultSwitcher />` and unneeded import. Passed vault switcher props (`vaultName`, `vaultPath`, `isCollapsed`, `onSwitchVault`, `onOpenFolderPicker`, `onCreateNewVault`, `onOpenVaultFromDrive`, `onSyncVault`, `onOpenSettings`, `onOpenHelp`, `onOpenLogs`) to `<FileTree />`.
+- **`FileTreeProps.ts`**: Added typed props for vault switching, settings, help, logs, and sync actions.
+- **`FileTree.tsx`**: Placed `<VaultSwitcher />` inside `.file-tree-container` directly beneath `<FileTreeList />`.
+- **`_sidebar.scss`**: Added `.file-tree-container` to the collapsed selector hiding rule alongside `.file-tree`.
+- **Tests**: Created `FileTree.test.tsx` verifying that `<VaultSwitcher />` and toolbar controls render inside `FileTree`. Verified all 16 test suites (52 tests) pass across `FileTree` and `AppSidebar`.
+
+---
+
+## Previous Session — Make Website Stationery Navigation Responsive
 
 **Scope:** On mobile, simplify the stationery navigation bar to the Sophia Notes logo and a functional hamburger menu. Desktop navigation remains visible as before.
 

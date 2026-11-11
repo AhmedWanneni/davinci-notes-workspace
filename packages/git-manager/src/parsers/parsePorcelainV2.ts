@@ -7,6 +7,13 @@ export interface ParsedPorcelainResult {
   untracked: GitFileChange[];
 }
 
+const ALLOWED_FILE_SUFFIXES = [".md", ".json", ".png", ".jpg", ".sh"];
+
+function isAllowedVaultFile(path: string): boolean {
+  const lowerPath = path.toLocaleLowerCase();
+  return ALLOWED_FILE_SUFFIXES.some((suffix) => lowerPath.endsWith(suffix));
+}
+
 export function parsePorcelainV2(raw: string): ParsedPorcelainResult {
   const staged: GitFileChange[] = [];
   const unstaged: GitFileChange[] = [];
@@ -36,8 +43,8 @@ export function parsePorcelainV2(raw: string): ParsedPorcelainResult {
         const xy = parts[1];
         // Path starts from index 8 onwards (in case path has spaces, though in -z mode path is intact)
         const path = parts.slice(8).join(" ");
-        const stagedCode = xy[0] as GitFileStatusCode;
-        const unstagedCode = xy[1] as GitFileStatusCode;
+        const stagedCode = xy[0] as GitFileStatusCode | ".";
+        const unstagedCode = xy[1] as GitFileStatusCode | ".";
 
         if (stagedCode !== ".") {
           staged.push({
@@ -66,8 +73,8 @@ export function parsePorcelainV2(raw: string): ParsedPorcelainResult {
         const xy = parts[1];
         const path = parts.slice(9).join(" ");
         const origPath = tokens[i + 1] || "";
-        const stagedCode = xy[0] as GitFileStatusCode;
-        const unstagedCode = xy[1] as GitFileStatusCode;
+        const stagedCode = xy[0] as GitFileStatusCode | ".";
+        const unstagedCode = xy[1] as GitFileStatusCode | ".";
 
         if (stagedCode !== ".") {
           staged.push({
@@ -130,5 +137,17 @@ export function parsePorcelainV2(raw: string): ParsedPorcelainResult {
     i++;
   }
 
-  return { staged, unstaged, conflicts, untracked };
+  const filterChanges = (changes: GitFileChange[]) =>
+    changes.filter(
+      (change) =>
+        isAllowedVaultFile(change.path) &&
+        (!change.oldPath || isAllowedVaultFile(change.oldPath)),
+    );
+
+  return {
+    staged: filterChanges(staged),
+    unstaged: filterChanges(unstaged),
+    conflicts: filterChanges(conflicts),
+    untracked: filterChanges(untracked),
+  };
 }

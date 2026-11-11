@@ -6,6 +6,9 @@ export interface BookmarkItem {
   missing?: boolean;
 }
 
+export type WebBookmarkType =
+  "link" | "article" | "image" | "video" | "audio" | "document";
+
 export interface WebBookmarkItem {
   id: string;
   url: string;
@@ -16,6 +19,11 @@ export interface WebBookmarkItem {
   tags?: string[];
   favicon?: string;
   addedAt: number;
+  cover?: string;
+  type?: WebBookmarkType;
+  note?: string;
+  highlights?: string[];
+  trashed?: boolean;
 }
 
 export interface WebBookmarkInput {
@@ -27,6 +35,11 @@ export interface WebBookmarkInput {
   tags?: string[];
   favicon?: string;
   addedAt?: number;
+  cover?: string;
+  type?: WebBookmarkType;
+  note?: string;
+  highlights?: string[];
+  trashed?: boolean;
 }
 
 export interface BookmarksData {
@@ -37,7 +50,49 @@ export interface BookmarksData {
 
 export type BookmarksPageTab = "notes" | "links";
 export type BookmarkSortOption = "recent" | "alpha" | "modified";
-export type WebBookmarkSortOption = "recent" | "alpha" | "domain";
+
+export type SidebarSection =
+  | { type: "all" }
+  | { type: "unsorted" }
+  | { type: "trash" }
+  | { type: "collection"; folder: string }
+  | {
+      type: "filter";
+      filter:
+        | "highlights"
+        | "links"
+        | "articles"
+        | "images"
+        | "videos"
+        | "audios"
+        | "documents"
+        | "without-tags";
+    };
+
+export type WebBookmarkSortOption =
+  | "recent"
+  | "alpha"
+  | "domain"
+  | "date-desc"
+  | "date-asc"
+  | "name-asc"
+  | "name-desc"
+  | "domain-asc"
+  | "domain-desc";
+
+export type WebBookmarkViewMode = "list" | "cards" | "headlines" | "moodboard";
+
+export interface WebBookmarkViewConfig {
+  mode: WebBookmarkViewMode;
+  showCover: boolean;
+  showTitle: boolean;
+  showNote: boolean;
+  showDescription: boolean;
+  showHighlights: boolean;
+  showTags: boolean;
+  showBookmarkInfo: boolean;
+  coverSize: number;
+}
 
 export const BOOKMARKS_JSON_PATH = ".davinci/bookmarks.json";
 export const BOOKMARKS_TAB_ID = "davinci://bookmarks";
@@ -55,7 +110,19 @@ export interface BookmarkState {
   updateWebBookmark: (
     id: string,
     patch: Partial<
-      Pick<WebBookmarkItem, "title" | "url" | "folder" | "tags" | "description">
+      Pick<
+        WebBookmarkItem,
+        | "title"
+        | "url"
+        | "folder"
+        | "tags"
+        | "description"
+        | "cover"
+        | "type"
+        | "note"
+        | "highlights"
+        | "trashed"
+      >
     >,
   ) => void;
   removeWebBookmark: (id: string) => void;

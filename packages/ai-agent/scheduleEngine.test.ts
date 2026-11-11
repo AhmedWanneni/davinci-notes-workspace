@@ -4,8 +4,6 @@ import {
   appendScheduleRunRecord,
   computeNextRun,
   evaluatePendingSchedules,
-  isScheduleDue,
-  parseSchedulesFile,
   type AgentSchedule,
   type AgentScheduleRunRecord,
 } from "./scheduleEngine.js";
@@ -33,11 +31,17 @@ describe("scheduleEngine", () => {
     // 2026-10-25 is a Sunday (dayOfWeek: 0)
     const sundayMorning = new Date("2026-10-25T08:00:00Z");
     // Target: Sunday at 18:00 UTC -> same day at 18:00
-    const next = computeNextRun({ type: "weekly", dayOfWeek: 0, timeUtc: "18:00" }, sundayMorning);
+    const next = computeNextRun(
+      { type: "weekly", dayOfWeek: 0, timeUtc: "18:00" },
+      sundayMorning,
+    );
     expect(next.toISOString()).toBe("2026-10-25T18:00:00.000Z");
 
     // Target: Monday at 09:00 UTC -> Oct 26
-    const nextMonday = computeNextRun({ type: "weekly", dayOfWeek: 1, timeUtc: "09:00" }, sundayMorning);
+    const nextMonday = computeNextRun(
+      { type: "weekly", dayOfWeek: 1, timeUtc: "09:00" },
+      sundayMorning,
+    );
     expect(nextMonday.toISOString()).toBe("2026-10-26T09:00:00.000Z");
   });
 
@@ -70,7 +74,10 @@ describe("scheduleEngine", () => {
       },
     ];
 
-    const { dueImmediately, missedWhileClosed } = evaluatePendingSchedules(schedules, now);
+    const { dueImmediately, missedWhileClosed } = evaluatePendingSchedules(
+      schedules,
+      now,
+    );
     expect(dueImmediately).toHaveLength(1);
     expect(dueImmediately[0].id).toBe("task-due-now");
 
@@ -88,7 +95,10 @@ describe("scheduleEngine", () => {
       enabled: true,
       nextRunUtc: "2026-10-25T10:00:00Z",
     };
-    const advanced = advanceScheduleAfterRun(s, new Date("2026-10-25T10:00:00Z"));
+    const advanced = advanceScheduleAfterRun(
+      s,
+      new Date("2026-10-25T10:00:00Z"),
+    );
     expect(advanced.lastRunUtc).toBe("2026-10-25T10:00:00.000Z");
     expect(advanced.nextRunUtc).toBe("2026-10-25T12:00:00.000Z");
   });

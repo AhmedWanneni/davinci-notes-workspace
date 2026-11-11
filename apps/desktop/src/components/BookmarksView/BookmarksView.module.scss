@@ -150,7 +150,9 @@
   border: var(--border-width-thin) solid var(--color-border-normal);
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
   user-select: none;
 
   &:hover {
@@ -264,7 +266,10 @@
   border-radius: var(--border-radius-sm);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
 
   .bookmark-row:hover &,
   .bookmark-row[data-selected="true"] & {
@@ -312,4 +317,73 @@
   font-size: var(--type-size-sm, 0.875rem);
   color: var(--color-text-muted);
   max-width: 360px;
+}
+
+.bookmarks-view__content-wrap {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bookmarks-view__content-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bookmarks-view__type-dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-sm);
+  border: var(--border-width-thin) solid transparent;
+  background: transparent;
+  color: var(--color-text-normal);
+  font-size: var(--type-size-xl, 1.25rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--motion-duration-fast);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
+}
+
+.bookmarks-view__dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 160px;
+  background-color: var(--color-bg-primary);
+  border: var(--border-width-thin) solid var(--color-border-normal);
+  border-radius: var(--border-radius-sm);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 50;
+}
+
+.bookmarks-view__dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--color-text-normal);
+  font-size: var(--type-size-sm, 0.875rem);
+  border-radius: var(--border-radius-xs, 2px);
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
 }

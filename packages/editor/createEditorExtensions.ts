@@ -38,6 +38,7 @@ import {
   tagExtension,
   insertHardLineBreak,
   softLineBreakExtension,
+  frontmatterHideExtension,
 } from "./live-preview";
 import { getLoadedVimExtension } from "./vim/vimExtension";
 import { linkExtension } from "./links";
@@ -53,6 +54,7 @@ import { codeBlockLanguage, codeBlockLayoutTheme } from "./blocks/code";
 import { tableExtension, tableTheme } from "./blocks/table";
 import { mermaidExtension, mermaidTheme } from "./blocks/mermaid";
 import { mathExtension, mathTheme } from "./blocks/math";
+import { widgetExtension, widgetTheme } from "./blocks/widget";
 import {
   htmlBlockExtension,
   htmlBlockTheme,
@@ -86,6 +88,7 @@ export interface EditorExtensionConfig {
   vimMode?: string | null;
   useVimMode?: boolean;
   strictLineBreaks?: boolean;
+  isSourceMode?: boolean;
   wikilinkCompartment: Compartment;
   autocompleteCompartment: Compartment;
   noteEmbedCompartment: Compartment;
@@ -108,6 +111,7 @@ export function createEditorExtensions(
     codeBlockLayoutTheme,
     mermaidTheme,
     mathTheme,
+    widgetTheme,
     tagTheme,
     htmlBlockTheme,
     htmlInlineTheme,
@@ -130,68 +134,78 @@ export function createEditorExtensions(
           : [],
       ),
     ),
+    Prec.high(keymap.of(listIndentKeymap)),
+    Prec.high(keymap.of(historyKeymap)),
     keymap.of([
       { key: "Shift-Enter", run: insertHardLineBreak },
-      ...defaultKeymap,
-      ...historyKeymap,
       { key: "Tab", run: nextSnippetField },
       { key: "Shift-Tab", run: prevSnippetField },
       { key: "Escape", run: clearSnippet },
-      ...listIndentKeymap,
+      ...defaultKeymap,
     ]),
     markdown({
       extensions: [Table, Strikethrough, highlightExtension],
       codeLanguages: codeBlockLanguage,
     }),
     syntaxHighlighting(editorHighlightStyle),
-    livePreviewExtension,
-    markdownAnnotationsExtension(),
-    ...(config.strictLineBreaks ? [softLineBreakExtension] : []),
-    listExtension(),
-    tableExtension(),
-    mermaidExtension({ onLinkClick: config.onLinkClick }),
-    mathExtension(),
-    imageExtension(),
+    ...(config.isSourceMode
+      ? []
+      : [
+          frontmatterHideExtension(),
+          livePreviewExtension,
+          markdownAnnotationsExtension(),
+          ...(config.strictLineBreaks ? [softLineBreakExtension] : []),
+          listExtension(),
+          tableExtension(),
+          mermaidExtension({ onLinkClick: config.onLinkClick }),
+          mathExtension(),
+          imageExtension(),
+          embedAudioTheme,
+          noteEmbedTheme,
+          tagExtension({
+            onTagClick: (tagKey) => config.onTagClickRef.current?.(tagKey),
+          }),
+          reminderTheme,
+          reminderExtension({
+            onReminderClick: (info) =>
+              config.onReminderClickRef.current?.(info),
+          }),
+          htmlBlockExtension(),
+          htmlInlineExtension(),
+          widgetExtension(),
+        ]),
     config.embedImageCompartment.of(
-      embedImageExtension({
-        notePaths: config.notePaths,
-        resolveMediaUrl: config.resolveMediaUrl,
-      }),
+      config.isSourceMode
+        ? []
+        : embedImageExtension({
+            notePaths: config.notePaths,
+            resolveMediaUrl: config.resolveMediaUrl,
+          }),
     ),
-    embedAudioTheme,
-    config.embedAudioCompartment
-      ? config.embedAudioCompartment.of(
-          embedAudioExtension({
+    (() => {
+      const audio = config.isSourceMode
+        ? []
+        : embedAudioExtension({
             notePaths: config.notePaths,
             sourcePath: config.sourcePath,
             resolveMediaUrl: config.resolveMediaUrl,
-          }),
-        )
-      : embedAudioExtension({
-          notePaths: config.notePaths,
-          sourcePath: config.sourcePath,
-          resolveMediaUrl: config.resolveMediaUrl,
-        }),
-    noteEmbedTheme,
+          });
+      return config.embedAudioCompartment
+        ? config.embedAudioCompartment.of(audio)
+        : audio;
+    })(),
     config.noteEmbedCompartment.of(
-      noteEmbedExtension({
-        notePaths: config.notePaths,
-        sourcePath: config.sourcePath,
-        onLinkClick: config.onLinkClick,
-        resolveMediaUrl: config.resolveMediaUrl,
-        loadNoteContent: config.loadNoteContent,
-        noteContents: config.noteContents,
-      }),
+      config.isSourceMode
+        ? []
+        : noteEmbedExtension({
+            notePaths: config.notePaths,
+            sourcePath: config.sourcePath,
+            onLinkClick: config.onLinkClick,
+            resolveMediaUrl: config.resolveMediaUrl,
+            loadNoteContent: config.loadNoteContent,
+            noteContents: config.noteContents,
+          }),
     ),
-    tagExtension({
-      onTagClick: (tagKey) => config.onTagClickRef.current?.(tagKey),
-    }),
-    reminderTheme,
-    reminderExtension({
-      onReminderClick: (info) => config.onReminderClickRef.current?.(info),
-    }),
-    htmlBlockExtension(),
-    htmlInlineExtension(),
     config.wikilinkCompartment.of(
       linkExtension({
         notePaths: config.notePaths,

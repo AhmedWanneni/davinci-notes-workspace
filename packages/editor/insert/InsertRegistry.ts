@@ -96,7 +96,7 @@ export const insertRegistry: readonly InsertItem[] = [
     keywords: ["grid", "columns", "data"],
     build: () =>
       block(
-        "| ${1:Header 1} | ${2:Header 2} | ${3:Header 3} |\n| --- | --- | --- |\n| ${4:Cell 1} | ${5:Cell 2} | ${6:Cell 3} |\n| ${7:Cell 4} | ${8:Cell 5} | ${9:Cell 6} |\n| ${10:Cell 7} | ${11:Cell 8} | ${12:Cell 9} |",
+        "<table>\n  <thead>\n    <tr>\n      <th>${1:Header 1}</th>\n      <th>${2:Header 2}</th>\n      <th>${3:Header 3}</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>${4:Cell 1}</td>\n      <td>${5:Cell 2}</td>\n      <td>${6:Cell 3}</td>\n    </tr>\n    <tr>\n      <td>${7:Cell 4}</td>\n      <td>${8:Cell 5}</td>\n      <td>${9:Cell 6}</td>\n    </tr>\n  </tbody>\n</table>",
       ),
   },
   {

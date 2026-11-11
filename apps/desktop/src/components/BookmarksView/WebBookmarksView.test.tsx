@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import { invoke } from "@tauri-apps/api/core";
 import { BookmarksView } from "./BookmarksView";
 import { useBookmarkStore } from "../../bookmarks/bookmarkStore";
@@ -28,9 +34,13 @@ describe("BookmarksView — Web Links Page", () => {
       render(<BookmarksView onOpenNote={onOpenNoteMock} />);
     });
 
-    const linksTab = screen.getByRole("tab", { name: /Web Links/i });
+    const dropdownBtn = screen.getByRole("button", { name: /Notes/i });
     act(() => {
-      fireEvent.click(linksTab);
+      fireEvent.click(dropdownBtn);
+    });
+    const linksOption = screen.getByRole("button", { name: /Web links/i });
+    act(() => {
+      fireEvent.click(linksOption);
     });
 
     expect(screen.getByText("No web bookmarks yet")).toBeDefined();
@@ -39,7 +49,7 @@ describe("BookmarksView — Web Links Page", () => {
     ).toBeDefined();
   });
 
-  it("adds a web link manually, displays categories in the UI, and filters by category & #tag", async () => {
+  it("displays collections in sidebar, filters by collection and search query, and adds a link", async () => {
     useBookmarkStore.setState({
       bookmarks: [],
       webBookmarks: [
@@ -69,16 +79,14 @@ describe("BookmarksView — Web Links Page", () => {
       render(<BookmarksView onOpenNote={onOpenNoteMock} initialPage="links" />);
     });
 
-    // Category view is shown by default
-    expect(screen.getByTestId("web-bookmarks-category-view")).toBeDefined();
+    // Collections in sidebar
+    expect(screen.getAllByText("All bookmarks").length).toBeGreaterThan(0);
     expect(
-      screen.getByRole("region", { name: "Category Development" }),
+      screen.getByRole("button", { name: "Development (1)" }),
     ).toBeDefined();
-    expect(
-      screen.getByRole("region", { name: "Category Design" }),
-    ).toBeDefined();
+    expect(screen.getByRole("button", { name: "Design (1)" })).toBeDefined();
 
-    // Filter by folder chip in toolbar
+    // Filter by Development collection in sidebar
     const devFolderBtn = screen.getByRole("button", {
       name: "Development (1)",
     });
@@ -88,23 +96,25 @@ describe("BookmarksView — Web Links Page", () => {
     expect(screen.getByText("Rust Language")).toBeDefined();
     expect(screen.queryByText("Figma Design")).toBeNull();
 
-    // Reset to All
+    // Reset to All bookmarks
     act(() => {
       fireEvent.click(screen.getByRole("button", { name: "All (2)" }));
     });
+    expect(screen.getByText("Rust Language")).toBeDefined();
+    expect(screen.getByText("Figma Design")).toBeDefined();
 
-    // Click #rust tag chip to filter by tag
+    // Search query filter
+    const searchInput = screen.getByLabelText("Search web bookmarks");
     act(() => {
-      fireEvent.click(screen.getByText("#rust"));
+      fireEvent.change(searchInput, { target: { value: "rust" } });
     });
     expect(screen.getByText("Rust Language")).toBeDefined();
     expect(screen.queryByText("Figma Design")).toBeNull();
 
     // Clear search and add a new link via Add Link button
-    const searchInput = screen.getByLabelText("Search web bookmarks");
     act(() => {
       fireEvent.change(searchInput, { target: { value: "" } });
-      fireEvent.click(screen.getByRole("button", { name: /Add Link/i }));
+      fireEvent.click(screen.getByRole("button", { name: "Add Link" }));
     });
 
     act(() => {
@@ -119,6 +129,43 @@ describe("BookmarksView — Web Links Page", () => {
 
     expect(screen.getByText("Tauri v2")).toBeDefined();
     expect(useBookmarkStore.getState().webBookmarks).toHaveLength(3);
+  });
+
+  it("switches view modes between List, Cards, Headlines, and Moodboard", async () => {
+    useBookmarkStore.setState({
+      bookmarks: [],
+      webBookmarks: [
+        {
+          id: "w1",
+          url: "https://rust-lang.org",
+          title: "Rust Language",
+          domain: "rust-lang.org",
+          folder: "Development",
+          addedAt: 2000,
+        },
+      ],
+      isLoaded: true,
+    });
+
+    await act(async () => {
+      render(<BookmarksView onOpenNote={onOpenNoteMock} initialPage="links" />);
+    });
+
+    // Default is List view
+    expect(screen.getByRole("row")).toBeDefined();
+
+    // Open view menu and switch to Cards
+    const viewBtn = screen.getByRole("button", { name: /List/i });
+    act(() => {
+      fireEvent.click(viewBtn);
+    });
+
+    const cardsOption = screen.getByRole("button", { name: "Cards" });
+    act(() => {
+      fireEvent.click(cardsOption);
+    });
+
+    expect(screen.getByText("Rust Language")).toBeDefined();
   });
 
   it("lets the user choose a browser to auto-import bookmarks and organize by category", async () => {
@@ -191,10 +238,10 @@ describe("BookmarksView — Web Links Page", () => {
     await waitFor(() => {
       expect(useBookmarkStore.getState().webBookmarks).toHaveLength(2);
       expect(
-        screen.getByRole("region", { name: "Category Development" }),
+        screen.getByRole("button", { name: /Development/i }),
       ).toBeDefined();
       expect(
-        screen.getByRole("region", { name: "Category Design & UI" }),
+        screen.getByRole("button", { name: /Design & UI/i }),
       ).toBeDefined();
     });
   });
@@ -240,5 +287,145 @@ describe("BookmarksView — Web Links Page", () => {
     });
 
     expect(useBookmarkStore.getState().webBookmarks[0].folder).toBeUndefined();
+  });
+
+  it("opens browser choice modal when clicking Add from browser button next to Add link", async () => {
+    useBookmarkStore.setState({
+      bookmarks: [],
+      webBookmarks: [
+        {
+          id: "w1",
+          url: "https://tauri.app",
+          title: "Tauri",
+          addedAt: 1000,
+        },
+      ],
+      isLoaded: true,
+    });
+
+    await act(async () => {
+      render(<BookmarksView onOpenNote={onOpenNoteMock} initialPage="links" />);
+    });
+
+    // The Add link button and Add from browser button exist next to each other
+    expect(screen.getByRole("button", { name: "Add Link" })).toBeDefined();
+    const addFromBrowserBtn = screen.getByRole("button", {
+      name: "Add from browser",
+    });
+    expect(addFromBrowserBtn).toBeDefined();
+
+    await act(async () => {
+      fireEvent.click(addFromBrowserBtn);
+    });
+
+    // Opens the browser selection modal
+    expect(
+      screen.getByText("Add Bookmarks from Browser"),
+    ).toBeDefined();
+    expect(
+      screen.getByText(/Choose your browser to automatically import bookmarks/i),
+    ).toBeDefined();
+    expect(screen.getByTestId("browser-card-chrome")).toBeDefined();
+    expect(screen.getByTestId("browser-card-firefox")).toBeDefined();
+    expect(screen.getByTestId("browser-card-brave")).toBeDefined();
+
+    // Close modal
+    await act(async () => {
+      fireEvent.click(screen.getByLabelText("Close dialog"));
+    });
+  });
+
+  it("clicks the direct link icon to open the bookmark in browser", async () => {
+    vi.mocked(invoke).mockResolvedValue(undefined as never);
+
+    useBookmarkStore.setState({
+      bookmarks: [],
+      webBookmarks: [
+        {
+          id: "w1",
+          url: "https://tauri.app",
+          title: "Tauri v2",
+          domain: "tauri.app",
+          addedAt: 1000,
+        },
+      ],
+      isLoaded: true,
+    });
+
+    await act(async () => {
+      render(<BookmarksView onOpenNote={onOpenNoteMock} initialPage="links" />);
+    });
+
+    const linkBtn = screen.getByTitle("Open link in browser");
+    expect(linkBtn).toBeDefined();
+
+    await act(async () => {
+      fireEvent.click(linkBtn);
+    });
+
+    expect(vi.mocked(invoke)).toHaveBeenCalledWith("open_bookmark_url", {
+      url: "https://tauri.app",
+    });
+  });
+
+  it("imports bookmarks directly when clicking the import button on a detected browser row", async () => {
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === "detect_browser_bookmarks") {
+        return [
+          { id: "chrome", name: "Google Chrome", available: true, profileCount: 1 },
+        ];
+      }
+      if (cmd === "read_browser_bookmarks") {
+        return JSON.stringify({
+          roots: {
+            bookmark_bar: {
+              children: [
+                {
+                  type: "url",
+                  name: "TypeScript Docs",
+                  url: "https://typescriptlang.org",
+                  date_added: "13200000000000000",
+                },
+              ],
+            },
+          },
+        });
+      }
+      return undefined as never;
+    });
+
+    useBookmarkStore.setState({
+      bookmarks: [],
+      webBookmarks: [
+        {
+          id: "w0",
+          url: "https://initial.org",
+          title: "Initial",
+          addedAt: 1000,
+        },
+      ],
+      isLoaded: true,
+    });
+
+    await act(async () => {
+      render(<BookmarksView onOpenNote={onOpenNoteMock} initialPage="links" />);
+    });
+
+    const addFromBrowserBtn = screen.getByRole("button", { name: "Add from browser" });
+    await act(async () => {
+      fireEvent.click(addFromBrowserBtn);
+    });
+
+    // The Chrome row has a direct Import button
+    const chromeImportBtn = screen.getByTitle("Import bookmarks from Google Chrome");
+    expect(chromeImportBtn).toBeDefined();
+
+    await act(async () => {
+      fireEvent.click(chromeImportBtn);
+    });
+
+    // Directly imports the bookmark into the store and closes the dialog
+    expect(useBookmarkStore.getState().webBookmarks).toHaveLength(2);
+    expect(useBookmarkStore.getState().webBookmarks[1].title).toBe("TypeScript Docs");
   });
 });

@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { Dialog, DialogContent } from "@app/design-system";
 import { CaretDown, CaretRight, Hash } from "@phosphor-icons/react";
 import type { TagIndex } from "@app/indexer";
 import { getCanonicalTag } from "@app/indexer";
+import { WindowDialog } from "../WindowDialog";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 interface TagNode {
@@ -124,27 +124,26 @@ export function TagsDialog({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="tags-dialog__dialog"
-        title="Tags"
-        showCloseButton={false}
-      >
-        {tree.length ? (
-          <ul className="tags-dialog__tree">
-            {tree.map((node) => (
-              <TagTreeNode
-                key={node.key}
-                node={node}
-                depth={0}
-                onSelect={onSelectTag}
-              />
-            ))}
-          </ul>
-        ) : (
-          <p className="tags-dialog__empty">No tags in this vault.</p>
-        )}
-      </DialogContent>
-    </Dialog>
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={() => onOpenChange(false)}
+      title="Tags"
+      size="sm"
+    >
+      {tree.length ? (
+        <ul className="tags-dialog__tree">
+          {tree.map((node) => (
+            <TagTreeNode
+              key={node.key}
+              node={node}
+              depth={0}
+              onSelect={onSelectTag}
+            />
+          ))}
+        </ul>
+      ) : (
+        <p className="tags-dialog__empty">No tags in this vault.</p>
+      )}
+    </WindowDialog>
   );
 }

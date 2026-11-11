@@ -11,12 +11,14 @@ import {
   Image as ImageIcon,
   X,
   Ear,
+  CheckSquare,
 } from "@phosphor-icons/react";
 import { BOOKMARKS_TAB_ID } from "../../bookmarks";
 import { CALENDAR_TAB_ID } from "../../calendar/calendarConstants";
 import { AGENT_TAB_ID } from "../AgentView/agentTypes";
 import { REMINDERS_TAB_ID } from "../../reminders/reminderConstants";
 import { LISTENING_TAB_ID } from "../ListeningView/listeningConstants";
+import { TODOS_TAB_ID } from "../TodosView";
 import { isImagePath } from "../ImagePreview/imagePreviewUtils";
 
 export interface AppTabItemProps {
@@ -42,6 +44,7 @@ export function AppTabItem({
 }: AppTabItemProps) {
   const isBookmarksTab = path === BOOKMARKS_TAB_ID;
   const isRemindersTab = path === REMINDERS_TAB_ID;
+  const isTodosTab = path === TODOS_TAB_ID;
   const isAgentTab = path === AGENT_TAB_ID;
   const isCalendarTab = path === CALENDAR_TAB_ID;
   const isListeningTab = path === LISTENING_TAB_ID;
@@ -65,9 +68,11 @@ export function AppTabItem({
     ? "Bookmarks"
     : isRemindersTab
       ? "Reminders"
-      : isAgentTab
-        ? "AI Agent"
-        : isCalendarTab
+      : isTodosTab
+        ? "Todos"
+        : isAgentTab
+          ? "AI Agent"
+          : isCalendarTab
           ? "Calendar"
           : isListeningTab
             ? "AI Listening"
@@ -102,6 +107,8 @@ export function AppTabItem({
           <BookmarkSimple size={13} weight="regular" />
         ) : isRemindersTab ? (
           <Bell size={13} weight="regular" />
+        ) : isTodosTab ? (
+          <CheckSquare size={13} weight="regular" />
         ) : isAgentTab ? (
           <Sparkle size={13} weight="fill" />
         ) : isCalendarTab ? (

@@ -1,28 +1,35 @@
 .git-sidebar-panel {
   display: flex;
   flex-direction: column;
+  flex: 1 1 0%;
+  min-width: 0;
   height: 100%;
   width: 100%;
   background: var(--color-bg-base);
   color: var(--color-text-normal);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .git-accordion-section {
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid var(--color-border);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .git-accordion-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px var(--space-2);
-  background: var(--color-bg-secondary);
+  padding: 4px 8px 4px 12px;
   user-select: none;
   cursor: pointer;
   min-height: 28px;
+  flex-wrap: nowrap !important;
+  overflow: hidden;
+  gap: 4px;
+  flex-shrink: 0;
 
   &:hover {
     background: var(--color-bg-hover);
@@ -32,23 +39,30 @@
 .git-accordion-title {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: 4px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
+  color: var(--color-text-normal);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .git-accordion-actions {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 .git-accordion-body {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .git-graph-body {
@@ -58,18 +72,13 @@
   flex-direction: column;
 }
 
-.git-placeholder-body {
-  padding: var(--space-3);
-  font-size: var(--type-scale-xs);
-  color: var(--color-text-faint);
-  font-style: italic;
-}
-
 .toolbar-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 4px;
+  width: 22px;
+  height: 22px;
+  padding: 2px;
   background: transparent;
   border: none;
   border-radius: var(--radius-sm);

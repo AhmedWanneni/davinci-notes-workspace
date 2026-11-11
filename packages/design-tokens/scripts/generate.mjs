@@ -90,6 +90,8 @@ function getDesktopVariables() {
   // font & type
   vars.push(["font-ui", typographyTokens.font.ui]);
   vars.push(["font-editor", typographyTokens.font.editor]);
+  vars.push(["font-text", typographyTokens.font.text]);
+  vars.push(["font-mono", typographyTokens.font.mono]);
   for (const [k, v] of Object.entries(typographyTokens.scale)) vars.push([`type-scale-${k}`, v]);
   for (const [k, v] of Object.entries(typographyTokens.weight)) vars.push([`type-weight-${k}`, v]);
   for (const [k, v] of Object.entries(typographyTokens.leading)) vars.push([`type-leading-${k}`, v]);

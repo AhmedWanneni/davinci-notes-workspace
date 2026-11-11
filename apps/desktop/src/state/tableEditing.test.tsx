@@ -195,9 +195,9 @@ describe("Table cell editing and empty cell rendering", () => {
     insertTableAtCursor(view, 2, 2);
 
     expect(view.state.doc.toString()).toBe(
-      "Some preceding content\n\n| Header 1 | Header 2 |\n| :--- | :--- |\n| Cell 1 | Cell 2 |\n\n",
+      "Some preceding content\n\n<table>\n  <thead>\n    <tr>\n      <th>Header 1</th>\n      <th>Header 2</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Cell 1</td>\n      <td>Cell 2</td>\n    </tr>\n  </tbody>\n</table>\n\n",
     );
-    expect(view.state.selection.main.from).toBe(26);
+    expect(view.state.selection.main.from).toBe(24);
 
     view.destroy();
     document.body.removeChild(container);

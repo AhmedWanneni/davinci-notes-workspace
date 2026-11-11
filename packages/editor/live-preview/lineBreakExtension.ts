@@ -13,6 +13,7 @@ import {
   EditorView,
   WidgetType,
 } from "@codemirror/view";
+import { LIST_LINE_REGEX } from "./listMarkerUtils";
 
 class SoftLineBreakWidget extends WidgetType {
   eq(): boolean {
@@ -51,10 +52,13 @@ function addSoftLineBreaks(
     lineNumber++
   ) {
     const line = state.doc.line(lineNumber);
+    const nextLine =
+      lineNumber < state.doc.lines ? state.doc.line(lineNumber + 1) : null;
     if (
       line.to < state.doc.length &&
       !hasTrailingHardBreak(line.text) &&
       !line.text.trim().startsWith("|") &&
+      (!nextLine || !LIST_LINE_REGEX.test(nextLine.text)) &&
       isParagraphBreak(tree, line.to)
     ) {
       decorations.push(softLineBreak.range(line.to, line.to + 1));

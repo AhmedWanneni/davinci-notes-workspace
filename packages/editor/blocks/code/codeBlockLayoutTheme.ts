@@ -1,9 +1,62 @@
 import { EditorView } from "@codemirror/view";
 
-/** Preserve horizontal scrolling for long code lines while prose wraps. */
+/** Theme styling for fenced and inline code blocks with rounded card container and copy button. */
 export const codeBlockLayoutTheme = EditorView.theme({
   ".cm-line.cm-code-block": {
     whiteSpace: "pre",
     overflowWrap: "normal",
+    backgroundColor: "var(--color-bg-secondary, #f8fafc)",
+    paddingLeft: "var(--space-4, 18px)",
+    paddingRight: "var(--space-4, 18px)",
+    borderLeft: "1px solid var(--color-border-subtle, #e2e8f0)",
+    borderRight: "1px solid var(--color-border-subtle, #e2e8f0)",
+    fontFamily: "var(--font-mono)",
+    fontSize: "13px",
+    lineHeight: "1.6",
+    position: "relative",
+  },
+  ".cm-line.cm-code-block-first": {
+    borderTop: "1px solid var(--color-border-subtle, #e2e8f0)",
+    borderTopLeftRadius: "8px",
+    borderTopRightRadius: "8px",
+    paddingTop: "12px",
+    marginTop: "8px",
+  },
+  ".cm-line.cm-code-block-last": {
+    borderBottom: "1px solid var(--color-border-subtle, #e2e8f0)",
+    borderBottomLeftRadius: "8px",
+    borderBottomRightRadius: "8px",
+    paddingBottom: "12px",
+    marginBottom: "8px",
+  },
+  ".cm-code-actions": {
+    position: "absolute",
+    right: "10px",
+    top: "6px",
+    zIndex: "5",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+  },
+  ".cm-code-action-btn": {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: "26px",
+    height: "26px",
+    padding: "0 6px",
+    borderRadius: "5px",
+    border: "1px solid var(--color-border-subtle, #e2e8f0)",
+    backgroundColor: "var(--color-bg-primary, #ffffff)",
+    color: "var(--color-text-muted, #94a3b8)",
+    fontSize: "12px",
+    fontWeight: "600",
+    fontFamily: "var(--font-mono)",
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+  },
+  ".cm-code-action-btn:hover": {
+    backgroundColor: "var(--color-bg-hover, rgba(0, 0, 0, 0.05))",
+    color: "var(--color-text-normal, #1e293b)",
   },
 });

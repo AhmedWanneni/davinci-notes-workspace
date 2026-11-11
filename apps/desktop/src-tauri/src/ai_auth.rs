@@ -33,3 +33,43 @@ pub fn clear_ai_key(window: WebviewWindow, provider_id: String) -> Result<(), St
     Err(error) => Err(error.to_string()),
   }
 }
+
+pub fn load_stored_ai_key(provider_id: &str) -> Option<String> {
+  entry(provider_id)
+    .ok()
+    .and_then(|e| e.get_password().ok())
+    .map(|k| k.trim().to_string())
+    .filter(|k| !k.is_empty())
+}
+
+pub fn resolve_whisper_api_key(explicit_key: &str) -> Option<String> {
+  let trimmed = explicit_key.trim();
+  if !trimmed.is_empty() {
+    return Some(trimmed.to_string());
+  }
+
+  let candidate_ids = [
+    "ai-transcription:groq",
+    "groq",
+    "ai-listening:groq",
+    "whisper",
+    "openai-compatible",
+    "openai",
+  ];
+  for id in candidate_ids {
+    if let Some(key) = load_stored_ai_key(id) {
+      return Some(key);
+    }
+  }
+
+  for env_name in ["GROQ_API_KEY", "OPENAI_API_KEY"] {
+    if let Ok(val) = std::env::var(env_name) {
+      let clean = val.trim().to_string();
+      if !clean.is_empty() {
+        return Some(clean);
+      }
+    }
+  }
+
+  None
+}

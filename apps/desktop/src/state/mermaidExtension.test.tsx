@@ -1,5 +1,10 @@
 // @vitest-environment jsdom
-import { editorTheme, mermaidExtension, mermaidTheme } from "@app/editor";
+import {
+  editorTheme,
+  livePreviewExtension,
+  mermaidExtension,
+  mermaidTheme,
+} from "@app/editor";
 import { markdown } from "@codemirror/lang-markdown";
 import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
@@ -19,6 +24,7 @@ function createMermaidEditor(
         editorTheme,
         mermaidTheme,
         markdown(),
+        livePreviewExtension,
         ...(readOnly ? [EditorState.readOnly.of(true)] : []),
         mermaidExtension({ isReadOnly: readOnly, onLinkClick }),
       ],
@@ -70,19 +76,24 @@ describe("Mermaid diagram extension", () => {
     const diagram = container.querySelector(".cm-mermaid-diagram");
     expect(diagram).not.toBeNull();
 
-    // Edit Code mode via hover hint
+    // Edit Code mode via hover hint (icon only, smaller button)
     const editCodeBtn = container.querySelector<HTMLButtonElement>(
       ".cm-mermaid-edit-code-btn",
     );
     expect(editCodeBtn).not.toBeNull();
+    expect(editCodeBtn?.querySelector("svg")).not.toBeNull();
+    expect(editCodeBtn?.textContent?.trim()).toBe("");
     editCodeBtn?.click();
 
-    // Diagram replaced by code mode with View Diagram action
+    // Diagram replaced by code mode with View Diagram action (icon only, inside code actions, no top header)
     expect(container.querySelector(".cm-mermaid-diagram")).toBeNull();
+    expect(container.querySelector(".cm-mermaid-code-bar")).toBeNull();
     const viewDiagramBtn = container.querySelector<HTMLButtonElement>(
       ".cm-mermaid-view-diagram-btn",
     );
     expect(viewDiagramBtn).not.toBeNull();
+    expect(viewDiagramBtn?.querySelector("svg")).not.toBeNull();
+    expect(viewDiagramBtn?.textContent?.trim()).toBe("");
 
     // Returning to Diagram view
     viewDiagramBtn?.click();
@@ -125,4 +136,17 @@ describe("Mermaid diagram extension", () => {
     expect(target).toBe("A");
     destroy();
   });
+
+  it("mounts mermaid as a structural block widget outside of cm-line", async () => {
+    const source = "```mermaid\ngraph TD\nA --> B\n```";
+    const { container, destroy } = createMermaidEditor(source);
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    expect(container.querySelector(".cm-mermaid-diagram")).not.toBeNull();
+    // Replaced atomically as a block widget: no cm-line wrapping it, and no inner cm-line continuations
+    expect(container.querySelector(".cm-line .cm-mermaid-diagram")).toBeNull();
+    expect(container.querySelectorAll(".cm-mermaid-continuation")).toHaveLength(0);
+    destroy();
+  });
 });
+

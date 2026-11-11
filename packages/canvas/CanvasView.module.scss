@@ -98,3 +98,24 @@
   font-size: var(--type-scale-base);
   font-weight: 500;
 }
+
+:global(.react-flow) {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+:global(.react-flow__renderer),
+:global(.react-flow__viewport) {
+  -webkit-transform-style: preserve-3d;
+  transform-style: preserve-3d;
+}
+
+:global(.react-flow__node) {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  text-rendering: geometricPrecision;
+}
+

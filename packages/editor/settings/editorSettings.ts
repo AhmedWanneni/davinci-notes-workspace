@@ -5,6 +5,7 @@ export const editorFonts = [
   "literata",
   "source-serif-4",
   "jetbrains-mono",
+  "geist-mono",
   "montserrat",
   "raleway",
   "custom",
@@ -23,6 +24,7 @@ export interface EditorSettings {
   useVimMode: boolean;
   vimMonospaceMode: boolean;
   slashMenuEnabled: boolean;
+  formatOnSave: boolean;
 }
 
 export interface EditorSettingsStorage {
@@ -32,7 +34,7 @@ export interface EditorSettingsStorage {
 
 export const MIN_EDITOR_FONT_SIZE = 12;
 export const MAX_EDITOR_FONT_SIZE = 28;
-export const DEFAULT_EDITOR_FONT_SIZE = 16;
+export const DEFAULT_EDITOR_FONT_SIZE = 15;
 
 export const defaultEditorSettings: EditorSettings = {
   editorFont: "system",
@@ -40,8 +42,9 @@ export const defaultEditorSettings: EditorSettings = {
   editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
   strictLineBreaks: false,
   useVimMode: false,
-  vimMonospaceMode: true,
+  vimMonospaceMode: false,
   slashMenuEnabled: true,
+  formatOnSave: false,
 };
 
 export function isEditorFont(
@@ -133,6 +136,7 @@ export async function loadEditorSettings(
   const useVimMode = await storage.get("useVimMode");
   const vimMonospaceMode = await storage.get("vimMonospaceMode");
   const slashMenuEnabled = await storage.get("slashMenuEnabled");
+  const formatOnSave = await storage.get("formatOnSave");
 
   const validatedCustom = validateAndSanitizeCustomFont(editorCustomFont);
 
@@ -152,6 +156,7 @@ export async function loadEditorSettings(
       slashMenuEnabled === null
         ? defaultEditorSettings.slashMenuEnabled
         : slashMenuEnabled === "true",
+    formatOnSave: formatOnSave === "true",
   };
 }
 

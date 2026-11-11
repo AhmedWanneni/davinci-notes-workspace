@@ -8,3 +8,4 @@ export * from "./tagExtension";
 export * from "./reminderFormat";
 export * from "./reminderWidget";
 export * from "./reminderExtension";
+export * from "./frontmatterHideExtension";

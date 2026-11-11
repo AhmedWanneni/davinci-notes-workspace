@@ -1,5 +1,4 @@
-import { Extension, Range } from "@codemirror/state";
-import { indentWithTab } from "@codemirror/commands";
+import { Extension, Prec, Range } from "@codemirror/state";
 import {
   Decoration,
   DecorationSet,
@@ -8,9 +7,12 @@ import {
   ViewUpdate,
   WidgetType,
 } from "@codemirror/view";
+import { listTheme } from "./listTheme";
+import { listIndentKeymap } from "./listKeymap";
+import { keymap } from "@codemirror/view";
 
 const LIST_ITEM_PATTERN =
-  /^(\s*)([-*+]|\d+[.)])([ \t]+)(?:\[([^\]\n])\][ \t]*)?/gm;
+  /^(\s*)([-*+]|\d+[.)]|[a-zA-Z][.)]|[ivxIVX]+[.)])([ \t]+)(?:\[([^\]\n])\][ \t]*)?/gm;
 const completedTaskDeco = Decoration.mark({ class: "cm-task-completed" });
 const indentSpaceDeco = Decoration.mark({ class: "cm-list-indent-space" });
 
@@ -55,7 +57,7 @@ class TaskCheckboxWidget extends WidgetType {
     );
   }
 
-  toDOM(): HTMLElement {
+  toDOM(view: EditorView): HTMLElement {
     const checkbox = document.createElement("input");
     checkbox.className = "cm-task-checkbox";
     checkbox.type = "checkbox";
@@ -63,11 +65,20 @@ class TaskCheckboxWidget extends WidgetType {
     checkbox.disabled = this.readOnly;
     checkbox.dataset.markerFrom = String(this.markerFrom);
     checkbox.setAttribute("aria-label", "Toggle task");
+    checkbox.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    checkbox.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleTaskByMarkerFrom(this.markerFrom, view);
+    });
     return checkbox;
   }
 
   ignoreEvent(): boolean {
-    return false;
+    return true;
   }
 }
 
@@ -75,8 +86,7 @@ export interface ListExtensionOptions {
   isReadOnly?: boolean;
 }
 
-/** Native CodeMirror Tab/Shift+Tab bindings for list indentation. */
-export const listIndentKeymap = [indentWithTab];
+export { listIndentKeymap } from "./listKeymap";
 
 function isActiveLine(view: EditorView, lineNumber: number, readOnly: boolean) {
   return (
@@ -106,18 +116,18 @@ function getListDecorations(
       const marker = match[2];
       const taskMarker = match[4];
       const activeLine = isActiveLine(view, lineNumber, readOnly);
-      const ordered = /^\d/.test(marker);
+      const ordered = /^[0-9a-zA-ZivxIVX]+[.)]$/.test(marker);
 
       const spaces = match[1].replace(/\t/g, "  ").length;
       const level = Math.min(6, Math.floor(spaces / 2));
       decorations.push(listLineDecos[level]!.range(line.from));
 
       const markerFrom = line.from + indentation;
-      if (!activeLine && indentation > 0) {
+      if (indentation > 0) {
         decorations.push(indentSpaceDeco.range(line.from, markerFrom));
       }
 
-      if (activeLine && !ordered) continue;
+      if (activeLine && !ordered && taskMarker === undefined) continue;
       const markerTo =
         markerFrom +
         marker.length +
@@ -128,10 +138,11 @@ function getListDecorations(
         }).range(markerFrom, markerTo),
       );
 
-      if (taskMarker === undefined || activeLine) continue;
+      if (taskMarker === undefined) continue;
 
       const taskFrom = markerTo + match[3].length;
       const completed = taskMarker !== " ";
+
       decorations.push(
         Decoration.replace({
           widget: new TaskCheckboxWidget(taskFrom, completed, readOnly),
@@ -147,16 +158,7 @@ function getListDecorations(
   return Decoration.set(decorations, true);
 }
 
-function toggleTask(event: MouseEvent, view: EditorView): boolean {
-  const checkbox = event.target;
-  if (
-    !(checkbox instanceof HTMLInputElement) ||
-    !checkbox.classList.contains("cm-task-checkbox")
-  ) {
-    return false;
-  }
-
-  const markerFrom = Number(checkbox.dataset.markerFrom);
+function toggleTaskByMarkerFrom(markerFrom: number, view: EditorView): boolean {
   const currentMarker = view.state.doc.sliceString(markerFrom, markerFrom + 3);
   if (!/^\[[^\]\n]\]$/.test(currentMarker)) return true;
 
@@ -171,50 +173,18 @@ function toggleTask(event: MouseEvent, view: EditorView): boolean {
   return true;
 }
 
-const listTheme = EditorView.theme({
-  ".cm-line.cm-list-line": {
-    paddingTop: "var(--editor-obsidian-spacing-list)",
-    paddingBottom: "var(--editor-obsidian-spacing-list)",
-    textIndent: "calc(-1 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-0": { paddingLeft: "var(--editor-list-indent)" },
-  ".cm-line.cm-list-level-1": {
-    paddingLeft: "calc(2 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-2": {
-    paddingLeft: "calc(3 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-3": {
-    paddingLeft: "calc(4 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-4": {
-    paddingLeft: "calc(5 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-5": {
-    paddingLeft: "calc(6 * var(--editor-list-indent))",
-  },
-  ".cm-line.cm-list-level-6": {
-    paddingLeft: "calc(7 * var(--editor-list-indent))",
-  },
-  ".cm-list-indent-space": {
-    display: "none !important",
-  },
-  ".cm-list-bullet, .cm-list-ordered": {
-    display: "inline-block",
-    width: "var(--editor-list-indent)",
-    minWidth: "var(--editor-list-indent)",
-    textAlign: "left",
-    textIndent: "0",
-    boxSizing: "border-box",
-  },
-  ".cm-list-ordered": {
-    fontVariantNumeric: "tabular-nums",
-  },
-  ".cm-task-checkbox": {
-    margin: "0 var(--space-2) 0 0",
-    verticalAlign: "middle",
-  },
-});
+function toggleTask(event: MouseEvent, view: EditorView): boolean {
+  const checkbox = event.target;
+  if (
+    !(checkbox instanceof HTMLInputElement) ||
+    !checkbox.classList.contains("cm-task-checkbox")
+  ) {
+    return false;
+  }
+
+  const markerFrom = Number(checkbox.dataset.markerFrom);
+  return toggleTaskByMarkerFrom(markerFrom, view);
+}
 
 /** Renders Markdown list markers and task checkboxes with hanging indents in live preview. */
 export function listExtension(options: ListExtensionOptions = {}): Extension {
@@ -243,5 +213,6 @@ export function listExtension(options: ListExtensionOptions = {}): Extension {
       },
     ),
     listTheme,
+    Prec.high(keymap.of(listIndentKeymap)),
   ];
 }

@@ -1,12 +1,12 @@
 import { useState, useCallback } from "react";
 import {
-  X,
   Image as ImageIcon,
   UploadSimple,
   LinkSimple,
   Trash,
 } from "@phosphor-icons/react";
 import { COVER_PRESETS } from "./coverPresets";
+import { WindowDialog } from "../WindowDialog";
 import styles from "./CoverImagePickerModal.module.scss";
 
 export interface CoverImagePickerModalProps {
@@ -52,28 +52,29 @@ export function CoverImagePickerModal({
   }, [customUrl, onSelectCover, onClose]);
 
   return (
-    <div
-      className={styles["cover-picker-overlay"]}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      role="dialog"
-      aria-label="Cover Image Picker"
-    >
-      <div className={styles["cover-picker-modal"]}>
-        <div className={styles["cover-picker-header"]}>
-          <h3 className={styles["cover-picker-title"]}>Cover Image</h3>
+    <WindowDialog
+      isOpen={true}
+      onClose={onClose}
+      title="Cover Image"
+      ariaLabel="Cover Image Picker"
+      size="md"
+      footer={
+        currentCover && onRemoveCover ? (
           <button
             type="button"
-            className={styles["cover-picker-close-button"]}
-            onClick={onClose}
-            aria-label="Close dialog"
+            className={styles["cover-picker-button"]}
+            data-variant="danger"
+            onClick={() => {
+              onRemoveCover();
+              onClose();
+            }}
           >
-            <X size={16} />
+            <Trash size={16} /> Remove Cover
           </button>
-        </div>
-
-        <div className={styles["cover-picker-tabs"]} role="tablist">
+        ) : undefined
+      }
+    >
+      <div className={styles["cover-picker-tabs"]} role="tablist">
           <button
             type="button"
             className={styles["cover-picker-tab"]}
@@ -184,24 +185,7 @@ export function CoverImagePickerModal({
               )}
             </div>
           )}
-        </div>
-
-        {currentCover && onRemoveCover && (
-          <div className={styles["cover-picker-footer"]}>
-            <button
-              type="button"
-              className={styles["cover-picker-button"]}
-              data-variant="danger"
-              onClick={() => {
-                onRemoveCover();
-                onClose();
-              }}
-            >
-              <Trash size={16} /> Remove Cover
-            </button>
-          </div>
-        )}
       </div>
-    </div>
+    </WindowDialog>
   );
 }

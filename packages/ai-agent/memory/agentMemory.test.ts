@@ -10,7 +10,10 @@ import {
 describe("agentMemory", () => {
   it("parses empty or invalid json safely", () => {
     expect(parseMemoryData(null)).toEqual({ version: 1, entries: [] });
-    expect(parseMemoryData("invalid json")).toEqual({ version: 1, entries: [] });
+    expect(parseMemoryData("invalid json")).toEqual({
+      version: 1,
+      entries: [],
+    });
   });
 
   it("adds and serializes new memory entries", () => {
@@ -28,13 +31,18 @@ describe("agentMemory", () => {
     const json = serializeMemoryData(updated);
     const roundTrip = parseMemoryData(json);
     expect(roundTrip.entries.length).toBe(1);
-    expect(roundTrip.entries[0].content).toBe("User prefers concise summary notes");
+    expect(roundTrip.entries[0].content).toBe(
+      "User prefers concise summary notes",
+    );
   });
 
   it("deduplicates identical memory contents", () => {
     const initial = parseMemoryData(null);
     const step1 = addMemoryEntry(initial, "Project alpha deadline is Friday");
-    const step2 = addMemoryEntry(step1.data, "project alpha deadline is friday");
+    const step2 = addMemoryEntry(
+      step1.data,
+      "project alpha deadline is friday",
+    );
     expect(step2.data.entries.length).toBe(1);
   });
 
@@ -50,7 +58,7 @@ describe("agentMemory", () => {
   });
 
   it("deletes a memory entry by id", () => {
-    let data = parseMemoryData(null);
+    const data = parseMemoryData(null);
     const res = addMemoryEntry(data, "Temporary note");
     expect(res.data.entries.length).toBe(1);
 

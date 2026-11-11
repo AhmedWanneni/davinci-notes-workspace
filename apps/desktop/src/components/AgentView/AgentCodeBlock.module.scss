@@ -1,0 +1,127 @@
+.codeblock {
+  position: relative;
+  margin: 14px 0;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-secondary);
+  padding: 18px 22px;
+  overflow: hidden;
+
+  &__actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+  }
+
+  &__lang {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  &__copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+      color: var(--color-text-normal);
+    }
+  }
+
+  &__more-wrap {
+    position: relative;
+  }
+
+  &__more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+      color: var(--color-text-normal);
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 50;
+    min-width: 140px;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 6px;
+    padding: 4px;
+  }
+
+  &__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 5px 8px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--color-text-normal);
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--color-bg-hover);
+    }
+  }
+
+  &__pre {
+    margin: 0;
+    padding: 0;
+    font-family: var(
+      --font-mono,
+      "SF Mono",
+      Menlo,
+      Consolas,
+      Monaco,
+      monospace
+    );
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-text-normal);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+
+    code {
+      font-family: inherit;
+      font-size: inherit;
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: inherit;
+    }
+  }
+}

@@ -1,6 +1,8 @@
 export interface FontTokens {
   readonly ui: string;
   readonly editor: string;
+  readonly text: string;
+  readonly mono: string;
 }
 
 export interface TypeScaleTokens {
@@ -33,9 +35,11 @@ export interface TypographyTokens {
 }
 
 export const fontTokens: FontTokens = {
-  ui: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  ui: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   editor:
-    "'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace",
+    "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  text: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  mono: 'ui-monospace, "SF Mono", "Geist Mono", Menlo, Consolas, monospace',
 } as const;
 
 export const typeScaleTokens: TypeScaleTokens = {

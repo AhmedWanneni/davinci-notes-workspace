@@ -110,12 +110,12 @@ export const editorTokens: EditorTokens = {
   listIndent: "1.5em",
   obsidian: {
     bodyFontSize: "1rem",
-    bodyLineHeight: "1.5",
+    bodyLineHeight: "1.6",
     contentMaxWidth: "43.75rem",
     contentLinePaddingInline: "0",
     heading: {
-      h1: { size: "1.618em", weight: "700", lineHeight: "1.2" },
-      h2: { size: "1.462em", weight: "680", lineHeight: "1.2" },
+      h1: { size: "1.802em", weight: "700", lineHeight: "1.25" },
+      h2: { size: "1.462em", weight: "680", lineHeight: "1.25" },
       h3: { size: "1.318em", weight: "660", lineHeight: "1.3" },
       h4: { size: "1.188em", weight: "640", lineHeight: "1.4" },
       h5: { size: "1.076em", weight: "620", lineHeight: "1.5" },

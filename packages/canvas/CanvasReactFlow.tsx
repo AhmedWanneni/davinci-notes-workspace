@@ -1,10 +1,11 @@
-import type { JSX, MouseEvent as ReactMouseEvent } from "react";
+import { useCallback, type JSX, type MouseEvent as ReactMouseEvent } from "react";
 import {
   Background,
   BackgroundVariant,
   ConnectionMode,
   ReactFlow,
   SelectionMode,
+  useReactFlow,
   type Edge,
   type Node,
   type OnConnect,
@@ -13,9 +14,11 @@ import {
   type OnNodesChange,
   type OnNodesDelete,
   type OnReconnect,
+  type Viewport,
 } from "@xyflow/react";
 import { canvasNodeTypes } from "./canvasNodeTypes";
 import { canvasEdgeTypes } from "./canvasEdgeTypes";
+import { CANVAS_SNAP_GRID } from "./canvasConstants";
 
 export interface CanvasReactFlowProps {
   nodes: Node[];
@@ -62,6 +65,19 @@ export function CanvasReactFlow({
   onPaneContextMenu,
   onNodeContextMenu,
 }: CanvasReactFlowProps): JSX.Element {
+  const { setViewport } = useReactFlow();
+
+  const handleMoveEnd = useCallback(
+    (_event: MouseEvent | TouchEvent | null, vp: Viewport) => {
+      const rx = Math.round(vp.x);
+      const ry = Math.round(vp.y);
+      if (Math.abs(rx - vp.x) > 0.001 || Math.abs(ry - vp.y) > 0.001) {
+        setViewport({ x: rx, y: ry, zoom: vp.zoom });
+      }
+    },
+    [setViewport],
+  );
+
   return (
     <ReactFlow
       nodes={nodes}
@@ -87,6 +103,8 @@ export function CanvasReactFlow({
       selectionOnDrag={true}
       selectionMode={SelectionMode.Partial}
       multiSelectionKeyCode="Shift"
+      snapToGrid={true}
+      snapGrid={CANVAS_SNAP_GRID}
       panOnDrag={[1, 2]}
       panActivationKeyCode="Space"
       zoomOnScroll={true}
@@ -94,8 +112,10 @@ export function CanvasReactFlow({
       zoomOnDoubleClick={false}
       minZoom={0.1}
       maxZoom={2}
-      fitView={true}
-      fitViewOptions={{ padding: 0.2 }}
+      fitView={false}
+      defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+      fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
+      onMoveEnd={handleMoveEnd}
       proOptions={{ hideAttribution: true }}
       onlyRenderVisibleElements={true}
     >

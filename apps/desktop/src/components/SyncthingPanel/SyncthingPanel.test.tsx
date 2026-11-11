@@ -48,7 +48,7 @@ describe("SyncthingPanel Component", () => {
     rotateCode: vi.fn(),
   };
 
-  it("renders Running state with raw device ID, Stop button, and pairing QR code", () => {
+  it("opens the mobile pairing dialog from the mobile connection row", () => {
     const stopMock = vi.fn();
     render(
       <SyncthingPanel
@@ -61,7 +61,7 @@ describe("SyncthingPanel Component", () => {
     expect(
       screen.getByText(/Syncthing is active on 127.0.0.1:8384/),
     ).toBeDefined();
-    expect(screen.getByText("My MacBook")).toBeDefined();
+    expect(screen.queryByText("My MacBook")).toBeNull();
     expect(
       screen.getByText(
         "C4BPTD3-DOYDMY2-BMYU2JI-XZSA2JH-B7FJJTG-WEO6WA3-XGIYHVF-C2O5BQE",
@@ -73,11 +73,12 @@ describe("SyncthingPanel Component", () => {
     fireEvent.click(stopBtn);
     expect(stopMock).toHaveBeenCalledTimes(1);
 
+    expect(screen.queryByTestId("syncthing-qr-image")).toBeNull();
+    fireEvent.click(screen.getAllByRole("button", { name: /Connect/ })[0]);
+    expect(screen.getByRole("dialog")).toBeDefined();
     expect(screen.getByTestId("syncthing-qr-image")).toBeDefined();
-    expect(screen.getByText("Waiting for phone...")).toBeDefined();
-    expect(screen.getByTestId("pairing-code").textContent).toContain(
-      "Code: 482 910",
-    );
+    expect(screen.queryByText("Waiting for phone...")).toBeNull();
+    expect(screen.getByTestId("pairing-code").textContent).toBe("482 910");
   });
 
   it("renders Stopped state with Start button and no terminal message", () => {
@@ -136,7 +137,8 @@ describe("SyncthingPanel Component", () => {
       />,
     );
 
-    const checkbox = screen.getByRole("checkbox");
+    fireEvent.click(screen.getByRole("button", { name: "Computer settings" }));
+    const checkbox = screen.getByRole("checkbox", { name: /Start sync automatically/ });
     fireEvent.click(checkbox);
     expect(setAutoStartMock).toHaveBeenCalledWith(true);
   });
@@ -157,7 +159,7 @@ describe("SyncthingPanel Component", () => {
     expect(writeTextMock).toHaveBeenCalledWith(baseStatus.deviceId);
 
     await waitFor(() => {
-      expect(screen.getByText(/Copied!/)).toBeDefined();
+      expect(screen.getByText("Copied")).toBeDefined();
     });
   });
 
@@ -178,7 +180,7 @@ describe("SyncthingPanel Component", () => {
     expect(refreshMock).toHaveBeenCalledTimes(1);
   });
 
-  it("renders paired devices and switches between Phone and Computer pairing tabs", () => {
+  it("opens the desktop connection dialog from the second connection row", () => {
     const customWithDevices: SyncthingStatusState = {
       ...baseStatus,
       configuredDevices: [
@@ -201,18 +203,16 @@ describe("SyncthingPanel Component", () => {
       />,
     );
 
-    // Paired devices should be visible
+    // Paired devices are collapsed until opened.
+    fireEvent.click(screen.getByRole("button", { name: /Show/ }));
     expect(screen.getByText("Work Laptop")).toBeDefined();
-    expect(screen.getByText("Vault Shared")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Show shared vaults for Work Laptop" }));
+    expect(screen.getByText("Shared vault")).toBeDefined();
+    fireEvent.click(screen.getByRole("button", { name: "Close devices dialog" }));
 
-    // Default tab is Phone (QR Code)
-    expect(screen.getByTestId("syncthing-qr-image")).toBeDefined();
-
-    // Switch to Connect Computer
-    const computerTab = screen.getByText("Connect Computer (Device ID)");
-    fireEvent.click(computerTab);
-
-    // Add device form should be visible
+    const connectButtons = screen.getAllByRole("button", { name: /Connect/ });
+    fireEvent.click(connectButtons[1]);
+    expect(screen.getByRole("dialog")).toBeDefined();
     expect(screen.getByTestId("syncthing-add-device")).toBeDefined();
     expect(screen.queryByTestId("syncthing-qr-image")).toBeNull();
   });

@@ -1,24 +1,13 @@
 import type { AgentToolCall } from "@app/ai-api";
 import { isConversationalMeta } from "./conversationalMeta.js";
+import { cleanPath, INVALID_WORDS } from "./conversationalPathUtils.js";
+import { extractMoveToolCalls } from "./conversationalMoveFallback.js";
+import { extractEditToolCall } from "./conversationalEditFallback.js";
+
 export { isConversationalMeta };
 
-const INVALID_WORDS = new Set([
-  "having", "hacing", "with", "about", "for", "in", "on", "at", "to", "from",
-  "of", "by", "containing", "listing", "including", "summarizing", "called",
-  "named", "titled", "that", "which", "a", "an", "the", "some", "all", "any",
-  "and", "or", "but", "this", "my", "your", "it", "them",
-]);
-
-function cleanPath(raw: string, isFolder = false): string {
-  let cleaned = raw
-    .trim()
-    .replace(/^["'‘“]+|["'’”]+$/g, "")
-    .replace(/^\/+|\/+$/g, "");
-  if (!isFolder && !cleaned.toLowerCase().endsWith(".md")) {
-    cleaned = `${cleaned}.md`;
-  }
-  return cleaned;
-}
+const HAS_NOTE_CREATION_INTENT =
+  /\b(?:create|make|add|new|write)\b[^\n\r]*\b(?:note|file|document|doc|page)\b/i;
 
 function extractCodeBlock(text: string): string {
   const codeBlockMatch = /```(?:markdown|md)?\s*\n([\s\S]*?)\n```/.exec(text);
@@ -48,8 +37,10 @@ function extractCodeBlock(text: string): string {
 }
 
 function deriveNoteNameFromTopic(prompt: string): string | null {
+  // Only derive note name if the prompt actually asks to create a note/file
+  if (!HAS_NOTE_CREATION_INTENT.test(prompt)) return null;
   const match =
-    /(?:having|hacing|with|containing|about|for|listing)\s+(?:the\s+|a\s+)?(?:list\s+of\s+(?:the\s+|a\s+)?)?([a-zA-Z0-9_\-]+)/i.exec(
+    /(?:having|hacing|with|containing|about|for|listing)\s+(?:the\s+|a\s+)?(?:list\s+of\s+(?:the\s+|a\s+)?)?([a-zA-Z0-9_-]+)/i.exec(
       prompt,
     );
   if (match && match[1] && !INVALID_WORDS.has(match[1].toLowerCase())) {
@@ -64,47 +55,6 @@ function matchEntityName(pattern: RegExp, text: string): string | null {
   const raw = (match[1] || match[2] || "").trim();
   if (!raw || INVALID_WORDS.has(raw.toLowerCase())) return null;
   return raw;
-}
-
-function extractMoveToolCalls(
-  prompt: string,
-  text: string,
-  folderName: string | null,
-): AgentToolCall[] {
-  const calls: AgentToolCall[] = [];
-  const combined = `${prompt} ${text}`.trim();
-  const addMove = (from: string, to: string) => {
-    if (!calls.some((c) => c.arguments.fromPath === from && c.arguments.toPath === to)) {
-      calls.push({ id: `call_conv_move_${Date.now()}_${calls.length}`, name: "move_note", arguments: { fromPath: from, toPath: to } });
-    }
-  };
-
-  const explicitPattern =
-    /(?:move|moved|put|place|placed|relocate)\s+(?:the\s+)?(?:note|file\s+)?["'‘“]?([a-zA-Z0-9_\-\.]+\.md|[a-zA-Z0-9_\-]+)["'’”]?\s+(?:in|into|to|under)\s+(?:the\s+)?(?:folder|directory\s+)?["'‘“]?([a-zA-Z0-9_\-/\.]+)["'’”]?/gi;
-  let match: RegExpExecArray | null;
-  while ((match = explicitPattern.exec(combined)) !== null) {
-    const rawFrom = match[1]?.trim().replace(/^["'‘“]+|["'’”\.\,\!]+$/g, "");
-    const rawDest = match[2]?.trim().replace(/^["'‘“]+|["'’”\.\,\!]+$/g, "");
-    if (rawFrom && rawDest && !INVALID_WORDS.has(rawFrom.toLowerCase()) && !INVALID_WORDS.has(rawDest.toLowerCase())) {
-      const fromPath = cleanPath(rawFrom);
-      const destClean = cleanPath(rawDest, true);
-      const toPath = destClean.endsWith(".md") ? destClean : `${destClean}/${fromPath.split("/").pop()}`;
-      addMove(fromPath, toPath);
-    }
-  }
-
-  if (calls.length === 0 && folderName) {
-    const putInItPattern =
-      /(?:put|move|place|relocate)\s+(?:the\s+)?(?:note|file\s+)?["'‘“]?([a-zA-Z0-9_\-\.]+\.md|[a-zA-Z0-9_\-]+)["'’”]?\s+(?:in|into|under|to)\s+(?:it|the\s+folder|the\s+directory)/i;
-    const itMatch = putInItPattern.exec(combined);
-    const rawItFrom = itMatch?.[1]?.trim().replace(/^["'‘“]+|["'’”\.\,\!]+$/g, "");
-    if (rawItFrom && !INVALID_WORDS.has(rawItFrom.toLowerCase())) {
-      const fromPath = cleanPath(rawItFrom);
-      const toPath = `${folderName}/${fromPath.split("/").pop()}`;
-      addMove(fromPath, toPath);
-    }
-  }
-  return calls;
 }
 
 /**
@@ -123,11 +73,18 @@ export function extractConversationalToolCalls(
     return results;
   }
 
+  // Check for edit / update intent first to prevent updates from becoming note creations
+  const editCall = extractEditToolCall(prompt, text, extractCodeBlock);
+  if (editCall) {
+    results.push(editCall);
+    return results;
+  }
+
   // Check for folder creation in prompt or text
   const folderPromptPattern =
-    /(?:create|make|add|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+    /(?:create|make|add|new)\s+(?:a\s+)?(?:folder|directory)(?:\s+(?:named|called|titled|for))?\s*(?:the\s+)?(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_./-]+))/i;
   const folderTextPattern =
-    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:folder|directory)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:folder|directory)(?:\s+(?:named|called|titled|for))?\s*(?:the\s+)?(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_./-]+))/i;
 
   const rawFolder =
     matchEntityName(folderPromptPattern, prompt) ||
@@ -164,10 +121,16 @@ export function extractConversationalToolCalls(
     return results;
   }
 
+  const hasNoteIntent = HAS_NOTE_CREATION_INTENT.test(prompt);
+
+  // If user prompt was strictly a folder creation without note intent, do NOT create notes
+  if (folderName && !hasNoteIntent) {
+    return results;
+  }
 
   // Check for note/file creation in assistant text (only if not conversational meta)
   const noteTextPattern =
-    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+    /(?:I(?:'ve| have)?|I)\s+(?:created|made|added|am creating)\s+(?:a\s+)?(?:new\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_./-]+))/i;
   const rawNoteInText = isConversationalMeta(text)
     ? null
     : matchEntityName(noteTextPattern, text);
@@ -189,21 +152,25 @@ export function extractConversationalToolCalls(
 
   // Check for Kanban
   const kanbanPattern =
-    /(?:create|make|add|new|I(?:'ve| have)?\s+created)\s+(?:a\s+)?(?:kanban(?:\s+board)?|board)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+    /(?:create|make|add|new|I(?:'ve| have)?\s+created)\s+(?:a\s+)?(?:kanban(?:\s+board)?|board)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_./-]+))/i;
   const rawKanban =
-    matchEntityName(kanbanPattern, text) || matchEntityName(kanbanPattern, prompt);
+    matchEntityName(kanbanPattern, text) ||
+    matchEntityName(kanbanPattern, prompt);
   if (rawKanban) {
     results.push({
       id: `call_conv_kanban_${Date.now()}`,
       name: "create_kanban_board",
-      arguments: { path: cleanPath(rawKanban), title: rawKanban.replace(/\.md$/i, "") },
+      arguments: {
+        path: cleanPath(rawKanban),
+        title: rawKanban.replace(/\.md$/i, ""),
+      },
     });
     return results;
   }
 
   // Check for Database
   const dbPattern =
-    /(?:create|make|add|new|I(?:'ve| have)?\s+created)\s+(?:a\s+)?(?:database(?:\s+table)?|table)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+    /(?:create|make|add|new|I(?:'ve| have)?\s+created)\s+(?:a\s+)?(?:database(?:\s+table)?|table)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_./-]+))/i;
   const rawDb =
     matchEntityName(dbPattern, text) || matchEntityName(dbPattern, prompt);
   if (rawDb) {
@@ -217,10 +184,12 @@ export function extractConversationalToolCalls(
 
   // Fallback single note creation from user prompt
   const userNotePattern =
-    /(?:create|make|add|new)\s+(?:a\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_\-/\.]+))/i;
+    /(?:create|make|add|new)\s+(?:a\s+)?(?:note|file|document|doc|page)(?:\s+(?:named|called|titled))?\s*(?:["'‘“]([^"'’”]*)["'’”]|([a-zA-Z0-9_./-]+))/i;
   const rawUserNote = matchEntityName(userNotePattern, prompt);
 
-  let noteTarget = rawUserNote ? cleanPath(rawUserNote) : deriveNoteNameFromTopic(prompt);
+  const noteTarget = rawUserNote
+    ? cleanPath(rawUserNote)
+    : deriveNoteNameFromTopic(prompt);
 
   if (noteTarget) {
     const fullPath = folderName ? `${folderName}/${noteTarget}` : noteTarget;

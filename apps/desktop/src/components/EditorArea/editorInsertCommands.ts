@@ -6,18 +6,30 @@ export function wrapEditorSelection(
   after = before,
 ) {
   const ranges = view.state.selection.ranges;
-  const changes = ranges.map((range) => {
+  let primaryCursor = 0;
+  const changes = ranges.map((range, i) => {
     const selected = view.state.sliceDoc(range.from, range.to);
     const wrapped = selected.startsWith(before) && selected.endsWith(after);
+    const insert = wrapped
+      ? selected.slice(before.length, selected.length - after.length)
+      : `${before}${selected}${after}`;
+
+    if (i === 0) {
+      primaryCursor = range.empty
+        ? range.from + before.length
+        : range.from + insert.length;
+    }
+
     return {
       from: range.from,
       to: range.to,
-      insert: wrapped
-        ? selected.slice(before.length, selected.length - after.length)
-        : `${before}${selected}${after}`,
+      insert,
     };
   });
-  view.dispatch({ changes });
+  view.dispatch({
+    changes,
+    selection: { anchor: primaryCursor },
+  });
 }
 
 function selectedLineNumbers(view: EditorView) {

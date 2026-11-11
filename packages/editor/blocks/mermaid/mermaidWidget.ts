@@ -1,6 +1,7 @@
 import { EditorView, WidgetType } from "@codemirror/view";
 import { createHoverHint } from "./mermaidHoverHint";
 import { bindInternalLinks } from "./mermaidSvgInteractions";
+import { setMermaidCodeEditing } from "./mermaidToolbarWidget";
 
 export interface MermaidBlock {
   from: number;
@@ -30,16 +31,41 @@ function initMermaid(mermaid: typeof import("mermaid").default) {
     startOnLoad: false,
     securityLevel: "strict",
     suppressErrorRendering: true,
+    theme: "base",
+    sequence: {
+      bottomMarginAdj: 0,
+      actorFontSize: 13,
+      messageFontSize: 12,
+    },
+    themeVariables: {
+      actorBkg: "#eeedfe",
+      actorBorder: "#cfcbfe",
+      actorTextColor: "#1c1c1c",
+      actorLineColor: "#cfcbfe",
+      signalColor: "#1c1c1c",
+      signalTextColor: "#1c1c1c",
+      sequenceNumberColor: "#ffffff",
+      sequenceNumberBkgColor: "#1c1c1c",
+    },
   });
   mermaidInitialized = true;
+}
+
+export async function renderMermaidSvg(
+  id: string,
+  source: string,
+): Promise<string> {
+  const mermaid = await loadMermaid();
+  initMermaid(mermaid);
+  const result = await mermaid.render(id, source);
+  return result.svg;
 }
 
 export class MermaidWidget extends WidgetType {
   constructor(
     readonly block: MermaidBlock,
-    readonly view: EditorView,
     readonly options: MermaidExtensionOptions,
-    readonly onEnterCodeEdit: (from: number) => void,
+    readonly onEnterCodeEdit?: (from: number) => void,
   ) {
     super();
   }
@@ -48,7 +74,7 @@ export class MermaidWidget extends WidgetType {
     return this.block.source === other.block.source;
   }
 
-  toDOM() {
+  toDOM(view: EditorView) {
     const container = document.createElement("div");
     container.className = "cm-mermaid-diagram";
 
@@ -58,7 +84,17 @@ export class MermaidWidget extends WidgetType {
 
     const hint = createHoverHint({
       isReadOnly: this.options.isReadOnly,
-      onEnterCodeEdit: () => this.onEnterCodeEdit(this.block.from),
+      onEnterCodeEdit: () => {
+        if (this.onEnterCodeEdit) {
+          this.onEnterCodeEdit(this.block.from);
+        } else {
+          view.dispatch({
+            effects: setMermaidCodeEditing.of(this.block.from),
+            selection: { anchor: this.block.from },
+          });
+          view.focus();
+        }
+      },
     });
 
     if (hint) {
@@ -94,7 +130,7 @@ export class MermaidWidget extends WidgetType {
   }
 
   ignoreEvent() {
-    return false;
+    return true;
   }
 }
 
@@ -108,3 +144,4 @@ export class MermaidContinuationWidget extends WidgetType {
     return true;
   }
 }
+

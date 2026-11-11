@@ -65,9 +65,8 @@ describe("EditorInsertTray", () => {
     expect(dispatchSpy).toHaveBeenCalledTimes(1);
     const callArgs = dispatchSpy.mock.calls[0][0];
     expect(callArgs).toBeDefined();
-    expect(view.state.doc.toString()).toContain(
-      "| Header 1 | Header 2 | Header 3 |",
-    );
+    expect(view.state.doc.toString()).toContain("<table>");
+    expect(view.state.doc.toString()).toContain("<th>Header 1</th>");
   });
 
   it("triggers onClose when the close button is clicked", () => {

@@ -10,19 +10,23 @@ import {
 
 export interface NoteNavigationState {
   activeNotePath: string | null;
+  activeNoteSessionId: number;
   openNotes: string[];
   notesContent: Record<string, string>;
   dirtyNotes: Set<string>;
   conflictNotes: Map<string, string>;
   allNotePaths: string[];
   isGlobalGraphOpen: boolean;
+  graphFolderFilter: string | null;
   isCalendarOpen: boolean;
   noteHistory: NoteHistory;
 }
 
 export interface NoteNavigationActions {
   isGlobalGraphOpen: boolean;
-  setIsGlobalGraphOpen: (open: boolean) => void;
+  graphFolderFilter: string | null;
+  setIsGlobalGraphOpen: (open: boolean, folderFilter?: string | null) => void;
+  openFolderGraph: (folderPath: string) => void;
   isCalendarOpen: boolean;
   setIsCalendarOpen: (open: boolean) => void;
   openNote: (path: string) => Promise<void>;
@@ -49,13 +53,22 @@ export function createNoteNavigationActions(
 ): NoteNavigationActions {
   return {
     isGlobalGraphOpen: false,
+    graphFolderFilter: null,
     isCalendarOpen: false,
 
-    setIsGlobalGraphOpen: (open: boolean) =>
+    setIsGlobalGraphOpen: (open: boolean, folderFilter: string | null = null) =>
       set((state) => ({
         isGlobalGraphOpen: open,
+        graphFolderFilter: open ? folderFilter : null,
         isCalendarOpen: open ? false : state.isCalendarOpen,
       })),
+
+    openFolderGraph: (folderPath: string) =>
+      set({
+        isGlobalGraphOpen: true,
+        graphFolderFilter: folderPath.replace(/^\/+|\/+$/g, ""),
+        isCalendarOpen: false,
+      }),
 
     setIsCalendarOpen: (open: boolean) =>
       set((state) => ({
@@ -132,11 +145,15 @@ export function createNoteNavigationActions(
           await get().saveNoteNow(effectivePath);
         }
       }
-      set({
+      set((state) => ({
         activeNotePath: path,
+        activeNoteSessionId:
+          state.activeNotePath !== path
+            ? state.activeNoteSessionId + 1
+            : state.activeNoteSessionId,
         isGlobalGraphOpen: false,
         isCalendarOpen: false,
-      });
+      }));
     },
 
     closeNote: async (path: string) => {

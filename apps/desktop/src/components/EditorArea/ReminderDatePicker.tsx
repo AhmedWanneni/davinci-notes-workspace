@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Dialog, DialogContent, Button } from "@app/design-system";
+import { Button } from "@app/design-system";
+import { WindowDialog } from "../WindowDialog";
 import styles from "./ReminderDatePicker.module.scss";
 
 export interface ReminderDatePickerProps {
@@ -76,105 +77,109 @@ export function ReminderDatePicker({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <DialogContent showCloseButton={false}>
-        <div className={styles["reminder-picker"]}>
-          <div className={styles["reminder-picker__presets"]}>
+    <WindowDialog
+      isOpen={open}
+      onClose={onCancel}
+      title={isEditing ? "Edit Reminder" : "Add Reminder"}
+      size="sm"
+      footer={
+        <div className={styles["reminder-picker__actions"]} style={{ width: "100%", margin: 0, padding: 0 }}>
+          {isEditing && onDelete && (
             <button
               type="button"
-              className={styles["reminder-picker__preset-btn"]}
-              data-active={activePreset === "today"}
-              onClick={setLaterToday}
+              className={styles["reminder-picker__delete-btn"]}
+              onClick={onDelete}
             >
-              Later today
+              Remove
             </button>
-            <button
-              type="button"
-              className={styles["reminder-picker__preset-btn"]}
-              data-active={activePreset === "tomorrow"}
-              onClick={setTomorrow}
+          )}
+          <Button variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleConfirm}>
+            {isEditing ? "Save" : "Insert"}
+          </Button>
+        </div>
+      }
+    >
+      <div className={styles["reminder-picker"]}>
+        <div className={styles["reminder-picker__presets"]}>
+          <button
+            type="button"
+            className={styles["reminder-picker__preset-btn"]}
+            data-active={activePreset === "today"}
+            onClick={setLaterToday}
+          >
+            Later today
+          </button>
+          <button
+            type="button"
+            className={styles["reminder-picker__preset-btn"]}
+            data-active={activePreset === "tomorrow"}
+            onClick={setTomorrow}
+          >
+            Tomorrow (9 AM)
+          </button>
+          <button
+            type="button"
+            className={styles["reminder-picker__preset-btn"]}
+            data-active={activePreset === "next-week"}
+            onClick={setNextWeek}
+          >
+            Next week
+          </button>
+        </div>
+
+        <div className={styles["reminder-picker__fields"]}>
+          <div className={styles["reminder-picker__field"]}>
+            <label
+              htmlFor="reminder-date-input"
+              className={styles["reminder-picker__label"]}
             >
-              Tomorrow (9 AM)
-            </button>
-            <button
-              type="button"
-              className={styles["reminder-picker__preset-btn"]}
-              data-active={activePreset === "next-week"}
-              onClick={setNextWeek}
-            >
-              Next week
-            </button>
-          </div>
-
-          <div className={styles["reminder-picker__fields"]}>
-            <div className={styles["reminder-picker__field"]}>
-              <label
-                htmlFor="reminder-date-input"
-                className={styles["reminder-picker__label"]}
-              >
-                Date
-              </label>
-              <input
-                id="reminder-date-input"
-                type="date"
-                className={styles["reminder-picker__input"]}
-                value={date}
-                onChange={(e) => {
-                  setDate(e.target.value);
-                  setActivePreset(null);
-                }}
-              />
-            </div>
-
-            <div className={styles["reminder-picker__field"]}>
-              <label
-                htmlFor="reminder-time-input"
-                className={styles["reminder-picker__label"]}
-              >
-                Time
-              </label>
-              <input
-                id="reminder-time-input"
-                type="time"
-                className={styles["reminder-picker__input"]}
-                value={time}
-                disabled={!hasTime}
-                onChange={(e) => {
-                  setTime(e.target.value);
-                  setActivePreset(null);
-                }}
-              />
-            </div>
-          </div>
-
-          <label className={styles["reminder-picker__all-day"]}>
+              Date
+            </label>
             <input
-              type="checkbox"
-              checked={!hasTime}
-              onChange={(e) => setHasTime(!e.target.checked)}
+              id="reminder-date-input"
+              type="date"
+              className={styles["reminder-picker__input"]}
+              value={date}
+              onChange={(e) => {
+                setDate(e.target.value);
+                setActivePreset(null);
+              }}
             />
-            All day (date only)
-          </label>
+          </div>
 
-          <div className={styles["reminder-picker__actions"]}>
-            {isEditing && onDelete && (
-              <button
-                type="button"
-                className={styles["reminder-picker__delete-btn"]}
-                onClick={onDelete}
-              >
-                Remove
-              </button>
-            )}
-            <Button variant="ghost" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button variant="primary" onClick={handleConfirm}>
-              {isEditing ? "Save" : "Insert"}
-            </Button>
+          <div className={styles["reminder-picker__field"]}>
+            <label
+              htmlFor="reminder-time-input"
+              className={styles["reminder-picker__label"]}
+            >
+              Time
+            </label>
+            <input
+              id="reminder-time-input"
+              type="time"
+              className={styles["reminder-picker__input"]}
+              value={time}
+              disabled={!hasTime}
+              onChange={(e) => {
+                setTime(e.target.value);
+                setActivePreset(null);
+              }}
+            />
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <label className={styles["reminder-picker__all-day"]}>
+          <input
+            type="checkbox"
+            checked={!hasTime}
+            onChange={(e) => setHasTime(!e.target.checked)}
+          />
+          All day (date only)
+        </label>
+      </div>
+    </WindowDialog>
   );
 }

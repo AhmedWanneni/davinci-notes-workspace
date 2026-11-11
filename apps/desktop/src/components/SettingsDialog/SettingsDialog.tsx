@@ -1,11 +1,6 @@
 import React, { useState } from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { openVaultFromPicker } from "../../vault";
-import type {
-  ThemeDiscoveryError,
-  ThemeLifecycleManager,
-  ThemeRecord,
-} from "../../themes";
+import type { ThemeDiscoveryError, ThemeLifecycleManager, ThemeRecord } from "../../themes";
 import type { SyncMode } from "../SyncSettingsPanel";
 import { SettingsSidebar, type SettingsTabId } from "./SettingsSidebar";
 import { GeneralSettingsTab } from "./GeneralSettingsTab";
@@ -18,26 +13,14 @@ import { ClipperSettingsSection } from "./ClipperSettingsSection";
 import { SettingsCard } from "./SettingsCard";
 import { SettingsRow } from "./SettingsRow";
 import { LogsSettingsTab } from "./LogsSettingsTab";
+import { WindowDialog } from "../WindowDialog";
 import styles from "./SettingsDialog.module.scss";
 
-const LazyAISettingsPanel = React.lazy(() =>
-  import("../AISettingsPanel").then((m) => ({ default: m.AISettingsPanel })),
-);
-const LazyGoogleCalendarSettingsTab = React.lazy(() =>
-  import("./GoogleCalendarSettingsTab").then((m) => ({
-    default: m.GoogleCalendarSettingsTab,
-  })),
-);
-const LazyNotificationsSettingsTab = React.lazy(() =>
-  import("./NotificationsSettingsTab").then((m) => ({
-    default: m.NotificationsSettingsTab,
-  })),
-);
-const LazyGitSettingsTab = React.lazy(() =>
-  import("./GitSettingsTab").then((m) => ({
-    default: m.GitSettingsTab,
-  })),
-);
+const LazyAISettingsPanel = React.lazy(() => import("../AISettingsPanel").then((m) => ({ default: m.AISettingsPanel })));
+const LazyGoogleCalendarSettingsTab = React.lazy(() => import("./GoogleCalendarSettingsTab").then((m) => ({ default: m.GoogleCalendarSettingsTab })));
+const LazyNotificationsSettingsTab = React.lazy(() => import("./NotificationsSettingsTab").then((m) => ({ default: m.NotificationsSettingsTab })));
+const LazyGitSettingsTab = React.lazy(() => import("./GitSettingsTab").then((m) => ({ default: m.GitSettingsTab })));
+const LazyAIListeningSettingsTab = React.lazy(() => import("./AIListeningSettingsTab").then((m) => ({ default: m.AIListeningSettingsTab })));
 
 const KNOWN_TABS = new Set([
   "general",
@@ -49,6 +32,7 @@ const KNOWN_TABS = new Set([
   "notifications",
   "calendar",
   "ai",
+  "ai-listening",
   "plugins",
   "web-clipper",
   "logs",
@@ -133,43 +117,22 @@ export function SettingsDialog({
   const windowTitle = `Settings - ${vaultName} - Sophia 0.1.0`;
 
   return (
-    <DialogPrimitive.Root open={isOpen} onOpenChange={onOpenChange}>
-      <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay
-          className={styles["settings-dialog-overlay"]}
-        />
-        <DialogPrimitive.Content
-          className={styles["settings-dialog-root"]}
-          aria-label="Settings"
-        >
-          <div className={styles["settings-window-header"]}>
-            <div className={styles["settings-traffic-lights"]}>
-              <button
-                type="button"
-                className={`${styles["traffic-dot"]} ${styles["traffic-dot--close"]}`}
-                onClick={() => onOpenChange(false)}
-                aria-label="Close settings"
-              />
-              <span
-                className={`${styles["traffic-dot"]} ${styles["traffic-dot--minimize"]}`}
-              />
-              <span
-                className={`${styles["traffic-dot"]} ${styles["traffic-dot--maximize"]}`}
-              />
-            </div>
-            <div className={styles["settings-window-title"]}>{windowTitle}</div>
-            <div className={styles["settings-header-spacer"]} />
-          </div>
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={() => onOpenChange(false)}
+      title={windowTitle}
+      size="xl"
+      ariaLabel="Settings"
+      bodyClassName={styles["settings-body"]}
+    >
+      <SettingsSidebar
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
-          <div className={styles["settings-body"]}>
-            <SettingsSidebar
-              activeTab={activeTab}
-              onSelectTab={setActiveTab}
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-            />
-
-            <main className={styles["settings-main"]} tabIndex={-1}>
+      <main className={styles["settings-main"]} tabIndex={-1}>
               {activeTab === "general" && (
                 <GeneralSettingsTab
                   vaultPath={vaultPath}
@@ -213,7 +176,6 @@ export function SettingsDialog({
                   onDriveSyncNow={onDriveSyncNow}
                   vaultPath={vaultPath}
                   onOpenConflictsPanel={onOpenConflictsPanel}
-                  onOpenVault={onVaultSwitched}
                 />
               )}
               {activeTab === "notifications" && (
@@ -238,6 +200,15 @@ export function SettingsDialog({
                 <div className={styles["settings-tab-content"]}>
                   <React.Suspense fallback={<div>Loading AI Settings...</div>}>
                     <LazyAISettingsPanel />
+                  </React.Suspense>
+                </div>
+              )}
+              {activeTab === "ai-listening" && (
+                <div className={styles["settings-tab-content"]}>
+                  <React.Suspense
+                    fallback={<div>Loading AI Listening Settings...</div>}
+                  >
+                    <LazyAIListeningSettingsTab />
                   </React.Suspense>
                 </div>
               )}
@@ -270,9 +241,6 @@ export function SettingsDialog({
                 </div>
               )}
             </main>
-          </div>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </DialogPrimitive.Root>
+    </WindowDialog>
   );
 }

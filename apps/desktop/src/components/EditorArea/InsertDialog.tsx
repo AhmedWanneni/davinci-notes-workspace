@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent } from "@app/design-system";
 import type { InsertDialogInput, InsertDialogRequest } from "@app/editor";
+import { WindowDialog } from "../WindowDialog";
 import styles from "./InsertDialog.module.scss";
 import { InsertNotePicker } from "./InsertNotePicker";
 import { ReminderDatePicker } from "./ReminderDatePicker";
+import { InsertCreatorForm } from "./InsertCreatorForm";
 
 export interface InsertDialogProps {
   request: InsertDialogRequest | null;
@@ -45,41 +46,29 @@ export function InsertDialog({
 
   if (dialogSpec.kind === "note-picker") {
     return (
-      <Dialog
-        open={Boolean(request)}
-        onOpenChange={(open) => !open && onCancel()}
+      <WindowDialog
+        isOpen={Boolean(request)}
+        onClose={onCancel}
+        title={dialogSpec.title}
+        subtitle={dialogSpec.description}
+        size="md"
+        footer={
+          <button
+            type="button"
+            className={styles["insert-dialog-btn-cancel"]}
+            onClick={onCancel}
+          >
+            Cancel
+          </button>
+        }
       >
-        <DialogContent
-          className={styles["insert-dialog-root"]}
-          showCloseButton={false}
-        >
-          <div className={styles["insert-dialog-header"]}>
-            <h2 className={styles["insert-dialog-title"]}>
-              {dialogSpec.title}
-            </h2>
-            {dialogSpec.description && (
-              <p className={styles["insert-dialog-description"]}>
-                {dialogSpec.description}
-              </p>
-            )}
-          </div>
-          <div className={styles["insert-dialog-body"]}>
-            <InsertNotePicker
-              onSelect={(target, heading) => onConfirm({ target, heading })}
-              onCancel={onCancel}
-            />
-          </div>
-          <div className={styles["insert-dialog-footer"]}>
-            <button
-              type="button"
-              className={styles["insert-dialog-btn-cancel"]}
-              onClick={onCancel}
-            >
-              Cancel
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        <div className={styles["insert-dialog-body"]}>
+          <InsertNotePicker
+            onSelect={(target, heading) => onConfirm({ target, heading })}
+            onCancel={onCancel}
+          />
+        </div>
+      </WindowDialog>
     );
   }
 
@@ -99,77 +88,20 @@ export function InsertDialog({
   ) {
     const isDatabase = dialogSpec.kind === "database-creator";
     return (
-      <Dialog
-        open={Boolean(request)}
-        onOpenChange={(open) => !open && onCancel()}
+      <WindowDialog
+        isOpen={Boolean(request)}
+        onClose={onCancel}
+        title={dialogSpec.title}
+        subtitle={dialogSpec.description}
+        size="md"
       >
-        <DialogContent
-          className={styles["insert-dialog-root"]}
-          showCloseButton={false}
-        >
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const val = url.trim();
-              if (!val) {
-                setError(
-                  isDatabase
-                    ? "Please enter a table name."
-                    : "Please enter a board name.",
-                );
-                return;
-              }
-              onConfirm({ name: val });
-            }}
-          >
-            <div className={styles["insert-dialog-header"]}>
-              <h2 className={styles["insert-dialog-title"]}>
-                {dialogSpec.title}
-              </h2>
-              {dialogSpec.description && (
-                <p className={styles["insert-dialog-description"]}>
-                  {dialogSpec.description}
-                </p>
-              )}
-            </div>
-            <div className={styles["insert-dialog-body"]}>
-              <input
-                ref={inputRef}
-                type="text"
-                className={styles["insert-dialog-input"]}
-                placeholder={
-                  dialogSpec.placeholder ||
-                  (isDatabase ? "Table title..." : "Board title...")
-                }
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  setError(null);
-                }}
-              />
-              {error && (
-                <p className={styles["insert-dialog-error"]}>{error}</p>
-              )}
-            </div>
-            <div className={styles["insert-dialog-footer"]}>
-              <button
-                type="button"
-                className={styles["insert-dialog-btn-cancel"]}
-                onClick={onCancel}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className={styles["insert-dialog-btn-confirm"]}
-              >
-                {dialogSpec.confirmLabel ||
-                  (isDatabase ? "Create Table" : "Create Board")}
-              </button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+        <InsertCreatorForm
+          dialogSpec={dialogSpec}
+          isDatabase={isDatabase}
+          onConfirm={onConfirm}
+          onCancel={onCancel}
+        />
+      </WindowDialog>
     );
   }
 
@@ -229,94 +161,14 @@ export function InsertDialog({
   };
 
   return (
-    <Dialog
-      open={Boolean(request)}
-      onOpenChange={(open) => {
-        if (!open) onCancel();
-      }}
-    >
-      <DialogContent
-        className={styles["insert-dialog-root"]}
-        showCloseButton={false}
-      >
-        <div className={styles["insert-dialog-header"]}>
-          <h2 className={styles["insert-dialog-title"]}>{dialogSpec.title}</h2>
-          {dialogSpec.description && (
-            <p className={styles["insert-dialog-description"]}>
-              {dialogSpec.description}
-            </p>
-          )}
-        </div>
-
-        <div className={styles["insert-dialog-body"]}>
-          {isImageSources && (
-            <div className={styles["insert-dialog-tabs"]}>
-              <button
-                type="button"
-                className={`${styles["insert-dialog-tab"]} ${
-                  activeSource === "file" ? styles["is-active"] : ""
-                }`}
-                onClick={() => {
-                  setActiveSource("file");
-                  setError(null);
-                }}
-              >
-                Local file
-              </button>
-              <button
-                type="button"
-                className={`${styles["insert-dialog-tab"]} ${
-                  activeSource === "url" ? styles["is-active"] : ""
-                }`}
-                onClick={() => {
-                  setActiveSource("url");
-                  setError(null);
-                  setTimeout(() => inputRef.current?.focus(), 0);
-                }}
-              >
-                URL
-              </button>
-            </div>
-          )}
-
-          {isImageSources && activeSource === "file" ? (
-            <div className={styles["insert-dialog-file-section"]}>
-              <button
-                type="button"
-                className={styles["insert-dialog-file-button"]}
-                onClick={handlePickFile}
-                disabled={isPicking}
-              >
-                {isPicking ? "Importing..." : "Choose image file..."}
-              </button>
-              {localPath && (
-                <div className={styles["insert-dialog-file-chosen"]}>
-                  Imported: {localPath}
-                </div>
-              )}
-            </div>
-          ) : (
-            <input
-              ref={inputRef}
-              className={styles["insert-dialog-input"]}
-              placeholder={dialogSpec.placeholder || "https://..."}
-              value={url}
-              onChange={(e) => {
-                setUrl(e.target.value);
-                setError(null);
-              }}
-              onKeyDown={handleKeyDown}
-            />
-          )}
-
-          {error && (
-            <div className={styles["insert-dialog-error"]} role="alert">
-              {error}
-            </div>
-          )}
-        </div>
-
-        <div className={styles["insert-dialog-footer"]}>
+    <WindowDialog
+      isOpen={Boolean(request)}
+      onClose={onCancel}
+      title={dialogSpec.title}
+      subtitle={dialogSpec.description}
+      size="md"
+      footer={
+        <div style={{ display: "flex", gap: 8, width: "100%", justifyContent: "flex-end" }}>
           <button
             type="button"
             className={styles["insert-dialog-btn-cancel"]}
@@ -332,7 +184,61 @@ export function InsertDialog({
             {dialogSpec.confirmLabel || "Insert"}
           </button>
         </div>
-      </DialogContent>
-    </Dialog>
+      }
+    >
+      <div className={styles["insert-dialog-body"]}>
+        {isImageSources && (
+          <div className={styles["insert-dialog-tabs"]}>
+            <button
+              type="button"
+              className={`${styles["insert-dialog-tab"]} ${activeSource === "file" ? styles["is-active"] : ""}`}
+              onClick={() => { setActiveSource("file"); setError(null); }}
+            >
+              Local file
+            </button>
+            <button
+              type="button"
+              className={`${styles["insert-dialog-tab"]} ${activeSource === "url" ? styles["is-active"] : ""}`}
+              onClick={() => {
+                setActiveSource("url");
+                setError(null);
+                setTimeout(() => inputRef.current?.focus(), 0);
+              }}
+            >
+              URL
+            </button>
+          </div>
+        )}
+
+        {isImageSources && activeSource === "file" ? (
+          <div className={styles["insert-dialog-file-section"]}>
+            <button
+              type="button"
+              className={styles["insert-dialog-file-button"]}
+              onClick={handlePickFile}
+              disabled={isPicking}
+            >
+              {isPicking ? "Importing..." : "Choose image file..."}
+            </button>
+            {localPath && (
+              <div className={styles["insert-dialog-file-chosen"]}>Imported: {localPath}</div>
+            )}
+          </div>
+        ) : (
+          <input
+            ref={inputRef}
+            className={styles["insert-dialog-input"]}
+            placeholder={dialogSpec.placeholder || "https://..."}
+            value={url}
+            onChange={(e) => { setUrl(e.target.value); setError(null); }}
+            onKeyDown={handleKeyDown}
+          />
+        )}
+
+        {error && (
+          <div className={styles["insert-dialog-error"]} role="alert">{error}</div>
+        )}
+      </div>
+    </WindowDialog>
   );
 }

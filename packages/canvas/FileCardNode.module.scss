@@ -9,11 +9,15 @@
   height: 100%;
   border: 1px solid var(--color-border-subtle);
   background-color: var(--color-bg-primary);
-  border-radius: 10px;
+  border-radius: var(--border-radius-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: border-color 120ms ease;
+  filter: blur(0px);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
 }
 
 .file-card.is-selected {
@@ -110,6 +114,15 @@
   overflow: auto;
   position: relative;
   background-color: var(--color-bg-secondary);
+  font-size: var(--type-scale-xs);
+
+  :global(.cm-editor),
+  :global(.cm-content) {
+    font-size: var(--type-scale-xs) !important;
+    text-rendering: geometricPrecision;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 .file-card__empty-state {

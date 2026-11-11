@@ -88,3 +88,10 @@
   line-height: 1.4;
 }
 
+.sync-settings__drive-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+

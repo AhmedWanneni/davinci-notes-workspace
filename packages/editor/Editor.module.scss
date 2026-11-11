@@ -1,13 +1,21 @@
 .editor-container {
   width: 100%;
-  min-height: 0;
+  flex: 1 0 auto;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 
-  &:global(.cm-editor) {
-    flex: 1;
-    min-height: 0;
+  :global(.cm-editor) {
+    flex: 1 0 auto;
+    height: auto;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
+  }
+
+  :global(.cm-scroller) {
+    flex: 1 0 auto;
+    height: auto;
+    overflow-x: hidden;
   }
 }

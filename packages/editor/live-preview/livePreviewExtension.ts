@@ -7,6 +7,7 @@ import {
   ViewPlugin,
   ViewUpdate,
 } from "@codemirror/view";
+import { CodeCopyButtonWidget } from "../blocks/code";
 
 const markerHiddenDeco = Decoration.mark({
   class: "cm-markdown-syntax cm-marker-hidden",
@@ -16,6 +17,15 @@ const markerActiveDeco = Decoration.mark({
 });
 const hrLineDeco = Decoration.line({ class: "cm-hr-line" });
 const codeLineDeco = Decoration.line({ class: "cm-code-block" });
+const codeLineFirstDeco = Decoration.line({
+  class: "cm-code-block cm-code-block-first",
+});
+const codeLineLastDeco = Decoration.line({
+  class: "cm-code-block cm-code-block-last",
+});
+const codeLineFirstLastDeco = Decoration.line({
+  class: "cm-code-block cm-code-block-first cm-code-block-last",
+});
 
 const WIKILINK_REGEX = /\[\[([^\n\]]+)\]\]/g;
 const VIEWPORT_MARGIN = 1000;
@@ -97,14 +107,34 @@ function getLivePreviewDecos(view: EditorView): DecorationSet {
           const deco = active ? markerActiveDeco : markerHiddenDeco;
           builder.push(deco.range(node.from, node.to));
         } else if (node.name === "FencedCode" || node.name === "CodeBlock") {
+          const firstLine = state.doc.lineAt(node.from);
+          const lastLine = state.doc.lineAt(node.to);
           for (
-            let line = state.doc.lineAt(node.from);
+            let line = firstLine;
             line.from < node.to;
             line = state.doc.line(line.number + 1)
           ) {
-            builder.push(codeLineDeco.range(line.from));
+            const isFirst = line.number === firstLine.number;
+            const isLast =
+              line.number === lastLine.number || line.to >= node.to;
+            builder.push(
+              isFirst && isLast
+                ? codeLineFirstLastDeco.range(line.from)
+                : isFirst
+                  ? codeLineFirstDeco.range(line.from)
+                  : isLast
+                    ? codeLineLastDeco.range(line.from)
+                    : codeLineDeco.range(line.from),
+            );
             if (line.to >= node.to) break;
           }
+          const codeText = state.doc.sliceString(node.from, node.to);
+          builder.push(
+            Decoration.widget({
+              widget: new CodeCopyButtonWidget(codeText, node.from),
+              side: 1,
+            }).range(firstLine.from),
+          );
         } else if (node.name === "Escape") {
           const active =
             isEditable && isRangeSelected(state.selection, node.from, node.to);

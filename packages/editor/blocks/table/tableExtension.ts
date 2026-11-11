@@ -9,6 +9,11 @@ import {
 } from "@codemirror/view";
 import { showTableMenu, insertTableCommand } from "./tableContextMenu";
 import {
+  TableCodeHeaderWidget,
+  tableCodeEditingField,
+  setTableCodeEditing,
+} from "./TableCodeHeaderWidget";
+import {
   allTables,
   escapedPipes,
   tableAtPosition,
@@ -17,8 +22,10 @@ import {
   type TableCell,
   type TableRow,
 } from "./tableParser";
+import { tableKeymapExtension, tableInputHandler } from "./tableKeymap";
+import { tableCellMouseSelection, tableCellKeymap } from "./tableCellSelection";
 
-export { insertTableCommand };
+export { insertTableCommand, setTableCodeEditing, tableCodeEditingField };
 export type { Alignment, TableBlock, TableCell, TableRow };
 
 export interface TableExtensionOptions {
@@ -64,6 +71,44 @@ class EmptyCellWidget extends WidgetType {
   }
 }
 
+class TableCodeToggleWidget extends WidgetType {
+  constructor(readonly tableFrom: number) {
+    super();
+  }
+  eq(other: TableCodeToggleWidget) {
+    return this.tableFrom === other.tableFrom;
+  }
+  toDOM(view: EditorView) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cm-table-code-btn";
+    btn.title = "Code mode (</>)";
+    btn.setAttribute("aria-label", "Code mode");
+    btn.innerHTML = `
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="16 18 22 12 16 6"/>
+        <polyline points="8 6 2 12 8 18"/>
+      </svg>
+    `;
+    btn.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+    });
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      view.dispatch({
+        effects: setTableCodeEditing.of(this.tableFrom),
+        selection: { anchor: this.tableFrom },
+      });
+      view.focus();
+    });
+    return btn;
+  }
+  ignoreEvent() {
+    return true;
+  }
+}
+
 function addTableDelimiters(
   view: EditorView,
   row: TableRow,
@@ -82,7 +127,20 @@ function addTableDelimiters(
 
 function getTableDecorations(view: EditorView): DecorationSet {
   const decorations: Range<Decoration>[] = [];
+  const codeEditingFrom = view.state.field(tableCodeEditingField, false);
+
   for (const table of allTables(view)) {
+    const tableFrom = table.rows[0]?.from ?? 0;
+    if (codeEditingFrom === tableFrom) {
+      decorations.push(
+        Decoration.widget({
+          widget: new TableCodeHeaderWidget(tableFrom),
+          side: -1,
+        }).range(tableFrom),
+      );
+      continue;
+    }
+
     const totalRows = table.rows.length;
     table.rows.forEach((row, rowIndex) => {
       const isHeader = rowIndex === 0;
@@ -95,6 +153,15 @@ function getTableDecorations(view: EditorView): DecorationSet {
             ? rowLastDeco
             : rowDeco;
       decorations.push(lineDeco.range(row.from));
+
+      if (isHeader) {
+        decorations.push(
+          Decoration.widget({
+            widget: new TableCodeToggleWidget(tableFrom),
+            side: 1,
+          }).range(row.from),
+        );
+      }
 
       addTableDelimiters(view, row, decorations);
       row.cells.forEach((cell, column) => {
@@ -133,28 +200,42 @@ function getTableDecorations(view: EditorView): DecorationSet {
 }
 
 export function tableExtension(options: TableExtensionOptions = {}) {
-  return ViewPlugin.fromClass(
-    class {
-      decorations: DecorationSet;
-      constructor(view: EditorView) {
-        this.decorations = getTableDecorations(view);
-      }
-      update(update: ViewUpdate) {
-        if (update.docChanged || update.viewportChanged)
-          this.decorations = getTableDecorations(update.view);
-      }
-    },
-    {
-      decorations: (value) => value.decorations,
-      eventHandlers: {
-        contextmenu: (event, view) =>
-          showTableMenu(
-            event,
-            view,
-            Boolean(options.isReadOnly),
-            tableAtPosition,
-          ),
+  return [
+    tableCodeEditingField,
+    tableKeymapExtension,
+    tableCellKeymap,
+    tableInputHandler,
+    tableCellMouseSelection,
+    ViewPlugin.fromClass(
+      class {
+        decorations: DecorationSet;
+        constructor(view: EditorView) {
+          this.decorations = getTableDecorations(view);
+        }
+        update(update: ViewUpdate) {
+          if (
+            update.docChanged ||
+            update.viewportChanged ||
+            update.transactions.some((tr) =>
+              tr.effects.some((eff) => eff.is(setTableCodeEditing)),
+            )
+          ) {
+            this.decorations = getTableDecorations(update.view);
+          }
+        }
       },
-    },
-  );
+      {
+        decorations: (value) => value.decorations,
+        eventHandlers: {
+          contextmenu: (event, view) =>
+            showTableMenu(
+              event,
+              view,
+              Boolean(options.isReadOnly),
+              tableAtPosition,
+            ),
+        },
+      },
+    ),
+  ];
 }

@@ -96,6 +96,7 @@ describe("useWorkspaceStore", () => {
       editorFontSize: 16,
       strictLineBreaks: false,
       useVimMode: false,
+      formatOnSave: false,
     });
 
     statNoteMock.mockResolvedValue({ exists: true, mtime: 1, size: 4 });

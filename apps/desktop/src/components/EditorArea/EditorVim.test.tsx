@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import React from "react";
 import { render, act, fireEvent } from "@testing-library/react";
 import { Editor } from "@app/editor";
+import type { EditorView } from "@codemirror/view";
+
+type MockVimEditorView = EditorView & {
+  cm?: { state?: { vim?: unknown } };
+};
 
 if (typeof Range.prototype.getClientRects !== "function") {
   Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
@@ -23,7 +28,7 @@ if (typeof Range.prototype.getBoundingClientRect !== "function") {
 
 describe("Editor Vim mode toggle", () => {
   it("enables vim mode, transitions modes, and handles vim key commands", async () => {
-    let capturedView: any = null;
+    let capturedView: MockVimEditorView | null = null;
     let currentVimMode: string | null = null;
     const onChange = vi.fn();
     const { rerender } = render(
@@ -66,13 +71,15 @@ describe("Editor Vim mode toggle", () => {
       );
     });
 
-    const cm = (capturedView as any).cm;
+    const cm = capturedView?.cm;
     expect(cm?.state?.vim).toBeDefined();
     expect(currentVimMode).toBe("NORMAL");
 
     // 2. Press 'x' in normal mode (deletes char 'H')
-    capturedView.focus();
-    fireEvent.keyDown(capturedView.contentDOM, { key: "x", code: "KeyX" });
+    capturedView?.focus();
+    if (capturedView) {
+      fireEvent.keyDown(capturedView.contentDOM, { key: "x", code: "KeyX" });
+    }
     const currentDoc = capturedView.state.doc.toString();
     expect(currentDoc.startsWith("ello world")).toBe(true);
 
@@ -81,7 +88,10 @@ describe("Editor Vim mode toggle", () => {
     expect(currentVimMode).toBe("INSERT");
 
     // 4. Send Escape to return to NORMAL mode
-    fireEvent.keyDown(capturedView.contentDOM, { key: "Escape", code: "Escape" });
+    fireEvent.keyDown(capturedView.contentDOM, {
+      key: "Escape",
+      code: "Escape",
+    });
     expect(currentVimMode).toBe("NORMAL");
 
     // 5. User disables Vim in settings:
@@ -108,7 +118,7 @@ describe("Editor Vim mode toggle", () => {
   });
 
   it("initializes immediately in Vim mode when useVimMode is true on initial mount", async () => {
-    let capturedView: any = null;
+    let capturedView: MockVimEditorView | null = null;
     let currentVimMode: string | null = null;
     render(
       <Editor
@@ -122,13 +132,13 @@ describe("Editor Vim mode toggle", () => {
           currentVimMode = mode;
         }}
         onViewReady={(view) => {
-          capturedView = view;
+          capturedView = view as MockVimEditorView;
         }}
       />,
     );
 
     expect(capturedView).not.toBeNull();
-    const cm = (capturedView as any).cm;
+    const cm = capturedView?.cm;
     expect(cm?.state?.vim).toBeDefined();
     expect(currentVimMode).toBe("NORMAL");
   });

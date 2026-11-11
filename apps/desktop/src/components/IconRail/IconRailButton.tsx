@@ -5,6 +5,7 @@ export interface IconRailButtonProps {
   label: string;
   tooltip?: string;
   isActive?: boolean;
+  ariaPressed?: boolean;
   onClick?: () => void;
   children: ReactNode;
 }
@@ -13,6 +14,7 @@ export function IconRailButton({
   label,
   tooltip,
   isActive,
+  ariaPressed,
   onClick,
   children,
 }: IconRailButtonProps) {
@@ -24,6 +26,7 @@ export function IconRailButton({
         data-active={isActive || undefined}
         onClick={onClick}
         aria-label={label}
+        aria-pressed={ariaPressed}
       >
         {children}
       </button>

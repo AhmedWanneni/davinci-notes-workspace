@@ -1,33 +1,26 @@
-import React, { useState } from "react";
-import { Button, Typography } from "@app/design-system";
-import {
-  Check,
-  Copy,
-  Desktop,
-  PlusCircle,
-  QrCode,
-} from "@phosphor-icons/react";
+import React from "react";
+import { Button } from "@app/design-system";
 import { useSyncthingStatus } from "./useSyncthingStatus";
 import { useSyncthingPairing } from "./useSyncthingPairing";
 import { SyncthingStatusBanner } from "./SyncthingStatusBanner";
 import { SyncthingQrPairingSection } from "./SyncthingQrPairingSection";
 import { SyncthingAddDeviceSection } from "./SyncthingAddDeviceSection";
 import { SyncthingPairedDevicesSection } from "./SyncthingPairedDevicesSection";
-import { SyncthingSharedVaultsSection } from "./SyncthingSharedVaultsSection";
-import { SyncthingPendingSection } from "./SyncthingPendingSection";
+import { SyncthingLocalDeviceCard } from "./SyncthingLocalDeviceCard";
 import { SyncthingSyncCheckSection } from "./SyncthingSyncCheckSection";
+import { SyncthingConnectOptions } from "./SyncthingConnectOptions";
 import styles from "./SyncthingPanel.module.scss";
 
 export interface SyncthingPanelProps {
   customStatus?: ReturnType<typeof useSyncthingStatus>;
   customPairing?: ReturnType<typeof useSyncthingPairing>;
-  onOpenVault?: (path: string) => void;
+  onDisableSyncMode?: () => void;
 }
 
 export function SyncthingPanel({
   customStatus,
   customPairing,
-  onOpenVault,
+  onDisableSyncMode,
 }: SyncthingPanelProps) {
   const hookStatus = useSyncthingStatus(!customStatus);
   const {
@@ -66,21 +59,6 @@ export function SyncthingPanel({
     rotateCode,
   } = customPairing || hookPairing;
 
-  const [copied, setCopied] = useState(false);
-  const [pairingTab, setPairingTab] = useState<"phone" | "computer">("phone");
-
-  const handleCopy = async () => {
-    if (!deviceId) return;
-    try {
-      await navigator.clipboard.writeText(deviceId);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   return (
     <div className={styles["syncthing-panel"]} data-testid="syncthing-panel">
       {/* 1. Status Banner & Controls */}
@@ -91,8 +69,6 @@ export function SyncthingPanel({
         errorMessage={errorMessage}
         lastLogs={lastLogs}
         isLoading={isLoading}
-        autoStart={autoStart}
-        setAutoStart={setAutoStart}
         onStart={() => void start()}
         onStop={() => void stop()}
         onRestart={() => void restart()}
@@ -101,103 +77,34 @@ export function SyncthingPanel({
 
       {/* 2. Raw Device ID Card (Always visible for copying ID to other devices) */}
       {Boolean(deviceId) && (
-        <div className={styles["syncthing-panel__card"]}>
-          <div className={styles["syncthing-panel__card-header"]}>
-            <div className={styles["syncthing-panel__device-title"]}>
-              <Desktop size={16} />
-              <Typography variant="h4" size="sm">
-                {deviceName || "Local Device"}
-              </Typography>
-            </div>
-
-            <div className={styles["syncthing-panel__copy-wrap"]}>
-              {copied && (
-                <span
-                  className={styles["syncthing-panel__toast"]}
-                  role="status"
-                >
-                  <Check size={14} /> Copied!
-                </span>
-              )}
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={handleCopy}
-                aria-label="Copy Device ID"
-              >
-                <Copy size={14} />
-                Copy ID
-              </Button>
-            </div>
-          </div>
-
-          <div className={styles["syncthing-panel__device-block"]}>
-            <pre className={styles["syncthing-panel__device-id"]}>
-              <code>{deviceId}</code>
-            </pre>
-          </div>
-        </div>
+        <SyncthingLocalDeviceCard
+          deviceId={deviceId}
+          deviceName={deviceName}
+          autoStart={autoStart}
+          setAutoStart={setAutoStart}
+          onUpdated={refresh}
+        />
       )}
 
       {/* 3. Paired Devices List (Always visible when Syncthing is running) */}
       {status === "running" && (
         <SyncthingPairedDevicesSection
           devices={configuredDevices}
-          onUpdated={refresh}
-        />
-      )}
-
-      {/* 4. Shared Vaults & Folders */}
-      {status === "running" && (
-        <SyncthingSharedVaultsSection
-          vaults={sharedVaults}
-          onOpenVault={onOpenVault}
-          onUpdated={refresh}
-        />
-      )}
-
-      {/* 4. Incoming Pending Requests (Only visible when pending offers exist) */}
-      {status === "running" && (
-        <SyncthingPendingSection
           pendingDevices={pendingDevices}
           pendingFolders={pendingFolders}
+          sharedVaults={sharedVaults}
           activePairingCode={pairingCode}
           isPairingExpired={isExpired}
           onUpdated={refresh}
         />
       )}
 
-      {/* 5. Pair a New Device (Clean mode selection: Phone vs Computer) */}
-      {status === "running" && (
-        <div>
-          <div className={styles["syncthing-panel__pair-tabs"]}>
-            <button
-              type="button"
-              className={`${styles["syncthing-panel__pair-tab"]} ${
-                pairingTab === "phone"
-                  ? styles["syncthing-panel__pair-tab--active"]
-                  : ""
-              }`}
-              onClick={() => setPairingTab("phone")}
-            >
-              <QrCode size={16} />
-              Connect Phone (QR Code)
-            </button>
-            <button
-              type="button"
-              className={`${styles["syncthing-panel__pair-tab"]} ${
-                pairingTab === "computer"
-                  ? styles["syncthing-panel__pair-tab--active"]
-                  : ""
-              }`}
-              onClick={() => setPairingTab("computer")}
-            >
-              <PlusCircle size={16} />
-              Connect Computer (Device ID)
-            </button>
-          </div>
+      {/* 4. Incoming Pending Requests (Only visible when pending offers exist) */}
 
-          {pairingTab === "phone" ? (
+      {/* 5. Connect another device */}
+      {status === "running" && (
+        <SyncthingConnectOptions
+          mobileContent={
             <SyncthingQrPairingSection
               qrDataUrl={pairingQrUrl || qrDataUrl}
               pairingCode={pairingCode}
@@ -206,17 +113,22 @@ export function SyncthingPanel({
               isGenerating={isGenerating}
               onRotateCode={rotateCode}
             />
-          ) : (
+          }
+          desktopContent={
             <SyncthingAddDeviceSection
               onAdded={refresh}
-              localDeviceId={deviceId}
             />
-          )}
-        </div>
+          }
+        />
       )}
 
       {/* 6. Check Sync Health Verification */}
       {status === "running" && <SyncthingSyncCheckSection />}
+      {onDisableSyncMode && status !== "loading" && (
+        <Button variant="ghost" size="sm" onClick={onDisableSyncMode}>
+          Disable Folder Sync Mode
+        </Button>
+      )}
     </div>
   );
 }

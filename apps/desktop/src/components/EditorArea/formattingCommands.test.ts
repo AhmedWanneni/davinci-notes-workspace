@@ -48,6 +48,20 @@ describe("formattingCommands", () => {
     view.destroy();
   });
 
+  it("places cursor right after ** or * on empty selection to start typing", () => {
+    const view = createTestView("hello", 5, 5);
+    handleBold(view);
+    expect(view.state.doc.toString()).toBe("hello****");
+    expect(view.state.selection.main.head).toBe(7); // After opening **
+    view.destroy();
+
+    const viewItalic = createTestView("hi", 2, 2);
+    handleItalic(viewItalic);
+    expect(viewItalic.state.doc.toString()).toBe("hi**");
+    expect(viewItalic.state.selection.main.head).toBe(3); // After opening *
+    viewItalic.destroy();
+  });
+
   it("handles italic, underline, strikethrough, highlight, code", () => {
     const view = createTestView("sample", 0, 6);
     handleItalic(view);
@@ -115,7 +129,8 @@ describe("formattingCommands", () => {
 
     const v2 = createTestView("");
     handleTable(v2);
-    expect(v2.state.doc.toString()).toContain("| Header 1 | Header 2 |");
+    expect(v2.state.doc.toString()).toContain("<table>");
+    expect(v2.state.doc.toString()).toContain("<th>Header 1</th>");
     v2.destroy();
 
     const v3 = createTestView("");

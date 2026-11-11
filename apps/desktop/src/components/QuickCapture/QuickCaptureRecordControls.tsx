@@ -1,4 +1,11 @@
-import { Microphone, Pause, Play, Stop, Check, Trash, X } from "@phosphor-icons/react";
+import {
+  Microphone,
+  Pause,
+  Play,
+  Stop,
+  Check,
+  Trash,
+} from "@phosphor-icons/react";
 import type { RecordState } from "./useQuickRecord";
 import styles from "./QuickCaptureRecord.module.scss";
 
@@ -10,7 +17,7 @@ export interface QuickCaptureRecordControlsProps {
   onStop: () => void;
   onSave: () => void;
   onDiscard: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 export function QuickCaptureRecordControls({
@@ -21,7 +28,6 @@ export function QuickCaptureRecordControls({
   onStop,
   onSave,
   onDiscard,
-  onCancel,
 }: QuickCaptureRecordControlsProps) {
   return (
     <div className={styles["record-controls"]}>
@@ -107,16 +113,6 @@ export function QuickCaptureRecordControls({
           </>
         )}
       </div>
-
-      <button
-        type="button"
-        className={styles["record-btn-secondary"]}
-        onClick={onCancel}
-        aria-label="Cancel"
-      >
-        <X size={14} weight="bold" />
-        <span>Cancel</span>
-      </button>
     </div>
   );
 }

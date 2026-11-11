@@ -16,7 +16,7 @@ export const editorFontRegistry: readonly EditorFontDefinition[] = [
     id: "system",
     label: "System default",
     category: "system",
-    cssFamily: "var(--font-ui)",
+    cssFamily: "var(--font-text)",
     load: async () => undefined,
   },
   {
@@ -58,6 +58,13 @@ export const editorFontRegistry: readonly EditorFontDefinition[] = [
     load: () => import("./jetbrains-mono.css"),
   },
   {
+    id: "geist-mono",
+    label: "Geist Mono",
+    category: "monospace",
+    cssFamily: '"Geist Mono Variable", var(--font-mono)',
+    load: () => import("./geist-mono.css"),
+  },
+  {
     id: "montserrat",
     label: "Montserrat",
     category: "display",
@@ -90,7 +97,7 @@ export const editorFontRegistry: readonly EditorFontDefinition[] = [
     id: "monospace",
     label: "Monospace (Generic)",
     category: "monospace",
-    cssFamily: 'ui-monospace, "SF Mono", Menlo, Consolas, Monaco, monospace',
+    cssFamily: "var(--font-mono)",
     load: async () => undefined,
   },
   {

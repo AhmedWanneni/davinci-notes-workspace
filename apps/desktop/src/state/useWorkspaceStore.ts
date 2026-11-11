@@ -4,10 +4,7 @@ import {
   createEditorSettings,
   type EditorSettingsState,
 } from "./createEditorSettings";
-import {
-  createGitSettings,
-  type GitSettingsState,
-} from "./createGitSettings";
+import { createGitSettings, type GitSettingsState } from "./createGitSettings";
 import {
   createNoteCrudActions,
   type NoteCrudActions,
@@ -37,12 +34,16 @@ export interface WorkspaceState
     NoteSaveActions,
     NoteNavigationActions {
   activeNotePath: string | null;
+  activeNoteSessionId: number;
   openNotes: string[];
   notesContent: Record<string, string>;
   dirtyNotes: Set<string>;
   conflictNotes: Map<string, string>;
   allNotePaths: string[];
   allFolderPaths: string[];
+  revealedFolderPath: string | null;
+  revealFolderNonce: number;
+  revealFolderInTree: (folderPath: string) => void;
   graph: GraphIndex | null;
   tagIndex: TagIndex | null;
   vaultPath: string | null;
@@ -67,12 +68,39 @@ export interface WorkspaceState
 
 export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   activeNotePath: null,
+  activeNoteSessionId: 0,
   openNotes: [],
   notesContent: {},
   dirtyNotes: new Set(),
   conflictNotes: new Map(),
   allNotePaths: [],
   allFolderPaths: [],
+  revealedFolderPath: null,
+  revealFolderNonce: 0,
+  revealFolderInTree: (folderPath: string) => {
+    const clean = folderPath.trim().replace(/^\/+|\/+$/g, "");
+    if (!clean) return;
+    set((state) => {
+      const folderSet = new Set(state.allFolderPaths);
+      let acc = "";
+      for (const seg of clean.split("/")) {
+        acc = acc ? `${acc}/${seg}` : seg;
+        folderSet.add(acc);
+      }
+      return {
+        allFolderPaths: Array.from(folderSet).sort(),
+        revealedFolderPath: clean,
+        revealFolderNonce: state.revealFolderNonce + 1,
+      };
+    });
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("davinci:reveal-folder", {
+          detail: { folderPath: clean },
+        }),
+      );
+    }
+  },
   graph: null,
   tagIndex: null,
   vaultPath: null,
@@ -102,6 +130,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       dirtyNotes: new Set(),
       conflictNotes: new Map(),
       activeNotePath: null,
+      activeNoteSessionId: 0,
       graph: initialGraph,
       tagIndex,
       isGlobalGraphOpen: false,

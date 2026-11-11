@@ -1,0 +1,118 @@
+import { EditorView } from "@codemirror/view";
+
+export const listTheme = EditorView.theme({
+  ".cm-line.cm-list-line": {
+    paddingTop: "var(--editor-obsidian-spacing-list, 2px)",
+    paddingBottom: "var(--editor-obsidian-spacing-list, 2px)",
+    textIndent: "calc(-1 * var(--editor-list-indent, 20px))",
+    position: "relative",
+  },
+  ".cm-line.cm-list-level-0": {
+    paddingLeft: "var(--editor-list-indent, 20px)",
+  },
+  ".cm-line.cm-list-level-1": {
+    paddingLeft: "calc(2 * var(--editor-list-indent, 20px))",
+  },
+  ".cm-line.cm-list-level-2": {
+    paddingLeft: "calc(3 * var(--editor-list-indent, 20px))",
+  },
+  ".cm-line.cm-list-level-3": {
+    paddingLeft: "calc(4 * var(--editor-list-indent, 20px))",
+  },
+  ".cm-line.cm-list-level-4": {
+    paddingLeft: "calc(5 * var(--editor-list-indent, 20px))",
+  },
+  ".cm-line.cm-list-level-5": {
+    paddingLeft: "calc(6 * var(--editor-list-indent, 20px))",
+  },
+  ".cm-line.cm-list-level-6": {
+    paddingLeft: "calc(7 * var(--editor-list-indent, 20px))",
+  },
+  ".cm-line.cm-list-level-1::before": {
+    content: '""',
+    position: "absolute",
+    left: "calc(var(--editor-list-indent, 20px) * 0.45)",
+    top: "0",
+    bottom: "0",
+    width: "1.5px",
+    backgroundColor: "var(--color-border-subtle, #e2e8f0)",
+    pointerEvents: "none",
+  },
+  ".cm-line.cm-list-level-2::before": {
+    content: '""',
+    position: "absolute",
+    left: "calc(var(--editor-list-indent, 20px) * 1.45)",
+    top: "0",
+    bottom: "0",
+    width: "1.5px",
+    backgroundColor: "var(--color-border-subtle, #e2e8f0)",
+    pointerEvents: "none",
+  },
+  ".cm-line.cm-list-level-3::before": {
+    content: '""',
+    position: "absolute",
+    left: "calc(var(--editor-list-indent, 20px) * 2.45)",
+    top: "0",
+    bottom: "0",
+    width: "1.5px",
+    backgroundColor: "var(--color-border-subtle, #e2e8f0)",
+    pointerEvents: "none",
+  },
+  ".cm-list-indent-space": {
+    display: "none !important",
+  },
+  ".cm-list-bullet, .cm-list-ordered": {
+    display: "inline-block",
+    width: "var(--editor-list-indent, 20px)",
+    minWidth: "var(--editor-list-indent, 20px)",
+    textAlign: "left",
+    textIndent: "0",
+    boxSizing: "border-box",
+    fontFamily: "var(--font-editor, inherit)",
+    color: "#ababab !important",
+  },
+  ".cm-list-ordered": {
+    width: "auto",
+    minWidth: "var(--editor-list-indent, 20px)",
+    whiteSpace: "nowrap",
+    fontVariantNumeric: "tabular-nums",
+    fontSize: "inherit",
+    fontWeight: "600",
+    color: "#ababab !important",
+  },
+  ".cm-list-bullet": {
+    fontSize: "14px",
+    fontWeight: "600",
+    lineHeight: "1",
+    verticalAlign: "0",
+    color: "var(--color-text-muted, #ababab) !important",
+  },
+  ".cm-task-checkbox": {
+    appearance: "none",
+    WebkitAppearance: "none",
+    width: "15px",
+    height: "15px",
+    borderRadius: "4px",
+    border: "1.5px solid var(--color-border-normal, #cbd5e1)",
+    backgroundColor: "var(--color-bg-primary, #ffffff)",
+    cursor: "pointer",
+    verticalAlign: "-2px",
+    margin: "0 4px 0 0",
+    position: "relative",
+    outline: "none",
+    transition: "all 0.15s ease",
+  },
+  ".cm-task-checkbox:checked": {
+    backgroundColor: "#8b5cf6",
+    borderColor: "#8b5cf6",
+    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.5 8.5l3 3 6-6'/%3E%3C/svg%3E")`,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    backgroundSize: "10px 10px",
+  },
+  ".cm-task-completed": {
+    textDecoration: "line-through !important",
+    color: "var(--color-text-muted, #94a3b8)",
+    opacity: "0.8",
+  },
+});

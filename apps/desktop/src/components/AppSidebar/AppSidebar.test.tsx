@@ -27,7 +27,9 @@ vi.mock("@tauri-apps/api/window", () => ({
 }));
 
 vi.mock("@app/git-manager", () => ({
-  GitSidebarPanel: () => <div data-testid="mock-git-sidebar-panel">Mock Git Sidebar</div>,
+  GitSidebarPanel: () => (
+    <div data-testid="mock-git-sidebar-panel">Mock Git Sidebar</div>
+  ),
 }));
 
 describe("AppSidebar", () => {
@@ -158,5 +160,72 @@ describe("AppSidebar", () => {
 
     expect(await screen.findByTestId("mock-git-sidebar-panel")).toBeDefined();
   });
-});
 
+  it("prioritizes git sidebar panel over bookmarks when git is opened", async () => {
+    render(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath="davinci://bookmarks"
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isBookmarksOpen={true}
+          isGitManagerOpen={true}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(await screen.findByTestId("mock-git-sidebar-panel")).toBeDefined();
+  });
+
+  it("switches from file tree to agent sidebar panel when isAgentOpen is true", async () => {
+    const { rerender } = render(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath={null}
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isAgentOpen={false}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.queryByLabelText("AI Agent Sidebar")).toBeNull();
+
+    rerender(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath={null}
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isAgentOpen={true}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(await screen.findByLabelText("AI Agent Sidebar")).toBeDefined();
+  });
+});

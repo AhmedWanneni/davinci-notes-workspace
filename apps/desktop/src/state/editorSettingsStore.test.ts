@@ -30,8 +30,8 @@ describe("createEditorSettings", () => {
   it("initializes with default settings", () => {
     expect(state.editorFont).toBe("system");
     expect(state.editorCustomFont).toBe("");
-    expect(state.editorFontSize).toBe(16);
-    expect(state.vimMonospaceMode).toBe(true);
+    expect(state.editorFontSize).toBe(15);
+    expect(state.vimMonospaceMode).toBe(false);
   });
 
   it("loads and sanitizes persisted settings from database", async () => {
@@ -72,12 +72,12 @@ describe("createEditorSettings", () => {
   });
 
   it("updates and persists vimMonospaceMode", async () => {
-    await state.setVimMonospaceMode(false);
-    expect(state.vimMonospaceMode).toBe(false);
+    await state.setVimMonospaceMode(true);
+    expect(state.vimMonospaceMode).toBe(true);
     expect(setSettingMock).toHaveBeenCalledWith(
       expect.anything(),
       "vimMonospaceMode",
-      "false",
+      "true",
     );
   });
 

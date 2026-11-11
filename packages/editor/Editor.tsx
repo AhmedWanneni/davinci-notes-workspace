@@ -2,7 +2,11 @@ import { useEffect, useRef } from "react";
 import { EditorState, Compartment } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
-import { autocompleteExtension, type ReminderClickInfo } from "./live-preview";
+import {
+  autocompleteExtension,
+  findFrontmatterEndLineInDoc,
+  type ReminderClickInfo,
+} from "./live-preview";
 import { linkExtension } from "./links";
 import {
   embedAudioExtension,
@@ -21,6 +25,7 @@ import {
 } from "./integration";
 import { createEditorExtensions } from "./createEditorExtensions";
 import { useVimModeSync } from "./vim/useVimModeSync";
+import styles from "./Editor.module.scss";
 
 export interface EditorProps {
   value: string;
@@ -46,6 +51,7 @@ export interface EditorProps {
   slashMenuEnabled?: boolean;
   vimMode?: string | null;
   strictLineBreaks?: boolean;
+  isSourceMode?: boolean;
 }
 
 export function Editor({
@@ -72,6 +78,7 @@ export function Editor({
   slashMenuEnabled = true,
   vimMode,
   strictLineBreaks = false,
+  isSourceMode = false,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -115,6 +122,7 @@ export function Editor({
       vimMode,
       useVimMode,
       strictLineBreaks,
+      isSourceMode,
       wikilinkCompartment: wikilinkCompartmentRef.current,
       autocompleteCompartment: autocompleteCompartmentRef.current,
       noteEmbedCompartment: noteEmbedCompartmentRef.current,
@@ -130,6 +138,15 @@ export function Editor({
       state: startState,
       parent: containerRef.current,
     });
+    const endLine = findFrontmatterEndLineInDoc(view.state.doc);
+    if (!isSourceMode && endLine !== null) {
+      const fmEnd = view.state.doc.line(endLine).to;
+      if (view.state.selection.main.head <= fmEnd) {
+        view.dispatch({
+          selection: { anchor: Math.min(view.state.doc.length, fmEnd + 1) },
+        });
+      }
+    }
 
     viewRef.current = view;
     onViewReady?.(view);
@@ -223,5 +240,10 @@ export function Editor({
     noteContents,
   ]);
 
-  return <div ref={containerRef} className={"editor-container"} />;
+  return (
+    <div
+      ref={containerRef}
+      className={`${styles["editor-container"]} editor-container`}
+    />
+  );
 }

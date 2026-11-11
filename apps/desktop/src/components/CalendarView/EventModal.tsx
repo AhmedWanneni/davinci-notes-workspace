@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button, Typography } from "@app/design-system";
-import { Trash, VideoCamera, NotePencil, X } from "@phosphor-icons/react";
+import { Trash, VideoCamera, NotePencil } from "@phosphor-icons/react";
 import type {
   CalendarListItem,
   CreateCalendarEventInput,
@@ -8,6 +8,7 @@ import type {
 } from "@app/google-calendar-api";
 import { adjustGoogleAllDayEnd, toGoogleAllDayEnd } from "../../calendar/scheduleXAdapter";
 import { findDailyCalendar } from "../../calendar/ensureDailyCalendar";
+import { WindowDialog } from "../WindowDialog";
 import styles from "./EventModal.module.scss";
 
 export interface EventModalProps {
@@ -121,18 +122,15 @@ export function EventModal({
   };
 
   return (
-    <div className={styles["event-modal-backdrop"]} data-testid="event-modal-backdrop">
-      <form className={styles["event-modal"]} onSubmit={handleSubmit} data-testid="event-modal">
-        <div className={styles["event-modal__header"]}>
-          <Typography variant="h2" size="sm" weight="semibold" className={styles["event-modal__title"]}>
-            {isReadOnlyReminder ? "Vault Reminder" : event ? "Edit Event" : "New Event"}
-          </Typography>
-          <Button variant="ghost" size="sm" type="button" onClick={onClose} aria-label="Close modal">
-            <X size={15} weight="bold" />
-          </Button>
-        </div>
-
-        <div className={styles["event-modal__body"]}>
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isReadOnlyReminder ? "Vault Reminder" : event ? "Edit Event" : "New Event"}
+      size="md"
+    >
+      <div data-testid="event-modal-backdrop">
+        <form className={styles["event-modal"]} onSubmit={handleSubmit} data-testid="event-modal">
+          <div className={styles["event-modal__body"]}>
           {isRecurring && (
             <div className={styles["event-modal__recurrence-notice"]} data-testid="event-recurrence-notice">
               Recurring event — changes apply to this series.
@@ -235,5 +233,6 @@ export function EventModal({
         </div>
       </form>
     </div>
+    </WindowDialog>
   );
 }

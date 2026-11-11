@@ -15,10 +15,12 @@ const meta = {
     onDailyNotes: () => {},
     onCreateCanvas: () => {},
     onOpenReminders: () => {},
+    onOpenTodos: () => {},
     onOpenCalendar: () => {},
     onOpenAgent: () => {},
     onOpenAskVault: () => {},
     isCalendarOpen: false,
+    isTodosOpen: false,
     isAgentOpen: false,
     isAskVaultOpen: false,
   },
@@ -38,6 +40,12 @@ export const GraphActive: Story = {
 export const CalendarActive: Story = {
   args: {
     isCalendarOpen: true,
+  },
+};
+
+export const TodosActive: Story = {
+  args: {
+    isTodosOpen: true,
   },
 };
 

@@ -20,7 +20,6 @@ export function QuickCaptureHeader({
   maxChars,
   selectedIndex,
   resultCount,
-  onDismiss,
   onQuit,
 }: QuickCaptureHeaderProps) {
   const isNearLimit = charCount > maxChars * 0.9;
@@ -90,17 +89,6 @@ export function QuickCaptureHeader({
           <span className={styles["quick-capture-counter"]}>
             {resultCount > 0 ? `${selectedIndex + 1} of ${resultCount}` : ""}
           </span>
-        )}
-        {onDismiss && (
-          <button
-            type="button"
-            className={styles["quick-capture-close-btn"]}
-            onClick={onDismiss}
-            aria-label="Close quick capture"
-            title="Close (Esc)"
-          >
-            Close
-          </button>
         )}
         {onQuit && (
           <button

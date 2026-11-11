@@ -387,6 +387,7 @@ the list.
 | [0220](adr/0220-prompt-understanding-pipeline-architecture.md) | Prompt Understanding Pipeline Architecture & Multi-Stage Execution | Accepted |
 | [0221](adr/0221-destructive-action-ui-confirmation-gate.md) | Destructive Action UI Confirmation Gate & Action Constraints in `@app/ai-agent` | Accepted |
 | [0222](adr/0222-scoped-intent-prompts-and-tool-gating.md) | Scoped Intent Prompts and Tool Gating for Weak Models in `@app/ai-agent` | Accepted |
+| [0253](adr/0253-interactive-widgets-and-iframe-sandboxing.md) | Interactive widgets (`widget` fenced block), iframe sandboxing, and CodeMirror cursor-gating | Accepted |
 
 ## Meeting Recorder & AI Listening
 
@@ -398,6 +399,7 @@ the list.
 | [0229](adr/0229-non-destructive-vault-grounding-and-wikilink-suggestion-engine.md) | Non-Destructive Vault Grounding & Wikilink Suggestion Engine with SQLite FTS5 | Accepted |
 | [0230](adr/0230-meeting-note-markdown-schema-and-canonical-vault-persistence.md) | Meeting Note Markdown Schema & Canonical Vault Persistence | Accepted |
 | [0231](adr/0231-calendar-event-proximity-detection-and-note-taking-prompt.md) | Calendar Event Proximity Detection & Note-Taking Prompt | Accepted |
+| [0252](adr/0252-realtime-ai-listening-streaming-and-recording-ui.md) | Real-time AI Listening Streaming Engine and Recording Page UI | Accepted |
 
 ## Git Manager
 

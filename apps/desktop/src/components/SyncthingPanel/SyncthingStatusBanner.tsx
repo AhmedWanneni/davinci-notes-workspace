@@ -11,8 +11,6 @@ export interface SyncthingStatusBannerProps {
   errorMessage: string | null;
   lastLogs?: string[] | null;
   isLoading: boolean;
-  autoStart: boolean;
-  setAutoStart: (enabled: boolean) => void;
   onStart: () => void;
   onStop: () => void;
   onRestart: () => void;
@@ -71,8 +69,6 @@ export function SyncthingStatusBanner({
   errorMessage,
   lastLogs,
   isLoading,
-  autoStart,
-  setAutoStart,
   onStart,
   onStop,
   onRestart,
@@ -160,16 +156,6 @@ export function SyncthingStatusBanner({
           </Button>
         </div>
       </div>
-
-      <label className={styles["syncthing-panel__toggle-row"]}>
-        <input
-          type="checkbox"
-          className={styles["syncthing-panel__checkbox"]}
-          checked={autoStart}
-          onChange={(e) => setAutoStart(e.target.checked)}
-        />
-        <span>Start Syncthing automatically when sync is on</span>
-      </label>
 
       {status === "crashed" && lastLogs && lastLogs.length > 0 && (
         <div className={styles["syncthing-panel__logs-card"]} data-testid="syncthing-logs">

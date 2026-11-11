@@ -14,8 +14,8 @@ import { SyncStatusButton } from "../SyncStatusButton";
 
 export interface AppSidebarHeaderProps {
   isMac: boolean;
-  currentTab: "files" | "search" | "bookmarks";
-  onTabChange?: (tab: "files" | "search" | "bookmarks") => void;
+  currentTab: "files" | "search" | "bookmarks" | "agent";
+  onTabChange?: (tab: "files" | "search" | "bookmarks" | "agent") => void;
   onOpenSearch?: () => void;
   onOpenTags?: () => void;
   onToggleLeftSidebar?: () => void;

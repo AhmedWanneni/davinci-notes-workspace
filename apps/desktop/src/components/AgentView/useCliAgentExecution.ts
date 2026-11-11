@@ -14,6 +14,12 @@ export interface CliSessionState {
   logs: string[];
 }
 
+export interface CliRunCallbacks {
+  onChunk?: (chunk: string) => void;
+  onLog?: (line: string) => void;
+  onComplete?: (finalOutput: string) => void;
+}
+
 export function useCliAgentExecution() {
   const [cliSession, setCliSession] = useState<CliSessionState | null>(null);
   const activeSessionIdRef = useRef<string | null>(null);
@@ -41,8 +47,13 @@ export function useCliAgentExecution() {
       agentName: string,
       promptText: string,
       vaultPath: string,
-      onComplete?: (finalOutput: string) => void,
+      callbacksOrComplete?: CliRunCallbacks | ((finalOutput: string) => void),
     ) => {
+      const callbacks: CliRunCallbacks =
+        typeof callbacksOrComplete === "function"
+          ? { onComplete: callbacksOrComplete }
+          : (callbacksOrComplete ?? {});
+
       const sessionId = `cli_${Date.now()}`;
       activeSessionIdRef.current = sessionId;
 
@@ -60,7 +71,13 @@ export function useCliAgentExecution() {
         sessionId,
         (event: CliAgentStreamEvent) => {
           if (event.kind === "text") {
-            accumulatedText += (accumulatedText ? "\n" : "") + event.content;
+            const chunk = (accumulatedText ? "\n" : "") + event.content;
+            accumulatedText += chunk;
+            callbacks.onChunk?.(event.content + "\n");
+          } else if (event.kind === "thought" || event.kind === "action") {
+            callbacks.onLog?.(event.content);
+          } else if (event.kind === "error") {
+            callbacks.onLog?.(`[error] ${event.content}`);
           }
 
           setCliSession((prev) => {
@@ -77,7 +94,7 @@ export function useCliAgentExecution() {
 
           if (event.kind === "done" || event.kind === "error") {
             activeSessionIdRef.current = null;
-            onComplete?.(accumulatedText || event.content);
+            callbacks.onComplete?.(accumulatedText || event.content);
           }
         },
       );

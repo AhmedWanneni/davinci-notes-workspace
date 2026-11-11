@@ -13,6 +13,10 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  filter: blur(0px);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
 }
 
 .link-card.is-selected {

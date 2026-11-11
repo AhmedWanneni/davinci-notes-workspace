@@ -35,7 +35,8 @@ export const Default: Story = {
           domain: "v2.tauri.app",
           folder: "Development",
           tags: ["rust", "desktop"],
-          description: "Build smaller, faster, and more secure desktop and mobile applications.",
+          description:
+            "Build smaller, faster, and more secure desktop and mobile applications.",
           addedAt: Date.now() - 1800000,
         },
         {
@@ -57,8 +58,10 @@ export const Default: Story = {
         "Ideas/Offline Sync.md",
       ],
       notesContent: {
-        "Notes/Architecture.md": "# Architecture\n\nLocal-first design system with CUBE CSS tokens.",
-        "Projects/Q4 Roadmap.md": "# Q4 Roadmap\n\nShipping the mobile app and Bookmarks feature.",
+        "Notes/Architecture.md":
+          "# Architecture\n\nLocal-first design system with CUBE CSS tokens.",
+        "Projects/Q4 Roadmap.md":
+          "# Q4 Roadmap\n\nShipping the mobile app and Bookmarks feature.",
       },
     });
   },
@@ -79,8 +82,12 @@ export const WebLinksPage: Story = {
           title: "Tauri 2.0 Documentation",
           domain: "v2.tauri.app",
           folder: "Development",
+          type: "link",
+          cover:
+            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&auto=format&fit=crop&q=60",
           tags: ["rust", "desktop"],
-          description: "Build smaller, faster, and more secure desktop and mobile applications.",
+          description:
+            "Build smaller, faster, and more secure desktop and mobile applications.",
           addedAt: Date.now() - 1800000,
         },
         {
@@ -89,15 +96,32 @@ export const WebLinksPage: Story = {
           title: "Attention & Reasoning in Local Models",
           domain: "arxiv.org",
           folder: "AI & Research",
+          type: "article",
+          cover:
+            "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=60",
           tags: ["ai", "papers"],
+          note: "Important paper on local attention mechanisms.",
           addedAt: Date.now() - 5400000,
         },
         {
           id: "w3",
+          url: "https://behance.net/calmia",
+          title: "Calmia Yoga Studio - Website Design",
+          domain: "behance.net",
+          folder: "Design",
+          type: "image",
+          cover:
+            "https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=600&auto=format&fit=crop&q=60",
+          tags: ["design", "branding"],
+          addedAt: Date.now() - 9000000,
+        },
+        {
+          id: "w4",
           url: "https://news.ycombinator.com",
           title: "Hacker News",
           domain: "news.ycombinator.com",
-          addedAt: Date.now() - 9000000,
+          type: "link",
+          addedAt: Date.now() - 12000000,
         },
       ],
     });

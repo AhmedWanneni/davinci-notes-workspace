@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { SyncSettingsPanel, type SyncMode } from "../SyncSettingsPanel";
 import { SettingsCard } from "./SettingsCard";
 import styles from "./SettingsDialog.module.scss";
@@ -19,7 +19,6 @@ interface SyncSettingsTabProps {
   onDriveSyncNow?: () => void;
   vaultPath: string | null;
   onOpenConflictsPanel?: () => void;
-  onOpenVault?: (path: string) => void;
 }
 
 export function SyncSettingsTab({
@@ -36,13 +35,32 @@ export function SyncSettingsTab({
   onDriveSyncNow,
   vaultPath,
   onOpenConflictsPanel,
-  onOpenVault,
 }: SyncSettingsTabProps) {
+  const [providerTab, setProviderTab] = useState<"drive" | "folder">(
+    syncMode === "folder" ? "folder" : "drive",
+  );
+
+  useEffect(() => {
+    setProviderTab(syncMode === "folder" ? "folder" : "drive");
+  }, [syncMode]);
+
+  const selectProvider = (provider: "drive" | "folder") => {
+    setProviderTab(provider);
+    if (provider === "folder" && syncMode !== "folder") onSelectSyncMode?.("folder");
+    if (provider === "drive" && syncMode === "folder") onSelectSyncMode?.("off");
+  };
+
   return (
     <div className={styles["settings-tab-content"]}>
-      <SettingsCard title="Cloud Sync">
+      <div className={styles["sync-provider-tabs"]} role="tablist" aria-label="Sync provider">
+        <button type="button" role="tab" aria-selected={providerTab === "drive"} onClick={() => selectProvider("drive")}>Drive</button>
+        <button type="button" role="tab" aria-selected={providerTab === "folder"} onClick={() => selectProvider("folder")}>Syncthing</button>
+      </div>
+
+      {providerTab === "drive" && <SettingsCard>
         <SyncSettingsPanel
-          mode={syncMode}
+          mode={syncMode === "drive" ? "drive" : "off"}
+          showFolderOption={false}
           onSelectMode={(mode) => onSelectSyncMode?.(mode)}
           driveAccountEmail={driveAccountEmail}
           isDriveSignedIn={isDriveSignedIn}
@@ -56,13 +74,15 @@ export function SyncSettingsTab({
           vaultPath={vaultPath}
           onOpenConflictsPanel={onOpenConflictsPanel}
         />
-      </SettingsCard>
+      </SettingsCard>}
 
-      <SettingsCard title="Syncthing">
+      {providerTab === "folder" && <SettingsCard>
         <React.Suspense fallback={<div>Loading Syncthing...</div>}>
-          <LazySyncthingPanel onOpenVault={onOpenVault} />
+          <LazySyncthingPanel
+            onDisableSyncMode={() => onSelectSyncMode?.("off")}
+          />
         </React.Suspense>
-      </SettingsCard>
+      </SettingsCard>}
     </div>
   );
 }

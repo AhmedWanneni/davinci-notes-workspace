@@ -1,185 +1,235 @@
-import React, { useState, useEffect } from "react";
-import { Sparkle, CheckSquare, PaperPlaneRight } from "@phosphor-icons/react";
-import { ListeningHeader } from "./ListeningHeader";
+import React, { Suspense, useEffect, useState, useMemo, useCallback } from "react";
+import { Broadcast } from "@phosphor-icons/react";
+import { MeetingsSidebar } from "./MeetingsSidebar";
+import { ListeningVisualizer } from "./ListeningVisualizer";
 import { TranscriptFeed } from "./TranscriptFeed";
-import { SuggestedLinksPanel } from "./SuggestedLinksPanel";
+import { AllMeetingsView } from "./AllMeetingsView";
+import { MeetingDetailView } from "./MeetingDetailView";
+import { MeetingAssistantPanel } from "./MeetingAssistantPanel";
+import { AIListeningPrivacyModal } from "./AIListeningPrivacyModal";
+import { RecordingTopBar } from "./RecordingTopBar";
+import { parseMeetingMarkdown, type ParsedMeetingItem } from "./meetingsParser";
 import { useListeningSession } from "./useListeningSession";
+import { useAgentStore } from "../AgentView/useAgentStore";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import { readNote } from "../../vault/vaultCommands";
 import styles from "./ListeningView.module.scss";
+
+const LazyAIListeningPanel = React.lazy(() =>
+  import("./AIListeningPanel").then((m) => ({ default: m.AIListeningPanel })),
+);
 
 export interface ListeningViewProps {
   initialTitle?: string;
   initialAudioPath?: string;
   onNavigateToNote?: (path: string) => void;
+  onOpenSettings?: () => void;
+  isSidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
+  showSidebar?: boolean;
 }
 
 export function ListeningView({
   initialTitle,
   initialAudioPath,
   onNavigateToNote,
+  onOpenSettings,
+  isSidebarOpen = true,
+  onToggleSidebar,
+  showSidebar = true,
 }: ListeningViewProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
-  const {
-    status,
-    title,
-    durationMs,
-    micLevel,
-    systemLevel,
-    segments,
-    suggestedLinks,
-    actionItems,
-    setTitle,
-    startSession,
-    pauseSession,
-    resumeSession,
-    stopSession,
-    discardSession,
-    acceptLink,
-    dismissLink,
-    retranscribeAudio,
-  } = useListeningSession(initialTitle);
+  const vaultPath = useWorkspaceStore((state) => state.vaultPath);
 
-  const [chatPrompt, setChatPrompt] = useState("");
-  const isRecording = status === "recording";
+  const [currentView, setCurrentView] = useState<"record" | "all-meetings" | "detail">("record");
+  const [selectedMeeting, setSelectedMeeting] = useState<ParsedMeetingItem | null>(null);
+  const [meetingNotesList, setMeetingNotesList] = useState<ParsedMeetingItem[]>([]);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const selectedCliAgent = useAgentStore((s) => s.selectedCliAgent);
+  const selectedProvider = useAgentStore((s) => s.selectedProvider);
+  const activeProvider = selectedCliAgent || selectedProvider || "gemini";
+
+  const session = useListeningSession(initialTitle);
+  const isRecording = session.status === "recording";
+
+  const meetingPaths = useMemo(
+    () => allNotePaths.filter((p) => p.startsWith("Meetings/") && p.endsWith(".md")),
+    [allNotePaths],
+  );
 
   useEffect(() => {
-    if (initialAudioPath) {
-      void retranscribeAudio(initialAudioPath);
-    }
-  }, [initialAudioPath, retranscribeAudio]);
-
-  useEffect(() => {
-    const handleReRun = (e: Event) => {
-      const customEvent = e as CustomEvent<{ path: string }>;
-      const audioPath = customEvent.detail?.path;
-      if (audioPath) {
-        void retranscribeAudio(audioPath);
+    let cancelled = false;
+    void (async () => {
+      const items: ParsedMeetingItem[] = [];
+      for (const p of meetingPaths) {
+        try {
+          const payload = await readNote(p);
+          if (payload?.content) items.push(parseMeetingMarkdown(p, payload.content));
+        } catch {
+          // Gracefully continue
+        }
       }
-    };
-    window.addEventListener("davinci:re-run-audio-transcription", handleReRun);
+      if (!cancelled) {
+        items.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+        setMeetingNotesList(items);
+      }
+    })();
     return () => {
-      window.removeEventListener(
-        "davinci:re-run-audio-transcription",
-        handleReRun,
-      );
+      cancelled = true;
     };
-  }, [retranscribeAudio]);
+  }, [meetingPaths]);
+
+  useEffect(() => {
+    if (initialAudioPath) void session.retranscribeAudio(initialAudioPath);
+  }, [initialAudioPath, session]);
 
   const handleStopAndSave = async () => {
-    const savedPath = await stopSession(allNotePaths);
-    if (savedPath && onNavigateToNote) {
-      onNavigateToNote(savedPath);
-    }
+    const savedPath = await session.stopSession(allNotePaths);
+    if (savedPath && onNavigateToNote) onNavigateToNote(savedPath);
   };
 
+  const handleToggleAIListening = useCallback(
+    (active: boolean) => {
+      session.setIsAIListeningActive(active);
+    },
+    [session],
+  );
+
+  const handleConfirmPrivacy = useCallback(() => {
+    setIsPrivacyModalOpen(false);
+    session.setIsAIListeningActive(true);
+  }, [session]);
+
   return (
-    <section
-      className={styles["listening-view"]}
-      aria-label="AI Listening Session"
+    <div
+      className={styles["recording-workspace"]}
+      aria-label="Meeting Recording Workspace"
+      data-testid="recording-workspace"
     >
-      <ListeningHeader
-        status={status}
-        title={title}
-        durationMs={durationMs}
-        micLevel={micLevel}
-        systemLevel={systemLevel}
-        onTitleChange={setTitle}
-        onStart={() => void startSession()}
-        onPause={() => void pauseSession()}
-        onResume={() => void resumeSession()}
-        onStop={() => void handleStopAndSave()}
-        onDiscard={() => void discardSession()}
-      />
+      {showSidebar && isSidebarOpen && (
+        <MeetingsSidebar
+          activeChannel={currentView === "record" ? "record" : "all-meetings"}
+          onSelectChannel={(ch) => setCurrentView(ch)}
+          onOpenSettings={onOpenSettings}
+          onToggleSidebar={onToggleSidebar}
+        />
+      )}
 
-      <div className={styles["listening-view__body"]}>
-        <div className={styles["listening-view__transcript-pane"]}>
-          <div className={styles["pane-header"]}>
-            <h2 className={styles["pane-header__title"]}>Live Transcript</h2>
-            <span className={styles["pane-header__count"]}>
-              {segments.length} {segments.length === 1 ? "entry" : "entries"}
-            </span>
-          </div>
-          <TranscriptFeed segments={segments} isRecording={isRecording} />
-        </div>
-
-        <aside className={styles["listening-view__notes-pane"]}>
-          <div className={styles["pane-header"]}>
-            <div className={styles["pane-header__title-group"]}>
-              <Sparkle
-                size={16}
-                weight="fill"
-                className={styles["pane-header__sparkle"]}
-              />
-              <h2 className={styles["pane-header__title"]}>
-                AI Notes & Grounding
-              </h2>
-            </div>
-          </div>
-
-          <div className={styles["listening-view__notes-content"]}>
-            <div className={styles["notes-card"]}>
-              <h3 className={styles["notes-card__title"]}>
-                <CheckSquare size={14} weight="bold" />
-                Action Items ({actionItems.length})
-              </h3>
-              {actionItems.length === 0 ? (
-                <p className={styles["notes-card__empty"]}>
-                  {isRecording
-                    ? "Action items will be detected automatically..."
-                    : "No action items identified yet."}
-                </p>
-              ) : (
-                <ul
-                  className={styles["suggested-links-list"]}
-                  aria-label="Action items"
-                >
-                  {actionItems.map((item, idx) => (
-                    <li key={idx} className={styles["suggested-link-item"]}>
-                      <span className={styles["suggested-link-item__body"]}>
-                        {item}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <SuggestedLinksPanel
-              links={suggestedLinks}
-              isRecording={isRecording}
-              onAccept={acceptLink}
-              onDismiss={dismissLink}
+      {currentView === "detail" && selectedMeeting ? (
+        <MeetingDetailView
+          meeting={selectedMeeting}
+          vaultPath={vaultPath}
+          onBack={() => setCurrentView("all-meetings")}
+          onOpenNote={onNavigateToNote}
+          onOpenSettings={onOpenSettings}
+        />
+      ) : currentView === "all-meetings" ? (
+        <>
+          <AllMeetingsView
+            meetings={meetingNotesList}
+            onSelectMeeting={(m) => {
+              setSelectedMeeting(m);
+              setCurrentView("detail");
+            }}
+            onStartNewRecording={() => setCurrentView("record")}
+            onOpenSettings={onOpenSettings}
+            isAssistantOpen={isAssistantOpen}
+            onToggleAssistant={() => setIsAssistantOpen((p) => !p)}
+          />
+          {isAssistantOpen && (
+            <MeetingAssistantPanel
+              meetings={meetingNotesList}
+              channelName="All Meetings"
+              onClose={() => setIsAssistantOpen(false)}
             />
-          </div>
+          )}
+        </>
+      ) : (
+        <main className={styles["recording-main-col"]}>
+          <RecordingTopBar onOpenSettings={onOpenSettings} />
 
-          <footer className={styles["listening-view__chat-footer"]}>
-            <form
-              className={styles["chat-input-form"]}
-              onSubmit={(e) => {
-                e.preventDefault();
-                setChatPrompt("");
-              }}
-            >
-              <input
-                type="text"
-                className={styles["chat-input-form__input"]}
-                placeholder="Ask about this meeting or vault notes..."
-                value={chatPrompt}
-                onChange={(e) => setChatPrompt(e.target.value)}
-                aria-label="Meeting query"
-              />
-              <button
-                type="submit"
-                className={styles["chat-input-form__submit"]}
-                disabled={!chatPrompt.trim()}
-                aria-label="Send query"
-              >
-                <PaperPlaneRight size={14} weight="fill" />
-              </button>
-            </form>
-          </footer>
-        </aside>
-      </div>
-    </section>
+          <ListeningVisualizer
+            status={session.status}
+            title={session.title}
+            durationMs={session.durationMs}
+            micLevel={session.micLevel}
+            systemLevel={session.systemLevel}
+            isTranscriptVisible={session.isTranscriptVisible}
+            isAIListeningActive={session.isAIListeningActive}
+            aiStatus={session.aiStatus}
+            aiError={session.aiError}
+            onTitleChange={session.setTitle}
+            onStart={() => void session.startSession()}
+            onPause={() => void session.pauseSession()}
+            onResume={() => void session.resumeSession()}
+            onStop={() => void handleStopAndSave()}
+            onDiscard={() => void session.discardSession()}
+            onToggleTranscript={session.setIsTranscriptVisible}
+            onToggleAIListening={handleToggleAIListening}
+          />
+
+          <div className={styles["recording-content-area"]}>
+            {session.isTranscriptVisible ? (
+              <TranscriptFeed segments={session.segments} isRecording={isRecording} />
+            ) : (
+              <div className={styles["transcript-paused-banner"]}>
+                <Broadcast size={22} className={styles["paused-icon"]} />
+                <p className={styles["paused-text"]}>Live transcript is currently hidden.</p>
+                <button
+                  type="button"
+                  className={`${styles["btn"]} ${styles["btn--secondary"]}`}
+                  onClick={() => session.setIsTranscriptVisible(true)}
+                  data-testid="show-transcript-btn"
+                >
+                  Show Live Transcript
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+      )}
+
+      {currentView === "record" && session.isAIListeningActive && (
+        <Suspense
+          fallback={
+            <aside className={styles["ai-listening-panel--loading"]}>
+              Loading AI Listening...
+            </aside>
+          }
+        >
+          <LazyAIListeningPanel
+            summary={session.liveSummary}
+            answers={session.answers}
+            questions={session.questions}
+            isStreaming={session.aiStatus === "streaming"}
+            onSaveAnswer={session.saveAnswer}
+            onDismissAnswer={session.dismissAnswer}
+            onSaveQuestion={session.saveQuestion}
+            onDismissQuestion={session.dismissQuestion}
+            onSubmitPrompt={() => void session.triggerAIStep()}
+            rollingSummaries={session.rollingSummaries}
+            summaryInterval={session.summaryInterval}
+            onIntervalChange={session.setSummaryInterval}
+            onSummarizeNow={session.summarizeNow}
+            isAIListeningPaused={session.isAIListeningPaused}
+            onTogglePauseAI={session.togglePauseAI}
+            summaryStatusMessage={session.summaryStatusMessage}
+            chatMessages={session.chatMessages}
+            isChatExecuting={session.isChatExecuting}
+            onAskChatQuestion={session.askChatQuestion}
+            agentConversationId={session.agentConversationId}
+          />
+        </Suspense>
+      )}
+
+      <AIListeningPrivacyModal
+        isOpen={isPrivacyModalOpen}
+        provider={activeProvider}
+        onConfirm={handleConfirmPrivacy}
+        onCancel={() => setIsPrivacyModalOpen(false)}
+      />
+    </div>
   );
 }
+export default ListeningView;

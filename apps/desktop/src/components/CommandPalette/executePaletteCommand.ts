@@ -19,6 +19,7 @@ export interface ExecutePaletteCommandOptions {
   onDriveSignIn?: () => void;
   onDriveDisconnect?: () => void;
   onDriveRefresh?: () => void;
+  onFormatNote?: () => void;
   editorView?: EditorView | null;
   editorSelection: EditorSelection | null;
   onInsertSuccess?: (itemId: string) => void;
@@ -42,6 +43,7 @@ export function executePaletteCommand({
   onDriveSignIn,
   onDriveDisconnect,
   onDriveRefresh,
+  onFormatNote,
   editorView,
   editorSelection,
   onInsertSuccess,
@@ -49,6 +51,7 @@ export function executePaletteCommand({
   onInvokePluginCommand,
 }: ExecutePaletteCommandOptions) {
   if (!id) return;
+  if (id === "action:format-note") onFormatNote?.();
   if (id === "action:disable-vim") void setUseVimMode(false);
   if (id === "action:settings") onOpenSettings?.();
   if (id === "action:logs") onOpenLogs?.();

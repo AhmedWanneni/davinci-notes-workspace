@@ -28,6 +28,7 @@ export interface EditorSettingsState extends EditorSettings {
   setUseVimMode: (enabled: boolean) => Promise<void>;
   setVimMonospaceMode: (enabled: boolean) => Promise<void>;
   setSlashMenuEnabled: (enabled: boolean) => Promise<void>;
+  setFormatOnSave: (enabled: boolean) => Promise<void>;
   setAttachmentSettings: (settings: AttachmentSettings) => Promise<void>;
 }
 
@@ -68,6 +69,9 @@ export function createEditorSettings(
         const slashMenuEnabled = await withDbLock(() =>
           getSetting(db, "slashMenuEnabled"),
         );
+        const formatOnSave = await withDbLock(() =>
+          getSetting(db, "formatOnSave"),
+        );
         const attachmentSettings = await withDbLock(() =>
           getSetting(db, "attachmentSettings"),
         );
@@ -90,6 +94,7 @@ export function createEditorSettings(
             slashMenuEnabled === null
               ? defaultEditorSettings.slashMenuEnabled
               : slashMenuEnabled === "true",
+          formatOnSave: formatOnSave === "true",
           attachmentSettings: parseAttachmentSettings(attachmentSettings),
         });
       } catch (error) {
@@ -199,10 +204,30 @@ export function createEditorSettings(
       try {
         const db = await getVaultIndexDb();
         await withDbLock(() =>
-          saveEditorSetting(vaultEditorSettingsStorage(db), "slashMenuEnabled", enabled),
+          saveEditorSetting(
+            vaultEditorSettingsStorage(db),
+            "slashMenuEnabled",
+            enabled,
+          ),
         );
       } catch (error) {
         console.error("Failed to save Slash Menu setting", error);
+      }
+    },
+
+    setFormatOnSave: async (enabled: boolean) => {
+      set({ formatOnSave: enabled });
+      try {
+        const db = await getVaultIndexDb();
+        await withDbLock(() =>
+          saveEditorSetting(
+            vaultEditorSettingsStorage(db),
+            "formatOnSave",
+            enabled,
+          ),
+        );
+      } catch (error) {
+        console.error("Failed to save Format on Save setting", error);
       }
     },
 

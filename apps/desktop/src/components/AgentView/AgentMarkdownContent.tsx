@@ -1,56 +1,38 @@
 import { type ReactNode } from "react";
+import { AgentCodeBlock } from "./AgentCodeBlock";
+import { AgentMermaidBlock } from "./AgentMermaidBlock";
+import { AgentTableBlock } from "./AgentTableBlock";
+import { AgentWidgetBlock } from "./AgentWidgetBlock";
+import { AgentWidgetPlaceholder } from "./AgentWidgetPlaceholder";
+import { renderInlineFormatting } from "./agentMarkdownInlineRenderer";
+import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 
 export interface AgentMarkdownContentProps {
   content: string;
+  isStreaming?: boolean;
   onNavigateNote?: (notePath: string) => void;
-}
-
-function renderInlineFormatting(
-  text: string,
-  onNavigateNote?: (path: string) => void,
-): ReactNode[] {
-  // Matches `code`, **bold**, *italic*, and [[wikilink]]
-  const tokenRegex = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|\[\[[^\]]+\]\])/g;
-  const parts = text.split(tokenRegex);
-
-  return parts.map((part, idx) => {
-    if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
-      return (
-        <code key={idx} className="agent-md-code">
-          {part.slice(1, -1)}
-        </code>
-      );
-    }
-    if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
-      return <strong key={idx}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith("*") && part.endsWith("*") && part.length >= 2) {
-      return <em key={idx}>{part.slice(1, -1)}</em>;
-    }
-    if (part.startsWith("[[") && part.endsWith("]]") && part.length >= 4) {
-      const rawTarget = part.slice(2, -2);
-      const [target, label] = rawTarget.split("|");
-      return (
-        <button
-          key={idx}
-          type="button"
-          className="agent-md-wikilink"
-          onClick={() => onNavigateNote?.(target.trim())}
-          title={`Open note: ${target.trim()}`}
-        >
-          {label?.trim() || target.trim()}
-        </button>
-      );
-    }
-    return part;
-  });
+  onNavigateFolder?: (folderPath: string) => void;
+  onSaveAsNote?: (snippet: string) => void;
 }
 
 export function AgentMarkdownContent({
   content,
+  isStreaming,
   onNavigateNote,
+  onNavigateFolder,
+  onSaveAsNote,
 }: AgentMarkdownContentProps) {
+  const allFolderPaths = useWorkspaceStore((s) => s.allFolderPaths);
+  const allNotePaths = useWorkspaceStore((s) => s.allNotePaths);
   if (!content) return null;
+
+  const fmt = (txt: string) =>
+    renderInlineFormatting(txt, {
+      onNavigateNote,
+      onNavigateFolder,
+      allFolderPaths,
+      allNotePaths,
+    });
 
   const lines = content.split("\n");
   const elements: ReactNode[] = [];
@@ -58,6 +40,7 @@ export function AgentMarkdownContent({
   let codeBuffer: string[] = [];
   let codeLang = "";
   let listBuffer: ReactNode[] = [];
+  let tableBuffer: string[] = [];
 
   const flushList = () => {
     if (listBuffer.length > 0) {
@@ -70,26 +53,61 @@ export function AgentMarkdownContent({
     }
   };
 
+  const flushTable = () => {
+    if (tableBuffer.length > 0) {
+      elements.push(
+        <AgentTableBlock
+          key={`table-${elements.length}`}
+          markdownTable={tableBuffer.join("\n")}
+        />,
+      );
+      tableBuffer = [];
+    }
+  };
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     if (line.startsWith("```")) {
+      flushList();
+      flushTable();
       if (inCodeBlock) {
-        elements.push(
-          <div key={`code-${i}`} className="agent-md-codeblock">
-            {codeLang && (
-              <div className="agent-md-codeblock__lang">{codeLang}</div>
-            )}
-            <pre className="agent-md-codeblock__pre">
-              <code>{codeBuffer.join("\n")}</code>
-            </pre>
-          </div>,
-        );
+        const fullCode = codeBuffer.join("\n");
+        const lowerLang = codeLang.toLowerCase();
+        if (lowerLang === "widget") {
+          elements.push(
+            isStreaming ? (
+              <AgentWidgetPlaceholder key={`widget-ph-${i}`} />
+            ) : (
+              <AgentWidgetBlock
+                key={`widget-${i}`}
+                source={fullCode}
+                onSaveAsNote={onSaveAsNote}
+              />
+            ),
+          );
+        } else if (lowerLang === "mermaid") {
+          elements.push(
+            <AgentMermaidBlock
+              key={`mermaid-${i}`}
+              source={fullCode}
+              onSaveAsNote={onSaveAsNote}
+            />,
+          );
+        } else {
+          elements.push(
+            <AgentCodeBlock
+              key={`code-${i}`}
+              code={fullCode}
+              lang={codeLang}
+              onSaveAsNote={onSaveAsNote}
+            />,
+          );
+        }
         codeBuffer = [];
         inCodeBlock = false;
         codeLang = "";
       } else {
-        flushList();
         inCodeBlock = true;
         codeLang = line.slice(3).trim();
       }
@@ -101,58 +119,69 @@ export function AgentMarkdownContent({
       continue;
     }
 
+    const trimmed = line.trim();
+    if (trimmed.startsWith("|") && trimmed.endsWith("|")) {
+      flushList();
+      tableBuffer.push(trimmed);
+      continue;
+    }
+    flushTable();
+
     if (line.startsWith("- ") || line.startsWith("* ")) {
       listBuffer.push(
         <li key={`li-${i}`} className="agent-md-list-item">
-          {renderInlineFormatting(line.slice(2), onNavigateNote)}
+          {fmt(line.slice(2))}
         </li>,
       );
       continue;
     }
 
     flushList();
-
-    if (!line.trim()) {
-      continue;
-    }
+    if (!trimmed) continue;
 
     if (line.startsWith("### ")) {
       elements.push(
         <h4 key={`h3-${i}`} className="agent-md-heading agent-md-heading--h3">
-          {renderInlineFormatting(line.slice(4), onNavigateNote)}
+          {fmt(line.slice(4))}
         </h4>,
       );
     } else if (line.startsWith("## ")) {
       elements.push(
         <h3 key={`h2-${i}`} className="agent-md-heading agent-md-heading--h2">
-          {renderInlineFormatting(line.slice(3), onNavigateNote)}
+          {fmt(line.slice(3))}
         </h3>,
       );
     } else if (line.startsWith("# ")) {
       elements.push(
         <h2 key={`h1-${i}`} className="agent-md-heading agent-md-heading--h1">
-          {renderInlineFormatting(line.slice(2), onNavigateNote)}
+          {fmt(line.slice(2))}
         </h2>,
       );
     } else {
       elements.push(
         <p key={`p-${i}`} className="agent-md-paragraph">
-          {renderInlineFormatting(line, onNavigateNote)}
+          {fmt(line)}
         </p>,
       );
     }
   }
 
   flushList();
+  flushTable();
 
   if (inCodeBlock && codeBuffer.length > 0) {
-    elements.push(
-      <div key="code-unterminated" className="agent-md-codeblock">
-        <pre className="agent-md-codeblock__pre">
-          <code>{codeBuffer.join("\n")}</code>
-        </pre>
-      </div>,
-    );
+    if (codeLang.toLowerCase() === "widget") {
+      elements.push(<AgentWidgetPlaceholder key="widget-unterminated" />);
+    } else {
+      elements.push(
+        <AgentCodeBlock
+          key="code-unterminated"
+          code={codeBuffer.join("\n")}
+          lang={codeLang}
+          onSaveAsNote={onSaveAsNote}
+        />,
+      );
+    }
   }
 
   return <div className="agent-markdown-content">{elements}</div>;

@@ -40,6 +40,35 @@ pub fn is_allowed_external_url(url: &str) -> bool {
     || url.starts_with("https://www.callmebot.com/")
 }
 
+/// Only plain web links (user-saved bookmarks) are allowed; other schemes
+/// such as `file:` or custom protocol handlers are refused.
+pub fn is_web_bookmark_url(url: &str) -> bool {
+  let lower = url.trim().to_ascii_lowercase();
+  (lower.starts_with("https://") || lower.starts_with("http://"))
+    && !lower.contains(char::is_whitespace)
+}
+
+fn launch_in_browser(url: String) -> Result<(), String> {
+  #[cfg(target_os = "macos")]
+  let result = Command::new("open").arg(&url).spawn();
+  #[cfg(target_os = "windows")]
+  let result = Command::new("cmd").args(["/C", "start", "", &url]).spawn();
+  #[cfg(all(unix, not(target_os = "macos")))]
+  let result = Command::new("xdg-open").arg(&url).spawn();
+  result.map(|_| ()).map_err(|error| format!("could not open browser: {error}"))
+}
+
+#[tauri::command]
+pub async fn open_bookmark_url(window: WebviewWindow, url: String) -> Result<(), String> {
+  reject_plugin_runner(&window)?;
+  if !is_web_bookmark_url(&url) {
+    return Err("only http(s) bookmark links can be opened".to_string());
+  }
+  tauri::async_runtime::spawn_blocking(move || launch_in_browser(url.trim().to_string()))
+    .await
+    .map_err(|error| format!("browser launch task failed: {error}"))?
+}
+
 #[tauri::command]
 pub async fn open_external_url(window: WebviewWindow, url: String) -> Result<(), String> {
   reject_plugin_runner(&window)?;
@@ -208,5 +237,19 @@ pub fn clear_calendar_token(window: WebviewWindow) -> Result<(), String> {
   match Entry::new(CALENDAR_SERVICE, ACCOUNT).map_err(|error| error.to_string())?.delete_credential() {
     Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
     Err(error) => Err(error.to_string()),
+  }
+}
+
+#[cfg(test)]
+mod bookmark_url_tests {
+  use super::is_web_bookmark_url;
+
+  #[test]
+  fn accepts_only_http_and_https_links() {
+    assert!(is_web_bookmark_url("https://github.com/"));
+    assert!(is_web_bookmark_url("http://example.com/a?b=1"));
+    assert!(!is_web_bookmark_url("file:///etc/passwd"));
+    assert!(!is_web_bookmark_url("javascript:alert(1)"));
+    assert!(!is_web_bookmark_url("https://a.com b"));
   }
 }

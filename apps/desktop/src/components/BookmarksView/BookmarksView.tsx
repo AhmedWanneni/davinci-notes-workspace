@@ -1,31 +1,29 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useBookmarks } from "../../bookmarks/useBookmarks";
+import { useBookmarkUIStore } from "../../bookmarks/useBookmarkUIStore";
 import type {
   BookmarksPageTab,
-  BookmarkSortOption,
   WebBookmarkItem,
-  WebBookmarkSortOption,
 } from "../../bookmarks/bookmarkTypes";
 import { organizeBookmarksWithAI } from "../../bookmarks/organizeBookmarksWithAI";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
-import { loadTreeIcons } from "../../icons/treeIconStorage";
-import { BookmarksHeader } from "./BookmarksHeader";
-import { NoteBookmarksSubView } from "./NoteBookmarksSubView";
 import { WebBookmarksSubView } from "./WebBookmarksSubView";
 import { WebBookmarkAddBar } from "./WebBookmarkAddBar";
 import { WebBookmarkImportModal } from "./WebBookmarkImportModal";
-import { useBookmarkKeyboardNav } from "./useBookmarkKeyboardNav";
+import { useNoteBookmarkItems } from "./useNoteBookmarkItems";
 import styles from "./BookmarksView.module.scss";
 
 export interface BookmarksViewProps {
   onOpenNote: (path: string, newTab: boolean) => void;
   initialPage?: BookmarksPageTab;
+  hideSidebar?: boolean;
 }
 
 export function BookmarksView({
   onOpenNote,
   initialPage = "notes",
+  hideSidebar = false,
 }: BookmarksViewProps) {
   const {
     bookmarks,
@@ -40,58 +38,45 @@ export function BookmarksView({
     undoLastOrganization,
   } = useBookmarks();
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
-  const notesContent = useWorkspaceStore((state) => state.notesContent);
+  const noteItems = useNoteBookmarkItems();
 
-  const [activePage, setActivePage] = useState<BookmarksPageTab>(initialPage);
+  const {
+    pageTab,
+    setPageTab,
+    activeSection,
+    showAddBar,
+    setShowAddBar,
+    showImportModal,
+    setShowImportModal,
+  } = useBookmarkUIStore();
+
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState<BookmarkSortOption>("recent");
-  const [webSortOption, setWebSortOption] =
-    useState<WebBookmarkSortOption>("recent");
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [icons, setIcons] = useState<Record<string, string>>({});
-  const [showAddBar, setShowAddBar] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
   const [isOrganizingAI, setIsOrganizingAI] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
   useEffect(() => {
-    void loadTreeIcons().then(setIcons);
-  }, []);
+    if (initialPage) {
+      setPageTab(initialPage);
+    }
+  }, [initialPage, setPageTab]);
 
-  const filteredAndSorted = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    const list = bookmarks.filter((b) => {
-      if (!query) return true;
-      const title = b.path.replace(/\.(md|canvas)$/i, "").toLowerCase();
-      return title.includes(query) || b.path.toLowerCase().includes(query);
-    });
-
-    return list.sort((a, b) => {
-      if (sortOption === "alpha") {
-        const titleA = a.path.split("/").pop() ?? a.path;
-        const titleB = b.path.split("/").pop() ?? b.path;
-        return titleA.localeCompare(titleB);
+  const handleOpenExternal = useCallback(
+    (url: string) => {
+      if (
+        url.startsWith("internal://") ||
+        url.endsWith(".md") ||
+        url.endsWith(".canvas") ||
+        allNotePaths.includes(url)
+      ) {
+        onOpenNote(url, false);
+        return;
       }
-      return b.addedAt - a.addedAt;
-    });
-  }, [bookmarks, searchQuery, sortOption]);
-
-  useBookmarkKeyboardNav({
-    items: activePage === "notes" ? filteredAndSorted : [],
-    selectedIndex,
-    setSelectedIndex,
-    onOpen: onOpenNote,
-    onRemove: removeBookmark,
-    searchInputRef,
-  });
-
-  const handleOpenExternal = useCallback((url: string) => {
-    invoke("open_external_url", { url }).catch(() => {
-      window.open(url, "_blank", "noopener,noreferrer");
-    });
-  }, []);
+      invoke("open_bookmark_url", { url }).catch(() => {
+        window.open(url, "_blank", "noopener,noreferrer");
+      });
+    },
+    [allNotePaths, onOpenNote],
+  );
 
   const handleOrganizeWithAI = useCallback(
     async (targetItems?: readonly WebBookmarkItem[]) => {
@@ -120,37 +105,43 @@ export function BookmarksView({
 
   return (
     <div className={styles["bookmarks-view"]}>
-      <BookmarksHeader
-        activePage={activePage}
-        onPageChange={(page) => {
-          setActivePage(page);
-          setSearchQuery("");
-        }}
-        noteCount={bookmarks.length}
-        linkCount={webBookmarks.length}
+      <WebBookmarksSubView
+        variant={pageTab === "links" ? "links" : "notes"}
+        items={pageTab === "links" ? webBookmarks : noteItems}
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        searchInputRef={searchInputRef}
-        sortOption={sortOption}
-        onSortChange={setSortOption}
-        webSortOption={webSortOption}
-        onWebSortChange={setWebSortOption}
+        statusMessage={statusMessage}
         isOrganizingAI={isOrganizingAI}
         canUndoOrganization={canUndoOrganization}
-        onOpenAddLink={() => setShowAddBar((v) => !v)}
-        onOpenImportModal={() => setShowImportModal(true)}
-        onOrganizeWithAI={() => void handleOrganizeWithAI()}
         onUndoOrganization={() => {
           undoLastOrganization();
           setStatusMessage("Reverted AI organization changes.");
         }}
+        onDismissStatus={() => setStatusMessage(null)}
+        onOpenAddBar={() => setShowAddBar(true)}
+        onOpenImportModal={() => setShowImportModal(true)}
+        onOpenExternal={handleOpenExternal}
+        onOrganizeItems={(items) => void handleOrganizeWithAI(items)}
+        onUpdate={updateWebBookmark}
+        onRemove={pageTab === "links" ? removeWebBookmark : removeBookmark}
+        onSearchChange={setSearchQuery}
+        pageTab={pageTab}
+        onPageTabChange={setPageTab}
+        noteCount={bookmarks.length}
+        hideSidebar={hideSidebar}
       />
 
-      {activePage === "links" && showAddBar && (
+      {showAddBar && (
         <WebBookmarkAddBar
           onAdd={(input) => {
             addWebBookmark(input);
             setShowAddBar(false);
+          }}
+          onAddBatch={(items) => {
+            const { addedCount } = importWebBookmarks(items);
+            setShowAddBar(false);
+            setStatusMessage(
+              `Added ${items.length} bookmark${items.length === 1 ? "" : "s"} (${addedCount} new).`,
+            );
           }}
           onCancel={() => setShowAddBar(false)}
         />
@@ -172,41 +163,6 @@ export function BookmarksView({
               );
             }
           }}
-        />
-      )}
-
-      {activePage === "links" ? (
-        <WebBookmarksSubView
-          items={webBookmarks}
-          searchQuery={searchQuery}
-          sortOption={webSortOption}
-          statusMessage={statusMessage}
-          isOrganizingAI={isOrganizingAI}
-          canUndoOrganization={canUndoOrganization}
-          onUndoOrganization={() => {
-            undoLastOrganization();
-            setStatusMessage("Reverted AI organization changes.");
-          }}
-          onDismissStatus={() => setStatusMessage(null)}
-          onOpenAddBar={() => setShowAddBar(true)}
-          onOpenImportModal={() => setShowImportModal(true)}
-          onOpenExternal={handleOpenExternal}
-          onOrganizeItems={(items) => void handleOrganizeWithAI(items)}
-          onUpdate={updateWebBookmark}
-          onRemove={removeWebBookmark}
-          onSearchChange={setSearchQuery}
-        />
-      ) : (
-        <NoteBookmarksSubView
-          bookmarks={bookmarks}
-          filteredAndSorted={filteredAndSorted}
-          searchQuery={searchQuery}
-          selectedIndex={selectedIndex}
-          icons={icons}
-          allNotePaths={allNotePaths}
-          notesContent={notesContent}
-          onOpenNote={onOpenNote}
-          onRemoveBookmark={removeBookmark}
         />
       )}
     </div>

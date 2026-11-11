@@ -40,6 +40,8 @@ export function EditorSettingsTab() {
   const setSlashMenuEnabled = useWorkspaceStore(
     (state) => state.setSlashMenuEnabled,
   );
+  const formatOnSave = useWorkspaceStore((state) => state.formatOnSave);
+  const setFormatOnSave = useWorkspaceStore((state) => state.setFormatOnSave);
 
   const customValidation = validateAndSanitizeCustomFont(editorCustomFont);
 
@@ -102,11 +104,12 @@ export function EditorSettingsTab() {
                 onChange={(e) => void setEditorCustomFont(e.target.value)}
                 className={styles["settings-text-input"]}
               />
-              {!customValidation.isValid && editorCustomFont.length > 0 && (
-                <span className={styles["settings-field-error"]}>
-                  {customValidation.error}
-                </span>
-              )}
+              {!customValidation.isValid &&
+                Boolean(editorCustomFont && editorCustomFont.length > 0) && (
+                  <span className={styles["settings-field-error"]}>
+                    {customValidation.error}
+                  </span>
+                )}
             </div>
           </SettingsRow>
         )}
@@ -190,12 +193,23 @@ export function EditorSettingsTab() {
 
         <SettingsRow
           title="Use monospace font in vim mode"
-          description="Maintain uniform cursor width across characters by switching to JetBrains Mono in Vim mode."
+          description="Maintain uniform cursor width across characters by switching to monospace font in Vim mode."
         >
           <Toggle
             checked={vimMonospaceMode}
             onCheckedChange={(checked) => void setVimMonospaceMode(checked)}
             aria-label="Use monospace font in vim mode"
+          />
+        </SettingsRow>
+
+        <SettingsRow
+          title="Format on save"
+          description="Automatically organize and format markdown when saving the note."
+        >
+          <Toggle
+            checked={formatOnSave}
+            onCheckedChange={(checked) => void setFormatOnSave(checked)}
+            aria-label="Format on save"
           />
         </SettingsRow>
       </SettingsCard>

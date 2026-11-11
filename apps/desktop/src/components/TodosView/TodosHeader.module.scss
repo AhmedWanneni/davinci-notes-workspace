@@ -1,0 +1,198 @@
+.todos-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6) var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary);
+  font-family: var(--font-ui);
+}
+
+.todos-header__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.todos-header__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.todos-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.todos-header__sidebar-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 0.5rem;
+  border: var(--border-width-thin) solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0;
+  transition: all var(--motion-duration-fast) var(--motion-ease-standard);
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    color: var(--color-text-normal);
+    border-color: var(--color-border-subtle);
+  }
+}
+
+.todos-header__title {
+  font-size: var(--type-scale-lg);
+  font-weight: 700;
+  color: var(--color-text-normal);
+  margin: 0;
+}
+
+.todos-header__subtitle {
+  font-size: var(--type-scale-xs);
+  color: var(--color-text-muted);
+}
+
+.todos-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.todos-header__layout-toggle {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  background-color: var(--color-bg-secondary);
+}
+
+.todos-header__layout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-text-normal);
+  }
+
+  &.is-active {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-normal);
+    font-weight: 600;
+  }
+}
+
+.todos-header__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-subtle);
+  width: 220px;
+
+  input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: var(--font-ui);
+    font-size: var(--type-scale-xs);
+    color: var(--color-text-normal);
+    width: 100%;
+  }
+}
+
+.todos-header__focus-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-primary);
+  color: var(--color-interactive-accent);
+  font-size: var(--type-scale-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease;
+
+  &:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-interactive-accent);
+  }
+}
+
+.todos-header__primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--color-interactive-accent);
+  background-color: var(--color-interactive-accent);
+  color: var(--color-text-on-accent);
+  font-size: var(--type-scale-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.todos-header__filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.todos-header__filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-subtle);
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 100ms ease;
+
+  &:hover {
+    color: var(--color-text-normal);
+    border-color: var(--color-border-normal);
+  }
+
+  &.is-active {
+    background-color: var(--color-interactive-accent);
+    border-color: var(--color-interactive-accent);
+    color: var(--color-text-on-accent);
+  }
+}
+
+.todos-header__filter-divider {
+  width: 1px;
+  height: 16px;
+  background-color: var(--color-border-subtle);
+  margin: 0 4px;
+}

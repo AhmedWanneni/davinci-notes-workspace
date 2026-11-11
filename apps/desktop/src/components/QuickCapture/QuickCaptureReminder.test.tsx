@@ -18,7 +18,9 @@ describe("QuickCaptureReminder", () => {
       />,
     );
 
-    expect(screen.getByRole("region", { name: "Quick reminder section" })).toBeDefined();
+    expect(
+      screen.getByRole("region", { name: "Quick reminder section" }),
+    ).toBeDefined();
     expect(screen.getByLabelText("Reminder task text")).toBeDefined();
     expect(screen.getByLabelText("Due date")).toBeDefined();
     expect(screen.getByLabelText("Due time")).toBeDefined();
@@ -32,7 +34,9 @@ describe("QuickCaptureReminder", () => {
     const month = String(tomorrow.getMonth() + 1).padStart(2, "0");
     const day = String(tomorrow.getDate()).padStart(2, "0");
     const expected = `${year}-${month}-${day}`;
-    expect((screen.getByLabelText("Due date") as HTMLInputElement).value).toBe(expected);
+    expect((screen.getByLabelText("Due date") as HTMLInputElement).value).toBe(
+      expected,
+    );
   });
 
   it("submits formatted reminder task on clicking Save reminder", async () => {
@@ -64,7 +68,7 @@ describe("QuickCaptureReminder", () => {
     });
   });
 
-  it("triggers onDismiss on clicking Cancel", () => {
+  it("triggers onDismiss on pressing Escape", () => {
     const onDismiss = vi.fn();
     render(
       <QuickCaptureReminder
@@ -75,7 +79,9 @@ describe("QuickCaptureReminder", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    fireEvent.keyDown(screen.getByLabelText("Reminder task text"), {
+      key: "Escape",
+    });
     expect(onDismiss).toHaveBeenCalled();
   });
 });

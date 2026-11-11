@@ -91,6 +91,8 @@ export {
 } from "./theme/markdownAnnotationTheme";
 export {
   insertTableCommand,
+  setTableCodeEditing,
+  tableCodeEditingField,
   tableExtension,
 } from "./blocks/table/tableExtension";
 export type { TableExtensionOptions } from "./blocks/table/tableExtension";
@@ -99,6 +101,7 @@ export { codeBlockLayoutTheme } from "./blocks/code/codeBlockLayoutTheme";
 export { mermaidExtension } from "./blocks/mermaid/mermaidExtension";
 export type { MermaidExtensionOptions } from "./blocks/mermaid/mermaidExtension";
 export { mermaidTheme } from "./blocks/mermaid/mermaidTheme";
+export { renderMermaidSvg } from "./blocks/mermaid/mermaidWidget";
 export { mathExtension } from "./blocks/math/mathExtension";
 export type { MathExtensionOptions } from "./blocks/math/mathExtension";
 export { mathTheme } from "./blocks/math/mathTheme";
@@ -163,9 +166,19 @@ export { htmlBlockTheme } from "./blocks/html/htmlBlockTheme";
 export { htmlInlineExtension } from "./blocks/html/htmlInlineExtension";
 export { htmlInlineTheme } from "./blocks/html/htmlInlineTheme";
 export {
-  loadVimExtension,
-  getLoadedVimExtension,
-} from "./vim/vimExtension";
+  widgetExtension,
+  widgetTheme,
+  findWidgetBlocks,
+  buildWidgetHtml,
+  registerWidgetMount,
+  extractThemeTokens,
+} from "./blocks/widget";
+export type {
+  WidgetBlock,
+  WidgetExtensionOptions,
+  WidgetResizePayload,
+} from "./blocks/widget";
+export { loadVimExtension, getLoadedVimExtension } from "./vim/vimExtension";
 export {
   noteEmbedExtension,
   noteEmbedTheme,
@@ -180,3 +193,10 @@ export type { NoteEmbedOptions } from "./embeds";
 export { Strikethrough, Table } from "@lezer/markdown";
 export { syntaxHighlighting } from "@codemirror/language";
 export { undo, redo, history } from "@codemirror/commands";
+export { formatMarkdown, formatEditorDocument } from "./format";
+export type {
+  FormatMarkdownOptions,
+  FormatMarkdownResult,
+  FormatEditorOptions,
+  FormatEditorResult,
+} from "./format";

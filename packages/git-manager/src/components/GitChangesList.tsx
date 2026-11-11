@@ -1,7 +1,5 @@
 import { useState } from "react";
 import {
-  CaretDown,
-  CaretRight,
   Plus,
   Minus,
   ArrowCounterClockwise,
@@ -11,6 +9,7 @@ import { Button } from "@app/design-system";
 import type { GitFileChange } from "../types/gitTypes";
 import { useGitManagerStore } from "../store/useGitManagerStore";
 import { GitStatusRow } from "./GitStatusRow";
+import { GitSectionGroup } from "./GitSectionGroup";
 import styles from "./GitChangesList.module.scss";
 
 export interface GitChangesListProps {
@@ -38,13 +37,7 @@ export function GitChangesList({
 
   if (!hasAnyChanges) {
     return (
-      <div
-        style={{
-          padding: "var(--space-4) var(--space-3)",
-          color: "var(--color-text-subtle)",
-          fontSize: "var(--type-scale-sm)",
-        }}
-      >
+      <div className={styles["git-changes-empty"]}>
         No changes in working directory.
       </div>
     );
@@ -64,135 +57,82 @@ export function GitChangesList({
   return (
     <div className={styles["git-changes-list"]}>
       {conflicts.length > 0 && (
-        <section
-          className={`${styles["git-section"]} ${styles["git-section--conflicts"]}`}
+        <GitSectionGroup
+          title="Merge Conflicts"
+          count={conflicts.length}
+          isOpen={isConflictsOpen}
+          onToggle={() => setIsConflictsOpen(!isConflictsOpen)}
+          isConflict
         >
-          <div
-            className={styles["git-section__header"]}
-            onClick={() => setIsConflictsOpen(!isConflictsOpen)}
-            role="button"
-            tabIndex={0}
-          >
-            <div className={styles["git-section__title"]}>
-              {isConflictsOpen ? (
-                <CaretDown size={12} />
-              ) : (
-                <CaretRight size={12} />
-              )}
-              <span>Merge Conflicts</span>
-              <span className={styles["git-section__count"]}>
-                {conflicts.length}
-              </span>
-            </div>
-          </div>
-          {isConflictsOpen && (
-            <div className={styles["git-section__items"]}>
-              {conflicts.map((change) => (
-                <GitStatusRow
-                  key={`conflict-${change.path}`}
-                  change={change}
-                  onClick={() => onSelectFile?.(change)}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+          {conflicts.map((change) => (
+            <GitStatusRow
+              key={`conflict-${change.path}`}
+              change={change}
+              onClick={() => onSelectFile?.(change)}
+            />
+          ))}
+        </GitSectionGroup>
       )}
 
       {staged.length > 0 && (
-        <section className={styles["git-section"]}>
-          <div className={styles["git-section__header"]}>
-            <div
-              className={styles["git-section__title"]}
-              onClick={() => setIsStagedOpen(!isStagedOpen)}
-              role="button"
-              tabIndex={0}
+        <GitSectionGroup
+          title="Staged Changes"
+          count={staged.length}
+          isOpen={isStagedOpen}
+          onToggle={() => setIsStagedOpen(!isStagedOpen)}
+          actions={
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-label="Unstage All"
+              title="Unstage All"
+              disabled={isLoading}
+              onClick={() => void unstagePaths([])}
             >
-              {isStagedOpen ? (
-                <CaretDown size={12} />
-              ) : (
-                <CaretRight size={12} />
-              )}
-              <span>Staged Changes</span>
-              <span className={styles["git-section__count"]}>
-                {staged.length}
-              </span>
-            </div>
-            <div className={styles["git-section__actions"]}>
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label="Unstage All"
-                title="Unstage All"
-                disabled={isLoading}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  void unstagePaths([]);
-                }}
-              >
-                <Minus size={12} />
-              </Button>
-            </div>
-          </div>
-          {isStagedOpen && (
-            <div className={styles["git-section__items"]}>
-              {staged.map((change) => (
-                <GitStatusRow
-                  key={`staged-${change.path}`}
-                  change={change}
-                  onClick={() => onSelectFile?.(change)}
-                  actions={
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label={`Unstage ${change.path}`}
-                      title="Unstage"
-                      disabled={isLoading}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void unstagePaths([change.path]);
-                      }}
-                    >
-                      <Minus size={12} />
-                    </Button>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </section>
+              <Minus size={12} />
+            </Button>
+          }
+        >
+          {staged.map((change) => (
+            <GitStatusRow
+              key={`staged-${change.path}`}
+              change={change}
+              onClick={() => onSelectFile?.(change)}
+              actions={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`Unstage ${change.path}`}
+                  title="Unstage"
+                  disabled={isLoading}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void unstagePaths([change.path]);
+                  }}
+                >
+                  <Minus size={12} />
+                </Button>
+              }
+            />
+          ))}
+        </GitSectionGroup>
       )}
 
       {unstaged.length > 0 && (
-        <section className={styles["git-section"]}>
-          <div className={styles["git-section__header"]}>
-            <div
-              className={styles["git-section__title"]}
-              onClick={() => setIsUnstagedOpen(!isUnstagedOpen)}
-              role="button"
-              tabIndex={0}
-            >
-              {isUnstagedOpen ? (
-                <CaretDown size={12} />
-              ) : (
-                <CaretRight size={12} />
-              )}
-              <span>Changes</span>
-              <span className={styles["git-section__count"]}>
-                {unstaged.length}
-              </span>
-            </div>
-            <div className={styles["git-section__actions"]}>
+        <GitSectionGroup
+          title="Changes"
+          count={unstaged.length}
+          isOpen={isUnstagedOpen}
+          onToggle={() => setIsUnstagedOpen(!isUnstagedOpen)}
+          actions={
+            <>
               <Button
                 variant="ghost"
                 size="sm"
                 aria-label="Discard All"
                 title="Discard All"
                 disabled={isLoading}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDiscard();
-                }}
+                onClick={() => handleDiscard()}
               >
                 <ArrowCounterClockwise size={12} />
               </Button>
@@ -202,69 +142,63 @@ export function GitChangesList({
                 aria-label="Stage All"
                 title="Stage All"
                 disabled={isLoading}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  void stagePaths([]);
-                }}
+                onClick={() => void stagePaths([])}
               >
                 <Plus size={12} />
               </Button>
-            </div>
-          </div>
-          {isUnstagedOpen && (
-            <div className={styles["git-section__items"]}>
-              {unstaged.map((change) => (
-                <GitStatusRow
-                  key={`unstaged-${change.path}`}
-                  change={change}
-                  onClick={() => onSelectFile?.(change)}
-                  actions={
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Open diff for ${change.path}`}
-                        title="Open Diff"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectFile?.(change);
-                        }}
-                      >
-                        <ArrowSquareOut size={12} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Discard ${change.path}`}
-                        title="Discard changes"
-                        disabled={isLoading}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDiscard(change.path);
-                        }}
-                      >
-                        <ArrowCounterClockwise size={12} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Stage ${change.path}`}
-                        title="Stage changes"
-                        disabled={isLoading}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void stagePaths([change.path]);
-                        }}
-                      >
-                        <Plus size={12} />
-                      </Button>
-                    </>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </section>
+            </>
+          }
+        >
+          {unstaged.map((change) => (
+            <GitStatusRow
+              key={`unstaged-${change.path}`}
+              change={change}
+              onClick={() => onSelectFile?.(change)}
+              actions={
+                <div className={styles["git-row-actions"]}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Open diff for ${change.path}`}
+                    title="Open Diff"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectFile?.(change);
+                    }}
+                  >
+                    <ArrowSquareOut size={12} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Discard ${change.path}`}
+                    title="Discard changes"
+                    disabled={isLoading}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDiscard(change.path);
+                    }}
+                  >
+                    <ArrowCounterClockwise size={12} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Stage ${change.path}`}
+                    title="Stage changes"
+                    disabled={isLoading}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void stagePaths([change.path]);
+                    }}
+                  >
+                    <Plus size={12} />
+                  </Button>
+                </div>
+              }
+            />
+          ))}
+        </GitSectionGroup>
       )}
     </div>
   );

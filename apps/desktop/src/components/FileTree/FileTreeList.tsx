@@ -21,6 +21,7 @@ export interface FileTreeListProps {
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   visibleNodes: FlatTreeNode[];
   activePath: string | null;
+  selectedFolder?: string | null;
   dirtyPaths: Set<string>;
   icons: Record<string, string>;
   draggedPath: string | null;
@@ -52,6 +53,7 @@ export function FileTreeList({
   rowVirtualizer,
   visibleNodes,
   activePath,
+  selectedFolder,
   dirtyPaths,
   icons,
   draggedPath,
@@ -101,7 +103,10 @@ export function FileTreeList({
               item={item}
               top={virtualItem.start}
               height={virtualItem.size}
-              isActive={isFile && item.node.path === activePath}
+              isActive={
+                (isFile && item.node.path === activePath) ||
+                (isFolder && item.node.path === selectedFolder)
+              }
               isDirty={isFile && dirtyPaths.has(item.node.path)}
               isBookmarked={isFile && isBookmarked(item.node.path)}
               icon={getMappedIcon(icons, item.node.path) ?? undefined}

@@ -15,7 +15,8 @@ function insertTable(view: EditorView) {
   view.dispatch({
     changes: {
       from: position,
-      insert: "|     |     |\n| --- | --- |\n|     |     |",
+      insert:
+        "<table>\n  <thead>\n    <tr>\n      <th>Header 1</th>\n      <th>Header 2</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Cell 1</td>\n      <td>Cell 2</td>\n    </tr>\n  </tbody>\n</table>\n\n",
     },
   });
 }

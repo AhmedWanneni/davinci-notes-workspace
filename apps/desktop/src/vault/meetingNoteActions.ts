@@ -7,6 +7,17 @@ import type {
   SuggestedLinkItem,
 } from "../components/ListeningView/listeningTypes";
 
+export interface MeetingQAItem {
+  question: string;
+  answer: string;
+  timestamp?: number;
+}
+
+export interface MeetingFollowupItem {
+  question: string;
+  timestamp?: number;
+}
+
 export interface MeetingNoteParams {
   title: string;
   startedAt: number;
@@ -15,6 +26,8 @@ export interface MeetingNoteParams {
   suggestedLinks?: SuggestedLinkItem[];
   summary?: string;
   actionItems?: string[];
+  answers?: MeetingQAItem[];
+  questions?: (string | MeetingFollowupItem)[];
   attendees?: string[];
   folder?: string;
   audioRelPath?: string;
@@ -76,6 +89,24 @@ export function renderMeetingMarkdown(params: MeetingNoteParams): string {
       : "- [ ] Review meeting notes",
     "",
   ];
+
+  if (params.answers && params.answers.length > 0) {
+    sections.push("## Q&A");
+    for (const a of params.answers) {
+      sections.push(`**Q: ${a.question}**`);
+      sections.push(`A: ${a.answer}`);
+      sections.push("");
+    }
+  }
+
+  if (params.questions && params.questions.length > 0) {
+    sections.push("## Suggested Follow-up Questions");
+    for (const q of params.questions) {
+      const text = typeof q === "string" ? q : q.question;
+      sections.push(`- ${text}`);
+    }
+    sections.push("");
+  }
 
   if (acceptedLinks.length > 0) {
     sections.push("## Related Notes");

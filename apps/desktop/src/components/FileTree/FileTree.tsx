@@ -9,6 +9,7 @@ import {
 import { FileTreeList } from "./FileTreeList";
 import { FileTreeOverlays } from "./FileTreeOverlays";
 import { FileTreeToolbar } from "./FileTreeToolbar";
+import { VaultSwitcher } from "../VaultSwitcher";
 import { runTreeRename } from "./runTreeRename";
 import { useFileTreeDrop } from "./useFileTreeDrop";
 import { useFileTreeIcons } from "./useFileTreeIcons";
@@ -40,6 +41,17 @@ export function FileTree({
   onMoveFile,
   onDropFiles,
   onSelectedFolderChange,
+  vaultName,
+  vaultPath,
+  isCollapsed,
+  onSwitchVault,
+  onOpenFolderPicker,
+  onCreateNewVault,
+  onOpenVaultFromDrive,
+  onSyncVault,
+  onOpenSettings,
+  onOpenHelp,
+  onOpenLogs,
 }: FileTreeProps) {
   const [sortOrder, setSortOrder] = useState<TreeSortOrder>("name-asc");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -153,6 +165,7 @@ export function FileTree({
           rowVirtualizer={rowVirtualizer}
           visibleNodes={visibleNodes}
           activePath={activePath}
+          selectedFolder={selectedFolder}
           dirtyPaths={dirtyPaths}
           icons={icons}
           draggedPath={draggedPath}
@@ -174,6 +187,19 @@ export function FileTree({
           confirmDelete={confirmDelete}
           hasRenameNote={!!onRenameNote}
           hasRenameFolder={!!onRenameFolder}
+        />
+        <VaultSwitcher
+          isCollapsed={isCollapsed}
+          vaultName={vaultName}
+          vaultPath={vaultPath ?? null}
+          onSwitchVault={onSwitchVault ?? (() => {})}
+          onOpenFolderPicker={onOpenFolderPicker ?? (() => {})}
+          onCreateNewVault={onCreateNewVault}
+          onOpenVaultFromDrive={onOpenVaultFromDrive}
+          onSyncVault={onSyncVault}
+          onOpenSettings={onOpenSettings}
+          onOpenHelp={onOpenHelp}
+          onOpenLogs={onOpenLogs}
         />
       </div>
       <FileTreeOverlays

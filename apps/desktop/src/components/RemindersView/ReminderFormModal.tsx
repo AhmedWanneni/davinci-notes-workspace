@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { X, CalendarBlank, Clock, Repeat, FileText } from "@phosphor-icons/react";
+import { CalendarBlank, Clock, Repeat, FileText } from "@phosphor-icons/react";
 import type { DeliveryChannel } from "../../notifications/channelTypes";
 import { ChannelPickerField } from "./ChannelPickerField";
+import { WindowDialog } from "../WindowDialog";
 import styles from "./RemindersView.module.scss";
 import modalStyles from "./RemindersModal.module.scss";
 
@@ -97,23 +98,13 @@ export function ReminderFormModal({
   };
 
   return (
-    <div className={modalStyles["modal-backdrop"]} onClick={onClose} role="dialog" aria-modal="true">
-      <div className={modalStyles["modal-window"]} onClick={(e) => e.stopPropagation()}>
-        <div className={modalStyles["modal-header"]}>
-          <h2 className={modalStyles["modal-title"]}>
-            {initialData ? "Edit Reminder" : "New Reminder"}
-          </h2>
-          <button
-            type="button"
-            className={modalStyles["modal-close-btn"]}
-            onClick={onClose}
-            aria-label="Close form"
-          >
-            <X size={16} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className={modalStyles["modal-form"]}>
+    <WindowDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={initialData ? "Edit Reminder" : "New Reminder"}
+      size="md"
+    >
+      <form onSubmit={handleSubmit} className={modalStyles["modal-form"]} style={{ padding: "16px 20px" }}>
           {error && <div className={modalStyles["modal-error"]}>{error}</div>}
 
           <div className={modalStyles["form-field"]}>
@@ -217,7 +208,6 @@ export function ReminderFormModal({
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </WindowDialog>
   );
 }

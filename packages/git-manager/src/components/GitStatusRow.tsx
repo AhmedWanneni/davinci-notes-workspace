@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { FileText } from "@phosphor-icons/react";
+import { FileText, FileCode, Info, Atom } from "@phosphor-icons/react";
 import type { GitFileChange } from "../types/gitTypes";
 import styles from "./GitStatusRow.module.scss";
 
@@ -7,6 +7,66 @@ export interface GitStatusRowProps {
   change: GitFileChange;
   actions?: ReactNode;
   onClick?: () => void;
+}
+
+function renderFileIcon(filename: string) {
+  const lower = filename.toLowerCase();
+  if (lower.endsWith(".tsx") || lower.endsWith(".jsx")) {
+    return (
+      <Atom
+        size={15}
+        weight="regular"
+        className={styles["git-status-row__icon-react"]}
+        aria-label="React file"
+      />
+    );
+  }
+  if (
+    lower.endsWith(".ts") ||
+    lower.endsWith(".js") ||
+    lower.endsWith(".mjs") ||
+    lower.endsWith(".cjs")
+  ) {
+    return <span className={styles["git-status-row__icon-ts"]}>TS</span>;
+  }
+  if (
+    lower.endsWith(".md") ||
+    lower.endsWith(".markdown") ||
+    lower.startsWith("readme")
+  ) {
+    return (
+      <Info
+        size={15}
+        weight="fill"
+        className={styles["git-status-row__icon-info"]}
+        aria-label="Markdown file"
+      />
+    );
+  }
+  if (
+    lower.endsWith(".css") ||
+    lower.endsWith(".scss") ||
+    lower.endsWith(".sass") ||
+    lower.endsWith(".less")
+  ) {
+    return <span className={styles["git-status-row__icon-css"]}>#</span>;
+  }
+  if (lower.endsWith(".json")) {
+    return (
+      <FileCode
+        size={15}
+        className={styles["git-status-row__icon-code"]}
+        aria-label="JSON file"
+      />
+    );
+  }
+  return (
+    <FileText
+      size={15}
+      className={styles["git-status-row__icon-file"]}
+      aria-label="Text file"
+    />
+  );
 }
 
 export function GitStatusRow({ change, actions, onClick }: GitStatusRowProps) {
@@ -29,7 +89,7 @@ export function GitStatusRow({ change, actions, onClick }: GitStatusRowProps) {
       }}
     >
       <div className={styles["git-status-row__info"]}>
-        <FileText size={15} className={styles["git-status-row__icon"]} />
+        {renderFileIcon(filename)}
         <span className={styles["git-status-row__filename"]}>{filename}</span>
         {directory && (
           <span className={styles["git-status-row__directory"]}>
@@ -49,10 +109,10 @@ export function GitStatusRow({ change, actions, onClick }: GitStatusRowProps) {
         )}
         <span
           className={styles["git-status-row__badge"]}
-          data-status={change.statusCode}
-          title={`Status: ${change.statusCode}`}
+          data-status={change.statusCode === "?" ? "U" : change.statusCode}
+          title={`Status: ${change.statusCode === "?" ? "U" : change.statusCode}`}
         >
-          {change.statusCode}
+          {change.statusCode === "?" ? "U" : change.statusCode}
         </span>
       </div>
     </div>

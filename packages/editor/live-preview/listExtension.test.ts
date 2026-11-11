@@ -54,6 +54,22 @@ describe("listExtension styling and hanging indents", () => {
     }
   });
 
+  it("hides raw indentation spaces on active editable lines so markers remain vertically aligned", () => {
+    const doc = "   1. Indented numeric item";
+    // Cursor on active line in editable mode
+    const { view, cleanup } = createEditor(doc, 10, false);
+    try {
+      const hiddenSpace = view.dom.querySelector(".cm-list-indent-space");
+      expect(hiddenSpace).not.toBeNull();
+      expect(hiddenSpace?.textContent).toBe("   ");
+      const orderedWidget = view.dom.querySelector(".cm-list-ordered");
+      expect(orderedWidget).not.toBeNull();
+      expect(orderedWidget?.textContent).toBe("1.");
+    } finally {
+      cleanup();
+    }
+  });
+
   it("renders bullet widgets for unordered items and numeral widgets for ordered items", () => {
     const doc = "- Unordered\n1. Ordered";
     const { view, cleanup } = createEditor(doc, 0, true);
@@ -62,6 +78,18 @@ describe("listExtension styling and hanging indents", () => {
       const ordered = view.dom.querySelector(".cm-list-ordered");
       expect(bullet?.textContent).toBe("•");
       expect(ordered?.textContent).toBe("1.");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("keeps multi-digit ordered markers inline", () => {
+    const { view, cleanup } = createEditor("10. Ordered item", 0, true);
+    try {
+      const ordered = view.dom.querySelector(".cm-list-ordered") as HTMLElement;
+      expect(ordered?.textContent).toBe("10.");
+      expect(view.dom.querySelector(".cm-list-line .cm-list-ordered")?.textContent).toBe("10.");
+      expect(document.querySelector("style")?.textContent).toContain("white-space: nowrap");
     } finally {
       cleanup();
     }
@@ -80,6 +108,40 @@ describe("listExtension styling and hanging indents", () => {
       // Simulate click
       checkbox.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       expect(view.state.doc.toString()).toBe("- [x] Task to complete");
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("renders task checkboxes without a trailing file icon", () => {
+    const { view, cleanup } = createEditor("- [ ] Task item", 0, true);
+    try {
+      expect(view.dom.querySelector("input.cm-task-checkbox")).not.toBeNull();
+      expect(view.dom.querySelector(".cm-task-note-icon")).toBeNull();
+    } finally {
+      cleanup();
+    }
+  });
+
+  it("keeps task checkbox rendered on active editable line and checks without revealing raw code", () => {
+    const doc = "- [ ] Active todo item";
+    const { view, cleanup } = createEditor(doc, 10, false);
+    try {
+      const checkbox = view.dom.querySelector(
+        "input.cm-task-checkbox",
+      ) as HTMLInputElement;
+      expect(checkbox).not.toBeNull();
+      expect(checkbox.checked).toBe(false);
+      expect(view.dom.textContent).not.toContain("[ ]");
+
+      checkbox.click();
+      expect(view.state.doc.toString()).toBe("- [x] Active todo item");
+
+      const updatedCheckbox = view.dom.querySelector(
+        "input.cm-task-checkbox",
+      ) as HTMLInputElement;
+      expect(updatedCheckbox).not.toBeNull();
+      expect(updatedCheckbox.checked).toBe(true);
     } finally {
       cleanup();
     }

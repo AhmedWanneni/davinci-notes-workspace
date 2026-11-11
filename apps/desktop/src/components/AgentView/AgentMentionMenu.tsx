@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { FileText, Folder } from "@phosphor-icons/react";
-import { Typography } from "@app/design-system";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
+import styles from "./AgentMentionMenu.module.scss";
 
 export interface MentionItem {
   id: string;
@@ -35,7 +35,6 @@ export function AgentMentionMenu({
     const q = query.trim().toLowerCase();
     const result: MentionItem[] = [];
 
-    // Search folders first if matching
     for (const folder of allFolderPaths) {
       const normalized = folder.endsWith("/") ? folder : `${folder}/`;
       const label = folder.split("/").filter(Boolean).pop() ?? folder;
@@ -47,10 +46,9 @@ export function AgentMentionMenu({
           label,
         });
       }
-      if (result.length >= 15) break;
+      if (result.length >= 10) break;
     }
 
-    // Search notes
     for (const note of allNotePaths) {
       const label = note.split("/").pop() ?? note;
       if (!q || note.toLowerCase().includes(q)) {
@@ -64,7 +62,6 @@ export function AgentMentionMenu({
       if (result.length >= 20) break;
     }
 
-    // Sort: exact matches first, then startsWith, then includes
     return result
       .sort((a, b) => {
         if (!q) return 0;
@@ -97,38 +94,12 @@ export function AgentMentionMenu({
   return (
     <div
       ref={menuRef}
-      className="agent-mention-menu"
+      className={styles["mention-menu"]}
       role="listbox"
       aria-label="Select file or folder"
-      style={{
-        position: "absolute",
-        bottom: "100%",
-        left: 0,
-        right: 0,
-        marginBottom: "var(--space-2)",
-        backgroundColor: "var(--color-bg-primary)",
-        border: "var(--border-width-thin) solid var(--color-border-subtle)",
-        borderRadius: "var(--border-radius-md)",
-        padding: "var(--space-1)",
-        maxHeight: "220px",
-        overflowY: "auto",
-        zIndex: 50,
-        display: "flex",
-        flexDirection: "column",
-        gap: "1px",
-      }}
     >
-      <div
-        style={{
-          padding: "var(--space-1) var(--space-2)",
-          borderBottom:
-            "var(--border-width-thin) solid var(--color-border-subtle)",
-          marginBottom: "2px",
-        }}
-      >
-        <Typography variant="text" size="xs" color="muted">
-          Referenced Files & Folders
-        </Typography>
+      <div className={styles["mention-menu__header"]}>
+        Referenced Files & Folders
       </div>
 
       {items.map((item, idx) => {
@@ -140,57 +111,26 @@ export function AgentMentionMenu({
             role="option"
             aria-selected={isSelected}
             onClick={() => onSelect(item)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-2)",
-              padding: "var(--space-1) var(--space-2)",
-              border: "none",
-              borderRadius: "var(--border-radius-sm)",
-              backgroundColor: isSelected
-                ? "var(--color-bg-hover)"
-                : "transparent",
-              cursor: "pointer",
-              textAlign: "left",
-              width: "100%",
-              color: "var(--color-text-normal)",
-            }}
+            className={`${styles["mention-menu__item"]} ${isSelected ? styles["is-selected"] : ""}`}
           >
-            {item.type === "folder" ? (
-              <Folder size={14} color="var(--color-text-accent)" />
-            ) : (
-              <FileText size={14} color="var(--color-text-muted)" />
-            )}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                overflow: "hidden",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "var(--type-scale-xs)",
-                  fontWeight: "var(--type-weight-medium)",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
-                }}
-              >
+            <span className={styles["mention-menu__item-icon"]}>
+              {item.type === "folder" ? (
+                <Folder size={15} weight="regular" />
+              ) : (
+                <FileText size={15} />
+              )}
+            </span>
+            <div className={styles["mention-menu__item-text"]}>
+              <span className={styles["mention-menu__item-label"]}>
                 {item.label}
               </span>
-              <span
-                style={{
-                  fontSize: "var(--type-scale-xs)",
-                  color: "var(--color-text-muted)",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
-                  overflow: "hidden",
-                }}
-              >
+              <span className={styles["mention-menu__item-path"]}>
                 {item.path}
               </span>
             </div>
+            <span className={styles["mention-menu__badge"]}>
+              {item.type === "folder" ? "DIR" : "NOTE"}
+            </span>
           </button>
         );
       })}

@@ -7,5 +7,6 @@ export function buildEditNotePrompt(vaultName: string): string {
     `- Use append_to_note to add content at the top or bottom of the note.`,
     `- Use edit_note ONLY when a full-content rewrite or line replacement is explicitly required.`,
     `- Preserve existing frontmatter, headings, and formatting conventions.`,
+    `- Strict single-note target: Modify ONLY the requested note. NEVER create auxiliary summary notes, backup files, changelog notes, or new files when updating a note.`,
   ].join("\n");
 }

@@ -1,7 +1,6 @@
 import { useState, type KeyboardEvent } from "react";
 import { Check, CaretDown, Sparkle } from "@phosphor-icons/react";
 import {
-  Button,
   Badge,
   DropdownMenu,
   DropdownMenuTrigger,
@@ -23,18 +22,29 @@ export function GitCommitBox({
 }: GitCommitBoxProps) {
   const [message, setMessage] = useState("");
   const [isAmend, setIsAmend] = useState(false);
-  const { staged, commit, isLoading, repoInfo } = useGitManagerStore();
+  const { staged, unstaged, commit, stagePaths, isLoading, repoInfo } =
+    useGitManagerStore();
 
   const branchName = repoInfo?.branch;
+  const branchLabel = branchName
+    ? branchName.length > 14
+      ? `${branchName.slice(0, 11)}...`
+      : branchName
+    : "";
   const placeholderText =
     placeholder ??
     (branchName
-      ? `Message (⌘↩ to commit on "${branchName}")`
+      ? `Message (⌘↩ to commit on "${branchLabel}")`
       : "Message (⌘Enter to commit)");
-  const canCommit = message.trim().length > 0 && (staged.length > 0 || isAmend);
+  const canCommit =
+    message.trim().length > 0 &&
+    (staged.length > 0 || unstaged.length > 0 || isAmend);
 
   const handleCommit = async () => {
     if (!canCommit || isLoading) return;
+    if (staged.length === 0 && unstaged.length > 0) {
+      await stagePaths([]);
+    }
     const hash = await commit(message.trim(), isAmend);
     if (hash) {
       setMessage("");
@@ -94,9 +104,8 @@ export function GitCommitBox({
       </div>
 
       <div className={styles["git-commit-box__actions"]}>
-        <Button
-          variant="primary"
-          size="sm"
+        <button
+          type="button"
           className={styles["git-commit-box__commit-btn"]}
           onClick={() => void handleCommit()}
           disabled={!canCommit || isLoading}
@@ -104,19 +113,18 @@ export function GitCommitBox({
         >
           <Check size={14} weight="bold" />
           <span>{isAmend ? "Amend Commit" : "Commit"}</span>
-        </Button>
+        </button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="primary"
-              size="sm"
+            <button
+              type="button"
               className={styles["git-commit-box__dropdown-btn"]}
               disabled={isLoading}
               aria-label="Commit options"
             >
               <CaretDown size={12} weight="bold" />
-            </Button>
+            </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem

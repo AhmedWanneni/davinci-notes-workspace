@@ -59,7 +59,7 @@
 .reminder-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: auto;
   padding-top: var(--space-2);
   border-top: var(--border-width-thin) solid var(--color-border-subtle);

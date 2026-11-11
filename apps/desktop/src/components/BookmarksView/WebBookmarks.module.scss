@@ -173,7 +173,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: var(--color-bg-scrim, rgba(0, 0, 0, 0.6));
+  background-color: var(--color-bg-scrim, rgb(0 0 0 / 60%));
   display: flex;
   align-items: center;
   justify-content: center;

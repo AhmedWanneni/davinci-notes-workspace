@@ -1,158 +1,69 @@
-import React, { useState } from "react";
-import { Badge, Button, Typography } from "@app/design-system";
-import { Check, Copy, Devices, Trash } from "@phosphor-icons/react";
-import type { SyncthingConfiguredDevice } from "./syncthingCommands";
-import {
-  syncthingRemoveDevice,
-  syncthingShareVaultFolder,
+import { useEffect, useState } from "react";
+import { Button, Typography } from "@app/design-system";
+import { ArrowRight, Devices } from "@phosphor-icons/react";
+import type {
+  SyncthingConfiguredDevice,
+  SyncthingPendingDevice,
+  SyncthingPendingFolder,
+  SyncthingSharedVault,
 } from "./syncthingCommands";
+import { SyncthingDevicesDialog } from "./SyncthingDevicesDialog";
 import styles from "./SyncthingPairedDevicesSection.module.scss";
 
 export interface SyncthingPairedDevicesSectionProps {
   devices: SyncthingConfiguredDevice[];
+  pendingDevices?: SyncthingPendingDevice[];
+  pendingFolders?: SyncthingPendingFolder[];
+  sharedVaults?: SyncthingSharedVault[];
+  activePairingCode?: string | null;
+  isPairingExpired?: boolean;
   onUpdated: () => Promise<void>;
 }
 
 export function SyncthingPairedDevicesSection({
   devices,
+  pendingDevices = [],
+  pendingFolders = [],
+  sharedVaults = [],
+  activePairingCode,
+  isPairingExpired,
   onUpdated,
 }: SyncthingPairedDevicesSectionProps): React.JSX.Element {
-  const [busyDeviceId, setBusyDeviceId] = useState<string | null>(null);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const approvalCount = pendingDevices.length + pendingFolders.length;
 
-  const handleCopyId = async (id: string) => {
-    try {
-      await navigator.clipboard.writeText(id);
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    } catch {
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    }
-  };
-
-  const handleShareVault = async (deviceId: string) => {
-    setBusyDeviceId(deviceId);
-    try {
-      await syncthingShareVaultFolder(deviceId);
-      await onUpdated();
-    } finally {
-      setBusyDeviceId(null);
-    }
-  };
-
-  const handleRemove = async (deviceId: string) => {
-    setBusyDeviceId(deviceId);
-    try {
-      await syncthingRemoveDevice(deviceId);
-      await onUpdated();
-    } finally {
-      setBusyDeviceId(null);
-    }
-  };
+  useEffect(() => {
+    if (approvalCount > 0) setIsOpen(true);
+  }, [approvalCount]);
 
   return (
-    <div
-      className={styles["paired-devices-card"]}
-      data-testid="syncthing-paired-devices"
-    >
+    <section className={styles["paired-devices-card"]} data-testid="syncthing-paired-devices">
       <div className={styles["paired-devices-card__header"]}>
         <div className={styles["paired-devices-card__title"]}>
-          <Devices size={16} />
-          <Typography variant="h4" size="sm">
-            Paired Devices
-          </Typography>
+          <Devices size={18} />
+          <Typography variant="text" size="sm">Devices</Typography>
+          {approvalCount > 0 && (
+            <span className={styles["paired-devices-card__approval-count"]} aria-label={`${approvalCount} approvals needed`}>
+              {approvalCount}
+            </span>
+          )}
         </div>
-        <Badge variant={devices.length > 0 ? "accent" : "neutral"}>
-          {devices.length} {devices.length === 1 ? "device" : "devices"}
-        </Badge>
+        <Button variant="primary" size="sm" onClick={() => setIsOpen(true)}>
+          Show <ArrowRight size={15} />
+        </Button>
       </div>
-
-      {devices.length === 0 ? (
-        <p className={styles["paired-devices-card__empty-state"]}>
-          No remote devices paired yet. Scan the QR code with your phone or add
-          another computer below.
-        </p>
-      ) : (
-        <ul className={styles["paired-devices-card__list"]}>
-          {devices.map((device) => {
-            const isBusy = busyDeviceId === device.deviceId;
-            return (
-              <li
-                key={device.deviceId}
-                className={styles["paired-devices-card__item"]}
-              >
-                <div className={styles["paired-devices-card__item-header"]}>
-                  <div
-                    className={styles["paired-devices-card__item-name-group"]}
-                  >
-                    <span className={styles["paired-devices-card__item-name"]}>
-                      {device.name || "Remote Device"}
-                    </span>
-                    {device.connected ? (
-                      <Badge variant="success">Connected</Badge>
-                    ) : (
-                      <Badge variant="warning">Disconnected</Badge>
-                    )}
-                    {device.isVaultShared && (
-                      <Badge variant="neutral">Vault Shared</Badge>
-                    )}
-                  </div>
-
-                  <div className={styles["paired-devices-card__item-meta"]}>
-                    <button
-                      type="button"
-                      className={styles["paired-devices-card__copy-id-btn"]}
-                      onClick={() => void handleCopyId(device.deviceId)}
-                      title="Click to copy full device ID"
-                    >
-                      <span className={styles["paired-devices-card__item-id"]}>
-                        {device.deviceId.slice(0, 7)}...
-                        {device.deviceId.slice(-7)}
-                      </span>
-                      {copiedId === device.deviceId ? (
-                        <Check size={12} />
-                      ) : (
-                        <Copy size={12} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <p className={styles["paired-devices-card__item-hint"]}>
-                  {device.connected
-                    ? `Connected via ${device.address || "network"}`
-                    : "Waiting for mutual authorization or discovery. Ensure this Mac's ID is accepted on that device."}
-                </p>
-
-                <div className={styles["paired-devices-card__item-actions"]}>
-                  {!device.isVaultShared && (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      disabled={isBusy}
-                      onClick={() => void handleShareVault(device.deviceId)}
-                    >
-                      Share Vault
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={isBusy}
-                    onClick={() => void handleRemove(device.deviceId)}
-                    aria-label={`Unpair ${device.name || device.deviceId}`}
-                  >
-                    <Trash size={14} />
-                    Unpair
-                  </Button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+      <SyncthingDevicesDialog
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        devices={devices}
+        pendingDevices={pendingDevices}
+        pendingFolders={pendingFolders}
+        sharedVaults={sharedVaults}
+        activePairingCode={activePairingCode}
+        isPairingExpired={isPairingExpired}
+        onUpdated={onUpdated}
+      />
+    </section>
   );
 }
 

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { CaretDown, CaretRight } from "@phosphor-icons/react";
 import { useGitManagerStore } from "../store/useGitManagerStore";
 import { listenToGitChanges } from "../api/gitClient";
 import { GitEmptyState } from "./GitEmptyState";
@@ -37,8 +36,7 @@ export function GitSidebarPanel({ onOpenDiff }: GitSidebarPanelProps) {
   } = useGitManagerStore();
 
   const [isChangesOpen, setIsChangesOpen] = useState(true);
-  const [isAgentReviewOpen, setIsAgentReviewOpen] = useState(false);
-  const [isGitlensOpen, setIsGitlensOpen] = useState(false);
+  const [isGraphOpen, setIsGraphOpen] = useState(false);
 
   const activeConflict = useGitConflictStore((s) => s.activeConflict);
   const openConflict = useGitConflictStore((s) => s.openConflict);
@@ -155,40 +153,19 @@ export function GitSidebarPanel({ onOpenDiff }: GitSidebarPanelProps) {
         conflicts={conflicts}
         onRefresh={handleRefresh}
         onSelectFile={handleSelectFile}
+        onToggleGraph={() => setIsGraphOpen((prev) => !prev)}
       />
 
-      {/* 2. AGENT REVIEW SECTION */}
-      <div className={styles["git-accordion-section"]}>
-        <div
-          className={styles["git-accordion-header"]}
-          onClick={() => setIsAgentReviewOpen((prev) => !prev)}
-          role="button"
-          tabIndex={0}
-        >
-          <div className={styles["git-accordion-title"]}>
-            {isAgentReviewOpen ? (
-              <CaretDown size={12} />
-            ) : (
-              <CaretRight size={12} />
-            )}
-            <span>Agent Review</span>
-          </div>
-        </div>
-        {isAgentReviewOpen && (
-          <div className={styles["git-placeholder-body"]}>
-            No AI reviews pending.
-          </div>
-        )}
-      </div>
-
-      {/* 3. GRAPH SECTION */}
-      <GitGraphSection
-        nodes={graphNodes}
-        branch={repoInfo.branch}
-        isDetached={repoInfo.isDetached}
-        onRefresh={handleRefresh}
-        onSelectCommit={(node) => void openCommitDetail(node.commit.hash)}
-      />
+      {/* 2. GRAPH SECTION (toggleable via header branch/graph icon) */}
+      {isGraphOpen && (
+        <GitGraphSection
+          nodes={graphNodes}
+          branch={repoInfo.branch ?? ""}
+          isDetached={repoInfo.isDetached}
+          onRefresh={handleRefresh}
+          onSelectCommit={(node) => void openCommitDetail(node.commit.hash)}
+        />
+      )}
 
       {/* Commit Detail Sheet overlay if commit selected */}
       {activeCommitDetail && (
@@ -208,26 +185,6 @@ export function GitSidebarPanel({ onOpenDiff }: GitSidebarPanelProps) {
           }}
         />
       )}
-
-      {/* 4. GITLENS SECTION */}
-      <div className={styles["git-accordion-section"]}>
-        <div
-          className={styles["git-accordion-header"]}
-          onClick={() => setIsGitlensOpen((prev) => !prev)}
-          role="button"
-          tabIndex={0}
-        >
-          <div className={styles["git-accordion-title"]}>
-            {isGitlensOpen ? <CaretDown size={12} /> : <CaretRight size={12} />}
-            <span>GitLens</span>
-          </div>
-        </div>
-        {isGitlensOpen && (
-          <div className={styles["git-placeholder-body"]}>
-            GitLens inspections active.
-          </div>
-        )}
-      </div>
     </div>
   );
 }

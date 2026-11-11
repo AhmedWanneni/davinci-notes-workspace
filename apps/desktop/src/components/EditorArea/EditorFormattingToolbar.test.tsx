@@ -105,7 +105,8 @@ describe("EditorFormattingToolbar", () => {
 
     fireEvent.click(cell);
 
-    expect(view.state.doc.toString()).toContain("| Header 1 | Header 2 |");
+    expect(view.state.doc.toString()).toContain("<table>");
+    expect(view.state.doc.toString()).toContain("<th>Header 1</th>");
     expect(
       screen.queryByRole("grid", { name: "Table dimension picker" }),
     ).toBeNull();

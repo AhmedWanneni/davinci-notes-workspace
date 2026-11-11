@@ -61,15 +61,35 @@ describe("IconRail", () => {
     expect(onOpenSearch).toHaveBeenCalledOnce();
   });
 
-  it("renders reminders button and triggers onOpenReminders", () => {
-    const onOpenReminders = vi.fn();
-    renderIconRail({ onOpenReminders });
 
-    const remindersBtn = screen.getByLabelText("Reminders");
-    expect(remindersBtn).toBeDefined();
+  it("renders todos button, triggers onOpenTodos, and reflects isTodosOpen", () => {
+    const onOpenTodos = vi.fn();
+    const { rerender } = renderIconRail({ onOpenTodos, isTodosOpen: false });
 
-    fireEvent.click(remindersBtn);
-    expect(onOpenReminders).toHaveBeenCalledOnce();
+    const todosBtn = screen.getByLabelText("Todos");
+    expect(todosBtn).toBeDefined();
+    expect(todosBtn.getAttribute("data-active")).toBeNull();
+
+    fireEvent.click(todosBtn);
+    expect(onOpenTodos).toHaveBeenCalledOnce();
+
+    rerender(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={false}
+          onToggleLeftSidebar={vi.fn()}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          onOpenTodos={onOpenTodos}
+          isTodosOpen={true}
+        />
+      </TooltipProvider>,
+    );
+
+    const activeTodosBtn = screen.getByLabelText("Todos");
+    expect(activeTodosBtn.getAttribute("data-active")).toBe("true");
   });
 
   it("renders calendar button, triggers onOpenCalendar, and reflects isCalendarOpen", () => {
@@ -135,38 +155,6 @@ describe("IconRail", () => {
     expect(activeAgentBtn.getAttribute("data-active")).toBe("true");
   });
 
-  it("renders Ask Your Vault button, triggers onOpenAskVault, and reflects isAskVaultOpen", () => {
-    const onOpenAskVault = vi.fn();
-    const { rerender } = renderIconRail({
-      onOpenAskVault,
-      isAskVaultOpen: false,
-    });
-
-    const askBtn = screen.getByLabelText("Ask Your Vault");
-    expect(askBtn).toBeDefined();
-    expect(askBtn.getAttribute("data-active")).toBeNull();
-
-    fireEvent.click(askBtn);
-    expect(onOpenAskVault).toHaveBeenCalledOnce();
-
-    rerender(
-      <TooltipProvider>
-        <IconRail
-          isLeftSidebarOpen={false}
-          onToggleLeftSidebar={vi.fn()}
-          onOpenSearch={vi.fn()}
-          onOpenGlobalGraph={vi.fn()}
-          onOpenSettings={vi.fn()}
-          onCloseVault={vi.fn()}
-          onOpenAskVault={onOpenAskVault}
-          isAskVaultOpen={true}
-        />
-      </TooltipProvider>,
-    );
-
-    const activeAskBtn = screen.getByLabelText("Ask Your Vault");
-    expect(activeAskBtn.getAttribute("data-active")).toBe("true");
-  });
 
   it("renders AI listening button, triggers onOpenListening, and reflects isListeningOpen", () => {
     const onOpenListening = vi.fn();
@@ -238,5 +226,31 @@ describe("IconRail", () => {
     expect(gitBtn).toBeDefined();
     fireEvent.click(gitBtn);
     expect(onOpenGitManager).toHaveBeenCalledOnce();
+  });
+
+  it("toggles the sidebar when an already active item (Files, Todos, Bookmarks) is clicked", () => {
+    const onToggleLeftSidebar = vi.fn();
+    const onOpenTodos = vi.fn();
+
+    // When Todos is active
+    render(
+      <TooltipProvider>
+        <IconRail
+          isLeftSidebarOpen={true}
+          onToggleLeftSidebar={onToggleLeftSidebar}
+          onOpenSearch={vi.fn()}
+          onOpenGlobalGraph={vi.fn()}
+          onOpenSettings={vi.fn()}
+          onCloseVault={vi.fn()}
+          onOpenTodos={onOpenTodos}
+          isTodosOpen={true}
+        />
+      </TooltipProvider>,
+    );
+
+    const todosBtn = screen.getByLabelText("Todos");
+    fireEvent.click(todosBtn);
+    expect(onToggleLeftSidebar).toHaveBeenCalledTimes(1);
+    expect(onOpenTodos).not.toHaveBeenCalled();
   });
 });

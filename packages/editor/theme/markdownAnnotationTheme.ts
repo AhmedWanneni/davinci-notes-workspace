@@ -2,11 +2,14 @@ import { EditorView } from "@codemirror/view";
 
 const sharedAnnotations = {
   ".cm-blockquote-line": {
-    borderLeft: "var(--border-width-thick) solid var(--color-text-accent)",
-    paddingLeft: "var(--space-3)",
-    paddingTop: "var(--space-1)",
-    paddingBottom: "var(--space-1)",
-    backgroundColor: "var(--color-bg-surface)",
+    borderLeft:
+      "2.5px solid var(--editor-obsidian-color-link, var(--color-text-accent, #7c3aed))",
+    paddingLeft: "1rem",
+    paddingTop: "2px",
+    paddingBottom: "2px",
+    backgroundColor: "transparent",
+    color: "var(--color-text-normal)",
+    fontStyle: "normal",
   },
   ".cm-heading-line": {
     paddingTop: "var(--space-2)",
@@ -52,6 +55,10 @@ const sharedAnnotations = {
 
 export const markdownAnnotationTheme = EditorView.theme({
   ...sharedAnnotations,
+  ".cm-line.cm-blockquote-line": {
+    paddingLeft: "1rem",
+    paddingRight: "var(--space-4)",
+  },
   ".cm-markdown-comment": {
     color: "var(--color-text-muted)",
     backgroundColor: "var(--color-bg-secondary)",
@@ -60,6 +67,10 @@ export const markdownAnnotationTheme = EditorView.theme({
 
 export const readOnlyMarkdownAnnotationTheme = EditorView.theme({
   ...sharedAnnotations,
+  ".cm-line.cm-blockquote-line": {
+    paddingLeft: "1rem",
+    paddingRight: "var(--space-4)",
+  },
   ".cm-markdown-comment": {
     display: "none",
   },

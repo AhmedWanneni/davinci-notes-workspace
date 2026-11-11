@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { QuickCapture } from "./QuickCapture";
 
 describe("QuickCapture", () => {
-  it("renders textarea, counter, keyboard hints, and record button", () => {
+  it("renders textarea, counter, keyboard hints, and save note button", () => {
     render(<QuickCapture />);
 
     expect(
@@ -12,20 +12,18 @@ describe("QuickCapture", () => {
     ).toBeDefined();
     expect(screen.getByText(/0 \/ 10000/)).toBeDefined();
     expect(screen.getByRole("button", { name: /save note/i })).toBeDefined();
+    expect(screen.getByRole("tab", { name: /record/i })).toBeDefined();
     expect(
-      screen.getByRole("button", { name: /start recording/i }),
-    ).toBeDefined();
-    expect(
-      screen.getAllByRole("button", { name: /close quick capture/i }).length,
-    ).toBeGreaterThan(0);
+      screen.queryByRole("button", { name: /close quick capture/i }),
+    ).toBeNull();
     expect(
       screen.getAllByRole("button", { name: /quit application/i }).length,
     ).toBeGreaterThan(0);
   });
 
-  it("switches to record mode when Record button is clicked", async () => {
+  it("switches to record mode when Record tab is clicked", async () => {
     render(<QuickCapture />);
-    fireEvent.click(screen.getByRole("button", { name: /start recording/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /record/i }));
     await waitFor(() => {
       expect(
         screen.getByRole("region", { name: /voice recording section/i }),
@@ -100,19 +98,13 @@ describe("QuickCapture", () => {
     expect((textarea as HTMLTextAreaElement).value).toBe("Unsaved text");
   });
 
-  it("dismisses on clicking the Close button", async () => {
+  it("does not render a close button in the header", () => {
     const handleDismiss = vi.fn().mockResolvedValue(undefined);
     render(<QuickCapture onDismiss={handleDismiss} />);
 
-    const closeButtons = screen.getAllByRole("button", {
-      name: /close quick capture/i,
-    });
-    expect(closeButtons.length).toBeGreaterThan(0);
-    fireEvent.click(closeButtons[0]);
-
-    await waitFor(() => {
-      expect(handleDismiss).toHaveBeenCalled();
-    });
+    expect(
+      screen.queryByRole("button", { name: /close quick capture/i }),
+    ).toBeNull();
   });
 
   it("quits application on clicking Quit button", async () => {

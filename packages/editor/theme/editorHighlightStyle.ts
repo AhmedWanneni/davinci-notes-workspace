@@ -57,7 +57,7 @@ export const editorHighlightStyle = HighlightStyle.define([
   },
   {
     tag: t.monospace,
-    fontFamily: "var(--font-editor)",
+    fontFamily: "var(--font-mono)",
     color: "var(--color-text-accent)",
     backgroundColor: "var(--color-bg-secondary)",
     border: "var(--border-width-thin) solid var(--color-border-subtle)",

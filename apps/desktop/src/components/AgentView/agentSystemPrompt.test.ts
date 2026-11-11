@@ -7,7 +7,7 @@ import {
 } from "./agentSystemPrompt";
 import type { ChatMessageItem } from "./agentTypes";
 
-describe("agentSystemPrompt memory optimizations", () => {
+describe("agentSystemPrompt memory optimizations and vault anchoring", () => {
   it("bounds working history to the last 8 messages", () => {
     const messages: ChatMessageItem[] = Array.from({ length: 15 }, (_, i) => ({
       id: `msg_${i}`,
@@ -39,20 +39,32 @@ describe("agentSystemPrompt memory optimizations", () => {
     const history = buildAgentWorkingHistory("System prompt", messages);
     expect(history[1].content.length).toBeLessThan(hugeContent.length);
     expect(history[1].content).toContain("truncated for memory optimization");
-    expect(history[1].content.length).toBeLessThanOrEqual(MAX_TOOL_CONTENT_LENGTH + 50);
+    expect(history[1].content.length).toBeLessThanOrEqual(
+      MAX_TOOL_CONTENT_LENGTH + 50,
+    );
   });
 
-  it("caps sampled notes in system prompt to 15 notes", () => {
-    const allNotePaths = Array.from({ length: 50 }, (_, i) => `Note_${i}.md`);
+  it("samples up to 60 notes and includes vault path and critical vault instructions", () => {
+    const allNotePaths = Array.from({ length: 100 }, (_, i) => `Note_${i}.md`);
     const prompt = buildAgentSystemPrompt({
       vaultName: "TestVault",
+      vaultPath: "/Users/test/Documents/TestVault",
       allNotePaths,
       allFolderPaths: ["Folder1"],
     });
 
+    expect(prompt).toContain("TestVault");
+    expect(prompt).toContain("/Users/test/Documents/TestVault");
+    expect(prompt).toContain("You ALWAYS point to this opened vault workspace");
     expect(prompt).toContain("Note_0.md");
-    expect(prompt).toContain("Note_14.md");
-    expect(prompt).not.toContain("Note_15.md");
-    expect(prompt).toContain("and 35 more notes");
+    expect(prompt).toContain("Note_59.md");
+    expect(prompt).not.toContain("Note_60.md");
+    expect(prompt).toContain("and 40 more notes");
+    expect(prompt).toContain("STRICT MINIMAL MUTATION & SINGLE RESPONSIBILITY");
+    expect(prompt).toContain(
+      "When asked to create a folder, execute ONLY create_folder",
+    );
+    expect(prompt).toContain("INTERACTIVE WIDGETS & VISUAL EXPLAINERS");
+    expect(prompt).toContain("```widget");
   });
 });

@@ -20,6 +20,7 @@ export interface AppSidebarProps {
   isCalendarOpen?: boolean;
   isBookmarksOpen?: boolean;
   isRemindersOpen?: boolean;
+  isTodosOpen?: boolean;
   isAgentOpen?: boolean;
   isListeningOpen?: boolean;
   isAskVaultOpen?: boolean;
@@ -29,12 +30,14 @@ export interface AppSidebarProps {
   onOpenGlobalGraph?: () => void;
   onOpenCalendar?: () => void;
   onOpenBookmarks?: () => void;
+  onOpenFiles?: () => void;
   onOpenAgent?: () => void;
   onOpenListening?: () => void;
   onOpenAskVault?: () => void;
   onCloseVault?: () => void;
   onDailyNotes?: () => void;
   onOpenReminders?: () => void;
+  onOpenTodos?: () => void;
   onCreateNote: (parentFolder?: string) => void | Promise<unknown>;
   onCreateFolder: (parentFolder?: string) => Promise<string | null>;
   onCreateCanvas?: () => void;
