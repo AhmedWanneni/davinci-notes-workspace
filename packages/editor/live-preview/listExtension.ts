@@ -82,27 +82,6 @@ class TaskCheckboxWidget extends WidgetType {
   }
 }
 
-class TaskNoteActionWidget extends WidgetType {
-  toDOM(): HTMLElement {
-    const span = document.createElement("span");
-    span.className = "cm-task-note-icon";
-    span.title = "Task details / note";
-    span.innerHTML = `
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5L9 1z"/>
-        <polyline points="9 1 9 5 13 5"/>
-        <line x1="6" y1="8" x2="10" y2="8"/>
-        <line x1="6" y1="11" x2="10" y2="11"/>
-      </svg>
-    `;
-    return span;
-  }
-
-  ignoreEvent(): boolean {
-    return false;
-  }
-}
-
 export interface ListExtensionOptions {
   isReadOnly?: boolean;
 }
@@ -172,12 +151,6 @@ function getListDecorations(
       if (completed && taskFrom + 3 < line.to) {
         decorations.push(completedTaskDeco.range(taskFrom + 3, line.to));
       }
-      decorations.push(
-        Decoration.widget({
-          widget: new TaskNoteActionWidget(),
-          side: 1,
-        }).range(line.to),
-      );
     }
   }
 

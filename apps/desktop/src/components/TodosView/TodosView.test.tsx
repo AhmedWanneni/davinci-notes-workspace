@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { TodosView } from "./TodosView";
+import { useTodosUIStore, initialTodosUIState } from "./useTodosUIStore";
 import { useWorkspaceStore } from "../../state/useWorkspaceStore";
 import * as vaultModule from "../../vault";
 
@@ -87,6 +88,7 @@ describe("TodosView", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useTodosUIStore.setState(initialTodosUIState);
     useWorkspaceStore.setState({
       vaultPath: "/Users/demo/MyVault",
       allFolderPaths: ["todos", "todos/Design", "todos/Daily"],
@@ -267,5 +269,27 @@ describe("TodosView", () => {
 
     expect(screen.getByText("Automated report")).toBeDefined();
     expect(screen.getByText("@john")).toBeDefined();
+  });
+
+  it("allows collapsing and expanding the sidebar via toggle buttons", async () => {
+    await act(async () => {
+      render(<TodosView onOpenNote={onOpenNoteMock} onClose={onCloseMock} />);
+    });
+
+    expect(screen.getByTestId("todos-sidebar")).toBeDefined();
+
+    const collapseBtn = screen.getByRole("button", { name: "Collapse sidebar" });
+    await act(async () => {
+      fireEvent.click(collapseBtn);
+    });
+
+    expect(screen.queryByTestId("todos-sidebar")).toBeNull();
+
+    const expandBtn = screen.getByRole("button", { name: "Expand sidebar" });
+    await act(async () => {
+      fireEvent.click(expandBtn);
+    });
+
+    expect(screen.getByTestId("todos-sidebar")).toBeDefined();
   });
 });

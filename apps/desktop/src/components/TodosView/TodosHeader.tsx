@@ -4,9 +4,11 @@ import {
   ListBullets,
   MagnifyingGlass,
   PaperPlaneTilt,
+  SidebarSimple,
   SquaresFour,
   Target,
 } from "@phosphor-icons/react";
+import { Tooltip } from "@app/design-system";
 import type {
   MotherboardLayout,
   ReminderFilter,
@@ -53,6 +55,8 @@ export interface TodosHeaderProps {
     missed: number;
     sent: number;
   };
+  isSidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
 }
 
 export function TodosHeader({
@@ -79,12 +83,28 @@ export function TodosHeader({
   onNewScheduledMessage,
   remindersCounts,
   scheduledCounts,
+  isSidebarOpen = true,
+  onToggleSidebar,
 }: TodosHeaderProps): JSX.Element {
   return (
     <header className={styles["todos-header"]} data-testid="todos-header">
       <div className={styles["todos-header__top"]}>
         <div className={styles["todos-header__title-group"]}>
-          <h1 className={styles["todos-header__title"]}>{title}</h1>
+          <div className={styles["todos-header__title-row"]}>
+            {!isSidebarOpen && onToggleSidebar && (
+              <Tooltip content="Expand sidebar" contentProps={{ side: "bottom" }}>
+                <button
+                  type="button"
+                  className={styles["todos-header__sidebar-toggle-btn"]}
+                  onClick={onToggleSidebar}
+                  aria-label="Expand sidebar"
+                >
+                  <SidebarSimple size={18} weight="regular" />
+                </button>
+              </Tooltip>
+            )}
+            <h1 className={styles["todos-header__title"]}>{title}</h1>
+          </div>
           {subtitle && (
             <span className={styles["todos-header__subtitle"]}>{subtitle}</span>
           )}

@@ -1,20 +1,11 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AppSidebarHeader } from "./AppSidebarHeader";
 import type { AppSidebarProps } from "./AppSidebarTypes";
-import { FileTree } from "../FileTree";
-import { BookmarksSidebarPanel } from "../BookmarksView";
-import { AgentSidebarPanel } from "../AgentView";
+import { AppSidebarPanels } from "./AppSidebarPanels";
 import { IconRail } from "../IconRail";
 import { useSidebarResize } from "./useSidebarResize";
-import type { GitFileChange } from "@app/git-manager";
 
 export type { AppSidebarProps } from "./AppSidebarTypes";
-
-const LazyGitSidebarPanel = lazy(() =>
-  import("@app/git-manager").then((module) => ({
-    default: module.GitSidebarPanel,
-  })),
-);
 
 export function AppSidebar({
   vaultName,
@@ -82,12 +73,8 @@ export function AppSidebar({
   onOpenLogs,
 }: AppSidebarProps) {
   const { width, isResizing, handleMouseDown } = useSidebarResize();
-  const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(
-    null,
-  );
-  const [currentTab, setCurrentTab] = useState<
-    "files" | "search" | "bookmarks"
-  >(activeTab);
+  const [selectedFolderPath, setSelectedFolderPath] = useState<string | null>(null);
+  const [currentTab, setCurrentTab] = useState<"files" | "search" | "bookmarks">(activeTab);
   const [showFilesInAgent, setShowFilesInAgent] = useState(false);
 
   useEffect(() => {
@@ -125,26 +112,12 @@ export function AppSidebar({
     >
       <AppSidebarHeader
         isMac={isMac}
-        currentTab={
-          isBookmarksOpen
-            ? "bookmarks"
-            : isAgentPanelActive
-              ? "agent"
-              : currentTab
-        }
+        currentTab={isBookmarksOpen ? "bookmarks" : isAgentPanelActive ? "agent" : currentTab}
         onTabChange={(tab) => {
-          if (tab === "bookmarks") {
-            onOpenBookmarks?.();
-          } else if (tab === "agent") {
-            setShowFilesInAgent(false);
-            onOpenAgent?.();
-          } else if (tab === "files") {
-            setShowFilesInAgent(false);
-            onOpenFiles?.();
-            handleTabChange(tab);
-          } else {
-            handleTabChange(tab);
-          }
+          if (tab === "bookmarks") onOpenBookmarks?.();
+          else if (tab === "agent") { setShowFilesInAgent(false); onOpenAgent?.(); }
+          else if (tab === "files") { setShowFilesInAgent(false); onOpenFiles?.(); handleTabChange(tab); }
+          else handleTabChange(tab);
         }}
         onOpenSearch={onOpenSearch}
         onOpenTags={onOpenTags}
@@ -183,59 +156,45 @@ export function AppSidebar({
           onOpenTodos={onOpenTodos}
         />
         {navigation}
-        {isGitManagerOpen ? (
-          <Suspense
-            fallback={
-              <div style={{ padding: "var(--space-4)", color: "var(--color-text-muted)" }}>
-                Loading Source Control...
-              </div>
-            }
-          >
-            <LazyGitSidebarPanel
-              onOpenDiff={(change: GitFileChange) =>
-                onNoteClick(`git-diff://${change.path}?staged=${change.staged ? "1" : "0"}&status=${change.statusCode}`)
-              }
-            />
-          </Suspense>
-        ) : isBookmarksOpen ? (
-          <BookmarksSidebarPanel />
-        ) : isAgentPanelActive ? (
-          <AgentSidebarPanel onToggleSidebar={onToggleLeftSidebar} />
-        ) : isTodosOpen || isListeningOpen ? null : (
-          <FileTree
-            filePaths={allNotePaths}
-            folderPaths={allFolderPaths}
-            activePath={activeNotePath}
-            dirtyPaths={dirtyNotes}
-            pendingRenameFolder={pendingRenameFolder}
-            pendingRenameNote={pendingRenameNote}
-            onNoteClick={onNoteClick}
-            onCreateNote={onCreateNote}
-            onCreateFolder={onCreateFolder}
-            onPendingRenameHandled={onPendingRenameFolderHandled}
-            onPendingRenameNoteHandled={onPendingRenameNoteHandled}
-            onRenameNote={onRenameNote}
-            onRenameFolder={onRenameFolder}
-            onDeleteNote={onDeleteNote}
-            onDeleteFolder={onDeleteFolder}
-            onDuplicateNote={onDuplicateNote}
-            onMoveNote={onMoveNote}
-            onMoveFile={onMoveFile}
-            onDropFiles={onDropFiles}
-            onSelectedFolderChange={handleSelectedFolderChange}
-            vaultName={vaultName}
-            vaultPath={vaultPath}
-            isCollapsed={isCollapsed}
-            onSwitchVault={onSwitchVault}
-            onOpenFolderPicker={onOpenFolderPicker}
-            onCreateNewVault={onCreateNewVault}
-            onOpenVaultFromDrive={onOpenVaultFromDrive}
-            onSyncVault={onSyncVault}
-            onOpenSettings={onOpenSettings}
-            onOpenHelp={onOpenHelp}
-            onOpenLogs={onOpenLogs}
-          />
-        )}
+        <AppSidebarPanels
+          isGitManagerOpen={isGitManagerOpen}
+          isBookmarksOpen={isBookmarksOpen}
+          isAgentPanelActive={isAgentPanelActive}
+          isTodosOpen={isTodosOpen}
+          isListeningOpen={isListeningOpen}
+          onToggleLeftSidebar={onToggleLeftSidebar}
+          onNoteClick={onNoteClick}
+          allNotePaths={allNotePaths}
+          allFolderPaths={allFolderPaths}
+          activeNotePath={activeNotePath}
+          dirtyNotes={dirtyNotes}
+          pendingRenameFolder={pendingRenameFolder}
+          pendingRenameNote={pendingRenameNote}
+          onCreateNote={onCreateNote}
+          onCreateFolder={onCreateFolder}
+          onPendingRenameFolderHandled={onPendingRenameFolderHandled}
+          onPendingRenameNoteHandled={onPendingRenameNoteHandled}
+          onRenameNote={onRenameNote}
+          onRenameFolder={onRenameFolder}
+          onDeleteNote={onDeleteNote}
+          onDeleteFolder={onDeleteFolder}
+          onDuplicateNote={onDuplicateNote}
+          onMoveNote={onMoveNote}
+          onMoveFile={onMoveFile}
+          onDropFiles={onDropFiles}
+          onSelectedFolderChange={handleSelectedFolderChange}
+          vaultName={vaultName}
+          vaultPath={vaultPath}
+          isCollapsed={isCollapsed}
+          onSwitchVault={onSwitchVault}
+          onOpenFolderPicker={onOpenFolderPicker}
+          onCreateNewVault={onCreateNewVault}
+          onOpenVaultFromDrive={onOpenVaultFromDrive}
+          onSyncVault={onSyncVault}
+          onOpenSettings={onOpenSettings}
+          onOpenHelp={onOpenHelp}
+          onOpenLogs={onOpenLogs}
+        />
       </div>
 
       {!isCollapsed && (

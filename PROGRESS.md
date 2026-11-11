@@ -4,7 +4,68 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 ---
 
-## Last Session — Agent Usage Dialog, Prompt Token Runout Warning & Persistent User Choice
+## Last Session — Performance Audit & Optimization (PERFORMANCE.md Hard Rules 4 & 6)
+
+1. **Lazy Loading Non-Critical Sidebars in `AppSidebar` (`PERFORMANCE.md` Hard Rule 4)**:
+   - **Root Cause**: `AppSidebar.tsx` was statically importing `AgentSidebarPanel` (from `AgentView`), `TodosSidebarPanel` (from `TodosView`), `MeetingsSidebar` (from `ListeningView`), and `BookmarksSidebarPanel` (from `BookmarksView`). This defeated code-splitting by bundling AI agents, LLM streamers, audio recording, web speech APIs, visualizers, and the todo parser into the initial bundle evaluated on application startup.
+   - **Fix**: Extracted [`AppSidebarPanels.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/AppSidebar/AppSidebarPanels.tsx) (153 lines) which dynamically lazy-loads `LazyGitSidebarPanel`, `LazyBookmarksSidebarPanel`, `LazyAgentSidebarPanel`, `LazyTodosSidebarPanel`, and `LazyMeetingsSidebar` using direct file imports (avoiding broad barrel files) wrapped with `<Suspense fallback={null}>`.
+   - **Bundle & Startup Impact**: On first paint, only `FileTree` and `IconRail` are loaded. Modules for AI agents, voice recordings, and todos are fetched on demand only when the user explicitly opens their respective sidebar panels.
+   - Refactored [`AppSidebar.tsx`](file:///Users/ahmedwaanneni/orca/workspaces/davinci-notes/fix-fix-desktop-ui/apps/desktop/src/components/AppSidebar/AppSidebar.tsx) from 232 lines to 209 lines, well within file size caps.
+
+2. **Scoped State Subscriptions in `useTodosData` (`PERFORMANCE.md` Hard Rules 2 & 6)**:
+   - **Root Cause**: `useTodosData.ts` subscribed directly to the global `notesContent` dictionary (`useWorkspaceStore((state) => state.notesContent)`). Every single keystroke typed into ANY note in the entire vault triggered `useTodosData`, synchronously executing `buildTodoProjects` and re-rendering `TodosSidebarPanel` and `TodosView` on rapid typing events.
+   - **Fix**: Replaced broad subscription with `useShallow` from `zustand/react/shallow` scoping specifically to `todos/` note paths:
+     ```ts
+     const todoNotesContent = useWorkspaceStore(
+       useShallow((state) => {
+         const subset: Record<string, string> = {};
+         for (const [k, v] of Object.entries(state.notesContent)) {
+           if (k.toLowerCase().startsWith("todos/")) {
+             subset[k] = v;
+           }
+         }
+         return subset;
+       }),
+     );
+     ```
+   - Stable callback actions: `toggleTodo`, `updateTodoText`, `addLinkToTodo`, `addReminderToTodo`, and `addTodoToSection` now read note contents via `useWorkspaceStore.getState().notesContent[notePath]`, eliminating `notesContent` from callback dependencies and keeping function references stable.
+   - Typing latency across regular vault notes is now decoupled from the todo parser and dashboard.
+
+3. **Verification**:
+   - 15 test suites and 64 tests passing across `IconRail`, `TodosView`, `AppSidebar`, and `AppTabs`.
+   - ESLint check: zero errors on all touched components.
+   - All files strictly under 250 lines (soft cap 150–200): `AppSidebar.tsx` (209), `AppSidebarPanels.tsx` (153), `useTodosData.ts` (197), `TodosView.tsx` (198).
+   - Knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Unified AppSidebar Integration Across All Views & FileTree Sidebar Synchronization
+
+1. **Unified Sidebar Architecture Following FileTree (`AppSidebar` & `AppSidebarHeader`)**:
+   - `AppSidebar.tsx` (232 lines): Integrated `TodosSidebarPanel` and `MeetingsSidebar` directly inside `AppSidebar` alongside `FileTree`, `BookmarksSidebarPanel`, `LazyGitSidebarPanel`, and `AgentSidebarPanel`.
+   - `AppSidebarHeader.tsx`: Single synchronized top header bar across all views (macOS traffic lights, search/file/bookmark buttons, drag region, and `<SidebarSimple size={18} />` collapse button).
+   - `App.tsx`: Removed the hardcoded collapse hack (`isCollapsed={!isLeftSidebarOpen}`). All views share the exact same `AppSidebar` container, resizer handle, and synchronized open/closed state.
+   - `TodosView.tsx` (198 lines) & `ListeningView.tsx` (235 lines): In desktop mode, views display their main content areas cleanly while `AppSidebar` hosts their sidebars (`showSidebar={false}`). Standalone rendering is preserved for isolated tests and Storybook (`showSidebar={true}`).
+2. **IconRail Cleanup & Symmetrical Navigation**:
+   - `IconRail.tsx` (32 lines) & `IconRailTopGroup.tsx` (189 lines): Removed unwanted icons (`Reminders` with `Bell`, `Ask Your Vault` with `ChatCircleDots`). Reverted to the clean standard icon set: Files, Bookmarks, Git (if enabled), AI Agent, AI Listening, Search, Graph view, Daily note, Calendar, New canvas, Todos, Settings, Close vault.
+   - Rail buttons symmetrically synchronize: clicking an already active item toggles `AppSidebar` open/closed; clicking an inactive item opens the sidebar and switches the active panel.
+   - `AppTabs.tsx`: Top header expand button (`app-tabs__sidebar-toggle-btn` with `<SidebarSimple size={15} />`) seamlessly expands the sidebar regardless of which view is active.
+3. **State Management & Shared UI Store**:
+   - `useTodosUIStore.ts` (46 lines): Zustand store holding `viewMode`, `selectedProjectId`, `selectedNotePath`, `isMotherboard`, filters, and layout, enabling reactive synchronization between `TodosSidebarPanel` in `AppSidebar` and `TodosView` in workspace.
+   - `buildTodoProjects.ts` (68 lines) & `useTodosData.ts` (186 lines): Extracted project hierarchy builder from note contents, keeping all data files well under the 250 hard cap.
+   - `TodosSidebar.module.scss` & `ListeningView.module.scss`: Added `&--in-app-sidebar` styles (`width: 100%`, `flex: 1`, `border-right: none`) matching `FileTree` layout, typography, colors, and border standards.
+4. **Bugfix — Automatic Bookmarks Page Closure Upon Navigation**:
+   - `App.tsx`: Added `closeBookmarksIfOpen` callback. When the user is on the Bookmarks page and selects any other page (Git via `handleToggleGitManager`, Calendar, Todos, AI Agent, AI Listening, Global Graph, Daily notes, or any file note in `FileTree`/`AppTabs`), `BOOKMARKS_TAB_ID` (`davinci://bookmarks`) is cleanly closed and the workspace switches to the selected page/fallback note.
+   - `AppSidebar.test.tsx` (231 lines): Added regression unit test verifying git sidebar panel takes precedence over bookmarks when git is toggled.
+5. **Verification**:
+   - All 64 unit tests passing across 15 test files (`IconRail`, `TodosView`, `AppSidebar`, `AppTabs`).
+   - Clean ESLint check: zero errors or warnings on all touched files.
+   - All files strictly verified under 250 lines (soft cap 150–200).
+   - AST knowledge graph updated via `graphify update .`.
+
+---
+
+## Previous Session — Agent Usage Dialog, Prompt Token Runout Warning & Persistent User Choice
 
 1. **Persistent User Agent Choice (`apps/desktop/src/components/AgentView`)**:
    - `agentUserChoicePersistence.ts` (89 lines): Implemented synchronous `localStorage` and SQLite persistence for selected agents and models (`davinci.agent.selectedCliAgent`, `davinci.agent.selectedModel`, `davinci.agent.selectedProvider`).

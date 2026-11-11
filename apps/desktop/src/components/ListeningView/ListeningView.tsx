@@ -24,6 +24,9 @@ export interface ListeningViewProps {
   initialAudioPath?: string;
   onNavigateToNote?: (path: string) => void;
   onOpenSettings?: () => void;
+  isSidebarOpen?: boolean;
+  onToggleSidebar?: () => void;
+  showSidebar?: boolean;
 }
 
 export function ListeningView({
@@ -31,6 +34,9 @@ export function ListeningView({
   initialAudioPath,
   onNavigateToNote,
   onOpenSettings,
+  isSidebarOpen = true,
+  onToggleSidebar,
+  showSidebar = true,
 }: ListeningViewProps) {
   const allNotePaths = useWorkspaceStore((state) => state.allNotePaths);
   const vaultPath = useWorkspaceStore((state) => state.vaultPath);
@@ -101,11 +107,14 @@ export function ListeningView({
       aria-label="Meeting Recording Workspace"
       data-testid="recording-workspace"
     >
-      <MeetingsSidebar
-        activeChannel={currentView === "record" ? "record" : "all-meetings"}
-        onSelectChannel={(ch) => setCurrentView(ch)}
-        onOpenSettings={onOpenSettings}
-      />
+      {showSidebar && isSidebarOpen && (
+        <MeetingsSidebar
+          activeChannel={currentView === "record" ? "record" : "all-meetings"}
+          onSelectChannel={(ch) => setCurrentView(ch)}
+          onOpenSettings={onOpenSettings}
+          onToggleSidebar={onToggleSidebar}
+        />
+      )}
 
       {currentView === "detail" && selectedMeeting ? (
         <MeetingDetailView

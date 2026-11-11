@@ -1,5 +1,9 @@
 export { TodosView } from "./TodosView";
 export type { TodosViewProps } from "./TodosView";
+export { TodosSidebar } from "./TodosSidebar";
+export type { TodosSidebarProps } from "./TodosSidebar";
+export { TodosSidebarPanel } from "./TodosSidebarPanel";
+export { useTodosUIStore } from "./useTodosUIStore";
 export type {
   TodoItem,
   TodoProject,

@@ -113,6 +113,16 @@ describe("listExtension styling and hanging indents", () => {
     }
   });
 
+  it("renders task checkboxes without a trailing file icon", () => {
+    const { view, cleanup } = createEditor("- [ ] Task item", 0, true);
+    try {
+      expect(view.dom.querySelector("input.cm-task-checkbox")).not.toBeNull();
+      expect(view.dom.querySelector(".cm-task-note-icon")).toBeNull();
+    } finally {
+      cleanup();
+    }
+  });
+
   it("keeps task checkbox rendered on active editable line and checks without revealing raw code", () => {
     const doc = "- [ ] Active todo item";
     const { view, cleanup } = createEditor(doc, 10, false);

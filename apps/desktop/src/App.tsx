@@ -151,15 +151,6 @@ export function App() {
   }, []);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
-  const handleToggleGitManager = useCallback(() => {
-    setIsGitManagerOpen((prev) => {
-      const next = !prev;
-      if (next) {
-        setIsLeftSidebarOpen(true);
-      }
-      return next;
-    });
-  }, []);
   const [aiCloudEnabled, setAiCloudEnabled] = useState(false);
   const [askVaultEnabled, setAskVaultEnabled] = useState(false);
   const [semanticSearchEnabled, setSemanticSearchEnabled] = useState(false);
@@ -783,6 +774,39 @@ export function App() {
     closeNote,
   ]);
 
+  const closeBookmarksIfOpen = useCallback(() => {
+    if (activeNotePath === BOOKMARKS_TAB_ID || openNotes.includes(BOOKMARKS_TAB_ID)) {
+      const prevNote = openNotes
+        .slice()
+        .reverse()
+        .find(
+          (p) =>
+            p !== BOOKMARKS_TAB_ID &&
+            p !== AGENT_TAB_ID &&
+            !p.startsWith("internal://") &&
+            !p.startsWith("git-diff://") &&
+            !p.startsWith("davinci://"),
+        );
+      if (prevNote) {
+        void setActiveNote(prevNote);
+      } else if (allNotePaths.length > 0) {
+        void openNote(allNotePaths[0]);
+      }
+      void closeNote(BOOKMARKS_TAB_ID);
+    }
+  }, [activeNotePath, openNotes, allNotePaths, setActiveNote, openNote, closeNote]);
+
+  const handleToggleGitManager = useCallback(() => {
+    setIsGitManagerOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        setIsLeftSidebarOpen(true);
+      }
+      return next;
+    });
+    closeBookmarksIfOpen();
+  }, [closeBookmarksIfOpen]);
+
   if (!vaultPath) {
     return (
       <VaultWelcomeView
@@ -826,17 +850,11 @@ export function App() {
           activeNotePath={activeNotePath}
           dirtyNotes={dirtyNotes}
           log={log}
-          isCollapsed={
-            !isLeftSidebarOpen ||
-            activeNotePath === TODOS_TAB_ID ||
-            activeNotePath === LISTENING_TAB_ID
-          }
+          isCollapsed={!isLeftSidebarOpen}
           isMac={isMac}
           onToggleLeftSidebar={() => {
             if (isGitManagerOpen) {
               setIsGitManagerOpen(false);
-            } else if (activeNotePath === BOOKMARKS_TAB_ID) {
-              handleOpenFiles();
             } else {
               setIsLeftSidebarOpen((prev) => !prev);
             }
@@ -864,34 +882,53 @@ export function App() {
           onOpenGitManager={handleToggleGitManager}
           onOpenGlobalGraph={() => {
             setIsGitManagerOpen(false);
+            closeBookmarksIfOpen();
             setIsGlobalGraphOpen(!isGlobalGraphOpen);
           }}
           onOpenCalendar={() => {
             setIsGitManagerOpen(false);
-            void openNote(CALENDAR_TAB_ID);
+            closeBookmarksIfOpen();
+            if (activeNotePath === CALENDAR_TAB_ID) {
+              setIsLeftSidebarOpen((prev) => !prev);
+            } else {
+              setIsLeftSidebarOpen(true);
+              void openNote(CALENDAR_TAB_ID);
+            }
           }}
           onOpenBookmarks={() => {
             setIsGitManagerOpen(false);
-            setIsLeftSidebarOpen(true);
-            void openNote(BOOKMARKS_TAB_ID);
+            if (activeNotePath === BOOKMARKS_TAB_ID) {
+              setIsLeftSidebarOpen((prev) => !prev);
+            } else {
+              setIsLeftSidebarOpen(true);
+              void openNote(BOOKMARKS_TAB_ID);
+            }
           }}
           onOpenReminders={() => {
             setIsGitManagerOpen(false);
-            void openNote(REMINDERS_TAB_ID);
+            closeBookmarksIfOpen();
+            if (activeNotePath === REMINDERS_TAB_ID) {
+              setIsLeftSidebarOpen((prev) => !prev);
+            } else {
+              setIsLeftSidebarOpen(true);
+              void openNote(REMINDERS_TAB_ID);
+            }
           }}
           onOpenTodos={() => {
             setIsGitManagerOpen(false);
+            closeBookmarksIfOpen();
             if (activeNotePath === TODOS_TAB_ID) {
-              void closeNote(TODOS_TAB_ID);
+              setIsLeftSidebarOpen((prev) => !prev);
             } else {
-              setIsLeftSidebarOpen(false);
+              setIsLeftSidebarOpen(true);
               void openNote(TODOS_TAB_ID);
             }
           }}
           onOpenAgent={() => {
             setIsGitManagerOpen(false);
+            closeBookmarksIfOpen();
             if (activeNotePath === AGENT_TAB_ID) {
-              handleOpenFiles();
+              setIsLeftSidebarOpen((prev) => !prev);
             } else {
               setIsLeftSidebarOpen(true);
               void openNote(AGENT_TAB_ID);
@@ -899,15 +936,33 @@ export function App() {
           }}
           onOpenListening={() => {
             setIsGitManagerOpen(false);
-            void openNote(LISTENING_TAB_ID);
+            closeBookmarksIfOpen();
+            if (activeNotePath === LISTENING_TAB_ID) {
+              setIsLeftSidebarOpen((prev) => !prev);
+            } else {
+              setIsLeftSidebarOpen(true);
+              void openNote(LISTENING_TAB_ID);
+            }
           }}
           onOpenAskVault={() => setIsRightSidebarOpen((prev) => !prev)}
           onCloseVault={() => setVaultPath(null)}
-          onDailyNotes={handleDailyNotes}
-          onCreateNote={handleCreateNote}
+          onDailyNotes={() => {
+            closeBookmarksIfOpen();
+            void handleDailyNotes();
+          }}
+          onCreateNote={() => {
+            closeBookmarksIfOpen();
+            void handleCreateNote();
+          }}
           onCreateFolder={handleCreateFolder}
-          onCreateCanvas={handleCreateCanvas}
-          onNoteClick={(path) => void openNote(path)}
+          onCreateCanvas={() => {
+            closeBookmarksIfOpen();
+            void handleCreateCanvas();
+          }}
+          onNoteClick={(path) => {
+            closeBookmarksIfOpen();
+            void openNote(path);
+          }}
           onRenameNote={(oldPath, newStem) =>
             renameNoteFromTree(oldPath, newStem)
           }
@@ -936,7 +991,12 @@ export function App() {
             conflictNotes={conflictNotes}
             boardNotes={boardNotes}
             databaseNotes={databaseNotes}
-            onSelectNote={(path) => void setActiveNote(path)}
+            onSelectNote={(path) => {
+              if (path !== BOOKMARKS_TAB_ID) {
+                closeBookmarksIfOpen();
+              }
+              void setActiveNote(path);
+            }}
             onCloseNote={(path) => void closeNote(path)}
             onCloseAllNotes={() => void closeAllNotes()}
             onCreateNote={handleCreateNoteFromTabs}
@@ -978,6 +1038,7 @@ export function App() {
           ) : activeNotePath === REMINDERS_TAB_ID ? (
             <Suspense fallback={null}>
               <LazyTodosView
+                showSidebar={false}
                 initialView="reminders"
                 onOpenNote={(path) => {
                   void openNote(path);
@@ -994,6 +1055,7 @@ export function App() {
           ) : activeNotePath === TODOS_TAB_ID ? (
             <Suspense fallback={null}>
               <LazyTodosView
+                showSidebar={false}
                 onOpenNote={(path) => {
                   void openNote(path);
                 }}
@@ -1018,6 +1080,7 @@ export function App() {
           ) : activeNotePath === LISTENING_TAB_ID ? (
             <Suspense fallback={null}>
               <LazyListeningView
+                showSidebar={false}
                 onOpenSettings={() => {
                   setSettingsInitialTab("ai-listening");
                   setIsSettingsOpen(true);

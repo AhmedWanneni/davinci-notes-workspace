@@ -26,6 +26,9 @@
     .file-tree,
     .file-tree-container,
     aside[class*="wb-sidebar"],
+    aside[class*="todos-sidebar"],
+    aside[class*="meetings-sidebar"],
+    aside[class*="agent-sidebar"],
     .app-sidebar__resizer,
     .app-sidebar__empty-state {
       display: none !important;

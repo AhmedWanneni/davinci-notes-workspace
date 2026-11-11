@@ -88,7 +88,7 @@ export function TodosSidebarProjects({
                   }}
                 >
                   <Folder size={14} weight={isActive ? "fill" : "regular"} />
-                  <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span className={styles["todos-sidebar__label"]}>
                     {p.name}
                   </span>
 
@@ -139,7 +139,7 @@ export function TodosSidebarProjects({
                         }}
                       >
                         <FileText size={12} />
-                        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span className={styles["todos-sidebar__label"]}>
                           {note.name}
                         </span>
                         {onDeleteNote && (
@@ -163,9 +163,10 @@ export function TodosSidebarProjects({
                   })}
 
                   {addingNoteToProjectId === p.id && (
-                    <div style={{ padding: "2px 0" }}>
+                    <div className={styles["todos-sidebar__input-wrap"]}>
                       <input
                         type="text"
+                        className={styles["todos-sidebar__input"]}
                         placeholder="Note name... (Enter)"
                         value={newNoteName}
                         onChange={(e) => setNewNoteName(e.target.value)}
@@ -174,7 +175,6 @@ export function TodosSidebarProjects({
                           if (e.key === "Escape") setAddingNoteToProjectId(null);
                         }}
                         autoFocus
-                        style={{ width: "100%", padding: "2px 6px", fontSize: "11px" }}
                       />
                     </div>
                   )}
@@ -184,9 +184,10 @@ export function TodosSidebarProjects({
           })}
 
           {isCreatingProject && (
-            <div style={{ padding: "4px 8px" }}>
+            <div className={styles["todos-sidebar__input-wrap"]}>
               <input
                 type="text"
+                className={styles["todos-sidebar__input"]}
                 placeholder="New project name... (Enter)"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
@@ -195,7 +196,6 @@ export function TodosSidebarProjects({
                   if (e.key === "Escape") setIsCreatingProject(false);
                 }}
                 autoFocus
-                style={{ width: "100%", padding: "4px 8px", fontSize: "12px" }}
               />
             </div>
           )}

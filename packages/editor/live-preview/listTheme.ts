@@ -115,19 +115,4 @@ export const listTheme = EditorView.theme({
     color: "var(--color-text-muted, #94a3b8)",
     opacity: "0.8",
   },
-  ".cm-task-note-icon": {
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: "4px",
-    verticalAlign: "middle",
-    color: "var(--color-text-muted, #94a3b8)",
-    opacity: "0.7",
-    cursor: "pointer",
-    transition: "opacity 0.15s ease, color 0.15s ease",
-  },
-  ".cm-task-note-icon:hover": {
-    opacity: "1",
-    color: "var(--color-text-normal, #1e293b)",
-  },
 });

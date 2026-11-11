@@ -161,7 +161,31 @@ describe("AppSidebar", () => {
     expect(await screen.findByTestId("mock-git-sidebar-panel")).toBeDefined();
   });
 
-  it("switches from file tree to agent sidebar panel when isAgentOpen is true", () => {
+  it("prioritizes git sidebar panel over bookmarks when git is opened", async () => {
+    render(
+      <TooltipProvider>
+        <AppSidebar
+          vaultName="vault-1"
+          vaultPath="/Users/test/vault-1"
+          allNotePaths={["Note A.md"]}
+          allFolderPaths={[]}
+          activeNotePath="davinci://bookmarks"
+          dirtyNotes={new Set()}
+          log={[]}
+          isMac={true}
+          isBookmarksOpen={true}
+          isGitManagerOpen={true}
+          onCreateNote={vi.fn()}
+          onCreateFolder={vi.fn()}
+          onNoteClick={vi.fn()}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(await screen.findByTestId("mock-git-sidebar-panel")).toBeDefined();
+  });
+
+  it("switches from file tree to agent sidebar panel when isAgentOpen is true", async () => {
     const { rerender } = render(
       <TooltipProvider>
         <AppSidebar
@@ -202,7 +226,6 @@ describe("AppSidebar", () => {
       </TooltipProvider>,
     );
 
-    expect(screen.getByLabelText("AI Agent Sidebar")).toBeDefined();
-    expect(screen.getByText("ChatGPT")).toBeDefined();
+    expect(await screen.findByLabelText("AI Agent Sidebar")).toBeDefined();
   });
 });
