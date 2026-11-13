@@ -2,7 +2,31 @@
 
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
-## Last Session — Full-Screen Sidebars, Modals-to-Screens Conversion, Zero Shadows & 6-Action Bottom Bar
+## Last Session — 2-Column Todo Grid View, Clean Sidebar, Direct Notification Routing & Grid Icon Update
+
+1. **2-Column Grid of Todo View (`TodoListView.tsx`, `TodoCardGridItem.tsx`, `todos.tsx`)**:
+   - Refactored `TodoListView.tsx` so the 2-column card grid view is the sole, primary display mode for todos.
+   - Refined `TodoCardGridItem.tsx` with clean hairline borders (`borderWidth: 1`, `borderColor: tokens.color.border.subtle`), rounded corners (`rounded-2xl`), bold title, date, options dots `...`, and inner document sheet with checklist lines and interactive checkboxes.
+   - Made the Google Calendar Month Table toggled via top header calendar button so the 2-column cards grid view occupies the full screen.
+
+2. **Todos Sidebar Simplification (`TodosSidebar.tsx`)**:
+   - Removed the 2 quick-nav buttons ("Calendar & Reminders" and "2-Column Card Grid View") from the top of `TodosSidebar.tsx`.
+   - The sidebar now flows directly into the projects and their todo lists without visual clutter.
+
+3. **Bottom Navigation Notification Routing (`EditorBottomBar.tsx`, `todos.tsx`)**:
+   - Wired the Bell (Notifications) bottom button to directly navigate to and display `RemindersHubView` with active highlight.
+   - Added deep-link param handling (`tab=reminders`) in `todos.tsx` to automatically activate the reminders hub on navigation.
+
+4. **Bottom Bar Todo Icon & Top Header List Icon Removal (`EditorBottomBar.tsx`, `TodosHeaderTabs.tsx`)**:
+   - Changed the bottom bar "Todo" action icon to `SquaresFour` to visually represent the 2-column grid view.
+   - Removed the `ListIcon` (`≡`) from `TodosHeaderTabs.tsx`; top bar now cleanly features the sidebar opener, title, and calendar toggle button.
+
+5. **Standards & Verification**:
+   - All files strictly under 250 lines (soft cap 150–200).
+   - `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - ESLint passed with 0 errors on all modified components and tests.
+   - Unit test suites (21/21 tests) passed.
+   - Knowledge graph updated cleanly with `graphify update .`.
 
 1. **Full-Screen Sidebars (`NavigationDrawer.tsx`, `EditorDrawer.tsx`, `TodosSidebar.tsx`, `TodosSidebarHeader.tsx`, `TodosSidebarQuickNav.tsx`)**:
    - Converted both the file tree navigation sidebar (`NavigationDrawer.tsx`) and the projects & todos sidebar (`TodosSidebar.tsx`) into complete full-screen screens (`presentationStyle="fullScreen"`, `statusBarTranslucent={true}`).
