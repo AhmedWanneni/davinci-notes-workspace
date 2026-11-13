@@ -1,7 +1,7 @@
 "use dom";
 
 import React, { useEffect, useRef, useState } from "react";
-import { EditorState } from "@codemirror/state";
+import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import {
   createDebouncedBridge,
@@ -10,7 +10,7 @@ import {
 } from "../src/bridgeProtocol";
 import { attachMobileViewportHandler } from "../src/viewportHandler";
 import { requestEditorFocus } from "../src/iosFocusWorkaround";
-import { createMobileEditorExtensions } from "./editorExtensions";
+import { createMobileEditorExtensions, getMobileModeExtensions } from "./editorExtensions";
 import { executeToolbarAction } from "./editorToolbarActions";
 import { darkColorTokens } from "@app/design-tokens/mobile";
 import { decodePayload } from "../src/base64Payload";
@@ -56,6 +56,7 @@ export default function EditorDom({
   onFlushAckRef.current = onFlushAck;
   const lastActionIdRef = useRef<number | null>(null);
   const lastInsertIdRef = useRef<number | null>(null);
+  const modeCompartmentRef = useRef(new Compartment());
 
   // Debounced bridge emitter (750ms) - only crosses on debounce or explicit flush
   const bridgeRef = useRef(
@@ -97,7 +98,7 @@ export default function EditorDom({
     });
 
     const docText = decodePayload(initialContent || "");
-    const extensions = createMobileEditorExtensions([changeListener], editorMode);
+    const extensions = createMobileEditorExtensions([changeListener], editorMode, modeCompartmentRef.current);
     const direction = getTextDirection(docText);
     containerRef.current.setAttribute("dir", direction);
     if (!document.querySelector("meta[charset]")) {
@@ -177,6 +178,13 @@ export default function EditorDom({
     }
   }, [notePath]);
 
+  // Dynamically reconfigure extensions when editorMode changes (instantly switches bullet point)
+  useEffect(() => {
+    if (viewRef.current) {
+      viewRef.current.dispatch({ effects: modeCompartmentRef.current.reconfigure(getMobileModeExtensions(editorMode)) });
+    }
+  }, [editorMode]);
+
   // Execute toolbar actions
   useEffect(() => {
     if (viewRef.current && actionTrigger && actionTrigger.id !== lastActionIdRef.current) {
@@ -187,9 +195,7 @@ export default function EditorDom({
 
   // Execute programmatic focus requests (iOS focus workaround)
   useEffect(() => {
-    if (viewRef.current && focusTrigger) {
-      requestEditorFocus(viewRef.current, { position: "end" });
-    }
+    if (viewRef.current && focusTrigger) requestEditorFocus(viewRef.current, { position: "end" });
   }, [focusTrigger]);
 
   // Execute programmatic flush requests from native container

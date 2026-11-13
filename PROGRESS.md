@@ -2,32 +2,35 @@
 
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
-## Last Session — Editor Properties Hiding, Left More Options, Clean White ActionSheet & Preflight Uncommitted Check
+## Last Session — Dynamic Bullet Mode Reconfiguration, Topbar Clean-up, Full Page Views & Manage Vaults Redesign
 
-1. **Hidden Frontmatter Properties in Editor (`editorExtensions.ts`, `packages/editor/index.ts`)**:
-   - Re-exported `frontmatterHideExtension` in `@app/editor` and registered it in `createMobileEditorExtensions`.
-   - YAML frontmatter properties (`--- ... ---`) are never rendered in the editor and cursor selection never gets trapped inside them.
+1. **Automatic Bullet Point Reconfiguration (`editorExtensions.ts`, `EditorDom.tsx`, `editorInjectedScript.ts`)**:
+   - Integrated CodeMirror `Compartment` for dynamic mode extension switching.
+   - When switching to Text mode, `modeCompartment.reconfigure` instantly removes `listExtension()`, switching `•` circle bullet points to literal `-` automatically.
+   - Passed `editorMode` to `buildEditorInjectedScript` ensuring clean initialization across platforms.
 
-2. **Top Bar Clean-up & More Options at Left (`EditorHeader.tsx`)**:
-   - Removed the `[ Note ] [ Text ]` toggle pill from the top bar.
-   - Default note mode is `note`.
-   - Moved the `...` more options button to the left side of the top bar (next to the sidebar navigation button), allowing users to access options and switch mode directly from the left.
+2. **Topbar Layout Updates (`EditorHeader.tsx`)**:
+   - Placed `...` more options button on the right side of the top bar.
+   - Removed the search button from the editor top bar.
+   - Kept sidebar button on the left and todos button + `...` on the right.
 
-3. **Text Mode Normal List Continuation (`editorExtensions.ts`)**:
-   - In Text mode, bullet points are rendered as normal literal `-` lists (never circle bullet points).
-   - Pressing Enter on a `- item` continues with `\n- ` (normal `-` list), and pressing Enter on an empty `- ` exits the list.
+3. **Simple Page View Components for Sidebars (`NavigationDrawer.tsx`, `TodosSidebar.tsx`)**:
+   - Converted file tree navigation drawer into a simple full page view component (`width: "100%", height: "100%"`), removing slide drawer animation and dark scrim backdrop.
+   - Converted todo projects sidebar into a simple full page view component, removing partial width `w-[85%]` and `rgba(0,0,0,0.4)` overlay.
 
-4. **Clean White Action Sheet (`NoteActionSheet.tsx`, `Sheet.tsx`)**:
-   - Sheet and groups now have a clean white background (`#ffffff`) with `#111827` text and `#e5e7eb` borders.
-   - Removed all dead/unimplemented stubs (Backlinks, Pin, Move, Bookmark, Merge, Add property).
-   - Keeps only functional actions: Note mode, Text mode, Settings, Close (and Outline/Rename/Delete when provided).
+4. **Manage Vaults Redesign in Settings (`VaultSettingsSection.tsx`, `VaultSwitcherSheet.tsx`)**:
+   - Replaced bottom sheet popup with an embedded, full-page vault management section in `VaultSettingsSection.tsx` following the design pattern of other settings sections.
+   - Includes registered vault list with flat unboxed rows, active indicator, inline rename, delete confirmation, and Create New Vault / Open External Folder controls.
 
-5. **Mandatory Uncommitted Changes Preflight Rule (`.agents/rules/git-workflow.md`, `AGENTS.md`, `GEMINI.md`)**:
-   - Added standing rule: when uncommitted files exist before starting work on a task, the agent must NOT start working immediately; it must ask the user to commit them first with a suggested commit message.
-
-6. **Standards & Verification**:
-   - All files strictly under 250 lines (`EditorHeader.tsx` 114, `NoteActionSheet.tsx` 175, `editorExtensions.ts` 190, `Sheet.tsx` 127).
+5. **Standards & Verification**:
+   - All files strictly under 250 lines (`EditorHeader.tsx` 100, `NavigationDrawer.tsx` 45, `TodosSidebar.tsx` 189, `VaultSettingsSection.tsx` 194, `EditorDom.tsx` 244, `editor.tsx` 244).
    - `pnpm --filter @app/mobile typecheck` & `pnpm --filter @app/editor typecheck` passed with 0 errors.
+   - Vitest suites: 14 tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
+   - Knowledge graph updated cleanly with `graphify update .`.
+
+## Next Up
+
+1. Test Note mode and Text mode on physical iOS / Android devices.
    - 14 unit tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
 

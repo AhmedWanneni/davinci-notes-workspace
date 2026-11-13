@@ -10,6 +10,7 @@ import {
   handleNoteModeEnter,
   handleTextModeEnter,
   createMobileEditorExtensions,
+  getMobileModeExtensions,
 } from "../components/editorExtensions";
 import { EditorHeader } from "../components/EditorHeader";
 import { NoteActionSheet } from "../components/shell/NoteActionSheet";
@@ -137,14 +138,14 @@ describe("editorExtensions Note vs Text mode Enter Suite", () => {
   });
 
   it("creates different extension sets for note and text mode, both hiding frontmatter", () => {
-    const noteExts = createMobileEditorExtensions([], "note");
-    const textExts = createMobileEditorExtensions([], "text");
+    const noteExts = getMobileModeExtensions("note");
+    const textExts = getMobileModeExtensions("text");
     expect(noteExts.length).toBeGreaterThan(textExts.length);
   });
 });
 
 describe("EditorHeader and NoteActionSheet Suite", () => {
-  it("renders EditorHeader with more options on left and without topbar mode pill", () => {
+  it("renders EditorHeader with more options on right and without topbar mode pill", () => {
     const onOpenActions = vi.fn();
     const element = (
       <EditorHeader

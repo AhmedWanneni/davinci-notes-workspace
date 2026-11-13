@@ -1,4 +1,4 @@
-import type { Extension } from "@codemirror/state";
+import { Compartment, type Extension } from "@codemirror/state";
 import {
   EditorView,
   drawSelection,
@@ -91,6 +91,25 @@ export function handleTextModeEnter(view: EditorView): boolean {
   return true;
 }
 
+export function getMobileModeExtensions(editorMode: "note" | "text" = "note"): Extension[] {
+  const isText = editorMode === "text";
+  const modeKeymap = isText
+    ? keymap.of([{ key: "Enter", run: handleTextModeEnter }, ...historyKeymap, ...defaultKeymap])
+    : keymap.of([{ key: "Enter", run: handleNoteModeEnter }, ...historyKeymap, ...listIndentKeymap.filter((k) => k.key !== "Enter"), ...defaultKeymap]);
+
+  if (isText) return [modeKeymap];
+
+  return [
+    modeKeymap,
+    tagTheme,
+    markdownAnnotationTheme,
+    markdownAnnotationsExtension(),
+    livePreviewExtension,
+    listExtension(),
+    tagExtension(),
+  ];
+}
+
 /**
  * Builds the CodeMirror 6 extension set for the mobile editor.
  * In 'note' mode: bullet list continuation, bullet widgets, live preview decorations.
@@ -99,28 +118,18 @@ export function handleTextModeEnter(view: EditorView): boolean {
 export function createMobileEditorExtensions(
   extraExtensions: Extension[] = [],
   editorMode: "note" | "text" = "note",
+  modeCompartment?: Compartment,
 ): Extension[] {
-  const isText = editorMode === "text";
+  const modeExts = modeCompartment
+    ? modeCompartment.of(getMobileModeExtensions(editorMode))
+    : getMobileModeExtensions(editorMode);
 
-  const modeKeymap = isText
-    ? keymap.of([
-        { key: "Enter", run: handleTextModeEnter },
-        ...historyKeymap,
-        ...defaultKeymap,
-      ])
-    : keymap.of([
-        { key: "Enter", run: handleNoteModeEnter },
-        ...historyKeymap,
-        ...listIndentKeymap.filter((k) => k.key !== "Enter"),
-        ...defaultKeymap,
-      ]);
-
-  const baseExtensions: Extension[] = [
+  return [
     history(),
     drawSelection(),
     highlightActiveLine(),
     EditorView.lineWrapping,
-    modeKeymap,
+    modeExts,
     syntaxHighlighting(editorHighlightStyle),
     editorTheme,
     softLineBreakExtension,
@@ -128,20 +137,6 @@ export function createMobileEditorExtensions(
     markdown({
       extensions: [Strikethrough, highlightExtension],
     }),
-  ];
-
-  if (!isText) {
-    baseExtensions.push(
-      tagTheme,
-      markdownAnnotationTheme,
-      markdownAnnotationsExtension(),
-      livePreviewExtension,
-      listExtension(),
-      tagExtension(),
-    );
-  }
-
-  baseExtensions.push(
     EditorView.theme({
       "&": {
         height: "100%",
@@ -184,7 +179,5 @@ export function createMobileEditorExtensions(
       ".cm-heading-6": { fontSize: "1em", fontWeight: "600", lineHeight: "1.5" },
     }),
     ...extraExtensions,
-  );
-
-  return baseExtensions;
+  ];
 }

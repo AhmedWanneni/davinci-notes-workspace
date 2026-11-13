@@ -54,38 +54,37 @@ export function TodosSidebar({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View className="flex-1 flex-row" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
-        <View
-          className="w-[85%] max-w-sm h-full"
-          style={{
-            backgroundColor: tokens.color.bg.primary,
-            paddingTop: insets.top + 8,
-            paddingBottom: insets.bottom + 12,
-            borderRightWidth: 1,
-            borderRightColor: tokens.color.border.subtle,
-          }}
-        >
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-4 pb-3 border-b" style={{ borderBottomColor: tokens.color.border.subtle }}>
-            <View className="flex-row items-center gap-2">
-              <CheckSquare size={22} color="#000000" weight="bold" />
-              <Text style={{ fontSize: 19, fontWeight: "700", color: tokens.color.text.normal }}>Projects & Todos</Text>
-            </View>
-            <View className="flex-row items-center gap-1.5">
-              <Pressable
-                onPress={() => { onClose(); onAddProject(); }}
-                accessibilityRole="button"
-                accessibilityLabel="Add project folder"
-                className="p-1.5 active:opacity-60"
-              >
-                <FolderSimplePlus size={22} color="#000000" />
-              </Pressable>
-              <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close sidebar" className="p-1.5 active:opacity-60">
-                <X size={22} color="#000000" />
-              </Pressable>
-            </View>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <View
+        style={{
+          flex: 1,
+          width: "100%",
+          height: "100%",
+          backgroundColor: tokens.color.bg.primary,
+          paddingTop: insets.top + 8,
+          paddingBottom: insets.bottom + 12,
+        }}
+      >
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-4 pb-3 border-b" style={{ borderBottomColor: tokens.color.border.subtle }}>
+          <View className="flex-row items-center gap-2">
+            <CheckSquare size={22} color="#000000" weight="bold" />
+            <Text style={{ fontSize: 19, fontWeight: "700", color: tokens.color.text.normal }}>Projects & Todos</Text>
           </View>
+          <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => { onClose(); onAddProject(); }}
+              accessibilityRole="button"
+              accessibilityLabel="Add project folder"
+              className="p-1.5 active:opacity-60"
+            >
+              <FolderSimplePlus size={22} color="#000000" />
+            </Pressable>
+            <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close page" className="p-1.5 active:opacity-60">
+              <X size={22} color="#000000" />
+            </Pressable>
+          </View>
+        </View>
 
           {/* Projects and their Todo Lists */}
           <ScrollView className="flex-1 px-2 pt-2" showsVerticalScrollIndicator={false}>
@@ -184,8 +183,6 @@ export function TodosSidebar({
               );
             })}
           </ScrollView>
-        </View>
-        <Pressable className="flex-1" onPress={onClose} />
       </View>
     </Modal>
   );

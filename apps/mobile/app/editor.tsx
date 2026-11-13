@@ -173,7 +173,7 @@ export default function EditorScreen(): React.ReactElement {
                 key={`${noteId || activePath}-${editorMode}`}
                 dom={{
                   useExpoDOMWebView: false, matchContents: false, scrollEnabled: true, focusable: true,
-                  injectedJavaScriptBeforeContentLoaded: buildEditorInjectedScript(content, activePath, themeCss ?? ""),
+                  injectedJavaScriptBeforeContentLoaded: buildEditorInjectedScript(content, activePath, themeCss ?? "", false, editorMode),
                   containerStyle: { flex: 1, width: "100%", height: "100%" },
                   style: { flex: 1, width: "100%", height: "100%" },
                 }}

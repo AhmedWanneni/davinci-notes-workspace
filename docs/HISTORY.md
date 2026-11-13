@@ -2,6 +2,28 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-13: Dynamic Bullet Mode Reconfiguration, Topbar Clean-up, Full Page Views & Manage Vaults Redesign
+
+- **Automatic Bullet Point Reconfiguration (`editorExtensions.ts`, `EditorDom.tsx`, `editorInjectedScript.ts`)**:
+  - Integrated CodeMirror `Compartment` for dynamic mode extension switching.
+  - When switching to Text mode, `modeCompartment.reconfigure` instantly removes `listExtension()`, switching `•` circle bullet points to literal `-` automatically.
+  - Passed `editorMode` to `buildEditorInjectedScript` ensuring clean initialization across platforms.
+- **Topbar Layout Updates (`EditorHeader.tsx`)**:
+  - Placed `...` more options button on the right side of the top bar.
+  - Removed search button from the editor top bar.
+  - Kept sidebar button on the left and todos button + `...` on the right.
+- **Simple Page View Components for Sidebars (`NavigationDrawer.tsx`, `TodosSidebar.tsx`)**:
+  - Converted file tree navigation drawer into a simple full page view component (`width: "100%", height: "100%"`), removing slide drawer animation and dark scrim backdrop.
+  - Converted todo projects sidebar into a simple full page view component, removing partial width `w-[85%]` and `rgba(0,0,0,0.4)` overlay.
+- **Manage Vaults Redesign in Settings (`VaultSettingsSection.tsx`, `VaultSwitcherSheet.tsx`)**:
+  - Replaced bottom sheet popup with an embedded, full-page vault management section in `VaultSettingsSection.tsx` following the design pattern of other settings sections.
+  - Includes registered vault list with flat unboxed rows, active indicator, inline rename, delete confirmation, and Create New Vault / Open External Folder controls.
+- **Standards & Verification**:
+  - All files strictly under 250 lines (`EditorHeader.tsx` 100, `NavigationDrawer.tsx` 45, `TodosSidebar.tsx` 189, `VaultSettingsSection.tsx` 194, `EditorDom.tsx` 244, `editor.tsx` 244).
+  - TypeScript typechecks passed with 0 errors (`pnpm --filter @app/mobile typecheck` and `pnpm --filter @app/editor typecheck`).
+  - Unit tests: 14 tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
+  - Knowledge graph updated cleanly with `graphify update .`.
+
 ### 2026-11-13: Editor Properties Hiding, Left More Options, Clean White ActionSheet & Preflight Uncommitted Check
 
 - **Hidden Frontmatter Properties in Editor (`editorExtensions.ts`, `packages/editor/index.ts`)**:
