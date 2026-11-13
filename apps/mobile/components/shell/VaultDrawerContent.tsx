@@ -80,6 +80,8 @@ export function VaultDrawerContent({
         style={{
           backgroundColor: tokens.color.bg.primary,
           marginTop: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: tokens.color.border.subtle,
         }}
       >
         {/* Left: 5 action icons in exact order: daily note, tags, local graph, add folder, add file */}

@@ -61,7 +61,7 @@ export function TodosSidebar({
           width: "100%",
           height: "100%",
           backgroundColor: tokens.color.bg.primary,
-          paddingTop: insets.top + 8,
+          paddingTop: 12,
           paddingBottom: insets.bottom + 12,
         }}
       >
@@ -88,21 +88,6 @@ export function TodosSidebar({
 
           {/* Projects and their Todo Lists */}
           <ScrollView className="flex-1 px-2 pt-2" showsVerticalScrollIndicator={false}>
-            {onSelectReminders ? (
-              <Pressable
-                onPress={() => {
-                  onSelectReminders();
-                  onClose();
-                }}
-                className="flex-row items-center gap-2.5 px-3 py-2.5 mb-2 rounded-xl active:bg-black/5"
-              >
-                <Bell size={19} color="#000000" weight="bold" />
-                <Text style={{ fontSize: 16, fontWeight: "700", color: tokens.color.text.normal }}>
-                  Reminders & Events
-                </Text>
-              </Pressable>
-            ) : null}
-
             {projects.map((proj) => {
               const isExp = expanded[proj.id] ?? true;
               return (
@@ -131,12 +116,6 @@ export function TodosSidebar({
                         className="p-1.5 active:opacity-60"
                       >
                         <Plus size={18} color="#000000" />
-                      </Pressable>
-                      <Pressable
-                        onPress={() => setExpanded((prev) => ({ ...prev, [proj.id]: !isExp }))}
-                        className="p-1.5 active:opacity-60"
-                      >
-                        {isExp ? <CaretDown size={16} color={tokens.color.text.muted} /> : <CaretRight size={16} color={tokens.color.text.muted} />}
                       </Pressable>
                     </View>
                   </View>

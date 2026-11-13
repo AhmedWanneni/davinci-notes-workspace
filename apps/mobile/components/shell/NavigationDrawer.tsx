@@ -33,8 +33,8 @@ export function NavigationDrawer({
           width: "100%",
           height: "100%",
           backgroundColor: tokens.color.bg.primary,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
+          paddingTop: 2,
+          paddingBottom: insets.bottom + 8,
         }}
       >
         <View style={{ flex: 1, overflow: "hidden" }}>{children}</View>

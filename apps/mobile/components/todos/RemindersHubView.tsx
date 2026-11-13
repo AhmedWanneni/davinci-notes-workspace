@@ -36,44 +36,6 @@ export function RemindersHubView({ onOpenNote }: RemindersHubViewProps): React.R
 
   return (
     <View className="flex-1" style={{ backgroundColor: tokens.color.bg.primary }}>
-      {/* Top 3-metric Overview Card from Reference Image */}
-      <View className="mx-4 mt-2 mb-4 p-4 rounded-2xl border" style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1">
-            <Text style={{ fontSize: 13, color: "#6b7280", marginBottom: 6 }}>Next Reminder</Text>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#111827" }}>{metrics.nextTime}</Text>
-          </View>
-          <View className="flex-1 items-center border-x" style={{ borderColor: "#f3f4f6" }}>
-            <Text style={{ fontSize: 13, color: "#6b7280", marginBottom: 6 }}>Today</Text>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#111827" }}>{metrics.todayCount} Items</Text>
-          </View>
-          <View className="flex-1 items-end">
-            <Text style={{ fontSize: 13, color: "#6b7280", marginBottom: 6 }}>Upcoming</Text>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: "#111827" }}>{metrics.upcomingCount} Total</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Section Header with "See All >" and Project Filter */}
-      <View className="flex-row items-center justify-between px-4 mb-2">
-        <Text style={{ fontSize: 19, fontWeight: "800", color: "#111827" }}>
-          Reminders & Events
-        </Text>
-        <Pressable
-          onPress={() => {
-            const nextIdx = (projects.indexOf(selectedProject) + 1) % projects.length;
-            setSelectedProject(projects[nextIdx] ?? "All");
-          }}
-          className="flex-row items-center px-3 py-1 rounded-full border active:opacity-75"
-          style={{ borderColor: "#e5e7eb", backgroundColor: "#f9fafb", gap: 4 }}
-        >
-          <Text style={{ fontSize: 13, fontWeight: "600", color: "#111827" }}>
-            {selectedProject === "All" ? "See All" : selectedProject}
-          </Text>
-          <CaretRight size={13} color="#111827" />
-        </Pressable>
-      </View>
-
       {/* Project Category Filter Chips */}
       <View className="mb-2 px-4">
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
