@@ -5846,9 +5846,9 @@
     "semantic_hash": "d5310579254944a0335ca0f5e97b7f20"
   },
   "apps/mobile/components/shell/NavigationDrawer.tsx": {
-    "mtime": 1794590901.1193614,
-    "seen": 1794591105.817659,
-    "ast_hash": "eb0dff3b6abbcfcadccfe1800da5a267",
+    "mtime": 1794592037.0897956,
+    "seen": 1794592939.6407459,
+    "ast_hash": "8168a2988cdb46627ed309024b2d1a6c",
     "semantic_hash": ""
   },
   "apps/mobile/components/shell/NewFolderSheet.tsx": {
@@ -5876,9 +5876,9 @@
     "semantic_hash": "a78dfe35bc30588fe1823b05aa1ed6fb"
   },
   "apps/mobile/components/shell/VaultDrawerContent.tsx": {
-    "mtime": 1794582147.0041523,
-    "seen": 1794589084.069039,
-    "ast_hash": "665e3b29170fde2801d8aa27eafe2768",
+    "mtime": 1794591990.7415588,
+    "seen": 1794592939.641027,
+    "ast_hash": "3622ce158cef1b092c36095f38e2a5df",
     "semantic_hash": ""
   },
   "apps/mobile/components/shell/VaultSwitcherBar.tsx": {
@@ -13205,9 +13205,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1794589948.0891757,
-    "seen": 1794591105.889641,
-    "ast_hash": "fe198d170f84b2008515e6b9373e2a76",
+    "mtime": 1794591108.9020376,
+    "seen": 1794592939.712542,
+    "ast_hash": "89657023f5c8254051ae04ae35fe0529",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13283,9 +13283,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1794589960.9134088,
-    "seen": 1794591105.890236,
-    "ast_hash": "00242f5f4814c7e8012bdfa1a913bccf",
+    "mtime": 1794591121.7481318,
+    "seen": 1794592939.713152,
+    "ast_hash": "0fc500a7e61f4d97f8cf049ed49c579d",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -18953,9 +18953,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/TodosSidebar.tsx": {
-    "mtime": 1794590925.8397055,
-    "seen": 1794591105.818986,
-    "ast_hash": "8dce28f6e86b0c7501afca4c7e341019",
+    "mtime": 1794591734.3997507,
+    "seen": 1794592939.642074,
+    "ast_hash": "7cfcf714ba344e59bd5e2040643db01d",
     "semantic_hash": ""
   },
   "apps/mobile/notifications/todoNotifications.ts": {
@@ -19031,9 +19031,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/RemindersHubView.tsx": {
-    "mtime": 1794588611.4187245,
-    "seen": 1794589084.069159,
-    "ast_hash": "7b88300d1d123e30fd8cc7280311f27a",
+    "mtime": 1794592870.4236505,
+    "seen": 1794592939.641595,
+    "ast_hash": "133d3a4b5884641f2177937743558e06",
     "semantic_hash": ""
   },
   "apps/mobile/tests/isolatedReminders.test.tsx": {

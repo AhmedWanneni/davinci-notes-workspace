@@ -1,25 +1,34 @@
 import React, { useState, useMemo } from "react";
-import { View, FlatList, Pressable, RefreshControl, ScrollView } from "react-native";
-import { Plus, Bell, CaretRight } from "phosphor-react-native";
+import {
+  View,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+} from "react-native";
+import { Plus, Bell } from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
 import { ReminderEventRow } from "./ReminderEventRow";
 import { AddReminderModal } from "./AddReminderModal";
 import { useVaultReminders } from "../../vault/useVaultReminders";
-import type { MobileReminderEvent } from "./types";
 
 export interface RemindersHubViewProps {
   onOpenNote?: (notePath: string) => void;
 }
 
-export function RemindersHubView({ onOpenNote }: RemindersHubViewProps): React.ReactElement {
+const toIso = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+export function RemindersHubView({
+  onOpenNote,
+}: RemindersHubViewProps): React.ReactElement {
   const { tokens } = useTheme();
   const {
     reminders,
     projects,
     selectedProject,
     setSelectedProject,
-    metrics,
     isLoading,
     refresh,
     addReminder,
@@ -28,34 +37,133 @@ export function RemindersHubView({ onOpenNote }: RemindersHubViewProps): React.R
   } = useVaultReminders();
 
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string | null>(() =>
+    toIso(new Date()),
+  );
+
+  const weekDays = useMemo(() => {
+    const now = new Date();
+    const monday = new Date(now);
+    monday.setDate(
+      now.getDate() + (now.getDay() === 0 ? -6 : 1 - now.getDay()),
+    );
+    return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((name, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return { name, dayNum: d.getDate(), iso: toIso(d) };
+    });
+  }, []);
 
   const displayedReminders = useMemo(() => {
-    if (selectedProject === "All") return reminders;
-    return reminders.filter((r) => r.project.toLowerCase() === selectedProject.toLowerCase());
-  }, [reminders, selectedProject]);
+    let list = reminders;
+    if (selectedProject !== "All") {
+      list = list.filter(
+        (r) => r.project.toLowerCase() === selectedProject.toLowerCase(),
+      );
+    }
+    if (selectedDate) {
+      const filtered = list.filter((r) => r.dateTime?.startsWith(selectedDate));
+      if (filtered.length > 0) return filtered;
+      if (list.some((r) => /^\d{4}-\d{2}-\d{2}/.test(r.dateTime))) return [];
+    }
+    return list;
+  }, [reminders, selectedProject, selectedDate]);
+
+  const emptyText = selectedDate
+    ? `No reminders for ${selectedDate}`
+    : `No reminders in ${selectedProject}`;
 
   return (
-    <View className="flex-1" style={{ backgroundColor: tokens.color.bg.primary }}>
+    <View
+      className="flex-1"
+      style={{ backgroundColor: tokens.color.bg.primary }}
+    >
+      {/* 7-Day Calendar Week Bar from Reference Image */}
+      <View
+        className="flex-row items-center justify-between px-4 pt-2 pb-3"
+        accessibilityRole="tablist"
+      >
+        {weekDays.map((day) => {
+          const isSel = selectedDate === day.iso;
+          return (
+            <Pressable
+              key={day.iso}
+              onPress={() =>
+                setSelectedDate((prev) => (prev === day.iso ? null : day.iso))
+              }
+              className="items-center w-11"
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isSel }}
+              accessibilityLabel={`${day.name} ${day.dayNum}`}
+            >
+              <Text
+                className="text-[13px] mb-2"
+                style={{
+                  fontWeight: isSel ? "700" : "400",
+                  color: isSel
+                    ? tokens.color.text.normal
+                    : tokens.color.text.muted,
+                }}
+              >
+                {day.name}
+              </Text>
+              <View
+                className="w-11 h-11 rounded-full items-center justify-center"
+                style={{
+                  backgroundColor: isSel
+                    ? tokens.color.interactive.accent
+                    : tokens.color.bg.primary,
+                  borderWidth: isSel ? 0 : 1,
+                  borderColor: tokens.color.border.subtle,
+                }}
+              >
+                <Text
+                  className="text-base"
+                  style={{
+                    fontWeight: isSel ? "700" : "500",
+                    color: isSel
+                      ? tokens.color.text["on-accent"]
+                      : tokens.color.text.normal,
+                  }}
+                >
+                  {day.dayNum}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+
       {/* Project Category Filter Chips */}
       <View className="mb-2 px-4">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="-mx-1"
+        >
           {projects.map((p) => {
-            const isSelected = selectedProject === p;
+            const isSel = selectedProject === p;
             return (
               <Pressable
                 key={p}
                 onPress={() => setSelectedProject(p)}
                 className="mx-1 px-3 py-1 rounded-full border active:opacity-75"
                 style={{
-                  backgroundColor: isSelected ? "#000000" : "#ffffff",
-                  borderColor: isSelected ? "#000000" : "#e5e7eb",
+                  backgroundColor: isSel
+                    ? tokens.color.interactive.accent
+                    : tokens.color.bg.primary,
+                  borderColor: isSel
+                    ? tokens.color.interactive.accent
+                    : tokens.color.border.subtle,
                 }}
               >
                 <Text
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: isSelected ? "#ffffff" : "#4b5563",
+                    color: isSel
+                      ? tokens.color.text["on-accent"]
+                      : tokens.color.text.muted,
                   }}
                 >
                   {p}
@@ -70,24 +178,35 @@ export function RemindersHubView({ onOpenNote }: RemindersHubViewProps): React.R
       <FlatList
         data={displayedReminders}
         keyExtractor={(item) => item.id}
-        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => void refresh()} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={() => void refresh()}
+          />
+        }
         renderItem={({ item }) => (
           <ReminderEventRow
             item={item}
             onToggle={(it) => void toggleReminder(it)}
             onDelete={(it) => void deleteReminder(it)}
-            onPress={(it) => it.notePath && onOpenNote && onOpenNote(it.notePath)}
+            onPress={(it) => it.notePath && onOpenNote?.(it.notePath)}
           />
         )}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 48 }}
         ListEmptyComponent={
           !isLoading ? (
             <View className="items-center justify-center py-16 px-6">
-              <Bell size={44} color="#9ca3af" weight="thin" />
-              <Text style={{ fontSize: 15, fontWeight: "600", color: "#111827", marginTop: 12 }}>
-                No reminders in {selectedProject}
+              <Bell size={44} color={tokens.color.text.muted} weight="thin" />
+              <Text
+                className="text-[15px] font-semibold mt-3"
+                style={{ color: tokens.color.text.normal }}
+              >
+                {emptyText}
               </Text>
-              <Text style={{ fontSize: 12, color: "#6b7280", textAlign: "center", marginTop: 4 }}>
+              <Text
+                className="text-xs text-center mt-1"
+                style={{ color: tokens.color.text.muted }}
+              >
                 Tap + below to schedule a new reminder or event.
               </Text>
             </View>
@@ -100,18 +219,15 @@ export function RemindersHubView({ onOpenNote }: RemindersHubViewProps): React.R
         onPress={() => setAddModalOpen(true)}
         accessibilityRole="button"
         accessibilityLabel="Add Reminder"
-        className="absolute items-center justify-center active:scale-95 shadow-md"
+        className="absolute items-center justify-center active:scale-95 shadow-md w-12 h-12 rounded-full"
         style={{
           bottom: 24,
-          right: 20,
-          width: 52,
-          height: 52,
-          borderRadius: 26,
-          backgroundColor: "#000000",
+          right: 24,
+          backgroundColor: tokens.color.interactive.accent,
           elevation: 6,
         }}
       >
-        <Plus size={22} color="#ffffff" weight="bold" />
+        <Plus size={22} color={tokens.color.text["on-accent"]} weight="bold" />
       </Pressable>
 
       {/* Add Reminder Modal */}
@@ -119,7 +235,7 @@ export function RemindersHubView({ onOpenNote }: RemindersHubViewProps): React.R
         visible={addModalOpen}
         projects={projects}
         onClose={() => setAddModalOpen(false)}
-        onAdd={(title, dateTime, project) => void addReminder(title, dateTime, project)}
+        onAdd={(t, dt, p) => void addReminder(t, dt, p)}
       />
     </View>
   );
