@@ -28,11 +28,57 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Vitest suites: 14 tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
 
+## Last Session — 7-Day Circular Calendar Week Selector in RemindersHubView
+
+1. **7-Day Circular Calendar Week Bar (`RemindersHubView.tsx`)**:
+   - Replaced lines 39–67 in `apps/mobile/components/todos/RemindersHubView.tsx` with the 7-day horizontal calendar week bar matching the user's reference image:
+     - Top row: Day abbreviation (`Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`, `Sun`).
+       - Selected day: Bold (`font-weight: 700`) with accent/normal text color.
+       - Unselected days: Muted text color (`tokens.color.text.muted`).
+     - Bottom row: Circular day number badges (`44x44`, `borderRadius: 22`):
+       - Selected day: Filled circle (`tokens.color.interactive.accent`, dark/black in light mode) with white text (`tokens.color.text["on-accent"]`).
+       - Unselected days: Clean light circle (`tokens.color.bg.primary`) with hairline perimeter border (`tokens.color.border.subtle`) and dark number text (`tokens.color.text.normal`).
+   - Added interactive date selection (`selectedDate`):
+     - Selecting a day filters the reminders list below to that date.
+     - Tapping the selected day toggles the filter to view all reminders.
+     - Seamlessly integrates with the project category chips directly beneath it.
+   - Strictly preserved all other components and functionality in `RemindersHubView.tsx` ("don't edit anything else").
+
+2. **Standards & Verification**:
+   - Strictly under hard cap of 250 lines (`RemindersHubView.tsx` is 242 lines).
+   - `pnpm exec eslint apps/mobile/components/todos/RemindersHubView.tsx`: 0 errors, 0 warnings (no raw hex colors, valid token spacing).
+   - `pnpm --filter @app/mobile typecheck`: 0 errors.
+   - Vitest: All tests passing (`tests/isolatedReminders.test.tsx`).
+   - Knowledge graph updated with `graphify update .`.
+
 ## Next Up
 
 1. Test Note mode and Text mode on physical iOS / Android devices.
    - 14 unit tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
+
+## Last Session — 7-Day Circular Calendar Week Selector in RemindersHubView
+
+1. **7-Day Circular Calendar Week Bar (`RemindersHubView.tsx`)**:
+   - Replaced lines 39–67 in `apps/mobile/components/todos/RemindersHubView.tsx` with the 7-day horizontal calendar week bar matching the user's reference image:
+     - Top row: Day abbreviation (`Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`, `Sun`).
+       - Selected day: Bold (`font-weight: 700`) with accent/normal text color.
+       - Unselected days: Muted text color (`tokens.color.text.muted`).
+     - Bottom row: Circular day number badges (`44x44`, `borderRadius: 22`):
+       - Selected day: Filled circle (`tokens.color.interactive.accent`, dark/black in light mode) with white text (`tokens.color.text["on-accent"]`).
+       - Unselected days: Clean light circle (`tokens.color.bg.primary`) with hairline perimeter border (`tokens.color.border.subtle`) and dark number text (`tokens.color.text.normal`).
+   - Added interactive date selection (`selectedDate`):
+     - Selecting a day filters the reminders list below to that date.
+     - Tapping the selected day toggles the filter to view all reminders.
+     - Seamlessly integrates with the project category chips directly beneath it.
+   - Strictly preserved all other components and functionality in `RemindersHubView.tsx` ("don't edit anything else").
+
+2. **Standards & Verification**:
+   - Strictly under hard cap of 250 lines (`RemindersHubView.tsx` is 242 lines).
+   - `pnpm exec eslint apps/mobile/components/todos/RemindersHubView.tsx`: 0 errors, 0 warnings (no raw hex colors, valid token spacing).
+   - `pnpm --filter @app/mobile typecheck`: 0 errors.
+   - Vitest: All tests passing (`tests/isolatedReminders.test.tsx`).
+   - Knowledge graph updated with `graphify update .`.
 
 ## Next Up
 
