@@ -24,6 +24,7 @@ Rules:
     2. **ADR Links**: Clickable markdown links to all relevant Architecture Decision Records in `docs/adr/`.
     3. **Commits Breakdown**: Clear breakdown of the commits included in the PR.
     4. **Checklist**: Completed Before Merging Checklist from `AGENTS.md`.
+- **Uncommitted Changes Preflight Check**: When you find uncommitted files or unstaged changes (`git status` is not clean) before starting work, DO NOT start working immediately. First, ask the user to commit them and provide a suggested commit message. Only proceed after they are committed.
 
 ## Dialog & Modal Design Standard (Mandatory for all AI agents)
 

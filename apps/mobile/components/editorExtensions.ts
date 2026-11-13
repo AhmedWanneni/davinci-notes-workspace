@@ -16,6 +16,7 @@ import {
   listExtension,
   listIndentKeymap,
   handleListEnter,
+  frontmatterHideExtension,
   livePreviewExtension,
   markdownAnnotationsExtension,
   markdownAnnotationTheme,
@@ -53,8 +54,34 @@ export function handleNoteModeEnter(view: EditorView): boolean {
 }
 
 export function handleTextModeEnter(view: EditorView): boolean {
-  // In text mode: plain newline, keep '-' as '-' without list continuation
   const sel = view.state.selection.main;
+  const line = view.state.doc.lineAt(sel.head);
+  const text = line.text;
+
+  // In text mode: bullet point is normal '-' list, not circle bullet points
+  const matchDashList = /^(\s*)-\s+(.*)$/.exec(text);
+  if (matchDashList) {
+    const indent = matchDashList[1];
+    const rest = matchDashList[2].trim();
+    if (rest.length === 0) {
+      view.dispatch({
+        changes: { from: line.from, to: line.to, insert: "" },
+        selection: { anchor: line.from },
+        scrollIntoView: true,
+        userEvent: "input",
+      });
+      return true;
+    }
+    const nextLine = `\n${indent}- `;
+    view.dispatch({
+      changes: { from: sel.from, to: sel.to, insert: nextLine },
+      selection: { anchor: sel.from + nextLine.length },
+      scrollIntoView: true,
+      userEvent: "input",
+    });
+    return true;
+  }
+
   view.dispatch({
     changes: { from: sel.from, to: sel.to, insert: "\n" },
     selection: { anchor: sel.from + 1 },
@@ -97,6 +124,7 @@ export function createMobileEditorExtensions(
     syntaxHighlighting(editorHighlightStyle),
     editorTheme,
     softLineBreakExtension,
+    ...frontmatterHideExtension(),
     markdown({
       extensions: [Strikethrough, highlightExtension],
     }),

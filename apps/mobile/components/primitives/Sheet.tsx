@@ -42,6 +42,7 @@ export interface SheetProps {
   title?: string;
   children: React.ReactNode;
   className?: string;
+  backgroundColor?: string;
 }
 
 export const Sheet: React.FC<SheetProps> = ({
@@ -50,6 +51,7 @@ export const Sheet: React.FC<SheetProps> = ({
   title,
   children,
   className = "",
+  backgroundColor,
 }) => {
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
@@ -75,8 +77,8 @@ export const Sheet: React.FC<SheetProps> = ({
         <View
           className={`border-t z-modal ${className}`}
           style={{
-            backgroundColor: tokens.color.bg.secondary,
-            borderColor: tokens.color.border.normal,
+            backgroundColor: backgroundColor ?? tokens.color.bg.secondary,
+            borderColor: backgroundColor ? tokens.color.border.subtle : tokens.color.border.normal,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
             paddingBottom: Math.max(insets.bottom, 16),

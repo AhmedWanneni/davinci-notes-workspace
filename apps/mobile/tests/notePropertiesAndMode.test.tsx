@@ -12,6 +12,7 @@ import {
   createMobileEditorExtensions,
 } from "../components/editorExtensions";
 import { EditorHeader } from "../components/EditorHeader";
+import { NoteActionSheet } from "../components/shell/NoteActionSheet";
 
 describe("noteProperties Suite", () => {
   it("defaults to note mode when no frontmatter exists", () => {
@@ -81,10 +82,46 @@ describe("editorExtensions Note vs Text mode Enter Suite", () => {
     expect(newDoc).toBe("- \n- ");
   });
 
-  it("handleTextModeEnter preserves '-' as literal '-' without list continuation", () => {
+  it("handleTextModeEnter continues normal '-' list when typing list items", () => {
     const state = EditorState.create({
-      doc: "-",
-      selection: { anchor: 1 },
+      doc: "- my task",
+      selection: { anchor: 9 },
+    });
+    let inserted = "";
+    const view = {
+      state,
+      dispatch: (tr: { changes: { insert: string } }) => {
+        inserted = tr.changes.insert;
+      },
+    } as unknown as EditorView;
+
+    const handled = handleTextModeEnter(view);
+    expect(handled).toBe(true);
+    expect(inserted).toBe("\n- ");
+  });
+
+  it("handleTextModeEnter clears empty '-' on enter", () => {
+    const state = EditorState.create({
+      doc: "- ",
+      selection: { anchor: 2 },
+    });
+    let inserted = "init";
+    const view = {
+      state,
+      dispatch: (tr: { changes: { insert: string } }) => {
+        inserted = tr.changes.insert;
+      },
+    } as unknown as EditorView;
+
+    const handled = handleTextModeEnter(view);
+    expect(handled).toBe(true);
+    expect(inserted).toBe("");
+  });
+
+  it("handleTextModeEnter inserts standard newline for regular text", () => {
+    const state = EditorState.create({
+      doc: "plain text line",
+      selection: { anchor: 15 },
     });
     let inserted = "";
     const view = {
@@ -99,26 +136,46 @@ describe("editorExtensions Note vs Text mode Enter Suite", () => {
     expect(inserted).toBe("\n");
   });
 
-  it("creates different extension sets for note and text mode", () => {
+  it("creates different extension sets for note and text mode, both hiding frontmatter", () => {
     const noteExts = createMobileEditorExtensions([], "note");
     const textExts = createMobileEditorExtensions([], "text");
     expect(noteExts.length).toBeGreaterThan(textExts.length);
   });
 });
 
-describe("EditorHeader Note/Text Mode Switcher", () => {
-  it("renders note and text header element and accepts mode callbacks", () => {
-    const onToggleMode = vi.fn();
+describe("EditorHeader and NoteActionSheet Suite", () => {
+  it("renders EditorHeader with more options on left and without topbar mode pill", () => {
+    const onOpenActions = vi.fn();
     const element = (
       <EditorHeader
         mode="note"
         onBack={vi.fn()}
-        onToggleMode={onToggleMode}
+        onOpenActions={onOpenActions}
       />
     );
 
     expect(element).toBeDefined();
     expect(element.props.mode).toBe("note");
-    expect(element.props.onToggleMode).toBe(onToggleMode);
+    expect(element.props.onOpenActions).toBe(onOpenActions);
+  });
+
+  it("renders NoteActionSheet with white background and working mode actions", () => {
+    const onSelectMode = vi.fn();
+    const onClose = vi.fn();
+    const onOpenSettings = vi.fn();
+
+    const element = (
+      <NoteActionSheet
+        visible={true}
+        onClose={onClose}
+        editorMode="note"
+        onSelectMode={onSelectMode}
+        onOpenSettings={onOpenSettings}
+      />
+    );
+
+    expect(element).toBeDefined();
+    expect(element.props.visible).toBe(true);
+    expect(element.props.editorMode).toBe("note");
   });
 });

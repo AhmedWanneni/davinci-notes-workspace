@@ -111,6 +111,7 @@ The user has explicitly customized these design behaviors. All future AI agents 
     2. **ADR Links**: Clickable markdown links to any relevant Architecture Decision Records in `docs/adr/` (e.g. `[ADR-0116](docs/adr/0116-sync-via-drive-syncthing-no-owned-backend.md)`).
     3. **Commits Breakdown**: Clear breakdown of the commits included in the PR.
     4. **Checklist**: Completed Before Merging Checklist.
+- **Uncommitted Changes Preflight Check**: When you find uncommitted files or unstaged changes (`git status` is not clean) before starting work, DO NOT start working immediately. First, ask the user to commit them and provide a suggested commit message. Only proceed after they are committed.
 
 ## Expo Component First Rule (Mandatory for Mobile Development)
 

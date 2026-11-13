@@ -2,6 +2,29 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-13: Editor Properties Hiding, Left More Options, Clean White ActionSheet & Preflight Uncommitted Check
+
+- **Hidden Frontmatter Properties in Editor (`editorExtensions.ts`, `packages/editor/index.ts`)**:
+  - Registered `frontmatterHideExtension` in `createMobileEditorExtensions` so YAML frontmatter properties (`--- ... ---`) are never rendered in the editor and cursor selection never gets trapped inside them.
+- **Top Bar Clean-up & More Options at Left (`EditorHeader.tsx`)**:
+  - Removed `[ Note ] [ Text ]` toggle pill from the top bar.
+  - Defaults to `note` mode.
+  - Moved `...` more options button to the left side of the top bar (next to the sidebar navigation button), allowing users to access options and switch mode directly from the left.
+- **Text Mode Normal List Continuation (`editorExtensions.ts`)**:
+  - In Text mode, bullet points are rendered as normal literal `-` lists (never circle bullet points).
+  - Pressing Enter on `- item` continues with `\n- ` (normal `-` list), and pressing Enter on empty `- ` exits the list.
+- **Clean White Action Sheet (`NoteActionSheet.tsx`, `Sheet.tsx`)**:
+  - Sheet and groups now have a clean white background (`#ffffff`) with `#111827` text and `#e5e7eb` borders.
+  - Removed all dead/unimplemented stubs (Backlinks, Pin, Move, Bookmark, Merge, Add property).
+  - Keeps only functional actions: Note mode, Text mode, Settings, Close (and Outline/Rename/Delete when provided).
+- **Mandatory Uncommitted Changes Preflight Rule (`.agents/rules/git-workflow.md`, `AGENTS.md`, `GEMINI.md`)**:
+  - Added standing rule: when uncommitted files exist before starting work on a task, the agent must NOT start working immediately; it must ask the user to commit them first with a suggested commit message.
+- **Standards & Verification**:
+  - All files strictly under 250 lines (`EditorHeader.tsx` 114, `NoteActionSheet.tsx` 175, `editorExtensions.ts` 190, `Sheet.tsx` 127).
+  - `pnpm --filter @app/mobile typecheck` & `pnpm --filter @app/editor typecheck` passed with 0 errors.
+  - 14 unit tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
+  - Knowledge graph updated cleanly with `graphify update .`.
+
 ### 2026-11-13: Note Mode vs Text Mode & Frontmatter File Properties
 
 - **Replaced Preview vs Edit with Note Mode vs Text Mode**:

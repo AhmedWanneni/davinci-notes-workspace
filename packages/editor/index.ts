@@ -153,6 +153,7 @@ export {
   reminderExtension,
   ReminderWidget,
   formatReminderChip,
+  frontmatterHideExtension,
 } from "./live-preview";
 export type {
   ReminderExtensionOptions,

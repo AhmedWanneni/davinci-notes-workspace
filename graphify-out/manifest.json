@@ -5522,8 +5522,8 @@
     "semantic_hash": "e1092693b52584ee1aa340f49a5cbcb3"
   },
   "apps/mobile/app/editor.tsx": {
-    "mtime": 1794588894.9668686,
-    "seen": 1794589084.0665321,
+    "mtime": 1794589129.6904414,
+    "seen": 1794589941.4993799,
     "ast_hash": "b3a2275e3ca884bce1b9a1710d2595c7",
     "semantic_hash": ""
   },
@@ -5648,15 +5648,15 @@
     "semantic_hash": "2d907355e0a91aa609f3a293ba5dd558"
   },
   "apps/mobile/components/EditorDom.tsx": {
-    "mtime": 1794588708.123372,
-    "seen": 1794589084.06756,
+    "mtime": 1794589129.6907146,
+    "seen": 1794589941.500594,
     "ast_hash": "a0b424cba1e0c738802cfbf5dba943f3",
     "semantic_hash": ""
   },
   "apps/mobile/components/EditorHeader.tsx": {
-    "mtime": 1794589000.5890477,
-    "seen": 1794589084.067564,
-    "ast_hash": "2d5f364bc803857f7a58e4c67bafe097",
+    "mtime": 1794589785.0840993,
+    "seen": 1794589941.500643,
+    "ast_hash": "55ad52bacedb9fea63181c85b315e4b3",
     "semantic_hash": ""
   },
   "apps/mobile/components/EditorPreviewView.tsx": {
@@ -5696,9 +5696,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/editorExtensions.ts": {
-    "mtime": 1794588560.3353229,
-    "seen": 1794589084.0677881,
-    "ast_hash": "f074eb17502e9b8a4e9351f4c4c24e91",
+    "mtime": 1794589761.40079,
+    "seen": 1794589941.5010839,
+    "ast_hash": "da3ce654fce779a9b9fc20b02d741cd0",
     "semantic_hash": ""
   },
   "apps/mobile/components/editorInjectedScript.ts": {
@@ -5768,10 +5768,10 @@
     "semantic_hash": "2544908d0f9fca173f0941a4235a6d26"
   },
   "apps/mobile/components/primitives/Sheet.tsx": {
-    "mtime": 1794483843.7142353,
-    "seen": 1794497366.7615201,
-    "ast_hash": "ba2b9e81b9e7289fee5e23e4e4985153",
-    "semantic_hash": "ba2b9e81b9e7289fee5e23e4e4985153"
+    "mtime": 1794589814.74523,
+    "seen": 1794589941.501651,
+    "ast_hash": "71e7ea3708b00724af7b6c3bc91c777d",
+    "semantic_hash": ""
   },
   "apps/mobile/components/primitives/Text.tsx": {
     "mtime": 1794582147.0027509,
@@ -5864,9 +5864,9 @@
     "semantic_hash": "f153357a363989e1b7d31e7719799a49"
   },
   "apps/mobile/components/shell/NoteActionSheet.tsx": {
-    "mtime": 1794588779.4293287,
-    "seen": 1794589084.068981,
-    "ast_hash": "902eff65ee4d34cfe8610c9fe1aeb4f2",
+    "mtime": 1794589839.3896844,
+    "seen": 1794589941.5024462,
+    "ast_hash": "f2db52c45ec93b60c745139f50e1ec92",
     "semantic_hash": ""
   },
   "apps/mobile/components/shell/QuickActionBar.tsx": {
@@ -6873,8 +6873,8 @@
     "semantic_hash": "a228b3c6e4709e1a7332b8955a3ebcd0"
   },
   "apps/mobile/vault/index.ts": {
-    "mtime": 1794588505.9556735,
-    "seen": 1794589084.0781162,
+    "mtime": 1794589129.6917052,
+    "seen": 1794589941.5136042,
     "ast_hash": "907b1e28286f9973016352739ad697a2",
     "semantic_hash": ""
   },
@@ -10842,9 +10842,9 @@
     "semantic_hash": "47fd31d2de5c64776d1ad537dc4a49b8"
   },
   "packages/editor/index.ts": {
-    "mtime": 1794588537.9427848,
-    "seen": 1794589084.115365,
-    "ast_hash": "fd1383856792f76662dfc924037b31f2",
+    "mtime": 1794589725.6196058,
+    "seen": 1794589941.5505369,
+    "ast_hash": "c1287b705174ab2927f7abbfdfbed444",
     "semantic_hash": ""
   },
   "packages/editor/insert/DiagramInsertion.test.ts": {
@@ -11100,8 +11100,8 @@
     "semantic_hash": ""
   },
   "packages/editor/live-preview/listExtension.ts": {
-    "mtime": 1794588527.5681407,
-    "seen": 1794589084.117768,
+    "mtime": 1794589129.809683,
+    "seen": 1794589941.553028,
     "ast_hash": "8f50681682eff0c5e638925cf6909e25",
     "semantic_hash": ""
   },
@@ -13169,9 +13169,9 @@
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1794582146.9917867,
-    "seen": 1794589084.136297,
-    "ast_hash": "4bd1e4e3df23b7f2c982864c1cf3485a",
+    "mtime": 1794589703.485624,
+    "seen": 1794589941.5709481,
+    "ast_hash": "f2ea1d1a27b4bb7880eacc66dc021ec6",
     "semantic_hash": ""
   },
   "CONTRIBUTING.md": {
@@ -13187,9 +13187,9 @@
     "semantic_hash": ""
   },
   "GEMINI.md": {
-    "mtime": 1794582146.9919631,
-    "seen": 1794589084.136378,
-    "ast_hash": "914a4a2f8845d9646d4f794ad94faf0f",
+    "mtime": 1794589711.94555,
+    "seen": 1794589941.571029,
+    "ast_hash": "0dd43f71ddf9cf4293280168ced49c32",
     "semantic_hash": ""
   },
   "LICENSES.md": {
@@ -13205,9 +13205,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1794582146.9971514,
-    "seen": 1794589084.1364632,
-    "ast_hash": "801398fa00bcfc1d0233e4a00211e457",
+    "mtime": 1794589129.6901035,
+    "seen": 1794589941.571108,
+    "ast_hash": "a23e114cb54edcd75d93c565b85da671",
     "semantic_hash": ""
   },
   "README.md": {
@@ -13283,9 +13283,9 @@
     "semantic_hash": ""
   },
   "docs/HISTORY.md": {
-    "mtime": 1794582147.021551,
-    "seen": 1794589084.137025,
-    "ast_hash": "b7148dfefa0e6283ebfeada23f2566e9",
+    "mtime": 1794589129.6959503,
+    "seen": 1794589941.5717068,
+    "ast_hash": "d0da5b2e212441bc3a0055aa38469306",
     "semantic_hash": ""
   },
   "docs/README.md": {
@@ -15743,9 +15743,9 @@
     "semantic_hash": ""
   },
   ".agents/rules/git-workflow.md": {
-    "mtime": 1794483843.1849995,
-    "seen": 1794497366.7631319,
-    "ast_hash": "74c9b6ef6a0a805ffc7165901822edb3",
+    "mtime": 1794589687.2033088,
+    "seen": 1794589941.5688698,
+    "ast_hash": "251fdbf34652252fb8c11aeac9656efc",
     "semantic_hash": ""
   },
   ".agents/workflows/create-release.md": {
@@ -19061,14 +19061,14 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/notePropertiesAndMode.test.tsx": {
-    "mtime": 1794588949.0957534,
-    "seen": 1794589084.076787,
-    "ast_hash": "a6c4d4a5c1acc827c364ef7d00296e7f",
+    "mtime": 1794589868.7140167,
+    "seen": 1794589941.512068,
+    "ast_hash": "6269478b46f535199ce8a35bc80d937f",
     "semantic_hash": ""
   },
   "apps/mobile/vault/noteProperties.ts": {
-    "mtime": 1794588492.2450175,
-    "seen": 1794589084.078121,
+    "mtime": 1794589129.691847,
+    "seen": 1794589941.5137012,
     "ast_hash": "2989f3ce34535da180ecfbea8039cdbf",
     "semantic_hash": ""
   },

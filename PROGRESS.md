@@ -2,27 +2,33 @@
 
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
-## Last Session — Note Mode vs Text Mode & Frontmatter File Properties
+## Last Session — Editor Properties Hiding, Left More Options, Clean White ActionSheet & Preflight Uncommitted Check
 
-1. **Replaced Preview vs Edit with Note Mode vs Text Mode (`editor.tsx`, `EditorHeader.tsx`, `NoteActionSheet.tsx`)**:
-   - Replaced preview/reading view with distinct `Note` and `Text` modes for note editing.
-   - Replaced the reading view icon in the mobile editor header with a clean, segmented `[ Note ] [ Text ]` mode switcher pill.
-   - Added `Note mode` and `Text mode` action rows in `NoteActionSheet.tsx`.
+1. **Hidden Frontmatter Properties in Editor (`editorExtensions.ts`, `packages/editor/index.ts`)**:
+   - Re-exported `frontmatterHideExtension` in `@app/editor` and registered it in `createMobileEditorExtensions`.
+   - YAML frontmatter properties (`--- ... ---`) are never rendered in the editor and cursor selection never gets trapped inside them.
 
-2. **Note Mode vs Text Mode CodeMirror Behavior (`editorExtensions.ts`, `EditorDom.tsx`, `listExtension.ts`)**:
-   - In **Note mode**: typing `-` (or `- `) followed by Enter continues/creates a bullet list item (`\n- `) and renders bullet widgets with live preview decorations.
-   - In **Text mode**: plain text editing ("more than text when - keep it -"): typing `-` followed by Enter preserves `-` as a literal `-` with standard newline `\n` without inserting or continuing a bullet list. Omits bullet widgets and list indentation keymaps.
-   - Added `handleNoteModeEnter` and `handleTextModeEnter` with `createMobileEditorExtensions(..., editorMode)`.
+2. **Top Bar Clean-up & More Options at Left (`EditorHeader.tsx`)**:
+   - Removed the `[ Note ] [ Text ]` toggle pill from the top bar.
+   - Default note mode is `note`.
+   - Moved the `...` more options button to the left side of the top bar (next to the sidebar navigation button), allowing users to access options and switch mode directly from the left.
 
-3. **Frontmatter File Properties (`noteProperties.ts`, `vault/index.ts`)**:
-   - Created `noteProperties.ts` providing `getNoteMode(content)` and `setNoteModeInContent(content, mode)`.
-   - Each note persists its mode (`type: note` or `type: text` / `mode: note` or `mode: text`) directly in YAML frontmatter properties.
-   - Toggling mode dynamically updates frontmatter, saves to disk, and reloads the editor extensions seamlessly.
+3. **Text Mode Normal List Continuation (`editorExtensions.ts`)**:
+   - In Text mode, bullet points are rendered as normal literal `-` lists (never circle bullet points).
+   - Pressing Enter on a `- item` continues with `\n- ` (normal `-` list), and pressing Enter on an empty `- ` exits the list.
 
-4. **Standards & Verification**:
-   - All files strictly under the 250-line hard cap (`EditorDom.tsx` 238, `editor.tsx` 244, `EditorHeader.tsx` 168, `NoteActionSheet.tsx` 231, `noteProperties.ts` 43).
-   - `pnpm --filter @app/mobile typecheck` and `pnpm --filter @app/editor typecheck` passed with 0 errors.
-   - Unit tests created in `tests/notePropertiesAndMode.test.tsx` (11 tests passed), all related tests passing.
+4. **Clean White Action Sheet (`NoteActionSheet.tsx`, `Sheet.tsx`)**:
+   - Sheet and groups now have a clean white background (`#ffffff`) with `#111827` text and `#e5e7eb` borders.
+   - Removed all dead/unimplemented stubs (Backlinks, Pin, Move, Bookmark, Merge, Add property).
+   - Keeps only functional actions: Note mode, Text mode, Settings, Close (and Outline/Rename/Delete when provided).
+
+5. **Mandatory Uncommitted Changes Preflight Rule (`.agents/rules/git-workflow.md`, `AGENTS.md`, `GEMINI.md`)**:
+   - Added standing rule: when uncommitted files exist before starting work on a task, the agent must NOT start working immediately; it must ask the user to commit them first with a suggested commit message.
+
+6. **Standards & Verification**:
+   - All files strictly under 250 lines (`EditorHeader.tsx` 114, `NoteActionSheet.tsx` 175, `editorExtensions.ts` 190, `Sheet.tsx` 127).
+   - `pnpm --filter @app/mobile typecheck` & `pnpm --filter @app/editor typecheck` passed with 0 errors.
+   - 14 unit tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
 
 ## Next Up
