@@ -28,26 +28,33 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Vitest suites: 14 tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
 
-## Last Session — 7-Day Circular Calendar Week Selector in RemindersHubView
+## Last Session — 7-Day Calendar Week Bar in Todo Page & Bottom Search in Todos Sidebar
 
-1. **7-Day Circular Calendar Week Bar (`RemindersHubView.tsx`)**:
-   - Replaced lines 39–67 in `apps/mobile/components/todos/RemindersHubView.tsx` with the 7-day horizontal calendar week bar matching the user's reference image:
-     - Top row: Day abbreviation (`Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`, `Sun`).
-       - Selected day: Bold (`font-weight: 700`) with accent/normal text color.
-       - Unselected days: Muted text color (`tokens.color.text.muted`).
-     - Bottom row: Circular day number badges (`44x44`, `borderRadius: 22`):
-       - Selected day: Filled circle (`tokens.color.interactive.accent`, dark/black in light mode) with white text (`tokens.color.text["on-accent"]`).
-       - Unselected days: Clean light circle (`tokens.color.bg.primary`) with hairline perimeter border (`tokens.color.border.subtle`) and dark number text (`tokens.color.text.normal`).
-   - Added interactive date selection (`selectedDate`):
-     - Selecting a day filters the reminders list below to that date.
-     - Tapping the selected day toggles the filter to view all reminders.
-     - Seamlessly integrates with the project category chips directly beneath it.
-   - Strictly preserved all other components and functionality in `RemindersHubView.tsx` ("don't edit anything else").
+1. **Shared 7-Day Circular Calendar Week Bar (`CalendarWeekStrip.tsx`, `TodoListView.tsx`, `RemindersHubView.tsx`)**:
+   - Extracted `CalendarWeekStrip.tsx` into a reusable component shared across both Reminders and Todos tabs.
+   - Added `CalendarWeekStrip` to the Todos page (`apps/mobile/app/todos.tsx` / `TodoListView.tsx`), giving both Reminders & Events and Todos & Projects the exact same 7-day circular calendar strip.
+   - Preserves active day selection (`tokens.color.interactive.accent`, dark/black with white text) and interactive date filtering across todo tasks.
+   - Extracted `TodoListView.tsx` to maintain single responsibility and keep `todos.tsx` under cap.
 
-2. **Standards & Verification**:
-   - Strictly under hard cap of 250 lines (`RemindersHubView.tsx` is 242 lines).
-   - `pnpm exec eslint apps/mobile/components/todos/RemindersHubView.tsx`: 0 errors, 0 warnings (no raw hex colors, valid token spacing).
-   - `pnpm --filter @app/mobile typecheck`: 0 errors.
+2. **Search Moved to Bottom of Sidebar (`TodosSidebar.tsx`, `SidebarProjectItem.tsx`)**:
+   - Removed the search input from the top bar of the todo page.
+   - Moved search into `TodosSidebar.tsx`, anchored at the bottom with a hairline divider.
+   - Uses the design-system `Input` primitive with `MagnifyingGlass` prefix icon and clear button.
+   - Dynamically filters projects and todo lists in the sidebar as the user types.
+   - Extracted `SidebarProjectItem.tsx` to keep `TodosSidebar.tsx` clean and under the line cap.
+
+3. **Standards & Verification**:
+   - All files strictly under 250 lines:
+     - `CalendarWeekStrip.tsx`: 87 lines
+     - `SidebarProjectItem.tsx`: 111 lines
+     - `TodoListView.tsx`: 151 lines
+     - `RemindersHubView.tsx`: 182 lines
+     - `TodosSidebar.tsx`: 215 lines
+     - `apps/mobile/app/todos.tsx`: 246 lines
+   - ESLint: 0 errors, 0 warnings across all modified components.
+   - TypeScript: `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - Tests: All 18 tests passing across `isolatedReminders.test.tsx`, `mobileTodosHub.test.tsx`, and `mobileTodoView.test.tsx`.
+   - Knowledge graph updated cleanly with `graphify update .`.
    - Vitest: All tests passing (`tests/isolatedReminders.test.tsx`).
    - Knowledge graph updated with `graphify update .`.
 
@@ -57,26 +64,33 @@ Updated at the end of every session. Read this first, before touching code. Full
    - 14 unit tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
 
-## Last Session — 7-Day Circular Calendar Week Selector in RemindersHubView
+## Last Session — 7-Day Calendar Week Bar in Todo Page & Bottom Search in Todos Sidebar
 
-1. **7-Day Circular Calendar Week Bar (`RemindersHubView.tsx`)**:
-   - Replaced lines 39–67 in `apps/mobile/components/todos/RemindersHubView.tsx` with the 7-day horizontal calendar week bar matching the user's reference image:
-     - Top row: Day abbreviation (`Mon`, `Tue`, `Wed`, `Thu`, `Fri`, `Sat`, `Sun`).
-       - Selected day: Bold (`font-weight: 700`) with accent/normal text color.
-       - Unselected days: Muted text color (`tokens.color.text.muted`).
-     - Bottom row: Circular day number badges (`44x44`, `borderRadius: 22`):
-       - Selected day: Filled circle (`tokens.color.interactive.accent`, dark/black in light mode) with white text (`tokens.color.text["on-accent"]`).
-       - Unselected days: Clean light circle (`tokens.color.bg.primary`) with hairline perimeter border (`tokens.color.border.subtle`) and dark number text (`tokens.color.text.normal`).
-   - Added interactive date selection (`selectedDate`):
-     - Selecting a day filters the reminders list below to that date.
-     - Tapping the selected day toggles the filter to view all reminders.
-     - Seamlessly integrates with the project category chips directly beneath it.
-   - Strictly preserved all other components and functionality in `RemindersHubView.tsx` ("don't edit anything else").
+1. **Shared 7-Day Circular Calendar Week Bar (`CalendarWeekStrip.tsx`, `TodoListView.tsx`, `RemindersHubView.tsx`)**:
+   - Extracted `CalendarWeekStrip.tsx` into a reusable component shared across both Reminders and Todos tabs.
+   - Added `CalendarWeekStrip` to the Todos page (`apps/mobile/app/todos.tsx` / `TodoListView.tsx`), giving both Reminders & Events and Todos & Projects the exact same 7-day circular calendar strip.
+   - Preserves active day selection (`tokens.color.interactive.accent`, dark/black with white text) and interactive date filtering across todo tasks.
+   - Extracted `TodoListView.tsx` to maintain single responsibility and keep `todos.tsx` under cap.
 
-2. **Standards & Verification**:
-   - Strictly under hard cap of 250 lines (`RemindersHubView.tsx` is 242 lines).
-   - `pnpm exec eslint apps/mobile/components/todos/RemindersHubView.tsx`: 0 errors, 0 warnings (no raw hex colors, valid token spacing).
-   - `pnpm --filter @app/mobile typecheck`: 0 errors.
+2. **Search Moved to Bottom of Sidebar (`TodosSidebar.tsx`, `SidebarProjectItem.tsx`)**:
+   - Removed the search input from the top bar of the todo page.
+   - Moved search into `TodosSidebar.tsx`, anchored at the bottom with a hairline divider.
+   - Uses the design-system `Input` primitive with `MagnifyingGlass` prefix icon and clear button.
+   - Dynamically filters projects and todo lists in the sidebar as the user types.
+   - Extracted `SidebarProjectItem.tsx` to keep `TodosSidebar.tsx` clean and under the line cap.
+
+3. **Standards & Verification**:
+   - All files strictly under 250 lines:
+     - `CalendarWeekStrip.tsx`: 87 lines
+     - `SidebarProjectItem.tsx`: 111 lines
+     - `TodoListView.tsx`: 151 lines
+     - `RemindersHubView.tsx`: 182 lines
+     - `TodosSidebar.tsx`: 215 lines
+     - `apps/mobile/app/todos.tsx`: 246 lines
+   - ESLint: 0 errors, 0 warnings across all modified components.
+   - TypeScript: `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - Tests: All 18 tests passing across `isolatedReminders.test.tsx`, `mobileTodosHub.test.tsx`, and `mobileTodoView.test.tsx`.
+   - Knowledge graph updated cleanly with `graphify update .`.
    - Vitest: All tests passing (`tests/isolatedReminders.test.tsx`).
    - Knowledge graph updated with `graphify update .`.
 

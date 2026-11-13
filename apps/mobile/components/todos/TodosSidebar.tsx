@@ -1,10 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Modal, Pressable, ScrollView, Alert } from "react-native";
-import { X, FolderSimplePlus, Folder, CheckSquare, CaretDown, CaretRight, Plus, FileText, Bell } from "phosphor-react-native";
+import {
+  X,
+  FolderSimplePlus,
+  CheckSquare,
+  MagnifyingGlass,
+} from "phosphor-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../theme";
-import { Text } from "../primitives";
-import type { MobileTodoProject, MobileTodoList } from "./types";
+import { Text, Input } from "../primitives";
+import { SidebarProjectItem } from "./SidebarProjectItem";
+import type { MobileTodoProject } from "./types";
 
 export interface TodosSidebarProps {
   visible: boolean;
@@ -17,6 +23,8 @@ export interface TodosSidebarProps {
   onDeleteProject?: (projectName: string) => void;
   onDeleteTodoList?: (notePath: string) => void;
   onSelectReminders?: () => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 }
 
 export function TodosSidebar({
@@ -29,27 +37,66 @@ export function TodosSidebar({
   onAddTodoList,
   onDeleteProject,
   onDeleteTodoList,
-  onSelectReminders,
+  searchQuery,
+  onSearchQueryChange,
 }: TodosSidebarProps): React.ReactElement {
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({ daily: true });
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({
+    daily: true,
+  });
+  const [localQuery, setLocalQuery] = useState("");
+
+  const query = searchQuery !== undefined ? searchQuery : localQuery;
+  const setQuery = onSearchQueryChange ?? setLocalQuery;
+
+  const filteredProjects = useMemo(() => {
+    if (!query.trim()) return projects;
+    const q = query.toLowerCase();
+    return projects
+      .map((proj) => {
+        const projMatches = proj.name.toLowerCase().includes(q);
+        const matchingLists = proj.todoLists.filter((l) =>
+          l.name.toLowerCase().includes(q),
+        );
+        if (projMatches) return proj;
+        if (matchingLists.length > 0)
+          return { ...proj, todoLists: matchingLists };
+        return null;
+      })
+      .filter((p): p is MobileTodoProject => p !== null);
+  }, [projects, query]);
 
   const confirmDeleteProject = (projectName: string) => {
     if (projectName.toLowerCase() === "daily") {
-      Alert.alert("Daily Project", "The default Daily project cannot be removed.");
+      Alert.alert(
+        "Daily Project",
+        "The default Daily project cannot be removed.",
+      );
       return;
     }
-    Alert.alert("Delete Project", `Delete "${projectName}" and all its todo lists?`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => onDeleteProject?.(projectName) },
-    ]);
+    Alert.alert(
+      "Delete Project",
+      `Delete "${projectName}" and all its todo lists?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDeleteProject?.(projectName),
+        },
+      ],
+    );
   };
 
   const confirmDeleteTodoList = (listName: string, notePath: string) => {
     Alert.alert("Delete Todo List", `Delete "${listName}"?`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => onDeleteTodoList?.(notePath) },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => onDeleteTodoList?.(notePath),
+      },
     ]);
   };
 
@@ -66,102 +113,102 @@ export function TodosSidebar({
         }}
       >
         {/* Header */}
-        <View className="flex-row items-center justify-between px-4 pb-3 border-b" style={{ borderBottomColor: tokens.color.border.subtle }}>
+        <View
+          className="flex-row items-center justify-between px-4 pb-3 border-b"
+          style={{ borderBottomColor: tokens.color.border.subtle }}
+        >
           <View className="flex-row items-center gap-2">
-            <CheckSquare size={22} color="#000000" weight="bold" />
-            <Text style={{ fontSize: 19, fontWeight: "700", color: tokens.color.text.normal }}>Projects & Todos</Text>
+            <CheckSquare
+              size={22}
+              color={tokens.color.text.normal}
+              weight="bold"
+            />
+            <Text
+              style={{
+                fontSize: 19,
+                fontWeight: "700",
+                color: tokens.color.text.normal,
+              }}
+            >
+              Projects & Todos
+            </Text>
           </View>
           <View className="flex-row items-center gap-1.5">
             <Pressable
-              onPress={() => { onClose(); onAddProject(); }}
+              onPress={() => {
+                onClose();
+                onAddProject();
+              }}
               accessibilityRole="button"
               accessibilityLabel="Add project folder"
               className="p-1.5 active:opacity-60"
             >
-              <FolderSimplePlus size={22} color="#000000" />
+              <FolderSimplePlus size={22} color={tokens.color.text.normal} />
             </Pressable>
-            <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close page" className="p-1.5 active:opacity-60">
-              <X size={22} color="#000000" />
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close page"
+              className="p-1.5 active:opacity-60"
+            >
+              <X size={22} color={tokens.color.text.normal} />
             </Pressable>
           </View>
         </View>
 
-          {/* Projects and their Todo Lists */}
-          <ScrollView className="flex-1 px-2 pt-2" showsVerticalScrollIndicator={false}>
-            {projects.map((proj) => {
-              const isExp = expanded[proj.id] ?? true;
-              return (
-                <View key={proj.id} className="mb-2">
-                  {/* Project Header Row (Transparent, hold to delete) */}
-                  <View className="flex-row items-center justify-between px-3 py-2.5 rounded-lg" style={{ backgroundColor: "transparent" }}>
-                    <Pressable
-                      className="flex-1 flex-row items-center gap-2.5 active:opacity-60"
-                      onPress={() => setExpanded((prev) => ({ ...prev, [proj.id]: !isExp }))}
-                      onLongPress={() => confirmDeleteProject(proj.name)}
-                    >
-                      <Folder size={19} color="#000000" weight="fill" />
-                      <Text style={{ fontSize: 16, fontWeight: "700", color: tokens.color.text.normal }}>
-                        {proj.name}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: tokens.color.text.muted }}>
-                        ({proj.todoLists.length})
-                      </Text>
-                    </Pressable>
+        {/* Projects and their Todo Lists */}
+        <ScrollView
+          className="flex-1 px-2 pt-2"
+          showsVerticalScrollIndicator={false}
+        >
+          {filteredProjects.map((proj) => (
+            <SidebarProjectItem
+              key={proj.id}
+              proj={proj}
+              isExpanded={expanded[proj.id] ?? true}
+              onToggleExpand={() =>
+                setExpanded((prev) => ({
+                  ...prev,
+                  [proj.id]: !(prev[proj.id] ?? true),
+                }))
+              }
+              onDeleteProject={confirmDeleteProject}
+              onAddTodoList={(pName) => {
+                onClose();
+                onAddTodoList(pName);
+              }}
+              openedTodoPath={openedTodoPath}
+              onSelectTodoList={(path) => {
+                onSelectTodoList(path);
+                onClose();
+              }}
+              onDeleteTodoList={confirmDeleteTodoList}
+            />
+          ))}
+        </ScrollView>
 
-                    <View className="flex-row items-center gap-1.5">
-                      <Pressable
-                        onPress={() => { onClose(); onAddTodoList(proj.name); }}
-                        accessibilityRole="button"
-                        accessibilityLabel={`New todo list in ${proj.name}`}
-                        className="p-1.5 active:opacity-60"
-                      >
-                        <Plus size={18} color="#000000" />
-                      </Pressable>
-                    </View>
-                  </View>
-
-                  {/* Todo Lists under this Project */}
-                  {isExp && proj.todoLists.length > 0 ? (
-                    <View className="pl-4 pr-1 pt-1">
-                      {proj.todoLists.map((list: MobileTodoList) => {
-                        const isOpened = openedTodoPath === list.notePath;
-                        return (
-                          <Pressable
-                            key={list.id}
-                            onPress={() => {
-                              onSelectTodoList(list.notePath);
-                              onClose();
-                            }}
-                            onLongPress={() => confirmDeleteTodoList(list.name, list.notePath)}
-                            className="py-2.5 px-3 flex-row items-center justify-between rounded-lg mb-1 active:opacity-60"
-                            style={{ backgroundColor: isOpened ? tokens.color.bg.secondary : "transparent" }}
-                          >
-                            <View className="flex-row items-center gap-2.5 flex-1">
-                              <FileText size={18} color="#000000" />
-                              <Text
-                                numberOfLines={1}
-                                style={{
-                                  fontSize: 15,
-                                  fontWeight: isOpened ? "700" : "500",
-                                  color: isOpened ? tokens.color.text.normal : tokens.color.text.muted,
-                                  flex: 1,
-                                }}
-                              >
-                                {list.name}
-                              </Text>
-                            </View>
-                            <Text style={{ fontSize: 13, color: tokens.color.text.muted }}>
-                              {list.todoCount}
-                            </Text>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
-                  ) : null}
-                </View>
-              );
-            })}
-          </ScrollView>
+        {/* Bottom Search Bar */}
+        <View
+          className="px-3 pt-2.5 border-t"
+          style={{ borderTopColor: tokens.color.border.subtle }}
+        >
+          <Input
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search todos & projects..."
+            placeholderTextColor={tokens.color.text.muted}
+            prefix={
+              <MagnifyingGlass size={18} color={tokens.color.text.muted} />
+            }
+            suffix={
+              query.length > 0 ? (
+                <Pressable onPress={() => setQuery("")} className="p-1">
+                  <X size={16} color={tokens.color.text.muted} weight="bold" />
+                </Pressable>
+              ) : null
+            }
+          />
+        </View>
       </View>
     </Modal>
   );
