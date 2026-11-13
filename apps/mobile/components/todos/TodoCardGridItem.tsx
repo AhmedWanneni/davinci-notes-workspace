@@ -28,6 +28,8 @@ export function TodoCardGridItem({
       className="flex-1 m-1.5 p-3.5 rounded-2xl active:opacity-80"
       style={{
         backgroundColor: tokens.color.bg.primary,
+        borderWidth: 1,
+        borderColor: tokens.color.border.subtle,
         minHeight: 180,
       }}
     >
@@ -83,8 +85,13 @@ export function TodoCardGridItem({
         style={{ backgroundColor: tokens.color.bg.secondary }}
       >
         <View
-          className="w-full bg-white rounded-lg p-2.5"
-          style={{ minHeight: 85 }}
+          className="w-full rounded-lg p-2.5"
+          style={{
+            backgroundColor: tokens.color.bg.primary,
+            borderWidth: 1,
+            borderColor: tokens.color.border.subtle,
+            minHeight: 85,
+          }}
         >
           {/* Top miniature header with check indicator */}
           <View className="flex-row items-center justify-between mb-2">

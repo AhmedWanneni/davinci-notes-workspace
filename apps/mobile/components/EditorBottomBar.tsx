@@ -2,7 +2,7 @@ import React from "react";
 import { View, Pressable, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  CheckSquare,
+  SquaresFour,
   Plus,
   MagnifyingGlass,
   Bell,
@@ -21,6 +21,7 @@ export interface EditorBottomBarProps {
   tabCount?: number;
   onBack?: () => void;
   onForward?: () => void;
+  activeScreen?: "todo" | "notifications" | "search" | "tabs" | "menu" | "editor";
 }
 
 export function EditorBottomBar({
@@ -32,6 +33,7 @@ export function EditorBottomBar({
   onMenu,
   tabCount = 1,
   onBack,
+  activeScreen,
 }: EditorBottomBarProps): React.ReactElement {
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
@@ -56,10 +58,14 @@ export function EditorBottomBar({
         accessibilityLabel="Todos & Projects"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <CheckSquare
+        <SquaresFour
           size={22}
-          color={tokens.color.text.normal}
-          weight="regular"
+          color={
+            activeScreen === "todo"
+              ? tokens.color.interactive.accent
+              : tokens.color.text.normal
+          }
+          weight={activeScreen === "todo" ? "fill" : "regular"}
         />
       </Pressable>
 
@@ -94,7 +100,15 @@ export function EditorBottomBar({
         accessibilityLabel="Reminders and notifications"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <Bell size={22} color={tokens.color.text.normal} weight="regular" />
+        <Bell
+          size={22}
+          color={
+            activeScreen === "notifications"
+              ? tokens.color.interactive.accent
+              : tokens.color.text.normal
+          }
+          weight={activeScreen === "notifications" ? "fill" : "regular"}
+        />
       </Pressable>
 
       {/* 5. Tabs switcher [ 1 ] */}

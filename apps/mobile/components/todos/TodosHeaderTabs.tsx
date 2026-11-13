@@ -1,15 +1,11 @@
 import React from "react";
 import { View, Pressable } from "react-native";
-import {
-  SidebarSimple,
-  Calendar,
-  SquaresFour,
-  List as ListIcon,
-} from "phosphor-react-native";
+import { SidebarSimple, Calendar } from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
 
 export interface TodosHeaderTabsProps {
+  title?: string;
   activeTab?: "reminders" | "todos";
   onSelectTab?: (tab: "reminders" | "todos") => void;
   onOpenSidebar: () => void;
@@ -20,12 +16,9 @@ export interface TodosHeaderTabsProps {
 }
 
 export function TodosHeaderTabs({
-  activeTab: _activeTab,
-  onSelectTab: _onSelectTab,
+  title = "Todos",
   onOpenSidebar,
-  displayMode = "grid",
-  onChangeDisplayMode,
-  isCalendarVisible = true,
+  isCalendarVisible = false,
   onToggleCalendar,
 }: TodosHeaderTabsProps): React.ReactElement {
   const { tokens } = useTheme();
@@ -50,10 +43,10 @@ export function TodosHeaderTabs({
           color: tokens.color.text.normal,
         }}
       >
-        Calendar & Todos
+        {title}
       </Text>
 
-      {/* Right: Simple top icons for Calendar, Grid View, and List/Tree View */}
+      {/* Right: Calendar toggle button (no list icon) */}
       <View className="flex-row items-center gap-1.5">
         {onToggleCalendar ? (
           <Pressable
@@ -77,53 +70,9 @@ export function TodosHeaderTabs({
               weight={isCalendarVisible ? "fill" : "regular"}
             />
           </Pressable>
-        ) : null}
-
-        <Pressable
-          onPress={() => onChangeDisplayMode?.("grid")}
-          accessibilityRole="button"
-          accessibilityLabel="Grid view"
-          className="w-9 h-9 items-center justify-center rounded-lg active:opacity-60"
-          style={{
-            backgroundColor:
-              displayMode === "grid"
-                ? tokens.color.bg.secondary
-                : "transparent",
-          }}
-        >
-          <SquaresFour
-            size={20}
-            color={
-              displayMode === "grid"
-                ? tokens.color.interactive.accent
-                : tokens.color.text.muted
-            }
-            weight={displayMode === "grid" ? "fill" : "regular"}
-          />
-        </Pressable>
-
-        <Pressable
-          onPress={() => onChangeDisplayMode?.("list")}
-          accessibilityRole="button"
-          accessibilityLabel="List view"
-          className="w-9 h-9 items-center justify-center rounded-lg active:opacity-60"
-          style={{
-            backgroundColor:
-              displayMode === "list"
-                ? tokens.color.bg.secondary
-                : "transparent",
-          }}
-        >
-          <ListIcon
-            size={20}
-            color={
-              displayMode === "list"
-                ? tokens.color.interactive.accent
-                : tokens.color.text.muted
-            }
-            weight={displayMode === "list" ? "bold" : "regular"}
-          />
-        </Pressable>
+        ) : (
+          <View style={{ width: 36 }} />
+        )}
       </View>
     </View>
   );

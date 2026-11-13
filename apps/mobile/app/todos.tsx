@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { View } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../theme";
 import { EditorBottomBar } from "../components/EditorBottomBar";
@@ -21,6 +21,7 @@ const toIso = (d: Date): string =>
 
 export default function TodosScreen(): React.ReactElement {
   const router = useRouter();
+  const params = useLocalSearchParams<{ tab?: string }>();
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
 
@@ -44,15 +45,20 @@ export default function TodosScreen(): React.ReactElement {
   const [selectedDate, setSelectedDate] = useState<string | null>(() =>
     toIso(new Date()),
   );
-  const [activeTab, setActiveTab] = useState<"reminders" | "todos">("todos");
-  const [todoDisplayMode, setTodoDisplayMode] = useState<"list" | "grid">(
-    "grid",
+  const [activeTab, setActiveTab] = useState<"reminders" | "todos">(() =>
+    params.tab === "reminders" ? "reminders" : "todos",
   );
+  const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [addItemVisible, setAddItemVisible] = useState(false);
   const [addProjectVisible, setAddProjectVisible] = useState(false);
   const [addTodoListVisible, setAddTodoListVisible] = useState(false);
   const [projectForNewList, setProjectForNewList] = useState("Daily");
+
+  useEffect(() => {
+    if (params.tab === "reminders") setActiveTab("reminders");
+    else if (params.tab === "todos") setActiveTab("todos");
+  }, [params.tab]);
 
   const formattedDate = useMemo(
     () =>
@@ -131,15 +137,11 @@ export default function TodosScreen(): React.ReactElement {
         paddingTop: insets.top,
       }}
     >
-      {/* Top Header: Simple icons only, no tabs */}
       <TodosHeaderTabs
+        title={isRem ? "Reminders & Events" : "Todos"}
         onOpenSidebar={() => setSidebarVisible(true)}
-        displayMode={todoDisplayMode}
-        onChangeDisplayMode={setTodoDisplayMode}
-        isCalendarVisible={!isRem}
-        onToggleCalendar={() =>
-          setActiveTab((prev) => (prev === "reminders" ? "todos" : "reminders"))
-        }
+        isCalendarVisible={isCalendarVisible}
+        onToggleCalendar={() => setIsCalendarVisible((v) => !v)}
       />
 
       <View className="flex-1">
@@ -161,14 +163,14 @@ export default function TodosScreen(): React.ReactElement {
               setSelectedDate((prev) => (prev === iso ? null : iso))
             }
             onOpenAddItem={() => setAddItemVisible(true)}
-            displayMode={todoDisplayMode}
             taskDates={taskDates}
+            isCalendarVisible={isCalendarVisible}
           />
         )}
       </View>
 
-      {/* Editor Navigation Bar */}
       <EditorBottomBar
+        activeScreen={isRem ? "notifications" : "todo"}
         onTodo={() => setActiveTab("todos")}
         onNewNote={() =>
           router.push({
@@ -183,7 +185,6 @@ export default function TodosScreen(): React.ReactElement {
         tabCount={1}
       />
 
-      {/* Todos Sidebar with Bottom Search */}
       <TodosSidebar
         visible={sidebarVisible}
         onClose={() => setSidebarVisible(false)}
@@ -195,11 +196,6 @@ export default function TodosScreen(): React.ReactElement {
           setOpenedTodoPath(path);
           setActiveTab("todos");
         }}
-        onSelectReminders={() => setActiveTab("reminders")}
-        onToggleGridMode={() => {
-          setTodoDisplayMode((m) => (m === "grid" ? "list" : "grid"));
-          setActiveTab("todos");
-        }}
         onAddProject={() => setAddProjectVisible(true)}
         onAddTodoList={(pName) => {
           setProjectForNewList(pName);
@@ -209,7 +205,6 @@ export default function TodosScreen(): React.ReactElement {
         onDeleteTodoList={(path) => void deleteTodoList(path)}
       />
 
-      {/* Modals */}
       <AddTodoItemModal
         visible={addItemVisible}
         todoListName={listName}

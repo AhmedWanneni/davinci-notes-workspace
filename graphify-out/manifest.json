@@ -5528,9 +5528,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/gallery.tsx": {
-    "mtime": 1794608221.644356,
-    "seen": 1794608633.7150369,
-    "ast_hash": "4a6865578fda2d65792114a03e03d40c",
+    "mtime": 1794608648.3780897,
+    "seen": 1794610049.1468,
+    "ast_hash": "866f89f419d4020a88ea77ed84195f4b",
     "semantic_hash": ""
   },
   "apps/mobile/app/new-note-action.tsx": {
@@ -5546,9 +5546,9 @@
     "semantic_hash": "f8adafd81a8568c9765c8dcd640ac0d4"
   },
   "apps/mobile/app/settings.tsx": {
-    "mtime": 1794608221.6446412,
-    "seen": 1794608633.715192,
-    "ast_hash": "2919aa5a9ca69dcfc24321903699a622",
+    "mtime": 1794608648.4053164,
+    "seen": 1794610049.1469069,
+    "ast_hash": "b11d3c48278d54ddfc91dd8f79e29911",
     "semantic_hash": ""
   },
   "apps/mobile/app/share-target.tsx": {
@@ -5768,9 +5768,9 @@
     "semantic_hash": "2544908d0f9fca173f0941a4235a6d26"
   },
   "apps/mobile/components/primitives/Sheet.tsx": {
-    "mtime": 1794608221.6454687,
-    "seen": 1794608633.717223,
-    "ast_hash": "3cecd2355e7f1e40ee4e106b61a523c9",
+    "mtime": 1794608648.4570649,
+    "seen": 1794610049.148482,
+    "ast_hash": "be783a0b8babf2d054a1a6badda426d2",
     "semantic_hash": ""
   },
   "apps/mobile/components/primitives/Text.tsx": {
@@ -13205,9 +13205,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1794605274.3746552,
-    "seen": 1794608633.7756858,
-    "ast_hash": "7fa577b9e149701e0f25b0cea5603017",
+    "mtime": 1794608680.0585752,
+    "seen": 1794610049.213652,
+    "ast_hash": "f3939a6aac4992696bb5b7f0348e0d35",
     "semantic_hash": ""
   },
   "README.md": {
@@ -18779,9 +18779,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/EditorBottomBar.tsx": {
-    "mtime": 1794608221.6448903,
-    "seen": 1794608633.715944,
-    "ast_hash": "4e0dee4f72fe13a70389058e16e9801c",
+    "mtime": 1794609844.073006,
+    "seen": 1794610049.1474519,
+    "ast_hash": "ca8ee6aaef4cab1a7da95156266f0fcb",
     "semantic_hash": ""
   },
   "apps/mobile/components/EditorDrawer.tsx": {
@@ -18797,9 +18797,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/mobileEditorScreenRedesign.test.tsx": {
-    "mtime": 1794608221.646706,
-    "seen": 1794608633.725803,
-    "ast_hash": "506ac5a778f0d84862cb96cc4d5e8292",
+    "mtime": 1794608648.5905972,
+    "seen": 1794610049.1555672,
+    "ast_hash": "94448a80cf1688b77319917917ec0c19",
     "semantic_hash": ""
   },
   "apps/mobile/vault/lastEditedNoteStorage.ts": {
@@ -18821,9 +18821,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/TabSwitcherModal.tsx": {
-    "mtime": 1794608221.6450016,
-    "seen": 1794608633.716445,
-    "ast_hash": "c8144ce2493515a192bb30ad07221972",
+    "mtime": 1794608648.438549,
+    "seen": 1794610049.147855,
+    "ast_hash": "2bb61dc01e87259b59132100c57069df",
     "semantic_hash": ""
   },
   "apps/mobile/vault/tabStore.ts": {
@@ -18863,9 +18863,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/tests/mobileTodosHub.test.tsx": {
-    "mtime": 1794608443.3075638,
-    "seen": 1794608633.726316,
-    "ast_hash": "0a7f15b7e41a2aaa3dee8f55ecdadd90",
+    "mtime": 1794608648.6106877,
+    "seen": 1794610049.1559749,
+    "ast_hash": "1731d9135f7e585a9851600691606dc4",
     "semantic_hash": ""
   },
   "apps/mobile/vault/useVaultTodos.ts": {
@@ -18881,27 +18881,27 @@
     "semantic_hash": ""
   },
   "apps/mobile/app/search.tsx": {
-    "mtime": 1794608221.6444972,
-    "seen": 1794608633.71519,
-    "ast_hash": "b3f23b18146fad4c7f85a7c602f526a3",
+    "mtime": 1794608648.3976471,
+    "seen": 1794610049.1469061,
+    "ast_hash": "1b5ce439043727c5f7e7c38d68f1c4d2",
     "semantic_hash": ""
   },
   "apps/mobile/app/todos.tsx": {
-    "mtime": 1794608221.6447625,
-    "seen": 1794608633.7152379,
-    "ast_hash": "56bba9e9dc50ef7aa4470c3e778394c5",
+    "mtime": 1794609945.292157,
+    "seen": 1794610049.146944,
+    "ast_hash": "7f81de73d9cefbde3740803750486183",
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/AddProjectModal.tsx": {
-    "mtime": 1794608221.6457906,
-    "seen": 1794608633.7184708,
-    "ast_hash": "5bb91bb8ef092650ddf1747a50134ba1",
+    "mtime": 1794608648.4792106,
+    "seen": 1794610049.149483,
+    "ast_hash": "a71eda95ed9122cd2ef931cca55a7d04",
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/TodosSidebar.tsx": {
-    "mtime": 1794608371.8685524,
-    "seen": 1794608633.7187998,
-    "ast_hash": "cd7b5a9078e98b8bab8a58d41eae03fe",
+    "mtime": 1794609970.2366676,
+    "seen": 1794610049.149838,
+    "ast_hash": "037789f2f0e311534dfb4cc37d7899bb",
     "semantic_hash": ""
   },
   "apps/mobile/notifications/todoNotifications.ts": {
@@ -18911,9 +18911,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/AddTodoItemModal.tsx": {
-    "mtime": 1794608234.0856109,
-    "seen": 1794608633.718474,
-    "ast_hash": "672a4c3caaf4f03c7dd27cfd10f82476",
+    "mtime": 1794608648.4953005,
+    "seen": 1794610049.149487,
+    "ast_hash": "13a086f04b11ea36f375e7bb40532cf9",
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/AddTodoListModal.tsx": {
@@ -18923,9 +18923,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/shell/SelectFolderModal.tsx": {
-    "mtime": 1794608221.6456335,
-    "seen": 1794608633.718254,
-    "ast_hash": "d0151e4551e1c3db4ca933839216d1ae",
+    "mtime": 1794608648.469307,
+    "seen": 1794610049.149309,
+    "ast_hash": "394bcd693f8f7837650b47d724c849ff",
     "semantic_hash": ""
   },
   "apps/mobile/components/EditorTitleHeader.tsx": {
@@ -18965,9 +18965,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/AddReminderModal.tsx": {
-    "mtime": 1794608230.9874558,
-    "seen": 1794608633.718473,
-    "ast_hash": "52151ac6ae3ab8d1f89998ba63bf763e",
+    "mtime": 1794608648.4873717,
+    "seen": 1794610049.149485,
+    "ast_hash": "c1966f337415906ac54734a5711e9910",
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/ReminderEventRow.tsx": {
@@ -19031,9 +19031,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/TodoListView.tsx": {
-    "mtime": 1794608221.6465724,
-    "seen": 1794608633.718697,
-    "ast_hash": "224ecbd9af41c7fcfc1a2db318843101",
+    "mtime": 1794609988.1830497,
+    "seen": 1794610049.1497972,
+    "ast_hash": "c577bf8997e9171b4c9bff54efead2c4",
     "semantic_hash": ""
   },
   "apps/mobile/tests/mobileTodoParser.test.tsx": {
@@ -19043,9 +19043,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/TodosHeaderTabs.tsx": {
-    "mtime": 1794604988.3319778,
-    "seen": 1794605260.8274949,
-    "ast_hash": "6374b837a09b3b78274368fd9ff8eedc",
+    "mtime": 1794609879.9429893,
+    "seen": 1794610049.149836,
+    "ast_hash": "e198ba695a457e03d7137162ce84da10",
     "semantic_hash": ""
   },
   "apps/mobile/components/cards/FolderGridView.tsx": {
@@ -19091,9 +19091,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/TodoCardGridItem.tsx": {
-    "mtime": 1794608221.6464336,
-    "seen": 1794608633.7186959,
-    "ast_hash": "dbf1780151d7d149b68c597d159931c6",
+    "mtime": 1794609898.0885215,
+    "seen": 1794610049.149795,
+    "ast_hash": "a13438f505a973578a9b7f6c1a97b65a",
     "semantic_hash": ""
   },
   "apps/mobile/tests/googleCalendarService.test.ts": {
@@ -19145,9 +19145,9 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/cards/FolderCardGridItem.tsx": {
-    "mtime": 1794608221.645118,
-    "seen": 1794608633.716492,
-    "ast_hash": "f014d75bcda728609716fbc781a417bc",
+    "mtime": 1794608648.4434156,
+    "seen": 1794610049.147892,
+    "ast_hash": "b63a64b49cf236570a882b35f1c93b15",
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/CalendarMonthTable.tsx": {

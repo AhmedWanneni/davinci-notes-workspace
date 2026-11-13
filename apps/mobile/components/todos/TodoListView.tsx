@@ -3,7 +3,6 @@ import { View, FlatList, RefreshControl, Pressable } from "react-native";
 import { Plus, CheckSquare } from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
-import { TodoTaskRow } from "./TodoTaskRow";
 import { TodoCardGridItem } from "./TodoCardGridItem";
 import { CalendarMonthTable } from "./CalendarMonthTable";
 import type { MobileTodoItem } from "./types";
@@ -23,6 +22,7 @@ export interface TodoListViewProps {
   onOpenAddItem: () => void;
   displayMode?: "list" | "grid";
   taskDates?: Set<string>;
+  isCalendarVisible?: boolean;
 }
 
 export function TodoListView({
@@ -38,8 +38,8 @@ export function TodoListView({
   selectedDate,
   onSelectDate,
   onOpenAddItem,
-  displayMode = "grid",
   taskDates,
+  isCalendarVisible = false,
 }: TodoListViewProps): React.ReactElement {
   const { tokens } = useTheme();
 
@@ -48,12 +48,14 @@ export function TodoListView({
       className="flex-1"
       style={{ backgroundColor: tokens.color.bg.primary }}
     >
-      {/* Complete Calendar Month Table matching Google Calendar reference */}
-      <CalendarMonthTable
-        selectedDate={selectedDate}
-        onSelectDate={onSelectDate}
-        taskDates={taskDates}
-      />
+      {/* Complete Calendar Month Table toggled via top header */}
+      {isCalendarVisible ? (
+        <CalendarMonthTable
+          selectedDate={selectedDate}
+          onSelectDate={onSelectDate}
+          taskDates={taskDates}
+        />
+      ) : null}
 
       {/* Sub-row: Project / Todo list title and date */}
       <View
@@ -87,11 +89,11 @@ export function TodoListView({
         </Text>
       </View>
 
-      {/* Task Rows List / Grid */}
+      {/* 2-Column Task Cards Grid */}
       <FlatList
-        key={displayMode}
+        key="todo-2-column-grid"
         data={displayedTodos}
-        numColumns={displayMode === "grid" ? 2 : 1}
+        numColumns={2}
         keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl
@@ -99,26 +101,17 @@ export function TodoListView({
             onRefresh={() => void refresh()}
           />
         }
-        renderItem={({ item }) =>
-          displayMode === "grid" ? (
-            <TodoCardGridItem
-              item={item}
-              onToggle={onToggle}
-              onDelete={onDelete}
-              onOpenNote={onOpenNote}
-            />
-          ) : (
-            <TodoTaskRow
-              item={item}
-              onToggle={onToggle}
-              onDelete={onDelete}
-              onOpenNote={onOpenNote}
-            />
-          )
-        }
+        renderItem={({ item }) => (
+          <TodoCardGridItem
+            item={item}
+            onToggle={onToggle}
+            onDelete={onDelete}
+            onOpenNote={onOpenNote}
+          />
+        )}
         contentContainerStyle={{
-          paddingHorizontal: displayMode === "grid" ? 8 : 0,
-          paddingVertical: displayMode === "grid" ? 6 : 0,
+          paddingHorizontal: 8,
+          paddingVertical: 8,
           paddingBottom: 48,
         }}
         ListEmptyComponent={

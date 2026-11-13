@@ -8,7 +8,6 @@ import { useTheme } from "../../theme";
 import { Input } from "../primitives";
 import { EditorBottomBar } from "../EditorBottomBar";
 import { TodosSidebarHeader } from "./TodosSidebarHeader";
-import { TodosSidebarQuickNav } from "./TodosSidebarQuickNav";
 import { SidebarProjectItem } from "./SidebarProjectItem";
 import type { MobileTodoProject } from "./types";
 
@@ -38,8 +37,6 @@ export function TodosSidebar({
   onAddTodoList,
   onDeleteProject,
   onDeleteTodoList,
-  onSelectReminders,
-  onToggleGridMode,
   searchQuery,
   onSearchQueryChange,
 }: TodosSidebarProps): React.ReactElement {
@@ -124,17 +121,6 @@ export function TodosSidebar({
       >
         <TodosSidebarHeader onClose={onClose} onAddProject={onAddProject} />
 
-        <TodosSidebarQuickNav
-          onSelectReminders={() => {
-            onClose();
-            onSelectReminders?.();
-          }}
-          onToggleGridMode={() => {
-            onClose();
-            onToggleGridMode?.();
-          }}
-        />
-
         <ScrollView
           className="flex-1 px-2 pt-1"
           showsVerticalScrollIndicator={false}
@@ -202,7 +188,7 @@ export function TodosSidebar({
           }}
           onNotifications={() => {
             onClose();
-            onSelectReminders?.();
+            router.push({ pathname: "/todos", params: { tab: "reminders" } });
           }}
           onTabs={() => {
             onClose();
