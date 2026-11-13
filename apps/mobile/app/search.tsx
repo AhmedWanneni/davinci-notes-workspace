@@ -39,14 +39,31 @@ export default function SearchScreen(): React.ReactElement {
       for (const notePath of scan.notes) {
         try {
           const file = await adapter.readNote(notePath);
-          const title = notePath.replace(/\.md$/i, "").split("/").pop() ?? notePath;
-          const isTask = /todos[/$\\]/i.test(notePath) || file.content.includes("- [ ]") || file.content.includes("- [x]");
-          const lines = file.content.split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
+          const title =
+            notePath.replace(/\.md$/i, "").split("/").pop() ?? notePath;
+          const isTask =
+            /todos[/$\\]/i.test(notePath) ||
+            file.content.includes("- [ ]") ||
+            file.content.includes("- [x]");
+          const lines = file.content
+            .split("\n")
+            .map((l) => l.trim())
+            .filter((l) => l && !l.startsWith("#"));
           let snippet = lines[0] ?? "";
-          snippet = snippet.replace(/^-\s*\[[ x]\]\s*/i, "").replace(/\(@[^)]+\)/g, "").replace(/\[\d+\s*min\]/g, "").trim();
+          snippet = snippet
+            .replace(/^-\s*\[[ x]\]\s*/i, "")
+            .replace(/\(@[^)]+\)/g, "")
+            .replace(/\[\d+\s*min\]/g, "")
+            .trim();
           if (!snippet) snippet = isTask ? "Checklist tasks" : "Note drafts";
 
-          list.push({ id: notePath, title, snippet, path: notePath, type: isTask ? "Task" : "Note" });
+          list.push({
+            id: notePath,
+            title,
+            snippet,
+            path: notePath,
+            type: isTask ? "Task" : "Note",
+          });
         } catch {
           // Skip unreadable note
         }
@@ -75,7 +92,9 @@ export default function SearchScreen(): React.ReactElement {
       setIsSearching(true);
       try {
         const localMatches = items.filter(
-          (it) => it.title.toLowerCase().includes(trimmed) || it.snippet.toLowerCase().includes(trimmed),
+          (it) =>
+            it.title.toLowerCase().includes(trimmed) ||
+            it.snippet.toLowerCase().includes(trimmed),
         );
         const tagIndex = defaultVaultIndexer.getTagIndex();
         const ftsHits = await searchVault(text, tagIndex);
@@ -88,7 +107,10 @@ export default function SearchScreen(): React.ReactElement {
             const isTask = /todos[/$\\]/i.test(hit.path);
             combined.push({
               id: hit.path,
-              title: hit.title || hit.path.replace(/\.md$/i, "").split("/").pop() || "Untitled",
+              title:
+                hit.title ||
+                hit.path.replace(/\.md$/i, "").split("/").pop() ||
+                "Untitled",
               snippet: (hit.snippet || "").replace(/<\/?mark>/g, ""),
               path: hit.path,
               type: isTask ? "Task" : "Note",
@@ -97,7 +119,9 @@ export default function SearchScreen(): React.ReactElement {
         }
         setDisplayedItems(combined);
       } catch {
-        setDisplayedItems(items.filter((it) => it.title.toLowerCase().includes(trimmed)));
+        setDisplayedItems(
+          items.filter((it) => it.title.toLowerCase().includes(trimmed)),
+        );
       } finally {
         setIsSearching(false);
       }
@@ -107,13 +131,20 @@ export default function SearchScreen(): React.ReactElement {
 
   useEffect(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => { void runSearch(query); }, 150);
-    return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
+    debounceTimerRef.current = setTimeout(() => {
+      void runSearch(query);
+    }, 150);
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    };
   }, [query, runSearch]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-      if (query.trim()) { setQuery(""); return true; }
+      if (query.trim()) {
+        setQuery("");
+        return true;
+      }
       router.back();
       return true;
     });
@@ -122,15 +153,33 @@ export default function SearchScreen(): React.ReactElement {
 
   const handleOpenNote = (notePath: string) => {
     const targetId = defaultNoteStore.register(notePath);
-    router.push({ pathname: "/editor", params: { path: notePath, noteId: targetId, mode: "edit" } });
+    router.push({
+      pathname: "/editor",
+      params: { path: notePath, noteId: targetId, mode: "edit" },
+    });
   };
 
   return (
-    <View className="flex-1" style={{ backgroundColor: tokens.color.bg.primary, paddingTop: insets.top + 8 }}>
+    <View
+      className="flex-1"
+      style={{
+        backgroundColor: tokens.color.bg.primary,
+        paddingTop: insets.top + 8,
+      }}
+    >
       {/* Top Search Bar Row */}
       <View className="flex-row items-center px-4 pb-3" style={{ gap: 8 }}>
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back" className="p-1.5 -ml-1 active:opacity-60">
-          <CaretLeft size={22} color={tokens.color.text.normal} weight="regular" />
+        <Pressable
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          className="p-1.5 -ml-1 active:opacity-60"
+        >
+          <CaretLeft
+            size={22}
+            color={tokens.color.text.normal}
+            weight="regular"
+          />
         </Pressable>
 
         <View className="flex-1">
@@ -138,10 +187,15 @@ export default function SearchScreen(): React.ReactElement {
             placeholder="Search notes & tasks..."
             value={query}
             onChangeText={setQuery}
-            prefix={<MagnifyingGlass size={20} color={tokens.color.text.muted} />}
+            prefix={
+              <MagnifyingGlass size={20} color={tokens.color.text.muted} />
+            }
             suffix={
               query.length > 0 ? (
-                <Pressable onPress={() => setQuery("")} className="p-1 active:opacity-60">
+                <Pressable
+                  onPress={() => setQuery("")}
+                  className="p-1 active:opacity-60"
+                >
                   <X size={18} color={tokens.color.text.muted} />
                 </Pressable>
               ) : null
@@ -155,7 +209,11 @@ export default function SearchScreen(): React.ReactElement {
       <FlatList
         data={displayedItems}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 16 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 4,
+          paddingBottom: 16,
+        }}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <Pressable
@@ -166,22 +224,49 @@ export default function SearchScreen(): React.ReactElement {
             }}
           >
             <View className="flex-1 mr-3">
-              <Text numberOfLines={1} style={{ fontSize: 16, fontWeight: "700", color: tokens.color.text.normal, marginBottom: 4 }}>
+              <Text
+                numberOfLines={1}
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: tokens.color.text.normal,
+                  marginBottom: 4,
+                }}
+              >
                 {item.title}
               </Text>
-              <Text numberOfLines={1} style={{ fontSize: 14, color: tokens.color.text.muted }}>
+              <Text
+                numberOfLines={1}
+                style={{ fontSize: 14, color: tokens.color.text.muted }}
+              >
                 {item.snippet}
               </Text>
             </View>
-            <Text style={{ fontSize: 13, fontWeight: "500", color: tokens.color.text.muted }}>
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "500",
+                color: tokens.color.text.muted,
+              }}
+            >
               {item.type}
             </Text>
           </Pressable>
         )}
         ListEmptyComponent={
           <View className="p-8 items-center justify-center">
-            <Text style={{ fontSize: 14, color: tokens.color.text.muted, textAlign: "center" }}>
-              {isSearching ? "Searching..." : query.trim() ? "No matching notes or tasks found." : "No notes or tasks found."}
+            <Text
+              style={{
+                fontSize: 14,
+                color: tokens.color.text.muted,
+                textAlign: "center",
+              }}
+            >
+              {isSearching
+                ? "Searching..."
+                : query.trim()
+                  ? "No matching notes or tasks found."
+                  : "No notes or tasks found."}
             </Text>
           </View>
         }
@@ -189,17 +274,16 @@ export default function SearchScreen(): React.ReactElement {
 
       {/* Editor Navigation Bar */}
       <EditorBottomBar
-        onBack={() => {
-          if (router.canGoBack()) router.back();
-          else router.replace("/editor");
-        }}
-        onForward={() => {}}
-        onSearch={() => {}}
+        onTodo={() => router.push("/todos")}
         onNewNote={() =>
           router.push({
             pathname: "/editor",
             params: { preset: "new", autoFocus: "1" },
           })
+        }
+        onSearch={() => {}}
+        onNotifications={() =>
+          router.push({ pathname: "/todos", params: { tab: "reminders" } })
         }
         onTabs={() => router.push("/editor")}
         onMenu={() => router.push("/settings")}

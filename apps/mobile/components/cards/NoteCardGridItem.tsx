@@ -32,10 +32,9 @@ export function NoteCardGridItem({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Open note ${title}`}
-      className="flex-1 m-1.5 p-3.5 rounded-2xl active:opacity-80 shadow-sm"
+      className="flex-1 m-1.5 p-3.5 rounded-2xl active:opacity-80"
       style={{
         backgroundColor: tokens.color.bg.primary,
-        elevation: 2,
         minHeight: 180,
       }}
     >
@@ -82,7 +81,7 @@ export function NoteCardGridItem({
         }}
       >
         <View
-          className="w-full bg-white rounded-lg p-2.5 shadow-sm"
+          className="w-full bg-white rounded-lg p-2.5"
           style={{ minHeight: 85 }}
         >
           {/* Miniature header line */}

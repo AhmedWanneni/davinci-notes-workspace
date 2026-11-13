@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { NavigationDrawer } from "./shell/NavigationDrawer";
 import { VaultDrawerContent } from "./shell/VaultDrawerContent";
 import { NewFolderSheet } from "./shell/NewFolderSheet";
+import { EditorBottomBar } from "./EditorBottomBar";
 import { defaultVaultManager } from "../vault/vaultManager";
 import { defaultVaultIndexer } from "../indexer";
 
@@ -100,7 +101,42 @@ export function EditorDrawer({
 
   return (
     <>
-      <NavigationDrawer visible={visible} onClose={onClose}>
+      <NavigationDrawer
+        visible={visible}
+        onClose={onClose}
+        bottomBar={
+          <EditorBottomBar
+            onTodo={() => {
+              onClose();
+              router.push("/todos");
+            }}
+            onNewNote={() => {
+              onClose();
+              if (onCreateNoteProp) onCreateNoteProp();
+              else
+                router.push({
+                  pathname: "/editor",
+                  params: { preset: "new", autoFocus: "1" },
+                });
+            }}
+            onSearch={() => {
+              onClose();
+              router.push("/search");
+            }}
+            onNotifications={() => {
+              onClose();
+              router.push({ pathname: "/todos", params: { tab: "reminders" } });
+            }}
+            onTabs={() => {
+              onClose();
+            }}
+            onMenu={() => {
+              onClose();
+              router.push("/settings");
+            }}
+          />
+        }
+      >
         <VaultDrawerContent
           folders={folders}
           notes={notes}

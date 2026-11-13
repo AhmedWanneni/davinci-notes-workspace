@@ -1,7 +1,7 @@
 import React from "react";
-import { Modal, Pressable, View, type ViewStyle } from "react-native";
+import { Modal, View, type ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { X } from "phosphor-react-native";
+import { ArrowLeft } from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "./Text";
 import { IconButton } from "./IconButton";
@@ -21,11 +21,10 @@ export function SheetGroup({
 
   return (
     <View
-      className={`mb-3 overflow-hidden border ${className}`}
+      className={`mb-3 overflow-hidden ${className}`}
       style={[
         {
           backgroundColor: tokens.color.bg.primary,
-          borderColor: tokens.color.border.subtle,
           borderRadius: 12,
         },
         style,
@@ -59,66 +58,49 @@ export const Sheet: React.FC<SheetProps> = ({
   return (
     <Modal
       visible={visible}
-      transparent
       animationType="slide"
+      presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <View className="flex-1 justify-end">
-        {/* Scrim backdrop */}
-        <Pressable
-          className="absolute inset-0"
-          style={{ backgroundColor: tokens.color.bg.scrim }}
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel="Dismiss sheet"
-        />
-
-        {/* Sheet content surface */}
-        <View
-          className={`border-t z-modal ${className}`}
-          style={{
-            backgroundColor: backgroundColor ?? tokens.color.bg.secondary,
-            borderColor: backgroundColor ? tokens.color.border.subtle : tokens.color.border.normal,
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
-            paddingBottom: Math.max(insets.bottom, 16),
-          }}
-        >
-          {/* Drag handle */}
-          <View className="items-center pt-3 pb-2">
-            <View
-              className="w-8 h-1 rounded-full"
-              style={{ backgroundColor: tokens.color.border.normal }}
+      <View
+        className={`flex-1 ${className}`}
+        style={{
+          backgroundColor: backgroundColor ?? tokens.color.bg.primary,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+        }}
+      >
+        {/* Fullscreen Header */}
+        {title ? (
+          <View
+            className="flex-row items-center justify-between px-4 py-3 border-b"
+            style={{ borderBottomColor: tokens.color.border.subtle }}
+          >
+            <IconButton
+              icon={
+                <ArrowLeft
+                  size={22}
+                  color={tokens.color.text.normal}
+                  weight="regular"
+                />
+              }
+              accessibilityLabel="Close"
+              size="sm"
+              onPress={onClose}
             />
-          </View>
-
-          {/* Header */}
-          {title ? (
-            <View
-              className="flex-row items-center justify-between px-4 py-2 border-b"
-              style={{ borderBottomColor: tokens.color.border.subtle }}
+            <Text
+              variant="h3"
+              color="normal"
+              style={{ fontSize: 16, fontWeight: "700" }}
             >
-              <Text variant="h3" color="normal">
-                {title}
-              </Text>
-              <IconButton
-                icon={
-                  <X
-                    size={20}
-                    color={tokens.color.text.normal}
-                    weight="regular"
-                  />
-                }
-                accessibilityLabel="Close sheet"
-                size="sm"
-                onPress={onClose}
-              />
-            </View>
-          ) : null}
+              {title}
+            </Text>
+            <View className="w-8" />
+          </View>
+        ) : null}
 
-          {/* Body */}
-          <View className="p-4">{children}</View>
-        </View>
+        {/* Body */}
+        <View className="flex-1 p-4">{children}</View>
       </View>
     </Modal>
   );

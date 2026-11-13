@@ -23,16 +23,25 @@ type SettingsCategory = "theme" | "sync" | "vault";
 export default function SettingsScreen(): React.ReactElement {
   const router = useRouter();
   const { tokens } = useTheme();
-  const [activeCategory, setActiveCategory] = useState<SettingsCategory>("theme");
+  const [activeCategory, setActiveCategory] =
+    useState<SettingsCategory>("theme");
 
-  const categories: { key: SettingsCategory; label: string; icon: React.ReactNode }[] = [
+  const categories: {
+    key: SettingsCategory;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
     {
       key: "theme",
       label: "Theme",
       icon: (
         <PaintBrush
           size={18}
-          color={activeCategory === "theme" ? tokens.color.text["on-accent"] : tokens.color.text.normal}
+          color={
+            activeCategory === "theme"
+              ? tokens.color.text["on-accent"]
+              : tokens.color.text.normal
+          }
           weight="regular"
         />
       ),
@@ -43,7 +52,11 @@ export default function SettingsScreen(): React.ReactElement {
       icon: (
         <ArrowsClockwise
           size={18}
-          color={activeCategory === "sync" ? tokens.color.text["on-accent"] : tokens.color.text.normal}
+          color={
+            activeCategory === "sync"
+              ? tokens.color.text["on-accent"]
+              : tokens.color.text.normal
+          }
           weight="regular"
         />
       ),
@@ -54,7 +67,11 @@ export default function SettingsScreen(): React.ReactElement {
       icon: (
         <Folder
           size={18}
-          color={activeCategory === "vault" ? tokens.color.text["on-accent"] : tokens.color.text.normal}
+          color={
+            activeCategory === "vault"
+              ? tokens.color.text["on-accent"]
+              : tokens.color.text.normal
+          }
           weight="regular"
         />
       ),
@@ -133,17 +150,16 @@ export default function SettingsScreen(): React.ReactElement {
 
       {/* Editor Navigation Bar */}
       <EditorBottomBar
-        onBack={() => {
-          if (router.canGoBack()) router.back();
-          else router.replace("/editor");
-        }}
-        onForward={() => {}}
-        onSearch={() => router.push("/search")}
+        onTodo={() => router.push("/todos")}
         onNewNote={() =>
           router.push({
             pathname: "/editor",
             params: { preset: "new", autoFocus: "1" },
           })
+        }
+        onSearch={() => router.push("/search")}
+        onNotifications={() =>
+          router.push({ pathname: "/todos", params: { tab: "reminders" } })
         }
         onTabs={() => router.push("/editor")}
         onMenu={() => {}}

@@ -331,10 +331,12 @@ export default function EditorScreen(): React.ReactElement {
       ) : null}
 
       <EditorBottomBar
-        onBack={handleBack}
-        onForward={() => {}}
-        onSearch={() => router.push("/search")}
+        onTodo={() => router.push("/todos")}
         onNewNote={() => setFolderPickerVisible(true)}
+        onSearch={() => router.push("/search")}
+        onNotifications={() =>
+          router.push({ pathname: "/todos", params: { tab: "reminders" } })
+        }
         onTabs={() => setTabSwitcherVisible(true)}
         onMenu={() => router.push("/settings")}
         tabCount={tabs.length}

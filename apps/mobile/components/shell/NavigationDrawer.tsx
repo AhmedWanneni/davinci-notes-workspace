@@ -24,6 +24,8 @@ export function NavigationDrawer({
     <Modal
       visible={visible}
       animationType="slide"
+      presentationStyle="fullScreen"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
       <StatusBar style={tokens.isDark ? "light" : "dark"} />
@@ -33,8 +35,8 @@ export function NavigationDrawer({
           width: "100%",
           height: "100%",
           backgroundColor: tokens.color.bg.primary,
-          paddingTop: 2,
-          paddingBottom: insets.bottom + 8,
+          paddingTop: insets.top,
+          paddingBottom: bottomBar ? 0 : insets.bottom + 8,
         }}
       >
         <View style={{ flex: 1, overflow: "hidden" }}>{children}</View>

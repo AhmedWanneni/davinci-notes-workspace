@@ -79,7 +79,6 @@ export function FolderViewHeader({
           style={{
             backgroundColor:
               displayMode === "list" ? tokens.color.bg.primary : "transparent",
-            elevation: displayMode === "list" ? 1 : 0,
           }}
         >
           <ListIcon
@@ -101,7 +100,6 @@ export function FolderViewHeader({
           style={{
             backgroundColor:
               displayMode === "grid" ? tokens.color.bg.primary : "transparent",
-            elevation: displayMode === "grid" ? 1 : 0,
           }}
         >
           <SquaresFour

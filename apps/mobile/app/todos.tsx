@@ -44,9 +44,7 @@ export default function TodosScreen(): React.ReactElement {
   const [selectedDate, setSelectedDate] = useState<string | null>(() =>
     toIso(new Date()),
   );
-  const [activeTab, setActiveTab] = useState<"reminders" | "todos">(
-    "todos",
-  );
+  const [activeTab, setActiveTab] = useState<"reminders" | "todos">("todos");
   const [todoDisplayMode, setTodoDisplayMode] = useState<"list" | "grid">(
     "grid",
   );
@@ -171,18 +169,15 @@ export default function TodosScreen(): React.ReactElement {
 
       {/* Editor Navigation Bar */}
       <EditorBottomBar
-        onBack={() => {
-          if (router.canGoBack()) router.back();
-          else router.replace("/editor");
-        }}
-        onForward={() => {}}
-        onSearch={() => router.push("/search")}
+        onTodo={() => setActiveTab("todos")}
         onNewNote={() =>
           router.push({
             pathname: "/editor",
             params: { preset: "new", autoFocus: "1" },
           })
         }
+        onSearch={() => router.push("/search")}
+        onNotifications={() => setActiveTab("reminders")}
         onTabs={() => router.push("/editor")}
         onMenu={() => router.push("/settings")}
         tabCount={1}

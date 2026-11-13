@@ -2,68 +2,78 @@ import React from "react";
 import { View, Pressable, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  CaretLeft,
-  CaretRight,
-  MagnifyingGlass,
+  CheckSquare,
   Plus,
+  MagnifyingGlass,
+  Bell,
   List,
 } from "phosphor-react-native";
 import { useTheme } from "../theme";
 import { Text } from "./primitives";
 
 export interface EditorBottomBarProps {
-  onBack: () => void;
-  onForward?: () => void;
-  onSearch: () => void;
+  onTodo?: () => void;
   onNewNote: () => void;
+  onSearch: () => void;
+  onNotifications?: () => void;
   onTabs?: () => void;
   onMenu: () => void;
   tabCount?: number;
+  onBack?: () => void;
+  onForward?: () => void;
 }
 
 export function EditorBottomBar({
-  onBack,
-  onForward,
-  onSearch,
+  onTodo,
   onNewNote,
+  onSearch,
+  onNotifications,
   onTabs,
   onMenu,
   tabCount = 1,
+  onBack,
 }: EditorBottomBarProps): React.ReactElement {
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
   const bottomPadding = Platform.OS === "android" ? 0 : insets.bottom;
 
+  const handleTodo = onTodo ?? onBack ?? (() => {});
+  const handleNotifications = onNotifications ?? (() => {});
+
   return (
     <View
-      className="flex-row items-center justify-around px-4"
+      className="flex-row items-center justify-around px-2"
       style={{
         height: 50 + bottomPadding,
         paddingBottom: bottomPadding,
         backgroundColor: tokens.color.bg.primary,
       }}
     >
-      {/* 1. Back button */}
+      {/* 1. Todo */}
       <Pressable
-        onPress={onBack}
+        onPress={handleTodo}
         accessibilityRole="button"
-        accessibilityLabel="Navigate back"
+        accessibilityLabel="Todos & Projects"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <CaretLeft size={22} color={tokens.color.text.normal} weight="regular" />
+        <CheckSquare
+          size={22}
+          color={tokens.color.text.normal}
+          weight="regular"
+        />
       </Pressable>
 
-      {/* 2. Forward button */}
+      {/* 2. New Note (+) */}
       <Pressable
-        onPress={onForward}
+        onPress={onNewNote}
         accessibilityRole="button"
-        accessibilityLabel="Navigate forward"
+        accessibilityLabel="Create new note"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <CaretRight size={22} color={tokens.color.text.normal} weight="regular" />
+        <Plus size={22} color={tokens.color.text.normal} weight="regular" />
       </Pressable>
 
-      {/* 3. Search button */}
+      {/* 3. Search */}
       <Pressable
         onPress={onSearch}
         accessibilityRole="button"
@@ -77,17 +87,17 @@ export function EditorBottomBar({
         />
       </Pressable>
 
-      {/* 4. New Note button */}
+      {/* 4. Notifications (reminders) */}
       <Pressable
-        onPress={onNewNote}
+        onPress={handleNotifications}
         accessibilityRole="button"
-        accessibilityLabel="Create new note"
+        accessibilityLabel="Reminders and notifications"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <Plus size={22} color={tokens.color.text.normal} weight="regular" />
+        <Bell size={22} color={tokens.color.text.normal} weight="regular" />
       </Pressable>
 
-      {/* 5. Tab switcher [ 1 ] */}
+      {/* 5. Tabs switcher [ 1 ] */}
       <Pressable
         onPress={onTabs}
         accessibilityRole="button"
@@ -117,7 +127,7 @@ export function EditorBottomBar({
         </View>
       </Pressable>
 
-      {/* 6. Hamburger Menu button (opens Settings) */}
+      {/* 6. Settings (Menu) */}
       <Pressable
         onPress={onMenu}
         accessibilityRole="button"

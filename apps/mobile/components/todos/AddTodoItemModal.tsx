@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { View, Modal, Pressable, TextInput } from "react-native";
-import { X, Clock, Plus, CalendarBlank } from "phosphor-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  ArrowLeft,
+  Clock,
+  Plus,
+  CalendarBlank,
+  X,
+} from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
 import { DateTimePickerModal } from "./DateTimePickerModal";
@@ -18,6 +25,7 @@ export function AddTodoItemModal({
   onClose,
   onAddItem,
 }: AddTodoItemModalProps): React.ReactElement {
+  const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
   const [text, setText] = useState("");
   const [reminder, setReminder] = useState("");
@@ -35,36 +43,88 @@ export function AddTodoItemModal({
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
-          <View className="p-6 rounded-t-3xl" style={{ backgroundColor: "#ffffff" }}>
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4">
-              <View>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: tokens.color.text.normal }}>
-                  Add Item
-                </Text>
-                <Text style={{ fontSize: 12, color: tokens.color.text.muted }}>
-                  To {todoListName}
-                </Text>
-              </View>
-              <Pressable onPress={onClose} className="p-1 active:opacity-60">
-                <X size={20} color={tokens.color.text.muted} />
-              </Pressable>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={onClose}
+      >
+        <View
+          className="flex-1"
+          style={{
+            backgroundColor: tokens.color.bg.primary,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+          }}
+        >
+          {/* Fullscreen Header */}
+          <View
+            className="flex-row items-center justify-between px-4 py-3 border-b"
+            style={{ borderBottomColor: tokens.color.border.subtle }}
+          >
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              className="w-9 h-9 items-center justify-center -ml-1 rounded-lg active:opacity-60"
+            >
+              <ArrowLeft size={22} color={tokens.color.text.normal} />
+            </Pressable>
+
+            <View className="items-center flex-1 mx-2">
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: tokens.color.text.normal,
+                }}
+              >
+                Add Item
+              </Text>
+              <Text
+                numberOfLines={1}
+                style={{ fontSize: 12, color: tokens.color.text.muted }}
+              >
+                To {todoListName}
+              </Text>
             </View>
 
-            {/* Item text input */}
+            <Pressable
+              onPress={handleAdd}
+              disabled={!text.trim()}
+              className="px-3 py-1.5 rounded-lg active:opacity-75"
+              style={{
+                backgroundColor: text.trim()
+                  ? tokens.color.interactive.accent
+                  : "transparent",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "600",
+                  color: text.trim()
+                    ? tokens.color.text["on-accent"]
+                    : tokens.color.text.muted,
+                }}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Form Content */}
+          <View className="p-4">
             <TextInput
               value={text}
               onChangeText={setText}
               placeholder="e.g. Call client, Review pull request..."
               placeholderTextColor={tokens.color.text.muted}
-              className="px-4 py-3 rounded-xl border mb-3"
+              className="px-4 py-3 rounded-xl mb-3"
               style={{
-                backgroundColor: tokens.color.bg.primary,
-                borderColor: tokens.color.border.subtle,
+                backgroundColor: tokens.color.bg.secondary,
                 color: tokens.color.text.normal,
-                fontSize: 15,
+                fontSize: 16,
               }}
               autoFocus
               returnKeyType="done"
@@ -74,23 +134,31 @@ export function AddTodoItemModal({
             {/* Reminder Picker Trigger */}
             <Pressable
               onPress={() => setPickerOpen(true)}
-              className="flex-row items-center justify-between px-4 py-3 rounded-xl border mb-5 active:opacity-80"
-              style={{
-                backgroundColor: tokens.color.bg.primary,
-                borderColor: reminder ? "#000000" : tokens.color.border.subtle,
-              }}
+              className="flex-row items-center justify-between px-4 py-3 rounded-xl mb-5 active:opacity-80"
+              style={{ backgroundColor: tokens.color.bg.secondary }}
             >
               <View className="flex-row items-center flex-1">
-                <Clock size={18} color={reminder ? "#000000" : tokens.color.text.muted} />
+                <Clock
+                  size={18}
+                  color={
+                    reminder
+                      ? tokens.color.interactive.accent
+                      : tokens.color.text.muted
+                  }
+                />
                 <Text
                   style={{
-                    marginLeft: 10,
+                    marginLeft: 8,
                     fontSize: 14,
-                    color: reminder ? "#111827" : tokens.color.text.muted,
+                    color: reminder
+                      ? tokens.color.text.normal
+                      : tokens.color.text.muted,
                     fontWeight: reminder ? "600" : "400",
                   }}
                 >
-                  {reminder ? `Reminder: ${reminder}` : "Set date & time reminder"}
+                  {reminder
+                    ? `Reminder: ${reminder}`
+                    : "Set date & time reminder"}
                 </Text>
               </View>
               {reminder ? (
@@ -113,13 +181,31 @@ export function AddTodoItemModal({
             <Pressable
               onPress={handleAdd}
               disabled={!text.trim()}
-              className="py-3.5 rounded-2xl items-center justify-center active:opacity-90 flex-row gap-2"
+              className="py-3.5 rounded-xl items-center justify-center active:opacity-90 flex-row gap-2"
               style={{
-                backgroundColor: text.trim() ? "#000000" : tokens.color.bg.hover,
+                backgroundColor: text.trim()
+                  ? tokens.color.interactive.accent
+                  : tokens.color.bg.secondary,
               }}
             >
-              <Plus size={18} color={text.trim() ? "#ffffff" : tokens.color.text.muted} weight="bold" />
-              <Text style={{ fontSize: 15, fontWeight: "700", color: text.trim() ? "#ffffff" : tokens.color.text.muted }}>
+              <Plus
+                size={18}
+                color={
+                  text.trim()
+                    ? tokens.color.text["on-accent"]
+                    : tokens.color.text.muted
+                }
+                weight="bold"
+              />
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "700",
+                  color: text.trim()
+                    ? tokens.color.text["on-accent"]
+                    : tokens.color.text.muted,
+                }}
+              >
                 Add to {todoListName}
               </Text>
             </Pressable>

@@ -4,7 +4,9 @@ import DateTimePicker, {
   type DateTimePickerEvent,
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
-import { CalendarBlank, Clock } from "phosphor-react-native";
+import { CalendarBlank, Clock, ArrowLeft } from "phosphor-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../../theme";
 import { Text } from "../primitives";
 
 export interface DateTimePickerModalProps {
@@ -18,12 +20,15 @@ export function DateTimePickerModal({
   onClose,
   onConfirm,
 }: DateTimePickerModalProps): React.ReactElement {
+  const insets = useSafeAreaInsets();
+  const { tokens } = useTheme();
   const [date, setDate] = useState<Date>(() => new Date());
 
-  const handleDateChange = (_event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
+  const handleDateChange = (
+    _event: DateTimePickerEvent,
+    selectedDate?: Date,
+  ) => {
+    if (selectedDate) setDate(selectedDate);
   };
 
   const showAndroidMode = (currentMode: "date" | "time") => {
@@ -59,74 +64,168 @@ export function DateTimePickerModal({
   });
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.45)" }}>
-        <View className="p-6 rounded-t-3xl" style={{ backgroundColor: "#ffffff" }}>
-          {/* Header */}
-          <Text style={{ fontSize: 22, fontWeight: "800", color: "#111827", marginBottom: 6 }}>
-            Select a Date & Time
-          </Text>
-          <Text style={{ fontSize: 14, color: "#6b7280", lineHeight: 20, marginBottom: 20 }}>
-            We’ll send reminders before your task so you can prepare.
-          </Text>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      onRequestClose={onClose}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: tokens.color.bg.primary,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom + 16,
+          paddingHorizontal: 16,
+          justifyContent: "space-between",
+        }}
+      >
+        <View>
+          {/* Top Bar */}
+          <View
+            className="flex-row items-center justify-between py-3 border-b"
+            style={{ borderBottomColor: tokens.color.border.subtle }}
+          >
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Back"
+              className="p-1 active:opacity-60"
+            >
+              <ArrowLeft size={22} color={tokens.color.text.normal} />
+            </Pressable>
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: "600",
+                color: tokens.color.text.normal,
+              }}
+            >
+              Set Date & Time
+            </Text>
+            <View style={{ width: 22 }} />
+          </View>
+
+          {/* Description */}
+          <View className="py-6">
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "700",
+                color: tokens.color.text.normal,
+                marginBottom: 8,
+              }}
+            >
+              Reminder schedule
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                color: tokens.color.text.muted,
+                lineHeight: 20,
+              }}
+            >
+              Select when you want to be notified. Your reminder will also sync
+              with Google Calendar.
+            </Text>
+          </View>
 
           {/* Platform specific Expo DateTimePicker */}
           {Platform.OS === "android" ? (
             <View className="flex-row gap-3 mb-6">
               <Pressable
                 onPress={() => showAndroidMode("date")}
-                className="flex-1 flex-row items-center justify-center py-3.5 px-4 rounded-xl border"
-                style={{ borderColor: "#e5e7eb", backgroundColor: "#f9fafb" }}
+                className="flex-1 flex-row items-center justify-center py-3.5 px-4 rounded-xl border active:opacity-75"
+                style={{
+                  borderColor: tokens.color.border.subtle,
+                  backgroundColor: tokens.color.bg.secondary,
+                }}
               >
-                <CalendarBlank size={18} color="#111827" />
-                <Text style={{ fontSize: 15, fontWeight: "600", color: "#111827", marginLeft: 8 }}>
+                <CalendarBlank size={18} color={tokens.color.text.normal} />
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: "600",
+                    color: tokens.color.text.normal,
+                    marginLeft: 8,
+                  }}
+                >
                   {dateLabel}
                 </Text>
               </Pressable>
 
               <Pressable
                 onPress={() => showAndroidMode("time")}
-                className="flex-1 flex-row items-center justify-center py-3.5 px-4 rounded-xl border"
-                style={{ borderColor: "#e5e7eb", backgroundColor: "#f9fafb" }}
+                className="flex-1 flex-row items-center justify-center py-3.5 px-4 rounded-xl border active:opacity-75"
+                style={{
+                  borderColor: tokens.color.border.subtle,
+                  backgroundColor: tokens.color.bg.secondary,
+                }}
               >
-                <Clock size={18} color="#111827" />
-                <Text style={{ fontSize: 15, fontWeight: "600", color: "#111827", marginLeft: 8 }}>
+                <Clock size={18} color={tokens.color.text.normal} />
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: "600",
+                    color: tokens.color.text.normal,
+                    marginLeft: 8,
+                  }}
+                >
                   {timeLabel}
                 </Text>
               </Pressable>
             </View>
           ) : (
-            <View className="items-center my-2">
+            <View className="items-center my-4">
               <DateTimePicker
                 value={date}
                 mode="datetime"
                 display="spinner"
                 onChange={handleDateChange}
-                textColor="#111827"
-                themeVariant="light"
-                style={{ height: 180, width: "100%" }}
+                textColor={tokens.color.text.normal}
+                themeVariant={tokens.isDark ? "dark" : "light"}
+                style={{ height: 200, width: "100%" }}
               />
             </View>
           )}
+        </View>
 
-          {/* Action Buttons */}
-          <View className="flex-row items-center gap-3 mt-4">
-            <Pressable
-              onPress={onClose}
-              className="flex-1 py-3.5 rounded-full items-center justify-center border active:opacity-75"
-              style={{ borderColor: "#e5e7eb", backgroundColor: "#ffffff" }}
+        {/* Action Buttons */}
+        <View className="flex-row items-center gap-3">
+          <Pressable
+            onPress={onClose}
+            className="flex-1 py-3.5 rounded-xl items-center justify-center border active:opacity-75"
+            style={{
+              borderColor: tokens.color.border.subtle,
+              backgroundColor: tokens.color.bg.secondary,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "600",
+                color: tokens.color.text.normal,
+              }}
             >
-              <Text style={{ fontSize: 16, fontWeight: "700", color: "#111827" }}>Cancel</Text>
-            </Pressable>
+              Cancel
+            </Text>
+          </Pressable>
 
-            <Pressable
-              onPress={handleConfirm}
-              className="flex-1 py-3.5 rounded-full items-center justify-center active:opacity-90"
-              style={{ backgroundColor: "#000000" }}
+          <Pressable
+            onPress={handleConfirm}
+            className="flex-1 py-3.5 rounded-xl items-center justify-center active:opacity-90"
+            style={{ backgroundColor: tokens.color.interactive.accent }}
+          >
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "600",
+                color: tokens.color.text["on-accent"],
+              }}
             >
-              <Text style={{ fontSize: 16, fontWeight: "700", color: "#ffffff" }}>Confirm</Text>
-            </Pressable>
-          </View>
+              Confirm
+            </Text>
+          </Pressable>
         </View>
       </View>
     </Modal>

@@ -1,16 +1,14 @@
 import React, { useState, useMemo } from "react";
 import { View, Modal, Pressable, ScrollView, Alert } from "react-native";
-import {
-  X,
-  FolderSimplePlus,
-  CheckSquare,
-  MagnifyingGlass,
-  Calendar,
-  SquaresFour,
-} from "phosphor-react-native";
+import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { X, MagnifyingGlass } from "phosphor-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../theme";
-import { Text, Input } from "../primitives";
+import { Input } from "../primitives";
+import { EditorBottomBar } from "../EditorBottomBar";
+import { TodosSidebarHeader } from "./TodosSidebarHeader";
+import { TodosSidebarQuickNav } from "./TodosSidebarQuickNav";
 import { SidebarProjectItem } from "./SidebarProjectItem";
 import type { MobileTodoProject } from "./types";
 
@@ -45,6 +43,7 @@ export function TodosSidebar({
   searchQuery,
   onSearchQueryChange,
 }: TodosSidebarProps): React.ReactElement {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
@@ -82,7 +81,7 @@ export function TodosSidebar({
     }
     Alert.alert(
       "Delete Project",
-      `Delete "${projectName}" and all its todo lists?`,
+      `Delete "${projectName}" and all its lists?`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -106,117 +105,36 @@ export function TodosSidebar({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <StatusBar style={tokens.isDark ? "light" : "dark"} />
       <View
         style={{
           flex: 1,
           width: "100%",
           height: "100%",
           backgroundColor: tokens.color.bg.primary,
-          paddingTop: 12,
-          paddingBottom: insets.bottom + 12,
+          paddingTop: insets.top,
         }}
       >
-        {/* Header */}
-        <View
-          className="flex-row items-center justify-between px-4 pb-3 border-b"
-          style={{ borderBottomColor: tokens.color.border.subtle }}
-        >
-          <View className="flex-row items-center gap-2">
-            <CheckSquare
-              size={22}
-              color={tokens.color.text.normal}
-              weight="bold"
-            />
-            <Text
-              style={{
-                fontSize: 19,
-                fontWeight: "700",
-                color: tokens.color.text.normal,
-              }}
-            >
-              Projects & Todos
-            </Text>
-          </View>
-          <View className="flex-row items-center gap-1.5">
-            <Pressable
-              onPress={() => {
-                onClose();
-                onAddProject();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Add project folder"
-              className="p-1.5 active:opacity-60"
-            >
-              <FolderSimplePlus size={22} color={tokens.color.text.normal} />
-            </Pressable>
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel="Close page"
-              className="p-1.5 active:opacity-60"
-            >
-              <X size={22} color={tokens.color.text.normal} />
-            </Pressable>
-          </View>
-        </View>
+        <TodosSidebarHeader onClose={onClose} onAddProject={onAddProject} />
 
-        {/* Quick Nav: Calendar & 2-Column Card Grid */}
-        <View className="px-3 pt-2 pb-1 gap-1.5">
-          <Pressable
-            onPress={() => {
-              onClose();
-              onSelectReminders?.();
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Open Calendar and Reminders"
-            className="flex-row items-center gap-2.5 px-3 py-2 rounded-xl active:bg-bg-hover"
-            style={{ backgroundColor: tokens.color.bg.secondary }}
-          >
-            <Calendar
-              size={18}
-              color={tokens.color.interactive.accent}
-              weight="bold"
-            />
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "600",
-                color: tokens.color.text.normal,
-              }}
-            >
-              Calendar & Reminders
-            </Text>
-          </Pressable>
+        <TodosSidebarQuickNav
+          onSelectReminders={() => {
+            onClose();
+            onSelectReminders?.();
+          }}
+          onToggleGridMode={() => {
+            onClose();
+            onToggleGridMode?.();
+          }}
+        />
 
-          <Pressable
-            onPress={() => {
-              onClose();
-              onToggleGridMode?.();
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Toggle 2-column card grid view"
-            className="flex-row items-center gap-2.5 px-3 py-2 rounded-xl active:bg-bg-hover"
-            style={{ backgroundColor: tokens.color.bg.secondary }}
-          >
-            <SquaresFour
-              size={18}
-              color={tokens.color.interactive.accent}
-              weight="bold"
-            />
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: "600",
-                color: tokens.color.text.normal,
-              }}
-            >
-              2-Column Card Grid View
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Projects and their Todo Lists */}
         <ScrollView
           className="flex-1 px-2 pt-1"
           showsVerticalScrollIndicator={false}
@@ -247,9 +165,8 @@ export function TodosSidebar({
           ))}
         </ScrollView>
 
-        {/* Bottom Search Bar */}
         <View
-          className="px-3 pt-2.5 border-t"
+          className="px-3 py-2 border-t"
           style={{ borderTopColor: tokens.color.border.subtle }}
         >
           <Input
@@ -269,6 +186,34 @@ export function TodosSidebar({
             }
           />
         </View>
+
+        <EditorBottomBar
+          onTodo={onClose}
+          onNewNote={() => {
+            onClose();
+            router.push({
+              pathname: "/editor",
+              params: { preset: "new", autoFocus: "1" },
+            });
+          }}
+          onSearch={() => {
+            onClose();
+            router.push("/search");
+          }}
+          onNotifications={() => {
+            onClose();
+            onSelectReminders?.();
+          }}
+          onTabs={() => {
+            onClose();
+            router.push("/editor");
+          }}
+          onMenu={() => {
+            onClose();
+            router.push("/settings");
+          }}
+          tabCount={1}
+        />
       </View>
     </Modal>
   );

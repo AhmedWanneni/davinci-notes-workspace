@@ -13,6 +13,8 @@ export type { TodoListViewProps } from "./TodoListView";
 export { DateTimePickerModal } from "./DateTimePickerModal";
 export type { DateTimePickerModalProps } from "./DateTimePickerModal";
 export { TodosSidebar } from "./TodosSidebar";
+export { TodosSidebarHeader } from "./TodosSidebarHeader";
+export { TodosSidebarQuickNav } from "./TodosSidebarQuickNav";
 export { TodosHeaderTabs } from "./TodosHeaderTabs";
 export type { TodosHeaderTabsProps } from "./TodosHeaderTabs";
 export { TodoTaskRow } from "./TodoTaskRow";

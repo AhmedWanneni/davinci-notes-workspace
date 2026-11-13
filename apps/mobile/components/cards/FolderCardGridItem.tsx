@@ -26,10 +26,9 @@ export function FolderCardGridItem({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Open folder ${name}`}
-      className="flex-1 m-1.5 p-3.5 rounded-2xl active:opacity-80 shadow-sm"
+      className="flex-1 m-1.5 p-3.5 rounded-2xl active:opacity-80"
       style={{
         backgroundColor: tokens.color.bg.primary,
-        elevation: 2,
         minHeight: 180,
       }}
     >
@@ -76,7 +75,11 @@ export function FolderCardGridItem({
         {icon ? (
           <Text style={{ fontSize: 38 }}>{icon}</Text>
         ) : (
-          <Folder size={40} color={tokens.color.interactive.accent} weight="fill" />
+          <Folder
+            size={40}
+            color={tokens.color.interactive.accent}
+            weight="fill"
+          />
         )}
       </View>
     </Pressable>

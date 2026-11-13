@@ -38,9 +38,9 @@ describe("Mobile Editor Redesign & UI Verification", () => {
     expect(element.props.onToggleMode).toBe(onToggleMode);
   });
 
-  it("renders EditorBottomBar with 6 action buttons (<, >, 🔍, +, [1], ☰)", () => {
-    const onBack = vi.fn();
-    const onForward = vi.fn();
+  it("renders EditorBottomBar with 6 action buttons (Todo, +, 🔍, Notifications, [1], ☰)", () => {
+    const onTodo = vi.fn();
+    const onNotifications = vi.fn();
     const onSearch = vi.fn();
     const onNewNote = vi.fn();
     const onTabs = vi.fn();
@@ -48,10 +48,10 @@ describe("Mobile Editor Redesign & UI Verification", () => {
 
     const element = (
       <EditorBottomBar
-        onBack={onBack}
-        onForward={onForward}
-        onSearch={onSearch}
+        onTodo={onTodo}
         onNewNote={onNewNote}
+        onSearch={onSearch}
+        onNotifications={onNotifications}
         onTabs={onTabs}
         onMenu={onMenu}
         tabCount={1}
@@ -60,7 +60,8 @@ describe("Mobile Editor Redesign & UI Verification", () => {
 
     expect(element).toBeDefined();
     expect(element.props.tabCount).toBe(1);
-    expect(element.props.onBack).toBe(onBack);
+    expect(element.props.onTodo).toBe(onTodo);
+    expect(element.props.onNotifications).toBe(onNotifications);
     expect(element.props.onSearch).toBe(onSearch);
     expect(element.props.onNewNote).toBe(onNewNote);
     expect(element.props.onMenu).toBe(onMenu);
@@ -92,9 +93,24 @@ describe("Mobile Editor Redesign & UI Verification", () => {
     const onDone = vi.fn();
 
     const tabs = [
-      { id: "tab-1", path: "Untitled.md", title: "Untitled", previewText: "Snippet 1" },
-      { id: "tab-2", path: "Untitled 1.md", title: "Untitled 1", previewText: "" },
-      { id: "tab-3", path: "Todos.md", title: "Todos", previewText: "- [ ] Task" },
+      {
+        id: "tab-1",
+        path: "Untitled.md",
+        title: "Untitled",
+        previewText: "Snippet 1",
+      },
+      {
+        id: "tab-2",
+        path: "Untitled 1.md",
+        title: "Untitled 1",
+        previewText: "",
+      },
+      {
+        id: "tab-3",
+        path: "Todos.md",
+        title: "Todos",
+        previewText: "- [ ] Task",
+      },
     ];
 
     const element = (
@@ -180,9 +196,17 @@ describe("Mobile Editor Redesign & UI Verification", () => {
   });
 
   it("stripLeadingH1Title removes leading # Title line from editor content", () => {
-    expect(stripLeadingH1Title("# My Note\n\nBody content")).toBe("Body content");
-    expect(stripLeadingH1Title("# Daily routine\n\n## Section\n- [ ] Task")).toBe("## Section\n- [ ] Task");
-    expect(stripLeadingH1Title("---\ntags: [a]\n---\n# Title\n\nBody")).toBe("---\ntags: [a]\n---\nBody");
-    expect(stripLeadingH1Title("## Subheading\nBody")).toBe("## Subheading\nBody");
+    expect(stripLeadingH1Title("# My Note\n\nBody content")).toBe(
+      "Body content",
+    );
+    expect(
+      stripLeadingH1Title("# Daily routine\n\n## Section\n- [ ] Task"),
+    ).toBe("## Section\n- [ ] Task");
+    expect(stripLeadingH1Title("---\ntags: [a]\n---\n# Title\n\nBody")).toBe(
+      "---\ntags: [a]\n---\nBody",
+    );
+    expect(stripLeadingH1Title("## Subheading\nBody")).toBe(
+      "## Subheading\nBody",
+    );
   });
 });

@@ -156,12 +156,11 @@ export function RemindersHubView({
         onPress={() => setAddModalOpen(true)}
         accessibilityRole="button"
         accessibilityLabel="Add Reminder"
-        className="absolute items-center justify-center active:scale-95 shadow-md w-12 h-12 rounded-full"
+        className="absolute items-center justify-center active:scale-95 w-12 h-12 rounded-full"
         style={{
           bottom: 24,
           right: 24,
           backgroundColor: tokens.color.interactive.accent,
-          elevation: 6,
         }}
       >
         <Plus size={22} color={tokens.color.text["on-accent"]} weight="bold" />

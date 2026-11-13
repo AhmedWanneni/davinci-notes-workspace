@@ -52,7 +52,8 @@ export function TabSwitcherModal({
           <View className="flex-row flex-wrap justify-between">
             {tabs.map((tab) => {
               const isActive = tab.id === activeTabId;
-              const hasSnippet = tab.previewText && tab.previewText.trim().length > 0;
+              const hasSnippet =
+                tab.previewText && tab.previewText.trim().length > 0;
 
               return (
                 <View key={tab.id} style={{ width: "47%", marginBottom: 16 }}>
@@ -67,11 +68,6 @@ export function TabSwitcherModal({
                         : tokens.color.border.subtle,
                       position: "relative",
                       overflow: "hidden",
-                      shadowColor: tokens.color.shadow,
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.08,
-                      shadowRadius: 4,
-                      elevation: 2,
                     }}
                   >
                     {/* Top right close button - Sibling positioned at zIndex 10 so it never triggers card selection */}
@@ -93,7 +89,11 @@ export function TabSwitcherModal({
                       }}
                       className="active:opacity-60"
                     >
-                      <X size={16} color={tokens.color.text.normal} weight="bold" />
+                      <X
+                        size={16}
+                        color={tokens.color.text.normal}
+                        weight="bold"
+                      />
                     </Pressable>
 
                     {/* Card Content Pressable */}
@@ -185,7 +185,11 @@ export function TabSwitcherModal({
             >
               {tabs.length} {tabs.length === 1 ? "tab" : "tabs"}
             </Text>
-            <CaretDown size={14} color={tokens.color.text.muted} weight="bold" />
+            <CaretDown
+              size={14}
+              color={tokens.color.text.muted}
+              weight="bold"
+            />
           </View>
 
           {/* Right: Done button */}

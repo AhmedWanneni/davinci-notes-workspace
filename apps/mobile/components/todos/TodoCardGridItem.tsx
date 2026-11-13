@@ -25,10 +25,9 @@ export function TodoCardGridItem({
       onPress={() => item.notePath && onOpenNote?.(item.notePath)}
       accessibilityRole="button"
       accessibilityLabel={`Open note for task ${item.text}`}
-      className="flex-1 m-1.5 p-3.5 rounded-2xl active:opacity-80 shadow-sm"
+      className="flex-1 m-1.5 p-3.5 rounded-2xl active:opacity-80"
       style={{
         backgroundColor: tokens.color.bg.primary,
-        elevation: 2,
         minHeight: 180,
       }}
     >
@@ -84,7 +83,7 @@ export function TodoCardGridItem({
         style={{ backgroundColor: tokens.color.bg.secondary }}
       >
         <View
-          className="w-full bg-white rounded-lg p-2.5 shadow-sm"
+          className="w-full bg-white rounded-lg p-2.5"
           style={{ minHeight: 85 }}
         >
           {/* Top miniature header with check indicator */}

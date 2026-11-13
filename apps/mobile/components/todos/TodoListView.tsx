@@ -124,11 +124,29 @@ export function TodoListView({
         ListEmptyComponent={
           !isLoading ? (
             <View className="items-center justify-center py-16 px-6">
-              <CheckSquare size={44} color={tokens.color.text.muted} weight="thin" />
-              <Text style={{ fontSize: 15, fontWeight: "600", color: tokens.color.text.normal, marginTop: 12 }}>
+              <CheckSquare
+                size={44}
+                color={tokens.color.text.muted}
+                weight="thin"
+              />
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: tokens.color.text.normal,
+                  marginTop: 12,
+                }}
+              >
                 No items in {listName}
               </Text>
-              <Text style={{ fontSize: 12, color: tokens.color.text.muted, textAlign: "center", marginTop: 4 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: tokens.color.text.muted,
+                  textAlign: "center",
+                  marginTop: 4,
+                }}
+              >
                 Tap + below to add an item directly to this todo list.
               </Text>
             </View>
@@ -141,12 +159,11 @@ export function TodoListView({
         onPress={onOpenAddItem}
         accessibilityRole="button"
         accessibilityLabel={`Add item to ${listName}`}
-        className="absolute items-center justify-center active:scale-95 shadow-md w-12 h-12 rounded-full"
+        className="absolute items-center justify-center active:scale-95 w-12 h-12 rounded-full"
         style={{
           bottom: 24,
           right: 24,
           backgroundColor: tokens.color.interactive.accent,
-          elevation: 6,
         }}
       >
         <Plus size={22} color={tokens.color.text["on-accent"]} weight="bold" />

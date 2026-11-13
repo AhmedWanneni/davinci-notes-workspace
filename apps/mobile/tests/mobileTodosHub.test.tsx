@@ -5,8 +5,19 @@ import { TodosSidebar } from "../components/todos/TodosSidebar";
 import { AddProjectModal } from "../components/todos/AddProjectModal";
 import { AddTodoListModal } from "../components/todos/AddTodoListModal";
 import { AddTodoItemModal } from "../components/todos/AddTodoItemModal";
-import { parseTodosFromMarkdown, removeTodoFromMarkdown } from "../components/todos/todoParser";
-import type { MobileTodoItem, MobileTodoProject } from "../components/todos/types";
+import {
+  parseTodosFromMarkdown,
+  removeTodoFromMarkdown,
+} from "../components/todos/todoParser";
+import type {
+  MobileTodoItem,
+  MobileTodoProject,
+} from "../components/todos/types";
+
+vi.mock("expo-router", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
+  usePathname: () => "/todos",
+}));
 
 vi.mock("../theme", () => ({
   useTheme: () => ({
@@ -30,7 +41,11 @@ describe("Mobile Todos Tasks Hub", () => {
 `;
 
   it("parses notePath, project and dueDate from markdown", () => {
-    const sections = parseTodosFromMarkdown(sampleMarkdown, "Todos/Work/Marketing.md", "Work");
+    const sections = parseTodosFromMarkdown(
+      sampleMarkdown,
+      "Todos/Work/Marketing.md",
+      "Work",
+    );
     expect(sections.length).toBe(1);
     const [todo1, todo2] = sections[0].todos;
 
@@ -68,7 +83,14 @@ describe("Mobile Todos Tasks Hub", () => {
       duration: "15 min",
     };
 
-    const row = <TodoTaskRow item={item} onToggle={onToggle} onDelete={onDelete} onOpenNote={onOpen} />;
+    const row = (
+      <TodoTaskRow
+        item={item}
+        onToggle={onToggle}
+        onDelete={onDelete}
+        onOpenNote={onOpen}
+      />
+    );
     expect(row).toBeDefined();
     expect(row.props.item.text).toBe("Launch product page");
   });
@@ -87,7 +109,13 @@ describe("Mobile Todos Tasks Hub", () => {
         name: "Daily",
         folderPath: "Todos/Daily",
         todoLists: [
-          { id: "Todos/Daily/Today.md", name: "Today", notePath: "Todos/Daily/Today.md", projectName: "Daily", todoCount: 4 },
+          {
+            id: "Todos/Daily/Today.md",
+            name: "Today",
+            notePath: "Todos/Daily/Today.md",
+            projectName: "Daily",
+            todoCount: 4,
+          },
         ],
         noteCount: 1,
         todoCount: 4,
@@ -97,7 +125,13 @@ describe("Mobile Todos Tasks Hub", () => {
         name: "Work",
         folderPath: "Todos/Work",
         todoLists: [
-          { id: "Todos/Work/Sprint.md", name: "Sprint", notePath: "Todos/Work/Sprint.md", projectName: "Work", todoCount: 2 },
+          {
+            id: "Todos/Work/Sprint.md",
+            name: "Sprint",
+            notePath: "Todos/Work/Sprint.md",
+            projectName: "Work",
+            todoCount: 2,
+          },
         ],
         noteCount: 1,
         todoCount: 2,

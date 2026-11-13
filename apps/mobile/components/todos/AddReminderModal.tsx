@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Modal, Pressable, TextInput, ScrollView } from "react-native";
-import { X, Clock, Plus, Tag } from "phosphor-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ArrowLeft, Clock, Plus, Tag } from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
 import { DateTimePickerModal } from "./DateTimePickerModal";
@@ -18,18 +19,29 @@ export function AddReminderModal({
   onClose,
   onAdd,
 }: AddReminderModalProps): React.ReactElement {
+  const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
   const [title, setTitle] = useState("");
   const [project, setProject] = useState("Work");
   const [dateTime, setDateTime] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const availableProjects = Array.from(new Set(["Work", "Events", "Daily", "Personal", ...projects.filter((p) => p !== "All")]));
+  const availableProjects = Array.from(
+    new Set([
+      "Work",
+      "Events",
+      "Daily",
+      "Personal",
+      ...projects.filter((p) => p !== "All"),
+    ]),
+  );
 
   const handleSave = () => {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
-    const finalDateTime = dateTime.trim() || new Date().toISOString().slice(0, 16).replace("T", " ");
+    const finalDateTime =
+      dateTime.trim() ||
+      new Date().toISOString().slice(0, 16).replace("T", " ");
     onAdd(trimmedTitle, finalDateTime, project.trim() || "Events");
     setTitle("");
     setDateTime("");
@@ -38,68 +50,160 @@ export function AddReminderModal({
 
   return (
     <>
-      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-        <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
-          <View className="p-6 rounded-t-3xl" style={{ backgroundColor: "#ffffff" }}>
-            {/* Header */}
-            <View className="flex-row items-center justify-between mb-4">
-              <View>
-                <Text style={{ fontSize: 18, fontWeight: "700", color: tokens.color.text.normal }}>
-                  Add Reminder & Event
-                </Text>
-                <Text style={{ fontSize: 12, color: tokens.color.text.muted }}>
-                  Set date, time, and project category
-                </Text>
-              </View>
-              <Pressable onPress={onClose} className="p-1 active:opacity-60">
-                <X size={20} color={tokens.color.text.muted} />
-              </Pressable>
+      <Modal
+        visible={visible}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={onClose}
+      >
+        <View
+          className="flex-1"
+          style={{
+            backgroundColor: tokens.color.bg.primary,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+          }}
+        >
+          {/* Fullscreen Header */}
+          <View
+            className="flex-row items-center justify-between px-4 py-3 border-b"
+            style={{ borderBottomColor: tokens.color.border.subtle }}
+          >
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              className="w-9 h-9 items-center justify-center -ml-1 rounded-lg active:opacity-60"
+            >
+              <ArrowLeft size={22} color={tokens.color.text.normal} />
+            </Pressable>
+
+            <View className="items-center flex-1 mx-2">
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "700",
+                  color: tokens.color.text.normal,
+                }}
+              >
+                Add Reminder & Event
+              </Text>
             </View>
 
-            {/* Title input */}
+            <Pressable
+              onPress={handleSave}
+              disabled={!title.trim()}
+              className="px-3 py-1.5 rounded-lg active:opacity-75"
+              style={{
+                backgroundColor: title.trim()
+                  ? tokens.color.interactive.accent
+                  : "transparent",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: "600",
+                  color: title.trim()
+                    ? tokens.color.text["on-accent"]
+                    : tokens.color.text.muted,
+                }}
+              >
+                Save
+              </Text>
+            </Pressable>
+          </View>
+
+          {/* Form Content */}
+          <ScrollView
+            className="flex-1 p-4"
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             <TextInput
               value={title}
               onChangeText={setTitle}
-              placeholder="e.g. Design review, Team sync, Client call..."
+              placeholder="e.g. Flight to Berlin, Tax deadline..."
               placeholderTextColor={tokens.color.text.muted}
-              className="px-4 py-3 rounded-xl border mb-3"
+              className="px-4 py-3 rounded-xl mb-4"
               style={{
-                backgroundColor: tokens.color.bg.primary,
-                borderColor: tokens.color.border.subtle,
+                backgroundColor: tokens.color.bg.secondary,
                 color: tokens.color.text.normal,
-                fontSize: 15,
+                fontSize: 16,
               }}
               autoFocus
               returnKeyType="done"
-              onSubmitEditing={handleSave}
             />
 
-            {/* Project / Event Category Selector */}
-            <View className="mb-3">
-              <View className="flex-row items-center gap-1.5 mb-2">
-                <Tag size={14} color={tokens.color.text.muted} />
-                <Text style={{ fontSize: 12, fontWeight: "600", color: tokens.color.text.muted }}>
-                  Project / Event Category
+            {/* Date & Time Picker */}
+            <Pressable
+              onPress={() => setPickerOpen(true)}
+              className="flex-row items-center justify-between px-4 py-3 rounded-xl mb-4 active:opacity-80"
+              style={{ backgroundColor: tokens.color.bg.secondary }}
+            >
+              <View className="flex-row items-center">
+                <Clock
+                  size={18}
+                  color={
+                    dateTime
+                      ? tokens.color.interactive.accent
+                      : tokens.color.text.muted
+                  }
+                />
+                <Text
+                  style={{
+                    marginLeft: 8,
+                    fontSize: 14,
+                    color: dateTime
+                      ? tokens.color.text.normal
+                      : tokens.color.text.muted,
+                    fontWeight: dateTime ? "600" : "400",
+                  }}
+                >
+                  {dateTime || "Choose Date & Time (iOS spinner)"}
                 </Text>
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="-mx-1">
+            </Pressable>
+
+            {/* Project Category Selection */}
+            <View className="mb-6">
+              <View className="flex-row items-center gap-1.5 mb-2">
+                <Tag size={16} color={tokens.color.text.muted} />
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: tokens.color.text.muted,
+                    fontWeight: "500",
+                  }}
+                >
+                  Project category
+                </Text>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="-mx-1"
+              >
                 {availableProjects.map((p) => {
                   const isSelected = project === p;
                   return (
                     <Pressable
                       key={p}
                       onPress={() => setProject(p)}
-                      className="mx-1 px-3.5 py-1.5 rounded-full border active:opacity-75"
+                      className="px-3.5 py-1.5 rounded-full mx-1 active:opacity-80"
                       style={{
-                        backgroundColor: isSelected ? "#000000" : "#ffffff",
-                        borderColor: isSelected ? "#000000" : tokens.color.border.subtle,
+                        backgroundColor: isSelected
+                          ? tokens.color.interactive.accent
+                          : tokens.color.bg.secondary,
                       }}
                     >
                       <Text
                         style={{
                           fontSize: 13,
                           fontWeight: "600",
-                          color: isSelected ? "#ffffff" : tokens.color.text.normal,
+                          color: isSelected
+                            ? tokens.color.text["on-accent"]
+                            : tokens.color.text.normal,
                         }}
                       >
                         {p}
@@ -110,57 +214,39 @@ export function AddReminderModal({
               </ScrollView>
             </View>
 
-            {/* Date & Time trigger using Expo DateTimePicker */}
-            <Pressable
-              onPress={() => setPickerOpen(true)}
-              className="flex-row items-center justify-between px-4 py-3 rounded-xl border mb-5 active:opacity-80"
-              style={{
-                backgroundColor: tokens.color.bg.primary,
-                borderColor: dateTime ? "#000000" : tokens.color.border.subtle,
-              }}
-            >
-              <View className="flex-row items-center flex-1">
-                <Clock size={18} color={dateTime ? "#000000" : tokens.color.text.muted} />
-                <Text
-                  style={{
-                    marginLeft: 10,
-                    fontSize: 14,
-                    color: dateTime ? "#111827" : tokens.color.text.muted,
-                    fontWeight: dateTime ? "600" : "400",
-                  }}
-                >
-                  {dateTime ? `Scheduled: ${dateTime}` : "Select Date & Time (Expo Picker)"}
-                </Text>
-              </View>
-              {dateTime ? (
-                <Pressable
-                  hitSlop={8}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    setDateTime("");
-                  }}
-                  className="p-1"
-                >
-                  <X size={15} color={tokens.color.text.muted} />
-                </Pressable>
-              ) : null}
-            </Pressable>
-
-            {/* Save Button */}
+            {/* Action Button */}
             <Pressable
               onPress={handleSave}
               disabled={!title.trim()}
-              className="py-3.5 rounded-2xl items-center justify-center active:opacity-90 flex-row gap-2"
+              className="py-3.5 rounded-xl items-center justify-center active:opacity-90 flex-row gap-2"
               style={{
-                backgroundColor: title.trim() ? "#000000" : tokens.color.bg.hover,
+                backgroundColor: title.trim()
+                  ? tokens.color.interactive.accent
+                  : tokens.color.bg.secondary,
               }}
             >
-              <Plus size={18} color={title.trim() ? "#ffffff" : tokens.color.text.muted} weight="bold" />
-              <Text style={{ fontSize: 15, fontWeight: "700", color: title.trim() ? "#ffffff" : tokens.color.text.muted }}>
-                Save Reminder & Event
+              <Plus
+                size={18}
+                color={
+                  title.trim()
+                    ? tokens.color.text["on-accent"]
+                    : tokens.color.text.muted
+                }
+                weight="bold"
+              />
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "700",
+                  color: title.trim()
+                    ? tokens.color.text["on-accent"]
+                    : tokens.color.text.muted,
+                }}
+              >
+                Save Reminder
               </Text>
             </Pressable>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
 
