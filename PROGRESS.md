@@ -2,7 +2,27 @@
 
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
-## Last Session — Full Google Calendar Month Table, Minimalist Top View Icons, and Top-Level Files & Folders Grid View
+## Last Session — Full-Screen Sidebars, Modals-to-Screens Conversion, Zero Shadows & 6-Action Bottom Bar
+
+1. **Full-Screen Sidebars (`NavigationDrawer.tsx`, `EditorDrawer.tsx`, `TodosSidebar.tsx`, `TodosSidebarHeader.tsx`, `TodosSidebarQuickNav.tsx`)**:
+   - Converted both the file tree navigation sidebar (`NavigationDrawer.tsx`) and the projects & todos sidebar (`TodosSidebar.tsx`) into complete full-screen screens (`presentationStyle="fullScreen"`, `statusBarTranslucent={true}`).
+   - Added safe area top insets (`paddingTop: insets.top`) so headers and content never clip or collide with the status bar or notch.
+   - Wired the full bottom navigation bar (`EditorBottomBar`) to both sidebars with all 6 actions (`Todo`, `+`, `Search`, `Notifications`, `Tabs`, `Settings`), giving the user seamless navigation across the app from the sidebar.
+   - Refactored `TodosSidebar.tsx` into modular components (`TodosSidebarHeader.tsx`, `TodosSidebarQuickNav.tsx`), maintaining strict compliance with the file line caps (<200 lines).
+
+2. **Full-Screen Modals & DateTimePicker (`DateTimePickerModal.tsx`, `AddProjectModal.tsx`, `AddTodoListModal.tsx`, `AddTodoItemModal.tsx`, `AddReminderModal.tsx`, `SelectFolderModal.tsx`, `Sheet.tsx`)**:
+   - Converted all dialog popups and bottom sheets into complete full-screen modal screens with safe-area insets and back headers.
+   - Refactored `DateTimePickerModal.tsx` into a full-screen view with design tokens, preserving `@react-native-community/datetimepicker` standard.
+
+3. **Complete Shadows Elimination**:
+   - Removed all `shadowColor`, `shadowOffset`, `shadowOpacity`, `shadowRadius`, and `elevation` properties across cards, headers, sheets, and modals (`FolderCardGridItem`, `NoteCardGridItem`, `TodoCardGridItem`, `TabSwitcherModal`, `Sheet`, `TodoListView`, `RemindersHubView`).
+
+4. **Standards & Verification**:
+   - All files strictly under 250 lines (soft cap 150–200).
+   - `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - ESLint passed with 0 errors on all modified components and tests.
+   - Unit test suites (21/21 tests) passed.
+   - Knowledge graph updated cleanly with `graphify update .`.
 
 1. **Complete Google Calendar Month Table (`CalendarMonthTable.tsx`, `TodoListView.tsx`, `todos.tsx`)**:
    - Replaced horizontal 7-day strip in todos with a complete, 7x5/7x6 monthly calendar table matching the Google Calendar reference design.
