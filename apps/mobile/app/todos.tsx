@@ -45,7 +45,7 @@ export default function TodosScreen(): React.ReactElement {
     toIso(new Date()),
   );
   const [activeTab, setActiveTab] = useState<"reminders" | "todos">(
-    "reminders",
+    "todos",
   );
   const [todoDisplayMode, setTodoDisplayMode] = useState<"list" | "grid">(
     "grid",
@@ -76,6 +76,18 @@ export default function TodosScreen(): React.ReactElement {
 
   const listName = openedList?.name ?? "Today";
   const projectName = openedList?.projectName ?? "Daily";
+
+  const taskDates = useMemo(() => {
+    const dates = new Set<string>();
+    for (const item of todos) {
+      if (item.dueDate) dates.add(item.dueDate);
+      if (item.reminder) {
+        const m = item.reminder.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (m) dates.add(m[1]);
+      }
+    }
+    return dates;
+  }, [todos]);
 
   const displayedTodos = useMemo(() => {
     let list = todos;
@@ -121,11 +133,15 @@ export default function TodosScreen(): React.ReactElement {
         paddingTop: insets.top,
       }}
     >
-      {/* Top Header: Sidebar icon & Tabs Switcher */}
+      {/* Top Header: Simple icons only, no tabs */}
       <TodosHeaderTabs
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
         onOpenSidebar={() => setSidebarVisible(true)}
+        displayMode={todoDisplayMode}
+        onChangeDisplayMode={setTodoDisplayMode}
+        isCalendarVisible={!isRem}
+        onToggleCalendar={() =>
+          setActiveTab((prev) => (prev === "reminders" ? "todos" : "reminders"))
+        }
       />
 
       <View className="flex-1">
@@ -148,7 +164,7 @@ export default function TodosScreen(): React.ReactElement {
             }
             onOpenAddItem={() => setAddItemVisible(true)}
             displayMode={todoDisplayMode}
-            onChangeDisplayMode={setTodoDisplayMode}
+            taskDates={taskDates}
           />
         )}
       </View>

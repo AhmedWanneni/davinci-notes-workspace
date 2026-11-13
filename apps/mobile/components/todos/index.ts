@@ -6,6 +6,8 @@ export { ReminderEventRow } from "./ReminderEventRow";
 export { RemindersHubView } from "./RemindersHubView";
 export { CalendarWeekStrip } from "./CalendarWeekStrip";
 export type { CalendarWeekStripProps } from "./CalendarWeekStrip";
+export { CalendarMonthTable } from "./CalendarMonthTable";
+export type { CalendarMonthTableProps } from "./CalendarMonthTable";
 export { TodoListView } from "./TodoListView";
 export type { TodoListViewProps } from "./TodoListView";
 export { DateTimePickerModal } from "./DateTimePickerModal";

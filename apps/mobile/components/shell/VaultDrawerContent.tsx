@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { View, Pressable } from "react-native";
 import {
   SidebarSimple,
@@ -8,9 +8,9 @@ import {
   FolderPlus,
   FilePlus,
   SquaresFour,
+  List as ListIcon,
 } from "phosphor-react-native";
 import { useTheme } from "../../theme";
-import { Text } from "../primitives";
 import { DrawerFolderList } from "./DrawerFolderList";
 import { FolderEmojiPickerModal } from "./FolderEmojiPickerModal";
 import { FolderGridView } from "../cards/FolderGridView";
@@ -55,12 +55,8 @@ export function VaultDrawerContent({
   const { tokens } = useTheme();
   const { icons, setIcon } = useTreeIcons();
   const [viewMode, setViewMode] = useState<"tree" | "grid">("tree");
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
-  const [emojiPickerFolder, setEmojiPickerFolder] = useState<string | null>(
-    null,
-  );
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [emojiPickerFolder, setEmojiPickerFolder] = useState<string | null>(null);
 
   const toggleFolder = (folder: string) => {
     setExpandedFolders((prev) => {
@@ -71,42 +67,21 @@ export function VaultDrawerContent({
     });
   };
 
-  const gridNotes = useMemo(
-    () =>
-      notes.map((path) => ({
-        id: path,
-        path,
-        title: path.split("/").pop()?.replace(/\.md$/i, "") ?? path,
-        dateStr: "Recent",
-      })),
-    [notes],
-  );
-
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: tokens.color.bg.primary,
-        justifyContent: "space-between",
-      }}
-    >
-      {/* Top Header */}
+    <View style={{ flex: 1, backgroundColor: tokens.color.bg.primary, justifyContent: "space-between" }}>
+      {/* Top Header: Simple icons only, no tabs */}
       <View
         className="h-[48px] flex-row items-center justify-between px-4 mb-2"
         style={{ backgroundColor: tokens.color.bg.primary }}
       >
         <View className="flex-row items-center gap-0.5">
           <Pressable
-            onPress={onOpenDailyNote}
+            onPress={onOpenCalendar ?? onOpenDailyNote}
             accessibilityRole="button"
-            accessibilityLabel="Daily note"
+            accessibilityLabel="Calendar view"
             className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <Calendar
-              size={20}
-              color={tokens.color.text.normal}
-              weight="regular"
-            />
+            <Calendar size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
 
           <Pressable
@@ -124,11 +99,7 @@ export function VaultDrawerContent({
             accessibilityLabel="Local graph"
             className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <GitFork
-              size={20}
-              color={tokens.color.text.normal}
-              weight="regular"
-            />
+            <GitFork size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
 
           <Pressable
@@ -137,11 +108,7 @@ export function VaultDrawerContent({
             accessibilityLabel="Add folder"
             className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <FolderPlus
-              size={20}
-              color={tokens.color.text.normal}
-              weight="regular"
-            />
+            <FolderPlus size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
 
           <Pressable
@@ -150,102 +117,67 @@ export function VaultDrawerContent({
             accessibilityLabel="Add file to vault"
             className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <FilePlus
-              size={20}
-              color={tokens.color.text.normal}
-              weight="regular"
-            />
+            <FilePlus size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
         </View>
 
-        <Pressable
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel="Close sidebar navigation"
-          className="w-9 h-9 rounded-lg items-center justify-center active:bg-bg-hover"
-        >
-          <SidebarSimple
-            size={20}
-            color={tokens.color.text.normal}
-            weight="regular"
-          />
-        </Pressable>
-      </View>
-
-      {/* Quick Navigation: Calendar & Cards Grid View */}
-      <View
-        className="flex-row items-center justify-between px-3 pb-2 border-b mb-1 gap-2"
-        style={{ borderBottomColor: tokens.color.border.subtle }}
-      >
-        <Pressable
-          onPress={onOpenCalendar}
-          accessibilityRole="button"
-          accessibilityLabel="Open Calendar and Reminders"
-          className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-lg active:opacity-75"
-          style={{ backgroundColor: tokens.color.bg.secondary }}
-        >
-          <Calendar
-            size={16}
-            color={tokens.color.interactive.accent}
-            weight="bold"
-          />
-          <Text
+        {/* Right: Grid & List/Tree simple icon toggles + Close */}
+        <View className="flex-row items-center gap-0.5">
+          <Pressable
+            onPress={() => setViewMode("tree")}
+            accessibilityRole="button"
+            accessibilityLabel="Tree view"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
             style={{
-              fontSize: 13,
-              fontWeight: "600",
-              color: tokens.color.text.normal,
+              backgroundColor: viewMode === "tree" ? tokens.color.bg.secondary : "transparent",
             }}
           >
-            Calendar
-          </Text>
-        </Pressable>
+            <ListIcon
+              size={20}
+              color={viewMode === "tree" ? tokens.color.interactive.accent : tokens.color.text.muted}
+              weight={viewMode === "tree" ? "bold" : "regular"}
+            />
+          </Pressable>
 
-        <Pressable
-          onPress={() => setViewMode((m) => (m === "grid" ? "tree" : "grid"))}
-          accessibilityRole="button"
-          accessibilityLabel="Toggle 2-column card grid view"
-          className="flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-lg active:opacity-75"
-          style={{
-            backgroundColor:
-              viewMode === "grid"
-                ? tokens.color.interactive.accent
-                : tokens.color.bg.secondary,
-          }}
-        >
-          <SquaresFour
-            size={16}
-            color={
-              viewMode === "grid"
-                ? tokens.color.text["on-accent"]
-                : tokens.color.text.normal
-            }
-            weight="bold"
-          />
-          <Text
+          <Pressable
+            onPress={() => setViewMode("grid")}
+            accessibilityRole="button"
+            accessibilityLabel="Grid view"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
             style={{
-              fontSize: 13,
-              fontWeight: "600",
-              color:
-                viewMode === "grid"
-                  ? tokens.color.text["on-accent"]
-                  : tokens.color.text.normal,
+              backgroundColor: viewMode === "grid" ? tokens.color.bg.secondary : "transparent",
             }}
           >
-            Grid Cards
-          </Text>
-        </Pressable>
+            <SquaresFour
+              size={20}
+              color={viewMode === "grid" ? tokens.color.interactive.accent : tokens.color.text.muted}
+              weight={viewMode === "grid" ? "fill" : "regular"}
+            />
+          </Pressable>
+
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close sidebar navigation"
+            className="w-9 h-9 rounded-lg items-center justify-center active:bg-bg-hover"
+          >
+            <SidebarSimple size={20} color={tokens.color.text.normal} weight="regular" />
+          </Pressable>
+        </View>
       </View>
 
-      {/* Main Content: Folder Grid Cards or Tree List */}
+      {/* Main Content: 2-Column Grid (files and folders only) or Tree List */}
       {viewMode === "grid" ? (
         <FolderGridView
-          notes={gridNotes}
-          folderName="Все файлы"
+          folders={folders}
+          notes={notes}
+          icons={icons}
           onOpenNote={(path) => {
             onClose?.();
             onSelectNote(path);
           }}
           onDeleteNote={onDeleteNote}
+          onDeleteFolder={onDeleteFolder}
         />
       ) : (
         <DrawerFolderList

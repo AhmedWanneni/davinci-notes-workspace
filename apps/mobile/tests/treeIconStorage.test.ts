@@ -6,8 +6,11 @@ import {
   persistTreeIcon,
   ICONS_JSON_PATH,
 } from "../vault/treeIconStorage";
-import { defaultVaultManager, type VaultInfo } from "../vault/vaultManager";
-import type { MobileVaultStorageAdapter } from "../vault/vaultStorageAdapter";
+import {
+  defaultVaultManager,
+  type MobileVaultStorageAdapter,
+  type VaultInfo,
+} from "../vault";
 
 vi.mock("../vault/vaultManager", () => ({
   defaultVaultManager: {

@@ -1,16 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, FlatList, RefreshControl, Pressable } from "react-native";
-import {
-  Plus,
-  CheckSquare,
-  List as ListIcon,
-  SquaresFour,
-} from "phosphor-react-native";
+import { Plus, CheckSquare } from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
 import { TodoTaskRow } from "./TodoTaskRow";
 import { TodoCardGridItem } from "./TodoCardGridItem";
-import { CalendarWeekStrip } from "./CalendarWeekStrip";
+import { CalendarMonthTable } from "./CalendarMonthTable";
 import type { MobileTodoItem } from "./types";
 
 export interface TodoListViewProps {
@@ -27,7 +22,7 @@ export interface TodoListViewProps {
   onSelectDate: (iso: string) => void;
   onOpenAddItem: () => void;
   displayMode?: "list" | "grid";
-  onChangeDisplayMode?: (mode: "list" | "grid") => void;
+  taskDates?: Set<string>;
 }
 
 export function TodoListView({
@@ -43,30 +38,24 @@ export function TodoListView({
   selectedDate,
   onSelectDate,
   onOpenAddItem,
-  displayMode: controlledMode,
-  onChangeDisplayMode,
+  displayMode = "grid",
+  taskDates,
 }: TodoListViewProps): React.ReactElement {
   const { tokens } = useTheme();
-  const [internalMode, setInternalMode] = useState<"list" | "grid">("grid");
-  const displayMode = controlledMode ?? internalMode;
-
-  const setMode = (mode: "list" | "grid") => {
-    setInternalMode(mode);
-    onChangeDisplayMode?.(mode);
-  };
 
   return (
     <View
       className="flex-1"
       style={{ backgroundColor: tokens.color.bg.primary }}
     >
-      {/* 7-Day Calendar Week Bar (same component as reminders) */}
-      <CalendarWeekStrip
+      {/* Complete Calendar Month Table matching Google Calendar reference */}
+      <CalendarMonthTable
         selectedDate={selectedDate}
         onSelectDate={onSelectDate}
+        taskDates={taskDates}
       />
 
-      {/* Sub-row: Project / Todo list title, date, and Grid/List toggle */}
+      {/* Sub-row: Project / Todo list title and date */}
       <View
         className="flex-row items-center justify-between px-4 py-2 border-b"
         style={{ borderBottomColor: tokens.color.border.subtle }}
@@ -87,69 +76,15 @@ export function TodoListView({
           </Text>
         </View>
 
-        <View className="flex-row items-center gap-2.5">
-          <Text
-            style={{
-              fontSize: 13,
-              color: tokens.color.text.muted,
-              fontWeight: "500",
-            }}
-          >
-            {formattedDate}
-          </Text>
-
-          {/* List vs Grid Toggle */}
-          <View
-            className="flex-row items-center p-0.5 rounded-lg"
-            style={{ backgroundColor: tokens.color.bg.secondary }}
-          >
-            <Pressable
-              onPress={() => setMode("list")}
-              accessibilityRole="button"
-              accessibilityLabel="List view"
-              className="w-7 h-7 rounded items-center justify-center active:opacity-75"
-              style={{
-                backgroundColor:
-                  displayMode === "list"
-                    ? tokens.color.bg.primary
-                    : "transparent",
-              }}
-            >
-              <ListIcon
-                size={16}
-                color={
-                  displayMode === "list"
-                    ? tokens.color.text.normal
-                    : tokens.color.text.muted
-                }
-                weight={displayMode === "list" ? "bold" : "regular"}
-              />
-            </Pressable>
-
-            <Pressable
-              onPress={() => setMode("grid")}
-              accessibilityRole="button"
-              accessibilityLabel="Grid view"
-              className="w-7 h-7 rounded items-center justify-center active:opacity-75"
-              style={{
-                backgroundColor:
-                  displayMode === "grid"
-                    ? tokens.color.bg.primary
-                    : "transparent",
-              }}
-            >
-              <SquaresFour
-                size={16}
-                color={
-                  displayMode === "grid"
-                    ? tokens.color.text.normal
-                    : tokens.color.text.muted
-                }
-                weight={displayMode === "grid" ? "fill" : "regular"}
-              />
-            </Pressable>
-          </View>
-        </View>
+        <Text
+          style={{
+            fontSize: 13,
+            color: tokens.color.text.muted,
+            fontWeight: "500",
+          }}
+        >
+          {formattedDate}
+        </Text>
       </View>
 
       {/* Task Rows List / Grid */}
@@ -189,29 +124,11 @@ export function TodoListView({
         ListEmptyComponent={
           !isLoading ? (
             <View className="items-center justify-center py-16 px-6">
-              <CheckSquare
-                size={44}
-                color={tokens.color.text.muted}
-                weight="thin"
-              />
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: "600",
-                  color: tokens.color.text.normal,
-                  marginTop: 12,
-                }}
-              >
+              <CheckSquare size={44} color={tokens.color.text.muted} weight="thin" />
+              <Text style={{ fontSize: 15, fontWeight: "600", color: tokens.color.text.normal, marginTop: 12 }}>
                 No items in {listName}
               </Text>
-              <Text
-                style={{
-                  fontSize: 12,
-                  color: tokens.color.text.muted,
-                  textAlign: "center",
-                  marginTop: 4,
-                }}
-              >
+              <Text style={{ fontSize: 12, color: tokens.color.text.muted, textAlign: "center", marginTop: 4 }}>
                 Tap + below to add an item directly to this todo list.
               </Text>
             </View>

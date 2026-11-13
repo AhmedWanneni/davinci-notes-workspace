@@ -1,81 +1,128 @@
 import React from "react";
 import { View, Pressable } from "react-native";
-import { List } from "phosphor-react-native";
+import {
+  SidebarSimple,
+  Calendar,
+  SquaresFour,
+  List as ListIcon,
+} from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
 
 export interface TodosHeaderTabsProps {
-  activeTab: "reminders" | "todos";
-  onSelectTab: (tab: "reminders" | "todos") => void;
+  activeTab?: "reminders" | "todos";
+  onSelectTab?: (tab: "reminders" | "todos") => void;
   onOpenSidebar: () => void;
+  displayMode?: "list" | "grid";
+  onChangeDisplayMode?: (mode: "list" | "grid") => void;
+  isCalendarVisible?: boolean;
+  onToggleCalendar?: () => void;
 }
 
 export function TodosHeaderTabs({
-  activeTab,
-  onSelectTab,
+  activeTab: _activeTab,
+  onSelectTab: _onSelectTab,
   onOpenSidebar,
+  displayMode = "grid",
+  onChangeDisplayMode,
+  isCalendarVisible = true,
+  onToggleCalendar,
 }: TodosHeaderTabsProps): React.ReactElement {
   const { tokens } = useTheme();
-  const isRem = activeTab === "reminders";
 
   return (
-    <View
-      className="flex-row items-center px-4 pt-3 pb-2.5"
-      style={{ gap: 12 }}
-    >
+    <View className="flex-row items-center justify-between px-4 py-2.5">
+      {/* Left: Sidebar Icon */}
       <Pressable
         onPress={onOpenSidebar}
         accessibilityRole="button"
         accessibilityLabel="Open sidebar"
-        className="p-1 -ml-1 active:opacity-60"
+        className="w-9 h-9 items-center justify-center -ml-1 rounded-lg active:opacity-60"
       >
-        <List size={26} color={tokens.color.text.normal} weight="regular" />
+        <SidebarSimple size={22} color={tokens.color.text.normal} weight="regular" />
       </Pressable>
-      <View
-        className="flex-1 flex-row p-1 rounded-xl"
-        style={{ backgroundColor: tokens.color.bg.secondary }}
+
+      {/* Center: Title */}
+      <Text
+        style={{
+          fontSize: 17,
+          fontWeight: "700",
+          color: tokens.color.text.normal,
+        }}
       >
-        <Pressable
-          onPress={() => onSelectTab("reminders")}
-          className="flex-1 py-1.5 rounded-lg items-center justify-center"
-          style={{
-            backgroundColor: isRem
-              ? tokens.color.interactive.accent
-              : "transparent",
-          }}
-        >
-          <Text
+        Calendar & Todos
+      </Text>
+
+      {/* Right: Simple top icons for Calendar, Grid View, and List/Tree View */}
+      <View className="flex-row items-center gap-1.5">
+        {onToggleCalendar ? (
+          <Pressable
+            onPress={onToggleCalendar}
+            accessibilityRole="button"
+            accessibilityLabel="Toggle calendar table"
+            className="w-9 h-9 items-center justify-center rounded-lg active:opacity-60"
             style={{
-              fontSize: 13,
-              fontWeight: "700",
-              color: isRem
-                ? tokens.color.text["on-accent"]
-                : tokens.color.text.muted,
+              backgroundColor: isCalendarVisible
+                ? tokens.color.bg.secondary
+                : "transparent",
             }}
           >
-            Reminders & Events
-          </Text>
+            <Calendar
+              size={20}
+              color={
+                isCalendarVisible
+                  ? tokens.color.interactive.accent
+                  : tokens.color.text.muted
+              }
+              weight={isCalendarVisible ? "fill" : "regular"}
+            />
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          onPress={() => onChangeDisplayMode?.("grid")}
+          accessibilityRole="button"
+          accessibilityLabel="Grid view"
+          className="w-9 h-9 items-center justify-center rounded-lg active:opacity-60"
+          style={{
+            backgroundColor:
+              displayMode === "grid"
+                ? tokens.color.bg.secondary
+                : "transparent",
+          }}
+        >
+          <SquaresFour
+            size={20}
+            color={
+              displayMode === "grid"
+                ? tokens.color.interactive.accent
+                : tokens.color.text.muted
+            }
+            weight={displayMode === "grid" ? "fill" : "regular"}
+          />
         </Pressable>
+
         <Pressable
-          onPress={() => onSelectTab("todos")}
-          className="flex-1 py-1.5 rounded-lg items-center justify-center"
+          onPress={() => onChangeDisplayMode?.("list")}
+          accessibilityRole="button"
+          accessibilityLabel="List view"
+          className="w-9 h-9 items-center justify-center rounded-lg active:opacity-60"
           style={{
-            backgroundColor: !isRem
-              ? tokens.color.interactive.accent
-              : "transparent",
+            backgroundColor:
+              displayMode === "list"
+                ? tokens.color.bg.secondary
+                : "transparent",
           }}
         >
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: "700",
-              color: !isRem
-                ? tokens.color.text["on-accent"]
-                : tokens.color.text.muted,
-            }}
-          >
-            Todos & Projects
-          </Text>
+          <ListIcon
+            size={20}
+            color={
+              displayMode === "list"
+                ? tokens.color.interactive.accent
+                : tokens.color.text.muted
+            }
+            weight={displayMode === "list" ? "bold" : "regular"}
+          />
         </Pressable>
       </View>
     </View>

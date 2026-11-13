@@ -2,6 +2,32 @@
 
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
+## Last Session — Full Google Calendar Month Table, Minimalist Top View Icons, and Top-Level Files & Folders Grid View
+
+1. **Complete Google Calendar Month Table (`CalendarMonthTable.tsx`, `TodoListView.tsx`, `todos.tsx`)**:
+   - Replaced horizontal 7-day strip in todos with a complete, 7x5/7x6 monthly calendar table matching the Google Calendar reference design.
+   - Includes `< Month, Year >` navigation, days of the week header (`Sun` through `Sat`), and trailing/leading days from adjacent months.
+   - Highlights selected date in a circular badge and places dot indicators under dates with real tasks or reminders from the user's vault (zero mock data).
+   - Tapping any date filters the task list below to only show items scheduled on that date.
+
+2. **Top-Level Files & Folders Grid View (`FolderGridView.tsx`, `FolderCardGridItem.tsx`)**:
+   - Completely removed the grid view header (`FolderViewHeader`, "Все файлы ∨", "Последние ∨") for a clean, borderless presentation.
+   - Restricted the top-level grid view to top-level files (`!note.includes('/')`) and top-level folders (`!folder.includes('/')`) only, excluding sub-files and sub-folders.
+   - Added `FolderCardGridItem.tsx` displaying the folder's name, emoji icon, and note count.
+   - Tapping a folder card opens that folder to reveal its direct child notes with a back button.
+
+3. **Minimalist Top Icon-Only Navigation (`TodosHeaderTabs.tsx`, `VaultDrawerContent.tsx`)**:
+   - Removed textual tabs ("Reminders & Events" / "Todos & Projects") from `TodosHeaderTabs.tsx` and removed the textual button bar from `VaultDrawerContent.tsx`.
+   - Placed simple, borderless icons in the top bar: Sidebar toggle (`SidebarSimple`), Calendar toggle (`Calendar`), Grid View toggle (`SquaresFour`), and Tree/List toggle (`ListIcon`).
+
+4. **Standards & Verification**:
+   - All files strictly under 250 lines (soft cap 150–200).
+   - `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - ESLint passed with 0 errors on all modified files.
+   - Vitest test suites (33/33 tests) passed.
+   - Knowledge graph updated cleanly with `graphify update .`.
+
+
 ## Last Session — Fullscreen Desktop-Parity Emoji Picker, Google Calendar Sync, 2-Column Cards Grid View & Sidebar Quick Nav
 
 1. **Fullscreen Desktop-Parity Emoji Picker (`FolderEmojiPickerModal.tsx`, `EmojiCategoryTabBar.tsx`, `emojiCategories.ts`, `emojiData.json`)**:
