@@ -2,6 +2,26 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-13: Note Mode vs Text Mode & Frontmatter File Properties
+
+- **Replaced Preview vs Edit with Note Mode vs Text Mode**:
+  - Replaced preview/reading view with `Note` mode and `Text` mode for note editing in `apps/mobile/app/editor.tsx`.
+  - Added segmented `[ Note ] [ Text ]` mode toggle pill in `apps/mobile/components/EditorHeader.tsx`.
+  - Added Note mode and Text mode selection rows in `apps/mobile/components/shell/NoteActionSheet.tsx`.
+- **CodeMirror Note vs Text Behavior**:
+  - In **Note mode**: typing `-` (or `- `) followed by Enter continues/creates a bullet list item (`\n- `) and renders bullet widgets.
+  - In **Text mode**: plain text editing: typing `-` followed by Enter preserves `-` as literal `-` with standard newline without list continuation or bullet widgets.
+  - Added `handleNoteModeEnter` and `handleTextModeEnter` in `apps/mobile/components/editorExtensions.ts` and exported `handleListEnter` from `@app/editor`.
+- **Frontmatter File Properties**:
+  - Created `apps/mobile/vault/noteProperties.ts` providing `getNoteMode` and `setNoteModeInContent`.
+  - Each note records whether it is `type: note` or `type: text` directly in YAML frontmatter properties.
+  - Toggling mode dynamically updates frontmatter, saves to disk, and reloads the editor extensions seamlessly.
+- **Standards & Verification**:
+  - All files strictly under the 250-line hard cap (`EditorDom.tsx` 238, `editor.tsx` 244, `EditorHeader.tsx` 168, `NoteActionSheet.tsx` 231, `noteProperties.ts` 43).
+  - TypeScript typecheck passed with 0 errors across mobile and editor packages.
+  - Unit tests in `apps/mobile/tests/notePropertiesAndMode.test.tsx` (11 tests passed).
+  - Knowledge graph updated cleanly with `graphify update .`.
+
 ### 2026-11-13: Isolated Reminders Hub, Projects/Events Categorization, & Reference UI Design
 
 - **Isolated Reminders & Events Hub (`RemindersHubView.tsx`, `useVaultReminders.ts`, `todos.tsx`)**:

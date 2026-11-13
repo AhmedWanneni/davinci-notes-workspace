@@ -2,16 +2,32 @@
 
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
-## Last Session — Sophia Splash Logo & Arabic RTL Note Reading
+## Last Session — Note Mode vs Text Mode & Frontmatter File Properties
 
-- Enlarged the Sophia owl image in the Expo splash configuration so it is visible during launch.
-- Added script-aware direction detection for mobile notes. Arabic-dominant notes open RTL in the CodeMirror editor, Markdown preview, and todo view; Latin-dominant notes remain LTR.
-- Kept UTF-8 decoding explicit when copying external vault files into app storage. The editor DOM declares UTF-8 and keeps the original Unicode content.
-- Validation: Expo config parses and `git diff --check` passes. Tests were not run.
+1. **Replaced Preview vs Edit with Note Mode vs Text Mode (`editor.tsx`, `EditorHeader.tsx`, `NoteActionSheet.tsx`)**:
+   - Replaced preview/reading view with distinct `Note` and `Text` modes for note editing.
+   - Replaced the reading view icon in the mobile editor header with a clean, segmented `[ Note ] [ Text ]` mode switcher pill.
+   - Added `Note mode` and `Text mode` action rows in `NoteActionSheet.tsx`.
+
+2. **Note Mode vs Text Mode CodeMirror Behavior (`editorExtensions.ts`, `EditorDom.tsx`, `listExtension.ts`)**:
+   - In **Note mode**: typing `-` (or `- `) followed by Enter continues/creates a bullet list item (`\n- `) and renders bullet widgets with live preview decorations.
+   - In **Text mode**: plain text editing ("more than text when - keep it -"): typing `-` followed by Enter preserves `-` as a literal `-` with standard newline `\n` without inserting or continuing a bullet list. Omits bullet widgets and list indentation keymaps.
+   - Added `handleNoteModeEnter` and `handleTextModeEnter` with `createMobileEditorExtensions(..., editorMode)`.
+
+3. **Frontmatter File Properties (`noteProperties.ts`, `vault/index.ts`)**:
+   - Created `noteProperties.ts` providing `getNoteMode(content)` and `setNoteModeInContent(content, mode)`.
+   - Each note persists its mode (`type: note` or `type: text` / `mode: note` or `mode: text`) directly in YAML frontmatter properties.
+   - Toggling mode dynamically updates frontmatter, saves to disk, and reloads the editor extensions seamlessly.
+
+4. **Standards & Verification**:
+   - All files strictly under the 250-line hard cap (`EditorDom.tsx` 238, `editor.tsx` 244, `EditorHeader.tsx` 168, `NoteActionSheet.tsx` 231, `noteProperties.ts` 43).
+   - `pnpm --filter @app/mobile typecheck` and `pnpm --filter @app/editor typecheck` passed with 0 errors.
+   - Unit tests created in `tests/notePropertiesAndMode.test.tsx` (11 tests passed), all related tests passing.
+   - Knowledge graph updated cleanly with `graphify update .`.
 
 ## Next Up
 
-1. Verify the splash image and Arabic note layout on physical Android and iOS devices.
+1. Test Note mode and Text mode on physical iOS / Android devices.
 
 ---
 

@@ -140,7 +140,7 @@ export {
   tweetImageToStatusUrl,
   tweetStatusUrl,
 } from "./embeds/tweetEmbed";
-export { listExtension, listIndentKeymap } from "./live-preview/listExtension";
+export { listExtension, listIndentKeymap, handleListEnter } from "./live-preview/listExtension";
 export type { ListExtensionOptions } from "./live-preview/listExtension";
 export {
   highlightExtension,

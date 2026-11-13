@@ -15,6 +15,7 @@ import {
   highlightExtension,
   listExtension,
   listIndentKeymap,
+  handleListEnter,
   livePreviewExtension,
   markdownAnnotationsExtension,
   markdownAnnotationTheme,
@@ -23,31 +24,96 @@ import {
   tagTheme,
 } from "@app/editor";
 
+export function handleNoteModeEnter(view: EditorView): boolean {
+  const sel = view.state.selection.main;
+  const line = view.state.doc.lineAt(sel.head);
+  const text = line.text;
+
+  // When user typed '-' alone (or with leading whitespace) and presses Enter:
+  // make it a bullet list item and continue with '- ' on the next line
+  const matchDashAlone = /^(\s*)-(.*)$/.exec(text);
+  if (matchDashAlone && !/^\s*-\s+/.test(text)) {
+    const indent = matchDashAlone[1];
+    const rest = matchDashAlone[2].trim();
+    const formattedLine = `${indent}- ${rest}`;
+    const nextLine = `\n${indent}- `;
+    view.dispatch({
+      changes: [
+        { from: line.from, to: line.to, insert: formattedLine },
+        { from: line.from + formattedLine.length, insert: nextLine },
+      ],
+      selection: { anchor: line.from + formattedLine.length + nextLine.length },
+      scrollIntoView: true,
+      userEvent: "input",
+    });
+    return true;
+  }
+
+  return handleListEnter(view);
+}
+
+export function handleTextModeEnter(view: EditorView): boolean {
+  // In text mode: plain newline, keep '-' as '-' without list continuation
+  const sel = view.state.selection.main;
+  view.dispatch({
+    changes: { from: sel.from, to: sel.to, insert: "\n" },
+    selection: { anchor: sel.from + 1 },
+    scrollIntoView: true,
+    userEvent: "input",
+  });
+  return true;
+}
+
 /**
  * Builds the CodeMirror 6 extension set for the mobile editor.
- * Reuses the shared live-preview decorations, syntax highlighting, and themes.
+ * In 'note' mode: bullet list continuation, bullet widgets, live preview decorations.
+ * In 'text' mode: plain text editing, '-' stays as '-', no list continuation or widgets.
  */
 export function createMobileEditorExtensions(
   extraExtensions: Extension[] = [],
+  editorMode: "note" | "text" = "note",
 ): Extension[] {
-  return [
+  const isText = editorMode === "text";
+
+  const modeKeymap = isText
+    ? keymap.of([
+        { key: "Enter", run: handleTextModeEnter },
+        ...historyKeymap,
+        ...defaultKeymap,
+      ])
+    : keymap.of([
+        { key: "Enter", run: handleNoteModeEnter },
+        ...historyKeymap,
+        ...listIndentKeymap.filter((k) => k.key !== "Enter"),
+        ...defaultKeymap,
+      ]);
+
+  const baseExtensions: Extension[] = [
     history(),
     drawSelection(),
     highlightActiveLine(),
     EditorView.lineWrapping,
-    keymap.of([...historyKeymap, ...listIndentKeymap, ...defaultKeymap]),
+    modeKeymap,
     syntaxHighlighting(editorHighlightStyle),
     editorTheme,
-    tagTheme,
-    markdownAnnotationTheme,
-    markdownAnnotationsExtension(),
     softLineBreakExtension,
     markdown({
       extensions: [Strikethrough, highlightExtension],
     }),
-    livePreviewExtension,
-    listExtension(),
-    tagExtension(),
+  ];
+
+  if (!isText) {
+    baseExtensions.push(
+      tagTheme,
+      markdownAnnotationTheme,
+      markdownAnnotationsExtension(),
+      livePreviewExtension,
+      listExtension(),
+      tagExtension(),
+    );
+  }
+
+  baseExtensions.push(
     EditorView.theme({
       "&": {
         height: "100%",
@@ -82,37 +148,15 @@ export function createMobileEditorExtensions(
         fontSize: "16px",
         lineHeight: "1.7",
       },
-      ".cm-heading-1": {
-        fontSize: "1.802em",
-        fontWeight: "700",
-        lineHeight: "1.25",
-      },
-      ".cm-heading-2": {
-        fontSize: "1.462em",
-        fontWeight: "680",
-        lineHeight: "1.25",
-      },
-      ".cm-heading-3": {
-        fontSize: "1.318em",
-        fontWeight: "660",
-        lineHeight: "1.3",
-      },
-      ".cm-heading-4": {
-        fontSize: "1.188em",
-        fontWeight: "640",
-        lineHeight: "1.4",
-      },
-      ".cm-heading-5": {
-        fontSize: "1.076em",
-        fontWeight: "620",
-        lineHeight: "1.5",
-      },
-      ".cm-heading-6": {
-        fontSize: "1em",
-        fontWeight: "600",
-        lineHeight: "1.5",
-      },
+      ".cm-heading-1": { fontSize: "1.802em", fontWeight: "700", lineHeight: "1.25" },
+      ".cm-heading-2": { fontSize: "1.462em", fontWeight: "680", lineHeight: "1.25" },
+      ".cm-heading-3": { fontSize: "1.318em", fontWeight: "660", lineHeight: "1.3" },
+      ".cm-heading-4": { fontSize: "1.188em", fontWeight: "640", lineHeight: "1.4" },
+      ".cm-heading-5": { fontSize: "1.076em", fontWeight: "620", lineHeight: "1.5" },
+      ".cm-heading-6": { fontSize: "1em", fontWeight: "600", lineHeight: "1.5" },
     }),
     ...extraExtensions,
-  ];
+  );
+
+  return baseExtensions;
 }

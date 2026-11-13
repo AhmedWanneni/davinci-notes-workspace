@@ -15,10 +15,13 @@ import { EditorConflictBanner } from "../components/EditorConflictBanner";
 import { EditorSaveErrorBanner } from "../components/EditorSaveErrorBanner";
 import { EditorHeader } from "../components/EditorHeader";
 import { EditorTitleHeader } from "../components/EditorTitleHeader";
-import { EditorPreviewView } from "../components/EditorPreviewView";
 import { buildEditorInjectedScript } from "../components/editorInjectedScript";
 import { Text } from "../components/primitives";
-import { useNotePath, useEditorNoteLoader, useEditorSaveManager, useEditorTabManager, openNewTabLanding, updateActiveTabContent, createUnsavedNewTab } from "../vault";
+import {
+  useNotePath, useEditorNoteLoader, useEditorSaveManager, useEditorTabManager,
+  openNewTabLanding, updateActiveTabContent, createUnsavedNewTab,
+  getNoteMode, setNoteModeInContent, type NoteEditorMode,
+} from "../vault";
 import { useMediaCaptureActions } from "../capture";
 import type { ToolbarActionType, DocChangeNotification } from "../src/bridgeProtocol";
 import { encodePayload } from "../src/base64Payload";
@@ -28,13 +31,12 @@ export default function EditorScreen(): React.ReactElement {
   const insets = useSafeAreaInsets();
   const { tokens, themeCss } = useTheme();
   useImmersiveNavigationBar();
-  const { path: initialPath, noteId, preset, template, autoFocus, mode: initialMode, folder } =
-    useLocalSearchParams<{ path?: string; noteId?: string; preset?: string; template?: string; autoFocus?: string; mode?: "edit" | "preview"; folder?: string }>();
+  const { path: initialPath, noteId, preset, template, autoFocus, folder } =
+    useLocalSearchParams<{ path?: string; noteId?: string; preset?: string; template?: string; autoFocus?: string; folder?: string }>();
 
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<"edit" | "preview">(
-    initialMode === "edit" || (preset === "new" && template !== "todo") ? "edit" : "preview",
-  );
+  const [editorMode, setEditorMode] = useState<NoteEditorMode>("note");
+  const [todoEditMode, setTodoEditMode] = useState(false);
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [folderPickerVisible, setFolderPickerVisible] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -46,6 +48,10 @@ export default function EditorScreen(): React.ReactElement {
   const isTodoNote =
     template === "todo" || /todos[/$]/i.test(activePath) || activePath.toLowerCase().endsWith("todos.md") || Boolean(initialPath?.toLowerCase().includes("todo"));
 
+  useEffect(() => {
+    if (content) setEditorMode(getNoteMode(content));
+  }, [activePath, content]);
+
   useFocusEffect(useCallback(() => { void reloadNote(); }, [reloadNote]));
 
   const {
@@ -54,7 +60,7 @@ export default function EditorScreen(): React.ReactElement {
     handleCloseTab, handleSelectNoteFromDrawer,
   } = useEditorTabManager({
     activePath, content, router,
-    onSelectNotePath: (note) => { setActivePath(note); setViewMode("edit"); },
+    onSelectNotePath: (note) => { setActivePath(note); setTodoEditMode(false); },
   });
 
   const isNewTabPage = !initialPath && tabIsNewTab;
@@ -71,6 +77,13 @@ export default function EditorScreen(): React.ReactElement {
     handleDocChanged(notif, bytes);
     if (notif.content) updateActiveTabContent(notif.content);
   }, [handleDocChanged]);
+
+  const handleToggleEditorMode = useCallback((nextMode: NoteEditorMode) => {
+    setEditorMode(nextMode);
+    const updated = setNoteModeInContent(content, nextMode);
+    setContent(updated);
+    onDocChangedWrapped({ docLength: updated.length, changeCount: 1, excerpt: updated.slice(0, 50), timestamp: Date.now(), content: updated }, updated.length);
+  }, [content, setContent, onDocChangedWrapped]);
 
   const handleTodoContentChange = useCallback((newText: string) => {
     setContent(newText);
@@ -124,23 +137,20 @@ export default function EditorScreen(): React.ReactElement {
       ) : (
         <>
           <EditorHeader
-            mode={viewMode}
+            mode={editorMode}
             onBack={handleBack}
-            onToggleMode={(next) => setViewMode(next)}
+            onToggleMode={handleToggleEditorMode}
             onOpenDrawer={() => setDrawerVisible(true)}
             onOpenActions={() => setActionSheetVisible(true)}
             onOpenSearch={() => router.push("/search")}
             onOpenTodos={() => router.push("/todos")}
           />
 
-          {!isTodoNote || viewMode === "edit" ? (
+          {!isTodoNote || todoEditMode ? (
             <EditorTitleHeader
               activePath={activePath}
               textColor={tokens.color.text.normal}
-              onPathChange={(nextPath) => {
-                setActivePath(nextPath);
-                router.setParams({ path: nextPath });
-              }}
+              onPathChange={(nextPath) => { setActivePath(nextPath); router.setParams({ path: nextPath }); }}
             />
           ) : null}
 
@@ -156,30 +166,20 @@ export default function EditorScreen(): React.ReactElement {
           ) : null}
 
           <View style={{ flex: 1, width: "100%" }}>
-            {isTodoNote && viewMode === "preview" ? (
-              <TodoView content={content} onContentChange={handleTodoContentChange} onSwitchToEditor={() => setViewMode("edit")} title={title} />
-            ) : viewMode === "preview" ? (
-              <EditorPreviewView
-                content={content}
-                title=""
-                onEditPress={() => setViewMode("edit")}
-                onWikilinkPress={(target) => router.push({ pathname: "/editor", params: { path: `${target}.md`, mode: "preview" } })}
-                onTagPress={(tag) => router.push({ pathname: "/search", params: { q: tag } })}
-              />
+            {isTodoNote && !todoEditMode ? (
+              <TodoView content={content} onContentChange={handleTodoContentChange} onSwitchToEditor={() => setTodoEditMode(true)} title={title} />
             ) : isLoaded ? (
               <EditorDom
-                key={noteId || activePath}
+                key={`${noteId || activePath}-${editorMode}`}
                 dom={{
-                  useExpoDOMWebView: false,
-                  matchContents: false,
-                  scrollEnabled: true,
-                  focusable: true,
+                  useExpoDOMWebView: false, matchContents: false, scrollEnabled: true, focusable: true,
                   injectedJavaScriptBeforeContentLoaded: buildEditorInjectedScript(content, activePath, themeCss ?? ""),
                   containerStyle: { flex: 1, width: "100%", height: "100%" },
                   style: { flex: 1, width: "100%", height: "100%" },
                 }}
                 initialContent={encodePayload(content)}
                 notePath={activePath}
+                editorMode={editorMode}
                 themeCss={themeCss}
                 onDocChanged={onDocChangedWrapped}
                 onFlushAck={handleFlushAck}
@@ -194,7 +194,7 @@ export default function EditorScreen(): React.ReactElement {
         </>
       )}
 
-      {viewMode === "edit" && !isNewTabPage && isKeyboardVisible ? (
+      {!isNewTabPage && isKeyboardVisible ? (
         <FormattingToolbar
           onAction={(action) => {
             if (action === "camera" || action === "photo" || action === "audio") void handleMediaAction(action);
@@ -233,8 +233,8 @@ export default function EditorScreen(): React.ReactElement {
       <NoteActionSheet
         visible={actionSheetVisible}
         onClose={() => setActionSheetVisible(false)}
-        isReadingView={viewMode === "preview"}
-        onToggleReadingView={() => { setViewMode(viewMode === "preview" ? "edit" : "preview"); setActionSheetVisible(false); }}
+        editorMode={editorMode}
+        onSelectMode={(mode) => { handleToggleEditorMode(mode); setActionSheetVisible(false); }}
         onOpenSettings={() => { setActionSheetVisible(false); router.push("/settings"); }}
       />
 

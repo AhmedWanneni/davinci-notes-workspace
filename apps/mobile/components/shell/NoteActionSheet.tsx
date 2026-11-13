@@ -22,6 +22,8 @@ import { Sheet, SheetGroup, Text } from "../primitives";
 export interface NoteActionSheetProps {
   visible: boolean;
   onClose: () => void;
+  editorMode?: "note" | "text";
+  onSelectMode?: (mode: "note" | "text") => void;
   isReadingView?: boolean;
   isPinned?: boolean;
   onToggleReadingView?: () => void;
@@ -84,6 +86,8 @@ function ActionRow({
 export function NoteActionSheet({
   visible,
   onClose,
+  editorMode,
+  onSelectMode,
   isReadingView = false,
   isPinned = false,
   onToggleReadingView,
@@ -102,6 +106,7 @@ export function NoteActionSheet({
 }: NoteActionSheetProps): React.ReactElement {
   const { tokens } = useTheme();
   const iconColor = tokens.color.text.normal;
+  const activeMode = editorMode ?? (isReadingView ? "note" : "text");
 
   return (
     <Sheet visible={visible} onClose={onClose}>
@@ -144,15 +149,15 @@ export function NoteActionSheet({
           ) : null}
           <ActionRow
             icon={<BookOpen size={20} color={iconColor} weight="regular" />}
-            label="Reading view"
-            onPress={onToggleReadingView}
-            active={isReadingView}
+            label="Note mode"
+            onPress={() => (onSelectMode ? onSelectMode("note") : onToggleReadingView?.())}
+            active={activeMode === "note"}
           />
           <ActionRow
             icon={<Code size={20} color={iconColor} weight="regular" />}
-            label="Source mode"
-            onPress={onToggleSourceMode}
-            active={!isReadingView}
+            label="Text mode"
+            onPress={() => (onSelectMode ? onSelectMode("text") : onToggleSourceMode?.())}
+            active={activeMode === "text"}
             isLast
           />
         </SheetGroup>

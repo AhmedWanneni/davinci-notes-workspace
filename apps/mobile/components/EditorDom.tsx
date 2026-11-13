@@ -20,6 +20,7 @@ export interface EditorDomProps {
   dom?: { useExpoDOMWebView?: boolean; matchContents?: boolean; scrollEnabled?: boolean; [key: string]: unknown };
   initialContent: string;
   notePath?: string;
+  editorMode?: "note" | "text";
   onDocChanged?: (notification: DocChangeNotification, payloadBytes: number) => void;
   onMetricsUpdate?: (keystrokeLatencyMs: number) => void;
   actionTrigger?: { id: number; action: ToolbarActionType } | null;
@@ -33,6 +34,7 @@ export interface EditorDomProps {
 export default function EditorDom({
   initialContent = "",
   notePath,
+  editorMode = "note",
   onDocChanged,
   onFlushAck,
   onMetricsUpdate,
@@ -81,10 +83,7 @@ export default function EditorDom({
         lastKeystrokeTime = now;
 
         const docLength = update.state.doc.length;
-        const excerpt = update.state.doc.sliceString(
-          0,
-          Math.min(60, docLength),
-        );
+        const excerpt = update.state.doc.sliceString(0, Math.min(60, docLength));
         const fullContent = update.state.doc.toString();
 
         bridgeRef.current.emit({
@@ -98,7 +97,7 @@ export default function EditorDom({
     });
 
     const docText = decodePayload(initialContent || "");
-    const extensions = createMobileEditorExtensions([changeListener]);
+    const extensions = createMobileEditorExtensions([changeListener], editorMode);
     const direction = getTextDirection(docText);
     containerRef.current.setAttribute("dir", direction);
     if (!document.querySelector("meta[charset]")) {
@@ -217,21 +216,14 @@ export default function EditorDom({
 
   // Apply reset & theme CSS to DOM container
   useEffect(() => {
-    let styleEl = document.getElementById(
-      "davinci-mobile-theme",
-    ) as HTMLStyleElement | null;
+    let styleEl = document.getElementById("davinci-mobile-theme") as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.id = "davinci-mobile-theme";
       document.head.appendChild(styleEl);
     }
     const vars = `:root{--color-bg-primary:${darkColorTokens.bg.primary};--color-text-normal:${darkColorTokens.text.normal};--color-text-muted:${darkColorTokens.text.muted};--color-text-accent:${darkColorTokens.interactive.accent};--color-bg-active:rgba(255,255,255,0.1);--font-editor:-apple-system,BlinkMacSystemFont,"Geeza Pro","Noto Sans Arabic","Amiri","Traditional Arabic","Segoe UI",Roboto,Helvetica,Arial,sans-serif,system-ui;--font-text:-apple-system,BlinkMacSystemFont,"Geeza Pro","Noto Sans Arabic","Amiri","Traditional Arabic","Segoe UI",Roboto,Helvetica,Arial,sans-serif,system-ui;--editor-font-size:16px;--editor-obsidian-body-line-height:1.7;--editor-content-padding-bottom:300px;--space-6:16px;--space-8:16px;--border-width-thin:1px;}`;
-    const reset =
-      "html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:var(--color-bg-primary," +
-      darkColorTokens.bg.primary +
-      ")!important;color:var(--color-text-normal," +
-      darkColorTokens.text.normal +
-      ")!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}.cm-content{direction:inherit!important;unicode-bidi:plaintext!important;text-align:start!important;}.cm-line{direction:inherit!important;unicode-bidi:plaintext!important;text-align:start!important;}";
+    const reset = `html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:var(--color-bg-primary,${darkColorTokens.bg.primary})!important;color:var(--color-text-normal,${darkColorTokens.text.normal})!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}.cm-content,.cm-line{direction:inherit!important;unicode-bidi:plaintext!important;text-align:start!important;}`;
     styleEl.textContent = `${vars}\n${themeCss ?? ""}\n${reset}`;
   }, [themeCss]);
 
@@ -240,12 +232,7 @@ export default function EditorDom({
       ref={containerRef}
       tabIndex={0}
       className="mobile-editor-dom-host"
-      style={{
-        width: "100%",
-        height: "100%",
-        overflow: "hidden",
-        backgroundColor: `var(--color-bg-primary, ${darkColorTokens.bg.primary})`,
-      }}
+      style={{ width: "100%", height: "100%", overflow: "hidden", backgroundColor: `var(--color-bg-primary, ${darkColorTokens.bg.primary})` }}
     />
   );
 }
