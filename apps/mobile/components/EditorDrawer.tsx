@@ -115,6 +115,10 @@ export function EditorDrawer({
             onClose();
             router.push("/daily-note-action");
           }}
+          onOpenCalendar={() => {
+            onClose();
+            router.push("/todos");
+          }}
           onOpenTags={() => {
             onClose();
             router.push({ pathname: "/search", params: { q: "tag:" } });
@@ -131,7 +135,11 @@ export function EditorDrawer({
           onCreateNote={() => {
             onClose();
             if (onCreateNoteProp) onCreateNoteProp();
-            else router.push({ pathname: "/editor", params: { preset: "new", autoFocus: "1" } });
+            else
+              router.push({
+                pathname: "/editor",
+                params: { preset: "new", autoFocus: "1" },
+              });
           }}
         />
       </NavigationDrawer>

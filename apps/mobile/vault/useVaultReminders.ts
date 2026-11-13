@@ -3,6 +3,7 @@ import { defaultVaultManager } from "./vaultManager";
 import { atomicWriteNote } from "./atomicNoteWriter";
 import { defaultVaultIndexer } from "../indexer";
 import { scheduleTodoReminder } from "../notifications/todoNotifications";
+import { addReminderToGoogleCalendar } from "./googleCalendarService";
 import type { MobileReminderEvent } from "../components/todos/types";
 
 const DEFAULT_REMINDERS_PATH = "Reminders/Events.md";
@@ -27,7 +28,11 @@ export interface UseVaultRemindersResult {
   metrics: ReminderMetrics;
   isLoading: boolean;
   refresh: () => Promise<void>;
-  addReminder: (title: string, dateTime: string, project: string) => Promise<void>;
+  addReminder: (
+    title: string,
+    dateTime: string,
+    project: string,
+  ) => Promise<void>;
   toggleReminder: (item: MobileReminderEvent) => Promise<void>;
   deleteReminder: (item: MobileReminderEvent) => Promise<void>;
 }
@@ -47,13 +52,20 @@ export function useVaultReminders(): UseVaultRemindersResult {
         return;
       }
 
-      if (!(await adapter.statFile("Reminders")).exists) await adapter.createFolder("Reminders");
+      if (!(await adapter.statFile("Reminders")).exists)
+        await adapter.createFolder("Reminders");
       if (!(await adapter.statFile(DEFAULT_REMINDERS_PATH)).exists) {
-        await atomicWriteNote(adapter, DEFAULT_REMINDERS_PATH, INITIAL_REMINDERS_CONTENT);
+        await atomicWriteNote(
+          adapter,
+          DEFAULT_REMINDERS_PATH,
+          INITIAL_REMINDERS_CONTENT,
+        );
       }
 
       const scan = await adapter.scanVault();
-      const relevantNotes = scan.notes.filter((p) => /reminders[/$\\]/i.test(p) || /todos[/$\\]/i.test(p));
+      const relevantNotes = scan.notes.filter(
+        (p) => /reminders[/$\\]/i.test(p) || /todos[/$\\]/i.test(p),
+      );
       const parsedList: MobileReminderEvent[] = [];
 
       for (const notePath of relevantNotes) {
@@ -62,13 +74,18 @@ export function useVaultReminders(): UseVaultRemindersResult {
           cacheRef.current.set(notePath, file.content);
           const lines = file.content.split(/\r?\n/);
           lines.forEach((line, lineIndex) => {
-            const reminderMatch = /@(\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2})?)/.exec(line);
+            const reminderMatch =
+              /@(\d{4}-\d{2}-\d{2}(?:\s+\d{2}:\d{2})?)/.exec(line);
             if (!reminderMatch) return;
             const completed = /^[-*]\s*\[x\]/i.test(line.trim());
-            const textMatch = /^[-*]\s*\[[ xX]\]\s*(.*?)(?=\s*\(@|\s*\[|$)/.exec(line.trim());
+            const textMatch =
+              /^[-*]\s*\[[ xX]\]\s*(.*?)(?=\s*\(@|\s*\[|$)/.exec(line.trim());
             const title = textMatch ? textMatch[1].trim() : "Untitled Reminder";
-            const projectMatch = /\[(.*?)\](?!\()/.exec(line.replace(/^[-*]\s*\[[ xX]\]/, ""));
-            const defaultProj = notePath.replace(/\.md$/i, "").split("/").pop() ?? "Events";
+            const projectMatch = /\[(.*?)\](?!\()/.exec(
+              line.replace(/^[-*]\s*\[[ xX]\]/, ""),
+            );
+            const defaultProj =
+              notePath.replace(/\.md$/i, "").split("/").pop() ?? "Events";
             const project = projectMatch ? projectMatch[1].trim() : defaultProj;
             const dateTime = reminderMatch[1];
 
@@ -106,7 +123,10 @@ export function useVaultReminders(): UseVaultRemindersResult {
     }
   }, []);
 
-  const projects = ["All", ...Array.from(new Set(reminders.map((r) => r.project).filter(Boolean)))];
+  const projects = [
+    "All",
+    ...Array.from(new Set(reminders.map((r) => r.project).filter(Boolean))),
+  ];
 
   const nowStr = new Date().toISOString().slice(0, 10);
   const todayReminders = reminders.filter((r) => r.dateTime.startsWith(nowStr));
@@ -114,7 +134,9 @@ export function useVaultReminders(): UseVaultRemindersResult {
   const nextReminder = upcomingReminders[0];
 
   const metrics: ReminderMetrics = {
-    nextTime: nextReminder ? nextReminder.dateTime.split(" ")[1] ?? "09:00am" : "09:00am",
+    nextTime: nextReminder
+      ? (nextReminder.dateTime.split(" ")[1] ?? "09:00am")
+      : "09:00am",
     todayCount: todayReminders.length,
     upcomingCount: upcomingReminders.length,
   };
@@ -132,11 +154,19 @@ export function useVaultReminders(): UseVaultRemindersResult {
         current = `## ${projClean}\n`;
       }
       const newLine = `- [ ] ${title.trim()} (@${dateTime}) [${projClean}]\n`;
-      const updated = current.endsWith("\n") ? current + newLine : current + "\n" + newLine;
+      const updated = current.endsWith("\n")
+        ? current + newLine
+        : current + "\n" + newLine;
       cacheRef.current.set(notePath, updated);
       await atomicWriteNote(adapter, notePath, updated);
       void defaultVaultIndexer.indexVault(adapter, false);
       void scheduleTodoReminder(title, dateTime, projClean);
+      void addReminderToGoogleCalendar({
+        title,
+        dateTime,
+        project: projClean,
+        notePath,
+      });
       await loadReminders();
     },
     [loadReminders],
@@ -147,7 +177,9 @@ export function useVaultReminders(): UseVaultRemindersResult {
       if (!item.notePath || item.lineIndex === undefined) return;
       const { adapter } = await defaultVaultManager.getActiveAdapter();
       if (!adapter) return;
-      const current = cacheRef.current.get(item.notePath) ?? (await adapter.readNote(item.notePath)).content;
+      const current =
+        cacheRef.current.get(item.notePath) ??
+        (await adapter.readNote(item.notePath)).content;
       const lines = current.split(/\r?\n/);
       if (item.lineIndex < lines.length) {
         const line = lines[item.lineIndex];
@@ -170,7 +202,9 @@ export function useVaultReminders(): UseVaultRemindersResult {
       if (!item.notePath || item.lineIndex === undefined) return;
       const { adapter } = await defaultVaultManager.getActiveAdapter();
       if (!adapter) return;
-      const current = cacheRef.current.get(item.notePath) ?? (await adapter.readNote(item.notePath)).content;
+      const current =
+        cacheRef.current.get(item.notePath) ??
+        (await adapter.readNote(item.notePath)).content;
       const lines = current.split(/\r?\n/);
       lines.splice(item.lineIndex, 1);
       const updated = lines.join("\n");

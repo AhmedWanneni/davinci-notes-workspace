@@ -15,11 +15,13 @@ export interface DrawerFolderItemProps {
   depth?: number;
   isExpanded: boolean;
   notes: string[];
+  icon?: string;
   onToggleExpand: () => void;
   onSelectFolder?: (folder: string) => void;
   onSelectNote: (path: string) => void;
   onDeleteFolder?: (folder: string) => void;
   onDeleteNote?: (path: string) => void;
+  onPressIcon?: (folder: string) => void;
 }
 
 export function DrawerFolderItem({
@@ -28,11 +30,13 @@ export function DrawerFolderItem({
   depth = 0,
   isExpanded,
   notes,
+  icon,
   onToggleExpand,
   onSelectFolder,
   onSelectNote,
   onDeleteFolder,
   onDeleteNote,
+  onPressIcon,
 }: DrawerFolderItemProps): React.ReactElement {
   const { tokens } = useTheme();
   const indentPadding = Math.min(depth * 14, 42);
@@ -43,16 +47,28 @@ export function DrawerFolderItem({
   };
 
   const handleLongPressFolder = () => {
-    Alert.alert("Delete Folder", `Delete "${displayName}" and all its contents?`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => onDeleteFolder?.(folder) },
-    ]);
+    Alert.alert(
+      "Delete Folder",
+      `Delete "${displayName}" and all its contents?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDeleteFolder?.(folder),
+        },
+      ],
+    );
   };
 
   const handleLongPressNote = (notePath: string, stem: string) => {
     Alert.alert("Delete Note", `Delete "${stem}"?`, [
       { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: () => onDeleteNote?.(notePath) },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => onDeleteNote?.(notePath),
+      },
     ]);
   };
 
@@ -82,7 +98,22 @@ export function DrawerFolderItem({
           accessibilityRole="button"
           accessibilityLabel={`Open folder ${displayName}`}
         >
-          <FolderSimple size={18} color={tokens.color.interactive.accent} />
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation?.();
+              if (onPressIcon) onPressIcon(folder);
+              else handlePressFolder();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={`Change icon for ${displayName}`}
+            className="w-6 h-6 items-center justify-center active:opacity-70"
+          >
+            {icon ? (
+              <Text style={{ fontSize: 18 }}>{icon}</Text>
+            ) : (
+              <FolderSimple size={18} color={tokens.color.interactive.accent} />
+            )}
+          </Pressable>
           <Text
             variant="body"
             color="normal"

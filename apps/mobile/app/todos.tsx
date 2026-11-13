@@ -47,6 +47,9 @@ export default function TodosScreen(): React.ReactElement {
   const [activeTab, setActiveTab] = useState<"reminders" | "todos">(
     "reminders",
   );
+  const [todoDisplayMode, setTodoDisplayMode] = useState<"list" | "grid">(
+    "grid",
+  );
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [addItemVisible, setAddItemVisible] = useState(false);
   const [addProjectVisible, setAddProjectVisible] = useState(false);
@@ -144,6 +147,8 @@ export default function TodosScreen(): React.ReactElement {
               setSelectedDate((prev) => (prev === iso ? null : iso))
             }
             onOpenAddItem={() => setAddItemVisible(true)}
+            displayMode={todoDisplayMode}
+            onChangeDisplayMode={setTodoDisplayMode}
           />
         )}
       </View>
@@ -180,6 +185,10 @@ export default function TodosScreen(): React.ReactElement {
           setActiveTab("todos");
         }}
         onSelectReminders={() => setActiveTab("reminders")}
+        onToggleGridMode={() => {
+          setTodoDisplayMode((m) => (m === "grid" ? "list" : "grid"));
+          setActiveTab("todos");
+        }}
         onAddProject={() => setAddProjectVisible(true)}
         onAddTodoList={(pName) => {
           setProjectForNewList(pName);

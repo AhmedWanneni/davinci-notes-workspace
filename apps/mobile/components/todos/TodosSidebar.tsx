@@ -5,6 +5,8 @@ import {
   FolderSimplePlus,
   CheckSquare,
   MagnifyingGlass,
+  Calendar,
+  SquaresFour,
 } from "phosphor-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../theme";
@@ -23,6 +25,7 @@ export interface TodosSidebarProps {
   onDeleteProject?: (projectName: string) => void;
   onDeleteTodoList?: (notePath: string) => void;
   onSelectReminders?: () => void;
+  onToggleGridMode?: () => void;
   searchQuery?: string;
   onSearchQueryChange?: (query: string) => void;
 }
@@ -37,6 +40,8 @@ export function TodosSidebar({
   onAddTodoList,
   onDeleteProject,
   onDeleteTodoList,
+  onSelectReminders,
+  onToggleGridMode,
   searchQuery,
   onSearchQueryChange,
 }: TodosSidebarProps): React.ReactElement {
@@ -156,9 +161,64 @@ export function TodosSidebar({
           </View>
         </View>
 
+        {/* Quick Nav: Calendar & 2-Column Card Grid */}
+        <View className="px-3 pt-2 pb-1 gap-1.5">
+          <Pressable
+            onPress={() => {
+              onClose();
+              onSelectReminders?.();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Open Calendar and Reminders"
+            className="flex-row items-center gap-2.5 px-3 py-2 rounded-xl active:bg-bg-hover"
+            style={{ backgroundColor: tokens.color.bg.secondary }}
+          >
+            <Calendar
+              size={18}
+              color={tokens.color.interactive.accent}
+              weight="bold"
+            />
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: tokens.color.text.normal,
+              }}
+            >
+              Calendar & Reminders
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => {
+              onClose();
+              onToggleGridMode?.();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Toggle 2-column card grid view"
+            className="flex-row items-center gap-2.5 px-3 py-2 rounded-xl active:bg-bg-hover"
+            style={{ backgroundColor: tokens.color.bg.secondary }}
+          >
+            <SquaresFour
+              size={18}
+              color={tokens.color.interactive.accent}
+              weight="bold"
+            />
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: "600",
+                color: tokens.color.text.normal,
+              }}
+            >
+              2-Column Card Grid View
+            </Text>
+          </Pressable>
+        </View>
+
         {/* Projects and their Todo Lists */}
         <ScrollView
-          className="flex-1 px-2 pt-2"
+          className="flex-1 px-2 pt-1"
           showsVerticalScrollIndicator={false}
         >
           {filteredProjects.map((proj) => (

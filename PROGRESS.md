@@ -2,6 +2,37 @@
 
 Updated at the end of every session. Read this first, before touching code. Full history: `docs/HISTORY.md`.
 
+## Last Session — Fullscreen Desktop-Parity Emoji Picker, Google Calendar Sync, 2-Column Cards Grid View & Sidebar Quick Nav
+
+1. **Fullscreen Desktop-Parity Emoji Picker (`FolderEmojiPickerModal.tsx`, `EmojiCategoryTabBar.tsx`, `emojiCategories.ts`, `emojiData.json`)**:
+   - Replaced popup with a fullscreen emoji selection modal with safe area insets and full screen dimensions.
+   - Exact parity with desktop: imported all 1,914 Unicode emojis organized across the 8 categories (`smileys`, `animals`, `food`, `activities`, `travel`, `objects`, `symbols`, `flags`).
+   - Integrated top category tab bar with matching Phosphor icons (`Smiley`, `PawPrint`, `ForkKnife`, `SoccerBall`, `Car`, `Lightbulb`, `Heart`, `Flag`).
+   - Search across all emoji labels with live instant filtering and 7-column layout.
+   - Persistence into `.davinci/icons.json` ensuring 100% cross-platform sync with Desktop.
+
+2. **Sidebar Access to Calendar View (`VaultDrawerContent.tsx`, `EditorDrawer.tsx`, `TodosSidebar.tsx`)**:
+   - Added prominent "Calendar & Reminders" quick navigation option at the top of the file tree sidebar (`VaultDrawerContent.tsx`) and todo sidebar (`TodosSidebar.tsx`).
+   - Tapping Calendar navigates directly to the Calendar, Reminders & Todos hub (`/todos`).
+
+3. **2-Column Card Grid View Option in Sidebars & Views (`FolderGridView.tsx`, `FolderViewHeader.tsx`, `NoteCardGridItem.tsx`, `TodoCardGridItem.tsx`, `TodoListView.tsx`)**:
+   - Added "Cards Grid View" option in the sidebars to immediately switch to the 2-column card layout.
+   - Implemented 2-column card grid view matching the reference design: title, date, options button, and miniature document sheet preview with task lines.
+   - Added List (`≡`) vs Grid (`⊞`) toggle in `FolderViewHeader.tsx` and `TodoListView.tsx`.
+   - Wired into `TodoListView.tsx` and `VaultDrawerContent.tsx`.
+
+4. **Google Calendar Sync Integration (`googleCalendarService.ts`, `useVaultReminders.ts`)**:
+   - Integrated Google Calendar REST API (`/calendar/v3/calendars/primary/events`) using existing OAuth bearer tokens from `@app/sync-client`.
+   - Automatically schedules reminders into Google Calendar upon creation by default.
+
+5. **Standards & Verification**:
+   - All files strictly under 250 lines (soft cap 150-200).
+   - `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - ESLint passed with 0 errors on all components and tests.
+   - Vitest test suites (35/35 tests) passed across 7 test files.
+   - Knowledge graph updated cleanly with `graphify update .`.
+
+
 ## Last Session — Dynamic Bullet Mode Reconfiguration, Topbar Clean-up, Full Page Views & Manage Vaults Redesign
 
 1. **Automatic Bullet Point Reconfiguration (`editorExtensions.ts`, `EditorDom.tsx`, `editorInjectedScript.ts`)**:

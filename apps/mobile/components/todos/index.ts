@@ -14,6 +14,9 @@ export { TodosSidebar } from "./TodosSidebar";
 export { TodosHeaderTabs } from "./TodosHeaderTabs";
 export type { TodosHeaderTabsProps } from "./TodosHeaderTabs";
 export { TodoTaskRow } from "./TodoTaskRow";
+export { TodoCardGridItem } from "./TodoCardGridItem";
+export type { TodoCardGridItemProps } from "./TodoCardGridItem";
+
 export {
   parseTodosFromMarkdown,
   toggleTodoInMarkdown,

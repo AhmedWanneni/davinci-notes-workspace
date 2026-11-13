@@ -1,9 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, FlatList, RefreshControl, Pressable } from "react-native";
-import { Plus, CheckSquare } from "phosphor-react-native";
+import {
+  Plus,
+  CheckSquare,
+  List as ListIcon,
+  SquaresFour,
+} from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Text } from "../primitives";
 import { TodoTaskRow } from "./TodoTaskRow";
+import { TodoCardGridItem } from "./TodoCardGridItem";
 import { CalendarWeekStrip } from "./CalendarWeekStrip";
 import type { MobileTodoItem } from "./types";
 
@@ -20,6 +26,8 @@ export interface TodoListViewProps {
   selectedDate: string | null;
   onSelectDate: (iso: string) => void;
   onOpenAddItem: () => void;
+  displayMode?: "list" | "grid";
+  onChangeDisplayMode?: (mode: "list" | "grid") => void;
 }
 
 export function TodoListView({
@@ -35,8 +43,17 @@ export function TodoListView({
   selectedDate,
   onSelectDate,
   onOpenAddItem,
+  displayMode: controlledMode,
+  onChangeDisplayMode,
 }: TodoListViewProps): React.ReactElement {
   const { tokens } = useTheme();
+  const [internalMode, setInternalMode] = useState<"list" | "grid">("grid");
+  const displayMode = controlledMode ?? internalMode;
+
+  const setMode = (mode: "list" | "grid") => {
+    setInternalMode(mode);
+    onChangeDisplayMode?.(mode);
+  };
 
   return (
     <View
@@ -49,16 +66,17 @@ export function TodoListView({
         onSelectDate={onSelectDate}
       />
 
-      {/* Sub-row: Project / Todo list title and date */}
+      {/* Sub-row: Project / Todo list title, date, and Grid/List toggle */}
       <View
         className="flex-row items-center justify-between px-4 py-2 border-b"
         style={{ borderBottomColor: tokens.color.border.subtle }}
       >
-        <View className="flex-row items-center gap-1.5">
+        <View className="flex-row items-center gap-1.5 flex-1 mr-2">
           <Text style={{ fontSize: 14, color: tokens.color.text.muted }}>
             {projectName} /
           </Text>
           <Text
+            numberOfLines={1}
             style={{
               fontSize: 15,
               fontWeight: "700",
@@ -68,20 +86,77 @@ export function TodoListView({
             {listName}
           </Text>
         </View>
-        <Text
-          style={{
-            fontSize: 13,
-            color: tokens.color.text.muted,
-            fontWeight: "500",
-          }}
-        >
-          {formattedDate}
-        </Text>
+
+        <View className="flex-row items-center gap-2.5">
+          <Text
+            style={{
+              fontSize: 13,
+              color: tokens.color.text.muted,
+              fontWeight: "500",
+            }}
+          >
+            {formattedDate}
+          </Text>
+
+          {/* List vs Grid Toggle */}
+          <View
+            className="flex-row items-center p-0.5 rounded-lg"
+            style={{ backgroundColor: tokens.color.bg.secondary }}
+          >
+            <Pressable
+              onPress={() => setMode("list")}
+              accessibilityRole="button"
+              accessibilityLabel="List view"
+              className="w-7 h-7 rounded items-center justify-center active:opacity-75"
+              style={{
+                backgroundColor:
+                  displayMode === "list"
+                    ? tokens.color.bg.primary
+                    : "transparent",
+              }}
+            >
+              <ListIcon
+                size={16}
+                color={
+                  displayMode === "list"
+                    ? tokens.color.text.normal
+                    : tokens.color.text.muted
+                }
+                weight={displayMode === "list" ? "bold" : "regular"}
+              />
+            </Pressable>
+
+            <Pressable
+              onPress={() => setMode("grid")}
+              accessibilityRole="button"
+              accessibilityLabel="Grid view"
+              className="w-7 h-7 rounded items-center justify-center active:opacity-75"
+              style={{
+                backgroundColor:
+                  displayMode === "grid"
+                    ? tokens.color.bg.primary
+                    : "transparent",
+              }}
+            >
+              <SquaresFour
+                size={16}
+                color={
+                  displayMode === "grid"
+                    ? tokens.color.text.normal
+                    : tokens.color.text.muted
+                }
+                weight={displayMode === "grid" ? "fill" : "regular"}
+              />
+            </Pressable>
+          </View>
+        </View>
       </View>
 
-      {/* Task Rows List */}
+      {/* Task Rows List / Grid */}
       <FlatList
+        key={displayMode}
         data={displayedTodos}
+        numColumns={displayMode === "grid" ? 2 : 1}
         keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl
@@ -89,15 +164,28 @@ export function TodoListView({
             onRefresh={() => void refresh()}
           />
         }
-        renderItem={({ item }) => (
-          <TodoTaskRow
-            item={item}
-            onToggle={onToggle}
-            onDelete={onDelete}
-            onOpenNote={onOpenNote}
-          />
-        )}
-        contentContainerStyle={{ paddingBottom: 48 }}
+        renderItem={({ item }) =>
+          displayMode === "grid" ? (
+            <TodoCardGridItem
+              item={item}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onOpenNote={onOpenNote}
+            />
+          ) : (
+            <TodoTaskRow
+              item={item}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              onOpenNote={onOpenNote}
+            />
+          )
+        }
+        contentContainerStyle={{
+          paddingHorizontal: displayMode === "grid" ? 8 : 0,
+          paddingVertical: displayMode === "grid" ? 6 : 0,
+          paddingBottom: 48,
+        }}
         ListEmptyComponent={
           !isLoading ? (
             <View className="items-center justify-center py-16 px-6">
