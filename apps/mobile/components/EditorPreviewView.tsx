@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { parseMarkdownDocument } from "../reader/markdownParser";
 import { NoteReaderView } from "../reader/NoteReaderView";
 import { Text } from "./primitives";
+import { getTextDirection } from "../src/getTextDirection";
 
 export interface EditorPreviewViewProps {
   content: string;
@@ -22,6 +23,7 @@ export function EditorPreviewView({
   const document = useMemo(() => {
     return parseMarkdownDocument(content);
   }, [content]);
+  const direction = getTextDirection(content);
 
   if (!content.trim()) {
     return (
@@ -34,10 +36,11 @@ export function EditorPreviewView({
   }
 
   return (
-    <View className="flex-1">
+    <View className="flex-1" style={{ direction }}>
       <NoteReaderView
         document={document}
         title={title}
+        direction={direction}
         onWikilinkPress={onWikilinkPress ?? (() => {})}
         onTagPress={onTagPress ?? (() => {})}
         onEditPress={onEditPress}

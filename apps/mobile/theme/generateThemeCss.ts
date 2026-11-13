@@ -69,5 +69,25 @@ export function generateThemeCss(tokens: NativeThemeTokens): string {
   --radius-capsule: ${layout.capsuleRadius};
   --radius-sheet-group: ${layout.sheetGroupRadius};
   --space-touch-target: ${layout.touchTarget}px;
+  --editor-obsidian-heading-h1-size: 1.802em;
+  --editor-obsidian-heading-h1-weight: 700;
+  --editor-obsidian-heading-h1-line-height: 1.25;
+  --editor-obsidian-heading-h2-size: 1.462em;
+  --editor-obsidian-heading-h2-weight: 680;
+  --editor-obsidian-heading-h2-line-height: 1.25;
+  --editor-obsidian-heading-h3-size: 1.318em;
+  --editor-obsidian-heading-h3-weight: 660;
+  --editor-obsidian-heading-h3-line-height: 1.3;
+  --editor-obsidian-heading-h4-size: 1.188em;
+  --editor-obsidian-heading-h4-weight: 640;
+  --editor-obsidian-heading-h4-line-height: 1.4;
+  --editor-obsidian-heading-h5-size: 1.076em;
+  --editor-obsidian-heading-h5-weight: 620;
+  --editor-obsidian-heading-h5-line-height: 1.5;
+  --editor-obsidian-heading-h6-size: 1em;
+  --editor-obsidian-heading-h6-weight: 600;
+  --editor-obsidian-heading-h6-line-height: 1.5;
+  --editor-obsidian-body-line-height: 1.6;
+  --font-mono: ui-monospace, "SF Mono", "Geist Mono", Menlo, Consolas, monospace;
 }`;
 }

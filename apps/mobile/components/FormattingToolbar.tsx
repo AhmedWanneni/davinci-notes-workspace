@@ -32,26 +32,9 @@ interface ToolbarItem {
 }
 
 const TOOLBAR_ITEMS: ToolbarItem[] = [
-  { action: "checkbox", label: "[ ]", ariaLabel: "Insert task checkbox" },
-  { action: "wikilink", label: "[[ ]]", ariaLabel: "Insert wikilink" },
-  {
-    action: "tag",
-    label: "#",
-    icon: (c) => <Tag size={18} color={c} weight="regular" />,
-    ariaLabel: "Insert tag",
-  },
-  {
-    action: "photo",
-    label: "Att",
-    icon: (c) => <Paperclip size={18} color={c} weight="regular" />,
-    ariaLabel: "Add attachment",
-  },
-  {
-    action: "heading",
-    label: "H",
-    icon: (c) => <TextH size={18} color={c} weight="bold" />,
-    ariaLabel: "Format heading",
-  },
+  { action: "h1", label: "H1", ariaLabel: "Format heading 1" },
+  { action: "h2", label: "H2", ariaLabel: "Format heading 2" },
+  { action: "h3", label: "H3", ariaLabel: "Format heading 3" },
   {
     action: "bold",
     label: "B",
@@ -69,6 +52,20 @@ const TOOLBAR_ITEMS: ToolbarItem[] = [
     label: "S",
     icon: (c) => <TextStrikethrough size={18} color={c} weight="regular" />,
     ariaLabel: "Format strikethrough",
+  },
+  { action: "checkbox", label: "[ ]", ariaLabel: "Insert task checkbox" },
+  { action: "wikilink", label: "[[ ]]", ariaLabel: "Insert wikilink" },
+  {
+    action: "tag",
+    label: "#",
+    icon: (c) => <Tag size={18} color={c} weight="regular" />,
+    ariaLabel: "Insert tag",
+  },
+  {
+    action: "photo",
+    label: "Att",
+    icon: (c) => <Paperclip size={18} color={c} weight="regular" />,
+    ariaLabel: "Add attachment",
   },
   {
     action: "code",
@@ -125,9 +122,9 @@ export function FormattingToolbar({
 
   return (
     <View
-      className="border-t py-1.5 px-2"
+      className="border-t py-1 px-1"
       style={{
-        backgroundColor: tokens.color.bg.secondary,
+        backgroundColor: tokens.color.bg.primary,
         borderTopWidth: 1,
         borderTopColor: tokens.color.border.subtle,
       }}
@@ -139,7 +136,7 @@ export function FormattingToolbar({
         contentContainerStyle={{
           flexDirection: "row",
           alignItems: "center",
-          gap: 4,
+          gap: 2,
         }}
       >
         {TOOLBAR_ITEMS.map((item) => (
@@ -149,22 +146,22 @@ export function FormattingToolbar({
             onPress={() => onAction(item.action)}
             accessibilityRole="button"
             accessibilityLabel={item.ariaLabel}
-            className="rounded-lg items-center justify-center border active:opacity-75"
+            className="items-center justify-center rounded-md active:opacity-40"
             style={{
-              height: 44,
-              minWidth: 44,
-              paddingHorizontal: 8,
-              backgroundColor: tokens.color.bg.primary,
-              borderColor: tokens.color.border.subtle,
+              height: 38,
+              minWidth: 38,
+              paddingHorizontal: 6,
             }}
           >
             {item.icon ? (
               item.icon(iconColor)
             ) : (
               <Text
-                size="sm"
-                weight="semibold"
-                color={disabled ? "muted" : "normal"}
+                style={{
+                  fontSize: 13,
+                  fontWeight: "600",
+                  color: disabled ? tokens.color.text.muted : tokens.color.text.normal,
+                }}
               >
                 {item.label}
               </Text>

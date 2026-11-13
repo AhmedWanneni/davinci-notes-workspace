@@ -4,8 +4,10 @@ import {
   Modal,
   Pressable,
   Animated,
+  StyleSheet,
   useWindowDimensions,
 } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../theme";
 
@@ -26,7 +28,7 @@ export function NavigationDrawer({
   const insets = useSafeAreaInsets();
   const { tokens } = useTheme();
 
-  const drawerWidth = Math.min(width * 0.82, 340);
+  const drawerWidth = width;
   const slideAnim = useRef(new Animated.Value(-drawerWidth)).current;
 
   useEffect(() => {
@@ -52,10 +54,10 @@ export function NavigationDrawer({
       animationType="none"
       onRequestClose={onClose}
     >
-      <View className="flex-1 flex-row">
+      <StatusBar style={tokens.isDark ? "light" : "dark"} />
+      <View style={{ flex: 1, width: "100%", height: "100%" }}>
         <Pressable
-          className="absolute inset-0"
-          style={{ backgroundColor: tokens.color.bg.scrim }}
+          style={[StyleSheet.absoluteFill, { backgroundColor: tokens.color.bg.scrim }]}
           onPress={onClose}
           accessibilityRole="button"
           accessibilityLabel="Close navigation drawer"
@@ -63,6 +65,10 @@ export function NavigationDrawer({
 
         <Animated.View
           style={{
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: 0,
             width: drawerWidth,
             height: "100%",
             backgroundColor: tokens.color.bg.primary,
@@ -74,9 +80,9 @@ export function NavigationDrawer({
             zIndex: 10,
           }}
         >
-          <View className="flex-1 overflow-hidden">{children}</View>
+          <View style={{ flex: 1, overflow: "hidden" }}>{children}</View>
           {bottomBar ? (
-            <View className="flex-shrink-0">{bottomBar}</View>
+            <View style={{ flexShrink: 0 }}>{bottomBar}</View>
           ) : null}
         </Animated.View>
       </View>

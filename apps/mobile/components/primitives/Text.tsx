@@ -32,7 +32,7 @@ const VARIANT_STYLES: Record<string, string> = {
   text: "text-sm text-text-normal",
   body: "text-base text-text-normal",
   caption: "text-xs text-text-muted",
-  editor: "text-base text-text-normal font-mono",
+  editor: "text-base text-text-normal",
 };
 
 const SIZE_STYLES: Record<string, string> = {
@@ -109,7 +109,7 @@ export const Text = React.forwardRef<any, TextProps>(
       <RNText
         ref={ref}
         className={classList}
-        style={[{ color: resolvedColor }, style]}
+        style={[{ color: resolvedColor, writingDirection: "auto" }, style]}
         {...props}
       >
         {children}

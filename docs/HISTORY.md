@@ -2,6 +2,392 @@
 
 Append-only record of completed work. Current state lives in `PROGRESS.md` — read this file only for historical context. When a session ends: add a row to the Session Log table and append a dated block under Detailed Session Notes.
 
+### 2026-11-13: Isolated Reminders Hub, Projects/Events Categorization, & Reference UI Design
+
+- **Isolated Reminders & Events Hub (`RemindersHubView.tsx`, `useVaultReminders.ts`, `todos.tsx`)**:
+  - Reminders is now isolated into its own view and distinct workflow from standard Todo checklists.
+  - Added a top segmented tab control in `todos.tsx`: `[ Reminders & Events ]` and `[ Todos & Projects ]`.
+  - Replicated the user's reference image for the Reminders view:
+    - Top overview card: 3 summary metrics (`Next Reminder`, `Today` count, and `Upcoming` total count).
+    - Section header: `Reminders & Events` with `See All >` filter.
+    - Horizontal project filter chips (`All`, `Events`, `Work`, `Daily`, `Personal`).
+    - Reminder rows styled after the attached screenshot:
+      - Circular timer badge on the left (`#eff6ff` light-blue circle with `#2563eb` icon).
+      - Title / Date on left with time interval subtitle (`7:30AM - 3:00PM` or time).
+      - Project / Event name on the right (`Jakande, Lekki`, `Work`, etc.).
+      - Status pill badge (`✔ Done`, `✔ Early`, or `⏰ Late` / `⏰ Upcoming`).
+- **Add Reminder & Event Modal (`AddReminderModal.tsx`)**:
+  - Added modal with title, project category chips, and Expo DateTimePicker integration.
+  - Schedules local push notifications via `expo-notifications`.
+- **Todos Sidebar Integration (`TodosSidebar.tsx`)**:
+  - Added `Reminders & Events` entry at the top of the sidebar.
+- **Standards & Verification**:
+  - TypeScript typecheck: 0 errors (`tsc --noEmit`).
+  - Unit tests: 23 passing tests (added `isolatedReminders.test.tsx`).
+  - All files strictly under 250 lines (`useVaultReminders.ts` 201, `RemindersHubView.tsx` 164, `AddReminderModal.tsx` 174, `todos.tsx` 210).
+  - Knowledge graph updated cleanly with `graphify update .`.
+
+### 2026-11-13: Official Expo DateTimePicker Integration & Expo-First Component Rule/Skill
+
+- **Adopted Official Expo DateTimePicker (`DateTimePickerModal.tsx`, `package.json`)**:
+  - Installed `@react-native-community/datetimepicker@9.2.1` based on `node_modules/expo/bundledNativeModules.json` for Expo SDK 58.
+  - Refactored `DateTimePickerModal.tsx` to utilize native Expo components:
+    - On iOS: Embedded native `<DateTimePicker value={date} mode="datetime" display="spinner" themeVariant="light" />` for fluid native spinning wheels.
+    - On Android: Native material dialogs via `DateTimePickerAndroid.open({ mode: 'date' })` and `DateTimePickerAndroid.open({ mode: 'time' })` via clean date & time pill controls.
+    - Added vitest mock `tests/mocks/dateTimePickerMock.tsx` for cross-platform testing.
+- **Expo-First Component Rule & Skill**:
+  - Created `.agents/rules/expo-components.md` and added to `AGENTS.md` and `GEMINI.md`.
+  - Created `.agents/skills/check-expo-component/SKILL.md`.
+
+### 2026-11-13: Reference Date/Time Picker, Retained Active Todo Page, Strip # Headings in Todo Notes, & Tap-to-Rename Note Title
+
+- **Date & Time Reminder Picker Matching Attached Reference Image (`DateTimePickerModal.tsx`, `AddTodoItemModal.tsx`)**:
+  - Implemented `DateTimePickerModal.tsx` matching the user's reference image:
+    - Title: "Select a Date & Time" + "We’ll send reminders before your task so you can prepare."
+    - Horizontal 14-day date strip cards with day-of-week and day number; selected card has solid black background (`#000000`) with white text, unselected cards have white background with `#e5e7eb` perimeter border.
+    - Interactive time picker wheels (Hour, Minute, AM/PM) with hairline active selection borders (`#f3f4f6`), bold active values (32px), and faint adjacent values (`#d1d5db`).
+    - Bottom pill buttons: `Cancel` (white background, border) and `Confirm` (solid black `#000000`, white text).
+  - Wired into `AddTodoItemModal.tsx` as an interactive trigger button that opens the picker and saves the formatted date/time.
+- **Retained Active Todo Page (`useVaultTodos.ts`)**:
+  - Maintained `lastOpenedTodoPath` at the module level so navigating away from `/todos` (e.g. to the editor or settings) and navigating back retains and re-opens the exact active todo list rather than resetting to `Todos/Daily/Today.md`.
+- **Always Strip `# ...` Headings in Todo Notes (`useEditorNoteLoader.ts`)**:
+  - Updated `stripLeadingH1Title` with an `isTodo` parameter to strip any top `# ...` or `## ...` heading lines from todo markdown notes in the editor body so the editor content starts directly with the checklist items while the note title is displayed in the top header.
+- **Tap-to-Rename Note Title (`EditorTitleHeader.tsx`, `editor.tsx`)**:
+  - Created modular `EditorTitleHeader.tsx` (76 lines).
+  - Tapping the top title in the editor transforms it into an inline `TextInput` (`autoFocus`, `selectTextOnFocus`).
+  - Submitting or blurring renames the note file on disk via `adapter.renameNote`, updates the editor path state, updates router parameters, and triggers the vault indexer.
+- **Standards & Verification**:
+  - TypeScript typecheck passed cleanly with 0 errors (`tsc --noEmit`).
+  - Vitest test suite passing with 38 tests (added `dateTimeAndTitleRename.test.tsx`).
+  - All files strictly under 250 lines (`editor.tsx` at 244 lines).
+  - Knowledge graph updated cleanly via `graphify update .`.
+
+### 2026-11-13: Keyboard-Adaptive Toolbar, Card-Style Search UI, Enter-to-Add, & Folder Picker on Note Creation
+
+- **Keyboard-Adaptive Formatting Toolbar (`editor.tsx`)**:
+  - Registered `Keyboard.addListener("keyboardDidShow")` and `"keyboardDidHide"` in `editor.tsx`.
+  - The formatting toolbar ("insert shortcuts") is strictly displayed only when the user starts writing (active keyboard), keeping the editor completely clean and uncluttered while reading or navigating.
+- **Card-Style Notes & Tasks Search Matching Attached UI Reference (`search.tsx`)**:
+  - Redesigned search screen with top rounded pill container (`placeholder="Search notes & tasks..."`, magnifying glass icon, clear button).
+  - Styled results as clean cards matching the attached screenshot:
+    - Bold 16px title (e.g. `Quick Notes`, `Work Tasks`, `Shopping List`, `Study`)
+    - Muted 14px preview snippet (e.g. `Meeting ideas and drafts`, `Finish UI redesign`, `Milk, Bread, Eggs`, `Revise ECO201 chapters`)
+    - Subtle right-side label (`Note` or `Task`).
+  - Supports search across notes and tasks with instant local matching and SQLite FTS5 fallback.
+- **Enter-to-Add for Modals (`AddTodoItemModal.tsx`, `AddTodoListModal.tsx`, `AddProjectModal.tsx`)**:
+  - Added `returnKeyType="done"` and `onSubmitEditing` to immediately submit on pressing the Enter key.
+- **Destination Folder Selection on Note Creation (`SelectFolderModal.tsx`, `useEditorNoteLoader.ts`, `editor.tsx`, `EditorDrawer.tsx`)**:
+  - Created `SelectFolderModal.tsx` following the canonical "Less Boxes Always" standard.
+  - When the user creates a new note, they are asked which folder to create it in (`Vault Root (/)` or existing folders like `Todos`, `Projects`, etc.).
+  - The note is automatically created and placed inside the chosen folder.
+- **Standards & Verification**:
+  - All files strictly under 240 lines (hard cap 250, soft cap 150-200).
+  - TypeScript typecheck passed cleanly with 0 errors.
+  - All 33 vitest tests passed.
+  - `graphify update .` completed successfully.
+
+### 2026-11-13: Editor Arabic RTL/UTF-8, Minimalist Single Timer Input, & Filetree Subfolder Hierarchy
+
+- **Editor UTF-8 & Arabic RTL Formatter (`EditorDom.tsx`, `editorExtensions.ts`, `Text.tsx`)**:
+  - Enforced UTF-8 meta charset in the DOM editor host.
+  - Enabled bidirectional text layout with `direction: auto; unicode-bidi: plaintext; text-align: start` in CodeMirror 6 and host container (`dir="auto"`), automatically formatting Arabic right-to-left while retaining left-to-right for Latin text.
+  - Added Arabic font stack (`'Geeza Pro'`, `'Noto Sans Arabic'`, `'Amiri'`, `'Traditional Arabic'`) with 1.7 line height for Arabic calligraphy, ligatures, and diacritics.
+  - Configured `writingDirection: "auto"` on primitive `Text.tsx`.
+- **Single Timer Input & Duration Removal (`AddTodoItemModal.tsx`)**:
+  - Removed duration selection completely (no duration chips, no duration label).
+  - Replaced reminder controls with one single input (`placeholder="Date & time (e.g. 2026-11-13 14:30)"`) without any label.
+- **File Tree Closed Folder Subfolder Hiding (`VaultDrawerContent.tsx`)**:
+  - Implemented `isFolderVisible` hierarchical ancestor check: when a parent folder is closed, all its nested subfolders are hidden.
+  - Subfolders are only revealed when their direct parent folder is expanded.
+- **Standards & Verification**:
+  - All files strictly under 245 lines (hard cap 250, soft cap 150-200).
+  - TypeScript typecheck passed cleanly with 0 errors.
+  - All 33 vitest tests passed.
+  - `graphify update .` completed successfully.
+
+### 2026-11-13: Filetree Hold to Delete, Larger Typography/Search, & Reminder Date/Time Pickers
+
+- **File Tree Long Press / Hold to Delete (`DrawerFolderItem.tsx`, `VaultDrawerContent.tsx`, `EditorDrawer.tsx`)**:
+  - Added hold-to-delete confirmation (`onLongPress`) on both folders and notes in the vault file tree drawer.
+  - Connected deletions to `EditorDrawer.tsx`, deleting entries on the file system and triggering indexer refresh.
+- **Larger Sidebar Font & Icon Hierarchy (`TodosSidebar.tsx`)**:
+  - Increased header title to 19px bold with 22px icons.
+  - Increased project folder font to 16px bold, count to 13px, and folder icon to 19px.
+  - Increased todo list font to 15px, count to 13px, and note icon to 18px.
+  - Scaled drawer width to 85% (`max-w-sm`).
+- **Prominent Search Bar in Todos (`todos.tsx`)**:
+  - Scaled search input to 16px font with `px-4 py-2.5` container and `minHeight: 46px`.
+  - Scaled search icon to 20px and sidebar hamburger icon to 26px.
+- **Date and Time Picker for Todo Reminders (`AddTodoItemModal.tsx`)**:
+  - Added interactive date selection (Today, Tomorrow, and custom `YYYY-MM-DD` input).
+  - Added interactive time selection (quick chips `09:00`, `12:00`, `15:00`, `18:00`, `20:00`, and custom `HH:mm` input).
+  - Reminders output standard markdown token `(@YYYY-MM-DD HH:mm)`.
+- **Standards & Verification**:
+  - All files strictly under 220 lines (hard cap 250, soft cap 150-200).
+  - TypeScript typecheck passed cleanly with 0 errors.
+  - All 32 vitest tests passed.
+  - `graphify update .` completed successfully.
+
+### 2026-11-12: Sidebar Hold to Delete & Single Item Selection Highlight
+
+- **Sidebar Long Press / Hold to Delete (`TodosSidebar.tsx`, `useVaultTodos.ts`, `todos.tsx`)**:
+  - Implemented hold-to-delete gesture (`onLongPress`) on both project folder rows and todo list rows with confirmation alerts.
+  - Project deletion removes `Todos/<ProjectName>` from storage via `adapter.deleteNote` and resets opened todo path to `Todos/Daily/Today.md` if the active note belonged to that project. Protected the default `Daily` project from accidental deletion.
+  - Todo list deletion removes the `.md` file from storage and resets the opened todo path if it was active.
+  - Hooked deletion callbacks seamlessly into `todos.tsx`.
+- **Single Selected Item Highlight Standard (`TodosSidebar.tsx`)**:
+  - Removed container background from project folder rows (`backgroundColor: "transparent"`).
+  - Ensured only the single opened todo list file (`openedTodoPath === list.notePath`) receives the light grey background (`tokens.color.bg.secondary`, `#f6f6f6`), while non-selected rows remain transparent.
+  - All icons set to solid black (`#000000`).
+- **Standards & Verification**:
+  - All files strictly under 230 lines (hard cap 250, soft cap 150-200).
+  - TypeScript typecheck passed cleanly with 0 errors.
+  - All 32 vitest tests passed.
+  - `graphify update .` completed successfully.
+
+### 2026-11-12: Project Folder, Todo List File & Line Item Hierarchy
+
+- **Vault Hierarchy (Project = Folder, Todo = .md File, Item = Line)**:
+  - Established strict 3-tier hierarchy:
+    - **Project**: Folder under `Todos/` (e.g. `Todos/Daily/`, `Todos/Work/`).
+    - **Todo / Todo List**: Markdown `.md` file within a project folder (e.g. `Todos/Daily/Today.md`, `Todos/Work/Sprint.md`).
+    - **Item**: Checklist line inside the markdown file (`- [ ] Task text`).
+  - Defined default project `Daily` for today's tasks (`Todos/Daily/Today.md`), automatically provisioned if missing.
+  - Supported multiple todo lists per project (`MobileTodoList[]` on `MobileTodoProject`).
+- **Scoped Item Addition & Dedicated Modals (`AddTodoItemModal.tsx`, `AddTodoListModal.tsx`)**:
+  - The floating `+` button directly adds an item to the currently opened todo list via `AddTodoItemModal.tsx`.
+  - In `TodosSidebar.tsx`, each project has a `+` button to create a new todo list document inside that project via `AddTodoListModal.tsx`.
+- **Todos Page Screen Integration (`todos.tsx`)**:
+  - Displays items from the currently opened todo list (`displayedTodos`), with search scoped to that list.
+  - Header subtitle indicates `Project / Todo List` (e.g. `Daily / Today`).
+- **Standards & Line Limits**:
+  - All files strictly under 250 lines (`editor.tsx` 244 lines, `useVaultTodos.ts` 224 lines, `todos.tsx` 171 lines, `TodosSidebar.tsx` 152 lines, `AddTodoItemModal.tsx` 142 lines, `useEditorNoteLoader.ts` 120 lines, `AddProjectModal.tsx` 114 lines, `AddTodoListModal.tsx` 94 lines, `TodoTaskRow.tsx` 81 lines).
+  - TypeScript typecheck passed with 0 errors; tests passed with 100% success.
+
+### 2026-11-12: Todos Sidebar, Label Cleanup, Push Notification Reminders & Clean Editor Title
+
+- **Preserved Note Title Header & Stripped In-Editor `# Title` (`editor.tsx`, `useEditorNoteLoader.ts`, `useVaultTodos.ts`)**:
+  - Preserved the note title header (`{title}`, 28px bold) above the editor view in `apps/mobile/app/editor.tsx`.
+  - Stripped the redundant leading `# Title` line from the document body in the editor via `stripLeadingH1Title` in `useEditorNoteLoader.ts`, ensuring that note content starts cleanly without repeating `# Title` in the editor.
+  - Updated templates in `useVaultTodos.ts` and `useEditorNoteLoader.ts` to prevent generating duplicate `# Title` headings.
+- **Todos Sidebar & Header Cleanup (`TodosSidebar.tsx`, `todos.tsx`)**:
+  - Replaced back navigation button with the sidebar icon (`List`, `#000000`) in `todos.tsx`.
+  - Built `TodosSidebar.tsx` with folder icon button (`FolderSimplePlus`, `#000000`) in header to add a project, project list with todo counts, "+ task" button to quickly add a todo list / task inside that project, and expandable nested todos.
+  - Removed refresh icon, folder icon, and filter buttons from main `todos.tsx` header for a minimalist presentation.
+- **Todo Item Cleanup & Trash Action (`TodoTaskRow.tsx`, `todoParser.ts`, `useVaultTodos.ts`)**:
+  - Added `Trash` icon button to each todo row to remove it directly from the note via `deleteTodo` / `removeTodoFromMarkdown`.
+  - Removed trailing chevron (`CaretRight`) and removed all label badges from the todo row for a minimalist, uncluttered view.
+- **Push Notifications for Scheduled Reminders (`todoNotifications.ts`, `useVaultTodos.ts`)**:
+  - Integrated `expo-notifications` via `todoNotifications.ts` to schedule system push notifications with custom sound and banner when a todo item includes a reminder.
+- **Standards & Line Limits**:
+  - All files strictly under 250 lines (`editor.tsx` 236 lines, `todos.tsx` 158 lines, `todoParser.ts` 155 lines, `TodosSidebar.tsx` 115 lines, `TodoTaskRow.tsx` 81 lines, `todoNotifications.ts` 74 lines).
+  - TypeScript typecheck passed with 0 errors; tests passed with 100% success.
+
+### 2026-11-12: Minimalist Project Todos & Direct Note Opening from Filetree
+
+- **Projects as Folders under `Todos/` & Creation Support (`useVaultTodos.ts`, `AddProjectModal.tsx`)**:
+  - Implemented desktop parity where projects are subfolders under `Todos/` (e.g. `Todos/<ProjectName>`).
+  - Added `createProject(projectName)` in `useVaultTodos.ts` to create folder `Todos/<ProjectName>` and initial note `Todos/<ProjectName>/<ProjectName>.md`.
+  - Added minimalist `AddProjectModal.tsx` adhering strictly to "Less Boxes Always".
+- **Minimalist Todo Page Redesign (`todos.tsx`, `TodoTaskRow.tsx`)**:
+  - Replaced top title "Tasks & Todos" with search bar directly in the top header.
+  - Replaced chip lists with a single filter icon (`Funnel`, `#000000`) toggling `All` -> `Pending` -> `Done`, horizontal project selector, and formatted date (`Thu, 12 Nov`) at right.
+  - All labels in `TodoTaskRow.tsx` styled with white typography (`#ffffff`), zero boxed card containers, and zero borders.
+  - Tapping a todo directly opens its markdown `.md` note in the editor.
+- **Direct Filetree Note Opening Without New File Page Flash (`editor.tsx`, `useEditorTabManager.ts`)**:
+  - Fixed file selection from drawer by passing `onSelectNotePath` to update `activePath` immediately, close drawer, and update route parameters without flashing `NewTabPage`.
+- **Standards & Line Limits**:
+  - All files strictly under 250 lines (`editor.tsx` 244 lines, `todos.tsx` 145 lines, `useVaultTodos.ts` 144 lines, `AddProjectModal.tsx` 114 lines, `TodoTaskRow.tsx` 110 lines, `useEditorTabManager.ts` 108 lines).
+  - TypeScript typecheck passed with 0 errors; tests passed with 100% success.
+
+### 2026-11-12: Per-Project Todo Creation & Interactive Todo Focus Page
+
+- **Per-Project Todo Creation (`AddTodoModal.tsx`, `todos.tsx`)**:
+  - Added project selection chip list inside `AddTodoModal.tsx` allowing users to assign tasks to specific projects (e.g. `Daily routine`, `Work`, `Personal`, etc.) when creating a todo.
+  - Automatically targets `Todos/<Project>.md` on save.
+- **Surfing Todos & Dedicated Todo Focus Page (`TodoFocusView.tsx`, `TodoTaskRow.tsx`, `todos.tsx`)**:
+  - Tapping any todo item row while browsing/surfing the list selects that todo and opens the **Todo Focus Page** (`TodoFocusView.tsx`).
+  - Focus page features day navigation (`<` / `>`), prominent focus card, immediate check completion toggle, sibling tasks in the same project for quick focus switching, and quick task creation.
+  - No other features or views were altered. All files strictly under 250 lines.
+
+### 2026-11-12: Removed Old Files View & Bottom Tabs, Top Header Search/Todos, Direct Vault Document Creation & Black Navigation Icons
+
+- **Removed Old Files View Vault & Old Bottom Navigation Completely**:
+  - Deleted `apps/mobile/app/(tabs)` directory completely.
+  - Initial route set to `editor` via `apps/mobile/app/index.tsx` and `_layout.tsx`.
+  - Search and Todos promoted to standalone top-level screens: `apps/mobile/app/search.tsx` and `apps/mobile/app/todos.tsx`.
+- **Top Header Search & Todos Page Actions**:
+  - Integrated Search (`MagnifyingGlass`) and Todos (`CheckSquare`) icon buttons in the top header of `NewTabPage.tsx` and `EditorHeader.tsx`.
+- **Direct Vault Creation**:
+  - `useEditorNoteLoader.ts` immediately writes newly initiated documents to the vault filesystem with `atomicWriteNote`, indexing and persisting before user typing.
+- **Black Navigation Icons**:
+  - All navigation icons in `EditorBottomBar`, `EditorHeader`, `NewTabPage`, and `VaultDrawerContent` styled with `#000000`.
+
+### 2026-11-12: Persistent Bottom Navigation & All Todos Tasks Page (Per Projects & Dates)
+
+- **Persistent Bottom Navigation (`(tabs)/_layout.tsx`, `editor.tsx`)**:
+  - Disabled `tabBarHideOnKeyboard` (`tabBarHideOnKeyboard: false`) in `apps/mobile/app/(tabs)/_layout.tsx`, ensuring bottom tab navigation never disappears during keyboard usage or typing.
+  - Added the first-class `todos` screen to `(tabs)/_layout.tsx` (`CheckSquare` icon), establishing a 4-tab bottom navigation (`Files`, `Todos`, `+` action, `Search`).
+  - Updated `editor.tsx` with a reliable back navigation fallback to `/(tabs)`.
+- **Dedicated Todos Tasks Hub Page (`(tabs)/todos.tsx`)**:
+  - Implemented full task aggregation across vault notes (`useVaultTodos.ts`) supporting project filtering, status filtering (`all`/`pending`/`completed`), date filtering (`all`/`today`/`upcoming`/`dated`), and live text search.
+  - Interactive checkboxes with atomic markdown writes, note opening, and floating add task modal.
+  - Adheres strictly to the "Less Boxes Always" design standard. All files under 250 lines.
+
+### 2026-11-12: Vault Todos/ Folder Integration & Multi-Section Rendering
+
+- **Vault `Todos/` Folder Integration (Desktop Parity in Functionality)**:
+  - Aligned note pathing with desktop: any new todo list note is stored inside the vault's `Todos/` folder (`Todos/Daily routine.md`, `Todos/Daily routine 1.md`, etc.).
+  - Updated `useEditorTabManager.ts`, `useEditorNoteLoader.ts`, and `editor.tsx` so `handleCreateNewNote("todo")` routes to `"Todos/Daily routine.md"`, and `isTodoNote` matches all notes under `Todos/` (`/todos[/$]/i` or ending with `todos.md`).
+  - Enhanced `TodoView.tsx` to render all markdown sections (`## Section Name`) rather than just the first section, maintaining full multi-section compatibility with desktop's `TodosView`.
+  - All unit tests pass with zero TypeScript errors. Strict adherence to line caps (< 250 lines) and "Less Boxes Always" principles.
+
+### 2026-11-12: Restored Note Footer & Boxless Simple Formatting Insert Strip
+
+- **Restored Note Footer (`editor.tsx`)**:
+  - Fixed `editor.tsx` so `EditorBottomBar` (`< > 🔍 + [1] ☰`) is ALWAYS rendered at the bottom in new notes, existing notes, preview, and edit modes.
+  - When editing (`viewMode === "edit" && !isNewTabPage`), the formatting insert toolbar now sits cleanly directly above `EditorBottomBar`, rather than replacing it.
+- **Boxless Simple Formatting Insert Strip (`FormattingToolbar.tsx`)**:
+  - In accordance with the "without many boxes" directive, stripped out all boxed cards, individual borders, container gray backgrounds, and heavy outlines from the formatting toolbar.
+  - Restructured into a clean, flat accessory strip on `tokens.color.bg.primary` with flat, borderless touch targets (`H1`, `H2`, `H3`, `B`, `I`, `S`, `[ ]`, `[[ ]]`, `#`, `Att`, `<>`, `->`, `<-`, `Undo`, `Redo`).
+  - Retained active touch opacity (`active:opacity-40`) and clean typography without cluttered borders.
+
+### 2026-11-12: Mobile Todo / Daily Routine View Matching Reference Design & Desktop Markdown Parity
+
+- **Desktop Parity Todo & Reminder Architecture (`todoParser.ts`, `types.ts`)**:
+  - Replicated desktop Obsidian/Sophia markdown checklist and reminder parsing:
+    - Checkbox parsing: standard `- [ ]` and `- [x]` markdown checklists.
+    - Reminder tokens: `(@YYYY-MM-DD HH:mm)` or `(@YYYY-MM-DD)`.
+    - Duration brackets: `[5 min]`, `[15 min]`, etc.
+    - Section headings: `## Daily routine`, `## General`, etc.
+  - Built helper mutations (`toggleTodoInMarkdown`, `appendTodoToMarkdown`) ensuring that any checkmark toggle or task creation directly modifies the underlying vault `.md` file (`Todos.md`) preserving local-first sync and manifest diffing.
+- **Mobile Todo Page Redesign Matching Attached Reference Image (`apps/mobile/components/todos/`)**:
+  - **White Background Base**: Fully styled with clean `#ffffff` white background as requested.
+  - **Header (`TodoHeader.tsx`)**: Dynamic greeting ("Morning, Budi" / "Afternoon, User"), formatted date ("Thursday, 10 March, 2025"), and user avatar badge.
+  - **Weekly Calendar Strip (`TodoCalendarStrip.tsx`)**: Horizontal 7-day week picker (Mon-Sun) with circle badges and dark solid highlight on the selected day.
+  - **Reminder Banner Card (`TodoReminderBanner.tsx`)**: Soft peach card with "Set the reminder" heading, description, "Set Now" pill button, and bell illustration.
+  - **Daily Routine List with Vertical Timeline (`TodoItemCard.tsx`)**:
+    - Connected vertical dotted timeline running between items.
+    - Circular check indicator: solid orange with white checkmark (`#d97736`) when done, hollow circle when pending.
+    - Routine card with soft category square icon (water, bicycle, stretch, walk, book, check), title, streak counter ("Streak 3 days"), and clock duration badge ("5 min").
+  - **Floating Action Button (`TodoView.tsx`)**: Brown circular FAB (`+`) anchored at bottom right (`#4a2810`).
+  - **Add Routine Modal (`AddTodoModal.tsx`)**: Bottom sheet for inputting routine title, selecting duration chip (5m, 10m, 15m, 30m), and setting reminder time.
+- **Editor Integration (`editor.tsx`, `useEditorNoteLoader.ts`)**:
+  - Seeded `Todos.md` with starter routine (`Drink a glass of water`, `Meditate to relax`, `Stretch for 10 minutes`, `Go for a short walk`).
+  - Seamlessly renders `TodoView` when opening a todo note in preview mode.
+  - Header toggle button allows seamlessly switching between the Visual Routine View and the CodeMirror Markdown Editor.
+  - Kept `editor.tsx` at 245 lines (strictly under 250 line hard cap).
+
+### 2026-11-12: Flat Unboxed Settings, Heading Rendering, Shortcut Insert Toolbar, Save Move Fix & Bottom Whitespace Removal
+
+- **Settings "Less Boxes Always" Redesign (`ThemeSettingsSection.tsx`, `ImmersiveModeSection.tsx`, `VaultSettingsSection.tsx`, `SyncSettingsPanel.tsx`, `settings.tsx`)**:
+  - Removed heavy boxed cards, backgrounds (`tokens.color.bg.secondary`), perimeter borders, and shadows from every setting section.
+  - Converted settings options into unboxed flat rows with hairline dividers (`borderBottomWidth: 1, borderBottomColor: tokens.color.border.subtle`).
+  - Simplified settings category tab bar to use flat, borderless tabs.
+- **Heading Rendering & Obsidian Typography Parity (`generateThemeCss.ts`, `editorExtensions.ts`)**:
+  - Injected missing Obsidian heading tokens into `:root` in `generateThemeCss.ts`: `--editor-obsidian-heading-h1-size: 1.802em; --editor-obsidian-heading-h1-weight: 700; --editor-obsidian-heading-h1-line-height: 1.25;` through `h6`, plus `--font-mono`.
+  - Added `markdownAnnotationsExtension()` and `markdownAnnotationTheme` to `createMobileEditorExtensions()` in `editorExtensions.ts`, applying explicit `.cm-heading-1` through `.cm-heading-6` typography.
+- **Editor Shortcut Insert Toolbar (`FormattingToolbar.tsx`, `editorToolbarActions.ts`, `bridgeProtocol.ts`, `editor.tsx`)**:
+  - Added `h1`, `h2`, `h3` to `ToolbarActionType` and `executeToolbarAction()` with smart prefix replacement for existing `#` markdown headings.
+  - Added `H1`, `H2`, `H3` items alongside `B`, `I`, `S`, `[ ]`, `[[ ]]`, `#`, `Att`, `<>`, `->`, `<-`, `Undo`, `Redo` to `FormattingToolbar.tsx`.
+  - Updated `editor.tsx` so the formatting toolbar displays whenever the note is in edit mode (`viewMode === "edit" && !isNewTabPage`), keeping the bottom bar active in preview and new tab modes.
+- **Fixed FileSystemFile.move Rejection on Save (`vaultEntries.ts`)**:
+  - Resolved Android `FileSystemFile.move has been rejected` when saving or overwriting an existing note in `atomicWriteEntry()`.
+  - Pre-deletes existing destination file if present before moving temp file, and wraps move in a fallback try/catch that writes directly to target via `target.write(data)`.
+  - Added file copy and delete fallback in `moveEntry()` for cross-volume/SAF moves.
+- **Eliminated Bottom Whitespace on Android (`editor.tsx`, `EditorBottomBar.tsx`, `FormattingToolbar.tsx`, `immersiveModeState.ts`)**:
+  - Removed unconditional `<NavigationBar hidden={true} />` from `editor.tsx` which forced Android 3-button navigation systems to reserve an empty white band.
+  - Fixed `useImmersiveNavigationBar()` in `immersiveModeState.ts` to respect user settings instead of unconditionally forcing hidden mode.
+  - Maintained `bottomPadding = Platform.OS === "android" ? 0 : insets.bottom` on `EditorBottomBar.tsx` and `FormattingToolbar.tsx`, placing footers flush at `bottom: 0`.
+
+### 2026-11-12: Sidebar Header Inversion, Tab Close Fix, Flush Bottom Footer, Categorized Settings & Unsaved Note Creation
+
+- **In-Place Sidebar Folder Expansion & Old Vault Screen Removal (`DrawerFolderItem.tsx`, `EditorDrawer.tsx`, `(tabs)/index.tsx`)**:
+  - Tapping any folder in the sidebar tree directly toggles expand/collapse in-place right there in the sidebar, revealing its subfolders and notes without navigating away.
+  - Removed folder routing to `/(tabs)` and wired `onCreateFolder` to open `NewFolderSheet` directly within `EditorDrawer.tsx`, allowing users to create folders and immediately see them in the sidebar tree.
+  - Updated `(tabs)/index.tsx` so focusing `/(tabs)` automatically redirects to `/editor`, completely removing the old showing folders screen in vault.
+- **Footer Whitespace Removal & Settings Hamburger (`EditorBottomBar.tsx` & `editor.tsx`)**:
+  - Removed white space under the footer by setting `bottomPadding = Platform.OS === "android" ? 0 : insets.bottom;` in `EditorBottomBar.tsx`. When immersive navigation bar is active on Android, the footer sits at a clean 50px height with zero white space underneath.
+  - Wired the footer hamburger icon button (`☰` `List`) in `editor.tsx` directly to open the Settings screen (`router.push("/settings")`).
+- **Sidebar Navigation Top Bar & Status Bar Alignment (`NavigationDrawer.tsx` & `VaultDrawerContent.tsx`)**:
+  - Ensured the phone's top status bar is NOT hidden or covered when opening the sidebar: removed `statusBarTranslucent` and added `<StatusBar style={tokens.isDark ? 'light' : 'dark'} />` inside `<Modal>` in `NavigationDrawer.tsx`, matching the new file page (`NewTabPage`) where the phone's clock, battery, and network icons stay visible.
+  - Matched header dimensions to the new file page layout: updated the top header row in `VaultDrawerContent.tsx` to `h-[48px] px-4` with `paddingTop: insets.top` on the drawer container, aligning seamlessly below the phone's status bar.
+  - Pinned `Animated.View` with `position: 'absolute', top: 0, bottom: 0, left: 0, width: drawerWidth, height: '100%'` inside an explicit `style={{ flex: 1, width: '100%', height: '100%' }}` container.
+  - Fixed `VaultDrawerContent.tsx` container and `ScrollView` styles with `style={{ flex: 1 }}` and `contentContainerStyle={{ flexGrow: 1 }}`, ensuring the sidebar background and content stretch cleanly to full screen height even with few items.
+  - Inverted the header layout: 5 action icons positioned on the **left** in exact order: 1. Daily note (`Calendar`), 2. Tags (`Tag`), 3. Local graph (`GitFork`), 4. Add folder (`FolderPlus`), 5. Add file to vault (`FilePlus`).
+  - Positioned the close button (`SidebarSimple`) on the **right** inside a rounded outline box (`36x36`, `borderWidth: 1, borderColor: tokens.color.border.subtle, borderRadius: 8`).
+  - Removed bottom border from the top icon row. Preserved all icon borders.
+- **Tab Switcher Close Fix & Tab Manager (`TabSwitcherModal.tsx`, `tabStore.ts`, `useEditorTabManager.ts`)**:
+  - Resolved tab close resurrection bug by tracking registered path ref (`lastRegisteredPathRef`) and decoupling close events from card selection using absolute sibling positioning.
+  - When closing an active tab, automatically switches active tab to the next available tab without re-mounting or resurrecting the closed tab.
+  - Extracted `useEditorTabManager.ts` (102 lines) to keep `editor.tsx` strictly under the 250 line hard cap (currently 239 lines).
+- **Flush Bottom Footer at `bottom: 0` (`editor.tsx` & `EditorBottomBar.tsx`)**:
+  - Removed `paddingBottom: insets.bottom` from the root editor container view, allowing `EditorBottomBar` to sit flush at `bottom: 0` while using internal safe-area bottom padding.
+- **Unsaved Note Creation Flow**:
+  - Opening a new note ("New note" or "New todo list" from `NewTabPage`) generates an in-memory unsaved tab (`createUnsavedNewTab()`) with `baseMtimeRef = 0`.
+  - File is NOT written to disk upon creation; writing only occurs once the user actually types content into the document.
+- **Categorized Settings Screen & Action Sheet Settings Link (`settings.tsx` & `NoteActionSheet.tsx`)**:
+  - Divided `settings.tsx` (139 lines) into 3 category tab buttons with icons: **Theme** (`PaintBrush`), **Sync** (`ArrowsClockwise`), and **Vault** (`Folder`).
+  - Removed settings link from the sidebar drawer and added it to `NoteActionSheet.tsx` with a `Gear` icon and direct routing (`/settings`) from the 3-dots menu on new and existing files.
+- **Verification**:
+  - `pnpm --filter @app/mobile typecheck`: 0 errors.
+  - Unit tests: `tests/mobileEditorScreenRedesign.test.tsx` (7 tests) passing 100%.
+  - ESLint: 0 errors in all modified/created files. All files strictly under 250 lines.
+
+### 2026-11-12: Full-Screen Sidebar, 5-Action Icon Header, New Tab Landing Page & Tab Switcher Grid
+
+- **Full-Screen Sidebar & Top Icon Navigation (`NavigationDrawer` & `VaultDrawerContent`)**:
+  - Updated `NavigationDrawer.tsx` (85 lines) so the drawer expands to 100% full screen (`drawerWidth = width`).
+  - Redesigned `VaultDrawerContent.tsx` (207 lines):
+    - Added close button at top-left matching the open button affordance (36x36 rounded outline box with `SidebarSimple`).
+    - Added horizontal action bar in top-right with 5 icons in exact order: 1. Daily note (`Calendar`), 2. Tags (`Tag`), 3. Local graph (`GitFork`), 4. Add folder (`FolderPlus`), 5. Add file to vault (`FilePlus`).
+    - Removed the "FILES & FOLDERS" title line, old vault switcher banner, and vertical quick links list. Folders and notes now display directly below the top icon bar.
+- **New Tab Landing Page (`NewTabPage.tsx`)**:
+  - Created `NewTabPage.tsx` (132 lines) matching reference Image 1:
+    - Top bar with sidebar toggle button, centered "New tab" title, and 3-dots action menu.
+    - Centered action area with exactly 2 pill buttons: "New note" (with `NotePencil` icon) and "New todo list" (with `CheckSquare` icon).
+    - Standard bottom bar (`<` `>` `🔍` `+` `[ N ]` `☰`).
+- **Tab Switcher Grid View (`TabSwitcherModal.tsx` & `tabStore.ts`)**:
+  - Implemented reactive `tabStore.ts` (135 lines) tracking open tabs, preview snippets, and active tab status.
+  - Built `TabSwitcherModal.tsx` (197 lines) matching reference Image 2:
+    - 2-column cards grid displaying mini document previews and titles.
+    - Active tab highlighted with purple accent border (`2px solid var(--color-interactive-accent)`).
+    - Top-right `X` button on each card to close that tab.
+    - Bottom bar with `+` (create new tab), `N tabs ⌵`, and `Done` button.
+- **Integration in `editor.tsx`**:
+  - Wired bottom bar `+` button to open the New Tab landing page.
+  - Wired bottom bar `[ N ]` button to open the Tab Switcher modal.
+  - Maintained clean separation keeping `editor.tsx` at 238 lines (under 250 hard cap).
+- **Verification**:
+  - `pnpm --filter @app/mobile typecheck`: 0 errors.
+  - Unit tests: `tests/mobileEditorScreenRedesign.test.tsx`, `tests/folderAndEditorExperience.test.tsx`, and `tests/mobileEditorIntegration.test.ts` passing.
+  - Knowledge graph updated via `graphify update .`.
+
+### 2026-11-12: Mobile Editor UI Redesign & Note Typing Experience Polish
+
+- **Obsidian-Style Mobile Note & Editor Layout Match**:
+  - Redesigned `EditorHeader.tsx` (111 lines) to match the attached screenshot: seamless borderless background, left rounded button with `SidebarSimple` drawer toggle, clean whitespace in the center, and right `BookOpen` (preview/edit toggle) and `DotsThreeVertical` actions button.
+  - Added prominent inline document title (`fontSize: 28, fontWeight: '700'`) directly below the header in `editor.tsx` (182 lines) across both edit and preview modes.
+  - Created `EditorBottomBar.tsx` (129 lines) implementing the standard 6 navigation controls: `<` (back), `>` (forward), `🔍` (search), `+` (new note), `[ 1 ]` (open tab counter badge), and `☰` (menu drawer).
+  - Extracted `EditorDrawer.tsx` (86 lines) to integrate `NavigationDrawer` directly within the editor screen.
+- **App Startup Auto-Open Behavior**:
+  - Implemented `lastEditedNoteStorage.ts` (46 lines) using SQLite `settings` table to track the last edited note.
+  - Added `useStartupNoteOpener.ts` (50 lines) so launching the app bypasses the vault file tree and immediately opens either the last edited note or a new unsaved note (`preset: "new"`).
+  - Updated `useEditorNoteLoader.ts` and `useEditorSaveManager.ts` so a newly created note remains in memory and is NOT written to disk until the user actually types into it. If closed without typing, no disk clutter is created.
+- **Font Matching (Edit vs Preview)**:
+  - Configured `EditorDom.tsx` (247 lines), `editorExtensions.ts`, and `Text.tsx` to use the identical proportional system font stack (`-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, system-ui`), removing hardcoded monospace font in edit mode.
+- **Resolved First-Line Typing Reset & Hide Bug**:
+  - Fixed `useEffect([initialContent])` in `EditorDom.tsx` to prevent external document re-dispatches while CodeMirror has focus, eliminating cursor resets to position 0 (first line) while typing.
+  - Pinned `window.scrollY` and `document.documentElement.scrollTop` to `0` in `viewportHandler.ts` so mobile software keyboards do not scroll the editor window and hide the top line.
+  - Stabilized the `EditorDom` component key in `editor.tsx` to prevent re-mounting during automatic title synchronization.
+- **Context-Sensitive Bottom Toolbar**:
+  - Wired keyboard listeners in `editor.tsx` so the insert/formatting toolbar (`FormattingToolbar`) is hidden by default and only displays when the user actively focuses the editor to start editing. When the keyboard dismisses, the standard navigation bottom bar reappears seamlessly.
+- **Verification & Testing**:
+  - `pnpm --filter @app/mobile typecheck`: 0 errors.
+  - Unit tests: `tests/folderAndEditorExperience.test.tsx`, `tests/mobileEditorIntegration.test.ts`, and `tests/mobileEditorScreenRedesign.test.tsx` passing.
+  - All touched files strictly conform to the 250-line hard cap (soft cap 150–200).
+  - Knowledge graph updated via `graphify update .`.
+
 ### 2026-11-11: Performance Audit & Optimization (PERFORMANCE.md Rules 4 & 6)
 
 - **Lazy Loading Non-Critical Sidebars in `AppSidebar` (`PERFORMANCE.md` Rule 4)**:
@@ -8640,3 +9026,18 @@ unless a regression appears or a separately scoped Embed Files phase resumes.
 - **Verification & Quality**:
   - All 32 unit tests passing (`TodosView`, `todoParser`, `IconRail`, `AppTabs`).
   - 0 ESLint errors; all files strictly under 200 lines.
+
+## Session Log
+
+| Date | Focus | Outcome |
+|---|---|---|
+| 2026-11-13 | Sophia Splash Logo & Arabic RTL Note Reading | Expanded the Sophia owl image in the mobile splash config. Added text-direction detection so Arabic-heavy notes open RTL in the editor, Markdown preview, and todo view. Made UTF-8 explicit for external-vault file copies. Expo config parsing and `git diff --check` pass; tests not run. |
+
+## Detailed Session Notes
+
+### 2026-11-13 — Sophia Splash Logo & Arabic RTL Note Reading
+
+- **Splash branding (`apps/mobile/app.json`)**: Increased the splash logo image width to 240 and retained the Sophia owl image over its matching dark background.
+- **Arabic text direction (`getTextDirection.ts`, `EditorDom.tsx`, `editorExtensions.ts`, `EditorPreviewView.tsx`, `NoteReaderView.tsx`, `TodoView.tsx`)**: Detects whether Arabic-script text outweighs Latin-script text and sets the editor/reader direction to RTL for Arabic notes, with plaintext bidi handling for mixed lines.
+- **UTF-8 vault copies (`syncExternalDirectory.ts`)**: Explicitly reads and writes imported note text with UTF-8 encoding; editor DOM keeps its UTF-8 charset declaration.
+- **Validation**: Expo config parsing and `git diff --check` pass. Tests were not run.

@@ -77,7 +77,7 @@ export const ScanToSyncSetupGuide: React.FC<ScanToSyncSetupGuideProps> = ({
       {status === "not-running" ? (
         <View className="mb-4">
           <Text size="xs" color="normal" className="mb-2 leading-relaxed">
-            DaVinci Notes syncs directly via the local Syncthing service on this phone,
+            Sophia syncs directly via the local Syncthing service on this phone,
             requiring no external servers.
           </Text>
           <View className="p-3 rounded border border-border-subtle bg-bg-base mb-3">
@@ -105,7 +105,7 @@ export const ScanToSyncSetupGuide: React.FC<ScanToSyncSetupGuideProps> = ({
               One-Time Setup Friction
             </Text>
             <Text size="xs" color="muted" className="leading-relaxed">
-              Copying the API key is a one-time step. It grants DaVinci Notes secure,
+              Copying the API key is a one-time step. It grants Sophia secure,
               isolated access to communicate with your local Syncthing instance.
             </Text>
           </View>

@@ -113,6 +113,13 @@ export async function atomicWriteEntry(
   const temp = new File(parentDir, tempNameFor(name));
   try {
     temp.write(data);
+    if (target.exists) {
+      try {
+        target.delete();
+      } catch {
+        // best-effort delete before move
+      }
+    }
     await temp.move(target, { overwrite: true });
     return new File(parentDir, name);
   } catch (err) {
@@ -121,7 +128,13 @@ export async function atomicWriteEntry(
     } catch {
       // best-effort cleanup
     }
-    throw err;
+    // Fallback: write directly to target
+    try {
+      target.write(data);
+      return target;
+    } catch {
+      throw err;
+    }
   }
 }
 
@@ -155,11 +168,26 @@ export async function moveEntry(
     if (entry.name !== name) entry.rename(name);
     return;
   }
-  await entry.move(
-    entry instanceof Directory
-      ? new Directory(destDir, name)
-      : new File(destDir, name),
-  );
+  try {
+    await entry.move(
+      entry instanceof Directory
+        ? new Directory(destDir, name)
+        : new File(destDir, name),
+    );
+  } catch (err) {
+    if (entry instanceof File) {
+      const destFile = new File(destDir, name);
+      const text = await entry.text();
+      destFile.write(text);
+      try {
+        entry.delete();
+      } catch {
+        // best effort
+      }
+      return;
+    }
+    throw err;
+  }
 }
 
 /** Finds a non-colliding path by appending a numerical suffix if target exists. */

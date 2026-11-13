@@ -97,7 +97,7 @@ class SyncthingForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "DaVinci Notes Peer Sync",
+                "Sophia Peer Sync",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Keeps peer-to-peer sync active with desktop"
@@ -116,7 +116,7 @@ class SyncthingForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("DaVinci Notes Sync Active")
+            .setContentTitle("Sophia Sync Active")
             .setContentText(statusText)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
             .setOngoing(true)

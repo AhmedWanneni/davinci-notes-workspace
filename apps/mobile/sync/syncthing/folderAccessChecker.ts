@@ -9,7 +9,7 @@ export interface FolderAccessCheckResult {
 
 /**
  * Checks whether a target path or URI is accessible for both reading and writing
- * by DaVinci Notes (Android SAF or filesystem access).
+ * by Sophia (Android SAF or filesystem access).
  */
 export async function checkFolderAccess(
   pathOrUri: string,
@@ -80,7 +80,7 @@ export async function checkFolderAccess(
         return {
           accessible: false,
           error:
-            "Directory is read-only. DaVinci Notes requires write permission.",
+            "Directory is read-only. Sophia requires write permission.",
         };
       }
     } catch (writeErr: unknown) {

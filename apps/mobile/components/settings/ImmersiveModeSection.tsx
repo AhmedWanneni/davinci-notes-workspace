@@ -10,18 +10,12 @@ export function ImmersiveModeSection(): React.ReactElement {
   const { isImmersiveMode, setImmersiveMode } = useImmersiveMode();
 
   return (
-    <View
-      className="p-4 rounded-xl border mb-4"
-      style={{
-        backgroundColor: tokens.color.bg.secondary,
-        borderColor: tokens.color.border.subtle,
-      }}
-    >
+    <View className="mb-6 pt-2">
       <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center flex-1 mr-3">
           <View className="mr-2.5">
             <CornersOut
-              size={20}
+              size={18}
               color={tokens.color.interactive.accent}
               weight="bold"
             />
@@ -52,8 +46,7 @@ export function ImmersiveModeSection(): React.ReactElement {
 
       <Text variant="caption" color="muted">
         Hide the Android navigation bar on note reading and editor screens for a
-        distraction-free view. Swipe up from the bottom edge to temporarily
-        reveal the system navigation bar.
+        distraction-free view.
       </Text>
     </View>
   );

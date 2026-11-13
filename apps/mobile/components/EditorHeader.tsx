@@ -1,140 +1,139 @@
 import React from "react";
 import { View, Pressable } from "react-native";
-import { ArrowLeft } from "phosphor-react-native";
+import {
+  SidebarSimple,
+  BookOpen,
+  DotsThreeVertical,
+  PencilSimple,
+  MagnifyingGlass,
+  CheckSquare,
+} from "phosphor-react-native";
 import { useTheme } from "../theme";
-import { IconButton, Text } from "./primitives";
+import { IconButton } from "./primitives";
 
 export interface EditorHeaderProps {
-  title: string;
-  payloadBytes: number;
+  title?: string;
+  payloadBytes?: number;
   saveStatus?: "saved" | "saving" | "unsaved" | "error";
   onBack: () => void;
   mode?: "edit" | "preview";
   onToggleMode?: (nextMode: "edit" | "preview") => void;
+  onOpenDrawer?: () => void;
+  onOpenActions?: () => void;
+  onOpenSearch?: () => void;
+  onOpenTodos?: () => void;
 }
 
 export function EditorHeader({
-  title,
-  payloadBytes,
-  saveStatus = "saved",
-  onBack,
   mode = "edit",
+  onBack,
   onToggleMode,
+  onOpenDrawer,
+  onOpenActions,
+  onOpenSearch,
+  onOpenTodos,
 }: EditorHeaderProps): React.ReactElement {
   const { tokens } = useTheme();
 
-  const statusLabel =
-    saveStatus === "saving"
-      ? "Saving..."
-      : saveStatus === "error"
-        ? "Save failed"
-        : saveStatus === "unsaved"
-          ? "Unsaved"
-          : payloadBytes > 0
-            ? `${payloadBytes} B`
-            : "Saved";
-
-  const statusColor = saveStatus === "error" ? "error" : "muted";
-
   return (
     <View
-      className="h-[44px] flex-row items-center justify-between px-3 border-b"
+      className="h-[48px] flex-row items-center justify-between px-4"
       style={{
-        backgroundColor: tokens.color.bg["primary-alt"],
-        borderBottomColor: tokens.color.border.subtle,
+        backgroundColor: tokens.color.bg.primary,
       }}
     >
-      <IconButton
-        icon={
-          <ArrowLeft
-            size={20}
-            color={tokens.color.text.normal}
-            weight="regular"
-          />
-        }
-        accessibilityLabel="Back to files"
-        size="sm"
-        onPress={onBack}
-      />
-      <Text
-        variant="text"
-        weight="semibold"
-        color="normal"
-        numberOfLines={1}
-        className="flex-1 mx-2"
+      {/* Left: Rounded icon box for sidebar / navigation */}
+      <Pressable
+        onPress={onOpenDrawer ?? onBack}
+        accessibilityRole="button"
+        accessibilityLabel="Open sidebar navigation"
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: tokens.color.border.subtle,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: tokens.color.bg.primary,
+        }}
       >
-        {title}
-      </Text>
+        <SidebarSimple
+          size={20}
+          color="#000000"
+          weight="regular"
+        />
+      </Pressable>
 
-      {onToggleMode ? (
-        <View
-          className="flex-row rounded-lg p-0.5 mr-2"
-          style={{
-            backgroundColor: tokens.color.bg.secondary,
-            borderWidth: 1,
-            borderColor: tokens.color.border.subtle,
-          }}
-        >
-          <Pressable
-            onPress={() => onToggleMode("edit")}
-            className="px-2.5 py-1 rounded-md"
-            style={{
-              backgroundColor:
-                mode === "edit"
-                  ? tokens.color.interactive.accent
-                  : "transparent",
-            }}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: mode === "edit" }}
-            accessibilityLabel="Edit mode"
-          >
-            <Text
-              variant="caption"
-              weight={mode === "edit" ? "bold" : "regular"}
-              style={{
-                color:
-                  mode === "edit"
-                    ? tokens.color.text["on-accent"]
-                    : tokens.color.text.muted,
-                fontSize: 11,
-              }}
-            >
-              Edit
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => onToggleMode("preview")}
-            className="px-2.5 py-1 rounded-md"
-            style={{
-              backgroundColor:
-                mode === "preview"
-                  ? tokens.color.interactive.accent
-                  : "transparent",
-            }}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: mode === "preview" }}
-            accessibilityLabel="Preview mode"
-          >
-            <Text
-              variant="caption"
-              weight={mode === "preview" ? "bold" : "regular"}
-              style={{
-                color:
-                  mode === "preview"
-                    ? tokens.color.text["on-accent"]
-                    : tokens.color.text.muted,
-                fontSize: 11,
-              }}
-            >
-              Preview
-            </Text>
-          </Pressable>
-        </View>
-      ) : null}
+      {/* Middle: Clean space */}
+      <View className="flex-1" />
 
-      <Text variant="caption" color={statusColor}>
-        {statusLabel}
-      </Text>
+      {/* Right: Search, Todos, Reading/Edit toggle, and 3-dots */}
+      <View className="flex-row items-center gap-1">
+        {onOpenSearch ? (
+          <Pressable
+            onPress={onOpenSearch}
+            accessibilityRole="button"
+            accessibilityLabel="Search"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
+          >
+            <MagnifyingGlass size={20} color="#000000" weight="regular" />
+          </Pressable>
+        ) : null}
+
+        {onOpenTodos ? (
+          <Pressable
+            onPress={onOpenTodos}
+            accessibilityRole="button"
+            accessibilityLabel="Todos page"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
+          >
+            <CheckSquare size={20} color="#000000" weight="regular" />
+          </Pressable>
+        ) : null}
+
+        {onToggleMode ? (
+          <IconButton
+            icon={
+              mode === "edit" ? (
+                <BookOpen
+                  size={22}
+                  color="#000000"
+                  weight="regular"
+                />
+              ) : (
+                <PencilSimple
+                  size={22}
+                  color="#000000"
+                  weight="regular"
+                />
+              )
+            }
+            accessibilityLabel={
+              mode === "edit"
+                ? "Switch to reading view"
+                : "Switch to edit view"
+            }
+            size="sm"
+            onPress={() => onToggleMode(mode === "edit" ? "preview" : "edit")}
+          />
+        ) : null}
+
+        {onOpenActions ? (
+          <IconButton
+            icon={
+              <DotsThreeVertical
+                size={22}
+                color="#000000"
+                weight="bold"
+              />
+            }
+            accessibilityLabel="More options"
+            size="sm"
+            onPress={onOpenActions}
+          />
+        ) : null}
+      </View>
     </View>
   );
 }

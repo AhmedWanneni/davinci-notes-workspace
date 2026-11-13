@@ -14,20 +14,13 @@ import { createMobileEditorExtensions } from "./editorExtensions";
 import { executeToolbarAction } from "./editorToolbarActions";
 import { darkColorTokens } from "@app/design-tokens/mobile";
 import { decodePayload } from "../src/base64Payload";
+import { getTextDirection } from "../src/getTextDirection";
 
 export interface EditorDomProps {
-  dom?: {
-    useExpoDOMWebView?: boolean;
-    matchContents?: boolean;
-    scrollEnabled?: boolean;
-    [key: string]: unknown;
-  };
+  dom?: { useExpoDOMWebView?: boolean; matchContents?: boolean; scrollEnabled?: boolean; [key: string]: unknown };
   initialContent: string;
   notePath?: string;
-  onDocChanged?: (
-    notification: DocChangeNotification,
-    payloadBytes: number,
-  ) => void;
+  onDocChanged?: (notification: DocChangeNotification, payloadBytes: number) => void;
   onMetricsUpdate?: (keystrokeLatencyMs: number) => void;
   actionTrigger?: { id: number; action: ToolbarActionType } | null;
   focusTrigger?: number;
@@ -57,10 +50,8 @@ export default function EditorDom({
 
   const onDocChangedRef = useRef(onDocChanged);
   onDocChangedRef.current = onDocChanged;
-
   const onFlushAckRef = useRef(onFlushAck);
   onFlushAckRef.current = onFlushAck;
-
   const lastActionIdRef = useRef<number | null>(null);
   const lastInsertIdRef = useRef<number | null>(null);
 
@@ -108,8 +99,20 @@ export default function EditorDom({
 
     const docText = decodePayload(initialContent || "");
     const extensions = createMobileEditorExtensions([changeListener]);
+    const direction = getTextDirection(docText);
+    containerRef.current.setAttribute("dir", direction);
+    if (!document.querySelector("meta[charset]")) {
+      const meta = document.createElement("meta");
+      meta.setAttribute("charset", "utf-8");
+      document.head.prepend(meta);
+    }
+
     const state = EditorState.create({ doc: docText, extensions });
     const view = new EditorView({ state, parent: containerRef.current });
+    view.dom.dir = direction;
+    view.dom.style.direction = direction;
+    view.contentDOM.dir = direction;
+    view.contentDOM.style.direction = direction;
 
     viewRef.current = view;
     activePathRef.current = notePath;
@@ -120,38 +123,29 @@ export default function EditorDom({
       getView: () => viewRef.current,
     });
 
-    // Touch/click on editor host focuses CodeMirror and places cursor at end
     const handleContainerTap = (e: Event) => {
       const v = viewRef.current;
-      if (!v) return;
-      if (!v.contentDOM.contains(e.target as Node)) {
-        v.focus();
-        const docLen = v.state.doc.length;
-        v.dispatch({
-          selection: { anchor: docLen, head: docLen },
-          scrollIntoView: true,
-        });
-      }
+      if (v && !v.contentDOM.contains(e.target as Node)) v.focus();
     };
     const hostEl = containerRef.current;
-    const evs = ["click", "touchend", "touchstart", "pointerdown"] as const;
+    const evs = ["click", "touchend"] as const;
     evs.forEach((e) => hostEl.addEventListener(e, handleContainerTap));
 
-    // Save Guard: Flush on blur, visibilitychange (app background), and pagehide
     const handleFlush = () => bridgeRef.current.flush();
-    const handleVisibility = () => {
-      if (document.visibilityState === "hidden") bridgeRef.current.flush();
-    };
+    const handleVisibility = () => { if (document.visibilityState === "hidden") bridgeRef.current.flush(); };
+    const handleWindowScroll = () => { if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0); };
 
     view.contentDOM.addEventListener("blur", handleFlush);
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("pagehide", handleFlush);
+    window.addEventListener("scroll", handleWindowScroll);
 
     return () => {
       evs.forEach((e) => hostEl.removeEventListener(e, handleContainerTap));
       view.contentDOM.removeEventListener("blur", handleFlush);
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("pagehide", handleFlush);
+      window.removeEventListener("scroll", handleWindowScroll);
       detachViewport();
       bridgeRef.current.flush();
       bridgeRef.current.cancel();
@@ -160,10 +154,13 @@ export default function EditorDom({
     };
   }, []);
 
-  // Sync document content if initialContent changes externally
+  // Sync document content if initialContent changes externally (e.g. reload from disk)
   useEffect(() => {
     const v = viewRef.current;
     if (!v) return;
+    // When the user is typing, the editor view has focus. Never overwrite content or reset cursor while focused!
+    if (v.hasFocus) return;
+
     const currentDoc = v.state.doc.toString();
     const newDoc = decodePayload(initialContent || "");
     if (newDoc !== currentDoc) {
@@ -183,11 +180,7 @@ export default function EditorDom({
 
   // Execute toolbar actions
   useEffect(() => {
-    if (
-      viewRef.current &&
-      actionTrigger &&
-      actionTrigger.id !== lastActionIdRef.current
-    ) {
+    if (viewRef.current && actionTrigger && actionTrigger.id !== lastActionIdRef.current) {
       lastActionIdRef.current = actionTrigger.id;
       executeToolbarAction(viewRef.current, actionTrigger.action);
     }
@@ -210,11 +203,7 @@ export default function EditorDom({
 
   // Insert arbitrary markdown text at cursor (for camera, photo, voice embeds)
   useEffect(() => {
-    if (
-      viewRef.current &&
-      insertTrigger &&
-      insertTrigger.id !== lastInsertIdRef.current
-    ) {
+    if (viewRef.current && insertTrigger && insertTrigger.id !== lastInsertIdRef.current) {
       lastInsertIdRef.current = insertTrigger.id;
       const textToInsert = decodePayload(insertTrigger.text);
       const { from, to } = viewRef.current.state.selection.main;
@@ -236,13 +225,13 @@ export default function EditorDom({
       styleEl.id = "davinci-mobile-theme";
       document.head.appendChild(styleEl);
     }
-    const vars = `:root{--color-bg-primary:${darkColorTokens.bg.primary};--color-text-normal:${darkColorTokens.text.normal};--color-text-muted:${darkColorTokens.text.muted};--color-text-accent:${darkColorTokens.interactive.accent};--color-bg-active:rgba(255,255,255,0.1);--font-editor:monospace,sans-serif;--editor-font-size:16px;--editor-obsidian-body-line-height:1.5;--editor-content-padding-bottom:300px;--space-6:16px;--space-8:16px;--border-width-thin:1px;}`;
+    const vars = `:root{--color-bg-primary:${darkColorTokens.bg.primary};--color-text-normal:${darkColorTokens.text.normal};--color-text-muted:${darkColorTokens.text.muted};--color-text-accent:${darkColorTokens.interactive.accent};--color-bg-active:rgba(255,255,255,0.1);--font-editor:-apple-system,BlinkMacSystemFont,"Geeza Pro","Noto Sans Arabic","Amiri","Traditional Arabic","Segoe UI",Roboto,Helvetica,Arial,sans-serif,system-ui;--font-text:-apple-system,BlinkMacSystemFont,"Geeza Pro","Noto Sans Arabic","Amiri","Traditional Arabic","Segoe UI",Roboto,Helvetica,Arial,sans-serif,system-ui;--editor-font-size:16px;--editor-obsidian-body-line-height:1.7;--editor-content-padding-bottom:300px;--space-6:16px;--space-8:16px;--border-width-thin:1px;}`;
     const reset =
       "html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:var(--color-bg-primary," +
       darkColorTokens.bg.primary +
       ")!important;color:var(--color-text-normal," +
       darkColorTokens.text.normal +
-      ")!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}";
+      ")!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}.cm-content{direction:inherit!important;unicode-bidi:plaintext!important;text-align:start!important;}.cm-line{direction:inherit!important;unicode-bidi:plaintext!important;text-align:start!important;}";
     styleEl.textContent = `${vars}\n${themeCss ?? ""}\n${reset}`;
   }, [themeCss]);
 

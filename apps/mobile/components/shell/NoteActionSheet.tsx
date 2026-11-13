@@ -14,6 +14,7 @@ import {
   ListNumbers,
   GitFork,
   Trash,
+  Gear,
 } from "phosphor-react-native";
 import { useTheme } from "../../theme";
 import { Sheet, SheetGroup, Text } from "../primitives";
@@ -35,6 +36,7 @@ export interface NoteActionSheetProps {
   onMerge?: () => void;
   onAddProperty?: () => void;
   onDelete?: () => void;
+  onOpenSettings?: () => void;
 }
 
 interface ActionRowProps {
@@ -96,6 +98,7 @@ export function NoteActionSheet({
   onMerge,
   onAddProperty,
   onDelete,
+  onOpenSettings,
 }: NoteActionSheetProps): React.ReactElement {
   const { tokens } = useTheme();
   const iconColor = tokens.color.text.normal;
@@ -195,6 +198,13 @@ export function NoteActionSheet({
             label="Add file property"
             onPress={onAddProperty}
           />
+          {onOpenSettings ? (
+            <ActionRow
+              icon={<Gear size={20} color={iconColor} weight="regular" />}
+              label="Settings"
+              onPress={onOpenSettings}
+            />
+          ) : null}
           {onDelete ? (
             <ActionRow
               icon={

@@ -33,16 +33,10 @@ export const VaultSettingsSection: React.FC<VaultSettingsSectionProps> = ({
   };
 
   return (
-    <View
-      className="mb-6 p-4 rounded-card border"
-      style={{
-        backgroundColor: tokens.color.bg.secondary,
-        borderColor: tokens.color.border.normal,
-      }}
-    >
-      <View className="flex-row items-center justify-between mb-3">
+    <View className="mb-6">
+      <View className="flex-row items-center justify-between mb-2">
         <View className="flex-row items-center gap-2">
-          <Folder size={18} color={tokens.color.interactive.accent} />
+          <Folder size={18} color={tokens.color.interactive.accent} weight="bold" />
           <Text variant="h3" color="normal">
             Vault
           </Text>
@@ -58,7 +52,7 @@ export const VaultSettingsSection: React.FC<VaultSettingsSectionProps> = ({
         onPress={() => setIsSwitcherOpen(true)}
       />
 
-      <View className="mt-3">
+      <View className="mt-2">
         <Button
           variant="secondary"
           size="sm"

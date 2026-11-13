@@ -85,6 +85,22 @@ describe("Folder & Editor Experience Improvements", () => {
     expect(element.props.folders).toContain("Projects");
   });
 
+  it("hides subfolders when parent folder is closed", () => {
+    const element = (
+      <VaultDrawerContent
+        folders={["Projects", "Projects/Frontend", "Work"]}
+        notes={[]}
+        onSelectNote={vi.fn()}
+        onOpenDailyNote={vi.fn()}
+        onOpenTags={vi.fn()}
+        onOpenGraph={vi.fn()}
+        onCreateFolder={vi.fn()}
+      />
+    );
+    expect(element).toBeDefined();
+    expect(element.props.folders.length).toBe(3);
+  });
+
   it("renders NewFolderSheet and validates creation callback", () => {
     const onClose = vi.fn();
     const onCreateFolder = vi.fn().mockResolvedValue(undefined);

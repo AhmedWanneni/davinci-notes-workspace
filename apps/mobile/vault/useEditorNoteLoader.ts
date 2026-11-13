@@ -3,11 +3,14 @@ import { defaultVaultManager } from "./vaultManager";
 import { defaultNoteStore } from "./noteStore";
 import { generateUniqueNotePath } from "./uniqueNoteName";
 import { atomicWriteNote } from "./atomicNoteWriter";
+import { defaultVaultIndexer } from "../indexer";
 
 export interface UseEditorNoteLoaderParams {
   storePath: string;
   noteId?: string;
   preset?: string;
+  template?: string;
+  folder?: string;
 }
 
 export interface UseEditorNoteLoaderResult {
@@ -22,10 +25,22 @@ export interface UseEditorNoteLoaderResult {
   reloadNote: () => Promise<void>;
 }
 
+export function stripLeadingH1Title(content: string, isTodo: boolean = false): string {
+  const stripRegex = isTodo ? /^\s*#{1,6}\s+[^\r\n]*(?:\r?\n)+/ : /^\s*#\s+[^\r\n]*(?:\r?\n)+/;
+  const fmMatch = /^(---\r?\n[\s\S]*?\r?\n---\r?\n?)/.exec(content);
+  if (fmMatch) {
+    const fm = fmMatch[1];
+    return fm + content.slice(fm.length).replace(stripRegex, "");
+  }
+  return content.replace(stripRegex, "");
+}
+
 export function useEditorNoteLoader({
   storePath,
   noteId,
   preset,
+  template,
+  folder,
 }: UseEditorNoteLoaderParams): UseEditorNoteLoaderResult {
   const [activePath, setActivePath] = useState<string>(storePath);
   const [content, setContent] = useState<string>("");
@@ -45,36 +60,39 @@ export function useEditorNoteLoader({
 
       if (preset === "new" && !hasCreatedNewRef.current) {
         hasCreatedNewRef.current = true;
-        let resolvedPath = storePath;
+        const targetFolder = folder !== undefined ? folder : (template === "todo" ? "Todos" : "");
+        const baseStem = template === "todo" ? "Daily routine" : "Untitled";
+        let resolvedPath = targetFolder ? `${targetFolder}/${baseStem}.md` : `${baseStem}.md`;
         const statCheck = await adapter.statFile(resolvedPath);
         if (statCheck.exists) {
           resolvedPath = await generateUniqueNotePath(
             adapter,
-            "",
-            "Untitled",
+            targetFolder,
+            baseStem,
           );
         }
         setActivePath(resolvedPath);
         defaultNoteStore.register(resolvedPath, noteId);
-        const title =
-          resolvedPath.replace(/\.md$/i, "").split("/").pop() ?? "Untitled";
-        const initial = `# ${title}\n\n`;
-        setContent(initial);
-        const stat = await atomicWriteNote(adapter, resolvedPath, initial);
+        const initialTodoContent =
+          "## Daily routine\n- [x] Drink a glass of water [5 min]\n- [x] Meditate to relax [15 min]\n- [ ] Stretch for 10 minutes [10 min]\n- [ ] Go for a short walk [20 min]\n";
+        const initialContent = template === "todo" ? stripLeadingH1Title(initialTodoContent, true) : "";
+        setContent(initialContent);
+        // Write file immediately so new document is always created in the vault
+        const stat = await atomicWriteNote(adapter, resolvedPath, initialContent);
         baseMtimeRef.current = stat.mtime;
+        void defaultVaultIndexer.indexVault(adapter, false);
       } else {
         const resolvedPath = noteId
           ? (defaultNoteStore.getPath(noteId) ?? storePath)
           : storePath;
         setActivePath(resolvedPath);
+        const isTodoNote = template === "todo" || /todos[/\\]/i.test(resolvedPath);
         try {
           const file = await adapter.readNote(resolvedPath);
           baseMtimeRef.current = file.mtime;
-          setContent(file.content);
+          setContent(stripLeadingH1Title(file.content, isTodoNote));
         } catch {
-          const title =
-            resolvedPath.replace(/\.md$/i, "").split("/").pop() ?? "Untitled";
-          setContent(`# ${title}\n\n`);
+          setContent("");
         }
       }
       setLoadError(null);
@@ -86,7 +104,7 @@ export function useEditorNoteLoader({
         err instanceof Error ? err.message : "Failed to load note.",
       );
     }
-  }, [noteId, preset, storePath]);
+  }, [noteId, preset, storePath, template]);
 
   useEffect(() => {
     void loadNote();

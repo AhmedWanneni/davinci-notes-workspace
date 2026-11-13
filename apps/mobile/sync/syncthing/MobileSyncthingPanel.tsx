@@ -84,10 +84,9 @@ export const MobileSyncthingPanel: React.FC<MobileSyncthingPanelProps> = ({
 
   return (
     <View
-      className="p-4 rounded-lg border mb-6"
+      className="mb-6 pb-4 border-b"
       style={{
-        backgroundColor: tokens.color.bg.secondary,
-        borderColor: tokens.color.border.normal,
+        borderBottomColor: tokens.color.border.subtle,
       }}
     >
       <View className="flex-row items-center justify-between mb-2">

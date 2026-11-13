@@ -22,3 +22,6 @@ export * from "./useEditorNoteLoader";
 export * from "./useEditorSaveManager";
 export * from "./saveQueue";
 export * from "./useFilesScreenState";
+export * from "./lastEditedNoteStorage";
+export * from "./tabStore";
+export * from "./useEditorTabManager";

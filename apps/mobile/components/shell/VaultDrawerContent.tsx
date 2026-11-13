@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { View, ScrollView, Pressable } from "react-native";
+import { View, ScrollView, Pressable, Alert } from "react-native";
 import {
+  SidebarSimple,
   Calendar,
   Tag,
   GitFork,
-  Gear,
   FolderPlus,
+  FilePlus,
   FileText,
 } from "phosphor-react-native";
 import { useTheme } from "../../theme";
@@ -13,40 +14,41 @@ import { Text } from "../primitives";
 import { DrawerFolderItem } from "./DrawerFolderItem";
 
 export interface VaultDrawerContentProps {
-  vaultName: string;
-  notesCount: number;
-  foldersCount: number;
+  vaultName?: string;
+  notesCount?: number;
+  foldersCount?: number;
   folders: string[];
   notes: string[];
-  onOpenVaultSwitcher: () => void;
+  onClose?: () => void;
+  onOpenVaultSwitcher?: () => void;
   onSelectNote: (path: string) => void;
   onSelectFolder?: (folder: string) => void;
   onOpenDailyNote: () => void;
   onOpenTags: () => void;
   onOpenGraph: () => void;
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
   onCreateFolder: () => void;
+  onCreateNote?: () => void;
+  onDeleteFolder?: (folder: string) => void;
+  onDeleteNote?: (path: string) => void;
 }
 
 export function VaultDrawerContent({
-  vaultName,
-  notesCount,
-  foldersCount,
   folders,
   notes,
-  onOpenVaultSwitcher,
+  onClose,
   onSelectNote,
   onSelectFolder,
   onOpenDailyNote,
   onOpenTags,
   onOpenGraph,
-  onOpenSettings,
   onCreateFolder,
+  onCreateNote,
+  onDeleteFolder,
+  onDeleteNote,
 }: VaultDrawerContentProps): React.ReactElement {
   const { tokens } = useTheme();
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
   const toggleFolder = (folder: string) => {
     setExpandedFolders((prev) => {
@@ -57,84 +59,107 @@ export function VaultDrawerContent({
     });
   };
 
+  const isFolderVisible = (folder: string): boolean => {
+    const parts = folder.split("/");
+    if (parts.length === 1) return true;
+    let current = "";
+    for (let i = 0; i < parts.length - 1; i++) {
+      current = current ? `${current}/${parts[i]}` : parts[i];
+      if (!expandedFolders.has(current)) return false;
+    }
+    return true;
+  };
+
   const topLevelNotes = notes.filter((n) => !n.includes("/"));
 
   return (
-    <View className="flex-1 justify-between">
-      {/* Top Header */}
-      <Pressable
-        onPress={onOpenVaultSwitcher}
-        className="px-4 py-3 border-b flex-row items-center justify-between active:bg-bg-hover"
-        style={{ borderBottomColor: tokens.color.border.subtle }}
-        accessibilityRole="button"
-        accessibilityLabel="Switch vault"
+    <View style={{ flex: 1, backgroundColor: tokens.color.bg.primary, justifyContent: "space-between" }}>
+      {/* Top Header: Icons on the left, Close button on the right, no bottom border */}
+      <View
+        className="h-[48px] flex-row items-center justify-between px-4 mb-3"
+        style={{
+          backgroundColor: tokens.color.bg.primary,
+          marginTop: 0,
+        }}
       >
-        <View>
-          <Text variant="h3" color="normal" weight="bold">
-            {vaultName} ▾
-          </Text>
-          <Text variant="caption" color="muted">
-            {foldersCount} {foldersCount === 1 ? "folder" : "folders"},{" "}
-            {notesCount} {notesCount === 1 ? "note" : "notes"}
-          </Text>
-        </View>
-      </Pressable>
-
-      {/* Main Navigation & Folders */}
-      <ScrollView
-        className="flex-1 px-3 py-2"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Quick Links */}
-        <View
-          className="mb-3 pb-2 border-b"
-          style={{ borderBottomColor: tokens.color.border.subtle }}
-        >
+        {/* Left: 5 action icons in exact order: daily note, tags, local graph, add folder, add file */}
+        <View className="flex-row items-center gap-0.5">
+          {/* 1. Daily note */}
           <Pressable
             onPress={onOpenDailyNote}
-            className="flex-row items-center gap-3 px-3 py-2.5 rounded-lg active:bg-bg-hover min-h-[44px]"
+            accessibilityRole="button"
+            accessibilityLabel="Daily note"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <Calendar size={18} color={tokens.color.interactive.accent} />
-            <Text variant="body" color="normal">
-              Daily Note
-            </Text>
+            <Calendar size={20} color="#000000" weight="regular" />
           </Pressable>
+
+          {/* 2. Tags */}
           <Pressable
             onPress={onOpenTags}
-            className="flex-row items-center gap-3 px-3 py-2.5 rounded-lg active:bg-bg-hover min-h-[44px]"
+            accessibilityRole="button"
+            accessibilityLabel="Tags"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <Tag size={18} color={tokens.color.interactive.accent} />
-            <Text variant="body" color="normal">
-              Tags
-            </Text>
+            <Tag size={20} color="#000000" weight="regular" />
           </Pressable>
+
+          {/* 3. Local graph */}
           <Pressable
             onPress={onOpenGraph}
-            className="flex-row items-center gap-3 px-3 py-2.5 rounded-lg active:bg-bg-hover min-h-[44px]"
+            accessibilityRole="button"
+            accessibilityLabel="Local graph"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <GitFork size={18} color={tokens.color.interactive.accent} />
-            <Text variant="body" color="normal">
-              Local Graph
-            </Text>
+            <GitFork size={20} color="#000000" weight="regular" />
           </Pressable>
-        </View>
 
-        {/* Folders & Notes Header */}
-        <View className="flex-row items-center justify-between px-3 py-1 mb-1">
-          <Text variant="caption" color="muted" weight="semibold">
-            FILES & FOLDERS
-          </Text>
+          {/* 4. Add folder */}
           <Pressable
             onPress={onCreateFolder}
-            className="p-1.5 rounded active:bg-bg-hover"
-            accessibilityLabel="New folder"
+            accessibilityRole="button"
+            accessibilityLabel="Add folder"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <FolderPlus size={16} color={tokens.color.text.muted} />
+            <FolderPlus size={20} color="#000000" weight="regular" />
+          </Pressable>
+
+          {/* 5. Add file to vault */}
+          <Pressable
+            onPress={onCreateNote}
+            accessibilityRole="button"
+            accessibilityLabel="Add file to vault"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
+          >
+            <FilePlus size={20} color="#000000" weight="regular" />
           </Pressable>
         </View>
 
-        {/* Folders List with Expansion */}
-        {folders.map((folder) => {
+        {/* Right: Close button */}
+        <Pressable
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close sidebar navigation"
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: tokens.color.bg.primary,
+          }}
+        >
+          <SidebarSimple size={20} color="#000000" weight="regular" />
+        </Pressable>
+      </View>
+
+      {/* Main Folders & Notes List (no title lines or quick links) */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 12, paddingVertical: 8 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {folders.slice().sort().filter(isFolderVisible).map((folder) => {
           const depth = folder.split("/").length - 1;
           const displayName = folder.split("/").pop() ?? folder;
           const folderNotes = notes.filter((n) => {
@@ -154,50 +179,34 @@ export function VaultDrawerContent({
               onToggleExpand={() => toggleFolder(folder)}
               onSelectFolder={onSelectFolder}
               onSelectNote={onSelectNote}
+              onDeleteFolder={onDeleteFolder}
+              onDeleteNote={onDeleteNote}
             />
           );
         })}
 
-        {/* Top-Level Notes */}
-        {topLevelNotes.slice(0, 30).map((note) => {
+        {topLevelNotes.map((note) => {
           const stem = note.replace(/\.md$/i, "");
           return (
             <Pressable
               key={note}
               onPress={() => onSelectNote(note)}
+              onLongPress={() => {
+                Alert.alert("Delete Note", `Delete "${stem}"?`, [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "Delete", style: "destructive", onPress: () => onDeleteNote?.(note) },
+                ]);
+              }}
               className="flex-row items-center gap-2 px-3 py-2 rounded-lg active:bg-bg-hover min-h-[40px]"
             >
               <FileText size={18} color={tokens.color.text.muted} />
-              <Text
-                variant="body"
-                color="normal"
-                numberOfLines={1}
-                className="flex-1"
-              >
+              <Text variant="body" color="normal" numberOfLines={1} className="flex-1" style={{ fontSize: 16 }}>
                 {stem}
               </Text>
             </Pressable>
           );
         })}
       </ScrollView>
-
-      {/* Footer */}
-      <View
-        className="px-4 py-3 border-t flex-row items-center justify-between"
-        style={{ borderTopColor: tokens.color.border.subtle }}
-      >
-        <Pressable
-          onPress={onOpenSettings}
-          className="flex-row items-center gap-2.5 py-1.5 active:bg-bg-hover rounded-lg min-h-[44px]"
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-        >
-          <Gear size={20} color={tokens.color.text.normal} />
-          <Text variant="body" color="normal">
-            Settings
-          </Text>
-        </Pressable>
-      </View>
     </View>
   );
 }

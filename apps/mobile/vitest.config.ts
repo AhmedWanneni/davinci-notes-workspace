@@ -83,6 +83,10 @@ export default defineConfig({
         __dirname,
         "tests/mocks/expoStatusBarMock.tsx",
       ),
+      "@react-native-community/datetimepicker": path.resolve(
+        __dirname,
+        "tests/mocks/dateTimePickerMock.tsx",
+      ),
       "react-native": "react-native-web",
     },
   },

@@ -1,24 +1,34 @@
 {
   "expo": {
-    "name": "DaVinci Notes",
+    "name": "Sophia",
     "slug": "davinci-notes",
     "version": "0.3.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "davinci",
+    "icon": "./assets/sophia-icon.png",
+    "splash": {
+      "image": "./assets/sophia-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#2B1F1A"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.davinci.notes",
       "infoPlist": {
         "UIFileSharingEnabled": true,
         "LSSupportsOpeningDocumentsInPlace": true,
-        "NSCameraUsageDescription": "Allow DaVinci Notes to take photos to attach to your notes.",
-        "NSPhotoLibraryUsageDescription": "Allow DaVinci Notes to attach photos from your library.",
-        "NSMicrophoneUsageDescription": "Allow DaVinci Notes to record audio voice memos."
+        "NSCameraUsageDescription": "Allow Sophia to take photos to attach to your notes.",
+        "NSPhotoLibraryUsageDescription": "Allow Sophia to attach photos from your library.",
+        "NSMicrophoneUsageDescription": "Allow Sophia to record audio voice memos."
       }
     },
     "android": {
       "package": "com.davinci.notes",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/sophia-icon.png",
+        "backgroundColor": "#2B1F1A"
+      },
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -34,8 +44,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow DaVinci Notes to attach photos from your library.",
-          "cameraPermission": "Allow DaVinci Notes to take photos to attach to your notes."
+          "photosPermission": "Allow Sophia to attach photos from your library.",
+          "cameraPermission": "Allow Sophia to take photos to attach to your notes."
         }
       ],
       "expo-sqlite",
@@ -45,7 +55,15 @@
       "./plugins/withSyncthingAndroid",
       "expo-asset",
       "expo-audio",
-      "expo-splash-screen"
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/sophia-icon.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
+          "backgroundColor": "#2B1F1A"
+        }
+      ]
     ]
   }
 }

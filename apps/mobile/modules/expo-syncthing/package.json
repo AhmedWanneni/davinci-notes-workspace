@@ -1,7 +1,7 @@
 {
   "name": "expo-syncthing",
   "version": "0.1.0",
-  "description": "Embedded Syncthing foreground service engine for DaVinci Notes",
+  "description": "Embedded Syncthing foreground service engine for Sophia",
   "main": "index.ts",
   "types": "index.ts"
 }

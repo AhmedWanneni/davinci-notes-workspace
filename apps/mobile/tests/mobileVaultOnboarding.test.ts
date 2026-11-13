@@ -32,11 +32,11 @@ describe("Mobile Vault Onboarding, Multi-Vault Registry & Adversarial Tests", ()
     expect(adapter).toBeDefined();
     expect(decodeURIComponent(adapter.vaultUri)).toContain("Personal Vault");
 
-    const stat = await adapter.statFile("Welcome to DaVinci Notes.md");
+    const stat = await adapter.statFile("Welcome to Sophia.md");
     expect(stat.exists).toBe(true);
 
-    const note = await adapter.readNote("Welcome to DaVinci Notes.md");
-    expect(note.content).toContain("# Welcome to DaVinci Notes");
+    const note = await adapter.readNote("Welcome to Sophia.md");
+    expect(note.content).toContain("# Welcome to Sophia");
 
     const {
       adapter: active,
@@ -63,7 +63,7 @@ describe("Mobile Vault Onboarding, Multi-Vault Registry & Adversarial Tests", ()
     expect(info.isAccessible).toBe(true);
 
     const notes = await adapter!.listNotes();
-    expect(notes).toContain("Welcome to DaVinci Notes.md");
+    expect(notes).toContain("Welcome to Sophia.md");
   });
 
   it("4. Adversarial names: handles Arabic, emoji, accents, slashes, and spaces safely", async () => {
@@ -90,14 +90,14 @@ describe("Mobile Vault Onboarding, Multi-Vault Registry & Adversarial Tests", ()
       expect(adapter).toBeDefined();
       expect(adapter.vaultUri).toBeTruthy();
 
-      const stat = await adapter.statFile("Welcome to DaVinci Notes.md");
+      const stat = await adapter.statFile("Welcome to Sophia.md");
       expect(stat.exists).toBe(true);
 
       const notes = await adapter.listNotes();
-      expect(notes).toContain("Welcome to DaVinci Notes.md");
+      expect(notes).toContain("Welcome to Sophia.md");
 
-      const readBack = await adapter.readNote("Welcome to DaVinci Notes.md");
-      expect(readBack.content).toContain("# Welcome to DaVinci Notes");
+      const readBack = await adapter.readNote("Welcome to Sophia.md");
+      expect(readBack.content).toContain("# Welcome to Sophia");
     }
   });
 

@@ -4,7 +4,7 @@ import { darkBTokens, lightATokens } from "./builtinThemeTokens";
 
 /**
  * Parses raw CSS containing :root variable declarations and extracts
- * them into a NativeThemeTokens object matching the DaVinci Notes token contract.
+ * them into a NativeThemeTokens object matching the Sophia token contract.
  */
 export function parseThemeTokensFromCss(
   css: string,
@@ -124,6 +124,8 @@ export function parseThemeTokensFromCss(
       font: {
         ui: varMap["font-ui"] ?? base.typography.font.ui,
         editor: varMap["font-editor"] ?? base.typography.font.editor,
+        text: varMap["font-text"] ?? base.typography.font.text,
+        mono: varMap["font-mono"] ?? base.typography.font.mono,
       },
       scale: {
         xs: varMap["type-scale-xs"] ?? base.typography.scale.xs,
