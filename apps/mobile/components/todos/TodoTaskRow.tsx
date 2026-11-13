@@ -21,8 +21,11 @@ export function TodoTaskRow({
   const { tokens } = useTheme();
 
   return (
-    <View
-      className="px-4 py-3 border-b flex-row items-center justify-between"
+    <Pressable
+      onPress={() => {
+        if (item.notePath && onOpenNote) onOpenNote(item.notePath);
+      }}
+      className="px-4 py-3 border-b flex-row items-center justify-between active:opacity-75"
       style={{
         backgroundColor: tokens.color.bg.primary,
         borderBottomColor: tokens.color.border.subtle,
@@ -30,45 +33,55 @@ export function TodoTaskRow({
     >
       {/* Checkbox */}
       <Pressable
-        onPress={() => onToggle(item)}
+        onPress={(e) => {
+          e.stopPropagation?.();
+          onToggle(item);
+        }}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: item.completed }}
         className="w-6 h-6 rounded-full items-center justify-center mr-3"
         style={{
           borderWidth: item.completed ? 0 : 2,
-          borderColor: item.completed ? "transparent" : tokens.color.border.normal,
-          backgroundColor: item.completed ? tokens.color.interactive.accent : "transparent",
+          borderColor: item.completed
+            ? "transparent"
+            : tokens.color.border.normal,
+          backgroundColor: item.completed
+            ? tokens.color.interactive.accent
+            : "transparent",
         }}
       >
         {item.completed ? (
-          <Check size={14} color={tokens.color.text["on-accent"]} weight="bold" />
+          <Check
+            size={14}
+            color={tokens.color.text["on-accent"]}
+            weight="bold"
+          />
         ) : null}
       </Pressable>
 
-      {/* Task Content: tap opens the note directly */}
-      <Pressable
-        className="flex-1 mr-3 active:opacity-60"
-        onPress={() => {
-          if (item.notePath && onOpenNote) onOpenNote(item.notePath);
-          else onToggle(item);
-        }}
-      >
+      {/* Task Content */}
+      <View className="flex-1 mr-3">
         <Text
           style={{
             fontSize: 15,
             fontWeight: item.completed ? "400" : "500",
-            color: item.completed ? tokens.color.text.muted : tokens.color.text.normal,
+            color: item.completed
+              ? tokens.color.text.muted
+              : tokens.color.text.normal,
             textDecorationLine: item.completed ? "line-through" : "none",
           }}
         >
           {item.text}
         </Text>
-      </Pressable>
+      </View>
 
       {/* Trailing Trash Icon to remove task */}
       {onDelete ? (
         <Pressable
-          onPress={() => onDelete(item)}
+          onPress={(e) => {
+            e.stopPropagation?.();
+            onDelete(item);
+          }}
           accessibilityRole="button"
           accessibilityLabel={`Delete task ${item.text}`}
           className="p-1.5 items-center justify-center active:opacity-60"
@@ -76,6 +89,6 @@ export function TodoTaskRow({
           <Trash size={17} color={tokens.color.text.muted} weight="regular" />
         </Pressable>
       ) : null}
-    </View>
+    </Pressable>
   );
 }

@@ -1,13 +1,3 @@
-export { TodoView } from "./TodoView";
-export type { TodoViewProps } from "./TodoView";
-export { TodoHeader } from "./TodoHeader";
-export { TodoCalendarStrip } from "./TodoCalendarStrip";
-export { TodoReminderBanner } from "./TodoReminderBanner";
-export { TodoItemCard } from "./TodoItemCard";
-export { TodoFilterBar } from "./TodoFilterBar";
-export { TodoTaskRow } from "./TodoTaskRow";
-export { TodoFocusView } from "./TodoFocusView";
-export { AddTodoModal } from "./AddTodoModal";
 export { AddProjectModal } from "./AddProjectModal";
 export { AddTodoListModal } from "./AddTodoListModal";
 export { AddTodoItemModal } from "./AddTodoItemModal";
@@ -21,6 +11,7 @@ export type { TodoListViewProps } from "./TodoListView";
 export { DateTimePickerModal } from "./DateTimePickerModal";
 export type { DateTimePickerModalProps } from "./DateTimePickerModal";
 export { TodosSidebar } from "./TodosSidebar";
+export { TodoTaskRow } from "./TodoTaskRow";
 export {
   parseTodosFromMarkdown,
   toggleTodoInMarkdown,

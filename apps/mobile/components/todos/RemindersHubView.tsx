@@ -129,7 +129,7 @@ export function RemindersHubView({
             item={item}
             onToggle={(it) => void toggleReminder(it)}
             onDelete={(it) => void deleteReminder(it)}
-            onPress={(it) => it.notePath && onOpenNote?.(it.notePath)}
+            onPress={(it) => onOpenNote?.(it.notePath || "Reminders/Events.md")}
           />
         )}
         contentContainerStyle={{ paddingBottom: 48 }}

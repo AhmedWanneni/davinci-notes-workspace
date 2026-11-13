@@ -28,6 +28,33 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Vitest suites: 14 tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
 
+## Last Session — Direct Markdown Navigation on Todo/Reminder Click & Obsolete TodoView Removal
+
+1. **Direct Markdown Note Navigation (`TodoTaskRow.tsx`, `ReminderEventRow.tsx`, `RemindersHubView.tsx`)**:
+   - Tapping any todo item row in `TodoTaskRow.tsx` immediately navigates to its `.md` file in `/editor` (`onOpenNote(item.notePath)`).
+   - Tapping any reminder row in `ReminderEventRow.tsx` / `RemindersHubView.tsx` immediately opens its target markdown note file in `/editor`.
+   - Dedicated checkbox/timer controls use `stopPropagation` to toggle task status without opening the note.
+
+2. **Removal of Obsolete `TodoView` and Linked Components**:
+   - Removed `TodoView.tsx` and all obsolete subcomponents that were tied exclusively to it:
+     - `TodoHeader.tsx`
+     - `TodoCalendarStrip.tsx`
+     - `TodoReminderBanner.tsx`
+     - `TodoItemCard.tsx`
+     - `AddTodoModal.tsx`
+     - `TodoFilterBar.tsx`
+     - `TodoFocusView.tsx`
+   - Updated `apps/mobile/app/editor.tsx` to remove `TodoView` interception for todo notes, ensuring all notes render directly in `EditorDom` with full markdown editing capabilities.
+   - Cleaned up exports in `apps/mobile/components/todos/index.ts`.
+   - Converted `apps/mobile/tests/mobileTodoView.test.tsx` to `apps/mobile/tests/mobileTodoParser.test.tsx`, retaining full markdown parsing tests while dropping tests for deleted components.
+
+3. **Standards & Verification**:
+   - All touched files strictly under line caps (`apps/mobile/app/editor.tsx`: 228 lines, `apps/mobile/components/todos/ReminderEventRow.tsx`: 141 lines, `apps/mobile/components/todos/TodoTaskRow.tsx`: 84 lines).
+   - ESLint: zero errors, zero warnings on modified files.
+   - TypeScript: `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - Vitest: All 12 tests across `isolatedReminders.test.tsx`, `mobileTodosHub.test.tsx`, and `mobileTodoParser.test.tsx` passed.
+   - Knowledge graph updated cleanly with `graphify update .`.
+
 ## Last Session — 7-Day Calendar Week Bar in Todo Page & Bottom Search in Todos Sidebar
 
 1. **Shared 7-Day Circular Calendar Week Bar (`CalendarWeekStrip.tsx`, `TodoListView.tsx`, `RemindersHubView.tsx`)**:
@@ -62,6 +89,33 @@ Updated at the end of every session. Read this first, before touching code. Full
 
 1. Test Note mode and Text mode on physical iOS / Android devices.
    - 14 unit tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
+   - Knowledge graph updated cleanly with `graphify update .`.
+
+## Last Session — Direct Markdown Navigation on Todo/Reminder Click & Obsolete TodoView Removal
+
+1. **Direct Markdown Note Navigation (`TodoTaskRow.tsx`, `ReminderEventRow.tsx`, `RemindersHubView.tsx`)**:
+   - Tapping any todo item row in `TodoTaskRow.tsx` immediately navigates to its `.md` file in `/editor` (`onOpenNote(item.notePath)`).
+   - Tapping any reminder row in `ReminderEventRow.tsx` / `RemindersHubView.tsx` immediately opens its target markdown note file in `/editor`.
+   - Dedicated checkbox/timer controls use `stopPropagation` to toggle task status without opening the note.
+
+2. **Removal of Obsolete `TodoView` and Linked Components**:
+   - Removed `TodoView.tsx` and all obsolete subcomponents that were tied exclusively to it:
+     - `TodoHeader.tsx`
+     - `TodoCalendarStrip.tsx`
+     - `TodoReminderBanner.tsx`
+     - `TodoItemCard.tsx`
+     - `AddTodoModal.tsx`
+     - `TodoFilterBar.tsx`
+     - `TodoFocusView.tsx`
+   - Updated `apps/mobile/app/editor.tsx` to remove `TodoView` interception for todo notes, ensuring all notes render directly in `EditorDom` with full markdown editing capabilities.
+   - Cleaned up exports in `apps/mobile/components/todos/index.ts`.
+   - Converted `apps/mobile/tests/mobileTodoView.test.tsx` to `apps/mobile/tests/mobileTodoParser.test.tsx`, retaining full markdown parsing tests while dropping tests for deleted components.
+
+3. **Standards & Verification**:
+   - All touched files strictly under line caps (`apps/mobile/app/editor.tsx`: 228 lines, `apps/mobile/components/todos/ReminderEventRow.tsx`: 141 lines, `apps/mobile/components/todos/TodoTaskRow.tsx`: 84 lines).
+   - ESLint: zero errors, zero warnings on modified files.
+   - TypeScript: `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - Vitest: All 12 tests across `isolatedReminders.test.tsx`, `mobileTodosHub.test.tsx`, and `mobileTodoParser.test.tsx` passed.
    - Knowledge graph updated cleanly with `graphify update .`.
 
 ## Last Session — 7-Day Calendar Week Bar in Todo Page & Bottom Search in Todos Sidebar

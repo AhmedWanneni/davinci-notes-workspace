@@ -5522,9 +5522,9 @@
     "semantic_hash": "e1092693b52584ee1aa340f49a5cbcb3"
   },
   "apps/mobile/app/editor.tsx": {
-    "mtime": 1794590832.4648578,
-    "seen": 1794591105.814733,
-    "ast_hash": "843a2b03a47158c1d2a5ad50152bd2f4",
+    "mtime": 1794598020.729486,
+    "seen": 1794598455.080526,
+    "ast_hash": "116a59ca1f80fac35938ecb6a453ed65",
     "semantic_hash": ""
   },
   "apps/mobile/app/gallery.tsx": {
@@ -13205,9 +13205,9 @@
     "semantic_hash": ""
   },
   "PROGRESS.md": {
-    "mtime": 1794593336.648808,
-    "seen": 1794594873.675811,
-    "ast_hash": "03a48efabd6c568eca088f9718070cc9",
+    "mtime": 1794594896.8022728,
+    "seen": 1794598455.1532302,
+    "ast_hash": "91ea759f4e766310d6c8ea730b2b6085",
     "semantic_hash": ""
   },
   "README.md": {
@@ -18838,46 +18838,10 @@
     "ast_hash": "b5f3cc77a3fa5a91a6158ad26b6c7219",
     "semantic_hash": ""
   },
-  "apps/mobile/components/todos/AddTodoModal.tsx": {
-    "mtime": 1794582147.005132,
-    "seen": 1794589084.069154,
-    "ast_hash": "a440a113e08fbc49ee86f634a19bbba0",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/todos/TodoCalendarStrip.tsx": {
-    "mtime": 1794582147.0056973,
-    "seen": 1794589084.069161,
-    "ast_hash": "fdbbb128e85764d3dd0b0dbc8e434238",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/todos/TodoHeader.tsx": {
-    "mtime": 1794582147.0061858,
-    "seen": 1794589084.069165,
-    "ast_hash": "790143447f4ab4d2d8f4724cbab60f00",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/todos/TodoItemCard.tsx": {
-    "mtime": 1794582147.0063062,
-    "seen": 1794589084.0691671,
-    "ast_hash": "c24e9fecc2552115bc7c9f7f3fabaed9",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/todos/TodoReminderBanner.tsx": {
-    "mtime": 1794582147.006442,
-    "seen": 1794589084.0691688,
-    "ast_hash": "8bd55cfef6b7fbe902df8abe2cfca4cd",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/todos/TodoView.tsx": {
-    "mtime": 1794582147.0066657,
-    "seen": 1794589084.069171,
-    "ast_hash": "a5b54f8fb6276e9f77677ac1cbda7a66",
-    "semantic_hash": ""
-  },
   "apps/mobile/components/todos/index.ts": {
-    "mtime": 1794594740.0092406,
-    "seen": 1794594873.6050198,
-    "ast_hash": "38647382c84dda956f63b59d97ed69ba",
+    "mtime": 1794598165.8538578,
+    "seen": 1794598455.084662,
+    "ast_hash": "476085416b63f5b3924afe46a1cdc897",
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/todoParser.ts": {
@@ -18892,22 +18856,10 @@
     "ast_hash": "eabc113d935ff7d94c55db8820f97f22",
     "semantic_hash": ""
   },
-  "apps/mobile/tests/mobileTodoView.test.tsx": {
-    "mtime": 1794582147.0106847,
-    "seen": 1794589084.075979,
-    "ast_hash": "acb41ac842be283e5afe0c67e013d847",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/todos/TodoFilterBar.tsx": {
-    "mtime": 1794582147.0058174,
-    "seen": 1794589084.069162,
-    "ast_hash": "72a9c4786660c22f545813e3cdaebcea",
-    "semantic_hash": ""
-  },
   "apps/mobile/components/todos/TodoTaskRow.tsx": {
-    "mtime": 1794582147.006554,
-    "seen": 1794589084.06917,
-    "ast_hash": "20e620a8281a7e14f444a042c1c4e349",
+    "mtime": 1794598043.4003189,
+    "seen": 1794598455.084606,
+    "ast_hash": "12af897bd0bba6c2e60617a23dd24c35",
     "semantic_hash": ""
   },
   "apps/mobile/tests/mobileTodosHub.test.tsx": {
@@ -18938,12 +18890,6 @@
     "mtime": 1794594796.1886704,
     "seen": 1794594873.6009111,
     "ast_hash": "cc7d96ce65fc24c37f9d8f6ec921d149",
-    "semantic_hash": ""
-  },
-  "apps/mobile/components/todos/TodoFocusView.tsx": {
-    "mtime": 1794582147.0060678,
-    "seen": 1794589084.069164,
-    "ast_hash": "af0ac92620252f7496c12b336cad0776",
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/AddProjectModal.tsx": {
@@ -19025,15 +18971,15 @@
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/ReminderEventRow.tsx": {
-    "mtime": 1794582147.0053768,
-    "seen": 1794589084.0691571,
-    "ast_hash": "79d7102eb580a6f4c8cf8d4fe65da9cc",
+    "mtime": 1794598267.290301,
+    "seen": 1794598455.0844958,
+    "ast_hash": "de67c9abacbef8d032bf75d5e116a6e7",
     "semantic_hash": ""
   },
   "apps/mobile/components/todos/RemindersHubView.tsx": {
-    "mtime": 1794594678.8302867,
-    "seen": 1794594873.604595,
-    "ast_hash": "b1c39efc7235de61f6cf4c6b6f7a8fc9",
+    "mtime": 1794598070.3197892,
+    "seen": 1794598455.084497,
+    "ast_hash": "b88af0baeecf01cbe95b6047bea5c83e",
     "semantic_hash": ""
   },
   "apps/mobile/tests/isolatedReminders.test.tsx": {
@@ -19088,6 +19034,12 @@
     "mtime": 1794594760.47942,
     "seen": 1794594873.604865,
     "ast_hash": "7933f537a711ac1a2846e34ec5334e70",
+    "semantic_hash": ""
+  },
+  "apps/mobile/tests/mobileTodoParser.test.tsx": {
+    "mtime": 1794598179.1887846,
+    "seen": 1794598455.092149,
+    "ast_hash": "12cac3f29c14d8d0cc422333243eab58",
     "semantic_hash": ""
   },
   "pnpm-lock.yaml": {
