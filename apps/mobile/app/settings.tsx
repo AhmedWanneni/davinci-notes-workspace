@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../theme";
 import { ScreenLayout } from "../components/layout";
 import { IconButton, Text } from "../components/primitives";
+import { EditorBottomBar } from "../components/EditorBottomBar";
 import { VaultSettingsSection } from "../vault/VaultSettingsSection";
 import { SyncSettingsPanel } from "../sync/SyncSettingsPanel";
 import {
@@ -74,10 +75,9 @@ export default function SettingsScreen(): React.ReactElement {
     >
       {/* Category Tabs Bar */}
       <View
-        className="flex-row items-center px-4 py-2 gap-2 border-b"
+        className="flex-row items-center px-4 py-2 gap-2"
         style={{
           backgroundColor: tokens.color.bg.primary,
-          borderBottomColor: tokens.color.border.subtle,
         }}
       >
         {categories.map((cat) => {
@@ -93,7 +93,7 @@ export default function SettingsScreen(): React.ReactElement {
               style={{
                 backgroundColor: isSelected
                   ? tokens.color.interactive.accent
-                  : "transparent",
+                  : tokens.color.bg.secondary,
               }}
             >
               {cat.icon}
@@ -130,6 +130,25 @@ export default function SettingsScreen(): React.ReactElement {
 
         {activeCategory === "vault" ? <VaultSettingsSection /> : null}
       </ScrollView>
+
+      {/* Editor Navigation Bar */}
+      <EditorBottomBar
+        onBack={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace("/editor");
+        }}
+        onForward={() => {}}
+        onSearch={() => router.push("/search")}
+        onNewNote={() =>
+          router.push({
+            pathname: "/editor",
+            params: { preset: "new", autoFocus: "1" },
+          })
+        }
+        onTabs={() => router.push("/editor")}
+        onMenu={() => {}}
+        tabCount={1}
+      />
     </ScreenLayout>
   );
 }

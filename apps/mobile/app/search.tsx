@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, FlatList, Pressable, TextInput, BackHandler } from "react-native";
+import { View, FlatList, Pressable, BackHandler } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { MagnifyingGlass, X, CaretLeft } from "phosphor-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../theme";
-import { Text } from "../components/primitives";
+import { Text, Input } from "../components/primitives";
+import { EditorBottomBar } from "../components/EditorBottomBar";
 import { defaultVaultIndexer, searchVault } from "../indexer";
 import { defaultNoteStore } from "../vault/noteStore";
 import { defaultVaultManager } from "../vault/vaultManager";
@@ -129,28 +130,24 @@ export default function SearchScreen(): React.ReactElement {
       {/* Top Search Bar Row */}
       <View className="flex-row items-center px-4 pb-3" style={{ gap: 8 }}>
         <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Go back" className="p-1.5 -ml-1 active:opacity-60">
-          <CaretLeft size={22} color="#000000" weight="regular" />
+          <CaretLeft size={22} color={tokens.color.text.normal} weight="regular" />
         </Pressable>
 
-        <View
-          className="flex-1 flex-row items-center px-4 py-2.5 rounded-2xl"
-          style={{ backgroundColor: tokens.color.bg.secondary, minHeight: 46 }}
-        >
-          <MagnifyingGlass size={20} color={tokens.color.text.muted} />
-          <TextInput
+        <View className="flex-1">
+          <Input
             placeholder="Search notes & tasks..."
-            placeholderTextColor={tokens.color.text.muted}
             value={query}
             onChangeText={setQuery}
-            className="flex-1 ml-2.5 font-medium"
-            style={{ color: tokens.color.text.normal, fontSize: 16, paddingVertical: 2 }}
+            prefix={<MagnifyingGlass size={20} color={tokens.color.text.muted} />}
+            suffix={
+              query.length > 0 ? (
+                <Pressable onPress={() => setQuery("")} className="p-1 active:opacity-60">
+                  <X size={18} color={tokens.color.text.muted} />
+                </Pressable>
+              ) : null
+            }
             autoFocus={!q}
           />
-          {query.length > 0 ? (
-            <Pressable onPress={() => setQuery("")} className="p-1 active:opacity-60">
-              <X size={18} color={tokens.color.text.muted} />
-            </Pressable>
-          ) : null}
         </View>
       </View>
 
@@ -158,16 +155,14 @@ export default function SearchScreen(): React.ReactElement {
       <FlatList
         data={displayedItems}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: insets.bottom + 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 16 }}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <Pressable
             onPress={() => handleOpenNote(item.path)}
             className="p-4 rounded-2xl mb-3 flex-row items-center justify-between active:opacity-75"
             style={{
-              backgroundColor: tokens.color.bg.primary,
-              borderWidth: 1,
-              borderColor: tokens.color.border.subtle,
+              backgroundColor: tokens.color.bg.secondary,
             }}
           >
             <View className="flex-1 mr-3">
@@ -190,6 +185,25 @@ export default function SearchScreen(): React.ReactElement {
             </Text>
           </View>
         }
+      />
+
+      {/* Editor Navigation Bar */}
+      <EditorBottomBar
+        onBack={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace("/editor");
+        }}
+        onForward={() => {}}
+        onSearch={() => {}}
+        onNewNote={() =>
+          router.push({
+            pathname: "/editor",
+            params: { preset: "new", autoFocus: "1" },
+          })
+        }
+        onTabs={() => router.push("/editor")}
+        onMenu={() => router.push("/settings")}
+        tabCount={1}
       />
     </View>
   );

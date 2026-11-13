@@ -5,9 +5,10 @@ import {
   type GestureResponderEvent,
   type ViewStyle,
 } from "react-native";
-import { mobileTokens } from "@app/design-tokens/mobile";
 import { useTheme } from "../../theme";
 import { Text } from "./Text";
+
+const MIN_TOUCH_TARGET = 44;
 
 export interface ButtonProps {
   variant?: "primary" | "secondary" | "ghost" | "danger";
@@ -64,15 +65,15 @@ export const Button = React.forwardRef<
     const isSmOrIcon = size === "sm" || size === "icon";
     const hitSlopValue = isSmOrIcon
       ? {
-          top: Math.max(0, (mobileTokens.minTouchTarget - 36) / 2),
-          bottom: Math.max(0, (mobileTokens.minTouchTarget - 36) / 2),
-          left: Math.max(0, (mobileTokens.minTouchTarget - 36) / 2),
-          right: Math.max(0, (mobileTokens.minTouchTarget - 36) / 2),
+          top: Math.max(0, (MIN_TOUCH_TARGET - 36) / 2),
+          bottom: Math.max(0, (MIN_TOUCH_TARGET - 36) / 2),
+          left: Math.max(0, (MIN_TOUCH_TARGET - 36) / 2),
+          right: Math.max(0, (MIN_TOUCH_TARGET - 36) / 2),
         }
       : undefined;
 
     const containerClasses = [
-      "flex-row items-center justify-center rounded-md border min-h-[44px]",
+      "flex-row items-center justify-center rounded-md min-h-[44px]",
       VARIANT_CONTAINER[variant] || VARIANT_CONTAINER.primary,
       SIZE_CONTAINER[size] || SIZE_CONTAINER.md,
       disabled ? "opacity-50 pointer-events-none" : "",
@@ -83,25 +84,16 @@ export const Button = React.forwardRef<
 
     const dynamicStyles: ViewStyle = {
       minHeight: 44,
-      ...(variant === "primary"
-        ? {
-            backgroundColor: tokens.color.interactive.accent,
-            borderColor: "transparent",
-          }
-        : variant === "secondary"
-          ? {
-              backgroundColor: "transparent",
-              borderColor: tokens.color.border.normal,
-            }
-          : variant === "danger"
-            ? {
-                backgroundColor: "transparent",
-                borderColor: tokens.color.border["status-error"],
-              }
-            : {
-                backgroundColor: "transparent",
-                borderColor: "transparent",
-              }),
+      backgroundColor:
+        variant === "primary"
+          ? tokens.color.interactive.accent
+          : variant === "secondary"
+            ? tokens.color.bg.secondary
+            : variant === "danger"
+              ? tokens.color.bg["status-error"]
+              : "transparent",
+      borderColor: "transparent",
+      borderWidth: 0,
     };
 
     const textColor = VARIANT_TEXT_COLOR[variant] || "normal";

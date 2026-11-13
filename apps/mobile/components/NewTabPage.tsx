@@ -42,18 +42,9 @@ export function NewTabPage({
           onPress={onOpenSidebar}
           accessibilityRole="button"
           accessibilityLabel="Open sidebar navigation"
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: tokens.color.border.subtle,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: tokens.color.bg.primary,
-          }}
+          className="w-9 h-9 rounded-lg items-center justify-center active:bg-bg-hover"
         >
-          <SidebarSimple size={20} color="#000000" weight="regular" />
+          <SidebarSimple size={20} color={tokens.color.text.normal} weight="regular" />
         </Pressable>
 
         <Text variant="text" weight="semibold" color="normal" style={{ fontSize: 16 }}>
@@ -68,7 +59,7 @@ export function NewTabPage({
               accessibilityLabel="Search"
               className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
             >
-              <MagnifyingGlass size={20} color="#000000" weight="regular" />
+              <MagnifyingGlass size={20} color={tokens.color.text.normal} weight="regular" />
             </Pressable>
           ) : null}
 
@@ -79,7 +70,7 @@ export function NewTabPage({
               accessibilityLabel="Todos page"
               className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
             >
-              <CheckSquare size={20} color="#000000" weight="regular" />
+              <CheckSquare size={20} color={tokens.color.text.normal} weight="regular" />
             </Pressable>
           ) : null}
 
@@ -89,7 +80,7 @@ export function NewTabPage({
             accessibilityLabel="More options"
             className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <DotsThreeVertical size={22} color="#000000" weight="bold" />
+            <DotsThreeVertical size={22} color={tokens.color.text.normal} weight="bold" />
           </Pressable>
         </View>
       </View>
@@ -107,18 +98,11 @@ export function NewTabPage({
             paddingVertical: 12,
             paddingHorizontal: 24,
             borderRadius: 9999,
-            borderWidth: 1,
-            borderColor: tokens.color.border.subtle,
-            backgroundColor: tokens.color.bg.primary,
+            backgroundColor: tokens.color.bg.secondary,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
             gap: 12,
-            shadowColor: tokens.color.shadow,
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 2,
-            elevation: 1,
           }}
         >
           <NotePencil size={20} color={tokens.color.text.normal} weight="regular" />
@@ -138,18 +122,11 @@ export function NewTabPage({
             paddingVertical: 12,
             paddingHorizontal: 24,
             borderRadius: 9999,
-            borderWidth: 1,
-            borderColor: tokens.color.border.subtle,
-            backgroundColor: tokens.color.bg.primary,
+            backgroundColor: tokens.color.bg.secondary,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
             gap: 12,
-            shadowColor: tokens.color.shadow,
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 2,
-            elevation: 1,
           }}
         >
           <CheckSquare size={20} color={tokens.color.text.normal} weight="regular" />

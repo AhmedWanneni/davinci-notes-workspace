@@ -11,6 +11,8 @@ export type { TodoListViewProps } from "./TodoListView";
 export { DateTimePickerModal } from "./DateTimePickerModal";
 export type { DateTimePickerModalProps } from "./DateTimePickerModal";
 export { TodosSidebar } from "./TodosSidebar";
+export { TodosHeaderTabs } from "./TodosHeaderTabs";
+export type { TodosHeaderTabsProps } from "./TodosHeaderTabs";
 export { TodoTaskRow } from "./TodoTaskRow";
 export {
   parseTodosFromMarkdown,

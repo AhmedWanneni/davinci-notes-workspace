@@ -20,6 +20,7 @@ import {
   Text,
 } from "../components/primitives";
 import { ScreenLayout } from "../components/layout";
+import { EditorBottomBar } from "../components/EditorBottomBar";
 
 export default function ComponentGalleryScreen(): React.ReactElement | null {
   // Tree-shaking guard for production builds
@@ -60,14 +61,10 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         >
           1. TEXT & TYPOGRAPHY
         </Text>
-        <View className="p-3 bg-bg-secondary rounded-md border border-border-normal mb-6">
+        <View className="p-3 bg-bg-secondary rounded-md mb-6">
           <Text variant="h1">Heading 1 (24pt Bold)</Text>
-          <Text variant="h2" className="mt-1">
-            Heading 2 (20pt Semibold)
-          </Text>
-          <Text variant="h3" className="mt-1">
-            Heading 3 (18pt Semibold)
-          </Text>
+          <Text variant="h2" className="mt-1">Heading 2 (20pt Semibold)</Text>
+          <Text variant="h3" className="mt-1">Heading 3 (18pt Semibold)</Text>
           <Text variant="body" color="normal" className="mt-2">
             Body normal text in Swiss/editorial typographic hierarchy.
           </Text>
@@ -80,34 +77,20 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         </View>
 
         {/* 2. Buttons */}
-        <Text
-          variant="caption"
-          weight="semibold"
-          color="accent"
-          className="mb-2"
-        >
+        <Text variant="caption" weight="semibold" color="accent" className="mb-2">
           2. BUTTONS (MIN 44PT TOUCH TARGET)
         </Text>
         <View className="gap-2 mb-6">
-          <Button
-            variant="primary"
-            icon={<Sparkle size={18} color={tokens.color.text["on-accent"]} />}
-          >
+          <Button variant="primary" icon={<Sparkle size={18} color={tokens.color.text["on-accent"]} />}>
             Primary Action
           </Button>
           <Button variant="secondary">Secondary Action</Button>
           <Button variant="ghost">Ghost Action</Button>
           <Button variant="danger">Danger Destructive</Button>
           <View className="flex-row gap-2 items-center mt-2">
-            <Button size="sm" variant="secondary">
-              Small
-            </Button>
-            <Button size="md" variant="secondary">
-              Medium
-            </Button>
-            <Button size="lg" variant="primary">
-              Large
-            </Button>
+            <Button size="sm" variant="secondary">Small</Button>
+            <Button size="md" variant="secondary">Medium</Button>
+            <Button size="lg" variant="primary">Large</Button>
           </View>
         </View>
 
@@ -205,7 +188,7 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         >
           7. LIST ITEMS (BORDER DEPTH)
         </Text>
-        <View className="border border-border-normal rounded-md overflow-hidden mb-6">
+        <View className="rounded-md overflow-hidden mb-6">
           <ListItem
             title="Standard List Item"
             subtitle="Subtitle secondary description"
@@ -223,36 +206,41 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         </View>
 
         {/* 8. Bottom Sheet */}
-        <Text
-          variant="caption"
-          weight="semibold"
-          color="accent"
-          className="mb-2"
-        >
+        <Text variant="caption" weight="semibold" color="accent" className="mb-2">
           8. SHEET (MODAL BOTTOM SHEET)
         </Text>
-        <Button
-          variant="secondary"
-          onPress={() => setSheetOpen(true)}
-          className="mb-12"
-        >
+        <Button variant="secondary" onPress={() => setSheetOpen(true)} className="mb-8">
           Open Demo Bottom Sheet
         </Button>
 
-        <Sheet
-          visible={sheetOpen}
-          onClose={() => setSheetOpen(false)}
-          title="Demo Sheet"
-        >
+        <Sheet visible={sheetOpen} onClose={() => setSheetOpen(false)} title="Demo Sheet">
           <Text variant="body" color="normal" className="mb-4">
-            This is a native bottom sheet with dark-first styling, safe-area
-            bottom padding, and 16px top border radius.
+            This is a native bottom sheet with dark-first styling and safe-area padding.
           </Text>
           <Button variant="primary" onPress={() => setSheetOpen(false)}>
             Close Sheet
           </Button>
         </Sheet>
       </ScrollView>
+
+      {/* Editor Navigation Bar */}
+      <EditorBottomBar
+        onBack={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace("/editor");
+        }}
+        onForward={() => {}}
+        onSearch={() => router.push("/search")}
+        onNewNote={() =>
+          router.push({
+            pathname: "/editor",
+            params: { preset: "new", autoFocus: "1" },
+          })
+        }
+        onTabs={() => router.push("/editor")}
+        onMenu={() => router.push("/settings")}
+        tabCount={1}
+      />
     </ScreenLayout>
   );
 }

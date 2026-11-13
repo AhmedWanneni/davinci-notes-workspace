@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { View, ScrollView } from "react-native";
 import { useTheme } from "../theme";
-import { Button, Text, Divider } from "../components/primitives";
+import { Button, Text } from "../components/primitives";
 import type { MobileSyncEngine } from "./mobileSyncEngine";
 import { useSyncStatus } from "./useSyncStatus";
-import { SyncStatusBadge } from "./SyncStatusBadge";
 import {
   MobileSyncthingPanel,
   mobileSyncthingDetect,
@@ -24,8 +23,6 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
   const { tokens } = useTheme();
   const {
     status,
-    progress,
-    lastSyncedAt,
     conflicts,
     errorMessage,
     isAuthenticated,
@@ -86,62 +83,33 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
       showsVerticalScrollIndicator={false}
       style={{ backgroundColor: tokens.color.bg.primary }}
     >
-      <View className="mb-4">
-        <Text variant="h2" weight="semibold" className="mb-1">
-          Sync Settings
-        </Text>
-        <Text variant="caption" color="muted">
-          Local-first manifest sync via Google Drive. No custom server backend.
-        </Text>
-      </View>
-
-      {/* Sync Status Section */}
-      <View className="mb-6 pb-4 border-b" style={{ borderBottomColor: tokens.color.border.subtle }}>
-        <View className="flex-row items-center justify-between mb-3">
-          <Text variant="body" weight="medium">
-            Status
-          </Text>
-          <SyncStatusBadge
-            status={status}
-            progress={progress}
-            lastSyncedAt={lastSyncedAt}
-            onPress={handleSyncPress}
-            tokens={tokens}
-          />
-        </View>
-
-        {errorMessage ? (
-          <View
-            className="p-2.5 rounded mb-3"
-            style={{
-              backgroundColor: tokens.color.bg["status-error"],
-            }}
-          >
-            <Text variant="caption" style={{ color: tokens.color.text.error }}>
-              {errorMessage}
-            </Text>
-          </View>
-        ) : null}
-
-        {feedbackMessage ? (
-          <View className="p-2.5 rounded mb-3" style={{ backgroundColor: tokens.color.bg["status-warning"] }}>
-            <Text variant="caption" style={{ color: tokens.color.text.warning }}>
-              {feedbackMessage}
-            </Text>
-          </View>
-        ) : null}
-
-        <Button
-          variant="primary"
-          onPress={handleSyncPress}
-          disabled={isBusy || status === "syncing"}
+      {/* Error or Feedback Banners */}
+      {errorMessage ? (
+        <View
+          className="p-2.5 rounded mb-3"
+          style={{
+            backgroundColor: tokens.color.bg["status-error"],
+          }}
         >
-          {status === "syncing" || isBusy ? "Syncing..." : "Sync Now"}
-        </Button>
-      </View>
+          <Text variant="caption" style={{ color: tokens.color.text.error }}>
+            {errorMessage}
+          </Text>
+        </View>
+      ) : null}
 
-      {/* Google Drive Connection */}
-      <View className="mb-6 pb-4 border-b" style={{ borderBottomColor: tokens.color.border.subtle }}>
+      {feedbackMessage ? (
+        <View
+          className="p-2.5 rounded mb-3"
+          style={{ backgroundColor: tokens.color.bg["status-warning"] }}
+        >
+          <Text variant="caption" style={{ color: tokens.color.text.warning }}>
+            {feedbackMessage}
+          </Text>
+        </View>
+      ) : null}
+
+      {/* Google Drive Account & Sync Action */}
+      <View className="mb-6 pb-2">
         <Text variant="body" weight="medium" className="mb-1">
           Google Drive Account
         </Text>
@@ -150,13 +118,33 @@ export const SyncSettingsPanel: React.FC<SyncSettingsPanelProps> = ({
           encrypted manifests and file blocks.
         </Text>
 
-        <Button
-          variant={isAuthenticated ? "secondary" : "primary"}
-          onPress={handleAuthPress}
-          disabled={isBusy}
-        >
-          {isAuthenticated ? "Disconnect Drive" : "Connect with Google Drive"}
-        </Button>
+        {isAuthenticated ? (
+          <View style={{ gap: 8 }}>
+            <Button
+              variant="primary"
+              onPress={handleSyncPress}
+              disabled={isBusy || status === "syncing"}
+            >
+              {status === "syncing" || isBusy ? "Syncing..." : "Sync Now"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onPress={handleAuthPress}
+              disabled={isBusy}
+            >
+              Disconnect Drive
+            </Button>
+          </View>
+        ) : (
+          <Button
+            variant="primary"
+            onPress={handleAuthPress}
+            disabled={isBusy}
+          >
+            Connect with Google Drive
+          </Button>
+        )}
       </View>
 
       {/* Local Peer-to-Peer Syncthing */}

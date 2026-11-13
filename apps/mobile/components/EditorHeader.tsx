@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Pressable, Text } from "react-native";
+import { View, Pressable } from "react-native";
 import {
   SidebarSimple,
   DotsThreeVertical,
@@ -24,12 +24,12 @@ export interface EditorHeaderProps {
 }
 
 export function EditorHeader({
-  mode = "note",
+  mode: _mode = "note",
   onBack,
-  onToggleMode,
+  onToggleMode: _onToggleMode,
   onOpenDrawer,
   onOpenActions,
-  onOpenSearch,
+  onOpenSearch: _onOpenSearch,
   onOpenTodos,
 }: EditorHeaderProps): React.ReactElement {
   const { tokens } = useTheme();
@@ -46,20 +46,11 @@ export function EditorHeader({
         onPress={onOpenDrawer ?? onBack}
         accessibilityRole="button"
         accessibilityLabel="Open sidebar navigation"
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 8,
-          borderWidth: 1,
-          borderColor: tokens.color.border.subtle,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: tokens.color.bg.primary,
-        }}
+        className="w-9 h-9 rounded-lg items-center justify-center active:bg-bg-hover"
       >
         <SidebarSimple
           size={20}
-          color="#000000"
+          color={tokens.color.text.normal}
           weight="regular"
         />
       </Pressable>
@@ -76,7 +67,7 @@ export function EditorHeader({
             accessibilityLabel="Todos page"
             className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <CheckSquare size={20} color="#000000" weight="regular" />
+            <CheckSquare size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
         ) : null}
 
@@ -85,7 +76,7 @@ export function EditorHeader({
             icon={
               <DotsThreeVertical
                 size={22}
-                color="#000000"
+                color={tokens.color.text.normal}
                 weight="bold"
               />
             }

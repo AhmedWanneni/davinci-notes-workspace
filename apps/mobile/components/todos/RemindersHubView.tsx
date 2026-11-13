@@ -87,14 +87,11 @@ export function RemindersHubView({
               <Pressable
                 key={p}
                 onPress={() => setSelectedProject(p)}
-                className="mx-1 px-3 py-1 rounded-full border active:opacity-75"
+                className="mx-1 px-3 py-1 rounded-full active:opacity-75"
                 style={{
                   backgroundColor: isSel
                     ? tokens.color.interactive.accent
-                    : tokens.color.bg.primary,
-                  borderColor: isSel
-                    ? tokens.color.interactive.accent
-                    : tokens.color.border.subtle,
+                    : tokens.color.bg.secondary,
                 }}
               >
                 <Text

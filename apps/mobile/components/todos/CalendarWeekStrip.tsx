@@ -63,8 +63,6 @@ export function CalendarWeekStrip({
                 backgroundColor: isSel
                   ? tokens.color.interactive.accent
                   : tokens.color.bg.primary,
-                borderWidth: isSel ? 0 : 1,
-                borderColor: tokens.color.border.subtle,
               }}
             >
               <Text

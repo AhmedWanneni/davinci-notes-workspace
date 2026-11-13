@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from "react";
-import { View, Pressable } from "react-native";
+import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { List } from "phosphor-react-native";
 import { useTheme } from "../theme";
-import { Text } from "../components/primitives";
+import { EditorBottomBar } from "../components/EditorBottomBar";
 import {
   TodoListView,
   TodosSidebar,
+  TodosHeaderTabs,
   AddTodoItemModal,
   AddProjectModal,
   AddTodoListModal,
@@ -119,87 +119,53 @@ export default function TodosScreen(): React.ReactElement {
       }}
     >
       {/* Top Header: Sidebar icon & Tabs Switcher */}
-      <View
-        className="flex-row items-center px-4 pt-3 pb-2.5"
-        style={{ gap: 12 }}
-      >
-        <Pressable
-          onPress={() => setSidebarVisible(true)}
-          accessibilityRole="button"
-          accessibilityLabel="Open sidebar"
-          className="p-1 -ml-1 active:opacity-60"
-        >
-          <List size={26} color={tokens.color.text.normal} weight="regular" />
-        </Pressable>
-        <View
-          className="flex-1 flex-row p-1 rounded-xl"
-          style={{ backgroundColor: tokens.color.bg.secondary }}
-        >
-          <Pressable
-            onPress={() => setActiveTab("reminders")}
-            className="flex-1 py-1.5 rounded-lg items-center justify-center"
-            style={{
-              backgroundColor: isRem
-                ? tokens.color.interactive.accent
-                : "transparent",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: "700",
-                color: isRem
-                  ? tokens.color.text["on-accent"]
-                  : tokens.color.text.muted,
-              }}
-            >
-              Reminders & Events
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setActiveTab("todos")}
-            className="flex-1 py-1.5 rounded-lg items-center justify-center"
-            style={{
-              backgroundColor: !isRem
-                ? tokens.color.interactive.accent
-                : "transparent",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: "700",
-                color: !isRem
-                  ? tokens.color.text["on-accent"]
-                  : tokens.color.text.muted,
-              }}
-            >
-              Todos & Projects
-            </Text>
-          </Pressable>
-        </View>
+      <TodosHeaderTabs
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenSidebar={() => setSidebarVisible(true)}
+      />
+
+      <View className="flex-1">
+        {isRem ? (
+          <RemindersHubView onOpenNote={handleOpenNote} />
+        ) : (
+          <TodoListView
+            listName={listName}
+            projectName={projectName}
+            formattedDate={formattedDate}
+            displayedTodos={displayedTodos}
+            isLoading={isLoading}
+            refresh={refresh}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
+            onOpenNote={handleOpenNote}
+            selectedDate={selectedDate}
+            onSelectDate={(iso) =>
+              setSelectedDate((prev) => (prev === iso ? null : iso))
+            }
+            onOpenAddItem={() => setAddItemVisible(true)}
+          />
+        )}
       </View>
 
-      {isRem ? (
-        <RemindersHubView onOpenNote={handleOpenNote} />
-      ) : (
-        <TodoListView
-          listName={listName}
-          projectName={projectName}
-          formattedDate={formattedDate}
-          displayedTodos={displayedTodos}
-          isLoading={isLoading}
-          refresh={refresh}
-          onToggle={handleToggle}
-          onDelete={handleDelete}
-          onOpenNote={handleOpenNote}
-          selectedDate={selectedDate}
-          onSelectDate={(iso) =>
-            setSelectedDate((prev) => (prev === iso ? null : iso))
-          }
-          onOpenAddItem={() => setAddItemVisible(true)}
-        />
-      )}
+      {/* Editor Navigation Bar */}
+      <EditorBottomBar
+        onBack={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace("/editor");
+        }}
+        onForward={() => {}}
+        onSearch={() => router.push("/search")}
+        onNewNote={() =>
+          router.push({
+            pathname: "/editor",
+            params: { preset: "new", autoFocus: "1" },
+          })
+        }
+        onTabs={() => router.push("/editor")}
+        onMenu={() => router.push("/settings")}
+        tabCount={1}
+      />
 
       {/* Todos Sidebar with Bottom Search */}
       <TodosSidebar

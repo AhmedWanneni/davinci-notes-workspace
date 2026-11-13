@@ -28,6 +28,39 @@ Updated at the end of every session. Read this first, before touching code. Full
    - Vitest suites: 14 tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
 
+## Last Session — Unified Editor Navigation Bar Across All Screens, Borderless Minimalist Redesign & Dynamic Google Drive Sync
+
+1. **Editor Navigation Bar on All Screens (`todos.tsx`, `settings.tsx`, `search.tsx`, `gallery.tsx`, `EditorBottomBar.tsx`)**:
+   - Integrated `<EditorBottomBar />` seamlessly onto all screens: Todos & Reminders, Settings, Search, and Component Gallery.
+   - Unified actions (Back, Forward, Search, New Note, Tabs, Menu/Settings) with consistent behavior across the entire mobile experience.
+   - Extracted `TodosHeaderTabs.tsx` to keep `todos.tsx` clean and under the line limit (212 lines).
+
+2. **Borderless Minimalist Design Across All Components & Screens**:
+   - Removed `border-t` from `EditorBottomBar.tsx` and removed the border on the Tab Switcher icon badge.
+   - Removed borders from buttons, icons, inputs, and pressables:
+     - `Button.tsx`: Removed `border` and container borders, replacing with clean token backgrounds (`bg.secondary`, `interactive.accent`, etc.).
+     - `IconButton.tsx`: Removed `borderWidth: 1` on secondary and danger buttons.
+     - `Input.tsx`: Removed borders, styled with borderless `bg.secondary`.
+     - `EditorHeader.tsx`: Removed border from the sidebar button.
+     - `ScreenLayout.tsx`: Removed `border-b` from the screen header.
+     - `CalendarWeekStrip.tsx`: Removed `borderWidth: 1` from unselected circular day badges.
+     - `RemindersHubView.tsx`: Removed borders on category filter chips.
+     - `SearchScreen.tsx`: Removed borders on search result cards.
+     - `NewTabPage.tsx`: Removed borders on action and sidebar buttons.
+
+3. **Dynamic Google Drive Sync & Streamlined Settings (`SyncSettingsPanel.tsx`, `SyncSettingsPanel.test.tsx`)**:
+   - Removed the "Sync Settings" title, subtitle, and "Status" section.
+   - If Google Drive is not connected: Displays only "Connect with Google Drive" button.
+   - If Google Drive is connected: Displays only "Sync Now" button (with "Disconnect Drive" text action). The two buttons are never shown together.
+   - Removed heavy `border-b` container dividers in the sync settings panel.
+
+4. **Standards & Verification**:
+   - All touched files strictly under line caps (`todos.tsx`: 212 lines, `gallery.tsx`: 246 lines, `search.tsx`: 210 lines, `settings.tsx`: 154 lines, `SyncSettingsPanel.tsx`: 203 lines).
+   - ESLint: zero errors, zero warnings.
+   - TypeScript: `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - Vitest: All 14 tests in the test suite passed cleanly.
+   - Knowledge graph updated with `graphify update .`.
+
 ## Last Session — Direct Markdown Navigation on Todo/Reminder Click & Obsolete TodoView Removal
 
 1. **Direct Markdown Note Navigation (`TodoTaskRow.tsx`, `ReminderEventRow.tsx`, `RemindersHubView.tsx`)**:
@@ -90,6 +123,39 @@ Updated at the end of every session. Read this first, before touching code. Full
 1. Test Note mode and Text mode on physical iOS / Android devices.
    - 14 unit tests in `notePropertiesAndMode.test.tsx` and 24 related test suite tests passed.
    - Knowledge graph updated cleanly with `graphify update .`.
+
+## Last Session — Unified Editor Navigation Bar Across All Screens, Borderless Minimalist Redesign & Dynamic Google Drive Sync
+
+1. **Editor Navigation Bar on All Screens (`todos.tsx`, `settings.tsx`, `search.tsx`, `gallery.tsx`, `EditorBottomBar.tsx`)**:
+   - Integrated `<EditorBottomBar />` seamlessly onto all screens: Todos & Reminders, Settings, Search, and Component Gallery.
+   - Unified actions (Back, Forward, Search, New Note, Tabs, Menu/Settings) with consistent behavior across the entire mobile experience.
+   - Extracted `TodosHeaderTabs.tsx` to keep `todos.tsx` clean and under the line limit (212 lines).
+
+2. **Borderless Minimalist Design Across All Components & Screens**:
+   - Removed `border-t` from `EditorBottomBar.tsx` and removed the border on the Tab Switcher icon badge.
+   - Removed borders from buttons, icons, inputs, and pressables:
+     - `Button.tsx`: Removed `border` and container borders, replacing with clean token backgrounds (`bg.secondary`, `interactive.accent`, etc.).
+     - `IconButton.tsx`: Removed `borderWidth: 1` on secondary and danger buttons.
+     - `Input.tsx`: Removed borders, styled with borderless `bg.secondary`.
+     - `EditorHeader.tsx`: Removed border from the sidebar button.
+     - `ScreenLayout.tsx`: Removed `border-b` from the screen header.
+     - `CalendarWeekStrip.tsx`: Removed `borderWidth: 1` from unselected circular day badges.
+     - `RemindersHubView.tsx`: Removed borders on category filter chips.
+     - `SearchScreen.tsx`: Removed borders on search result cards.
+     - `NewTabPage.tsx`: Removed borders on action and sidebar buttons.
+
+3. **Dynamic Google Drive Sync & Streamlined Settings (`SyncSettingsPanel.tsx`, `SyncSettingsPanel.test.tsx`)**:
+   - Removed the "Sync Settings" title, subtitle, and "Status" section.
+   - If Google Drive is not connected: Displays only "Connect with Google Drive" button.
+   - If Google Drive is connected: Displays only "Sync Now" button (with "Disconnect Drive" text action). The two buttons are never shown together.
+   - Removed heavy `border-b` container dividers in the sync settings panel.
+
+4. **Standards & Verification**:
+   - All touched files strictly under line caps (`todos.tsx`: 212 lines, `gallery.tsx`: 246 lines, `search.tsx`: 210 lines, `settings.tsx`: 154 lines, `SyncSettingsPanel.tsx`: 203 lines).
+   - ESLint: zero errors, zero warnings.
+   - TypeScript: `pnpm --filter @app/mobile typecheck` passed with 0 errors.
+   - Vitest: All 14 tests in the test suite passed cleanly.
+   - Knowledge graph updated with `graphify update .`.
 
 ## Last Session — Direct Markdown Navigation on Todo/Reminder Click & Obsolete TodoView Removal
 

@@ -36,12 +36,11 @@ export function EditorBottomBar({
 
   return (
     <View
-      className="flex-row items-center justify-around px-4 border-t"
+      className="flex-row items-center justify-around px-4"
       style={{
         height: 50 + bottomPadding,
         paddingBottom: bottomPadding,
         backgroundColor: tokens.color.bg.primary,
-        borderTopColor: tokens.color.border.subtle,
       }}
     >
       {/* 1. Back button */}
@@ -51,7 +50,7 @@ export function EditorBottomBar({
         accessibilityLabel="Navigate back"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <CaretLeft size={22} color="#000000" weight="regular" />
+        <CaretLeft size={22} color={tokens.color.text.normal} weight="regular" />
       </Pressable>
 
       {/* 2. Forward button */}
@@ -61,7 +60,7 @@ export function EditorBottomBar({
         accessibilityLabel="Navigate forward"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <CaretRight size={22} color="#000000" weight="regular" />
+        <CaretRight size={22} color={tokens.color.text.normal} weight="regular" />
       </Pressable>
 
       {/* 3. Search button */}
@@ -73,7 +72,7 @@ export function EditorBottomBar({
       >
         <MagnifyingGlass
           size={22}
-          color="#000000"
+          color={tokens.color.text.normal}
           weight="regular"
         />
       </Pressable>
@@ -85,7 +84,7 @@ export function EditorBottomBar({
         accessibilityLabel="Create new note"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <Plus size={22} color="#000000" weight="regular" />
+        <Plus size={22} color={tokens.color.text.normal} weight="regular" />
       </Pressable>
 
       {/* 5. Tab switcher [ 1 ] */}
@@ -99,9 +98,8 @@ export function EditorBottomBar({
           style={{
             width: 22,
             height: 22,
-            borderRadius: 5,
-            borderWidth: 1.5,
-            borderColor: "#000000",
+            borderRadius: 6,
+            backgroundColor: tokens.color.bg.secondary,
             alignItems: "center",
             justifyContent: "center",
           }}
@@ -110,7 +108,7 @@ export function EditorBottomBar({
             style={{
               fontSize: 11,
               fontWeight: "600",
-              color: "#000000",
+              color: tokens.color.text.normal,
               lineHeight: 13,
             }}
           >
@@ -126,7 +124,7 @@ export function EditorBottomBar({
         accessibilityLabel="Open settings"
         className="w-10 h-10 items-center justify-center active:opacity-60"
       >
-        <List size={22} color="#000000" weight="regular" />
+        <List size={22} color={tokens.color.text.normal} weight="regular" />
       </Pressable>
     </View>
   );
