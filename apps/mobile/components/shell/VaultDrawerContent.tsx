@@ -1,52 +1,62 @@
 import React, { useState } from "react";
-import { View, ScrollView, Pressable } from "react-native";
+import { View, Pressable } from "react-native";
 import {
+  SidebarSimple,
   Calendar,
   Tag,
   GitFork,
-  Gear,
   FolderPlus,
-  FileText,
+  FilePlus,
+  SquaresFour,
+  List as ListIcon,
 } from "phosphor-react-native";
 import { useTheme } from "../../theme";
-import { Text } from "../primitives";
-import { DrawerFolderItem } from "./DrawerFolderItem";
+import { DrawerFolderList } from "./DrawerFolderList";
+import { FolderEmojiPickerModal } from "./FolderEmojiPickerModal";
+import { FolderGridView } from "../cards/FolderGridView";
+import { useTreeIcons } from "../../vault/useTreeIcons";
 
 export interface VaultDrawerContentProps {
-  vaultName: string;
-  notesCount: number;
-  foldersCount: number;
+  vaultName?: string;
+  notesCount?: number;
+  foldersCount?: number;
   folders: string[];
   notes: string[];
-  onOpenVaultSwitcher: () => void;
+  onClose?: () => void;
+  onOpenVaultSwitcher?: () => void;
   onSelectNote: (path: string) => void;
   onSelectFolder?: (folder: string) => void;
   onOpenDailyNote: () => void;
+  onOpenCalendar?: () => void;
   onOpenTags: () => void;
   onOpenGraph: () => void;
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
   onCreateFolder: () => void;
+  onCreateNote?: () => void;
+  onDeleteFolder?: (folder: string) => void;
+  onDeleteNote?: (path: string) => void;
 }
 
 export function VaultDrawerContent({
-  vaultName,
-  notesCount,
-  foldersCount,
   folders,
   notes,
-  onOpenVaultSwitcher,
+  onClose,
   onSelectNote,
   onSelectFolder,
   onOpenDailyNote,
+  onOpenCalendar,
   onOpenTags,
   onOpenGraph,
-  onOpenSettings,
   onCreateFolder,
+  onCreateNote,
+  onDeleteFolder,
+  onDeleteNote,
 }: VaultDrawerContentProps): React.ReactElement {
   const { tokens } = useTheme();
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
-    new Set(),
-  );
+  const { icons, setIcon } = useTreeIcons();
+  const [viewMode, setViewMode] = useState<"tree" | "grid">("tree");
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [emojiPickerFolder, setEmojiPickerFolder] = useState<string | null>(null);
 
   const toggleFolder = (folder: string) => {
     setExpandedFolders((prev) => {
@@ -57,147 +67,145 @@ export function VaultDrawerContent({
     });
   };
 
-  const topLevelNotes = notes.filter((n) => !n.includes("/"));
-
   return (
-    <View className="flex-1 justify-between">
-      {/* Top Header */}
-      <Pressable
-        onPress={onOpenVaultSwitcher}
-        className="px-4 py-3 border-b flex-row items-center justify-between active:bg-bg-hover"
-        style={{ borderBottomColor: tokens.color.border.subtle }}
-        accessibilityRole="button"
-        accessibilityLabel="Switch vault"
+    <View style={{ flex: 1, backgroundColor: tokens.color.bg.primary, justifyContent: "space-between" }}>
+      {/* Top Header: Simple icons only, no tabs */}
+      <View
+        className="h-[48px] flex-row items-center justify-between px-4 mb-2"
+        style={{ backgroundColor: tokens.color.bg.primary }}
       >
-        <View>
-          <Text variant="h3" color="normal" weight="bold">
-            {vaultName} ▾
-          </Text>
-          <Text variant="caption" color="muted">
-            {foldersCount} {foldersCount === 1 ? "folder" : "folders"},{" "}
-            {notesCount} {notesCount === 1 ? "note" : "notes"}
-          </Text>
-        </View>
-      </Pressable>
-
-      {/* Main Navigation & Folders */}
-      <ScrollView
-        className="flex-1 px-3 py-2"
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Quick Links */}
-        <View
-          className="mb-3 pb-2 border-b"
-          style={{ borderBottomColor: tokens.color.border.subtle }}
-        >
+        <View className="flex-row items-center gap-0.5">
           <Pressable
-            onPress={onOpenDailyNote}
-            className="flex-row items-center gap-3 px-3 py-2.5 rounded-lg active:bg-bg-hover min-h-[44px]"
+            onPress={onOpenCalendar ?? onOpenDailyNote}
+            accessibilityRole="button"
+            accessibilityLabel="Calendar view"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <Calendar size={18} color={tokens.color.interactive.accent} />
-            <Text variant="body" color="normal">
-              Daily Note
-            </Text>
+            <Calendar size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
+
           <Pressable
             onPress={onOpenTags}
-            className="flex-row items-center gap-3 px-3 py-2.5 rounded-lg active:bg-bg-hover min-h-[44px]"
+            accessibilityRole="button"
+            accessibilityLabel="Tags"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <Tag size={18} color={tokens.color.interactive.accent} />
-            <Text variant="body" color="normal">
-              Tags
-            </Text>
+            <Tag size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
+
           <Pressable
             onPress={onOpenGraph}
-            className="flex-row items-center gap-3 px-3 py-2.5 rounded-lg active:bg-bg-hover min-h-[44px]"
+            accessibilityRole="button"
+            accessibilityLabel="Local graph"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <GitFork size={18} color={tokens.color.interactive.accent} />
-            <Text variant="body" color="normal">
-              Local Graph
-            </Text>
+            <GitFork size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
-        </View>
 
-        {/* Folders & Notes Header */}
-        <View className="flex-row items-center justify-between px-3 py-1 mb-1">
-          <Text variant="caption" color="muted" weight="semibold">
-            FILES & FOLDERS
-          </Text>
           <Pressable
             onPress={onCreateFolder}
-            className="p-1.5 rounded active:bg-bg-hover"
-            accessibilityLabel="New folder"
+            accessibilityRole="button"
+            accessibilityLabel="Add folder"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
           >
-            <FolderPlus size={16} color={tokens.color.text.muted} />
+            <FolderPlus size={20} color={tokens.color.text.normal} weight="regular" />
+          </Pressable>
+
+          <Pressable
+            onPress={onCreateNote}
+            accessibilityRole="button"
+            accessibilityLabel="Add file to vault"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
+          >
+            <FilePlus size={20} color={tokens.color.text.normal} weight="regular" />
           </Pressable>
         </View>
 
-        {/* Folders List with Expansion */}
-        {folders.map((folder) => {
-          const depth = folder.split("/").length - 1;
-          const displayName = folder.split("/").pop() ?? folder;
-          const folderNotes = notes.filter((n) => {
-            if (!n.startsWith(`${folder}/`)) return false;
-            const remaining = n.slice(folder.length + 1);
-            return !remaining.includes("/");
-          });
-
-          return (
-            <DrawerFolderItem
-              key={folder}
-              folder={folder}
-              displayName={displayName}
-              depth={depth}
-              isExpanded={expandedFolders.has(folder)}
-              notes={folderNotes}
-              onToggleExpand={() => toggleFolder(folder)}
-              onSelectFolder={onSelectFolder}
-              onSelectNote={onSelectNote}
+        {/* Right: Grid & List/Tree simple icon toggles + Close */}
+        <View className="flex-row items-center gap-0.5">
+          <Pressable
+            onPress={() => setViewMode("tree")}
+            accessibilityRole="button"
+            accessibilityLabel="Tree view"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
+            style={{
+              backgroundColor: viewMode === "tree" ? tokens.color.bg.secondary : "transparent",
+            }}
+          >
+            <ListIcon
+              size={20}
+              color={viewMode === "tree" ? tokens.color.interactive.accent : tokens.color.text.muted}
+              weight={viewMode === "tree" ? "bold" : "regular"}
             />
-          );
-        })}
+          </Pressable>
 
-        {/* Top-Level Notes */}
-        {topLevelNotes.slice(0, 30).map((note) => {
-          const stem = note.replace(/\.md$/i, "");
-          return (
-            <Pressable
-              key={note}
-              onPress={() => onSelectNote(note)}
-              className="flex-row items-center gap-2 px-3 py-2 rounded-lg active:bg-bg-hover min-h-[40px]"
-            >
-              <FileText size={18} color={tokens.color.text.muted} />
-              <Text
-                variant="body"
-                color="normal"
-                numberOfLines={1}
-                className="flex-1"
-              >
-                {stem}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+          <Pressable
+            onPress={() => setViewMode("grid")}
+            accessibilityRole="button"
+            accessibilityLabel="Grid view"
+            className="w-9 h-9 items-center justify-center rounded-lg active:bg-bg-hover"
+            style={{
+              backgroundColor: viewMode === "grid" ? tokens.color.bg.secondary : "transparent",
+            }}
+          >
+            <SquaresFour
+              size={20}
+              color={viewMode === "grid" ? tokens.color.interactive.accent : tokens.color.text.muted}
+              weight={viewMode === "grid" ? "fill" : "regular"}
+            />
+          </Pressable>
 
-      {/* Footer */}
-      <View
-        className="px-4 py-3 border-t flex-row items-center justify-between"
-        style={{ borderTopColor: tokens.color.border.subtle }}
-      >
-        <Pressable
-          onPress={onOpenSettings}
-          className="flex-row items-center gap-2.5 py-1.5 active:bg-bg-hover rounded-lg min-h-[44px]"
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-        >
-          <Gear size={20} color={tokens.color.text.normal} />
-          <Text variant="body" color="normal">
-            Settings
-          </Text>
-        </Pressable>
+          <Pressable
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close sidebar navigation"
+            className="w-9 h-9 rounded-lg items-center justify-center active:bg-bg-hover"
+          >
+            <SidebarSimple size={20} color={tokens.color.text.normal} weight="regular" />
+          </Pressable>
+        </View>
       </View>
+
+      {/* Main Content: 2-Column Grid (files and folders only) or Tree List */}
+      {viewMode === "grid" ? (
+        <FolderGridView
+          folders={folders}
+          notes={notes}
+          icons={icons}
+          onOpenNote={(path) => {
+            onClose?.();
+            onSelectNote(path);
+          }}
+          onDeleteNote={onDeleteNote}
+          onDeleteFolder={onDeleteFolder}
+        />
+      ) : (
+        <DrawerFolderList
+          folders={folders}
+          notes={notes}
+          expandedFolders={expandedFolders}
+          icons={icons}
+          onToggleFolder={toggleFolder}
+          onSelectFolder={onSelectFolder}
+          onSelectNote={onSelectNote}
+          onDeleteFolder={onDeleteFolder}
+          onDeleteNote={onDeleteNote}
+          onPressIcon={(f) => setEmojiPickerFolder(f)}
+        />
+      )}
+
+      {/* Emoji Picker Modal */}
+      {emojiPickerFolder ? (
+        <FolderEmojiPickerModal
+          visible={Boolean(emojiPickerFolder)}
+          folderName={emojiPickerFolder}
+          currentEmoji={icons[emojiPickerFolder]}
+          onClose={() => setEmojiPickerFolder(null)}
+          onSelectEmoji={(emoji) => {
+            if (emojiPickerFolder) void setIcon(emojiPickerFolder, emoji);
+          }}
+        />
+      ) : null}
     </View>
   );
 }

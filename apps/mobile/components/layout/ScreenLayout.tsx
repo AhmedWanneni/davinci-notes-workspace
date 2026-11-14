@@ -55,10 +55,9 @@ export const ScreenLayout: React.FC<ScreenLayoutProps> = ({
 
       {hasHeader ? (
         <View
-          className="h-[44px] flex-row items-center justify-between px-3 border-b"
+          className="h-[44px] flex-row items-center justify-between px-3"
           style={{
             backgroundColor: tokens.color.bg.primary,
-            borderBottomColor: tokens.color.border.subtle,
           }}
         >
           <View className="min-w-[44px] items-start justify-center">

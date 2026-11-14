@@ -20,6 +20,17 @@ export function attachMobileViewportHandler(
   const { container, getView, paddingBottomPx = 16 } = options;
 
   const updateViewport = () => {
+    // Keep window scroll pinned to top so first line is never hidden behind header
+    if (window.scrollY !== 0 || window.scrollX !== 0) {
+      window.scrollTo(0, 0);
+    }
+    if (document.body && document.body.scrollTop !== 0) {
+      document.body.scrollTop = 0;
+    }
+    if (document.documentElement && document.documentElement.scrollTop !== 0) {
+      document.documentElement.scrollTop = 0;
+    }
+
     const vv = window.visualViewport;
     if (!vv) return;
 

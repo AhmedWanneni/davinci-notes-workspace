@@ -24,6 +24,7 @@ Rules:
     2. **ADR Links**: Clickable markdown links to all relevant Architecture Decision Records in `docs/adr/`.
     3. **Commits Breakdown**: Clear breakdown of the commits included in the PR.
     4. **Checklist**: Completed Before Merging Checklist from `AGENTS.md`.
+- **Uncommitted Changes Preflight Check**: When you find uncommitted files or unstaged changes (`git status` is not clean) before starting work, DO NOT start working immediately. First, ask the user to commit them and provide a suggested commit message. Only proceed after they are committed.
 
 ## Dialog & Modal Design Standard (Mandatory for all AI agents)
 
@@ -34,3 +35,27 @@ All modals, popups, and dialogs MUST follow the `SettingsDialog` and `EditorMenu
 - macOS window header with native traffic light controls (`close`, `minimize`, `maximize`), centered title (`font-size: 13px; font-weight: 600;`), and `60px` spacer.
 - Entrance animations: `overlay-show` and `content-show` (scale `0.96` to `1`).
 - See `.agents/rules/dialog-design.md` and `.claude/skills/create-dialog/SKILL.md` for templates and guidelines.
+
+## Expo Component First Rule (Mandatory for Mobile Development)
+
+Before building, designing, or implementing ANY component, UI control, or system functionality for mobile (`apps/mobile`):
+- **Always check Expo SDK first**: Consult the [Expo Documentation](https://docs.expo.dev/versions/latest/) and officially bundled native modules (`@react-native-community/*`, `expo-*`) before creating custom implementations from scratch or pulling in external packages.
+  - Date & Time Pickers: Always use `@react-native-community/datetimepicker` (https://docs.expo.dev/versions/latest/sdk/date-time-picker/).
+  - Image/Media Pickers: Always use `expo-image-picker`.
+  - Audio: Always use `expo-audio`.
+  - Notifications: Always use `expo-notifications`.
+  - Camera, Haptics, Secure Store, File System, WebBrowser: Always use official `expo-*` modules.
+- **Consult `bundledNativeModules.json`**: Always install the exact bundled version pinned for the project's Expo SDK.
+- See `.agents/rules/expo-components.md` and `.agents/skills/check-expo-component/SKILL.md`.
+
+## Preserved User Customizations (Do Not Revoke or Alter)
+
+All AI agents MUST preserve these user customizations and never revert, re-add removed elements, or alter them:
+- **Calendar & Meetings Header Removal (`CalendarLeaf.tsx`, `CalendarView.module.scss`)**: The top header with title and icon is removed so the view starts directly with the toolbar. Do NOT re-add the header.
+- **QuickCapture Footer (`QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`)**: The dialog footer contains only the right-aligned "Save note" button. Do NOT re-add removed hint/close/record buttons to the footer.
+- **Obsidian Theme Border Colors (`docs/references/cm-rules.css`)**: Outline and table border colors are explicitly `#ababab`.
+- **Isolated Reminders & Events Hub (`RemindersHubView.tsx`, `useVaultReminders.ts`, `todos.tsx`)**: Reminders is strictly isolated in its own view with project/event categories, 3-metric overview card, circular timer badge, and status pill badges matching the reference design. Do NOT re-merge into regular todos.
+- **Expo DateTimePicker Standard (`DateTimePickerModal.tsx`)**: All mobile date and time selection MUST use `@react-native-community/datetimepicker` (iOS wheel spinner, Android native dialogs).
+- **Editor Heading Stripping for Todos (`useEditorNoteLoader.ts`)**: In todo notes, top markdown headings (`# ...` / `## ...`) must always be stripped from the editor body.
+- **Tap-to-Rename Top Note Title (`EditorTitleHeader.tsx`, `editor.tsx`)**: Tapping the top note title allows inline renaming of the note file on disk.
+- **Folder Selection on Note Creation (`SelectFolderModal.tsx`, `editor.tsx`)**: Creating a new note must prompt the user to choose the destination folder.

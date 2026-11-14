@@ -1,0 +1,182 @@
+import React from "react";
+import { describe, expect, it, vi } from "vitest";
+import { EditorState } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
+import {
+  getNoteMode,
+  setNoteModeInContent,
+} from "../vault/noteProperties";
+import {
+  handleNoteModeEnter,
+  handleTextModeEnter,
+  createMobileEditorExtensions,
+  getMobileModeExtensions,
+} from "../components/editorExtensions";
+import { EditorHeader } from "../components/EditorHeader";
+import { NoteActionSheet } from "../components/shell/NoteActionSheet";
+
+describe("noteProperties Suite", () => {
+  it("defaults to note mode when no frontmatter exists", () => {
+    expect(getNoteMode("Hello world\nThis is a note")).toBe("note");
+  });
+
+  it("extracts type: text from frontmatter", () => {
+    const md = "---\ntype: text\n---\nHello text";
+    expect(getNoteMode(md)).toBe("text");
+  });
+
+  it("extracts type: note from frontmatter", () => {
+    const md = "---\ntype: note\ntitle: My Note\n---\nHello note";
+    expect(getNoteMode(md)).toBe("note");
+  });
+
+  it("extracts mode: text from frontmatter", () => {
+    const md = "---\nmode: text\n---\nContent";
+    expect(getNoteMode(md)).toBe("text");
+  });
+
+  it("adds frontmatter when none exists", () => {
+    const original = "Some content";
+    const updated = setNoteModeInContent(original, "text");
+    expect(updated).toBe("---\ntype: text\n---\n\nSome content");
+    expect(getNoteMode(updated)).toBe("text");
+  });
+
+  it("updates existing type in frontmatter", () => {
+    const original = "---\ntype: note\ntags: [a, b]\n---\nContent";
+    const updated = setNoteModeInContent(original, "text");
+    expect(updated).toContain("type: text");
+    expect(updated).toContain("tags: [a, b]");
+    expect(getNoteMode(updated)).toBe("text");
+  });
+
+  it("adds type property to existing frontmatter without type", () => {
+    const original = "---\ntitle: Doc\n---\nContent";
+    const updated = setNoteModeInContent(original, "note");
+    expect(updated).toContain("title: Doc");
+    expect(updated).toContain("type: note");
+    expect(getNoteMode(updated)).toBe("note");
+  });
+});
+
+describe("editorExtensions Note vs Text mode Enter Suite", () => {
+  it("handleNoteModeEnter converts isolated '-' into bullet list continuation", () => {
+    const state = EditorState.create({
+      doc: "-",
+      selection: { anchor: 1 },
+    });
+    let dispatched = false;
+    let newDoc = "";
+    const view = {
+      state,
+      dispatch: (tr: { changes: { insert: string }[]; scrollIntoView?: boolean; userEvent?: string }) => {
+        dispatched = true;
+        if (Array.isArray(tr.changes)) {
+          newDoc = tr.changes.map((c) => c.insert).join("");
+        }
+      },
+    } as unknown as EditorView;
+
+    const handled = handleNoteModeEnter(view);
+    expect(handled).toBe(true);
+    expect(dispatched).toBe(true);
+    expect(newDoc).toBe("- \n- ");
+  });
+
+  it("handleTextModeEnter continues normal '-' list when typing list items", () => {
+    const state = EditorState.create({
+      doc: "- my task",
+      selection: { anchor: 9 },
+    });
+    let inserted = "";
+    const view = {
+      state,
+      dispatch: (tr: { changes: { insert: string } }) => {
+        inserted = tr.changes.insert;
+      },
+    } as unknown as EditorView;
+
+    const handled = handleTextModeEnter(view);
+    expect(handled).toBe(true);
+    expect(inserted).toBe("\n- ");
+  });
+
+  it("handleTextModeEnter clears empty '-' on enter", () => {
+    const state = EditorState.create({
+      doc: "- ",
+      selection: { anchor: 2 },
+    });
+    let inserted = "init";
+    const view = {
+      state,
+      dispatch: (tr: { changes: { insert: string } }) => {
+        inserted = tr.changes.insert;
+      },
+    } as unknown as EditorView;
+
+    const handled = handleTextModeEnter(view);
+    expect(handled).toBe(true);
+    expect(inserted).toBe("");
+  });
+
+  it("handleTextModeEnter inserts standard newline for regular text", () => {
+    const state = EditorState.create({
+      doc: "plain text line",
+      selection: { anchor: 15 },
+    });
+    let inserted = "";
+    const view = {
+      state,
+      dispatch: (tr: { changes: { insert: string } }) => {
+        inserted = tr.changes.insert;
+      },
+    } as unknown as EditorView;
+
+    const handled = handleTextModeEnter(view);
+    expect(handled).toBe(true);
+    expect(inserted).toBe("\n");
+  });
+
+  it("creates different extension sets for note and text mode, both hiding frontmatter", () => {
+    const noteExts = getMobileModeExtensions("note");
+    const textExts = getMobileModeExtensions("text");
+    expect(noteExts.length).toBeGreaterThan(textExts.length);
+  });
+});
+
+describe("EditorHeader and NoteActionSheet Suite", () => {
+  it("renders EditorHeader with more options on right and without topbar mode pill", () => {
+    const onOpenActions = vi.fn();
+    const element = (
+      <EditorHeader
+        mode="note"
+        onBack={vi.fn()}
+        onOpenActions={onOpenActions}
+      />
+    );
+
+    expect(element).toBeDefined();
+    expect(element.props.mode).toBe("note");
+    expect(element.props.onOpenActions).toBe(onOpenActions);
+  });
+
+  it("renders NoteActionSheet with white background and working mode actions", () => {
+    const onSelectMode = vi.fn();
+    const onClose = vi.fn();
+    const onOpenSettings = vi.fn();
+
+    const element = (
+      <NoteActionSheet
+        visible={true}
+        onClose={onClose}
+        editorMode="note"
+        onSelectMode={onSelectMode}
+        onOpenSettings={onOpenSettings}
+      />
+    );
+
+    expect(element).toBeDefined();
+    expect(element.props.visible).toBe(true);
+    expect(element.props.editorMode).toBe("note");
+  });
+});

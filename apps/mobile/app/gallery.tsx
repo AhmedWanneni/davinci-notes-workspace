@@ -20,6 +20,7 @@ import {
   Text,
 } from "../components/primitives";
 import { ScreenLayout } from "../components/layout";
+import { EditorBottomBar } from "../components/EditorBottomBar";
 
 export default function ComponentGalleryScreen(): React.ReactElement | null {
   // Tree-shaking guard for production builds
@@ -60,7 +61,7 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         >
           1. TEXT & TYPOGRAPHY
         </Text>
-        <View className="p-3 bg-bg-secondary rounded-md border border-border-normal mb-6">
+        <View className="p-3 bg-bg-secondary rounded-md mb-6">
           <Text variant="h1">Heading 1 (24pt Bold)</Text>
           <Text variant="h2" className="mt-1">
             Heading 2 (20pt Semibold)
@@ -205,7 +206,7 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         >
           7. LIST ITEMS (BORDER DEPTH)
         </Text>
-        <View className="border border-border-normal rounded-md overflow-hidden mb-6">
+        <View className="rounded-md overflow-hidden mb-6">
           <ListItem
             title="Standard List Item"
             subtitle="Subtitle secondary description"
@@ -234,7 +235,7 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
         <Button
           variant="secondary"
           onPress={() => setSheetOpen(true)}
-          className="mb-12"
+          className="mb-8"
         >
           Open Demo Bottom Sheet
         </Button>
@@ -245,14 +246,32 @@ export default function ComponentGalleryScreen(): React.ReactElement | null {
           title="Demo Sheet"
         >
           <Text variant="body" color="normal" className="mb-4">
-            This is a native bottom sheet with dark-first styling, safe-area
-            bottom padding, and 16px top border radius.
+            This is a native bottom sheet with dark-first styling and safe-area
+            padding.
           </Text>
           <Button variant="primary" onPress={() => setSheetOpen(false)}>
             Close Sheet
           </Button>
         </Sheet>
       </ScrollView>
+
+      {/* Editor Navigation Bar */}
+      <EditorBottomBar
+        onTodo={() => router.push("/todos")}
+        onNewNote={() =>
+          router.push({
+            pathname: "/editor",
+            params: { preset: "new", autoFocus: "1" },
+          })
+        }
+        onSearch={() => router.push("/search")}
+        onNotifications={() =>
+          router.push({ pathname: "/todos", params: { tab: "reminders" } })
+        }
+        onTabs={() => router.push("/editor")}
+        onMenu={() => router.push("/settings")}
+        tabCount={1}
+      />
     </ScreenLayout>
   );
 }

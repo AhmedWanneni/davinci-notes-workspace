@@ -9,3 +9,7 @@ export * from "./CreateActionSheet";
 export * from "./VaultDrawerContent";
 export * from "./DrawerFolderItem";
 export * from "./NewFolderSheet";
+export * from "./SelectFolderModal";
+export * from "./FolderEmojiPickerModal";
+export * from "./DrawerFolderList";
+export * from "./EmojiCategoryTabBar";

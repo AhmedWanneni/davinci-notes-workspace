@@ -1,7 +1,7 @@
 "use dom";
 
 import React, { useEffect, useRef, useState } from "react";
-import { EditorState } from "@codemirror/state";
+import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import {
   createDebouncedBridge,
@@ -10,24 +10,18 @@ import {
 } from "../src/bridgeProtocol";
 import { attachMobileViewportHandler } from "../src/viewportHandler";
 import { requestEditorFocus } from "../src/iosFocusWorkaround";
-import { createMobileEditorExtensions } from "./editorExtensions";
+import { createMobileEditorExtensions, getMobileModeExtensions } from "./editorExtensions";
 import { executeToolbarAction } from "./editorToolbarActions";
 import { darkColorTokens } from "@app/design-tokens/mobile";
 import { decodePayload } from "../src/base64Payload";
+import { getTextDirection } from "../src/getTextDirection";
 
 export interface EditorDomProps {
-  dom?: {
-    useExpoDOMWebView?: boolean;
-    matchContents?: boolean;
-    scrollEnabled?: boolean;
-    [key: string]: unknown;
-  };
+  dom?: { useExpoDOMWebView?: boolean; matchContents?: boolean; scrollEnabled?: boolean; [key: string]: unknown };
   initialContent: string;
   notePath?: string;
-  onDocChanged?: (
-    notification: DocChangeNotification,
-    payloadBytes: number,
-  ) => void;
+  editorMode?: "note" | "text";
+  onDocChanged?: (notification: DocChangeNotification, payloadBytes: number) => void;
   onMetricsUpdate?: (keystrokeLatencyMs: number) => void;
   actionTrigger?: { id: number; action: ToolbarActionType } | null;
   focusTrigger?: number;
@@ -40,6 +34,7 @@ export interface EditorDomProps {
 export default function EditorDom({
   initialContent = "",
   notePath,
+  editorMode = "note",
   onDocChanged,
   onFlushAck,
   onMetricsUpdate,
@@ -57,12 +52,11 @@ export default function EditorDom({
 
   const onDocChangedRef = useRef(onDocChanged);
   onDocChangedRef.current = onDocChanged;
-
   const onFlushAckRef = useRef(onFlushAck);
   onFlushAckRef.current = onFlushAck;
-
   const lastActionIdRef = useRef<number | null>(null);
   const lastInsertIdRef = useRef<number | null>(null);
+  const modeCompartmentRef = useRef(new Compartment());
 
   // Debounced bridge emitter (750ms) - only crosses on debounce or explicit flush
   const bridgeRef = useRef(
@@ -90,10 +84,7 @@ export default function EditorDom({
         lastKeystrokeTime = now;
 
         const docLength = update.state.doc.length;
-        const excerpt = update.state.doc.sliceString(
-          0,
-          Math.min(60, docLength),
-        );
+        const excerpt = update.state.doc.sliceString(0, Math.min(60, docLength));
         const fullContent = update.state.doc.toString();
 
         bridgeRef.current.emit({
@@ -107,9 +98,21 @@ export default function EditorDom({
     });
 
     const docText = decodePayload(initialContent || "");
-    const extensions = createMobileEditorExtensions([changeListener]);
+    const extensions = createMobileEditorExtensions([changeListener], editorMode, modeCompartmentRef.current);
+    const direction = getTextDirection(docText);
+    containerRef.current.setAttribute("dir", direction);
+    if (!document.querySelector("meta[charset]")) {
+      const meta = document.createElement("meta");
+      meta.setAttribute("charset", "utf-8");
+      document.head.prepend(meta);
+    }
+
     const state = EditorState.create({ doc: docText, extensions });
     const view = new EditorView({ state, parent: containerRef.current });
+    view.dom.dir = direction;
+    view.dom.style.direction = direction;
+    view.contentDOM.dir = direction;
+    view.contentDOM.style.direction = direction;
 
     viewRef.current = view;
     activePathRef.current = notePath;
@@ -120,38 +123,29 @@ export default function EditorDom({
       getView: () => viewRef.current,
     });
 
-    // Touch/click on editor host focuses CodeMirror and places cursor at end
     const handleContainerTap = (e: Event) => {
       const v = viewRef.current;
-      if (!v) return;
-      if (!v.contentDOM.contains(e.target as Node)) {
-        v.focus();
-        const docLen = v.state.doc.length;
-        v.dispatch({
-          selection: { anchor: docLen, head: docLen },
-          scrollIntoView: true,
-        });
-      }
+      if (v && !v.contentDOM.contains(e.target as Node)) v.focus();
     };
     const hostEl = containerRef.current;
-    const evs = ["click", "touchend", "touchstart", "pointerdown"] as const;
+    const evs = ["click", "touchend"] as const;
     evs.forEach((e) => hostEl.addEventListener(e, handleContainerTap));
 
-    // Save Guard: Flush on blur, visibilitychange (app background), and pagehide
     const handleFlush = () => bridgeRef.current.flush();
-    const handleVisibility = () => {
-      if (document.visibilityState === "hidden") bridgeRef.current.flush();
-    };
+    const handleVisibility = () => { if (document.visibilityState === "hidden") bridgeRef.current.flush(); };
+    const handleWindowScroll = () => { if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0); };
 
     view.contentDOM.addEventListener("blur", handleFlush);
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("pagehide", handleFlush);
+    window.addEventListener("scroll", handleWindowScroll);
 
     return () => {
       evs.forEach((e) => hostEl.removeEventListener(e, handleContainerTap));
       view.contentDOM.removeEventListener("blur", handleFlush);
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("pagehide", handleFlush);
+      window.removeEventListener("scroll", handleWindowScroll);
       detachViewport();
       bridgeRef.current.flush();
       bridgeRef.current.cancel();
@@ -160,10 +154,13 @@ export default function EditorDom({
     };
   }, []);
 
-  // Sync document content if initialContent changes externally
+  // Sync document content if initialContent changes externally (e.g. reload from disk)
   useEffect(() => {
     const v = viewRef.current;
     if (!v) return;
+    // When the user is typing, the editor view has focus. Never overwrite content or reset cursor while focused!
+    if (v.hasFocus) return;
+
     const currentDoc = v.state.doc.toString();
     const newDoc = decodePayload(initialContent || "");
     if (newDoc !== currentDoc) {
@@ -181,13 +178,16 @@ export default function EditorDom({
     }
   }, [notePath]);
 
+  // Dynamically reconfigure extensions when editorMode changes (instantly switches bullet point)
+  useEffect(() => {
+    if (viewRef.current) {
+      viewRef.current.dispatch({ effects: modeCompartmentRef.current.reconfigure(getMobileModeExtensions(editorMode)) });
+    }
+  }, [editorMode]);
+
   // Execute toolbar actions
   useEffect(() => {
-    if (
-      viewRef.current &&
-      actionTrigger &&
-      actionTrigger.id !== lastActionIdRef.current
-    ) {
+    if (viewRef.current && actionTrigger && actionTrigger.id !== lastActionIdRef.current) {
       lastActionIdRef.current = actionTrigger.id;
       executeToolbarAction(viewRef.current, actionTrigger.action);
     }
@@ -195,9 +195,7 @@ export default function EditorDom({
 
   // Execute programmatic focus requests (iOS focus workaround)
   useEffect(() => {
-    if (viewRef.current && focusTrigger) {
-      requestEditorFocus(viewRef.current, { position: "end" });
-    }
+    if (viewRef.current && focusTrigger) requestEditorFocus(viewRef.current, { position: "end" });
   }, [focusTrigger]);
 
   // Execute programmatic flush requests from native container
@@ -210,11 +208,7 @@ export default function EditorDom({
 
   // Insert arbitrary markdown text at cursor (for camera, photo, voice embeds)
   useEffect(() => {
-    if (
-      viewRef.current &&
-      insertTrigger &&
-      insertTrigger.id !== lastInsertIdRef.current
-    ) {
+    if (viewRef.current && insertTrigger && insertTrigger.id !== lastInsertIdRef.current) {
       lastInsertIdRef.current = insertTrigger.id;
       const textToInsert = decodePayload(insertTrigger.text);
       const { from, to } = viewRef.current.state.selection.main;
@@ -228,21 +222,14 @@ export default function EditorDom({
 
   // Apply reset & theme CSS to DOM container
   useEffect(() => {
-    let styleEl = document.getElementById(
-      "davinci-mobile-theme",
-    ) as HTMLStyleElement | null;
+    let styleEl = document.getElementById("davinci-mobile-theme") as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement("style");
       styleEl.id = "davinci-mobile-theme";
       document.head.appendChild(styleEl);
     }
-    const vars = `:root{--color-bg-primary:${darkColorTokens.bg.primary};--color-text-normal:${darkColorTokens.text.normal};--color-text-muted:${darkColorTokens.text.muted};--color-text-accent:${darkColorTokens.interactive.accent};--color-bg-active:rgba(255,255,255,0.1);--font-editor:monospace,sans-serif;--editor-font-size:16px;--editor-obsidian-body-line-height:1.5;--editor-content-padding-bottom:300px;--space-6:16px;--space-8:16px;--border-width-thin:1px;}`;
-    const reset =
-      "html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:var(--color-bg-primary," +
-      darkColorTokens.bg.primary +
-      ")!important;color:var(--color-text-normal," +
-      darkColorTokens.text.normal +
-      ")!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}";
+    const vars = `:root{--color-bg-primary:${darkColorTokens.bg.primary};--color-text-normal:${darkColorTokens.text.normal};--color-text-muted:${darkColorTokens.text.muted};--color-text-accent:${darkColorTokens.interactive.accent};--color-bg-active:rgba(255,255,255,0.1);--font-editor:-apple-system,BlinkMacSystemFont,"Geeza Pro","Noto Sans Arabic","Amiri","Traditional Arabic","Segoe UI",Roboto,Helvetica,Arial,sans-serif,system-ui;--font-text:-apple-system,BlinkMacSystemFont,"Geeza Pro","Noto Sans Arabic","Amiri","Traditional Arabic","Segoe UI",Roboto,Helvetica,Arial,sans-serif,system-ui;--editor-font-size:16px;--editor-obsidian-body-line-height:1.7;--editor-content-padding-bottom:300px;--space-6:16px;--space-8:16px;--border-width-thin:1px;}`;
+    const reset = `html,body,#root{height:100%!important;min-height:100%!important;margin:0!important;padding:0!important;width:100%!important;overflow:hidden!important;background-color:var(--color-bg-primary,${darkColorTokens.bg.primary})!important;color:var(--color-text-normal,${darkColorTokens.text.normal})!important;}.mobile-editor-dom-host{height:100%!important;min-height:100%!important;width:100%!important;display:flex!important;flex-direction:column!important;}.cm-content,.cm-line{direction:inherit!important;unicode-bidi:plaintext!important;text-align:start!important;}`;
     styleEl.textContent = `${vars}\n${themeCss ?? ""}\n${reset}`;
   }, [themeCss]);
 
@@ -251,12 +238,7 @@ export default function EditorDom({
       ref={containerRef}
       tabIndex={0}
       className="mobile-editor-dom-host"
-      style={{
-        width: "100%",
-        height: "100%",
-        overflow: "hidden",
-        backgroundColor: `var(--color-bg-primary, ${darkColorTokens.bg.primary})`,
-      }}
+      style={{ width: "100%", height: "100%", overflow: "hidden", backgroundColor: `var(--color-bg-primary, ${darkColorTokens.bg.primary})` }}
     />
   );
 }

@@ -8,6 +8,8 @@ import { Text, Button } from "../components/primitives";
 import { defaultVaultManager } from "../vault/vaultManager";
 import { MobileThemeProvider, useTheme } from "../theme";
 import { loadImmersiveModeFromDb } from "../settings";
+import * as NavigationBar from "expo-navigation-bar";
+
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -40,6 +42,11 @@ export function ErrorBoundary({
 function RootNavigator(): React.ReactElement {
   const { tokens } = useTheme();
 
+  console.log("tokens", tokens);
+  useEffect(() => {
+    NavigationBar.setStyle("dark");
+  }, []);
+ 
   return (
     <Stack
       screenOptions={{
@@ -49,15 +56,27 @@ function RootNavigator(): React.ReactElement {
         },
       }}
     >
-      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="index" />
       <Stack.Screen
-        name="note"
+        name="editor"
+        options={{
+          animation: "fade",
+        }}
+      />
+      <Stack.Screen
+        name="search"
         options={{
           animation: "slide_from_right",
         }}
       />
       <Stack.Screen
-        name="editor"
+        name="todos"
+        options={{
+          animation: "slide_from_right",
+        }}
+      />
+      <Stack.Screen
+        name="note"
         options={{
           animation: "slide_from_right",
         }}

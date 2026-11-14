@@ -12,6 +12,7 @@ import type {
 
 export interface NoteReaderViewProps {
   document: ParsedMarkdownDocument;
+  direction?: "ltr" | "rtl";
   title?: string;
   onWikilinkPress: (target: string, displayText?: string) => void;
   onTagPress: (tag: string) => void;
@@ -21,6 +22,7 @@ export interface NoteReaderViewProps {
 
 export function NoteReaderView({
   document,
+  direction = "ltr",
   title,
   onWikilinkPress,
   onTagPress,
@@ -261,6 +263,7 @@ export function NoteReaderView({
     <ScrollView
       ref={scrollViewRef}
       className="flex-1 px-5 pt-3"
+      style={{ direction }}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 48 }}
     >

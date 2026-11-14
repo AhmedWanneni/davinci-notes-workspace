@@ -1,6 +1,6 @@
 # Open Source Licenses & Notices (Mobile)
 
-DaVinci Notes mobile app embeds or utilizes the following third-party open source software:
+Sophia mobile app embeds or utilizes the following third-party open source software:
 
 ---
 

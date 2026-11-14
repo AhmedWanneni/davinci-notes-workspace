@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Pressable } from "react-native";
+import { View, Pressable, Alert } from "react-native";
 import {
   FolderSimple,
   CaretRight,
@@ -15,9 +15,13 @@ export interface DrawerFolderItemProps {
   depth?: number;
   isExpanded: boolean;
   notes: string[];
+  icon?: string;
   onToggleExpand: () => void;
   onSelectFolder?: (folder: string) => void;
   onSelectNote: (path: string) => void;
+  onDeleteFolder?: (folder: string) => void;
+  onDeleteNote?: (path: string) => void;
+  onPressIcon?: (folder: string) => void;
 }
 
 export function DrawerFolderItem({
@@ -26,19 +30,46 @@ export function DrawerFolderItem({
   depth = 0,
   isExpanded,
   notes,
+  icon,
   onToggleExpand,
   onSelectFolder,
   onSelectNote,
+  onDeleteFolder,
+  onDeleteNote,
+  onPressIcon,
 }: DrawerFolderItemProps): React.ReactElement {
   const { tokens } = useTheme();
   const indentPadding = Math.min(depth * 14, 42);
 
   const handlePressFolder = () => {
-    if (onSelectFolder) {
-      onSelectFolder(folder);
-    } else {
-      onToggleExpand();
-    }
+    onToggleExpand();
+    onSelectFolder?.(folder);
+  };
+
+  const handleLongPressFolder = () => {
+    Alert.alert(
+      "Delete Folder",
+      `Delete "${displayName}" and all its contents?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDeleteFolder?.(folder),
+        },
+      ],
+    );
+  };
+
+  const handleLongPressNote = (notePath: string, stem: string) => {
+    Alert.alert("Delete Note", `Delete "${stem}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => onDeleteNote?.(notePath),
+      },
+    ]);
   };
 
   return (
@@ -62,16 +93,33 @@ export function DrawerFolderItem({
 
         <Pressable
           onPress={handlePressFolder}
+          onLongPress={handleLongPressFolder}
           className="flex-1 flex-row items-center gap-2 py-2"
           accessibilityRole="button"
           accessibilityLabel={`Open folder ${displayName}`}
         >
-          <FolderSimple size={18} color={tokens.color.interactive.accent} />
+          <Pressable
+            onPress={(e) => {
+              e.stopPropagation?.();
+              if (onPressIcon) onPressIcon(folder);
+              else handlePressFolder();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={`Change icon for ${displayName}`}
+            className="w-6 h-6 items-center justify-center active:opacity-70"
+          >
+            {icon ? (
+              <Text style={{ fontSize: 18 }}>{icon}</Text>
+            ) : (
+              <FolderSimple size={18} color={tokens.color.interactive.accent} />
+            )}
+          </Pressable>
           <Text
             variant="body"
             color="normal"
             numberOfLines={1}
             className="flex-1"
+            style={{ fontSize: 16 }}
           >
             {displayName}
           </Text>
@@ -101,6 +149,7 @@ export function DrawerFolderItem({
                 <Pressable
                   key={note}
                   onPress={() => onSelectNote(note)}
+                  onLongPress={() => handleLongPressNote(note, stem)}
                   className="flex-row items-center gap-2 py-2 px-3 rounded-lg active:bg-bg-hover min-h-[36px]"
                   style={{ paddingLeft: 24 + indentPadding }}
                   accessibilityRole="button"
@@ -111,7 +160,8 @@ export function DrawerFolderItem({
                     variant="body"
                     color="normal"
                     numberOfLines={1}
-                    className="flex-1 text-sm"
+                    className="flex-1"
+                    style={{ fontSize: 15 }}
                   >
                     {stem}
                   </Text>

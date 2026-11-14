@@ -86,7 +86,7 @@ export interface ListExtensionOptions {
   isReadOnly?: boolean;
 }
 
-export { listIndentKeymap } from "./listKeymap";
+export { listIndentKeymap, handleListEnter } from "./listKeymap";
 
 function isActiveLine(view: EditorView, lineNumber: number, readOnly: boolean) {
   return (

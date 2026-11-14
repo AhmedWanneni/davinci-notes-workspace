@@ -21,3 +21,9 @@ When pushing changes to remote, the agent MUST open a Pull Request (e.g. via `gh
   2. **ADR Links**: Clickable markdown links to all relevant Architecture Decision Records in `docs/adr/` (e.g. `[ADR-0116](docs/adr/0116-sync-via-drive-syncthing-no-owned-backend.md)`).
   3. **Commits Breakdown**: Clear breakdown of the commits included in the PR.
   4. **Checklist**: Completed Before Merging Checklist from `AGENTS.md`.
+
+### 3. Uncommitted Changes Preflight Check (Mandatory)
+When you find uncommitted files or unstaged changes (`git status` shows modified or untracked files) before starting to work on a task:
+- **DO NOT start working on the task immediately.**
+- **Ask the user to commit them first** and provide a clear, descriptive suggested commit message.
+- Only proceed once the uncommitted files are committed or explicitly directed by the user.

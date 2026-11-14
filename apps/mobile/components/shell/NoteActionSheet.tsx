@@ -1,26 +1,23 @@
 import React from "react";
-import { View, Pressable, ScrollView } from "react-native";
+import { View, Pressable, ScrollView, Text } from "react-native";
 import {
   X,
-  Link,
   BookOpen,
   Code,
-  PushPin,
-  PencilSimple,
-  FolderSimple,
-  BookmarkSimple,
-  GitMerge,
-  PlusCircle,
+  Check,
+  Gear,
+  Trash,
   ListNumbers,
   GitFork,
-  Trash,
+  PencilSimple,
 } from "phosphor-react-native";
-import { useTheme } from "../../theme";
-import { Sheet, SheetGroup, Text } from "../primitives";
+import { Sheet, SheetGroup } from "../primitives";
 
 export interface NoteActionSheetProps {
   visible: boolean;
   onClose: () => void;
+  editorMode?: "note" | "text";
+  onSelectMode?: (mode: "note" | "text") => void;
   isReadingView?: boolean;
   isPinned?: boolean;
   onToggleReadingView?: () => void;
@@ -35,6 +32,7 @@ export interface NoteActionSheetProps {
   onMerge?: () => void;
   onAddProperty?: () => void;
   onDelete?: () => void;
+  onOpenSettings?: () => void;
 }
 
 interface ActionRowProps {
@@ -43,6 +41,7 @@ interface ActionRowProps {
   onPress?: () => void;
   isLast?: boolean;
   active?: boolean;
+  destructive?: boolean;
 }
 
 function ActionRow({
@@ -51,30 +50,32 @@ function ActionRow({
   onPress,
   isLast = false,
   active = false,
+  destructive = false,
 }: ActionRowProps): React.ReactElement {
-  const { tokens } = useTheme();
-
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      className="flex-row items-center px-4 min-h-[46px]"
+      className="flex-row items-center px-4 min-h-[48px] active:bg-gray-100"
       style={{
         borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: tokens.color.border.subtle,
-        backgroundColor: active ? tokens.color.bg.hover : "transparent",
+        borderBottomColor: "#f3f4f6",
+        backgroundColor: active ? "#f9fafb" : "#ffffff",
       }}
     >
       <View className="mr-3 w-6 items-center justify-center">{icon}</View>
       <Text
-        variant="body"
-        color={active ? "accent" : "normal"}
-        weight={active ? "semibold" : "regular"}
-        className="flex-1"
+        style={{
+          fontSize: 15,
+          fontWeight: active ? "600" : "400",
+          color: destructive ? "#ef4444" : "#111827",
+          flex: 1,
+        }}
       >
         {label}
       </Text>
+      {active ? <Check size={18} color="#111827" weight="bold" /> : null}
     </Pressable>
   );
 }
@@ -82,130 +83,88 @@ function ActionRow({
 export function NoteActionSheet({
   visible,
   onClose,
+  editorMode,
+  onSelectMode,
   isReadingView = false,
-  isPinned = false,
   onToggleReadingView,
   onToggleSourceMode,
-  onOpenBacklinks,
   onOpenOutline,
   onOpenGraph,
-  onTogglePin,
   onRename,
-  onMove,
-  onBookmark,
-  onMerge,
-  onAddProperty,
   onDelete,
+  onOpenSettings,
 }: NoteActionSheetProps): React.ReactElement {
-  const { tokens } = useTheme();
-  const iconColor = tokens.color.text.normal;
+  const activeMode = editorMode ?? (isReadingView ? "note" : "text");
 
   return (
-    <Sheet visible={visible} onClose={onClose}>
+    <Sheet visible={visible} onClose={onClose} backgroundColor="#ffffff">
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 8 }}
+        contentContainerStyle={{ paddingBottom: 8, backgroundColor: "#ffffff" }}
       >
         {/* Group 1: Close */}
-        <SheetGroup>
+        <SheetGroup style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}>
           <ActionRow
-            icon={<X size={20} color={iconColor} weight="bold" />}
+            icon={<X size={20} color="#111827" weight="bold" />}
             label="Close"
             onPress={onClose}
             isLast
           />
         </SheetGroup>
 
-        {/* Group 2: View Modes, Outline, Backlinks, Graph */}
-        <SheetGroup>
+        {/* Group 2: Working Actions */}
+        <SheetGroup style={{ backgroundColor: "#ffffff", borderColor: "#e5e7eb" }}>
+          <ActionRow
+            icon={<BookOpen size={20} color="#111827" weight="regular" />}
+            label="Note mode"
+            onPress={() => (onSelectMode ? onSelectMode("note") : onToggleReadingView?.())}
+            active={activeMode === "note"}
+          />
+          <ActionRow
+            icon={<Code size={20} color="#111827" weight="regular" />}
+            label="Text mode"
+            onPress={() => (onSelectMode ? onSelectMode("text") : onToggleSourceMode?.())}
+            active={activeMode === "text"}
+            isLast={!onOpenOutline && !onOpenGraph && !onRename && !onOpenSettings && !onDelete}
+          />
           {onOpenOutline ? (
             <ActionRow
-              icon={
-                <ListNumbers size={20} color={iconColor} weight="regular" />
-              }
+              icon={<ListNumbers size={20} color="#111827" weight="regular" />}
               label="Outline"
               onPress={onOpenOutline}
+              isLast={!onOpenGraph && !onRename && !onOpenSettings && !onDelete}
             />
           ) : null}
-          <ActionRow
-            icon={<Link size={20} color={iconColor} weight="regular" />}
-            label="Backlinks in document"
-            onPress={onOpenBacklinks}
-          />
           {onOpenGraph ? (
             <ActionRow
-              icon={<GitFork size={20} color={iconColor} weight="regular" />}
+              icon={<GitFork size={20} color="#111827" weight="regular" />}
               label="Local graph"
               onPress={onOpenGraph}
+              isLast={!onRename && !onOpenSettings && !onDelete}
             />
           ) : null}
-          <ActionRow
-            icon={<BookOpen size={20} color={iconColor} weight="regular" />}
-            label="Reading view"
-            onPress={onToggleReadingView}
-            active={isReadingView}
-          />
-          <ActionRow
-            icon={<Code size={20} color={iconColor} weight="regular" />}
-            label="Source mode"
-            onPress={onToggleSourceMode}
-            active={!isReadingView}
-            isLast
-          />
-        </SheetGroup>
-
-        {/* Group 3: File Operations */}
-        <SheetGroup>
-          <ActionRow
-            icon={
-              <PushPin
-                size={20}
-                color={iconColor}
-                weight={isPinned ? "fill" : "regular"}
-              />
-            }
-            label={isPinned ? "Unpin" : "Pin"}
-            onPress={onTogglePin}
-            active={isPinned}
-          />
-          <ActionRow
-            icon={<PencilSimple size={20} color={iconColor} weight="regular" />}
-            label="Rename..."
-            onPress={onRename}
-          />
-          <ActionRow
-            icon={<FolderSimple size={20} color={iconColor} weight="regular" />}
-            label="Move file to..."
-            onPress={onMove}
-          />
-          <ActionRow
-            icon={
-              <BookmarkSimple size={20} color={iconColor} weight="regular" />
-            }
-            label="Bookmark..."
-            onPress={onBookmark}
-          />
-          <ActionRow
-            icon={<GitMerge size={20} color={iconColor} weight="regular" />}
-            label="Merge entire file with..."
-            onPress={onMerge}
-          />
-          <ActionRow
-            icon={<PlusCircle size={20} color={iconColor} weight="regular" />}
-            label="Add file property"
-            onPress={onAddProperty}
-          />
+          {onRename ? (
+            <ActionRow
+              icon={<PencilSimple size={20} color="#111827" weight="regular" />}
+              label="Rename note"
+              onPress={onRename}
+              isLast={!onOpenSettings && !onDelete}
+            />
+          ) : null}
+          {onOpenSettings ? (
+            <ActionRow
+              icon={<Gear size={20} color="#111827" weight="regular" />}
+              label="Settings"
+              onPress={onOpenSettings}
+              isLast={!onDelete}
+            />
+          ) : null}
           {onDelete ? (
             <ActionRow
-              icon={
-                <Trash
-                  size={20}
-                  color={tokens.color.text.error}
-                  weight="regular"
-                />
-              }
+              icon={<Trash size={20} color="#ef4444" weight="regular" />}
               label="Delete note"
               onPress={onDelete}
+              destructive
               isLast
             />
           ) : null}

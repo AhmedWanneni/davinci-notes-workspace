@@ -76,6 +76,11 @@ The user has explicitly customized these design behaviors. All future AI agents 
 - **Calendar & Meetings Header Removal (`CalendarLeaf.tsx`, `CalendarView.module.scss`)**: The top header (`.calendar-leaf__header`) with the title "Calendar & Meetings" and icon has been intentionally removed from `CalendarLeaf.tsx` so the view starts directly with the toolbar. Do NOT re-add the header.
 - **QuickCapture Footer (`QuickCaptureFooter.tsx`, `QuickCaptureFooter.module.scss`)**: The dialog footer is intentionally simplified to contain only the right-aligned (`justify-content: flex-end;`) "Save note" button. Hints, record button, close button, and quit button in the footer have been intentionally removed (Close and Quit remain in the header). Do NOT re-add them to the footer.
 - **Obsidian Theme Border Colors (`docs/references/cm-rules.css`)**: Outline and table border colors are explicitly set to `#ababab`. Preserve these values.
+- **Isolated Reminders & Events Hub (`RemindersHubView.tsx`, `useVaultReminders.ts`, `todos.tsx`)**: Reminders must remain isolated in its dedicated hub with project/event categorization, top 3-metric overview card, circular timer icon, and status pill badges matching the reference design. Do NOT re-merge reminders into regular todo items.
+- **Expo DateTimePicker Standard (`DateTimePickerModal.tsx`)**: All mobile date and time selection MUST use `@react-native-community/datetimepicker` (iOS wheel spinner, Android native dialogs).
+- **Editor Heading Stripping for Todos (`useEditorNoteLoader.ts`)**: In todo notes, top markdown headings (`# ...` / `## ...`) must always be stripped from the editor body so content starts directly with checklist items while the note title is displayed in the top header.
+- **Tap-to-Rename Top Note Title (`EditorTitleHeader.tsx`, `editor.tsx`)**: Tapping the top note title in the mobile editor must allow inline renaming of the note file on disk.
+- **Folder Selection on Note Creation (`SelectFolderModal.tsx`, `editor.tsx`)**: Creating a new note must prompt the user to choose the destination folder.
 
 ## Database Migrations
 
@@ -106,6 +111,19 @@ The user has explicitly customized these design behaviors. All future AI agents 
     2. **ADR Links**: Clickable markdown links to any relevant Architecture Decision Records in `docs/adr/` (e.g. `[ADR-0116](docs/adr/0116-sync-via-drive-syncthing-no-owned-backend.md)`).
     3. **Commits Breakdown**: Clear breakdown of the commits included in the PR.
     4. **Checklist**: Completed Before Merging Checklist.
+- **Uncommitted Changes Preflight Check**: When you find uncommitted files or unstaged changes (`git status` is not clean) before starting work, DO NOT start working immediately. First, ask the user to commit them and provide a suggested commit message. Only proceed after they are committed.
+
+## Expo Component First Rule (Mandatory for Mobile Development)
+
+Before building, designing, or implementing ANY component, UI control, or system functionality for mobile (`apps/mobile`):
+- **Always check Expo SDK first**: Consult the [Expo Documentation](https://docs.expo.dev/versions/latest/) and officially bundled native modules (`@react-native-community/*`, `expo-*`) before creating custom implementations from scratch or pulling in external packages.
+  - Date & Time Pickers: Always use `@react-native-community/datetimepicker` (https://docs.expo.dev/versions/latest/sdk/date-time-picker/).
+  - Image/Media Pickers: Always use `expo-image-picker`.
+  - Audio: Always use `expo-audio`.
+  - Notifications: Always use `expo-notifications`.
+  - Camera, Haptics, Secure Store, File System, WebBrowser: Always use official `expo-*` modules.
+- **Consult `bundledNativeModules.json`**: Always install the exact bundled version pinned for the project's Expo SDK.
+- See `.agents/rules/expo-components.md` and `.agents/skills/check-expo-component/SKILL.md`.
 
 ## Testing
 

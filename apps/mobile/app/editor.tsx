@@ -1,24 +1,38 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { View, AppState, BackHandler, Platform } from "react-native";
+import { View, AppState, BackHandler, Keyboard } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
-import { NavigationBar } from "expo-navigation-bar";
 import { useImmersiveNavigationBar } from "../settings";
 import EditorDom from "../components/EditorDom";
 import { FormattingToolbar } from "../components/FormattingToolbar";
+import { EditorBottomBar } from "../components/EditorBottomBar";
+import { EditorDrawer } from "../components/EditorDrawer";
+import { NewTabPage } from "../components/NewTabPage";
+import { TabSwitcherModal } from "../components/TabSwitcherModal";
+import { NoteActionSheet, SelectFolderModal } from "../components/shell";
 import { EditorConflictBanner } from "../components/EditorConflictBanner";
 import { EditorSaveErrorBanner } from "../components/EditorSaveErrorBanner";
 import { EditorHeader } from "../components/EditorHeader";
-import { EditorPreviewView } from "../components/EditorPreviewView";
+import { EditorTitleHeader } from "../components/EditorTitleHeader";
 import { buildEditorInjectedScript } from "../components/editorInjectedScript";
 import { Text } from "../components/primitives";
 import {
   useNotePath,
   useEditorNoteLoader,
   useEditorSaveManager,
+  useEditorTabManager,
+  openNewTabLanding,
+  updateActiveTabContent,
+  createUnsavedNewTab,
+  getNoteMode,
+  setNoteModeInContent,
+  type NoteEditorMode,
 } from "../vault";
 import { useMediaCaptureActions } from "../capture";
-import type { ToolbarActionType } from "../src/bridgeProtocol";
+import type {
+  ToolbarActionType,
+  DocChangeNotification,
+} from "../src/bridgeProtocol";
 import { encodePayload } from "../src/base64Payload";
 import { useTheme } from "../theme";
 
@@ -30,21 +44,29 @@ export default function EditorScreen(): React.ReactElement {
     path: initialPath,
     noteId,
     preset,
+    template,
     autoFocus,
-    mode: initialMode,
+    folder,
   } = useLocalSearchParams<{
     path?: string;
     noteId?: string;
     preset?: string;
+    template?: string;
     autoFocus?: string;
-    mode?: "edit" | "preview";
+    folder?: string;
   }>();
 
-  const [viewMode, setViewMode] = useState<"edit" | "preview">(
-    initialMode === "edit" || preset === "new" ? "edit" : "preview",
-  );
+  const router = useRouter();
+  const [editorMode, setEditorMode] = useState<NoteEditorMode>("note");
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
+  const [folderPickerVisible, setFolderPickerVisible] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  const storePath = useNotePath(noteId, initialPath ?? "Untitled.md");
+  const storePath = useNotePath(
+    noteId,
+    initialPath ??
+      (template === "todo" ? "Todos/Daily routine.md" : "Untitled.md"),
+  );
   const {
     activePath,
     setActivePath,
@@ -53,9 +75,12 @@ export default function EditorScreen(): React.ReactElement {
     isLoaded,
     loadError,
     baseMtimeRef,
-    loadCounter,
     reloadNote,
-  } = useEditorNoteLoader({ storePath, noteId, preset });
+  } = useEditorNoteLoader({ storePath, noteId, preset, template, folder });
+
+  useEffect(() => {
+    if (content) setEditorMode(getNoteMode(content));
+  }, [activePath, content]);
 
   useFocusEffect(
     useCallback(() => {
@@ -63,15 +88,33 @@ export default function EditorScreen(): React.ReactElement {
     }, [reloadNote]),
   );
 
+  const {
+    tabs,
+    activeTabId,
+    isNewTabPage: tabIsNewTab,
+    drawerVisible,
+    setDrawerVisible,
+    tabSwitcherVisible,
+    setTabSwitcherVisible,
+    handleSelectTab,
+    handleCloseTab,
+    handleSelectNoteFromDrawer,
+  } = useEditorTabManager({
+    activePath,
+    content,
+    router,
+    onSelectNotePath: (note) => {
+      setActivePath(note);
+    },
+  });
+
+  const isNewTabPage = !initialPath && tabIsNewTab;
   const pathRef = useRef<string>(activePath);
   pathRef.current = activePath;
 
-  const router = useRouter();
   const {
-    saveStatus,
     saveError,
     conflictContent,
-    lastPayloadBytes,
     flushTrigger,
     handleDocChanged,
     handleFlushAck,
@@ -86,8 +129,37 @@ export default function EditorScreen(): React.ReactElement {
     baseMtimeRef,
     setActivePath,
     setContent,
-    onBack: () => router.back(),
+    onBack: () => {
+      if (router.canGoBack()) router.back();
+    },
   });
+
+  const onDocChangedWrapped = useCallback(
+    (notif: DocChangeNotification, bytes: number) => {
+      handleDocChanged(notif, bytes);
+      if (notif.content) updateActiveTabContent(notif.content);
+    },
+    [handleDocChanged],
+  );
+
+  const handleToggleEditorMode = useCallback(
+    (nextMode: NoteEditorMode) => {
+      setEditorMode(nextMode);
+      const updated = setNoteModeInContent(content, nextMode);
+      setContent(updated);
+      onDocChangedWrapped(
+        {
+          docLength: updated.length,
+          changeCount: 1,
+          excerpt: updated.slice(0, 50),
+          timestamp: Date.now(),
+          content: updated,
+        },
+        updated.length,
+      );
+    },
+    [content, setContent, onDocChangedWrapped],
+  );
 
   const [actionTrigger, setActionTrigger] = useState<{
     id: number;
@@ -97,7 +169,6 @@ export default function EditorScreen(): React.ReactElement {
     id: number;
     text: string;
   } | null>(null);
-
   const shouldAutoFocus = autoFocus === "1" || preset === "new";
   const [focusTrigger] = useState<number>(shouldAutoFocus ? 1 : 0);
 
@@ -106,8 +177,21 @@ export default function EditorScreen(): React.ReactElement {
   });
 
   useEffect(() => {
-    const sub = AppState.addEventListener("change", (nextState) => {
-      if (nextState !== "active") triggerAppBackgroundFlush();
+    const s = Keyboard.addListener("keyboardDidShow", () =>
+      setIsKeyboardVisible(true),
+    );
+    const h = Keyboard.addListener("keyboardDidHide", () =>
+      setIsKeyboardVisible(false),
+    );
+    return () => {
+      s.remove();
+      h.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state !== "active") triggerAppBackgroundFlush();
     });
     return () => sub.remove();
   }, [triggerAppBackgroundFlush]);
@@ -120,7 +204,16 @@ export default function EditorScreen(): React.ReactElement {
     return () => sub.remove();
   }, [handleBack]);
 
-  const title = activePath.replace(/\.md$/i, "").split("/").pop() ?? activePath;
+  const handleCreateNoteInFolder = useCallback(
+    (chosenFolder: string) => {
+      createUnsavedNewTab();
+      router.replace({
+        pathname: "/editor",
+        params: { preset: "new", autoFocus: "1", folder: chosenFolder },
+      });
+    },
+    [router],
+  );
 
   return (
     <View
@@ -129,106 +222,165 @@ export default function EditorScreen(): React.ReactElement {
         flex: 1,
         backgroundColor: tokens.color.bg.primary,
         paddingTop: insets.top,
-        paddingBottom: insets.bottom,
       }}
     >
-      {Platform.OS === "android" ? <NavigationBar hidden={true} /> : null}
-      <EditorHeader
-        title={title}
-        payloadBytes={lastPayloadBytes}
-        saveStatus={saveStatus}
-        onBack={handleBack}
-        mode={viewMode}
-        onToggleMode={(next) => setViewMode(next)}
-      />
-
-      {loadError ? (
-        <View className="m-4 p-4 rounded-lg bg-accent-critical/10 border border-accent-critical">
-          <Text variant="body" color="error">
-            {loadError}
-          </Text>
-        </View>
-      ) : null}
-
-      {saveError ? (
-        <EditorSaveErrorBanner error={saveError} onRetry={handleRetrySave} />
-      ) : null}
-
-      {conflictContent !== null ? (
-        <EditorConflictBanner
-          onOverwrite={() => void handleOverwriteConflict()}
-          onReload={() => void handleReloadDisk()}
+      {isNewTabPage ? (
+        <NewTabPage
+          onOpenSidebar={() => setDrawerVisible(true)}
+          onOpenActions={() => setActionSheetVisible(true)}
+          onOpenSettings={() => router.push("/settings")}
+          onOpenSearch={() => router.push("/search")}
+          onOpenTodos={() => router.push("/todos")}
+          onNewNote={() => setFolderPickerVisible(true)}
+          onNewTodoList={() => handleCreateNoteInFolder("Todos")}
         />
-      ) : null}
-
-      <View style={{ flex: 1, width: "100%" }}>
-        {viewMode === "preview" ? (
-          <EditorPreviewView
-            content={content}
-            title={title}
-            onEditPress={() => setViewMode("edit")}
-            onWikilinkPress={(target) =>
-              router.push({
-                pathname: "/editor",
-                params: { path: `${target}.md`, mode: "preview" },
-              })
-            }
-            onTagPress={(tag) =>
-              router.push({ pathname: "/(tabs)/search", params: { q: tag } })
-            }
+      ) : (
+        <>
+          <EditorHeader
+            mode={editorMode}
+            onBack={handleBack}
+            onToggleMode={handleToggleEditorMode}
+            onOpenDrawer={() => setDrawerVisible(true)}
+            onOpenActions={() => setActionSheetVisible(true)}
+            onOpenSearch={() => router.push("/search")}
+            onOpenTodos={() => router.push("/todos")}
           />
-        ) : isLoaded ? (
-          <EditorDom
-            key={`${noteId ?? activePath}-${loadCounter}`}
-            dom={{
-              useExpoDOMWebView: false,
-              matchContents: false,
-              scrollEnabled: true,
-              focusable: true,
-              injectedJavaScriptBeforeContentLoaded: buildEditorInjectedScript(
-                content,
-                activePath,
-                themeCss ?? "",
-              ),
-              containerStyle: { flex: 1, width: "100%", height: "100%" },
-              style: { flex: 1, width: "100%", height: "100%" },
+
+          <EditorTitleHeader
+            activePath={activePath}
+            textColor={tokens.color.text.normal}
+            onPathChange={(nextPath) => {
+              setActivePath(nextPath);
+              router.setParams({ path: nextPath });
             }}
-            initialContent={encodePayload(content)}
-            notePath={activePath}
-            themeCss={themeCss}
-            onDocChanged={handleDocChanged}
-            onFlushAck={handleFlushAck}
-            onMetricsUpdate={() => {}}
-            actionTrigger={actionTrigger}
-            focusTrigger={focusTrigger}
-            flushTrigger={flushTrigger}
-            insertTrigger={
-              insertTrigger
-                ? {
-                    id: insertTrigger.id,
-                    text: encodePayload(insertTrigger.text),
-                  }
-                : null
-            }
           />
-        ) : null}
-      </View>
 
-      {viewMode === "edit" ? (
+          {loadError ? (
+            <View className="m-4 p-4 rounded-lg bg-accent-critical/10 border border-accent-critical">
+              <Text variant="body" color="error">
+                {loadError}
+              </Text>
+            </View>
+          ) : null}
+
+          {saveError ? (
+            <EditorSaveErrorBanner
+              error={saveError}
+              onRetry={handleRetrySave}
+            />
+          ) : null}
+          {conflictContent !== null ? (
+            <EditorConflictBanner
+              onOverwrite={() => void handleOverwriteConflict()}
+              onReload={() => void handleReloadDisk()}
+            />
+          ) : null}
+
+          <View style={{ flex: 1, width: "100%" }}>
+            {isLoaded ? (
+              <EditorDom
+                key={`${noteId || activePath}-${editorMode}`}
+                dom={{
+                  useExpoDOMWebView: false,
+                  matchContents: false,
+                  scrollEnabled: true,
+                  focusable: true,
+                  injectedJavaScriptBeforeContentLoaded:
+                    buildEditorInjectedScript(
+                      content,
+                      activePath,
+                      themeCss ?? "",
+                      false,
+                      editorMode,
+                    ),
+                  containerStyle: { flex: 1, width: "100%", height: "100%" },
+                  style: { flex: 1, width: "100%", height: "100%" },
+                }}
+                initialContent={encodePayload(content)}
+                notePath={activePath}
+                editorMode={editorMode}
+                themeCss={themeCss}
+                onDocChanged={onDocChangedWrapped}
+                onFlushAck={handleFlushAck}
+                onMetricsUpdate={() => {}}
+                actionTrigger={actionTrigger}
+                focusTrigger={focusTrigger}
+                flushTrigger={flushTrigger}
+                insertTrigger={
+                  insertTrigger
+                    ? {
+                        id: insertTrigger.id,
+                        text: encodePayload(insertTrigger.text),
+                      }
+                    : null
+                }
+              />
+            ) : null}
+          </View>
+        </>
+      )}
+
+      {!isNewTabPage && isKeyboardVisible ? (
         <FormattingToolbar
           onAction={(action) => {
-            if (
-              action === "camera" ||
-              action === "photo" ||
-              action === "audio"
-            ) {
+            if (action === "camera" || action === "photo" || action === "audio")
               void handleMediaAction(action);
-            } else {
-              setActionTrigger({ id: Date.now(), action });
-            }
+            else setActionTrigger({ id: Date.now(), action });
           }}
         />
       ) : null}
+
+      <EditorBottomBar
+        onTodo={() => router.push("/todos")}
+        onNewNote={() => setFolderPickerVisible(true)}
+        onSearch={() => router.push("/search")}
+        onNotifications={() =>
+          router.push({ pathname: "/todos", params: { tab: "reminders" } })
+        }
+        onTabs={() => setTabSwitcherVisible(true)}
+        onMenu={() => router.push("/settings")}
+        tabCount={tabs.length}
+      />
+
+      <EditorDrawer
+        visible={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+        onSelectNote={handleSelectNoteFromDrawer}
+        onCreateNote={() => setFolderPickerVisible(true)}
+      />
+
+      <TabSwitcherModal
+        visible={tabSwitcherVisible}
+        tabs={tabs}
+        activeTabId={activeTabId}
+        onSelectTab={handleSelectTab}
+        onCloseTab={handleCloseTab}
+        onNewTab={() => {
+          openNewTabLanding();
+          setTabSwitcherVisible(false);
+        }}
+        onDone={() => setTabSwitcherVisible(false)}
+      />
+
+      <NoteActionSheet
+        visible={actionSheetVisible}
+        onClose={() => setActionSheetVisible(false)}
+        editorMode={editorMode}
+        onSelectMode={(mode) => {
+          handleToggleEditorMode(mode);
+          setActionSheetVisible(false);
+        }}
+        onOpenSettings={() => {
+          setActionSheetVisible(false);
+          router.push("/settings");
+        }}
+      />
+
+      <SelectFolderModal
+        visible={folderPickerVisible}
+        onClose={() => setFolderPickerVisible(false)}
+        onSelectFolder={handleCreateNoteInFolder}
+      />
     </View>
   );
 }

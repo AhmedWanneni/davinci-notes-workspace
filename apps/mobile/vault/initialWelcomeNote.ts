@@ -1,4 +1,4 @@
-export const INITIAL_WELCOME_NOTE = `# Welcome to DaVinci Notes
+export const INITIAL_WELCOME_NOTE = `# Welcome to Sophia
 
 A local-first, lightweight, and fast note-taking system.
 

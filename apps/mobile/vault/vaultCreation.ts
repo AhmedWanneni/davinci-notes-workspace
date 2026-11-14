@@ -17,7 +17,7 @@ export async function createNewSandboxVault(name: string): Promise<{
     const adapter = new MobileVaultStorageAdapter(rawVaultUri, "sandbox");
     await adapter.createFolder("Attachments");
     await adapter.writeNote(
-      "Welcome to DaVinci Notes.md",
+      "Welcome to Sophia.md",
       INITIAL_WELCOME_NOTE,
     );
     return {

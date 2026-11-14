@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Image } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
-import { FolderPlus, FolderSimple, BookBookmark } from "phosphor-react-native";
+import { FolderPlus, FolderSimple } from "phosphor-react-native";
 import { useTheme } from "../theme";
 import { Text, Input, Button, Divider, Badge } from "../components/primitives";
 import { defaultVaultManager } from "./vaultManager";
@@ -75,17 +75,14 @@ export const FirstRunVaultScreen: React.FC<FirstRunVaultScreenProps> = ({
       contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
     >
       <View className="mb-8 items-center">
-        <View
-          className="w-14 h-14 rounded-base border items-center justify-center mb-4"
-          style={{
-            backgroundColor: tokens.color.bg.secondary,
-            borderColor: tokens.color.border.normal,
-          }}
-        >
-          <BookBookmark size={32} color={tokens.color.interactive.accent} />
-        </View>
+        <Image
+          source={require("../assets/sophia-icon.png")}
+          accessibilityLabel="Sophia owl logo"
+          style={{ width: 76, height: 76, marginBottom: 16 }}
+          resizeMode="contain"
+        />
         <Text variant="h1" color="normal" className="text-center mb-2">
-          DaVinci Notes
+          Sophia
         </Text>
         <Text variant="body" color="muted" className="text-center px-4">
           Local-first, lightweight, and fast. Your notes belong to you as plain

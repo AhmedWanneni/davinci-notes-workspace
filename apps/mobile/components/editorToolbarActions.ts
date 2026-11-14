@@ -53,12 +53,36 @@ export function executeToolbarAction(
       });
       break;
     }
+    case "h1": {
+      const line = view.state.doc.lineAt(from);
+      const text = line.text.replace(/^#{1,6}\s+/, "");
+      const insert = `# ${text}`;
+      view.dispatch({
+        changes: { from: line.from, to: line.to, insert },
+        selection: { anchor: line.from + insert.length },
+        scrollIntoView: true,
+      });
+      break;
+    }
+    case "h2": {
+      const line = view.state.doc.lineAt(from);
+      const text = line.text.replace(/^#{1,6}\s+/, "");
+      const insert = `## ${text}`;
+      view.dispatch({
+        changes: { from: line.from, to: line.to, insert },
+        selection: { anchor: line.from + insert.length },
+        scrollIntoView: true,
+      });
+      break;
+    }
+    case "h3":
     case "heading": {
       const line = view.state.doc.lineAt(from);
-      const insert = "### ";
+      const text = line.text.replace(/^#{1,6}\s+/, "");
+      const insert = `### ${text}`;
       view.dispatch({
-        changes: { from: line.from, to: line.from, insert },
-        selection: { anchor: from + insert.length },
+        changes: { from: line.from, to: line.to, insert },
+        selection: { anchor: line.from + insert.length },
         scrollIntoView: true,
       });
       break;

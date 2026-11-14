@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   TextInput as RNTextInput,
   View,
@@ -23,10 +23,13 @@ const SIZE_CONTAINER: Record<string, string> = {
   lg: "h-[48px] px-4",
 };
 
-export const Input = React.forwardRef<any, InputProps>(
+export const Input = React.forwardRef<
+  React.ElementRef<typeof RNTextInput>,
+  InputProps
+>(
   (
     {
-      variant = "default",
+      variant: _variant = "default",
       size = "md",
       prefix,
       suffix,
@@ -40,17 +43,9 @@ export const Input = React.forwardRef<any, InputProps>(
     ref,
   ) => {
     const { tokens } = useTheme();
-    const [isFocused, setIsFocused] = useState(false);
-    const isError = variant === "error";
-
-    const borderColor = isError
-      ? tokens.color.border["status-error"]
-      : isFocused
-        ? tokens.color.border.focus
-        : tokens.color.border.normal;
 
     const containerClasses = [
-      "flex-row items-center rounded-md border min-h-[44px]",
+      "flex-row items-center rounded-md min-h-[44px]",
       SIZE_CONTAINER[size] || SIZE_CONTAINER.md,
       disabled ? "opacity-50 pointer-events-none" : "",
       className,
@@ -63,7 +58,6 @@ export const Input = React.forwardRef<any, InputProps>(
         className={containerClasses}
         style={{
           backgroundColor: tokens.color.bg.secondary,
-          borderColor,
         }}
       >
         {prefix ? <View className="mr-2 flex-shrink-0">{prefix}</View> : null}
@@ -73,14 +67,8 @@ export const Input = React.forwardRef<any, InputProps>(
           placeholderTextColor={tokens.color.text.faint}
           className="flex-1 text-sm h-full py-0"
           style={[{ color: tokens.color.text.normal }, style]}
-          onFocus={(e) => {
-            setIsFocused(true);
-            onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setIsFocused(false);
-            onBlur?.(e);
-          }}
+          onFocus={onFocus}
+          onBlur={onBlur}
           {...props}
         />
         {suffix ? <View className="ml-2 flex-shrink-0">{suffix}</View> : null}

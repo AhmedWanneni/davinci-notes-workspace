@@ -4,8 +4,9 @@ import {
   type GestureResponderEvent,
   type ViewStyle,
 } from "react-native";
-import { mobileTokens } from "@app/design-tokens/mobile";
 import { useTheme } from "../../theme";
+
+const MIN_TOUCH_TARGET = 44;
 
 export interface IconButtonProps {
   icon: React.ReactNode;
@@ -52,10 +53,10 @@ export const IconButton = React.forwardRef<
     const isSm = size === "sm";
     const hitSlopValue = isSm
       ? {
-          top: Math.max(0, (mobileTokens.minTouchTarget - 36) / 2),
-          bottom: Math.max(0, (mobileTokens.minTouchTarget - 36) / 2),
-          left: Math.max(0, (mobileTokens.minTouchTarget - 36) / 2),
-          right: Math.max(0, (mobileTokens.minTouchTarget - 36) / 2),
+          top: Math.max(0, (MIN_TOUCH_TARGET - 36) / 2),
+          bottom: Math.max(0, (MIN_TOUCH_TARGET - 36) / 2),
+          left: Math.max(0, (MIN_TOUCH_TARGET - 36) / 2),
+          right: Math.max(0, (MIN_TOUCH_TARGET - 36) / 2),
         }
       : undefined;
 
@@ -75,29 +76,16 @@ export const IconButton = React.forwardRef<
       .join(" ");
 
     const dynamicStyles: ViewStyle = {
-      ...(variant === "primary"
-        ? {
-            backgroundColor: tokens.color.interactive.accent,
-            borderColor: "transparent",
-            borderWidth: 0,
-          }
-        : variant === "secondary"
-          ? {
-              backgroundColor: "transparent",
-              borderColor: tokens.color.border.normal,
-              borderWidth: 1,
-            }
-          : variant === "danger"
-            ? {
-                backgroundColor: "transparent",
-                borderColor: tokens.color.border["status-error"],
-                borderWidth: 1,
-              }
-            : {
-                backgroundColor: "transparent",
-                borderColor: "transparent",
-                borderWidth: 0,
-              }),
+      backgroundColor:
+        variant === "primary"
+          ? tokens.color.interactive.accent
+          : variant === "secondary"
+            ? tokens.color.bg.secondary
+            : variant === "danger"
+              ? tokens.color.bg["status-error"]
+              : "transparent",
+      borderColor: "transparent",
+      borderWidth: 0,
     };
 
     return (

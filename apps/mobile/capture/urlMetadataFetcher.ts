@@ -19,7 +19,7 @@ export async function fetchUrlMetadata(
 
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": "DaVinciNotes/1.0" },
+      headers: { "User-Agent": "SophiaMobile/1.0" },
     });
     clearTimeout(timeoutId);
 

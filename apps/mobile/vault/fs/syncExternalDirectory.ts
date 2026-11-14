@@ -33,8 +33,12 @@ export async function syncExternalDirectoryToSandbox(
             itemTarget,
           );
         } else if (info.exists) {
-          const content = await FileSystem.readAsStringAsync(itemSource);
-          await FileSystem.writeAsStringAsync(itemTarget, content);
+          const content = await FileSystem.readAsStringAsync(itemSource, {
+            encoding: FileSystem.EncodingType.UTF8,
+          });
+          await FileSystem.writeAsStringAsync(itemTarget, content, {
+            encoding: FileSystem.EncodingType.UTF8,
+          });
           copiedCount++;
         }
       } catch {

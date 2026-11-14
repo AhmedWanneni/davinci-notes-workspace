@@ -5,10 +5,12 @@ export function buildEditorInjectedScript(
   activePath: string,
   themeCss: string,
   hasMetricsHandler: boolean = false,
+  editorMode: "note" | "text" = "note",
 ): string {
   const encContent = JSON.stringify(encodePayload(content));
   const encPath = JSON.stringify(activePath);
   const encCss = JSON.stringify(themeCss ?? "");
+  const encMode = JSON.stringify(editorMode);
   const names = hasMetricsHandler
     ? "['onDocChanged', 'onFlushAck', 'onMetricsUpdate']"
     : "['onDocChanged', 'onFlushAck']";
@@ -21,7 +23,7 @@ export function buildEditorInjectedScript(
           EXPO_DOM_HOST_OS: 'android',
           initialProps: {
             names: ${names},
-            props: { initialContent: ${encContent}, notePath: ${encPath}, themeCss: ${encCss} }
+            props: { initialContent: ${encContent}, notePath: ${encPath}, themeCss: ${encCss}, editorMode: ${encMode} }
           }
         });
       };
@@ -29,7 +31,7 @@ export function buildEditorInjectedScript(
     window.$$EXPO_DOM_HOST_OS = window.$$EXPO_DOM_HOST_OS || 'android';
     window.$$EXPO_INITIAL_PROPS = window.$$EXPO_INITIAL_PROPS || {
       names: ${names},
-      props: { initialContent: ${encContent}, notePath: ${encPath}, themeCss: ${encCss} }
+      props: { initialContent: ${encContent}, notePath: ${encPath}, themeCss: ${encCss}, editorMode: ${encMode} }
     };
     true;
   `;

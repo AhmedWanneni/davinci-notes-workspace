@@ -126,7 +126,7 @@ export const VaultSwitcherSheet: React.FC<VaultSwitcherSheetProps> = ({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Vaults">
+    <Sheet visible={visible} onClose={onClose} title="Vaults" backgroundColor="#ffffff">
       <ScrollView className="max-h-96 px-2 py-2">
         {vaults.map((vault) => (
           <VaultSwitcherItem

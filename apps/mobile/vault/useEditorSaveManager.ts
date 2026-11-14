@@ -7,6 +7,7 @@ import {
   checkForExternalConflict,
 } from "./atomicNoteWriter";
 import { syncH1ToFilename } from "./h1SyncService";
+import { setLastEditedNote } from "./lastEditedNoteStorage";
 import { defaultVaultIndexer } from "../indexer";
 import type { DocChangeNotification } from "../src/bridgeProtocol";
 
@@ -86,20 +87,25 @@ export function useEditorSaveManager({
             return;
           }
 
+          // For a new unsaved note, do not write to disk until user actually types content
+          if (baseMtimeRef.current === 0 && newText.trim().length === 0) {
+            setSaveStatus("saved");
+            return;
+          }
+
           const stat = await atomicWriteNote(adapter, currentPath, newText);
           baseMtimeRef.current = stat.mtime;
           unsavedContentRef.current = null;
           setContent(newText);
           setSaveStatus("saved");
           setSaveError(null);
-          console.log(
-            `[editor] Saved to disk: ${currentPath} size=${stat.size} content=${JSON.stringify(newText)}`,
-          );
+          void setLastEditedNote(currentPath);
 
           const sync = await syncH1ToFilename(adapter, currentPath, newText);
           if (sync.renamed) {
             setActivePath(sync.newPath);
             defaultNoteStore.rename(currentPath, sync.newPath);
+            void setLastEditedNote(sync.newPath);
           } else {
             await defaultVaultIndexer.indexVault(adapter, false);
           }
@@ -142,7 +148,10 @@ export function useEditorSaveManager({
       const noteKey = noteId ?? pathRef.current;
       await defaultSaveQueue.enqueue(noteKey, async () => {});
 
-      if (unsavedContentRef.current !== null) {
+      if (
+        unsavedContentRef.current !== null &&
+        (baseMtimeRef.current !== 0 || unsavedContentRef.current.trim().length > 0)
+      ) {
         try {
           const { adapter } = await defaultVaultManager.getActiveAdapter();
           if (adapter) {
@@ -155,6 +164,7 @@ export function useEditorSaveManager({
               unsavedContentRef.current,
             );
             unsavedContentRef.current = null;
+            void setLastEditedNote(currentPath);
           }
         } catch (err) {
           console.warn("[editor] Fallback emergency save failed:", err);

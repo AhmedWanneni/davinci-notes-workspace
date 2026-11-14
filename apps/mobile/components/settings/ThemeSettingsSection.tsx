@@ -54,17 +54,11 @@ export function ThemeSettingsSection(): React.ReactElement {
   ];
 
   return (
-    <View
-      className="p-4 rounded-xl border mb-4"
-      style={{
-        backgroundColor: tokens.color.bg.secondary,
-        borderColor: tokens.color.border.subtle,
-      }}
-    >
-      <View className="flex-row items-center mb-3">
+    <View className="mb-6">
+      <View className="flex-row items-center mb-1">
         <View className="mr-2">
           <Palette
-            size={20}
+            size={18}
             color={tokens.color.interactive.accent}
             weight="bold"
           />
@@ -74,16 +68,15 @@ export function ThemeSettingsSection(): React.ReactElement {
         </Text>
       </View>
 
-      <Text variant="caption" color="muted" className="mb-3">
+      <Text variant="caption" color="muted" className="mb-4">
         Choose your interface color scheme and select an active theme.
       </Text>
 
       {/* Mode Selector */}
       <View
-        className="flex-row rounded-lg p-1 border mb-4"
+        className="flex-row rounded-lg p-1 mb-4"
         style={{
-          backgroundColor: tokens.color.bg.primary,
-          borderColor: tokens.color.border.subtle,
+          backgroundColor: tokens.color.bg.secondary,
         }}
       >
         {modes.map((m) => {
@@ -97,7 +90,7 @@ export function ThemeSettingsSection(): React.ReactElement {
               className="flex-1 flex-row items-center justify-center py-2 rounded-md"
               style={{
                 backgroundColor: isSelected
-                  ? tokens.color.bg.hover
+                  ? tokens.color.bg.primary
                   : "transparent",
               }}
             >
@@ -116,16 +109,10 @@ export function ThemeSettingsSection(): React.ReactElement {
 
       {/* Theme List */}
       <Text variant="caption" color="muted" className="mb-2">
-        Installed Built-in Themes
+        Installed Themes
       </Text>
 
-      <View
-        className="rounded-lg border overflow-hidden"
-        style={{
-          borderColor: tokens.color.border.subtle,
-          backgroundColor: tokens.color.bg.primary,
-        }}
-      >
+      <View>
         {Object.values(BUILTIN_THEMES).map((theme, index, arr) => {
           const isActive = activeThemeId === theme.id;
           const isLast = index === arr.length - 1;
@@ -136,7 +123,7 @@ export function ThemeSettingsSection(): React.ReactElement {
               onPress={() => void setTheme(theme.id)}
               accessibilityRole="button"
               accessibilityLabel={`Select theme ${theme.name}`}
-              className="flex-row items-center justify-between px-3 py-3"
+              className="flex-row items-center justify-between py-3 px-2 rounded-lg"
               style={{
                 borderBottomWidth: isLast ? 0 : 1,
                 borderBottomColor: tokens.color.border.subtle,
@@ -147,7 +134,7 @@ export function ThemeSettingsSection(): React.ReactElement {
             >
               <View className="flex-row items-center flex-1 mr-2">
                 <View
-                  className="w-4 h-4 rounded-full mr-2.5 border"
+                  className="w-4 h-4 rounded-full mr-3 border"
                   style={{
                     backgroundColor: theme.color.bg.primary,
                     borderColor: theme.color.border.normal,
